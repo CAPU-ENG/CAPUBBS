@@ -1,0 +1,410 @@
+body{
+/* 	background-image: url("../lib/bg.png"); */
+/* 	margin: 0; */
+	background-image: url("../lib/bg.jpg");
+	background-position: center top;
+	background-repeat: no-repeat;
+	background-color: #ABC9B6;
+}
+img.decorator{
+	width: 17px;
+	position: relative;
+	top: 4px;
+}
+td{
+	border-top-style: dotted;
+	border-top-width: 1px;
+	border-top-color: transparent;
+	text-align: center;
+}
+tr.content{
+	-webkit-transition: background-color 0.2s;
+	-moz-transition: background-color 0.2s;
+	-ms-transition: background-color 0.2s;
+	-o-transition: background-color 0.2s;
+/* 	background-color: rgba(255,255,255,0.57); */
+	border-bottom: 1px solid rgba(255,255,255,0.29);
+	height: 40px;
+}
+tr.odd{
+	background-color: rgba(255,255,255,0.67);
+}
+tr.even{
+	background-color: rgba(255,255,255,0.57);
+}
+tr.content:hover{
+	
+}
+tr.head{
+	height: 30px;
+}
+table.main{
+	border-style: solid;
+	border-width: 0px;
+	border-color: #FFFFFF;
+	width: 80%;
+	margin-left: 10%;
+	border-collapse: collapse;
+	-webkit-transition: width,0.5s;
+}
+a{
+	text-decoration: none;
+	color: #5c7084;
+}
+a:hover{
+	text-decoration: underline;
+}
+span.date{
+	color: #aaaaaa;
+	font-size: 12px;
+}
+div.header{
+	width: 80%;
+	height: 200px;
+	margin-left: 10%;
+}
+div.pagecontrol{
+	margin-left: 10%;
+	width: 80%;
+}
+a.page{
+	padding: 5px;
+}
+span.page{
+	padding: 5px;
+	color: #990000;
+}
+a.page:hover{
+	text-decoration: underline;
+}
+div.footer{
+	height: 100px;
+	width: 80%;
+	margin-left: 10%;
+}
+div.user{
+	float: right;
+	margin-top: 20px;
+}
+span.guest{
+	position: relative;
+	top: 40px;
+}
+img.usericon{
+	-webkit-box-shadow: 0 1px 10px rgba(0, 0, 0, 0.3), 0 0 60px rgba(0, 0, 0, 0.1) inset;
+	-moz-box-shadow: 0 1px 10px rgba(0, 0, 0, 0.3), 0 0 40px rgba(0, 0, 0, 0.1) inset;
+	box-shadow: 0 1px 10px rgba(0, 0, 0, 0.3), 0 0 40px rgba(0, 0, 0, 0.1) inset;
+	width: 64px;
+	height: 64px;
+	background-color: white;
+	border: 3px solid white;
+	float: left;
+}
+div.userinfo{
+	float: left;
+	margin-left: 25px;
+	font-size: 13px;
+	line-height: 24px;
+	margin-top: 0px;
+}
+div.editor{
+	width: 800px;
+	margin-left: auto;
+	margin-right: auto;
+  	height: 500px;  
+  	margin-top: 100px;
+}
+div#edi_content{
+	width: 782px;
+	min-height: 380px;
+	background-color: white;
+	border-bottom-left-radius: 10px;
+	border-bottom-right-radius: 10px;
+	box-shadow: 0px 0px 9px rgba(0,0,0,0.47) inset;
+	padding: 10px;
+	outline:none;
+}
+div#edi_bar{
+	width: 800px;
+	margin-top: 10px;
+}
+div#edi_submit{
+	background-image: url("bt_reply.png");
+	background-size: 100%,100%;
+	background-repeat: no-repeat;
+	width: 100px;
+	height: 40px;
+	color: white;
+	font-size: 15px;
+	text-align: center;
+	line-height: 20px;
+	padding-top: 5px;
+	float: left;
+	cursor: pointer;
+}
+input.title{
+	width: 100%;
+	height: 24px;
+	border-radius: 10px;
+	outline: none;
+	padding-left: 10px;
+}
+div.navigation{
+	height: 50px;
+	margin-top: 40px;
+	margin-left: 10%;
+	line-height: 40px;
+	font-size: 16px;
+	color: #676767;
+	font-size: 15px;
+}
+div.navigation a{
+	color: #676767;
+	text-decoration: underline;
+}
+div.back{
+	background-image: url("back.png");
+	background-repeat: no-repeat;
+	background-size: 100%,100%;
+	width: 80px;
+	height: 50px;
+	line-height: 38px;
+	float: left;
+	color: white;
+	cursor: pointer;
+}
+div.popover {
+	position: absolute; /* 因为需要绝对定位子元素（这里就是伪元素），所以需要将其设置为相对对位 */ 
+	background-color: white;  
+	width: 100px;  
+	padding-top: 15px;
+	left: -24px;
+	box-shadow: 0px 0px 15px rgba(0,0,0,0.53);
+	z-index: 1000;
+	display: none;
+}
+
+div.popover::before {
+	position: absolute; /* 绝对定位 */ 
+	content:' '; /* 伪元素需要有个content，这里设了一个空格占位 */ 
+	-webkit-transform: rotate(45deg); /* 旋转45度 */ 
+	left: 49px; /* 把这个小尖尖突出来 */ 
+	top: -10px; /* 往下挪一点点 */ 
+	width: 20px; /* 20x20的一个元素 */ 
+	height: 20px;  
+	background-color: white;
+}
+
+table.popover{
+	width: 100%;
+	border-collapse: collapse;
+}
+table.popover tr{
+	cursor: pointer;
+	height: 35px;
+	text-align: center;
+}
+table.popover tr:hover{
+	background-color: #60abff;
+	color: white;
+}
+div#edi_attach{
+	background-image: -webkit-linear-gradient(#76caff 0%, #1d9eff 100%);
+	background-color: #1d9eff;
+	background-size: 100%,100%;
+	background-repeat: no-repeat;
+	width: 100px;
+	height: 24px;
+	color: white;
+	border-radius: 10px;
+	font-size: 15px;
+	text-align: center;
+	line-height: 20px;
+	padding-top: 5px;
+	float: right;
+	cursor: pointer;
+	-webkit-transition: background-image 0.2s,background-color 0.2s;
+}
+div#edi_attach:hover{
+	background-image: -webkit-linear-gradient(#98ecff 0%, #3fafff 100%);
+	background-color: #3fafff;
+}
+#overlay{
+     display: none;
+     position: fixed;
+     left: 0px;
+     top: 0px;
+     width:100%;
+     height:100%;
+     text-align:center;
+     z-index: 1000; 
+     background-color:#333;
+     filter: alpha(opacity=80); /*ie支持的半透明，下面两名为ff支持的*/
+     -moz-opacity: 0.8;
+     opacity:.80;
+}
+/*外层的显示区*/
+#overlay div {
+     width:400px;
+     margin: 100px auto;
+     background-color: #FFFFFF;
+     border:1px solid #000;
+     padding:20px;
+     text-align:center;
+     border-radius: 10px;
+}
+#boardselector{
+     display: none;
+     position: fixed;
+     left: 0px;
+     top: 0px;
+     width:100%;
+     height:100%;
+     text-align:center;
+     z-index: 1000; 
+     background-color:#333;
+     filter: alpha(opacity=80); /*ie支持的半透明，下面两名为ff支持的*/
+     -moz-opacity: 0.8;
+     opacity:0;
+}
+
+span.tip{
+	font-size: 10px;
+}
+#progress{
+	margin-left: 30px;
+	margin-top: 10px;
+	width: 200px;
+	visibility: hidden;
+}
+div.attachs,div.attachsdark{
+	margin-top: 20px;
+	border-radius: 10px;
+	overflow: hidden;
+}
+div.attachs{
+	width:100%;
+	border: 3px dashed white;	
+}
+div.attachsdark{
+	width:95%;
+	margin-left: auto;
+	margin-right: auto;
+	border: 3px dashed #dfdfdf;	
+	margin-bottom: 20px;
+}
+div.attach,div.attachdark{
+	overflow: hidden;
+	float: left;
+	margin: 20px;
+	position: relative;
+	padding: 10px;
+	border-radius: 14px;
+	-webkit-transition: background-color 0.2s;
+}
+div.attachdark{
+	cursor: pointer;
+}
+div.attach:hover{
+	background-color: white;
+}
+div.attachdark:hover{
+	background-color: #dfdfdf;
+}
+div.attach a{
+	text-decoration: none;
+	color: #6d90ee;	
+}
+div.attach a:hover{
+	text-decoration: underline;
+}
+img.fileicon{
+	height: 60px;
+	float: left;
+}
+div.fileinfo{
+	float: left;
+	padding-top: 5px;
+	padding-left: 10px;
+}
+span.filename{
+	line-height: 18px;
+	font-size: 13px;
+}
+span.sub{
+	color: #777777;
+	font-size: 12px;
+	line-height: 16px;
+}
+span#attachtipdark{
+	margin-left: 15px;
+	color: #898989;
+}
+div.editip{
+	width: 100%;
+	text-align: center;
+	height: 100px;
+	line-height: 100px;
+	margin-top: 20px;
+	margin-bottom: 20px;
+	color: #787878;
+}
+span.editip{
+	color: #6d706e;	
+}
+span.editip a{
+	text-decoration: none;
+	color: #6d90ee;	
+}
+table.bts{
+	border: none;
+	-webkit-transition: left,0.5s;
+	position: absolute;
+	top: 0;
+	border-collapse: collapse;
+	left:100%;
+}
+
+div.mainandbts{
+	width: 100%;
+	position: relative;
+	overflow: hidden;
+}
+div.aboard{
+	width: 150px;
+	height: 120px;
+	background-color: white;
+	color: #808382;
+	position: absolute;
+	opacity: 0;
+	line-height: 120px;
+	font-size: 17px;
+	box-shadow: 0 1px 14px rgba(0, 0, 0, 0.3), 0 0 40px rgba(0, 0, 0, 0.3) inset;
+	-webkit-transition: background-color 0.3s;
+	cursor: pointer;
+}
+div.aboard:hover{
+	background-color: #35c9ff;
+}
+.searchArea{
+	width: 80%;
+	margin-left: 10%;
+	margin-top: 10px;
+	margin-bottom: 16px;
+	position: relative;
+}
+.searchArea input.search{
+	background-color: #E9EBF2;
+	border-radius: 10px;
+	outline: none;
+	padding-left: 20px;
+	height: 20px;
+}
+div.searchLogo{
+	width: 15px;
+	height: 15px;
+	position: absolute;
+	left: 10px;
+	top: 14px;
+	background-image:url('data:image/svg+xml;base64,PHN2ZyB2ZXJzaW9uPSIxLjEiIGJhc2VQcm9maWxlPSJmdWxsIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHhtbG5zOnhsaW5rPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5L3hsaW5rIiB4bWxuczpldj0iaHR0cDovL3d3dy53My5vcmcvMjAwMS94bWwtZXZlbnRzIj4KPGc%2BCgk8cG9seWdvbiBmaWxsPSIjNjY2IiBwb2ludHM9IjkuMjA3LDYuMTI2IDcuNzkzLDcuNTQxIDExLjc5MywxMS41NDEgMTMuMjA3LDEwLjEyNiIgLz4KCTxwYXRoIGZpbGw9IiM2NjYiIGQ9Ik01LjkxNywyYzEuNjA4LDAsMi45MTcsMS4zMDgsMi45MTcsMi45MTdTNy41MjUsNy44MzMsNS45MTcsNy44MzNTMyw2LjUyNSwzLDQuOTE3UzQuMzA4LDIsNS45MTcsMgoJCSBNNS45MTcsMEMzLjIwMSwwLDEsMi4yMDEsMSw0LjkxN3MyLjIwMSw0LjkxNyw0LjkxNyw0LjkxN3M0LjkxNy0yLjIwMSw0LjkxNy00LjkxN0MxMC44MzMsMi4yMDEsOC42MzIsMCw1LjkxNywwTDUuOTE3LDB6IiAvPgo8L2c%2BCjwvc3ZnPgo%3D');
+}

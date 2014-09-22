@@ -1,0 +1,11 @@
+<?php
+	include("../lib/mainfunc.php");
+	$target=$_POST['target'];
+	$text=$_POST["text"];
+	$result=mainfunc(array(
+		"ask"=>"sendmsg",
+		"to"=>$target,
+		"text"=>$text));
+	$result=$result[0];
+	echo(json_encode($result));
+?>
