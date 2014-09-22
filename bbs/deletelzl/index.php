@@ -1,0 +1,12 @@
+<?php
+	include("../lib/mainfunc.php");
+	$lzlid=$_POST['id'];
+	$fid=$_POST['fid'];
+	$result=mainfunc(array(
+		"ask"=>"lzl",
+		"method"=>"delete",
+		"fid"=>$fid,
+		"lzlid"=>$lzlid));
+	$result=$result[0];
+	echo(json_encode($result));
+?>
