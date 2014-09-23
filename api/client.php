@@ -7,16 +7,20 @@
 
 	$ask=@$_REQUEST['ask'];
 	if ($ask=="show") show();
-	if ($ask=="post") post();
-	if ($ask=="login") login();
-	if ($ask=="main") seemain();
-	if ($ask=="register") register();
-	if ($ask=="delete") del();
-	if ($ask=="image") uploadimage();
-	if ($ask=="file") uploadfile();
-	if ($ask=="lzl") lzl();
-	if ($ask=="search") search();
-	if ($ask=="action") action();
+	else if ($ask=="post") post();
+	else if ($ask=="login") login();
+	else if ($ask=="main") seemain();
+	else if ($ask=="register") register();
+	else if ($ask=="delete") del();
+	else if ($ask=="image") uploadimage();
+	else if ($ask=="file") uploadfile();
+	else if ($ask=="lzl") lzl();
+	else if ($ask=="search") search();
+	else if ($ask=="action") action();
+	else {
+		echo '<capu><info><code>14</code><msg>ask错误。</msg></info></capu>';
+		exit;
+	}
 
 	function request($posts) {
 		$token=@$_POST['token'];
@@ -237,7 +241,7 @@
 		$intro=@$_POST['intro'];
 		$sig1=@$_POST['sig'];
 
-		$number=@$_POST['number'];
+		$code=@$_POST['code'];
 		
 		if ($number=="") {
 			echo '<capu><info><code>11</code><msg>无效的会员号。</msg></info></capu>';
