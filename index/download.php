@@ -17,7 +17,7 @@
 <?php
 	$con=mysql_connect("localhost","root","19951025");
 	mysql_query("SET NAMES 'UTF8'");
-	$statement="select * from capubbs.downloads order by id desc limit 0,10";
+	$statement="select * from capubbs.downloads where name!='' order by id desc limit 0,10";
 	$results=mysql_query($statement,$con);
 	$id=0;
 	$num=mysql_num_rows($results);
