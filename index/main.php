@@ -403,7 +403,7 @@ echo '      </div>';
 echo '      <div class="modal-body" style="background:black">';
 echo '    	<video id="video_'.$i.'" src="'.$video[$i].'" poster="'.$video_poster[$i].'" controls="controls" preload="none" width="640" height="360" aria-describedby="full-descript">';
 echo '	  <p class="text-center"><b>很遗憾，你的浏览器不支持视频播放:（<br>请换用 IE9+/chrome/safari 观看视频，或者直接下载高清版观看。</b></p></video></div>';echo '    <div class="modal-footer">';
-echo '        <a id="video_src_'.$i.'" src="'.$video_link[$i].'" target="_blank" type="button" class="btn btn-primary">下载高清版观看</a>';
+echo '        <a id="video_src_'.$i.'" href="'.$video_link[$i].'" target="_blank" type="button" class="btn btn-primary">下载高清版观看</a>';
 echo '        <button type="button" class="btn btn-default" onclick="closevideo('."'$i'".')">关闭</button></div> </div></div></div>';
 echo "\n";
 }
