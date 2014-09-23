@@ -200,6 +200,7 @@
 		$os=@$_POST['os'];
 		if ($os=="") $os="android";
 		$system=@$_POST['device'];
+		if ($os=="ios") $system=packiOSDevice($system);
 		$version=@$_POST['version'];
 		$system=$system."#".$version;
 
@@ -222,12 +223,24 @@
 		echo '</code><token>'.$token.'</token><msg>'.@$result['msg'].'</msg></info></capu>';
 		exit;
 	}
+	
+	function packiOSDevice($raw) {
+		$info=file_get_contents("deviceinfo.txt");
+		$infos=explode("\n",$info);
+		$count=count($infos);
+		for ($i=0;$i<$count;$i++) {
+			$data=explode("#",$infos[$i]);
+			if ($data[0]==$raw) return $data[1];
+		}
+		return $raw;
+	}
 
 	function register() {
 	
 		$os=@$_POST['os'];
 		if ($os=="") $os="android";
 		$system=@$_POST['device'];
+		if ($os=="ios") $system=packiOSDevice($system);
 		$version=@$_POST['version'];
 		$system=$system."#".$version;
 
