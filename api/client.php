@@ -243,7 +243,7 @@
 
 		$code=@$_POST['code'];
 		
-		if ($number=="") {
+		if ($code=="") {
 			echo '<capu><info><code>11</code><msg>无效的会员号。</msg></info></capu>';
 			exit;
 
@@ -254,6 +254,7 @@
 		$results=request(array("ask"=>"register",
 			"username"=>$username,
 			"password"=>$password,
+			"code"=>$code,
 			"sex"=>$sex,
 			"qq"=>$qq,
 			"mail"=>$mail,
