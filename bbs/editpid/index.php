@@ -288,7 +288,7 @@ span.tip{
 		document.getElementById("edi_attach").style.visibility="hidden";
 	}
 </script>
-<script type="text/javascript" src="../lib/nicEditor.js"></script>
+<script type="text/javascript" src="../lib/nic.js"></script>
 <script type="text/javascript">
 var myNicEditor = new nicEditor({fullPanel : true});
 myNicEditor.setPanel('edi_bar');
