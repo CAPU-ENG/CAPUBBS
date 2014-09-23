@@ -12,6 +12,16 @@
 <link rel="stylesheet" href="style.css">
 <link rel="shortcut icon" href="/assets/images/capu.jpg">
 <script src="../lib/jquery.min.js"></script>
+<?php
+	$agent=@$_SERVER['HTTP_USER_AGENT'];
+	if (preg_match("/Android 4/",$agent)) {
+		echo '<script>';
+		echo 'if (confirm("请下载CAPUBBS安卓客户端，获得更好的浏览论坛的体验。"))';
+		echo '{ window.location="/index/download_file.php?d=13"; }';
+		echo '</script>';
+	}
+
+?>
 </head>
 <body>
 <div class="head">
