@@ -7,7 +7,7 @@
 <style type="text/css">
 body{
 	background-image: url("../lib/bg.jpg");
-	background-position: center -80px;
+	background-position: center top;
 	background-color: #AACAB4;
 	background-repeat: no-repeat;
 }
