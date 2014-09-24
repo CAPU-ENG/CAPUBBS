@@ -1036,7 +1036,7 @@
 	}
 	
 	function userexists($con){
-		$user=$_GET['user'];
+		$user=mysql_real_escape_string(@$_REQUEST['user']);
 		if(strstr($user, "'")!="") $code= 2;
 		else{
 			$statement="select * from userinfo where username='$user' limit 1";
@@ -1204,11 +1204,7 @@ while ($res=mysql_fetch_array($result)) {
 			if($username==$ainfo['uploader']){
 				$isAuthor=true;
 			}else{
-				$statement="select * from purchaserecord where username='$username' and aid=$id limit 1";
-				$rows=mysql_num_rows(mysql_query($statement,$con));
-				if($rows!=0){
-					$haspurchased=true;
-				}
+				$haspurchased=false;
 			}
 		}
 		$statement="";
@@ -1493,11 +1489,11 @@ while ($res=mysql_fetch_array($result)) {
 		if(!$result){
 			report(1,"会话超时，请重新<a href='../login'>登录</a>");
 		}
-		$oldpsd=@$_POST['old'];
+		$oldpsd=@$_REQUEST['old'];
 		if(strtoupper($result['password'])!=strtoupper($oldpsd)){
 			report(2,"旧密码不正确，请重新输入");
 		}
-		$newpsd=@$_POST['new'];
+		$newpsd=@$_REQUEST['new'];
 
 		$newtoken=md5($oldpsd.$nowtime);
 		$statement="update userinfo set password='$newpsd',token='$newtoken' where token='$token' limit 1";

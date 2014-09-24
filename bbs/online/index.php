@@ -101,6 +101,27 @@ a:hover#top{font-weight:bold}
 		if (preg_match('/linux/i', $u_agent)) {
 			if(preg_match('/android/i', $u_agent)){
 				$platform = 'Android';
+				if (preg_match('/Android 4.4.4/',$u_agent))
+					$platform.=" 4.4.4";
+				else if (preg_match('/Android 4.4.3/',$u_agent))
+					$platform.=" 4.4.3";
+				else if (preg_match('/Android 4.4/',$u_agent))
+					$platform.=" 4.4+";
+				else if (preg_match('/Android 4.3/',$u_agent))
+					$platform.=" 4.3+";
+				else if (preg_match('/Android 4.2.2/',$u_agent))
+					$platform.=" 4.2.2";
+				else if (preg_match('/Android 4.2/',$u_agent))
+					$platform.=" 4.2+";
+				else if (preg_match('/Android 4.1.2/',$u_agent))
+					$platform.=" 4.1.2";
+				else if (preg_match('/Android 4.1/',$u_agent))
+					$platform.=" 4.1+";
+				else if (preg_match('/Android 4.0.3/',$u_agent))
+					$platform.=" 4.0.3";
+				else if (preg_match('/Android 4.0/',$u_agent))
+					$platform.=" 4.0";
+					
 			}else{
 				$platform = 'linux';
 			}
@@ -170,6 +191,7 @@ a:hover#top{font-weight:bold}
 		}
     
 		$i = count($matches['browser']);
+		if ($ub!="MSIE" && $version!="11") {
 		if ($i != 1) {
 			if (strripos($u_agent,"Version") < strripos($u_agent,$ub)){
 			$version= $matches['version'][0];
@@ -181,7 +203,7 @@ a:hover#top{font-weight:bold}
 		else {
 			$version= $matches['version'][0];
 		}
-    
+    		}
 		if ($version==null || $version=="") {$version="?";}
 		return array(
 			'userAgent' => $u_agent,
