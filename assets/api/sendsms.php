@@ -7,7 +7,7 @@
 		$a=checkuser();
 		$username=$a[0];
 		if ($username=="") {echo '-15';exit;}
-		$con=mysql_query("localhost","root","19951025");
+		$con=mysql_connect("localhost","root","19951025");
 		mysql_query("SET NAMES 'UTF8'");
 		$time=time();
 		$statement="select number from capubbs.sms where username='$username' && $time-timestamp<1800";
@@ -17,6 +17,7 @@
 		}
 		$ip=@$_SERVER['REMOTE_ADDR'];
 		$statement="insert into capubbs.sms values (null,'$username','$phone','$text','$ip',$time)";
+		mysql_query($statement,$con);
 		writelog("[SMS send to $phone] $text\n");
 	}
 

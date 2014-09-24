@@ -5,7 +5,7 @@
 <link href="/assets/css/style.css" rel="stylesheet">
 <script src="/assets/js/jquery.min.js"></script>
 <script src="/assets/js/bootstrap.min.js"></script>
-<script src="/assets/js/borrow.js"></script>
+<script src="/assets/js/self-borrow.js"></script>
 <?php
 	require '../assets/api/checkuser.php';
 	$res=checkuser();

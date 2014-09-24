@@ -46,7 +46,7 @@
 		echo '<capu>'."\n";	
 		
 		$count=count($results);
-		if ($count==0) {echo '</capu>';exit;}
+		if ($count==0) {echo '<info><code>1</code><msg>帖子不存在。</msg></info></capu>';exit;}
 		if (intval($id)==1 && @$_POST['token']=="") {
 			echo '<info><code>11</code><msg>您需要登录后才能查看此版面内容。</msg></info></capu>';
 			exit;
@@ -94,12 +94,12 @@
 		echo "<bid>$bid</bid>\n";
 		echo "<author><![CDATA[".$content['author']."]]></author>\n";
 		echo "<title><![CDATA[".$title."]]></title>\n";
-		echo "<text><![CDATA[".translate($content['text'],$content['ishtml'])."]]></text>\n";
-		echo "<floor>".$content['pid']."</floor>\n";
+		echo "<text><![CDATA[".translate(@$content['text'],@$content['ishtml'])."]]></text>\n";
+		echo "<floor>".@$content['pid']."</floor>\n";
 		echo "<tid>$tid</tid>\n";
-		echo "<fid>".$content['fid']."</fid>\n";
-		echo "<lzl>".$content['lzl']."</lzl>\n";
-		echo "<time>".date("Y-m-d H:i:s",$content['updatetime'])."</time>";
+		echo "<fid>".@$content['fid']."</fid>\n";
+		echo "<lzl>".@$content['lzl']."</lzl>\n";
+		echo "<time>".date("Y-m-d H:i:s",@$content['updatetime'])."</time>";
 		
 	}
 
@@ -200,7 +200,7 @@
 		$os=@$_POST['os'];
 		if ($os=="") $os="android";
 		$system=@$_POST['device'];
-		if ($os=="ios") $system=packiOSDevice($system);
+		if($os=="ios") $system=packiOSDevice($system);
 		$version=@$_POST['version'];
 		$system=$system."#".$version;
 
@@ -223,24 +223,22 @@
 		echo '</code><token>'.$token.'</token><msg>'.@$result['msg'].'</msg></info></capu>';
 		exit;
 	}
-	
-	function packiOSDevice($raw) {
+
+	function packiOSDevice($raw){
 		$info=file_get_contents("deviceinfo.txt");
 		$infos=explode("\n",$info);
-		$count=count($infos);
-		for ($i=0;$i<$count;$i++) {
+		for($i=0;$i<count($infos);$i++){
 			$data=explode("#",$infos[$i]);
-			if ($data[0]==$raw) return $data[1];
+			if($data[0]==$raw) return $data[1];
 		}
 		return $raw;
 	}
-
 	function register() {
 	
 		$os=@$_POST['os'];
 		if ($os=="") $os="android";
 		$system=@$_POST['device'];
-		if ($os=="ios") $system=packiOSDevice($system);
+		if($os=="ios") $system=packiOSDevice($system);
 		$version=@$_POST['version'];
 		$system=$system."#".$version;
 
@@ -257,7 +255,7 @@
 		$code=@$_POST['code'];
 		
 		if ($code=="") {
-			echo '<capu><info><code>11</code><msg>无效的会员号。</msg></info></capu>';
+			echo '<capu><info><code>11</code><msg>无效的注册号。</msg></info></capu>';
 			exit;
 
 		}
@@ -300,6 +298,12 @@
 		echo '<updatetext><![CDATA['.$results[2].']]></updatetext>';
 		echo '<updateurl><![CDATA['.$results[3].']]></updateurl>';
 		echo '<updatetime><![CDATA['.$results[4].']]></updatetime>';
+		$statement="select * from capubbs.mainpage where id=-3";
+		$results=mysql_query($statement,$con);
+		$results=mysql_fetch_row($results);
+		echo '<iostext><![CDATA['.$results[2].']]></iostext>';
+		echo '<iosurl><![CDATA['.$results[3].']]></iosurl>';
+		echo '<iosversion><![CDATA['.$results[4].']]></iosversion>';
 		echo '</info>'."\n";
 		$statement="select * from capubbs.mainpage where id=1 order by number desc limit 0,6";
 		$results=mysql_query($statement,$con);
@@ -538,3 +542,4 @@
 }
 		function href($link,$href) {return "<a href='$link'>$href</a>";}
 ?>
+

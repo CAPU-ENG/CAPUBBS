@@ -253,47 +253,38 @@ echo '
         <h4 class="modal-title">修改日历</h4>
       </div>
       <div class="modal-body">
-        <p><select id="year" onchange="loadcalendar">
-		<script>
-			var d=new Date();
-			var nowyear=d.getFullYear();
-			for (var i=2014;i<=nowyear+1;i++)
+        <p><select id="year" onchange="loadcalendar()">
+		<?php
+			$today=intval(date("Y",time()));
+			for ($i=2014;$i<=$today+1;$i++)
 			{
-				var x="";if (i==nowyear) x=" selected";
-				document.write("<option value="+i+x+">"+i+"</option>");
+				$x="";if ($i==$today) $x=" selected";
+				echo "<option value='$i'$x>$i</option>";
 			}
-		</script>
+		?>
 	   </select>&nbsp;&nbsp;
 	   <select id="month" onchange="loadcalendar();">
-		<script>
-                        var d=new Date();
-                        var nowmonth=d.getMonth()+1;
-                        for (var i=1;i<=12;i++)
-                        {
-                                var x="";if (i==nowmonth) x=" selected";
-				var z=""+i;if (i<10) z="0"+z;
-                                document.write("<option value="+z+x+">"+z+"</option>");
-                        }
-                </script>
+		<?php
+			$today=intval(date("m",time()));
+			for ($i=1;$i<=12;$i++)
+			{
+				$j=$i;
+				if ($j<10) $j="0".$j;
+				$x="";if ($i==$today) $x=" selected";
+				echo "<option value='$j'$x>$j</option>";
+			}
+		?>
 	   </select>&nbsp;&nbsp;<select id="day" onchange="loadcalendar();">
-		<script>
-                        var d=new Date();
-                        var nowdate=d.getDate();
-			var nowmonth=d.getMonth()+1;
-			var nowyear=d.getFullYear();
-			var days=31;
-			if (nowmonth==4 || nowmonth==6 || nowmonth==9 || nowmonth==11) days=30;
-                        if (nowmonth==2) {
-                                if (nowyear%4!=0 || (nowyear%100==0 && nowyear%400!=0)) days=28;
-                                else days=29;
-                        }
-                        for (var i=1;i<=days;i++)
-                        {
-                                var x="";if (i==nowdate) x=" selected";
-                                var z=""+i;if (i<10) z="0"+z;
-                                document.write("<option value="+z+x+">"+z+"</option>");
-                        }
-                </script>
+		<?php
+			$today=intval(date("d",time()));
+			for ($i=1;$i<32;$i++)
+			{
+				$j=$i;
+				if ($j<10) $j="0".$j;
+				$x="";if ($i==$today) $x=" selected";
+				echo "<option value='$j'$x>$j</option>";
+			}
+		?>
 	   </select></p>
 		<div id="calendar_list"></div>
 	<div class="alert alert-danger" id="alert_error" style="display:none">

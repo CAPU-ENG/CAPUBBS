@@ -5,7 +5,7 @@ $(document).ready(function() {
                 captionOpacity: 0.6
         });
         $("#calendar").eventCalendar({
-                eventsjson: '/assets/api/getCalender.php',
+                eventsjson: '/assets/api/getCalendar.php',
                 eventsLimit: 4,
                 jsonDateFormat: 'human',
                 showDescription: true
