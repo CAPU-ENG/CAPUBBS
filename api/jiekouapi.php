@@ -1516,7 +1516,7 @@ while ($res=mysql_fetch_array($result)) {
 		$todays=mysql_query($statement,$con);
 		echo '<capu>';
 		while (($res=mysql_fetch_row($todays))!=null) {
-			echo '<info><![CDATA['.$res[0].']]></info>'."\n";
+			echo '<info><username><![CDATA['.$res[0].']]></username></info>'."\n";
 		}
 		echo '</capu>';
 		exit;
