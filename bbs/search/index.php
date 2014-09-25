@@ -119,8 +119,8 @@ div.searchLogo{
 <h2 align="center";>搜索结果（只显示前100条）</h2>
 <ul>
 <?php
-if(count(@$result)==0){
-	echo("未找到相关结果");
+if($result==null || count(@$result)==0){
+	echo("<b>未找到相关结果</b>");
 }
 else if($type=="post"){
 	foreach($result as $value){

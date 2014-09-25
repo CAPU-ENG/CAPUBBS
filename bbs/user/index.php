@@ -3,6 +3,11 @@
 	$user=@$_GET['name'];
 	if ($user=="") exit;
 	$userinfo=mainfunc(array("view"=>$user));
+	if (count($userinfo)==0) {
+		header("Content-type: text/html;charset='utf8'");
+		echo '用户不存在！';
+		exit;
+	}
 	$userinfo=$userinfo[0];
 ?>
 <html>

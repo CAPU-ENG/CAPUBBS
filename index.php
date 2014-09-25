@@ -9,12 +9,11 @@
 	require 'assets/api/checkuser.php';
 	$res=checkuser();
 	$username=$res[0];$rights=$res[1];
-	if ($username==null) $username="";
 	if ($username=="" && @$_COOKIE['token']) {
 		date_default_timezone_set("Asia/Shanghai");
 		$time=time()-999999;
 		$date=date("D, d M Y H:i:s",$time)." GMT";
-		header('Set-cookie: token='.$result['token'].'; expires='.$date.'; path=/'."\n");
+		header('Set-cookie: token=invalid; expires='.$date.'; path=/'."\n");
 	}
 
 ?>

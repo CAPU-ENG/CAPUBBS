@@ -16,7 +16,7 @@
 	echo "签到统计 ($year-$month-$day)：\n";
 	$num=count($today);
 	for ($i=0;$i<$num;$i++) {
-		echo '#'.($i+1).": ".$today[$i][0]."\n";
+		echo '#'.($i+1).": ".$today[$i]['username']."\n";
 	}
 	echo "\n\n";
 
