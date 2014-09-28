@@ -226,7 +226,7 @@
   <div class="form-group">
     <label class="col-md-3 control-label">日常招新负责</label>
     <div class="col-md-9">
-      <p class="form-control-static">夏天。 (15650715256)</p>
+      <p class="form-control-static">抹茶 (15652204418)</p>
     </div>
   </div>
 

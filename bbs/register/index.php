@@ -209,7 +209,8 @@ div.icon:hover{
 <tr><td class="left">&nbsp;</td><td><a href="../content/?bid=2&tid=6205" target='_blank'>如何才能起一个好的ID？</a></td><td class="right">&nbsp;</td></tr>
 <tr><td class="left">密码*：</td><td><input type="password" name="password" placeholder="至少6位密码" id="psd" maxlength="18" oninput ="checkPsdStrength();"><input type="hidden" name="password1" id="psd1"></td><td class="right"><div id="strength"><span id="psdstr" class="tip"></span><div id="content"></div></div></td></tr>
 <tr><td class="left">确认密码*：</td><td><input type="password" name="password2" placeholder="请重复输入密码" id="psd2" oninput ="checkPsd2();"></td><td class="right"><img id="confirm_psd" src="ok.png" class="confirm"></td></tr>
-<tr><td class="left">序列号*：</td><td><input type="text" name="code" placeholder="请输入会员证上的序列号" id="code"></td><td class="right"></td></tr>
+<tr><td class="left">注册码*：</td><td><input type="text" name="code" placeholder="请输入会员证上的注册码" id="code"></td><td class="right"></td></tr>
+<tr><td class="left">&nbsp;</td><td colspan="2" style="color:red">若遗失或有疑问，请邮件联系<a href="mailto:capubbs@qq.com">capubbs@qq.com</a></td></tr>
 <tr><td colspan="3">&nbsp;</td></tr>
 <tr><td class="left">性别*：</td><td>
 <div class="switch">
