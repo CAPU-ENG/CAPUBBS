@@ -1,4 +1,10 @@
 assets/images/
+assets/downloads/
 bbs/attachment/
 bbs/images/
-assets/downloads/
+bbsimg/
+documents/
+log/
+mysqladmin/
+old/
+phpinfo.php
