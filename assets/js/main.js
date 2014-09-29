@@ -340,7 +340,8 @@ function check_valid() {
 	if (inputimgthumb=="") {img_error.html("<strong>缩略图地址不能为空</strong>");$('#inputimgthumb').focus();return;}
 	var state=0;
 	var valid1=0,valid2=0,valid3=0;
-
+	valid1=1;
+	/*
 	var img=new Image();
 	img.src=inputimg;	
 	img.onload=function() {
@@ -354,7 +355,8 @@ function check_valid() {
 		img_error.text("图片加载出错");
 		$("#inputimg").focus();
 	}
-	
+	*/	
+
 	var img2=new Image();
 	var width=-1,height=-1;
 	img2.src=inputimgthumb;	
@@ -408,6 +410,8 @@ function check_valid2() {
 	var state=0;
 	var valid1=0,valid2=0,valid3=0;
 
+	valid1=1;
+	/*
 	var img=new Image();
 	img.src=inputimg;	
 	img.onload=function() {
@@ -421,6 +425,7 @@ function check_valid2() {
 		img_error.text("图片加载出错");
 		$("#postimg_url").focus();
 	}
+	*/
 
 	var img2=new Image();
 	var width=-1,height=-1;
