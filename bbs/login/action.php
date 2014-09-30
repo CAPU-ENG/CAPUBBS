@@ -12,7 +12,7 @@ $result=mainfunc(array("ask"=>"login",
 ));
 $result=$result[0];
 $code=intval($result['code']);
-$time=time()+1800;
+$time=time()+999999;
 $date=date("D, d M Y H:i:s",$time)." GMT";
 
 if($code==0){

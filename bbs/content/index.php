@@ -963,7 +963,7 @@ function msg_send(){
 			alert(result.msg);
 		}
 		$("#msg_sendbt,#msg_cancelbt").prop("disabled",false);
-		$('#msg_sengbt').html("发送");
+		$('#msg_sendbt').html("发送");
 	});
 }
 function msg_cancel(){
