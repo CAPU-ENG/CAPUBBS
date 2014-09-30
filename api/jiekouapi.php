@@ -1416,7 +1416,7 @@ while ($res=mysql_fetch_array($result)) {
 		$text=mysql_real_escape_string($text);
 		while ($res=mysql_fetch_row($results)) {
 			$user=$res[0];
-			$tmptext="尊敬的 ".$user."  用户您好，".$text;
+			$tmptext="尊敬的 ".$user." 用户您好，".$text;
 			insertmsg($con,"admin",$user,$tmptext,0,0,0,"","");
 		}
 		echo '<capu><info><code>0</code></info></capu>';
