@@ -99,7 +99,7 @@ function check(){
 			var x=parseInt(data);
 			if (x==0) {
 				var from=$('#from').val();
-				if (from=="") $from="../index";
+				if (from=="") from="../index";
 				else from=unescape(from);
 				window.location=from;
 				return;

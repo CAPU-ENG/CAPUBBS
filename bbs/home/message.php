@@ -1,202 +1,251 @@
 <?php
-	include("../lib/mainfunc.php");
-	$users=getuser();
-	$username=$users['username'];
+	include "../lib/mainfunc.php";
+	$res=getuser();
+	$username=@$res['username'];
+	date_default_timezone_set('Asia/Shanghai');
 ?>
-
+<!DOCTYPE html>
 <html>
 <head>
-<meta charset="utf-8">
-<link rel="stylesheet" href="../lib/general.css">
-<style type="text/css">
-div.button{
-	background-image: -webkit-linear-gradient(#76caff 0%, #1d9eff 100%);
-	background-color: #1d9eff;
-	background-size: 100%,100%;
-	background-repeat: no-repeat;
-	width: 100px;
-	height: 24px;
-	color: white;
-	border-radius: 10px;
-	font-size: 15px;
-	text-align: center;
-	line-height: 20px;
-	padding-top: 5px;
-	float: left;
-	cursor: pointer;
-	-webkit-transition: background-image 0.2s,background-color 0.2s;
-}
-div.button:hover{
-	background-image: -webkit-linear-gradient(#98ecff 0%, #3fafff 100%);
-	background-color: #3fafff;
-}
-table#mainTable{
-	width: 700px;
-/* 	border: none; */
-	border-collapse: collapse;
-/* 	background-color:#f8f8f8; */
-/* 	border:1px solid #cacaca; */
-}
-table#mainTable tr{
-	border-bottom: 1px dashed grey;
-	line-height: 30px;
-	font-size: 14px;
-	height: 50px;
-}
-a{
-	text-decoration: none;
-	color: #2fa9ff;
-}
-td.lzltd{
-	padding:20px;
-/* 	border:1px solid #dcdcdc; */
-}
-div.lzlicon{
-	float:left;
-}
-img.lzlicon{
-	width: 50px;
-	height: 50px;
-}
-div.lzlcontent{
-	float:left;margin-left:10px;width:590px;word-break:break-all;
-}
-span.lzltime{
-	float:right;color:grey;margin-right:8px;
-}
-a.lzlreplybt{
-	color: #6d90ee;text-decoration:none;
-}
-</style>
-<script src="../lib/jquery.min.js"></script>
-<script type="text/javascript">
-var datas=[];
-function refreshTable(seeall){
-	var s="";
-	var haslist=false;
-	var hasreadmsg=false;
-	for(var i=0;i<datas.length;i++){
-		if(seeall||datas[i].hasread==0){
-			s+="<tr>";
-			s+='<td class="lzltd">';
-			s+='<div class="lzlicon"><img src="'+datas[i].icon+'" class="lzlicon"></div>';
-			s+='<div class="lzlcontent">';
-			s+=datas[i].msg;
-			s+="<br>";
-			s+='<span class="lzltime">'+datas[i].time;
-			s+='&nbsp;<a href="javascript:replyTo('+i+')" class="lzlreplybt" id="reply_'+i+'">回复</a>';
-			s+='</td>';
-			s+="</tr>";
-			haslist=true;
-		}else{
-			hasreadmsg=true;
-		}
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<link rel="stylesheet" href="message.css" />
+<link rel="stylesheet" href="../lib/general.css" />
+<?php
+	if ($username=="") {
+		echo '<script>alert("超时，请重新登录！");window.parent.location="../login/";</script>';
+		echo '</head></html>';
+		exit;
 	}
-	if(!haslist){
-		s+="<tr><td align='center'>您没有未读消息</td></tr>";
-	}
-	if(hasreadmsg){
-		s+="<tr><td align='center'><a href='javascript:refreshTable(true);'>查看历史消息</a></td></tr>";
-	}
-	document.getElementById("mainTable").innerHTML=s;
-}
-window.onload=function(){
-	window.parent.ifrmLoaded();
-}
+	$type=@$_GET['type'];
+	if ($type!="private" && $type!="new" && $type!="chat")
+		$type="system";
+	$touser=@$_GET['to'];
+	if ($type=="chat" && $touser=="") $type="system";
+	$p=intval(@$_GET['p']);
+	if ($p<1) $p=1;
 
-</script>
+	$data=array();
+	if ($type=="system")
+		$data=mainfunc(array("ask"=>"msg","type"=>"system","p"=>$p));
+	else if ($type=="private")
+		$data=mainfunc(array("ask"=>"msg","type"=>"private"));
+	else if ($type=="chat")
+		$data=mainfunc(array("ask"=>"msg","type"=>"chat","to"=>$touser));
+	$infos=$data[0];
+	$code=intval($infos['code']);
+	if ($code!=0) {
+		echo '<script>alert("'.$infos['msg'].'");</script>"';
+		echo '</head></html>';
+		exit;
+	}
+	$sysmsg=intval($infos['sysmsg']);
+	$prvmsg=intval($infos['prvmsg']);
+	$systotal=intval($infos['systotal']);
+?>
+<script src="../lib/jquery.min.js"></script>
 </head>
 <body>
+<div class="topbar">
+<p>
 <?php
-if($username==""){
-	echo("</body></html>");exit;
-}
-	$userinfo=mainfunc(array("view"=>$username));
-	$userinfo=$userinfo[0];
-	$msg=intval($userinfo['newmsg']);
+	if ($type!="system") echo '<a href="message.php?type=system">';
+	echo "系统消息";
+	if ($type!="system") echo '</a>';
+	if ($sysmsg>0) echo '&nbsp;<span class="badge">'.$sysmsg.'</span>';
+	echo " | ";
+	if ($type!="private") echo '<a href="message.php?type=private">';
+	echo "私信消息";
+	if ($type!="private") echo '</a>';
+	if ($prvmsg>0) echo '&nbsp;<span class="badge">'.$prvmsg.'</span>';
+	echo " | ";
+	if ($type!="new") echo '<a href="message.php?type=new">';
+	echo "发送新消息";
+	if ($type!="new") echo '</a>';
+	if ($type=="chat")
+		echo " | 和 $touser 的聊天记录";
 ?>
-
-<div class="content">
-<table id="mainTable">
-</table>
-<div style="margin-top:40px;text-align:center">
-			<span>发送新消息给：&nbsp;<input id='msg_to' placeholder="收件人id" style="width:100px"></input></span><br><br>
-			<textarea id="msg_ta" style="width:400px;height:200px;font-size:13px;padding:5px;"></textarea><br><br>
-			<button onclick="msg_send();" id="msg_sendbt">发送</button>
-		</div>
-
+</p>
 </div>
+
 <?php
-	$msgs=mainfunc(array("ask"=>"msg"));
-	if(@$msgs[0]['code']){
-		#echo($msgs[0]['msg']);
-	}else{
-		echo('<script type="text/javascript">');
-		for($i=0;$i<count($msgs);$i++){
-			$from=$msgs[$i]['sender'];
-			$text=$msgs[$i]['text'];
-			$bid=intval($msgs[$i]['rbid']);
-			if($from=="system" && $bid!=0){
-				$bid=$msgs[$i]['rbid'];
-				$tid=$msgs[$i]['rtid'];
-				$pid=$msgs[$i]['rpid'];
-				$page=ceil($pid/12);
-				$title=$msgs[$i]['rmsg'];
-				if($text=="reply"){
-					$link="../content/?bid=$bid&tid=$tid&p=$page#pid$pid";
-					$msg=userhref($msgs[$i]['ruser'])." 回复了您的帖子: "."<a href='$link' target='_top'>$title</a>";
-				}else if($text=="replylzl"){
-					$link="../content/?bid=$bid&tid=$tid&p=$page#pid$pid";
-					$msg=userhref($msgs[$i]['ruser'])." 评论了您在帖子 "."<a href='$link' target='_top'>$title</a> 中的回复";
-				}else if($text=="at"){
-					$link="../content/?bid=$bid&tid=$tid&p=$page#pid$pid";
-					$msg=userhref($msgs[$i]['ruser'])." 在帖子 "."<a href='$link' target='_top'>$title</a> 中at了你";
-				}
-				
-				$authorinfo=mainfunc(array("view"=>$msgs[$i]['ruser']));
-				$authorinfo=$authorinfo[0];
-				echo('datas.push({msg:"'.$msg.'",hasread:'.$msgs[$i]['hasread'].',link:"'.$link.'",icon:"'.translateicon($authorinfo['icon']).'",time:"'.formatstamp($msgs[$i]['time']).'"});');				
-			}else{
-				$authorinfo=mainfunc(array("view"=>$msgs[$i]['sender']));
-				$authorinfo=$authorinfo[0];
-				echo('datas.push({msg:"'.userhref($from).' : '.$text.'",username:"'.$from.'",hasread:'.$msgs[$i]['hasread'].',link:"",icon:"'.translateicon($authorinfo['icon']).'",time:"'.formatstamp($msgs[$i]['time']).'"});');				
-			}
+	if ($type=="system") {
+		if ($systotal==0) {
+			echo '<table id="mainTable"><tr><td align="center">暂无系统消息</td></tr></table>';
+			exit;
 		}
-		echo("</script>");
-	}
-	
-echo('<script type="text/javascript">');
-echo('refreshTable(false);');
-echo("</script>");
+
+
+		$pages=intval(ceil($systotal/10));
+		$page=intval($p);
+		echo '<table id="mainTable">';
+		$count=count($data);
+		for ($i=1;$i<$count;$i++) {
+			$one=$data[$i];
+			$userinfo=mainfunc(array("view"=>$one['username']));
+			$userinfo=@$userinfo[0];
+			$icon=translateicon($userinfo['icon']);
+			$author=$one['username'];
+
+			$type=$one['type'];
+			$title=$one['title'];
+			$time=date("Y-m-d H:i:s",$one['time']);
+			$url=$one['url'];
+			$hasread=$one['hasread'];
+
+			echo '<tr><td class="lzltd">'."\n";
+			echo '<div class="lzlicon"><img src="'.$icon.'" class="lzlicon"></div>'."\n";
+			echo '<div class="lzlcontent">'."\n";
+			echo '<a class="author" href="../user?name='.$author.'" target="_blank">'.$author.'</a>';
+			if ($type=="reply") {
+				echo '&nbsp;回复了您的帖子: <a href="'.$url.'" target="_blank">'.$title.'</a>';
+			}
+			else if ($type=="replylzl") {
+				echo '&nbsp;评论了您在帖子 <a href="'.$url.'" target="_blank">'.$title.'</a> 中的回复';
+			}
+			else if ($type=="at") {
+				echo '&nbsp;在帖子 <a href="'.$url.'" target="_blank">'.$title.'</a> 中at了您。';
+			}
+			echo '<br><span class="lzltime">'.$time.'</span></div></td></tr>';
+			
+		}
+		if ($page!=1 || $page!=$pages) {
+			echo '<tr><td align="center">';
+			if ($page!=1) {
+				echo '<a href="message.php?type=system&p='.($page-1).'">上一页</a>';
+			}
+			if ($page!=1 && $page!=$pages) echo '&nbsp;&nbsp;';
+			if ($page!=$pages) {
+				echo '<a href="message.php?type=system&p='.($page+1).'">下一页</a>';
+				
+			}
+			echo '</td></tr>';
+		}
+		echo '</table>';
+
 ?>
+<?php
+	}
+	else if ($type=="private") {
+		echo '<table id="mainTable">';
+		$count=count($data);
+		if ($count==1) {
+			echo '<tr><td align="center">暂无私信消息往来</td></tr></table>';
+			exit;
+		}
+		for ($i=1;$i<$count;$i++) {
+			$one=$data[$i];
+			$userinfo=mainfunc(array("view"=>$one['username']));
+			$userinfo=@$userinfo[0];
+			$icon=translateicon($userinfo['icon']);
+			$author=$one['username'];
+			$text=$one['text'];
+			$time=date("Y-m-d H:i:s",$one['time']);
+			$number=intval($one['number']);
+			echo '<tr><td class="lzltd"><div class="lzlicon">';
+			echo '<img src="'.$icon.'" class="lzlicon"></div>'."\n";
+			echo '<div class="lzlcontent" style="margin-top:-7px">'.userhref($author);
+			if ($number>0) echo '&nbsp;&nbsp;<span class="badge">'.$number.'</span>';
+			echo '<span class="lzltime">'.$time."</span>";
+			echo "<br><span onclick='window.location=\"message.php?type=chat&to=$author\"' style='cursor:pointer'>$text&nbsp;<span style='float:right'><a href='message.php?type=chat&to=$author' class='lzlreplybt'>查看全部</a>&nbsp;(".$one['totalnum'].")</span></span></span>";
+			echo '</div></td></tr>';
+		}
+		echo '</table>';
+?>
+<?php
+	}
+	else if ($type=="new") {
+?>
+<div style="margin-top:90px;text-align:center">
+	<span>发送新消息给：&nbsp;<input id="msg_to" placeholder="收件人id" style="width:100px"></span><br><br>
+	<textarea id="msg_ta" style="width:400px;height:200px;font-size:13px;padding:5px;"></textarea><br><br>
+	<button onclick="sendto()" id="msg_sendbt">发送</button>
+</div>
+
+<?php
+	}
+	else {
+?>
+<div class="talk">
+	<div class="talk_record">
+		<div id="jp-container" class="jp-container">
+<?php
+	$count=count($data);
+	$touserinfo=mainfunc(array("view"=>$touser));
+	$myuserinfo=mainfunc(array("view"=>$username));
+	$hisicon=translateicon($touserinfo[0]['icon']);
+	$myicon=translateicon($myuserinfo[0]['icon']);
+	for ($i=1;$i<$count;$i++) {
+		$one=$data[$i];
+		$typed=$one['type'];
+		$text=$one['text'];
+		$time=formatstamp($one['time']);
+
+		if ($typed=="send") {
+			echo '<div class="talk_recordboxme">';
+			echo '<div class="user"><img src="'.$myicon.'" class="lzlicon"></div>';
+		}
+		else {
+			echo '<div class="talk_recordbox">';
+			echo '<div class="user"><img src="'.$hisicon.'" class="lzlicon"></div>';
+			
+		}
+		echo '<div class="talk_recordtextbg">&nbsp;</div>';
+		echo '<div class="talk_recordtext"><pre>'.$text.'</pre><span class="talk_time">'.$time.'</span></div>';
+		echo '</div>'."\n";
+	}
+?>
+	<div class="talk_word">
+		<textarea class="messages" id="msg_ta" placeholder="请输入你要发送的消息内容"></textarea>
+		<br>
+		<input class="talk_send" type="button" title="发送" value="发送" onclick="sendto()"/>
+	</div>
+</div>
+<?php }?>
 <script>
-function msg_send() {
-	var to=$('#msg_to').val();
-	var message=$('#msg_ta').val();
-	if (to=="") {alert("收件人不能为空");return;}
-	if (message=="") {alert("信息不能为空");return;}
-	$.post("../message/",{target:to,text:message},
-		function (text) {
-		var result=JSON.parse(text);
+<?php
+if ($type=="new") {
+?>
+function sendto() {
+	var user=$('#msg_to').val();
+	var text=$('#msg_ta').val();
+	if (user=="") {alert("ID不能为空！");$('#msg_to').focus();return;}
+	if (text=="") {alert("内容不能为空！");$('#msg_ta').focus();return;}
+	confirmsendto(user,text);	
+}
+<?php
+}
+else {
+?>
+function sendto() {
+	var user="<?php echo $touser;?>";
+	var text=$('#msg_ta').val();
+	if (text=="") {alert("内容不能为空！");$('#msg_ta').focus();return;}
+	confirmsendto(user,text);
+}
+<?php }?>
+function confirmsendto(to,text) {
+	$.post("../message/",{target:to,text:text},
+		function (results) {
+		var result=JSON.parse(results);
 		if(result.code==0){
-			alert("发送成功！");
-			$('#msg_ta,#msg_to').val("");
+			<?php
+				if ($type=="new") {
+					echo 'window.location="message.php?type=private"';
+				}
+				else {
+					echo 'window.location.reload();';
+				}
+			?>
 		}else{
 			alert(result.msg);
 		}
 	});
 }
-function replyTo(id) {
-	if (datas[id].link!="") {
-		window.open(datas[id].link);
-		return;
-	}	
-	else {
-		$('#msg_to').val(datas[id].username);
-		$('#msg_ta').val("");
-		$('#msg_ta').focus();
-	}
-}
+<?php
+	if ($type=="chat") echo 'window.scrollTo(0,99999)';
+?>
+
 </script>
+
 </body>
 </html>

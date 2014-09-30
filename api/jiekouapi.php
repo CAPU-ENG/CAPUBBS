@@ -47,6 +47,7 @@
 	else if ($ask=="login") login($con,@$_REQUEST['username'],@$_REQUEST['password'],$ip);
 	else if ($ask=="logout") logout($con,$token,$ip);
 	else if ($ask=="register") register($con,$ip);
+	else if ($ask=="boardcast") boardcast($con,$token,$text);
 	else if ($ask=="getuser") getuser($con,$token);
 	else if ($ask=="userexists") userexists($con);
 	else if ($ask=="hot") hot($con,$token);
@@ -61,7 +62,7 @@
 	else if ($ask=="delattach") delattach($con,$token,$id);
 	else if ($ask=="editpreview") editpreview($con,$token,$bid,$tid,$pid);
 	else if ($ask=="sendmsg") sendmsg($con,$token,$to,$text);
-	else if ($ask=="msg") msg($con,$token);
+	else if ($ask=="msg") msg($con,$token,$type);
 	else if ($ask=="changepsd") changepsd($con,$token);
 	else if ($ask=="currentUserInfo") currentUserInfo($con,$token);
 	else if ($ask=="search") searchByKeyword($con,$keyword,$token,$type,$bid);
@@ -1067,7 +1068,7 @@
 		$statement="select username, rights, lastip from userinfo where token='$token' && $time-tokentime<={$GLOBALS['validtime']}";
 		$results=mysql_query($statement,$con);
 		if (mysql_num_rows($results)==0)
-			return array(-1,"","");
+			return array(-1,"","",0);
 		$res=mysql_fetch_array($results);
 		$username=$res[0];
 		$rights=intval($res[1]);
@@ -1080,7 +1081,7 @@
 		for ($i=0;$i<=3;$i++){
 			if ($res[$i]==$username) $able=1;
 		}
-		if ($rights>=3) return array(2,$username,$ip);
+		if ($rights>=3) return array(2,$username,$ip,$rights);
 		return array($able,$username,$ip,$rights);
 	}
 	
@@ -1392,14 +1393,11 @@ while ($res=mysql_fetch_array($result)) {
 			report(1,"尚未登录");
 		}
 		$sender=$user['username'];
-		if(strstr($to, "'")!=""||strstr($to, "\\")!=""){
-			report(2,"Illegal target");
-		}
 		$text=mysql_real_escape_string($text);
 		$to=mysql_real_escape_string($to);
 		$statement="select username from userinfo where username='$to'";
 		if(!mysql_fetch_array(mysql_query($statement))){
-			report(3, "no such user");
+			report(3, "留言的对象不存在！");
 		}
 		if(insertmsg($con,$sender,$to,$text,0,0,0,"","")){
 			report(0,"success");
@@ -1407,6 +1405,22 @@ while ($res=mysql_fetch_array($result)) {
 			report(4,"Database Error");
 		}
 		
+	}
+
+	function boardcast($con,$token,$text) {
+		$rights=getrights($con,1,$token);
+		$rights=intval($rights[3]);
+		if ($rights!=4) {echo '<capu><info><code>1</code><msg>权限不足</msg></info></capu>';exit;}
+		$statement="select username from userinfo";
+		$results=mysql_query($statement,$con);
+		$text=mysql_real_escape_string($text);
+		while ($res=mysql_fetch_row($results)) {
+			$user=$res[0];
+			$tmptext="尊敬的 ".$user." 用户您好，".$text;
+			insertmsg($con,"admin",$user,$tmptext,0,0,0,"","");
+		}
+		echo '<capu><info><code>0</code></info></capu>';
+		exit;
 	}
 	
 	function insertmsg($con,$from,$to,$text,$bid,$tid,$pid,$ruser,$rmsg){
@@ -1433,7 +1447,7 @@ while ($res=mysql_fetch_array($result)) {
 		return $text;
 	}
 	
-	function msg($con,$token){
+	function msgold($con,$token){
 		$user=token2user($con,$token);
 		if(!$user){
 			report(1,"尚未登录");
@@ -1470,6 +1484,153 @@ while ($res=mysql_fetch_array($result)) {
 		mysql_query($statement);
 	}
 	
+	function msg($con,$token,$type){
+		$user=token2user($con,$token);
+		if(!$user){
+			echo("<capu><info><code>1</code><msg>尚未登录</msg></info></capu>");
+			return ;
+		}
+		$username=$user['username'];
+		$p=@$_REQUEST['p'];
+		
+		$result=mysql_fetch_array(mysql_query("select count(1) as c from messages where receiver='$username' and sender='system' and hasread=0"));
+		$sysmsg=$result['c'];
+		$result=mysql_fetch_array(mysql_query("select count(1) as c from messages where receiver='$username' and sender='system'"));
+		$systotal=$result['c'];
+		if($to=@$_REQUEST['to']){
+			$statement="select count(1) as c from messages where receiver='$username' and sender!='system' and sender!='$to' and hasread=0";
+		}else{
+			$statement="select count(1) as c from messages where receiver='$username' and sender!='system' and hasread=0";
+		}
+		$result=mysql_fetch_array(mysql_query($statement));
+		$prvmsg=$result['c'];
+		echo("<capu>");
+		echo("<info>");
+		echo("<code>0</code>");
+		echo("<sysmsg>$sysmsg</sysmsg>");
+		echo("<prvmsg>$prvmsg</prvmsg>");
+		echo("<systotal>$systotal</systotal>");
+		echo("</info>");
+		
+		if($type=="system"){
+			
+			
+			if($p<1) $p=1;
+			$limit=10;
+			$start=$limit*($p-1);
+			
+			$result=mysql_query("select * from messages where receiver='$username' and sender='system' order by hasread,time desc limit $start,$limit");
+			while(($one=mysql_fetch_array($result))!=null){
+				echo("<info>");
+				$username2=$one['ruser'];
+				$type=$one['text'];
+				$title=$one['rmsg'];
+				if($type!="reply"&&$type!="at"&&$type!="replylzl"){
+					$title=$type;
+					$type="plain";
+				}
+				$pid=intval($one['rpid']);
+				$page=ceil($pid/12);
+				$url="/bbs/content/?bid=".$one['rbid']."&tid=".$one['rtid']."&p=$page#$pid";
+				$time=$one['time'];
+				$hasread=$one['hasread'];
+				echo("<username>".trans($username2)."</username>");
+				echo("<type>".trans($type)."</type>");
+				echo("<title>".trans($title)."</title>");
+				echo("<url>".trans($url)."</url>");
+				echo("<time>".trans($time)."</time>");
+				echo("<hasread>".trans($hasread)."</hasread>");
+				echo("</info>");
+			}
+			echo("</capu>");
+			mysql_query("update messages set hasread=1 where receiver='$username' and sender='system' and hasread=0");
+		}else if($type=="private"){
+			$ans=array();
+			$senders=array();
+			$result=mysql_query("select sender,group_concat(time order by time desc),group_concat(hasread) from messages where receiver='$username' and sender!='system' group by sender order by hasread,time desc");
+			while($one=mysql_fetch_array($result)){
+				array_push($ans, $one);
+				array_push($senders,$one[0]);
+			}
+			$senderarea="(";
+			for($i=0;$i<count($senders);$i++){
+				$senderarea=$senderarea."'".$senders[$i]."',";
+			}
+			$senderarea=substr($senderarea,0,strlen($senderarea)-1).")";
+			if(count($senders)==0){
+				$statement="select receiver,group_concat(time order by time desc) from messages where sender='$username' group by receiver order by hasread,time desc";
+			}else{
+				$statement="select receiver,group_concat(time order by time desc) from messages where sender='$username' and receiver not in $senderarea group by receiver order by hasread,time desc";
+			}
+			$result=mysql_query($statement);
+			while($one=mysql_fetch_array($result)){
+				array_push($ans, $one);
+			}
+			for($i=0;$i< count($ans);$i++){
+				$times=$ans[$i][1];
+				$times=explode(",",$times);
+				$ans[$i][1]=$times[0];
+			}
+			
+			function comp($a,$b){
+				if (intval($a[1])>intval($b[1])){
+					return -1;
+				}else if(intval($a[1])==intval($b[1])){
+					return 0;
+				}else{
+					return 1;
+				}
+				
+			}
+			usort($ans, "comp");
+			for($i=0;$i<count($ans);$i++){
+				$one=$ans[$i];
+				echo("<info>");
+				$sender=$one[0];
+				if(!@$one[2]&&@$one[2]!="0"){
+					$hasread="";
+				}else{
+					$hasread=$one[2];
+				}
+				
+				$number=substr_count($hasread, "0");
+				$textresult=mysql_fetch_array(mysql_query("select text,time from messages where (receiver='$username' and sender='$sender') or (receiver='$sender' and sender='$username') order by time desc limit 1"));
+				$text=$textresult[0];
+				$time=$textresult[1];
+				if(mb_strlen($text,"utf-8")>30){
+					$text=mb_substr($text, 0,30,"utf-8")."......";
+				}
+				$tresult=mysql_fetch_array(mysql_query("select  count(1) as c from messages where  (receiver='$username' and sender='$sender') or (receiver='$sender' and sender='$username')"));
+				$totalnum=$tresult['c'];
+				echo("<username>".trans($sender)."</username>");
+				echo("<text>".trans($text)."</text>");
+				echo("<time>".trans($time)."</time>");
+				echo("<number>".trans($number)."</number>");
+				echo("<totalnum>".trans($totalnum)."</totalnum>");
+				echo("</info>");
+			}
+			echo("</capu>");
+			
+		}else if($type=="chat"){
+			$to=@$_REQUEST['to'];
+			$result=mysql_query("select * from messages where (receiver='$username' and sender='$to') or (sender='$username' and receiver='$to') order by time");
+			while($one=mysql_fetch_array($result)){
+				echo("<info>");
+				$atype=$one['sender']==$username?"send":"get";
+				$text=$one['text'];
+				$time=$one['time'];
+				echo("<type>$atype</type>");
+				echo("<text>".trans($text)."</text>");
+				echo("<time>$time</time>");
+				echo("</info>");
+			}
+			echo("</capu>");
+			mysql_query("update messages set hasread=1 where receiver='$username' and sender='$to' and hasread=0");
+		}
+		$result=mysql_fetch_array(mysql_query("select count(1) as c from messages where hasread=0 and receiver='$username'"));
+		$num=$result['c'];
+		mysql_query("update userinfo set newmsg=$num where username='$username' limit 1");
+	}
 	function currentUserInfo($con,$token){
 		$user=token2user($con,$token);
 		if(!$user){
@@ -1477,7 +1638,7 @@ while ($res=mysql_fetch_array($result)) {
 			exit();
 		}
 		view_user($con,$user['username']);
-
+		
 	}
 	
 	function changepsd($con,$token){
@@ -1664,6 +1825,7 @@ while ($res=mysql_fetch_array($result)) {
 		if ($ips[0]=="222" && $ips[1]=="29") return true;
 		if ($ips[0]=="218" && $ips[1]=="249") return true;
 		if ($ips[0]=="88" && $ips[1]=="12" && $ips[2]=="242") return true;
+		if ($ips[0]=="127" && $ips[1]=="0" && $ips[2]=="0" && $ips[3]=="1") return true;
 		return false;	
 	}
 
