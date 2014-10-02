@@ -158,6 +158,10 @@ function ifrmLoaded(){
 function setframe(frame){
 	document.getElementById("sub").style.opacity=0.7;
 	document.getElementById("sub").src=frame+".php";
+	if (frame=="message") {
+		window.scrollTo(0,99999);
+	}
+	else {window.scrollTo(0,0);}
 }
 <?php
 if(@$_GET['pos']){

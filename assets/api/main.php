@@ -201,7 +201,6 @@
 	}
 
 	function login() {
-		date_default_timezone_set("Etc/GMT");
 		$username=@$_POST['username'];
 		$password=@$_POST['password'];
 		$result=mainfunc(array(
@@ -215,7 +214,7 @@
 		$code=intval($result['code']);
 		$token=$result['token'];
 		if($code==0){
-			$time=time()+1800;
+			$time=time()+99999;
 			$date=date("D, d M Y H:i:s",$time)." GMT";
 			header('Set-cookie: token='.$token.'; expires='.$date.'; path=/'."\n");
 		}

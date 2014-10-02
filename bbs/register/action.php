@@ -44,7 +44,7 @@ $result=$result[0];
 #echo(json_encode($result));
 header('Content-type:text/html;charset=utf-8');
 if(intval($result['code'])==0){
-	$time=time()+1800;
+	$time=time()+999999;
 	$date=date("D, d M Y H:i:s",$time)." GMT";
 	header('Set-cookie: token='.$result['token'].'; expires='.$date.'; path=/'."\n");
 	echo 0;

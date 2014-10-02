@@ -1,4 +1,14 @@
+.idea/
 assets/images/
+assets/downloads/
 bbs/attachment/
 bbs/images/
-assets/downloads/
+bbsimg/
+documents/
+log/
+mysqladmin/
+old/
+test.php
+phpinfo.php
+msgxml.xml
+wxy/
