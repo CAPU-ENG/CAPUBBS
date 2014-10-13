@@ -365,7 +365,7 @@ for($i=0;$i<count(@$data);$i++){
 		echo "<span class='oshint'>来自于<a href='/index/download_file.php?d=13' target='_blank'>Android客户端</a></span>";
 	}
 	else if ($os=="ios") {
-		echo "<span class='oshint'>来自于IOS客户端</span>";
+		echo "<span class='oshint'>来自于<a href='/index/download_file.php?d=14' target='_blank'>IOS客户端</a></span>";
 	}
 	if($right>=1|| $floor['author']==$currentuser){
 		echo("<a class='replylzlbt' href='javascript:deletepid(".$floor['pid'].");'>删除</a>\n");
