@@ -65,6 +65,3 @@ curl_close( $ch );
 var_dump($res);
 
 	}
-
-?>
-
