@@ -20,17 +20,19 @@
 	if ($type!="private" && $type!="new" && $type!="chat")
 		$type="system";
 	$touser=@$_GET['to'];
-	if ($type=="chat" && $touser=="") $type="system";
+	if ($type=="chat" && @$touser=="") $type="system";
 	$p=intval(@$_GET['p']);
 	if ($p<1) $p=1;
 
 	$data=array();
-	if ($type=="system")
-		$data=mainfunc(array("ask"=>"msg","type"=>"system","p"=>$p));
-	else if ($type=="private")
+	if ($type=="private")
 		$data=mainfunc(array("ask"=>"msg","type"=>"private"));
 	else if ($type=="chat")
 		$data=mainfunc(array("ask"=>"msg","type"=>"chat","to"=>$touser));
+	else {
+		$type="system";
+		$data=mainfunc(array("ask"=>"msg","type"=>"system","p"=>$p));
+	}
 	$infos=$data[0];
 	$code=intval($infos['code']);
 	if ($code!=0) {
