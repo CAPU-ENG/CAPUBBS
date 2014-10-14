@@ -296,7 +296,7 @@ for($i=0;$i<count(@$data);$i++){
 		foreach($atts as $value){
 			$nowa=mainfunc(array("ask"=>"attachinfo","id"=>$value));
 			$nowa=$nowa[0];
-			echo generateattach($nowa['name'],$nowa['size'],$nowa['price'],$nowa['auth'],$nowa['id'],$nowa['isAuthor']=='YES'||$nowa['hasPurchased']=='YES',$nowa['count']);
+			echo generateattach(@$nowa['name'],@$nowa['size'],@$nowa['price'],@$nowa['auth'],@$nowa['id'],@$nowa['isAuthor']=='YES'||@$nowa['hasPurchased']=='YES',@$nowa['count']);
 		}
 		echo("</div>\n");
 	}
@@ -445,7 +445,7 @@ function packjump($p,$text){
 	if (@$_GET['see_lz']!="")
 		$lz="&see_lz=1";
 	if($text=="plain") return "<span class='page'>$p</span>";
-	return "<a class='page' href='../content?p=$p&bid=".$_GET['bid']."&tid=".$_GET['tid']."$lz'>$text</a>";
+	return "<a class='page' href='../content?p=$p&bid=".$_GET['bid']."&tid=".@$_GET['tid']."$lz'>$text</a>";
 }
 ?>
 

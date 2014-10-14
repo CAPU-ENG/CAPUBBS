@@ -1,11 +1,11 @@
 <?php
 	include("../lib/mainfunc.php");
-	$maxsize = 100; //Mb
+	$maxsize = 2; //Mb
 	header('content-type: application/json');
-	if(!$_FILES['file']){
+	if(!@$_FILES['file']){
 		reportWithCode(0);
 	}
-	if($_FILES['file']['size'] > ($maxsize * 1048576)){
+	if(!@$_FILES['file']['size'] > ($maxsize * 1048576)){
 		reportWithCode(1);
 	}
 	$folder = '../../bbsimg/icons/user_upload/';

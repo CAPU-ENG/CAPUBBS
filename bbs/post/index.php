@@ -1,11 +1,11 @@
 <?php
 	include("../lib/mainfunc.php");
-	$bid=$_POST["bid"];
+	$bid=@$_POST["bid"];
 	$tid=@$_POST["tid"];
-	$title=$_POST["title"];
-	$text=$_POST["text"];
-	$sig=$_POST["sig"];
-	$attachs=$_POST['attachs'];
+	$title=@$_POST["title"];
+	$text=@$_POST["text"];
+	$sig=@$_POST["sig"];
+	$attachs=@$_POST['attachs'];
 	if(intval($tid)<0){
 		$result=mainfunc(array(
 		"ask"=>"post",
