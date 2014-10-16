@@ -102,7 +102,7 @@
 		<?php
 		echo("<a href='../index' onmouseover='showmenu();'>CAPUBBS</a>&nbsp;&gt;&nbsp;");
 		echo("<a href='../main/?bid=$bid'>".$bdata['bbstitle']."</a>&nbsp;&gt;&nbsp;");
-		echo("<a href='./?bid=$bid&tid=$tid&p=1'>".$title."</a>&nbsp;&gt;&nbsp;");
+		echo("<a href='./?bid=$bid&tid=$tid&p=1' id='page_title'>".$title."</a>&nbsp;&gt;&nbsp;");
 		echo("<span>第".$page."页</span>");
 		echo "&nbsp;&nbsp;&nbsp;<a href='javascript:seelz()' style='color:#6d90ee'>";
 		if ($see_lz=="") echo "只看楼主";
@@ -903,7 +903,8 @@ function doreply(){
 		bid:$('#fm_bid').val(),
 		tid:$('#fm_tid').val(),
 		token:token,
-		title:"Re: <?php echo $tdata['title']; ?>",
+		//title:"Re: <?php echo $tdata['title']; ?>",
+		title: "Re: "+$('#page_title').text(),
 		text:content,
 		sig:sig,
 		attachs:s
