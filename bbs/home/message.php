@@ -29,7 +29,7 @@
 		$data=mainfunc(array("ask"=>"msg","type"=>"private"));
 	else if ($type=="chat")
 		$data=mainfunc(array("ask"=>"msg","type"=>"chat","to"=>$touser));
-	else {
+	else if ($type!="new") {
 		$type="system";
 		$data=mainfunc(array("ask"=>"msg","type"=>"system","p"=>$p));
 	}
