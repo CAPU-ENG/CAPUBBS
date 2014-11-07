@@ -320,6 +320,7 @@
 		}
 
 		$code=mysql_real_escape_string(@$_REQUEST['code']);
+/*
 		$statement="select times from codes where code='$code'";
 		$results=mysql_query($statement,$con);
 		if (mysql_num_rows($results)==0)
@@ -335,7 +336,7 @@
 		}
 		$statement="update codes set times=times+1 where code='$code'";
 		mysql_query($statement,$con);
-
+*/
 
 		$password=@$_REQUEST['password'];
 		if (@$_REQUEST['md5']=="yes") $password=md5($password);

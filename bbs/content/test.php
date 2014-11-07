@@ -9,6 +9,7 @@
 	$name = $_FILES['image']['name'];
 	$extension=get_extension($name);
 	$filename = sha1(@microtime()) . '.'. $extension;
+
 	$target=$folder.$filename;
 	move_uploaded_file($_FILES["image"]["tmp_name"], $target);
 	
