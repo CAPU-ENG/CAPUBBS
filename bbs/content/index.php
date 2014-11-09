@@ -288,7 +288,7 @@ for($i=0;$i<count(@$data);$i++){
 	#$translated=$floor['text'];
 	$translatedforquote=translateforquote($floor['text'],$floor['ishtml']=="YES");
 	#echo("<div class='textblock' id='floor$i'>$translated</div>\n");
-	print "<div class='textblock' id='floor$i'>$translated</div>\n";
+	print "<div class='textblock' id='floor$i' style='line-height:160% !important'>$translated</div>\n";
 	if($floor['attachs']){
 		echo('<span id="attachtipdark">本帖包含如下的附件：</span>');
 		echo("<div class='attachsdark'>\n");

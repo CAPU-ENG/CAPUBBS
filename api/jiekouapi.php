@@ -1368,7 +1368,7 @@ while ($res=mysql_fetch_array($result)) {
 	}
 	
 	function updatestar($con,$username) {
-		$statement="select post,reply from userinfo where username='$username'";
+		$statement="select post,reply,other2 from userinfo where username='$username'";
 		$results=mysql_query($statement,$con);
 		$res=mysql_fetch_array($results);
 		$post=intval($res['post']);
@@ -1384,6 +1384,8 @@ while ($res=mysql_fetch_array($result)) {
 		else if ($total<3550) $star=7;
 		else if ($total<4885) $star=8;
 		else $star=9;
+		$ss=intval(@$res['other2']);
+		if ($ss!="" && $ss>=1 && $ss<=9) $star=$ss;
 		$statement="update userinfo set star=$star where username='$username'";
 		mysql_query($statement,$con);
 	}
