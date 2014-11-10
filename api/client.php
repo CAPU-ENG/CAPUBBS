@@ -47,7 +47,7 @@
 		
 		$count=count($results);
 		if ($count==0) {echo '<info><code>1</code><msg>帖子不存在。</msg></info></capu>';exit;}
-		if (intval($id)==1 && @$_POST['token']=="") {
+		if (intval($id)==1 && @$_REQUEST['token']=="") {
 			echo '<info><code>11</code><msg>您需要登录后才能查看此版面内容。</msg></info></capu>';
 			exit;
 		}

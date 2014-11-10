@@ -244,7 +244,7 @@ div.textblock{
 	min-height: 300px;
 	font-size: 15px;
 	color: #444444;
-	line-height: 22px;
+	line-height: 160% !important;
 }
 div.sigblock{
 	width: 98%;
