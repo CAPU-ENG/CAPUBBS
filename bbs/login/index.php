@@ -6,7 +6,7 @@
 <link rel="shortcut icon" href="/assets/images/capu.jpg">
 <style type="text/css">
 body{
-	background-image: url("../lib/bg.jpg");
+	background-image: url("/static/img/bg.jpg");
 	background-position: center top;
 	background-color: #AACAB4;
 	background-repeat: no-repeat;

@@ -29,7 +29,7 @@ $result=mainfunc(array(
 <link rel="shortcut icon" href="/assets/images/capu.jpg">
 <style>
 body{
-	background-image: url("../lib/bg.jpg");
+	background-image: url("/static/img/bg.jpg");
 	background-position: center top;
 	background-repeat: no-repeat;
 	background-color: #ABC9B6;
