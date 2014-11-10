@@ -1,5 +1,5 @@
 body{
-	background-image: url("/static/img/bg.jpg");
+	background-image: url("../lib/bg.jpg");
 	background-position: center top;
 	background-color: #AACAB4;
 	background-repeat: no-repeat;

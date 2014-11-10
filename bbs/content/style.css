@@ -1,5 +1,5 @@
 body{
-	background-image: url("/static/img/bg.jpg");
+	background-image: url("../lib/bg.png");
 	background-color: #F5FAF3;
 	margin: 0;
 }
