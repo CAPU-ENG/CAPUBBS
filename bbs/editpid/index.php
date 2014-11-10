@@ -24,7 +24,7 @@
 <link rel="shortcut icon" href="/assets/images/capu.jpg">
 <style type="text/css">
 body{
-	background-image: url("/assets/images/bg.jpg");
+	background-image: url("/assets/images/static/bg.jpg");
 	background-color: #F5FAF3;
 	margin: 0;
 }
