@@ -443,7 +443,7 @@
 		$inschool=checkinschool($ip);
 		$delta=180;
 		if ($inschool || $star>=3 || $rights>=1) $delta=15;
-		if ($time-$lastpost<=$delta) {
+		if (shortDelayTime($time, $lastpost, $delta)) {
 			echo '<info><code>2</code>';
 			if ($inschool) echo ' <msg>两次发表/回复的时间间隔不能少于15秒';
 			else echo '<msg>您的ip位于校外，两次发表/回复的时间间隔不能少于3分钟';
@@ -499,7 +499,7 @@
 		$inschool=checkinschool($ip);
 		$delta=180;
 		if ($inschool || $star>=3 || $rights>=1) $delta=15;
-		if ($time-$lastpost<=$delta) {
+		if (shortDelayTime($time, $lastpost, $delta)) {
 			echo '<info><code>2</code>';
                         if ($inschool) echo ' <msg>两次发表/回复的时间间隔不能少于15秒';
                         else echo '<msg>您的ip位于校外，两次发表/回复的时间间隔不能少于3分钟';
@@ -842,7 +842,7 @@
 			$inschool=checkinschool($ip);
 			$delta=180;
 			if ($inschool || $rights>=1 || $star>=3) $delta=15;
-			if ($time-$lastpost<=$delta) {
+			if (shortDelayTime($time, $lastpost, $delta)) {
 				echo '<capu><info><code>2</code>';
 				if ($inschool) echo ' <msg>两次发表/回复的时间间隔不能少于15秒';
 				else echo '<msg>您的ip位于校外，两次发表/回复的时间间隔不能少于3分钟';
@@ -1831,5 +1831,9 @@ while ($res=mysql_fetch_array($result)) {
 		if ($ips[0]=="127" && $ips[1]=="0" && $ips[2]=="0" && $ips[3]=="1") return true;
 		return false;	
 	}
+
+    function shortDelayTime($time, $lastpost, $delta) {
+        return ($time - $lastpost >= 0 && $time - $lastpost <= $delta);
+    }
 
 ?>
