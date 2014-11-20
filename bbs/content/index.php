@@ -102,7 +102,7 @@
 		<?php
 		echo("<a href='../index' onmouseover='showmenu();'>CAPUBBS</a>&nbsp;&gt;&nbsp;");
 		echo("<a href='../main/?bid=$bid'>".$bdata['bbstitle']."</a>&nbsp;&gt;&nbsp;");
-		echo("<a href='./?bid=$bid&tid=$tid&p=1'>".$title."</a>&nbsp;&gt;&nbsp;");
+		echo("<a href='./?bid=$bid&tid=$tid&p=1' id='page_title'>".$title."</a>&nbsp;&gt;&nbsp;");
 		echo("<span>第".$page."页</span>");
 		echo "&nbsp;&nbsp;&nbsp;<a href='javascript:seelz()' style='color:#6d90ee'>";
 		if ($see_lz=="") echo "只看楼主";
@@ -288,7 +288,7 @@ for($i=0;$i<count(@$data);$i++){
 	#$translated=$floor['text'];
 	$translatedforquote=translateforquote($floor['text'],$floor['ishtml']=="YES");
 	#echo("<div class='textblock' id='floor$i'>$translated</div>\n");
-	print "<div class='textblock' id='floor$i'>$translated</div>\n";
+	print "<div class='textblock' id='floor$i' style='line-height:160% !important'>$translated</div>\n";
 	if($floor['attachs']){
 		echo('<span id="attachtipdark">本帖包含如下的附件：</span>');
 		echo("<div class='attachsdark'>\n");
@@ -296,7 +296,7 @@ for($i=0;$i<count(@$data);$i++){
 		foreach($atts as $value){
 			$nowa=mainfunc(array("ask"=>"attachinfo","id"=>$value));
 			$nowa=$nowa[0];
-			echo generateattach($nowa['name'],$nowa['size'],$nowa['price'],$nowa['auth'],$nowa['id'],$nowa['isAuthor']=='YES'||$nowa['hasPurchased']=='YES',$nowa['count']);
+			echo generateattach(@$nowa['name'],@$nowa['size'],@$nowa['price'],@$nowa['auth'],@$nowa['id'],@$nowa['isAuthor']=='YES'||@$nowa['hasPurchased']=='YES',@$nowa['count']);
 		}
 		echo("</div>\n");
 	}
@@ -445,7 +445,7 @@ function packjump($p,$text){
 	if (@$_GET['see_lz']!="")
 		$lz="&see_lz=1";
 	if($text=="plain") return "<span class='page'>$p</span>";
-	return "<a class='page' href='../content?p=$p&bid=".$_GET['bid']."&tid=".$_GET['tid']."$lz'>$text</a>";
+	return "<a class='page' href='../content?p=$p&bid=".$_GET['bid']."&tid=".@$_GET['tid']."$lz'>$text</a>";
 }
 ?>
 
@@ -903,7 +903,8 @@ function doreply(){
 		bid:$('#fm_bid').val(),
 		tid:$('#fm_tid').val(),
 		token:token,
-		title:"Re: <?php echo $tdata['title']; ?>",
+		//title:"Re: <?php echo $tdata['title']; ?>",
+		title: "Re: "+$('#page_title').text(),
 		text:content,
 		sig:sig,
 		attachs:s
