@@ -431,16 +431,16 @@
 		echo '<capu>';
 		$statement="select username,star,rights,lastpost from userinfo where token='$token' && $time-tokentime<={$GLOBALS['validtime']}";
 		$results=mysql_query($statement,$con);
-		if (mysql_num_rows($results)==0) {
+		/*if (mysql_num_rows($results)==0) {
 			echo '<info><code>1</code><msg>超时，请重新登录。</msg></info></capu>';
 			exit;
-		}
+		}*/
 		$res=mysql_fetch_array($results);
 		$username=$res[0];
 		$star=intval($res[1]);
 		$rights=intval($res[2]);
 		$lastpost=intval($res[3]);
-		$inschool=checkinschool($ip);
+		/*$inschool=checkinschool($ip);
 		$delta=180;
 		if ($inschool || $star>=3 || $rights>=1) $delta=15;
 		if (shortDelayTime($time, $lastpost, $delta)) {
@@ -449,7 +449,8 @@
 			else echo '<msg>您的ip位于校外，两次发表/回复的时间间隔不能少于3分钟';
 			echo '！</msg></info></capu>';
 			exit;
-		}
+		}*/
+        checkDelayTime($time, $star, $rights, $lastpost, $ip, $results);
 		$statement="select tid from threads where bid=$bid order by tid desc";
 		$results=mysql_query($statement,$con);
 		$res=mysql_fetch_array($results);
@@ -487,16 +488,16 @@
 		echo '<capu>';
 		$statement="select username,star,rights,lastpost from userinfo where token='$token' && $time-tokentime<={$GLOBALS['validtime']}";
 		$results=mysql_query($statement,$con);
-		if (mysql_num_rows($results)==0) {
+		/*if (mysql_num_rows($results)==0) {
 			echo "<info><code>1</code><msg>超时，请重新登录。</msg></info></capu>";
 			exit;
-		}
+		}*/
 		$res=mysql_fetch_array($results);
 		$username=$res[0];
 		$star=intval($res[1]);
 		$rights=intval($res[2]);
 		$lastpost=intval($res[3]);
-		$inschool=checkinschool($ip);
+		/*$inschool=checkinschool($ip);
 		$delta=180;
 		if ($inschool || $star>=3 || $rights>=1) $delta=15;
 		if (shortDelayTime($time, $lastpost, $delta)) {
@@ -505,7 +506,8 @@
                         else echo '<msg>您的ip位于校外，两次发表/回复的时间间隔不能少于3分钟';
                         echo '！</msg></info></capu>';
                         exit;
-		}
+		}*/
+        checkDelayTime($time, $star, $rights, $lastpost, $ip, $results);
 		$statement="select pid from posts where bid=$bid && tid=$tid order by pid desc";
 		$results=mysql_query($statement,$con);
 		if (mysql_num_rows($results)==0) {
@@ -830,16 +832,16 @@
 			$time=time();
 			$statement="select username,star,rights,lastpost from userinfo where token='$token' && $time-tokentime<={$GLOBALS['validtime']}";
 			$results=mysql_query($statement,$con);
-			if (mysql_num_rows($results)==0) {
+			/*if (mysql_num_rows($results)==0) {
 				echo '<capu><info><code>1</code><msg>超时，请重新登录。</msg></info></capu>';
 				exit;
-			}
+			}*/
 			$res=mysql_fetch_row($results);
 			$username=$res[0];
 			$star=intval($res[1]);
 			$rights=intval($res[2]);
 			$lastpost=intval($res[3]);
-			$inschool=checkinschool($ip);
+			/*$inschool=checkinschool($ip);
 			$delta=180;
 			if ($inschool || $rights>=1 || $star>=3) $delta=15;
 			if (shortDelayTime($time, $lastpost, $delta)) {
@@ -848,8 +850,8 @@
 				else echo '<msg>您的ip位于校外，两次发表/回复的时间间隔不能少于3分钟';
 				echo '！</msg></info></capu>';
 				exit;
-			}
-			
+			}*/
+            checkDelayTime($time, $star, $rights, $lastpost, $ip, $results);
 
 			$text=@$_REQUEST['text'];
 			$replytime=time();
@@ -1832,8 +1834,30 @@ while ($res=mysql_fetch_array($result)) {
 		return false;	
 	}
 
-    function shortDelayTime($time, $lastpost, $delta) {
-        return ($time - $lastpost >= 0 && $time - $lastpost <= $delta);
+    function checkDelayTime($time, $star, $rights, $lastpost, $ip, $results) {
+        /*
+         * the checkDelayTime() function checks the delay time between
+         * two recent posts from the same user. If the delay time is
+         * too short, it'll return an error message.
+        */
+        if (mysql_num_rows($results)==0) {
+            echo '<capu><info><code>1</code><msg>超时，请重新登录。</msg></info></capu>';
+            exit;
+        }
+        $inschool = checkinschool($ip);
+        $delta = 180;
+        if ($inschool || $rights >= 1 || $star >= 3)
+            $delta = 15;
+        if ($time - $lastpost >= 0 && $time - $lastpost <= $delta) {
+            echo '<capu><info><code>2</code>';
+            if ($inschool)
+                echo ' <msg>两次发表/回复的时间间隔不能少于15秒';
+            else
+                echo '<msg>您的ip位于校外，两次发表/回复的时间间隔不能少于3分钟';
+            echo '！</msg></info></capu>';
+            exit;
+        }
+        exit;
     }
 
 ?>
