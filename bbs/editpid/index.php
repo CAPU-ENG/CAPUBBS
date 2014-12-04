@@ -24,9 +24,11 @@
 <link rel="shortcut icon" href="/assets/images/capu.jpg">
 <style type="text/css">
 body{
-	background-image: url("/assets/images/static/bg.jpg");
-	background-color: #F5FAF3;
-	margin: 0;
+    background-color: #ABC9B6;
+    background-image: url("/assets/images/static/bg.jpg");
+    background-position: center top;
+    background-repeat: no-repeat;
+    margin: 0;
 }
 div.content{
 	box-shadow: 0px 0px 12px rgba(0,0,0,0.41);
