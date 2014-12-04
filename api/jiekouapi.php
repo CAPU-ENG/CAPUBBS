@@ -1857,7 +1857,6 @@ while ($res=mysql_fetch_array($result)) {
             echo '！</msg></info></capu>';
             exit;
         }
-        exit;
     }
 
 ?>
