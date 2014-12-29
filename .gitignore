@@ -1,5 +1,4 @@
 .idea/
-assets/images/
 assets/downloads/
 bbs/attachment/
 bbs/images/
@@ -13,3 +12,7 @@ phpinfo.php
 msgxml.xml
 wxy/
 *.swp
+
+# Exclude `assets/images` except `assets/images/static`.
+assets/images/*
+!assets/images/static

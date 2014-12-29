@@ -8,10 +8,11 @@
 <link rel="shortcut icon" href="/assets/images/capu.jpg">
 <style type="text/css">
 body{
-	background-image: url("../lib/bg.jpg");
-	background-position: center top;
-	background-color: #AACAB4;
-	background-repeat: no-repeat;
+    background-color: #ABC9B6;
+    background-image: url("/assets/images/static/bg.jpg");
+    background-position: center top;
+    background-repeat: no-repeat;
+    margin: 0;
 }
 div.main{
 	width: 500px;
