@@ -79,8 +79,8 @@ a:hover#top{font-weight:bold}
 		else if ($type=="ios") {
 			$logininfo=$nowonlines[$i]['logininfo'];
 			$infos=getdeviceinfo($logininfo);
-			echo '<td>IOS客户端登录</td>';
-			if ($cansee) echo "<td>".$infos['device']."<br>IOS ".$infos['version']."</td>";
+			echo '<td>iOS客户端登录</td>';
+			if ($cansee) echo "<td>".$infos['device']."<br>iOS ".$infos['version']."</td>";
 
 		}
 		else {
