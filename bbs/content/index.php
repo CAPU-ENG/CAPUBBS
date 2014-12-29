@@ -333,7 +333,7 @@ for($i=0;$i<count(@$data);$i++){
 			$authorinfo=$authorinfo[0];
 			echo('<tr><td class="lzltd">');
 			echo('<div class="lzlicon"><img src="'.translateicon($authorinfo['icon']).'" class="lzlicon"></div>');
-			echo('<div class="lzlcontent">'.userhref($author).': '.$lzl[$j]['text'].'<br>');
+			echo('<div class="lzlcontent">'.userhref($author).': '.htmlspecialchars($lzl[$j]['text']).'<br>');
 			echo('<span class="lzltime">'.formatstamp($lzl[$j]['time']));
 			if ($canreply) echo '&nbsp;<a href="javascript:insertlzlreply('.$i.',\''.$author.'\');" class="lzlreplybt">回复</a>';
 			if($right>=1|| $author==$currentuser){
