@@ -1,4 +1,5 @@
 <?php
+    require_once '../config.php';
 	
 	header('Content-type: application/xml');
 	echo '<?xml version="1.0" encoding="UTF-8"?>';
@@ -25,7 +26,7 @@
 	function request($posts) {
 		$token=@$_POST['token'];
 		$ip=$_SERVER['REMOTE_ADDR'];
-		$url="http://127.0.0.1/api/jiekouapi.php?ip=$ip&token=$token";
+		$url=CAPU_JIEKOUAPI . "?ip=$ip&token=$token";
 		$rawstr= http($url,"POST",$posts);
 		$xml=simplexml_load_string($rawstr, null, LIBXML_NOCDATA);
 		return json_decode(json_encode($xml->xpath("info")),true);
@@ -290,7 +291,7 @@
 
 	function seemain() {
 		echo '<capu><info><code>-1</code>';
-		$con=mysql_connect("localhost","root","19951025");
+		@$con=mysql_connect(CAPU_DB_HOST, CAPU_DB_USER, CAPU_DB_PWD);
 		mysql_query("SET NAMES 'utf8'")	;
 		$statement="select * from capubbs.mainpage where id=-1";
 		$results=mysql_query($statement,$con);

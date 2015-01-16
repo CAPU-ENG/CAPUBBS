@@ -3,6 +3,7 @@
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
 <?php
 	require '../assets/api/checkuser.php';
+    require_once '../config.php';
 	$res=checkuser();
 	$username=$res[0];$rights=$res[1]; 
 	if ($username=="") {
@@ -11,7 +12,7 @@
 		exit;
 	}
 	date_default_timezone_set('Asia/Shanghai');
-	$con=mysql_connect("localhost","root","19951025");
+	@$con=mysql_connect(CAPU_DB_HOST, CAPU_DB_USER, CAPU_DB_PWD);
 	mysql_query("SET NAMES 'UTF8'");
 ?>
 <link href="../assets/css/bootstrap.min.css" rel="stylesheet">

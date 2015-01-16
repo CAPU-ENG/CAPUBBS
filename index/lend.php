@@ -8,6 +8,7 @@
 <script src="../assets/js/self-borrow.js"></script>
 <?php
 	require '../assets/api/checkuser.php';
+    require_once '../config.php';
 	$res=checkuser();
 	$username=$res[0];$rights=$res[1];
 	date_default_timezone_set('Asia/Shanghai');
@@ -33,7 +34,7 @@
       </tr>
 
 <?php
-	$con=mysql_connect("localhost","root","19951025");
+	@$con=mysql_connect(CAPU_DB_HOST, CAPU_DB_USER, CAPU_DB_PWD);
 	mysql_query('SET NAMES UTF8');
 	$statement="select * from capubbs.borrow where type=1 && state!=2 order by state";
 	$results=mysql_query($statement,$con);

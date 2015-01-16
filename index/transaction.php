@@ -1,3 +1,6 @@
+<?php
+require '../config.php';
+?>
 <!DOCTYPE html>
 <html>
 <head>
@@ -8,7 +11,7 @@
 <body>
 
 <?php
-	$con=mysql_connect("localhost","root","19951025");
+	$con=mysql_connect(CAPU_DB_HOST, CAPU_DB_USER, CAPU_DB_PWD);
 	$statement="select number from capubbs.borrow where type=1 && state=0";
 	$results=mysql_query($statement,$con);
 	$ans=mysql_num_rows($results);

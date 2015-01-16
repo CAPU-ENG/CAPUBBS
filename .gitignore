@@ -9,6 +9,7 @@ mysqladmin/
 old/
 test.php
 phpinfo.php
+config.php
 msgxml.xml
 wxy/
 *.swp

@@ -1,4 +1,5 @@
 <?php
+    require_once dirname(__FILE__) . '/../../config.php';
 	require_once 'log.php';
 	require_once 'checkuser.php';
 	if (@$_REQUEST['sms']=='remain') getremainsms();
@@ -7,7 +8,7 @@
 		$a=checkuser();
 		$username=$a[0];
 		if ($username=="") {echo '-15';exit;}
-		$con=mysql_connect("localhost","root","19951025");
+		@$con=mysql_connect(CAPU_DB_HOST, CAPU_DB_USER, CAPU_DB_PWD);
 		mysql_query("SET NAMES 'UTF8'");
 		$time=time();
 		$statement="select number from capubbs.sms where username='$username' && $time-timestamp<1800";

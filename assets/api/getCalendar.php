@@ -1,10 +1,11 @@
 <?php
+require_once dirname(__FILE__) . '/../../config.php';
 header('Content-type: text/json');
 echo '[';
  //   echo '  { "date": "2013-03-19 17:30:00", "type": "meeting", "title": "Test Last Year", "description": "Lorem Ipsum dolor set", "url": "" },';
   //  echo '  { "date": "2013-03-23 17:30:00", "type": "meeting", "title": "Test Next Year", "description": "Lorem Ipsum dolor set", "url": "http://www.event3.com/" },';
 
-$con=mysql_connect("localhost","root","19951025");
+@$con=mysql_connect(CAPU_DB_HOST, CAPU_DB_USER, CAPU_DB_PWD);
 mysql_query("SET NAMES 'UTF8'");
 $statement="select * from capubbs.calendar";
 $results=mysql_query($statement,$con);
