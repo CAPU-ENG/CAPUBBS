@@ -672,12 +672,14 @@ function goback(){
 function doreply(){
 	if(document.getElementById("raw_title").value.length==0){
 		alert("请填写帖子标题！");
+        $('#raw_title').focus();
 		return;
 	}
 	//var content=document.getElementById("edi_content").innerHTML;
 	var content=$('#edi_content').html();
 	if(content=="<br>"||content=="<div></div>"){
 		alert("请填写帖子内容！");
+        $('#edi_content').focus();
 		return;
 	}
 	var token=getcookie("token");
@@ -773,6 +775,37 @@ function deltid(tid) {
 	}
 }
 
+function hook_ctrl_or_command(id, fun) {
+    ctrl_or_command_pressed = false;
+    function is_ctrl_or_command(kcode) {
+        // kcode of `ctrl' is 17
+        // kcode of `command' is 224 in Mozilla, 17 in Opera,
+        //      91 in WebKit for left `command' and 93 for right `command'
+        return kcode == 17 || kcode == 224 || kcode == 91 || kcode == 93;
+    }
+    $(id).keydown(function(e) {
+        kcode = e.keyCode;
+        if (is_ctrl_or_command(kcode)) {
+            ctrl_or_command_pressed = true;
+        }
+        // kcode of `enter' is 13
+        if (kcode == 13 && (e.ctrlKey || ctrl_or_command_pressed)) {
+            ctrl_or_command_pressed = false;
+            fun();
+        }
+    });
+    $(id).keyup(function(e) {
+        kcode = e.keyCode;
+        if (is_ctrl_or_command(kcode)) {
+            ctrl_or_command_pressed = false;
+        }
+    });
+    $(id).blur(function() {
+        ctrl_or_command_pressed = false;
+    });
+}
+hook_ctrl_or_command('#edi_content', doreply);
+hook_ctrl_or_command('#raw_title', doreply);
 </script>
 </body>
 
