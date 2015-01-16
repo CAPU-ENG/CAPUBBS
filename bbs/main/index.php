@@ -1,4 +1,5 @@
 <?php
+    //$cl = microtime(true);
 	require_once "../lib/mainfunc.php";
 	date_default_timezone_set('Asia/Shanghai');
 	$users=getuser();
@@ -393,6 +394,7 @@ else echo '
 	 </div>
 
 <div class="footer">
+<!--<p>执行用<?php echo(number_format((microtime(true)-$cl)*1000, 3));?>ms</p>--!>
 </div>
 
 <script type="text/javascript" src="../lib/nic.js"></script>

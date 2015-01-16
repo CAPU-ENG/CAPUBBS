@@ -1,5 +1,6 @@
 <?php
 
+    //$stime=microtime();
 	if (@$_SERVER['HTTP_HOST']=="bbs.chexie.net") {
 		echo '<script>window.location="http://www.chexie.net/bbs/index/";</script></head></html>';
 		exit;
@@ -202,6 +203,7 @@
 	<p><a href="http://www.pku.edu.cn/" target="_blank">北京大学</a> | <a href="http://capu.bdwm.net/" target="_blank">北大未名BBS</a> | <a href="old/index/" target="_blank">原车协主页</a> | <a href="old/bbs/main.pl" target="_blank">原车协论坛</a>
 	<p>浏览器要求： IE9+/chrome/firefox/safari | 最佳屏幕分辨率 1366*768</p>
 	<p>Powered by：CAPU ver 3.0 | Copyright&reg;&nbsp; 2001 - <?php date_default_timezone_set("Asia/Shanghai");echo date("Y",time());?></p>
+    <!--<p>用时:<?php echo(number_format((microtime() - $stime) * 1000, 3)) ?>ms</p>--!>
 	<p>京ICP备14031425号</p>
 </footer>
 
