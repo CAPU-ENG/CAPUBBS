@@ -52,7 +52,7 @@ function makenewborrow() {
     }
     var username=$('#id').val();
     var sex="女";
-    if ($('#sex2').attr("checked")) sex="男";
+    if ($('#sex1').attr("checked")) sex="男";
     var hint=$('#hint').val();
     var height=$('#height').val();
     if (height=="" || isNaN(height)) {
