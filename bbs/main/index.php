@@ -1,5 +1,5 @@
 <?php
-	include("../lib/mainfunc.php");
+	require_once "../lib/mainfunc.php";
 	date_default_timezone_set('Asia/Shanghai');
 	$users=getuser();
 	$username=$users['username'];
