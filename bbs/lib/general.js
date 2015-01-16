@@ -60,3 +60,32 @@ function getsParam(){
 	}
 	return gets;
 }
+function hook_ctrl_or_command(id, fun) {
+    ctrl_or_command_pressed = false;
+    function is_ctrl_or_command(kcode) {
+        // kcode of `ctrl' is 17
+        // kcode of `command' is 224 in Mozilla, 17 in Opera,
+        //      91 in WebKit for left `command' and 93 for right `command'
+        return kcode == 17 || kcode == 224 || kcode == 91 || kcode == 93;
+    }
+    $(id).keydown(function(e) {
+        kcode = e.keyCode;
+        if (is_ctrl_or_command(kcode)) {
+            ctrl_or_command_pressed = true;
+        }
+        // kcode of `enter' is 13
+        if (kcode == 13 && (e.ctrlKey || ctrl_or_command_pressed)) {
+            ctrl_or_command_pressed = false;
+            fun();
+        }
+    });
+    $(id).keyup(function(e) {
+        kcode = e.keyCode;
+        if (is_ctrl_or_command(kcode)) {
+            ctrl_or_command_pressed = false;
+        }
+    });
+    $(id).blur(function() {
+        ctrl_or_command_pressed = false;
+    });
+}

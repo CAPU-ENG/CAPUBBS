@@ -874,6 +874,7 @@ function doreply(){
 	content=content.replace(/&/g, "&amp;");
 	if(content==""||content=="<br>"){
 		alert("请填写回复内容！");
+        $("#edi_content").focus();
 		return;
 	}
 	//document.getElementById("fm_title").value="Re: <?php echo $tdata['title']; ?>";
@@ -1040,6 +1041,7 @@ function starttimer() {
 }
 function stoptimer() {
 }
+hook_ctrl_or_command('#edi_content', doreply);
 </script>
 </body>
 </html>
