@@ -428,7 +428,6 @@
 	
 	function post($con,$token,$bid,$ip,$attachs) {
 		$time=time();
-		echo '<capu>';
 		$statement="select username,star,rights,lastpost from userinfo where token='$token' && $time-tokentime<={$GLOBALS['validtime']}";
 		$results=mysql_query($statement,$con);
 		/*if (mysql_num_rows($results)==0) {
@@ -451,6 +450,7 @@
 			exit;
 		}*/
         checkDelayTime($time, $star, $rights, $lastpost, $ip, $results);
+		echo '<capu>';
 		$statement="select tid from threads where bid=$bid order by tid desc";
 		$results=mysql_query($statement,$con);
 		$res=mysql_fetch_array($results);
@@ -485,7 +485,6 @@
 	
 	function reply($con,$token,$bid,$tid,$ip,$attachs) {
 		$time=time();
-		echo '<capu>';
 		$statement="select username,star,rights,lastpost from userinfo where token='$token' && $time-tokentime<={$GLOBALS['validtime']}";
 		$results=mysql_query($statement,$con);
 		/*if (mysql_num_rows($results)==0) {
@@ -508,6 +507,7 @@
                         exit;
 		}*/
         checkDelayTime($time, $star, $rights, $lastpost, $ip, $results);
+		echo '<capu>';
 		$statement="select pid from posts where bid=$bid && tid=$tid order by pid desc";
 		$results=mysql_query($statement,$con);
 		if (mysql_num_rows($results)==0) {
