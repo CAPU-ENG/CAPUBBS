@@ -3,8 +3,8 @@
 <head>
 	<meta charset="UTF-8" />
 	<title>借车须知</title>
-	<link rel="stylesheet" href="/assets/css/base.css" />
-	<link rel="stylesheet" href="/assets/css/layout.css"/>
+	<link rel="stylesheet" href="../assets/css/base.css" />
+	<link rel="stylesheet" href="../assets/css/layout.css"/>
 
 </head>
 
@@ -98,8 +98,8 @@
 		</div><!-- // container end -->
 
 	
-	<script src="/assets/js/jquery.min.js"></script>
-	<script src="/assets/js/bootstrap.min.js"></script>
-	<script src="/assets/js/self-borrow.js"></script>
+	<script src="../assets/js/jquery.min.js"></script>
+	<script src="../assets/js/bootstrap.min.js"></script>
+	<script src="../assets/js/self-borrow.js"></script>
 </body>
 </html>

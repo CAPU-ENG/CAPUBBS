@@ -24,7 +24,7 @@
 <script src="../lib/jquery.min.js"></script>
 <link rel="stylesheet" href="../lib/general.css">
 <link rel="stylesheet" href="style.css">
-<link rel="shortcut icon" href="/assets/images/capu.jpg">
+<link rel="shortcut icon" href="../../assets/images/capu.jpg">
 </head>
 <body>
 <div class="header">

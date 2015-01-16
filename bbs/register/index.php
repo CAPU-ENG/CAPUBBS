@@ -5,11 +5,11 @@
 <link rel="stylesheet" href="../lib/general.css">
 <script type="text/javascript" src="../lib/md5.js"></script>
 <script src="../lib/jquery.min.js"></script>
-<link rel="shortcut icon" href="/assets/images/capu.jpg">
+<link rel="shortcut icon" href="../../assets/images/capu.jpg">
 <style type="text/css">
 body{
     background-color: #ABC9B6;
-    background-image: url("/assets/images/static/bg.jpg");
+    background-image: url("../../assets/images/static/bg.jpg");
     background-position: center top;
     background-repeat: no-repeat;
     margin: 0;
@@ -246,7 +246,7 @@ div.icon:hover{
 	function refreshicons(){
 		var s="";
 		for(var i=0;i<imgs.length;i++){
-			s+="<img src='/bbsimg/icons/"+imgs[i]+"' class='icon' onclick='selecticon("+i+")'>";
+			s+="<img src='../../bbsimg/icons/"+imgs[i]+"' class='icon' onclick='selecticon("+i+")'>";
 		}
 		s+='<div class="icon" onclick="uploadicon();"></div><div class="tip">← 点此上传您的头像</div>';
 		document.getElementById("iconselector").innerHTML=s;		
@@ -259,8 +259,8 @@ div.icon:hover{
 		}
 	}
 	function selecticon(n){
-		document.getElementById("iconpreview").src="/bbsimg/icons/"+imgs[n];
-		document.getElementById("icon").value="/bbsimg/icons/"+imgs[n];
+		document.getElementById("iconpreview").src="../../bbsimg/icons/"+imgs[n];
+		document.getElementById("icon").value="../../bbsimg/icons/"+imgs[n];
 	}
 	function uploadicon(){
 		document.getElementById("iconfile").click();
@@ -299,7 +299,7 @@ div.icon:hover{
 <tr><td class="left">签名档2：</td><td><textarea name="sig2" maxlength="250" rows="3" id="sig2"></textarea></td><td class="right"></td></tr>
 <tr><td class="left">签名档3：</td><td><textarea name="sig3" maxlength="250" rows="3" id="sig3"></textarea></td><td class="right"></td></tr>
 <tr><td class="left">个人简介：</td><td><textarea name="intro" placeholder="向大家更好的介绍自己吧！" rows="3" id="intro"></textarea></td><td class="right"></td></tr>
-<td class="left">验证码*：</td><td><input type="text" placeholder="输入结果；点击图片更换验证码" name="captcha" id="captcha">&nbsp;</td><td class="right"><img id="img_captcha" src="/assets/api/securimage/securimage_show.php?<?php echo rand();?>" onclick="changecaptcha()" style="cursor:pointer"></td></tr>
+<td class="left">验证码*：</td><td><input type="text" placeholder="输入结果；点击图片更换验证码" name="captcha" id="captcha">&nbsp;</td><td class="right"><img id="img_captcha" src="../../assets/api/securimage/securimage_show.php?<?php echo rand();?>" onclick="changecaptcha()" style="cursor:pointer"></td></tr>
 <tr><td colspan="1">&nbsp;</td></tr>
 <tr><td></td><td><input type="button" style="width:70px;" onclick="register()" value="注册"></td><td></td></tr>
 </table>
@@ -310,7 +310,7 @@ div.icon:hover{
 <script type="text/javascript">
 function changecaptcha() {
 	$('#captcha').val();
-	$('#img_captcha').attr("src","/assets/api/securimage/securimage_show.php?"+Math.random());
+	$('#img_captcha').attr("src","../../assets/api/securimage/securimage_show.php?"+Math.random());
 }
 
 $(function(){
@@ -349,7 +349,7 @@ function register() {
 				return;
 			}
 			if (x==0) {
-				window.location="/bbs/index/";
+				window.location="../index/";
 				return;
 			}
 			alert(data);

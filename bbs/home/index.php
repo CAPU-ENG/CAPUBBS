@@ -9,10 +9,10 @@
 <meta charset="utf-8">
 <title>CAPUBBS - 我</title>
 <link rel="stylesheet" href="../lib/general.css">
-<link rel="shortcut icon" href="/assets/images/capu.jpg">
+<link rel="shortcut icon" href="../../assets/images/capu.jpg">
 <style type="text/css">
 body{
-	background-image: url("/assets/images/static/bg.jpg");
+	background-image: url("../../assets/images/static/bg.jpg");
 	background-position: center top;
 	background-repeat: no-repeat;
 	background-color: #ABC9B6;

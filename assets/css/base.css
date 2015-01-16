@@ -10,7 +10,7 @@ html {
 }
 body{
     font: 14px/24px "Microsoft YaHei","Arial",sans-serif;
-    background:url(/assets/images/beige_paper.png) left top repeat;
+    background:url(../../assets/images/beige_paper.png) left top repeat;
     color: #222222;
 }
 /* 内外边距通常让各个浏览器样式的表现位置不同 */

@@ -5,7 +5,7 @@ $(document).ready(function() {
                 captionOpacity: 0.6
         });
         $("#calendar").eventCalendar({
-                eventsjson: '/assets/api/getCalendar.php',
+                eventsjson: '../assets/api/getCalendar.php',
                 eventsLimit: 4,
                 jsonDateFormat: 'human',
                 showDescription: true
@@ -48,7 +48,7 @@ function saveimg() {
 	});
 	json=json+"]";
 
-	$.post("/assets/api/main.php",{
+	$.post("../assets/api/main.php",{
 		ask:"saveimg",
 		json:json
 		},function(data) {
@@ -76,7 +76,7 @@ function add_inform() {
                 return;
         }
 	*/
-	$.post("/assets/api/main.php",{
+	$.post("../assets/api/main.php",{
 		ask:"addinform",
 		title:inform_title,
 		url:inform_url
@@ -123,7 +123,7 @@ function del_inform() {
 	if (select_time=="") return;
 	if (confirm("你选择的公告是：\n"+select_title+"\n你确定要删除该公告么？删除是不可逆操作！"))
 	{
-		$.post("/assets/api/main.php",{
+		$.post("../assets/api/main.php",{
 			ask:"delinform",
 			time:select_time
 			},function(data) {
@@ -155,7 +155,7 @@ function savecalendar() {
 	var year=$('#year').val();
         var month=$('#month').val();
         var day=$('#day').val();
-	$.post("/assets/api/main.php",{
+	$.post("../assets/api/main.php",{
 		ask:"savecalendar",
 		year:year,
 		month:month,
@@ -232,7 +232,7 @@ function loadcalendar() {
 	var year=$('#year').val();
 	var month=$('#month').val();
 	var day=$('#day').val();
-	$.post("/assets/api/main.php",{
+	$.post("../assets/api/main.php",{
 		ask:"loadcalendar",
 		year:year,
 		month:month,
@@ -382,7 +382,7 @@ function check_valid() {
 		$("#inputimgthumb").focus();
 	}
 
-	$.post("/assets/api/main.php",{
+	$.post("../assets/api/main.php",{
 		ask: "getfilesize",
 		url: inputimgthumb
 		},function(data) {
@@ -453,7 +453,7 @@ function check_valid2() {
 		$("#postimg_thumburl").focus();
 	}
 
-	$.post("/assets/api/main.php",{
+	$.post("../assets/api/main.php",{
 		ask: "getfilesize",
 		url: inputimgthumb
 		},function(data) {
@@ -476,7 +476,7 @@ function postimg_submit()
 	var thumburl=$('#postimg_thumburl').val();
 	var title=$('#postimg_title').val();
 
-	$.post("/assets/api/main.php",{
+	$.post("../assets/api/main.php",{
 		ask:"postimg",
 		imgurl:url,
 		imgthumburl:thumburl,

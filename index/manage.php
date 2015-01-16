@@ -14,11 +14,11 @@
 	$con=mysql_connect("localhost","root","19951025");
 	mysql_query("SET NAMES 'UTF8'");
 ?>
-<link href="/assets/css/bootstrap.min.css" rel="stylesheet">
-<link href="/assets/css/style.css" rel="stylesheet">
-<script src="/assets/js/jquery.min.js"></script>
-<script src="/assets/js/bootstrap.min.js"></script>
-<script src="/assets/js/self-borrow.js"></script>
+<link href="../assets/css/bootstrap.min.css" rel="stylesheet">
+<link href="../assets/css/style.css" rel="stylesheet">
+<script src="../assets/js/jquery.min.js"></script>
+<script src="../assets/js/bootstrap.min.js"></script>
+<script src="../assets/js/self-borrow.js"></script>
 </head>
 <body>
 

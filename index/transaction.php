@@ -2,8 +2,8 @@
 <html>
 <head>
 <meta charset="UTF-8">
-<link href="/assets/css/move.css" rel="stylesheet">
-<link href="/assets/css/bootstrap.min.css" rel="stylesheet">
+<link href="../assets/css/move.css" rel="stylesheet">
+<link href="../assets/css/bootstrap.min.css" rel="stylesheet">
 </head>
 <body>
 
@@ -53,8 +53,8 @@
         </div>
     </li>
 
-<script src="/assets/js/jquery.min.js"></script>
-<script src="/assets/js/bootstrap.min.js"></script>}
+<script src="../assets/js/jquery.min.js"></script>
+<script src="../assets/js/bootstrap.min.js"></script>
 </body>    
 
 </html>

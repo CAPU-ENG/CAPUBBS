@@ -1,8 +1,8 @@
 <html>
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
-<link href="/assets/css/bootstrap.min.css" rel="stylesheet">
-<link href="/assets/css/style.css" rel="stylesheet">
+<link href="../assets/css/bootstrap.min.css" rel="stylesheet">
+<link href="../assets/css/style.css" rel="stylesheet">
 <style>
 body {
 	font-family: monospace;
@@ -273,7 +273,7 @@ body {
   <div class="form-group" style="margin-top:50px">
     <label class="col-md-3 control-label">微信公众号</label>
     <div class="col-md-9">
-      <p class="form-control-static">capu北大车协&nbsp;&nbsp;&nbsp;<span class="label label-danger" style="display:inline-block" id="qrcode" title="<p>立即使用微信扫描二维码，关注北大车协微信公众号<br>即时推送车协的各种最新活动消息，请务必关注</p><br><img src='/assets/images/qrcode_wechat.jpg' class='img-rounded img-reponsive' style='width:320px'>">二维码</span></p>
+      <p class="form-control-static">capu北大车协&nbsp;&nbsp;&nbsp;<span class="label label-danger" style="display:inline-block" id="qrcode" title="<p>立即使用微信扫描二维码，关注北大车协微信公众号<br>即时推送车协的各种最新活动消息，请务必关注</p><br><img src='../assets/images/qrcode_wechat.jpg' class='img-rounded img-reponsive' style='width:320px'>">二维码</span></p>
     </div>
   </div>
 
@@ -336,7 +336,7 @@ body {
     <label class="col-md-3 control-label">其他方式</label>
     <div class="col-md-9">
       <p class="form-control-static">
-        周一到周五每天中午学一食堂东南角 12:00-13:00&nbsp;&nbsp;&nbsp;&nbsp;<span class="label label-danger pic_contact" title="<img width='450' src='/assets/images/xueyi.jpg'>">pic</span>
+        周一到周五每天中午学一食堂东南角 12:00-13:00&nbsp;&nbsp;&nbsp;&nbsp;<span class="label label-danger pic_contact" title="<img width='450' src='../assets/images/xueyi.jpg'>">pic</span>
       </p>
     </div>
   </div>
@@ -345,7 +345,7 @@ body {
     <label class="col-md-3 control-label"></label>
     <div class="col-md-9">
       <p class="form-control-static">
-	每周一三五晚8:45五四体育场日常训练&nbsp;&nbsp;&nbsp;&nbsp;<span class="label label-danger pic_contact" title="<img width='450' src='/assets/images/xunlian.jpg'>">pic</span>
+	每周一三五晚8:45五四体育场日常训练&nbsp;&nbsp;&nbsp;&nbsp;<span class="label label-danger pic_contact" title="<img width='450' src='../assets/images/xunlian.jpg'>">pic</span>
       </p>
     </div>
   </div>
@@ -354,7 +354,7 @@ body {
     <label class="col-md-3 control-label"></label>
     <div class="col-md-9">
       <p class="form-control-static">
-	每周五下午农园西北角 2:30-5:00&nbsp;&nbsp;&nbsp;&nbsp;<span class="label label-danger pic_contact" title="<img width='450' src='/assets/images/xiuche.jpg'>">pic</span>
+	每周五下午农园西北角 2:30-5:00&nbsp;&nbsp;&nbsp;&nbsp;<span class="label label-danger pic_contact" title="<img width='450' src='../assets/images/xiuche.jpg'>">pic</span>
       </p>
     </div>
   </div>
@@ -364,9 +364,9 @@ body {
 
 </div>
 
-<script src="/assets/js/jquery.min.js"></script>
-<script src="/assets/js/bootstrap.min.js"></script>
-<script src="/assets/js/minitip.js"></script>
+<script src="../assets/js/jquery.min.js"></script>
+<script src="../assets/js/bootstrap.min.js"></script>
+<script src="../assets/js/minitip.js"></script>
 <script>
 $(document).ready(function(){
 	$('a[data-toggle="tab"]').on('shown.bs.tab', function (e) {
@@ -402,15 +402,15 @@ $(document).ready(function(){
 function changetab(tab) {
 	switch (tab) {
 		case '#about':
-		$('#about_img').attr("src","/assests/images/shuqi.jpg");
+		$('#about_img').attr("src","../assets/images/shuqi.jpg");
 		break;
 		case '#summer':
-		$('#summer_img_1').attr("src","/assets/images/kaocha1.jpg");
-		$('#summer_img_2').attr("src","/assets/images/kaocha2.jpg");
+		$('#summer_img_1').attr("src","../assets/images/kaocha1.jpg");
+		$('#summer_img_2').attr("src","../assets/images/kaocha2.jpg");
 		break;
 		case '#race':
 		for (var i=1;i<=3;i++) {
-			$('#race_img_'+i).attr("src","/assets/images/race"+i+".jpg");
+			$('#race_img_'+i).attr("src","../assets/images/race"+i+".jpg");
 		}
 		break;
 		case '#contact':

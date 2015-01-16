@@ -1,11 +1,11 @@
 <!DOCTYPE html>
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
-<link href="/assets/css/bootstrap.min.css" rel="stylesheet">
-<link href="/assets/css/style.css" rel="stylesheet">
-<script src="/assets/js/jquery.min.js"></script>
-<script src="/assets/js/bootstrap.min.js"></script>
-<script src="/assets/js/self-borrow.js"></script>
+<link href="../assets/css/bootstrap.min.css" rel="stylesheet">
+<link href="../assets/css/style.css" rel="stylesheet">
+<script src="../assets/js/jquery.min.js"></script>
+<script src="../assets/js/bootstrap.min.js"></script>
+<script src="../assets/js/self-borrow.js"></script>
 <?php
 	require '../assets/api/checkuser.php';
 	$res=checkuser();
@@ -96,7 +96,7 @@
         <input type="text" id="captcha_1" class="form-control"/>
     </div>
     <div class="col-md-10">
-	<img id="img_captcha_1" src="/assets/api/securimage/securimage_show.php?3444"/>
+	<img id="img_captcha_1" src="../assets/api/securimage/securimage_show.php?3444"/>
     <button class="btn btn-link control-label" onclick="changecaptcha('1')">看不清？换一个！</button></div>
     <div class="col-md-12"><p class="form-control-static" style="color:#AAAAAA">请输入图片中算式的计算结果</p></div>
   </div></div>
@@ -199,7 +199,7 @@
         <input type="text" id="captcha_2" class="form-control"/>
     </div>
     <div class="col-md-10">
-	<img id="img_captcha_2" src="/assets/api/securimage/securimage_show.php?3444"/>
+	<img id="img_captcha_2" src="../assets/api/securimage/securimage_show.php?3444"/>
     <button class="btn btn-link control-label" onclick="changecaptcha('2')">看不清？换一个！</button></div>
     <div class="col-md-12"><p class="form-control-static" style="color:#AAAAAA">请输入图片中算式的计算结果</p></div>
   </div></div>

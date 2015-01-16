@@ -5,14 +5,14 @@
 <title>CAPU时间轴</title>
 
 
-<link href="/assets/css/TLstyle.css" type="text/css"  rel="stylesheet">
+<link href="../assets/css/TLstyle.css" type="text/css"  rel="stylesheet">
 
 <!--[if lt IE 9]>
 <link rel="stylesheet" type="text/css" href="css/styleIE.css" />
 <![endif]-->
 
 <!--
-<script type="text/javascript" src="/assets/js/modernizr.custom.11333.js"></script>
+<script type="text/javascript" src="../assets/js/modernizr.custom.11333.js"></script>
 -->
 </head>
 <body>
@@ -404,6 +404,6 @@
 
 </div>
 
-<script src="/assets/js/jquery.min.js"></script>
+<script src="../assets/js/jquery.min.js"></script>
 </body>
 </html>

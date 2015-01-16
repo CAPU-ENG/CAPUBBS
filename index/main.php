@@ -46,14 +46,14 @@
 -->
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
-<link href="/assets/css/bootstrap.min.css" rel="stylesheet">
-<link href="/assets/css/nivo-slider.css" rel="stylesheet">
-<link href="/assets/css/dark.css" rel="stylesheet">
-<link href="/assets/css/eventCalendar.css" rel="stylesheet">
-<link href="/assets/css/eventCalendar_theme_responsive.css" rel="stylesheet">
-<link href="/assets/css/lightbox.css" rel="stylesheet">
-<link href="/assets/css/style.css" rel="stylesheet">
-<link rel="shortcut icon" href="/assets/images/capu.jpg">
+<link href="../assets/css/bootstrap.min.css" rel="stylesheet">
+<link href="../assets/css/nivo-slider.css" rel="stylesheet">
+<link href="../assets/css/dark.css" rel="stylesheet">
+<link href="../assets/css/eventCalendar.css" rel="stylesheet">
+<link href="../assets/css/eventCalendar_theme_responsive.css" rel="stylesheet">
+<link href="../assets/css/lightbox.css" rel="stylesheet">
+<link href="../assets/css/style.css" rel="stylesheet">
+<link rel="shortcut icon" href="../assets/images/capu.jpg">
 </head>
 <?php
 	require '../assets/api/checkuser.php';
@@ -150,7 +150,7 @@
 <div class="row">
     <div class="col-md-4">
 	<div class="thumbnail">
-	<button class="btn btn-info img-responsive"  id="qrcode_wechat" title="<h5>微信公共号 capu北大车协</h5><br><img width='200px' src='/assets/images/qrcode_wechat.jpg'>"><img src="/assets/images/wechat.png" class="img-responsive img-rounded"/></button>    
+	<button class="btn btn-info img-responsive"  id="qrcode_wechat" title="<h5>微信公共号 capu北大车协</h5><br><img width='200px' src='../assets/images/qrcode_wechat.jpg'>"><img src="../assets/images/wechat.png" class="img-responsive img-rounded"/></button>    
 	    <div class="caption">
 	        <p><center><b>微信</b></center></p>
 	    </div>
@@ -158,7 +158,7 @@
     </div>
     <div class="col-md-4">
         <div class="thumbnail">
-         <button class="btn btn-info img-responsive" id="qrcode_android" title="<h5>CAPUBBS for Android</h5><br><img width='200px' src='/assets/images/qrcode_android.png'>"><img src="/assets/images/android.png" class="img-responsive img-rounded"/></button>
+         <button class="btn btn-info img-responsive" id="qrcode_android" title="<h5>CAPUBBS for Android</h5><br><img width='200px' src='../assets/images/qrcode_android.png'>"><img src="../assets/images/android.png" class="img-responsive img-rounded"/></button>
 	    <div class="caption">
                 <p><center><b>Android</b></center></p>
             </div>
@@ -166,7 +166,7 @@
     </div>
     <div class="col-md-4">
         <div class="thumbnail">
-         <button class="btn btn-info img-responsive" id="qrcode_ios" title="<h5>CAPUUBBS for iOS</h5></br><img width='200px' src='/assets/images/qrcode_ios.gif'>"><img src="/assets/images/apple.png" class="img-responsive img-rounded" /></button>
+         <button class="btn btn-info img-responsive" id="qrcode_ios" title="<h5>CAPUUBBS for iOS</h5></br><img width='200px' src='../assets/images/qrcode_ios.gif'>"><img src="../assets/images/apple.png" class="img-responsive img-rounded" /></button>
 	    <div class="caption">
                 <p><center><b>iOS</b></center></p>
             </div>
@@ -346,14 +346,14 @@ echo '
         <h4 class="modal-title">北京大学自行车协会会歌 - 跋涉梦想</h4>
       </div>
       <div class="modal-body" style="background:black">
-      	<video id="huige_video" preload="none" src="/assets/downloads/anthem.mp4" controls="controls" width="640" height="360" poster="/assets/images/huige.jpg" aria-describedby="full-descript">
-	  <p class="text-center"><b>很遗憾，你的浏览器不支持视频播放:（<br>请换用 IE9+/chrome/safari 观看视频，或者直接<a href="/assets/downloads/CAPU_anthem.rmvb" target="_blank">下载观看</a>。</b></p>
+      	<video id="huige_video" preload="none" src="../assets/downloads/anthem.mp4" controls="controls" width="640" height="360" poster="../assets/images/huige.jpg" aria-describedby="full-descript">
+	  <p class="text-center"><b>很遗憾，你的浏览器不支持视频播放:（<br>请换用 IE9+/chrome/safari 观看视频，或者直接<a href="../assets/downloads/CAPU_anthem.rmvb" target="_blank">下载观看</a>。</b></p>
 	</video>
       </div>
       <div class="modal-footer">
-        <a href="/assets/downloads/CAPU_anthem.rmvb" target="_blank" type="button" class="btn btn-primary">下载高清版观看</a>
-	<a href="/assets/downloads/CAPU_anthem.mp3" target="_blank" type="button" class="btn btn-primary">MP3格式</a>
-	<a href="/assets/downloads/CAPU_anthem_lyrics.gif" target="_blank" type="button" class="btn btn-primary">歌曲简谱</a>
+        <a href="../assets/downloads/CAPU_anthem.rmvb" target="_blank" type="button" class="btn btn-primary">下载高清版观看</a>
+	<a href="../assets/downloads/CAPU_anthem.mp3" target="_blank" type="button" class="btn btn-primary">MP3格式</a>
+	<a href="../assets/downloads/CAPU_anthem_lyrics.gif" target="_blank" type="button" class="btn btn-primary">歌曲简谱</a>
         <button type="button" class="btn btn-default" onclick="closevideo('huige')">关闭</button>
       </div>
     </div>
@@ -368,14 +368,14 @@ echo '
         <h4 class="modal-title">北大车协经典歌曲 - 尘埃</h4>
       </div>
       <div class="modal-body" style="background:black">
-    	<video controls="controls" preload="none" src="/assets/downloads/dust.mp4" width="640" height="360" poster="/assets/images/chenai.jpg" aria-describedby="full-descript" id="chenai_video">
+    	<video controls="controls" preload="none" src="../assets/downloads/dust.mp4" width="640" height="360" poster="../assets/images/chenai.jpg" aria-describedby="full-descript" id="chenai_video">
 	  <p class="text-center"><b>很遗憾，你的浏览器不支持视频播放:（<br>请换
-用 IE9+/chrome/safari 观看视频，或者直接<a href="/assets/downloads/CAPU_dust.rmvb" target="_blank">下载观看</a>。</b></p>
+用 IE9+/chrome/safari 观看视频，或者直接<a href="../assets/downloads/CAPU_dust.rmvb" target="_blank">下载观看</a>。</b></p>
         </video> 
       </div>
       <div class="modal-footer">
-        <a href="/assets/downloads/CAPU_dust.rmvb" target="_blank" type="button" class="btn btn-primary">下载高清版观看</a>
-	<a href="/assets/downloads/CAPU_dust.mp3" target="_blank" type="button" class="btn btn-primary">MP3格式</a>
+        <a href="../assets/downloads/CAPU_dust.rmvb" target="_blank" type="button" class="btn btn-primary">下载高清版观看</a>
+	<a href="../assets/downloads/CAPU_dust.mp3" target="_blank" type="button" class="btn btn-primary">MP3格式</a>
         <button type="button" class="btn btn-default" onclick="closevideo('chenai')">关闭
 </button>
       </div>
@@ -520,13 +520,13 @@ echo "\n";
 </div>
 
 
-<script src="/assets/js/jquery.min.js"></script>
-<script src="/assets/js/bootstrap.min.js"></script>
-<script src="/assets/js/jquery.nivo.slider.pack.js"></script>
-<script src="/assets/js/jquery.eventCalendar.min.js"></script>
-<script src="/assets/js/lightbox.min.js"></script>
-<script src="/assets/js/minitip.js"></script>
-<script src="/assets/js/main.js"></script>
+<script src="../assets/js/jquery.min.js"></script>
+<script src="../assets/js/bootstrap.min.js"></script>
+<script src="../assets/js/jquery.nivo.slider.pack.js"></script>
+<script src="../assets/js/jquery.eventCalendar.min.js"></script>
+<script src="../assets/js/lightbox.min.js"></script>
+<script src="../assets/js/minitip.js"></script>
+<script src="../assets/js/main.js"></script>
 </script>
 </body>
 </html>

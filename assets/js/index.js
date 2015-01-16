@@ -36,7 +36,7 @@ function login() {
 	}
 	var user=username;
 	var pass=hex_md5(password);
-	$.post("/assets/api/main.php",{
+	$.post("assets/api/main.php",{
 		ask:"login",
 		username: user,
 		password: pass
@@ -60,31 +60,31 @@ function login() {
 
 }
 function logout(){
-	window.open("/bbs/logout/?from=/","_self");
+	window.open("bbs/logout/?from=/","_self");
 }
 function setActive(tag) {	
         $("#navbar-home,#navbar-borrow,#navbar-activity,#navbar-join,#navbar-download,#navbar-timeline,#navbar-about").removeClass("active");
 	var cache=getCookie("token");
-	if (cache=="") $('#login_li').html('<li><a href="javascript:showlogin()" id="login">登录</a></li><li id="navbar-register"><a href="/bbs/register/" target="_blank">注册</a></li>');
+	if (cache=="") $('#login_li').html('<li><a href="javascript:showlogin()" id="login">登录</a></li><li id="navbar-register"><a href="bbs/register/" target="_blank">注册</a></li>');
 	if (tag.indexOf("#borrow")==0)
 	{
 		$("#navbar-borrow").addClass("active");
                 if (tag=="#borrow-in")
-			$("#mainframe").attr("src","/index/borrow.php");
+			$("#mainframe").attr("src","index/borrow.php");
 		else if (tag=="#borrow-out")
-			$("#mainframe").attr("src","/index/lend.php");
+			$("#mainframe").attr("src","index/lend.php");
 		else if (tag=="#borrow-read")
-			$("#mainframe").attr("src","/index/borrow-read.php");
+			$("#mainframe").attr("src","index/borrow-read.php");
 		else if (tag=="#borrow-manage")
-			$("#mainframe").attr("src","/index/manage.php");
-		else $("#mainframe").attr("src","/index/transaction.php");
+			$("#mainframe").attr("src","index/manage.php");
+		else $("#mainframe").attr("src","index/transaction.php");
 		tag="#borrow";
 	}
 /*
 	else if (tag=="#join" || tag=="#join-summer")
         {       
                 $("#navbar-join").addClass("active");
-		var url="/index/join.php";
+		var url="index/join.php";
 		if (tag=="#join-summer") url=url+"#summer";
 		$("#mainframe").attr("src",url);
 		tag="#join";
@@ -93,23 +93,23 @@ function setActive(tag) {
         else if (tag=="#download")
         {
                 $("#navbar-download").addClass("active");
-		$("#mainframe").attr("src","/index/download.php");
+		$("#mainframe").attr("src","index/download.php");
         }
 	else if (tag=="#timeline") {
 		$('#navbar-timeline').addClass("active");
-		$('#mainframe').attr("src","/index/timeline.php");
+		$('#mainframe').attr("src","index/timeline.php");
 	}
         else if (tag.indexOf("#about")==0)
 	{
 		$("#navbar-about").addClass("active");
-		$('#mainframe').attr("src","/index/about.php#"+tag.substr(7));
+		$('#mainframe').attr("src","index/about.php#"+tag.substr(7));
 		tag="#about";
 	}
 	else 
 	{
 		tag="#main";
 		$("#navbar-home").addClass("active");
-		$("#mainframe").attr("src","/index/main.php");
+		$("#mainframe").attr("src","index/main.php");
 	}
 	window.location.hash=tag;
 	$(document).scrollTop(0);

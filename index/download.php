@@ -1,8 +1,8 @@
 <html>
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
-<link href="/assets/css/bootstrap.min.css" rel="stylesheet">
-<link href="/assets/css/style.css" rel="stylesheet">
+<link href="../assets/css/bootstrap.min.css" rel="stylesheet">
+<link href="../assets/css/style.css" rel="stylesheet">
 <?php
 	require '../assets/api/checkuser.php';
 	$res=checkuser();
@@ -103,8 +103,8 @@ echo '
 </div>
 
 
-<script src="/assets/js/jquery.min.js"></script>
-<script src="/assets/js/bootstrap.min.js"></script>
+<script src="../assets/js/jquery.min.js"></script>
+<script src="../assets/js/bootstrap.min.js"></script>
 <script>
 function edit_download() {
 	$('#edit_dialog').modal();
@@ -157,7 +157,7 @@ function confirm_add() {
 	if (!check_valid()) return;
 	var title=$('#edit_title').val();
 	var url=$('#edit_url').val();
-	$.post("/assets/api/main.php",{
+	$.post("../assets/api/main.php",{
 		ask:"add_download",
 		title:title,
 		url:url
@@ -169,7 +169,7 @@ function confirm_edit() {
 	var url=$('#edit_url').val();
 	var id=$('#edit_d').val();
 	if (id=="") return;
-	$.post("/assets/api/main.php",{
+	$.post("../assets/api/main.php",{
 		ask:"edit_download",
 		title:title,
 		url:url,
@@ -179,7 +179,7 @@ function confirm_edit() {
 function confirm_del() {
 	var id=$('#edit_d').val();
 	if (id=="") return;
-	$.post("/assets/api/main.php",{
+	$.post("../assets/api/main.php",{
 		ask:"del_download",
 		id:id
 		},callback);

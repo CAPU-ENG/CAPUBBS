@@ -61,7 +61,7 @@ function makenewborrow() {
 	return;
     }
     var length=$('#length').val();
-    $.post("/assets/api/main.php",{
+    $.post("../assets/api/main.php",{
 	ask: "newborrow",
 	username: username,
 	sex: sex,
@@ -135,7 +135,7 @@ function confirmborrowfrom() {
 	var toid=$('#borrowfrom_id').text();
 	var fromid=$('#username').text();
 
-	$.post("/assets/api/main.php",{
+	$.post("../assets/api/main.php",{
 		ask: "borrowfrom",
 		to: toid,
 		from: fromid,
@@ -191,7 +191,7 @@ function makenewlend() {
     var length=$('#length').val();
     var condition=$('#condition').val();
 
-    $.post("/assets/api/main.php",{
+    $.post("../assets/api/main.php",{
 	ask: "newlend",
 	username: username,
 	sex: sex,
@@ -266,7 +266,7 @@ function confirmlendto() {
 	var toid=$('#lendto_id').text();
 	var fromid=$('#username').text();
 
-	$.post("/assets/api/main.php",{
+	$.post("../assets/api/main.php",{
 		ask: "lendto",
 		to: toid,
 		from: fromid,
@@ -299,7 +299,7 @@ function confirmlendto() {
 
 }
 function changecaptcha(x) {
-	$('#img_captcha_'+x).attr("src","/assets/api/securimage/securimage_show.php?"+Math.random());
+	$('#img_captcha_'+x).attr("src","../assets/api/securimage/securimage_show.php?"+Math.random());
 	$('#captcha_'+x).val("");
 }
 function resetchange(type) {
@@ -323,7 +323,7 @@ function savechange(type) {
 		else json=json+'"'+$(this).children().eq(5).children().first().val()+'"';
 	});
 	json=json+"}";
-	$.post("/assets/api/main.php",{
+	$.post("api/main.php",{
 		ask:"savelend",
 		data: json
 		},function(data) {
