@@ -1,7 +1,8 @@
 <?php
+    require_once '../config.php';
 	$id=intval(@$_GET['d']);
 	if ($id=="") exit;
-	$con=mysql_connect('localhost','root','19951025');
+	@$con=mysql_connect(CAPU_DB_HOST, CAPU_DB_USER, CAPU_DB_PWD);
 	$statement="select url from capubbs.downloads where id=$id";
 	$results=mysql_query($statement,$con);
 	if (mysql_num_rows($results)==0) exit;

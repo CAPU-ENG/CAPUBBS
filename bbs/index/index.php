@@ -1,5 +1,5 @@
 <?php
-	include("../lib/mainfunc.php");
+	require_once "../lib/mainfunc.php";
 	date_default_timezone_set('Asia/Shanghai');
 	$users=getuser();
 	$username=$users['username'];
@@ -10,7 +10,7 @@
 <title>CAPUBBS - 选择讨论区</title>
 <link rel="stylesheet" href="../lib/general.css">
 <link rel="stylesheet" href="style.css">
-<link rel="shortcut icon" href="/assets/images/capu.jpg">
+<link rel="shortcut icon" href="../../assets/images/capu.jpg">
 <script src="../lib/jquery.min.js"></script>
 <meta name="apple-itunes-app" content="app-id=826386033, affiliate-data=myAffiliateData, app-argument=myURL">
 <?php

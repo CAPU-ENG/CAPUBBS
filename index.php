@@ -1,5 +1,6 @@
 <?php
 
+    //$stime=microtime();
 	if (@$_SERVER['HTTP_HOST']=="bbs.chexie.net") {
 		echo '<script>window.location="http://www.chexie.net/bbs/index/";</script></head></html>';
 		exit;
@@ -67,9 +68,9 @@
 
 
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
-<link href="/assets/css/bootstrap.min.css" rel="stylesheet">
-<link href="/assets/css/style.css" rel="stylesheet">
-<link rel="shortcut icon" href="/assets/images/capu.jpg">
+<link href="assets/css/bootstrap.min.css" rel="stylesheet">
+<link href="assets/css/style.css" rel="stylesheet">
+<link rel="shortcut icon" href="assets/images/capu.jpg">
 <title>北京大学自行车协会</title>
 </head>
 
@@ -90,7 +91,7 @@
       <ul class="nav navbar-nav">
         <li id="navbar-home"><a href="javascript:setActive('#main')">首页</a></li>
 	<li class="devider"></li>
-        <li><a href="/bbs/index" target="_blank">进入论坛</a></li>
+        <li><a href="bbs/index" target="_blank">进入论坛</a></li>
         <li class="devider"></li>
 	<li><a href="javascript:alert('交流赛官网正在计划中，敬请期待。')">交流赛官网</a></li>
 	<li class="devider"></li>
@@ -179,7 +180,7 @@
           <br> 
 
 	<button type="button" class="btn btn-warning" onclick="forget()">忘记密码？</button>&nbsp;&nbsp;
-	  <a href="/bbs/register" type="button" class="btn btn-link">没有账号，立即注册！</a>
+	  <a href="bbs/register" type="button" class="btn btn-link">没有账号，立即注册！</a>
         </fieldset>
         <p>
         <div class="alert alert-danger" id="alert" style="display:none">xxx</div>
@@ -195,19 +196,20 @@
 <iframe id="mainframe" scrolling="no" width="100%" height="700px" frameborder=0></iframe>
 
 <footer class="footer">
-	<p><a href="http://mall.jd.com/index-28344.html" target="_blank"><img src="/assets/images/acanu.jpg" class="img-responsive img-rounded img-thumbnail" alt="北大车协·阿肯诺 战略合作伙伴" title="北大车协·阿肯诺 战略合作伙伴"></a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="http://www.uccbike.com/" target="_blank"><img src="/assets/images/ucc.jpg" class="img-responsive img-rounded img-thumbnail" alt="UCC品牌自行车" title="UCC品牌自行车"></a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="http://shop111149465.taobao.com/" target="_blank"><img src="/assets/images/futaiyuzhuang.jpg" class="img-responsive img-rounded img-thumbnail" alt="福泰玉庄" title="福泰玉庄，北大车协合作伙伴"></a></p>
+	<p><a href="http://mall.jd.com/index-28344.html" target="_blank"><img src="assets/images/acanu.jpg" class="img-responsive img-rounded img-thumbnail" alt="北大车协·阿肯诺 战略合作伙伴" title="北大车协·阿肯诺 战略合作伙伴"></a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="http://www.uccbike.com/" target="_blank"><img src="assets/images/ucc.jpg" class="img-responsive img-rounded img-thumbnail" alt="UCC品牌自行车" title="UCC品牌自行车"></a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="http://shop111149465.taobao.com/" target="_blank"><img src="assets/images/futaiyuzhuang.jpg" class="img-responsive img-rounded img-thumbnail" alt="福泰玉庄" title="福泰玉庄，北大车协合作伙伴"></a></p>
 	
 	<p>地址：北京市海淀区北京大学24号楼118室（100871）</p>
 	<p><a href="javascript:setActive('#about')">关于协会</a> | <a href="http://baike.baidu.com/view/1317218.htm" target="_blank">百度百科</a> | <a href="http://weibo.com/beidachexie" target="_blank">新浪微博</a> | <a href="javascript:setActive('#about-contact')">联系我们</a></p>
-	<p><a href="http://www.pku.edu.cn/" target="_blank">北京大学</a> | <a href="http://capu.bdwm.net/" target="_blank">北大未名BBS</a> | <a href="/old/index/" target="_blank">原车协主页</a> | <a href="/old/bbs/main.pl" target="_blank">原车协论坛</a>
+	<p><a href="http://www.pku.edu.cn/" target="_blank">北京大学</a> | <a href="http://capu.bdwm.net/" target="_blank">北大未名BBS</a> | <a href="old/index/" target="_blank">原车协主页</a> | <a href="old/bbs/main.pl" target="_blank">原车协论坛</a>
 	<p>浏览器要求： IE9+/chrome/firefox/safari | 最佳屏幕分辨率 1366*768</p>
 	<p>Powered by：CAPU ver 3.0 | Copyright&reg;&nbsp; 2001 - <?php date_default_timezone_set("Asia/Shanghai");echo date("Y",time());?></p>
+    <!--<p>用时:<?php echo(number_format((microtime() - $stime) * 1000, 3)) ?>ms</p>--!>
 	<p>京ICP备14031425号</p>
 </footer>
 
-<script src="/assets/js/jquery.min.js"></script>
-<script src="/assets/js/bootstrap.min.js"></script>
-<script src="/bbs/lib/md5.js"></script>
-<script src="/assets/js/index.js"></script>
+<script src="assets/js/jquery.min.js"></script>
+<script src="assets/js/bootstrap.min.js"></script>
+<script src="bbs/lib/md5.js"></script>
+<script src="assets/js/index.js"></script>
 </body>
 </html>

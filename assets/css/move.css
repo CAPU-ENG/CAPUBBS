@@ -1,15 +1,18 @@
-body{background:url(/assets/images/beige_paper.png) left top repeat;}
+body{background:url(../images/beige_paper.png) left top repeat;}
 @font-face {
     font-family: 'WebSymbolsRegular';
-    src:url('/assets/images/websymbols.woff');
-    src:url('/assets/images/websymbols.woff') format('woff'),
-        url('/assets/images/websymbols.ttf') format('truetype');
+    src:url('../websymbols.woff');
+    src:url('../images/websymbols.woff') format('woff'),
+        url('../images/websymbols.ttf') format('truetype');
     font-weight: normal;
     font-style: normal;
 }
 .link{
 	text-align:center;
 	padding-top:10px;
+}
+.list li{
+    list-style-type:none;
 }
 .link a{
 	font-size:12px;

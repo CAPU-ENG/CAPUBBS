@@ -1,6 +1,6 @@
 <?php
-include("../lib/mainfunc.php");
-include("../../assets/api/captcha.php");
+require_once "../lib/mainfunc.php";
+require_once "../../assets/api/captcha.php";
 date_default_timezone_set("Asia/Shanghai");
 
 captcha_check();

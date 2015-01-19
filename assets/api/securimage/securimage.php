@@ -1,4 +1,5 @@
 <?php
+require_once dirname(__FILE__) . '/../../../config.php';
 
 // error_reporting(E_ALL); ini_set('display_errors', 1); // uncomment this line for debugging
 error_reporting(E_ALL & ~E_NOTICE);
@@ -475,7 +476,7 @@ class Securimage
      *
      * @var string
      */
-    public $database_host   = 'localhost';
+    public $database_host   = CAPU_DB_HOST;
 
     /**
      * Database username for connection (mysql, postgres only)
@@ -483,7 +484,7 @@ class Securimage
      *
      * @var string
      */
-    public $database_user   = 'root';
+    public $database_user   = CAPU_DB_USER;
 
     /**
      * Database password for connection (mysql, postgres only)
@@ -491,7 +492,7 @@ class Securimage
      *
      * @var string
      */
-    public $database_pass   = '19951025';
+    public $database_pass   = CAPU_DB_PWD;
 
     /**
      * Name of the database to select (mysql, postgres only)

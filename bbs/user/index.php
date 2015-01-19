@@ -15,11 +15,11 @@
 <title>CAPUBBS - 个人信息</title>
 <meta charset="utf-8">
 <link rel="stylesheet" href="../lib/general.css">
-<link rel="shortcut icon" href="/assets/images/capu.jpg">
+<link rel="shortcut icon" href="../../assets/images/capu.jpg">
 <style>
 body{
     background-color: #ABC9B6;
-    background-image: url("/assets/images/static/bg.jpg");
+    background-image: url("../../assets/images/static/bg.jpg");
     background-position: center top;
     background-repeat: no-repeat;
     margin: 0;

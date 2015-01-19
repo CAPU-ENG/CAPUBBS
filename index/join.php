@@ -17,8 +17,8 @@
 ?>
 
 
-<link href="/assets/css/bootstrap.min.css" rel="stylesheet">
-<link href="/assets/css/style.css" rel="stylesheet">
+<link href="../assets/css/bootstrap.min.css" rel="stylesheet">
+<link href="../assets/css/style.css" rel="stylesheet">
 </head>
 <body>
 <div class="mycontainer" style="padding-bottom:20px">
@@ -134,7 +134,7 @@
         <input type="text" id="captcha" class="form-control"/>
     </div>
     <div class="col-md-10">
-	<img id="img_captcha" src="/assets/api/securimage/securimage_show.php"/>
+	<img id="img_captcha" src="../assets/api/securimage/securimage_show.php"/>
     <button class="btn btn-link control-label" onclick="changecaptcha()">看不清？换一个！</button></div>
     <div class="col-md-12"><p class="form-control-static" style="color:#AAAAAA">请输入图片中算式的计算结果</p></div>
   </div></div>
@@ -168,9 +168,9 @@
   </div>
 </div>
 
-<script src="/assets/js/jquery.min.js"></script>
-<script src="/assets/js/bootstrap.min.js"></script>
-<script src="/assets/js/minitip.js"></script>
-<script src="/assets/js/join.js"></script>
+<script src="../assets/js/jquery.min.js"></script>
+<script src="../assets/js/bootstrap.min.js"></script>
+<script src="../assets/js/minitip.js"></script>
+<script src="../assets/js/join.js"></script>
 </body>
 </html>

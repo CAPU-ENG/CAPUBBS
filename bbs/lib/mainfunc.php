@@ -1,11 +1,11 @@
 <?php
+require_once "../../config.php";
 function mainfunc($posts,$debug=false){
 	$ip=$_SERVER["REMOTE_ADDR"];
 	@$token=$_COOKIE['token'];
-	$url="http://127.0.0.1/api/jiekouapi.php?ip=$ip&token=$token";
+	$url=CAPU_JIEKOUAPI."?ip=$ip&token=$token";
 	if($debug) $url=$url."&debug=yes";
 	$rawstr= http($url,"POST",$posts);
-	if($debug) return $rawstr;
 	@$xml=simplexml_load_string($rawstr, null, LIBXML_NOCDATA);
 	return json_decode(json_encode($xml->xpath("info")),true);
 }

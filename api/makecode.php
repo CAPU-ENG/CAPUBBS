@@ -1,4 +1,5 @@
 <?php
+    require_once '../config.php';
 	header("Content-type: text/html;charset=utf-8");
 
 	$save=@$_GET['saved'];
@@ -9,7 +10,7 @@
 	$end=$start+$number;
 
 	if ($save=="yes")
-		$con=mysql_connect("localhost","root","19951025");
+		$con=mysql_connect(CAPU_DB_HOST, CAPU_DB_USER, CAPU_DB_PWD);
 
 	echo "<pre>";
 	for ($i=$start;$i<$end;$i++) {

@@ -1,4 +1,5 @@
 <?php
+    require_once "../config.php";
 	if(false&&@$_REQUEST['debug']=='yes'){
 		echo("GET:<br>");
 		foreach($_GET as $key=>$value){
@@ -16,7 +17,7 @@
 	echo '<?xml version="1.0" encoding="UTF-8"?>';
 	echo "\n";
 	date_default_timezone_set("Asia/Shanghai");
-	$con=mysql_connect("localhost","root","19951025");
+	$con=mysql_connect(CAPU_DB_HOST, CAPU_DB_USER, CAPU_DB_PWD);
 	mysql_select_db("capubbs",$con);
 	mysql_query("set names 'utf8'",$con);
 	$ask=@$_REQUEST['ask'];

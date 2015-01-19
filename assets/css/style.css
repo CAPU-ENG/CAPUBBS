@@ -23,7 +23,7 @@
 }
 
 body {
-	background:url(/assets/images/beige_paper.png) left top repeat;
+	background:url(../../assets/images/beige_paper.png) left top repeat;
 }
 
 .mycontainer {
