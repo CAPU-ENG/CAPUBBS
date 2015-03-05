@@ -333,7 +333,7 @@
 			echo '<info><text><![CDATA['.$hot['title'].']]></text>';
 			echo '<bid>'.$hot['bid'].'</bid><tid>'.$hot['tid'].'</tid><pid>';
 			$num=intval($hot['reply'])+1;
-			echo $num.'</pid><author><![CDATA['.$hot['author'].']]></author><time>';	
+			echo $num.'</pid><replyer><![CDATA['.$hot['replyer'].']]></replyer><time>';	
 			$time=date("Y-m-d H:i:s",$hot['timestamp']);
 			echo $time.'</time></info>';
 		}
