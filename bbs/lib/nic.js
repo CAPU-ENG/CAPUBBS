@@ -1229,19 +1229,25 @@ var nicLinkButton = nicEditorAdvancedButton.extend({
 		this.ln = this.ne.selectedInstance.selElm().parentTag('A');
 		this.addForm({
 			'' : {type : 'title', txt : '添加链接'},
-			'href' : {type : 'text', txt : '地址', value : 'http://', style : {width: '150px'}},
+			'href' : {type : 'text', txt : '地址', style : {width: '150px'}},
 			'title' : {type : 'text', txt : '文字'},
 		},this.ln);
 	},
 	
 	submit : function(e) {
 		var url = this.inputs['href'].value;
-		if(url == "http://" || url == "") {
+		if(url == "") {
 			alert("无效的链接。");
 			return false;
 		}
 		this.removePane();
 		
+		if(url.indexOf("http://")==-1
+			&& url.indexOf("https://")==-1
+			&& url.indexOf("ftp://")==-1) {
+			url="http://"+url;
+		}
+
 		var title=this.inputs['title'].value;
 		if (title=="") title=url;
 
@@ -1250,7 +1256,7 @@ var nicLinkButton = nicEditorAdvancedButton.extend({
 		this.ln = this.findElm('A','href',tmp);
 		if(this.ln) {
 			this.ln.setAttributes({
-				href : this.inputs['href'].value,
+				href : url,
 				target : '_blank'
 			});
 		}

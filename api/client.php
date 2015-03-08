@@ -10,6 +10,7 @@
 	else if ($ask=="post") post();
 	else if ($ask=="login") login();
 	else if ($ask=="main") seemain();
+	else if ($ask=="hot") gethot();
 	else if ($ask=="register") register();
 	else if ($ask=="delete") del();
 	else if ($ask=="image") uploadimage();
@@ -305,6 +306,7 @@
 		echo '<iosurl><![CDATA['.$results[3].']]></iosurl>';
 		echo '<iosversion><![CDATA['.$results[4].']]></iosversion>';
 		echo '</info>'."\n";
+		
 		$statement="select * from capubbs.mainpage where id=1 order by number desc limit 0,6";
 		$results=mysql_query($statement,$con);
 		while (($res=mysql_fetch_row($results))!=null) {
@@ -318,8 +320,25 @@
 			else echo '<bid></bid><tid></tid>';
 			echo '</info>'."\n";	
 		}
+		
 		echo '</capu>';
 		exit;
+	}
+
+	function gethot() {
+		echo '<capu>';
+		$hots=request(array("ask"=>"hot"));
+		for ($i=1;$i<=10;$i++) {
+			$hot=$hots[$i];
+			echo '<info><text><![CDATA['.$hot['title'].']]></text>';
+			echo '<bid>'.$hot['bid'].'</bid><tid>'.$hot['tid'].'</tid><pid>';
+			$num=intval($hot['reply'])+1;
+			echo $num.'</pid><replyer><![CDATA['.$hot['replyer'].']]></replyer><time>';	
+			$time=date("Y-m-d H:i:s",$hot['timestamp']);
+			echo $time.'</time></info>';
+		}
+		echo '</capu>';
+
 	}
 
 	function uploadfile() {
@@ -379,7 +398,7 @@
 		echo '<capu><info><code>-1</code></info>';
 		$num=count($content);
 		if ($type=="thread") {
-			for ($i=1;$i<$num;$i++) {
+			for ($i=0;$i<$num;$i++) {
 				echo "<info>";
 				echo "<bid>".$content[$i]['bid']."</bid>\n";
 				echo "<tid>".$content[$i]['tid']."</tid>\n";
@@ -391,7 +410,7 @@
 
 		}
 		else {
-			for ($i=1;$i<$num;$i++) {
+			for ($i=0;$i<$num;$i++) {
 				$text=$content[$i]['text'];
 				if (mb_strlen($text,'utf-8')>=50)
 					$text=mb_substr($text,0,50,'utf-8')."...";
