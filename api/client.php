@@ -398,7 +398,7 @@
 		echo '<capu><info><code>-1</code></info>';
 		$num=count($content);
 		if ($type=="thread") {
-			for ($i=1;$i<$num;$i++) {
+			for ($i=0;$i<$num;$i++) {
 				echo "<info>";
 				echo "<bid>".$content[$i]['bid']."</bid>\n";
 				echo "<tid>".$content[$i]['tid']."</tid>\n";
@@ -410,7 +410,7 @@
 
 		}
 		else {
-			for ($i=1;$i<$num;$i++) {
+			for ($i=0;$i<$num;$i++) {
 				$text=$content[$i]['text'];
 				if (mb_strlen($text,'utf-8')>=50)
 					$text=mb_substr($text,0,50,'utf-8')."...";
