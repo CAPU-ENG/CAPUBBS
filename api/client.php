@@ -11,6 +11,7 @@
 	else if ($ask=="login") login();
 	else if ($ask=="main") seemain();
 	else if ($ask=="hot") gethot();
+    else if ($ask=="userinfo") getuserinfo();
 	else if ($ask=="register") register();
 	else if ($ask=="delete") del();
 	else if ($ask=="image") uploadimage();
@@ -262,7 +263,7 @@
 		}
 
 
-		$icon="/bbsimg/icons/zebra.jpeg";
+		$icon="/bbsimg/icons/zebra.jpeg";//默认头像
 		$results=request(array("ask"=>"register",
 			"username"=>$username,
 			"password"=>$password,
@@ -340,6 +341,22 @@
 		echo '</capu>';
 
 	}
+
+    function getuserinfo() {
+        $user=@$_REQUEST['uid'];
+        $id=request(array("ask"=>"view","view"=>$user));
+        echo '<capu><info>';
+        echo '<username><![CDATA['.$id[0]['username'].']]></username>';
+        echo '<sex><![CDATA['.$id[0]['sex'].']]></sex>';
+        echo '<icon><![CDATA['.$id[0]['icon'].']]></icon>';
+        echo '<intro><![CDATA['.$id[0]['intro'].']]></intro>';
+        echo '<regdate><![CDATA['.$id[0]['regdate'].']]></regdate>';
+        echo '<lastdate><![CDATA['.$id[0]['lastdate'].']]></lastdate>';
+        echo '<star><![CDATA['.$id[0]['star'].']]></star>';
+        echo '<sign><![CDATA['.$id[0]['sign'].']]></sign>';
+        echo '<newmsg><![CDATA['.$id[0]['newmsg'].']]></newmsg>';
+        echo '</info></capu>';
+    }
 
 	function uploadfile() {
 
