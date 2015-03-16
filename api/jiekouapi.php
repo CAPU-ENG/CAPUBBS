@@ -342,7 +342,8 @@
 		if (@$_REQUEST['md5']=="yes") $password=md5($password);
 		$sex=@$_REQUEST['sex'];
 		$icon=@$_REQUEST['icon'];
-		$qq=intval(@$_REQUEST['qq']);
+		if (@$_REQUEST['qq'])
+            $qq=intval(@$_REQUEST['qq']);
 		$mail=@$_REQUEST['mail'];
 		$intro=@$_REQUEST['intro'];
 		$place=@$_REQUEST['place'];

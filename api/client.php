@@ -86,7 +86,8 @@
         echo "<extr>".$content['extr']."</extr>\n";
     }
 
-    function showtext($content,$bid,$tid,$page,$pages,$title) {
+    function showtext($content,$bid,$tid,$page,$pages,$title) {//新增用户头像、星数和签名档
+        $id=request(array("ask"=>"view","view"=>$content['author']));
         echo "<code>-1</code>\n";
         $nextpage="false";
         if ($page!=$pages) $nextpage="true";
@@ -95,8 +96,11 @@
         echo "<page>$page</page>\n";
         echo "<bid>$bid</bid>\n";
         echo "<author><![CDATA[".$content['author']."]]></author>\n";
+        echo "<icon><![CDATA[".$id[0]['icon']."]]></icon>";
+        echo "<star><![CDATA[".$id[0]['star']."]]></star>";
         echo "<title><![CDATA[".$title."]]></title>\n";
         echo "<text><![CDATA[".translate(@$content['text'],@$content['ishtml'])."]]></text>\n";
+        echo "<sig><![CDATA[".translate($id[0]['sig'.@$content['sig']],false)."]]></sig>\n";
         echo "<floor>".@$content['pid']."</floor>\n";
         echo "<tid>$tid</tid>\n";
         echo "<fid>".@$content['fid']."</fid>\n";
@@ -308,7 +312,7 @@
         echo '<iosversion><![CDATA['.$results[4].']]></iosversion>';
         echo '</info>'."\n";
 
-        $statement="select * from capubbs.mainpage where id=1 order by number desc limit 0,6";
+        $statement="select * from capubbs.mainpage where id=1 order by number desc limit 0,10";//增加了首页最多显示的通知数量
         $results=mysql_query($statement,$con);
         while (($res=mysql_fetch_row($results))!=null) {
             echo '<info><text>'."<![CDATA[".$res[2].']]></text>';
@@ -334,7 +338,8 @@
             echo '<info><text><![CDATA['.$hot['title'].']]></text>';
             echo '<bid>'.$hot['bid'].'</bid><tid>'.$hot['tid'].'</tid><pid>';
             $num=intval($hot['reply'])+1;
-            echo $num.'</pid><replyer><![CDATA['.$hot['replyer'].']]></replyer><time>';
+            echo $num.'</pid><replyer><![CDATA['.$hot['replyer'].']]></replyer>';
+            echo '<author><![CDATA['.$hot['author'].']]></author><time>';//增加论坛热点查看作者的功能
             $time=date("Y-m-d H:i:s",$hot['timestamp']);
             echo $time.'</time></info>';
         }
@@ -350,11 +355,23 @@
         echo '<sex><![CDATA['.$id[0]['sex'].']]></sex>';
         echo '<icon><![CDATA['.$id[0]['icon'].']]></icon>';
         echo '<intro><![CDATA['.$id[0]['intro'].']]></intro>';
+        echo '<sig1><![CDATA['.translate($id[0]['sig1'],false).']]></sig1>';
+        echo '<sig2><![CDATA['.translate($id[0]['sig2'],false).']]></sig2>';
+        echo '<sig3><![CDATA['.translate($id[0]['sig3'],false).']]></sig3>';
+        echo '<hobby><![CDATA['.$id[0]['hobby'].']]></hobby>';
+        echo '<qq><![CDATA['.$id[0]['qq'].']]></qq>';
+        echo '<mail><![CDATA['.$id[0]['mail'].']]></mail>';
+        echo '<place><![CDATA['.$id[0]['place'].']]></place>';
         echo '<regdate><![CDATA['.$id[0]['regdate'].']]></regdate>';
         echo '<lastdate><![CDATA['.$id[0]['lastdate'].']]></lastdate>';
         echo '<star><![CDATA['.$id[0]['star'].']]></star>';
+        echo '<post><![CDATA['.$id[0]['post'].']]></post>';
+        echo '<reply><![CDATA['.$id[0]['reply'].']]></reply>';
+        echo '<water><![CDATA['.$id[0]['water'].']]></water>';
         echo '<sign><![CDATA['.$id[0]['sign'].']]></sign>';
+        echo '<rights><![CDATA['.$id[0]['rights'].']]></rights>';
         echo '<newmsg><![CDATA['.$id[0]['newmsg'].']]></newmsg>';
+        echo '<extr><![CDATA['.$id[0]['extr'].']]></extr>';
         echo '</info></capu>';
     }
 
@@ -479,16 +496,18 @@
 
         if ($method=="show") {
             $lzl=request(array(
-                "ask"=>"lzl",
-                "method"=>"ask",
-                "fid"=> $fid
-            ));
+                               "ask"=>"lzl",
+                               "method"=>"ask",
+                               "fid"=> $fid
+                               ));
             echo '<capu><info><code>-1</code></info>';
-            for($j=0;$j< count($lzl);$j++) {
+            for($j=0;$j< count($lzl);$j++) {//新增查看头像
+                $user=request(array("ask"=>"view","view"=>$lzl[$j]['author']));
                 echo '<info>';
                 echo '<id>'.$lzl[$j]['id'].'</id>';
                 echo '<fid>'.$lzl[$j]['fid'].'</fid>';
                 echo '<author><![CDATA['.$lzl[$j]['author'].']]></author>';
+                echo '<icon><![CDATA['.$user[0]['icon'].']]></icon>';
                 echo '<text><![CDATA['.$lzl[$j]['text'].']]></text>';
                 echo '<time>'.date("Y-m-d H:i:s",$lzl[$j]['time']).'</time>';
                 echo '</info>';
@@ -563,19 +582,20 @@
         $html=str_replace(chr(10)."<br>", "<br>",$html);
         $html=str_replace(chr(10), "<br>",$html);
         $html=str_replace(chr(13), "<br>",$html);
+        if (!$space) $html=str_replace(" ", "&nbsp;", $html);//修复空格显示的Bug
         $html=preg_replace("#(\\[img])(.+?)(\\[/img])#", "<img src='$2'>", $html);
-        $html=preg_replace("#(\\[quote=)(.+?)(])([\\s\\S]+?)(\\[/quote])#", "原文引用自 <a href='#'>@$2</a>：<br><br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; $4<br><br><br>",$html);
+        $html=preg_replace("#(\\[quote=)(.+?)(])([\\s\\S]+?)(\\[/quote])#", "<font color='grey' size=2><hr>引用自 <font color='blue'>@$2</font> ：<br><br>$4<br><hr><br></font>",$html);//改善显示
         $html=preg_replace("#(\\[size=)(.+?)(])([\\s\\S]+?)(\\[/size])#", "<font size='$2'>$4</font>", $html);
         $html=preg_replace("#(\\[font=)(.+?)(])([\\s\\S]+?)(\\[/font])#", "<font face='$2'>$4</font>", $html);
         $html=preg_replace("#(\\[color=)(.+?)(])([\\s\\S]+?)(\\[/color])#", "<font color='$2'>$4</font>", $html);
         $html=preg_replace("#(\\[color=)(.+?)(])([\\s\\S]+?)#", "<font color='$2'>$4</font>", $html);
-        $html=preg_replace("#(\\[at])(.+?)(\\[/at])#", "<a href='#'>@$2</a>", $html);
+        $html=preg_replace("#(\\[at])(.+?)(\\[/at])#", "<font color='blue'>@$2</font>", $html);//@暂时改为蓝色显示 以后可改为客户端可识别的显示ID的形式
         $html=preg_replace("#(\\[url])(.+?)(\\[/url])#", href("$2","$2"), $html);
         $html=preg_replace("#(\\[url=)(.+?)(])([\\s\\S]+?)(\\[/url])#", href("$2","$4"), $html);
         $html=preg_replace("#(\\[b])(.+?)(\\[/b])#", "<b>$2</b>", $html);
         $html=preg_replace("#(\\[i])(.+?)(\\[/i])#", "<i>$2</i>", $html);
         return $html;
-}
+    }
         function href($link,$href) {return "<a href='$link'>$href</a>";}
 ?>
 
