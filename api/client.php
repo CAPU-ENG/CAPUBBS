@@ -257,6 +257,8 @@
         $from=@$_POST['from'];
         $intro=@$_POST['intro'];
         $sig1=@$_POST['sig'];
+        $sig2=@$_POST['sig2'];//增加了多签名档功能
+        $sig3=@$_POST['sig3'];
 
         $code=@$_POST['code'];
 
@@ -280,6 +282,8 @@
             "place"=>$from,
             "intro"=>$intro,
             "sig1"=>$sig1,
+            "sig2"=>$sig2,
+            "sig3"=>$sig3,
             "onlinetype"=>$os,
             "system"=>$system
         ));
