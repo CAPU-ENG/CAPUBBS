@@ -266,9 +266,8 @@
 
         }
 
-        if (@_POST['icon'])
-            $icon=@$_POST['icon'];
-        else
+        $icon=@$_POST['icon'];
+        if ($icon=="")
             $icon="/bbsimg/icons/zebra.jpeg";//默认头像
         $results=request(array("ask"=>"register",
             "username"=>$username,
