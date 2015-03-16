@@ -319,7 +319,7 @@
 			exit;
 		}
 
-		//$code=mysql_real_escape_string(@$_REQUEST['username']);//取消验证码制度
+        //$code=mysql_real_escape_string(@$_REQUEST['username']);//取消验证码制度
 /*
 		$statement="select times from codes where code='$code'";
 		$results=mysql_query($statement,$con);
