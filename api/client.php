@@ -266,8 +266,10 @@
 
         }
 
-
-        $icon="/bbsimg/icons/zebra.jpeg";//默认头像
+        if (@_POST['icon'])
+            $icon=@$_POST['icon'];
+        else
+            $icon="/bbsimg/icons/zebra.jpeg";//默认头像
         $results=request(array("ask"=>"register",
             "username"=>$username,
             "password"=>$password,
