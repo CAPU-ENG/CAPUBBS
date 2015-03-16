@@ -256,17 +256,18 @@
         $mail=@$_POST['mail'];
         $from=@$_POST['from'];
         $intro=@$_POST['intro'];
+        $hobby=@$_POST['hobby'];//增加爱好功能
         $sig1=@$_POST['sig'];
         $sig2=@$_POST['sig2'];//增加了多签名档功能
         $sig3=@$_POST['sig3'];
 
-        $code=@$_POST['code'];
+        /*$code=@$_POST['code'];//取消注册码制度
 
         if ($code=="") {
             echo '<capu><info><code>11</code><msg>无效的注册号。</msg></info></capu>';
             exit;
 
-        }
+        }*/
 
         $icon=@$_POST['icon'];
         if ($icon=="")
@@ -274,13 +275,14 @@
         $results=request(array("ask"=>"register",
             "username"=>$username,
             "password"=>$password,
-            "code"=>$code,
+            //"code"=>$code,
             "sex"=>$sex,
             "qq"=>$qq,
             "mail"=>$mail,
             "icon"=>$icon,
             "place"=>$from,
             "intro"=>$intro,
+            "hobby"=>$hobby,
             "sig1"=>$sig1,
             "sig2"=>$sig2,
             "sig3"=>$sig3,
