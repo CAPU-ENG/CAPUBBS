@@ -18,7 +18,7 @@ $place=$_POST['place'];
 $sig1=$_POST['sig1'];
 $sig2=$_POST['sig2'];
 $sig3=$_POST['sig3'];
-$code=@$_POST['code'];
+//$code=@$_POST['code'];
 
 $result=mainfunc(array(
 "ask"=>"register",
@@ -35,7 +35,7 @@ $result=mainfunc(array(
 "sig1"=>$sig1,
 "sig2"=>$sig2,
 "sig3"=>$sig3,
-"code"=>$code,
+//"code"=>$code,
 "onlinetype"=>"web",
 "browser"=>@$_SERVER['HTTP_USER_AGENT']
 ));
