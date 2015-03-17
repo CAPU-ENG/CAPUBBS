@@ -99,8 +99,8 @@
         echo "<icon><![CDATA[".$id[0]['icon']."]]></icon>";
         echo "<star><![CDATA[".$id[0]['star']."]]></star>";
         echo "<title><![CDATA[".$title."]]></title>\n";
-        echo "<text><![CDATA[".translate(@$content['text'],@$content['ishtml'])."]]></text>\n";
-        echo "<sig><![CDATA[".translate($id[0]['sig'.@$content['sig']],false)."]]></sig>\n";
+        echo "<text><![CDATA[".translate(@$content['text'],@$content['ishtml'],false)."]]></text>\n";
+        echo "<sig><![CDATA[".translate($id[0]['sig'.@$content['sig']],false,true)."]]></sig>\n";
         echo "<floor>".@$content['pid']."</floor>\n";
         echo "<tid>$tid</tid>\n";
         echo "<fid>".@$content['fid']."</fid>\n";
@@ -256,17 +256,18 @@
         $mail=@$_POST['mail'];
         $from=@$_POST['from'];
         $intro=@$_POST['intro'];
+        $hobby=@$_POST['hobby'];//增加爱好功能
         $sig1=@$_POST['sig'];
         $sig2=@$_POST['sig2'];//增加了多签名档功能
         $sig3=@$_POST['sig3'];
 
-        $code=@$_POST['code'];
+        /*$code=@$_POST['code'];//取消注册码制度
 
         if ($code=="") {
             echo '<capu><info><code>11</code><msg>无效的注册号。</msg></info></capu>';
             exit;
 
-        }
+        }*/
 
         $icon=@$_POST['icon'];
         if ($icon=="")
@@ -274,13 +275,14 @@
         $results=request(array("ask"=>"register",
             "username"=>$username,
             "password"=>$password,
-            "code"=>$code,
+            //"code"=>$code,
             "sex"=>$sex,
             "qq"=>$qq,
             "mail"=>$mail,
             "icon"=>$icon,
             "place"=>$from,
             "intro"=>$intro,
+            "hobby"=>$hobby,
             "sig1"=>$sig1,
             "sig2"=>$sig2,
             "sig3"=>$sig3,
@@ -360,9 +362,9 @@
         echo '<sex><![CDATA['.$id[0]['sex'].']]></sex>';
         echo '<icon><![CDATA['.$id[0]['icon'].']]></icon>';
         echo '<intro><![CDATA['.$id[0]['intro'].']]></intro>';
-        echo '<sig1><![CDATA['.translate($id[0]['sig1'],false).']]></sig1>';
-        echo '<sig2><![CDATA['.translate($id[0]['sig2'],false).']]></sig2>';
-        echo '<sig3><![CDATA['.translate($id[0]['sig3'],false).']]></sig3>';
+        echo '<sig1><![CDATA['.translate($id[0]['sig1'],false,true).']]></sig1>';
+        echo '<sig2><![CDATA['.translate($id[0]['sig2'],false,true).']]></sig2>';
+        echo '<sig3><![CDATA['.translate($id[0]['sig3'],false,true).']]></sig3>';
         echo '<hobby><![CDATA['.$id[0]['hobby'].']]></hobby>';
         echo '<qq><![CDATA['.$id[0]['qq'].']]></qq>';
         echo '<mail><![CDATA['.$id[0]['mail'].']]></mail>';
@@ -579,7 +581,7 @@
     }
 
 
-    function translate($raw,$ishtml){
+    function translate($raw,$ishtml,$issig){
         $html=$raw;
         if(!$ishtml){
             $html=htmlspecialchars_decode($html);
@@ -587,7 +589,9 @@
         $html=str_replace(chr(10)."<br>", "<br>",$html);
         $html=str_replace(chr(10), "<br>",$html);
         $html=str_replace(chr(13), "<br>",$html);
-        if (!$space) $html=str_replace(" ", "&nbsp;", $html);//修复空格显示的Bug
+        if ($issig) {
+            $html=str_replace(" ", "&nbsp;",$html);//修复空格显示的Bug
+        }
         $html=preg_replace("#(\\[img])(.+?)(\\[/img])#", "<img src='$2'>", $html);
         $html=preg_replace("#(\\[quote=)(.+?)(])([\\s\\S]+?)(\\[/quote])#", "<font color='grey' size=2><hr>引用自 <font color='blue'>@$2</font> ：<br><br>$4<br><hr><br></font>",$html);//改善显示
         $html=preg_replace("#(\\[size=)(.+?)(])([\\s\\S]+?)(\\[/size])#", "<font size='$2'>$4</font>", $html);
