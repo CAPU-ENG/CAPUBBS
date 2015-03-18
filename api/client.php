@@ -325,7 +325,6 @@
             $statement="select * from capubbs.mainpage where id=1 order by number desc limit 0,20";//增加了首页最多显示的通知数量
         else
             $statement="select * from capubbs.mainpage where id=1 order by number desc limit 0,6";//增加了首页最多显示的通知数量
-
         $results=mysql_query($statement,$con);
         while (($res=mysql_fetch_row($results))!=null) {
             echo '<info><text>'."<![CDATA[".$res[2].']]></text>';
