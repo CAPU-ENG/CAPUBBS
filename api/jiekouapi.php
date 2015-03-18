@@ -181,21 +181,19 @@
                 echo '<'.$key.'>'.trans($value).'</'.$key.">\n";
             }
             if ($askforall==0) {
-                $statement="select tid from threads where bid=$bid order by tid desc";
-                $resultt=mysql_query($statement,$con);
-                echo '<topics>'.mysql_num_rows($resultt).'</topics>';
-                $statement="select tid from threads where bid=$bid && extr=1 order by tid desc";
-                $resultt=mysql_query($statement,$con);
-                echo '<extr>'.mysql_num_rows($resultt).'</extr>';
+                $statement="select count(*) from threads where bid=$bid";
+                echo '<topics>'.mysql_result(mysql_query($statement,$con), 0).'</topics>';
+                $statement="select count(*) from threads where bid=$bid && extr=1";
+                echo '<extr>'.mysql_result(mysql_query($statement,$con), 0).'</extr>';
                 #$ress=mysql_fetch_array($resultt);
                 #echo '<maxtid>'.$ress[0].'</maxtid>';
                 $date=date("Y-m-d");
-                $statement="select * from threads where bid=$bid && postdate=\"$date\"";
-                echo '<newpost>'.mysql_num_rows(mysql_query($statement,$con)).'</newpost>';
+                $statement="select count(*) from threads where bid=$bid && postdate=\"$date\"";
+                echo '<newpost>'.mysql_result(mysql_query($statement,$con), 0).'</newpost>';
                 $time1=strtotime("$date 00:00:00");
                 $time2=strtotime("$date 23:59:59");
-                $statement="select * from posts where bid=$bid && replytime>=$time1 && replytime<=$time2";
-                echo '<newreply>'.mysql_num_rows(mysql_query($statement,$con)).'</newreply>';
+                $statement="select count(*) from posts where bid=$bid && replytime>=$time1 && replytime<=$time2";
+                echo '<newreply>'.mysql_result(mysql_query($statement,$con), 0).'</newreply>';
             }
             echo "</info>\n";
         }
@@ -452,10 +450,8 @@
         }*/
         checkDelayTime($time, $star, $rights, $lastpost, $ip, $results);
         echo '<capu>';
-        $statement="select tid from threads where bid=$bid order by tid desc";
-        $results=mysql_query($statement,$con);
-        $res=mysql_fetch_array($results);
-        $tid=intval($res[0])+1;
+        $statement="select max(tid) from threads where bid=$bid";
+        $tid=intval(mysql_result(mysql_query($statement,$con), 0))+1;
         $title=@$_REQUEST['title'];
         if (mb_strlen($title,'utf-8')>=43)
             $title=mb_substr($title,0,40,'utf-8')."...";
@@ -795,10 +791,8 @@
     function move($con,$token,$bid,$tid,$to) {
         $a=getrights($con,$bid,$token);
         if ($a[0]!=2) {echo '<capu><info><code>5</code><msg>权限不足！</msg></info></capu>';exit;}
-        $statement="select tid from threads where bid=$to order by tid desc";
-        $results=mysql_query($statement,$con);
-        $res=mysql_fetch_array($results);
-        $totid=intval($res[0])+1;
+        $statement="select max(tid) from threads where bid=$bid";
+        $totid=intval(mysql_result(mysql_query($statement,$con), 0))+1;
         $statement="select tid from threads where bid=$bid && tid=$tid";
         $results=mysql_query($statement,$con);
         if (mysql_num_rows($results)==0) {
