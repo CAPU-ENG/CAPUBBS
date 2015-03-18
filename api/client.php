@@ -311,12 +311,12 @@
         echo '<updatetext><![CDATA['.$results[2].']]></updatetext>';
         echo '<updateurl><![CDATA['.$results[3].']]></updateurl>';
         echo '<updatetime><![CDATA['.$results[4].']]></updatetime>';
-        //$statement="select * from capubbs.mainpage where id=-3";//iOS客户端检测更新方法已改进 不需要这个了
-        //$results=mysql_query($statement,$con);
-        //$results=mysql_fetch_row($results);
-        //echo '<iostext><![CDATA['.$results[2].']]></iostext>';
-        //echo '<iosurl><![CDATA['.$results[3].']]></iosurl>';
-        //echo '<iosversion><![CDATA['.$results[4].']]></iosversion>';
+        $statement="select * from capubbs.mainpage where id=-3";//iOS客户端检测更新方法已改进 不需要这个了
+        $results=mysql_query($statement,$con);
+        $results=mysql_fetch_row($results);
+        echo '<iostext><![CDATA['.$results[2].']]></iostext>';
+        echo '<iosurl><![CDATA['.$results[3].']]></iosurl>';
+        echo '<iosversion><![CDATA['.$results[4].']]></iosversion>';
         echo '</info>'."\n";
         
         $statement="select * from capubbs.mainpage where id=1 order by number desc limit 0,10";//增加了首页最多显示的通知数量
