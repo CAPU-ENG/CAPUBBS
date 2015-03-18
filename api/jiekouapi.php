@@ -450,10 +450,8 @@
         }*/
         checkDelayTime($time, $star, $rights, $lastpost, $ip, $results);
         echo '<capu>';
-        $statement="select tid from threads where bid=$bid order by tid desc";
-        $results=mysql_query($statement,$con);
-        $res=mysql_fetch_array($results);
-        $tid=intval($res[0])+1;
+        $statement="select max(tid) from threads where bid=$bid";
+        $tid=intval(mysql_result(mysql_query($statement,$con)))+1;
         $title=@$_REQUEST['title'];
         if (mb_strlen($title,'utf-8')>=43)
             $title=mb_substr($title,0,40,'utf-8')."...";
@@ -793,10 +791,8 @@
     function move($con,$token,$bid,$tid,$to) {
         $a=getrights($con,$bid,$token);
         if ($a[0]!=2) {echo '<capu><info><code>5</code><msg>权限不足！</msg></info></capu>';exit;}
-        $statement="select tid from threads where bid=$to order by tid desc";
-        $results=mysql_query($statement,$con);
-        $res=mysql_fetch_array($results);
-        $totid=intval($res[0])+1;
+        $statement="select max(tid) from threads where bid=$bid";
+        $totid=intval(mysql_result(mysql_query($statement,$con)))+1;
         $statement="select tid from threads where bid=$bid && tid=$tid";
         $results=mysql_query($statement,$con);
         if (mysql_num_rows($results)==0) {
