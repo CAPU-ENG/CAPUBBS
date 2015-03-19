@@ -318,7 +318,7 @@
         echo '<iosurl><![CDATA['.$results[3].']]></iosurl>';
         echo '<iosversion><![CDATA['.$results[4].']]></iosversion>';
         echo '</info>'."\n";
-        $statement="select * from capubbs.mainpage where id=1 order by number desc limit 0,10";//增加了首页最多显示的通知数量
+        
         $moreinfo=@$_REQUEST['more'];//兼容老版本无法显示超过六条通知的Bug
         if ($moreinfo=="YES")
             $statement="select * from capubbs.mainpage where id=1 order by number desc limit 0,20";//增加了首页最多显示的通知数量
