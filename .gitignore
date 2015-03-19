@@ -5,12 +5,11 @@ bbs/images/
 bbsimg/
 documents/
 log/
-mysqladmin/
 old/
+phpMyAdmin/
 test.php
 phpinfo.php
 msgxml.xml
-wxy/
 *.swp
 
 # Exclude `assets/images` except `assets/images/static`.
