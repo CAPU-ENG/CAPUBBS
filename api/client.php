@@ -1,5 +1,6 @@
 <?php
-
+    require_once('../bbs/lib/mainfunc.php');
+    
     header('Content-type: application/xml');
     echo '<?xml version="1.0" encoding="UTF-8"?>';
     echo "\n";
@@ -28,7 +29,7 @@
         $token=@$_POST['token'];
         $ip=$_SERVER['REMOTE_ADDR'];
         $url="http://127.0.0.1/api/jiekouapi.php?ip=$ip&token=$token";
-        $rawstr= http($url,"POST",$posts);
+        $rawstr= http_client($url,"POST",$posts);
         $xml=simplexml_load_string($rawstr, null, LIBXML_NOCDATA);
         return json_decode(json_encode($xml->xpath("info")),true);
     }
@@ -303,16 +304,16 @@
 
     function seemain() {
         echo '<capu><info><code>-1</code>';
-        $con=mysql_connect("localhost","root","19951025");
+        dbconnect;
         mysql_query("SET NAMES 'utf8'")    ;
         $statement="select * from capubbs.mainpage where id=-1";
-        $results=mysql_query($statement,$con);
+        $results=mysql_query($statement);
         $results=mysql_fetch_row($results);
         echo '<updatetext><![CDATA['.$results[2].']]></updatetext>';
         echo '<updateurl><![CDATA['.$results[3].']]></updateurl>';
         echo '<updatetime><![CDATA['.$results[4].']]></updatetime>';
         $statement="select * from capubbs.mainpage where id=-3";//iOS客户端检测更新方法已改进 不需要这个了
-        $results=mysql_query($statement,$con);
+        $results=mysql_query($statement);
         $results=mysql_fetch_row($results);
         echo '<iostext><![CDATA['.$results[2].']]></iostext>';
         echo '<iosurl><![CDATA['.$results[3].']]></iosurl>';
@@ -325,7 +326,7 @@
         else
             $statement="select * from capubbs.mainpage where id=1 order by number desc limit 0,6";//增加了首页最多显示的通知数量
         
-        $results=mysql_query($statement,$con);
+        $results=mysql_query($statement);
         while (($res=mysql_fetch_row($results))!=null) {
             echo '<info><text>'."<![CDATA[".$res[2].']]></text>';
             $ar=parse_url($res[3],PHP_URL_QUERY);
@@ -566,7 +567,8 @@
 
 
 
-    function http($url, $method="POST", $postfields = NULL) {
+    // deprecated !!! see bbs/lib/mainfunc.php
+    function http_client($url, $method="POST", $postfields = NULL) {
         $ci = curl_init();
         curl_setopt($ci, CURLOPT_URL, $url);
         curl_setopt($ci, CURLOPT_CONNECTTIMEOUT, 30); // 连接超时
@@ -586,7 +588,8 @@
     }
 
 
-    function translate($raw,$ishtml,$issig){
+    // deprecated !!! see bbs/lib/mainfunc.php
+    function translate_client($raw,$ishtml,$issig){
         $html=$raw;
         if(!$ishtml){
             $html=htmlspecialchars_decode($html);
@@ -604,12 +607,14 @@
         $html=preg_replace("#(\\[color=)(.+?)(])([\\s\\S]+?)(\\[/color])#", "<font color='$2'>$4</font>", $html);
         $html=preg_replace("#(\\[color=)(.+?)(])([\\s\\S]+?)#", "<font color='$2'>$4</font>", $html);
         $html=preg_replace("#(\\[at])(.+?)(\\[/at])#", "<font color='blue'>@$2</font>", $html);//@暂时改为蓝色显示 以后可改为客户端可识别的显示ID的形式
-        $html=preg_replace("#(\\[url])(.+?)(\\[/url])#", href("$2","$2"), $html);
-        $html=preg_replace("#(\\[url=)(.+?)(])([\\s\\S]+?)(\\[/url])#", href("$2","$4"), $html);
+        $html=preg_replace("#(\\[url])(.+?)(\\[/url])#", href_client("$2","$2"), $html);
+        $html=preg_replace("#(\\[url=)(.+?)(])([\\s\\S]+?)(\\[/url])#", href_client("$2","$4"), $html);
         $html=preg_replace("#(\\[b])(.+?)(\\[/b])#", "<b>$2</b>", $html);
         $html=preg_replace("#(\\[i])(.+?)(\\[/i])#", "<i>$2</i>", $html);
         return $html;
     }
-        function href($link,$href) {return "<a href='$link'>$href</a>";}
+
+    // deprecated !!! see bbs/lib/mainfunc.php
+    function href_client($link,$href) {return "<a href='$link'>$href</a>";}
 ?>
 

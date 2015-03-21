@@ -7,6 +7,7 @@
 <script src="/assets/js/bootstrap.min.js"></script>
 <script src="/assets/js/self-borrow.js"></script>
 <?php
+	require_once('../bbs/lib/mainfunc.php');
 	require '../assets/api/checkuser.php';
 	$res=checkuser();
 	$username=$res[0];$rights=$res[1]; 
@@ -32,10 +33,10 @@
         <th width="26%">备注</th>
       </tr>
 <?php
-	$con=mysql_connect("localhost","root","19951025");
+	dbconnect;
 	mysql_query("SET NAMES 'UTF8'");
 	$statement="select * from capubbs.borrow where type=0 && state=0";
-	$results=mysql_query($statement,$con);
+	$results=mysql_query($statement);
 	$i=0;
 	while (($res=mysql_fetch_row($results))!=null) {
 		echo '<tr><td style="display:none" id="number_'.$i.'">'.$res[0].'</td>'."\n".

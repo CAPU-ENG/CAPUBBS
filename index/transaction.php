@@ -8,9 +8,10 @@
 <body>
 
 <?php
-	$con=mysql_connect("localhost","root","19951025");
+	require_once('../bbs/lib/mainfunc.php');
+	dbconnect;
 	$statement="select number from capubbs.borrow where type=1 && state=0";
-	$results=mysql_query($statement,$con);
+	$results=mysql_query($statement);
 	$ans=mysql_num_rows($results);
 	
 	if ($ans>0) {
