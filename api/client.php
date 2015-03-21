@@ -27,7 +27,7 @@
         $token=@$_POST['token'];
         $ip=$_SERVER['REMOTE_ADDR'];
         $url="http://127.0.0.1/api/jiekouapi.php?ip=$ip&token=$token";
-        $rawstr= http_client($url,"POST",$posts);
+        $rawstr= http($url,"POST",$posts);
         $xml=simplexml_load_string($rawstr, null, LIBXML_NOCDATA);
         return json_decode(json_encode($xml->xpath("info")),true);
     }
@@ -566,8 +566,7 @@
 
 
 
-    // deprecated !!! see bbs/lib/mainfunc.php
-    function http_client($url, $method="POST", $postfields = NULL) {
+    function http($url, $method="POST", $postfields = NULL) {
         $ci = curl_init();
         curl_setopt($ci, CURLOPT_URL, $url);
         curl_setopt($ci, CURLOPT_CONNECTTIMEOUT, 30); // 连接超时
@@ -587,8 +586,7 @@
     }
 
 
-    // deprecated !!! see bbs/lib/mainfunc.php
-    function translate_client($raw,$ishtml,$issig){
+    function translate($raw,$ishtml,$issig){
         $html=$raw;
         if(!$ishtml){
             $html=htmlspecialchars_decode($html);
@@ -606,14 +604,13 @@
         $html=preg_replace("#(\\[color=)(.+?)(])([\\s\\S]+?)(\\[/color])#", "<font color='$2'>$4</font>", $html);
         $html=preg_replace("#(\\[color=)(.+?)(])([\\s\\S]+?)#", "<font color='$2'>$4</font>", $html);
         $html=preg_replace("#(\\[at])(.+?)(\\[/at])#", "<font color='blue'>@$2</font>", $html);//@暂时改为蓝色显示 以后可改为客户端可识别的显示ID的形式
-        $html=preg_replace("#(\\[url])(.+?)(\\[/url])#", href_client("$2","$2"), $html);
-        $html=preg_replace("#(\\[url=)(.+?)(])([\\s\\S]+?)(\\[/url])#", href_client("$2","$4"), $html);
+        $html=preg_replace("#(\\[url])(.+?)(\\[/url])#", href("$2","$2"), $html);
+        $html=preg_replace("#(\\[url=)(.+?)(])([\\s\\S]+?)(\\[/url])#", href("$2","$4"), $html);
         $html=preg_replace("#(\\[b])(.+?)(\\[/b])#", "<b>$2</b>", $html);
         $html=preg_replace("#(\\[i])(.+?)(\\[/i])#", "<i>$2</i>", $html);
         return $html;
     }
 
-    // deprecated !!! see bbs/lib/mainfunc.php
-    function href_client($link,$href) {return "<a href='$link'>$href</a>";}
+    function href($link,$href) {return "<a href='$link'>$href</a>";}
 ?>
 
