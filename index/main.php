@@ -56,8 +56,8 @@
 <link rel="shortcut icon" href="/assets/images/capu.jpg">
 </head>
 <?php
-	require_once('../bbs/lib/mainfunc.php');
-	require '../assets/api/checkuser.php';
+	require_once('../assets/api/dbconnector.php');
+	require_once '../assets/api/checkuser.php';
 	$res=checkuser();
 	$username=$res[0];
 	$rights=intval($res[1]); 

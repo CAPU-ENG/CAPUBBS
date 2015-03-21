@@ -1,10 +1,4 @@
 <?php
-
-function dbconnect() {
-	$con = @mysql_connect('localhost','root','19921025') 
-		or die("Cannot connect to database !!!");
-}
-
 function mainfunc($posts,$debug=false){
 	$ip=$_SERVER["REMOTE_ADDR"];
 	@$token=$_COOKIE['token'];

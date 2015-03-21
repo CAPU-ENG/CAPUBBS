@@ -1,5 +1,5 @@
 <?php
-	require_once('../../bbs/lib/mainfunc.php');
+	require_once('dbconnector.php');
 
 	function checkuser() {
 		$token=@$_COOKIE['token'];

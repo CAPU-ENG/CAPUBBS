@@ -7,7 +7,8 @@
 <script src="/assets/js/bootstrap.min.js"></script>
 <script src="/assets/js/self-borrow.js"></script>
 <?php
-	require '../assets/api/checkuser.php';
+	require_once('../assets/api/dbconnector.php');
+	require_once '../assets/api/checkuser.php';
 	$res=checkuser();
 	$username=$res[0];$rights=$res[1];
 	date_default_timezone_set('Asia/Shanghai');
@@ -33,7 +34,6 @@
       </tr>
 
 <?php
-	require_once('../bbs/lib/mainfunc.php');
 	dbconnect;
 	mysql_query('SET NAMES UTF8');
 	$statement="select * from capubbs.borrow where type=1 && state!=2 order by state";

@@ -1,6 +1,4 @@
 <?php
-    require_once('../bbs/lib/mainfunc.php');
-    
     header('Content-type: application/xml');
     echo '<?xml version="1.0" encoding="UTF-8"?>';
     echo "\n";
@@ -304,6 +302,7 @@
 
     function seemain() {
         echo '<capu><info><code>-1</code>';
+	require_once('dbconnector.php');
         dbconnect;
         mysql_query("SET NAMES 'utf8'")    ;
         $statement="select * from capubbs.mainpage where id=-1";

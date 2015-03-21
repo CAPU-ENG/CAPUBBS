@@ -8,7 +8,7 @@
 <body>
 
 <?php
-	require_once('../bbs/lib/mainfunc.php');
+	require_once('../assets/api/dbconnector.php');
 	dbconnect;
 	$statement="select number from capubbs.borrow where type=1 && state=0";
 	$results=mysql_query($statement);
