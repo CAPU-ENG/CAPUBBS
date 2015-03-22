@@ -1,0 +1,42 @@
+#!/bin/bash
+
+# backup MySQL everyday
+# keep for a week
+#
+# By Jack @ 2015-03-22
+
+# db config
+user=root
+passwd=19951025
+database=capubbs
+
+# dir config
+# better to use absolute path
+#dir=../DBdump
+dir=./
+
+# command alias
+MKDIR=/bin/mkdir
+TAR=/bin/tar
+DUMP=/usr/bin/mysqldump
+RM=/bin/rm
+
+today=`date +'%y_%m_%d'`
+last7=`date +'%y_%m_%d' --date 'last week'`
+
+if [ $# -gt 0 ]; then
+	dir=$1
+fi
+if [ ! -d "$dir" ]; then
+	$MKDIR -p $dir
+fi
+cd $dir
+$DUMP -u$user -p$passwd $database > $today.sql
+$TAR zcf $today.tgz $today.sql
+$RM $today.sql
+
+if [ -f "$last7.tgz" ]; then
+	$RM $last7.tgz
+fi
+
+exit 0
