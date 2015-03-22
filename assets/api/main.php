@@ -3,6 +3,7 @@
 	require_once 'sendmail.php';
 	require_once 'checkuser.php';
 	require_once 'captcha.php';
+	require_once 'dbconnector.php';
 
 	$ask=@$_POST['ask'];
 	date_default_timezone_set("Asia/Shanghai");
@@ -55,7 +56,7 @@
 		if ($rights==0) {echo '-18';exit;}
 		dbconnect;
 		mysql_query("SET NAMES 'UTF8'"); 
-                $year=mysql_real_escape_string(@$_POST['year']);
+		$year=mysql_real_escape_string(@$_POST['year']);
                 $month=mysql_real_escape_string(@$_POST['month']);
                 $day=mysql_real_escape_string(@$_POST['day']);
 		$json=@$_POST['content'];

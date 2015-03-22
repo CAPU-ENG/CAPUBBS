@@ -4,7 +4,7 @@
 <link href="/assets/css/bootstrap.min.css" rel="stylesheet">
 <link href="/assets/css/style.css" rel="stylesheet">
 <?php
-	require_once('../assets/api/dbconnector.php');
+	require_once '../assets/api/dbconnector.php';
 	require_once '../assets/api/checkuser.php';
 	$res=checkuser();
 	$username=$res[0];$rights=intval($res[1]); 

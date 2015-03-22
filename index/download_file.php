@@ -1,5 +1,5 @@
 <?php
-	require_once('../assets/api/dbconnector.php');
+	require_once '../assets/api/dbconnector.php';
 	$id=intval(@$_GET['d']);
 	if ($id=="") exit;
 	dbconnect;

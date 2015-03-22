@@ -56,7 +56,7 @@
 <link rel="shortcut icon" href="/assets/images/capu.jpg">
 </head>
 <?php
-	require_once('../assets/api/dbconnector.php');
+	require_once '../assets/api/dbconnector.php';
 	require_once '../assets/api/checkuser.php';
 	$res=checkuser();
 	$username=$res[0];

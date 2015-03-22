@@ -1,5 +1,5 @@
 <?php
-    require_once('dbconnector.php');
+    require_once 'dbconnector.php';
 
     if(false&&@$_REQUEST['debug']=='yes'){
         echo("GET:<br>");
