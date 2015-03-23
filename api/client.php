@@ -1,5 +1,4 @@
 <?php
-
     header('Content-type: application/xml');
     echo '<?xml version="1.0" encoding="UTF-8"?>';
     echo "\n";
@@ -303,16 +302,16 @@
 
     function seemain() {
         echo '<capu><info><code>-1</code>';
-        $con=mysql_connect("localhost","root","19951025");
-        mysql_query("SET NAMES 'utf8'")    ;
+	require_once 'dbconnector.php';
+        dbconnect;
         $statement="select * from capubbs.mainpage where id=-1";
-        $results=mysql_query($statement,$con);
+        $results=mysql_query($statement);
         $results=mysql_fetch_row($results);
         echo '<updatetext><![CDATA['.$results[2].']]></updatetext>';
         echo '<updateurl><![CDATA['.$results[3].']]></updateurl>';
         echo '<updatetime><![CDATA['.$results[4].']]></updatetime>';
         $statement="select * from capubbs.mainpage where id=-3";//iOS客户端检测更新方法已改进 不需要这个了
-        $results=mysql_query($statement,$con);
+        $results=mysql_query($statement);
         $results=mysql_fetch_row($results);
         echo '<iostext><![CDATA['.$results[2].']]></iostext>';
         echo '<iosurl><![CDATA['.$results[3].']]></iosurl>';
@@ -325,7 +324,7 @@
         else
             $statement="select * from capubbs.mainpage where id=1 order by number desc limit 0,6";//增加了首页最多显示的通知数量
         
-        $results=mysql_query($statement,$con);
+        $results=mysql_query($statement);
         while (($res=mysql_fetch_row($results))!=null) {
             echo '<info><text>'."<![CDATA[".$res[2].']]></text>';
             $ar=parse_url($res[3],PHP_URL_QUERY);
@@ -610,6 +609,7 @@
         $html=preg_replace("#(\\[i])(.+?)(\\[/i])#", "<i>$2</i>", $html);
         return $html;
     }
-        function href($link,$href) {return "<a href='$link'>$href</a>";}
+
+    function href($link,$href) {return "<a href='$link'>$href</a>";}
 ?>
 

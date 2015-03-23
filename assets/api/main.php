@@ -3,7 +3,7 @@
 	require_once 'sendmail.php';
 	require_once 'checkuser.php';
 	require_once 'captcha.php';
-	require_once '../../bbs/lib/mainfunc.php';
+	require_once 'dbconnector.php';
 
 	$ask=@$_POST['ask'];
 	date_default_timezone_set("Asia/Shanghai");
@@ -28,13 +28,13 @@
 	function trans($x) {return "<![CDATA[".$x."]]>";}
 
 	function loadcalendar() {
-		$con=mysql_connect("localhost","root","19951025");
+		dbconnect;
 		mysql_query("SET NAMES 'UTF8'"); 
 		$year=@$_POST['year'];
 		$month=@$_POST['month'];
 		$day=@$_POST['day'];
 		$statement="select * from capubbs.calendar where year='$year' && month='$month' && day='$day'";
-		$results=mysql_query($statement,$con);
+		$results=mysql_query($statement);
 		header('Content-type: application/xml;charset:UTF-8');
 		echo '<capu>';
 		while ($res=mysql_fetch_array($results)) {
@@ -54,14 +54,13 @@
 		$res=checkuser();
 		$rights=intval($res[1]);
 		if ($rights==0) {echo '-18';exit;}
-		$con=mysql_connect("localhost","root","19951025");
-		mysql_query("SET NAMES 'UTF8'"); 
-                $year=mysql_real_escape_string(@$_POST['year']);
+		dbconnect;
+		$year=mysql_real_escape_string(@$_POST['year']);
                 $month=mysql_real_escape_string(@$_POST['month']);
                 $day=mysql_real_escape_string(@$_POST['day']);
 		$json=@$_POST['content'];
 		$statement="delete from capubbs.calendar where year='$year' && month='$month' && day='$day'";
-		mysql_query($statement,$con);
+		mysql_query($statement);
 		$de_json=json_decode($json,true);
                 $count_json = count($de_json);
 		for ($i=0;$i<$count_json;$i++) {
@@ -69,7 +68,7 @@
 			$title=mysql_real_escape_string($de_json[$i]['title']);
 			$text=mysql_real_escape_string($de_json[$i]['content']);
 			$statement="insert into capubbs.calendar values ('$year','$month','$day','$time','$title','$text')";
-			mysql_query($statement,$con);
+			mysql_query($statement);
 		}
 		echo mysql_errno();
 		exit;
@@ -79,9 +78,9 @@
 		$res=checkuser();
 		$rights=intval($res[1]);
 		if ($rights==0) {echo '-18';exit;}
-		$con=mysql_connect("localhost","root","19951025");
+		dbconnect;
                 mysql_query("SET NAMES 'UTF8'");
-		mysql_query("delete from capubbs.mainpage where id=0",$con);
+		mysql_query("delete from capubbs.mainpage where id=0");
 		$json=@$_POST['json'];
 		$de_json=json_decode($json,true);
 		$count_json = count($de_json);
@@ -95,10 +94,10 @@
                         $fld2=mysql_real_escape_string($de_json[$i]['imgthumb']);
                         $fld3=mysql_real_escape_string($de_json[$i]['title']);
                         $statement="insert into capubbs.mainpage values (null,0,'$fld1','$fld2','$fld3','','')";
-                        mysql_query($statement,$con);
+                        mysql_query($statement);
                 }
                 echo mysql_errno();
-		mysql_query("alter table capubbs.mainpage order by number",$con);
+		mysql_query("alter table capubbs.mainpage order by number");
                 exit;
 	}
 
@@ -116,12 +115,12 @@
 		$title=mysql_real_escape_string(@$_POST['title']);
 		$url=mysql_real_escape_string(@$_POST['url']);
 		$time=time();
-		$con=mysql_connect("localhost","root","19951025");
+		dbconnect;
                 mysql_query("SET NAMES 'UTF8'");
 		$statement="insert into capubbs.mainpage values (null,1,'$title','$url','$time','','')";
-		mysql_query($statement,$con);
+		mysql_query($statement);
 		echo mysql_errno();
-		mysql_query("alter table capubbs.mainpage order by number",$con);
+		mysql_query("alter table capubbs.mainpage order by number");
 		exit;
 	}
 
@@ -130,10 +129,10 @@
 		$rights=intval($res[1]);
 		if ($rights==0) {echo '-18';exit;}
 		$time=intval(@$_POST['time']);
-		$con=mysql_connect("localhost","root","19951025");
+		dbconnect;
 		mysql_query("delete from capubbs.mainpage where id=1 && field3='$time'");
 		echo mysql_errno();
-		mysql_query("alter table capubbs.mainpage order by number",$con);
+		mysql_query("alter table capubbs.mainpage order by number");
 		exit;
 	}
 
@@ -161,18 +160,18 @@
 			if ($valid==false) {echo '-3';exit;}
 		}
 
-		$con=mysql_connect("localhost","root","19951025");
+		dbconnect;
                 mysql_query("SET NAMES 'UTF8'");
 
 		$statement="select * from capubbs.join where id='$id' && type='$type'";
-		$results=mysql_query($statement,$con);
+		$results=mysql_query($statement);
 		if (mysql_num_rows($results)!=0)
 		{
 			echo '-1';
 			exit;
 		}
 		$statement="select * from capubbs.join where ip='$ip' && $time-timestamp<1800";
-		$results=mysql_query($statement,$con);
+		$results=mysql_query($statement);
 		if (mysql_num_rows($results)!=0)
                 {
                         echo '-2';
@@ -180,7 +179,7 @@
                 }
 		
 		$statement="insert into capubbs.join values ('$id','$name',$sex,'$phone','$year','$code','$hint','$ip',$time,'$type')";
-		mysql_query($statement,$con);
+		mysql_query($statement);
 		$xx=mysql_errno();
 		if ($xx!=0) {echo $xx;exit;}
 		$text="";
@@ -232,11 +231,11 @@
 		if ($from=="") {echo '-15';exit;}
 		$phone=mysql_real_escape_string(@$_POST['phone']);
 
-		$con=mysql_connect("localhost","root","19951025");
+		dbconnect;
 		mysql_query('SET NAMES "UTF8"');
 		$statement="select id,phone from capubbs.borrow where number=$id";
 
-		$results=mysql_query($statement,$con);
+		$results=mysql_query($statement);
 		$error=mysql_errno();
 		if ($error!=0) {echo $error;exit;}
 		$res=mysql_fetch_row($results);
@@ -287,11 +286,11 @@
 		$length=mysql_real_escape_string(@$_POST['length']);
 		$hint=mysql_real_escape_string(@$_POST['hint']);
 		$time=time();
-		$con=mysql_connect("localhost","root","19951025");
+		dbconnect;
 		mysql_query("SET NAMES 'UTF8'");
 
 		$statement="insert into capubbs.borrow values (null,1,'$username','$sex','$phone','$height',null,null,'$length','$hint',$time,0)";
-		mysql_query($statement,$con);
+		mysql_query($statement);
 		echo mysql_errno();
 		exit;
 	}
@@ -308,11 +307,11 @@
 		$bike=mysql_real_escape_string(@$_POST['bike']);
 		$condition=mysql_real_escape_string(@$_POST['condition']);
 		$time=time();
-		$con=mysql_connect("localhost","root","19951025");
+		dbconnect;
                 mysql_query("SET NAMES 'UTF8'");
 
                 $statement="insert into capubbs.borrow values (null,0,'$username','$sex','$phone',null,'$bike','$condition','$length','$hint',$time,0)";
-                mysql_query($statement,$con);
+                mysql_query($statement);
                 echo mysql_errno();
                 exit;
 	}
@@ -324,13 +323,13 @@
 		$json=@$_POST['data'];
 		$data=json_decode($json,true);
 		$time=time();
-		$con=mysql_connect("localhost","root","19951025");
+		dbconnect;
 		reset($data);
 		while (list($code,$state)=each($data)) {
 			$state=intval($state);
 			$code=intval($code);
 			$statement="update capubbs.borrow set state=$state , timestamp=$time where number=$code";
-			mysql_query($statement,$con);
+			mysql_query($statement);
 			$x=mysql_errno();
 			if ($x!=0) {echo $x;exit;}
 		}			
@@ -357,10 +356,10 @@
 		if ($rights==0) {echo '-18';exit;}
 		$title=mysql_real_escape_string(@$_POST['title']);
 		$url=mysql_real_escape_string(@$_POST['url']);
-		$con=mysql_connect("localhost","root","19951025");
+		dbconnect;
 		mysql_query("SET NAMES 'UTF8'");
 		$statement="insert into capubbs.downloads values (null,'$title','$url',0)";
-		mysql_query($statement,$con);
+		mysql_query($statement);
 		echo mysql_errno();
 		exit;
 	}
@@ -372,10 +371,10 @@
 		$title=mysql_real_escape_string(@$_POST['title']);
 		$url=mysql_real_escape_string(@$_POST['url']);
 		$id=mysql_real_escape_string(@$_POST['id']);
-		$con=mysql_connect("localhost","root","19951025");
+		dbconnect;
 		mysql_query("SET NAMES 'UTF8'");
 		$statement="update capubbs.downloads set name='$title', url='$url' where id=$id";
-		mysql_query($statement,$con);
+		mysql_query($statement);
 		echo mysql_errno();
 		exit;
 	}
@@ -385,10 +384,10 @@
 		$rights=intval($res[1]);
 		if ($rights==0) {echo '-18';exit;}
 		$id=@$_POST['id'];
-		$con=mysql_connect("localhost","root","19951025");
+		dbconnect;
 		mysql_query("SET NAMES 'UTF8'");
 		$statement="delete from capubbs.downloads where id=$id";
-		mysql_query($statement,$con);
+		mysql_query($statement);
 		echo mysql_errno();
 		exit;
 	}

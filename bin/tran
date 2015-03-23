@@ -1,0 +1,21 @@
+#!/bin/bash
+
+# scp DB backup file to a secure server
+# 
+# by Jack @ 2015-03-23
+
+# include config file
+. ./conf
+
+# if there is dumpdir
+if [ $# -eq 1 ]; then
+	dumpdir=$1
+fi
+if [ $# -gt 1 ]; then
+	targetdir=$2
+fi
+
+# begin scp
+$SCP $dumpdir/$today.$suffix $server_user@$server_ip:$targetdir
+
+exit 0

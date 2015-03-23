@@ -2,7 +2,8 @@
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
 <?php
-	require '../assets/api/checkuser.php';
+	require_once '../assets/api/dbconnector.php';
+	require_once '../assets/api/checkuser.php';
 	$res=checkuser();
 	$username=$res[0];$rights=$res[1]; 
 	if ($username=="") {
@@ -11,8 +12,7 @@
 		exit;
 	}
 	date_default_timezone_set('Asia/Shanghai');
-	$con=mysql_connect("localhost","root","19951025");
-	mysql_query("SET NAMES 'UTF8'");
+	dbconnect;
 ?>
 <link href="/assets/css/bootstrap.min.css" rel="stylesheet">
 <link href="/assets/css/style.css" rel="stylesheet">
@@ -50,7 +50,7 @@
      		 </tr>
 		<?php
 			$statement="select * from capubbs.borrow where type=0 && id='$username' && state!=2 order by state";
-			$results=mysql_query($statement,$con);
+			$results=mysql_query($statement);
 			while (($res=mysql_fetch_row($results))!=null) {
 				$id=$res[0];
 				$state=intval($res[11]);
@@ -98,7 +98,7 @@
      		 </tr>
 		<?php
                         $statement="select * from capubbs.borrow where type=1 && id='$username' && state!=2 order by state";
-                        $results=mysql_query($statement,$con);
+                        $results=mysql_query($statement);
                         while (($res=mysql_fetch_row($results))!=null) {
                                 $id=$res[0];
                                 $state=intval($res[11]);

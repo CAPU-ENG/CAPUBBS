@@ -1,0 +1,18 @@
+#!/bin/bash
+
+# make cron for backup & scp
+# By Jack @ 2015-03-23
+
+# CRONTAB eg
+# 0 4 * * * /PATH/TO/DBbackup /PATH/TO/DUMP-DIR
+# 0 5 * * * /PATH/TO/tran /PATH/TO/DUMP-DIR
+
+# include conf
+
+. ./conf
+
+$CRONTAB -l > tmpfile
+$ECHO "0 4 * * * $wd/bin/DBbackup $dumpdir" >> tmpfile
+$ECHO "0 5 * * * $wd/bin/tran $dumpdir" >> tmpfile
+$CRONTAB -u $local_user tmpfile
+$RM tmpfile

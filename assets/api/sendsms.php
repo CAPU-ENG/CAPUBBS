@@ -1,23 +1,24 @@
 <?php
 	require_once 'log.php';
 	require_once 'checkuser.php';
+	require_once 'dbconnector.php';
+
 	if (@$_REQUEST['sms']=='remain') getremainsms();
 
 	function checksmsvalid($phone,$text) {
 		$a=checkuser();
 		$username=$a[0];
 		if ($username=="") {echo '-15';exit;}
-		$con=mysql_connect("localhost","root","19951025");
-		mysql_query("SET NAMES 'UTF8'");
+		dbconnect;
 		$time=time();
 		$statement="select number from capubbs.sms where username='$username' && $time-timestamp<1800";
-		$results=mysql_query($statement,$con);
+		$results=mysql_query($statement);
 		if (mysql_num_rows($results)>=2) {
 			echo '-22';exit;
 		}
 		$ip=@$_SERVER['REMOTE_ADDR'];
 		$statement="insert into capubbs.sms values (null,'$username','$phone','$text','$ip',$time)";
-		mysql_query($statement,$con);
+		mysql_query($statement);
 		writelog("[SMS send to $phone] $text\n");
 	}
 

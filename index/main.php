@@ -56,17 +56,17 @@
 <link rel="shortcut icon" href="/assets/images/capu.jpg">
 </head>
 <?php
-	require '../assets/api/checkuser.php';
+	require_once '../assets/api/dbconnector.php';
+	require_once '../assets/api/checkuser.php';
 	$res=checkuser();
 	$username=$res[0];
 	$rights=intval($res[1]); 
 
 
 	date_default_timezone_set("Asia/Shanghai");
-	$con=mysql_connect('localhost','root','19951025');
-	mysql_query("SET NAMES 'UTF8'"); 	
+	dbconnect;
 	$statement="select * from capubbs.mainpage where id=0";
-	$results=mysql_query($statement,$con);
+	$results=mysql_query($statement);
 	$imgs=array();
 	$imgthumbs=array();
 	$imgtxts=array();
@@ -78,7 +78,7 @@
 	$imgnum=count($imgs);
 
 	$statement="select * from capubbs.mainpage where id=1 order by field3 desc limit 0,10";
-	$results=mysql_query($statement,$con);
+	$results=mysql_query($statement);
 	
 	$informs=array();
 	$informurls=array();
@@ -91,7 +91,7 @@
         $informnum=count($informs);
 
 	$statement="select * from capubbs.mainpage where id=2";
-	$results=mysql_query($statement,$con);
+	$results=mysql_query($statement);
 	$video=array();
 	$video_title=array();
 	$video_word=array();
@@ -106,11 +106,11 @@
 	}
 
 	$statement="select * from capubbs.borrow where type=0 && state=0";
-	$results=mysql_query($statement,$con);
+	$results=mysql_query($statement);
 	$lend=mysql_num_rows($results);
 
 	$statement="select * from capubbs.borrow where type=1 && state=0";
-	$results=mysql_query($statement,$con);
+	$results=mysql_query($statement);
 	$borrow=mysql_num_rows($results);
 
 ?>

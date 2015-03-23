@@ -1,11 +1,12 @@
 <?php
+	require_once '../../assets/api/dbconnector.php';
+
 	header("Content-type:text/html;charset=utf-8");
 	date_default_timezone_set('Asia/Shanghai');
 
 	error_reporting(E_ALL & ~E_NOTICE);
 	echo '<title>签到统计</title>'."\n";
-	$con=mysql_connect("localhost","root","19951025");
-	mysql_query("set names 'utf8'");
+	dbconnect;
 
 	$date=@$_GET['view'];
 	$time=strtotime($date." 00:00:00");
@@ -16,7 +17,7 @@
 	$day=date("d",$time);
 
 	$statement="select * from capubbs.sign where year=$year && month=$month && day=$day order by hour, minute, second";
-	$todays=mysql_query($statement,$con);
+	$todays=mysql_query($statement);
 
 	echo "<pre>";
 	echo "签到统计 ($year-$month-$day)：\n";
@@ -28,7 +29,7 @@
 	echo "\n\n";
 
 	$statement="select * from capubbs.sign where year=$year order by month, day";
-	$results=mysql_query($statement,$con);
+	$results=mysql_query($statement);
 	echo "本年度签到统计：\n";
 
 	$datas=array();

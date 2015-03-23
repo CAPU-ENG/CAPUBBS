@@ -280,7 +280,7 @@ body {
   <div class="form-group">
     <label class="col-md-3 control-label">日常招新负责</label>
     <div class="col-md-9">
-      <p class="form-control-static">抹茶 (15652204418)</p>
+      <p class="form-control-static">雨荷 (18811799158)</p>
     </div>
   </div>
 
