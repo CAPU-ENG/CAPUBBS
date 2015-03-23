@@ -965,7 +965,7 @@
             echo "<info><nowuser>$username</nowuser></info>";
         }
 
-        $results=mysql_query("select * from threads order by timestamp desc limit 0,10");
+        $results=mysql_query("select * from threads order by timestamp desc limit 0,20");
 
         while ($res=mysql_fetch_array($results)) {
             echo "<info>\n";
