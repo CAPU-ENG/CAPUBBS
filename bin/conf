@@ -21,7 +21,7 @@ dumpdir=$wd/dump
 # backup server
 server_ip=123.131.52.108
 server_user=capu
-server_passwd=
+#server_passwd=
 targetdir="~"/capubbs_mysql_backup
 
 # backup file suffix
@@ -37,4 +37,5 @@ TAR=/bin/tar
 DUMP=/usr/bin/mysqldump
 RM=/bin/rm
 SCP=/usr/bin/scp 
-
+ECHO=/bin/echo
+CRONTAB=/usr/bin/crontab

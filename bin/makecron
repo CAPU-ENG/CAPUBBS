@@ -11,5 +11,5 @@
 
 . ./conf
 
-echo "0 4 * * * $wd/bin/BDbackup $dumpdir" | crontab -u $local_user
-echo "0 5 * * * $wd/bin/tran $dumdir" | crontab -u $local_user
+$ECHO "0 4 * * * $wd/bin/BDbackup $dumpdir" | $CRONTAB -u $local_user
+$ECHO "0 5 * * * $wd/bin/tran $dumdir" | $CRONTAB -u $local_user
