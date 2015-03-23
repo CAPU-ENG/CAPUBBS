@@ -7,7 +7,7 @@
 # working directory
 wd=/work/capu/CAPUBBS
 
-# uesr on this websit, using to crontab
+# uesr on this website, using for crontab
 local_user=capu
 
 # MySQL
