@@ -6,7 +6,6 @@
 		if ($token=="") return array("",0);
 
 		dbconnect;
-		mysql_query("SET NAMES 'UTF8'");
 		$time=time();
 		$statement="select username, rights from capubbs.userinfo where token='$token' && $time-tokentime<=1800";
 		$results=mysql_query($statement);

@@ -17,7 +17,6 @@
     
 <?php
 	dbconnect;
-	mysql_query("SET NAMES 'UTF8'");
 	$statement="select * from capubbs.downloads where name!='' order by id desc limit 0,10";
 	$results=mysql_query($statement);
 	$id=0;

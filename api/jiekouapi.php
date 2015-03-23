@@ -20,7 +20,6 @@
     date_default_timezone_set("Asia/Shanghai");
     dbconnect;
     mysql_select_db("capubbs");
-    mysql_query("set names 'utf8'");
     $ask=@$_REQUEST['ask'];
     $bid=intval(@$_REQUEST['bid']);
     $tid=intval(@$_REQUEST['tid']);

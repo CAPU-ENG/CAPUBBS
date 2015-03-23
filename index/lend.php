@@ -35,7 +35,6 @@
 
 <?php
 	dbconnect;
-	mysql_query('SET NAMES UTF8');
 	$statement="select * from capubbs.borrow where type=1 && state!=2 order by state";
 	$results=mysql_query($statement);
 

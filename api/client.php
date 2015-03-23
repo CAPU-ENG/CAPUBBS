@@ -304,7 +304,6 @@
         echo '<capu><info><code>-1</code>';
 	require_once 'dbconnector.php';
         dbconnect;
-        mysql_query("SET NAMES 'utf8'")    ;
         $statement="select * from capubbs.mainpage where id=-1";
         $results=mysql_query($statement);
         $results=mysql_fetch_row($results);
