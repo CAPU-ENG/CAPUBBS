@@ -5,7 +5,7 @@
 # By Jack @ 2015-03-23
 
 # working directory
-wd=/home/capu/CAPUBBS
+wd=/home/capu/work/CAPUBBS
 
 # uesr on this website, using for crontab
 local_user=capu
