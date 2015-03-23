@@ -13,7 +13,6 @@
 	}
 	date_default_timezone_set('Asia/Shanghai');
 	dbconnect;
-	mysql_query("SET NAMES 'UTF8'");
 ?>
 <link href="/assets/css/bootstrap.min.css" rel="stylesheet">
 <link href="/assets/css/style.css" rel="stylesheet">

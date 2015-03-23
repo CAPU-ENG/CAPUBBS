@@ -7,7 +7,6 @@
 	error_reporting(E_ALL & ~E_NOTICE);
 	echo '<title>签到统计</title>'."\n";
 	dbconnect;
-	mysql_query("set names 'utf8'");
 
 	$date=@$_GET['view'];
 	$time=strtotime($date." 00:00:00");

@@ -55,7 +55,6 @@
 		$rights=intval($res[1]);
 		if ($rights==0) {echo '-18';exit;}
 		dbconnect;
-		mysql_query("SET NAMES 'UTF8'"); 
 		$year=mysql_real_escape_string(@$_POST['year']);
                 $month=mysql_real_escape_string(@$_POST['month']);
                 $day=mysql_real_escape_string(@$_POST['day']);

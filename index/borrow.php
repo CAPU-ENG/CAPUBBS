@@ -34,7 +34,6 @@
       </tr>
 <?php
 	dbconnect;
-	mysql_query("SET NAMES 'UTF8'");
 	$statement="select * from capubbs.borrow where type=0 && state=0";
 	$results=mysql_query($statement);
 	$i=0;

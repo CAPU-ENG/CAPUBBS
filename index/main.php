@@ -65,7 +65,6 @@
 
 	date_default_timezone_set("Asia/Shanghai");
 	dbconnect;
-	mysql_query("SET NAMES 'UTF8'"); 	
 	$statement="select * from capubbs.mainpage where id=0";
 	$results=mysql_query($statement);
 	$imgs=array();

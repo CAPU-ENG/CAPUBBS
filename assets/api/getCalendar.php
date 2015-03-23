@@ -7,7 +7,6 @@
 	//  echo '  { "date": "2013-03-23 17:30:00", "type": "meeting", "title": "Test Next Year", "description": "Lorem Ipsum dolor set", "url": "http://www.event3.com/" },';
 	
 	dbconnect;
-	mysql_query("SET NAMES 'UTF8'");
 	$statement="select * from capubbs.calendar";
 	$results=mysql_query($statement);
 	$x=1;

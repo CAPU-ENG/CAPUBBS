@@ -10,7 +10,6 @@
 		$username=$a[0];
 		if ($username=="") {echo '-15';exit;}
 		dbconnect;
-		mysql_query("SET NAMES 'UTF8'");
 		$time=time();
 		$statement="select number from capubbs.sms where username='$username' && $time-timestamp<1800";
 		$results=mysql_query($statement);
