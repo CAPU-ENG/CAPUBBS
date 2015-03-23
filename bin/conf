@@ -4,13 +4,19 @@
 #
 # By Jack @ 2015-03-23
 
+# working directory
+wd=/work/capu/CAPUBBS
+
+# uesr on this websit, using to crontab
+local_user=capu
+
 # MySQL
 mysql_user=root
 mysql_passwd=19951025
 database=capubbs
 
 # DB dump dir default, better use absolute path
-dumpdir=./
+dumpdir=$wd/dump
 
 # backup server
 server_ip=123.131.52.108
