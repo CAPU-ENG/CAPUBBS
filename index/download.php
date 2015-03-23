@@ -4,7 +4,8 @@
 <link href="/assets/css/bootstrap.min.css" rel="stylesheet">
 <link href="/assets/css/style.css" rel="stylesheet">
 <?php
-	require '../assets/api/checkuser.php';
+	require_once '../assets/api/dbconnector.php';
+	require_once '../assets/api/checkuser.php';
 	$res=checkuser();
 	$username=$res[0];$rights=intval($res[1]); 
 ?>
@@ -15,10 +16,10 @@
   <ul>
     
 <?php
-	$con=mysql_connect("localhost","root","19951025");
+	dbconnect;
 	mysql_query("SET NAMES 'UTF8'");
 	$statement="select * from capubbs.downloads where name!='' order by id desc limit 0,10";
-	$results=mysql_query($statement,$con);
+	$results=mysql_query($statement);
 	$id=0;
 	$num=mysql_num_rows($results);
 	$ids=array();

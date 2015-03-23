@@ -1,4 +1,6 @@
 <?php
+	require_once 'dbconnector.php';
+
 	header("Content-type: text/html;charset=utf-8");
 
 	$save=@$_GET['saved'];
@@ -9,7 +11,7 @@
 	$end=$start+$number;
 
 	if ($save=="yes")
-		$con=mysql_connect("localhost","root","19951025");
+		dbconnect;
 
 	echo "<pre>";
 	for ($i=$start;$i<$end;$i++) {
