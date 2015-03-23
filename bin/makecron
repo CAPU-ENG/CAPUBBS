@@ -4,12 +4,15 @@
 # By Jack @ 2015-03-23
 
 # CRONTAB eg
-# 0 4 * * * /PATH/TO/BDbackup /PATH/TO/DUMP-DIR
+# 0 4 * * * /PATH/TO/DBbackup /PATH/TO/DUMP-DIR
 # 0 5 * * * /PATH/TO/tran /PATH/TO/DUMP-DIR
 
 # include conf
 
 . ./conf
 
-$ECHO "0 4 * * * $wd/bin/BDbackup $dumpdir" | $CRONTAB -u $local_user
-$ECHO "0 5 * * * $wd/bin/tran $dumdir" | $CRONTAB -u $local_user
+$CRONTAB -l > tmpfile
+$ECHO "0 4 * * * $wd/bin/DBbackup $dumpdir" >> tmpfile
+$ECHO "0 5 * * * $wd/bin/tran $dumpdir" >> tmpfile
+$CRONTAB -u $local_user tmpfile
+$RM tmpfile
