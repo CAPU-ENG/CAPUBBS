@@ -5,7 +5,7 @@
 		$token=@$_COOKIE['token'];
 		if ($token=="") return array("",0);
 
-		dbconnect;
+		dbconnect();
 		$time=time();
 		$statement="select username, rights from capubbs.userinfo where token='$token' && $time-tokentime<=1800";
 		$results=mysql_query($statement);

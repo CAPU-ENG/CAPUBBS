@@ -12,7 +12,7 @@
 		exit;
 	}
 	date_default_timezone_set('Asia/Shanghai');
-	dbconnect;
+	dbconnect();
 ?>
 <link href="/assets/css/bootstrap.min.css" rel="stylesheet">
 <link href="/assets/css/style.css" rel="stylesheet">
