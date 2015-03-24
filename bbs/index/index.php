@@ -94,8 +94,7 @@ if ($username!="") {
 		</div>
 		<div class="hot">
 		<?php
-		$hots=mainfunc(array("ask"=>"hot"));
-		$hots = array_slice($hots,0,10);//只取前十个热点
+		$hots=mainfunc(array("ask"=>"hot","hotnum"=>"10"));
 		echo("<ul>");
 		foreach($hots as $hot){
 			if(!@$hot['tid']) continue;
