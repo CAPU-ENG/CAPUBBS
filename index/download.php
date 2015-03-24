@@ -16,7 +16,7 @@
   <ul>
     
 <?php
-	dbconnect;
+	dbconnect();
 	$statement="select * from capubbs.downloads where name!='' order by id desc limit 0,10";
 	$results=mysql_query($statement);
 	$id=0;
