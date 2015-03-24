@@ -94,7 +94,7 @@ if ($username!="") {
 		</div>
 		<div class="hot">
 		<?php
-		$hots=mainfunc(array("ask"=>"hot","hotnum"=>"10"));
+		$hots=mainfunc(array("ask"=>"hot"));
 		echo("<ul>");
 		foreach($hots as $hot){
 			if(!@$hot['tid']) continue;
