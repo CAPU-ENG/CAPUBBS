@@ -64,7 +64,7 @@
 
 
 	date_default_timezone_set("Asia/Shanghai");
-	dbconnect;
+	dbconnect();
 	$statement="select * from capubbs.mainpage where id=0";
 	$results=mysql_query($statement);
 	$imgs=array();

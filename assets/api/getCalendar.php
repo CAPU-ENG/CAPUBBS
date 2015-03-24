@@ -6,7 +6,7 @@
 	//   echo '  { "date": "2013-03-19 17:30:00", "type": "meeting", "title": "Test Last Year", "description": "Lorem Ipsum dolor set", "url": "" },';
 	//  echo '  { "date": "2013-03-23 17:30:00", "type": "meeting", "title": "Test Next Year", "description": "Lorem Ipsum dolor set", "url": "http://www.event3.com/" },';
 	
-	dbconnect;
+	dbconnect();
 	$statement="select * from capubbs.calendar";
 	$results=mysql_query($statement);
 	$x=1;
