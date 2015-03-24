@@ -1,17 +1,18 @@
+*.swp
 .idea/
 assets/downloads/
 bbs/attachment/
 bbs/images/
 bbsimg/
 documents/
+dump/
 log/
+msgxml.xml
 old/
 phpMyAdmin/
+phpinfo.php
 report.html
 test.php
-phpinfo.php
-msgxml.xml
-*.swp
 
 # Exclude `assets/images` except `assets/images/static`.
 assets/images/*
