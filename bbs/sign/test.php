@@ -6,7 +6,7 @@
 
 	error_reporting(E_ALL & ~E_NOTICE);
 	echo '<title>签到统计</title>'."\n";
-	dbconnect;
+	dbconnect();
 
 	$date=@$_GET['view'];
 	$time=strtotime($date." 00:00:00");

@@ -18,7 +18,7 @@
     echo '<?xml version="1.0" encoding="UTF-8"?>';
     echo "\n";
     date_default_timezone_set("Asia/Shanghai");
-    dbconnect;
+    dbconnect();
     mysql_select_db("capubbs");
     $ask=@$_REQUEST['ask'];
     $bid=intval(@$_REQUEST['bid']);

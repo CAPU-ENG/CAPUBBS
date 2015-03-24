@@ -9,7 +9,7 @@
 
 <?php
 	require_once '../assets/api/dbconnector.php';
-	dbconnect;
+	dbconnect();
 	$statement="select number from capubbs.borrow where type=1 && state=0";
 	$results=mysql_query($statement);
 	$ans=mysql_num_rows($results);

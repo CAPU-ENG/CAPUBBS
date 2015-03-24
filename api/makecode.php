@@ -11,7 +11,7 @@
 	$end=$start+$number;
 
 	if ($save=="yes")
-		dbconnect;
+		dbconnect();
 
 	echo "<pre>";
 	for ($i=$start;$i<$end;$i++) {

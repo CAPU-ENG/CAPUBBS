@@ -9,7 +9,7 @@
 		$a=checkuser();
 		$username=$a[0];
 		if ($username=="") {echo '-15';exit;}
-		dbconnect;
+		dbconnect();
 		$time=time();
 		$statement="select number from capubbs.sms where username='$username' && $time-timestamp<1800";
 		$results=mysql_query($statement);

@@ -2,7 +2,7 @@
 	require_once '../assets/api/dbconnector.php';
 	$id=intval(@$_GET['d']);
 	if ($id=="") exit;
-	dbconnect;
+	dbconnect();
 	$statement="select url from capubbs.downloads where id=$id";
 	$results=mysql_query($statement);
 	if (mysql_num_rows($results)==0) exit;

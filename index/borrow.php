@@ -33,7 +33,7 @@
         <th width="26%">备注</th>
       </tr>
 <?php
-	dbconnect;
+	dbconnect();
 	$statement="select * from capubbs.borrow where type=0 && state=0";
 	$results=mysql_query($statement);
 	$i=0;
