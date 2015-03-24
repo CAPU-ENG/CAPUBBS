@@ -342,9 +342,12 @@
     }
 
     function gethot() {
+        $hotnum=10; // Default number of hot list
+        if (@$_REQUEST['hotnum'])
+            $hotnum=@$_REQUEST['hotnum'];
         echo '<capu>';
-        $hots=request(array("ask"=>"hot"));
-        for ($i=1;$i<=20;$i++) {//增加热点数量
+        $hots=request(array("ask"=>"hot","hotnum"=>$hotnum));
+        for ($i=1;$i<=$hotnum;$i++) {//增加热点数量
             $hot=$hots[$i];
             echo '<info><text><![CDATA['.$hot['title'].']]></text>';
             echo '<bid>'.$hot['bid'].'</bid><tid>'.$hot['tid'].'</tid><pid>';
