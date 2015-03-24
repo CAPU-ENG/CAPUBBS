@@ -953,6 +953,9 @@
     }
 
     function hot($con,$token){
+        $hotnum=20; // Default number of hot list
+        if (@$_REQUEST['hotnum'])
+            $hotnum=@$_REQUEST['hotnum'];
         echo '<capu>';
         $time=time();
         $statement="select username from userinfo where token='$token' && $time-tokentime<={$GLOBALS['validtime']}";
@@ -965,7 +968,7 @@
             echo "<info><nowuser>$username</nowuser></info>";
         }
 
-        $results=mysql_query("select * from threads order by timestamp desc limit 0,20");
+        $results=mysql_query("select * from threads order by timestamp desc limit 0,$hotnum");
 
         while ($res=mysql_fetch_array($results)) {
             echo "<info>\n";
