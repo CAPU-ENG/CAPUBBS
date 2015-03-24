@@ -55,6 +55,7 @@
 <link href="/assets/css/style.css" rel="stylesheet">
 <link rel="shortcut icon" href="/assets/images/capu.jpg">
 </head>
+<body>
 <?php
 	require_once '../assets/api/dbconnector.php';
 	require_once '../assets/api/checkuser.php';
@@ -79,7 +80,6 @@
 
 	$statement="select * from capubbs.mainpage where id=1 order by field3 desc limit 0,10";
 	$results=mysql_query($statement);
-	
 	$informs=array();
 	$informurls=array();
 	$informtimes=array();
