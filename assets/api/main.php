@@ -4,6 +4,7 @@
 	require_once 'checkuser.php';
 	require_once 'captcha.php';
 	require_once 'dbconnector.php';
+	require_once '../../bbs/lib/mainfunc.php';
 
 	$ask=@$_POST['ask'];
 	date_default_timezone_set("Asia/Shanghai");
