@@ -29,7 +29,6 @@
 
 	function loadcalendar() {
 		dbconnect();
-		mysql_query("SET NAMES 'UTF8'"); 
 		$year=@$_POST['year'];
 		$month=@$_POST['month'];
 		$day=@$_POST['day'];
@@ -79,7 +78,6 @@
 		$rights=intval($res[1]);
 		if ($rights==0) {echo '-18';exit;}
 		dbconnect();
-                mysql_query("SET NAMES 'UTF8'");
 		mysql_query("delete from capubbs.mainpage where id=0");
 		$json=@$_POST['json'];
 		$de_json=json_decode($json,true);
@@ -116,7 +114,6 @@
 		$url=mysql_real_escape_string(@$_POST['url']);
 		$time=time();
 		dbconnect();
-                mysql_query("SET NAMES 'UTF8'");
 		$statement="insert into capubbs.mainpage values (null,1,'$title','$url','$time','','')";
 		mysql_query($statement);
 		echo mysql_errno();
@@ -161,7 +158,6 @@
 		}
 
 		dbconnect();
-                mysql_query("SET NAMES 'UTF8'");
 
 		$statement="select * from capubbs.join where id='$id' && type='$type'";
 		$results=mysql_query($statement);
@@ -232,7 +228,6 @@
 		$phone=mysql_real_escape_string(@$_POST['phone']);
 
 		dbconnect();
-		mysql_query('SET NAMES "UTF8"');
 		$statement="select id,phone from capubbs.borrow where number=$id";
 
 		$results=mysql_query($statement);
@@ -287,7 +282,6 @@
 		$hint=mysql_real_escape_string(@$_POST['hint']);
 		$time=time();
 		dbconnect();
-		mysql_query("SET NAMES 'UTF8'");
 
 		$statement="insert into capubbs.borrow values (null,1,'$username','$sex','$phone','$height',null,null,'$length','$hint',$time,0)";
 		mysql_query($statement);
@@ -308,7 +302,6 @@
 		$condition=mysql_real_escape_string(@$_POST['condition']);
 		$time=time();
 		dbconnect();
-                mysql_query("SET NAMES 'UTF8'");
 
                 $statement="insert into capubbs.borrow values (null,0,'$username','$sex','$phone',null,'$bike','$condition','$length','$hint',$time,0)";
                 mysql_query($statement);
@@ -357,7 +350,6 @@
 		$title=mysql_real_escape_string(@$_POST['title']);
 		$url=mysql_real_escape_string(@$_POST['url']);
 		dbconnect();
-		mysql_query("SET NAMES 'UTF8'");
 		$statement="insert into capubbs.downloads values (null,'$title','$url',0)";
 		mysql_query($statement);
 		echo mysql_errno();
@@ -372,7 +364,6 @@
 		$url=mysql_real_escape_string(@$_POST['url']);
 		$id=mysql_real_escape_string(@$_POST['id']);
 		dbconnect();
-		mysql_query("SET NAMES 'UTF8'");
 		$statement="update capubbs.downloads set name='$title', url='$url' where id=$id";
 		mysql_query($statement);
 		echo mysql_errno();
@@ -385,7 +376,6 @@
 		if ($rights==0) {echo '-18';exit;}
 		$id=@$_POST['id'];
 		dbconnect();
-		mysql_query("SET NAMES 'UTF8'");
 		$statement="delete from capubbs.downloads where id=$id";
 		mysql_query($statement);
 		echo mysql_errno();
