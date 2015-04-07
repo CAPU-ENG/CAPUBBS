@@ -9,6 +9,21 @@
 	if(!$page) $page=1;
 	if(!$bid) $bid=1;
 	if(!$tid) $tid=1;
+    if(strlen($tid)==4) {
+        $res = 0;
+        $flag = true;
+        for($i = 0; $i < 4; $i++) {
+            if(ord($tid[$i]) > ord('z') or ord($tid[$i]) < ord('a')) {
+                $flag = false;
+                break;
+            }
+            $res *= 26;
+            $res += ord($tid[$i]) - ord('a');
+        }
+        if ($flag) {
+            $tid = (string)$res;
+        }
+    }
 	$data=mainfunc(array("bid"=>$bid,"tid"=>$tid,"p"=>$page,"see_lz"=>$see_lz),null);
 	$tdata=mainfunc(array("bid"=>$bid,"tid"=>$tid,"ask"=>"tidinfo"));
 	$floordata="";
