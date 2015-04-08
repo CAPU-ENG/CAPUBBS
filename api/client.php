@@ -612,12 +612,12 @@
             $html=str_replace(" ", "&nbsp;",$html);//修复空格显示的Bug
         }
         $html=preg_replace("#(\\[img])(.+?)(\\[/img])#", "<img src='$2'>", $html);
-        $html=preg_replace("#(\\[quote=)(.+?)(])([\\s\\S]+?)(\\[/quote])#", "<font color='grey' size=2><hr>引用自 <font color='blue'>@$2</font> ：<br><br>$4<br><hr><br></font>",$html);//改善显示
+        $html=preg_replace("#(\\[quote=)(.+?)(])([\\s\\S]+?)(\\[/quote])#", "<quote><div style=\"background:#F5F5F5;padding:10px\"><font color=\"gray\" size=2>引用自 [at]$2[/at] ：<br><br>$4<br><br></font></div></quote>",$html);//改善显示
         $html=preg_replace("#(\\[size=)(.+?)(])([\\s\\S]+?)(\\[/size])#", "<font size='$2'>$4</font>", $html);
         $html=preg_replace("#(\\[font=)(.+?)(])([\\s\\S]+?)(\\[/font])#", "<font face='$2'>$4</font>", $html);
         $html=preg_replace("#(\\[color=)(.+?)(])([\\s\\S]+?)(\\[/color])#", "<font color='$2'>$4</font>", $html);
         $html=preg_replace("#(\\[color=)(.+?)(])([\\s\\S]+?)#", "<font color='$2'>$4</font>", $html);
-        $html=preg_replace("#(\\[at])(.+?)(\\[/at])#", "<font color='blue'>@$2</font>", $html);//@暂时改为蓝色显示 以后可改为客户端可识别的显示ID的形式
+        $html=preg_replace("#(\\[at])(.+?)(\\[/at])#", "<a href=\"/bbs/user/?name=$2\">@$2</a>", $html);//@改为链接到用户信息界面形式
         $html=preg_replace("#(\\[url])(.+?)(\\[/url])#", href("$2","$2"), $html);
         $html=preg_replace("#(\\[url=)(.+?)(])([\\s\\S]+?)(\\[/url])#", href("$2","$4"), $html);
         $html=preg_replace("#(\\[b])(.+?)(\\[/b])#", "<b>$2</b>", $html);
