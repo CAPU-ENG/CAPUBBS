@@ -617,7 +617,7 @@
         $html=preg_replace("#(\\[font=)(.+?)(])([\\s\\S]+?)(\\[/font])#", "<font face='$2'>$4</font>", $html);
         $html=preg_replace("#(\\[color=)(.+?)(])([\\s\\S]+?)(\\[/color])#", "<font color='$2'>$4</font>", $html);
         $html=preg_replace("#(\\[color=)(.+?)(])([\\s\\S]+?)#", "<font color='$2'>$4</font>", $html);
-        $html=preg_replace("#(\\[at])(.+?)(\\[/at])#", "<a href=\"/bbs/user/?name=$2\">@$2</a>", $html);//@改为链接到用户信息界面形式
+        $html=preg_replace("#(\\[at])(.+?)(\\[/at])#", href("/bbs/user/?name=$2","@$2"), $html);//@改为链接到用户信息界面形式
         $html=preg_replace("#(\\[url])(.+?)(\\[/url])#", href("$2","$2"), $html);
         $html=preg_replace("#(\\[url=)(.+?)(])([\\s\\S]+?)(\\[/url])#", href("$2","$4"), $html);
         $html=preg_replace("#(\\[b])(.+?)(\\[/b])#", "<b>$2</b>", $html);
