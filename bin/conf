@@ -13,8 +13,7 @@ local_user=capu
 # MySQL
 mysql_user=root
 mysql_passwd=19951025
-database=capubbs
-database2=capurace
+database="capubbs capurace"
 
 # DB dump dir default, better use absolute path
 dumpdir=$wd/dump
@@ -22,11 +21,10 @@ dumpdir=$wd/dump
 # backup server
 server_ip=123.131.52.108
 server_user=capu
-#server_passwd=
 targetdir="~"/capubbs_mysql_backup
 
 # backup file suffix
-suffix=tgz
+suffix=gz
 
 # backup file name
 today=`date +'%y_%m_%d'`
@@ -35,8 +33,9 @@ last7=`date +'%y_%m_%d' --date 'last week'`
 # command used
 MKDIR=/bin/mkdir
 TAR=/bin/tar
+GZIP=/bin/gzip
 DUMP=/usr/bin/mysqldump
 RM=/bin/rm
-SCP=/usr/bin/scp 
+SCP=/usr/bin/scp
 ECHO=/bin/echo
 CRONTAB=/usr/bin/crontab
