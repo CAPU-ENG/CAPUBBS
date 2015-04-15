@@ -14,6 +14,7 @@ local_user=capu
 mysql_user=root
 mysql_passwd=19951025
 database=capubbs
+database2=capurace
 
 # DB dump dir default, better use absolute path
 dumpdir=$wd/dump

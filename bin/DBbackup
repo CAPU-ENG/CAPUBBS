@@ -20,9 +20,10 @@ fi
 
 # begin dump
 cd $dumpdir
-$DUMP -u$mysql_user -p$mysql_passwd $database > $today.sql
-$TAR zcf $today.$suffix $today.sql
-$RM $today.sql
+$DUMP -u$mysql_user -p$mysql_passwd $database > $database.sql
+$DUMP -u$mysql_user -p$mysql_passwd $database2 > $database2.sql
+$TAR zcf $today.$suffix $database2.sql $database.sql
+$RM *.sql
 
 # remove file a week ago
 if [ -f "$last7.$suffix" ]; then
