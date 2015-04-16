@@ -92,7 +92,7 @@
 	<li class="devider"></li>
         <li><a href="/bbs/index" target="_blank">进入论坛</a></li>
         <li class="devider"></li>
-	<li><a href="race.chexie.net">交流赛官网</a></li>
+	<li><a href="http://race.chexie.net">交流赛官网</a></li>
 	<li class="devider"></li>
         <li class="dropdown" id="navbar-borrow">
 	  <a href="javascript:setActive('#borrow')">自助借车系统</a>
