@@ -24,7 +24,7 @@ server_user=capu
 targetdir="~"/capubbs_mysql_backup
 
 # backup file suffix
-suffix=gz
+suffix=sql.gz
 
 # backup file name
 today=`date +'%y_%m_%d'`

@@ -2,6 +2,11 @@
 CONFIG "conf" BEFORE USING !!!
 Espescially "working directory" !
 
+# CHANGELOG
+2015.04.16 Using gzip instead of tar.To unzip:
+	> $ gunzip *.sql.gz
+2015.03.23 Creating.
+
 # SCRIPTS
 1. DBbackup
 	Backup mysql using "mysqldump" everyday, and delete data a week ago automatically.
