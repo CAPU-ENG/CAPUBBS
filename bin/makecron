@@ -11,8 +11,8 @@
 
 . ./conf
 
-$CRONTAB -l > tmpfile
-$ECHO "0 4 * * * $wd/bin/DBbackup $dumpdir" >> tmpfile
-$ECHO "0 5 * * * $wd/bin/tran $dumpdir" >> tmpfile
+#$CRONTAB -l > tmpfile
+$ECHO "0 4 * * * cd $wd/bin/ && ./DBbackup $dumpdir" >> tmpfile
+$ECHO "0 5 * * * cd $wd/bin/ && ./tran $dumpdir" >> tmpfile
 $CRONTAB -u $local_user tmpfile
 $RM tmpfile

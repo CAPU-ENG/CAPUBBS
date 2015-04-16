@@ -4,6 +4,9 @@
 # keep for a week
 #
 # By Jack @ 2015-03-22
+# 
+# Modified 
+# By Jack @ 2015-03-22
 
 # include config file
 . ./conf
@@ -20,9 +23,7 @@ fi
 
 # begin dump
 cd $dumpdir
-$DUMP -u$mysql_user -p$mysql_passwd $database > $today.sql
-$TAR zcf $today.$suffix $today.sql
-$RM $today.sql
+$DUMP -u$mysql_user -p$mysql_passwd -B $database | $GZIP -c > $today.$suffix
 
 # remove file a week ago
 if [ -f "$last7.$suffix" ]; then
