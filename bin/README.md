@@ -4,7 +4,8 @@ Espescially "working directory" !
 
 # CHANGELOG
 2015.04.16 Using gzip instead of tar.To unzip:
-	> $ gunzip *.sql.gz
+> $ gunzip *.sql.gz
+
 2015.03.23 Creating.
 
 # SCRIPTS
