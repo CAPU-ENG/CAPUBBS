@@ -11,6 +11,7 @@
     else if ($ask=="main") seemain();
     else if ($ask=="hot") gethot();
     else if ($ask=="userinfo") getuserinfo();
+    else if ($ask=="sendmsg") sendmsg();
     else if ($ask=="register") register();
     else if ($ask=="delete") del();
     else if ($ask=="image") uploadimage();
@@ -359,6 +360,17 @@
         }
         echo '</capu>';
 
+    }
+
+    function sendmsg() { // 私信API
+        $token=$_REQUEST['token'];
+        $to=$_REQUEST['to'];
+        $text=$_REQUEST['text'];
+        $id=request(array("ask"=>"sendmsg","token"=>$token,"to"=>$to,"text"=>$text));
+        echo '<capu><info>';
+        echo '<code><![CDATA['.$id[0]['code'].']]></code>';
+        echo '<msg><![CDATA['.$id[0]['msg'].']]></msg>';
+        echo '</info></capu>';
     }
 
     function getuserinfo() {
