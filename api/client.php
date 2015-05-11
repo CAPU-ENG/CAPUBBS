@@ -105,7 +105,9 @@
         echo "<tid>$tid</tid>\n";
         echo "<fid>".@$content['fid']."</fid>\n";
         echo "<lzl>".@$content['lzl']."</lzl>\n";
-        echo "<time>".date("Y-m-d H:i:s",@$content['updatetime'])."</time>";
+        echo "<time>".date("Y-m-d H:i:s",@$content['replytime'])."</time>"; // 发表时间
+        echo "<updatetime>".date("Y-m-d H:i:s",@$content['updatetime'])."</updatetime>"; // 编辑时间
+        echo "<type>".@$content['type']."</type>"; // 发帖类型(web android ios)
 
     }
 
