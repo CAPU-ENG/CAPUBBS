@@ -593,7 +593,7 @@
         }
         $title=@$_REQUEST['title'];
         $text=@$_REQUEST['text'];
-        $type=intval(@$_REQUEST['type']);
+        $type=$_REQUEST['type'];
         $sig=intval(@$_REQUEST['sig']);
         $title=html_entity_decode($title);
         $text=html_entity_decode($text);
