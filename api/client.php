@@ -234,6 +234,7 @@
 
     function logout() {
         $result=request(array("ask"=>"logout"));
+        echo '<capu><info><code>0</code></info></capu>';
     }
 
     function packiOSDevice($raw){
