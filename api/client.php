@@ -16,7 +16,6 @@
     else if ($ask=="register") register();
     else if ($ask=="delete") del();
     else if ($ask=="image") uploadimage();
-    else if ($ask=="file") uploadfile();
     else if ($ask=="lzl") lzl();
     else if ($ask=="search") search();
     else if ($ask=="action") action();
@@ -408,25 +407,6 @@
         echo '</info></capu>';
     }
 
-    function uploadfile() {
-
-        $random=mt_rand(0,999999999);
-        while (file_exists("../bbsimg/upload/$random.gif"))
-            $random=mt_rand(0,999999999);
-        echo '<capu><info><code>';
-        if ($_FILES['image']['error']!=UPLOAD_ERR_OK) {
-            echo '6</code><msg>上传失败。错误代码；'.$_FILES['image']['error'].'</msg></info></capu>';
-        }
-        if (!move_uploaded_file($_FILES['image']['tmp_name'],"../bbsimg/upload/$random.gif")) {
-            echo '6</code><msg>保存文件失败。</msg></info></capu>';
-            exit;
-        }
-        echo '-1</code><imgurl>http://www.chexie.net/bbsimg/upload/'.$random.'.gif</imgurl></info></capu>';
-        exit;
-
-
-    }
-
     function uploadimage() {
         $data=@$_POST['image'];
         $data=base64_decode($data);
@@ -438,7 +418,7 @@
             echo '6</code></info></capu>';
             exit;
         }
-        echo '-1</code><imgurl>http://www.chexie.net/bbsimg/upload/'.$random.'.gif</imgurl></info></capu>';
+        echo '-1</code><imgurl>/bbsimg/upload/'.$random.'.gif</imgurl></info></capu>'; // 返回相对路径
         exit;
     }
 
