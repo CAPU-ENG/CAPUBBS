@@ -8,6 +8,7 @@
     if ($ask=="show") show();
     else if ($ask=="post") post();
     else if ($ask=="login") login();
+    else if ($ask=="logout") logout();
     else if ($ask=="main") seemain();
     else if ($ask=="hot") gethot();
     else if ($ask=="userinfo") getuserinfo();
@@ -230,6 +231,10 @@
         else echo 6;
         echo '</code><token>'.$token.'</token><msg>'.@$result['msg'].'</msg></info></capu>';
         exit;
+    }
+
+    function logout() {
+        $result=request(array("ask"=>"logout"));
     }
 
     function packiOSDevice($raw){
