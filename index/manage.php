@@ -2,8 +2,7 @@
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
 <?php
-	require_once '../assets/api/dbconnector.php';
-	require_once '../assets/api/checkuser.php';
+	require_once '../lib.php';
 	$res=checkuser();
 	$username=$res[0];$rights=$res[1]; 
 	if ($username=="") {

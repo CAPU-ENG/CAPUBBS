@@ -1,9 +1,8 @@
 <?php
 	require_once 'sendsms.php';
 	require_once 'sendmail.php';
-	require_once 'checkuser.php';
 	require_once 'captcha.php';
-	require_once 'dbconnector.php';
+	require_once '../../lib.php';
 	require_once '../../bbs/lib/mainfunc.php';
 
 	$ask=@$_POST['ask'];
