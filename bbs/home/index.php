@@ -155,9 +155,13 @@ if($username!=""){
 function ifrmLoaded(){
 	document.getElementById("sub").style.opacity=1;
 }
-function setframe(frame){
+function setframe(frame, args){
+    var src=frame+".php";
+    if (args!=null) {
+        src+=args;
+    }
 	document.getElementById("sub").style.opacity=0.7;
-	document.getElementById("sub").src=frame+".php";
+	document.getElementById("sub").src=src;
 	if (frame=="message") {
 		window.scrollTo(0,99999);
 	}
@@ -165,7 +169,12 @@ function setframe(frame){
 }
 <?php
 if(@$_GET['pos']){
-	echo('setframe("'.@$_GET['pos'].'")');
+    if(@$_GET['args']) {
+        echo('setframe("'.@$_GET['pos'].'","?'.$_GET['args'].'")');
+    }
+    else {
+        echo('setframe("'.@$_GET['pos'].'")');
+    }
 }
 ?>
 </script>

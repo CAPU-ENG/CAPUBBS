@@ -87,6 +87,27 @@ span.num{
 span.time{
 	color: #6F6F6F;
 }
+div.button{
+	background-image: -webkit-linear-gradient(#76caff 0%, #1d9eff 100%);
+	background-color: #1d9eff;
+	background-size: 100%,100%;
+	background-repeat: no-repeat;
+	width: 100px;
+	height: 24px;
+	color: white;
+	border-radius: 10px;
+	font-size: 15px;
+	text-align: center;
+	line-height: 20px;
+	padding-top: 5px;
+	float: left;
+	cursor: pointer;
+	-webkit-transition: background-image 0.2s,background-color 0.2s;
+}
+div.button:hover{
+	background-image: -webkit-linear-gradient(#98ecff 0%, #3fafff 100%);
+	background-color: #3fafff;
+}
 </style>
 </head>
 <body>
@@ -125,6 +146,7 @@ function trans($key,$value){
 }
 ?>
 </table>
+<div class="button" onclick="window.open('../home/?pos=message&args=<?php echo urlencode("type=new&sendto=$user");?>')" style="margin-left:220px;margin-top:10px;">给它发信</div>
 </div>
 </div>
 <div class="jqdt">

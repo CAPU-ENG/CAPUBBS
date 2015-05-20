@@ -158,7 +158,7 @@
 	else if ($type=="new") {
 ?>
 <div style="margin-top:90px;text-align:center">
-	<span>发送新消息给：&nbsp;<input id="msg_to" placeholder="收件人id" style="width:100px"></span><br><br>
+	<span>发送新消息给：&nbsp;<input id="msg_to" placeholder="收件人id" style="width:100px" <?php if (@$_GET["sendto"]) echo "value=\"$_GET[sendto]\"";?>></span><br><br>
 	<textarea id="msg_ta" style="width:400px;height:200px;font-size:13px;padding:5px;"></textarea><br><br>
 	<button onclick="sendto()" id="msg_sendbt">发送</button>
 </div>
