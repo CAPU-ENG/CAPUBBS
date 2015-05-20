@@ -14,10 +14,10 @@
 
 //** MySQL settings. **//
 /** The database username. */
-define('DB_USERNAME', 'database_username_here');
+define('CAPUBBS_DB_USERNAME', 'database_username_here');
 
 /** The database password. */
-define('DB_PASSWORD', 'database_password_here');
+define('CAPUBBS_DB_PASSWORD', 'database_password_here');
 
 /** The database hostname. */
-define('DB_HOSTNAME', 'localhost');
+define('CAPUBBS_DB_HOSTNAME', 'localhost');
