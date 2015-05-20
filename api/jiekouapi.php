@@ -43,6 +43,7 @@
     $token=@$_REQUEST['token'];
     $ip=@$_REQUEST['ip'];
     $view=@$_REQUEST['view'];
+    $con=null;
     if ($ip=="") $ip=$_SERVER["REMOTE_ADDR"];
     if ($ask=="bbsinfo") bbsinfo($con,$bid,@$_REQUEST['name']);
     else if ($ask=="login") login($con,@$_REQUEST['username'],@$_REQUEST['password'],$ip);
@@ -879,9 +880,9 @@
             if (mb_strlen($text,'utf-8')>=143) $text=mb_substr($text,0,140,'utf-8')."...";
             #if (strlen($text,'utf-8')>=320) $text=mb_substr($text,0,160,'utf-8')."...";
 
-            $text=mysql_real_escape_string($text);
+            $text_mysql_escaped=mysql_real_escape_string($text);
 
-            $statement="insert into lzl (fid,author,text,time) values ($fid, '$username', '$text', $replytime)";
+            $statement="insert into lzl (fid,author,text,time) values ($fid, '$username', '$text_mysql_escaped', $replytime)";
             mysql_query($statement);
             $error=mysql_errno();
             if($error==0){
@@ -895,6 +896,11 @@
 
                 if($pidauthor!=$username) insertmsg($con,"system",$pidauthor,"replylzl",$bid,$tid,$pid, $username,$tidtitle);
                 if($tidauthor!=$username&& $tidauthor!=$pidauthor) insertmsg($con,"system",$tidauthor,"reply",$bid,$tid,$pid, $username,$tidtitle);
+                $matches = array();
+                if(preg_match('/^回复 @(.*):.*/s', $text, $matches)) {
+                    $replied=$matches[1];
+                    insertmsg($con,"system",$replied,"replylzlreply",$bid,$tid,$pid,$username,$tidtitle);
+                }
                 echo("<capu><info><code>0</code></info></capu>");
             }else{
                 echo("<capu><info><code>2</code><msg>".mysql_error()."</msg></info></capu>");
@@ -1529,7 +1535,7 @@ while ($res=mysql_fetch_array($result)) {
                 $username2=$one['ruser'];
                 $type=$one['text'];
                 $title=$one['rmsg'];
-                if($type!="reply"&&$type!="at"&&$type!="replylzl"){
+                if($type!="reply"&&$type!="at"&&$type!="replylzl"&&$type!="replylzlreply"){
                     $title=$type;
                     $type="plain";
                 }
