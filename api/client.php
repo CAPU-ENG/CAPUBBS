@@ -60,6 +60,9 @@
             if ($see=="") showtitle($floor,$id,$page,$pages);
             else {
                 showtext($floor,$id,$see,$page,$pages,$title);
+                $temp=request(array("bid"=>$id,"tid"=>$see,"ask"=>"tidinfo"));
+                echo '<click>'.$temp[0]['click'].'</click>';
+                echo '<reply>'.$temp[0]['reply'].'</reply>';
             }
             echo '</info>'."\n";
         }
