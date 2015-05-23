@@ -348,17 +348,17 @@
         exit;
     }
 
-function changepsd() {
-    $old=@$_POST['old'];
-    $new=@$_POST['new'];
-    $results=request(array("ask"=>"changepsd",
-                           "old"=>$old,
-                           "new"=>$new,
-                           ));
-    $results=$results[0];
-    echo '<capu><info><code><![CDATA['.$results['code'].']]></code>';
-    echo '<msg><![CDATA['.$results['msg'].']]></msg></info></capu>';
-}
+    function changepsd() {
+        $old=@$_POST['old'];
+        $new=@$_POST['new'];
+        $results=request(array("ask"=>"changepsd",
+                               "old"=>$old,
+                               "new"=>$new,
+                               ));
+        $results=$results[0];
+        echo '<capu><info><code><![CDATA['.$results['code'].']]></code>';
+        echo '<msg><![CDATA['.$results['msg'].']]></msg></info></capu>';
+    }
 
     function seemain() {
         echo '<capu><info><code>-1</code>';
