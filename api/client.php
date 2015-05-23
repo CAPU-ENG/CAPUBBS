@@ -14,6 +14,7 @@
     else if ($ask=="userinfo") getuserinfo();
     else if ($ask=="sendmsg") sendmsg();
     else if ($ask=="register") register();
+    else if ($ask=="edituser") edituser();
     else if ($ask=="delete") del();
     else if ($ask=="image") uploadimage();
     else if ($ask=="lzl") lzl();
@@ -305,6 +306,44 @@
             echo 0;
         else echo 6;
         echo '</code><token>'.@$results['token'].'</token><msg>'.@$results['msg'].'</msg></info></capu>';
+        exit;
+    }
+
+    function edituser() {
+
+        $sex=@$_POST['sex'];
+        $qq=@$_POST['qq'];
+        $mail=@$_POST['mail'];
+        $from=@$_POST['from'];
+        $intro=@$_POST['intro'];
+        $hobby=@$_POST['hobby'];
+        $sig1=@$_POST['sig'];
+        $sig2=@$_POST['sig2'];
+        $sig3=@$_POST['sig3'];
+        $icon=@$_POST['icon'];
+        if ($icon=="")
+            $icon="/bbsimg/icons/zebra.jpeg";//默认头像
+        
+        $results=request(array("ask"=>"edituser",
+                               "sex"=>$sex,
+                               "qq"=>$qq,
+                               "mail"=>$mail,
+                               "icon"=>$icon,
+                               "place"=>$from,
+                               "intro"=>$intro,
+                               "hobby"=>$hobby,
+                               "sig1"=>$sig1,
+                               "sig2"=>$sig2,
+                               "sig3"=>$sig3,
+                               ));
+        
+        $results=$results[0];
+        echo '<capu><info><code>'.@$results['code'].'</code>';
+        if (@$results['error']=="")
+            echo '<msg>'.@$results['msg'].'</msg>';
+        else
+            echo '<msg>'.@$results['error'].'</msg>';
+        echo '</info></capu>';
         exit;
     }
 
