@@ -13,6 +13,7 @@
     else if ($ask=="hot") gethot();
     else if ($ask=="userinfo") getuserinfo();
     else if ($ask=="sendmsg") sendmsg();
+    else if ($ask=="msg") msg();
     else if ($ask=="register") register();
     else if ($ask=="delete") del();
     else if ($ask=="image") uploadimage();
@@ -378,6 +379,63 @@
         echo '<code><![CDATA['.$id[0]['code'].']]></code>';
         echo '<msg><![CDATA['.$id[0]['msg'].']]></msg>';
         echo '</info></capu>';
+    }
+
+    function msg() {
+        $token = $_REQUEST['token'];
+        $type = $_REQUEST['type'];
+        $page = $_REQUEST['page'];
+        $chatter = $_REQUEST['chatter'];
+        
+        $id = request(array("ask"=>"msg", "token"=>$token, "type"=>$type, "p"=>$page, "to"=>$chatter));
+        
+        if (intval($id[0]['code']) == 1){
+            echo("<capu><info><code>1</code><msg>".$id[0]['msg']."</msg></info></capu>");
+            return;
+        }
+        echo("<capu><info><code>0</code>");
+        echo("<sysmsg>".$id[0]['sysmsg']."</sysmsg>");
+        echo("<prvmsg>".$id[0]['prvmsg']."</prvmsg>");
+        echo("</info>");
+        
+        if ($type == "system") {
+            for ($i = 1; $i < count($id); $i++) {
+                echo("<info>");
+                echo("<username><![CDATA[".$id[$i]['username']."]]></username>");
+                $user=request(array("ask"=>"view","view"=>$id[$i]['username']));
+                echo("<icon>".$user[0]['icon']."</icon>");
+                echo("<type>".$id[$i]['type']."</type>");
+                echo("<title><![CDATA[".$id[$i]['title']."]]></title>");
+                echo("<url><![CDATA[".$id[$i]['url']."]]></url>");
+                echo("<time>".date("Y-m-d H:i:s",$id[$i]['time'])."</time>");
+                echo("<hasread>".$id[$i]['hasread']."</hasread>");
+                echo("</info>");
+            }
+        }else if ($type == "private") {
+            for ($i = 1; $i < count($id); $i++) {
+                echo("<info>");
+                echo("<username><![CDATA[".$id[$i]['username']."]]></username>");
+                $user=request(array("ask"=>"view","view"=>$id[$i]['username']));
+                echo("<icon>".$user[0]['icon']."</icon>");
+                echo("<text><![CDATA[".$id[$i]['text']."]]></text>");
+                echo("<time>".date("Y-m-d H:i:s",$id[$i]['time'])."</time>");
+                echo("<number>".$id[$i]['number']."</number>");
+                echo("<totalnum>".$id[$i]['totalnum']."</totalnum>");
+                echo("</info>");
+            }
+        }else if ($type == "chat") {
+            $user=request(array("ask"=>"view","view"=>$chatter));
+            for ($i = 1; $i < count($id); $i++) {
+                echo("<info>");
+                echo("<type>".$id[$i]['type']."</type>");
+                echo("<icon>".$user[0]['icon']."</icon>");
+                echo("<text><![CDATA[".$id[$i]['text']."]]></text>");
+                echo("<time>".date("Y-m-d H:i:s",$id[$i]['time'])."</time>");
+                echo("</info>");
+            }
+        }
+        
+        echo("</capu>");
     }
 
     function getuserinfo() {
