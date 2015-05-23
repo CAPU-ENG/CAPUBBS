@@ -15,6 +15,7 @@
     else if ($ask=="sendmsg") sendmsg();
     else if ($ask=="register") register();
     else if ($ask=="edituser") edituser();
+    else if ($ask=="changepsd") changepsd();
     else if ($ask=="delete") del();
     else if ($ask=="image") uploadimage();
     else if ($ask=="lzl") lzl();
@@ -346,6 +347,18 @@
         echo '</info></capu>';
         exit;
     }
+
+function changepsd() {
+    $old=@$_POST['old'];
+    $new=@$_POST['new'];
+    $results=request(array("ask"=>"changepsd",
+                           "old"=>$old,
+                           "new"=>$new,
+                           ));
+    $results=$results[0];
+    echo '<capu><info><code><![CDATA['.$results['code'].']]></code>';
+    echo '<msg><![CDATA['.$results['msg'].']]></msg></info></capu>';
+}
 
     function seemain() {
         echo '<capu><info><code>-1</code>';
