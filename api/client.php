@@ -387,7 +387,7 @@
         $page = $_REQUEST['page'];
         $chatter = $_REQUEST['chatter'];
         
-        $id = request(array("ask"=>"msg", "token"=>$token, "type"=>$type, "p"=>$page, "to"=>$chatter));
+        $id = request(array("ask"=>"msg", "token"=>$token, "type"=>$type, "p"=>$page, "to"=>$chatter, "shrink"=>"no"));
         
         if (intval($id[0]['code']) == 1){
             echo("<capu><info><code>1</code><msg>".$id[0]['msg']."</msg></info></capu>");

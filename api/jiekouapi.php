@@ -1601,7 +1601,8 @@ while ($res=mysql_fetch_array($result)) {
                 $textresult=mysql_fetch_array(mysql_query("select text,time from messages where (receiver='$username' and sender='$sender') or (receiver='$sender' and sender='$username') order by time desc limit 1"));
                 $text=$textresult[0];
                 $time=$textresult[1];
-                if(mb_strlen($text,"utf-8")>30){
+                $shrink=@$_REQUEST['shrink'];
+                if(!$shrink=="no"&&mb_strlen($text,"utf-8")>30){
                     $text=mb_substr($text, 0,30,"utf-8")."......";
                 }
                 $tresult=mysql_fetch_array(mysql_query("select  count(1) as c from messages where  (receiver='$username' and sender='$sender') or (receiver='$sender' and sender='$username')"));
