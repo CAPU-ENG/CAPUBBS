@@ -310,7 +310,7 @@
 
     function seemain() {
         echo '<capu><info><code>-1</code>';
-	require_once 'dbconnector.php';
+        require_once 'dbconnector.php';
         dbconnect();
         $statement="select * from capubbs.mainpage where id=-1";
         $results=mysql_query($statement);
@@ -318,12 +318,6 @@
         echo '<updatetext><![CDATA['.$results[2].']]></updatetext>';
         echo '<updateurl><![CDATA['.$results[3].']]></updateurl>';
         echo '<updatetime><![CDATA['.$results[4].']]></updatetime>';
-        $statement="select * from capubbs.mainpage where id=-3";//iOS客户端检测更新方法已改进 不需要这个了
-        $results=mysql_query($statement);
-        $results=mysql_fetch_row($results);
-        echo '<iostext><![CDATA['.$results[2].']]></iostext>';
-        echo '<iosurl><![CDATA['.$results[3].']]></iosurl>';
-        echo '<iosversion><![CDATA['.$results[4].']]></iosversion>';
         echo '</info>'."\n";
 
         $moreinfo=@$_REQUEST['more'];//兼容老版本无法显示超过六条通知的Bug
@@ -342,6 +336,7 @@
                 echo '<tid>'.$params['tid'].'</tid>';
             }
             else echo '<bid></bid><tid></tid>';
+            echo '<url>'."<![CDATA[".$res[3].']]></url>';//原始url
             echo '</info>'."\n";
         }
 
