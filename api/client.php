@@ -406,7 +406,15 @@
                 echo("<icon>".$user[0]['icon']."</icon>");
                 echo("<type>".$id[$i]['type']."</type>");
                 echo("<title><![CDATA[".$id[$i]['title']."]]></title>");
-                echo("<url><![CDATA[".$id[$i]['url']."]]></url>");
+                echo("<url><![CDATA[".$id[$i]['url']."]]></url>");//原始url
+                $ar=parse_url($id[$i]['url'],PHP_URL_QUERY);
+                if ($ar!=null) {//解析bid tid p
+                    parse_str($ar,$params);
+                    echo '<bid>'.$params['bid'].'</bid>';
+                    echo '<tid>'.$params['tid'].'</tid>';
+                    echo '<p>'.$params['p'].'</p>';
+                }
+                else echo '<bid></bid><tid></tid><p></p>';
                 echo("<time>".date("Y-m-d H:i:s",$id[$i]['time'])."</time>");
                 echo("<hasread>".$id[$i]['hasread']."</hasread>");
                 echo("</info>");
