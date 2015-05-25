@@ -18,7 +18,7 @@
     else if ($ask=="edituser") edituser();
     else if ($ask=="changepsd") changepsd();
     else if ($ask=="delete") del();
-    else if ($ask=="image") uploadimage();
+    else if ($ask=="image"||$ask=="file") uploadimage();
     else if ($ask=="lzl") lzl();
     else if ($ask=="search") search();
     else if ($ask=="action") action();
