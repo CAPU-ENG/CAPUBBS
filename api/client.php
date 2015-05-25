@@ -318,9 +318,9 @@
         echo '<updatetext><![CDATA['.$results[2].']]></updatetext>';
         echo '<updateurl><![CDATA['.$results[3].']]></updateurl>';
         echo '<updatetime><![CDATA['.$results[4].']]></updatetime>';
-        echo '<iostext><客户端版本过老，请至App Store升级！></iostext>';
+        echo '<iostext>客户端版本过老，请至App Store升级！</iostext>';
         echo '<iosurl><![CDATA[https://itunes.apple.com/cn/app/capubbs/id826386033?mt=8]]></iosurl>';
-        echo '<iosversion><3.0></iosversion>';
+        echo '<iosversion>3.0</iosversion>';
         echo '</info>'."\n";
 
         $moreinfo=@$_REQUEST['more'];//兼容老版本无法显示超过六条通知的Bug
