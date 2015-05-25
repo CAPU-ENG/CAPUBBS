@@ -397,7 +397,7 @@
         $sig3=mysql_real_escape_string(@$_REQUEST['sig3']);
         $intro=mysql_real_escape_string(@$_REQUEST['intro']);
         $statement="update userinfo set tokentime=$time, sex='$sex'," .
-                       "lastip='$ip', icon='$icon', qq='$qq', intro='$intro', place='$place'," .
+                       "lastip='$ip', icon='$icon', mail='$mail', qq='$qq', intro='$intro', place='$place'," .
                        "hobby='$hobby', sig1='$sig1', sig2='$sig2', sig3='$sig3' where username='$username'";
         mysql_query($statement);
         if(mysql_error()){
