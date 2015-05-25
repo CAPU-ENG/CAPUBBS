@@ -310,7 +310,7 @@
 
     function seemain() {
         echo '<capu><info><code>-1</code>';
-        require_once 'dbconnector.php';
+	require_once 'dbconnector.php';
         dbconnect();
         $statement="select * from capubbs.mainpage where id=-1";
         $results=mysql_query($statement);
