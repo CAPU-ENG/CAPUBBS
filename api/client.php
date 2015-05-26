@@ -541,7 +541,7 @@
             echo '6</code><msg>保存文件失败。</msg></info></capu>';
             exit;
         }
-        echo '-1</code><imgurl>http://www.chexie.net/bbsimg/upload/'.$random.'.gif</imgurl></info></capu>';
+        echo '-1</code><imgurl>/bbsimg/upload/'.$random.'.gif</imgurl></info></capu>';
         exit;
 
 
@@ -558,7 +558,7 @@
             echo '6</code></info></capu>';
             exit;
         }
-        echo '-1</code><imgurl>http://www.chexie.net/bbsimg/upload/'.$random.'.gif</imgurl></info></capu>';
+        echo '-1</code><imgurl>/bbsimg/upload/'.$random.'.gif</imgurl></info></capu>';
         exit;
     }
 
