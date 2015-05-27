@@ -1454,6 +1454,13 @@ while ($res=mysql_fetch_array($result)) {
                 insertmsg($con,"system",$str,"at",$bid,$tid,$pid,$username,$tidtitle);
             }
         }
+        preg_match_all("#\[quote=(.+?)\](.+?)\[\/quote\]#", $text, $matches,PREG_SET_ORDER);
+        foreach($matches as $one){
+            $str=$one[1];
+            if(_userexists($con,$str)){
+                insertmsg($con,"system",$str,"quote",$bid,$tid,$pid,$username,$tidtitle);
+            }
+        }
         return $text;
     }
 
@@ -1535,7 +1542,7 @@ while ($res=mysql_fetch_array($result)) {
                 $username2=$one['ruser'];
                 $type=$one['text'];
                 $title=$one['rmsg'];
-                if($type!="reply"&&$type!="at"&&$type!="replylzl"&&$type!="replylzlreply"){
+                if($type!="reply"&&$type!="at"&&$type!="replylzl"&&$type!="replylzlreply"&&$type!="quote"){
                     $title=$type;
                     $type="plain";
                 }

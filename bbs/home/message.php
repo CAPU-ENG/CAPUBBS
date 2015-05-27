@@ -110,6 +110,9 @@
 			else if ($type=="at") {
 				echo '&nbsp;在帖子 <a href="'.$url.'" target="_blank">'.$title.'</a> 中at了您。';
 			}
+            else if ($type=="quote") {
+                echo '&nbsp;在帖子 <a href="'.$url.'" target="_blank">'.$title.'</a> 中引用了您的文章';
+            }
 			echo '<br><span class="lzltime">'.$time.'</span></div></td></tr>';
 			
 		}
