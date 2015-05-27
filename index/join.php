@@ -2,7 +2,7 @@
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
 <?php 
-	require '../assets/api/checkuser.php';
+	require '../lib.php';
 	$res=checkuser();
 	$username=$res[0];$rights=$res[1]; 
 

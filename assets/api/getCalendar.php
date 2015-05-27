@@ -1,5 +1,5 @@
 <?php
-	require_once 'dbconnector.php';
+	require_once '../../lib.php';
 	
 	header('Content-type: text/json');
 	echo '[';

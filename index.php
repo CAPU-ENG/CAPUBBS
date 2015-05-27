@@ -6,7 +6,7 @@
 	}
 
 
-	require 'assets/api/checkuser.php';
+	require 'lib.php';
 	$res=checkuser();
 	$username=$res[0];$rights=$res[1];
 	if ($username=="" && @$_COOKIE['token']) {

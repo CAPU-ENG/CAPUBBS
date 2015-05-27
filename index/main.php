@@ -57,8 +57,7 @@
 </head>
 <body>
 <?php
-	require_once '../assets/api/dbconnector.php';
-	require_once '../assets/api/checkuser.php';
+	require_once '../lib.php';
 	$res=checkuser();
 	$username=$res[0];
 	$rights=intval($res[1]); 
