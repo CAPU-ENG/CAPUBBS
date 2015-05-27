@@ -899,7 +899,7 @@
                 $matches = array();
                 if(preg_match('/^回复 @(.*):.*/s', $text, $matches)) {
                     $replied=$matches[1];
-                    insertmsg($con,"system",$replied,"replylzlreply",$bid,$tid,$pid,$username,$tidtitle);
+                    if($replied!=$pidauthor && $replied!=$tidauthor) insertmsg($con,"system",$replied,"replylzlreply",$bid,$tid,$pid,$username,$tidtitle);
                 }
                 echo("<capu><info><code>0</code></info></capu>");
             }else{
