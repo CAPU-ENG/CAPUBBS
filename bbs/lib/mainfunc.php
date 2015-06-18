@@ -136,4 +136,8 @@ function translate($raw,$ishtml,$space=true){
 	$html=preg_replace("#(\\[i])(.+?)(\\[/i])#", "<i>$2</i>", $html);
 	return $html;
 }
+function generate_link($bid, $tid, $pid) {
+    $page=intval(($pid-1)/12)+1;
+    return "../content?bid=$bid&tid=$tid&p=$page#$pid";
+}
 ?>

@@ -166,12 +166,10 @@ if(count($recentposts)-1==0){
 		echo("<tr>");
 		echo("<td width='50px'><span class='num'>".heal($i)."</span></td>");
 		$title=$recentposts[$i]['title'];
-		$bid=$recentposts[$i]['bid'];
-		$tid=$recentposts[$i]['tid'];
-		$link="../content?bid=$bid&tid=$tid&p=1";
-		echo("<td><span class='title'><a href='$link'>$title</a></span></td>");
-		echo("<td width='100px' align='right'><span class='time'>".formatstamp($recentposts[$i]['updatetime'])."</span></td>");
-	}
+        $link=generate_link($recentposts[$i]['bid'], $recentposts[$i]['tid'], $recentposts[$i]['pid']);
+        echo("<td><span class='title'><a href='$link'>$title</a></span></td>");
+        echo("<td width='100px' align='right'><span class='time'>".formatstamp($recentposts[$i]['updatetime'])."</span></td>");
+    }
 }
 ?>
 </table>
