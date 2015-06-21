@@ -897,7 +897,7 @@
                 if($pidauthor!=$username) insertmsg($con,"system",$pidauthor,"replylzl",$bid,$tid,$pid, $username,$tidtitle);
                 if($tidauthor!=$username&& $tidauthor!=$pidauthor) insertmsg($con,"system",$tidauthor,"reply",$bid,$tid,$pid, $username,$tidtitle);
                 $matches = array();
-                if(preg_match('/^回复 @(.*):.*/s', $text, $matches) || preg_match('/^回复 @(.*)：.*/s', $text, $matches)) {
+                if(preg_match('/^回复 @(.*)(:|：).*/s', $text, $matches)) {
                     $replied=$matches[1];
                     if($replied!=$pidauthor && $replied!=$tidauthor) insertmsg($con,"system",$replied,"replylzlreply",$bid,$tid,$pid,$username,$tidtitle);
                 }
