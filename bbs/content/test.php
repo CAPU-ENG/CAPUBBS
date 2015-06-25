@@ -8,14 +8,13 @@
 	if (!@$_FILES['image']) exit;
 	$name = $_FILES['image']['name'];
 	$extension=get_extension($name);
-    if (strlen($extension) == 0) $extension = "png";
 	$filename = sha1(@microtime()) . '.'. $extension;
 
 	$target=$folder.$filename;
 	move_uploaded_file($_FILES["image"]["tmp_name"], $target);
 	
 	function get_extension($file){
-		substr(strrchr($file, '.'), 1);
+		return substr(strrchr($file, '.'), 1);
 	}
 	CreateThumbnail($target,1920,1920);
 	$result=array("upload"=> array("links"=> array("original"=> $target)));
