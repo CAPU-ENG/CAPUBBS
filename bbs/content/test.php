@@ -8,6 +8,7 @@
 	if (!@$_FILES['image']) exit;
 	$name = $_FILES['image']['name'];
 	$extension=get_extension($name);
+    if (strlen($extension) == 0) $extension = "png";
 	$filename = sha1(@microtime()) . '.'. $extension;
 
 	$target=$folder.$filename;
