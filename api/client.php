@@ -525,7 +525,35 @@
         echo '<rights><![CDATA['.$id[0]['rights'].']]></rights>';
         echo '<newmsg><![CDATA['.$id[0]['newmsg'].']]></newmsg>';
         echo '<extr><![CDATA['.$id[0]['extr'].']]></extr>';
-        echo '</info></capu>';
+        echo '</info>';
+        
+        $recent=@$_REQUEST['recent'];
+        if ($recent == 'YES') {
+            echo '<info>';
+            $id=request(array("ask"=>"recentpost","view"=>$user));
+            for ($i = 1; $i < count($id); $i++) {
+                echo("<info><type>post</type>");
+                echo("<bid>".$id[$i]['bid']."</bid>");
+                echo("<tid>".$id[$i]['tid']."</tid>");
+                echo("<title><![CDATA[".$id[$i]['title']."]]></title>");
+                echo("<time>".date("Y-m-d H:i:s",$id[$i]['timestamp'])."</time>");
+                echo("</info>");
+            }
+            echo '</info><info>';
+            $id=request(array("ask"=>"recentreply","view"=>$user));
+            for ($i = 1; $i < count($id); $i++) {
+                echo("<info><type>reply</type>");
+                echo("<bid>".$id[$i]['bid']."</bid>");
+                echo("<tid>".$id[$i]['tid']."</tid>");
+                echo("<pid>".$id[$i]['pid']."</pid>");
+                echo("<title><![CDATA[".$id[$i]['title']."]]></title>");
+                echo("<time>".date("Y-m-d H:i:s",$id[$i]['replytime'])."</time>");
+                echo("</info>");
+            }
+            echo '</info>';
+        }
+        
+        echo '</capu>';
     }
 
     function uploadfile() {
