@@ -1013,6 +1013,7 @@
             if (strlen($url) == 0) {
                 $url = "javascript:void(0)";
             }
+            $time=time();
             $results = mysql_query("insert into capubbs.mainpage values (null,1,'$title','$url','$time','','')");
             echo '<code>0</code>';
             mysql_query("alter table capubbs.mainpage order by number");
