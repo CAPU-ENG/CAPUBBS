@@ -14,9 +14,9 @@
 	move_uploaded_file($_FILES["image"]["tmp_name"], $target);
 	
 	function get_extension($file){
-		substr(strrchr($file, '.'), 1);
+		return substr(strrchr($file, '.'), 1);
 	}
-	CreateThumbnail($target,600,600);
+	CreateThumbnail($target,1920,1920);
 	$result=array("upload"=> array("links"=> array("original"=> $target)));
 	echo(json_encode($result));
 	
