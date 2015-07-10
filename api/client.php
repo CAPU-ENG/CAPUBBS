@@ -10,6 +10,7 @@
     else if ($ask=="login") login();
     else if ($ask=="logout") logout();
     else if ($ask=="main") seemain();
+    else if ($ask=="news") news();
     else if ($ask=="hot") gethot();
     else if ($ask=="userinfo") getuserinfo();
     else if ($ask=="sendmsg") sendmsg();
@@ -390,6 +391,7 @@
         while (($res=mysql_fetch_row($results))!=null) {
             echo '<info><text>'."<![CDATA[".$res[2].']]></text>';
             $ar=parse_url($res[3],PHP_URL_QUERY);
+            echo '<time>'.$res[4].'</time>';
             if ($ar!=null) {
                 parse_str($ar,$params);
                 echo '<bid>'.$params['bid'].'</bid>';
@@ -402,6 +404,15 @@
 
         echo '</capu>';
         exit;
+    }
+
+    function news() {
+        $method = @$_REQUEST['method'];
+        $time = @$_REQUEST['time'];
+        $text = @$_REQUEST['text'];
+        $url = @$_REQUEST['url'];
+        $result = request(array("ask"=>"news", "method"=>$method, "time"=>$time, "text"=>$text, "url"=>$url));
+        echo '<capu><info><code>'.$result[0]['code'].'</code><msg>'.$result[0]['msg'].'</msg></info></capu>';
     }
 
     function gethot() {
