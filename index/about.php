@@ -280,28 +280,28 @@ body {
   <div class="form-group">
     <label class="col-md-3 control-label">日常招新负责</label>
     <div class="col-md-9">
-      <p class="form-control-static">雨荷 (18811799158)</p>
+      <p class="form-control-static">未来 (18811462001)</p>
     </div>
   </div>
 
   <div class="form-group">
     <label class="col-md-3 control-label">外联部部长</label>
     <div class="col-md-9">
-      <p class="form-control-static">橙子cc (15201202770)</p>
+      <p class="form-control-static">风辰 (18801085233)</p>
     </div>
   </div>
 
   <div class="form-group">
     <label class="col-md-3 control-label">车队负责</label>
     <div class="col-md-9">
-      <p class="form-control-static">熊熊 (13716870151) ； ss109 (13522520947)</p>
+      <p class="form-control-static">ss109 (13522520947)；羊儿 (13651043062)</p>
     </div>
   </div>
 
   <div class="form-group">
     <label class="col-md-3 control-label">车协主席</label>
     <div class="col-md-9">
-      <p class="form-control-static">未名小池 (18800116008)</p>
+      <p class="form-control-static">定夺 (18811757657)</p>
     </div>
   </div>
 
