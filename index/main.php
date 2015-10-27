@@ -165,7 +165,7 @@
     </div>
     <div class="col-md-4">
         <div class="thumbnail">
-         <button class="btn btn-info img-responsive" id="qrcode_ios" title="<h5>CAPUUBBS for iOS</h5></br><img width='200px' src='/assets/images/qrcode_ios.gif'>"><img src="/assets/images/apple.png" class="img-responsive img-rounded" /></button>
+         <button class="btn btn-info img-responsive" id="qrcode_ios" title="<h5>CAPUBBS for iOS</h5></br><img width='200px' src='/assets/images/qrcode_ios.gif'>"><img src="/assets/images/apple.png" class="img-responsive img-rounded" /></button>
 	    <div class="caption">
                 <p><center><b>iOS</b></center></p>
             </div>
