@@ -195,8 +195,10 @@
 <iframe id="mainframe" scrolling="no" width="100%" height="700px" frameborder=0></iframe>
 
 <footer class="footer">
-	<p><a href="http://mall.jd.com/index-28344.html" target="_blank"><img src="/assets/images/acanu.jpg" class="img-responsive img-rounded img-thumbnail" alt="北大车协·阿肯诺 战略合作伙伴" title="北大车协·阿肯诺 战略合作伙伴"></a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="http://www.uccbike.com/" target="_blank"><img src="/assets/images/ucc.jpg" class="img-responsive img-rounded img-thumbnail" alt="UCC品牌自行车" title="UCC品牌自行车"></a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="http://shop111149465.taobao.com/" target="_blank"><img src="/assets/images/futaiyuzhuang.jpg" class="img-responsive img-rounded img-thumbnail" alt="福泰玉庄" title="福泰玉庄，北大车协合作伙伴"></a></p>
-	
+    <p>
+        <a href="http://mall.jd.com/index-28344.html" target="_blank"><img src="/assets/images/acanu.jpg" class="img-responsive img-rounded img-thumbnail" alt="北大车协·阿肯诺 战略合作伙伴" title="北大车协·阿肯诺 战略合作伙伴"></a>
+        <a href="http://www.uccbike.com/" target="_blank"><img src="/assets/images/ucc.jpg" class="img-responsive img-rounded img-thumbnail" alt="UCC品牌自行车" title="UCC品牌自行车"></a>
+    </p>
 	<p>地址：北京市海淀区北京大学24号楼118室（100871）</p>
 	<p><a href="javascript:setActive('#about')">关于协会</a> | <a href="http://baike.baidu.com/view/1317218.htm" target="_blank">百度百科</a> | <a href="http://weibo.com/beidachexie" target="_blank">新浪微博</a> | <a href="javascript:setActive('#about-contact')">联系我们</a></p>
 	<p><a href="http://www.pku.edu.cn/" target="_blank">北京大学</a> | <a href="http://capu.bdwm.net/" target="_blank">北大未名BBS</a> | <a href="/old/index/" target="_blank">原车协主页</a> | <a href="/old/bbs/main.pl" target="_blank">原车协论坛</a>
