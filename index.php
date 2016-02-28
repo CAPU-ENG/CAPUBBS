@@ -94,7 +94,7 @@
         <li class="devider"></li>
 	<li><a href="http://race.chexie.net">交流赛官网</a></li>
 	<li class="devider"></li>
-        <li class="dropdown" id="navbar-borrow">
+        <!--<li class="dropdown" id="navbar-borrow">
 	  <a href="javascript:setActive('#borrow')">自助借车系统</a>
 	  <ul class="dropdown-menu" role="menu">
 		<li role="presentation"><a role="menuitem" tabindex="-1" href="javascript:setActive('#borrow-read')">借车须知</a></li>
@@ -102,7 +102,7 @@
 		<li role="presentation"><a role="menuitem" tabindex="-1" href="javascript:setActive('#borrow-out')">我能出借</a></li>
 		<li role="presentation"><a role="menuitem" tabindex="-1" href="javascript:setActive('#borrow-manage')">车辆管理</a></li>
 	  </ul>
-        </li>
+        </li>-->
 <?php
 /*
 	<li class="devider"></li>
