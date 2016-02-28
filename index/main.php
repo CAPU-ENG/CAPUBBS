@@ -136,7 +136,7 @@
 
 </div>
 <p>
-<div class="row">
+<!--<div class="row">
 
 <h4 style="padding-left:20px"><b><a href="javascript:window.parent.setActive('#borrow')" style="color:#000000">借车信息</a></b></h4>
 <hr style="border-top:1px solid #aaaaaa"/>
@@ -144,7 +144,7 @@
   <p class="text-center">当前有 <a href="javascript:window.parent.setActive('#borrow-out')" style="color:#df0000"><?php echo $borrow;?></a> 名会员正在求车</p>
   <p class="text-center">当前有 <a href="javascript:window.parent.setActive('#borrow-in')" style="color:#df0000"><?php echo $lend;?></a> 辆空车可以出借</p>
 
-</div>
+</div>-->
 <hr style="border-top:1px solid #aaaaaa"/><p>
 <div class="row">
     <div class="col-md-4">
