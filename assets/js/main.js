@@ -434,11 +434,11 @@ function check_valid2() {
 		if (state==-1) return;
 		width=img2.width;
 		height=img2.height;
-		if (width<=310 || height/width<0.7485 || height/width>0.7515)
+		if (width<=310 || height/width<10000 || height/width>0.0001)
 		{
 			valid2=-1;
 			state=-1;
-			img_error.text("缩略图宽应不小于310且长宽比应接近4:3，当前"+width+"*"+height+" ("+(height/width)+")");
+			img_error.text("缩略图宽应不小于310且长宽比应在10000:1和1:10000之间，当前"+width+"*"+height+" ("+(height/width)+")");
 			$("#postimg_thumburl").focus();
 			
 			return;
