@@ -434,7 +434,7 @@ function check_valid2() {
 		if (state==-1) return;
 		width=img2.width;
 		height=img2.height;
-		if (width<=310 || height/width<0.0001 || height/width>0.0001)
+		if (width<=310 || height/width<10000 || height/width>0.0001)
 		{
 			valid2=-1;
 			state=-1;
