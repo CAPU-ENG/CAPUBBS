@@ -1,7 +1,6 @@
 <?php
 	require_once 'log.php';
-	require_once 'checkuser.php';
-	require_once 'dbconnector.php';
+	require_once '../../lib.php';
 
 	if (@$_REQUEST['sms']=='remain') getremainsms();
 

@@ -1,6 +1,6 @@
 <?php
 	require_once 'log.php';
-	require_once 'checkuser.php';
+	require_once '../../lib.php';
 
 	function checkmailvalid($to,$title,$body) {
 		$a=checkuser();

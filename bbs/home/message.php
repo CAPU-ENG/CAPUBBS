@@ -105,11 +105,14 @@
 				echo '&nbsp;评论了您在帖子 <a href="'.$url.'" target="_blank">'.$title.'</a> 中的回复';
 			}
             else if ($type=="replylzlreply"){
-				echo '&nbsp;评论了您在帖子 <a href="'.$url.'" target="_blank">'.$title.'</a> 的回复中的回复';
+				echo '&nbsp;评论了您在帖子 <a href="'.$url.'" target="_blank">'.$title.'</a> 中的楼中楼';
             }
 			else if ($type=="at") {
 				echo '&nbsp;在帖子 <a href="'.$url.'" target="_blank">'.$title.'</a> 中at了您。';
 			}
+            else if ($type=="quote") {
+                echo '&nbsp;在帖子 <a href="'.$url.'" target="_blank">'.$title.'</a> 中引用了您的文章';
+            }
 			echo '<br><span class="lzltime">'.$time.'</span></div></td></tr>';
 			
 		}

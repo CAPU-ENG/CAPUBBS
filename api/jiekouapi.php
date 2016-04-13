@@ -1,5 +1,5 @@
 <?php
-    require_once 'dbconnector.php';
+    require_once '../lib.php';
 
     if(false&&@$_REQUEST['debug']=='yes'){
         echo("GET:<br>");
@@ -53,6 +53,7 @@
     else if ($ask=="getuser") getuser($con,$token);
     else if ($ask=="userexists") userexists($con);
     else if ($ask=="hot") hot($con,$token);
+    else if ($ask=="news") news($con,$token);
     else if ($ask=="tidinfo") tidinfo($con,$bid,$tid);
     else if ($ask=="recentpost") recentpost($con,$view);
     else if ($ask=="recentreply") recentreply($con,$view);
@@ -139,6 +140,8 @@
             $statement="update threads set click=click+1 where bid=$bid && tid=$tid";
             mysql_query($statement);
         }
+    }else {
+        echo '<capu><info><code>14</code><msg>ask错误。</msg></info></capu>';
     }
     exit;
 
@@ -897,9 +900,9 @@
                 if($pidauthor!=$username) insertmsg($con,"system",$pidauthor,"replylzl",$bid,$tid,$pid, $username,$tidtitle);
                 if($tidauthor!=$username&& $tidauthor!=$pidauthor) insertmsg($con,"system",$tidauthor,"reply",$bid,$tid,$pid, $username,$tidtitle);
                 $matches = array();
-                if(preg_match('/^回复 @(.*):.*/s', $text, $matches)) {
+                if(preg_match('/^回复 @(.*)(:|：).*/s', $text, $matches)) {
                     $replied=$matches[1];
-                    insertmsg($con,"system",$replied,"replylzlreply",$bid,$tid,$pid,$username,$tidtitle);
+                    if($replied!=$pidauthor && $replied!=$tidauthor) insertmsg($con,"system",$replied,"replylzlreply",$bid,$tid,$pid,$username,$tidtitle);
                 }
                 echo("<capu><info><code>0</code></info></capu>");
             }else{
@@ -985,6 +988,39 @@
             echo "</info>\n";
         }
         echo '</capu>';
+    }
+
+    function news($con,$token) {
+        echo '<capu><info>';
+        $a=getrights($con,$bid,$token);
+        if (intval($a[3]) < 1) {
+            echo '<code>-1</code><msg>您的权限不足！</msg></info></capu>';
+            exit;
+        }
+        $method = @$_REQUEST['method'];
+        if ($method == "delete") {
+            $time = @$_REQUEST['time'];
+            $results = mysql_query("delete from capubbs.mainpage where id=1 && field3='$time'");
+            echo '<code>0</code>';
+            mysql_query("alter table capubbs.mainpage order by number");
+        }else if ($method == "add") {
+            $title = @$_REQUEST['text'];
+            $url = @$_REQUEST['url'];
+            if (strlen($title) == 0) {
+                echo '<code>-1</code><msg>您未填写公告内容！</msg></info></capu>';
+                exit;
+            }
+            if (strlen($url) == 0) {
+                $url = "javascript:void(0)";
+            }
+            $time=time();
+            $results = mysql_query("insert into capubbs.mainpage values (null,1,'$title','$url','$time','','')");
+            echo '<code>0</code>';
+            mysql_query("alter table capubbs.mainpage order by number");
+        }else {
+            echo '<code>-1</code><msg>错误操作！</msg>';
+        }
+        echo '</info></capu>';
     }
 
     function tidinfo($con,$bid,$tid){
@@ -1454,6 +1490,13 @@ while ($res=mysql_fetch_array($result)) {
                 insertmsg($con,"system",$str,"at",$bid,$tid,$pid,$username,$tidtitle);
             }
         }
+        preg_match_all("#\[quote=(.+?)\](.+?)\[\/quote\]#", $text, $matches,PREG_SET_ORDER);
+        foreach($matches as $one){
+            $str=$one[1];
+            if(_userexists($con,$str)){
+                insertmsg($con,"system",$str,"quote",$bid,$tid,$pid,$username,$tidtitle);
+            }
+        }
         return $text;
     }
 
@@ -1535,7 +1578,7 @@ while ($res=mysql_fetch_array($result)) {
                 $username2=$one['ruser'];
                 $type=$one['text'];
                 $title=$one['rmsg'];
-                if($type!="reply"&&$type!="at"&&$type!="replylzl"&&$type!="replylzlreply"){
+                if($type!="reply"&&$type!="at"&&$type!="replylzl"&&$type!="replylzlreply"&&$type!="quote"){
                     $title=$type;
                     $type="plain";
                 }

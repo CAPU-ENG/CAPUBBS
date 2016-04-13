@@ -4,6 +4,7 @@ assets/downloads/
 bbs/attachment/
 bbs/images/
 bbsimg/
+config.php
 documents/
 dump/
 log/

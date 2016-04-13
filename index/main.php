@@ -57,8 +57,7 @@
 </head>
 <body>
 <?php
-	require_once '../assets/api/dbconnector.php';
-	require_once '../assets/api/checkuser.php';
+	require_once '../lib.php';
 	$res=checkuser();
 	$username=$res[0];
 	$rights=intval($res[1]); 
@@ -137,7 +136,7 @@
 
 </div>
 <p>
-<div class="row">
+<!--<div class="row">
 
 <h4 style="padding-left:20px"><b><a href="javascript:window.parent.setActive('#borrow')" style="color:#000000">借车信息</a></b></h4>
 <hr style="border-top:1px solid #aaaaaa"/>
@@ -145,7 +144,7 @@
   <p class="text-center">当前有 <a href="javascript:window.parent.setActive('#borrow-out')" style="color:#df0000"><?php echo $borrow;?></a> 名会员正在求车</p>
   <p class="text-center">当前有 <a href="javascript:window.parent.setActive('#borrow-in')" style="color:#df0000"><?php echo $lend;?></a> 辆空车可以出借</p>
 
-</div>
+</div>-->
 <hr style="border-top:1px solid #aaaaaa"/><p>
 <div class="row">
     <div class="col-md-4">
@@ -166,7 +165,7 @@
     </div>
     <div class="col-md-4">
         <div class="thumbnail">
-         <button class="btn btn-info img-responsive" id="qrcode_ios" title="<h5>CAPUUBBS for iOS</h5></br><img width='200px' src='/assets/images/qrcode_ios.gif'>"><img src="/assets/images/apple.png" class="img-responsive img-rounded" /></button>
+         <button class="btn btn-info img-responsive" id="qrcode_ios" title="<h5>CAPUBBS for iOS</h5></br><img width='200px' src='/assets/images/qrcode_ios.gif'>"><img src="/assets/images/apple.png" class="img-responsive img-rounded" /></button>
 	    <div class="caption">
                 <p><center><b>iOS</b></center></p>
             </div>

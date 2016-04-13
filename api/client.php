@@ -10,6 +10,7 @@
     else if ($ask=="login") login();
     else if ($ask=="logout") logout();
     else if ($ask=="main") seemain();
+    else if ($ask=="news") news();
     else if ($ask=="hot") gethot();
     else if ($ask=="userinfo") getuserinfo();
     else if ($ask=="sendmsg") sendmsg();
@@ -113,7 +114,7 @@
         echo "<fid>".@$content['fid']."</fid>\n";
         echo "<lzl>".@$content['lzl']."</lzl>\n";
         echo "<time>".date("Y-m-d H:i:s",@$content['replytime'])."</time>"; // 发表时间
-        echo "<updatetime>".date("Y-m-d H:i:s",@$content['updatetime'])."</updatetime>"; // 编辑时间
+        echo "<edittime>".date("Y-m-d H:i:s",@$content['updatetime'])."</edittime>"; // 编辑时间
         echo "<type>".@$content['type']."</type>"; // 发帖类型(web android ios)
 
     }
@@ -367,7 +368,7 @@
 
     function seemain() {
         echo '<capu><info><code>-1</code>';
-	require_once 'dbconnector.php';
+	require_once '../lib.php';
         dbconnect();
         $statement="select * from capubbs.mainpage where id=-1";
         $results=mysql_query($statement);
@@ -390,6 +391,7 @@
         while (($res=mysql_fetch_row($results))!=null) {
             echo '<info><text>'."<![CDATA[".$res[2].']]></text>';
             $ar=parse_url($res[3],PHP_URL_QUERY);
+            echo '<time>'.$res[4].'</time>';
             if ($ar!=null) {
                 parse_str($ar,$params);
                 echo '<bid>'.$params['bid'].'</bid>';
@@ -402,6 +404,15 @@
 
         echo '</capu>';
         exit;
+    }
+
+    function news() {
+        $method = @$_REQUEST['method'];
+        $time = @$_REQUEST['time'];
+        $text = @$_REQUEST['text'];
+        $url = @$_REQUEST['url'];
+        $result = request(array("ask"=>"news", "method"=>$method, "time"=>$time, "text"=>$text, "url"=>$url));
+        echo '<capu><info><code>'.$result[0]['code'].'</code><msg>'.$result[0]['msg'].'</msg></info></capu>';
     }
 
     function gethot() {
@@ -525,7 +536,35 @@
         echo '<rights><![CDATA['.$id[0]['rights'].']]></rights>';
         echo '<newmsg><![CDATA['.$id[0]['newmsg'].']]></newmsg>';
         echo '<extr><![CDATA['.$id[0]['extr'].']]></extr>';
-        echo '</info></capu>';
+        echo '</info>';
+        
+        $recent=@$_REQUEST['recent'];
+        if ($recent == 'YES') {
+            echo '<info>';
+            $id=request(array("ask"=>"recentpost","view"=>$user));
+            for ($i = 1; $i < count($id); $i++) {
+                echo("<info><type>post</type>");
+                echo("<bid>".$id[$i]['bid']."</bid>");
+                echo("<tid>".$id[$i]['tid']."</tid>");
+                echo("<title><![CDATA[".$id[$i]['title']."]]></title>");
+                echo("<time>".date("Y-m-d H:i:s",$id[$i]['timestamp'])."</time>");
+                echo("</info>");
+            }
+            echo '</info><info>';
+            $id=request(array("ask"=>"recentreply","view"=>$user));
+            for ($i = 1; $i < count($id); $i++) {
+                echo("<info><type>reply</type>");
+                echo("<bid>".$id[$i]['bid']."</bid>");
+                echo("<tid>".$id[$i]['tid']."</tid>");
+                echo("<pid>".$id[$i]['pid']."</pid>");
+                echo("<title><![CDATA[".$id[$i]['title']."]]></title>");
+                echo("<time>".date("Y-m-d H:i:s",$id[$i]['replytime'])."</time>");
+                echo("</info>");
+            }
+            echo '</info>';
+        }
+        
+        echo '</capu>';
     }
 
     function uploadfile() {
@@ -541,7 +580,7 @@
             echo '6</code><msg>保存文件失败。</msg></info></capu>';
             exit;
         }
-        echo '-1</code><imgurl>http://www.chexie.net/bbsimg/upload/'.$random.'.gif</imgurl></info></capu>';
+        echo '-1</code><imgurl>/bbsimg/upload/'.$random.'.gif</imgurl></info></capu>';
         exit;
 
 
@@ -558,7 +597,7 @@
             echo '6</code></info></capu>';
             exit;
         }
-        echo '-1</code><imgurl>http://www.chexie.net/bbsimg/upload/'.$random.'.gif</imgurl></info></capu>';
+        echo '-1</code><imgurl>/bbsimg/upload/'.$random.'.gif</imgurl></info></capu>';
         exit;
     }
 
