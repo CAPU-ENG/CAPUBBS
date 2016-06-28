@@ -196,8 +196,7 @@
 
 <footer class="footer">
     <p>
-        <a href="http://mall.jd.com/index-28344.html" target="_blank"><img src="/assets/images/acanu.jpg" class="img-responsive img-rounded img-thumbnail" alt="北大车协·阿肯诺 战略合作伙伴" title="北大车协·阿肯诺 战略合作伙伴"></a>
-        <a href="http://www.uccbike.com/" target="_blank"><img src="/assets/images/ucc.jpg" class="img-responsive img-rounded img-thumbnail" alt="UCC品牌自行车" title="UCC品牌自行车"></a>
+        <a href="http://www.qiche8.net/" target="_blank"><img src="/assets/images/static/qiche8.jpg" class="img-responsive img-rounded img-thumbnail" alt="远人部落" title="远人部落" width="70" height="70"></a>
     </p>
 	<p>地址：北京市海淀区北京大学24号楼118室（100871）</p>
 	<p><a href="javascript:setActive('#about')">关于协会</a> | <a href="http://baike.baidu.com/view/1317218.htm" target="_blank">百度百科</a> | <a href="http://weibo.com/beidachexie" target="_blank">新浪微博</a> | <a href="javascript:setActive('#about-contact')">联系我们</a></p>
