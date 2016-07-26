@@ -101,8 +101,8 @@ if ($username!="") {
 			$title=$hot['title'];
 			$bid=$hot['bid'];
 			$tid=$hot['tid'];
-			$num=intval($hot['reply'])+1;
-			$page=intval(($num-1)/12)+1;
+			$num=intval($hot['reply']);
+			$page=ceil($num/12);
 			$link="../content?bid=$bid&tid=$tid&p=$page#$num";
 			if ($num==1) $author=$hot['author'];
 			else $author=$hot['replyer'];
