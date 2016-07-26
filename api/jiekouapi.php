@@ -1362,7 +1362,7 @@ while ($res=mysql_fetch_array($result)) {
             $statement="select reply from threads where bid=$bid && tid=$tid";
             $results=mysql_query($statement);
             $res=mysql_fetch_row($results);
-            $num=intval($res[0])+1;
+            $num=intval($res[0]);
             echo ceil($num/12);
         }
         echo '</pages></info></capu>';
