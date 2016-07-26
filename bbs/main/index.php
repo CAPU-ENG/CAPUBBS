@@ -672,12 +672,14 @@ function goback(){
 function doreply(){
 	if(document.getElementById("raw_title").value.length==0){
 		alert("请填写帖子标题！");
+        $('#raw_title').focus();
 		return;
 	}
 	//var content=document.getElementById("edi_content").innerHTML;
 	var content=$('#edi_content').html();
 	if(content=="<br>"||content=="<div></div>"){
 		alert("请填写帖子内容！");
+        $('#edi_content').focus();
 		return;
 	}
 	var token=getcookie("token");
@@ -772,7 +774,8 @@ function deltid(tid) {
 		});
 	}
 }
-
+hook_ctrl_or_command('#edi_content', doreply);
+hook_ctrl_or_command('#raw_title', doreply);
 </script>
 </body>
 
