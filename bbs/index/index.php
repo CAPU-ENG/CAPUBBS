@@ -99,12 +99,8 @@ if ($username!="") {
 		foreach($hots as $hot){
 			if(!@$hot['tid']) continue;
 			$title=$hot['title'];
-			$bid=$hot['bid'];
-			$tid=$hot['tid'];
-			$num=intval($hot['reply'])+1;
-			$page=intval(($num-1)/12)+1;
-			$link="../content?bid=$bid&tid=$tid&p=$page#$num";
-			if ($num==1) $author=$hot['author'];
+			$link=generate_link($hot['bid'], $hot['tid'], intval($hot['reply']) + 1);
+			if ($hot['reply']==0) $author=$hot['author'];
 			else $author=$hot['replyer'];
 			$time=date("Y-m-d H:i:s",$hot['timestamp']);
 			echo "<li><a href='$link'>$title</a><br>";
