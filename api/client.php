@@ -425,7 +425,7 @@
             $hot=$hots[$i];
             echo '<info><text><![CDATA['.$hot['title'].']]></text>';
             echo '<bid>'.$hot['bid'].'</bid><tid>'.$hot['tid'].'</tid><pid>';
-            $num=intval($hot['reply'])+1;
+            $num=intval($hot['reply']);
             echo $num.'</pid><replyer><![CDATA['.$hot['replyer'].']]></replyer>';
             echo '<author><![CDATA['.$hot['author'].']]></author><time>';//增加论坛热点查看作者的功能
             $time=date("Y-m-d H:i:s",$hot['timestamp']);
