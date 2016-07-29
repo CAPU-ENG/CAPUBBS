@@ -554,6 +554,18 @@ $(window).load(function() {
 			img.css("width",width);
 		});
 	});
+    $(".lzlcontent").each(function() {
+        var fcns = this.firstChild.nextSibling;
+        var str = fcns.textContent;
+        if (str.length <= 120) {
+            return;
+        }
+        fcns.textContent = str.substring(0, 120);
+        $('<a href="javascript:0;">。。。</a>').insertAfter(fcns).click(function () {
+            fcns.textContent = str;
+            $(this).remove();
+        })
+    });
 });
 function deletepid(pid){
 	if(confirm("您确定要删除此楼层么？")){
