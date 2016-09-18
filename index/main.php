@@ -197,11 +197,11 @@
 </div><br>
 <h4 style="padding-left:20px"><b>协会视频</b></h4>
 <hr style="border-top:1px solid #aaaaaa"/><p>
-      <a type="button" target="_blank" class="btn btn-primary" href="http://player.youku.com/player.php/sid/XMTc5NzYwMzU2/v.swf">协会会歌</a>
-      <a type="button" target="_blank" class="btn btn-primary" href="http://player.youku.com/player.php/sid/XMTc4NDE2OTky/v.swf">尘埃</a>
-      <a type="button" target="_blank" class="btn btn-primary" href="http://player.youku.com/player.php/sid/XMTM2ODQ5ODk2MA==/v.swf">15骑行</a>
-      <a type="button" target="_blank" class="btn btn-primary" href="http://player.youku.com/player.php/sid/XMTM3MDE0MTU2MA==/v.swf">15实践</a>
-      <a type="button" target="_blank" class="btn btn-primary" href="http://player.youku.com/player.php/sid/XMTM2OTQ4NDEwMA==/v.swf">15飞行</a>
+      <a type="button" target="_blank" class="btn btn-primary" href="http://v.youku.com/v_show/id_XMTc5NzYwMzU2.html?from=s1.8-1-1.2&spm=0.0.0.0.dpSLOD">协会会歌</a>
+      <a type="button" target="_blank" class="btn btn-primary" href="http://v.youku.com/v_show/id_XMTc4NDE2OTky.html?from=s1.8-1-1.2&spm=0.0.0.0.tZiewK">尘埃</a>
+      <a type="button" target="_blank" class="btn btn-primary" href="http://v.youku.com/v_show/id_XMTM2ODQ5ODk2MA==.html?from=s1.8-1-1.2&spm=0.0.0.0.dkNY2W">15骑行</a>
+      <a type="button" target="_blank" class="btn btn-primary" href="http://v.youku.com/v_show/id_XMTM3MDE0MTU2MA==.html?from=s1.8-1-1.2&spm=0.0.0.0.dkNY2W">15实践</a>
+      <a type="button" target="_blank" class="btn btn-primary" href="http://v.youku.com/v_show/id_XMTM2OTQ4NDEwMA==.html?from=s1.8-1-1.2&spm=0.0.0.0.dkNY2W">15飞行</a>
     
 
 <p class="text-right"><a href="http://www.soku.com/search_video/q_%E5%8C%97%E5%A4%A7%E8%BD%A6%E5%8D%8F" target="_blank"><span class="label label-success">more</span></a></p>
