@@ -197,13 +197,12 @@
 </div><br>
 <h4 style="padding-left:20px"><b>协会视频</b></h4>
 <hr style="border-top:1px solid #aaaaaa"/><p>
-      <button type="button" class="btn btn-primary" style="margin-left:25px" data-toggle="modal" data-target="#huige_dialog">协会会歌</button>
-      <button type="button" class="btn btn-primary"  data-toggle="modal" data-target="#chenai_dialog" style="margin-left:10px">尘埃</button>
-<?php
-	for ($i=0;$i<=2;$i++) {
-		echo '<button type="button" class="btn btn-primary" style="margin-left:10px" data-toggle="modal" data-target="#video_dialog_'.$i.'">'.$video_word[$i].'</button>'."\n";
-	}
-?>
+      <a type="button" target="_blank" class="btn btn-primary" href="http://player.youku.com/player.php/sid/XMTc5NzYwMzU2/v.swf">协会会歌</a>
+      <a type="button" target="_blank" class="btn btn-primary" href="http://player.youku.com/player.php/sid/XMTc4NDE2OTky/v.swf">尘埃</a>
+      <a type="button" target="_blank" class="btn btn-primary" href="http://player.youku.com/player.php/sid/XMTM2ODQ5ODk2MA==/v.swf">15骑行</a>
+      <a type="button" target="_blank" class="btn btn-primary" href="http://player.youku.com/player.php/sid/XMTM3MDE0MTU2MA==/v.swf">15实践</a>
+	  <a type="button" target="_blank" class="btn btn-primary" href="http://player.youku.com/player.php/sid/XMTM2OTQ4NDEwMA==/v.swf">15飞行</a>
+    
 
 <p class="text-right"><a href="http://www.soku.com/search_video/q_%E5%8C%97%E5%A4%A7%E8%BD%A6%E5%8D%8F" target="_blank"><span class="label label-success">more</span></a></p>
 </div>
