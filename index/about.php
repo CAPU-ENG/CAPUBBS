@@ -280,28 +280,28 @@ body {
   <div class="form-group">
     <label class="col-md-3 control-label">日常招新负责</label>
     <div class="col-md-9">
-      <p class="form-control-static">未来 (18811462001)</p>
+      <p class="form-control-static">阿批(13809893132)</p>
     </div>
   </div>
 
   <div class="form-group">
     <label class="col-md-3 control-label">外联部部长</label>
     <div class="col-md-9">
-      <p class="form-control-static">风辰 (18801085233)</p>
+      <p class="form-control-static">淘淘猫(18618398585)</p>
     </div>
   </div>
 
   <div class="form-group">
     <label class="col-md-3 control-label">车队负责</label>
     <div class="col-md-9">
-      <p class="form-control-static">ss109 (13522520947)；羊儿 (13651043062)</p>
+      <p class="form-control-static"> 第七道：18811732356  脚踏直升机：13021941735   二狗：13051383901 </p>
     </div>
   </div>
 
   <div class="form-group">
     <label class="col-md-3 control-label">车协主席</label>
     <div class="col-md-9">
-      <p class="form-control-static">定夺 (18811757657)</p>
+      <p class="form-control-static">枫：18811799829 </p>
     </div>
   </div>
 
@@ -328,7 +328,7 @@ body {
   <div class="form-group">
     <label class="col-md-3 control-label">地址</label>
     <div class="col-md-9">
-      <p class="form-control-static">北京市海淀区北京大学24号楼118室（100871）</p>
+      <p class="form-control-static">北京市海淀区北京大学新太阳活动中心247室（100871）</p>
     </div>
   </div>
 
