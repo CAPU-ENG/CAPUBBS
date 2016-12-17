@@ -1489,7 +1489,7 @@ var nicUploadOptions = {
 /* END CONFIG */
 
 var nicUploadButton = nicEditorAdvancedButton.extend({	
-	nicURI : 'http://www.chexie.net/bbs/content/test.php',
+	nicURI : '/bbs/content/test.php',
   errorText : 'Failed to upload image',
 
 	addPane : function() {
