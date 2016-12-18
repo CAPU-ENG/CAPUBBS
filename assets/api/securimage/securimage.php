@@ -1,6 +1,6 @@
 <?php
 
-require_once '../../../config.php';
+require_once $_SERVER['DOCUMENT_ROOT']."/config.php";
 
 // error_reporting(E_ALL); ini_set('display_errors', 1); // uncomment this line for debugging
 error_reporting(E_ALL & ~E_NOTICE);
