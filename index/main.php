@@ -197,11 +197,17 @@
 </div><br>
 <h4 style="padding-left:20px"><b>协会视频</b></h4>
 <hr style="border-top:1px solid #aaaaaa"/><p>
-      <a type="button" target="_blank" class="btn btn-primary" href="http://v.youku.com/v_show/id_XMTc5NzYwMzU2.html">协会会歌</a>
-      <a type="button" target="_blank" class="btn btn-primary" href="http://v.youku.com/v_show/id_XMTc4NDE2OTky.html">尘埃</a>
-      <a type="button" target="_blank" class="btn btn-primary" href="http://v.youku.com/v_show/id_XMTM2ODQ5ODk2MA==.html">15骑行</a>
-      <a type="button" target="_blank" class="btn btn-primary" href="http://v.youku.com/v_show/id_XMTM3MDE0MTU2MA==.html">15实践</a>
-      <a type="button" target="_blank" class="btn btn-primary" href="http://v.youku.com/v_show/id_XMTM2OTQ4NDEwMA==.html">15飞行</a>
+  <a type="button" target="_blank" class="btn btn-primary" href="http://v.youku.com/v_show/id_XMTc5NzYwMzU2.html">协会会歌</a>
+  <a type="button" target="_blank" class="btn btn-primary" href="http://v.youku.com/v_show/id_XMTc4NDE2OTky.html">尘埃</a>
+  <a type="button" target="_blank" class="btn btn-primary" href="http://v.youku.com/v_show/id_XMTM2ODQ5ODk2MA==.html">15骑行</a>
+  <a type="button" target="_blank" class="btn btn-primary" href="http://v.youku.com/v_show/id_XMTM3MDE0MTU2MA==.html">15实践</a>
+  <a type="button" target="_blank" class="btn btn-primary" href="http://v.youku.com/v_show/id_XMTM2OTQ4NDEwMA==.html">15飞行</a>
+  <br>
+  <br>
+  <a type="button" target="_blank" class="btn btn-primary" href="http://v.youku.com/v_show/id_XMTc3MDUzMDkxMg==.html">16实践</a>
+  <a type="button" target="_blank" class="btn btn-primary" href="http://www.iqiyi.com/w_19ru8t0ovt.html">16飞行</a>
+  <a type="button" target="_blank" class="btn btn-primary" href="http://www.bilibili.com/video/av6806902/">16骑行</a>
+
     
 
 <p class="text-right"><a href="http://www.soku.com/search_video/q_%E5%8C%97%E5%A4%A7%E8%BD%A6%E5%8D%8F" target="_blank"><span class="label label-success">more</span></a></p>
