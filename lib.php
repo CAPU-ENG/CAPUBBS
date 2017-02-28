@@ -13,7 +13,7 @@ function dbconnect() {
 	mysql_query("SET NAMES 'UTF8'");
 
 	// Allow insert null while the column is defined with not null
-    mysql_query("SET GLOBAL sql_mode = ''");
+    mysql_query("SET sql_mode = ''");
 }
 
 // Check user.
