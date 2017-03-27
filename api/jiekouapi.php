@@ -443,16 +443,6 @@
         $star=intval($res[1]);
         $rights=intval($res[2]);
         $lastpost=intval($res[3]);
-        /*$inschool=checkinschool($ip);
-        $delta=180;
-        if ($inschool || $star>=3 || $rights>=1) $delta=15;
-        if (shortDelayTime($time, $lastpost, $delta)) {
-            echo '<info><code>2</code>';
-            if ($inschool) echo ' <msg>两次发表/回复的时间间隔不能少于15秒';
-            else echo '<msg>您的ip位于校外，两次发表/回复的时间间隔不能少于3分钟';
-            echo '！</msg></info></capu>';
-            exit;
-        }*/
         checkDelayTime($time, $star, $rights, $lastpost, $ip, $results);
         echo '<capu>';
         $statement="select max(tid) from threads where bid=$bid";
@@ -498,16 +488,6 @@
         $star=intval($res[1]);
         $rights=intval($res[2]);
         $lastpost=intval($res[3]);
-        /*$inschool=checkinschool($ip);
-        $delta=180;
-        if ($inschool || $star>=3 || $rights>=1) $delta=15;
-        if (shortDelayTime($time, $lastpost, $delta)) {
-            echo '<info><code>2</code>';
-                        if ($inschool) echo ' <msg>两次发表/回复的时间间隔不能少于15秒';
-                        else echo '<msg>您的ip位于校外，两次发表/回复的时间间隔不能少于3分钟';
-                        echo '！</msg></info></capu>';
-                        exit;
-        }*/
         checkDelayTime($time, $star, $rights, $lastpost, $ip, $results);
         echo '<capu>';
         $statement="select pid from posts where bid=$bid && tid=$tid order by pid desc";
@@ -841,16 +821,6 @@
             $star=intval($res[1]);
             $rights=intval($res[2]);
             $lastpost=intval($res[3]);
-            /*$inschool=checkinschool($ip);
-            $delta=180;
-            if ($inschool || $rights>=1 || $star>=3) $delta=15;
-            if (shortDelayTime($time, $lastpost, $delta)) {
-                echo '<capu><info><code>2</code>';
-                if ($inschool) echo ' <msg>两次发表/回复的时间间隔不能少于15秒';
-                else echo '<msg>您的ip位于校外，两次发表/回复的时间间隔不能少于3分钟';
-                echo '！</msg></info></capu>';
-                exit;
-            }*/
             checkDelayTime($time, $star, $rights, $lastpost, $ip, $results);
 
             $text=@$_REQUEST['text'];
@@ -1865,6 +1835,7 @@ while ($res=mysql_fetch_array($result)) {
 
     function checkinschool($ip) {
         $ips=explode(".",$ip);
+        if ($ips[0]=="10") return true;
         if ($ips[0]=="59" && $ips[1]=="108") return true;
         if ($ips[0]=="61" && $ips[1]=="50" && $ips[2]=="221") return true;
         if ($ips[0]=="111" && $ips[1]=="205") return true;
