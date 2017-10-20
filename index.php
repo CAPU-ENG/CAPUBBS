@@ -196,8 +196,9 @@
 
 <footer class="footer">
     <p>
-        <a href="http://www.qiche8.net/" target="_blank"><img src="/assets/images/static/qiche8.jpg" class="img-responsive img-rounded img-thumbnail" alt="远人部落" title="远人部落" width="70" height="70"></a>
-        <a href="https://www.specialized.com/cn/zh" target="_blank"><img src="/assets/images/static/specialized.png" class="img-responsive img-rounded img-thumbnail" alt="闪电" title="闪电" width="70" height="70"></a>
+      <a href="http://www.qiche8.net/" target="_blank"><img src="/assets/images/static/qiche8.jpg" class="img-responsive img-rounded img-thumbnail" alt="远人部落" title="远人部落" width="70" height="70"></a>
+      <a href="https://www.specialized.com/cn/zh" target="_blank"><img src="/assets/images/static/specialized.png" class="img-responsive img-rounded img-thumbnail" alt="闪电" title="闪电" width="70" height="70"></a>
+      <a href="https://cps.qixin18.com/llb1000885" target="_blank"><img src="/assets/images/static/insurance.png" class="img-responsive img-rounded img-thumbnail" alt="保险" title="保险" width="70" height="70"></a>
     </p>
 	<p>地址：北京市海淀区北京大学24号楼118室（100871）</p>
 	<p><a href="javascript:setActive('#about')">关于协会</a> | <a href="http://baike.baidu.com/view/1317218.htm" target="_blank">百度百科</a> | <a href="http://weibo.com/beidachexie" target="_blank">新浪微博</a> | <a href="javascript:setActive('#about-contact')">联系我们</a></p>
