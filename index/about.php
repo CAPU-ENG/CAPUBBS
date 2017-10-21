@@ -280,28 +280,28 @@ body {
   <div class="form-group">
     <label class="col-md-3 control-label">日常招新负责</label>
     <div class="col-md-9">
-      <p class="form-control-static">阿批(13809893132)</p>
+      <p class="form-control-static">伏贵荣｜福贵(18813090655)</p>
     </div>
   </div>
 
   <div class="form-group">
     <label class="col-md-3 control-label">外联部部长</label>
     <div class="col-md-9">
-      <p class="form-control-static">淘淘猫(18618398585)</p>
+      <p class="form-control-static">张思远｜灰白(18902037135)</p>
     </div>
   </div>
 
   <div class="form-group">
     <label class="col-md-3 control-label">车队负责</label>
     <div class="col-md-9">
-      <p class="form-control-static"> 第七道(18811732356)  脚踏直升机(13021941735)   二狗(13051383901) </p>
+      <p class="form-control-static">曹沛｜第七道(18811732356) 冯曦林｜开学了(18601973895) 马天昊｜慧儿(13753458923)</p>
     </div>
   </div>
 
   <div class="form-group">
     <label class="col-md-3 control-label">车协主席</label>
     <div class="col-md-9">
-      <p class="form-control-static">枫(18811799829) </p>
+      <p class="form-control-static">韩子琦｜琦琦(18611719630)</p>
     </div>
   </div>
 
