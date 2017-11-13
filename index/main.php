@@ -199,9 +199,8 @@
 <hr style="border-top:1px solid #aaaaaa"/><p>
   <a type="button" target="_blank" class="btn btn-primary" href="http://v.youku.com/v_show/id_XMTc5NzYwMzU2.html">协会会歌</a>
   <a type="button" target="_blank" class="btn btn-primary" href="http://v.youku.com/v_show/id_XMTc4NDE2OTky.html">尘埃</a>
-  <a type="button" target="_blank" class="btn btn-primary" href="http://v.youku.com/v_show/id_XMTM2ODQ5ODk2MA==.html">15骑行</a>
-  <a type="button" target="_blank" class="btn btn-primary" href="http://v.youku.com/v_show/id_XMTM3MDE0MTU2MA==.html">15实践</a>
-  <a type="button" target="_blank" class="btn btn-primary" href="http://v.youku.com/v_show/id_XMTM2OTQ4NDEwMA==.html">15飞行</a>
+  <a type="button" target="_blank" class="btn btn-primary" href="https://www.skypixel.com/share/video/7a1ae0a5-efbb-49e9-8e38-dce933cbcd75">17骑行</a>
+  <a type="button" target="_blank" class="btn btn-primary" href="https://www.skypixel.com/share/video/b4b0fd75-8e9c-4cc9-8405-75aa838acfb0">17实践</a>
   <br>
   <br>
   <a type="button" target="_blank" class="btn btn-primary" href="http://v.youku.com/v_show/id_XMTc3MDUzMDkxMg==.html">16实践</a>
