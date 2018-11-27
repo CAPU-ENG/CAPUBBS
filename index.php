@@ -196,10 +196,11 @@
 
 <footer class="footer">
     <p>
-        <a href="http://www.qiche8.net/" target="_blank"><img src="/assets/images/static/qiche8.jpg" class="img-responsive img-rounded img-thumbnail" alt="远人部落" title="远人部落" width="70" height="70"></a>
-        <a href="https://www.specialized.com/cn/zh" target="_blank"><img src="/assets/images/static/specialized.png" class="img-responsive img-rounded img-thumbnail" alt="闪电" title="闪电" width="70" height="70"></a>
+      <a href="http://www.qiche8.net/" target="_blank"><img src="/assets/images/static/qiche8.jpg" class="img-responsive img-rounded img-thumbnail" alt="远人部落" title="远人部落" width="70" height="70"></a>
+      <a href="https://www.specialized.com/cn/zh" target="_blank"><img src="/assets/images/static/specialized.png" class="img-responsive img-rounded img-thumbnail" alt="闪电" title="闪电" width="70" height="70"></a>
+      <a href="https://cps.qixin18.com/llb1000885" target="_blank"><img src="/assets/images/static/insurance.png" class="img-responsive img-rounded img-thumbnail" alt="保险" title="保险" width="70" height="70"></a>
     </p>
-	<p>地址：北京市海淀区北京大学24号楼118室（100871）</p>
+	<p>地址：北京市海淀区北京大学新太阳活动中心247室（100871）</p>
 	<p><a href="javascript:setActive('#about')">关于协会</a> | <a href="http://baike.baidu.com/view/1317218.htm" target="_blank">百度百科</a> | <a href="http://weibo.com/beidachexie" target="_blank">新浪微博</a> | <a href="javascript:setActive('#about-contact')">联系我们</a></p>
 	<p><a href="http://www.pku.edu.cn/" target="_blank">北京大学</a> | <a href="http://capu.bdwm.net/" target="_blank">北大未名BBS</a> | <a href="/old/index/" target="_blank">原车协主页</a> | <a href="/old/bbs/main.pl" target="_blank">原车协论坛</a>
 	<p>浏览器要求： IE9+/chrome/firefox/safari | 最佳屏幕分辨率 1366*768</p>
