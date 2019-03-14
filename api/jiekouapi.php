@@ -1851,7 +1851,7 @@ while ($res=mysql_fetch_array($result)) {
         if ($ips[0]=="218" && $ips[1]=="249") return true;
         if ($ips[0]=="88" && $ips[1]=="12" && $ips[2]=="242") return true;
         if ($ips[0]=="127" && $ips[1]=="0" && $ips[2]=="0" && $ips[3]=="1") return true;
-        if ($ips[0]=="2001" && $ips[1]=="da8" && $ips[2]=="201") return true;
+        if (substr($ip, 0, 13)==="2001:da8:201:") return true;
         return false;
     }
 
