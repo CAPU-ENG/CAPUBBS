@@ -280,28 +280,28 @@ body {
   <div class="form-group">
     <label class="col-md-3 control-label">日常招新负责</label>
     <div class="col-md-9">
-      <p class="form-control-static">饶紫嫣｜超新星(13548866142)</p>
+      <p class="form-control-static">孙天翊｜阿喂(13916962606)</p>
     </div>
   </div>
 
   <div class="form-group">
-    <label class="col-md-3 control-label">外联部部长</label>
+    <label class="col-md-3 control-label">会长兼外联部部长</label>
     <div class="col-md-9">
-      <p class="form-control-static">王晨阳｜千煜(18210373273)</p>
+      <p class="form-control-static">谢星宇｜火星禹(13328931626)</p>
+    </div>
+  </div>
+
+  <div class="form-group">
+    <label class="col-md-3 control-label">秘书长</label>
+    <div class="col-md-9">
+      <p class="form-control-static">周昱衡｜阿瑟平井(13810539215) </p>
     </div>
   </div>
 
   <div class="form-group">
     <label class="col-md-3 control-label">车队负责</label>
     <div class="col-md-9">
-      <p class="form-control-static">冯曦林｜开学了(18601973895) </p>
-    </div>
-  </div>
-
-  <div class="form-group">
-    <label class="col-md-3 control-label">车协主席</label>
-    <div class="col-md-9">
-      <p class="form-control-static">贾子健｜贾贾(15652677575)  王煜｜火日立(18811727879)  周博文｜Doggie多几(18811316643)</p>
+      <p class="form-control-static">米元博｜无穷岁的mdx(18600675287)</p>
     </div>
   </div>
 

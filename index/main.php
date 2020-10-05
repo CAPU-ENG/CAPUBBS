@@ -199,15 +199,10 @@
 <hr style="border-top:1px solid #aaaaaa"/><p>
   <a type="button" target="_blank" class="btn btn-primary" href="http://v.youku.com/v_show/id_XMTc5NzYwMzU2.html">协会会歌</a>
   <a type="button" target="_blank" class="btn btn-primary" href="http://v.youku.com/v_show/id_XMTc4NDE2OTky.html">尘埃</a>
-  <a type="button" target="_blank" class="btn btn-primary" href="http://www.skypixel.com/share/video/7a1ae0a5-efbb-49e9-8e38-dce933cbcd75">17骑行</a>
-  <a type="button" target="_blank" class="btn btn-primary" href="http://www.skypixel.com/share/video/b4b0fd75-8e9c-4cc9-8405-75aa838acfb0">17实践</a>
-  <a type="button" target="_blank" class="btn btn-primary" href="http://www.bilibili.com/video/av34846458/?p=3">18骑行</a>
-  <br>
-  <br>
-  <a type="button" target="_blank" class="btn btn-primary" href="http://www.bilibili.com/video/av34736070">18实践</a>
-  <a type="button" target="_blank" class="btn btn-primary" href="http://www.bilibili.com/video/av34759616">18飞行</a>
-  <a type="button" target="_blank" class="btn btn-primary" href="http://www.skypixel.com/videos/capu-2018">18独立团</a>
-<p class="text-right"><a href="http://www.soku.com/search_video/q_%E5%8C%97%E5%A4%A7%E8%BD%A6%E5%8D%8F" target="_blank"><span class="label label-success">more</span></a></p>
+  <a type="button" target="_blank" class="btn btn-primary" href="https://www.bilibili.com/video/BV1Ft411Q7yx">17暑期视频</a>
+  <a type="button" target="_blank" class="btn btn-primary" href="https://www.bilibili.com/video/BV1cb411K7kA">18暑期视频</a>
+  <a type="button" target="_blank" class="btn btn-primary" href="https://www.bilibili.com/video/BV1GJ411D7Fz">19暑期视频</a>
+<p class="text-right"><a target="_blank" href="https://space.bilibili.com/238139020/video"><span class="label label-success">more</span></a></p>
 </div>
 </div>
 <div class="col-md-3">
