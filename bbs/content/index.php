@@ -389,7 +389,7 @@ for($i=0;$i<count(@$data);$i++){
 			<div class="pagecontrol">
 
 <?php
-$pages= ceil(intval($tdata['reply'])/12);
+$pages= ceil(intval($tdata['reply']+1)/12);
 @$page= intval($_GET['p']);
 if($page<1) $page=1;
 
