@@ -850,8 +850,7 @@
                 echo "<capu><info><code>3</code><msg>帖子已锁定。</msg></info></capu>";exit;
             }
 
-            if (mb_strlen($text,'utf-8')>=143) $text=mb_substr($text,0,140,'utf-8')."...";
-            #if (strlen($text,'utf-8')>=320) $text=mb_substr($text,0,160,'utf-8')."...";
+            if (mb_strlen($text,'utf-8')>=503) $text=mb_substr($text,0,500,'utf-8')."...";
 
             $text_mysql_escaped=mysql_real_escape_string($text);
 
