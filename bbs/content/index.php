@@ -182,7 +182,7 @@ if (intval($bid)==1 && $currentuser=="") {
 			<div class="pagecontrol">
 
 <?php
-$pages= ceil((intval($tdata['reply'])+1)/12);
+$pages= ceil(intval($tdata['reply'])/12);
 
 @$page= intval($_GET['p']);
 if($page<1) $page=1;
