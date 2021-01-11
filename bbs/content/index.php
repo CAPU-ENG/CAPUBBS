@@ -32,7 +32,7 @@
 			$bdata=$dt;
 	}
 
-	$title=count($data)>0?$data[0]['title']:"没有这个帖子= =";
+	$title=count($data)>0?$tdata['title']:"没有这个帖子= =";
 	$lztitle="";if($see_lz!="") $lztitle="（只看楼主）&nbsp;&nbsp;";
 	function generateattach($name,$size,$price,$auth,$id,$free,$count){
 		$extension=substr($name, strrpos($name, ".")+1);
