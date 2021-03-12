@@ -315,7 +315,7 @@ body {
   <div class="form-group">
     <label class="col-md-3 control-label">论坛反馈</label>
     <div class="col-md-9">
-      <p class="form-control-static"><a href="mailto:beidachexie@126.com">capubbs@qq.com</a></p>
+      <p class="form-control-static">王越千｜黄杨(15811443328)</p>
     </div>
   </div>
   <div class="form-group">
