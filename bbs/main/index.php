@@ -332,7 +332,7 @@ echo '
 		<div class="editor" id="editor">
 			<input type="text" class="title" placeholder="帖子标题" id="raw_title">
 			<div id="edi_bar"></div>
-			<div id="edi_content"></div>
+			<div id="edi_content" onfocus="editorFocus();" onblur="editorBlur();"></div>
 			<br>
 			<progress max="100" value="20" id="progress"></progress>
 ';
@@ -676,7 +676,7 @@ function doreply(){
 	}
 	//var content=document.getElementById("edi_content").innerHTML;
 	var content=$('#edi_content').html();
-	if(content=="<br>"||content=="<div></div>"){
+	if(content=="<br>" || content=="<div></div>" || content == editorPlaceholder){
 		alert("请填写帖子内容！");
 		return;
 	}
@@ -758,6 +758,7 @@ function insertHTML(html){
 	} 
 } 
 
+
 function deltid(tid) {
 	if (confirm("你确定要删除这个主题嘛？")) {
 		//window.location="../delete/?ask=deltid&bid="+bid+"&tid="+tid+"&p="+page;
@@ -772,6 +773,22 @@ function deltid(tid) {
 		});
 	}
 }
+
+const editorPlaceholder = '<div style="color: rgb(118, 118, 118);">如需上传图片请使用右上角的“上传图片”功能，不要将图片直接粘贴在文本框中</div>';
+myNicEditor.instanceById('edi_content').setContent(editorPlaceholder);
+function editorFocus() {
+	if (myNicEditor.instanceById('edi_content').getContent() == editorPlaceholder) {
+		myNicEditor.instanceById('edi_content').setContent('<br>');
+	}
+}
+
+function editorBlur() {
+	let newText = myNicEditor.instanceById('edi_content').getContent();
+	if (newText == '' || newText == '<br>') {
+		myNicEditor.instanceById('edi_content').setContent(editorPlaceholder);
+	}
+}
+
 
 </script>
 </body>

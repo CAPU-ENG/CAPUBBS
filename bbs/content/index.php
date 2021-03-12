@@ -456,7 +456,7 @@ if ($currentuser!="") {
 if ($canreply) {echo '
 		<div class="editor" id="editor">
 			<div id="edi_bar"></div>
-			<div id="edi_content" onfocus="starttimer();" onblur="stoptimer();"></div>
+			<div id="edi_content" onfocus="editorFocus();" onblur="editorBlur();"></div>
 			<br>
 ';
 if ($rights>=1 || $star>=3)	echo '
@@ -872,7 +872,7 @@ function doreply(){
 	//var content=document.getElementById("edi_content").innerHTML;
 	var content=$('#edi_content').html();
 	content=content.replace(/&/g, "&amp;");
-	if(content==""||content=="<br>"){
+	if(content=="" || content=="<br>" || content == editorPlaceholder){
 		alert("请填写回复内容！");
 		return;
 	}
@@ -1036,10 +1036,22 @@ function insertHTML(html){
 		dthis.focus(); 
 	} 
 } 
-function starttimer() {
+
+const editorPlaceholder = '<div style="color: rgb(118, 118, 118);">如需上传图片请使用右上角的“上传图片”功能，不要将图片直接粘贴在文本框中</div>';
+myNicEditor.instanceById('edi_content').setContent(editorPlaceholder);
+function editorFocus() {
+	if (myNicEditor.instanceById('edi_content').getContent() == editorPlaceholder) {
+		myNicEditor.instanceById('edi_content').setContent('<br>');
+	}
 }
-function stoptimer() {
+
+function editorBlur() {
+	let newText = myNicEditor.instanceById('edi_content').getContent();
+	if (newText == '' || newText == '<br>') {
+		myNicEditor.instanceById('edi_content').setContent(editorPlaceholder);
+	}
 }
+
 </script>
 </body>
 </html>
