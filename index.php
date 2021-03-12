@@ -92,7 +92,9 @@
 	<li class="devider"></li>
         <li><a href="/bbs/index" target="_blank">进入论坛</a></li>
         <li class="devider"></li>
-	<li><a href="http://race.chexie.net">交流赛官网</a></li>
+	<li><a href="https://pan.chexie.net" target="_blank">下载中心</a></li>
+        <li class="devider"></li>
+	<li><a href="https://race.chexie.net" target="_blank">交流赛官网</a></li>
 	<li class="devider"></li>
         <!--<li class="dropdown" id="navbar-borrow">
 	  <a href="javascript:setActive('#borrow')">自助借车系统</a>
@@ -132,8 +134,6 @@
 	</li>
         <li class="devider"></li>
 	<li id="navbar-timeline"><a href="javascript:setActive('#timeline')">时间轴</a></li>
-        <li class="devider"></li>
-	<li id="navbar-download"><a href="javascript:setActive('#download')">下载中心</a></li>
       </ul>
       <ul class="nav navbar-nav navbar-right" id="login_li">
      <?php
