@@ -760,6 +760,8 @@
         if (!empty($postfields)) {
             curl_setopt($ci, CURLOPT_POSTFIELDS, $postfields); // post数据 可为数组、连接字串
         }
+        curl_setopt($ci, CURLOPT_SSL_VERIFYPEER, false);
+        curl_setopt($ci, CURLOPT_SSL_VERIFYHOST, false);        // 不检查证书
         $response = curl_exec($ci);
         curl_close($ci);
         return $response;
