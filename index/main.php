@@ -199,9 +199,9 @@
 <hr style="border-top:1px solid #aaaaaa"/><p>
   <a type="button" target="_blank" class="btn btn-primary" href="http://v.youku.com/v_show/id_XMTc5NzYwMzU2.html">协会会歌</a>
   <a type="button" target="_blank" class="btn btn-primary" href="http://v.youku.com/v_show/id_XMTc4NDE2OTky.html">尘埃</a>
-  <a type="button" target="_blank" class="btn btn-primary" href="https://www.bilibili.com/video/BV1cb411K7kA">18暑期视频</a>
   <a type="button" target="_blank" class="btn btn-primary" href="https://www.bilibili.com/video/BV1GJ411D7Fz">19暑期视频</a>
   <a type="button" target="_blank" class="btn btn-primary" href="https://www.bilibili.com/video/BV1qK411A7yV">20暑期视频</a>
+  <a type="button" target="_blank" class="btn btn-primary" href="https://www.bilibili.com/video/BV19v411T7qC">21暑期视频</a>
 <p class="text-right"><a target="_blank" href="https://space.bilibili.com/238139020/video"><span class="label label-success">more</span></a></p>
 </div>
 </div>

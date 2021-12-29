@@ -280,28 +280,21 @@ body {
   <div class="form-group">
     <label class="col-md-3 control-label">日常招新负责</label>
     <div class="col-md-9">
-      <p class="form-control-static">孙天翊｜阿喂(13916962606)</p>
+      <p class="form-control-static">陈海藏|天池(18310387363)</p>
     </div>
   </div>
 
   <div class="form-group">
-    <label class="col-md-3 control-label">会长兼外联部部长</label>
+    <label class="col-md-3 control-label">主席兼外联部部长</label>
     <div class="col-md-9">
-      <p class="form-control-static">谢星宇｜火星禹(13328931626)</p>
-    </div>
-  </div>
-
-  <div class="form-group">
-    <label class="col-md-3 control-label">秘书长</label>
-    <div class="col-md-9">
-      <p class="form-control-static">周昱衡｜阿瑟平井(13810539215) </p>
+      <p class="form-control-static">范腾霄|小饭团w(15000258352)</p>
     </div>
   </div>
 
   <div class="form-group">
     <label class="col-md-3 control-label">车队负责</label>
     <div class="col-md-9">
-      <p class="form-control-static">米元博｜无穷岁的mdx(18600675287)</p>
+      <p class="form-control-static">区涵予｜鸡腿(15692087639)</p>
     </div>
   </div>
 
