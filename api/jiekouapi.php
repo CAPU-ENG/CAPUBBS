@@ -1864,7 +1864,8 @@ while ($res=mysql_fetch_array($result)) {
             echo '<capu><info><code>1</code><msg>超时，请重新登录。</msg></info></capu>';
             exit;
         }
-        $inschool = checkinschool($ip);
+        // $inschool = checkinschool($ip);
+        $inschool = true;       // 跳过对校内ip的判断逻辑
         $delta = 180;
         if ($inschool || $rights >= 1 || $star >= 3)
             $delta = 15;
