@@ -110,7 +110,7 @@ function check(){
 	});
 }
 function forget() {
-	var x="如果忘记了密码，请私信管理员或发送邮件到 <a href='mailto:capubbs@qq.com'>capubbs@qq.com</a> ，或者线下联系管理员等，以求重置自己的密码。";
+	var x="请联系管理员，邮箱：<a href='mailto:wangyueqian@pku.edu.cn'>wangyueqian@pku.edu.cn</a>";
 	$('#tip').html(x);
 }
 </script>
