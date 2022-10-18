@@ -931,7 +931,7 @@
     }
 
     function hot($con,$token){
-        $hotnum=10; // Default number of hot list
+        $hotnum=15; // Default number of hot list
         if (@$_REQUEST['hotnum'])
             $hotnum=@$_REQUEST['hotnum'];
         echo '<capu>';
