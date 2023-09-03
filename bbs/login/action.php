@@ -17,7 +17,7 @@ $date=date("D, d M Y H:i:s",$time)." GMT";
 
 if($code==0){
 	$token=$result['token'];
-	header('Set-cookie: token='.$token.'; expires='.$date.'; path=/'."\n");
+	header('Set-cookie: token='.$token.'; domain=.chexie.net; expires='.$date.'; path=/'."\n");
 	echo 0;
 } else echo $result['msg'];
 ?>

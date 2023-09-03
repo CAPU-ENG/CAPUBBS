@@ -211,7 +211,7 @@
 		if($code==0){
 			$time=time()+99999;
 			$date=date("D, d M Y H:i:s",$time)." GMT";
-			header('Set-cookie: token='.$token.'; expires='.$date.'; path=/'."\n");
+			header('Set-cookie: token='.$token.'; domain=.chexie.net; expires='.$date.'; path=/'."\n");
 		}
 		echo $code;
 		exit;

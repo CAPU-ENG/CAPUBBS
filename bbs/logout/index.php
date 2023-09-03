@@ -12,7 +12,7 @@
 	$date=date("D, d M Y H:i:s",$time)." GMT";
 	if(!$from) $from="../index";
 	if($code==0){
-		header('Set-cookie: token=invalid; expires='.$date.'; path=/'."\n",false);
+		header('Set-cookie: token=invalid; domain=.chexie.net; expires='.$date.'; path=/'."\n",false);
 		header("Location: $from");
 	}else{
 		echo("注销时遇到问题，错误编码：$code");
