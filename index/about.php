@@ -280,21 +280,21 @@ body {
   <div class="form-group">
     <label class="col-md-3 control-label">日常招新负责</label>
     <div class="col-md-9">
-      <p class="form-control-static">陈海藏|天池(18310387363)</p>
+      <p class="form-control-static">李昱麒|Ricky 18049083283</p>
     </div>
   </div>
 
   <div class="form-group">
-    <label class="col-md-3 control-label">主席兼外联部部长</label>
+    <label class="col-md-3 control-label">外联部部长</label>
     <div class="col-md-9">
-      <p class="form-control-static">范腾霄|小饭团w(15000258352)</p>
+      <p class="form-control-static">汤嘉伟|Jewish 18125372556</p>
     </div>
   </div>
 
   <div class="form-group">
     <label class="col-md-3 control-label">车队负责</label>
     <div class="col-md-9">
-      <p class="form-control-static">区涵予｜鸡腿(15692087639)</p>
+      <p class="form-control-static">区涵予|鸡腿 15692087639</p>
     </div>
   </div>
 
@@ -308,34 +308,19 @@ body {
   <div class="form-group">
     <label class="col-md-3 control-label">论坛反馈</label>
     <div class="col-md-9">
-      <p class="form-control-static">王越千｜黄杨(15811443328)</p>
-    </div>
-  </div>
-  <div class="form-group">
-    <label class="col-md-3 control-label">新浪微博</label>
-    <div class="col-md-9">
-      <p class="form-control-static"><a href="http://weibo.com/beidachexie" target="_blank">CAPU北大车协</a></p>
+      <p class="form-control-static">王越千|黄杨 15811443328</p>
     </div>
   </div>
 
   <div class="form-group">
     <label class="col-md-3 control-label">地址</label>
     <div class="col-md-9">
-      <p class="form-control-static">北京市海淀区北京大学新太阳活动中心247室（100871）</p>
+      <p class="form-control-static">北京市海淀区北京大学28号楼B107室 100871</p>
     </div>
   </div>
 
   <div class="form-group">
     <label class="col-md-3 control-label">其他方式</label>
-    <div class="col-md-9">
-      <p class="form-control-static">
-        周一到周五每天中午学一食堂东南角 12:00-13:00&nbsp;&nbsp;&nbsp;&nbsp;<span class="label label-danger pic_contact" title="<img width='450' src='/assets/images/xueyi.jpg'>">pic</span>
-      </p>
-    </div>
-  </div>
-
-  <div class="form-group">
-    <label class="col-md-3 control-label"></label>
     <div class="col-md-9">
       <p class="form-control-static">
 	每周一三五晚8:45五四体育场日常训练&nbsp;&nbsp;&nbsp;&nbsp;<span class="label label-danger pic_contact" title="<img width='450' src='/assets/images/xunlian.jpg'>">pic</span>
