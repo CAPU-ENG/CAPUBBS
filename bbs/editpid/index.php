@@ -541,7 +541,7 @@ function doreply(){
 			if (data==0) {
 				window.location=x.substr(1);
 			}
-			else alert(window.substr(1));
+			else alert(x.substr(1));
 	});
 
 }

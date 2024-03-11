@@ -110,6 +110,7 @@ div.info{
 	line-height: 22px;
 	margin-left: 15px;
 	color: #6d706e;
+	word-break: break-word;
 }
 a.message{
 	color: #6d706e;
