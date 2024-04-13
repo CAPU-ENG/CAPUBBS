@@ -459,7 +459,7 @@ if ($canreply) {echo '
 			<div id="edi_content" onfocus="editorFocus();" onblur="editorBlur();"></div>
 			<br>
 ';
-if ($rights>=1 || $star>=3)	echo '
+if ($rights>=0 || $star>=0)	echo '
 			<div id="edi_attach" onclick="attach();">添加附件</div>
 			<input type="file" id="file" style="display:none;" onchange="fileselected();"> ';
 echo '

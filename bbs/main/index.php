@@ -336,7 +336,7 @@ echo '
 			<br>
 			<progress max="100" value="20" id="progress"></progress>
 ';
-if ($star>=3 || $right>=1) echo '
+if ($star>=0 || $right>=0) echo '
 			<div id="edi_attach" onclick="attach();">添加附件</div>
 			<input type="file" id="file" style="display:none;" onchange="fileselected();">
 ';

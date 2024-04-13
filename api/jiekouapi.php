@@ -1147,7 +1147,7 @@ while ($res=mysql_fetch_array($result)) {
     function attach($con,$token,$path,$filename,$price,$auth){
         $user=token2user($con,$token);
         if(!$user) report(3,"unauthorized:$token");
-        if(intval($user['star'])<3&&intval($user['rights'])<1) report(4,"not enough star");
+        // if(intval($user['star'])<3&&intval($user['rights'])<1) report(4,"not enough star");
         $user=$user['username'];
         if(strstr($path, "'")!=""){
             report(1,"illegal");

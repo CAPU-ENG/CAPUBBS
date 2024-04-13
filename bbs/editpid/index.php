@@ -285,10 +285,10 @@ span.tip{
 	</form>
 
 <script type="text/javascript">
-	var star=<?php echo $user['star'];?>;
-	if(star<3){
-		document.getElementById("edi_attach").style.visibility="hidden";
-	}
+	// var star=<?php echo $user['star'];?>;
+	// if(star<0){
+	// 	document.getElementById("edi_attach").style.visibility="hidden";
+	// }
 </script>
 <script type="text/javascript" src="../lib/nic.js"></script>
 <script type="text/javascript">
