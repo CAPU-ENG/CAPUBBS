@@ -81,7 +81,7 @@ div.editor{
 }
 div#edi_content{
 	width: 782px;
-	height: 380px;
+	min-height: 380px;
 	background-color: white;
 	border-bottom-left-radius: 10px;
 	border-bottom-right-radius: 10px;
