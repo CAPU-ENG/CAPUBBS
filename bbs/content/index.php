@@ -1,5 +1,8 @@
 <?php
 	include("../lib/mainfunc.php");
+	include "./utils/activityService.php";
+	require_once '../../lib.php';
+
 	$bid=@$_GET['bid'];
 	$tid=@$_GET['tid'];
 	$page=@$_GET['p'];
@@ -9,6 +12,13 @@
 	if(!$page) $page=1;
 	if(!$bid) $bid=1;
 	if(!$tid) $tid=1;
+	$bid = intval($bid);
+	$tid = intval($tid);
+	$activity = getActivity($bid, $tid);
+	if ($activity) {
+		require "./utils/activity.php";
+		exit();
+	}
 	$data=mainfunc(array("bid"=>$bid,"tid"=>$tid,"p"=>$page,"see_lz"=>$see_lz),null);
 	$tdata=mainfunc(array("bid"=>$bid,"tid"=>$tid,"ask"=>"tidinfo"));
 	$floordata="";

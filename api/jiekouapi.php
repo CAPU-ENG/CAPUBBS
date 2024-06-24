@@ -489,6 +489,18 @@
         $rights=intval($res[2]);
         $lastpost=intval($res[3]);
         checkDelayTime($time, $star, $rights, $lastpost, $ip, $results);
+
+        {
+            $statement = "select activity_id, bid, tid, season_id, name, leader_username 
+                from season_threads_activity 
+                where bid=$bid and tid=$tid";
+            $result_activity = mysql_query($statement);
+            if (mysql_num_rows($result_activity)!=0) {
+                echo '<capu><info><code>3</code><msg>禁止直接回复报名帖！</msg></info></capu>';
+                exit;
+            }
+        }
+
         echo '<capu>';
         $statement="select pid from posts where bid=$bid && tid=$tid order by pid desc";
         $results=mysql_query($statement);

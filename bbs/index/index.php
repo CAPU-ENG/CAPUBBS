@@ -1,5 +1,7 @@
 <?php
 	include("../lib/mainfunc.php");
+    require_once "../content/utils/activityService.php";
+    require_once "../../lib.php";
 	date_default_timezone_set('Asia/Shanghai');
 	$users=getuser();
 	$username=$users['username'];
@@ -103,7 +105,11 @@ if ($username!="") {
 			$tid=$hot['tid'];
 			$num=intval($hot['reply'])+1;
 			$page=ceil(($num)/12);
+            $activity = getActivity($bid, $tid);
 			$link="../content?bid=$bid&tid=$tid&p=$page#$num";
+            if ($activity) {
+                $link="../content?bid=$bid&tid=$tid&p=1#1";
+            }
 			if ($num==1) $author=$hot['author'];
 			else $author=$hot['replyer'];
 			$time=date("Y-m-d H:i:s",$hot['timestamp']);
