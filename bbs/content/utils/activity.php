@@ -360,7 +360,7 @@ for($i=0;$i<count(@$data);$i++){
                         <table style="border-collapse:collapse;border-spacing:0;table-layout: fixed;">
                         <thead>
                             <?php
-                                $tag_begin = '<th style="border-color:black;border-style:solid;border-width:1px;font-family:Arial, sans-serif;font-size:14px;overflow:hidden;padding:10px 5px;text-align:center;vertical-align:middle;word-break:normal">';
+                                $tag_begin = '<th style="border-color:black;border-style:solid;border-width:1px;font-family:Arial, sans-serif;font-size:14px;overflow:hidden;padding:10px 5px;text-align:center;vertical-align:middle;word-break:keep-all;white-space:nowrap;">';
                                 $tag_end = '</th>';
                                 echo $tag_begin."用户名".$tag_end;
                                 for ($option_idx=0; $option_idx < count(@$activity["options"]); $option_idx++){
@@ -371,7 +371,7 @@ for($i=0;$i<count(@$data);$i++){
                         </thead>
                         <tbody>
                             <?php
-                                $tag_begin = '<td style="border-color:black;border-style:solid;border-width:1px;font-family:Arial, sans-serif;font-size:14px;overflow:hidden;padding:10px 5px;text-align:center;vertical-align:middle;word-break:normal">';
+                                $tag_begin = '<td style="border-color:black;border-style:solid;border-width:1px;font-family:Arial, sans-serif;font-size:14px;overflow:hidden;padding:10px 5px;text-align:center;vertical-align:middle;word-break:keep-all;white-space:nowrap;">';
                                 $tag_end = '</td>';
                                 for ($user_idx = 0; $user_idx < count(@$join_value); $user_idx++){
                                     $_username = $join_value[$user_idx]['username'];
