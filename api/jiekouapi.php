@@ -12,7 +12,7 @@
         }
         exit;
     }
-    $GLOBALS['validtime']=1800;
+    $GLOBALS['validtime']=60*60*24*7;
     $GLOBALS['attachroot']="../bbs/attachment/";
     header('Content-type: application/xml');
     echo '<?xml version="1.0" encoding="UTF-8"?>';
@@ -44,6 +44,33 @@
     $ip=@$_REQUEST['ip'];
     $view=@$_REQUEST['view'];
     $con=null;
+
+    {
+        $time=time();
+        $statement="select username,star,rights,lastpost from userinfo where token='$token' && $time-tokentime<={$GLOBALS['validtime']}";
+        $results=mysql_query($statement);
+        $res=mysql_fetch_array($results);
+        $username=$res[0];
+
+        if ($username) {
+            $year=date("Y",$time);
+            $month=date("m",$time);
+            $day=date("d",$time);
+            $statement="select * from capubbs.sign where year=$year && month=$month && day=$day && username='$username'";
+            $result=mysql_query($statement);
+            if (mysql_num_rows($result)==0) {
+                $hour=date("H",$time);
+                $minute=date("i",$time);
+                $second=date("s",$time);
+                $week=date("N",$time);
+                $statement="insert into capubbs.sign values ($year,$month,$day,$hour,$minute,$second,$week,'$username')";
+                mysql_query($statement);
+                $statement="update capubbs.userinfo set sign=sign+1 where username='$username'";
+                mysql_query($statement);
+            }
+        }
+    }
+
     if ($ip=="") $ip=$_SERVER["REMOTE_ADDR"];
     if ($ask=="bbsinfo") bbsinfo($con,$bid,@$_REQUEST['name']);
     else if ($ask=="login") login($con,@$_REQUEST['username'],@$_REQUEST['password'],$ip);
