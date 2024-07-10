@@ -82,6 +82,8 @@ div.editor{
 div#edi_content{
 	width: 782px;
 	min-height: 380px;
+	max-height: 540px;
+	overflow: auto;
 	background-color: white;
 	border-bottom-left-radius: 10px;
 	border-bottom-right-radius: 10px;

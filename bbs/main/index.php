@@ -62,7 +62,7 @@ if($username!=""){
 	$star=intval($userinfo['star']);
 	echo("<img src='$icon' class='usericon'></img>");
 	echo("<div class='userinfo'>");
-	echo("<a href='../home' target='_blank'>$username</a>");
+	echo("<a href='../user/?name=$username' target='_blank'>$username</a>");
 	echo("&nbsp;等级：$star");
 	
 	echo("<script type='text/javascript'>");
