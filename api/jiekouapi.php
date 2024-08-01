@@ -53,6 +53,18 @@
         $username=$res[0];
 
         if ($username) {
+            $today=date("Y-m-d");
+            $onlinetype=@$_REQUEST['onlinetype'];
+            $browser=@$_REQUEST['browser'];
+            $system=@$_REQUEST['system'];
+            $logininfo="";
+            if ($onlinetype=="web") $logininfo=$browser;
+            if ($onlinetype=="android" || $onlinetype=="ios") $logininfo=$system;
+    
+            if ($ip!="") $statement="update userinfo set tokentime=$nowtime, token='$token', nowboard=null, lastip='$ip',lastdate='$today',onlinetype='$onlinetype',logininfo='$logininfo' where username='$username'";
+            else $statement="update userinfo set tokentime=$nowtime, token='$token', nowboard=null, lastdate='$today',onlinetype='$onlinetype',logininfo='$logininfo' where username='$username'";
+            mysql_query($statement);
+
             $year=date("Y",$time);
             $month=date("m",$time);
             $day=date("d",$time);
