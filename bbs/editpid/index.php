@@ -90,7 +90,6 @@ div#edi_content{
 	box-shadow: 0px 0px 9px rgba(0,0,0,0.47) inset;
 	padding: 10px;
 	outline:none;
-	overflow: hidden;
 }
 input#ip_title {
 	width:100%;
