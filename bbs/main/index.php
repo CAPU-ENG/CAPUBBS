@@ -213,7 +213,7 @@ if($rights>=1){
 			$replyer=$info['replyer'];
 			$prestr="&nbsp;<img src='icon.png' class='decorator'>";
 			echo("<tr class='content ".($counter%2==0?"even":"odd")."'>\n");
-			echo("<td style='text-align:left;'>&nbsp;$prestr&nbsp;<a href='../content?bid=$bid&tid=$tid&p=1'>$title</a>&nbsp;$decoratorstr</td>\n");
+			echo("<td style='text-align:left;'>&nbsp;$prestr&nbsp;<a href='../content/?bid=$bid&tid=$tid&p=1'>$title</a>&nbsp;$decoratorstr</td>\n");
 			echo("<td>".userhref($author)."<br><span class='date'>$postdate</span></td>\n");
 			echo("<td>$reply / $click</td>\n");
 			echo("<td>".userhref($replyer?$replyer:$author)."<br><span class='date'>".formatstamp($info['timestamp'])."</span></td>\n</tr>\n");

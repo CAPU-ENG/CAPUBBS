@@ -24,7 +24,7 @@
 		"attachs"=>$attachs));
 		$result=$result[0];
 		if($result['code']=="0"){
-			//header("Location: ../content?bid=$bid&tid=$tid&p=$p");
+			//header("Location: ../content/?bid=$bid&tid=$tid&p=$p");
 			echo "0../content/?bid=$bid&tid=$tid&p=$p#$pid";
 		}else{
 			//echo($result['code']);

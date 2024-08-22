@@ -455,7 +455,7 @@ function packjump($p,$text){
 	if (@$_GET['see_lz']!="")
 		$lz="&see_lz=1";
 	if($text=="plain") return "<span class='page'>$p</span>";
-	return "<a class='page' href='../content?p=$p&bid=".$_GET['bid']."&tid=".@$_GET['tid']."$lz'>$text</a>";
+	return "<a class='page' href='../content/?p=$p&bid=".$_GET['bid']."&tid=".@$_GET['tid']."$lz'>$text</a>";
 }
 ?>
 
