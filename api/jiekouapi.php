@@ -1836,9 +1836,9 @@ while ($res=mysql_fetch_array($result)) {
         }
         if($type=="thread"){
             if ($author=="")
-                $statement="select * from posts where bid=$bid and updatetime>=$start && updatetime<=$end and pid=1 and title like '%$keyword%' order by updatetime desc limit 100";
+                $statement="select title,bid,tid,author,updatetime from posts where bid=$bid and updatetime>=$start && updatetime<=$end and pid=1 and title like '%$keyword%' order by updatetime desc limit 100";
             else
-                $statement="select * from posts where bid=$bid and updatetime>=$start && updatetime<=$end and pid=1 and author='$author' and title like '%$keyword%' order by updatetime desc limit 100";
+                $statement="select title,bid,tid,author,updatetime from posts where bid=$bid and updatetime>=$start && updatetime<=$end and pid=1 and author='$author' and title like '%$keyword%' order by updatetime desc limit 100";
 
         }else if($type=="post"){
             if ($author=="")
