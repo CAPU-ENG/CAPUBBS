@@ -97,7 +97,22 @@ if ($username!="") {
 		<div class="hot">
 		<?php
 		$hots=mainfunc(array("ask"=>"hot"));
+		$global_tops=mainfunc(array("ask"=>"global_top"));
 		echo("<ul>");
+		foreach($global_tops as $hot){
+			if(!@$hot['tid']) continue;
+			$title=$hot['title'];
+			$bid=$hot['bid'];
+			$tid=$hot['tid'];
+			$num=intval($hot['reply'])+1;
+            $activity = getActivity($bid, $tid);
+			$link="../content/?bid=$bid&tid=$tid&p=$page#$num";
+			if ($num==1) $author=$hot['author'];
+			else $author=$hot['replyer'];
+			$time=date("Y-m-d H:i:s",$hot['timestamp']);
+			echo "<li><a href='$link'>【置顶】$title</a><br>";
+			echo "<span class='hint'><span class='hint2'>$author</span>&nbsp;于&nbsp;<span class='hint2'>$time</span></span></li>";
+		}
 		foreach($hots as $hot){
 			if(!@$hot['tid']) continue;
 			$title=$hot['title'];

@@ -92,6 +92,7 @@
     else if ($ask=="getuser") getuser($con,$token);
     else if ($ask=="userexists") userexists($con);
     else if ($ask=="hot") hot($con,$token);
+    else if ($ask=="global_top") global_top($con,$token);
     else if ($ask=="news") news($con,$token);
     else if ($ask=="tidinfo") tidinfo($con,$bid,$tid);
     else if ($ask=="recentpost") recentpost($con,$view);
@@ -114,7 +115,7 @@
     else if ($ask=="post") post($con,$token,$bid,$ip,$attachs);
     else if ($ask=="reply") reply($con,$token,$bid,$tid,$ip,$attachs);
     else if ($ask=="edit") edit($con,$token,$bid,$tid,$pid,$ip,$attachs);
-    else if ($ask=="lock" || $ask=="extr" || $ask=="top") threads_action($con,$token,$bid,$tid,$ask);
+    else if ($ask=="lock" || $ask=="extr" || $ask=="top" || $ask=="global_top_action") threads_action($con,$token,$bid,$tid,$ask);
     else if ($ask=="delete") delete($con,$token,$bid,$tid,$pid,$ip);
     else if ($ask=="move") move($con,$token,$bid,$tid,$to);
     else if ($ask=="lzl") lzl($con,@$_REQUEST['method'],$fid,$token,$ip);
@@ -172,7 +173,11 @@
             else $extr=1;
             if ($page=="") $page=1;
             $start=($page-1)*25;
-            $statement="select * from threads where bid=$bid and extr>=$extr order by top desc, timestamp desc limit $start, 25";
+            $statement="
+            select threads.bid,threads.tid,title,author,replyer,click,reply,extr,top,locked,timestamp,postdate,
+            case when thread_global_top.bid is null then 0 else 1 end as global_top 
+            from threads left join thread_global_top on threads.bid=thread_global_top.bid and threads.tid=thread_global_top.tid 
+            where threads.bid=$bid and extr>=$extr order by top desc, timestamp desc limit $start, 25";
         }
         view_bbs($con,$statement);
         if ($tid!="" && $pid=="") {
@@ -675,6 +680,18 @@
             $statement="update threads set top=1-top where bid=$bid && tid=$tid";
         else if ($action=="extr")
             $statement="update threads set extr=1-extr where bid=$bid && tid=$tid";
+        else if ($action=="global_top_action") {
+            $statement="select bid, tid from thread_global_top where bid=$bid and tid=$tid";
+            $results=mysql_query($statement);
+            if (mysql_num_rows($results) == 0) {
+                $statement="insert into thread_global_top (bid,tid) values ($bid,$tid)";
+            } else {
+                $statement="delete from thread_global_top where bid=$bid and tid=$tid";
+            }
+            $results=mysql_query($statement);
+            echo '<info><code>0</code></info></capu>';
+            return;
+        }
         mysql_query($statement);
         if(mysql_error()){
             echo '<info><code>2</code><error>'.mysql_error().'</error></info></capu>';
@@ -997,7 +1014,47 @@
             echo "<info><nowuser>$username</nowuser></info>";
         }
 
-        $results=mysql_query("select * from threads order by timestamp desc limit 0,$hotnum");
+        $results=mysql_query("
+            select threads.bid,threads.tid,title,author,replyer,click,reply,extr,top,locked,timestamp,postdate,
+            case when thread_global_top.bid is null then 0 else 1 end as global_top 
+            from threads left join thread_global_top on threads.bid=thread_global_top.bid and threads.tid=thread_global_top.tid 
+            where thread_global_top.bid is null 
+            order by timestamp desc 
+            limit 0,$hotnum");
+        while ($res=mysql_fetch_array($results)) {
+            echo "<info>\n";
+            foreach ( $res as $key => $value ) {
+                if (is_long($key)) continue;
+                echo '<'.$key.'>'.trans($value).'</'.$key.">\n";
+            }
+            echo "</info>\n";
+        }
+        echo '</capu>';
+    }
+
+    function global_top($con,$token){
+        $hotnum=15; // Default number of hot list
+        if (@$_REQUEST['hotnum'])
+            $hotnum=@$_REQUEST['hotnum'];
+        echo '<capu>';
+        $time=time();
+        $statement="select username from userinfo where token='$token' && $time-tokentime<={$GLOBALS['validtime']}";
+        $results=mysql_query($statement);
+        if (mysql_num_rows($results)==0) {
+            echo '<info><nowuser></nowuser></info>';
+        }else {
+            $res=mysql_fetch_array($results);
+            $username=$res[0];
+            echo "<info><nowuser>$username</nowuser></info>";
+        }
+
+        $results=mysql_query("
+            select threads.bid,threads.tid,title,author,replyer,click,reply,extr,top,locked,timestamp,postdate,
+            case when thread_global_top.bid is null then 0 else 1 end as global_top 
+            from threads left join thread_global_top on threads.bid=thread_global_top.bid and threads.tid=thread_global_top.tid 
+            where thread_global_top.bid is not null 
+            order by timestamp desc 
+            limit 0,$hotnum");
 
         while ($res=mysql_fetch_array($results)) {
             echo "<info>\n";

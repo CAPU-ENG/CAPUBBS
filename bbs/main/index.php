@@ -241,6 +241,12 @@ foreach($infos as $info){
 		echo("<a href='javascript:settid(\"top\",$tid);'>置顶</a>");
 	}
 	echo("&nbsp;");
+	if($info['global_top']=="1"){
+		echo("<a href='javascript:settid(\"global_top_action\",$tid);'>取消首页置顶</a>");
+	}else{
+		echo("<a href='javascript:settid(\"global_top_action\",$tid);'>首页置顶</a>");
+	}
+	echo("&nbsp;");
 	if($info['locked']=="1"){
 		echo("<a href='javascript:settid(\"lock\",$tid);'>解锁</a>");
 	}else{
