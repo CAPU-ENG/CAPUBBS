@@ -999,7 +999,7 @@
     }
 
     function hot($con,$token){
-        $hotnum=15; // Default number of hot list
+        $hotnum=10; // Default number of hot list
         if (@$_REQUEST['hotnum'])
             $hotnum=@$_REQUEST['hotnum'];
         echo '<capu>';
@@ -1016,9 +1016,12 @@
 
         $results=mysql_query("
             select threads.bid,threads.tid,title,author,replyer,click,reply,extr,top,locked,timestamp,postdate,
-            case when thread_global_top.bid is null then 0 else 1 end as global_top 
+            case 
+                when thread_global_top.bid is null then 0
+                else 1
+            end as global_top
             from threads left join thread_global_top on threads.bid=thread_global_top.bid and threads.tid=thread_global_top.tid 
-            where thread_global_top.bid is null 
+            where thread_global_top.bid is null
             order by timestamp desc 
             limit 0,$hotnum");
         while ($res=mysql_fetch_array($results)) {
@@ -1033,9 +1036,6 @@
     }
 
     function global_top($con,$token){
-        $hotnum=15; // Default number of hot list
-        if (@$_REQUEST['hotnum'])
-            $hotnum=@$_REQUEST['hotnum'];
         echo '<capu>';
         $time=time();
         $statement="select username from userinfo where token='$token' && $time-tokentime<={$GLOBALS['validtime']}";
@@ -1053,8 +1053,7 @@
             case when thread_global_top.bid is null then 0 else 1 end as global_top 
             from threads left join thread_global_top on threads.bid=thread_global_top.bid and threads.tid=thread_global_top.tid 
             where thread_global_top.bid is not null 
-            order by timestamp desc 
-            limit 0,$hotnum");
+            order by timestamp desc");
 
         while ($res=mysql_fetch_array($results)) {
             echo "<info>\n";
