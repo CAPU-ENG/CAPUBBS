@@ -108,6 +108,9 @@ if ($username!="") {
 			$page=ceil(($num)/12);
             $activity = getActivity($bid, $tid);
 			$link="../content/?bid=$bid&tid=$tid&p=$page#$num";
+            if ($activity) {
+                $link="../content/?bid=$bid&tid=$tid&p=1#1";
+            }
 			if ($num==1) $author=$hot['author'];
 			else $author=$hot['replyer'];
 			$time=date("Y-m-d H:i:s",$hot['timestamp']);
