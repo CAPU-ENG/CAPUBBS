@@ -29,15 +29,15 @@ function encode($str){
 }
 function userhref($username){
 	if($username)
-	return "<a class='author' href='../user?name=$username' target='_blank'>$username</a>";
+	return "<a class='author' href='../user?name=".rawurlencode($username)."' target='_blank'>$username</a>";
 }
 function userhrefbig($username){
 	if($username)
-	return "<a class='authorbig' href='../user?name=$username' target='_blank'>$username</a>";
+	return "<a class='authorbig' href='../user?name=".rawurlencode($username)."' target='_blank'>$username</a>";
 }
 function athref($username){
 	if($username)
-	return "<a class='author' href='../user?name=$username' target='_blank'>@$username</a>";
+	return "<a class='author' href='../user?name=".rawurlencode($username)."' target='_blank'>@$username</a>";
 	return "";
 }
 function href($link,$name){

@@ -134,7 +134,8 @@
 		<?php
 		$rights=intval($users['rights']);$star=-1;
 		if($currentuser!=""){
-			echo("欢迎您，<a href='../user/?name=$currentuser' target='_blank'>$currentuser</a>");
+			$url_currentuser = rawurlencode($currentuser);
+			echo("欢迎您，<a href='../user/?name=$url_currentuser' target='_blank'>$currentuser</a>");
 			$userinfo=mainfunc(array("view"=>$currentuser));
 			$userinfo=$userinfo[0];
 			$star=intval($userinfo['star']);
