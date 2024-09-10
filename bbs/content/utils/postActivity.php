@@ -108,7 +108,7 @@ function cancel_join_activity_by_content($bid, $tid, $username, $option_values, 
             $type_id = $option["type_id"];
             $required = $option["required"];
             $text = $text.$option_name."：";
-            if (!empty($option_values[$option_id])) {
+            if (!is_null($option_values[$option_id])) {
                 $value = $option_values[$option_id];
                 
                 switch ($option["type_id"]) {
@@ -206,7 +206,7 @@ function modify_join_activity_by_content($bid, $tid, $username, $option_values, 
         $option = $options[$option_idx];
         $option_id = $option["option_id"];
         $required = $option["required"];
-        if ($required == 1 && empty($option_values[$option_id])) {
+        if ($required == 1 && is_null($option_values[$option_id])) {
             return array("code"=> -1,"msg"=> "option(#".$option_id.") not found");
         }
     }
@@ -231,7 +231,7 @@ function modify_join_activity_by_content($bid, $tid, $username, $option_values, 
             $option = $options[$option_idx];
             $option_id = $option["option_id"];
             $required = $option["required"];
-            if (!empty($option_values[$option_id])) {
+            if (!is_null($option_values[$option_id])) {
                 $value = $option_values[$option_id];
                 $value = mysql_real_escape_string($value);
                 // UPDATE `capubbs`.`season_join_option_value` SET `value` = '1123123' WHERE (`id` = '3');
@@ -254,7 +254,7 @@ function modify_join_activity_by_content($bid, $tid, $username, $option_values, 
             $type_id = $option["type_id"];
             $required = $option["required"];
             $text = $text.$option_name."：";
-            if (!empty($option_values[$option_id])) {
+            if (!is_null($option_values[$option_id])) {
                 $value = $option_values[$option_id];
                 
                 switch ($option["type_id"]) {
@@ -348,7 +348,7 @@ function join_activity_by_content($bid, $tid, $username, $option_values, $title,
         $option = $options[$option_idx];
         $option_id = $option["option_id"];
         $required = $option["required"];
-        if ($required == 1 && empty($option_values[$option_id])) {
+        if ($required == 1 && is_null($option_values[$option_id])) {
             return array("code"=> -1,"msg"=> "option(#".$option_id.") not found");
         }
     }
@@ -368,7 +368,7 @@ function join_activity_by_content($bid, $tid, $username, $option_values, $title,
             $type_id = $option["type_id"];
             $required = $option["required"];
             $text = $text.$option_name."：";
-            if (!empty($option_values[$option_id])) {
+            if (!is_null($option_values[$option_id])) {
                 $value = $option_values[$option_id];
                 
                 switch ($option["type_id"]) {
@@ -460,7 +460,7 @@ function join_activity_by_content($bid, $tid, $username, $option_values, $title,
             $option = $options[$option_idx];
             $option_id = $option["option_id"];
             $required = $option["required"];
-            if (!empty($option_values[$option_id])) {
+            if (!is_null($option_values[$option_id])) {
                 $value = $option_values[$option_id];
                 $value = mysql_real_escape_string($value);
                 
