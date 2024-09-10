@@ -1,7 +1,7 @@
 <?php
 require_once '../../../lib.php';
 require_once("activityService.php");
-require_once("../../../third/PHPExcel/PHPExcel.php");
+require_once("../../../third/PHPExcel/Classes/PHPExcel.php");
 require_once("../../lib/mainfunc.php");
 
 $user = getuser();
