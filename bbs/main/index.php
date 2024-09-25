@@ -139,14 +139,32 @@ if($rights>=1){
 <option selected value="thread">搜索帖子标题</option>
 <option value="post">搜索帖子正文</option>
 </select>
+<script>
+function search_time_change() {
+	let now = new Date();
+	let last = parseInt($("#search_range").val());
+	let currentYear = now.getFullYear();
+	let currentMonth = now.getMonth()+1;
+	let currentDay = now.getDate();
+	let starttime = new Date(currentYear-last, currentMonth-1, currentDay);
+	let endtime = new Date(currentYear, currentMonth-1, currentDay);
+	$("#starttime").val(starttime.getFullYear()+"-"+(starttime.getMonth()+1)+"-"+starttime.getDate());
+	$("#endtime").val(endtime.getFullYear()+"-"+(endtime.getMonth()+1)+"-"+endtime.getDate());
+}
+</script>
+<select id="search_range" name="time" onchange="search_time_change();">
+<option selected value="1">近一年</option>
+<option value="2">近两年</option>
+<option value="2000">不限</option>
+</select>
 <input type="hidden" name="bid" value="<?php echo $bid; ?>">
 <input type="hidden" name="show" value="" id='search_show'>
 <input type="submit" value="搜索">
 <input type="button" onclick="$('#search_more').show();$('#search_show').val('1');$(this).hide();" value="更多搜索选项" >
 <br>
 <span style='display:none;margin-top:5px' id='search_more'>
-起始时间：<input type="text" name="starttime" class="search" style="padding-left:5px;width:90px" value="2001-01-01">
-&nbsp;&nbsp;终止时间：<input type="text" name="endtime" class="search" style="padding-left:5px;width:90px" value="<?php echo date('Y-m-d',time());?>">
+起始时间：<input id="starttime" type="text" name="starttime" class="search" style="padding-left:5px;width:90px" value="<?php $currentDate = date('Y-m-d'); echo date('Y-m-d', strtotime('-1 year', strtotime($currentDate)));?>">
+&nbsp;&nbsp;终止时间：<input id="endtime" type="text" name="endtime" class="search" style="padding-left:5px;width:90px" value="<?php echo date('Y-m-d',time());?>">
 &nbsp;&nbsp;作者：<input type="text" name="author" class="search" style="padding-left:5px;width:130px" placeholder="不限制则不填" value="">
 </span>
 </form>
