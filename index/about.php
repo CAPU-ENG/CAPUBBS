@@ -280,14 +280,14 @@ body {
   <div class="form-group">
     <label class="col-md-3 control-label">日常招新负责</label>
     <div class="col-md-9">
-      <p class="form-control-static">李昱麒|Ricky 18049083283</p>
+      <p class="form-control-static">李小彤|徐行 13264442659</p>
     </div>
   </div>
 
   <div class="form-group">
     <label class="col-md-3 control-label">外联部部长</label>
     <div class="col-md-9">
-      <p class="form-control-static">汤嘉伟|Jewish 18125372556</p>
+      <p class="form-control-static">关涛|飞舟 13240142448</p>
     </div>
   </div>
 
@@ -298,17 +298,17 @@ body {
     </div>
   </div>
 
-  <div class="form-group">
+  <!-- <div class="form-group">
     <label class="col-md-3 control-label">官方邮箱</label>
     <div class="col-md-9">
       <p class="form-control-static"><a href="mailto:beidachexie@126.com">beidachexie@126.com</a></p>
     </div>
-  </div>
+  </div> -->
 
   <div class="form-group">
     <label class="col-md-3 control-label">论坛反馈</label>
     <div class="col-md-9">
-      <p class="form-control-static">王越千|黄杨 15811443328</p>
+      <p class="form-control-static">张颢丹|好蛋 13121759322</p>
     </div>
   </div>
 
