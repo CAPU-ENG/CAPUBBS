@@ -113,7 +113,11 @@ function cancel_join_activity_by_content($bid, $tid, $username, $option_values, 
                 
                 switch ($option["type_id"]) {
                     case 1:
-                        $text = $text.$value;
+                        $statement = "select case_name from season_option_case where case_id=$value";
+                        $result = mysql_query($statement);
+                        $row = mysql_fetch_array($result);
+                        $real_value = $row["case_name"];
+                        $text = $text.$real_value;
                         break;
                     case 6:
                         $text = $text.$value;
@@ -259,7 +263,11 @@ function modify_join_activity_by_content($bid, $tid, $username, $option_values, 
                 
                 switch ($option["type_id"]) {
                     case 1:
-                        $text = $text.$value;
+                        $statement = "select case_name from season_option_case where case_id=$value";
+                        $result = mysql_query($statement);
+                        $row = mysql_fetch_array($result);
+                        $real_value = $row["case_name"];
+                        $text = $text.$real_value;
                         break;
                     case 6:
                         $text = $text.$value;
@@ -373,7 +381,11 @@ function join_activity_by_content($bid, $tid, $username, $option_values, $title,
                 
                 switch ($option["type_id"]) {
                     case 1:
-                        $text = $text.$value;
+                        $statement = "select case_name from season_option_case where case_id=$value";
+                        $result = mysql_query($statement);
+                        $row = mysql_fetch_array($result);
+                        $real_value = $row["case_name"];
+                        $text = $text.$real_value;
                         break;
                     case 6:
                         $text = $text.$value;

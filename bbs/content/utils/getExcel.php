@@ -10,7 +10,7 @@ $bid = $_GET["bid"];
 $tid = $_GET["tid"];
 // $activity_id = $_GET["activity_id"];
 
-$INDEX = array("A","B","C","D","E","F","G","H","I","J","K","L","M","N","O","P");
+$INDEX = array("A","B","C","D","E","F","G","H","I","J","K","L","M","N","O","P","Q","R","S","T","U","V","W","X","Y","Z");
 
 $activity = getActivity($bid, $tid);
 // if (!$activity || ($activity["leader_username"] != $username && "网络组" != $username)) {
@@ -53,7 +53,22 @@ for ($user_idx = 0; $user_idx < count(@$join_value); $user_idx++){
         $option = $activity["options"][$option_idx];
         if ($option["option_name"] == "想说的话")
             break;
-        $objPHPExcel->setActiveSheetIndex(0)->setCellValue(($INDEX[$option_idx+1]).($line_idx), ($_option_value[$option["option_id"]]));
+        
+        switch ($option["type_id"]) {
+            case 1:
+                $cases = $option["cases"];
+                for ($case_id = 0; $case_id < count(@$cases); $case_id++) {
+                    if ($_option_value[$option["option_id"]] == $cases[$case_id]["case_id"]) {
+                        $real_value = $cases[$case_id]["case_name"];
+                        break;
+                    }
+                }
+                break;
+            case 6:
+                $real_value = $_option_value[$option["option_id"]];
+                break;
+        }
+        $objPHPExcel->setActiveSheetIndex(0)->setCellValue(($INDEX[$option_idx+1]).($line_idx), ($real_value));
     }
 }
 

@@ -31,6 +31,18 @@ function get_activity_join($activity_id) {
     return $ret;
 }
 
+function get_activity_join_remind($activity_id) {
+    dbconnect();
+    mysql_select_db("capubbs");
+    $statement = "select text from activity_join_remind where activity_id=$activity_id";
+    $results = mysql_query($statement);
+    if (mysql_num_rows($results)!=0) {
+        $rows = mysql_fetch_array($results);
+        return $rows["text"];
+    }
+    return NULL;
+}
+
 function get_canceled($username, $activity_id) {
     dbconnect();
     mysql_select_db("capubbs");
@@ -296,4 +308,38 @@ function updatestar($con,$username) {
     if ($ss!="" && $ss>=1 && $ss<=9) $star=$ss;
     $statement="update userinfo set star=$star where username='$username'";
     mysql_query($statement);
+}
+
+function get_floor_num_1($username, $activity_id) {
+    dbconnect();
+    mysql_select_db("capubbs");
+
+    $username = mysql_real_escape_string($username);
+    $statement = "
+        select username, rank from (select username, @r:=@r+1 as rank from season_activity_join, (select @r := 1) r where activity_id=$activity_id order by post_fid) ranks where username='$username'";
+    $results = mysql_query($statement);
+    if (mysql_num_rows($results) != 0) {
+        $row = mysql_fetch_array($results);
+        $floor_num = $row["rank"];
+        return $floor_num;
+    }
+
+    return -1;
+}
+
+function get_floor_num_2($username, $bid, $tid) {
+    dbconnect();
+    mysql_select_db("capubbs");
+
+    $username = mysql_real_escape_string($username);
+    $statement = "
+        select author, rank from (select author as author, @r:=@r+1 as rank from posts, (select @r := 0) r where bid=$bid and tid=$tid order by replytime) ranks where author='$username'";
+    $results = mysql_query($statement);
+    if (mysql_num_rows($results) != 0) {
+        $row = mysql_fetch_array($results);
+        $floor_num = $row["rank"];
+        return $floor_num;
+    }
+
+    return -1;
 }

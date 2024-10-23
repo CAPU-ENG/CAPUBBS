@@ -279,12 +279,12 @@ for($i=0;$i<count(@$data);$i++){
                             switch ($option["type_id"]) {
                                 case 1:
                                     $cases = $option["cases"];
+                                    echo "<div>";
                                     for ($case_id = 0; $case_id < count(@$cases); $case_id++) {
-                                        echo "<div>";
                                         echo "<input type='radio' name='".$option["option_id"]."' value='".$cases[$case_id]["case_id"]."' required>";
                                         echo $cases[$case_id]["case_name"];
-                                        echo "</div>";
                                     }
+                                    echo "</div>";
                                     break;
                                 case 6:
                                     if ($option["option_name"] == "ID") {
@@ -387,10 +387,25 @@ for($i=0;$i<count(@$data);$i++){
                                     for ($option_idx=0; $option_idx < count(@$activity["options"]); $option_idx++){
                                         $option = $activity["options"][$option_idx];
 
+                                        switch ($option["type_id"]) {
+                                            case 1:
+                                                $cases = $option["cases"];
+                                                for ($case_id = 0; $case_id < count(@$cases); $case_id++) {
+                                                    if ($_option_value[$option["option_id"]] == $cases[$case_id]["case_id"]) {
+                                                        $real_value = $cases[$case_id]["case_name"];
+                                                        break;
+                                                    }
+                                                }
+                                                break;
+                                            case 6:
+                                                $real_value = $_option_value[$option["option_id"]];
+                                                break;
+                                        }
+
                                         if ($cancel) {
-                                            echo $tag_begin.'<font color="red"><strike>'.htmlspecialchars($_option_value[$option["option_id"]]).'</strike></font>'.$tag_end;
+                                            echo $tag_begin.'<font color="red"><strike>'.htmlspecialchars($real_value).'</strike></font>'.$tag_end;
                                         } else {
-                                            echo $tag_begin.htmlspecialchars($_option_value[$option["option_id"]]).$tag_end;
+                                            echo $tag_begin.htmlspecialchars($real_value).$tag_end;
                                         }
                                     }
                                     echo '</tr>';
@@ -444,7 +459,24 @@ for($i=0;$i<count(@$data);$i++){
                 <br><br><hr>
                 <div style='justify-content: center; align-items: center; border: 1px solid black; padding: 10px 10px 10px 10px;'>
                     <div style="text-align: center;">
-                        <font size="6px">已报名</font>
+                        <font size="6px">已报名<?php 
+                            $floor_num1 = get_floor_num_1($currentuser, $activity_id);
+                            $floor_num2 = get_floor_num_2($currentuser, $bid, $tid);
+                            if ($floor_num1 == -1 || $floor_num2 == -1 || $floor_num1 != $floor_num2) {
+                                echo '（出bug了，请联系好蛋）';
+                            } else {
+                                $page_num = ceil(($floor_num1)/12);
+                                if ($floor_num1 <= 12)
+                                    echo "（<a href='#".$floor_num1."'>第".$floor_num1."楼</a>）";
+                                else
+                                    echo "（<a href='../content/?p=".$page_num."&bid=".$bid."&tid=".$tid."#".$floor_num1."'>第".$floor_num1."楼</a>）";
+                            }
+                        ?></font>
+                        <?php
+                            $text = get_activity_join_remind($activity_id);
+                            if ($text)
+                                echo $text;
+                        ?>
                         <br>
                         <br>
                         <button id="cancel_join">取消报名</button>
@@ -465,12 +497,16 @@ for($i=0;$i<count(@$data);$i++){
                             switch ($option["type_id"]) {
                                 case 1:
                                     $cases = $option["cases"];
+                                    echo "<div>";
                                     for ($case_id = 0; $case_id < count(@$cases); $case_id++) {
-                                        echo "<div>";
-                                        echo "<input type='radio' name='".$option["option_id"]."' value='".$cases[$case_id]["case_id"]."' required>";
+                                        if ($optionValue[$option["option_id"]] == $cases[$case_id]["case_id"])
+                                            $checked = "checked";
+                                        else
+                                            $checked = "";
+                                        echo "<input type='radio' name='".$option["option_id"]."' value='".$cases[$case_id]["case_id"]."' required $checked>";
                                         echo $cases[$case_id]["case_name"];
-                                        echo "</div>";
                                     }
+                                    echo "</div>";
                                     break;
                                 case 6:
                                     echo "<input style='width: 70%;' name='".$option["option_id"]."' value='".$optionValue[$option["option_id"]]."'required>";
