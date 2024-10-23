@@ -8,6 +8,7 @@ $starttime=@$_POST['starttime'];
 $endtime=@$_POST['endtime'];
 $author=@$_POST['author'];
 $showall=@$_POST['show'];
+$showall=1;
 $result="";
 if ($type!="")
 $result=mainfunc(array(

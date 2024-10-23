@@ -104,7 +104,7 @@ if($username!=""){
 		<div class="back" onclick="goback();"><span style="margin-left:32px;"><b>返回</b></span></div>
 		<span style="float:left;margin-left:20px;position:relative;"> 
 		<?php
-		echo("<a href='../index' onmouseover='showmenu();'>CAPUBBS</a>&nbsp;&gt;&nbsp;");
+		echo("<a href='../index/' onmouseover='showmenu();'>CAPUBBS</a>&nbsp;&gt;&nbsp;");
 		echo("<a href='./?bid=$bid&p=1'>".$boardinfo['bbstitle'].$xx."</a>&nbsp;&gt;&nbsp;");
 		echo("<span>第".$page."页</span>&nbsp;");
 		if ($extr) echo "<a href='./?bid=$bid&p=1' style='margin-left:50px'>查看全部</a>";
@@ -677,8 +677,8 @@ function jump(page){
 }
 
 function gotobbs(tbid){
-	//window.open("../main?bid="+tbid, "_self");
-	window.location="../main?bid="+tbid;
+	//window.open("../main/?bid="+tbid, "_self");
+	window.location="../main/?bid="+tbid;
 }
 function showmenu(){
 	//document.getElementById("popover").style.visibility="visible";
@@ -690,7 +690,7 @@ function hidemenu(){
 }
 function goback(){
 	//window.open("../bbs", "_self");
-	window.location="../index";
+	window.location="../index/";
 }
 
 function doreply(){
