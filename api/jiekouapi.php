@@ -1120,7 +1120,7 @@
         echo '</capu>';
     }
     function recentreply($con,$view){
-        $results=mysql_query("select * from posts where author='$view' order by updatetime desc limit 0,10");
+        $results=mysql_query("select title, bid, tid, pid, updatetime from posts where author='$view' order by updatetime desc limit 0,10");
         echo '<capu>';
         echo "<info><nowuser></nowuser></info>\n";
         while ($res=mysql_fetch_array($results)) {
