@@ -709,6 +709,10 @@ function doreply(){
 		alert("尚未登录！");
 		return;
 	}
+	if (content.length > 100000) {
+		alert("内容字符数为"+content.length+"（超过10万字符），请检查是否粘贴了图片。");
+		return;
+	}
 	content=content.replace(/&/g, "&amp;");
 	//document.getElementById("fm_title").value=document.getElementById("raw_title").value;
 	//document.getElementById("fm_text").value=content;

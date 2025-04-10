@@ -887,6 +887,10 @@ function doreply(){
 		alert("请填写回复内容！");
 		return;
 	}
+	if (content.length > 100000) {
+		alert("内容字符数为"+content.length+"（超过10万字符），请检查是否粘贴了图片。");
+		return;
+	}
 	//document.getElementById("fm_title").value="Re: <?php echo $tdata['title']; ?>";
 	//document.getElementById("fm_text").value=content;
 	//document.getElementById("fm_token").value=token;
