@@ -418,7 +418,7 @@
 
 
         $statement="insert into userinfo values ('$username','$password','$token',$time,'$sex','$icon','$intro','$sig1','$sig2','$sig3','$hobby','$qq','$mail'," .
-                   "'$place','$date','$date','$ip',1,0,0,0,0,0,0,0,0,NULL,NULL,'$onlinetype','$logininfo','$code',null,null,null,null,null)";
+                   "'$place','$date','$date','$ip',1,0,0,0,0,0,0,0,0,NULL,NULL,'$onlinetype','$logininfo','$code',null,null,null,null,null,null)";
         mysql_query($statement);
         $error=mysql_errno();
         if ($error!=0) {
