@@ -9,7 +9,7 @@
 	$text=$_POST["text"];
 	$sig=$_POST["sig"];
 	$attachs=$_POST['attachs'];
-	$p= ceil((intval($pid)+1)/12);		
+	$p= ceil((intval($pid))/12);		
 		$result=mainfunc(array(
 		"ask"=>"edit",
 		"bid"=>$bid,
