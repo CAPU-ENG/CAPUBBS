@@ -1137,7 +1137,8 @@
     function logout($con,$token,$ip){
         echo("<capu>");
         $today=date("Y-m-d");
-        $statement="update userinfo set tokentime=null, token=null, nowboard=null, lastip='$ip',lastdate='$today' where token='$token'";
+        // $statement="update userinfo set tokentime=null, token=null, nowboard=null, lastip='$ip',lastdate='$today' where token='$token'";
+        $statement="update userinfo set nowboard=null, lastip='$ip',lastdate='$today' where token='$token'";
         mysql_query($statement);
         echo("<info><code>0</code></info>");
         echo("</capu>");
