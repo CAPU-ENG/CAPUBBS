@@ -1105,7 +1105,8 @@
     }
 
     function recentpost($con,$view){
-        $results=mysql_query("select * from threads where author='$view' order by timestamp desc limit 0,10");
+        // $results=mysql_query("select * from threads where author='$view' order by timestamp desc limit 0,10");
+        $results=mysql_query("select bid,tid,pid,title,author,replytime as timestamp from posts where author='$view' and pid=1 order by replytime desc limit 0,10");
         echo '<capu>';
 
         echo "<info><nowuser></nowuser></info>\n";
