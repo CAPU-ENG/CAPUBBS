@@ -508,6 +508,11 @@ function doreply(){
 	}
 	var content=document.getElementById("edi_content").innerHTML;
 	content=content.replace(/&/g, "&amp;");
+
+	if (content.length > 100000) {
+		alert("内容字符数为"+content.length+"（超过10万字符），请检查是否粘贴了图片。");
+		return;
+	}
 	var bts=document.getElementsByName("sign");
 	var sig;
 	for(var i=0;i<bts.length;i++){
