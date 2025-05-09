@@ -932,31 +932,46 @@ function doreply(){
 
 
 }
-function quote(who,num){
-	var data=$('#floor'+num).html();
-
-	// remove all the quote area
-	$('#floor'+num).find('.quotel').each(function() {
-		$(this).remove();
-	});
-	var what=$('#floor'+num).html();
-	$('#floor'+num).html(data);
-
-	if (what.length>=133)
-		what=what.substr(0,130)+"...";
-	
-	var temp=document.createElement("div");
-	temp.innerHTML=what;
-	var divs=temp.getElementsByTagName("div");
-	for(var i=0;i<divs.length;i++){
-		if(divs[i].className=="quotel"){
-			divs[i].parentNode.removeChild(divs[i]);
-		}
+function quote(who, num) {
+    // Try to get the selected text
+	var selectedText = '';
+	if (window.getSelection) {
+		selectedText = window.getSelection().toString().trim();
+	} else if (document.selection && document.selection.type != "Control") {
+		selectedText = document.selection.createRange().text.trim();
 	}
-	what=temp.innerHTML;
-	
-	insertHTML("[quote="+who+"]"+what+"[/quote]");
 
+	var what;
+	if (selectedText) {
+		// If user selected text, use it directly
+		what = selectedText;
+	} else {
+		// If not, try to get the specified post
+		var data = $("#floor" + num).html();
+
+		$("#floor" + num)
+			.find(".quotel")
+			.each(function() {
+				$(this).remove();
+			});
+		what = $("#floor" + num).html();
+		$("#floor" + num).html(data);
+
+		if (what.length >= 133) what = what.substr(0, 130) + "...";
+
+		var temp = document.createElement("div");
+		temp.innerHTML = what;
+		var divs = temp.getElementsByTagName("div");
+		for (var i = 0; i < divs.length; i++) {
+			if (divs[i].className == "quotel") {
+				divs[i].parentNode.removeChild(divs[i]);
+			}
+		}
+		what = temp.innerHTML;
+	}
+
+	// 插入引用内容到编辑器
+	insertHTML("[quote=" + who + "]" + what + "[/quote]");
 }
 var temptarget;
 function sendMessageTo(target){
