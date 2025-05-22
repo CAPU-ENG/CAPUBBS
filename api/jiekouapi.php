@@ -1894,15 +1894,15 @@ while ($res=mysql_fetch_array($result)) {
         }
         if($type=="thread"){
             if ($author=="")
-                $statement="select title,bid,tid,author,updatetime from posts where bid=$bid and updatetime>=$start && updatetime<=$end and pid=1 and title like '%$keyword%' order by updatetime desc limit 100";
+                $statement="select title,bid,tid,author,replytime from posts where bid=$bid and replytime>=$start && replytime<=$end and pid=1 and title like '%$keyword%' order by replytime desc limit 100";
             else
-                $statement="select title,bid,tid,author,updatetime from posts where bid=$bid and updatetime>=$start && updatetime<=$end and pid=1 and author='$author' and title like '%$keyword%' order by updatetime desc limit 100";
+                $statement="select title,bid,tid,author,replytime from posts where bid=$bid and replytime>=$start && replytime<=$end and pid=1 and author='$author' and title like '%$keyword%' order by replytime desc limit 100";
 
         }else if($type=="post"){
             if ($author=="")
-                $statement="select * from posts where bid=$bid and updatetime>=$start && updatetime<=$end and text like '%$keyword%' order by updatetime desc limit 100";
+                $statement="select title,bid,tid,pid,author,updatetime from posts where bid=$bid and updatetime>=$start && updatetime<=$end and text like '%$keyword%' order by updatetime desc limit 100";
             else
-                $statement="select * from posts where bid=$bid and updatetime>=$start && updatetime<=$end and author='$author' and text like '%$keyword%' order by updatetime desc limit 100";
+                $statement="select title,bid,tid,pid,author,updatetime from posts where bid=$bid and updatetime>=$start && updatetime<=$end and author='$author' and text like '%$keyword%' order by updatetime desc limit 100";
         }
         view_bbs($con, $statement);
     }
