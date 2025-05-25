@@ -1,5 +1,6 @@
 <?php
 	include("../lib/mainfunc.php");
+	require_once __DIR__."/../lib/mainfunc.new.php";
 	include "./utils/activityService.php";
 	require_once '../../lib.php';
 
@@ -19,7 +20,9 @@
 		require "./utils/activity.php";
 		exit();
 	}
-	$data=mainfunc(array("bid"=>$bid,"tid"=>$tid,"p"=>$page,"see_lz"=>$see_lz),null);
+	// $data=mainfunc(array("bid"=>$bid,"tid"=>$tid,"p"=>$page,"see_lz"=>$see_lz),null);
+	$data = getOnePage($bid, $tid, $page, $see_lz, $_SERVER["REMOTE_ADDR"], $_COOKIE['token']);
+
 	$tdata=mainfunc(array("bid"=>$bid,"tid"=>$tid,"ask"=>"tidinfo"));
 	$floordata="";
 	if ($see_lz!="") {
