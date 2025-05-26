@@ -2,8 +2,7 @@
 require_once "../../../../bbs/lib/mainfunc.php";
 require_once '../../../../lib.php';
 
-dbconnect();
-mysql_select_db("capubbs");
+$con = dbconnect_mysqli();
 
 $bid=@$_GET['bid'];
 $tid=@$_GET['tid'];
@@ -24,12 +23,14 @@ if (!is_null($fid)) {
 } else {
     $statement = "select bid, tid, fid, pid, text, ishtml from posts where bid=$bid and tid=$tid and pid=$pid";
 }
-$result = mysql_query($statement);
+$result = mysqli_query($con, $statement);
 if (is_null($result)) {
     echo "error";
     exit;
 }
-$floor = mysql_fetch_array($result);
+$floor = mysqli_fetch_array($result, MYSQLI_ASSOC);
 $translated=translate($floor['text'],$floor['ishtml']=="YES");
 $translatedforquote=translateforquote($floor['text'],$floor['ishtml']=="YES");
 echo $translated;
+mysqli_free_result($result);
+mysqli_close($con);
