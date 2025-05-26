@@ -45,6 +45,7 @@
     $view=@$_REQUEST['view'];
     $con=null;
 
+    $nowtime=time();
     {
         $time=time();
         $statement="select username,star,rights,lastpost from userinfo where token='$token' && $time-tokentime<={$GLOBALS['validtime']}";
