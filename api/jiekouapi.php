@@ -62,8 +62,8 @@
             if ($onlinetype=="web") $logininfo=$browser;
             if ($onlinetype=="android" || $onlinetype=="ios") $logininfo=$system;
     
-            if ($ip!="") $statement="update userinfo set tokentime=$nowtime, token='$token', nowboard=null, lastip='$ip',lastdate='$today',onlinetype='$onlinetype',logininfo='$logininfo' where username='$username'";
-            else $statement="update userinfo set tokentime=$nowtime, token='$token', nowboard=null, lastdate='$today',onlinetype='$onlinetype',logininfo='$logininfo' where username='$username'";
+            if ($ip!="") $statement="update userinfo set tokentime=$nowtime, token='$token', lastip='$ip',lastdate='$today',onlinetype='$onlinetype',logininfo='$logininfo' where username='$username'";
+            else $statement="update userinfo set tokentime=$nowtime, token='$token', lastdate='$today',onlinetype='$onlinetype',logininfo='$logininfo' where username='$username'";
             mysql_query($statement);
 
             $year=date("Y",$time);

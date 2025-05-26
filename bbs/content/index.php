@@ -1,8 +1,8 @@
 <?php
-	include("../lib/mainfunc.php");
+	require_once __DIR__."/../lib/mainfunc.php";
 	require_once __DIR__."/../lib/mainfunc.new.php";
 	include "./utils/activityService.php";
-	require_once '../../lib.php';
+	require_once __DIR__.'/../../lib.php';
 
 	$bid=@$_GET['bid'];
 	$tid=@$_GET['tid'];
@@ -20,10 +20,14 @@
 		require "./utils/activity.php";
 		exit();
 	}
-	// $data=mainfunc(array("bid"=>$bid,"tid"=>$tid,"p"=>$page,"see_lz"=>$see_lz),null);
-	$data = getOnePage($bid, $tid, $page, $see_lz, $_SERVER["REMOTE_ADDR"], $_COOKIE['token']);
+	$ip = $_SERVER["REMOTE_ADDR"];
+	$token = $_SERVER["token"];
 
-	$tdata=mainfunc(array("bid"=>$bid,"tid"=>$tid,"ask"=>"tidinfo"));
+	$con = dbconnect_mysqli();
+	checkUserAndSign($con, $ip, $token);
+	$data = getOnePage($con, $bid, $tid, $page, $see_lz, $ip, $token, $username);
+	$tdata = getTidInfo($con, $bid, $tid);
+	
 	$floordata="";
 	if ($see_lz!="") {
 		$floordata=mainfunc(array("bid"=>$bid,"tid"=>$tid,"ask"=>"getlznum"));
