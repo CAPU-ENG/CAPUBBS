@@ -558,7 +558,8 @@
                 echo("<tid>".$id[$i]['tid']."</tid>");
                 echo("<pid>".$id[$i]['pid']."</pid>");
                 echo("<title><![CDATA[".$id[$i]['title']."]]></title>");
-                echo("<time>".date("Y-m-d H:i:s",$id[$i]['replytime'])."</time>");
+                // echo("<time>".date("Y-m-d H:i:s",$id[$i]['replytime'])."</time>");
+                echo("<time>".date("Y-m-d H:i:s",$id[$i]['updatetime'])."</time>");
                 echo("</info>");
             }
             echo '</info>';
@@ -630,7 +631,8 @@
                 echo "<tid>".$content[$i]['tid']."</tid>\n";
                 echo "<text><![CDATA[".$content[$i]['title']."]]></text>\n";
                 echo "<author><![CDATA[".$content[$i]['author']."]]></author>\n";
-                echo "<time>".date("Y-m-d H:i:s",$content[$i]['updatetime'])."</time>\n";
+                // echo "<time>".date("Y-m-d H:i:s",$content[$i]['updatetime'])."</time>\n";
+                echo "<time>".date("Y-m-d H:i:s",$content[$i]['replytime'])."</time>\n";
                 echo "</info>";
             }
 
