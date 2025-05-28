@@ -8,7 +8,12 @@ require_once 'config.php';
 function dbconnect() {
     $con = @mysql_connect(CAPUBBS_DB_HOSTNAME, CAPUBBS_DB_USERNAME,
         CAPUBBS_DB_PASSWORD) or die("Cannot connect to database !!!");
-    mysql_query("SET NAMES 'UTF8'");
+
+    // Set to `utf8mb4` in order to support emoji
+	mysql_query("SET NAMES 'utf8mb4'");
+
+	// Allow insert null while the column is defined with not null
+    mysql_query("SET sql_mode = ''");
 }
 
 // Check user.

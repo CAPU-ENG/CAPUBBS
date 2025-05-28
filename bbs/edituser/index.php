@@ -220,6 +220,9 @@ textarea{
 		echo("imgs=[");
 		while(($filename=readdir($handler))!==false&&$count++<$limit){
 			$filename=strtolower($filename);
+			if (strstr($filename, "temp")) {
+				continue;
+			}
 			if($filename!="."&&$filename!=".."&& (strrchr($filename, ".jpg")==".jpg"||strrchr($filename, ".jpeg")==".jpeg"||strrchr($filename, ".png")==".png"||strrchr($filename, ".gif")==".gif")){
 				echo("'$filename',");
 				#echo("<img src='../../bbsimg/icons/".$filename."' class='icon'>");

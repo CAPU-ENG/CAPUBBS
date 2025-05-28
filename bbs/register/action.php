@@ -46,7 +46,7 @@ header('Content-type:text/html;charset=utf-8');
 if(intval($result['code'])==0){
 	$time=time()+999999;
 	$date=date("D, d M Y H:i:s",$time)." GMT";
-	header('Set-cookie: token='.$result['token'].'; expires='.$date.'; path=/'."\n");
+	header('Set-cookie: token='.$result['token'].'; domain=.chexie.net; expires='.$date.'; path=/'."\n");
 	echo 0;
 	exit;
 }else{

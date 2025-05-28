@@ -144,7 +144,7 @@ if(count($recentposts)-1==0){
 		$title=$recentposts[$i]['title'];
 		$bid=$recentposts[$i]['bid'];
 		$tid=$recentposts[$i]['tid'];
-		$link="../content?bid=$bid&tid=$tid";
+		$link="../content/?bid=$bid&tid=$tid";
 		echo("<td><span class='title'><a href='$link'>$title</a></span></td>");
 		echo("<td width='100px' align='right'><span class='time'>".formatstamp($recentposts[$i]['timestamp'])."</span></td>");
 	}
@@ -168,7 +168,9 @@ if(count($recentposts)-1==0){
 		$title=$recentposts[$i]['title'];
 		$bid=$recentposts[$i]['bid'];
 		$tid=$recentposts[$i]['tid'];
-		$link="../content?bid=$bid&tid=$tid&p=1";
+		$pid=$recentposts[$i]['pid'];
+		$page=intval(($pid-1)/12)+1;
+		$link="../content/?bid=$bid&tid=$tid&p=$page#$pid";
 		echo("<td><span class='title'><a href='$link'>$title</a></span></td>");
 		echo("<td width='100px' align='right'><span class='time'>".formatstamp($recentposts[$i]['updatetime'])."</span></td>");
 	}

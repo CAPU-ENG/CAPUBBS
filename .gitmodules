@@ -1,0 +1,3 @@
+[submodule "third/PHPExcel"]
+	path = third/PHPExcel
+	url = https://github.com/pkuzhd/PHPExcel.git

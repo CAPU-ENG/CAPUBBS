@@ -8,6 +8,7 @@ $starttime=@$_POST['starttime'];
 $endtime=@$_POST['endtime'];
 $author=@$_POST['author'];
 $showall=@$_POST['show'];
+$showall=1;
 $result="";
 if ($type!="")
 $result=mainfunc(array(
@@ -129,18 +130,21 @@ else if($type=="post"){
 		$bid=$value['bid'];
 		$tid=$value['tid'];
 		$pid=$value['pid'];
+		$pidi = intval($pid);
+		$page=intval(($pidi-1)/12)+1;
 		$title=$value['title'];
 		$author=$value['author'];
 		$time=formatstamp($value['updatetime']);
-		$translated=$value['text'];
-		$translated=str_replace("<", "&lt;",$translated);
-		$translated=str_replace(">", "&gt;",$translated);
+		// $translated=$value['text'];
+		// $translated=str_replace("<", "&lt;",$translated);
+		// $translated=str_replace(">", "&gt;",$translated);
 
 		#$translated=translate($value['text'],$value['ishtml']=="YES");
-		if (mb_strlen($translated,'utf-8')>=200) $translated=mb_substr($translated,0,200,'utf-8')."....";
+		// if (mb_strlen($translated,'utf-8')>=200) $translated=mb_substr($translated,0,200,'utf-8')."....";
 		echo("<li>");
-		echo($title."&nbsp;&nbsp;&nbsp;<a href='../content/?bid=$bid&tid=$tid#$pid' style='color:#5c7084'>查看原帖</a><br>");
-		echo("<p style='text-indet:2em'>".$translated."<br><font color='#989898'>&nbsp;--- $author 发表于 $time</font></p>");
+		echo($title."&nbsp;&nbsp;&nbsp;<a href='../content/?bid=$bid&tid=$tid&p=$page#$pid' style='color:#5c7084'>查看原帖</a><br>");
+		// echo("<p style='text-indet:2em'>".$translated."<br><font color='#989898'>&nbsp;--- $author 发表于 $time</font></p>");
+		echo("<p style='text-indet:2em'><font color='#989898'>&nbsp;--- $author 发表于 $time</font></p>");
 	}
 } else{
 	foreach($result as $value){
@@ -150,7 +154,7 @@ else if($type=="post"){
 		$title=$value['title'];
 		$author=$value['author'];
 		//$time=formatstamp($value['timestamp']);
-		$time=formatstamp($value['updatetime']);
+		$time=formatstamp($value['replytime']);
 		echo("<li><a href='../content/?bid=$bid&tid=$tid'>".$value['title']."</a><font color='#989898'>&nbsp;---$author 发表于 $time</font>");
 	}
 }

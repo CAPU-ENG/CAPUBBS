@@ -12,7 +12,7 @@
         }
         exit;
     }
-    $GLOBALS['validtime']=1800;
+    $GLOBALS['validtime']=60*60*24*7;
     $GLOBALS['attachroot']="../bbs/attachment/";
     header('Content-type: application/xml');
     echo '<?xml version="1.0" encoding="UTF-8"?>';
@@ -44,6 +44,46 @@
     $ip=@$_REQUEST['ip'];
     $view=@$_REQUEST['view'];
     $con=null;
+
+    $nowtime=time();
+    {
+        $time=time();
+        $statement="select username,star,rights,lastpost from userinfo where token='$token' && $time-tokentime<={$GLOBALS['validtime']}";
+        $results=mysql_query($statement);
+        $res=mysql_fetch_array($results);
+        $username=$res[0];
+
+        if ($username) {
+            $today=date("Y-m-d");
+            $onlinetype=@$_REQUEST['onlinetype'];
+            $browser=@$_REQUEST['browser'];
+            $system=@$_REQUEST['system'];
+            $logininfo="";
+            if ($onlinetype=="web") $logininfo=$browser;
+            if ($onlinetype=="android" || $onlinetype=="ios") $logininfo=$system;
+    
+            if ($ip!="") $statement="update userinfo set tokentime=$nowtime, token='$token', lastip='$ip',lastdate='$today',onlinetype='$onlinetype',logininfo='$logininfo' where username='$username'";
+            else $statement="update userinfo set tokentime=$nowtime, token='$token', lastdate='$today',onlinetype='$onlinetype',logininfo='$logininfo' where username='$username'";
+            mysql_query($statement);
+
+            $year=date("Y",$time);
+            $month=date("m",$time);
+            $day=date("d",$time);
+            $statement="select * from capubbs.sign where year=$year && month=$month && day=$day && username='$username'";
+            $result=mysql_query($statement);
+            if (mysql_num_rows($result)==0) {
+                $hour=date("H",$time);
+                $minute=date("i",$time);
+                $second=date("s",$time);
+                $week=date("N",$time);
+                $statement="insert into capubbs.sign values ($year,$month,$day,$hour,$minute,$second,$week,'$username')";
+                mysql_query($statement);
+                $statement="update capubbs.userinfo set sign=sign+1 where username='$username'";
+                mysql_query($statement);
+            }
+        }
+    }
+
     if ($ip=="") $ip=$_SERVER["REMOTE_ADDR"];
     if ($ask=="bbsinfo") bbsinfo($con,$bid,@$_REQUEST['name']);
     else if ($ask=="login") login($con,@$_REQUEST['username'],@$_REQUEST['password'],$ip);
@@ -53,6 +93,7 @@
     else if ($ask=="getuser") getuser($con,$token);
     else if ($ask=="userexists") userexists($con);
     else if ($ask=="hot") hot($con,$token);
+    else if ($ask=="global_top") global_top($con,$token);
     else if ($ask=="news") news($con,$token);
     else if ($ask=="tidinfo") tidinfo($con,$bid,$tid);
     else if ($ask=="recentpost") recentpost($con,$view);
@@ -75,7 +116,7 @@
     else if ($ask=="post") post($con,$token,$bid,$ip,$attachs);
     else if ($ask=="reply") reply($con,$token,$bid,$tid,$ip,$attachs);
     else if ($ask=="edit") edit($con,$token,$bid,$tid,$pid,$ip,$attachs);
-    else if ($ask=="lock" || $ask=="extr" || $ask=="top") threads_action($con,$token,$bid,$tid,$ask);
+    else if ($ask=="lock" || $ask=="extr" || $ask=="top" || $ask=="global_top_action") threads_action($con,$token,$bid,$tid,$ask);
     else if ($ask=="delete") delete($con,$token,$bid,$tid,$pid,$ip);
     else if ($ask=="move") move($con,$token,$bid,$tid,$to);
     else if ($ask=="lzl") lzl($con,@$_REQUEST['method'],$fid,$token,$ip);
@@ -133,7 +174,11 @@
             else $extr=1;
             if ($page=="") $page=1;
             $start=($page-1)*25;
-            $statement="select * from threads where bid=$bid and extr>=$extr order by top desc, timestamp desc limit $start, 25";
+            $statement="
+            select threads.bid,threads.tid,title,author,replyer,click,reply,extr,top,locked,timestamp,postdate,
+            case when thread_global_top.bid is null then 0 else 1 end as global_top 
+            from threads left join thread_global_top on threads.bid=thread_global_top.bid and threads.tid=thread_global_top.tid 
+            where threads.bid=$bid and extr>=$extr order by top desc, timestamp desc limit $start, 25";
         }
         view_bbs($con,$statement);
         if ($tid!="" && $pid=="") {
@@ -374,7 +419,7 @@
 
 
         $statement="insert into userinfo values ('$username','$password','$token',$time,'$sex','$icon','$intro','$sig1','$sig2','$sig3','$hobby','$qq','$mail'," .
-                   "'$place','$date','$date','$ip',1,0,0,0,0,0,0,0,0,NULL,NULL,'$onlinetype','$logininfo','$code',null,null,null,null,null)";
+                   "'$place','$date','$date','$ip',1,0,0,0,0,0,0,0,0,NULL,NULL,'$onlinetype','$logininfo','$code',null,null,null,null,null,null)";
         mysql_query($statement);
         $error=mysql_errno();
         if ($error!=0) {
@@ -443,16 +488,6 @@
         $star=intval($res[1]);
         $rights=intval($res[2]);
         $lastpost=intval($res[3]);
-        /*$inschool=checkinschool($ip);
-        $delta=180;
-        if ($inschool || $star>=3 || $rights>=1) $delta=15;
-        if (shortDelayTime($time, $lastpost, $delta)) {
-            echo '<info><code>2</code>';
-            if ($inschool) echo ' <msg>两次发表/回复的时间间隔不能少于15秒';
-            else echo '<msg>您的ip位于校外，两次发表/回复的时间间隔不能少于3分钟';
-            echo '！</msg></info></capu>';
-            exit;
-        }*/
         checkDelayTime($time, $star, $rights, $lastpost, $ip, $results);
         echo '<capu>';
         $statement="select max(tid) from threads where bid=$bid";
@@ -498,17 +533,19 @@
         $star=intval($res[1]);
         $rights=intval($res[2]);
         $lastpost=intval($res[3]);
-        /*$inschool=checkinschool($ip);
-        $delta=180;
-        if ($inschool || $star>=3 || $rights>=1) $delta=15;
-        if (shortDelayTime($time, $lastpost, $delta)) {
-            echo '<info><code>2</code>';
-                        if ($inschool) echo ' <msg>两次发表/回复的时间间隔不能少于15秒';
-                        else echo '<msg>您的ip位于校外，两次发表/回复的时间间隔不能少于3分钟';
-                        echo '！</msg></info></capu>';
-                        exit;
-        }*/
         checkDelayTime($time, $star, $rights, $lastpost, $ip, $results);
+
+        {
+            $statement = "select activity_id, bid, tid, season_id, name, leader_username 
+                from season_threads_activity 
+                where bid=$bid and tid=$tid";
+            $result_activity = mysql_query($statement);
+            if (mysql_num_rows($result_activity)!=0) {
+                echo '<capu><info><code>3</code><msg>禁止直接回复报名帖！</msg></info></capu>';
+                exit;
+            }
+        }
+
         echo '<capu>';
         $statement="select pid from posts where bid=$bid && tid=$tid order by pid desc";
         $results=mysql_query($statement);
@@ -644,6 +681,18 @@
             $statement="update threads set top=1-top where bid=$bid && tid=$tid";
         else if ($action=="extr")
             $statement="update threads set extr=1-extr where bid=$bid && tid=$tid";
+        else if ($action=="global_top_action") {
+            $statement="select bid, tid from thread_global_top where bid=$bid and tid=$tid";
+            $results=mysql_query($statement);
+            if (mysql_num_rows($results) == 0) {
+                $statement="insert into thread_global_top (bid,tid) values ($bid,$tid)";
+            } else {
+                $statement="delete from thread_global_top where bid=$bid and tid=$tid";
+            }
+            $results=mysql_query($statement);
+            echo '<info><code>0</code></info></capu>';
+            return;
+        }
         mysql_query($statement);
         if(mysql_error()){
             echo '<info><code>2</code><error>'.mysql_error().'</error></info></capu>';
@@ -841,16 +890,6 @@
             $star=intval($res[1]);
             $rights=intval($res[2]);
             $lastpost=intval($res[3]);
-            /*$inschool=checkinschool($ip);
-            $delta=180;
-            if ($inschool || $rights>=1 || $star>=3) $delta=15;
-            if (shortDelayTime($time, $lastpost, $delta)) {
-                echo '<capu><info><code>2</code>';
-                if ($inschool) echo ' <msg>两次发表/回复的时间间隔不能少于15秒';
-                else echo '<msg>您的ip位于校外，两次发表/回复的时间间隔不能少于3分钟';
-                echo '！</msg></info></capu>';
-                exit;
-            }*/
             checkDelayTime($time, $star, $rights, $lastpost, $ip, $results);
 
             $text=@$_REQUEST['text'];
@@ -880,8 +919,7 @@
                 echo "<capu><info><code>3</code><msg>帖子已锁定。</msg></info></capu>";exit;
             }
 
-            if (mb_strlen($text,'utf-8')>=143) $text=mb_substr($text,0,140,'utf-8')."...";
-            #if (strlen($text,'utf-8')>=320) $text=mb_substr($text,0,160,'utf-8')."...";
+            if (mb_strlen($text,'utf-8')>=503) $text=mb_substr($text,0,500,'utf-8')."...";
 
             $text_mysql_escaped=mysql_real_escape_string($text);
 
@@ -977,7 +1015,46 @@
             echo "<info><nowuser>$username</nowuser></info>";
         }
 
-        $results=mysql_query("select * from threads order by timestamp desc limit 0,$hotnum");
+        $results=mysql_query("
+            select threads.bid,threads.tid,title,author,replyer,click,reply,extr,top,locked,timestamp,postdate,
+            case 
+                when thread_global_top.bid is null then 0
+                else 1
+            end as global_top
+            from threads left join thread_global_top on threads.bid=thread_global_top.bid and threads.tid=thread_global_top.tid 
+            where thread_global_top.bid is null
+            order by timestamp desc 
+            limit 0,$hotnum");
+        while ($res=mysql_fetch_array($results)) {
+            echo "<info>\n";
+            foreach ( $res as $key => $value ) {
+                if (is_long($key)) continue;
+                echo '<'.$key.'>'.trans($value).'</'.$key.">\n";
+            }
+            echo "</info>\n";
+        }
+        echo '</capu>';
+    }
+
+    function global_top($con,$token){
+        echo '<capu>';
+        $time=time();
+        $statement="select username from userinfo where token='$token' && $time-tokentime<={$GLOBALS['validtime']}";
+        $results=mysql_query($statement);
+        if (mysql_num_rows($results)==0) {
+            echo '<info><nowuser></nowuser></info>';
+        }else {
+            $res=mysql_fetch_array($results);
+            $username=$res[0];
+            echo "<info><nowuser>$username</nowuser></info>";
+        }
+
+        $results=mysql_query("
+            select threads.bid,threads.tid,title,author,replyer,click,reply,extr,top,locked,timestamp,postdate,
+            case when thread_global_top.bid is null then 0 else 1 end as global_top 
+            from threads left join thread_global_top on threads.bid=thread_global_top.bid and threads.tid=thread_global_top.tid 
+            where thread_global_top.bid is not null 
+            order by timestamp desc");
 
         while ($res=mysql_fetch_array($results)) {
             echo "<info>\n";
@@ -1029,7 +1106,8 @@
     }
 
     function recentpost($con,$view){
-        $results=mysql_query("select * from threads where author='$view' order by timestamp desc limit 0,10");
+        // $results=mysql_query("select * from threads where author='$view' order by timestamp desc limit 0,10");
+        $results=mysql_query("select bid,tid,pid,title,author,replytime as timestamp from posts where author='$view' and pid=1 order by replytime desc limit 0,10");
         echo '<capu>';
 
         echo "<info><nowuser></nowuser></info>\n";
@@ -1044,7 +1122,7 @@
         echo '</capu>';
     }
     function recentreply($con,$view){
-        $results=mysql_query("select * from posts where author='$view' order by updatetime desc limit 0,10");
+        $results=mysql_query("select title, bid, tid, pid, updatetime from posts where author='$view' order by updatetime desc limit 0,10");
         echo '<capu>';
         echo "<info><nowuser></nowuser></info>\n";
         while ($res=mysql_fetch_array($results)) {
@@ -1061,7 +1139,8 @@
     function logout($con,$token,$ip){
         echo("<capu>");
         $today=date("Y-m-d");
-        $statement="update userinfo set tokentime=null, token=null, nowboard=null, lastip='$ip',lastdate='$today' where token='$token'";
+        // $statement="update userinfo set tokentime=null, token=null, nowboard=null, lastip='$ip',lastdate='$today' where token='$token'";
+        $statement="update userinfo set nowboard=null, lastip='$ip',lastdate='$today' where token='$token'";
         mysql_query($statement);
         echo("<info><code>0</code></info>");
         echo("</capu>");
@@ -1178,7 +1257,7 @@ while ($res=mysql_fetch_array($result)) {
     function attach($con,$token,$path,$filename,$price,$auth){
         $user=token2user($con,$token);
         if(!$user) report(3,"unauthorized:$token");
-        if(intval($user['star'])<3&&intval($user['rights'])<1) report(4,"not enough star");
+        // if(intval($user['star'])<3&&intval($user['rights'])<1) report(4,"not enough star");
         $user=$user['username'];
         if(strstr($path, "'")!=""){
             report(1,"illegal");
@@ -1816,15 +1895,15 @@ while ($res=mysql_fetch_array($result)) {
         }
         if($type=="thread"){
             if ($author=="")
-                $statement="select * from posts where bid=$bid and updatetime>=$start && updatetime<=$end and pid=1 and title like '%$keyword%' order by updatetime desc limit 100";
+                $statement="select title,bid,tid,author,replytime from posts where bid=$bid and replytime>=$start && replytime<=$end and pid=1 and title like '%$keyword%' order by replytime desc limit 100";
             else
-                $statement="select * from posts where bid=$bid and updatetime>=$start && updatetime<=$end and pid=1 and author='$author' and title like '%$keyword%' order by updatetime desc limit 100";
+                $statement="select title,bid,tid,author,replytime from posts where bid=$bid and replytime>=$start && replytime<=$end and pid=1 and author='$author' and title like '%$keyword%' order by replytime desc limit 100";
 
         }else if($type=="post"){
             if ($author=="")
-                $statement="select * from posts where bid=$bid and updatetime>=$start && updatetime<=$end and text like '%$keyword%' order by updatetime desc limit 100";
+                $statement="select title,bid,tid,pid,author,updatetime from posts where bid=$bid and updatetime>=$start && updatetime<=$end and text like '%$keyword%' order by updatetime desc limit 100";
             else
-                $statement="select * from posts where bid=$bid and updatetime>=$start && updatetime<=$end and author='$author' and text like '%$keyword%' order by updatetime desc limit 100";
+                $statement="select title,bid,tid,pid,author,updatetime from posts where bid=$bid and updatetime>=$start && updatetime<=$end and author='$author' and text like '%$keyword%' order by updatetime desc limit 100";
         }
         view_bbs($con, $statement);
     }
@@ -1865,6 +1944,7 @@ while ($res=mysql_fetch_array($result)) {
 
     function checkinschool($ip) {
         $ips=explode(".",$ip);
+        if ($ips[0]=="10") return true;
         if ($ips[0]=="59" && $ips[1]=="108") return true;
         if ($ips[0]=="61" && $ips[1]=="50" && $ips[2]=="221") return true;
         if ($ips[0]=="111" && $ips[1]=="205") return true;
@@ -1880,6 +1960,7 @@ while ($res=mysql_fetch_array($result)) {
         if ($ips[0]=="218" && $ips[1]=="249") return true;
         if ($ips[0]=="88" && $ips[1]=="12" && $ips[2]=="242") return true;
         if ($ips[0]=="127" && $ips[1]=="0" && $ips[2]=="0" && $ips[3]=="1") return true;
+        if ($ips[0]=="2001" && $ips[1]=="da8" && $ips[2]=="201") return true;
         return false;
     }
 
@@ -1893,7 +1974,8 @@ while ($res=mysql_fetch_array($result)) {
             echo '<capu><info><code>1</code><msg>超时，请重新登录。</msg></info></capu>';
             exit;
         }
-        $inschool = checkinschool($ip);
+        // $inschool = checkinschool($ip);
+        $inschool = true;       // 跳过对校内ip的判断逻辑
         $delta = 180;
         if ($inschool || $rights >= 1 || $star >= 3)
             $delta = 15;

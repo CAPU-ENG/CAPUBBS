@@ -388,12 +388,12 @@ function check_valid() {
 		},function(data) {
 			if (state==-1) return;
 			var x=parseInt(data);
-			if (x>100*1024) {
-				state=-1;
-				img_error.text("缩略图大小应该不超过100kb，当前"+(x/1024)+"kb");
-				$("#inputimgthumb").focus();
-				return;
-			}
+			// if (x>100*1024) {
+			// 	state=-1;
+			// 	img_error.text("缩略图大小应该不超过100kb，当前"+(x/1024)+"kb");
+			// 	$("#inputimgthumb").focus();
+			// 	return;
+			// }
 			if (valid1==1 && valid2==1) {state=-1;addimg();}
 		}
 	);

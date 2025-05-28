@@ -32,7 +32,7 @@
     function request($posts) {
         $token=@$_POST['token'];
         $ip=$_SERVER['REMOTE_ADDR'];
-        $url="http://127.0.0.1/api/jiekouapi.php?ip=$ip&token=$token";
+        $url="https://chexie.net/api/jiekouapi.php?ip=$ip&token=$token";
         $rawstr= http($url,"POST",$posts);
         $xml=simplexml_load_string($rawstr, null, LIBXML_NOCDATA);
         return json_decode(json_encode($xml->xpath("info")),true);
@@ -558,7 +558,8 @@
                 echo("<tid>".$id[$i]['tid']."</tid>");
                 echo("<pid>".$id[$i]['pid']."</pid>");
                 echo("<title><![CDATA[".$id[$i]['title']."]]></title>");
-                echo("<time>".date("Y-m-d H:i:s",$id[$i]['replytime'])."</time>");
+                // echo("<time>".date("Y-m-d H:i:s",$id[$i]['replytime'])."</time>");
+                echo("<time>".date("Y-m-d H:i:s",$id[$i]['updatetime'])."</time>");
                 echo("</info>");
             }
             echo '</info>';
@@ -630,7 +631,8 @@
                 echo "<tid>".$content[$i]['tid']."</tid>\n";
                 echo "<text><![CDATA[".$content[$i]['title']."]]></text>\n";
                 echo "<author><![CDATA[".$content[$i]['author']."]]></author>\n";
-                echo "<time>".date("Y-m-d H:i:s",$content[$i]['updatetime'])."</time>\n";
+                // echo "<time>".date("Y-m-d H:i:s",$content[$i]['updatetime'])."</time>\n";
+                echo "<time>".date("Y-m-d H:i:s",$content[$i]['replytime'])."</time>\n";
                 echo "</info>";
             }
 
@@ -760,6 +762,8 @@
         if (!empty($postfields)) {
             curl_setopt($ci, CURLOPT_POSTFIELDS, $postfields); // post数据 可为数组、连接字串
         }
+        curl_setopt($ci, CURLOPT_SSL_VERIFYPEER, false);
+        curl_setopt($ci, CURLOPT_SSL_VERIFYHOST, false);        // 不检查证书
         $response = curl_exec($ci);
         curl_close($ci);
         return $response;

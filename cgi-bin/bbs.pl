@@ -25,7 +25,7 @@ if ($see eq "" || $b eq "") {
 }
 
 my $tid=getsee($see);
-my $url="/bbs/content?bid=".$b."&tid=".$tid."&p=".$p;
+my $url="/bbs/content/?bid=".$b."&tid=".$tid."&p=".$p;
 
 #print "Content-type: text/html\n\n<HTML>";
 #print $url;

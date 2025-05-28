@@ -9,7 +9,7 @@
 	$text=$_POST["text"];
 	$sig=$_POST["sig"];
 	$attachs=$_POST['attachs'];
-	$p= ceil((intval($pid)+1)/12);		
+	$p= ceil((intval($pid))/12);		
 		$result=mainfunc(array(
 		"ask"=>"edit",
 		"bid"=>$bid,
@@ -24,7 +24,7 @@
 		"attachs"=>$attachs));
 		$result=$result[0];
 		if($result['code']=="0"){
-			//header("Location: ../content?bid=$bid&tid=$tid&p=$p");
+			//header("Location: ../content/?bid=$bid&tid=$tid&p=$p");
 			echo "0../content/?bid=$bid&tid=$tid&p=$p#$pid";
 		}else{
 			//echo($result['code']);

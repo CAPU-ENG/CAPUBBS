@@ -280,69 +280,47 @@ body {
   <div class="form-group">
     <label class="col-md-3 control-label">日常招新负责</label>
     <div class="col-md-9">
-      <p class="form-control-static">未来 (18811462001)</p>
+      <p class="form-control-static">李小彤|徐行 13264442659</p>
     </div>
   </div>
 
   <div class="form-group">
     <label class="col-md-3 control-label">外联部部长</label>
     <div class="col-md-9">
-      <p class="form-control-static">风辰 (18801085233)</p>
+      <p class="form-control-static">关涛|飞舟 13240142448</p>
     </div>
   </div>
 
   <div class="form-group">
     <label class="col-md-3 control-label">车队负责</label>
     <div class="col-md-9">
-      <p class="form-control-static">ss109 (13522520947)；羊儿 (13651043062)</p>
+      <p class="form-control-static">区涵予|鸡腿 15692087639</p>
     </div>
   </div>
 
-  <div class="form-group">
-    <label class="col-md-3 control-label">车协主席</label>
-    <div class="col-md-9">
-      <p class="form-control-static">定夺 (18811757657)</p>
-    </div>
-  </div>
-
-  <div class="form-group">
+  <!-- <div class="form-group">
     <label class="col-md-3 control-label">官方邮箱</label>
     <div class="col-md-9">
       <p class="form-control-static"><a href="mailto:beidachexie@126.com">beidachexie@126.com</a></p>
     </div>
-  </div>
+  </div> -->
 
   <div class="form-group">
     <label class="col-md-3 control-label">论坛反馈</label>
     <div class="col-md-9">
-      <p class="form-control-static"><a href="mailto:beidachexie@126.com">capubbs@qq.com</a></p>
-    </div>
-  </div>
-  <div class="form-group">
-    <label class="col-md-3 control-label">新浪微博</label>
-    <div class="col-md-9">
-      <p class="form-control-static"><a href="http://weibo.com/beidachexie" target="_blank">CAPU北大车协</a></p>
+      <p class="form-control-static">张颢丹|好蛋 13121759322</p>
     </div>
   </div>
 
   <div class="form-group">
     <label class="col-md-3 control-label">地址</label>
     <div class="col-md-9">
-      <p class="form-control-static">北京市海淀区北京大学24号楼118室（100871）</p>
+      <p class="form-control-static">北京市海淀区北京大学28号楼B107室 100871</p>
     </div>
   </div>
 
   <div class="form-group">
     <label class="col-md-3 control-label">其他方式</label>
-    <div class="col-md-9">
-      <p class="form-control-static">
-        周一到周五每天中午学一食堂东南角 12:00-13:00&nbsp;&nbsp;&nbsp;&nbsp;<span class="label label-danger pic_contact" title="<img width='450' src='/assets/images/xueyi.jpg'>">pic</span>
-      </p>
-    </div>
-  </div>
-
-  <div class="form-group">
-    <label class="col-md-3 control-label"></label>
     <div class="col-md-9">
       <p class="form-control-static">
 	每周一三五晚8:45五四体育场日常训练&nbsp;&nbsp;&nbsp;&nbsp;<span class="label label-danger pic_contact" title="<img width='450' src='/assets/images/xunlian.jpg'>">pic</span>

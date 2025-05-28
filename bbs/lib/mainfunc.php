@@ -2,7 +2,7 @@
 function mainfunc($posts,$debug=false){
 	$ip=$_SERVER["REMOTE_ADDR"];
 	@$token=$_COOKIE['token'];
-	$url="http://127.0.0.1/api/jiekouapi.php?ip=$ip&token=$token";
+	$url="https://chexie.net/api/jiekouapi.php?ip=$ip&token=$token";
 	if($debug) $url=$url."&debug=yes";
 	$rawstr= http($url,"POST",$posts);
 	if($debug) return $rawstr;
@@ -29,15 +29,15 @@ function encode($str){
 }
 function userhref($username){
 	if($username)
-	return "<a class='author' href='../user?name=$username' target='_blank'>$username</a>";
+	return "<a class='author' href='../user?name=".rawurlencode($username)."' target='_blank'>$username</a>";
 }
 function userhrefbig($username){
 	if($username)
-	return "<a class='authorbig' href='../user?name=$username' target='_blank'>$username</a>";
+	return "<a class='authorbig' href='../user?name=".rawurlencode($username)."' target='_blank'>$username</a>";
 }
 function athref($username){
 	if($username)
-	return "<a class='author' href='../user?name=$username' target='_blank'>@$username</a>";
+	return "<a class='author' href='../user?name=".rawurlencode($username)."' target='_blank'>@$username</a>";
 	return "";
 }
 function href($link,$name){
@@ -58,19 +58,21 @@ function formattime($time){
 	date_default_timezone_set('Asia/Shanghai');
 	return formatstamp(strtotime($time));
 }
-function http($url, $method, $postfields) {  
-    $ci = curl_init();  
-    curl_setopt($ci, CURLOPT_URL, $url);  
-    curl_setopt($ci, CURLOPT_CONNECTTIMEOUT, 30); // 连接超时  
-    curl_setopt($ci, CURLOPT_TIMEOUT, 30); // 执行超时  
-    curl_setopt($ci, CURLOPT_RETURNTRANSFER, true); // 文件流的形式返回，而不是直接输出  
-    curl_setopt($ci, CURLOPT_ENCODING, "gzip");  
-    curl_setopt($ci, CURLOPT_HEADER, FALSE);
-    curl_setopt($ci, CURLOPT_POST, true); // post  
-    curl_setopt($ci, CURLOPT_POSTFIELDS, $postfields); // post数据 可为数组、连接字串  
-    $response = curl_exec($ci);  
-    curl_close($ci);  
-    return $response;  
+function http($url, $method, $postfields) {
+	$ci = curl_init();
+	curl_setopt($ci, CURLOPT_URL, $url);
+	curl_setopt($ci, CURLOPT_CONNECTTIMEOUT, 30); // 连接超时
+	curl_setopt($ci, CURLOPT_TIMEOUT, 30); // 执行超时
+	curl_setopt($ci, CURLOPT_RETURNTRANSFER, true); // 文件流的形式返回，而不是直接输出
+	curl_setopt($ci, CURLOPT_ENCODING, "gzip");
+	curl_setopt($ci, CURLOPT_HEADER, FALSE);
+	curl_setopt($ci, CURLOPT_POST, true); // post
+	curl_setopt($ci, CURLOPT_POSTFIELDS, $postfields); // post数据 可为数组、连接字串
+	curl_setopt($ci, CURLOPT_SSL_VERIFYPEER, false);
+	curl_setopt($ci, CURLOPT_SSL_VERIFYHOST, false);
+	$response = curl_exec($ci);
+	curl_close($ci);
+	return $response;
 }
 function translateicon($icon){
 	//if(strstr($icon,".")!="") return $icon;

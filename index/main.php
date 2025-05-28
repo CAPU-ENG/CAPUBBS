@@ -197,15 +197,12 @@
 </div><br>
 <h4 style="padding-left:20px"><b>协会视频</b></h4>
 <hr style="border-top:1px solid #aaaaaa"/><p>
-      <button type="button" class="btn btn-primary" style="margin-left:25px" data-toggle="modal" data-target="#huige_dialog">协会会歌</button>
-      <button type="button" class="btn btn-primary"  data-toggle="modal" data-target="#chenai_dialog" style="margin-left:10px">尘埃</button>
-<?php
-	for ($i=0;$i<=2;$i++) {
-		echo '<button type="button" class="btn btn-primary" style="margin-left:10px" data-toggle="modal" data-target="#video_dialog_'.$i.'">'.$video_word[$i].'</button>'."\n";
-	}
-?>
-
-<p class="text-right"><a href="http://www.soku.com/search_video/q_%E5%8C%97%E5%A4%A7%E8%BD%A6%E5%8D%8F" target="_blank"><span class="label label-success">more</span></a></p>
+  <a type="button" target="_blank" class="btn btn-primary" href="http://v.youku.com/v_show/id_XMTc5NzYwMzU2.html">协会会歌</a>
+  <a type="button" target="_blank" class="btn btn-primary" href="http://v.youku.com/v_show/id_XMTc4NDE2OTky.html">尘埃</a>
+  <a type="button" target="_blank" class="btn btn-primary" href="https://www.bilibili.com/video/BV1qK411A7yV">20暑期视频</a>
+  <a type="button" target="_blank" class="btn btn-primary" href="https://www.bilibili.com/video/BV19v411T7qC">21暑期视频</a>
+  <a type="button" target="_blank" class="btn btn-primary" href="https://space.bilibili.com/238139020/channel/collectiondetail?sid=832279">22暑期视频</a>
+<p class="text-right"><a target="_blank" href="https://space.bilibili.com/238139020/video"><span class="label label-success">more</span></a></p>
 </div>
 </div>
 <div class="col-md-3">

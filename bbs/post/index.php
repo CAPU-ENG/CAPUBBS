@@ -39,7 +39,7 @@
 		$result=$result[0];
 
 		if($result['code']=="0"){
-			//header("Location: ../content?bid=$bid&tid=$tid");
+			//header("Location: ../content/?bid=$bid&tid=$tid");
 			echo 0;
 		}else{
 			//header("Content-type: text/html; charest=utf-8");

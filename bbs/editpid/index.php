@@ -81,14 +81,15 @@ div.editor{
 }
 div#edi_content{
 	width: 782px;
-	height: 380px;
+	min-height: 380px;
+	max-height: 540px;
+	overflow: auto;
 	background-color: white;
 	border-bottom-left-radius: 10px;
 	border-bottom-right-radius: 10px;
 	box-shadow: 0px 0px 9px rgba(0,0,0,0.47) inset;
 	padding: 10px;
 	outline:none;
-	overflow: hidden;
 }
 input#ip_title {
 	width:100%;
@@ -285,10 +286,10 @@ span.tip{
 	</form>
 
 <script type="text/javascript">
-	var star=<?php echo $user['star'];?>;
-	if(star<3){
-		document.getElementById("edi_attach").style.visibility="hidden";
-	}
+	// var star=<?php echo $user['star'];?>;
+	// if(star<0){
+	// 	document.getElementById("edi_attach").style.visibility="hidden";
+	// }
 </script>
 <script type="text/javascript" src="../lib/nic.js"></script>
 <script type="text/javascript">
@@ -507,6 +508,11 @@ function doreply(){
 	}
 	var content=document.getElementById("edi_content").innerHTML;
 	content=content.replace(/&/g, "&amp;");
+
+	if (content.length > 100000) {
+		alert("内容字符数为"+content.length+"（超过10万字符），请检查是否粘贴了图片。");
+		return;
+	}
 	var bts=document.getElementsByName("sign");
 	var sig;
 	for(var i=0;i<bts.length;i++){
@@ -541,7 +547,7 @@ function doreply(){
 			if (data==0) {
 				window.location=x.substr(1);
 			}
-			else alert(window.substr(1));
+			else alert(x.substr(1));
 	});
 
 }

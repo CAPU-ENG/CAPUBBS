@@ -1,5 +1,9 @@
 <?php
-	include("../lib/mainfunc.php");
+	require_once __DIR__."/../lib/mainfunc.php";
+	require_once __DIR__."/../lib/mainfunc.new.php";
+	include "./utils/activityService.php";
+	require_once __DIR__.'/../../lib.php';
+
 	$bid=@$_GET['bid'];
 	$tid=@$_GET['tid'];
 	$page=@$_GET['p'];
@@ -9,8 +13,21 @@
 	if(!$page) $page=1;
 	if(!$bid) $bid=1;
 	if(!$tid) $tid=1;
-	$data=mainfunc(array("bid"=>$bid,"tid"=>$tid,"p"=>$page,"see_lz"=>$see_lz),null);
-	$tdata=mainfunc(array("bid"=>$bid,"tid"=>$tid,"ask"=>"tidinfo"));
+	$bid = intval($bid);
+	$tid = intval($tid);
+	$activity = getActivity($bid, $tid);
+	if ($activity) {
+		require "./utils/activity.php";
+		exit();
+	}
+	$ip = $_SERVER["REMOTE_ADDR"];
+	$token = $_SERVER["token"];
+
+	$con = dbconnect_mysqli();
+	checkUserAndSign($con, $ip, $token);
+	$data = getOnePage($con, $bid, $tid, $page, $see_lz, $ip, $token, $username);
+	$tdata = getTidInfo($con, $bid, $tid);
+	
 	$floordata="";
 	if ($see_lz!="") {
 		$floordata=mainfunc(array("bid"=>$bid,"tid"=>$tid,"ask"=>"getlznum"));
@@ -32,7 +49,7 @@
 			$bdata=$dt;
 	}
 
-	$title=count($data)>0?$data[0]['title']:"没有这个帖子= =";
+	$title=count($data)>0?$tdata['title']:"没有这个帖子= =";
 	$lztitle="";if($see_lz!="") $lztitle="（只看楼主）&nbsp;&nbsp;";
 	function generateattach($name,$size,$price,$auth,$id,$free,$count){
 		$extension=substr($name, strrpos($name, ".")+1);
@@ -124,7 +141,8 @@
 		<?php
 		$rights=intval($users['rights']);$star=-1;
 		if($currentuser!=""){
-			echo("欢迎您，".$currentuser);
+			$url_currentuser = rawurlencode($currentuser);
+			echo("欢迎您，<a href='../user/?name=$url_currentuser' target='_blank'>$currentuser</a>");
 			$userinfo=mainfunc(array("view"=>$currentuser));
 			$userinfo=$userinfo[0];
 			$star=intval($userinfo['star']);
@@ -182,7 +200,7 @@ if (intval($bid)==1 && $currentuser=="") {
 			<div class="pagecontrol">
 
 <?php
-$pages= ceil(intval($tdata['reply'])/12);
+$pages= ceil((intval($tdata['reply'])+1)/12);
 
 @$page= intval($_GET['p']);
 if($page<1) $page=1;
@@ -389,7 +407,7 @@ for($i=0;$i<count(@$data);$i++){
 			<div class="pagecontrol">
 
 <?php
-$pages= ceil(intval($tdata['reply'])/12);
+$pages= ceil(intval($tdata['reply']+1)/12);
 @$page= intval($_GET['p']);
 if($page<1) $page=1;
 
@@ -445,7 +463,7 @@ function packjump($p,$text){
 	if (@$_GET['see_lz']!="")
 		$lz="&see_lz=1";
 	if($text=="plain") return "<span class='page'>$p</span>";
-	return "<a class='page' href='../content?p=$p&bid=".$_GET['bid']."&tid=".@$_GET['tid']."$lz'>$text</a>";
+	return "<a class='page' href='../content/?p=$p&bid=".$_GET['bid']."&tid=".@$_GET['tid']."$lz'>$text</a>";
 }
 ?>
 
@@ -456,10 +474,10 @@ if ($currentuser!="") {
 if ($canreply) {echo '
 		<div class="editor" id="editor">
 			<div id="edi_bar"></div>
-			<div id="edi_content" onfocus="starttimer();" onblur="stoptimer();"></div>
+			<div id="edi_content" onfocus="editorFocus();" onblur="editorBlur();"></div>
 			<br>
 ';
-if ($rights>=1 || $star>=3)	echo '
+if ($rights>=0 || $star>=0)	echo '
 			<div id="edi_attach" onclick="attach();">添加附件</div>
 			<input type="file" id="file" style="display:none;" onchange="fileselected();"> ';
 echo '
@@ -872,8 +890,12 @@ function doreply(){
 	//var content=document.getElementById("edi_content").innerHTML;
 	var content=$('#edi_content').html();
 	content=content.replace(/&/g, "&amp;");
-	if(content==""||content=="<br>"){
+	if(content=="" || content=="<br>" || content == editorPlaceholder){
 		alert("请填写回复内容！");
+		return;
+	}
+	if (content.length > 100000) {
+		alert("内容字符数为"+content.length+"（超过10万字符），请检查是否粘贴了图片。");
 		return;
 	}
 	//document.getElementById("fm_title").value="Re: <?php echo $tdata['title']; ?>";
@@ -917,31 +939,46 @@ function doreply(){
 
 
 }
-function quote(who,num){
-	var data=$('#floor'+num).html();
-
-	// remove all the quote area
-	$('#floor'+num).find('.quotel').each(function() {
-		$(this).remove();
-	});
-	var what=$('#floor'+num).html();
-	$('#floor'+num).html(data);
-
-	if (what.length>=133)
-		what=what.substr(0,130)+"...";
-	
-	var temp=document.createElement("div");
-	temp.innerHTML=what;
-	var divs=temp.getElementsByTagName("div");
-	for(var i=0;i<divs.length;i++){
-		if(divs[i].className=="quotel"){
-			divs[i].parentNode.removeChild(divs[i]);
-		}
+function quote(who, num) {
+    // Try to get the selected text
+	var selectedText = '';
+	if (window.getSelection) {
+		selectedText = window.getSelection().toString().trim();
+	} else if (document.selection && document.selection.type != "Control") {
+		selectedText = document.selection.createRange().text.trim();
 	}
-	what=temp.innerHTML;
-	
-	insertHTML("[quote="+who+"]"+what+"[/quote]");
 
+	var what;
+	if (selectedText) {
+		// If user selected text, use it directly
+		what = selectedText;
+	} else {
+		// If not, try to get the specified post
+		var data = $("#floor" + num).html();
+
+		$("#floor" + num)
+			.find(".quotel")
+			.each(function() {
+				$(this).remove();
+			});
+		what = $("#floor" + num).html();
+		$("#floor" + num).html(data);
+
+		if (what.length >= 133) what = what.substr(0, 130) + "...";
+
+		var temp = document.createElement("div");
+		temp.innerHTML = what;
+		var divs = temp.getElementsByTagName("div");
+		for (var i = 0; i < divs.length; i++) {
+			if (divs[i].className == "quotel") {
+				divs[i].parentNode.removeChild(divs[i]);
+			}
+		}
+		what = temp.innerHTML;
+	}
+
+	// 插入引用内容到编辑器
+	insertHTML("[quote=" + who + "]" + what + "[/quote]");
 }
 var temptarget;
 function sendMessageTo(target){
@@ -1036,10 +1073,22 @@ function insertHTML(html){
 		dthis.focus(); 
 	} 
 } 
-function starttimer() {
+
+const editorPlaceholder = '<div style="color: rgb(118, 118, 118);">如需上传图片请使用右上角的“上传图片”功能，不要将图片直接粘贴在文本框中</div>';
+myNicEditor.instanceById('edi_content').setContent(editorPlaceholder);
+function editorFocus() {
+	if (myNicEditor.instanceById('edi_content').getContent() == editorPlaceholder) {
+		myNicEditor.instanceById('edi_content').setContent('<br>');
+	}
 }
-function stoptimer() {
+
+function editorBlur() {
+	let newText = myNicEditor.instanceById('edi_content').getContent();
+	if (newText == '' || newText == '<br>') {
+		myNicEditor.instanceById('edi_content').setContent(editorPlaceholder);
+	}
 }
+
 </script>
 </body>
 </html>

@@ -5,7 +5,7 @@
 	$page=@$_GET['page'];
 	if(!$page) $page=1;
 	$action=@$_GET['action'];
-	if(!in_array($action, array("lock","top","extr"))){
+	if(!in_array($action, array("lock","top","extr", "global_top_action"))){
 		die(json_encode(array("code"=>1,"msg"=>"非法操作")));
 	}
 	$result=mainfunc(array(

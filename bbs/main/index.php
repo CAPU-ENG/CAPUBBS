@@ -62,7 +62,7 @@ if($username!=""){
 	$star=intval($userinfo['star']);
 	echo("<img src='$icon' class='usericon'></img>");
 	echo("<div class='userinfo'>");
-	echo("<a href='../home' target='_blank'>$username</a>");
+	echo("<a href='../user/?name=$username' target='_blank'>$username</a>");
 	echo("&nbsp;等级：$star");
 	
 	echo("<script type='text/javascript'>");
@@ -104,7 +104,7 @@ if($username!=""){
 		<div class="back" onclick="goback();"><span style="margin-left:32px;"><b>返回</b></span></div>
 		<span style="float:left;margin-left:20px;position:relative;"> 
 		<?php
-		echo("<a href='../index' onmouseover='showmenu();'>CAPUBBS</a>&nbsp;&gt;&nbsp;");
+		echo("<a href='../index/' onmouseover='showmenu();'>CAPUBBS</a>&nbsp;&gt;&nbsp;");
 		echo("<a href='./?bid=$bid&p=1'>".$boardinfo['bbstitle'].$xx."</a>&nbsp;&gt;&nbsp;");
 		echo("<span>第".$page."页</span>&nbsp;");
 		if ($extr) echo "<a href='./?bid=$bid&p=1' style='margin-left:50px'>查看全部</a>";
@@ -139,14 +139,32 @@ if($rights>=1){
 <option selected value="thread">搜索帖子标题</option>
 <option value="post">搜索帖子正文</option>
 </select>
+<script>
+function search_time_change() {
+	let now = new Date();
+	let last = parseInt($("#search_range").val());
+	let currentYear = now.getFullYear();
+	let currentMonth = now.getMonth()+1;
+	let currentDay = now.getDate();
+	let starttime = new Date(currentYear-last, currentMonth-1, currentDay);
+	let endtime = new Date(currentYear, currentMonth-1, currentDay);
+	$("#starttime").val(starttime.getFullYear()+"-"+(starttime.getMonth()+1)+"-"+starttime.getDate());
+	$("#endtime").val(endtime.getFullYear()+"-"+(endtime.getMonth()+1)+"-"+endtime.getDate());
+}
+</script>
+<select id="search_range" name="time" onchange="search_time_change();">
+<option selected value="1">近一年</option>
+<option value="2">近两年</option>
+<option value="2000">不限</option>
+</select>
 <input type="hidden" name="bid" value="<?php echo $bid; ?>">
 <input type="hidden" name="show" value="" id='search_show'>
 <input type="submit" value="搜索">
 <input type="button" onclick="$('#search_more').show();$('#search_show').val('1');$(this).hide();" value="更多搜索选项" >
 <br>
 <span style='display:none;margin-top:5px' id='search_more'>
-起始时间：<input type="text" name="starttime" class="search" style="padding-left:5px;width:90px" value="2001-01-01">
-&nbsp;&nbsp;终止时间：<input type="text" name="endtime" class="search" style="padding-left:5px;width:90px" value="<?php echo date('Y-m-d',time());?>">
+起始时间：<input id="starttime" type="text" name="starttime" class="search" style="padding-left:5px;width:90px" value="<?php $currentDate = date('Y-m-d'); echo date('Y-m-d', strtotime('-1 year', strtotime($currentDate)));?>">
+&nbsp;&nbsp;终止时间：<input id="endtime" type="text" name="endtime" class="search" style="padding-left:5px;width:90px" value="<?php echo date('Y-m-d',time());?>">
 &nbsp;&nbsp;作者：<input type="text" name="author" class="search" style="padding-left:5px;width:130px" placeholder="不限制则不填" value="">
 </span>
 </form>
@@ -213,7 +231,7 @@ if($rights>=1){
 			$replyer=$info['replyer'];
 			$prestr="&nbsp;<img src='icon.png' class='decorator'>";
 			echo("<tr class='content ".($counter%2==0?"even":"odd")."'>\n");
-			echo("<td style='text-align:left;'>&nbsp;$prestr&nbsp;<a href='../content?bid=$bid&tid=$tid&p=1'>$title</a>&nbsp;$decoratorstr</td>\n");
+			echo("<td style='text-align:left;'>&nbsp;$prestr&nbsp;<a href='../content/?bid=$bid&tid=$tid&p=1'>$title</a>&nbsp;$decoratorstr</td>\n");
 			echo("<td>".userhref($author)."<br><span class='date'>$postdate</span></td>\n");
 			echo("<td>$reply / $click</td>\n");
 			echo("<td>".userhref($replyer?$replyer:$author)."<br><span class='date'>".formatstamp($info['timestamp'])."</span></td>\n</tr>\n");
@@ -239,6 +257,12 @@ foreach($infos as $info){
 		echo("<a href='javascript:settid(\"top\",$tid);'>取消置顶</a>");
 	}else{
 		echo("<a href='javascript:settid(\"top\",$tid);'>置顶</a>");
+	}
+	echo("&nbsp;");
+	if($info['global_top']=="1"){
+		echo("<a href='javascript:settid(\"global_top_action\",$tid);'>取消首页置顶</a>");
+	}else{
+		echo("<a href='javascript:settid(\"global_top_action\",$tid);'>首页置顶</a>");
 	}
 	echo("&nbsp;");
 	if($info['locked']=="1"){
@@ -332,11 +356,11 @@ echo '
 		<div class="editor" id="editor">
 			<input type="text" class="title" placeholder="帖子标题" id="raw_title">
 			<div id="edi_bar"></div>
-			<div id="edi_content"></div>
+			<div id="edi_content" onfocus="editorFocus();" onblur="editorBlur();"></div>
 			<br>
 			<progress max="100" value="20" id="progress"></progress>
 ';
-if ($star>=3 || $right>=1) echo '
+if ($star>=0 || $right>=0) echo '
 			<div id="edi_attach" onclick="attach();">添加附件</div>
 			<input type="file" id="file" style="display:none;" onchange="fileselected();">
 ';
@@ -653,8 +677,8 @@ function jump(page){
 }
 
 function gotobbs(tbid){
-	//window.open("../main?bid="+tbid, "_self");
-	window.location="../main?bid="+tbid;
+	//window.open("../main/?bid="+tbid, "_self");
+	window.location="../main/?bid="+tbid;
 }
 function showmenu(){
 	//document.getElementById("popover").style.visibility="visible";
@@ -666,7 +690,7 @@ function hidemenu(){
 }
 function goback(){
 	//window.open("../bbs", "_self");
-	window.location="../index";
+	window.location="../index/";
 }
 
 function doreply(){
@@ -676,13 +700,17 @@ function doreply(){
 	}
 	//var content=document.getElementById("edi_content").innerHTML;
 	var content=$('#edi_content').html();
-	if(content=="<br>"||content=="<div></div>"){
+	if(content=="<br>" || content=="<div></div>" || content == editorPlaceholder){
 		alert("请填写帖子内容！");
 		return;
 	}
 	var token=getcookie("token");
 	if(!token){
 		alert("尚未登录！");
+		return;
+	}
+	if (content.length > 100000) {
+		alert("内容字符数为"+content.length+"（超过10万字符），请检查是否粘贴了图片。");
 		return;
 	}
 	content=content.replace(/&/g, "&amp;");
@@ -758,6 +786,7 @@ function insertHTML(html){
 	} 
 } 
 
+
 function deltid(tid) {
 	if (confirm("你确定要删除这个主题嘛？")) {
 		//window.location="../delete/?ask=deltid&bid="+bid+"&tid="+tid+"&p="+page;
@@ -772,6 +801,22 @@ function deltid(tid) {
 		});
 	}
 }
+
+const editorPlaceholder = '<div style="color: rgb(118, 118, 118);">如需上传图片请使用右上角的“上传图片”功能，不要将图片直接粘贴在文本框中</div>';
+myNicEditor.instanceById('edi_content').setContent(editorPlaceholder);
+function editorFocus() {
+	if (myNicEditor.instanceById('edi_content').getContent() == editorPlaceholder) {
+		myNicEditor.instanceById('edi_content').setContent('<br>');
+	}
+}
+
+function editorBlur() {
+	let newText = myNicEditor.instanceById('edi_content').getContent();
+	if (newText == '' || newText == '<br>') {
+		myNicEditor.instanceById('edi_content').setContent(editorPlaceholder);
+	}
+}
+
 
 </script>
 </body>
