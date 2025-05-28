@@ -433,7 +433,7 @@
             echo $num.'</pid><replyer><![CDATA['.$post['replyer'].']]></replyer>';
             echo '<author><![CDATA['.$post['author'].']]></author><time>';//增加论坛热点查看作者的功能
             $time=date("Y-m-d H:i:s",$post['timestamp']);
-            echo $time.'</time><top>'$istop'</top></info>';
+            echo $time.'</time><top>'.$istop.'</top></info>';
         }
         echo '</capu>';
 
