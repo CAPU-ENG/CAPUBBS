@@ -664,7 +664,7 @@
         $bid=@$_POST['bid'];
         $tid=@$_POST['tid'];
         echo '<capu><info><code>';
-        if ($type!="top" && $type!="extr" && $type!="lock") {
+        if ($type!="top" && $type!="extr" && $type!="lock" && $type!="global_top_action") {
             echo '6</code><msg>未知帖子操作</msg></info></capu>';
             exit;
         }
