@@ -420,20 +420,16 @@
         if (@$_REQUEST['hotnum'])
             $hotnum=@$_REQUEST['hotnum'];
         echo '<capu>';
-        // Expect tops & hots have same response structure
-        $tops=request(array("ask"=>"global_top"));
-        $topssize=count($tops)-1;
         $hots=request(array("ask"=>"hot","hotnum"=>$hotnum));
-        for ($i=1;$i<=$topssize+$hotnum;$i++) {
-            $istop=$i<=$topssize;
-            $post=$istop?$tops[$i]:$hots[$i-$topssize];
-            echo '<info><text><![CDATA['.$post['title'].']]></text>';
-            echo '<bid>'.$post['bid'].'</bid><tid>'.$post['tid'].'</tid><pid>';
-            $num=intval($post['reply']);
-            echo $num.'</pid><replyer><![CDATA['.$post['replyer'].']]></replyer>';
-            echo '<author><![CDATA['.$post['author'].']]></author><time>';//增加论坛热点查看作者的功能
-            $time=date("Y-m-d H:i:s",$post['timestamp']);
-            echo $time.'</time><top>'.$istop.'</top></info>';
+        for ($i=1;$i<=$hotnum;$i++) {//增加热点数量
+            $hot=$hots[$i];
+            echo '<info><text><![CDATA['.$hot['title'].']]></text>';
+            echo '<bid>'.$hot['bid'].'</bid><tid>'.$hot['tid'].'</tid><pid>';
+            $num=intval($hot['reply']);
+            echo $num.'</pid><replyer><![CDATA['.$hot['replyer'].']]></replyer>';
+            echo '<author><![CDATA['.$hot['author'].']]></author><time>';//增加论坛热点查看作者的功能
+            $time=date("Y-m-d H:i:s",$hot['timestamp']);
+            echo $time.'</time></info>';
         }
         echo '</capu>';
 
