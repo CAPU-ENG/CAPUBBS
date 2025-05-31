@@ -12,6 +12,7 @@
     else if ($ask=="main") seemain();
     else if ($ask=="news") news();
     else if ($ask=="hot") gethot();
+    else if ($ask=="globaltop") getglobaltop();
     else if ($ask=="userinfo") getuserinfo();
     else if ($ask=="sendmsg") sendmsg();
     else if ($ask=="msg") msg();
@@ -434,6 +435,22 @@
         echo '</capu>';
 
     }
+    function getglobaltop() {
+        echo '<capu>';
+        $hots=request(array("ask"=>"global_top"));
+        for ($i=1;$i<count($hots);$i++) {
+            $hot=$hots[$i];
+            echo '<info><text><![CDATA['.$hot['title'].']]></text>';
+            echo '<bid>'.$hot['bid'].'</bid><tid>'.$hot['tid'].'</tid><pid>';
+            $num=intval($hot['reply']);
+            echo $num.'</pid><replyer><![CDATA['.$hot['replyer'].']]></replyer>';
+            echo '<author><![CDATA['.$hot['author'].']]></author><time>';
+            $time=date("Y-m-d H:i:s",$hot['timestamp']);
+            echo $time.'</time></info>';
+        }
+        echo '</capu>';
+
+    }
 
     function sendmsg() { // 私信API
         $token=$_REQUEST['token'];
@@ -664,7 +681,7 @@
         $bid=@$_POST['bid'];
         $tid=@$_POST['tid'];
         echo '<capu><info><code>';
-        if ($type!="top" && $type!="extr" && $type!="lock") {
+        if ($type!="top" && $type!="extr" && $type!="lock" && $type !="global_top_action") {
             echo '6</code><msg>未知帖子操作</msg></info></capu>';
             exit;
         }
