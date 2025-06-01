@@ -307,6 +307,14 @@ for($i=0;$i<count(@$data);$i++){
 	$translatedforquote=translateforquote($floor['text'],$floor['ishtml']=="YES");
 	#echo("<div class='textblock' id='floor$i'>$translated</div>\n");
 	print "<div class='textblock' id='floor$i' style='line-height:160% !important'>$translated</div>\n";
+	$wrappedcontennt="<div class='textblock' id='floor$i' style='line-height:160% !important'>$translated</div>\n";
+	if(@$userinfo['sig'.$floor['sig']]){
+		$wrappedcontennt.="<div class='sigblock'>\n";
+		$wrappedcontennt.="<span class='sigtip'>--------</span>\n";
+		$wrappedcontennt.="<div class='sig'>".translate($userinfo['sig'.$floor['sig']],false,false)."<br><br><br>"."</div>\n";		
+		$wrappedcontennt.="</div>";
+	}
+	print wraphtmltoiframe($wrappedcontennt);
 	if($floor['attachs']){
 		echo('<span id="attachtipdark">本帖包含如下的附件：</span>');
 		echo("<div class='attachsdark'>\n");
@@ -318,12 +326,12 @@ for($i=0;$i<count(@$data);$i++){
 		}
 		echo("</div>\n");
 	}
-	if(@$userinfo['sig'.$floor['sig']]){
-		echo("<div class='sigblock'>\n");
-		echo("<span class='sigtip'>--------</span>\n");
-		echo("<div class='sig'>".translate($userinfo['sig'.$floor['sig']],false,false)."<br><br><br>"."</div>\n");		
-		echo("</div>");
-	}
+	// if(@$userinfo['sig'.$floor['sig']]){
+	// 	echo("<div class='sigblock'>\n");
+	// 	echo("<span class='sigtip'>--------</span>\n");
+	// 	echo("<div class='sig'>".translate($userinfo['sig'.$floor['sig']],false,false)."<br><br><br>"."</div>\n");		
+	// 	echo("</div>");
+	// }
 	$lzl=mainfunc(array(
 	"ask"=>"lzl",
 	"method"=>"ask",
@@ -563,14 +571,38 @@ for($i=1;$i< count($result);$i++){
 ?>
 refreshAttach();
 $(window).load(function() {
-	$(".textblock").each(function() {
-		var text=$(this);
-		text.find("img").each(function() {
-			var img=$(this);
-			var width=parseInt(img.css("width"));
-			width=(width>700)?700:width;
-			img.css("width",width);
-		});
+	// 已经用css实现
+	// $(".textblock").each(function() {
+	// 	var text=$(this);
+	// 	text.find("img").each(function() {
+	// 		var img=$(this);
+	// 		var width=parseInt(img.css("width"));
+	// 		width=(width>700)?700:width;
+	// 		img.css("width",width);
+	// 	});
+	// });
+	$('iframe').each(function() {
+		const iframe=$(this);
+		iframe.onload = () => {
+			try {
+				const iframeDoc = iframe.contentDocument || iframe.contentWindow.document;
+				
+				// 创建观察器
+				const resizeObserver = new ResizeObserver(entries => {
+					const height = entries[0].target.scrollHeight;
+					// 设置高度
+					iframe.style.height = height + 'px';
+				});
+				
+				// 观察iframe内容
+				resizeObserver.observe(iframeDoc.documentElement);
+				
+				// 初始设置高度
+				iframe.style.height = iframeDoc.documentElement.scrollHeight + 'px';
+			} catch (e) {
+				console.error("ResizeObserver 错误:", e);
+			}
+		};
 	});
 });
 function deletepid(pid){
