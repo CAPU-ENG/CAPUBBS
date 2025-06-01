@@ -152,7 +152,7 @@ function wraphtmltoiframe($text, $id = '') {
                 <style type='text/css'>
                     img { max-width: min(100%%, 700px); }
                     body { word-wrap: break-word; }
-                    .textblock { min-height: 3em; }
+                    .textblock { min-height: 300px; line-height: 160%%;}
                     .sigblock { color: gray; font-size: small; margin-top: 1em; }
                     .sig { max-height: 400px; overflow-y: scroll; }
                 </style>
