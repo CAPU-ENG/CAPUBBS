@@ -179,7 +179,7 @@ function search_time_change() {
 		echo '本版面精品数：<span style="color:red">'.$totalnumber.'</span>';
 	else
 		echo '本版面主题数：<span style="color:red">'.$totalnumber.'</span>';
-?> 今日新主题：<span style="color:red"><?php echo $boardinfo['newpost'];?></span> 今日新贴：<span style="color:red"><?php echo $boardinfo['newreply'];?></span><br>
+?> 今日新主题：<span style="color:red"><?php echo $boardinfo['newpost'];?></span> 今日新帖：<span style="color:red"><?php echo $boardinfo['newreply'];?></span><br>
 <a href="../sign/?view=<?php echo date("Y-m-d",time());?>" target="_blank">今日签到</a>： <span style="color:red"><?php echo $getnums['sign'];?></span> &nbsp;<a href="../online/?bid=<?php echo $bid;?>" target='_blank'>当前在线</a>： <span style="color:red"><?php echo $getnums['online'];?></span>&nbsp;（最高 <span style="color:red"><?php echo $getnums['maxnum'];?></span> 人于 <?php echo $getnums['time'];?>）
 </td>
 </tr>
