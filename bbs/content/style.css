@@ -139,10 +139,12 @@ a.message{
 	-webkit-border-radius:10px; 
 	border-radius:10px; 
 	background-color: white;
-} 
+}
+/* The following is not useful after safe iframe */
 .textblock img {
 	max-width:100%;
 }
+/* The following is not useful after safe iframe */
 .sigblock img {
 	max-width:100%;
 }
@@ -190,6 +192,7 @@ a.message{
 .report{
 	float: right;
 }
+/* The following is not useful after safe iframe */
 .quotel{
 	background-color: #F9F9F9;
 	background-image: url("quotel.png");
@@ -200,6 +203,7 @@ a.message{
 	color: #666666;
 	font-size: 14px;
 }
+/* The following is not useful after safe iframe */
 .quoter{
 	background-image: url("quoter.png");
 	background-repeat: no-repeat;
@@ -207,10 +211,12 @@ a.message{
 	background-size: 30px 30px;
 	padding-right: 50px;
 }
+/* The following is not useful after safe iframe */
 span.sigtip{
 	color: gray;
 	font-size: 14px;
 }
+/* The following is not useful after safe iframe */
 div.sig{
 	color: #999999;
 	font-size: 14px;
@@ -239,6 +245,7 @@ span.page{
 a:hover{
 	text-decoration: underline;
 }
+/* The following is not useful after safe iframe */
 div.textblock{
 	width: 96%;
 	margin-left: 2%;
@@ -249,6 +256,7 @@ div.textblock{
 	color: #444444;
 	line-height: 160% !important;
 }
+/* The following is not useful after safe iframe */
 div.sigblock{
 	width: 98%;
 	margin-left: 2%;
