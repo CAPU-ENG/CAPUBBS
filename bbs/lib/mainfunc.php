@@ -152,13 +152,13 @@ function wraphtmltoiframe($text, $id = '') {
                 <style type='text/css'>
                     img { max-width: min(100%%, 700px); }
                     body { margin: 0; word-wrap: break-word; }
+					#body-mask { position: absolute; top: 0; bottom: 0; left: 0; right: 0; z-index: -1; background-color: rgba(255, 255, 255, 0.75);}
                     .textblock { min-height: 300px; line-height: 160%%;}
                     .sigblock { color: gray; font-size: small; margin-top: 1em; }
                     .sig { max-height: 400px; overflow-y: scroll; -webkit-overflow-scrolling: touch; }
-					#body-wrapper { padding: 8px; background-color:rgba(255, 255, 255, 0.75);}
                 </style>
             </head>
-            <body><div id='body-wrapper'>%s</div></body>
+            <body><div id='body-mask'><div id='body-wrapper'>%s</div></body>
         </html>",
         $jQueryScript,
         $text
