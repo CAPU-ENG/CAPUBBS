@@ -151,10 +151,11 @@ function wraphtmltoiframe($text, $id = '') {
                 %s
                 <style type='text/css'>
                     img { max-width: min(100%%, 700px); }
-                    body { word-wrap: break-word; }
+                    body { margin: 0; word-wrap: break-word; }
                     .textblock { min-height: 300px; line-height: 160%%;}
                     .sigblock { color: gray; font-size: small; margin-top: 1em; }
-                    .sig { max-height: 400px; overflow-y: scroll; }
+                    .sig { max-height: 400px; overflow-y: scroll; -webkit-overflow-scrolling: touch; }
+					#body-wrapper { padding: 8px; background-color:rgba(255, 255, 255, 0.75);}
                 </style>
             </head>
             <body><div id='body-wrapper'>%s</div></body>
