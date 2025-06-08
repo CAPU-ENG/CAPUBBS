@@ -44,12 +44,13 @@
         $id=@$_REQUEST['bid'];
         $see=@$_REQUEST['tid'];
         $page=@$_REQUEST['p'];
+        $lzl=@$_REQUEST['lzl'];
         if(!$page) $page=1;
         $page=intval($page);
         $results=request(array("bid"=>$id,"tid"=>$see,"p"=>$page));
 
         $pages=request(array("ask"=>"getpages","bid"=>$id,"tid"=>$see));
-        $pages=intval($pages[0]['pages']);
+        $pages=min(1,intval($pages[0]['pages']));
 
         echo '<capu>'."\n";
 
@@ -65,7 +66,7 @@
             echo '<info>'."\n";
             if ($see=="") showtitle($floor,$id,$page,$pages);
             else {
-                showtext($floor,$id,$see,$page,$pages,$title);
+                showtext($floor,$id,$see,$page,$pages,$title,$lzl=="true");
                 $temp=request(array("bid"=>$id,"tid"=>$see,"ask"=>"tidinfo"));
                 echo '<click>'.$temp[0]['click'].'</click>';
                 echo '<reply>'.$temp[0]['reply'].'</reply>';
@@ -95,7 +96,17 @@
         echo "<extr>".$content['extr']."</extr>\n";
     }
 
-    function showtext($content,$bid,$tid,$page,$pages,$title) {//新增用户头像、星数和签名档
+    function showlzl($lzl) {
+        $user=request(array("ask"=>"view","view"=>$lzl['author']));
+        echo '<id>'.$lzl['id'].'</id>';
+        echo '<fid>'.$lzl['fid'].'</fid>';
+        echo '<author><![CDATA['.$lzl['author'].']]></author>';
+        echo '<icon><![CDATA['.$user[0]['icon'].']]></icon>';
+        echo '<text><![CDATA['.$lzl['text'].']]></text>';
+        echo '<time>'.date("Y-m-d H:i:s",$lzl['time']).'</time>';
+    }
+
+    function showtext($content,$bid,$tid,$page,$pages,$title,$showlzl) {//新增用户头像、星数和签名档
         $id=request(array("ask"=>"view","view"=>$content['author']));
         echo "<code>-1</code>\n";
         $nextpage="false";
@@ -114,10 +125,21 @@
         echo "<tid>$tid</tid>\n";
         echo "<fid>".@$content['fid']."</fid>\n";
         echo "<lzl>".@$content['lzl']."</lzl>\n";
+        if ($showlzl) {
+            $lzl=request(array(
+                               "ask"=>"lzl",
+                               "method"=>"ask",
+                               "fid"=> $content['pid']
+                               ));
+            for($j=0;$j< count($lzl);$j++) {//新增查看头像
+                echo "<lzldetail>";
+                showlzl($lzl[$j]);
+                echo "</lzldetail>\n";
+            }
+        }
         echo "<time>".date("Y-m-d H:i:s",@$content['replytime'])."</time>"; // 发表时间
         echo "<edittime>".date("Y-m-d H:i:s",@$content['updatetime'])."</edittime>"; // 编辑时间
         echo "<type>".@$content['type']."</type>"; // 发帖类型(web android ios)
-
     }
 
     function post() {
@@ -713,14 +735,8 @@
                                ));
             echo '<capu><info><code>-1</code></info>';
             for($j=0;$j< count($lzl);$j++) {//新增查看头像
-                $user=request(array("ask"=>"view","view"=>$lzl[$j]['author']));
                 echo '<info>';
-                echo '<id>'.$lzl[$j]['id'].'</id>';
-                echo '<fid>'.$lzl[$j]['fid'].'</fid>';
-                echo '<author><![CDATA['.$lzl[$j]['author'].']]></author>';
-                echo '<icon><![CDATA['.$user[0]['icon'].']]></icon>';
-                echo '<text><![CDATA['.$lzl[$j]['text'].']]></text>';
-                echo '<time>'.date("Y-m-d H:i:s",$lzl[$j]['time']).'</time>';
+                showlzl($lzl[$j]);
                 echo '</info>';
             }
             echo '</capu>';
