@@ -4,6 +4,14 @@
     echo "\n";
     date_default_timezone_set("Asia/Shanghai");
 
+    // if(@$_REQUEST['os']=="ios") {
+    //     $build=intval(@$_REQUEST['clientbuild']);
+    //     if ($build > 0 && $build < 3900) {
+    //         echo '<capu><info><code>-999</code><msg>客户端版本过低，请前往App Store更新版本！</msg></info></capu>';
+    //         exit;
+    //     }
+    // }
+
     $ask=@$_REQUEST['ask'];
     if ($ask=="show") show();
     else if ($ask=="post") post();
@@ -239,7 +247,6 @@
         $os=@$_POST['os'];
         if ($os=="") $os="android";
         $system=@$_POST['device'];
-        if($os=="ios") $system=packiOSDevice($system);
         $version=@$_POST['version'];
         $system=$system."#".$version;
 
@@ -267,22 +274,11 @@
         $result=request(array("ask"=>"logout"));
         echo '<capu><info><code>0</code></info></capu>';
     }
-
-    function packiOSDevice($raw){
-        $info=file_get_contents("deviceinfo.txt");
-        $infos=explode("\n",$info);
-        for($i=0;$i<count($infos);$i++){
-            $data=explode("#",$infos[$i]);
-            if($data[0]==$raw) return $data[1];
-        }
-        return $raw;
-    }
     function register() {
 
         $os=@$_POST['os'];
         if ($os=="") $os="android";
         $system=@$_POST['device'];
-        if($os=="ios") $system=packiOSDevice($system);
         $version=@$_POST['version'];
         $system=$system."#".$version;
 
@@ -399,9 +395,6 @@
         echo '<updatetext><![CDATA['.$results[2].']]></updatetext>';
         echo '<updateurl><![CDATA['.$results[3].']]></updateurl>';
         echo '<updatetime><![CDATA['.$results[4].']]></updatetime>';
-        echo '<iostext>客户端版本过老，请至App Store升级！</iostext>';
-        echo '<iosurl><![CDATA[https://itunes.apple.com/cn/app/capubbs/id826386033?mt=8]]></iosurl>';
-        echo '<iosversion>3.0</iosversion>';
         echo '</info>'."\n";
 
         $moreinfo=@$_REQUEST['more'];//兼容老版本无法显示超过六条通知的Bug
