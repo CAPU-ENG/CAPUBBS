@@ -51,6 +51,7 @@
 
         $pages=request(array("ask"=>"getpages","bid"=>$id,"tid"=>$see));
         $pages=max(1,intval($pages[0]['pages']));
+        $stats=request(array("bid"=>$id,"tid"=>$see,"ask"=>"tidinfo"));
 
         echo '<capu>'."\n";
 
@@ -67,9 +68,8 @@
             if ($see=="") showtitle($floor,$id,$page,$pages);
             else {
                 showtext($floor,$id,$see,$page,$pages,$title,$lzl=="true");
-                $temp=request(array("bid"=>$id,"tid"=>$see,"ask"=>"tidinfo"));
-                echo '<click>'.$temp[0]['click'].'</click>';
-                echo '<reply>'.$temp[0]['reply'].'</reply>';
+                echo '<click>'.$stats[0]['click'].'</click>';
+                echo '<reply>'.$stats[0]['reply'].'</reply>';
             }
             echo '</info>'."\n";
         }
@@ -129,7 +129,7 @@
             $lzl=request(array(
                                "ask"=>"lzl",
                                "method"=>"ask",
-                               "fid"=> $content['pid']
+                               "fid"=> $content['fid']
                                ));
             for($j=0;$j< count($lzl);$j++) {//新增查看头像
                 echo "<lzldetail>";
