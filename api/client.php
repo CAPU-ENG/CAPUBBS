@@ -50,7 +50,7 @@
         $results=request(array("bid"=>$id,"tid"=>$see,"p"=>$page));
 
         $pages=request(array("ask"=>"getpages","bid"=>$id,"tid"=>$see));
-        $pages=min(1,intval($pages[0]['pages']));
+        $pages=max(1,intval($pages[0]['pages']));
 
         echo '<capu>'."\n";
 
