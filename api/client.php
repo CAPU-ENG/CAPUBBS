@@ -73,7 +73,9 @@
         for ($i=0;$i<$count;$i++) {
             $floor=$results[$i];
             echo '<info>'."\n";
-            if ($see=="") showtitle($floor,$id,$page,$pages);
+            if ($see=="") {
+                showtitle($floor,$id,$page,$pages);
+            }
             else {
                 showtext($floor,$id,$see,$page,$pages,$title,$lzl=="YES");
             }
@@ -97,8 +99,11 @@
         echo "<bid>$bid</bid>\n";
         echo "<text><![CDATA[".$content['title']."]]></text>\n";
         echo "<author><![CDATA[".$content['author']."        /        ".$content['replyer']."]]></author>\n";
+        echo "<authorraw><![CDATA[".$content['author']."]]></author>\n";
+        echo "<replyer><![CDATA[".$content['replyer']."]]></author>\n";
         echo "<tid>".$content['tid']."</tid>\n";
         echo "<time>".date("Y-m-d H:i:s",$content['timestamp'])."</time>\n";
+        echo "<posttime>".$content['posttime']."</posttime>\n";
         echo "<lock>".$content['locked']."</lock>\n";
         echo "<top>".$content['top']."</top>\n";
         echo "<extr>".$content['extr']."</extr>\n";
