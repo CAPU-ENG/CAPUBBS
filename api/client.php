@@ -57,10 +57,6 @@
         $page=intval($page);
         $results=request(array("bid"=>$id,"tid"=>$see,"p"=>$page));
 
-        $pages=request(array("ask"=>"getpages","bid"=>$id,"tid"=>$see));
-        $pages=max(1,intval($pages[0]['pages']));
-        $stats=request(array("bid"=>$id,"tid"=>$see,"ask"=>"tidinfo"));
-
         echo '<capu>'."\n";
 
         $count=count($results);
@@ -69,16 +65,19 @@
             echo '<info><code>11</code><msg>您需要登录后才能查看此版面内容。</msg></info></capu>';
             exit;
         }
+
         $title=$results[0]['title'];
+        $pages=request(array("ask"=>"getpages","bid"=>$id,"tid"=>$see));
+        $stats=request(array("bid"=>$id,"tid"=>$see,"ask"=>"tidinfo"));
         for ($i=0;$i<$count;$i++) {
             $floor=$results[$i];
             echo '<info>'."\n";
             if ($see=="") showtitle($floor,$id,$page,$pages);
             else {
-                showtext($floor,$id,$see,$page,$pages,$title,$lzl=="true");
-                echo '<click>'.$stats[0]['click'].'</click>';
-                echo '<reply>'.$stats[0]['reply'].'</reply>';
+                showtext($floor,$id,$see,$page,$pages,$title,$lzl=="YES");
             }
+            echo '<click>'.$stats[0]['click'].'</click>';
+            echo '<reply>'.$stats[0]['reply'].'</reply>';
             echo '</info>'."\n";
         }
         echo '</capu>'."\n";
@@ -545,15 +544,22 @@
 
     function getuserinfo() {
         $user=@$_REQUEST['uid'];
+        $raw=@$_REQUEST['raw'];
         $id=request(array("ask"=>"view","view"=>$user));
         echo '<capu><info>';
         echo '<username><![CDATA['.$id[0]['username'].']]></username>';
         echo '<sex><![CDATA['.$id[0]['sex'].']]></sex>';
         echo '<icon><![CDATA['.$id[0]['icon'].']]></icon>';
         echo '<intro><![CDATA['.$id[0]['intro'].']]></intro>';
-        echo '<sig1><![CDATA['.translate($id[0]['sig1'],false,true).']]></sig1>';
-        echo '<sig2><![CDATA['.translate($id[0]['sig2'],false,true).']]></sig2>';
-        echo '<sig3><![CDATA['.translate($id[0]['sig3'],false,true).']]></sig3>';
+        if($raw=="YES"){
+            echo '<sig1><![CDATA['.$id[0]['sig1'].']]></sig1>';
+            echo '<sig2><![CDATA['.$id[0]['sig2'].']]></sig2>';
+            echo '<sig3><![CDATA['.$id[0]['sig3'].']]></sig3>';
+        }else{
+            echo '<sig1><![CDATA['.translate($id[0]['sig1'],false,true).']]></sig1>';
+            echo '<sig2><![CDATA['.translate($id[0]['sig2'],false,true).']]></sig2>';
+            echo '<sig3><![CDATA['.translate($id[0]['sig3'],false,true).']]></sig3>';
+        }
         echo '<hobby><![CDATA['.$id[0]['hobby'].']]></hobby>';
         echo '<qq><![CDATA['.$id[0]['qq'].']]></qq>';
         echo '<mail><![CDATA['.$id[0]['mail'].']]></mail>';
