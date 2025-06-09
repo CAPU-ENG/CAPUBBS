@@ -68,6 +68,7 @@
 
         $title=$results[0]['title'];
         $pages=request(array("ask"=>"getpages","bid"=>$id,"tid"=>$see));
+        $pages=intval($pages[0]['pages']);
         $stats=request(array("bid"=>$id,"tid"=>$see,"ask"=>"tidinfo"));
         for ($i=0;$i<$count;$i++) {
             $floor=$results[$i];
