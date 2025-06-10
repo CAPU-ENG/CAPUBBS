@@ -351,7 +351,9 @@ for($i=0;$i<count(@$data);$i++){
 			$authorinfo=$authorinfo[0];
 			echo('<tr><td class="lzltd">');
 			echo('<div class="lzlicon"><img src="'.translateicon($authorinfo['icon']).'" class="lzlicon"></div>');
-			echo('<div class="lzlcontent">'.userhref($author).': '.htmlspecialchars($lzl[$j]['text']).'<br>');
+			$html=str_replace(chr(10), "<br>",htmlspecialchars($lzl[$j]['text']));
+			$html=str_replace(chr(13), "<br>",$html);
+			echo('<div class="lzlcontent">'.userhref($author).': '.$html.'<br>');
 			echo('<span class="lzltime">'.formatstamp($lzl[$j]['time']));
 			if ($canreply) echo '&nbsp;<a href="javascript:insertlzlreply('.$i.',\''.$author.'\');" class="lzlreplybt">回复</a>';
 			if($right>=1|| $author==$currentuser){

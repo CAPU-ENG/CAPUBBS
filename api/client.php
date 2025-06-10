@@ -4,6 +4,14 @@
     echo "\n";
     date_default_timezone_set("Asia/Shanghai");
 
+    // if(@$_REQUEST['os']=="ios") {
+    //     $build=intval(@$_REQUEST['clientbuild']);
+    //     if ($build > 0 && $build < 3900) {
+    //         echo '<capu><info><code>-999</code><msg>客户端版本过低，请前往App Store更新版本！</msg></info></capu>';
+    //         exit;
+    //     }
+    // }
+
     $ask=@$_REQUEST['ask'];
     if ($ask=="show") show();
     else if ($ask=="post") post();
@@ -49,9 +57,6 @@
         $page=intval($page);
         $results=request(array("bid"=>$id,"tid"=>$see,"p"=>$page));
 
-        $pages=request(array("ask"=>"getpages","bid"=>$id,"tid"=>$see));
-        $pages=min(1,intval($pages[0]['pages']));
-
         echo '<capu>'."\n";
 
         $count=count($results);
@@ -60,17 +65,22 @@
             echo '<info><code>11</code><msg>您需要登录后才能查看此版面内容。</msg></info></capu>';
             exit;
         }
+
         $title=$results[0]['title'];
+        $pages=request(array("ask"=>"getpages","bid"=>$id,"tid"=>$see));
+        $pages=intval($pages[0]['pages']);
+        $stats=request(array("bid"=>$id,"tid"=>$see,"ask"=>"tidinfo"));
         for ($i=0;$i<$count;$i++) {
             $floor=$results[$i];
             echo '<info>'."\n";
-            if ($see=="") showtitle($floor,$id,$page,$pages);
-            else {
-                showtext($floor,$id,$see,$page,$pages,$title,$lzl=="true");
-                $temp=request(array("bid"=>$id,"tid"=>$see,"ask"=>"tidinfo"));
-                echo '<click>'.$temp[0]['click'].'</click>';
-                echo '<reply>'.$temp[0]['reply'].'</reply>';
+            if ($see=="") {
+                showtitle($floor,$id,$page,$pages);
             }
+            else {
+                showtext($floor,$id,$see,$page,$pages,$title,$lzl=="YES");
+            }
+            echo '<click>'.$stats[0]['click'].'</click>';
+            echo '<reply>'.$stats[0]['reply'].'</reply>';
             echo '</info>'."\n";
         }
         echo '</capu>'."\n";
@@ -81,6 +91,8 @@
         echo '<code>-1</code>'."\n";
         if (@$content['replyer']==null || @$content['replyer']=="")
             $content['replyer']="";
+        if (@$content['postdate']==null || @$content['postdate']=="")
+            $content['postdate']="0";
         $nextpage="false";
         if ($page!=$pages) $nextpage="true";
         echo "<nextpage>$nextpage</nextpage>\n";
@@ -89,8 +101,11 @@
         echo "<bid>$bid</bid>\n";
         echo "<text><![CDATA[".$content['title']."]]></text>\n";
         echo "<author><![CDATA[".$content['author']."        /        ".$content['replyer']."]]></author>\n";
+        echo "<authorraw><![CDATA[".$content['author']."]]></authorraw>\n";
+        echo "<replyer><![CDATA[".$content['replyer']."]]></replyer>\n";
         echo "<tid>".$content['tid']."</tid>\n";
         echo "<time>".date("Y-m-d H:i:s",$content['timestamp'])."</time>\n";
+        echo "<postdate>".$content['postdate']."</postdate>\n";
         echo "<lock>".$content['locked']."</lock>\n";
         echo "<top>".$content['top']."</top>\n";
         echo "<extr>".$content['extr']."</extr>\n";
@@ -129,7 +144,7 @@
             $lzl=request(array(
                                "ask"=>"lzl",
                                "method"=>"ask",
-                               "fid"=> $content['pid']
+                               "fid"=> $content['fid']
                                ));
             for($j=0;$j< count($lzl);$j++) {//新增查看头像
                 echo "<lzldetail>";
@@ -239,7 +254,6 @@
         $os=@$_POST['os'];
         if ($os=="") $os="android";
         $system=@$_POST['device'];
-        if($os=="ios") $system=packiOSDevice($system);
         $version=@$_POST['version'];
         $system=$system."#".$version;
 
@@ -267,22 +281,11 @@
         $result=request(array("ask"=>"logout"));
         echo '<capu><info><code>0</code></info></capu>';
     }
-
-    function packiOSDevice($raw){
-        $info=file_get_contents("deviceinfo.txt");
-        $infos=explode("\n",$info);
-        for($i=0;$i<count($infos);$i++){
-            $data=explode("#",$infos[$i]);
-            if($data[0]==$raw) return $data[1];
-        }
-        return $raw;
-    }
     function register() {
 
         $os=@$_POST['os'];
         if ($os=="") $os="android";
         $system=@$_POST['device'];
-        if($os=="ios") $system=packiOSDevice($system);
         $version=@$_POST['version'];
         $system=$system."#".$version;
 
@@ -399,9 +402,6 @@
         echo '<updatetext><![CDATA['.$results[2].']]></updatetext>';
         echo '<updateurl><![CDATA['.$results[3].']]></updateurl>';
         echo '<updatetime><![CDATA['.$results[4].']]></updatetime>';
-        echo '<iostext>客户端版本过老，请至App Store升级！</iostext>';
-        echo '<iosurl><![CDATA[https://itunes.apple.com/cn/app/capubbs/id826386033?mt=8]]></iosurl>';
-        echo '<iosversion>3.0</iosversion>';
         echo '</info>'."\n";
 
         $moreinfo=@$_REQUEST['more'];//兼容老版本无法显示超过六条通知的Bug
@@ -552,15 +552,22 @@
 
     function getuserinfo() {
         $user=@$_REQUEST['uid'];
+        $raw=@$_REQUEST['raw'];
         $id=request(array("ask"=>"view","view"=>$user));
         echo '<capu><info>';
         echo '<username><![CDATA['.$id[0]['username'].']]></username>';
         echo '<sex><![CDATA['.$id[0]['sex'].']]></sex>';
         echo '<icon><![CDATA['.$id[0]['icon'].']]></icon>';
         echo '<intro><![CDATA['.$id[0]['intro'].']]></intro>';
-        echo '<sig1><![CDATA['.translate($id[0]['sig1'],false,true).']]></sig1>';
-        echo '<sig2><![CDATA['.translate($id[0]['sig2'],false,true).']]></sig2>';
-        echo '<sig3><![CDATA['.translate($id[0]['sig3'],false,true).']]></sig3>';
+        if($raw=="YES"){
+            echo '<sig1><![CDATA['.$id[0]['sig1'].']]></sig1>';
+            echo '<sig2><![CDATA['.$id[0]['sig2'].']]></sig2>';
+            echo '<sig3><![CDATA['.$id[0]['sig3'].']]></sig3>';
+        }else{
+            echo '<sig1><![CDATA['.translate($id[0]['sig1'],false,true).']]></sig1>';
+            echo '<sig2><![CDATA['.translate($id[0]['sig2'],false,true).']]></sig2>';
+            echo '<sig3><![CDATA['.translate($id[0]['sig3'],false,true).']]></sig3>';
+        }
         echo '<hobby><![CDATA['.$id[0]['hobby'].']]></hobby>';
         echo '<qq><![CDATA['.$id[0]['qq'].']]></qq>';
         echo '<mail><![CDATA['.$id[0]['mail'].']]></mail>';
