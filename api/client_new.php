@@ -69,11 +69,15 @@
         $title=$results[0]['title'];
         $pages=request(array("ask"=>"getpages","bid"=>$id,"tid"=>$see));
         $pages=intval($pages[0]['pages']);
-        $stats=request(array("bid"=>$id,"tid"=>$see,"ask"=>"tidinfo"));
+        $stats=null;
+        if ($see!="") {
+            $stats=request(array("bid"=>$id,"tid"=>$see,"ask"=>"tidinfo"));
+        }
         for ($i=0;$i<$count;$i++) {
             $floor=$results[$i];
             echo '<info>'."\n";
             if ($see=="") {
+                $stats=request(array("bid"=>$id,"tid"=>$floor['tid'],"ask"=>"tidinfo"));
                 showtitle($floor,$id,$page,$pages);
             }
             else {
