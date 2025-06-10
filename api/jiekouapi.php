@@ -1442,7 +1442,7 @@ while ($res=mysql_fetch_array($result)) {
             $results=mysql_query($statement);
             $res=mysql_fetch_row($results);
             $num=intval($res[0]);
-            echo ceil($num/12);
+            echo ceil(($num+1)/12);
         }
         echo '</pages></info></capu>';
         exit;
