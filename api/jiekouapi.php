@@ -1893,17 +1893,21 @@ while ($res=mysql_fetch_array($result)) {
             $end=time();
             $endtime=date("Y-m-d",$end);
         }
+        if ($bid==-1)
+            $bid_str="  ";
+        else
+            $bid_str=" bid=$bid and ";
         if($type=="thread"){
             if ($author=="")
-                $statement="select title,bid,tid,author,replytime from posts where bid=$bid and replytime>=$start && replytime<=$end and pid=1 and title like '%$keyword%' order by replytime desc limit 100";
+                $statement="select title,bid,tid,author,replytime from posts where $bid_str replytime>=$start && replytime<=$end and pid=1 and title like '%$keyword%' order by replytime desc limit 100";
             else
-                $statement="select title,bid,tid,author,replytime from posts where bid=$bid and replytime>=$start && replytime<=$end and pid=1 and author='$author' and title like '%$keyword%' order by replytime desc limit 100";
+                $statement="select title,bid,tid,author,replytime from posts where $bid_str replytime>=$start && replytime<=$end and pid=1 and author='$author' and title like '%$keyword%' order by replytime desc limit 100";
 
         }else if($type=="post"){
             if ($author=="")
-                $statement="select title,bid,tid,pid,author,updatetime from posts where bid=$bid and updatetime>=$start && updatetime<=$end and text like '%$keyword%' order by updatetime desc limit 100";
+                $statement="select title,bid,tid,pid,author,updatetime from posts where $bid_str updatetime>=$start && updatetime<=$end and text like '%$keyword%' order by updatetime desc limit 100";
             else
-                $statement="select title,bid,tid,pid,author,updatetime from posts where bid=$bid and updatetime>=$start && updatetime<=$end and author='$author' and text like '%$keyword%' order by updatetime desc limit 100";
+                $statement="select title,bid,tid,pid,author,updatetime from posts where $bid_str updatetime>=$start && updatetime<=$end and author='$author' and text like '%$keyword%' order by updatetime desc limit 100";
         }
         view_bbs($con, $statement);
     }
