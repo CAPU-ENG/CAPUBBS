@@ -91,6 +91,8 @@
         echo '<code>-1</code>'."\n";
         if (@$content['replyer']==null || @$content['replyer']=="")
             $content['replyer']="";
+        if (@$content['postdate']==null || @$content['postdate']=="")
+            $content['postdate']="0";
         $nextpage="false";
         if ($page!=$pages) $nextpage="true";
         echo "<nextpage>$nextpage</nextpage>\n";
@@ -103,7 +105,7 @@
         echo "<replyer><![CDATA[".$content['replyer']."]]></author>\n";
         echo "<tid>".$content['tid']."</tid>\n";
         echo "<time>".date("Y-m-d H:i:s",$content['timestamp'])."</time>\n";
-        echo "<posttime>".$content['posttime']."</posttime>\n";
+        echo "<postdate>".$content['postdate']."</postdate>\n";
         echo "<lock>".$content['locked']."</lock>\n";
         echo "<top>".$content['top']."</top>\n";
         echo "<extr>".$content['extr']."</extr>\n";
