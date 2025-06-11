@@ -22,7 +22,7 @@ function get_activity_join($activity_id) {
         from 
             season_activity_join 
         left join 
-            (select username, 1 as has_punishment from punishment where is_end=0 group by username) punishment 
+            (select username, 1 as has_punishment from punishment where is_end=0 and is_deleted=0 group by username) punishment 
         on 
             season_activity_join.username=punishment.username
         where 
