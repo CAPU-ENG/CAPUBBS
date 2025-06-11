@@ -14,7 +14,7 @@
 <link rel="stylesheet" href="style.css">
 <link rel="shortcut icon" href="/assets/images/capu.jpg">
 <script src="../lib/jquery.min.js"></script>
-<meta name="apple-itunes-app" content="app-id=826386033, affiliate-data=myAffiliateData, app-argument=myURL">
+<meta name="apple-itunes-app" content="app-id=826386033">
 <?php
 
 	$agent=@$_SERVER['HTTP_USER_AGENT'];
