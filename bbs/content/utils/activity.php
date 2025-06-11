@@ -362,6 +362,7 @@ for($i=0;$i<count(@$data);$i++){
                             <?php
                                 $tag_begin = '<th style="border-color:black;border-style:solid;border-width:1px;font-family:Arial, sans-serif;font-size:14px;overflow:hidden;padding:10px 5px;text-align:center;vertical-align:middle;word-break:keep-all;white-space:nowrap;">';
                                 $tag_end = '</th>';
+                                echo $tag_begin."是否有罚跑".$tag_end;
                                 echo $tag_begin."用户名".$tag_end;
                                 for ($option_idx=0; $option_idx < count(@$activity["options"]); $option_idx++){
                                     $option = $activity["options"][$option_idx];
@@ -379,6 +380,16 @@ for($i=0;$i<count(@$data);$i++){
                                     $cancel = $join_value[$user_idx]['cancel'];
                                     
                                     echo '<tr>';
+                                    if ($join_value[$user_idx]['has_punishment'] == 1) {
+                                        $punishment_text = "是";
+                                    } else {
+                                        $punishment_text = "否";
+                                    }
+                                    if ($cancel) {
+                                        echo $tag_begin.'<font color="red"><strike>'.$punishment_text.'</strike></font>'.$tag_end;
+                                    } else {
+                                        echo $tag_begin.$punishment_text.$tag_end;
+                                    }
                                     if ($cancel) {
                                         echo $tag_begin.'<font color="red"><strike>'.$_username.'</strike></font>'.$tag_end;
                                     } else {
