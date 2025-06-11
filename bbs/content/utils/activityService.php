@@ -102,7 +102,6 @@ function createActivity($username, $bid, $title, $text, $options, $sig) {
     mysql_query($statement);
     $statement="insert into posts (bid,tid,pid,title,author,text,ishtml,attachs,replytime,updatetime,sig,ip,type,lzl) values ($bid,$tid,1,'$title','$username','$text','YES','$attachs',$time,$time,$sig,'$ip','$type',0)";
     mysql_query($statement);
-    // echo("<msg>".mysql_error()."</msg>");
     if ($bid!=4)
         $statement="update userinfo set post=post+1, lastpost=$time, tokentime=$time where username='$username'";
     else
