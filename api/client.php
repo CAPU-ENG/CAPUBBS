@@ -52,7 +52,7 @@
         $id=@$_REQUEST['bid'];
         $see=@$_REQUEST['tid'];
         $page=@$_REQUEST['p'];
-        $lzl=@$_REQUEST['lzl'];
+        $raw=(@$_REQUEST['raw'] == 'YES');
         if(!$page) $page=1;
         $page=intval($page);
         $results=request(array("bid"=>$id,"tid"=>$see,"p"=>$page));
@@ -69,15 +69,18 @@
         $title=$results[0]['title'];
         $pages=request(array("ask"=>"getpages","bid"=>$id,"tid"=>$see));
         $pages=intval($pages[0]['pages']);
-        $stats=request(array("bid"=>$id,"tid"=>$see,"ask"=>"tidinfo"));
+        $stats=null;
+        if ($see!="") {
+            $stats=request(array("bid"=>$id,"tid"=>$see,"ask"=>"tidinfo"));
+        }
         for ($i=0;$i<$count;$i++) {
             $floor=$results[$i];
             echo '<info>'."\n";
             if ($see=="") {
-                showtitle($floor,$id,$page,$pages);
-            }
-            else {
-                showtext($floor,$id,$see,$page,$pages,$title,$lzl=="YES");
+                $stats=request(array("bid"=>$id,"tid"=>$floor['tid'],"ask"=>"tidinfo"));
+                showtitle($floor,$id,$page,$pages,$raw);
+            } else {
+                showtext($floor,$id,$see,$page,$pages,$title,$raw);
             }
             echo '<click>'.$stats[0]['click'].'</click>';
             echo '<reply>'.$stats[0]['reply'].'</reply>';
@@ -87,7 +90,7 @@
         exit;
     }
 
-    function showtitle($content,$bid,$page,$pages) {
+    function showtitle($content,$bid,$page,$pages,$raw) {
         echo '<code>-1</code>'."\n";
         if (@$content['replyer']==null || @$content['replyer']=="")
             $content['replyer']="";
@@ -100,9 +103,12 @@
         echo "<page>$page</page>\n";
         echo "<bid>$bid</bid>\n";
         echo "<text><![CDATA[".$content['title']."]]></text>\n";
-        echo "<author><![CDATA[".$content['author']."        /        ".$content['replyer']."]]></author>\n";
-        echo "<authorraw><![CDATA[".$content['author']."]]></authorraw>\n";
-        echo "<replyer><![CDATA[".$content['replyer']."]]></replyer>\n";
+        if ($raw) {
+            echo "<author><![CDATA[".$content['author']."]]></author>\n";
+            echo "<replyer><![CDATA[".$content['replyer']."]]></replyer>\n";
+        } else {
+            echo "<author><![CDATA[".$content['author']."        /        ".$content['replyer']."]]></author>\n";
+        }
         echo "<tid>".$content['tid']."</tid>\n";
         echo "<time>".date("Y-m-d H:i:s",$content['timestamp'])."</time>\n";
         echo "<postdate>".$content['postdate']."</postdate>\n";
@@ -121,7 +127,7 @@
         echo '<time>'.date("Y-m-d H:i:s",$lzl['time']).'</time>';
     }
 
-    function showtext($content,$bid,$tid,$page,$pages,$title,$showlzl) {//新增用户头像、星数和签名档
+    function showtext($content,$bid,$tid,$page,$pages,$title,$raw) {//新增用户头像、星数、签名档和楼中楼
         $id=request(array("ask"=>"view","view"=>$content['author']));
         echo "<code>-1</code>\n";
         $nextpage="false";
@@ -134,19 +140,25 @@
         echo "<icon><![CDATA[".$id[0]['icon']."]]></icon>";
         echo "<star><![CDATA[".$id[0]['star']."]]></star>";
         echo "<title><![CDATA[".$title."]]></title>\n";
-        echo "<text><![CDATA[".translate(@$content['text'],@$content['ishtml'],false)."]]></text>\n";
-        echo "<sig><![CDATA[".translate($id[0]['sig'.@$content['sig']],false,true)."]]></sig>\n";
+        if ($raw) {
+            echo "<textraw><![CDATA[".@$content['text']."]]></textraw>\n";
+            echo "<ishtml>".@$content['ishtml']."</ishtml>\n";
+            echo "<sigraw><![CDATA[".$id[0]['sig'.@$content['sig']]."]]></sigraw>\n";
+        } else {
+            echo "<text><![CDATA[".translate(@$content['text'],@$content['ishtml'],false)."]]></text>\n";
+            echo "<sig><![CDATA[".translate($id[0]['sig'.@$content['sig']],false,true)."]]></sig>\n";
+        }
         echo "<floor>".@$content['pid']."</floor>\n";
         echo "<tid>$tid</tid>\n";
         echo "<fid>".@$content['fid']."</fid>\n";
         echo "<lzl>".@$content['lzl']."</lzl>\n";
-        if ($showlzl) {
+        if ($raw) {
             $lzl=request(array(
                                "ask"=>"lzl",
                                "method"=>"ask",
                                "fid"=> $content['fid']
                                ));
-            for($j=0;$j< count($lzl);$j++) {//新增查看头像
+            for($j=0;$j< count($lzl);$j++) {
                 echo "<lzldetail>";
                 showlzl($lzl[$j]);
                 echo "</lzldetail>\n";
