@@ -67,6 +67,7 @@
 
 
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+<meta name="apple-itunes-app" content="app-id=826386033">
 <link href="/assets/css/bootstrap.min.css" rel="stylesheet">
 <link href="/assets/css/style.css" rel="stylesheet">
 <link rel="shortcut icon" href="/assets/images/capu.jpg">

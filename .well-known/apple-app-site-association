@@ -1,5 +1,19 @@
 {
   "webcredentials": {
-    "apps": ["674549EE7Z.com.xiongdianpku.CAPUBBS"]
+    "apps": [ "674549EE7Z.com.xiongdianpku.CAPUBBS" ]
+  },
+  "applinks": {
+    "apps": [],
+    "details": [
+      {
+        "appIDs": [ "674549EE7Z.com.xiongdianpku.CAPUBBS" ],
+        "components": [
+          {
+            "/": "*",
+            "comment": "Open CAPUBBS App"
+          }
+        ]
+      }
+    ]
   }
 }
