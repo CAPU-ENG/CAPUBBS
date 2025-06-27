@@ -128,13 +128,18 @@
         echo '<time>'.date("Y-m-d H:i:s",$lzl['time']).'</time>';
     }
 
+    function packBool($bool){
+        if($bool) return "YES";
+        return "NO";
+    }
+
     function showattach($attach) {
         echo '<name><![CDATA['.@$attach['name'].']]></name>';
         echo '<size>'.@$attach['size'].'</size>';
         echo '<price>'.@$attach['price'].'</price>';
         echo '<minscore>'.@$attach['auth'].'</minscore>';
         echo '<id>'.@$attach['id'].'</id>';
-        echo '<free>'.@$attach['isAuthor']=='YES'||@$attach['hasPurchased']=='YES'.'</free>';
+        echo '<free>'.packBool(@$attach['isAuthor']=='YES'||@$attach['hasPurchased']=='YES').'</free>';
         echo '<count>'.@$attach['count'].'</count>';
     }
 
@@ -197,6 +202,7 @@
         $pid=@$_POST["pid"];
         $title=$_POST["title"];
         $text=$_POST["text"];
+        $attachs=$_POST["attachs"];
         $sig=$_POST["sig"];
         $type=@$_POST['os'];
         if ($type=="") $type="android";
@@ -206,7 +212,8 @@
                 "title"=>$title,
                 "text"=>$text,
                 "sig"=>$sig,
-                "type"=>$type
+                "type"=>$type,
+                "attachs"=>$attachs
             ));
             $result=$result[0];
             $result=intval($result['code']);
@@ -224,7 +231,8 @@
                 "title"=>$title,
                 "text"=>$text,
                 "sig"=>$sig,
-                "type"=>$type
+                "type"=>$type,
+                "attachs"=>$attachs
             ));
             $result=$result[0];
             $code=intval($result['code']);
@@ -245,7 +253,8 @@
                 "title"=>$title,
                 "text"=>$text,
                 "sig"=>$sig,
-                "type"=>$type
+                "type"=>$type,
+                "attachs"=>$attachs
             ));
             $result=$result[0];
             $code=intval($result['code']);
@@ -834,8 +843,7 @@
                 echo '<capu><info><code>'.$code.'</code><msg>'.@$attach['msg'].'</msg></info></capu>';
                 exit;
             }
-            echo '<capu><info><code>0</code></info>';
-            echo '<info><path><![CDATA['.@$attach['path'].']]></path></info></capu>';
+            echo '<capu><info><code>0</code><path>'.@$attach['path'].'</path></info></capu>';
             exit;
         }
 
