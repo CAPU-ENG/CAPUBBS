@@ -836,7 +836,7 @@
         $id=@$_POST['id'];
 
         if ($method=="download") {
-            $attach=request(array("ask"=>"attachdl"));
+            $attach=request(array("ask"=>"attachdl","id"=>$id));
             $attach=$attach[0];
             $code=intval($attach['code']);
             if ($code!=0) {
