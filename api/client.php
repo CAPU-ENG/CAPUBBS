@@ -33,6 +33,7 @@
     else if ($ask=="lzl") lzl();
     else if ($ask=="search") search();
     else if ($ask=="action") action();
+    else if ($ask=="attach") attach();
     else {
         echo '<capu><info><code>14</code><msg>ask错误。</msg></info></capu>';
         exit;
@@ -52,7 +53,7 @@
         $id=@$_REQUEST['bid'];
         $see=@$_REQUEST['tid'];
         $page=@$_REQUEST['p'];
-        $lzl=@$_REQUEST['lzl'];
+        $raw=(@$_REQUEST['raw'] == 'YES');
         if(!$page) $page=1;
         $page=intval($page);
         $results=request(array("bid"=>$id,"tid"=>$see,"p"=>$page));
@@ -69,15 +70,18 @@
         $title=$results[0]['title'];
         $pages=request(array("ask"=>"getpages","bid"=>$id,"tid"=>$see));
         $pages=intval($pages[0]['pages']);
-        $stats=request(array("bid"=>$id,"tid"=>$see,"ask"=>"tidinfo"));
+        $stats=null;
+        if ($see!="") {
+            $stats=request(array("bid"=>$id,"tid"=>$see,"ask"=>"tidinfo"));
+        }
         for ($i=0;$i<$count;$i++) {
             $floor=$results[$i];
             echo '<info>'."\n";
             if ($see=="") {
-                showtitle($floor,$id,$page,$pages);
-            }
-            else {
-                showtext($floor,$id,$see,$page,$pages,$title,$lzl=="YES");
+                $stats=request(array("bid"=>$id,"tid"=>$floor['tid'],"ask"=>"tidinfo"));
+                showtitle($floor,$id,$page,$pages,$raw);
+            } else {
+                showtext($floor,$id,$see,$page,$pages,$title,$raw);
             }
             echo '<click>'.$stats[0]['click'].'</click>';
             echo '<reply>'.$stats[0]['reply'].'</reply>';
@@ -87,7 +91,7 @@
         exit;
     }
 
-    function showtitle($content,$bid,$page,$pages) {
+    function showtitle($content,$bid,$page,$pages,$raw) {
         echo '<code>-1</code>'."\n";
         if (@$content['replyer']==null || @$content['replyer']=="")
             $content['replyer']="";
@@ -100,9 +104,12 @@
         echo "<page>$page</page>\n";
         echo "<bid>$bid</bid>\n";
         echo "<text><![CDATA[".$content['title']."]]></text>\n";
-        echo "<author><![CDATA[".$content['author']."        /        ".$content['replyer']."]]></author>\n";
-        echo "<authorraw><![CDATA[".$content['author']."]]></authorraw>\n";
-        echo "<replyer><![CDATA[".$content['replyer']."]]></replyer>\n";
+        if ($raw) {
+            echo "<author><![CDATA[".$content['author']."]]></author>\n";
+            echo "<replyer><![CDATA[".$content['replyer']."]]></replyer>\n";
+        } else {
+            echo "<author><![CDATA[".$content['author']."        /        ".$content['replyer']."]]></author>\n";
+        }
         echo "<tid>".$content['tid']."</tid>\n";
         echo "<time>".date("Y-m-d H:i:s",$content['timestamp'])."</time>\n";
         echo "<postdate>".$content['postdate']."</postdate>\n";
@@ -121,7 +128,22 @@
         echo '<time>'.date("Y-m-d H:i:s",$lzl['time']).'</time>';
     }
 
-    function showtext($content,$bid,$tid,$page,$pages,$title,$showlzl) {//新增用户头像、星数和签名档
+    function packBool($bool){
+        if($bool) return "YES";
+        return "NO";
+    }
+
+    function showattach($attach) {
+        echo '<name><![CDATA['.@$attach['name'].']]></name>';
+        echo '<size>'.@$attach['size'].'</size>';
+        echo '<price>'.@$attach['price'].'</price>';
+        echo '<minscore>'.@$attach['auth'].'</minscore>';
+        echo '<id>'.@$attach['id'].'</id>';
+        echo '<free>'.packBool(@$attach['isAuthor']=='YES'||@$attach['hasPurchased']=='YES').'</free>';
+        echo '<count>'.@$attach['count'].'</count>';
+    }
+
+    function showtext($content,$bid,$tid,$page,$pages,$title,$raw) {//新增用户头像、星数、签名档、楼中楼和附件
         $id=request(array("ask"=>"view","view"=>$content['author']));
         echo "<code>-1</code>\n";
         $nextpage="false";
@@ -134,20 +156,37 @@
         echo "<icon><![CDATA[".$id[0]['icon']."]]></icon>";
         echo "<star><![CDATA[".$id[0]['star']."]]></star>";
         echo "<title><![CDATA[".$title."]]></title>\n";
-        echo "<text><![CDATA[".translate(@$content['text'],@$content['ishtml'],false)."]]></text>\n";
-        echo "<sig><![CDATA[".translate($id[0]['sig'.@$content['sig']],false,true)."]]></sig>\n";
+        if ($raw) {
+            echo "<textraw><![CDATA[".@$content['text']."]]></textraw>\n";
+            echo "<ishtml>".@$content['ishtml']."</ishtml>\n";
+            echo "<sigraw><![CDATA[".$id[0]['sig'.@$content['sig']]."]]></sigraw>\n";
+        } else {
+            echo "<text><![CDATA[".translate(@$content['text'],@$content['ishtml'],false)."]]></text>\n";
+            echo "<sig><![CDATA[".translate($id[0]['sig'.@$content['sig']],false,true)."]]></sig>\n";
+        }
+        if($raw&&$content["attachs"]){
+            $attachs=explode(" ", $content["attachs"]);
+            foreach($attachs as $attachid) {
+                $attach=request(array("ask"=>"attachinfo","id"=>$attachid));
+                if (count($attach)==1&&$attach[0]["exist"]=="YES") {
+                    echo "<attach>\n";
+                    showattach($attach[0]);
+                    echo "</attach>\n";
+                }
+            }
+        }
         echo "<floor>".@$content['pid']."</floor>\n";
         echo "<tid>$tid</tid>\n";
         echo "<fid>".@$content['fid']."</fid>\n";
         echo "<lzl>".@$content['lzl']."</lzl>\n";
-        if ($showlzl) {
+        if ($raw) {
             $lzl=request(array(
                                "ask"=>"lzl",
                                "method"=>"ask",
                                "fid"=> $content['fid']
                                ));
-            for($j=0;$j< count($lzl);$j++) {//新增查看头像
-                echo "<lzldetail>";
+            for($j=0;$j< count($lzl);$j++) {
+                echo "<lzldetail>\n";
                 showlzl($lzl[$j]);
                 echo "</lzldetail>\n";
             }
@@ -163,6 +202,7 @@
         $pid=@$_POST["pid"];
         $title=$_POST["title"];
         $text=$_POST["text"];
+        $attachs=$_POST["attachs"];
         $sig=$_POST["sig"];
         $type=@$_POST['os'];
         if ($type=="") $type="android";
@@ -172,7 +212,8 @@
                 "title"=>$title,
                 "text"=>$text,
                 "sig"=>$sig,
-                "type"=>$type
+                "type"=>$type,
+                "attachs"=>$attachs
             ));
             $result=$result[0];
             $result=intval($result['code']);
@@ -190,7 +231,8 @@
                 "title"=>$title,
                 "text"=>$text,
                 "sig"=>$sig,
-                "type"=>$type
+                "type"=>$type,
+                "attachs"=>$attachs
             ));
             $result=$result[0];
             $code=intval($result['code']);
@@ -211,7 +253,8 @@
                 "title"=>$title,
                 "text"=>$text,
                 "sig"=>$sig,
-                "type"=>$type
+                "type"=>$type,
+                "attachs"=>$attachs
             ));
             $result=$result[0];
             $code=intval($result['code']);
@@ -575,6 +618,7 @@
         echo '<regdate><![CDATA['.$id[0]['regdate'].']]></regdate>';
         echo '<lastdate><![CDATA['.$id[0]['lastdate'].']]></lastdate>';
         echo '<star><![CDATA['.$id[0]['star'].']]></star>';
+        echo '<score><![CDATA['.$id[0]['score'].']]></score>';
         echo '<post><![CDATA['.$id[0]['post'].']]></post>';
         echo '<reply><![CDATA['.$id[0]['reply'].']]></reply>';
         echo '<water><![CDATA['.$id[0]['water'].']]></water>';
@@ -783,10 +827,29 @@
             echo '</code><msg>'.@$lzl['msg'].'</msg></info></capu>';
             exit;
         }
+        echo '<capu><info><code>14</code><msg>未知lzl操作</msg></info></capu>';
         exit;
     }
 
+    function attach() {
+        $method=@$_POST['method'];
+        $id=@$_POST['id'];
 
+        if ($method=="download") {
+            $attach=request(array("ask"=>"attachdl","id"=>$id));
+            $attach=$attach[0];
+            $code=intval($attach['code']);
+            if ($code!=0) {
+                echo '<capu><info><code>'.$code.'</code><msg>'.@$attach['msg'].'</msg></info></capu>';
+                exit;
+            }
+            echo '<capu><info><code>0</code><path>'.@$attach['path'].'</path></info></capu>';
+            exit;
+        }
+
+        echo '<capu><info><code>14</code><msg>未知attach操作</msg></info></capu>';
+        exit;
+    }
 
     function http($url, $method="POST", $postfields = NULL) {
         $ci = curl_init();

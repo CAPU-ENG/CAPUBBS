@@ -32,7 +32,7 @@
     $activity_id = $activity["activity_id"];
     $is_joint = get_joint($currentuser, $activity_id);
     $is_canceled = get_canceled($currentuser, $activity_id);
-    $is_leader = ($currentuser == $activity["leader_username"] || $currentuser == "网络组");
+    $is_leader = ($currentuser == $activity["leader_username"] || $currentuser == "网络组" || $currentuser == "组织部");
 ?>
 
 <html>
@@ -363,6 +363,7 @@ for($i=0;$i<count(@$data);$i++){
                                 $tag_begin = '<th style="border-color:black;border-style:solid;border-width:1px;font-family:Arial, sans-serif;font-size:14px;overflow:hidden;padding:10px 5px;text-align:center;vertical-align:middle;word-break:keep-all;white-space:nowrap;">';
                                 $tag_end = '</th>';
                                 echo $tag_begin."用户名".$tag_end;
+                                echo $tag_begin."是否有罚跑".$tag_end;
                                 for ($option_idx=0; $option_idx < count(@$activity["options"]); $option_idx++){
                                     $option = $activity["options"][$option_idx];
                                     echo $tag_begin.$option["option_name"].$tag_end;
@@ -383,6 +384,16 @@ for($i=0;$i<count(@$data);$i++){
                                         echo $tag_begin.'<font color="red"><strike>'.$_username.'</strike></font>'.$tag_end;
                                     } else {
                                         echo $tag_begin.$_username.$tag_end;
+                                    }
+                                    if ($join_value[$user_idx]['has_punishment'] == 1) {
+                                        $punishment_text = "是";
+                                    } else {
+                                        $punishment_text = "";
+                                    }
+                                    if ($cancel) {
+                                        echo $tag_begin.'<font color="red"><strike>'.$punishment_text.'</strike></font>'.$tag_end;
+                                    } else {
+                                        echo $tag_begin.$punishment_text.$tag_end;
                                     }
                                     for ($option_idx=0; $option_idx < count(@$activity["options"]); $option_idx++){
                                         $option = $activity["options"][$option_idx];

@@ -34,14 +34,16 @@ $objPHPExcel->getProperties()->setCreator("CAPUBBS")
 							 ->setCategory("Test result file");
 
 $objPHPExcel->setActiveSheetIndex(0)->setCellValue("A1", "用户名");
+$objPHPExcel->setActiveSheetIndex(0)->setCellValue("B1", "是否有罚跑");
 for ($option_idx=0; $option_idx < count(@$activity["options"]); $option_idx++){
     $option = $activity["options"][$option_idx];
-    $objPHPExcel->setActiveSheetIndex(0)->setCellValue(($INDEX[$option_idx+1])."1", $option["option_name"]);
+    $objPHPExcel->setActiveSheetIndex(0)->setCellValue(($INDEX[$option_idx+2])."1", $option["option_name"]);
 }
 
 $line_idx = 1;
 for ($user_idx = 0; $user_idx < count(@$join_value); $user_idx++){
     $_username = $join_value[$user_idx]['username'];
+    $_has_punishment = $join_value[$user_idx]['has_punishment'];
     $_option_value = $join_value[$user_idx]['option_value'];
     $cancel = $join_value[$user_idx]['cancel'];
     if ($cancel)
@@ -49,6 +51,7 @@ for ($user_idx = 0; $user_idx < count(@$join_value); $user_idx++){
     
     $line_idx++;
     $objPHPExcel->setActiveSheetIndex(0)->setCellValue("A".($line_idx), $_username);
+    $objPHPExcel->setActiveSheetIndex(0)->setCellValue("B".($line_idx), $_has_punishment==1?"是":"");
     for ($option_idx=0; $option_idx < count(@$activity["options"]); $option_idx++){
         $option = $activity["options"][$option_idx];
         if ($option["option_name"] == "想说的话")
@@ -68,7 +71,7 @@ for ($user_idx = 0; $user_idx < count(@$join_value); $user_idx++){
                 $real_value = $_option_value[$option["option_id"]];
                 break;
         }
-        $objPHPExcel->setActiveSheetIndex(0)->setCellValue(($INDEX[$option_idx+1]).($line_idx), ($real_value));
+        $objPHPExcel->setActiveSheetIndex(0)->setCellValue(($INDEX[$option_idx+2]).($line_idx), ($real_value));
     }
 }
 

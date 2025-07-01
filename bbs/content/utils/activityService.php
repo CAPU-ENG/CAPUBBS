@@ -18,14 +18,25 @@ function get_joint($username, $activity_id) {
 function get_activity_join($activity_id) {
     dbconnect();
     mysql_select_db("capubbs");
-    $statement = "select username,cancel from season_activity_join where activity_id=$activity_id";
+    $statement = "select season_activity_join.username,cancel,case when has_punishment is null then 0 else 1 end as has_punishment 
+        from 
+            season_activity_join 
+        left join 
+            (select username, 1 as has_punishment from punishment where is_end=0 and is_deleted=0 group by username) punishment 
+        on 
+            season_activity_join.username=punishment.username
+        where 
+            activity_id=$activity_id 
+        order by
+            join_id";
     $results = mysql_query($statement);
     if (mysql_num_rows($results)!=0) {
         while ($rows = mysql_fetch_array($results)) {
             $username = $rows["username"];
             $cancel = $rows["cancel"];
+            $has_punishment = $rows["has_punishment"];
             $option_value = getUsernameOptionValue($username, $activity_id);
-            $ret[] = array("username"=> $username,"option_value"=> $option_value, "cancel"=> $cancel);
+            $ret[] = array("username"=> $username,"option_value"=> $option_value, "cancel"=> $cancel, "has_punishment"=>$has_punishment);
         }
     }
     return $ret;
@@ -91,7 +102,6 @@ function createActivity($username, $bid, $title, $text, $options, $sig) {
     mysql_query($statement);
     $statement="insert into posts (bid,tid,pid,title,author,text,ishtml,attachs,replytime,updatetime,sig,ip,type,lzl) values ($bid,$tid,1,'$title','$username','$text','YES','$attachs',$time,$time,$sig,'$ip','$type',0)";
     mysql_query($statement);
-    // echo("<msg>".mysql_error()."</msg>");
     if ($bid!=4)
         $statement="update userinfo set post=post+1, lastpost=$time, tokentime=$time where username='$username'";
     else
