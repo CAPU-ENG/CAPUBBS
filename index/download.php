@@ -5,7 +5,7 @@
 <link href="/assets/css/style.css" rel="stylesheet">
 <?php
 	require_once '../lib.php';
-	$res=checkuser();
+	$res=checkuser_mysqli();
 	$username=$res[0];$rights=intval($res[1]); 
 ?>
 </head>
@@ -15,15 +15,15 @@
   <ul>
     
 <?php
-	dbconnect();
+	$con = dbconnect_mysqli();
 	$statement="select * from capubbs.downloads where name!='' order by id desc limit 0,10";
-	$results=mysql_query($statement);
+	$results=mysqli_query($con, $statement);
 	$id=0;
-	$num=mysql_num_rows($results);
+	$num=mysqli_num_rows($results);
 	$ids=array();
 	$names=array();
 	$urls=array();
-	while (($res=mysql_fetch_row($results))!=null) {
+	while (($res=mysqli_fetch_row($results))!=null) {
 		array_push($names,$res[1]);
 		array_push($urls,$res[2]);
 		array_push($ids,$res[0]);

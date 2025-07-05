@@ -3,7 +3,7 @@
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
 <?php 
 	require '../lib.php';
-	$res=checkuser();
+	$res=checkuser_mysqli();
 	$username=$res[0];$rights=$res[1]; 
 
 	if ($username=="") {

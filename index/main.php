@@ -58,19 +58,19 @@
 <body>
 <?php
 	require_once '../lib.php';
-	$res=checkuser();
+	$res=checkuser_mysqli();
 	$username=$res[0];
 	$rights=intval($res[1]); 
 
 
 	date_default_timezone_set("Asia/Shanghai");
-	dbconnect();
+	$con = dbconnect_mysqli();
 	$statement="select * from capubbs.mainpage where id=0";
-	$results=mysql_query($statement);
+	$results=mysqli_query($con, $statement);
 	$imgs=array();
 	$imgthumbs=array();
 	$imgtxts=array();
-	while ($res=mysql_fetch_array($results)) {
+	while ($res=mysqli_fetch_array($results)) {
 		array_push($imgs,$res[2]);
 		array_push($imgthumbs,$res[3]);
 		array_push($imgtxts,$res[4]);
@@ -78,11 +78,11 @@
 	$imgnum=count($imgs);
 
 	$statement="select * from capubbs.mainpage where id=1 order by field3 desc limit 0,10";
-	$results=mysql_query($statement);
+	$results=mysqli_query($con, $statement);
 	$informs=array();
 	$informurls=array();
 	$informtimes=array();
-	while ($res=mysql_fetch_array($results)) {
+	while ($res=mysqli_fetch_array($results)) {
                 array_push($informs,$res[2]);
                 array_push($informurls,$res[3]);
 		array_push($informtimes,intval($res[4]));
@@ -90,13 +90,13 @@
         $informnum=count($informs);
 
 	$statement="select * from capubbs.mainpage where id=2";
-	$results=mysql_query($statement);
+	$results=mysqli_query($con, $statement);
 	$video=array();
 	$video_title=array();
 	$video_word=array();
 	$video_poster=array();
 	$video_link=array();
-	while ($res=mysql_fetch_array($results)) {
+	while ($res=mysqli_fetch_array($results)) {
 		array_push($video,$res[2]);
 		array_push($video_title,$res[3]);
 		array_push($video_word,$res[4]);
@@ -105,12 +105,12 @@
 	}
 
 	$statement="select * from capubbs.borrow where type=0 && state=0";
-	$results=mysql_query($statement);
-	$lend=mysql_num_rows($results);
+	$results=mysqli_query($con, $statement);
+	$lend=mysqli_num_rows($results);
 
 	$statement="select * from capubbs.borrow where type=1 && state=0";
-	$results=mysql_query($statement);
-	$borrow=mysql_num_rows($results);
+	$results=mysqli_query($con, $statement);
+	$borrow=mysqli_num_rows($results);
 
 ?>
 <div class="container" style="margin-top:90px">
