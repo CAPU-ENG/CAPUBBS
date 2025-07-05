@@ -216,7 +216,7 @@
 
     function bbsinfo($con,$bid,$name) {
         $askforall=1;
-        if ($bid!="") {
+        if ($bid!=0) {
             $askforall=0;
             $statement="select * from boardinfo where bid=$bid";
         }
