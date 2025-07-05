@@ -9,10 +9,10 @@
 
 <?php
 	require_once '../lib.php';
-	dbconnect();
+	$con = dbconnect_mysqli();
 	$statement="select number from capubbs.borrow where type=1 && state=0";
-	$results=mysql_query($statement);
-	$ans=mysql_num_rows($results);
+	$results=mysqli_query($con, $statement);
+	$ans=mysqli_num_rows($results);
 	
 	if ($ans>0) {
 		echo '<div class="alert alert-danger text-center" style="margin-top:53px">'.

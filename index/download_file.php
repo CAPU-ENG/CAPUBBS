@@ -2,14 +2,14 @@
 	require_once '../lib.php';
 	$id=intval(@$_GET['d']);
 	if ($id=="") exit;
-	dbconnect();
+	$con = dbconnect_mysqli();
 	$statement="select url from capubbs.downloads where id=$id";
-	$results=mysql_query($statement);
-	if (mysql_num_rows($results)==0) exit;
-	$res=mysql_fetch_row($results);
+	$results=mysqli_query($con, $statement);
+	if (mysqli_num_rows($results)==0) exit;
+	$res=mysqli_fetch_row($results);
 	$url=$res[0];
 	$statement="update capubbs.downloads set times=times+1 where id=$id";
-	mysql_query($statement);
+	mysqli_query($con, $statement);
 	header("Location: $url");
 	exit;
 ?>

@@ -32,11 +32,11 @@
         <th width="26%">备注</th>
       </tr>
 <?php
-	dbconnect();
+	$con = dbconnect_mysqli();
 	$statement="select * from capubbs.borrow where type=0 && state=0";
-	$results=mysql_query($statement);
+	$results=mysqli_query($con, $statement);
 	$i=0;
-	while (($res=mysql_fetch_row($results))!=null) {
+	while (($res=mysqli_fetch_row($results))!=null) {
 		echo '<tr><td style="display:none" id="number_'.$i.'">'.$res[0].'</td>'."\n".
 		'<td width="50px"><input type="radio" name="radio" value="'.$i.'"</td>'."\n".
 		'<td id="id_'.$i.'">'.$res[2].'</td>'."\n".

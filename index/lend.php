@@ -33,12 +33,12 @@
       </tr>
 
 <?php
-	dbconnect();
+	$con = dbconnect_mysqli();
 	$statement="select * from capubbs.borrow where type=1 && state!=2 order by state";
-	$results=mysql_query($statement);
+	$results=mysqli_query($con, $statement);
 
 	$i=0;
-	while ($res=mysql_fetch_row($results)) {
+	while ($res=mysqli_fetch_row($results)) {
 		$state=intval($res[11]);
 		echo '<tr>'."\n";
 		echo '<td width="50px">';

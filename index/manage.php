@@ -11,7 +11,7 @@
 		exit;
 	}
 	date_default_timezone_set('Asia/Shanghai');
-	dbconnect();
+	$con = dbconnect_mysqli();
 ?>
 <link href="/assets/css/bootstrap.min.css" rel="stylesheet">
 <link href="/assets/css/style.css" rel="stylesheet">
@@ -49,8 +49,8 @@
      		 </tr>
 		<?php
 			$statement="select * from capubbs.borrow where type=0 && id='$username' && state!=2 order by state";
-			$results=mysql_query($statement);
-			while (($res=mysql_fetch_row($results))!=null) {
+			$results=mysqli_query($con, $statement);
+			while (($res=mysqli_fetch_row($results))!=null) {
 				$id=$res[0];
 				$state=intval($res[11]);
 				$time=$res[10];
@@ -97,8 +97,8 @@
      		 </tr>
 		<?php
                         $statement="select * from capubbs.borrow where type=1 && id='$username' && state!=2 order by state";
-                        $results=mysql_query($statement);
-                        while (($res=mysql_fetch_row($results))!=null) {
+                        $results=mysqli_query($con, $statement);
+                        while (($res=mysqli_fetch_row($results))!=null) {
                                 $id=$res[0];
                                 $state=intval($res[11]);
                                 $time=$res[10];
