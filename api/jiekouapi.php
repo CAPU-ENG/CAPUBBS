@@ -129,7 +129,7 @@
     else if ($ask=="sign_year") sign_year($con);
     else if ($ask=="sign_user") sign_user($con);
     else if ($view!="") view_user($con,$view);
-    else if ($bid!="") {
+    else if ($bid!=0) {
         $page=@$_REQUEST['p'];
         $nowuser="";
         if ($token!="") {
@@ -146,7 +146,7 @@
                 mysqli_query($con, $statement);
             }
         }
-        if ($tid!="") {
+        if ($tid!=0) {
             $see_lz=@$_REQUEST['see_lz'];
             $author="";
             if ($see_lz!="") {
@@ -157,7 +157,7 @@
                     $author=$result[0];
                 }
             }
-            if ($pid!="") $statement="select * from posts where bid=$bid && tid=$tid && pid=$pid";
+            if ($pid!=0) $statement="select * from posts where bid=$bid && tid=$tid && pid=$pid";
             else if ($page!="")
             {
                 $start=($page-1)*12;
@@ -182,7 +182,7 @@
             where threads.bid=$bid and extr>=$extr order by top desc, timestamp desc limit $start, 25";
         }
         view_bbs($con,$statement);
-        if ($tid!="" && $pid=="") {
+        if ($tid!=0 && $pid==0) {
             $statement="update threads set click=click+1 where bid=$bid && tid=$tid";
             mysqli_query($con, $statement);
         }
@@ -734,7 +734,7 @@
         $username=$a[1];
         $ip=$a[2];
 
-        if ($pid=="") { // 删除帖子
+        if ($pid==0) { // 删除帖子
             $statement="select author, reply from threads where bid=$bid && tid=$tid";
             $results=mysqli_query($con, $statement);
             $num=mysqli_num_rows($results);
@@ -1441,7 +1441,7 @@ while ($res=mysqli_fetch_array($result)) {
 
     function getpages($con,$bid,$tid) {
         echo '<capu><info><code>0</code><pages>';
-        if ($tid=="") {
+        if ($tid==0) {
             $statement="select count(*) from threads where bid=$bid";
             $results=mysqli_query($con, $statement);
             $res=mysqli_fetch_row($results);
