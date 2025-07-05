@@ -20,7 +20,7 @@ function dbconnect() {
 function dbconnect_mysqli() {
     $con = @mysqli_connect(CAPUBBS_DB_HOSTNAME, CAPUBBS_DB_USERNAME,
         CAPUBBS_DB_PASSWORD, "capubbs") or die("Cannot connect to database !!!");
-    if (mysqli_connect_errno($con)) { 
+    if (mysqli_connect_errno()) { 
         echo "连接 MySQL 失败: " . mysqli_connect_error();
         return null;
     } 
