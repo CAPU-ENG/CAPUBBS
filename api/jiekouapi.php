@@ -18,8 +18,8 @@
     echo '<?xml version="1.0" encoding="UTF-8"?>';
     echo "\n";
     date_default_timezone_set("Asia/Shanghai");
-    dbconnect();
-    mysql_select_db("capubbs");
+    $con = dbconnect_mysqli();
+    mysqli_select_db($con, "capubbs");
     $ask=@$_REQUEST['ask'];
     $bid=intval(@$_REQUEST['bid']);
     $tid=intval(@$_REQUEST['tid']);
@@ -43,14 +43,13 @@
     $token=@$_REQUEST['token'];
     $ip=@$_REQUEST['ip'];
     $view=@$_REQUEST['view'];
-    $con=null;
 
     $nowtime=time();
     {
         $time=time();
         $statement="select username,star,rights,lastpost from userinfo where token='$token' && $time-tokentime<={$GLOBALS['validtime']}";
-        $results=mysql_query($statement);
-        $res=mysql_fetch_array($results);
+        $results=mysqli_query($con, $statement);
+        $res=mysqli_fetch_array($results);
         $username=$res[0];
 
         if ($username) {
@@ -64,22 +63,23 @@
     
             if ($ip!="") $statement="update userinfo set tokentime=$nowtime, token='$token', lastip='$ip',lastdate='$today',onlinetype='$onlinetype',logininfo='$logininfo' where username='$username'";
             else $statement="update userinfo set tokentime=$nowtime, token='$token', lastdate='$today',onlinetype='$onlinetype',logininfo='$logininfo' where username='$username'";
-            mysql_query($statement);
+
+            mysqli_query($con, $statement);
 
             $year=date("Y",$time);
             $month=date("m",$time);
             $day=date("d",$time);
             $statement="select * from capubbs.sign where year=$year && month=$month && day=$day && username='$username'";
-            $result=mysql_query($statement);
-            if (mysql_num_rows($result)==0) {
+            $result=mysqli_query($con, $statement);
+            if (mysqli_num_rows($result)==0) {
                 $hour=date("H",$time);
                 $minute=date("i",$time);
                 $second=date("s",$time);
                 $week=date("N",$time);
                 $statement="insert into capubbs.sign values ($year,$month,$day,$hour,$minute,$second,$week,'$username')";
-                mysql_query($statement);
+                mysqli_query($con, $statement);
                 $statement="update capubbs.userinfo set sign=sign+1 where username='$username'";
-                mysql_query($statement);
+                mysqli_query($con, $statement);
             }
         }
     }
@@ -133,15 +133,15 @@
         if ($token!="") {
             $nowtime=time();
             $statement="select username from userinfo where token='$token' && $nowtime-tokentime<={$GLOBALS['validtime']}";
-            $result=mysql_query($statement);
+            $result=mysqli_query($con, $statement);
             $user="";
-            while ($res=mysql_fetch_array($result)) {
+            while ($res=mysqli_fetch_array($result)) {
                 foreach ( $res as $key => $value ) {
                     if ($key=="username") { $user=$value; $nowuser=$user;}
                 }
                 if ($ip!="") $statement="update userinfo set tokentime=$nowtime, nowboard=$bid, lastip='$ip' where username='$user'";
                 else $statement="update userinfo set tokentime=$nowtime, nowboard=$bid where username='$user'";
-                mysql_query($statement);
+                mysqli_query($con, $statement);
             }
         }
         if ($tid!="") {
@@ -149,9 +149,9 @@
             $author="";
             if ($see_lz!="") {
                 $statement="select author from threads where bid=$bid && tid=$tid";
-                $results=mysql_query($statement);
-                if (mysql_num_rows($results)!=0) {
-                    $result=mysql_fetch_row($results);
+                $results=mysqli_query($con, $statement);
+                if (mysqli_num_rows($results)!=0) {
+                    $result=mysqli_fetch_row($results);
                     $author=$result[0];
                 }
             }
@@ -167,8 +167,7 @@
             else
                 $statement="select * from posts where bid=$bid && tid=$tid order by pid";
 
-        }
-        else {
+        } else {
             $extr=@$_REQUEST['extr'];
             if ($extr=="") $extr=0;
             else $extr=1;
@@ -183,7 +182,7 @@
         view_bbs($con,$statement);
         if ($tid!="" && $pid=="") {
             $statement="update threads set click=click+1 where bid=$bid && tid=$tid";
-            mysql_query($statement);
+            mysqli_query($con, $statement);
         }
     }else {
         echo '<capu><info><code>14</code><msg>ask错误。</msg></info></capu>';
@@ -198,9 +197,9 @@
     function getlznum($con,$bid,$tid) {
         $author="";
         $statement="select author from threads where bid=$bid && tid=$tid";
-        $results=mysql_query($statement);
-        if (mysql_num_rows($results)!=0) {
-            $result=mysql_fetch_row($results);
+        $results=mysqli_query($con, $statement);
+        if (mysqli_num_rows($results)!=0) {
+            $result=mysqli_fetch_row($results);
             $author=$result[0];
         }
         if ($author=="") {
@@ -208,8 +207,8 @@
             exit;
         }
         $statement="select pid from posts where bid=$bid && tid=$tid && author='$author'";
-        $results=mysql_query($statement);
-        $num=mysql_num_rows($results);
+        $results=mysqli_query($con, $statement);
+        $num=mysqli_num_rows($results);
         echo "<capu><info><num>$num</num></info></capu>";
     }
 
@@ -220,9 +219,9 @@
             $statement="select * from boardinfo where bid=$bid";
         }
         else $statement="select * from boardinfo where bid!=0 order by bid";
-        $results=mysql_query($statement);
+        $results=mysqli_query($con, $statement);
         echo '<capu>';
-        while ($res=mysql_fetch_array($results)) {
+        while ($res=mysqli_fetch_array($results)) {
             echo "<info>\n";
             foreach ( $res as $key => $value ) {
                 if (is_long($key)) continue;
@@ -232,18 +231,18 @@
             }
             if ($askforall==0) {
                 $statement="select count(*) from threads where bid=$bid";
-                echo '<topics>'.mysql_result(mysql_query($statement), 0).'</topics>';
+                echo '<topics>'.mysqli_fetch_row(mysqli_query($con, $statement))[0].'</topics>';
                 $statement="select count(*) from threads where bid=$bid && extr=1";
-                echo '<extr>'.mysql_result(mysql_query($statement), 0).'</extr>';
-                #$ress=mysql_fetch_array($resultt);
+                echo '<extr>'.mysqli_fetch_row(mysqli_query($con, $statement))[0].'</extr>';
+                #$ress=mysqli_fetch_array($resultt);
                 #echo '<maxtid>'.$ress[0].'</maxtid>';
                 $date=date("Y-m-d");
                 $statement="select count(*) from threads where bid=$bid && postdate=\"$date\"";
-                echo '<newpost>'.mysql_result(mysql_query($statement), 0).'</newpost>';
+                echo '<newpost>'.mysqli_fetch_row(mysqli_query($con, $statement))[0].'</newpost>';
                 $time1=strtotime("$date 00:00:00");
                 $time2=strtotime("$date 23:59:59");
                 $statement="select count(*) from posts where bid=$bid && replytime>=$time1 && replytime<=$time2";
-                echo '<newreply>'.mysql_result(mysql_query($statement), 0).'</newreply>';
+                echo '<newreply>'.mysqli_fetch_row(mysqli_query($con, $statement))[0].'</newreply>';
             }
             echo "</info>\n";
         }
@@ -254,8 +253,8 @@
     function view_user($con,$username) {
         echo '<capu>';
         $statement="select * from userinfo where username='$username'";
-        $results=mysql_query($statement);
-        while ($res=mysql_fetch_array($results)) {
+        $results=mysqli_query($con, $statement);
+        while ($res=mysqli_fetch_array($results)) {
             echo "<info>\n";
             foreach ( $res as $key => $value ) {
                 if (is_long($key)) continue;
@@ -272,9 +271,9 @@
     }
 
     function view_bbs($con,$statement) {
-        $results=mysql_query($statement);
+        $results=mysqli_query($con, $statement);
         echo '<capu>';
-        while ($res=mysql_fetch_array($results)) {
+        while ($res=mysqli_fetch_array($results)) {
             echo "<info>\n";
             foreach ( $res as $key => $value ) {
                 if (is_long($key)) continue;
@@ -288,9 +287,9 @@
     function viewonline($con) {
         $nowtime=time();
         $statement="select username, nowboard, tokentime, lastip, onlinetype, logininfo from userinfo where $nowtime-tokentime<=600";
-        $result=mysql_query($statement);
+        $result=mysqli_query($con, $statement);
         echo '<capu>';
-        while ($res=mysql_fetch_array($result)) {
+        while ($res=mysqli_fetch_array($result)) {
             echo "<info>\n";
             foreach ( $res as $key => $value ) {
                 if (is_long($key)) continue;
@@ -305,13 +304,15 @@
     function login($con,$username,$password,$ip) {
         if (@$_REQUEST['md5']=="yes") $password=md5($password);
         echo '<capu>';
+        $hex_username = bin2hex($username);
+        // $statement="select password from userinfo where hex(username)='$hex_username'";
         $statement="select password from userinfo where username='$username'";
-        $results=mysql_query($statement);
-        if (mysql_num_rows($results)==0) {
+        $results=mysqli_query($con, $statement);
+        if (mysqli_num_rows($results)==0) {
             echo '<info><code>1</code><msg>用户不存在。</msg></info>';
         }
         else {
-            $res=mysql_fetch_array($results);
+            $res=mysqli_fetch_array($results);
             $psd=$res[0];
             if (strtoupper($psd)!=strtoupper($password)) {
                 echo '<info><code>2</code><msg>密码错误。</msg></info>';
@@ -319,11 +320,16 @@
             else {
                 echo '<info><code>0</code><username>'.$username.'</username>';
                 $nowtime=time();
+                // $statement="select token from userinfo where hex(username)='$hex_username' && $nowtime-tokentime<={$GLOBALS['validtime']}";
                 $statement="select token from userinfo where username='$username' && $nowtime-tokentime<={$GLOBALS['validtime']}";
-                $results=mysql_query($statement);
+                $results=mysqli_query($con, $statement);
                 $token=md5($username.$nowtime);
-                if (mysql_num_rows($results)!=0)
-                {$res=mysql_fetch_array($results);$token=$res[0];}
+                if (mysqli_num_rows($results)!=0) {
+                    $res=mysqli_fetch_array($results);
+                    if (!is_null($res[0]) && $res[0] != '') {
+                        $token=$res[0];
+                    }
+                }
                 $today=date("Y-m-d");
 
                 $onlinetype=@$_REQUEST['onlinetype'];
@@ -333,25 +339,28 @@
                 if ($onlinetype=="web") $logininfo=$browser;
                 if ($onlinetype=="android" || $onlinetype=="ios") $logininfo=$system;
 
+                // if ($ip!="") $statement="update userinfo set tokentime=$nowtime, token='$token', nowboard=null, lastip='$ip',lastdate='$today',onlinetype='$onlinetype',logininfo='$logininfo' where hex(username)='$hex_username'";
+                // else $statement="update userinfo set tokentime=$nowtime, token='$token', nowboard=null, lastdate='$today',onlinetype='$onlinetype',logininfo='$logininfo' where hex(username)='$hex_username'";
                 if ($ip!="") $statement="update userinfo set tokentime=$nowtime, token='$token', nowboard=null, lastip='$ip',lastdate='$today',onlinetype='$onlinetype',logininfo='$logininfo' where username='$username'";
                 else $statement="update userinfo set tokentime=$nowtime, token='$token', nowboard=null, lastdate='$today',onlinetype='$onlinetype',logininfo='$logininfo' where username='$username'";
-                mysql_query($statement);
+                mysqli_query($con, $statement);
                 echo '<token>'.$token.'</token></info>';
                 $time=time();
                 $year=date("Y",$time);
                 $month=date("m",$time);
                 $day=date("d",$time);
                 $statement="select * from capubbs.sign where year=$year && month=$month && day=$day && username='$username'";
-                $result=mysql_query($statement);
-                if (mysql_num_rows($result)==0) {
+                $result=mysqli_query($con, $statement);
+                if (mysqli_num_rows($result)==0) {
                     $hour=date("H",$time);
                     $minute=date("i",$time);
                     $second=date("s",$time);
                     $week=date("N",$time);
                     $statement="insert into capubbs.sign values ($year,$month,$day,$hour,$minute,$second,$week,'$username')";
-                    mysql_query($statement);
+                    mysqli_query($con, $statement);
+                    // $statement="update capubbs.userinfo set sign=sign+1 where hex(username)='$hex_username'";
                     $statement="update capubbs.userinfo set sign=sign+1 where username='$username'";
-                    mysql_query($statement);
+                    mysqli_query($con, $statement);
                 }
             }
         }
@@ -362,28 +371,28 @@
     function register($con,$ip) {
         $username=@$_REQUEST['username'];
         $statement="select * from userinfo where username='$username'";
-        if (mysql_num_rows(mysql_query($statement))>0) {
+        if (mysqli_num_rows(mysqli_query($con, $statement))>0) {
             echo '<capu><info><code>1</code><msg>用户已存在。</msg></info></capu>';
             exit;
         }
 
-        //$code=mysql_real_escape_string(@$_REQUEST['code']);//取消验证码制度
+        //$code=mysqli_real_escape_string($con, @$_REQUEST['code']);//取消验证码制度
 /*
         $statement="select times from codes where code='$code'";
-        $results=mysql_query($statement);
-        if (mysql_num_rows($results)==0)
+        $results=mysqli_query($con, $statement);
+        if (mysqli_num_rows($results)==0)
         {
             echo '<capu><info><code>2</code><msg>无效的会员号。</msg></info></capu>';
             exit;
         }
-        $res=mysql_fetch_row($results);
+        $res=mysqli_fetch_row($results);
         if (intval($res[0])>=5)
         {
             echo '<capu><info><code>2</code><msg>此会员号注册的ID数目已到上限。</msg></info></capu>';
             exit;
         }
         $statement="update codes set times=times+1 where code='$code'";
-        mysql_query($statement);
+        mysqli_query($con, $statement);
 */
 
         $password=@$_REQUEST['password'];
@@ -402,13 +411,13 @@
         $time=time();
         $date=date("Y-m-d");
         $token=md5($username.$time);
-        $sig1=mysql_real_escape_string($sig1);
-        $sig2=mysql_real_escape_string($sig2);
-        $sig3=mysql_real_escape_string($sig3);
-        $place=mysql_real_escape_string($place);
-        $hobby=mysql_real_escape_string($hobby);
-        $intro=mysql_real_escape_string($intro);
-        $mail=mysql_real_escape_string($mail);
+        $sig1=mysqli_real_escape_string($con, $sig1);
+        $sig2=mysqli_real_escape_string($con, $sig2);
+        $sig3=mysqli_real_escape_string($con, $sig3);
+        $place=mysqli_real_escape_string($con, $place);
+        $hobby=mysqli_real_escape_string($con, $hobby);
+        $intro=mysqli_real_escape_string($con, $intro);
+        $mail=mysqli_real_escape_string($con, $mail);
 
         $onlinetype=@$_REQUEST['onlinetype'];
         $browser=@$_REQUEST['browser'];
@@ -419,11 +428,11 @@
 
 
         $statement="insert into userinfo values ('$username','$password','$token',$time,'$sex','$icon','$intro','$sig1','$sig2','$sig3','$hobby','$qq','$mail'," .
-                   "'$place','$date','$date','$ip',1,0,0,0,0,0,0,0,0,NULL,NULL,'$onlinetype','$logininfo','$code',null,null,null,null,null,null)";
-        mysql_query($statement);
-        $error=mysql_errno();
+                   "'$place','$date','$date','$ip',1,0,0,0,0,0,0,0,0,NULL,NULL,'$onlinetype','$logininfo',null,null,null,null,null,null,null)";
+        mysqli_query($con, $statement);
+        $error=mysqli_errno($con);
         if ($error!=0) {
-            echo '<capu><info><code>'.$error.'</code><msg>'.mysql_error().'</msg></info></capu>';exit;
+            echo '<capu><info><code>'.$error.'</code><msg>'.mysqli_error($con).'</msg></info></capu>';exit;
         }
         echo '<capu><info><code>0</code><username>'.$username.'</username><token>'.$token.'</token></info></capu>';
         exit;
@@ -434,22 +443,22 @@
         $a=token2user($con,$token);
         if (!$a) {echo '<capu><info><code>1</code><msg>超时，请重新登录。</msg></info></capu>';exit;}
         $username=$a['username'];
-        $sex=mysql_real_escape_string(@$_REQUEST['sex']);
-        $icon=mysql_real_escape_string(@$_REQUEST['icon']);
-        $qq=mysql_real_escape_string(@$_REQUEST['qq']);
-        $mail=mysql_real_escape_string(@$_REQUEST['mail']);
-        $place=mysql_real_escape_string(@$_REQUEST['place']);
-        $hobby=mysql_real_escape_string(@$_REQUEST['hobby']);
-        $sig1=mysql_real_escape_string(@$_REQUEST['sig1']);
-        $sig2=mysql_real_escape_string(@$_REQUEST['sig2']);
-        $sig3=mysql_real_escape_string(@$_REQUEST['sig3']);
-        $intro=mysql_real_escape_string(@$_REQUEST['intro']);
+        $sex=mysqli_real_escape_string($con, @$_REQUEST['sex']);
+        $icon=mysqli_real_escape_string($con, @$_REQUEST['icon']);
+        $qq=mysqli_real_escape_string($con, @$_REQUEST['qq']);
+        $mail=mysqli_real_escape_string($con, @$_REQUEST['mail']);
+        $place=mysqli_real_escape_string($con, @$_REQUEST['place']);
+        $hobby=mysqli_real_escape_string($con, @$_REQUEST['hobby']);
+        $sig1=mysqli_real_escape_string($con, @$_REQUEST['sig1']);
+        $sig2=mysqli_real_escape_string($con, @$_REQUEST['sig2']);
+        $sig3=mysqli_real_escape_string($con, @$_REQUEST['sig3']);
+        $intro=mysqli_real_escape_string($con, @$_REQUEST['intro']);
         $statement="update userinfo set tokentime=$time, sex='$sex'," .
                        "lastip='$ip', icon='$icon', mail='$mail', qq='$qq', intro='$intro', place='$place'," .
                        "hobby='$hobby', sig1='$sig1', sig2='$sig2', sig3='$sig3' where username='$username'";
-        mysql_query($statement);
-        if(mysql_error()){
-            echo '<capu><info><code>1</code><error>'.mysql_error().'</error></info></capu>';
+        mysqli_query($con, $statement);
+        if(mysqli_error($con)){
+            echo '<capu><info><code>1</code><error>'.mysqli_error($con).'</error></info></capu>';
         }else{
             echo '<capu><info><code>0</code><username>'.$username.'</username></info></capu>';
         }
@@ -459,17 +468,17 @@
         echo '<capu>';
         $time=time();
         $statement="select username from userinfo where token='$token' && $time-tokentime<={$GLOBALS['validtime']}";
-        $results=mysql_query($statement);
-        if (mysql_num_rows($results)==0) {
+        $results=mysqli_query($con, $statement);
+        if (mysqli_num_rows($results)==0) {
             echo '<info><code>1</code><msg>超时，请重新登录。</msg></info>';
         }
         else {
-            $res=mysql_fetch_array($results);
+            $res=mysqli_fetch_array($results);
             $username=$res[0];
             echo "<info><code>0</code><username>$username</username></info>";
             if ($ip!="") $statement="update userinfo set tokentime=$time, lastip='$ip' where username='$username'";
             else $statement="update userinfo set tokentime=$time where username='$username'";
-            mysql_query($statement);
+            mysqli_query($con, $statement);
         }
         echo '</capu>';
     }
@@ -478,12 +487,12 @@
     function post($con,$token,$bid,$ip,$attachs) {
         $time=time();
         $statement="select username,star,rights,lastpost from userinfo where token='$token' && $time-tokentime<={$GLOBALS['validtime']}";
-        $results=mysql_query($statement);
-        /*if (mysql_num_rows($results)==0) {
+        $results=mysqli_query($con, $statement);
+        /*if (mysqli_num_rows($results)==0) {
             echo '<info><code>1</code><msg>超时，请重新登录。</msg></info></capu>';
             exit;
         }*/
-        $res=mysql_fetch_array($results);
+        $res=mysqli_fetch_array($results);
         $username=$res[0];
         $star=intval($res[1]);
         $rights=intval($res[2]);
@@ -491,7 +500,7 @@
         checkDelayTime($time, $star, $rights, $lastpost, $ip, $results);
         echo '<capu>';
         $statement="select max(tid) from threads where bid=$bid";
-        $tid=intval(mysql_result(mysql_query($statement), 0))+1;
+        $tid=intval(mysqli_fetch_row(mysqli_query($con, $statement))[0])+1;
         $title=@$_REQUEST['title'];
         if (mb_strlen($title,'utf-8')>=43)
             $title=mb_substr($title,0,40,'utf-8')."...";
@@ -502,19 +511,19 @@
         $replytime=date('Y-m-d H:i:s');
         $title=html_entity_decode($title);
         $text=html_entity_decode($text);
-        $title=mysql_real_escape_string($title);
-        $text=mysql_real_escape_string($text);
+        $title=mysqli_real_escape_string($con, $title);
+        $text=mysqli_real_escape_string($con, $text);
         $text=search_replace_exec_at($con,$text,$bid,$tid,1,$username,$title);
         $statement="insert into threads values ($bid,$tid,'$title','$username',null,0,0,1,0,0,0,$time,'$posttime')";
-        mysql_query($statement);
+        mysqli_query($con, $statement);
         $statement="insert into posts (bid,tid,pid,title,author,text,ishtml,attachs,replytime,updatetime,sig,ip,type,lzl) values ($bid,$tid,1,'$title','$username','$text','YES','$attachs',$time,$time,$sig,'$ip','$type',0)";
-        mysql_query($statement);
-        echo("<msg>".mysql_error()."</msg>");
+        mysqli_query($con, $statement);
+        echo("<msg>".mysqli_error($con)."</msg>");
         if ($bid!=4)
             $statement="update userinfo set post=post+1, lastpost=$time, tokentime=$time where username='$username'";
         else
             $statement="update userinfo set water=water+1, lastpost=$time, tokentime=$time where username='$username'";
-        mysql_query($statement);
+        mysqli_query($con, $statement);
         updatestar($con,$username);
         echo "<info><code>0</code><bid>$bid</bid><tid>$tid</tid></info></capu>";
         exit;
@@ -523,12 +532,12 @@
     function reply($con,$token,$bid,$tid,$ip,$attachs) {
         $time=time();
         $statement="select username,star,rights,lastpost from userinfo where token='$token' && $time-tokentime<={$GLOBALS['validtime']}";
-        $results=mysql_query($statement);
-        /*if (mysql_num_rows($results)==0) {
+        $results=mysqli_query($con, $statement);
+        /*if (mysqli_num_rows($results)==0) {
             echo "<info><code>1</code><msg>超时，请重新登录。</msg></info></capu>";
             exit;
         }*/
-        $res=mysql_fetch_array($results);
+        $res=mysqli_fetch_array($results);
         $username=$res[0];
         $star=intval($res[1]);
         $rights=intval($res[2]);
@@ -539,8 +548,8 @@
             $statement = "select activity_id, bid, tid, season_id, name, leader_username 
                 from season_threads_activity 
                 where bid=$bid and tid=$tid";
-            $result_activity = mysql_query($statement);
-            if (mysql_num_rows($result_activity)!=0) {
+            $result_activity = mysqli_query($con, $statement);
+            if (mysqli_num_rows($result_activity)!=0) {
                 echo '<capu><info><code>3</code><msg>禁止直接回复报名帖！</msg></info></capu>';
                 exit;
             }
@@ -548,20 +557,20 @@
 
         echo '<capu>';
         $statement="select pid from posts where bid=$bid && tid=$tid order by pid desc";
-        $results=mysql_query($statement);
-        if (mysql_num_rows($results)==0) {
+        $results=mysqli_query($con, $statement);
+        if (mysqli_num_rows($results)==0) {
             echo '<info><code>3</code><msg>主题不存在！</msg></info></capu>';
             exit;
         }
-        $res=mysql_fetch_array($results);
+        $res=mysqli_fetch_array($results);
         $pid=intval($res[0])+1;
         $statement="select locked,author,title from threads where bid=$bid && tid=$tid";
-        $results=mysql_query($statement);
-        if (mysql_num_rows($results)==0) {
+        $results=mysqli_query($con, $statement);
+        if (mysqli_num_rows($results)==0) {
             echo '<info><code>3</code><msg>主题不存在！</msg></info></capu>';
             exit;
         }
-        $res=mysql_fetch_array($results);
+        $res=mysqli_fetch_array($results);
         $locked=intval($res[0]);
         $tidauthor=$res[1];
         $tidtitle=$res[2];
@@ -576,29 +585,29 @@
         $replytime=date('Y-m-d H:i:s');
         $title=html_entity_decode($title);
         $text=html_entity_decode($text);
-        $title=mysql_real_escape_string($title);
+        $title=mysqli_real_escape_string($con, $title);
         $type=@$_REQUEST['type'];
-        $text=mysql_real_escape_string($text);
+        $text=mysqli_real_escape_string($con, $text);
 
         $text=search_replace_exec_at($con,$text,$bid,$tid,$pid,$username,$title);
 
         $statement="insert into posts (bid,tid,pid,title,author,text,ishtml,attachs,replytime,updatetime,sig,ip,type,lzl) values ($bid,$tid,$pid,'$title','$username','$text','YES','$attachs',$time,$time,$sig,'$ip','$type',0)";
-        mysql_query($statement);
-        if(mysql_error()){
-            echo '<info><code>8</code><msg>statement:'.$statement."<br>error:".mysql_error().'</msg></info></capu>';
+        mysqli_query($con, $statement);
+        if(mysqli_error($con)){
+            echo '<info><code>8</code><msg>statement:'.$statement."<br>error:".mysqli_error($con).'</msg></info></capu>';
             exit;
         }
         if($attachs){
             $statement="update attachments set ref=ref+1 where id in (".join(",",explode(" ", $attachs)).")";
-            mysql_query($statement);
+            mysqli_query($con, $statement);
         }
         $statement="update threads set reply=reply+1, replyer='$username', timestamp=$time where bid=$bid && tid=$tid";
-        mysql_query($statement);
+        mysqli_query($con, $statement);
         if ($bid!=4)
             $statement="update userinfo set reply=reply+1, lastpost=$time, tokentime=$time where username='$username'";
         else
             $statement="update userinfo set water=water+1, lastpost=$time, tokentime=$time where username='$username'";
-        mysql_query($statement);
+        mysqli_query($con, $statement);
         updatestar($con,$username);
         if($tidauthor!=$username)
         insertmsg($con,"system", $tidauthor,"reply",$bid, $tid, $pid,$username,$tidtitle);
@@ -613,20 +622,20 @@
         $a=getrights($con,$bid,$token);
         if ($a[0]==-1) {echo '<info><code>1</code><msg>超时，请重新登录。</msg></info></capu>';exit;}
         $statement="select author from posts where bid=$bid and tid=$tid and pid=$pid";
-        $results=mysql_query($statement);
-        if (mysql_num_rows($results)==0) {echo '<info><code>3</code><msg>主题不存在！</msg></info></capu>';exit;}
-        $res=mysql_fetch_array($results);
+        $results=mysqli_query($con, $statement);
+        if (mysqli_num_rows($results)==0) {echo '<info><code>3</code><msg>主题不存在！</msg></info></capu>';exit;}
+        $res=mysqli_fetch_array($results);
         $author=$res[0];
         $username=$a[1];
         if ($a[0]==0 && $username!=$author) {echo '<info><code>5</code><msg>权限不足！</msg></info></capu>';exit;}
 
         $statement="select locked from threads where bid=$bid && tid=$tid";
-        $results=mysql_query($statement);
-        if (mysql_num_rows($results)==0) {
+        $results=mysqli_query($con, $statement);
+        if (mysqli_num_rows($results)==0) {
             echo '<info><code>3</code><msg>主题不存在！</msg></info></capu>';
             exit;
         }
-        $res=mysql_fetch_array($results);
+        $res=mysqli_fetch_array($results);
         $locked=intval($res[0]);
         if ($locked==1) {
             echo '<info><code>4</code><msg>主题已锁定。</msg></info></capu>';
@@ -638,28 +647,28 @@
         $sig=intval(@$_REQUEST['sig']);
         $title=html_entity_decode($title);
         $text=html_entity_decode($text);
-        $title=mysql_real_escape_string($title);
-        $text=mysql_real_escape_string($text);
+        $title=mysqli_real_escape_string($con, $title);
+        $text=mysqli_real_escape_string($con, $text);
         $statement="update posts set title='$title', author='$username', text='$text', ishtml='YES', sig=$sig, ip='$ip', type='$type', attachs='$attachs', updatetime=$time where bid=$bid && tid=$tid && pid=$pid";
-        mysql_query($statement);
+        mysqli_query($con, $statement);
         /*
         if (intval($pid)==1)
         {
             $statement="update threads set timestamp=$time, title='$title', author='$username' where bid=$bid && tid=$tid";
-            mysql_query($statement);
+            mysqli_query($con, $statement);
         }
         */
         if (intval($pid)==1)
         {
             $statement="update threads set title='$title', author='$username' where bid=$bid && tid=$tid";
-            mysql_query($statement);
+            mysqli_query($con, $statement);
         }
         $statement="select pid from posts where bid=$bid && tid=$tid order by pid desc";
-        $res=mysql_query($statement);
-        $number=mysql_num_rows($res);
+        $res=mysqli_query($con, $statement);
+        $number=mysqli_num_rows($res);
         if (intval($pid)==intval($number)) {
             $statement="update threads set replyer='$username' where bid=$bid && pid=$pid";
-            mysql_query($statement);
+            mysqli_query($con, $statement);
         }
         echo "<info><code>0</code><bid>$bid</bid><tid>$tid</tid><pid>$pid</pid></info></capu>";
         exit;
@@ -671,7 +680,7 @@
         if ($a[0]==0) {echo '<capu><info><code>5</code><msg>权限不足！</msg></info></capu>';exit;}
         echo '<capu>';
         $statement="select * from threads where bid=$bid && tid=$tid";
-        if (mysql_num_rows(mysql_query($statement))==0) {
+        if (mysqli_num_rows(mysqli_query($con, $statement))==0) {
             echo '<info><code>3</code><msg>主题不存在！</msg></info></capu>';
             exit;
         }
@@ -683,25 +692,25 @@
             $statement="update threads set extr=1-extr where bid=$bid && tid=$tid";
         else if ($action=="global_top_action") {
             $statement="select bid, tid from thread_global_top where bid=$bid and tid=$tid";
-            $results=mysql_query($statement);
-            if (mysql_num_rows($results) == 0) {
+            $results=mysqli_query($con, $statement);
+            if (mysqli_num_rows($results) == 0) {
                 $statement="insert into thread_global_top (bid,tid) values ($bid,$tid)";
             } else {
                 $statement="delete from thread_global_top where bid=$bid and tid=$tid";
             }
-            $results=mysql_query($statement);
+            $results=mysqli_query($con, $statement);
             echo '<info><code>0</code></info></capu>';
             return;
         }
-        mysql_query($statement);
-        if(mysql_error()){
-            echo '<info><code>2</code><error>'.mysql_error().'</error></info></capu>';
+        mysqli_query($con, $statement);
+        if(mysqli_error($con)){
+            echo '<info><code>2</code><error>'.mysqli_error($con).'</error></info></capu>';
         }else{
             echo '<info><code>0</code></info></capu>';
             if ($action=="extr") {
                 $statement="select author,extr from threads where bid=$bid && tid=$tid";
-                $results=mysql_query($statement);
-                $res=mysql_fetch_row($results);
+                $results=mysqli_query($con, $statement);
+                $res=mysqli_fetch_row($results);
                 $extr=intval($res[1]);
                 $author=$res[0];
                 if ($extr==1) {
@@ -709,7 +718,7 @@
                 }
                 else
                     $statement="update userinfo set extr=extr-1 where username='$author'";
-                mysql_query($statement);
+                mysqli_query($con, $statement);
             }
         }
 
@@ -723,28 +732,28 @@
         $username=$a[1];
         $ip=$a[2];
 
-        if ($pid=="") {
+        if ($pid=="") { // 删除帖子
             $statement="select author, reply from threads where bid=$bid && tid=$tid";
-            $results=mysql_query($statement);
-            $num=mysql_num_rows($results);
+            $results=mysqli_query($con, $statement);
+            $num=mysqli_num_rows($results);
             if ($num==0) {
                 echo '<capu><info><code>3</code><msg>主题不存在！</msg></info></capu>';
                 exit;
             }
-            $res=mysql_fetch_row($results);
+            $res=mysqli_fetch_row($results);
             $author=$res[0];
             $replynum=intval($res[1]);
             if ($a[0]==0 && ($username!=$author || $replynum!=0))
                 {echo '<capu><info><code>5</code><msg>权限不足！</msg></info></capu>';exit;}
             $statement="delete from threads where bid=$bid && tid=$tid";
-            mysql_query($statement);
+            mysqli_query($con, $statement);
             $statement="select * from posts where bid=$bid && tid=$tid order by pid";
-            $results=mysql_query($statement);
-            while ($res=mysql_fetch_array($results)) {
+            $results=mysqli_query($con, $statement);
+            while ($res=mysqli_fetch_array($results)) {
                 $pid=$res['pid'];
-            $title=mysql_real_escape_string($res['title']);
+            $title=mysqli_real_escape_string($con, $res['title']);
             $author=$res['author'];
-            $text=mysql_real_escape_string($res['text']);
+            $text=mysqli_real_escape_string($con, $res['text']);
             $replytime=$res['replytime'];
             $updatetime=$res['updatetime'];
 
@@ -759,17 +768,17 @@
             $replyip=$res['ip'];
                 $statement="insert into capubbs.null values (null,$bid,$tid,$pid,'$title','$text','$author'," .
                            "'$username',$replytime,$updatetime,$time,'$replyip','$ip')";
-                mysql_query($statement);
-                echo mysql_error($con);
+            mysqli_query($con, $statement);
+            echo mysqli_error($con);
             }
             $statement="delete from posts where bid=$bid && tid=$tid";
-            mysql_query($statement);
+            mysqli_query($con, $statement);
             echo '<capu><info><code>0</code></info></capu>';
             exit;
         }
         $statement="select pid from posts where bid=$bid && tid=$tid order by pid desc";
-        $results=mysql_query($statement);
-        $res=mysql_fetch_array($results);
+        $results=mysqli_query($con, $statement);
+        $res=mysqli_fetch_array($results);
         $number=intval($res[0]);
         $pid=intval($pid);
         if ($pid<=0 || $pid>$number) {
@@ -781,10 +790,10 @@
             exit;
         }
         $statement="select * from posts where bid=$bid && tid=$tid && pid=$pid";
-        $results=mysql_query($statement);
-        while ($res=mysql_fetch_array($results)) {
+        $results=mysqli_query($con, $statement);
+        while ($res=mysqli_fetch_array($results)) {
             $pid=$res['pid'];
-            $title=mysql_real_escape_string($res['title']);
+            $title=mysqli_real_escape_string($con, $res['title']);
             $author=$res['author'];
 
             if ($a[0]==0 && $username!=$author)
@@ -798,46 +807,46 @@
                     _delattach($con,$value);
             }
 
-            $text=mysql_real_escape_string($res['text']);
+            $text=mysqli_real_escape_string($con, $res['text']);
             $replytime=$res['replytime'];
             $updatetime=$res['updatetime'];
             $replyip=$res['ip'];
             $statement="insert into capubbs.null values (null,$bid,$tid,$pid,'$title','$text','$author','$username',$replytime,$updatetime,$time,'$replyip','$ip')";
 
-            mysql_query($statement);
+            mysqli_query($con, $statement);
         }
         $statement="delete from posts where bid=$bid && tid=$tid && pid=$pid";
-        mysql_query($statement);
+        mysqli_query($con, $statement);
         $statement="update posts set pid=pid-1 where bid=$bid && tid=$tid && pid>$pid";
-        mysql_query($statement);
+        mysqli_query($con, $statement);
         if ($pid==1) {
             $statement="select title, author from posts where bid=$bid && tid=$tid && pid=1";
-            $results=mysql_query($statement);
-            $res=mysql_fetch_array($results);
-            $title=mysql_real_escape_string($res[0]);
+            $results=mysqli_query($con, $statement);
+            $res=mysqli_fetch_array($results);
+            $title=mysqli_real_escape_string($con, $res[0]);
             $author=$res[1];
             $statement="update threads set title='$title', author='$author', reply=$number-2 where bid=$bid && tid=$tid";
-            mysql_query($statement);
+            mysqli_query($con, $statement);
             echo '<capu><info><code>0</code></info></capu>';
             exit;
         }
         if ($pid==$number) {
             $pid=$pid-1;
             $statement="select author,updatetime from posts where bid=$bid && tid=$tid && pid=$pid";
-            $results=mysql_query($statement);
-            $res=mysql_fetch_row($results);
+            $results=mysqli_query($con, $statement);
+            $res=mysqli_fetch_row($results);
             $author=$res[0];
             $updatetime=$res[1];
             if ($pid!=1)
                 $statement="update threads set replyer='$author',timestamp=$updatetime, reply=$number-2 where bid=$bid && tid=$tid";
             else
                 $statement="update threads set replyer=null,timestamp=$updatetime, reply=$number-2 where bid=$bid && tid=$tid";
-            mysql_query($statement);
+            mysqli_query($con, $statement);
             echo '<capu><info><code>0</code></info></capu>';
             exit;
         }
         $statement="update threads set reply=$number-2 where bid=$bid && tid=$tid";
-        mysql_query($statement);
+        mysqli_query($con, $statement);
         echo '<capu><info><code>0</code></info></capu>';
         exit;
     }
@@ -846,17 +855,17 @@
         $a=getrights($con,$bid,$token);
         if ($a[0]!=2) {echo '<capu><info><code>5</code><msg>权限不足！</msg></info></capu>';exit;}
         $statement="select max(tid) from threads where bid=$to";
-        $totid=intval(mysql_result(mysql_query($statement), 0))+1;
+        $totid=intval(mysqli_fetch_row(mysqli_query($con, $statement))[0])+1;
         $statement="select tid from threads where bid=$bid && tid=$tid";
-        $results=mysql_query($statement);
-        if (mysql_num_rows($results)==0) {
+        $results=mysqli_query($con, $statement);
+        if (mysqli_num_rows($results)==0) {
             echo '<capu><info><code>3</code><msg>主题不存在！</msg></info></capu>';
             exit;
         }
         $statement="update threads set bid=$to, tid=$totid where bid=$bid && tid=$tid";
-        mysql_query($statement);
+        mysqli_query($con, $statement);
         $statement="update posts set bid=$to, tid=$totid where bid=$bid && tid=$tid";
-        mysql_query($statement);
+        mysqli_query($con, $statement);
         echo '<capu><info><code>0</code><bid>'.$to.'</bid><tid>'.$totid.'</tid></info></capu>';
         exit;
     }
@@ -864,9 +873,9 @@
     function lzl($con,$method,$fid,$token,$ip) {
         if ($method=="ask") {
             $statement="select * from lzl where fid=$fid && visible=1 order by id";
-            $results=mysql_query($statement);
+            $results=mysqli_query($con, $statement);
             echo '<capu>';
-            while ($res=mysql_fetch_array($results)) {
+            while ($res=mysqli_fetch_array($results)) {
                 echo '<info>';
                 foreach ( $res as $key => $value ) {
                     if (is_long($key)) continue;
@@ -880,12 +889,12 @@
         if ($method=="post") {
             $time=time();
             $statement="select username,star,rights,lastpost from userinfo where token='$token' && $time-tokentime<={$GLOBALS['validtime']}";
-            $results=mysql_query($statement);
-            /*if (mysql_num_rows($results)==0) {
+            $results=mysqli_query($con, $statement);
+            /*if (mysqli_num_rows($results)==0) {
                 echo '<capu><info><code>1</code><msg>超时，请重新登录。</msg></info></capu>';
                 exit;
             }*/
-            $res=mysql_fetch_row($results);
+            $res=mysqli_fetch_row($results);
             $username=$res[0];
             $star=intval($res[1]);
             $rights=intval($res[2]);
@@ -896,22 +905,22 @@
             $replytime=time();
 
             $statement="select author from lzl where fid=$fid";
-            $result=mysql_query($statement);
-            if (mysql_num_rows($result)>=100) {
+            $result=mysqli_query($con, $statement);
+            if (mysqli_num_rows($result)>=100) {
                 echo "<capu><info><code>10</code><msg>楼中楼数目已经达到上限。</msg></info></capu>";exit;
             }
 
             $statement="select bid,tid,pid,author from posts where fid=$fid limit 1";
-            $result=mysql_query($statement);
-            $info=mysql_fetch_array($result);
+            $result=mysqli_query($con, $statement);
+            $info=mysqli_fetch_array($result);
             $bid=$info['bid'];
             $tid=$info['tid'];
             $pid=$info['pid'];
             $pidauthor=$info['author'];
 
             $statement="select author,title,locked from threads where bid=$bid && tid=$tid";
-            $result=mysql_query($statement);
-            $info=mysql_fetch_array($result);
+            $result=mysqli_query($con, $statement);
+            $info=mysqli_fetch_array($result);
             $tidauthor=$info['author'];
             $tidtitle=$info['title'];
             $lock=intval($info['locked']);
@@ -921,19 +930,19 @@
 
             if (mb_strlen($text,'utf-8')>=503) $text=mb_substr($text,0,500,'utf-8')."...";
 
-            $text_mysql_escaped=mysql_real_escape_string($text);
+            $text_mysqli_escaped=mysqli_real_escape_string($con, $text);
 
-            $statement="insert into lzl (fid,author,text,time) values ($fid, '$username', '$text_mysql_escaped', $replytime)";
-            mysql_query($statement);
-            $error=mysql_errno();
+            $statement="insert into lzl (fid,author,text,time) values ($fid, '$username', '$text_mysqli_escaped', $replytime)";
+            mysqli_query($con, $statement);
+            $error=mysqli_errno($con);
             if($error==0){
 
                 $statement="update posts set lzl=lzl+1 where fid=$fid";
-                mysql_query($statement);
+                mysqli_query($con, $statement);
 
 
                 $statement="update userinfo set lastpost=$time, tokentime=$time where username='$username'";
-                mysql_query($statement);
+                mysqli_query($con, $statement);
 
                 if($pidauthor!=$username) insertmsg($con,"system",$pidauthor,"replylzl",$bid,$tid,$pid, $username,$tidtitle);
                 if($tidauthor!=$username&& $tidauthor!=$pidauthor) insertmsg($con,"system",$tidauthor,"reply",$bid,$tid,$pid, $username,$tidtitle);
@@ -944,7 +953,7 @@
                 }
                 echo("<capu><info><code>0</code></info></capu>");
             }else{
-                echo("<capu><info><code>2</code><msg>".mysql_error()."</msg></info></capu>");
+                echo("<capu><info><code>2</code><msg>".mysqli_error($con)."</msg></info></capu>");
             }
 
             exit;
@@ -953,35 +962,35 @@
             $lzlid=@$_REQUEST['lzlid'];
             $time=time();
             $statement="select username, rights from userinfo where token='$token' && $time-tokentime<={$GLOBALS['validtime']}";
-            $results=mysql_query($statement);
-            if (mysql_num_rows($results)==0) {
+            $results=mysqli_query($con, $statement);
+            if (mysqli_num_rows($results)==0) {
                 echo '<capu><info><code>1</code><msg>超时，请重新登录。</msg></info></capu>';
                 exit;
             }
-            $res=mysql_fetch_array($results);
+            $res=mysqli_fetch_array($results);
             $username=$res[0];
             $rights=intval($res[1]);
 
             $statement="select author from lzl where id=$lzlid";
-            $results=mysql_query($statement);
-            if (mysql_num_rows($results)==0) {
+            $results=mysqli_query($con, $statement);
+            if (mysqli_num_rows($results)==0) {
                 echo '<capu><info><code>3</code><msg>帖子不存在！</msg></info></capu>';
                 exit;
             }
-            $res=mysql_fetch_row($results);
+            $res=mysqli_fetch_row($results);
             $author=$res[0];
 
             $statement="select bid from posts where fid=$fid";
-            $results=mysql_query($statement);
-            if (mysql_num_rows($results)==0) {
+            $results=mysqli_query($con, $statement);
+            if (mysqli_num_rows($results)==0) {
                 echo '<capu><info><code>3</code><msg>帖子不存在！</msg></info></capu>';
                 exit;
             }
 
-            $res=mysql_fetch_array($results);
+            $res=mysqli_fetch_array($results);
             $bid=$res[0];
             $statement="select m1,m2,m3,m4 from boardinfo where bid=$bid";
-            $res=mysql_fetch_array($results);
+            $res=mysqli_fetch_array($results);
             $able=0;
             for ($i=0;$i<=3;$i++) if ($res[$i]==$username) $able=1;
             if (($rights+$able<3)&&$author!=$username) {
@@ -990,10 +999,10 @@
             }
 
             $statement="update lzl set visible=0 where id=$lzlid limit 1";
-            mysql_query($statement);
+            mysqli_query($con, $statement);
             echo '<capu><info><code>0</code></info></capu>';
             $statement="update posts set lzl=lzl-1 where fid=$fid";
-            mysql_query($statement);
+            mysqli_query($con, $statement);
             exit;
         }
         exit;
@@ -1006,16 +1015,16 @@
         echo '<capu>';
         $time=time();
         $statement="select username from userinfo where token='$token' && $time-tokentime<={$GLOBALS['validtime']}";
-        $results=mysql_query($statement);
-        if (mysql_num_rows($results)==0) {
+        $results=mysqli_query($con, $statement);
+        if (mysqli_num_rows($results)==0) {
             echo '<info><nowuser></nowuser></info>';
         }else {
-            $res=mysql_fetch_array($results);
+            $res=mysqli_fetch_array($results);
             $username=$res[0];
             echo "<info><nowuser>$username</nowuser></info>";
         }
 
-        $results=mysql_query("
+        $results=mysqli_query($con, "
             select threads.bid,threads.tid,title,author,replyer,click,reply,extr,top,locked,timestamp,postdate,
             case 
                 when thread_global_top.bid is null then 0
@@ -1025,7 +1034,7 @@
             where thread_global_top.bid is null
             order by timestamp desc 
             limit 0,$hotnum");
-        while ($res=mysql_fetch_array($results)) {
+        while ($res=mysqli_fetch_array($results)) {
             echo "<info>\n";
             foreach ( $res as $key => $value ) {
                 if (is_long($key)) continue;
@@ -1040,23 +1049,23 @@
         echo '<capu>';
         $time=time();
         $statement="select username from userinfo where token='$token' && $time-tokentime<={$GLOBALS['validtime']}";
-        $results=mysql_query($statement);
-        if (mysql_num_rows($results)==0) {
+        $results=mysqli_query($con, $statement);
+        if (mysqli_num_rows($results)==0) {
             echo '<info><nowuser></nowuser></info>';
         }else {
-            $res=mysql_fetch_array($results);
+            $res=mysqli_fetch_array($results);
             $username=$res[0];
             echo "<info><nowuser>$username</nowuser></info>";
         }
 
-        $results=mysql_query("
+        $results=mysqli_query($con, "
             select threads.bid,threads.tid,title,author,replyer,click,reply,extr,top,locked,timestamp,postdate,
             case when thread_global_top.bid is null then 0 else 1 end as global_top 
             from threads left join thread_global_top on threads.bid=thread_global_top.bid and threads.tid=thread_global_top.tid 
             where thread_global_top.bid is not null 
             order by timestamp desc");
 
-        while ($res=mysql_fetch_array($results)) {
+        while ($res=mysqli_fetch_array($results)) {
             echo "<info>\n";
             foreach ( $res as $key => $value ) {
                 if (is_long($key)) continue;
@@ -1077,9 +1086,9 @@
         $method = @$_REQUEST['method'];
         if ($method == "delete") {
             $time = @$_REQUEST['time'];
-            $results = mysql_query("delete from capubbs.mainpage where id=1 && field3='$time'");
+            $results = mysqli_query($con, "delete from capubbs.mainpage where id=1 && field3='$time'");
             echo '<code>0</code>';
-            mysql_query("alter table capubbs.mainpage order by number");
+            mysqli_query($con, "alter table capubbs.mainpage order by number");
         }else if ($method == "add") {
             $title = @$_REQUEST['text'];
             $url = @$_REQUEST['url'];
@@ -1091,9 +1100,9 @@
                 $url = "javascript:void(0)";
             }
             $time=time();
-            $results = mysql_query("insert into capubbs.mainpage values (null,1,'$title','$url','$time','','')");
+            $results = mysqli_query($con, "insert into capubbs.mainpage values (null,1,'$title','$url','$time','','')");
             echo '<code>0</code>';
-            mysql_query("alter table capubbs.mainpage order by number");
+            mysqli_query($con, "alter table capubbs.mainpage order by number");
         }else {
             echo '<code>-1</code><msg>错误操作！</msg>';
         }
@@ -1106,12 +1115,12 @@
     }
 
     function recentpost($con,$view){
-        // $results=mysql_query("select * from threads where author='$view' order by timestamp desc limit 0,10");
-        $results=mysql_query("select bid,tid,pid,title,author,replytime as timestamp from posts where author='$view' and pid=1 order by replytime desc limit 0,10");
+        // $results=mysqli_query($con, "select * from threads where author='$view' order by timestamp desc limit 0,10");
+        $results=mysqli_query($con, "select bid,tid,pid,title,author,replytime as timestamp from posts where author='$view' and pid=1 order by replytime desc limit 0,10");
         echo '<capu>';
 
         echo "<info><nowuser></nowuser></info>\n";
-        while ($res=mysql_fetch_array($results)) {
+        while ($res=mysqli_fetch_array($results)) {
             echo "<info>\n";
             foreach ( $res as $key => $value ) {
                 if (is_long($key)) continue;
@@ -1122,10 +1131,10 @@
         echo '</capu>';
     }
     function recentreply($con,$view){
-        $results=mysql_query("select title, bid, tid, pid, updatetime from posts where author='$view' order by updatetime desc limit 0,10");
+        $results=mysqli_query($con, "select title, bid, tid, pid, updatetime from posts where author='$view' order by updatetime desc limit 0,10");
         echo '<capu>';
         echo "<info><nowuser></nowuser></info>\n";
-        while ($res=mysql_fetch_array($results)) {
+        while ($res=mysqli_fetch_array($results)) {
             echo "<info>\n";
             foreach ( $res as $key => $value ) {
                 if (is_long($key)) continue;
@@ -1141,7 +1150,7 @@
         $today=date("Y-m-d");
         // $statement="update userinfo set tokentime=null, token=null, nowboard=null, lastip='$ip',lastdate='$today' where token='$token'";
         $statement="update userinfo set nowboard=null, lastip='$ip',lastdate='$today' where token='$token'";
-        mysql_query($statement);
+        mysqli_query($con, $statement);
         echo("<info><code>0</code></info>");
         echo("</capu>");
     }
@@ -1150,7 +1159,7 @@
         if(strstr($user, "'")!="") return false;
         else{
             $statement="select * from userinfo where username='$user' limit 1";
-            if(mysql_num_rows(mysql_query($statement))==0){
+            if(mysqli_num_rows(mysqli_query($con, $statement))==0){
                 return false;
             }else{
                 return true;
@@ -1160,11 +1169,11 @@
     }
 
     function userexists($con){
-        $user=mysql_real_escape_string(@$_REQUEST['user']);
+        $user=mysqli_real_escape_string($con, @$_REQUEST['user']);
         if(strstr($user, "'")!="") $code= 2;
         else{
             $statement="select * from userinfo where username='$user' limit 1";
-            if(mysql_num_rows(mysql_query($statement))==0){
+            if(mysqli_num_rows(mysqli_query($con, $statement))==0){
                 $code=0;
             }else{
                 $code=1;
@@ -1189,17 +1198,17 @@
     function getrights($con,$bid,$token) {
         $time=time();
         $statement="select username, rights, lastip from userinfo where token='$token' && $time-tokentime<={$GLOBALS['validtime']}";
-        $results=mysql_query($statement);
-        if (mysql_num_rows($results)==0)
+        $results=mysqli_query($con, $statement);
+        if (mysqli_num_rows($results)==0)
             return array(-1,"","",0);
-        $res=mysql_fetch_array($results);
+        $res=mysqli_fetch_array($results);
         $username=$res[0];
         $rights=intval($res[1]);
         $ip=$res[2];
         $statement="select m1,m2,m3,m4 from boardinfo where bid=$bid";
 
-        $results=mysql_query($statement);
-        $res=mysql_fetch_array($results);
+        $results=mysqli_query($con, $statement);
+        $res=mysqli_fetch_array($results);
         $able=0;
         for ($i=0;$i<=3;$i++){
             if ($res[$i]==$username) $able=1;
@@ -1223,14 +1232,14 @@
             echo '<username></username><rights>0</rights></info></capu>';
             exit;
         }
-        $token=mysql_real_escape_string($token);
+        $token=mysqli_real_escape_string($con, $token);
         $statement="select username,rights from userinfo where token='$token' && $nowtime-tokentime<={$GLOBALS['validtime']}";
-        $result=mysql_query($statement);
-        if (mysql_num_rows($result)==0) {
+        $result=mysqli_query($con, $statement);
+        if (mysqli_num_rows($result)==0) {
             echo '<username></username><rights>0</rights></info></capu>';
             exit;
         }
-        $res=mysql_fetch_row($result);
+        $res=mysqli_fetch_row($result);
         echo '<username><![CDATA['.$res[0].']]></username><rights>'.$res[1].'</rights></info></capu>';
         exit;
     }
@@ -1242,11 +1251,11 @@
             report(1,"illegal");
         }
         $statement="select username,score,star from userinfo where token='$token' && $nowtime-tokentime<={$GLOBALS['validtime']}";
-        $result=mysql_query($statement);
+        $result=mysqli_query($con, $statement);
         $user="";
-        return mysql_fetch_array($result);
+        return mysqli_fetch_array($result);
         /*
-while ($res=mysql_fetch_array($result)) {
+while ($res=mysqli_fetch_array($result)) {
             foreach ( $res as $key => $value ) {
                 if ($key=="username") { $user=$value; $nowuser=$user;}
             }
@@ -1266,12 +1275,12 @@ while ($res=mysql_fetch_array($result)) {
             report(1,"illegal");
         }
         $filename=str_replace("&", "&amp;", $filename);
-        $filename=mysql_real_escape_string($filename);
+        $filename=mysqli_real_escape_string($con, $filename);
         $size=filesize("{$GLOBALS['attachroot']}".$path);
         $statement="insert into attachments (name,path,size,uploader,price,auth,time) values('$filename','$path',$size,'$user',$price,$auth,".time().")";
-        mysql_query($statement);
-        if(!mysql_error()) report(0, mysql_insert_id());
-        else report(2, $statement."<br>error:".mysql_error());
+        mysqli_query($con, $statement);
+        if(!mysqli_error($con)) report(0, mysqli_insert_id($con));
+        else report(2, $statement."<br>error:".mysqli_error($con));
     }
     function report($code,$msg){
         echo("<capu><info><code>$code</code><msg>$msg</msg></info></capu>");
@@ -1286,29 +1295,29 @@ while ($res=mysql_fetch_array($result)) {
             report(1,"illegal");
         }
         $statement="select * from attachments where id=$id limit 1";
-        $result=mysql_query($statement);
-        $ainfo=mysql_fetch_array($result);
+        $result=mysqli_query($con, $statement);
+        $ainfo=mysqli_fetch_array($result);
         $auth=$ainfo['auth'];
         $price=intval($ainfo['price']);
         if($score<$auth) report(4,"no enough auth");
         if($price>0){
             $statement="select * from purchaserecord where username='$username' and aid=$id limit 1";
-            $rows=mysql_num_rows(mysql_query($statement));
+            $rows=mysqli_num_rows(mysqli_query($con, $statement));
             if($rows==0){
                 if($score-$price<0){
                     report(5,"no enough score");
                 }
                 $statement="update userinfo set score=score-$price";
-                $result=mysql_query($statement);
-                if(!($result&& mysql_affected_rows()>0)){
-                    report(2, mysql_error());
+                $result=mysqli_query($con, $statement);
+                if(!($result&& mysqli_affected_rows($con)>0)){
+                    report(2, mysqli_error($con));
                 }
                 $statement="insert into purchaserecord (username,aid) values('$username',$id)";
-                mysql_query($statement);
+                mysqli_query($con, $statement);
             }
         }
         $statement="update attachments set count=count+1 where id=$id limit 1";
-        mysql_query($statement);
+        mysqli_query($con, $statement);
         echo("<capu><info><code>0</code><aid>$id</aid><path>".$ainfo['path']."</path><name>".$ainfo['name']."</name></info></capu>");
     }
 
@@ -1318,8 +1327,8 @@ while ($res=mysql_fetch_array($result)) {
     }
     function attachinfo($con,$id,$token){
         $statement="select * from attachments where id=$id limit 1";
-        $result=mysql_query($statement);
-        $ainfo=mysql_fetch_array($result);
+        $result=mysqli_query($con, $statement);
+        $ainfo=mysqli_fetch_array($result);
         $user=token2user($con,$token);
         $isAuthor=false;
         $hasPurchased=false;
@@ -1356,10 +1365,10 @@ while ($res=mysql_fetch_array($result)) {
         }
         $username=$user['username'];
         $statement="select * from attachments where uploader='$username' and ref=0";
-        $result=mysql_query($statement);
+        $result=mysqli_query($con, $statement);
         echo '<capu>';
         echo("<info><code>0</code></info>");
-        while($ainfo=mysql_fetch_array($result)){
+        while($ainfo=mysqli_fetch_array($result)){
             echo("<info>");
             foreach ( $ainfo as $key => $value ) {
                 if (is_long($key)) continue;
@@ -1377,8 +1386,8 @@ while ($res=mysql_fetch_array($result)) {
         }
         $username=$user['username'];
         $statement="select * from attachments where id=$id limit 1";
-        $result=mysql_query($statement);
-        $ainfo=mysql_fetch_array($result);
+        $result=mysqli_query($con, $statement);
+        $ainfo=mysqli_fetch_array($result);
         if(!$ainfo){
             echo("<capu><info><code>6</code><msg>找不到该附件</msg></info></capu>");
             exit();
@@ -1390,11 +1399,11 @@ while ($res=mysql_fetch_array($result)) {
         if($ainfo['path']){
             if(!file_exists($GLOBALS['attachroot'].$ainfo['path']) or unlink($GLOBALS['attachroot'].$ainfo['path'])){
                 $statement="delete from attachments where id=$id limit 1";
-                mysql_query($statement);
-                if(!mysql_error()){
+                mysqli_query($con, $statement);
+                if(!mysqli_error($con)){
                     echo("<capu><info><code>0</code></info></capu>");
                 }else{
-                    echo("<capu><info><code>3</code><msg>".mysql_error()."</msg></info></capu>");
+                    echo("<capu><info><code>3</code><msg>".mysqli_error($con)."</msg></info></capu>");
                 }
             }else{
                 echo("<capu><info><code>4</code><msg>无法删除附件</msg></info></capu>");
@@ -1406,16 +1415,16 @@ while ($res=mysql_fetch_array($result)) {
 
     function _delattach($con,$id){
         $statement="select * from attachments where id=$id limit 1";
-        $result=mysql_query($statement);
-        $ainfo=mysql_fetch_array($result);
+        $result=mysqli_query($con, $statement);
+        $ainfo=mysqli_fetch_array($result);
         if(!$ainfo){
             return false;
         }
         if($ainfo['path']){
             if(!file_exists($GLOBALS['attachroot'].$ainfo['path']) or unlink($GLOBALS['attachroot'].$ainfo['path'])){
                 $statement="delete from attachments where id=$id limit 1";
-                mysql_query($statement);
-                if(!mysql_error()){
+                mysqli_query($con, $statement);
+                if(!mysqli_error($con)){
                     return true;
                 }else{
                     return false;
@@ -1432,15 +1441,15 @@ while ($res=mysql_fetch_array($result)) {
         echo '<capu><info><code>0</code><pages>';
         if ($tid=="") {
             $statement="select count(*) from threads where bid=$bid";
-            $results=mysql_query($statement);
-            $res=mysql_fetch_row($results);
+            $results=mysqli_query($con, $statement);
+            $res=mysqli_fetch_row($results);
             $num=intval($res[0]);
             echo ceil($num/25);
         }
         else {
             $statement="select reply from threads where bid=$bid && tid=$tid";
-            $results=mysql_query($statement);
-            $res=mysql_fetch_row($results);
+            $results=mysqli_query($con, $statement);
+            $res=mysqli_fetch_row($results);
             $num=intval($res[0]);
             echo ceil(($num+1)/12);
         }
@@ -1455,8 +1464,8 @@ while ($res=mysql_fetch_array($result)) {
             report(1,"尚未登录");
         }
         $statement="select * from posts where bid=$bid and tid=$tid and pid=$pid limit 1";
-        $result=mysql_query($statement);
-        $info=mysql_fetch_array($result);
+        $result=mysqli_query($con, $statement);
+        $info=mysqli_fetch_array($result);
         if(!$info){
             report(4,"贴子不存在");
         }
@@ -1491,8 +1500,8 @@ while ($res=mysql_fetch_array($result)) {
 
     function updatestar($con,$username) {
         $statement="select post,reply,other2 from userinfo where username='$username'";
-        $results=mysql_query($statement);
-        $res=mysql_fetch_array($results);
+        $results=mysqli_query($con, $statement);
+        $res=mysqli_fetch_array($results);
         $post=intval($res['post']);
         $reply=intval($res['reply']);
         $total=$post+$reply;
@@ -1509,7 +1518,7 @@ while ($res=mysql_fetch_array($result)) {
         $ss=intval(@$res['other2']);
         if ($ss!="" && $ss>=1 && $ss<=9) $star=$ss;
         $statement="update userinfo set star=$star where username='$username'";
-        mysql_query($statement);
+        mysqli_query($con, $statement);
     }
 
     function sendmsg($con,$token,$to,$text){
@@ -1518,10 +1527,10 @@ while ($res=mysql_fetch_array($result)) {
             report(1,"尚未登录");
         }
         $sender=$user['username'];
-        $text=mysql_real_escape_string($text);
-        $to=mysql_real_escape_string($to);
+        $text=mysqli_real_escape_string($con, $text);
+        $to=mysqli_real_escape_string($con, $to);
         $statement="select username from userinfo where username='$to'";
-        if(!mysql_fetch_array(mysql_query($statement))){
+        if(!mysqli_fetch_array(mysqli_query($con, $statement))){
             report(3, "留言的对象不存在！");
         }
         if(insertmsg($con,$sender,$to,$text,0,0,0,"","")){
@@ -1537,9 +1546,9 @@ while ($res=mysql_fetch_array($result)) {
         $rights=intval($rights[3]);
         if ($rights!=4) {echo '<capu><info><code>1</code><msg>权限不足</msg></info></capu>';exit;}
         $statement="select username from userinfo";
-        $results=mysql_query($statement);
-        $text=mysql_real_escape_string($text);
-        while ($res=mysql_fetch_row($results)) {
+        $results=mysqli_query($con, $statement);
+        $text=mysqli_real_escape_string($con, $text);
+        while ($res=mysqli_fetch_row($results)) {
             $user=$res[0];
             $tmptext="尊敬的 ".$user." 用户您好，".$text;
             insertmsg($con,"admin",$user,$tmptext,0,0,0,"","");
@@ -1551,9 +1560,9 @@ while ($res=mysql_fetch_array($result)) {
     function insertmsg($con,$from,$to,$text,$bid,$tid,$pid,$ruser,$rmsg){
         $time=time();
         $statement="insert into messages (sender,receiver,text,time,rbid,rtid,rpid,ruser,rmsg) values('$from','$to','$text',$time,$bid,$tid,$pid,'$ruser','$rmsg')";
-        if(mysql_query($statement)){
+        if(mysqli_query($con, $statement)){
             $statement="update userinfo set newmsg=newmsg+1 where username='$to' limit 1";
-            mysql_query($statement);
+            mysqli_query($con, $statement);
             return true;
         }else{
             return false;
@@ -1588,9 +1597,9 @@ while ($res=mysql_fetch_array($result)) {
 
         echo("<ilaw>");
         $statement="select * from messages where receiver='$username' and hasread=0 order by time desc";
-        $result=mysql_query($statement);
-        echo(mysql_error());
-        while ($res=mysql_fetch_array($result)) {
+        $result=mysqli_query($con, $statement);
+        echo(mysqli_error($con));
+        while ($res=mysqli_fetch_array($result)) {
             echo "<info>\n";
             foreach ( $res as $key => $value ) {
                 if (is_long($key)) continue;
@@ -1599,8 +1608,8 @@ while ($res=mysql_fetch_array($result)) {
             echo "</info>\n";
         }
         $statement="select * from messages where receiver='$username' and hasread=1 order by time desc limit 10 ";
-        $result=mysql_query($statement);
-        while ($res=mysql_fetch_array($result)) {
+        $result=mysqli_query($con, $statement);
+        while ($res=mysqli_fetch_array($result)) {
             echo "<info>\n";
             foreach ( $res as $key => $value ) {
                 if (is_long($key)) continue;
@@ -1611,9 +1620,9 @@ while ($res=mysql_fetch_array($result)) {
         echo("</ilaw>");
 
         $statement="update messages set hasread=1 where receiver='$username' and hasread=0";
-        mysql_query($statement);
+        mysqli_query($con, $statement);
         $statement="update userinfo set newmsg=0 where username='$username' limit 1";
-        mysql_query($statement);
+        mysqli_query($con, $statement);
     }
 
     function msg($con,$token,$type){
@@ -1625,16 +1634,16 @@ while ($res=mysql_fetch_array($result)) {
         $username=$user['username'];
         $p=@$_REQUEST['p'];
 
-        $result=mysql_fetch_array(mysql_query("select count(1) as c from messages where receiver='$username' and sender='system' and hasread=0"));
+        $result=mysqli_fetch_array(mysqli_query($con, "select count(1) as c from messages where receiver='$username' and sender='system' and hasread=0"));
         $sysmsg=$result['c'];
-        $result=mysql_fetch_array(mysql_query("select count(1) as c from messages where receiver='$username' and sender='system'"));
+        $result=mysqli_fetch_array(mysqli_query($con, "select count(1) as c from messages where receiver='$username' and sender='system'"));
         $systotal=$result['c'];
         if($to=@$_REQUEST['to']){
             $statement="select count(1) as c from messages where receiver='$username' and sender!='system' and sender!='$to' and hasread=0";
         }else{
             $statement="select count(1) as c from messages where receiver='$username' and sender!='system' and hasread=0";
         }
-        $result=mysql_fetch_array(mysql_query($statement));
+        $result=mysqli_fetch_array(mysqli_query($con, $statement));
         $prvmsg=$result['c'];
         echo("<capu>");
         echo("<info>");
@@ -1651,8 +1660,8 @@ while ($res=mysql_fetch_array($result)) {
             $limit=10;
             $start=$limit*($p-1);
 
-            $result=mysql_query("select * from messages where receiver='$username' and sender='system' order by hasread,time desc limit $start,$limit");
-            while(($one=mysql_fetch_array($result))!=null){
+            $result=mysqli_query($con, "select * from messages where receiver='$username' and sender='system' order by hasread,time desc limit $start,$limit");
+            while(($one=mysqli_fetch_array($result))!=null){
                 echo("<info>");
                 $username2=$one['ruser'];
                 $type=$one['text'];
@@ -1675,12 +1684,12 @@ while ($res=mysql_fetch_array($result)) {
                 echo("</info>");
             }
             echo("</capu>");
-            mysql_query("update messages set hasread=1 where receiver='$username' and sender='system' and hasread=0");
+            mysqli_query($con, "update messages set hasread=1 where receiver='$username' and sender='system' and hasread=0");
         }else if($type=="private"){
             $ans=array();
             $senders=array();
-            $result=mysql_query("select sender,group_concat(time order by time desc),group_concat(hasread) from messages where receiver='$username' and sender!='system' group by sender order by hasread,time desc");
-            while($one=mysql_fetch_array($result)){
+            $result=mysqli_query($con, "select sender,group_concat(time order by time desc),group_concat(hasread) from messages where receiver='$username' and sender!='system' group by sender order by hasread,time desc");
+            while($one=mysqli_fetch_array($result)){
                 array_push($ans, $one);
                 array_push($senders,$one[0]);
             }
@@ -1694,8 +1703,8 @@ while ($res=mysql_fetch_array($result)) {
             }else{
                 $statement="select receiver,group_concat(time order by time desc) from messages where sender='$username' and receiver not in $senderarea group by receiver order by hasread,time desc";
             }
-            $result=mysql_query($statement);
-            while($one=mysql_fetch_array($result)){
+            $result=mysqli_query($con, $statement);
+            while($one=mysqli_fetch_array($result)){
                 array_push($ans, $one);
             }
             for($i=0;$i< count($ans);$i++){
@@ -1726,14 +1735,14 @@ while ($res=mysql_fetch_array($result)) {
                 }
 
                 $number=substr_count($hasread, "0");
-                $textresult=mysql_fetch_array(mysql_query("select text,time from messages where (receiver='$username' and sender='$sender') or (receiver='$sender' and sender='$username') order by time desc limit 1"));
+                $textresult=mysqli_fetch_array(mysqli_query($con, "select text,time from messages where (receiver='$username' and sender='$sender') or (receiver='$sender' and sender='$username') order by time desc limit 1"));
                 $text=$textresult[0];
                 $time=$textresult[1];
                 $shrink=@$_REQUEST['shrink'];
                 if(!$shrink=="no"&&mb_strlen($text,"utf-8")>30){
                     $text=mb_substr($text, 0,30,"utf-8")."......";
                 }
-                $tresult=mysql_fetch_array(mysql_query("select  count(1) as c from messages where  (receiver='$username' and sender='$sender') or (receiver='$sender' and sender='$username')"));
+                $tresult=mysqli_fetch_array(mysqli_query($con, "select  count(1) as c from messages where  (receiver='$username' and sender='$sender') or (receiver='$sender' and sender='$username')"));
                 $totalnum=$tresult['c'];
                 echo("<username>".trans($sender)."</username>");
                 echo("<text>".trans($text)."</text>");
@@ -1746,8 +1755,8 @@ while ($res=mysql_fetch_array($result)) {
 
         }else if($type=="chat"){
             $to=@$_REQUEST['to'];
-            $result=mysql_query("select * from messages where (receiver='$username' and sender='$to') or (sender='$username' and receiver='$to') order by time");
-            while($one=mysql_fetch_array($result)){
+            $result=mysqli_query($con, "select * from messages where (receiver='$username' and sender='$to') or (sender='$username' and receiver='$to') order by time");
+            while($one=mysqli_fetch_array($result)){
                 echo("<info>");
                 $atype=$one['sender']==$username?"send":"get";
                 $text=$one['text'];
@@ -1758,11 +1767,11 @@ while ($res=mysql_fetch_array($result)) {
                 echo("</info>");
             }
             echo("</capu>");
-            mysql_query("update messages set hasread=1 where receiver='$username' and sender='$to' and hasread=0");
+            mysqli_query($con, "update messages set hasread=1 where receiver='$username' and sender='$to' and hasread=0");
         }
-        $result=mysql_fetch_array(mysql_query("select count(1) as c from messages where hasread=0 and receiver='$username'"));
+        $result=mysqli_fetch_array(mysqli_query($con, "select count(1) as c from messages where hasread=0 and receiver='$username'"));
         $num=$result['c'];
-        mysql_query("update userinfo set newmsg=$num where username='$username' limit 1");
+        mysqli_query($con, "update userinfo set newmsg=$num where username='$username' limit 1");
     }
     function currentUserInfo($con,$token){
         $user=token2user($con,$token);
@@ -1775,11 +1784,11 @@ while ($res=mysql_fetch_array($result)) {
     }
 
     function changepsd($con,$token){
-        $token=mysql_real_escape_string($token);
+        $token=mysqli_real_escape_string($con, $token);
         $nowtime=time();
         $statement="select password from userinfo where token='$token' and $nowtime-tokentime<={$GLOBALS['validtime']} limit 1";
-        $result=mysql_query($statement);
-        $result=mysql_fetch_array($result);
+        $result=mysqli_query($con, $statement);
+        $result=mysqli_fetch_array($result);
         if(!$result){
             report(1,"会话超时，请重新<a href='../login'>登录</a>");
         }
@@ -1791,10 +1800,10 @@ while ($res=mysql_fetch_array($result)) {
 
         $newtoken=md5($oldpsd.$nowtime);
         $statement="update userinfo set password='$newpsd',token='$newtoken' where token='$token' limit 1";
-        if(mysql_query($statement)){
+        if(mysqli_query($con, $statement)){
             report(0,$newtoken);
         }else{
-            report(3, mysql_error());
+            report(3, mysqli_error($con));
         }
     }
 
@@ -1807,9 +1816,9 @@ while ($res=mysql_fetch_array($result)) {
         $month=date("m",$time);
         $day=date("d",$time);
         $statement="select username from capubbs.sign where year=$year && month=$month && day=$day order by hour, minute, second";
-        $todays=mysql_query($statement);
+        $todays=mysqli_query($con, $statement);
         echo '<capu>';
-        while (($res=mysql_fetch_row($todays))!=null) {
+        while (($res=mysqli_fetch_row($todays))!=null) {
             echo '<info><username><![CDATA['.$res[0].']]></username></info>'."\n";
         }
         echo '</capu>';
@@ -1821,10 +1830,10 @@ while ($res=mysql_fetch_array($result)) {
         $time=time();
         $year=date("Y",$time);
         $statement="select * from capubbs.sign where year=$year order by month, day";
-        $results=mysql_query($statement);
+        $results=mysqli_query($con, $statement);
         error_reporting(E_ALL & ~E_NOTICE);
         $datas=array();
-        while (($res=mysql_fetch_array($results))!=null) {
+        while (($res=mysqli_fetch_array($results))!=null) {
             $m=intval($res['month']);
             if ($m<10) $m="0".$m;
             $date=$res['year']."-".$m;
@@ -1850,12 +1859,12 @@ while ($res=mysql_fetch_array($result)) {
     }
     function sign_user($con) {
         $statement="select username,sign from capubbs.userinfo order by sign desc,username limit 0,100";
-        $results=mysql_query($statement);
+        $results=mysqli_query($con, $statement);
         echo '<capu>';
         $i=1;
         $j=1;
         $last=0;
-        while (($res=mysql_fetch_row($results))!=null) {
+        while (($res=mysqli_fetch_row($results))!=null) {
             echo '<info>';
             $username=$res[0];
             $sign=intval($res[1]);
@@ -1877,10 +1886,10 @@ while ($res=mysql_fetch_array($result)) {
         return 29;
     }
     function searchByKeyword($con,$keyword,$token,$type,$bid){
-        $keyword=mysql_real_escape_string($keyword);
-        $starttime=mysql_real_escape_string(@$_REQUEST['starttime']);
-        $endtime=mysql_real_escape_string(@$_REQUEST['endtime']);
-        $author=mysql_real_escape_string(@$_REQUEST['author']);
+        $keyword=mysqli_real_escape_string($con, $keyword);
+        $starttime=mysqli_real_escape_string($con, @$_REQUEST['starttime']);
+        $endtime=mysqli_real_escape_string($con, @$_REQUEST['endtime']);
+        $author=mysqli_real_escape_string($con, @$_REQUEST['author']);
         $start=strtotime($starttime." 00:00:00");
         $end=strtotime($endtime." 23:59:59");
         if ($start==false || $start==-1)
@@ -1920,18 +1929,18 @@ while ($res=mysql_fetch_array($result)) {
 
         $statement="select * from sign where year=$year && month=$month && day=$day order by hour, minute, second";
 
-        $results=mysql_query($statement);
-        $num=mysql_num_rows($results);
+        $results=mysqli_query($con, $statement);
+        $num=mysqli_num_rows($results);
 
         echo '<capu><info><sign>'.$num.'</sign>';
 
         $statement="select username from userinfo where $time-tokentime<=600";
-        $result=mysql_query($statement);
-        $num=mysql_num_rows($result);
+        $result=mysqli_query($con, $statement);
+        $num=mysqli_num_rows($result);
 
         $statement="select field1,field2 from mainpage where id=-2";
-        $result=mysql_query($statement);
-        $res=mysql_fetch_row($result);
+        $result=mysqli_query($con, $statement);
+        $res=mysqli_fetch_row($result);
         $maxnum=intval($res[0]);
         $thattime=intval($res[1]);
 
@@ -1939,7 +1948,7 @@ while ($res=mysql_fetch_array($result)) {
             $maxnum=$num;
             $thattime=$time;
             $statement="update mainpage set field1='$maxnum', field2='$thattime' where id=-2";
-            mysql_query($statement);
+            mysqli_query($con, $statement);
         }
 
         echo '<online>'.$num.'</online><maxnum>'.$maxnum.'</maxnum><time>'.date("Y-m-d",$thattime).'</time></info></capu>';
@@ -1974,7 +1983,7 @@ while ($res=mysql_fetch_array($result)) {
          * two recent posts from the same user. If the delay time is
          * too short, it'll return an error message.
         */
-        if (mysql_num_rows($results)==0) {
+        if (mysqli_num_rows($results)==0) {
             echo '<capu><info><code>1</code><msg>超时，请重新登录。</msg></info></capu>';
             exit;
         }
