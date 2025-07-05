@@ -55,7 +55,7 @@
             }
         }
 
-        mysqli_free_result($result);
+        mysqli_free_result($results);
         return $username;
     }
 
