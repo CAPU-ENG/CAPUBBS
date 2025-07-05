@@ -54,15 +54,17 @@
 
         if ($username) {
             $today=date("Y-m-d");
-            $onlinetype=@$_REQUEST['onlinetype'];
-            $browser=@$_REQUEST['browser'];
-            $system=@$_REQUEST['system'];
-            $logininfo="";
-            if ($onlinetype=="web") $logininfo=$browser;
-            if ($onlinetype=="android" || $onlinetype=="ios") $logininfo=$system;
+            // $onlinetype=@$_REQUEST['onlinetype'];
+            // $browser=@$_REQUEST['browser'];
+            // $system=@$_REQUEST['system'];
+            // $logininfo="";
+            // if ($onlinetype=="web") $logininfo=$browser;
+            // if ($onlinetype=="android" || $onlinetype=="ios") $logininfo=$system;
     
-            if ($ip!="") $statement="update userinfo set tokentime=$nowtime, token='$token', lastip='$ip',lastdate='$today',onlinetype='$onlinetype',logininfo='$logininfo' where username='$username'";
-            else $statement="update userinfo set tokentime=$nowtime, token='$token', lastdate='$today',onlinetype='$onlinetype',logininfo='$logininfo' where username='$username'";
+
+    
+            if ($ip!="") $statement="update userinfo set tokentime=$nowtime, token='$token', lastip='$ip',lastdate='$today' where username='$username'";
+            else $statement="update userinfo set tokentime=$nowtime, token='$token', lastdate='$today' where username='$username'";
 
             mysqli_query($con, $statement);
 
