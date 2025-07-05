@@ -9,18 +9,20 @@
         return $ret;
     }
 
-    function checkUserAndSign($con,$ip, $token) {
+    function checkUserAndSign($con, $ip, $token) {
+        $GLOBALS['validtime']=60*60*24*7;
+
         $nowtime=time();
         $time=time();
         $statement="select username,star,rights,lastpost from userinfo 
             where token='$token' && $time-tokentime<={$GLOBALS['validtime']}";
         $results = mysqli_query($con, $statement);
-        $res = mysqli_fetch_all($results, MYSQLI_ASSOC);
+        $res = mysqli_fetch_array($results, MYSQLI_ASSOC);
         $username = $res['username'];
 
         if ($username) {
             $today=date("Y-m-d");
-            $onlinetype=@$_REQUEST['onlinetype'];
+            $onlinetype="web";
             $browser=@$_REQUEST['browser'];
             $system=@$_REQUEST['system'];
             $logininfo="";
@@ -71,8 +73,10 @@
                 foreach ( $res as $key => $value ) {
                     if ($key=="username") { $user=$value; $nowuser=$user;}
                 }
-                if ($ip!="") $statement="update userinfo set tokentime=$nowtime, nowboard=$bid, lastip='$ip' where username='$user'";
-                else $statement="update userinfo set tokentime=$nowtime, nowboard=$bid where username='$user'";
+                if ($ip!="")
+                    $statement="update userinfo set tokentime=$nowtime, nowboard=$bid, lastip='$ip' where username='$user'";
+                else
+                    $statement="update userinfo set tokentime=$nowtime, nowboard=$bid where username='$user'";
                 mysqli_query($con, $statement);
             }
         }
