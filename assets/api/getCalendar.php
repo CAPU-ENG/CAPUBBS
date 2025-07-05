@@ -6,11 +6,11 @@
 	//   echo '  { "date": "2013-03-19 17:30:00", "type": "meeting", "title": "Test Last Year", "description": "Lorem Ipsum dolor set", "url": "" },';
 	//  echo '  { "date": "2013-03-23 17:30:00", "type": "meeting", "title": "Test Next Year", "description": "Lorem Ipsum dolor set", "url": "http://www.event3.com/" },';
 	
-	dbconnect();
+	$con = dbconnect_mysqli();
 	$statement="select * from capubbs.calendar";
-	$results=mysql_query($statement);
+	$results=mysqli_query($con, $statement);
 	$x=1;
-	while ($res=mysql_fetch_array($results)) {
+	while ($res=mysqli_fetch_array($results)) {
 		if ($x==0) echo ',';
 	
 		$year=$res[0];

@@ -5,7 +5,7 @@
 <link href="/assets/css/style.css" rel="stylesheet">
 <?php
 	require_once '../lib.php';
-	$res=checkuser();
+	$res=checkuser_mysqli();
 	$username=$res[0];$rights=intval($res[1]); 
 ?>
 </head>

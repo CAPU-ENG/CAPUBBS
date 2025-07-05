@@ -8,7 +8,7 @@
 <script src="/assets/js/self-borrow.js"></script>
 <?php
 	require_once '../lib.php';
-	$res=checkuser();
+	$res=checkuser_mysqli();
 	$username=$res[0];$rights=$res[1];
 	date_default_timezone_set('Asia/Shanghai');
 ?>
