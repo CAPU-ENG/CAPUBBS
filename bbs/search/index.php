@@ -125,6 +125,8 @@ if($result==null || count(@$result)==0){
 	echo("<b>未找到相关结果</b>");
 }
 else if($type=="post"){
+
+	echo '<div align="center";>共'.count($result).'条</div>';
 	foreach($result as $value){
 		if(!@$value['title']) continue;
 		$bid=$value['bid'];
@@ -147,6 +149,7 @@ else if($type=="post"){
 		echo("<p style='text-indet:2em'><font color='#989898'>&nbsp;--- $author 发表于 $time</font></p>");
 	}
 } else{
+	echo '<div align="center";>共'.count($result).'条</div>';
 	foreach($result as $value){
 		if(!@$value['title']) continue;
 		$bid=$value['bid'];
