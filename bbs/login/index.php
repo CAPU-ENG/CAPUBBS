@@ -110,7 +110,7 @@ function check(){
 	});
 }
 function forget() {
-	var x="请联系管理员，邮箱：<a href='mailto:wangyueqian@pku.edu.cn'>wangyueqian@pku.edu.cn</a>";
+	var x="请联系管理员，邮箱：<a href='mailto:pkuzhd@pku.edu.cn'>pkuzhd@pku.edu.cn</a>";
 	$('#tip').html(x);
 }
 </script>
