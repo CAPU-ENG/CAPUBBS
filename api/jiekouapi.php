@@ -669,7 +669,7 @@
         $res=mysqli_query($con, $statement);
         $number=mysqli_num_rows($res);
         if (intval($pid)==intval($number)) {
-            $statement="update threads set replyer='$username' where bid=$bid && pid=$pid";
+            $statement="update threads set replyer='$username' where bid=$bid && tid=$tid";
             mysqli_query($con, $statement);
         }
         echo "<info><code>0</code><bid>$bid</bid><tid>$tid</tid><pid>$pid</pid></info></capu>";
@@ -762,9 +762,10 @@
             $attach=$res['attachs'];
             $attachs=explode(" ",$attach);
             reset($attachs);
-            while (list($key,$value)=each($attachs)) {
-                if ($value!="")
-                    _delattach($con,$value);
+            foreach ($attachs as $key => $attachment) {
+                if (!empty($attachment)) {
+                    _delattach($con, $attachment);
+                }
             }
 
             $replyip=$res['ip'];
@@ -804,9 +805,10 @@
             $attach=$res['attachs'];
             $attachs=explode(" ",$attach);
             reset($attachs);
-            while (list($key,$value)=each($attachs)) {
-                if ($value!="")
-                    _delattach($con,$value);
+            foreach ($attachs as $key => $attachment) {
+                if (!empty($attachment)) {
+                    _delattach($con, $attachment);
+                }
             }
 
             $text=mysqli_real_escape_string($con, $res['text']);
@@ -1078,38 +1080,38 @@
         echo '</capu>';
     }
 
-    function news($con,$token) {
-        echo '<capu><info>';
-        $a=getrights($con,$bid,$token);
-        if (intval($a[3]) < 1) {
-            echo '<code>-1</code><msg>您的权限不足！</msg></info></capu>';
-            exit;
-        }
-        $method = @$_REQUEST['method'];
-        if ($method == "delete") {
-            $time = @$_REQUEST['time'];
-            $results = mysqli_query($con, "delete from capubbs.mainpage where id=1 && field3='$time'");
-            echo '<code>0</code>';
-            mysqli_query($con, "alter table capubbs.mainpage order by number");
-        }else if ($method == "add") {
-            $title = @$_REQUEST['text'];
-            $url = @$_REQUEST['url'];
-            if (strlen($title) == 0) {
-                echo '<code>-1</code><msg>您未填写公告内容！</msg></info></capu>';
-                exit;
-            }
-            if (strlen($url) == 0) {
-                $url = "javascript:void(0)";
-            }
-            $time=time();
-            $results = mysqli_query($con, "insert into capubbs.mainpage values (null,1,'$title','$url','$time','','')");
-            echo '<code>0</code>';
-            mysqli_query($con, "alter table capubbs.mainpage order by number");
-        }else {
-            echo '<code>-1</code><msg>错误操作！</msg>';
-        }
-        echo '</info></capu>';
-    }
+    // function news($con,$token) {
+    //     echo '<capu><info>';
+    //     $a=getrights($con,$bid,$token);
+    //     if (intval($a[3]) < 1) {
+    //         echo '<code>-1</code><msg>您的权限不足！</msg></info></capu>';
+    //         exit;
+    //     }
+    //     $method = @$_REQUEST['method'];
+    //     if ($method == "delete") {
+    //         $time = @$_REQUEST['time'];
+    //         $results = mysqli_query($con, "delete from capubbs.mainpage where id=1 && field3='$time'");
+    //         echo '<code>0</code>';
+    //         mysqli_query($con, "alter table capubbs.mainpage order by number");
+    //     }else if ($method == "add") {
+    //         $title = @$_REQUEST['text'];
+    //         $url = @$_REQUEST['url'];
+    //         if (strlen($title) == 0) {
+    //             echo '<code>-1</code><msg>您未填写公告内容！</msg></info></capu>';
+    //             exit;
+    //         }
+    //         if (strlen($url) == 0) {
+    //             $url = "javascript:void(0)";
+    //         }
+    //         $time=time();
+    //         $results = mysqli_query($con, "insert into capubbs.mainpage values (null,1,'$title','$url','$time','','')");
+    //         echo '<code>0</code>';
+    //         mysqli_query($con, "alter table capubbs.mainpage order by number");
+    //     }else {
+    //         echo '<code>-1</code><msg>错误操作！</msg>';
+    //     }
+    //     echo '</info></capu>';
+    // }
 
     function tidinfo($con,$bid,$tid){
         $statement="select * from threads where bid=$bid && tid=$tid";
