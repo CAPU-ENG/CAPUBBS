@@ -1082,7 +1082,7 @@
 
     function news($con,$token) {
         echo '<capu><info>';
-        $a=getrights($con,$bid,$token);
+        $a=getrights($con, 0, $token);
         if (intval($a[3]) < 1) {
             echo '<code>-1</code><msg>您的权限不足！</msg></info></capu>';
             exit;
@@ -1209,15 +1209,22 @@
         $username=$res[0];
         $rights=intval($res[1]);
         $ip=$res[2];
-        $statement="select m1,m2,m3,m4 from boardinfo where bid=$bid";
 
-        $results=mysqli_query($con, $statement);
-        $res=mysqli_fetch_array($results);
-        $able=0;
-        for ($i=0;$i<=3;$i++){
-            if ($res[$i]==$username) $able=1;
+        if ($rights>=3) {
+            return array(2,$username,$ip,$rights);
         }
-        if ($rights>=3) return array(2,$username,$ip,$rights);
+
+        $able=0;
+        if ($bid > 0) {
+            $statement="select m1,m2,m3,m4 from boardinfo where bid=$bid";
+
+            $results=mysqli_query($con, $statement);
+            $res=mysqli_fetch_array($results);
+            
+            for ($i=0;$i<=3;$i++){
+                if ($res[$i]==$username) $able=1;
+            }
+        }
         return array($able,$username,$ip,$rights);
     }
 
