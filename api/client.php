@@ -437,11 +437,11 @@
 
     function seemain() {
         echo '<capu><info><code>-1</code>';
-	require_once '../lib.php';
-        dbconnect();
+	    require_once '../lib.php';
+        $con = dbconnect_mysqli();
         $statement="select * from capubbs.mainpage where id=-1";
-        $results=mysql_query($statement);
-        $results=mysql_fetch_row($results);
+        $results=mysqli_query($con, $statement);
+        $results=mysqli_fetch_row($results);
         echo '<updatetext><![CDATA['.$results[2].']]></updatetext>';
         echo '<updateurl><![CDATA['.$results[3].']]></updateurl>';
         echo '<updatetime><![CDATA['.$results[4].']]></updatetime>';
@@ -453,8 +453,8 @@
         else
             $statement="select * from capubbs.mainpage where id=1 order by number desc limit 0,6";//增加了首页最多显示的通知数量
         
-        $results=mysql_query($statement);
-        while (($res=mysql_fetch_row($results))!=null) {
+        $results=mysqli_query($con, $statement);
+        while (($res=mysqli_fetch_row($results))!=null) {
             echo '<info><text>'."<![CDATA[".$res[2].']]></text>';
             $ar=parse_url($res[3],PHP_URL_QUERY);
             echo '<time>'.$res[4].'</time>';
