@@ -8,8 +8,10 @@
     // if(!$page) $page=1;
     // if(!$bid) $bid=1;
     // if(!$tid) $tid=1;
-    $data=mainfunc(array("bid"=>$bid,"tid"=>$tid,"p"=>$page),null);
-    $tdata=mainfunc(array("bid"=>$bid,"tid"=>$tid,"ask"=>"tidinfo"));
+    $con = dbconnect_mysqli();
+	checkUserAndSign($con, $ip, $token);
+	$data = getOnePage($con, $bid, $tid, $page, $see_lz, $ip, $token, $username);
+	$tdata = getTidInfo($con, $bid, $tid);
     $floordata="";
     if(count($tdata)==0){
         $tdata=null;
@@ -32,7 +34,7 @@
     $activity_id = $activity["activity_id"];
     $is_joint = get_joint($currentuser, $activity_id);
     $is_canceled = get_canceled($currentuser, $activity_id);
-    $is_leader = ($currentuser == $activity["leader_username"] || $currentuser == "网络组" || $currentuser == "组织部");
+    $is_leader = ($currentuser == $activity["leader_username"] || $currentuser == "网络组" || $currentuser == "组织部" || $currentuser == "文体部" || $currentuser == "理事会");
 ?>
 
 <html>
@@ -241,6 +243,7 @@ for($i=0;$i<count(@$data);$i++){
         echo("&nbsp;&nbsp;&nbsp;最后编辑于 ".formatstamp($floor['updatetime']));
     }
     echo("<span class='floornum'>".transfloornum($floor['pid'])."</span>\n");
+    echo("<!-- fid: ".$floor['fid'].", pid: ".$floor['pid']." -->");
     echo("<hr class='hrt'></div>\n");
     $translated=translate($floor['text'],$floor['ishtml']=="YES");
     #$translated=$floor['text'];
@@ -277,7 +280,16 @@ for($i=0;$i<count(@$data);$i++){
                             echo "</div>";
                             
                             switch ($option["type_id"]) {
-                                case 1:
+                                case 1: // 单项选择
+                                    $cases = $option["cases"];
+                                    echo "<div>";
+                                    for ($case_id = 0; $case_id < count(@$cases); $case_id++) {
+                                        echo "<input type='radio' name='".$option["option_id"]."' value='".$cases[$case_id]["case_id"]."' required>";
+                                        echo $cases[$case_id]["case_name"];
+                                    }
+                                    echo "</div>";
+                                    break;
+                                case 3: // 多项选择
                                     $cases = $option["cases"];
                                     echo "<div>";
                                     for ($case_id = 0; $case_id < count(@$cases); $case_id++) {
@@ -475,12 +487,13 @@ for($i=0;$i<count(@$data);$i++){
                             $floor_num2 = get_floor_num_2($currentuser, $bid, $tid);
                             if ($floor_num1 == -1 || $floor_num2 == -1 || $floor_num1 != $floor_num2) {
                                 echo '（出bug了，请联系好蛋）';
+                                echo "$floor_num1 , $floor_num2";
                             } else {
-                                $page_num = ceil(($floor_num1)/12);
-                                if ($floor_num1 <= 12)
-                                    echo "（<a href='#".$floor_num1."'>第".$floor_num1."楼</a>）";
+                                $page_num = ceil(($floor_num2)/12);
+                                if ($floor_num2 <= 12)
+                                    echo "（<a href='#".$floor_num2."'>第".$floor_num2."楼</a>）";
                                 else
-                                    echo "（<a href='../content/?p=".$page_num."&bid=".$bid."&tid=".$tid."#".$floor_num1."'>第".$floor_num1."楼</a>）";
+                                    echo "（<a href='../content/?p=".$page_num."&bid=".$bid."&tid=".$tid."#".$floor_num2."'>第".$floor_num2."楼</a>）";
                             }
                         ?></font>
                         <?php

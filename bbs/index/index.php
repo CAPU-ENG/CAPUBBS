@@ -107,7 +107,7 @@ if ($username!="") {
 			$num=intval($hot['reply'])+1;
 			$page=ceil(($num)/12);
             $activity = getActivity($bid, $tid);
-			$link="../content/?bid=$bid&tid=$tid&p=$page#$num";
+			$link="../content/?bid=$bid&tid=$tid&p=1#1";
             if ($activity) {
                 $link="../content/?bid=$bid&tid=$tid&p=1#1";
             }

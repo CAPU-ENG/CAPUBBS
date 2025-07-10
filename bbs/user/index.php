@@ -1,5 +1,6 @@
 <?php
 	include("../lib/mainfunc.php");
+	include "../../config.php";
 	$user=@$_GET['name'];
 	if ($user=="") exit;
 	$userinfo=mainfunc(array("view"=>$user));
