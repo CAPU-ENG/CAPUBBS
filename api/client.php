@@ -28,8 +28,9 @@
     else if ($ask=="edituser") edituser();
     else if ($ask=="changepsd") changepsd();
     else if ($ask=="delete") del();
-    else if ($ask=="image") uploadimage();
-    else if ($ask=="file") uploadfile();
+    else if ($ask=="image") uploadimage_legacy();
+    else if ($ask=="file") uploadfile_legacy();
+    else if ($ask=="upload") upload();
     else if ($ask=="lzl") lzl();
     else if ($ask=="search") search();
     else if ($ask=="action") action();
@@ -159,6 +160,7 @@
         if ($raw) {
             echo "<textraw><![CDATA[".@$content['text']."]]></textraw>\n";
             echo "<ishtml>".@$content['ishtml']."</ishtml>\n";
+            echo "<signum>".@$content['sig']."</signum>\n";
             echo "<sigraw><![CDATA[".$id[0]['sig'.@$content['sig']]."]]></sigraw>\n";
         } else {
             echo "<text><![CDATA[".translate(@$content['text'],@$content['ishtml'],false)."]]></text>\n";
@@ -658,14 +660,14 @@
         echo '</capu>';
     }
 
-    function uploadfile() {
-
+    // Legacy use only (Android?)
+    function uploadfile_legacy() {
         $random=mt_rand(0,999999999);
         while (file_exists("../bbsimg/upload/$random.gif"))
             $random=mt_rand(0,999999999);
         echo '<capu><info><code>';
         if ($_FILES['image']['error']!=UPLOAD_ERR_OK) {
-            echo '6</code><msg>上传失败。错误代码；'.$_FILES['image']['error'].'</msg></info></capu>';
+            echo '6</code><msg>上传失败。错误代码：'.$_FILES['image']['error'].'</msg></info></capu>';
         }
         if (!move_uploaded_file($_FILES['image']['tmp_name'],"../bbsimg/upload/$random.gif")) {
             echo '6</code><msg>保存文件失败。</msg></info></capu>';
@@ -673,11 +675,10 @@
         }
         echo '-1</code><imgurl>/bbsimg/upload/'.$random.'.gif</imgurl></info></capu>';
         exit;
-
-
     }
 
-    function uploadimage() {
+    // Legacy use only (iOS cliennt version < 4.1 & and/or Android?)
+    function uploadimage_legacy() {
         $data=@$_POST['image'];
         $data=base64_decode($data);
         $random=mt_rand(0,999999999);
@@ -689,6 +690,43 @@
             exit;
         }
         echo '-1</code><imgurl>/bbsimg/upload/'.$random.'.gif</imgurl></info></capu>';
+        exit;
+    }
+
+    // Use this one for all future uploads
+    function upload() {
+        $extension=strtolower(@$_POST['extension']);
+        $file=$_FILES['file'];
+        if(!preg_match('/^[a-z0-9]{1,9}$/', $extension)||!$file||$file['error']!=UPLOAD_ERR_OK) {
+            echo '<capu><info><code>14</code><msg>非法请求</msg></info></capu>';
+            exit;
+        }
+        $path='';
+        $maxsize=0;
+        $type=@$_POST['type'];
+        if($type=='icon'){$path='/bbsimg/icons/user_upload';$maxsize=512*1024;} // 512KB
+        else if($type=='image'){$path='/bbs/images';$maxsize=1024*1024;} // 1MB
+        else if($type=='file'){$path='/bbs/attachment';$maxsize=10*1024*1024;} // 10MB
+        else {
+            echo '<capu><info><code>14</code><msg>未知upload类型</msg></info></capu>';
+            exit;
+        }
+        if($file['size']>$maxsize){
+            echo '<capu><info><code>1</code><msg>文件太大</msg></info></capu>';
+            exit;
+        }
+        
+        $random=mt_rand(0,999999999);
+        while (file_exists("..$path/$random.$extension")) {
+            $random=mt_rand(0,999999999);
+        }
+        echo '<capu><info><code>';
+        if (!move_uploaded_file($file['tmp_name'], "..$path/$random.$extension")) {
+            echo '6</code></info></capu>';
+            exit;
+        }
+        $publicpath="$path/$random.$extension";
+        echo '-1</code><url>'.$publicpath.'</url></info></capu>';
         exit;
     }
 
