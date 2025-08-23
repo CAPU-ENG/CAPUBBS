@@ -138,4 +138,36 @@ function translate($raw,$ishtml,$space=true){
 	$html=preg_replace("#(\\[i])(.+?)(\\[/i])#", "<i>$2</i>", $html);
 	return $html;
 }
+function wraphtmltoiframe($text, $id = '') {
+    $jQueryScript = '';
+	// innject jquery if the html contains script
+    if (strpos($text, '<script') !== false && strpos($text, '/script>') !== false) {
+        $jQueryScript = "<script src='https://capubbs-static.oss-cn-beijing.aliyuncs.com/bbs/lib/jquery.min.js'></script>";
+    }
+
+    $innerHtml = sprintf(
+        "<html>
+            <head>
+                %s
+                <style type='text/css'>
+                    img { max-width: min(100%%, 700px); }
+                    body { margin: 0; word-wrap: break-word; }
+					#body-mask { position: absolute; top: 0; bottom: 0; left: 0; right: 0; z-index: -1; background-color: rgba(255, 255, 255, 0.75);}
+                    .textblock { min-height: 300px; line-height: 160%%;}
+                    .sigblock { color: gray; font-size: small; margin-top: 1em; }
+                    .sig { max-height: 400px; overflow-y: scroll; -webkit-overflow-scrolling: touch; }
+                </style>
+            </head>
+            <body><div id='body-mask'><div id='body-wrapper'>%s</div></body>
+        </html>",
+        $jQueryScript,
+        $text
+    );
+
+    return sprintf(
+        "<iframe sandbox='allow-scripts allow-modals allow-forms' %s srcdoc=\"%s\"></iframe>",
+        $$id ? sprintf("id=\"%s\"", htmlspecialchars($id, ENT_QUOTES)) : '',
+        htmlspecialchars($innerHtml, ENT_QUOTES | ENT_HTML5)
+    );
+}
 ?>
