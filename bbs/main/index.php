@@ -33,7 +33,7 @@
 <br>
 <?php
 echo("<h2>".$boardinfo['bbstitle'].$xx."</h2>");
-echo("<span>版主：".userhref($boardinfo['m1'])." ".userhref($boardinfo['m2'])." ".userhref($boardinfo['m3'])." ".userhref($boardinfo['m4'])."</span><br>");
+echo("<span>版主：".userhref($boardinfo['m1']).userhref($boardinfo['m2']).userhref($boardinfo['m3']).userhref($boardinfo['m4'])."</span><br>");
 echo("<span>主题数：".$boardinfo['newpost']."/".$boardinfo['topics']." 新回复：".$boardinfo['newreply']."</span>");
 
 $totalnumber=intval($boardinfo['topics']);
@@ -136,12 +136,10 @@ if($rights>=1){
 <td align='left' style="text-align:left;line-height:30px">
 <div class="searchLogo"></div>
 <form action="../search/" method="post" target='_blank'>
-<input type="text" name="keyword" class="search" placeholder="本版内搜索">
-<select name="type">
+<input type="text" name="keyword" class="search" placeholder="本版内搜索" style="margin-right: 4px;"><select name="type" style="margin-right: 4px;">
 <option selected value="thread">搜索帖子标题</option>
 <option value="post">搜索帖子正文</option>
-</select>
-<script>
+</select><script>
 function search_time_change() {
 	let now = new Date();
 	let last = parseInt($("#search_range").val());
@@ -153,16 +151,11 @@ function search_time_change() {
 	$("#starttime").val(starttime.getFullYear()+"-"+(starttime.getMonth()+1)+"-"+starttime.getDate());
 	$("#endtime").val(endtime.getFullYear()+"-"+(endtime.getMonth()+1)+"-"+endtime.getDate());
 }
-</script>
-<select id="search_range" name="time" onchange="search_time_change();">
+</script><select id="search_range" name="time" onchange="search_time_change();" style="margin-right: 4px;">
 <option selected value="1">近一年</option>
 <option value="2">近两年</option>
 <option value="2000">不限</option>
-</select>
-<input type="hidden" name="bid" value="<?php echo $bid; ?>">
-<input type="hidden" name="show" value="" id='search_show'>
-<input type="submit" value="搜索">
-<input type="button" onclick="$('#search_more').show();$('#search_show').val('1');$(this).hide();" value="更多搜索选项" >
+</select><input type="hidden" name="bid" value="<?php echo $bid; ?>"><input type="hidden" name="show" value="" id='search_show'><input type="submit" value="搜索" style="margin-right: 4px;"><input type="button" onclick="$('#search_more').show();$('#search_show').val('1');$(this).hide();" value="更多搜索选项">
 <br>
 <span style='display:none;margin-top:5px' id='search_more'>
 起始时间：<input id="starttime" type="text" name="starttime" class="search" style="padding-left:5px;width:90px" value="<?php $currentDate = date('Y-m-d'); echo date('Y-m-d', strtotime('-1 year', strtotime($currentDate)));?>">
