@@ -1,13 +1,4 @@
 <?php
-    // include("../lib/mainfunc.php");
-    // $bid=@$_GET['bid'];
-    // $tid=@$_GET['tid'];
-    // $page=@$_GET['p'];
-    // $users=getuser();
-    // $currentuser=$users['username'];
-    // if(!$page) $page=1;
-    // if(!$bid) $bid=1;
-    // if(!$tid) $tid=1;
     $con = dbconnect_mysqli();
 	checkUserAndSign($con, $ip, $token);
 	$data = getOnePage($con, $bid, $tid, $page, $see_lz, $ip, $token, $username);
