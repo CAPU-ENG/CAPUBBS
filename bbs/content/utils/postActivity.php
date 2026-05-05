@@ -124,7 +124,9 @@ function cancel_join_activity_by_content($bid, $tid, $username, $option_values, 
             $type_id = $option["type_id"];
             $required = $option["required"];
             $text = $text.$option_name."：";
-            if (!is_null($option_values[$option_id])) {
+            if ($option["hiden"] == 1) {
+                $text = $text."已隐藏";
+            } else if (!is_null($option_values[$option_id])) {
                 $value = $option_values[$option_id];
                 
                 switch ($option["type_id"]) {
@@ -274,7 +276,9 @@ function modify_join_activity_by_content($bid, $tid, $username, $option_values, 
             $type_id = $option["type_id"];
             $required = $option["required"];
             $text = $text.$option_name."：";
-            if (!is_null($option_values[$option_id])) {
+            if ($option["hiden"] == 1) {
+                $text = $text."已隐藏";
+            } else if (!is_null($option_values[$option_id])) {
                 $value = $option_values[$option_id];
                 
                 switch ($option["type_id"]) {
@@ -419,7 +423,9 @@ function join_activity_by_content($bid, $tid, $username, $option_values, $title,
             $type_id = $option["type_id"];
             $required = $option["required"];
             $text = $text.$option_name."：";
-            if (!is_null($option_values[$option_id])) {
+            if ($option["hiden"] == 1) {
+                $text = $text."已隐藏";
+            } else if (!is_null($option_values[$option_id])) {
                 $value = $option_values[$option_id];
                 
                 switch ($option["type_id"]) {

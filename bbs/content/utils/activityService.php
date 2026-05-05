@@ -127,8 +127,13 @@ function createActivity($username, $bid, $title, $text, $options, $sig) {
         $option_name = mysql_real_escape_string($option["option_name"]);
         $required = intval($option["required"]);
         $comment = mysql_real_escape_string($option["comment"]);
-        $statement="insert into season_activity_option (activity_id, type_id, option_name, required, comment) 
-        values ($activity_id, $type_id, '$option_name', $required, '$comment')";
+        if (isset($option['hiden'])) {
+            $hiden = $option['hiden'];
+        } else {
+            $hiden = 0;
+        }
+        $statement="insert into season_activity_option (activity_id, type_id, option_name, required, comment, hiden) 
+        values ($activity_id, $type_id, '$option_name', $required, '$comment', $hiden)";
         mysql_query($statement);
         $option_id = mysql_insert_id();
 
@@ -206,7 +211,7 @@ function getActivity($bid, $tid) {
 
         $options = array();
 
-        $statement = "select id, type_id, option_name, required, comment
+        $statement = "select id, type_id, option_name, required, comment, hiden
             from season_activity_option
             where activity_id=$activity_id order by id";
         $result_option = mysql_query($statement);
@@ -216,7 +221,8 @@ function getActivity($bid, $tid) {
                 "type_id"=> $row_option["type_id"],
                 "option_name"=> $row_option["option_name"],
                 "required"=> $row_option["required"],
-                "comment"=> $row_option["comment"]
+                "comment"=> $row_option["comment"],
+                "hiden"=> $row_option["hiden"]
             );
             $option_id = $row_option["id"];
             switch ($option["type_id"]) {
