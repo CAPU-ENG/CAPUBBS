@@ -73,9 +73,7 @@ function get_canceled($username, $activity_id) {
 }
 
 
-function createActivity($username, $bid, $title, $text, $options, $sig) {
-
-    echo "createActivity\n";
+function createActivity($username, $bid, $title, $text, $options, $sig, $attachs = '') {
 
     // $con,$token,$bid,$ip,$attachs
 
@@ -92,7 +90,6 @@ function createActivity($username, $bid, $title, $text, $options, $sig) {
     if (mb_strlen($title,'utf-8')>=43)
         $title=mb_substr($title,0,40,'utf-8')."...";
     $type='web';
-    $attachs = '';
     $posttime=date('Y-m-d');
     $replytime=date('Y-m-d H:i:s');
     $title=html_entity_decode($title);

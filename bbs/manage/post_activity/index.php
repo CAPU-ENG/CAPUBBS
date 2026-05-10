@@ -62,6 +62,12 @@ if($username!=""){
 ?>
 		<div class="editor" id="editor">
             <div id="activity_info">
+                <div style="margin-bottom:10px;">
+                    <strong>报名问卷设置</strong>
+                    <button type="button" onclick="addQuestion()" style="margin-left:10px;">+ 添加问题</button>
+                </div>
+                <div id="question-list">
+                </div>
             </div>
             <div>
                 选择版块：
@@ -275,6 +281,97 @@ function priceok(){
 	xhr.send(form);
 }
 
+var questionCounter = 0;
+var caseCounter = {};
+
+function addQuestion() {
+	var idx = questionCounter++;
+	var html = '<div class="question-item" data-index="' + idx + '" style="border:1px solid #ccc; padding:10px; margin-bottom:10px; border-radius:4px;">';
+	html += '<div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap;">';
+	html += '  <select class="question-type" data-index="' + idx + '" onchange="onTypeChange(' + idx + ')">';
+	html += '    <option value="6">填空题</option>';
+	html += '    <option value="1">选择题</option>';
+	html += '  </select>';
+	html += '  <input type="text" class="question-name" placeholder="问题名称" style="flex:1; min-width:120px;">';
+	html += '  <input type="text" class="question-comment" placeholder="注释(选填)" style="flex:1; min-width:120px;">';
+	html += '  <button type="button" onclick="removeQuestion(' + idx + ')" style="color:red;">删除</button>';
+	html += '</div>';
+	html += '<div style="margin-top:6px;">';
+	html += '  <label><input type="checkbox" class="question-required" checked> 必填</label>';
+	html += '  <label style="margin-left:15px;"><input type="checkbox" class="question-hiden"> 隐藏</label>';
+	html += '</div>';
+	html += '<div class="cases-container" id="cases-' + idx + '" style="display:none; margin-top:8px; padding-left:20px;">';
+	html += '  <div class="cases-list" id="cases-list-' + idx + '"></div>';
+	html += '  <button type="button" onclick="addCase(' + idx + ')">+ 添加选项</button>';
+	html += '</div>';
+	html += '</div>';
+	$('#question-list').append(html);
+}
+
+function removeQuestion(index) {
+	$('#question-list').find('.question-item[data-index="' + index + '"]').remove();
+}
+
+function onTypeChange(index) {
+	var typeVal = parseInt($('#question-list').find('.question-item[data-index="' + index + '"] .question-type').val());
+	var $casesContainer = $('#cases-' + index);
+	if (typeVal === 1) {
+		$casesContainer.show();
+		if ($casesContainer.find('.case-item').length === 0) {
+			addCase(index);
+		}
+	} else {
+		$casesContainer.hide();
+	}
+}
+
+function addCase(questionIndex) {
+	if (!caseCounter[questionIndex]) caseCounter[questionIndex] = 0;
+	var idx = caseCounter[questionIndex]++;
+	var html = '<div class="case-item" data-case-index="' + idx + '" style="margin-bottom:4px;">';
+	html += '  选项名称：<input type="text" class="case-name" placeholder="选项名称">';
+	html += '  <button type="button" onclick="removeCase(' + questionIndex + ',' + idx + ')" style="color:red; margin-left:6px;">删除</button>';
+	html += '</div>';
+	$('#cases-list-' + questionIndex).append(html);
+}
+
+function removeCase(questionIndex, caseIndex) {
+	$('#cases-list-' + questionIndex).find('.case-item[data-case-index="' + caseIndex + '"]').remove();
+}
+
+function collectOptions() {
+	var options = [];
+	$('#question-list .question-item').each(function() {
+		var $item = $(this);
+		var type_id = parseInt($item.find('.question-type').val());
+		var option_name = $item.find('.question-name').val().trim();
+		if (option_name === '') return;
+		var option = {
+			type_id: type_id,
+			option_name: option_name,
+			required: $item.find('.question-required').is(':checked') ? 1 : 0,
+			comment: $item.find('.question-comment').val().trim()
+		};
+		if ($item.find('.question-hiden').is(':checked')) {
+			option.hiden = 1;
+		}
+		if (type_id === 1) {
+			var cases = [];
+			$item.find('.case-item').each(function() {
+				var case_name = $(this).find('.case-name').val().trim();
+				if (case_name !== '') {
+					cases.push({case_name: case_name, comment: ''});
+				}
+			});
+			if (cases.length > 0) {
+				option.cases = cases;
+			}
+		}
+		options.push(option);
+	});
+	return options;
+}
+
 function doreply(){
 	if(document.getElementById("raw_title").value.length==0){
 		alert("请填写帖子标题！");
@@ -307,18 +404,26 @@ function doreply(){
 		s+=attachs[i]['id']+" ";
 	}
 	if(s) s=s.slice(0,s.length-1);
-	$.post("/bbs/post/",{
+	var options = collectOptions();
+	$.post("/api/bbs/activity/create/",{
 		bid:$('#fm_bid').val(),
-		tid:-1,
 		token:token,
 		title:$('#raw_title').val(),
 		text:content,
 		sig:sig,
-		attachs:s
+		attachs:s,
+		options:JSON.stringify(options)
 		},function(data) {
-			var x=parseInt(data);
-			if (x==0) {window.location=window.location.href;}
-			else alert("错误："+data);
+			try {
+				var result=JSON.parse(data);
+				if (result.code==0) {
+					window.location=window.location.href;
+				} else {
+					alert("错误："+result.msg);
+				}
+			} catch(e) {
+				alert("返回数据异常："+data);
+			}
 		}
 	);
 
