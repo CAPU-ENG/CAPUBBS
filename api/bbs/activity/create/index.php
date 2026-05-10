@@ -37,7 +37,7 @@ if (!is_array($options)) {
     $options = array();
 }
 
-createActivity($username, $bid, $title, $text, $options, $sig, $attachs);
+$result = createActivity($username, $bid, $title, $text, $options, $sig, $attachs);
 
 header('Content-Type:application/json; charset=utf-8');
-echo json_encode(array("code"=> 0, "msg"=> "success"));
+echo json_encode(array("code"=> 0, "msg"=> "success", "bid"=> $result["bid"], "tid"=> $result["tid"]));

@@ -151,6 +151,7 @@ function createActivity($username, $bid, $title, $text, $options, $sig, $attachs
                 break;
         }
     }
+    return array("bid" => $bid, "tid" => $tid);
 }
 
 function getUsernameOptionValue($username, $activity_id) {

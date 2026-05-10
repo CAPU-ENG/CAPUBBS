@@ -415,7 +415,7 @@ function doreply(){
 		options:JSON.stringify(options)
 		},function(data) {
 			if (data.code==0) {
-				window.location=window.location.href;
+				window.location="/bbs/content/?bid="+data.bid+"&tid="+data.tid;
 			} else {
 				alert("错误："+data.msg);
 			}
