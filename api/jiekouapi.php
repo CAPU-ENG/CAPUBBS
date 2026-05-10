@@ -627,6 +627,21 @@
             echo '<info><code>4</code><msg>主题已锁定。</msg></info></capu>';
             exit;
         }
+
+        {
+            $statement = "select activity_id, bid, tid, season_id, name, leader_username 
+                from season_threads_activity 
+                where bid=$bid and tid=$tid";
+            $result_activity = mysqli_query($con, $statement);
+            if (mysqli_num_rows($result_activity)!=0) {
+                $res=mysqli_fetch_array($result_activity);
+                if ($res["leader_username"] != $username || $pid!=1) {
+                    echo '<capu><info><code>5</code><msg>禁止编辑报名帖！</msg></info></capu>';
+                    exit;
+                }
+            }
+        }
+
         $title=@$_REQUEST['title'];
         $text=@$_REQUEST['text'];
         $type=$_REQUEST['type'];
