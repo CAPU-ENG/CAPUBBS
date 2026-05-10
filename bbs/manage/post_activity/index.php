@@ -414,15 +414,10 @@ function doreply(){
 		attachs:s,
 		options:JSON.stringify(options)
 		},function(data) {
-			try {
-				var result=JSON.parse(data);
-				if (result.code==0) {
-					window.location=window.location.href;
-				} else {
-					alert("错误："+result.msg);
-				}
-			} catch(e) {
-				alert("返回数据异常："+data);
+			if (data.code==0) {
+				window.location=window.location.href;
+			} else {
+				alert("错误："+data.msg);
 			}
 		}
 	);
