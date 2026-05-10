@@ -1467,8 +1467,8 @@ while ($res=mysqli_fetch_array($result)) {
             exit();
         }
         if($ainfo['path']){
-            if(!file_exists($GLOBALS['attachroot'].$ainfo['path']) or unlink($GLOBALS['attachroot'].$ainfo['path'])){
-                $statement="delete from attachments where id=$id limit 1";
+            if(!file_exists($GLOBALS['attachroot'].$ainfo['path']) or true){
+                $statement="update attachments set uploader=concat(uploader, '|删除') where id=$id limit 1";
                 mysqli_query($con, $statement);
                 if(!mysqli_error($con)){
                     echo("<capu><info><code>0</code></info></capu>");
@@ -1491,8 +1491,8 @@ while ($res=mysqli_fetch_array($result)) {
             return false;
         }
         if($ainfo['path']){
-            if(!file_exists($GLOBALS['attachroot'].$ainfo['path']) or unlink($GLOBALS['attachroot'].$ainfo['path'])){
-                $statement="delete from attachments where id=$id limit 1";
+            if(!file_exists($GLOBALS['attachroot'].$ainfo['path']) or true){
+                $statement="update attachments set uploader=concat(uploader, '|删除') where id=$id limit 1";
                 mysqli_query($con, $statement);
                 if(!mysqli_error($con)){
                     return true;
