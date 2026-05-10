@@ -50,7 +50,7 @@
         $statement="select username,star,rights,lastpost from userinfo where token='$token' && $time-tokentime<={$GLOBALS['validtime']}";
         $results=mysqli_query($con, $statement);
         $res=mysqli_fetch_array($results);
-        $username=$res[0];
+        $username=is_array($res) ? $res[0] : null;
 
         if ($username) {
             $today=date("Y-m-d");
@@ -747,6 +747,46 @@
             $replynum=intval($res[1]);
             if ($a[0]==0 && ($username!=$author || $replynum!=0))
                 {echo '<capu><info><code>5</code><msg>权限不足！</msg></info></capu>';exit;}
+
+            // 清理活动相关数据（在删 threads 之前，先释放 season_threads_activity 的 (bid,tid)）
+            {
+                // 检查是否是报名帖
+                $statement = "select activity_id from season_threads_activity where bid=$bid and tid=$tid";
+                $result = mysqli_query($con, $statement);
+                if (mysqli_num_rows($result) != 0) {
+                    $row = mysqli_fetch_array($result);
+                    $activity_id = $row["activity_id"];
+
+                    // 删除报名帖映射数据
+                    $statement = "delete from season_threads_activity where bid=$bid and tid=$tid";
+                    mysqli_query($con, $statement);
+
+                    // 删除报名帖的用户选项数据
+                    $statement = "delete from season_join_option_value where join_id in (select join_id from season_activity_join where activity_id=$activity_id)";
+                    mysqli_query($con, $statement);
+
+                    // 删除报名帖的用户报名数据
+                    $statement = "delete from season_activity_join where activity_id=$activity_id";
+                    mysqli_query($con, $statement);
+
+                    // 删除报名帖的选项case数据
+                    $statement = "delete from season_option_case where option_id in (select id from season_activity_option where activity_id=$activity_id)";
+                    mysqli_query($con, $statement);
+
+                    // 删除报名帖的选项数据
+                    $statement = "delete from season_activity_option where activity_id=$activity_id";
+                    mysqli_query($con, $statement);
+
+                    // 删除报名帖的提醒数据
+                    $statement = "delete from activity_join_remind where activity_id=$activity_id";
+                    mysqli_query($con, $statement);
+
+                    // 删除报名帖的全局置顶数据
+                    $statement = "delete from thread_global_top where bid=$bid and tid=$tid";
+                    mysqli_query($con, $statement);
+                }
+            }
+
             $statement="delete from threads where bid=$bid && tid=$tid";
             mysqli_query($con, $statement);
             $statement="select * from posts where bid=$bid && tid=$tid order by pid";
@@ -796,6 +836,7 @@
         $results=mysqli_query($con, $statement);
         while ($res=mysqli_fetch_array($results)) {
             $pid=$res['pid'];
+            $post_fid=$res['fid'];
             $title=mysqli_real_escape_string($con, $res['title']);
             $author=$res['author'];
 
@@ -821,6 +862,20 @@
         }
         $statement="delete from posts where bid=$bid && tid=$tid && pid=$pid";
         mysqli_query($con, $statement);
+
+        // 如果被删的是报名帖，清理活动报名记录
+        if (isset($post_fid)) {
+            $statement = "select join_id from season_activity_join where post_fid=$post_fid";
+            $result = mysqli_query($con, $statement);
+            if (mysqli_num_rows($result) != 0) {
+                $row = mysqli_fetch_array($result);
+                $join_id = $row["join_id"];
+                $statement = "delete from season_join_option_value where join_id=$join_id";
+                mysqli_query($con, $statement);
+                $statement = "delete from season_activity_join where join_id=$join_id";
+                mysqli_query($con, $statement);
+            }
+        }
         $statement="update posts set pid=pid-1 where bid=$bid && tid=$tid && pid>$pid";
         mysqli_query($con, $statement);
         if ($pid==1) {
