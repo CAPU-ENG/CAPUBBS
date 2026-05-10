@@ -47,10 +47,14 @@
     $nowtime=time();
     {
         $time=time();
-        $statement="select username,star,rights,lastpost from userinfo where token='$token' && $time-tokentime<={$GLOBALS['validtime']}";
+        $statement="select username,star,rights,lastpost from userinfo where token='$token' && $time<=tokentime+{$GLOBALS['validtime']}";
         $results=mysqli_query($con, $statement);
-        $res=mysqli_fetch_array($results);
-        $username=is_array($res) ? $res[0] : null;
+        if (mysqli_num_rows($results) > 0) {
+            $res=mysqli_fetch_array($results);
+            $username=is_array($res) ? $res[0] : null;
+        } else {
+            $username = null;
+        }
 
         if ($username) {
             $today=date("Y-m-d");
@@ -134,7 +138,7 @@
         $nowuser="";
         if ($token!="") {
             $nowtime=time();
-            $statement="select username from userinfo where token='$token' && $nowtime-tokentime<={$GLOBALS['validtime']}";
+            $statement="select username from userinfo where token='$token' && $nowtime<=tokentime+{$GLOBALS['validtime']}";
             $result=mysqli_query($con, $statement);
             $user="";
             while ($res=mysqli_fetch_array($result)) {
@@ -288,7 +292,7 @@
 
     function viewonline($con) {
         $nowtime=time();
-        $statement="select username, nowboard, tokentime, lastip, onlinetype, logininfo from userinfo where $nowtime-tokentime<=600";
+        $statement="select username, nowboard, tokentime, lastip, onlinetype, logininfo from userinfo where $nowtime<=tokentime+600";
         $result=mysqli_query($con, $statement);
         echo '<capu>';
         while ($res=mysqli_fetch_array($result)) {
@@ -322,8 +326,8 @@
             else {
                 echo '<info><code>0</code><username>'.$username.'</username>';
                 $nowtime=time();
-                // $statement="select token from userinfo where hex(username)='$hex_username' && $nowtime-tokentime<={$GLOBALS['validtime']}";
-                $statement="select token from userinfo where username='$username' && $nowtime-tokentime<={$GLOBALS['validtime']}";
+                // $statement="select token from userinfo where hex(username)='$hex_username' && $nowtime<=tokentime+{$GLOBALS['validtime']}";
+                $statement="select token from userinfo where username='$username' && $nowtime<=tokentime+{$GLOBALS['validtime']}";
                 $results=mysqli_query($con, $statement);
                 $token=md5($username.$nowtime);
                 if (mysqli_num_rows($results)!=0) {
@@ -469,7 +473,7 @@
     function updatetokentime($con,$token,$ip) {
         echo '<capu>';
         $time=time();
-        $statement="select username from userinfo where token='$token' && $time-tokentime<={$GLOBALS['validtime']}";
+        $statement="select username from userinfo where token='$token' && $time<=tokentime+{$GLOBALS['validtime']}";
         $results=mysqli_query($con, $statement);
         if (mysqli_num_rows($results)==0) {
             echo '<info><code>1</code><msg>超时，请重新登录。</msg></info>';
@@ -488,7 +492,7 @@
 
     function post($con,$token,$bid,$ip,$attachs) {
         $time=time();
-        $statement="select username,star,rights,lastpost from userinfo where token='$token' && $time-tokentime<={$GLOBALS['validtime']}";
+        $statement="select username,star,rights,lastpost from userinfo where token='$token' && $time<=tokentime+{$GLOBALS['validtime']}";
         $results=mysqli_query($con, $statement);
         /*if (mysqli_num_rows($results)==0) {
             echo '<info><code>1</code><msg>超时，请重新登录。</msg></info></capu>';
@@ -533,7 +537,7 @@
 
     function reply($con,$token,$bid,$tid,$ip,$attachs) {
         $time=time();
-        $statement="select username,star,rights,lastpost from userinfo where token='$token' && $time-tokentime<={$GLOBALS['validtime']}";
+        $statement="select username,star,rights,lastpost from userinfo where token='$token' && $time<=tokentime+{$GLOBALS['validtime']}";
         $results=mysqli_query($con, $statement);
         /*if (mysqli_num_rows($results)==0) {
             echo "<info><code>1</code><msg>超时，请重新登录。</msg></info></capu>";
@@ -947,7 +951,7 @@
         }
         if ($method=="post") {
             $time=time();
-            $statement="select username,star,rights,lastpost from userinfo where token='$token' && $time-tokentime<={$GLOBALS['validtime']}";
+            $statement="select username,star,rights,lastpost from userinfo where token='$token' && $time<=tokentime+{$GLOBALS['validtime']}";
             $results=mysqli_query($con, $statement);
             /*if (mysqli_num_rows($results)==0) {
                 echo '<capu><info><code>1</code><msg>超时，请重新登录。</msg></info></capu>';
@@ -1020,7 +1024,7 @@
         if ($method=="delete") {
             $lzlid=@$_REQUEST['lzlid'];
             $time=time();
-            $statement="select username, rights from userinfo where token='$token' && $time-tokentime<={$GLOBALS['validtime']}";
+            $statement="select username, rights from userinfo where token='$token' && $time<=tokentime+{$GLOBALS['validtime']}";
             $results=mysqli_query($con, $statement);
             if (mysqli_num_rows($results)==0) {
                 echo '<capu><info><code>1</code><msg>超时，请重新登录。</msg></info></capu>';
@@ -1073,7 +1077,7 @@
             $hotnum=@$_REQUEST['hotnum'];
         echo '<capu>';
         $time=time();
-        $statement="select username from userinfo where token='$token' && $time-tokentime<={$GLOBALS['validtime']}";
+        $statement="select username from userinfo where token='$token' && $time<=tokentime+{$GLOBALS['validtime']}";
         $results=mysqli_query($con, $statement);
         if (mysqli_num_rows($results)==0) {
             echo '<info><nowuser></nowuser></info>';
@@ -1107,7 +1111,7 @@
     function global_top($con,$token){
         echo '<capu>';
         $time=time();
-        $statement="select username from userinfo where token='$token' && $time-tokentime<={$GLOBALS['validtime']}";
+        $statement="select username from userinfo where token='$token' && $time<=tokentime+{$GLOBALS['validtime']}";
         $results=mysqli_query($con, $statement);
         if (mysqli_num_rows($results)==0) {
             echo '<info><nowuser></nowuser></info>';
@@ -1256,7 +1260,7 @@
     // $a[2]: ip
     function getrights($con,$bid,$token) {
         $time=time();
-        $statement="select username, rights, lastip from userinfo where token='$token' && $time-tokentime<={$GLOBALS['validtime']}";
+        $statement="select username, rights, lastip from userinfo where token='$token' && $time<=tokentime+{$GLOBALS['validtime']}";
         $results=mysqli_query($con, $statement);
         if (mysqli_num_rows($results)==0)
             return array(-1,"","",0);
@@ -1299,7 +1303,7 @@
             exit;
         }
         $token=mysqli_real_escape_string($con, $token);
-        $statement="select username,rights from userinfo where token='$token' && $nowtime-tokentime<={$GLOBALS['validtime']}";
+        $statement="select username,rights from userinfo where token='$token' && $nowtime<=tokentime+{$GLOBALS['validtime']}";
         $result=mysqli_query($con, $statement);
         if (mysqli_num_rows($result)==0) {
             echo '<username></username><rights>0</rights></info></capu>';
@@ -1316,7 +1320,7 @@
         if(strstr($token, "'")!=""){
             report(1,"illegal");
         }
-        $statement="select username,score,star from userinfo where token='$token' && $nowtime-tokentime<={$GLOBALS['validtime']}";
+        $statement="select username,score,star from userinfo where token='$token' && $nowtime<=tokentime+{$GLOBALS['validtime']}";
         $result=mysqli_query($con, $statement);
         $user="";
         return mysqli_fetch_array($result);
@@ -1852,7 +1856,7 @@ while ($res=mysqli_fetch_array($result)) {
     function changepsd($con,$token){
         $token=mysqli_real_escape_string($con, $token);
         $nowtime=time();
-        $statement="select password from userinfo where token='$token' and $nowtime-tokentime<={$GLOBALS['validtime']} limit 1";
+        $statement="select password from userinfo where token='$token' and $nowtime<=tokentime+{$GLOBALS['validtime']} limit 1";
         $result=mysqli_query($con, $statement);
         $result=mysqli_fetch_array($result);
         if(!$result){
@@ -2000,7 +2004,7 @@ while ($res=mysqli_fetch_array($result)) {
 
         echo '<capu><info><sign>'.$num.'</sign>';
 
-        $statement="select username from userinfo where $time-tokentime<=600";
+        $statement="select username from userinfo where $time<=tokentime+600";
         $result=mysqli_query($con, $statement);
         $num=mysqli_num_rows($result);
 
