@@ -61,6 +61,8 @@ if($username!=""){
     if ($username!="") {
 ?>
 		<div class="editor" id="editor">
+            <div id="activity_info">
+            </div>
             <div>
                 选择版块：
                 <select name="bid" id="fm_bid" style="min-width:180px;">
