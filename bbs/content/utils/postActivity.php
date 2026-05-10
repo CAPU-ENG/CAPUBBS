@@ -210,7 +210,7 @@ function cancel_join_activity_by_content($bid, $tid, $username, $option_values, 
         $text=search_replace_exec_at_2($con,$text,$bid,$tid,$pid,$username,$title);
 	    $ip = $_SERVER["REMOTE_ADDR"];
 
-        $type=$_REQUEST['type'];
+        $type=@$_REQUEST['type'];
         $sig=intval(@$_REQUEST['sig']);
         // $statement="update posts set title='$title', author='$username', text='$text', ishtml='YES', sig=$sig, ip='$ip', type='$type', updatetime=$time where bid=$bid && tid=$tid && pid=$pid";
         $statement="update posts set author='$username', text='$text', ishtml='YES', sig=$sig, ip='$ip', type='$type', updatetime=$time where bid=$bid && tid=$tid && pid=$pid";
@@ -364,7 +364,7 @@ function modify_join_activity_by_content($bid, $tid, $username, $option_values, 
         $text=search_replace_exec_at_2($con,$text,$bid,$tid,$pid,$username,$title);
 	    $ip = $_SERVER["REMOTE_ADDR"];
 
-        $type=$_REQUEST['type'];
+        $type=@$_REQUEST['type'];
         $statement="update posts set title='$title', author='$username', text='$text', ishtml='YES', sig=$sig, ip='$ip', type='$type', updatetime=$time where bid=$bid && tid=$tid && pid=$pid";
         mysqli_query($con, $statement);
     }
