@@ -251,8 +251,6 @@ function onprogress(evt){
 }
 
 function priceok(){
-	var price=0;
-	var auth=0;
 	var fileObj=document.getElementById("file").files[0];
 	var FileController = "/bbs/attach/";
 	var form = new FormData();
@@ -264,7 +262,6 @@ function priceok(){
 	xhr.onload = function () {
 		var prob=document.getElementById("progress");
 		if(prob.style.visibility!="hidden") prob.style.visibility="hidden";
-		alert("response:"+xhr.responseText+" code:"+xhr.status);
 		try{
 			var result=JSON.parse(xhr.responseText);
 			if(result.code==0){
@@ -339,6 +336,29 @@ function removeCase(questionIndex, caseIndex) {
 	$('#cases-list-' + questionIndex).find('.case-item[data-case-index="' + caseIndex + '"]').remove();
 }
 
+function validateOptions() {
+	var items = $('#question-list .question-item');
+	for (var i = 0; i < items.length; i++) {
+		var $item = $(items[i]);
+		var type_id = parseInt($item.find('.question-type').val());
+		var option_name = $item.find('.question-name').val().trim();
+		if (option_name === '') {
+			return '问题名称不能为空';
+		}
+		if (type_id === 1 || type_id === 3) {
+			var validCases = [];
+			$item.find('.case-item').each(function() {
+				var case_name = $(this).find('.case-name').val().trim();
+				if (case_name !== '') validCases.push(case_name);
+			});
+			if (validCases.length < 2) {
+				return '"' + option_name + '"的选项数量不能少于2个';
+			}
+		}
+	}
+	return null;
+}
+
 function collectOptions() {
 	var options = [];
 	$('#question-list .question-item').each(function() {
@@ -355,7 +375,7 @@ function collectOptions() {
 		if ($item.find('.question-hiden').is(':checked')) {
 			option.hiden = 1;
 		}
-		if (type_id === 1) {
+		if (type_id === 1 || type_id === 3) {
 			var cases = [];
 			$item.find('.case-item').each(function() {
 				var case_name = $(this).find('.case-name').val().trim();
@@ -371,7 +391,6 @@ function collectOptions() {
 	});
 	return options;
 }
-
 function doreply(){
 	if(document.getElementById("raw_title").value.length==0){
 		alert("请填写帖子标题！");
@@ -404,6 +423,11 @@ function doreply(){
 		s+=attachs[i]['id']+" ";
 	}
 	if(s) s=s.slice(0,s.length-1);
+	var validateError = validateOptions();
+	if (validateError !== null) {
+		alert(validateError);
+		return;
+	}
 	var options = collectOptions();
 	$.post("/api/bbs/activity/create/",{
 		bid:$('#fm_bid').val(),

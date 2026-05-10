@@ -37,6 +37,29 @@ if (!is_array($options)) {
     $options = array();
 }
 
+foreach ($options as $option) {
+    if (empty($option['option_name'])) {
+        header('Content-Type:application/json; charset=utf-8');
+        echo json_encode(array("code"=> -1, "msg"=> "问题名称不能为空"));
+        exit;
+    }
+    $type_id = intval($option['type_id']);
+    if ($type_id === 1 || $type_id === 3) {
+        $cases = $option['cases'] ?? array();
+        $validCases = array();
+        foreach ($cases as $case) {
+            if (!empty($case['case_name'])) {
+                $validCases[] = $case;
+            }
+        }
+        if (count($validCases) < 2) {
+            header('Content-Type:application/json; charset=utf-8');
+            echo json_encode(array("code"=> -1, "msg"=> "「" . $option['option_name'] . "」的选项数量不能少于2个"));
+            exit;
+        }
+    }
+}
+
 $result = createActivity($username, $bid, $title, $text, $options, $sig, $attachs);
 
 header('Content-Type:application/json; charset=utf-8');
