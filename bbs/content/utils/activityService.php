@@ -139,7 +139,7 @@ function createActivity($username, $bid, $title, $text, $options, $sig, $attachs
         // 修改season_option_case表：增加信息选项
         // 活动id，选项名，注释
         switch ($type_id) {
-            case 1: // 单项选择
+            case 1: case 3: // 单项选择 / 多项选择
                 $cases = $option["cases"];
                 foreach ($cases as $case) {
                     $case_name = mysqli_real_escape_string($con, $case["case_name"]);
@@ -228,7 +228,7 @@ function getActivity($bid, $tid) {
             );
             $option_id = $row_option["id"];
             switch ($option["type_id"]) {
-                case 1:
+                case 1: case 3:
                     $cases = array();
                     $statement = "select case_id, case_name, comment, need_value
                         from season_option_case

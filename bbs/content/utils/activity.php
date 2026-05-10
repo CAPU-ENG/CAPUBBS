@@ -273,9 +273,10 @@ for($i=0;$i<count(@$data);$i++){
                                     break;
                                 case 3: // 多项选择
                                     $cases = $option["cases"];
-                                    echo "<div>";
+                                    $required_attr = $option["required"] ? " data-required='1'" : "";
+                                    echo "<div".$required_attr.">";
                                     for ($case_id = 0; $case_id < count(@$cases); $case_id++) {
-                                        echo "<input type='radio' name='".$option["option_id"]."' value='".$cases[$case_id]["case_id"]."' required>";
+                                        echo "<input type='checkbox' name='".$option["option_id"]."[]' value='".$cases[$case_id]["case_id"]."' class='multi-choice-".$option["option_id"]."'>";
                                         echo $cases[$case_id]["case_name"];
                                     }
                                     echo "</div>";
@@ -305,11 +306,19 @@ for($i=0;$i<count(@$data);$i++){
                     <script>
                         $("#join_activity").submit(function(e) {
                             e.preventDefault();
+                            if (!validateMultiChoice($(this))) {
+                                return;
+                            }
                             option_values_array = $("#join_activity").serializeArray();
                             option_values = {};
                             for (let index = 0; index < option_values_array.length; index++) {
                                 const element = option_values_array[index];
-                                option_values[element["name"]] = element["value"];
+                                let name = element["name"].replace("[]", "");
+                                if (option_values[name] === undefined) {
+                                    option_values[name] = element["value"];
+                                } else {
+                                    option_values[name] += "," + element["value"];
+                                }
                             }
                             send_data = {
                                 data: {
@@ -400,6 +409,19 @@ for($i=0;$i<count(@$data);$i++){
                                                         break;
                                                     }
                                                 }
+                                                break;
+                                            case 3:
+                                                $case_ids = explode(",", $_option_value[$option["option_id"]]);
+                                                $names = array();
+                                                foreach ($case_ids as $cid) {
+                                                    foreach ($option["cases"] as $c) {
+                                                        if ($c["case_id"] == intval($cid)) {
+                                                            $names[] = $c["case_name"];
+                                                            break;
+                                                        }
+                                                    }
+                                                }
+                                                $real_value = implode("、", $names);
                                                 break;
                                             case 6:
                                                 $real_value = $_option_value[$option["option_id"]];
@@ -513,6 +535,18 @@ for($i=0;$i<count(@$data);$i++){
                                     }
                                     echo "</div>";
                                     break;
+                                case 3:
+                                    $cases = $option["cases"];
+                                    $selected_ids = explode(",", $optionValue[$option["option_id"]]);
+                                    $required_attr = $option["required"] ? " data-required='1'" : "";
+                                    echo "<div".$required_attr.">";
+                                    for ($case_id = 0; $case_id < count(@$cases); $case_id++) {
+                                        $checked = in_array($cases[$case_id]["case_id"], $selected_ids) ? "checked" : "";
+                                        echo "<input type='checkbox' name='".$option["option_id"]."[]' value='".$cases[$case_id]["case_id"]."' $checked>";
+                                        echo $cases[$case_id]["case_name"];
+                                    }
+                                    echo "</div>";
+                                    break;
                                 case 6:
                                     echo "<input style='width: 70%;' name='".$option["option_id"]."' value='".$optionValue[$option["option_id"]]."'required>";
                                     break;
@@ -556,11 +590,19 @@ for($i=0;$i<count(@$data);$i++){
                         });
                         $("#modify_join_activity").submit(function(e) {
                             e.preventDefault();
+                            if (!validateMultiChoice($(this))) {
+                                return;
+                            }
                             option_values_array = $("#modify_join_activity").serializeArray();
                             option_values = {};
                             for (let index = 0; index < option_values_array.length; index++) {
                                 const element = option_values_array[index];
-                                option_values[element["name"]] = element["value"];
+                                let name = element["name"].replace("[]", "");
+                                if (option_values[name] === undefined) {
+                                    option_values[name] = element["value"];
+                                } else {
+                                    option_values[name] += "," + element["value"];
+                                }
                             }
                             send_data = {
                                 data: {
@@ -794,6 +836,17 @@ for($i=1;$i< count($result);$i++){
     });\n");
 }
 ?>
+function validateMultiChoice($form) {
+    var valid = true;
+    $form.find('div[data-required]:has(input[type="checkbox"])').each(function() {
+        if ($(this).find('input[type="checkbox"]:checked').length === 0) {
+            alert("请至少选择一项");
+            valid = false;
+            return false;
+        }
+    });
+    return valid;
+}
 refreshAttach();
 $(window).load(function() {
     $(".textblock").each(function() {

@@ -67,6 +67,19 @@ for ($user_idx = 0; $user_idx < count(@$join_value); $user_idx++){
                     }
                 }
                 break;
+            case 3:
+                $case_ids = explode(",", $_option_value[$option["option_id"]]);
+                $names = array();
+                foreach ($case_ids as $cid) {
+                    foreach ($option["cases"] as $c) {
+                        if ($c["case_id"] == intval($cid)) {
+                            $names[] = $c["case_name"];
+                            break;
+                        }
+                    }
+                }
+                $real_value = implode("、", $names);
+                break;
             case 6:
                 $real_value = $_option_value[$option["option_id"]];
                 break;

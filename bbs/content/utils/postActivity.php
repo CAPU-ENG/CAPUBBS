@@ -148,6 +148,20 @@ function cancel_join_activity_by_content($bid, $tid, $username, $option_values, 
                         $real_value = $row["case_name"];
                         $text = $text.htmlspecialchars($real_value);
                         break;
+                    case 3:
+                        $case_ids = explode(",", $value);
+                        $names = array();
+                        foreach ($case_ids as $cid) {
+                            foreach ($option["cases"] as $c) {
+                                if ($c["case_id"] == intval($cid)) {
+                                    $names[] = $c["case_name"];
+                                    break;
+                                }
+                            }
+                        }
+                        $real_value = implode("、", $names);
+                        $text = $text.htmlspecialchars($real_value);
+                        break;
                     case 6:
                         $text = $text.htmlspecialchars($value);
                         break;
@@ -230,7 +244,7 @@ function modify_join_activity_by_content($bid, $tid, $username, $option_values, 
         $option = $options[$option_idx];
         $option_id = $option["option_id"];
         $required = $option["required"];
-        if ($required == 1 && is_null($option_values[$option_id])) {
+        if ($required == 1 && (is_null($option_values[$option_id]) || $option_values[$option_id] === "")) {
             return array("code"=> -1,"msg"=> "option(#".$option_id.") not found");
         }
     }
@@ -289,6 +303,20 @@ function modify_join_activity_by_content($bid, $tid, $username, $option_values, 
                         $result = mysqli_query($con, $statement);
                         $row = mysqli_fetch_array($result);
                         $real_value = $row["case_name"];
+                        $text = $text.htmlspecialchars($real_value);
+                        break;
+                    case 3:
+                        $case_ids = explode(",", $value);
+                        $names = array();
+                        foreach ($case_ids as $cid) {
+                            foreach ($option["cases"] as $c) {
+                                if ($c["case_id"] == intval($cid)) {
+                                    $names[] = $c["case_name"];
+                                    break;
+                                }
+                            }
+                        }
+                        $real_value = implode("、", $names);
                         $text = $text.htmlspecialchars($real_value);
                         break;
                     case 6:
@@ -397,7 +425,7 @@ function join_activity_by_content($bid, $tid, $username, $option_values, $title,
         $option = $options[$option_idx];
         $option_id = $option["option_id"];
         $required = $option["required"];
-        if ($required == 1 && is_null($option_values[$option_id])) {
+        if ($required == 1 && (is_null($option_values[$option_id]) || $option_values[$option_id] === "")) {
             file_put_contents($filePath, "[2] $username $bid $tid\n", FILE_APPEND);
             return array("code"=> -1,"msg"=> "option(#".$option_id.") not found");
         }
@@ -430,6 +458,20 @@ function join_activity_by_content($bid, $tid, $username, $option_values, $title,
                         $result = mysqli_query($con, $statement);
                         $row = mysqli_fetch_array($result);
                         $real_value = $row["case_name"];
+                        $text = $text.htmlspecialchars($real_value);
+                        break;
+                    case 3:
+                        $case_ids = explode(",", $value);
+                        $names = array();
+                        foreach ($case_ids as $cid) {
+                            foreach ($option["cases"] as $c) {
+                                if ($c["case_id"] == intval($cid)) {
+                                    $names[] = $c["case_name"];
+                                    break;
+                                }
+                            }
+                        }
+                        $real_value = implode("、", $names);
                         $text = $text.htmlspecialchars($real_value);
                         break;
                     case 6:

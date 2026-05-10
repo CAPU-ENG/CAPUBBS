@@ -288,6 +288,7 @@ function addQuestion() {
 	html += '  <select class="question-type" data-index="' + idx + '" onchange="onTypeChange(' + idx + ')">';
 	html += '    <option value="6">填空题</option>';
 	html += '    <option value="1">选择题</option>';
+	html += '    <option value="3">多选题</option>';
 	html += '  </select>';
 	html += '  <input type="text" class="question-name" placeholder="问题名称" style="flex:1; min-width:120px;">';
 	html += '  <input type="text" class="question-comment" placeholder="注释(选填)" style="flex:1; min-width:120px;">';
@@ -312,7 +313,7 @@ function removeQuestion(index) {
 function onTypeChange(index) {
 	var typeVal = parseInt($('#question-list').find('.question-item[data-index="' + index + '"] .question-type').val());
 	var $casesContainer = $('#cases-' + index);
-	if (typeVal === 1) {
+	if (typeVal === 1 || typeVal === 3) {
 		$casesContainer.show();
 		if ($casesContainer.find('.case-item').length === 0) {
 			addCase(index);
