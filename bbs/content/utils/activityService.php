@@ -16,9 +16,11 @@ function get_joint($username, $activity_id) {
 }
 
 function get_activity_join($activity_id) {
+    $activity_id = intval($activity_id);
+    $ret = array();
     $con = dbconnect_mysqli();
     mysqli_select_db($con, "capubbs");
-    $statement = "select season_activity_join.username,cancel,case when has_punishment is null then 0 else 1 end as has_punishment 
+    $statement = "select season_activity_join.username,cancel,case when has_punishment is null then 0 else 1 end as has_punishment
         from 
             season_activity_join 
         left join 
@@ -43,6 +45,7 @@ function get_activity_join($activity_id) {
 }
 
 function get_activity_join_remind($activity_id) {
+    $activity_id = intval($activity_id);
     $con = dbconnect_mysqli();
     mysqli_select_db($con, "capubbs");
     $statement = "select text from activity_join_remind where activity_id=$activity_id";
@@ -154,6 +157,8 @@ function createActivity($username, $bid, $title, $text, $options, $sig) {
 }
 
 function getUsernameOptionValue($username, $activity_id) {
+    $activity_id = intval($activity_id);
+    $ret = array();
     $con = dbconnect_mysqli();
     mysqli_select_db($con, "capubbs");
 
@@ -303,6 +308,7 @@ function _userexists_2($con,$user){
 }
 
 function updatestar($con,$username) {
+    $username = mysqli_real_escape_string($con, $username);
     $statement="select post,reply,other2 from userinfo where username='$username'";
     $results=mysqli_query($con, $statement);
     $res=mysqli_fetch_array($results);
@@ -326,6 +332,7 @@ function updatestar($con,$username) {
 }
 
 function get_floor_num_1($username, $activity_id) {
+    $activity_id = intval($activity_id);
     $con = dbconnect_mysqli();
     mysqli_select_db($con, "capubbs");
 

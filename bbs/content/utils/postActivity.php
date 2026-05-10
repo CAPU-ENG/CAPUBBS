@@ -12,16 +12,24 @@ if ($_SERVER['REQUEST_METHOD'] != 'POST') {
 $con = dbconnect_mysqli();
 mysqli_select_db($con, "capubbs");
 
+if (!isset($_POST["data"]) || !is_array($_POST["data"])) {
+    echo json_encode(array("code"=> -1,"msg"=> "invalid request"));
+    exit();
+}
+
 $user = getuser();
 $username = $user['username'];
 $data = $_POST["data"];
+if (!isset($data["bid"], $data["tid"], $data["action"])) {
+    echo json_encode(array("code"=> -1,"msg"=> "missing parameters"));
+    exit();
+}
 $bid = $data["bid"];
 $tid = $data["tid"];
-$activity_id = $data["activity_id"];
-$title = $data["title"];
+$title = isset($data["title"]) ? $data["title"] : '';
 $action = $data["action"];
-$option_values = $data["option_values"];
-$sig = $option_values["sign"];
+$option_values = isset($data["option_values"]) ? $data["option_values"] : array();
+$sig = isset($option_values["sign"]) ? $option_values["sign"] : 0;
 
 
 $activity = getActivity($bid, $tid);
@@ -133,6 +141,7 @@ function cancel_join_activity_by_content($bid, $tid, $username, $option_values, 
                 
                 switch ($option["type_id"]) {
                     case 1:
+                        $value = intval($value);
                         $statement = "select case_name from season_option_case where case_id=$value";
                         $result = mysqli_query($con, $statement);
                         $row = mysqli_fetch_array($result);
@@ -275,6 +284,7 @@ function modify_join_activity_by_content($bid, $tid, $username, $option_values, 
                 
                 switch ($option["type_id"]) {
                     case 1:
+                        $value = intval($value);
                         $statement = "select case_name from season_option_case where case_id=$value";
                         $result = mysqli_query($con, $statement);
                         $row = mysqli_fetch_array($result);
@@ -415,6 +425,7 @@ function join_activity_by_content($bid, $tid, $username, $option_values, $title,
                 
                 switch ($option["type_id"]) {
                     case 1:
+                        $value = intval($value);
                         $statement = "select case_name from season_option_case where case_id=$value";
                         $result = mysqli_query($con, $statement);
                         $row = mysqli_fetch_array($result);
