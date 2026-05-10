@@ -382,25 +382,6 @@
             exit;
         }
 
-        //$code=mysqli_real_escape_string($con, @$_REQUEST['code']);//取消验证码制度
-/*
-        $statement="select times from codes where code='$code'";
-        $results=mysqli_query($con, $statement);
-        if (mysqli_num_rows($results)==0)
-        {
-            echo '<capu><info><code>2</code><msg>无效的会员号。</msg></info></capu>';
-            exit;
-        }
-        $res=mysqli_fetch_row($results);
-        if (intval($res[0])>=5)
-        {
-            echo '<capu><info><code>2</code><msg>此会员号注册的ID数目已到上限。</msg></info></capu>';
-            exit;
-        }
-        $statement="update codes set times=times+1 where code='$code'";
-        mysqli_query($con, $statement);
-*/
-
         $password=@$_REQUEST['password'];
         if (@$_REQUEST['md5']=="yes") $password=md5($password);
         $sex=@$_REQUEST['sex'];
@@ -488,7 +469,6 @@
         }
         echo '</capu>';
     }
-    exit;
 
     function post($con,$token,$bid,$ip,$attachs) {
         $time=time();
@@ -2072,5 +2052,3 @@ while ($res=mysqli_fetch_array($result)) {
             exit;
         }
     }
-
-?>
