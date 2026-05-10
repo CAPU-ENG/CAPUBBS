@@ -3,16 +3,10 @@
 	checkUserAndSign($con, $ip, $token);
 	$data = getOnePage($con, $bid, $tid, $page, $see_lz, $ip, $token, $username);
 	$tdata = getTidInfo($con, $bid, $tid);
-    $floordata="";
     if(count($tdata)==0){
         $tdata=null;
     }
     else $tdata=$tdata[0];
-    if ($floordata!="") {
-        $floors=intval($floordata['num']);
-        if ($floors!=0)
-            $tdata['reply']=$floors-1;
-    }
     $bbsdata=mainfunc(array("ask"=>"bbsinfo"));
     $bdata=array();
     foreach ($bbsdata as $dt) {
@@ -237,9 +231,6 @@ for($i=0;$i<count(@$data);$i++){
     echo("<!-- fid: ".$floor['fid'].", pid: ".$floor['pid']." -->");
     echo("<hr class='hrt'></div>\n");
     $translated=translate($floor['text'],$floor['ishtml']=="YES");
-    #$translated=$floor['text'];
-    $translatedforquote=translateforquote($floor['text'],$floor['ishtml']=="YES");
-    #echo("<div class='textblock' id='floor$i'>$translated</div>\n");
     
     // textblock
     {
@@ -314,7 +305,6 @@ for($i=0;$i<count(@$data);$i++){
                     <script>
                         $("#join_activity").submit(function(e) {
                             e.preventDefault();
-                            // console.log($("#join_activity").serializeArray());
                             option_values_array = $("#join_activity").serializeArray();
                             option_values = {};
                             for (let index = 0; index < option_values_array.length; index++) {
@@ -686,7 +676,6 @@ for($i=0;$i<count(@$data);$i++){
     }
     if($right>=1){
         echo("<a class='replylzlbt' href='javascript:deletepid(".$floor['pid'].");'>删除</a>\n");
-        // echo("<a class='replylzlbt' href='../editpid?bid=$bid&tid=$tid&pid=".$floor['pid']."'>编辑</a>\n");
     }
     if ($is_leader && $floor['pid'] == 1) {
         echo("<a class='replylzlbt' href='../editpid?bid=$bid&tid=$tid&pid=".$floor['pid']."'>编辑</a>\n");
@@ -763,62 +752,9 @@ echo("</select>");
 
             </div>
         </div>
-<?php
-// if ($currentuser!="") {
-// if ($canreply) {echo '
-//         <div class="editor" id="editor">
-//             <div id="edi_bar"></div>
-//             <div id="edi_content" onfocus="editorFocus();" onblur="editorBlur();"></div>
-//             <br>
-// ';
-// if ($rights>=0 || $star>=0)	echo '
-//             <div id="edi_attach" onclick="attach();">添加附件</div>
-//             <input type="file" id="file" style="display:none;" onchange="fileselected();"> ';
-// echo '
-//             <progress max="100" value="20" id="progress"></progress>
-//             选择签名档：
-//             <input type="radio" name="sign" value="0">不使用
-//             <input type="radio" name="sign" value="1" checked>1
-//             <input type="radio" name="sign" value="2">2
-//             <input type="radio" name="sign" value="3">3
-//             <div id="edi_submit" onclick="doreply();">发表回复</div>
-//             <br><br><br>
-//             <span id="attachtip" style="display:none;">本帖包含的附件：</span>
-//             <div class="attachs" id="attachs">
-            
-//             </div>
-//             <span id="unusedattachtip" style="display:none;">您曾上传但未使用的附件：（可直接链接到本贴）<img src="waiting.gif" width="15px" id="waitinggif" style="visibility:hidden;"></span>
-//             <div class="attachs" id="unusedattachs">
-            
-//             </div>
-//         </div>
-// ';
-// }
-// else echo '
-//         <div class="editip" id="editip">
-//         <span class="editip">在本版发帖或回复至少需要 '.$need.' 星</span>
-//         </div>
-// ';
-// }
-// else 
-// echo '
-//         <div class="editip" id="editip">
-//         <span class="editip">您需要&nbsp;<a href="../login?from='.$nowurl.'">登录</a>&nbsp;后回复此贴；没有账号？&nbsp;<a href="../register">现在注册</a>&nbsp;</span>
-        // </div>';?>
     <br>
     </div>
     
-    <!-- <div id="overlay">
-        <div>
-            为此附件填写阅读权限与下载售价：<br><br>
-            阅读权限：<input type="number" value="0" style="width:40px" id="auth">
-            <span class='tip'>&nbsp;积分不少于此数值才能浏览附件</span><br>
-            下载售价：<input type="number" value="0" style="width:40px" id="price">
-            <span class='tip'>&nbsp;每位下载者需向您支付的积分数</span><br><br>
-            <input type="button" value="&nbsp;好&nbsp;" onclick="priceok();" />
-        </div>
-     </div> -->
-     
     <div id="msg_overlay">
         <div>
             <span>您要对&nbsp;<span id='msg_to'></span>&nbsp;说：</span><br><br>
@@ -872,7 +808,6 @@ $(window).load(function() {
 });
 function deletepid(pid){
     if(confirm("您确定要删除此楼层么？")){
-        //window.open("../delete/?bid="+bid+"&tid="+tid+"&pid="+pid+"&p="+page, "_self");
         $.post("../delete/",{
             ask:"delpid",
             bid:bid,
@@ -898,20 +833,15 @@ function deletelzlreply(fid,id){
     });
 }
 function insertlzlreply(id,author){
-    //var wb=document.getElementById("textarea"+id);
     var wb=$('#textarea'+id);
-    //document.getElementById("writeboard"+id).style.display="block";
     $('#writeboard'+id).show();
     wb.focus();
-    //wb.value="回复 @"+author+": ";
     wb.val("回复 @"+author+": ");
 }
 function dolzlreply(id,fid,sender){
-    //var text=document.getElementById("textarea"+id).value;
     var text=$('#textarea'+id).val();
     sender.disabled=true;
     sender.innerHTML="正在发布...";
-    //ajaxWithCallback("../postlzl/","fid="+fid+"&text="+encodeURI(text),function(text){
     $.post("../postlzl/",{fid:fid,text:text},function(text) {
         sender.disabled=false;
         sender.innerHTML="发表";
@@ -924,46 +854,25 @@ function dolzlreply(id,fid,sender){
     });
 }
 function togglereply(id){
-    /*
-    if(document.getElementById("lzl"+id).style.display=="block"){
-        document.getElementById("lzl"+id).style.display="none";
-    }else{
-        document.getElementById("lzl"+id).style.display="block";
-    }
-    */
     $('#lzl'+id).toggle();
 }
 function toggleslide(id){
-    /*
-    if(document.getElementById("writeboard"+id).style.display=="block"){
-        document.getElementById("writeboard"+id).style.display="none";
-    }else{
-        document.getElementById("writeboard"+id).style.display="block";
-    }
-    */
     $('#writeboard'+id).toggle();
 }
 function showreply(id){
-    //document.getElementById("lzl"+id).style.display="block";
-    //document.getElementById("writeboard"+id).style.display="block";
     $('#lzl'+id+',#writeboard'+id).show();
 }
 function hidereply(id){
-    //document.getElementById("lzl"+id).style.display="none";
-    //document.getElementById("writeboard"+id).style.display="none";
     $('#lzl'+id+',#writeboard'+id).hide();
 }
 
 function gotobbs(tbid){
-    //window.open("../main?bid="+tbid, "_self");
     window.location="../main?bid="+tbid;
 }
 function showmenu(){
-    //document.getElementById("popover").style.visibility="visible";
     $('#popover').show();
 }
 function hidemenu(){
-    //document.getElementById("popover").style.visibility="hidden";
     $('#popover').hide();
 }
 function goback(){
@@ -974,21 +883,13 @@ function jump(page){
 }
 function refreshAttach(){
     if(attachs.length==0){
-        //document.getElementById("attachtip").style.display="none";
-        //document.getElementById("attachs").style.display="none";
         $('#attachtip,#attachs').hide();
     }else{
-        //document.getElementById("attachtip").style.display="block";
-        //document.getElementById("attachs").style.display="block";
         $('#attachtip,#attachs').show();
     }
     if(unusedattachs.length==0){
-        //document.getElementById("unusedattachtip").style.display="none";
-        //document.getElementById("unusedattachs").style.display="none";
         $('#unusedattachtip,#unusedattachs').hide();
     }else{
-        //document.getElementById("unusedattachtip").style.display="block";
-        //document.getElementById("unusedattachs").style.display="block";
         $('#unusedattachtip,#unusedattachs').show();
     }
     var s="";
@@ -1002,15 +903,12 @@ function refreshAttach(){
         var a=unusedattachs[i];
         s2+=generateattach(a['name'],a['size'],a['price'],a['id'],true);
     }
-    //document.getElementById("unusedattachs").innerHTML=s2;
     $('#unusedattachs').html(s2);
 }
 function attach(){
-    //document.getElementById("file").click();
     $('#file').click();
 }
 function fileselected(){
-    //if(document.getElementById("file").value){
     if ($('#file').val()!="") {
         showoverlay();
     }
@@ -1037,15 +935,8 @@ function removeattach(id){
 }
 function delattach(id){
     if(confirm("您确定要彻底删除此附件么？")){
-        //document.getElementById("waitinggif").style.visibility="visible";
         $('#waitinggif').show();
-        //var r=new XMLHttpRequest();
-        //r.open("GET", "../delattach/?id="+id , true);
-        //r.send();
-        //r.onreadystatechange=function(){
-        //	if(r.readyState==4&&r.status==200){
         $.post("../delattach/",{id:id},function(r) {	
-            //var result=JSON.parse(r.responseText);
             var result=JSON.parse(r);
             if(result.code==0){
                 for(var i=0;i<unusedattachs.length;i++){
@@ -1074,7 +965,6 @@ function generateattach(filename,size,price,aid,useforappend){
     s+='<img src="'+imgsrc+'" class="fileicon">';
     s+='<div class="fileinfo"><span class="filename">'+filename+'<br></span>';
     s+='<span class="sub">'+packSize(size)+'<br>';
-    //s+='售价：'+price+"积分</span>";
     if(useforappend){
         s+='<a href="javascript:appendattach('+aid+');">引用</a>&nbsp;&nbsp;';
         s+='<a href="javascript:delattach('+aid+');">彻底删除</a>';
@@ -1115,7 +1005,6 @@ function priceok(){
     xhr.onload = function () {
         var prob=document.getElementById("progress");
         if(prob.style.visibility!="hidden") prob.style.visibility="hidden";
-        //alert("response:"+xhr.responseText+" code:"+xhr.status);
         try{
             var result=JSON.parse(xhr.responseText);
             if(result.code==0){
@@ -1161,18 +1050,7 @@ function attachdl(name,price,auth,id,free){
 function reallyattachdl(id){
     window.open("../download/?id="+id,"_blank");
 }
-/*
-function insertattach(id){
-    for(var i=0;i<attachs.length;i++){
-        if(attachs[i].id==id){
-            insertHTML(generateattach(attachs[i]['name'],attachs[i]['size'],attachs[i]['price'],attachs[i]['id'],true));
-            break;
-        }
-    }
-}
-*/
 function showoverlay(){
-    //document.getElementById("overlay").style.visibility="visible";
     $('#overlay').show();
 }
 function doreply(){
@@ -1181,19 +1059,12 @@ function doreply(){
         alert("尚未登录！请登陆后发帖！");
         return;
     }
-    //var content=document.getElementById("edi_content").innerHTML;
     var content=$('#edi_content').html();
     content=content.replace(/&/g, "&amp;");
     if(content=="" || content=="<br>" || content == editorPlaceholder){
         alert("请填写回复内容！");
         return;
     }
-    //document.getElementById("fm_title").value="Re: <?php echo $tdata['title']; ?>";
-    //document.getElementById("fm_text").value=content;
-    //document.getElementById("fm_token").value=token;
-    //$('#fm_title').val("Re: <?php echo $tdata['title']; ?>");
-    //$('#fm_text').val(content);
-    //$('#fm_token').val(token);
     var bts=document.getElementsByName("sign");
     var sig;
     for(var i=0;i<bts.length;i++){
@@ -1201,21 +1072,16 @@ function doreply(){
             sig=bts[i].value;
         }
     }
-    //document.getElementById("fm_sig").value=sig;
-    //$('#fm_sig').val(sig);
     var s="";
     for(var i=0;i<attachs.length;i++){
         s+=attachs[i]['id']+" ";
     }
     if(s) s=s.slice(0,s.length-1);
-    //document.getElementById("fm_attachs").value=s;
-    //document.getElementById("fm").submit();
 
     $.post("../post/",{
         bid:$('#fm_bid').val(),
         tid:$('#fm_tid').val(),
         token:token,
-        //title:"Re: <?php echo $tdata['title']; ?>",
         title: "Re: "+$('#page_title').text(),
         text:content,
         sig:sig,
@@ -1282,7 +1148,6 @@ function msg_send(){
 function msg_cancel(){
     var text=$('#msg_ta').val();
     if(!text|| confirm("您确定放弃编辑消息？")){
-        //document.getElementById("msg_ta").value="";
         $('#msg_overlay').hide();
         $('#msg_ta').val("");
     }
@@ -1312,11 +1177,6 @@ function URLdecode(str) {
 
 function insertHTML(html){ 
     var dthis=document.getElementById("edi_content");
-/*
-    dthis.focus();
-    document.execCommand('insertHTML', false, html);
-    return;
-*/
     
     var sel, range;
     if (window.getSelection){ 
