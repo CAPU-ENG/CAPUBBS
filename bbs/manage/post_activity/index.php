@@ -339,6 +339,10 @@ function removeCase(questionIndex, caseIndex) {
 
 function validateOptions() {
 	var items = $('#question-list .question-item');
+	if (items.length === 0) {
+		return '请至少添加一个问题';
+	}
+	var seen = {};
 	for (var i = 0; i < items.length; i++) {
 		var $item = $(items[i]);
 		var type_id = parseInt($item.find('.question-type').val());
@@ -346,6 +350,11 @@ function validateOptions() {
 		if (option_name === '') {
 			return '问题名称不能为空';
 		}
+		var key = type_id + '|' + option_name;
+		if (seen[key]) {
+			return '存在重复问题："' + option_name + '"';
+		}
+		seen[key] = true;
 		if (type_id === 1 || type_id === 3) {
 			var validCases = [];
 			$item.find('.case-item').each(function() {
@@ -464,6 +473,12 @@ function editorBlur() {
 	}
 }
 
+
+// 添加默认问题
+addQuestion();
+$('#question-list .question-item').last().find('.question-name').val('姓名');
+addQuestion();
+$('#question-list .question-item').last().find('.question-name').val('ID');
 
 </script>
 </body>
