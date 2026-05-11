@@ -268,7 +268,7 @@ var nicEditorConfig = bkClass.extend({
 		'outdent' : {name : __('取消缩进'), command : 'outdent', noActive : true},
 		'hr' : {name : __('分割线'), command : 'insertHorizontalRule', noActive : true}
 	},
-	iconsPath : '../lib/nicEditorIcons.gif',
+	iconsPath : '/bbs/lib/nicEditorIcons.gif',
 	buttonList : ['save','bold','italic','underline','left','center','right','justify','ol','ul','fontSize','fontFamily','fontFormat','indent','outdent','image','upload','expression','expression2','at','link','unlink','forecolor','bgcolor'],
 	iconList : {"xhtml":1,"bgcolor":2,"forecolor":3,"bold":4,"center":5,"hr":6,"indent":7,"italic":8,"justify":9,"left":10,"ol":11,"outdent":12,"removeformat":13,"right":14,"save":25,"strikethrough":16,"subscript":17,"superscript":18,"ul":19,"underline":20,"image":21,"link":22,"unlink":23,"close":24,"arrow":26,"upload":27}
 });
@@ -388,13 +388,13 @@ var nicEditor = bkClass.extend({
 		var icon = this.options.iconList[iconName];
 		var file = (options.iconFiles) ? options.iconFiles[iconName] : '';
 		if (iconName=="expression") {
-			return {backgroundImage : "url('../lib/expression.png')"};
+			return {backgroundImage : "url('/bbs/lib/expression.png')"};
 		}
 		if (iconName=='expression2'){
-			return {backgroundImage : "url('../lib/expression2.png')"};
+			return {backgroundImage : "url('/bbs/lib/expression2.png')"};
 		}
 		if (iconName=='at') {
-			return {backgroundImage : "url('../lib/at.png')"};
+			return {backgroundImage : "url('/bbs/lib/at.png')"};
 		}
 		return {backgroundImage : "url('"+((icon) ? this.options.iconsPath : file)+"')", backgroundPosition : ((icon) ? ((icon-1)*-18) : 0)+'px 0px'};	
 	},
