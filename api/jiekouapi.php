@@ -40,7 +40,7 @@
         echo("<capu><info><code>-1</code><msg>未知错误，请反馈给我们。</msg></info></capu>");
         exit;
     }
-    $token=@$_REQUEST['token'];
+    $token=mysqli_real_escape_string($con, @$_REQUEST['token']);
     $ip=@$_REQUEST['ip'];
     $view=@$_REQUEST['view'];
 
@@ -309,6 +309,7 @@
 
     function login($con,$username,$password,$ip) {
         if (@$_REQUEST['md5']=="yes") $password=md5($password);
+        $username=mysqli_real_escape_string($con, $username);
         echo '<capu>';
         $hex_username = bin2hex($username);
         // $statement="select password from userinfo where hex(username)='$hex_username'";
@@ -474,10 +475,6 @@
         $time=time();
         $statement="select username,star,rights,lastpost from userinfo where token='$token' && $time<=tokentime+{$GLOBALS['validtime']}";
         $results=mysqli_query($con, $statement);
-        /*if (mysqli_num_rows($results)==0) {
-            echo '<info><code>1</code><msg>超时，请重新登录。</msg></info></capu>';
-            exit;
-        }*/
         $res=mysqli_fetch_array($results);
         $username=$res[0];
         $star=intval($res[1]);
@@ -519,10 +516,6 @@
         $time=time();
         $statement="select username,star,rights,lastpost from userinfo where token='$token' && $time<=tokentime+{$GLOBALS['validtime']}";
         $results=mysqli_query($con, $statement);
-        /*if (mysqli_num_rows($results)==0) {
-            echo "<info><code>1</code><msg>超时，请重新登录。</msg></info></capu>";
-            exit;
-        }*/
         $res=mysqli_fetch_array($results);
         $username=$res[0];
         $star=intval($res[1]);
@@ -531,8 +524,8 @@
         checkDelayTime($time, $star, $rights, $lastpost, $ip, $results);
 
         {
-            $statement = "select activity_id, bid, tid, season_id, name, leader_username 
-                from season_threads_activity 
+            $statement = "select activity_id, bid, tid, season_id, name, leader_username
+                from season_threads_activity
                 where bid=$bid and tid=$tid";
             $result_activity = mysqli_query($con, $statement);
             if (mysqli_num_rows($result_activity)!=0) {
@@ -948,10 +941,6 @@
             $time=time();
             $statement="select username,star,rights,lastpost from userinfo where token='$token' && $time<=tokentime+{$GLOBALS['validtime']}";
             $results=mysqli_query($con, $statement);
-            /*if (mysqli_num_rows($results)==0) {
-                echo '<capu><info><code>1</code><msg>超时，请重新登录。</msg></info></capu>';
-                exit;
-            }*/
             $res=mysqli_fetch_row($results);
             $username=$res[0];
             $star=intval($res[1]);
@@ -1048,7 +1037,8 @@
             $res=mysqli_fetch_array($results);
             $bid=$res[0];
             $statement="select m1,m2,m3,m4 from boardinfo where bid=$bid";
-            $res=mysqli_fetch_array($results);
+            $results2=mysqli_query($con, $statement);
+            $res=mysqli_fetch_array($results2);
             $able=0;
             for ($i=0;$i<=3;$i++) if ($res[$i]==$username) $able=1;
             if (($rights+$able<3)&&$author!=$username) {
@@ -1297,7 +1287,6 @@
             echo '<username></username><rights>0</rights></info></capu>';
             exit;
         }
-        $token=mysqli_real_escape_string($con, $token);
         $statement="select username,rights from userinfo where token='$token' && $nowtime<=tokentime+{$GLOBALS['validtime']}";
         $result=mysqli_query($con, $statement);
         if (mysqli_num_rows($result)==0) {
@@ -1402,7 +1391,7 @@ while ($res=mysqli_fetch_array($result)) {
             if($username==$ainfo['uploader']){
                 $isAuthor=true;
             }else{
-                $haspurchased=false;
+                $hasPurchased=false;
             }
         }
         $statement="";
@@ -1534,7 +1523,7 @@ while ($res=mysqli_fetch_array($result)) {
         if(!$info){
             report(4,"贴子不存在");
         }
-        if(!$info['author']==$user['username']){
+        if($info['author'] != $user['username']){
             if(getrights($con,$bid,$token)<1){
                 report(2,"无权编辑");
             }
@@ -1690,6 +1679,16 @@ while ($res=mysqli_fetch_array($result)) {
         mysqli_query($con, $statement);
     }
 
+    function comp($a,$b){
+        if (intval($a[1])>intval($b[1])){
+            return -1;
+        }else if(intval($a[1])==intval($b[1])){
+            return 0;
+        }else{
+            return 1;
+        }
+    }
+
     function msg($con,$token,$type){
         $user=token2user($con,$token);
         if(!$user){
@@ -1778,16 +1777,6 @@ while ($res=mysqli_fetch_array($result)) {
                 $ans[$i][1]=$times[0];
             }
 
-            function comp($a,$b){
-                if (intval($a[1])>intval($b[1])){
-                    return -1;
-                }else if(intval($a[1])==intval($b[1])){
-                    return 0;
-                }else{
-                    return 1;
-                }
-
-            }
             usort($ans, "comp");
             for($i=0;$i<count($ans);$i++){
                 $one=$ans[$i];
@@ -1849,7 +1838,6 @@ while ($res=mysqli_fetch_array($result)) {
     }
 
     function changepsd($con,$token){
-        $token=mysqli_real_escape_string($con, $token);
         $nowtime=time();
         $statement="select password from userinfo where token='$token' and $nowtime<=tokentime+{$GLOBALS['validtime']} limit 1";
         $result=mysqli_query($con, $statement);
