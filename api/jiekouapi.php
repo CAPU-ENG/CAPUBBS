@@ -325,7 +325,7 @@
                 echo '<info><code>2</code><msg>密码错误。</msg></info>';
             }
             else {
-                echo '<info><code>0</code><username>'.$username.'</username>';
+                echo '<info><code>0</code><username><![CDATA['.$username.']]></username>';
                 $nowtime=time();
                 // $statement="select token from userinfo where hex(username)='$hex_username' && $nowtime<=tokentime+{$GLOBALS['validtime']}";
                 $statement="select token from userinfo where username='$username' && $nowtime<=tokentime+{$GLOBALS['validtime']}";
@@ -376,16 +376,16 @@
     }
 
     function register($con,$ip) {
-        $username=@$_REQUEST['username'];
+        $username=mysqli_real_escape_string($con, @$_REQUEST['username']);
         $statement="select * from userinfo where username='$username'";
         if (mysqli_num_rows(mysqli_query($con, $statement))>0) {
             echo '<capu><info><code>1</code><msg>用户已存在。</msg></info></capu>';
             exit;
         }
 
-        $password=@$_REQUEST['password'];
+        $password=mysqli_real_escape_string($con, @$_REQUEST['password']);
         if (@$_REQUEST['md5']=="yes") $password=md5($password);
-        $sex=@$_REQUEST['sex'];
+        $sex=mysqli_real_escape_string($con, @$_REQUEST['sex']);
         $icon=@$_REQUEST['icon'];
         if (@$_REQUEST['qq'])
             $qq=intval(@$_REQUEST['qq']);
@@ -422,7 +422,7 @@
         if ($error!=0) {
             echo '<capu><info><code>'.$error.'</code><msg>'.mysqli_error($con).'</msg></info></capu>';exit;
         }
-        echo '<capu><info><code>0</code><username>'.$username.'</username><token>'.$token.'</token></info></capu>';
+        echo '<capu><info><code>0</code><username><![CDATA['.$username.']]></username><token>'.$token.'</token></info></capu>';
         exit;
     }
 
@@ -448,12 +448,13 @@
         if(mysqli_error($con)){
             echo '<capu><info><code>1</code><error>'.mysqli_error($con).'</error></info></capu>';
         }else{
-            echo '<capu><info><code>0</code><username>'.$username.'</username></info></capu>';
+            echo '<capu><info><code>0</code><username><![CDATA['.$username.']]></username></info></capu>';
         }
     }
 
     function updatetokentime($con,$token,$ip) {
         echo '<capu>';
+        $ip=mysqli_real_escape_string($con, $ip);
         $time=time();
         $statement="select username from userinfo where token='$token' && $time<=tokentime+{$GLOBALS['validtime']}";
         $results=mysqli_query($con, $statement);
@@ -463,7 +464,7 @@
         else {
             $res=mysqli_fetch_array($results);
             $username=$res[0];
-            echo "<info><code>0</code><username>$username</username></info>";
+            echo "<info><code>0</code><username><![CDATA[$username]]></username></info>";
             if ($ip!="") $statement="update userinfo set tokentime=$time, lastip='$ip' where username='$username'";
             else $statement="update userinfo set tokentime=$time where username='$username'";
             mysqli_query($con, $statement);
@@ -488,7 +489,8 @@
         if (mb_strlen($title,'utf-8')>=43)
             $title=mb_substr($title,0,40,'utf-8')."...";
         $text=@$_REQUEST['text'];
-        $type=@$_REQUEST['type'];
+        $type=mysqli_real_escape_string($con, @$_REQUEST['type']);
+        $attachs=mysqli_real_escape_string($con, $attachs);
         $sig=intval(@$_REQUEST['sig']);
         $posttime=date('Y-m-d');
         $replytime=date('Y-m-d H:i:s');
@@ -565,7 +567,8 @@
         $title=html_entity_decode($title);
         $text=html_entity_decode($text);
         $title=mysqli_real_escape_string($con, $title);
-        $type=@$_REQUEST['type'];
+        $type=mysqli_real_escape_string($con, @$_REQUEST['type']);
+        $attachs=mysqli_real_escape_string($con, $attachs);
         $text=mysqli_real_escape_string($con, $text);
 
         $text=search_replace_exec_at($con,$text,$bid,$tid,$pid,$username,$title);
@@ -573,7 +576,7 @@
         $statement="insert into posts (bid,tid,pid,title,author,text,ishtml,attachs,replytime,updatetime,sig,ip,type,lzl) values ($bid,$tid,$pid,'$title','$username','$text','YES','$attachs',$time,$time,$sig,'$ip','$type',0)";
         mysqli_query($con, $statement);
         if(mysqli_error($con)){
-            echo '<info><code>8</code><msg>statement:'.$statement."<br>error:".mysqli_error($con).'</msg></info></capu>';
+            echo '<info><code>8</code><msg>error:'.mysqli_error($con).'</msg></info></capu>';
             exit;
         }
         if($attachs){
@@ -637,7 +640,8 @@
 
         $title=@$_REQUEST['title'];
         $text=@$_REQUEST['text'];
-        $type=$_REQUEST['type'];
+        $type=mysqli_real_escape_string($con, $_REQUEST['type']);
+        $attachs=mysqli_real_escape_string($con, $attachs);
         $sig=intval(@$_REQUEST['sig']);
         $title=html_entity_decode($title);
         $text=html_entity_decode($text);
@@ -1163,6 +1167,7 @@
     }
 
     function recentpost($con,$view){
+        $view=mysqli_real_escape_string($con, $view);
         // $results=mysqli_query($con, "select * from threads where author='$view' order by timestamp desc limit 0,10");
         $results=mysqli_query($con, "select bid,tid,pid,title,author,replytime as timestamp from posts where author='$view' and pid=1 order by replytime desc limit 0,10");
         echo '<capu>';
@@ -1179,6 +1184,7 @@
         echo '</capu>';
     }
     function recentreply($con,$view){
+        $view=mysqli_real_escape_string($con, $view);
         $results=mysqli_query($con, "select title, bid, tid, pid, updatetime from posts where author='$view' order by updatetime desc limit 0,10");
         echo '<capu>';
         echo "<info><nowuser></nowuser></info>\n";
@@ -1275,7 +1281,7 @@
     function rights($con,$bid,$token){
         $a=getrights($con,$bid,$token);
         echo("<capu><info>");
-        echo("<username>".$a[1]."</username>");
+        echo("<username><![CDATA[".$a[1]."]]></username>");
         echo("<code>".$a[0]."</code>");
         echo("</info></capu>");
     }
@@ -1334,7 +1340,7 @@ while ($res=mysqli_fetch_array($result)) {
         $statement="insert into attachments (name,path,size,uploader,price,auth,time) values('$filename','$path',$size,'$user',$price,$auth,".time().")";
         mysqli_query($con, $statement);
         if(!mysqli_error($con)) report(0, mysqli_insert_id($con));
-        else report(2, $statement."<br>error:".mysqli_error($con));
+        else report(2, "error:".mysqli_error($con));
     }
     function report($code,$msg){
         echo("<capu><info><code>$code</code><msg>$msg</msg></info></capu>");
@@ -1849,7 +1855,8 @@ while ($res=mysqli_fetch_array($result)) {
         if(strtoupper($result['password'])!=strtoupper($oldpsd)){
             report(2,"旧密码不正确，请重新输入");
         }
-        $newpsd=@$_REQUEST['new'];
+        $newpsd=mysqli_real_escape_string($con, @$_REQUEST['new']);
+        $newpsd=strtoupper($newpsd);
 
         $newtoken=md5($oldpsd.$nowtime);
         $statement="update userinfo set password='$newpsd',token='$newtoken' where token='$token' limit 1";
