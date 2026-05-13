@@ -1,0 +1,70 @@
+api/jiekouapi.php
+  019ca29aa6189951 1845 gitai:{"mixed_line_ranges":[{"Single":1845}],"operations":[]}
+  d616e5c33b4e9cb8 1846
+  41a68f5ecb68be25 44
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.3.4",
+  "base_commit_sha": "0c40d8d68c1786c85f9fb10f9e1f66c2c35eb277",
+  "prompts": {
+    "019ca29aa6189951": {
+      "agent_id": {
+        "tool": "trae-cue",
+        "id": "ai_tab-icr-9f676fa7-1e45-492f-a539-5274f760ecc7",
+        "model": "default"
+      },
+      "human_author": "zhanghaodan.2024 <zhanghaodan.2024@bytedance.com>",
+      "messages": [],
+      "total_additions": 1,
+      "total_deletions": 1,
+      "accepted_lines": 0,
+      "overriden_lines": 1
+    },
+    "41a68f5ecb68be25": {
+      "agent_id": {
+        "tool": "trae-cue",
+        "id": "ai_tab-icr-a04d3e07-86f7-4986-b71d-2ea7b6cb3c1d",
+        "model": "default"
+      },
+      "human_author": "zhanghaodan.2024 <zhanghaodan.2024@bytedance.com>",
+      "messages": [],
+      "total_additions": 1,
+      "total_deletions": 1,
+      "accepted_lines": 1,
+      "overriden_lines": 0
+    },
+    "d616e5c33b4e9cb8": {
+      "agent_id": {
+        "tool": "trae-cue",
+        "id": "ai_tab-icr-8a6d190a-90f4-4fee-978a-225ac829e9f9",
+        "model": "default"
+      },
+      "human_author": "zhanghaodan.2024 <zhanghaodan.2024@bytedance.com>",
+      "messages": [],
+      "total_additions": 1,
+      "total_deletions": 1,
+      "accepted_lines": 1,
+      "overriden_lines": 0
+    }
+  },
+  "attestation_metadata": {
+    "api/jiekouapi.php": [
+      {
+        "hash": "019ca29aa6189951",
+        "line_ranges": [
+          {
+            "Single": 1845
+          }
+        ],
+        "mixed_line_ranges": [
+          {
+            "Single": 1845
+          }
+        ],
+        "operations": []
+      }
+    ]
+  },
+  "remote_transcripts": {}
+}
