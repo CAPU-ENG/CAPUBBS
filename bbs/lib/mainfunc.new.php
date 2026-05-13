@@ -12,13 +12,15 @@
     function checkUserAndSign($con, $ip, $token) {
         $GLOBALS['validtime']=60*60*24*7;
 
+        $token = mysqli_real_escape_string($con, $token);
+
         $nowtime=time();
         $time=time();
-        $statement="select username,star,rights,lastpost from userinfo 
+        $statement="select username,star,rights,lastpost from userinfo
             where token='$token' && $time-tokentime<={$GLOBALS['validtime']}";
         $results = mysqli_query($con, $statement);
         $res = mysqli_fetch_array($results, MYSQLI_ASSOC);
-        $username = $res['username'];
+        $username = is_array($res) ? $res['username'] : null;
 
         if ($username) {
             $today=date("Y-m-d");
@@ -66,6 +68,9 @@
         $GLOBALS['validtime']=60*60*24*7;
         $GLOBALS['attachroot']="../bbs/attachment/";
 
+        $token = mysqli_real_escape_string($con, $token);
+        $ip    = mysqli_real_escape_string($con, $ip);
+
         $user="";
         if ($token!="") {
             $nowtime=time();
@@ -92,7 +97,8 @@
             }
         }
         $today=date("Y-m-d");
-        $statement="insert ignore into username_view (username, date, bid, tid, ip) values ('$user', '$today', $bid, $tid, '$ip')";
+        $user_escaped = mysqli_real_escape_string($con, $user);
+        $statement="insert ignore into username_view (username, date, bid, tid, ip) values ('$user_escaped', '$today', $bid, $tid, '$ip')";
         mysqli_query($con, $statement);
         $start=($page-1)*12;
         if ($author!="")
