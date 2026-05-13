@@ -1,8 +1,45 @@
 <?php
+// Resolve routing key from posts array for api-routing config.
+// Used by both mainfunc() and client.php request().
+function _jiekoufunc_resolve_route_key($posts) {
+	$ask = isset($posts['ask']) ? $posts['ask'] : '';
+	if ($ask) {
+		return $ask;
+	}
+	if (isset($posts['view']) && $posts['view'] != '') return '__view';
+	if (intval(isset($posts['bid']) ? $posts['bid'] : 0) != 0) {
+		if (intval(isset($posts['tid']) ? $posts['tid'] : 0) != 0) return '__tid_default';
+		return '__bbs_default';
+	}
+	return '';
+}
+
+function _jiekoufunc_get_api_routing() {
+	static $routing = null;
+	if ($routing === null) {
+		$routing = require __DIR__.'/../../config/api-routing.php';
+	}
+	return $routing;
+}
+
 function mainfunc($posts,$debug=false){
+	// New direct-function-call path
+	if (!$debug) {
+		$route_key = _jiekoufunc_resolve_route_key($posts);
+		$routing = _jiekoufunc_get_api_routing();
+		$mode = isset($routing[$route_key]) ? $routing[$route_key] : 'old';
+		if ($mode === 'new') {
+			$con = dbconnect_mysqli();
+			require_once __DIR__.'/../../api/jiekoufunc.php';
+			$posts['ip'] = isset($_SERVER['REMOTE_ADDR']) ? $_SERVER['REMOTE_ADDR'] : '';
+			$posts['token'] = isset($_COOKIE['token']) ? $_COOKIE['token'] : '';
+			return jiekoufunc_dispatch($con, $posts);
+		}
+	}
+	// Old HTTP cURL path (unchanged)
 	$ip=$_SERVER["REMOTE_ADDR"];
 	@$token=$_COOKIE['token'];
-	$url="https://chexie.net/api/jiekouapi.php?ip=$ip&token=$token";
+	$url="http://localhost/api/jiekouapi.php?ip=$ip&token=$token";
 	if($debug) $url=$url."&debug=yes";
 	$rawstr= http($url,"POST",$posts);
 	if($debug) return $rawstr;

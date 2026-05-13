@@ -1,4 +1,8 @@
 <?php
+$GLOBALS['_client_php_loaded'] = true;
+require_once '../lib.php';
+require_once __DIR__.'/../config/api-routing.php';
+
     header('Content-type: application/xml');
     echo '<?xml version="1.0" encoding="UTF-8"?>';
     echo "\n";
@@ -40,7 +44,44 @@
         exit;
     }
 
+    // Resolve routing key from posts array (with function_exists guard
+    // in case mainfunc.php was also loaded).
+    if (!function_exists('_jiekoufunc_resolve_route_key')) {
+        function _jiekoufunc_resolve_route_key($posts) {
+            $ask = isset($posts['ask']) ? $posts['ask'] : '';
+            if ($ask) {
+                return $ask;
+            }
+            if (isset($posts['view']) && $posts['view'] != '') return '__view';
+            if (intval(isset($posts['bid']) ? $posts['bid'] : 0) != 0) {
+                if (intval(isset($posts['tid']) ? $posts['tid'] : 0) != 0) return '__tid_default';
+                return '__bbs_default';
+            }
+            return '';
+        }
+    }
+
+    function _jiekoufunc_get_api_routing_client() {
+        static $routing = null;
+        if ($routing === null) {
+            $routing = require __DIR__.'/../config/api-routing.php';
+        }
+        return $routing;
+    }
+
     function request($posts) {
+        // New direct-function-call path
+        $route_key = _jiekoufunc_resolve_route_key($posts);
+        $routing = _jiekoufunc_get_api_routing_client();
+        $mode = isset($routing[$route_key]) ? $routing[$route_key] : 'old';
+        if ($mode === 'new') {
+            $con = dbconnect_mysqli();
+            require_once __DIR__.'/jiekoufunc.php';
+            $posts['ip'] = isset($_SERVER['REMOTE_ADDR']) ? $_SERVER['REMOTE_ADDR'] : '';
+            $posts['token'] = isset($_POST['token']) ? $_POST['token'] : '';
+            return jiekoufunc_dispatch($con, $posts);
+        }
+        // Old HTTP cURL path (unchanged)
         $token=@$_POST['token'];
         $ip=$_SERVER['REMOTE_ADDR'];
         $url="https://chexie.net/api/jiekouapi.php?ip=$ip&token=$token";
