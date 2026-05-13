@@ -259,11 +259,11 @@ require_once __DIR__.'/../config/api-routing.php';
                 "attachs"=>$attachs
             ));
             $result=$result[0];
-            $result=intval($result['code']);
+            $code=intval($result['code']);
             echo '<capu><info><code>';
-            if ($result==0) echo 0;
-            else if ($result==1) echo -25;
-            else if ($result==2) echo 4;
+            if ($code==0) echo 0;
+            else if ($code==1) echo -25;
+            else if ($code==2) echo 4;
             else echo 6;
             echo '</code><msg>'.@$result['msg'].'</msg></info></capu>';
         }
