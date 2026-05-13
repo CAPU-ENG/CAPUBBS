@@ -84,7 +84,7 @@ require_once __DIR__.'/../config/api-routing.php';
         // Old HTTP cURL path (unchanged)
         $token=@$_POST['token'];
         $ip=$_SERVER['REMOTE_ADDR'];
-        $url="https://chexie.net/api/jiekouapi.php?ip=$ip&token=$token";
+        $url='https://'.CAPUBBS_HOST.'/api/jiekouapi.php'."?ip=$ip&token=$token";
         $rawstr= http($url,"POST",$posts);
         $xml=simplexml_load_string($rawstr, null, LIBXML_NOCDATA);
         return json_decode(json_encode($xml->xpath("info")),true);

@@ -1,4 +1,5 @@
 <?php
+require_once __DIR__.'/../../config.php';
 // Resolve routing key from posts array for api-routing config.
 // Used by both mainfunc() and client.php request().
 function _jiekoufunc_resolve_route_key($posts) {
@@ -39,7 +40,7 @@ function mainfunc($posts,$debug=false){
 	// Old HTTP cURL path (unchanged)
 	$ip=$_SERVER["REMOTE_ADDR"];
 	@$token=$_COOKIE['token'];
-	$url="http://localhost/api/jiekouapi.php?ip=$ip&token=$token";
+	$url='https://'.CAPUBBS_HOST.'/api/jiekouapi.php'."?ip=$ip&token=$token";
 	if($debug) $url=$url."&debug=yes";
 	$rawstr= http($url,"POST",$posts);
 	if($debug) return $rawstr;

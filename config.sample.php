@@ -21,3 +21,9 @@ define('CAPUBBS_DB_PASSWORD', 'database_password_here');
 
 /** The database hostname. */
 define('CAPUBBS_DB_HOSTNAME', 'localhost');
+
+/**
+ * Primary host name.  Change to 'chexie.net' in production.
+ * All API URLs and cookie domains are derived from this value.
+ */
+define('CAPUBBS_HOST', 'localhost');
