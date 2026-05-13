@@ -29,8 +29,11 @@
             if ($onlinetype=="web") $logininfo=$browser;
             if ($onlinetype=="android" || $onlinetype=="ios") $logininfo=$system;
 
+            $username = mysqli_real_escape_string($con, $username);
+            $ip       = mysqli_real_escape_string($con, $ip);
+
             if ($ip!="") {
-                $statement="insert into username_lastip (username, lastip) values ('$username', '$ip')";
+                $statement="insert ignore into username_lastip (username, lastip) values ('$username', '$ip')";
                 mysqli_query($con, $statement);
             }
     
@@ -59,19 +62,18 @@
         return $username;
     }
 
-    function getOnePage($con, $bid, $tid, $page, $see_lz, $ip, $token, $username) {
+    function getOnePage($con, $bid, $tid, $page, $see_lz, $ip, $token) {
         $GLOBALS['validtime']=60*60*24*7;
         $GLOBALS['attachroot']="../bbs/attachment/";
 
-        $nowuser="";
+        $user="";
         if ($token!="") {
             $nowtime=time();
             $statement="select username from userinfo where token='$token' && $nowtime-tokentime<={$GLOBALS['validtime']}";
             $result = mysqli_query($con, $statement);
-            $user="";
             while ($res=mysqli_fetch_array($result)) {
                 foreach ( $res as $key => $value ) {
-                    if ($key=="username") { $user=$value; $nowuser=$user;}
+                    if ($key=="username") { $user=$value;}
                 }
                 if ($ip!="")
                     $statement="update userinfo set tokentime=$nowtime, nowboard=$bid, lastip='$ip' where username='$user'";
@@ -90,7 +92,7 @@
             }
         }
         $today=date("Y-m-d");
-        $statement="insert into username_view (username, date, bid, tid, ip) values ('$username', '$today', $bid, $tid, '$ip')";
+        $statement="insert ignore into username_view (username, date, bid, tid, ip) values ('$user', '$today', $bid, $tid, '$ip')";
         mysqli_query($con, $statement);
         $start=($page-1)*12;
         if ($author!="")

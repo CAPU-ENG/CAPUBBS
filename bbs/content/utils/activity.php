@@ -1,7 +1,7 @@
 <?php
     $con = dbconnect_mysqli();
 	checkUserAndSign($con, $ip, $token);
-	$data = getOnePage($con, $bid, $tid, $page, $see_lz, $ip, $token, $username);
+	$data = getOnePage($con, $bid, $tid, $page, $see_lz, $ip, $token);
 	$tdata = getTidInfo($con, $bid, $tid);
     if(count($tdata)==0){
         $tdata=null;

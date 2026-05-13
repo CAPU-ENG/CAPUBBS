@@ -10,6 +10,9 @@
 	$see_lz=@$_GET['see_lz'];
 	$users=getuser();
 	$currentuser=$users['username'];
+	$ip = $_SERVER["REMOTE_ADDR"];
+	$token = @$_COOKIE['token'];
+
 	if(!$page) $page=1;
 	if(!$bid) $bid=1;
 	if(!$tid) $tid=1;
@@ -20,12 +23,10 @@
 		require "./utils/activity.php";
 		exit();
 	}
-	$ip = $_SERVER["REMOTE_ADDR"];
-	$token = $_SERVER["token"];
 
 	$con = dbconnect_mysqli();
 	checkUserAndSign($con, $ip, $token);
-	$data = getOnePage($con, $bid, $tid, $page, $see_lz, $ip, $token, $username);
+	$data = getOnePage($con, $bid, $tid, $page, $see_lz, $ip, $token);
 	$tdata = getTidInfo($con, $bid, $tid);
 	
 	$floordata="";
