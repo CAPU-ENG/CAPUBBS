@@ -58,15 +58,7 @@
 
         if ($username) {
             $today=date("Y-m-d");
-            // $onlinetype=@$_REQUEST['onlinetype'];
-            // $browser=@$_REQUEST['browser'];
-            // $system=@$_REQUEST['system'];
-            // $logininfo="";
-            // if ($onlinetype=="web") $logininfo=$browser;
-            // if ($onlinetype=="android" || $onlinetype=="ios") $logininfo=$system;
-    
 
-    
             if ($ip!="") $statement="update userinfo set tokentime=$nowtime, token='$token', lastip='$ip',lastdate='$today' where username='$username'";
             else $statement="update userinfo set tokentime=$nowtime, token='$token', lastdate='$today' where username='$username'";
 
@@ -135,7 +127,6 @@
     else if ($view!="") view_user($con,$view);
     else if ($bid!=0) {
         $page=@$_REQUEST['p'];
-        $nowuser="";
         if ($token!="") {
             $nowtime=time();
             $statement="select username from userinfo where token='$token' && $nowtime<=tokentime+{$GLOBALS['validtime']}";
@@ -143,7 +134,7 @@
             $user="";
             while ($res=mysqli_fetch_array($result)) {
                 foreach ( $res as $key => $value ) {
-                    if ($key=="username") { $user=$value; $nowuser=$user;}
+                    if ($key=="username") { $user=$value; }
                 }
                 if ($ip!="") $statement="update userinfo set tokentime=$nowtime, nowboard=$bid, lastip='$ip' where username='$user'";
                 else $statement="update userinfo set tokentime=$nowtime, nowboard=$bid where username='$user'";
@@ -206,7 +197,7 @@
         $results=mysqli_query($con, $statement);
         if (mysqli_num_rows($results)!=0) {
             $result=mysqli_fetch_row($results);
-            $author=$result[0];
+            $author=mysqli_real_escape_string($con, $result[0]);
         }
         if ($author=="") {
             echo '<capu><info><num>0</num></info></capu>';
@@ -1312,21 +1303,11 @@
         }
         $statement="select username,score,star from userinfo where token='$token' && $nowtime<=tokentime+{$GLOBALS['validtime']}";
         $result=mysqli_query($con, $statement);
-        $user="";
         return mysqli_fetch_array($result);
-        /*
-while ($res=mysqli_fetch_array($result)) {
-            foreach ( $res as $key => $value ) {
-                if ($key=="username") { $user=$value; $nowuser=$user;}
-            }
-        }
-        return $user;
-*/
     }
     function attach($con,$token,$path,$filename,$price,$auth){
         $user=token2user($con,$token);
         if(!$user) report(3,"unauthorized:$token");
-        // if(intval($user['star'])<3&&intval($user['rights'])<1) report(4,"not enough star");
         $user=$user['username'];
         if(strstr($path, "'")!=""){
             report(1,"illegal");
@@ -1619,6 +1600,11 @@ while ($res=mysqli_fetch_array($result)) {
 
     function insertmsg($con,$from,$to,$text,$bid,$tid,$pid,$ruser,$rmsg){
         $time=time();
+        $from=mysqli_real_escape_string($con, $from);
+        $to=mysqli_real_escape_string($con, $to);
+        $text=mysqli_real_escape_string($con, $text);
+        $ruser=mysqli_real_escape_string($con, $ruser);
+        $rmsg=mysqli_real_escape_string($con, $rmsg);
         $statement="insert into messages (sender,receiver,text,time,rbid,rtid,rpid,ruser,rmsg) values('$from','$to','$text',$time,$bid,$tid,$pid,'$ruser','$rmsg')";
         if(mysqli_query($con, $statement)){
             $statement="update userinfo set newmsg=newmsg+1 where username='$to' limit 1";
@@ -1648,43 +1634,6 @@ while ($res=mysqli_fetch_array($result)) {
         return $text;
     }
 
-    function msgold($con,$token){
-        $user=token2user($con,$token);
-        if(!$user){
-            report(1,"尚未登录");
-        }
-        $username=$user['username'];
-
-        echo("<ilaw>");
-        $statement="select * from messages where receiver='$username' and hasread=0 order by time desc";
-        $result=mysqli_query($con, $statement);
-        echo(mysqli_error($con));
-        while ($res=mysqli_fetch_array($result)) {
-            echo "<info>\n";
-            foreach ( $res as $key => $value ) {
-                if (is_long($key)) continue;
-                echo '<'.$key.'>'.trans($value).'</'.$key.">\n";
-            }
-            echo "</info>\n";
-        }
-        $statement="select * from messages where receiver='$username' and hasread=1 order by time desc limit 10 ";
-        $result=mysqli_query($con, $statement);
-        while ($res=mysqli_fetch_array($result)) {
-            echo "<info>\n";
-            foreach ( $res as $key => $value ) {
-                if (is_long($key)) continue;
-                echo '<'.$key.'>'.trans($value).'</'.$key.">\n";
-            }
-            echo "</info>\n";
-        }
-        echo("</ilaw>");
-
-        $statement="update messages set hasread=1 where receiver='$username' and hasread=0";
-        mysqli_query($con, $statement);
-        $statement="update userinfo set newmsg=0 where username='$username' limit 1";
-        mysqli_query($con, $statement);
-    }
-
     function comp($a,$b){
         if (intval($a[1])>intval($b[1])){
             return -1;
@@ -1701,7 +1650,7 @@ while ($res=mysqli_fetch_array($result)) {
             echo("<capu><info><code>1</code><msg>尚未登录</msg></info></capu>");
             return ;
         }
-        $username=$user['username'];
+        $username=mysqli_real_escape_string($con, $user['username']);
         $p=@$_REQUEST['p'];
 
         $result=mysqli_fetch_array(mysqli_query($con, "select count(1) as c from messages where receiver='$username' and sender='system' and hasread=0"));
@@ -1788,7 +1737,7 @@ while ($res=mysqli_fetch_array($result)) {
                 $one=$ans[$i];
                 echo("<info>");
                 $sender=$one[0];
-                if(!@$one[2]&&@$one[2]!="0"){
+                if(empty($one[2]) && $one[2] !== "0"){
                     $hasread="";
                 }else{
                     $hasread=$one[2];
@@ -1799,7 +1748,7 @@ while ($res=mysqli_fetch_array($result)) {
                 $text=$textresult[0];
                 $time=$textresult[1];
                 $shrink=@$_REQUEST['shrink'];
-                if(!$shrink=="no"&&mb_strlen($text,"utf-8")>30){
+                if($shrink!="no"&&mb_strlen($text,"utf-8")>30){
                     $text=mb_substr($text, 0,30,"utf-8")."......";
                 }
                 $tresult=mysqli_fetch_array(mysqli_query($con, "select  count(1) as c from messages where  (receiver='$username' and sender='$sender') or (receiver='$sender' and sender='$username')"));
@@ -1879,7 +1828,7 @@ while ($res=mysqli_fetch_array($result)) {
         $todays=mysqli_query($con, $statement);
         echo '<capu>';
         while (($res=mysqli_fetch_row($todays))!=null) {
-            echo '<info><username><![CDATA['.$res[0].']]></username></info>'."\n";
+            echo '<info><username>'.trans($res[0]).'</username></info>'."\n";
         }
         echo '</capu>';
         exit;
@@ -1909,7 +1858,6 @@ while ($res=mysqli_fetch_array($result)) {
                 $x=0;
                 if (@$value[$i]) $x=$value[$i];
                 echo '<data><day>'.$i.'</day><number>'.$x.'</number></data>'."\n";
-                //echo $x." ";
             }
             echo '</info>';
         }
@@ -1929,8 +1877,7 @@ while ($res=mysqli_fetch_array($result)) {
             $username=$res[0];
             $sign=intval($res[1]);
             if ($sign!=$last) $j=$i;
-            //echo "#$j: $username   ($sign)\n";
-            echo "<number>$j</number><username><![CDATA[$username]]></username><times>$sign</times>";
+            echo "<number>$j</number><username>".trans($username)."</username><times>$sign</times>";
             echo '</info>';
             $last=$sign;
             $i++;
@@ -2015,28 +1962,6 @@ while ($res=mysqli_fetch_array($result)) {
         exit;
     }
 
-    function checkinschool($ip) {
-        $ips=explode(".",$ip);
-        if ($ips[0]=="10") return true;
-        if ($ips[0]=="59" && $ips[1]=="108") return true;
-        if ($ips[0]=="61" && $ips[1]=="50" && $ips[2]=="221") return true;
-        if ($ips[0]=="111" && $ips[1]=="205") return true;
-        if ($ips[0]=="115" && $ips[1]=="27") return true;
-        if ($ips[0]=="124" && $ips[1]=="17" && $ips[2]=="17") return true;
-        if ($ips[0]=="124" && $ips[1]=="17" && $ips[2]=="18") return true;
-        if ($ips[0]=="162" && $ips[1]=="105") return true;
-        if ($ips[0]=="202" && $ips[1]=="112") return true;
-        if ($ips[0]=="211" && $ips[1]=="71") return true;
-        if ($ips[0]=="211" && $ips[1]=="82") return true;
-        if ($ips[0]=="222" && $ips[1]=="28") return true;
-        if ($ips[0]=="222" && $ips[1]=="29") return true;
-        if ($ips[0]=="218" && $ips[1]=="249") return true;
-        if ($ips[0]=="88" && $ips[1]=="12" && $ips[2]=="242") return true;
-        if ($ips[0]=="127" && $ips[1]=="0" && $ips[2]=="0" && $ips[3]=="1") return true;
-        if ($ips[0]=="2001" && $ips[1]=="da8" && $ips[2]=="201") return true;
-        return false;
-    }
-
     function checkDelayTime($time, $star, $rights, $lastpost, $ip, $results) {
         /*
          * the checkDelayTime() function checks the delay time between
@@ -2047,8 +1972,7 @@ while ($res=mysqli_fetch_array($result)) {
             echo '<capu><info><code>1</code><msg>超时，请重新登录。</msg></info></capu>';
             exit;
         }
-        // $inschool = checkinschool($ip);
-        $inschool = true;       // 跳过对校内ip的判断逻辑
+        $inschool = true;
         $delta = 180;
         if ($inschool || $rights >= 1 || $star >= 3)
             $delta = 15;
