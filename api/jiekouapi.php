@@ -40,7 +40,9 @@
         echo("<capu><info><code>-1</code><msg>未知错误，请反馈给我们。</msg></info></capu>");
         exit;
     }
-    $token=mysqli_real_escape_string($con, @$_REQUEST['token']);
+    $token=@$_REQUEST['token'];
+    if ($token == null) $token="";
+    $token=mysqli_real_escape_string($con, $token);
     $ip=@$_REQUEST['ip'];
     $view=@$_REQUEST['view'];
 
@@ -1840,6 +1842,8 @@
             if ($m<10) $m="0".$m;
             $date=$res['year']."-".$m;
             $d=$res['day'];
+            if (!isset($datas[$date])) $datas[$date]=array();
+            if (!isset($datas[$date][$d])) $datas[$date][$d]=0;
             $datas[$date][$d]=intval($datas[$date][$d])+1;
         }
         echo '<capu>';
