@@ -193,6 +193,13 @@
         return "<![CDATA[".$data."]]>";
     }
 
+    // 过滤 XML 1.0 非法控制字符（即使在 CDATA 内也非法）。
+    // XML 1.0 仅允许: 0x09 (tab), 0x0A (LF), 0x0D (CR)
+    function sanitize_xml($str) {
+        if ($str === null || $str === '') return $str;
+        return preg_replace('/[\x00-\x08\x0B\x0C\x0E-\x1F]/', '', $str);
+    }
+
     function getlznum($con,$bid,$tid) {
         $author="";
         $statement="select author from threads where bid=$bid && tid=$tid";
@@ -395,13 +402,13 @@
         $time=time();
         $date=date("Y-m-d");
         $token=md5($username.$time);
-        $sig1=mysqli_real_escape_string($con, $sig1);
-        $sig2=mysqli_real_escape_string($con, $sig2);
-        $sig3=mysqli_real_escape_string($con, $sig3);
-        $place=mysqli_real_escape_string($con, $place);
-        $hobby=mysqli_real_escape_string($con, $hobby);
-        $intro=mysqli_real_escape_string($con, $intro);
-        $mail=mysqli_real_escape_string($con, $mail);
+        $sig1=mysqli_real_escape_string($con, sanitize_xml($sig1));
+        $sig2=mysqli_real_escape_string($con, sanitize_xml($sig2));
+        $sig3=mysqli_real_escape_string($con, sanitize_xml($sig3));
+        $place=mysqli_real_escape_string($con, sanitize_xml($place));
+        $hobby=mysqli_real_escape_string($con, sanitize_xml($hobby));
+        $intro=mysqli_real_escape_string($con, sanitize_xml($intro));
+        $mail=mysqli_real_escape_string($con, sanitize_xml($mail));
 
         $onlinetype=mysqli_real_escape_string($con, @$_REQUEST['onlinetype']);
         $browser=mysqli_real_escape_string($con, @$_REQUEST['browser']);
@@ -428,16 +435,16 @@
         if (!$a) {echo '<capu><info><code>1</code><msg>超时，请重新登录。</msg></info></capu>';exit;}
         $username_raw = $a['username'];
         $username=mysqli_real_escape_string($con, $username_raw);
-        $sex=mysqli_real_escape_string($con, @$_REQUEST['sex']);
-        $icon=mysqli_real_escape_string($con, @$_REQUEST['icon']);
-        $qq=mysqli_real_escape_string($con, @$_REQUEST['qq']);
-        $mail=mysqli_real_escape_string($con, @$_REQUEST['mail']);
-        $place=mysqli_real_escape_string($con, @$_REQUEST['place']);
-        $hobby=mysqli_real_escape_string($con, @$_REQUEST['hobby']);
-        $sig1=mysqli_real_escape_string($con, @$_REQUEST['sig1']);
-        $sig2=mysqli_real_escape_string($con, @$_REQUEST['sig2']);
-        $sig3=mysqli_real_escape_string($con, @$_REQUEST['sig3']);
-        $intro=mysqli_real_escape_string($con, @$_REQUEST['intro']);
+        $sex=mysqli_real_escape_string($con, sanitize_xml(@$_REQUEST['sex']));
+        $icon=mysqli_real_escape_string($con, sanitize_xml(@$_REQUEST['icon']));
+        $qq=mysqli_real_escape_string($con, sanitize_xml(@$_REQUEST['qq']));
+        $mail=mysqli_real_escape_string($con, sanitize_xml(@$_REQUEST['mail']));
+        $place=mysqli_real_escape_string($con, sanitize_xml(@$_REQUEST['place']));
+        $hobby=mysqli_real_escape_string($con, sanitize_xml(@$_REQUEST['hobby']));
+        $sig1=mysqli_real_escape_string($con, sanitize_xml(@$_REQUEST['sig1']));
+        $sig2=mysqli_real_escape_string($con, sanitize_xml(@$_REQUEST['sig2']));
+        $sig3=mysqli_real_escape_string($con, sanitize_xml(@$_REQUEST['sig3']));
+        $intro=mysqli_real_escape_string($con, sanitize_xml(@$_REQUEST['intro']));
         $statement="update userinfo set tokentime=$time, sex='$sex'," .
                        "lastip='$ip', icon='$icon', mail='$mail', qq='$qq', intro='$intro', place='$place'," .
                        "hobby='$hobby', sig1='$sig1', sig2='$sig2', sig3='$sig3' where username='$username'";
@@ -493,6 +500,8 @@
         $replytime=date('Y-m-d H:i:s');
         $title=html_entity_decode($title);
         $text=html_entity_decode($text);
+        $title=sanitize_xml($title);
+        $text=sanitize_xml($text);
         $title=mysqli_real_escape_string($con, $title);
         $text=mysqli_real_escape_string($con, $text);
         $text=search_replace_exec_at($con,$text,$bid,$tid,1,$username,$title);
@@ -563,6 +572,8 @@
         $replytime=date('Y-m-d H:i:s');
         $title=html_entity_decode($title);
         $text=html_entity_decode($text);
+        $title=sanitize_xml($title);
+        $text=sanitize_xml($text);
         $title=mysqli_real_escape_string($con, $title);
         $type=mysqli_real_escape_string($con, @$_REQUEST['type']);
         $attachs=mysqli_real_escape_string($con, $attachs);
@@ -642,6 +653,8 @@
         $sig=intval(@$_REQUEST['sig']);
         $title=html_entity_decode($title);
         $text=html_entity_decode($text);
+        $title=sanitize_xml($title);
+        $text=sanitize_xml($text);
         $title=mysqli_real_escape_string($con, $title);
         $text=mysqli_real_escape_string($con, $text);
         $statement="update posts set title='$title', author='$username', text='$text', ishtml='YES', sig=$sig, ip='$ip', type='$type', attachs='$attachs', updatetime=$time where bid=$bid && tid=$tid && pid=$pid";
@@ -971,6 +984,7 @@
 
             if (mb_strlen($text,'utf-8')>=503) $text=mb_substr($text,0,500,'utf-8')."...";
 
+            $text=sanitize_xml($text);
             $text_mysqli_escaped=mysqli_real_escape_string($con, $text);
 
             $statement="insert into lzl (fid,author,text,time) values ($fid, '$username', '$text_mysqli_escaped', $replytime)";
@@ -1132,8 +1146,8 @@
             echo '<code>0</code>';
             mysqli_query($con, "alter table capubbs.mainpage order by number");
         }else if ($method == "add") {
-            $title = mysqli_real_escape_string($con, @$_REQUEST['text']);
-            $url = mysqli_real_escape_string($con, @$_REQUEST['url']);
+            $title = mysqli_real_escape_string($con, sanitize_xml(@$_REQUEST['text']));
+            $url = mysqli_real_escape_string($con, sanitize_xml(@$_REQUEST['url']));
             if (strlen($title) == 0) {
                 echo '<code>-1</code><msg>您未填写公告内容！</msg></info></capu>';
                 exit;
@@ -1311,6 +1325,7 @@
             report(1,"illegal");
         }
         $filename=str_replace("&", "&amp;", $filename);
+        $filename=sanitize_xml($filename);
         $filename=mysqli_real_escape_string($con, $filename);
         $size=filesize("{$GLOBALS['attachroot']}".$path);
         $statement="insert into attachments (name,path,size,uploader,price,auth,time) values('$filename','$path',$size,'$user',$price,$auth,".time().")";
@@ -1563,6 +1578,7 @@
             report(1,"尚未登录");
         }
         $sender=$user['username'];
+        $text=sanitize_xml($text);
         $text=mysqli_real_escape_string($con, $text);
         $to=mysqli_real_escape_string($con, $to);
         $statement="select username from userinfo where username='$to'";
@@ -1583,6 +1599,7 @@
         if ($rights!=4) {echo '<capu><info><code>1</code><msg>权限不足</msg></info></capu>';exit;}
         $statement="select username from userinfo";
         $results=mysqli_query($con, $statement);
+        $text=sanitize_xml($text);
         $text=mysqli_real_escape_string($con, $text);
         while ($res=mysqli_fetch_row($results)) {
             $user=$res[0];
@@ -1595,11 +1612,11 @@
 
     function insertmsg($con,$from,$to,$text,$bid,$tid,$pid,$ruser,$rmsg){
         $time=time();
-        $from=mysqli_real_escape_string($con, $from);
-        $to=mysqli_real_escape_string($con, $to);
-        $text=mysqli_real_escape_string($con, $text);
-        $ruser=mysqli_real_escape_string($con, $ruser);
-        $rmsg=mysqli_real_escape_string($con, $rmsg);
+        $from=mysqli_real_escape_string($con, sanitize_xml($from));
+        $to=mysqli_real_escape_string($con, sanitize_xml($to));
+        $text=mysqli_real_escape_string($con, sanitize_xml($text));
+        $ruser=mysqli_real_escape_string($con, sanitize_xml($ruser));
+        $rmsg=mysqli_real_escape_string($con, sanitize_xml($rmsg));
         $statement="insert into messages (sender,receiver,text,time,rbid,rtid,rpid,ruser,rmsg) values('$from','$to','$text',$time,$bid,$tid,$pid,'$ruser','$rmsg')";
         if(mysqli_query($con, $statement)){
             $statement="update userinfo set newmsg=newmsg+1 where username='$to' limit 1";
