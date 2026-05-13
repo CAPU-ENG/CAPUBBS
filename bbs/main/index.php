@@ -748,40 +748,6 @@ function doreply(){
 }
 
 
-function insertHTML(html){ 
-	var dthis=document.getElementById("edi_content");
-	var sel, range; 
-	if (window.getSelection){ 
-		// IE9 and non-IE 
-		dthis.focus();
-		sel = window.getSelection(); 
-		if (sel.getRangeAt && sel.rangeCount) { 
-			range = sel.getRangeAt(0); 
-			range.deleteContents(); 
-			var el = document.createElement('div'); 
-			el.innerHTML = html; 
-			var frag = document.createDocumentFragment(), node, lastNode; 
-			while ( (node = el.firstChild) ){ 
-				lastNode = frag.appendChild(node); 
-			}
-			range.insertNode(frag); 
-			if (lastNode) { 
-				range = range.cloneRange(); 
-				range.setStartAfter(lastNode); 
-				range.collapse(true); 
-				sel.removeAllRanges(); 
-				sel.addRange(range); 
-			} 
-		} 
-	}else if (document.selection && document.selection.type !='Control') { 
-		dthis.focus(); //在非标准浏览器中 要先让你需要插入html的div 获得焦点 
-		ierange= document.selection.createRange();//获取光标位置 
-		ierange.pasteHTML(html); //在光标位置插入html 如果只是插入text 则就是fus.text="..." 
-		dthis.focus(); 
-	} 
-} 
-
-
 function deltid(tid) {
 	if (confirm("你确定要删除这个主题嘛？")) {
 		//window.location="../delete/?ask=deltid&bid="+bid+"&tid="+tid+"&p="+page;
