@@ -808,18 +808,18 @@ function _jiekoufunc_get_api_routing_client() {
         }
         else {
             for ($i=0;$i<$num;$i++) {
-                $text=$content[$i]['text'];
+                $text=isset($content[$i]['text'])?$content[$i]['text']:'';
                 if (mb_strlen($text,'utf-8')>=50)
                     $text=mb_substr($text,0,50,'utf-8')."...";
                 echo "<info>";
                 echo "<bid>".$content[$i]['bid']."</bid>\n";
                 echo "<tid>".$content[$i]['tid']."</tid>\n";
                 echo "<floor>".$content[$i]['pid']."</floor>\n";
-                echo "<fid>".$content[$i]['fid']."</fid>\n";
+                echo "<fid>".@$content[$i]['fid']."</fid>\n";
                 echo "<author><![CDATA[".$content[$i]['author']."]]></author>\n";
                 echo "<title><![CDATA[".$content[$i]['title']."]]></title>\n";
                 echo "<text><![CDATA[".$text."]]></text>\n";
-                echo "<lzl>".$content[$i]['lzl']."</lzl>\n";
+                echo "<lzl>".@$content[$i]['lzl']."</lzl>\n";
                 echo "<time>".date("Y-m-d H:i:s",$content[$i]['updatetime'])."</time>";
                 echo "</info>";
             }
