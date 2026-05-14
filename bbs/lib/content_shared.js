@@ -475,3 +475,15 @@ function editorBlur() {
         myNicEditor.instanceById('edi_content').setContent(editorPlaceholder);
     }
 }
+
+function validateMultiChoice($form) {
+    var valid = true;
+    $form.find('div[data-required]:has(input[type="checkbox"])').each(function() {
+        if ($(this).find('input[type="checkbox"]:checked').length === 0) {
+            alert("请至少选择一项");
+            valid = false;
+            return false;
+        }
+    });
+    return valid;
+}
