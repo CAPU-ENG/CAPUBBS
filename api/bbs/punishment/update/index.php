@@ -43,8 +43,9 @@ if (is_null($punishment_id)) {
         $end_date = mysqli_real_escape_string($con, $end_date);
         $statement = "update punishment set is_end=1, end_date='$end_date' where id=$punishment_id";
     } else if ($action == 'cancel_finish') {
-        $punishment_id = intval($_POST['end_date']);
         $statement = "update punishment set is_end=0 where id=$punishment_id";
+    } else if ($action == 'delete') {
+        $statement = "update punishment set is_deleted=1 where id=$punishment_id";
     } else {
         $statement = "";
     }

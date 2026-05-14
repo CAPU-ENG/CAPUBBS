@@ -17,8 +17,11 @@ if (is_null($year)) {
 } else {
     $end_year = intval($year);
     $start_year = $end_year - 1;
+    $last_year = $start_year - 1;
     $year_start_date = "$start_year-09-01";
     $year_end_date = "$end_year-08-31";
+    $last_year_start_date = "$last_year-09-01";
+    $last_year_end_date = "$start_year-08-31";
 
     if ($history == 0) {
         // history=1，返回开始时间位于{year-1}-09-01至{year}-08-31的罚跑
@@ -35,12 +38,12 @@ if (is_null($year)) {
         $statement = "select id, username, name, reason, distance, addition, start_date, end_date, is_end from punishment 
         where
             is_deleted = 0
-            and start_date < '$year_start_date'
+            and (start_date >= '$last_year_start_date' and start_date <= '$last_year_end_date')
             and (
                 is_end = 0 
                 or (
                     is_end = 1
-                    and end_date >= '$year_start_date' and end_date <= '$year_end_date'
+                    and end_date >= '$year_start_date'
                 )
             )
         order by start_date, id
