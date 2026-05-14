@@ -1,5 +1,6 @@
 <?php
 require_once __DIR__.'/../../config.php';
+require_once __DIR__.'/../../lib.php';
 // Resolve routing key from posts array for api-routing config.
 // Used by both mainfunc() and client.php request().
 function _jiekoufunc_resolve_route_key($posts) {
