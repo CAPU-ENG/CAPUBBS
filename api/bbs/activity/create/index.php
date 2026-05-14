@@ -5,7 +5,7 @@ require_once '../../../../bbs/content/utils/activityService.php';
 
 $con = dbconnect_mysqli();
 $user = checkuser_con($con);
-$username = $user["username"] ?? '';
+$username = isset($user["username"]) ? $user["username"] : '';
 
 if ($username == "") {
     header('Content-Type:application/json; charset=utf-8');
@@ -45,7 +45,7 @@ foreach ($options as $option) {
     }
     $type_id = intval($option['type_id']);
     if ($type_id === 1 || $type_id === 3) {
-        $cases = $option['cases'] ?? array();
+        $cases = isset($option['cases']) ? $option['cases'] : array();
         $validCases = array();
         foreach ($cases as $case) {
             if (!empty($case['case_name'])) {
