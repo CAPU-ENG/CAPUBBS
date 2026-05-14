@@ -63,7 +63,7 @@ a:hover#top{font-weight:bold}
 		echo '<td>'.$board.'</td>';
 		$type=$nowonlines[$i]['onlinetype'];
 		if ($type=="web") {
-			$logininfo=$nowonlines[$i]['logininfo'];
+			$logininfo=strval($nowonlines[$i]['logininfo']);
 			$infos=getBrowser($logininfo);
 			echo '<td>web版登录</td>';
 			$systeminfo=$infos['platform'];
@@ -71,13 +71,13 @@ a:hover#top{font-weight:bold}
 			if ($cansee) echo "<td>$systeminfo<br>$browserinfo</td>";
 		}
 		else if ($type=="android") {
-			$logininfo=$nowonlines[$i]['logininfo'];
+			$logininfo=strval($nowonlines[$i]['logininfo']);
 			$infos=getdeviceinfo($logininfo);
 			echo '<td>Android客户端登录</td>';
 			if ($cansee) echo "<td>".$infos['device']."<br>Android ".$infos['version']."</td>";
 		}
 		else if ($type=="ios") {
-			$logininfo=$nowonlines[$i]['logininfo'];
+			$logininfo=strval($nowonlines[$i]['logininfo']);
 			$infos=getdeviceinfo($logininfo);
 			echo '<td>iOS客户端登录</td>';
 			if ($cansee) echo "<td>".$infos['device']."<br>iOS ".$infos['version']."</td>";
