@@ -9,7 +9,7 @@
  * PHP 5.6 & PHP 8 compatible.  MySQL 5.7 / 8.0 / 9.0+ compatible.
  */
 
-require_once '../lib.php';
+require_once __DIR__.'/../lib.php';
 
 $GLOBALS['validtime']  = 60 * 60 * 24 * 7;   // 7 days
 $GLOBALS['attachroot'] = "../bbs/attachment/";
