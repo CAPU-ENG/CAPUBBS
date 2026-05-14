@@ -1,5 +1,5 @@
 <?php
-    require_once '../lib.php';
+    require_once __DIR__.'/../lib.php';
 
     if(false&&@$_REQUEST['debug']=='yes'){
         echo("GET:<br>");

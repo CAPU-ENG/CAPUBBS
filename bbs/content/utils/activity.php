@@ -1,4 +1,8 @@
 <?php
+    require_once __DIR__."/../../lib.php";
+    require_once __DIR__."/../lib/mainfunc.php";
+    require_once __DIR__."/../lib/mainfunc.new.php";
+    require_once __DIR__."/activityService.php";
     require_once __DIR__."/../../lib/content_shared.php";
     $con = dbconnect_mysqli();
 	checkUserAndSign($con, $ip, $token);
