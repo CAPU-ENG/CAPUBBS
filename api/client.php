@@ -580,7 +580,7 @@ function _jiekoufunc_get_api_routing_client() {
         $token = $_REQUEST['token'];
         $type = $_REQUEST['type'];
         $page = $_REQUEST['page'];
-        $chatter = $_REQUEST['chatter'];
+        $chatter = isset($_REQUEST['chatter']) ? $_REQUEST['chatter'] : "";
         
         $id = request(array("ask"=>"msg", "token"=>$token, "type"=>$type, "p"=>$page, "to"=>$chatter, "shrink"=>"no"));
         
