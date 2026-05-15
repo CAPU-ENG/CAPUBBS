@@ -198,14 +198,18 @@ function _jiekoufunc_get_api_routing_client() {
         echo "<icon><![CDATA[".$id[0]['icon']."]]></icon>";
         echo "<star><![CDATA[".$id[0]['star']."]]></star>";
         echo "<title><![CDATA[".$title."]]></title>\n";
+        if ($content['sig'] >= 1 && $content['sig'] <= 3)
+            $sig = $id[0]['sig'.@$content['sig']];
+        else
+            $sig = "";
         if ($raw) {
             echo "<textraw><![CDATA[".@$content['text']."]]></textraw>\n";
             echo "<ishtml>".@$content['ishtml']."</ishtml>\n";
             echo "<signum>".@$content['sig']."</signum>\n";
-            echo "<sigraw><![CDATA[".$id[0]['sig'.@$content['sig']]."]]></sigraw>\n";
+            echo "<sigraw><![CDATA[".$sig."]]></sigraw>\n";
         } else {
             echo "<text><![CDATA[".translate(@$content['text'],@$content['ishtml'],false)."]]></text>\n";
-            echo "<sig><![CDATA[".translate($id[0]['sig'.@$content['sig']],false,true)."]]></sig>\n";
+            echo "<sig><![CDATA[".translate($sig,false,true)."]]></sig>\n";
         }
         if($raw&&$content["attachs"]){
             $attachs=explode(" ", $content["attachs"]);
@@ -551,7 +555,8 @@ function _jiekoufunc_get_api_routing_client() {
             echo '<info><text><![CDATA['.$hot['title'].']]></text>';
             echo '<bid>'.$hot['bid'].'</bid><tid>'.$hot['tid'].'</tid><pid>';
             $num=intval($hot['reply']);
-            echo $num.'</pid><replyer><![CDATA['.$hot['replyer'].']]></replyer>';
+            $replyer = is_array($hot['replyer']) ? '' : $hot['replyer'];
+            echo $num.'</pid><replyer><![CDATA['.$replyer.']]></replyer>';
             echo '<author><![CDATA['.$hot['author'].']]></author><time>';
             $time=date("Y-m-d H:i:s",$hot['timestamp']);
             echo $time.'</time></info>';
