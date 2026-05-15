@@ -958,7 +958,7 @@ function _jiekoufunc_get_api_routing_client() {
 
 
     function translate($raw,$ishtml,$issig){
-        $html=$raw;
+        $html=is_array($raw)?"":$raw;
         if(!$ishtml){
             $html=htmlspecialchars_decode($html);
         }
