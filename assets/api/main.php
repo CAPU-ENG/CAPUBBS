@@ -1,6 +1,6 @@
 <?php
 	require_once 'sendsms.php';
-	require_once 'sendmail.php';
+	
 	require_once 'captcha.php';
 	require_once '../../lib.php';
 	require_once '../../bbs/lib/mainfunc.php';
@@ -20,7 +20,7 @@
 	if ($ask=="newborrow") newborrow();
 	if ($ask=="newlend") newlend();
 	if ($ask=="savelend") savelend();
-	if ($ask=="postimg") postimg();
+
 	if ($ask=="add_download") adddownload();
 	if ($ask=="edit_download") editdownload();
 	if ($ask=="del_download") deldownload();
@@ -328,19 +328,6 @@
 		}			
 		echo '0';
 		exit;
-	}
-	
-	function postimg() {
-		$res=checkuser();
-		$username=$res[0];
-		if ($username=="") {echo '-15';exit;}
-		$imgurl=@$_POST['imgurl'];
-		$imgthumburl=@$_POST['imgthumburl'];
-		$text=@$_POST['text'];
-		$ret=sendmail('capubbs@qq.com',"【北大车协】首页图片投稿","投稿人：$username\r\n图片地址：$imgurl\r\n缩略图地址：$imgthumburl\r\n文字：$text");
-		echo $ret;
-		exit;
-
 	}
 
 	function adddownload() {

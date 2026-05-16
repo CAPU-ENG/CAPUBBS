@@ -228,13 +228,6 @@ echo '
 		<button type="button" class="btn btn-primary"  data-toggle="modal" data-target="#inform_del_dialog">删除公告</button>
 	</div>
 </div> ';
-else if ($username!="")
-echo '
-<div class="row">
-	<div style="padding:0;text-align:center">
-		<button type="button" class="btn btn-primary" data-toggle="modal" data-target="#postimg_dialog">图片投稿</button>
-	</div>
-</div>';
 ?>
 </div>
 
@@ -421,44 +414,6 @@ echo "\n";
       </div>
       <div class="modal-footer">
 	<button type="button" class="btn btn-primary" onclick="add_inform();">发表</button>
-        <button type="button" class="btn btn-default" data-dismiss="modal">关闭</button>
-      </div>
-    </div>
-  </div>
-</div>
-
-<div class="modal fade" tab-index="-1" id="postimg_dialog"  role="dialog"  aria-hidden="true">
-  <div class="modal-dialog" style="width:777px">
-    <div class="modal-content">
-      <div class="modal-header">
-        <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
-        <h4 class="modal-title">首页图片投稿</h4>
-      </div>
-      <div class="modal-body">
-	<form class="form-horizontal" role="form">
-	  <div class="form-group">
-    	    <label class="col-md-2 control-label">图片地址</label>
-    	    <div class="col-md-9">
-      	      <input type="text" class="form-control" id="postimg_url" placeholder="请输入有效的高清图片地址">
-    	    </div>
-  	  </div>
-	  <div class="form-group">
-            <label class="col-md-2 control-label">缩略图地址</label>
-            <div class="col-md-9">
-              <input type="text" class="form-control" id="postimg_thumburl" placeholder="缩略图宽高比应接近于4:3，宽度不小于300px，且图片大小不超过100kb">
-            </div>
-          </div>
-	  <div class="form-group">
-	    <label class="col-md-2 control-label">简要描述</label>
-	    <div class="col-md-9">
-	      <input type="text" class="form-control" id="postimg_title" placeholder="不能多于20字" maxlength="20">
-	    </div>
-	  </div>
-	<div class="alert alert-danger" id="postimg_error" style="display:none"></div>
-	</form>
-      </div>
-      <div class="modal-footer">
-	<button type="button" class="btn btn-primary" onclick="check_valid2()">投稿</button>
         <button type="button" class="btn btn-default" data-dismiss="modal">关闭</button>
       </div>
     </div>
