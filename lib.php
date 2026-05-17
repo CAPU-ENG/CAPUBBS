@@ -67,4 +67,14 @@ function _jiekoufunc_get_api_routing() {
     }
     return $routing;
 }
+
+// Parse the 'limit' parameter for recentpost/recentrely APIs.
+// Returns: 10 (default), null (no limit), or positive int N.
+function _parse_limit($raw, $default=10) {
+    if ($raw === null || $raw === '' || $raw === '0') return $default;
+    if ($raw === '-1' || strtolower($raw) === 'all') return null;
+    $limit = intval($raw);
+    if ($limit <= 0) return $default;
+    return $limit;
+}
 ?>
