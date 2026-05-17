@@ -1379,6 +1379,10 @@
     function attachinfo($con,$id,$token){
         $statement="select * from attachments where id=$id limit 1";
         $result=mysqli_query($con, $statement);
+        if(!$result) {
+            echo '<capu><info><exist>NO</exist></info></capu>';
+            exit;
+        }
         $ainfo=mysqli_fetch_array($result);
         $user=token2user($con,$token);
         $isAuthor=false;
