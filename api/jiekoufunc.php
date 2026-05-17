@@ -1778,6 +1778,46 @@ function jiekoufunc_changepsd($con, $token, $params) {
     }
 }
 
+function jiekoufunc_admin_reset_password($con, $token, $params) {
+    $nowtime = time();
+    if (!$token) {
+        return jiekoufunc_report('1', '尚未登录');
+    }
+    $statement = "select username, rights from userinfo where token='$token' and $nowtime<=tokentime+{$GLOBALS['validtime']} limit 1";
+    $result = mysqli_query($con, $statement);
+    $caller = mysqli_fetch_array($result);
+    if (!$caller) {
+        return jiekoufunc_report('1', '会话超时，请重新登录');
+    }
+    if (intval($caller[1]) < 10) {
+        return jiekoufunc_report('2', '权限不足：仅限 rights >= 10 的管理员操作');
+    }
+
+    $target_username = isset($params['target_username']) ? trim($params['target_username']) : '';
+    if ($target_username === '') {
+        return jiekoufunc_report('3', '参数错误：缺少目标用户名');
+    }
+    $safe_username = mysqli_real_escape_string($con, $target_username);
+
+    $new_password = strtoupper(md5('123456'));
+    $safe_password = mysqli_real_escape_string($con, $new_password);
+
+    $new_token = md5($target_username . $nowtime);
+    $safe_token = mysqli_real_escape_string($con, $new_token);
+
+    $statement = "update userinfo set password='$safe_password', token='$safe_token', tokentime='$nowtime' where username='$safe_username' limit 1";
+    error_log($statement);
+    if (mysqli_query($con, $statement)) {
+        if (mysqli_affected_rows($con) > 0) {
+            return jiekoufunc_report('0', '密码已重置为 123456');
+        } else {
+            return jiekoufunc_report('4', '用户不存在');
+        }
+    } else {
+        return jiekoufunc_report('5', mysqli_error($con));
+    }
+}
+
 // ============================================================================
 //  Main dispatcher
 // ============================================================================
@@ -1849,6 +1889,7 @@ function jiekoufunc_dispatch($con, $params) {
     if ($ask == "sendmsg")           return jiekoufunc_sendmsg($con, $token, $to, $text);
     if ($ask == "msg")               return jiekoufunc_msg($con, $token, $type, $params);
     if ($ask == "changepsd")         return jiekoufunc_changepsd($con, $token, $params);
+    if ($ask == "admin_reset_password") return jiekoufunc_admin_reset_password($con, $token, $params);
     if ($ask == "currentUserInfo")   return jiekoufunc_currentUserInfo($con, $token);
     if ($ask == "search")            return jiekoufunc_searchByKeyword($con, $keyword, $token, $type, $bid, $params);
     if ($ask == "edituser")          return jiekoufunc_edituser($con, $token, $ip, $params);

@@ -58,6 +58,7 @@ return array(
     'delattach'         => 'old',
 
     // -- Admin actions --
+    'admin_reset_password' => 'new',
     'lock'              => 'old',
     'extr'              => 'old',
     'top'               => 'old',
