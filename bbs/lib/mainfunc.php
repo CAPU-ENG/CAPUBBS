@@ -40,10 +40,6 @@ function getuser() {
 	}
 	return array("username"=>$username,"rights"=>$res['rights']);
 }
-function encode($str){
-	$str=str_replace("&", "&amp;", $str);
-	$str=str_replace("=", "&#61;", $str);
-}
 function userhref($username){
 	if($username)
 	return "<a class='author' href='../user?name=".rawurlencode($username)."' target='_blank'>$username</a>";

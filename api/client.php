@@ -11,14 +11,6 @@ require_once __DIR__.'/../config/api-routing.php';
     echo "\n";
     date_default_timezone_set("Asia/Shanghai");
 
-    // if(@$_REQUEST['os']=="ios") {
-    //     $build=intval(@$_REQUEST['clientbuild']);
-    //     if ($build > 0 && $build < 3900) {
-    //         echo '<capu><info><code>-999</code><msg>客户端版本过低，请前往App Store更新版本！</msg></info></capu>';
-    //         exit;
-    //     }
-    // }
-
     $ask=@$_REQUEST['ask'];
     if ($ask=="show") show();
     else if ($ask=="post") post();
@@ -370,21 +362,12 @@ require_once __DIR__.'/../config/api-routing.php';
         $sig2=@$_POST['sig2'];//增加了多签名档功能
         $sig3=@$_POST['sig3'];
 
-        /*$code=@$_POST['code'];//取消注册码制度
-
-        if ($code=="") {
-            echo '<capu><info><code>11</code><msg>无效的注册号。</msg></info></capu>';
-            exit;
-
-        }*/
-
         $icon=@$_POST['icon'];
         if ($icon=="")
             $icon="/bbsimg/icons/zebra.jpeg";//默认头像
         $results=request(array("ask"=>"register",
             "username"=>$username,
             "password"=>$password,
-            //"code"=>$code,
             "sex"=>$sex,
             "qq"=>$qq,
             "mail"=>$mail,
@@ -674,7 +657,6 @@ require_once __DIR__.'/../config/api-routing.php';
                 echo("<tid>".$id[$i]['tid']."</tid>");
                 echo("<pid>".$id[$i]['pid']."</pid>");
                 echo("<title><![CDATA[".$id[$i]['title']."]]></title>");
-                // echo("<time>".date("Y-m-d H:i:s",$id[$i]['replytime'])."</time>");
                 echo("<time>".date("Y-m-d H:i:s",$id[$i]['updatetime'])."</time>");
                 echo("</info>");
             }
@@ -783,7 +765,6 @@ require_once __DIR__.'/../config/api-routing.php';
                 echo "<tid>".$content[$i]['tid']."</tid>\n";
                 echo "<text><![CDATA[".$content[$i]['title']."]]></text>\n";
                 echo "<author><![CDATA[".$content[$i]['author']."]]></author>\n";
-                // echo "<time>".date("Y-m-d H:i:s",$content[$i]['updatetime'])."</time>\n";
                 echo "<time>".date("Y-m-d H:i:s",$content[$i]['replytime'])."</time>\n";
                 echo "</info>";
             }
