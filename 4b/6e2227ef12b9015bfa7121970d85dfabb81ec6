@@ -1,0 +1,36 @@
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.3.4",
+  "base_commit_sha": "4b6e2227ef12b9015bfa7121970d85dfabb81ec6",
+  "prompts": {
+    "7136f2e65fa38358": {
+      "agent_id": {
+        "tool": "trae-cue",
+        "id": "ai_tab-icr-820aa240-538e-4f18-b5f7-0e143645d53c",
+        "model": "default"
+      },
+      "human_author": "zhanghaodan.2024 <zhanghaodan.2024@bytedance.com>",
+      "messages": [],
+      "total_additions": 1,
+      "total_deletions": 1,
+      "accepted_lines": 1,
+      "overriden_lines": 0
+    },
+    "ef74d6adacb7b2df": {
+      "agent_id": {
+        "tool": "trae-cue",
+        "id": "ai_tab-icr-616189a6-56f4-4709-a478-d6d67f1f1dc6",
+        "model": "default"
+      },
+      "human_author": "zhanghaodan.2024 <zhanghaodan.2024@bytedance.com>",
+      "messages": [],
+      "total_additions": 1,
+      "total_deletions": 1,
+      "accepted_lines": 1,
+      "overriden_lines": 0
+    }
+  },
+  "attestation_metadata": {},
+  "remote_transcripts": {}
+}
