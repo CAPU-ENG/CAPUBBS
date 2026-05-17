@@ -65,9 +65,9 @@ return array(
     'news'              => 'old',
 
     // -- Sign --
-    'sign_today'        => 'old',
-    'sign_year'         => 'old',
-    'sign_user'         => 'old',
+    'sign_today'        => 'new',
+    'sign_year'         => 'new',
+    'sign_user'         => 'new',
 
     // -- Special paths (no $ask) --
     '__view'            => 'old',
