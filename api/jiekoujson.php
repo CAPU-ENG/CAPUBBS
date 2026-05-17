@@ -22,7 +22,7 @@ $result = jiekoufunc_dispatch($con, $params);
 if (!empty($result[0]['code']) && $result[0]['code'] != '0') {
     echo json_encode(array(
         'code' => intval($result[0]['code']),
-        'msg'  => $result[0]['msg'] ?? '未知错误'
+        'msg'  => isset($result[0]['msg']) ? $result[0]['msg'] : '未知错误'
     ));
     exit;
 }
