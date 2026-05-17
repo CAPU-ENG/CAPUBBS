@@ -57,4 +57,27 @@ function checkuser_con($con) {
     $res = mysqli_fetch_array($results);
     return $res;
 }
+
+// Shared routing key resolver used by both mainfunc.php and client.php.
+function _jiekoufunc_resolve_route_key($posts) {
+    $ask = isset($posts['ask']) ? $posts['ask'] : '';
+    if ($ask) {
+        return $ask;
+    }
+    if (isset($posts['view']) && $posts['view'] != '') return '__view';
+    if (intval(isset($posts['bid']) ? $posts['bid'] : 0) != 0) {
+        if (intval(isset($posts['tid']) ? $posts['tid'] : 0) != 0) return '__tid_default';
+        return '__bbs_default';
+    }
+    return '';
+}
+
+// Shared API routing loader used by both mainfunc.php and client.php.
+function _jiekoufunc_get_api_routing() {
+    static $routing = null;
+    if ($routing === null) {
+        $routing = require __DIR__ . '/config/api-routing.php';
+    }
+    return $routing;
+}
 ?>

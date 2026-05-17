@@ -1,28 +1,6 @@
 <?php
 require_once __DIR__.'/../../config.php';
 require_once __DIR__.'/../../lib.php';
-// Resolve routing key from posts array for api-routing config.
-// Used by both mainfunc() and client.php request().
-function _jiekoufunc_resolve_route_key($posts) {
-	$ask = isset($posts['ask']) ? $posts['ask'] : '';
-	if ($ask) {
-		return $ask;
-	}
-	if (isset($posts['view']) && $posts['view'] != '') return '__view';
-	if (intval(isset($posts['bid']) ? $posts['bid'] : 0) != 0) {
-		if (intval(isset($posts['tid']) ? $posts['tid'] : 0) != 0) return '__tid_default';
-		return '__bbs_default';
-	}
-	return '';
-}
-
-function _jiekoufunc_get_api_routing() {
-	static $routing = null;
-	if ($routing === null) {
-		$routing = require __DIR__.'/../../config/api-routing.php';
-	}
-	return $routing;
-}
 
 function mainfunc($posts,$debug=false){
 	// New direct-function-call path

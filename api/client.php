@@ -3,30 +3,8 @@ $GLOBALS['_client_php_loaded'] = true;
 require_once __DIR__.'/../lib.php';
 require_once __DIR__.'/../config/api-routing.php';
 
-// These helpers must be defined BEFORE the router below, because
-// request() → _jiekoufunc_resolve_route_key() is called during routing.
-if (!function_exists('_jiekoufunc_resolve_route_key')) {
-    function _jiekoufunc_resolve_route_key($posts) {
-        $ask = isset($posts['ask']) ? $posts['ask'] : '';
-        if ($ask) {
-            return $ask;
-        }
-        if (isset($posts['view']) && $posts['view'] != '') return '__view';
-        if (intval(isset($posts['bid']) ? $posts['bid'] : 0) != 0) {
-            if (intval(isset($posts['tid']) ? $posts['tid'] : 0) != 0) return '__tid_default';
-            return '__bbs_default';
-        }
-        return '';
-    }
-}
-
-function _jiekoufunc_get_api_routing_client() {
-    static $routing = null;
-    if ($routing === null) {
-        $routing = require __DIR__.'/../config/api-routing.php';
-    }
-    return $routing;
-}
+// _jiekoufunc_resolve_route_key() and _jiekoufunc_get_api_routing()
+// are defined in lib.php (shared).
 
     header('Content-type: application/xml');
     echo '<?xml version="1.0" encoding="UTF-8"?>';
@@ -72,7 +50,7 @@ function _jiekoufunc_get_api_routing_client() {
     function request($posts) {
         // New direct-function-call path
         $route_key = _jiekoufunc_resolve_route_key($posts);
-        $routing = _jiekoufunc_get_api_routing_client();
+        $routing = _jiekoufunc_get_api_routing();
         $mode = isset($routing[$route_key]) ? $routing[$route_key] : 'old';
         if ($mode === 'new') {
             $con = dbconnect_mysqli();
