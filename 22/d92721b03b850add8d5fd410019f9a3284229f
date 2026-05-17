@@ -1,0 +1,23 @@
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.3.4",
+  "base_commit_sha": "22d92721b03b850add8d5fd410019f9a3284229f",
+  "prompts": {
+    "9713cf5877f2d98b": {
+      "agent_id": {
+        "tool": "trae-cue",
+        "id": "ai_tab-icr-01aac465-9a5a-488a-a01f-ec3737e826fd",
+        "model": "default"
+      },
+      "human_author": "zhanghaodan.2024 <zhanghaodan.2024@bytedance.com>",
+      "messages": [],
+      "total_additions": 1,
+      "total_deletions": 1,
+      "accepted_lines": 1,
+      "overriden_lines": 0
+    }
+  },
+  "attestation_metadata": {},
+  "remote_transcripts": {}
+}
