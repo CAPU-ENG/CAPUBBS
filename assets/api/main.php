@@ -16,7 +16,9 @@
     if ($ask == "edit_download") editdownload();
     if ($ask == "del_download") deldownload();
 
-    function trans($x) {return "<![CDATA[".$x."]]>";}
+    function trans($x) {
+        return "<![CDATA[".$x."]]>";
+    }
 
     function loadcalendar() {
         dbconnect();
@@ -29,12 +31,12 @@
         echo '<capu>';
         while ($res = mysql_fetch_array($results)) {
             echo '<data>';
-            foreach ( $res as $key => $value ) {
+            foreach ($res as $key => $value) {
                 if (is_long($key)) continue;
                 echo '<'.$key.'>'.trans($value).'</'.$key.">\n";
             }
             echo '</data>';
-        }		
+        }
 
         echo '</capu>';
         exit;
@@ -129,19 +131,19 @@
         $username = @$_POST['username'];
         $password = @$_POST['password'];
         $result = mainfunc(array(
-        "ask" => "login",
-        "username" => $username,
-        "password" => $password,
-        "onlinetype" => "web",
-        "browser" => @$_SERVER['HTTP_USER_AGENT']
+            "ask" => "login",
+            "username" => $username,
+            "password" => $password,
+            "onlinetype" => "web",
+            "browser" => @$_SERVER['HTTP_USER_AGENT']
         ));
         $result = $result[0];
-        $code = intval($result['code']);
+        $code = (int)$result['code'];
         $token = $result['token'];
-        if($code == 0){
+        if ($code == 0) {
             $time = time() + 99999;
-            $date = date("D, d M Y H:i:s",$time)." GMT";
-            header('Set-cookie: token = '.$token.'; domain = .'.CAPUBBS_HOST.'; expires = '.$date.'; path = /'."\n");
+            $date = date("D, d M Y H:i:s", $time)." GMT";
+            header('Set-cookie: token='.$token.'; domain=.'.CAPUBBS_HOST.'; expires='.$date.'; path=/'."\n");
         }
         echo $code;
         exit;
