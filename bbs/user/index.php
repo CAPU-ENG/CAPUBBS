@@ -10,6 +10,8 @@
 		exit;
 	}
 	$userinfo=$userinfo[0];
+	$current_user = getuser();
+	$is_self = ($current_user['username'] != '' && $current_user['username'] === $user);
 ?>
 <html>
 <head>
@@ -17,6 +19,7 @@
 <meta charset="utf-8">
 <link rel="stylesheet" href="../lib/general.css">
 <link rel="shortcut icon" href="/assets/images/capu.jpg">
+<script src="/assets/js/jquery.min.js"></script>
 <style>
 body{
     background-color: #ABC9B6;
@@ -132,7 +135,20 @@ function trans($key,$value){
 <img src="jqdt.png" class="bar">
 <div class="recents">
 <br>
-&nbsp;&nbsp;&nbsp;<img src="recentposts.png" width="124px"><br>
+&nbsp;&nbsp;&nbsp;<img src="recentposts.png" width="124px" style="vertical-align: middle;">
+<?php if ($is_self): ?>
+<select class="limit-select" data-type="recentpost"
+		data-user="<?php echo htmlspecialchars($_GET['name']); ?>"
+		style="vertical-align: middle;">
+	<option value="10">10条</option>
+	<option value="20">20条</option>
+	<option value="50">50条</option>
+	<option value="100">100条</option>
+	<option value="all">全部</option>
+</select>
+<?php endif; ?>
+<br>
+<div id="recentpost-table">
 <table border="0" class="recent">
 <?php
 $recentposts=mainfunc(array("view"=>$_GET['name'],"ask"=>"recentpost"));
@@ -153,10 +169,24 @@ if(count($recentposts)-1==0){
 ?>
 </table>
 </div>
+</div>
 
 <div class="recents">
 <br>
-&nbsp;&nbsp;&nbsp;<img src="recentreply.png" width="124px"><br>
+&nbsp;&nbsp;&nbsp;<img src="recentreply.png" width="124px" style="vertical-align: middle;">
+<?php if ($is_self): ?>
+<select class="limit-select" data-type="recentreply"
+		data-user="<?php echo htmlspecialchars($_GET['name']); ?>"
+		style="vertical-align: middle;">
+	<option value="10">10条</option>
+	<option value="20">20条</option>
+	<option value="50">50条</option>
+	<option value="100">100条</option>
+	<option value="all">全部</option>
+</select>
+<?php endif; ?>
+<br>
+<div id="recentreply-table">
 <table border="0" class="recent">
 <?php
 $recentposts=mainfunc(array("view"=>$_GET['name'],"ask"=>"recentreply"));
@@ -179,8 +209,76 @@ if(count($recentposts)-1==0){
 ?>
 </table>
 </div>
+</div>
 
 
 </div>
+
+<?php if ($is_self): ?>
+<script>
+function formatTimestamp(ts) {
+  var d = new Date(ts * 1000);
+  var pad = function(n) { return n < 10 ? '0' + n : n; };
+  return d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate())
+    + ' ' + pad(d.getHours()) + ':' + pad(d.getMinutes()) + ':' + pad(d.getSeconds());
+}
+function heal(n) { return n < 10 ? '0' + n : '' + n; }
+function renderTable(data, type) {
+  if (!data || data.length === 0) {
+    var emptyMsg = type === 'recentpost' ? '该用户暂未发表主题' : '该用户暂无回复';
+    return '<tr><td><span class="time">' + emptyMsg + '</span></td></tr>';
+  }
+  var html = '';
+  for (var i = 0; i < data.length; i++) {
+    var row = data[i], link, timeStr;
+    if (type === 'recentpost') {
+      link = '../content/?bid=' + row.bid + '&tid=' + row.tid;
+      timeStr = formatTimestamp(row.timestamp);
+    } else {
+      var page = Math.floor((row.pid - 1) / 12) + 1;
+      link = '../content/?bid=' + row.bid + '&tid=' + row.tid + '&p=' + page + '#' + row.pid;
+      timeStr = formatTimestamp(row.updatetime);
+    }
+    html += '<tr>';
+    html += '<td width="50px"><span class="num">' + heal(i + 1) + '</span></td>';
+    html += '<td><span class="title"><a href="' + link + '">'
+         +  row.title.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+         +  '</a></span></td>';
+    html += '<td width="100px" align="right"><span class="time">' + timeStr + '</span></td>';
+    html += '</tr>';
+  }
+  return html;
+}
+$(function() {
+  $('.limit-select').on('change', function() {
+    var $sel = $(this);
+    var type = $sel.data('type');
+    var user = $sel.data('user');
+    var limit = $sel.val();
+    var targetId = type === 'recentpost' ? '#recentpost-table' : '#recentreply-table';
+    var $table  = $(targetId + ' table');
+    var $container = $(targetId);
+    $container.css('opacity', '0.5');
+    $.ajax({
+      url: '/api/jiekoujson.php',
+      data: { ask: type, view: user, limit: limit },
+      dataType: 'json',
+      success: function(resp) {
+        if (resp.code === 0) {
+          $table.html(renderTable(resp.data, type));
+        }
+      },
+      error: function() {
+        alert('加载失败，请刷新页面重试');
+      },
+      complete: function() {
+        $container.css('opacity', '1');
+      }
+    });
+  });
+});
+</script>
+<?php endif; ?>
+
 </body>
 </html>

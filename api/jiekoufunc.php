@@ -462,9 +462,11 @@ function jiekoufunc_tidinfo($con, $bid, $tid) {
     return jiekoufunc_view_bbs_array($con, $statement);
 }
 
-function jiekoufunc_recentpost($con, $view) {
+function jiekoufunc_recentpost($con, $view, $limit_raw = '') {
     $view = mysqli_real_escape_string($con, $view);
-    $results = mysqli_query($con, "select bid,tid,pid,title,author,replytime as timestamp from posts where author='$view' and pid=1 order by replytime desc limit 0,10");
+    $limit_val = _parse_limit($limit_raw, 10);
+    $limit_clause = ($limit_val === null) ? '' : " limit 0,$limit_val";
+    $results = mysqli_query($con, "select bid,tid,pid,title,author,replytime as timestamp from posts where author='$view' and pid=1 order by replytime desc$limit_clause");
     $infos = array();
     $infos[] = array('nowuser' => '');
     while ($res = mysqli_fetch_array($results)) {
@@ -478,9 +480,11 @@ function jiekoufunc_recentpost($con, $view) {
     return $infos;
 }
 
-function jiekoufunc_recentreply($con, $view) {
+function jiekoufunc_recentreply($con, $view, $limit_raw = '') {
     $view = mysqli_real_escape_string($con, $view);
-    $results = mysqli_query($con, "select title, bid, tid, pid, updatetime from posts where author='$view' order by updatetime desc limit 0,10");
+    $limit_val = _parse_limit($limit_raw, 10);
+    $limit_clause = ($limit_val === null) ? '' : " limit 0,$limit_val";
+    $results = mysqli_query($con, "select title, bid, tid, pid, updatetime from posts where author='$view' order by updatetime desc$limit_clause");
     $infos = array();
     $infos[] = array('nowuser' => '');
     while ($res = mysqli_fetch_array($results)) {
@@ -1787,24 +1791,25 @@ function jiekoufunc_changepsd($con, $token, $params) {
  */
 function jiekoufunc_dispatch($con, $params) {
     // Extract parameters with defaults
-    $ask      = isset($params['ask']) ? $params['ask'] : '';
-    $bid      = intval(isset($params['bid']) ? $params['bid'] : 0);
-    $tid      = intval(isset($params['tid']) ? $params['tid'] : 0);
-    $pid      = intval(isset($params['pid']) ? $params['pid'] : 0);
-    $to       = isset($params['to']) ? $params['to'] : '';
-    $fid      = intval(isset($params['fid']) ? $params['fid'] : 0);
-    $path     = isset($params['path']) ? $params['path'] : '';
-    $filename = isset($params['filename']) ? $params['filename'] : '';
-    $text     = isset($params['text']) ? $params['text'] : '';
-    $price    = isset($params['price']) ? $params['price'] : '';
-    $auth     = isset($params['auth']) ? $params['auth'] : '';
-    $id       = isset($params['id']) ? $params['id'] : '';
-    $attachs  = isset($params['attachs']) ? $params['attachs'] : '';
-    $keyword  = isset($params['keyword']) ? $params['keyword'] : '';
-    $type     = isset($params['type']) ? $params['type'] : '';
-    $token    = isset($params['token']) ? $params['token'] : '';
-    $ip       = isset($params['ip']) ? $params['ip'] : '';
-    $view     = isset($params['view']) ? $params['view'] : '';
+    $ask       = isset($params['ask']) ? $params['ask'] : '';
+    $bid       = intval(isset($params['bid']) ? $params['bid'] : 0);
+    $tid       = intval(isset($params['tid']) ? $params['tid'] : 0);
+    $pid       = intval(isset($params['pid']) ? $params['pid'] : 0);
+    $to        = isset($params['to']) ? $params['to'] : '';
+    $fid       = intval(isset($params['fid']) ? $params['fid'] : 0);
+    $path      = isset($params['path']) ? $params['path'] : '';
+    $filename  = isset($params['filename']) ? $params['filename'] : '';
+    $text      = isset($params['text']) ? $params['text'] : '';
+    $price     = isset($params['price']) ? $params['price'] : '';
+    $auth      = isset($params['auth']) ? $params['auth'] : '';
+    $id        = isset($params['id']) ? $params['id'] : '';
+    $attachs   = isset($params['attachs']) ? $params['attachs'] : '';
+    $keyword   = isset($params['keyword']) ? $params['keyword'] : '';
+    $type      = isset($params['type']) ? $params['type'] : '';
+    $token     = isset($params['token']) ? $params['token'] : '';
+    $ip        = isset($params['ip']) ? $params['ip'] : '';
+    $view      = isset($params['view']) ? $params['view'] : '';
+    $limit_raw = isset($params['limit']) ? $params['limit'] : '';
 
     if ($ip == "") $ip = $_SERVER["REMOTE_ADDR"];
     if ($token == null) $token = "";
@@ -1832,8 +1837,8 @@ function jiekoufunc_dispatch($con, $params) {
     if ($ask == "global_top")        return jiekoufunc_global_top($con, $token);
     if ($ask == "news")              return jiekoufunc_news($con, $token, $params);
     if ($ask == "tidinfo")           return jiekoufunc_tidinfo($con, $bid, $tid);
-    if ($ask == "recentpost")        return jiekoufunc_recentpost($con, $view);
-    if ($ask == "recentreply")       return jiekoufunc_recentreply($con, $view);
+    if ($ask == "recentpost")        return jiekoufunc_recentpost($con, $view, $limit_raw);
+    if ($ask == "recentreply")       return jiekoufunc_recentreply($con, $view, $limit_raw);
     if ($ask == "rights")            return jiekoufunc_rights($con, $bid, $token);
     if ($ask == "attach")            return jiekoufunc_attach($con, $token, $path, $filename, $price, $auth);
     if ($ask == "attachdl")          return jiekoufunc_attachdl($con, $token, $id);

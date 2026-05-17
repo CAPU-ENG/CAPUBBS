@@ -35,6 +35,7 @@
     $attachs=@$_REQUEST['attachs'];
     $keyword=@$_REQUEST['keyword'];
     $type=@$_REQUEST['type'];
+    $limit_raw=@$_REQUEST['limit'];
 
     if(!islegal($bid)||!islegal($tid)||!islegal($pid)||!islegal($fid)){
         echo("<capu><info><code>-1</code><msg>未知错误，请反馈给我们。</msg></info></capu>");
@@ -96,8 +97,8 @@
     else if ($ask=="global_top") global_top($con,$token);
     else if ($ask=="news") news($con,$token);
     else if ($ask=="tidinfo") tidinfo($con,$bid,$tid);
-    else if ($ask=="recentpost") recentpost($con,$view);
-    else if ($ask=="recentreply") recentreply($con,$view);
+    else if ($ask=="recentpost") recentpost($con,$view,$limit_raw);
+    else if ($ask=="recentreply") recentreply($con,$view,$limit_raw);
     else if ($ask=="rights") rights($con,$bid,$token);
     else if ($ask=="attach") attach($con,$token,$path,$filename,$price,$auth);
     else if ($ask=="attachdl") attachdl($con,$token,$id);
@@ -1170,9 +1171,11 @@
         view_bbs($con,$statement);
     }
 
-    function recentpost($con,$view){
+    function recentpost($con,$view,$limit_raw=''){
         $view=mysqli_real_escape_string($con, $view);
-        $results=mysqli_query($con, "select bid,tid,pid,title,author,replytime as timestamp from posts where author='$view' and pid=1 order by replytime desc limit 0,10");
+        $limit_val = _parse_limit($limit_raw, 10);
+        $limit_clause = ($limit_val === null) ? '' : " limit 0,$limit_val";
+        $results=mysqli_query($con, "select bid,tid,pid,title,author,replytime as timestamp from posts where author='$view' and pid=1 order by replytime desc$limit_clause");
         echo '<capu>';
 
         echo "<info><nowuser></nowuser></info>\n";
@@ -1186,9 +1189,11 @@
         }
         echo '</capu>';
     }
-    function recentreply($con,$view){
+    function recentreply($con,$view,$limit_raw=''){
         $view=mysqli_real_escape_string($con, $view);
-        $results=mysqli_query($con, "select title, bid, tid, pid, updatetime from posts where author='$view' order by updatetime desc limit 0,10");
+        $limit_val = _parse_limit($limit_raw, 10);
+        $limit_clause = ($limit_val === null) ? '' : " limit 0,$limit_val";
+        $results=mysqli_query($con, "select title, bid, tid, pid, updatetime from posts where author='$view' order by updatetime desc$limit_clause");
         echo '<capu>';
         echo "<info><nowuser></nowuser></info>\n";
         while ($res=mysqli_fetch_array($results)) {
