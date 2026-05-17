@@ -104,13 +104,6 @@
 		array_push($video_link,$res[6]);
 	}
 
-	$statement="select * from capubbs.borrow where type=0 && state=0";
-	$results=mysqli_query($con, $statement);
-	$lend=mysqli_num_rows($results);
-
-	$statement="select * from capubbs.borrow where type=1 && state=0";
-	$results=mysqli_query($con, $statement);
-	$borrow=mysqli_num_rows($results);
 
 ?>
 <div class="container" style="margin-top:90px">
@@ -136,15 +129,6 @@
 
 </div>
 <p>
-<!--<div class="row">
-
-<h4 style="padding-left:20px"><b><a href="javascript:window.parent.setActive('#borrow')" style="color:#000000">借车信息</a></b></h4>
-<hr style="border-top:1px solid #aaaaaa"/>
-
-  <p class="text-center">当前有 <a href="javascript:window.parent.setActive('#borrow-out')" style="color:#df0000"><?php echo $borrow;?></a> 名会员正在求车</p>
-  <p class="text-center">当前有 <a href="javascript:window.parent.setActive('#borrow-in')" style="color:#df0000"><?php echo $lend;?></a> 辆空车可以出借</p>
-
-</div>-->
 <hr style="border-top:1px solid #aaaaaa"/><p>
 <div class="row">
     <div class="col-md-4">

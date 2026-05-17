@@ -97,26 +97,6 @@
         <li class="devider"></li>
 	<!-- <li><a href="https://race.chexie.net" target="_blank">交流赛官网</a></li> -->
 	<li class="devider"></li>
-        <!--<li class="dropdown" id="navbar-borrow">
-	  <a href="javascript:setActive('#borrow')">自助借车系统</a>
-	  <ul class="dropdown-menu" role="menu">
-		<li role="presentation"><a role="menuitem" tabindex="-1" href="javascript:setActive('#borrow-read')">借车须知</a></li>
-		<li role="presentation"><a role="menuitem" tabindex="-1" href="javascript:setActive('#borrow-in')">我要求车</a></li>
-		<li role="presentation"><a role="menuitem" tabindex="-1" href="javascript:setActive('#borrow-out')">我能出借</a></li>
-		<li role="presentation"><a role="menuitem" tabindex="-1" href="javascript:setActive('#borrow-manage')">车辆管理</a></li>
-	  </ul>
-        </li>-->
-<?php
-/*
-	<li class="devider"></li>
-	<li class="dropdown" id="navbar-join">
-		<a href="javascript:setActive('#join')">线上报名</a>
-		<ul class="dropdown-menu" role="menu">
-			<li role="presentation"><a role="menuitem" tabindex="-1" href="javascript:setActive('#join')">入会报名</a></li>
-			<li role="presentation"><a role="menuitem" tabindex="-1" href="javascript:setActive('#join-summer')">暑期报名</a></li>
-		</ul>
-	</li>
-*/
 ?>
 	<li class="devider"></li>
 	<li class="dropdown" id="navbar-about">

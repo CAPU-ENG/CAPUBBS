@@ -1,7 +1,4 @@
 <?php
-	require_once 'sendsms.php';
-	
-	require_once 'captcha.php';
 	require_once '../../lib.php';
 	require_once '../../bbs/lib/mainfunc.php';
 
@@ -13,13 +10,7 @@
 	if ($ask=="addinform") addinform();
 	if ($ask=="delinform") delinform();
 	if ($ask=="saveimg") saveimg();
-	if ($ask=="join") memjoin();
 	if ($ask=="login") login();
-	if ($ask=="lendto") lendto();
-	if ($ask=="borrowfrom")	borrowfrom();
-	if ($ask=="newborrow") newborrow();
-	if ($ask=="newlend") newlend();
-	if ($ask=="savelend") savelend();
 
 	if ($ask=="add_download") adddownload();
 	if ($ask=="edit_download") editdownload();
@@ -133,67 +124,6 @@
 		exit;
 	}
 
-	function memjoin() {
-		captcha_check();
-		$res=checkuser();
-		$name=$res[0];
-		if ($name=="") {echo '-15';exit;}
-		$id=mysql_real_escape_string(@$_POST['id']);
-		$sex=mysql_real_escape_string(@$_POST['sex']);
-		$phone=mysql_real_escape_string(@$_POST['phone']);
-		$year=mysql_real_escape_string(@$_POST['year']);
-		$code=mysql_real_escape_string(@$_POST['code']);
-		$hint=mysql_real_escape_string(@$_POST['hint']);
-		$ip=$_SERVER["REMOTE_ADDR"];
-		$type=mysql_real_escape_string(@$_POST['type']);
-		$time=time();
-
-		if ($code!="") {
-			$valid=true;
-			if (strlen($code)!=14) $valid=false;
-			if (substr($code,0,6)!="BDCX95") $valid=false;
-			if (substr($code,8,2)!="10") $valid=false;
-			if (substr($code,12,2)!="25") $valid=false;
-			if ($valid==false) {echo '-3';exit;}
-		}
-
-		dbconnect();
-
-		$statement="select * from capubbs.join where id='$id' && type='$type'";
-		$results=mysql_query($statement);
-		if (mysql_num_rows($results)!=0)
-		{
-			echo '-1';
-			exit;
-		}
-		$statement="select * from capubbs.join where ip='$ip' && $time-timestamp<1800";
-		$results=mysql_query($statement);
-		if (mysql_num_rows($results)!=0)
-                {
-                        echo '-2';
-                        exit;
-                }
-		
-		$statement="insert into capubbs.join values ('$id','$name',$sex,'$phone','$year','$code','$hint','$ip',$time,'$type')";
-		mysql_query($statement);
-		$xx=mysql_errno();
-		if ($xx!=0) {echo $xx;exit;}
-		$text="";
-		if ($type="join") {
-		$text="[".$id."|".$name."]于".date("Y-m-d",$time)."登记入会";
-		if ($code!="") $text=$text."（已交会费）";
-		else $text=$text."（未交会费）";
-		$text=$text."。请凭此短信于周五下午在农园西北角出摊地领取年刊等资料。";
-		}
-		else {
-		$text="[".$id."|".$name."]于".date("Y-m-d",$time)."报名暑期";
-		if ($code!="") $text=$text."（已交报名费）";
-		else $text=$text."（未交报名费）";
-		$text=$text."。请凭此短信于周五下午在农园西北角出摊地登记并领取暑期资料。";
-		}
-		echo sendsms($phone,$text);
-		exit;
-	}
 
 	function login() {
 		$username=@$_POST['username'];
@@ -217,118 +147,6 @@
 		exit;
 	}
 
-	function makelend() {
-		captcha_check();
-		$id=@$_POST['to'];
-		#$from=@$_POST['from'];
-		#$from=@$_COOKIE['name'];
-		$res=checkuser();
-		$from=$res[0];
-		if ($from=="") {echo '-15';exit;}
-		$phone=mysql_real_escape_string(@$_POST['phone']);
-
-		dbconnect();
-		$statement="select id,phone from capubbs.borrow where number=$id";
-
-		$results=mysql_query($statement);
-		$error=mysql_errno();
-		if ($error!=0) {echo $error;exit;}
-		$res=mysql_fetch_row($results);
-		return $res;
-	}
-
-	function lendto() {
-		$res=makelend();
-		$toid=$res[0];
-		$tophone=$res[1];
-		$res=checkuser();
-		$from=$res[0];
-		$phone=@$_POST['phone'];
-
-		$text="[".$toid."]，[".$from."] (".$phone.") 可以向你出借爱车，请直接与其联系。借车成功记得请修改求借状态。";
-		$error=sendsms($tophone,$text);
-		echo $error;
-		#echo $tophone."<br>".$text;
-		exit;
-	}
-
-	function borrowfrom() {
-		$res=makelend();
-		$toid=$res[0];
-		$tophone=$res[1];
-		$res=checkuser();
-		$from=$res[0];
-		#$from=@$_COOKIE['name'];
-		#$from=@$_POST['from'];
-		$phone=@$_POST['phone'];
-
-		$text="[".$toid."]，[".$from."]（".$phone."）请求向你借车，请直接与其联系。出借成功请记得修改求借状态。";
-		$error=sendsms($tophone,$text);
-		echo $error;
-		#echo $tophone."<br>".$text;
-		exit;
-	}
-
-	function newborrow() {
-		captcha_check();
-		$sex=@$_POST['sex'];
-		$height=@$_POST['height'];
-		#$username=@$_COOKIE['name'];
-		$res=checkuser();
-		$username=$res[0];
-		if ($username=="") {echo '-15';exit;}
-		$phone=mysql_real_escape_string(@$_POST['phone']);
-		$length=mysql_real_escape_string(@$_POST['length']);
-		$hint=mysql_real_escape_string(@$_POST['hint']);
-		$time=time();
-		dbconnect();
-
-		$statement="insert into capubbs.borrow values (null,1,'$username','$sex','$phone','$height',null,null,'$length','$hint',$time,0)";
-		mysql_query($statement);
-		echo mysql_errno();
-		exit;
-	}
-
-	function newlend() {
-		captcha_check();
-		$res=checkuser();
-		$username=$res[0];
-		if ($username=="") {echo '-15';exit;}
-		$sex=mysql_real_escape_string(@$_POST['sex']);
-		$phone=mysql_real_escape_string(@$_POST['phone']);
-                $length=mysql_real_escape_string(@$_POST['length']);
-                $hint=mysql_real_escape_string(@$_POST['hint']);
-		$bike=mysql_real_escape_string(@$_POST['bike']);
-		$condition=mysql_real_escape_string(@$_POST['condition']);
-		$time=time();
-		dbconnect();
-
-                $statement="insert into capubbs.borrow values (null,0,'$username','$sex','$phone',null,'$bike','$condition','$length','$hint',$time,0)";
-                mysql_query($statement);
-                echo mysql_errno();
-                exit;
-	}
-
-	function savelend() {
-		$res=checkuser();
-		$username=$res[0];
-		if ($username=="") {echo '-15';exit;}
-		$json=@$_POST['data'];
-		$data=json_decode($json,true);
-		$time=time();
-		dbconnect();
-		reset($data);
-		while (list($code,$state)=each($data)) {
-			$state=intval($state);
-			$code=intval($code);
-			$statement="update capubbs.borrow set state=$state , timestamp=$time where number=$code";
-			mysql_query($statement);
-			$x=mysql_errno();
-			if ($x!=0) {echo $x;exit;}
-		}			
-		echo '0';
-		exit;
-	}
 
 	function adddownload() {
 		$res=checkuser();
