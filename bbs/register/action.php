@@ -18,7 +18,6 @@ $place=$_POST['place'];
 $sig1=$_POST['sig1'];
 $sig2=$_POST['sig2'];
 $sig3=$_POST['sig3'];
-//$code=@$_POST['code'];
 
 $result=mainfunc(array(
 "ask"=>"register",
@@ -35,13 +34,11 @@ $result=mainfunc(array(
 "sig1"=>$sig1,
 "sig2"=>$sig2,
 "sig3"=>$sig3,
-//"code"=>$code,
 "onlinetype"=>"web",
 "browser"=>@$_SERVER['HTTP_USER_AGENT']
 ));
 
 $result=$result[0];
-#echo(json_encode($result));
 header('Content-type:text/html;charset=utf-8');
 if(intval($result['code'])==0){
 	$time=time()+999999;
