@@ -1,0 +1,86 @@
+api/jiekouapi.php
+  52ee7fd915fd8580 38
+  d07e6b4c90953560 1176
+api/jiekoufunc.php
+  2fa51f4fa5dfd5af 467
+bbs/user/index.php
+  bb6645511895f830 180 gitai:{"mixed_line_ranges":[{"Single":180}],"operations":[]}
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.3.4",
+  "base_commit_sha": "d4b1252d215a949214a3d617031c2dbd7978d74a",
+  "prompts": {
+    "2fa51f4fa5dfd5af": {
+      "agent_id": {
+        "tool": "trae-cue",
+        "id": "ai_tab-icr-d9395168-7168-47ca-8a2e-ec951966296a",
+        "model": "default"
+      },
+      "human_author": "zhanghaodan.2024 <zhanghaodan.2024@bytedance.com>",
+      "messages": [],
+      "total_additions": 1,
+      "total_deletions": 1,
+      "accepted_lines": 1,
+      "overriden_lines": 0
+    },
+    "52ee7fd915fd8580": {
+      "agent_id": {
+        "tool": "trae-cue",
+        "id": "ai_tab-icr-05152c74-ac1b-447c-8a3c-7132b8de17eb",
+        "model": "default"
+      },
+      "human_author": "zhanghaodan.2024 <zhanghaodan.2024@bytedance.com>",
+      "messages": [],
+      "total_additions": 3,
+      "total_deletions": 1,
+      "accepted_lines": 2,
+      "overriden_lines": 0
+    },
+    "bb6645511895f830": {
+      "agent_id": {
+        "tool": "trae-cue",
+        "id": "ai_tab-icr-28435b91-c3aa-4306-a576-f66bc2951cf2",
+        "model": "default"
+      },
+      "human_author": "zhanghaodan.2024 <zhanghaodan.2024@bytedance.com>",
+      "messages": [],
+      "total_additions": 1,
+      "total_deletions": 1,
+      "accepted_lines": 0,
+      "overriden_lines": 1
+    },
+    "d07e6b4c90953560": {
+      "agent_id": {
+        "tool": "trae-cue",
+        "id": "ai_tab-icr-b0dcafe3-fdf9-4ea4-9ec6-4a5dba405952",
+        "model": "default"
+      },
+      "human_author": "zhanghaodan.2024 <zhanghaodan.2024@bytedance.com>",
+      "messages": [],
+      "total_additions": 1,
+      "total_deletions": 1,
+      "accepted_lines": 1,
+      "overriden_lines": 0
+    }
+  },
+  "attestation_metadata": {
+    "bbs/user/index.php": [
+      {
+        "hash": "bb6645511895f830",
+        "line_ranges": [
+          {
+            "Single": 180
+          }
+        ],
+        "mixed_line_ranges": [
+          {
+            "Single": 180
+          }
+        ],
+        "operations": []
+      }
+    ]
+  },
+  "remote_transcripts": {}
+}
