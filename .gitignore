@@ -19,3 +19,5 @@ test.php
 # Exclude `assets/images` except `assets/images/static`.
 assets/images/*
 !assets/images/static
+
+scripts/
