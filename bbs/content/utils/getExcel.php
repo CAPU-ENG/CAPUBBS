@@ -8,16 +8,23 @@ $user = getuser();
 $username = $user["username"];
 $bid = $_GET["bid"];
 $tid = $_GET["tid"];
-// $activity_id = $_GET["activity_id"];
 
 $INDEX = array("A","B","C","D","E","F","G","H","I","J","K","L","M","N","O","P","Q","R","S","T","U","V","W","X","Y","Z");
 
 $activity = getActivity($bid, $tid);
-// if (!$activity || ($activity["leader_username"] != $username && "网络组" != $username)) {
-//     echo "error: ";
-//     echo $username;
-//     exit();
-// }
+if (!$activity || (
+        $activity["leader_username"] != $username 
+        && "网络组" != $username
+        && "组织部" != $username 
+        && "文体部" != $username 
+        && "主席团" != $username 
+        && "理事会" != $username
+    )
+) {
+    echo "error: ";
+    echo $username;
+    exit();
+}
 $activity_id = $activity["activity_id"];
 $join_value = get_activity_join($activity_id);
 
