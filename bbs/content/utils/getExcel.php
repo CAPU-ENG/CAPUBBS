@@ -40,11 +40,11 @@ $objPHPExcel->getProperties()->setCreator("CAPUBBS")
 							 ->setKeywords("office 2007 openxml php")
 							 ->setCategory("Test result file");
 
-$objPHPExcel->setActiveSheetIndex(0)->setCellValue("A1", "用户名");
-$objPHPExcel->setActiveSheetIndex(0)->setCellValue("B1", "是否有罚跑");
+$objPHPExcel->setActiveSheetIndex(0)->setCellValueExplicit("A1", "用户名", PHPExcel_Cell_DataType::TYPE_STRING);
+$objPHPExcel->setActiveSheetIndex(0)->setCellValueExplicit("B1", "是否有罚跑", PHPExcel_Cell_DataType::TYPE_STRING);
 for ($option_idx=0; $option_idx < count(@$activity["options"]); $option_idx++){
     $option = $activity["options"][$option_idx];
-    $objPHPExcel->setActiveSheetIndex(0)->setCellValue(($INDEX[$option_idx+2])."1", $option["option_name"]);
+    $objPHPExcel->setActiveSheetIndex(0)->setCellValueExplicit(($INDEX[$option_idx+2])."1", $option["option_name"], PHPExcel_Cell_DataType::TYPE_STRING);
 }
 
 $line_idx = 1;
@@ -57,8 +57,8 @@ for ($user_idx = 0; $user_idx < count(@$join_value); $user_idx++){
         continue;
     
     $line_idx++;
-    $objPHPExcel->setActiveSheetIndex(0)->setCellValue("A".($line_idx), $_username);
-    $objPHPExcel->setActiveSheetIndex(0)->setCellValue("B".($line_idx), $_has_punishment==1?"是":"");
+    $objPHPExcel->setActiveSheetIndex(0)->setCellValueExplicit("A".($line_idx), $_username, PHPExcel_Cell_DataType::TYPE_STRING);
+    $objPHPExcel->setActiveSheetIndex(0)->setCellValueExplicit("B".($line_idx), $_has_punishment==1?"是":"", PHPExcel_Cell_DataType::TYPE_STRING);
     for ($option_idx=0; $option_idx < count(@$activity["options"]); $option_idx++){
         $option = $activity["options"][$option_idx];
         if ($option["option_name"] == "想说的话")
@@ -91,7 +91,7 @@ for ($user_idx = 0; $user_idx < count(@$join_value); $user_idx++){
                 $real_value = $_option_value[$option["option_id"]];
                 break;
         }
-        $objPHPExcel->setActiveSheetIndex(0)->setCellValue(($INDEX[$option_idx+2]).($line_idx), ($real_value));
+        $objPHPExcel->setActiveSheetIndex(0)->setCellValueExplicit(($INDEX[$option_idx+2]).($line_idx), ($real_value), PHPExcel_Cell_DataType::TYPE_STRING);
     }
 }
 
