@@ -5,3 +5,19 @@ a.author{
 body{
 	font-family: monospace;
 }
+
+/* 收藏按钮 */
+.fav-btn {
+	cursor: pointer;
+	color: #ccc;
+	font-size: 16px;
+	margin-left: 6px;
+	user-select: none;
+	transition: color 0.2s;
+}
+.fav-btn.faved {
+	color: #f0ad4e;
+}
+.fav-btn:hover {
+	color: #f0ad4e;
+}

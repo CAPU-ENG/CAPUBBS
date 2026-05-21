@@ -7,7 +7,7 @@ function mainfunc($posts,$debug=false){
 	if (!$debug) {
 		$route_key = _jiekoufunc_resolve_route_key($posts);
 		$routing = _jiekoufunc_get_api_routing();
-		$mode = isset($routing[$route_key]) ? $routing[$route_key] : 'old';
+		$mode = isset($routing[$route_key]) ? $routing[$route_key] : 'new';
 		if ($mode === 'new') {
 			$con = dbconnect_mysqli();
 			require_once __DIR__.'/../../api/jiekoufunc.php';

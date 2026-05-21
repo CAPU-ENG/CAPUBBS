@@ -788,6 +788,8 @@ function jiekoufunc_msg($con, $token, $type, $params) {
     $username = mysqli_real_escape_string($con, $user['username']);
     $p = isset($params['p']) ? $params['p'] : '';
 
+    jiekoufunc_favorite_updates_notify($con, $token);
+
     $result = mysqli_fetch_array(mysqli_query($con, "select count(1) as c from messages where receiver='$username' and sender='system' and hasread=0"));
     $sysmsg = $result['c'];
     $result = mysqli_fetch_array(mysqli_query($con, "select count(1) as c from messages where receiver='$username' and sender='system'"));
@@ -828,6 +830,7 @@ function jiekoufunc_msg($con, $token, $type, $params) {
             );
         }
         mysqli_query($con, "update messages set hasread=1 where receiver='$username' and sender='system' and hasread=0");
+        mysqli_query($con, "update favorites set last_read_time=UNIX_TIMESTAMP() where username='$username'");
     } elseif ($type == "private") {
         $ans = array();
         $senders = array();
@@ -1819,6 +1822,145 @@ function jiekoufunc_admin_reset_password($con, $token, $params) {
 }
 
 // ============================================================================
+//  Favorite operations
+// ============================================================================
+
+function jiekoufunc_favorite_add($con, $token, $bid, $tid) {
+    $user = jiekoufunc_token2user($con, $token);
+    if (!$user) {
+        return array(array('code' => '-2', 'msg' => '请先登录'));
+    }
+    $username = mysqli_real_escape_string($con, $user['username']);
+    $now = time();
+    $statement = "insert into favorites (username, bid, tid, timestamp, last_read_time) values ('$username', $bid, $tid, $now, $now)";
+    if (mysqli_query($con, $statement)) {
+        return array(array('code' => '0', 'msg' => '收藏成功'));
+    }
+    if (mysqli_errno($con) == 1062) {
+        return array(array('code' => '1', 'msg' => '已经收藏过了'));
+    }
+    return array(array('code' => '2', 'msg' => mysqli_error($con)));
+}
+
+function jiekoufunc_favorite_remove($con, $token, $bid, $tid) {
+    $user = jiekoufunc_token2user($con, $token);
+    if (!$user) {
+        return array(array('code' => '-2', 'msg' => '请先登录'));
+    }
+    $username = mysqli_real_escape_string($con, $user['username']);
+    mysqli_query($con, "delete from favorites where username='$username' and bid=$bid and tid=$tid");
+    return array(array('code' => '0', 'msg' => '已取消收藏'));
+}
+
+function jiekoufunc_favorite_list($con, $token, $params) {
+    $user = jiekoufunc_token2user($con, $token);
+    if (!$user) {
+        return array(array('code' => '-2', 'msg' => '请先登录'));
+    }
+    $username = mysqli_real_escape_string($con, $user['username']);
+    $sort = isset($params['sort']) ? $params['sort'] : 'time';
+    $limit_raw = isset($params['limit']) ? $params['limit'] : '';
+    $limit_val = _parse_limit($limit_raw, 50);
+    $limit_clause = ($limit_val === null) ? '' : " limit 0,$limit_val";
+
+    if ($sort == 'custom') {
+        $order = "order by f.sort_order, f.timestamp desc";
+    } else {
+        $order = "order by f.timestamp desc";
+    }
+
+    $statement = "select f.id, f.bid, f.tid, f.timestamp as fav_timestamp, f.sort_order,
+        t.title, t.author, t.click, t.reply, t.timestamp, t.postdate
+        from favorites f
+        left join threads t on f.bid=t.bid and f.tid=t.tid
+        where f.username='$username'
+        $order$limit_clause";
+
+    $results = mysqli_query($con, $statement);
+    $infos = array();
+    $infos[] = array('code' => '0');
+    while ($res = mysqli_fetch_array($results, MYSQLI_ASSOC)) {
+        $info = array();
+        foreach ($res as $key => $value) {
+            if (is_long($key)) continue;
+            $info[$key] = $value;
+        }
+        $info['deleted'] = ($res['title'] === null) ? '1' : '0';
+        $infos[] = $info;
+    }
+    return $infos;
+}
+
+function jiekoufunc_favorite_sort($con, $token, $bid, $tid, $params) {
+    $user = jiekoufunc_token2user($con, $token);
+    if (!$user) {
+        return array(array('code' => '-2', 'msg' => '请先登录'));
+    }
+    $username = mysqli_real_escape_string($con, $user['username']);
+    $sort_order = isset($params['sort_order']) ? intval($params['sort_order']) : 0;
+    mysqli_query($con, "update favorites set sort_order=$sort_order where username='$username' and bid=$bid and tid=$tid");
+    return array(array('code' => '0'));
+}
+
+function jiekoufunc_favorite_count($con, $bid, $tid) {
+    $result = mysqli_fetch_array(mysqli_query($con, "select count(*) as c from favorites where bid=$bid and tid=$tid"));
+    return array(array('code' => '0', 'count' => strval($result['c'])));
+}
+
+function jiekoufunc_favorite_check($con, $token, $bid, $tid) {
+    $user = jiekoufunc_token2user($con, $token);
+    if (!$user) {
+        return array(array('code' => '0', 'favorited' => 'false'));
+    }
+    $username = mysqli_real_escape_string($con, $user['username']);
+    $result = mysqli_query($con, "select 1 from favorites where username='$username' and bid=$bid and tid=$tid");
+    $favorited = (mysqli_num_rows($result) > 0) ? 'true' : 'false';
+    return array(array('code' => '0', 'favorited' => $favorited));
+}
+
+function jiekoufunc_favorite_updates_notify($con, $token) {
+    $user = jiekoufunc_token2user($con, $token);
+    if (!$user) {
+        return array(array('code' => '0', 'updates' => '0'));
+    }
+    $username = mysqli_real_escape_string($con, $user['username']);
+    $now = time();
+
+    // 检查是否有已存在的未读同类通知
+    $dup = mysqli_query($con, "select 1 from messages where receiver='$username' and sender='system' and text='您收藏的帖子有新的回复' and hasread=0");
+    if (mysqli_num_rows($dup) > 0) {
+        return array(array('code' => '0', 'updates' => '0'));
+    }
+
+    // 查询有更新的收藏
+    $result = mysqli_query($con,
+        "select f.bid, f.tid from favorites f
+        left join threads t on f.bid=t.bid and f.tid=t.tid
+        where f.username='$username' and t.timestamp > f.last_read_time"
+    );
+    $count = mysqli_num_rows($result);
+    if ($count > 0) {
+        mysqli_query($con, "insert into messages (sender, receiver, text, time, hasread) values ('system', '$username', '您收藏的帖子有新的回复', $now, 0)");
+    }
+    return array(array('code' => '0', 'updates' => strval($count)));
+}
+
+function jiekoufunc_favorite_mark_read($con, $token, $bid, $tid) {
+    $user = jiekoufunc_token2user($con, $token);
+    if (!$user) {
+        return array(array('code' => '-2', 'msg' => '请先登录'));
+    }
+    $username = mysqli_real_escape_string($con, $user['username']);
+    $now = time();
+    if ($bid != 0 && $tid != 0) {
+        mysqli_query($con, "update favorites set last_read_time=$now where username='$username' and bid=$bid and tid=$tid");
+    } else {
+        mysqli_query($con, "update favorites set last_read_time=$now where username='$username'");
+    }
+    return array(array('code' => '0'));
+}
+
+// ============================================================================
 //  Main dispatcher
 // ============================================================================
 
@@ -1917,6 +2059,16 @@ function jiekoufunc_dispatch($con, $params) {
     if ($ask == "sign_today")        return jiekoufunc_sign_today($con, $params);
     if ($ask == "sign_year")         return jiekoufunc_sign_year($con);
     if ($ask == "sign_user")         return jiekoufunc_sign_user($con);
+
+    // Favorite operations
+    if ($ask == "favorite_add")            return jiekoufunc_favorite_add($con, $token, $bid, $tid);
+    if ($ask == "favorite_remove")         return jiekoufunc_favorite_remove($con, $token, $bid, $tid);
+    if ($ask == "favorite_list")           return jiekoufunc_favorite_list($con, $token, $params);
+    if ($ask == "favorite_sort")           return jiekoufunc_favorite_sort($con, $token, $bid, $tid, $params);
+    if ($ask == "favorite_count")          return jiekoufunc_favorite_count($con, $bid, $tid);
+    if ($ask == "favorite_check")          return jiekoufunc_favorite_check($con, $token, $bid, $tid);
+    if ($ask == "favorite_updates_notify") return jiekoufunc_favorite_updates_notify($con, $token);
+    if ($ask == "favorite_mark_read")      return jiekoufunc_favorite_mark_read($con, $token, $bid, $tid);
 
     // === Dispatch by $view (no $ask) ===
     if ($view != "")                 return jiekoufunc_view_user_array($con, $view);

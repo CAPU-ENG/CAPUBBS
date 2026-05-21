@@ -53,6 +53,14 @@
 
 	$title=count($data)>0?$tdata['title']:"没有这个帖子= =";
 	$lztitle="";if($see_lz!="") $lztitle="（只看楼主）&nbsp;&nbsp;";
+
+	// 检查当前用户是否已收藏
+	$isFaved = false;
+	if ($currentuser != "") {
+	    $username_escaped = mysqli_real_escape_string($con, $currentuser);
+	    $fav_check = mysqli_query($con, "select 1 from favorites where username='$username_escaped' and bid=$bid and tid=$tid");
+	    $isFaved = (mysqli_num_rows($fav_check) > 0);
+	}
 ?>
 
 <html>
@@ -85,7 +93,11 @@
 		<?php
 		echo("<a href='../index' onmouseover='showmenu();'>CAPUBBS</a>&nbsp;&gt;&nbsp;");
 		echo("<a href='../main/?bid=$bid'>".$bdata['bbstitle']."</a>&nbsp;&gt;&nbsp;");
-		echo("<a href='./?bid=$bid&tid=$tid&p=1' id='page_title'>".$title."</a>&nbsp;&gt;&nbsp;");
+		echo("<a href='./?bid=$bid&tid=$tid&p=1' id='page_title'>".$title."</a>&nbsp;");
+		?>
+		<span id="fav-btn" class="fav-btn <?php echo $isFaved ? 'faved' : ''; ?>" onclick="toggleFav()"><?php echo $isFaved ? '★' : '☆'; ?></span>
+		<?php
+		echo "&nbsp;&gt;&nbsp;";
 		echo("<span>第".$page."页</span>");
 		echo "&nbsp;&nbsp;&nbsp;<a href='javascript:seelz()' style='color:#6d90ee'>";
 		if ($see_lz=="") echo "只看楼主";
@@ -123,8 +135,10 @@
 			$msg=intval($userinfo['newmsg']);
 			if($msg==0){
 				echo("&nbsp;<a href='../home' target='_blank'>个人中心</a>");
+				echo("&nbsp;<a href='../favorite/'>我的收藏</a>");
 			}else{
 				echo("，<a href='../home?pos=message' target='_blank'>您有 $msg 条未读消息</a>");
+				echo("&nbsp;<a href='../favorite/'>我的收藏</a>");
 			}
 			$nowurl=$_SERVER["PHP_SELF"]. "?".$_SERVER["QUERY_STRING"];
 			$nowurl=urlencode($nowurl);
@@ -424,6 +438,26 @@ for ($i = 1; $i < count($result); $i++) {
 }
 ?>
 
+
+var favTimer = null;
+function toggleFav() {
+	var $btn = $('#fav-btn');
+	if (favTimer) return;
+	favTimer = setTimeout(function() { favTimer = null; }, 500);
+	var isFaved = $btn.hasClass('faved');
+	var ask = isFaved ? 'favorite_remove' : 'favorite_add';
+	$.post('/api/jiekoujson.php', { ask: ask, bid: bid, tid: tid }, function(res) {
+		if (res.code === 0) {
+			if (isFaved) {
+				$btn.removeClass('faved').html('☆');
+			} else {
+				$btn.addClass('faved').html('★');
+			}
+		} else if (res.code === -2) {
+			alert('请先登录');
+		}
+	});
+}
 
 refreshAttach();
 $(window).load(function() {

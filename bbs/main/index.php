@@ -44,6 +44,19 @@ $infos=mainfunc(array(
 "p"=>$page,"extr"=>$extr));
 $bbsdata=mainfunc(array("ask"=>"bbsinfo"));
 
+// 已登录用户：批量查询当前版面的收藏状态
+$fav_tids = array();
+if ($username != "") {
+    $fav_result = mainfunc(array("ask" => "favorite_list", "bid" => $bid));
+    if (@$fav_result[0]['code'] == '0') {
+        for ($i = 1; $i < count($fav_result); $i++) {
+            if (@$fav_result[$i]['deleted'] == '0') {
+                $fav_tids[] = intval($fav_result[$i]['tid']);
+            }
+        }
+    }
+}
+
 echo("<script type='text/javascript'>");
 echo("var bid=$bid;");
 echo("</script>");
@@ -74,8 +87,10 @@ if($username!=""){
 	
 	if($msg==0){
 		echo("&nbsp;<a href='../home' target='_blank'>个人中心</a>");
+		echo("&nbsp;<a href='../favorite/'>我的收藏</a>");
 	}else{
 		echo("<br><a href='../home?pos=message' target='_blank'>您有 $msg 条未读消息</a>");
+		echo("&nbsp;<a href='../favorite/'>我的收藏</a>");
 	}
 	$nowurl=$_SERVER["PHP_SELF"]. "?".$_SERVER["QUERY_STRING"];
 	$nowurl=urlencode($nowurl);
@@ -225,8 +240,15 @@ function search_time_change() {
 			$click=$info['click'];
 			$replyer=$info['replyer'];
 			$prestr="&nbsp;<img src='icon.png' class='decorator'>";
+			$is_faved = in_array(intval($tid), $fav_tids);
+			$fav_class = $is_faved ? 'faved' : '';
+			$fav_star = $is_faved ? '★' : '☆';
 			echo("<tr class='content ".($counter%2==0?"even":"odd")."'>\n");
-			echo("<td style='text-align:left;'>&nbsp;$prestr&nbsp;<a href='../content/?bid=$bid&tid=$tid&p=1'>$title</a>&nbsp;$decoratorstr</td>\n");
+			echo("<td style='text-align:left;'>&nbsp;$prestr&nbsp;<a href='../content/?bid=$bid&tid=$tid&p=1'>$title</a>&nbsp;$decoratorstr");
+			if ($username != "") {
+				echo("<span class='fav-btn $fav_class' data-bid='$bid' data-tid='$tid' onclick='toggleFav(this)' title='收藏/取消收藏'>$fav_star</span>");
+			}
+			echo("</td>\n");
 			echo("<td>".userhref($author)."<br><span class='date'>$postdate</span></td>\n");
 			echo("<td>$reply / $click</td>\n");
 			echo("<td>".userhref($replyer?$replyer:$author)."<br><span class='date'>".formatstamp($info['timestamp'])."</span></td>\n</tr>\n");
@@ -686,6 +708,28 @@ function hidemenu(){
 function goback(){
 	//window.open("../bbs", "_self");
 	window.location="../index/";
+}
+
+var favTimer = null;
+function toggleFav(el) {
+	var $el = $(el);
+	if (favTimer) return;
+	favTimer = setTimeout(function() { favTimer = null; }, 500);
+	var bid = parseInt($el.attr('data-bid'));
+	var tid = parseInt($el.attr('data-tid'));
+	var isFaved = $el.hasClass('faved');
+	var ask = isFaved ? 'favorite_remove' : 'favorite_add';
+	$.post('/api/jiekoujson.php', { ask: ask, bid: bid, tid: tid }, function(res) {
+		if (res.code === 0) {
+			if (isFaved) {
+				$el.removeClass('faved').html('☆');
+			} else {
+				$el.addClass('faved').html('★');
+			}
+		} else if (res.code === -2) {
+			alert('请先登录');
+		}
+	});
 }
 
 function doreply(){
