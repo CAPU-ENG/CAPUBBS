@@ -32,16 +32,6 @@
     color: #999;
 }
 
-.sort-arrow {
-    text-decoration: none;
-    color: #4a6bb5;
-    font-size: 12px;
-}
-
-.sort-arrow:hover {
-    color: #2a4b95;
-}
-
 .deleted-text {
     color: #aaa;
     font-style: italic;

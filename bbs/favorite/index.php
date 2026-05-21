@@ -13,15 +13,11 @@ if ($username == "") {
     exit;
 }
 
-$sort = isset($_GET['sort']) ? $_GET['sort'] : 'time';
-$page = intval(@$_GET['p']);
-if ($page < 1) $page = 1;
-
 // 获取收藏列表
 $fav_result = mainfunc(array(
     "ask" => "favorite_list",
-    "sort" => $sort,
-    "limit" => "-1"  // 不分页，全部获取
+    "sort" => "time",
+    "limit" => "-1"
 ));
 
 $fav_list = array();
@@ -40,69 +36,13 @@ $userinfo = $userinfo[0];
 $msg = intval($userinfo['newmsg']);
 $star = intval($userinfo['star']);
 
-// 处理排序操作（上移/下移）
-if (isset($_GET['action']) && isset($_GET['bid']) && isset($_GET['tid'])) {
+// 处理取消收藏
+if (isset($_GET['action']) && $_GET['action'] == 'remove' && isset($_GET['bid']) && isset($_GET['tid'])) {
     $act_bid = intval($_GET['bid']);
     $act_tid = intval($_GET['tid']);
-    $action = $_GET['action'];
-
-    if ($action == 'up' || $action == 'down') {
-        // 确保所有项的 sort_order 已初始化
-        $need_init = true;
-        foreach ($fav_list as $fv) {
-            if (intval($fv['sort_order']) != 0) {
-                $need_init = false;
-                break;
-            }
-        }
-        if ($need_init) {
-            for ($k = 0; $k < count($fav_list); $k++) {
-                $fv = $fav_list[$k];
-                mainfunc(array(
-                    "ask" => "favorite_sort",
-                    "bid" => $fv['bid'],
-                    "tid" => $fv['tid'],
-                    "sort_order" => $k
-                ));
-                $fav_list[$k]['sort_order'] = $k;
-            }
-        }
-
-        // 找到当前项和相邻项的索引
-        $cur_idx = -1;
-        for ($k = 0; $k < count($fav_list); $k++) {
-            if (intval($fav_list[$k]['bid']) == $act_bid && intval($fav_list[$k]['tid']) == $act_tid) {
-                $cur_idx = $k;
-                break;
-            }
-        }
-
-        if ($cur_idx >= 0) {
-            $swap_idx = ($action == 'up') ? $cur_idx - 1 : $cur_idx + 1;
-            if ($swap_idx >= 0 && $swap_idx < count($fav_list)) {
-                $cur_order = intval($fav_list[$cur_idx]['sort_order']);
-                $swap_order = intval($fav_list[$swap_idx]['sort_order']);
-
-                mainfunc(array(
-                    "ask" => "favorite_sort", "bid" => $act_bid, "tid" => $act_tid,
-                    "sort_order" => $swap_order
-                ));
-                mainfunc(array(
-                    "ask" => "favorite_sort", "bid" => $fav_list[$swap_idx]['bid'],
-                    "tid" => $fav_list[$swap_idx]['tid'], "sort_order" => $cur_order
-                ));
-
-                header("Location: ./?sort=$sort");
-                exit;
-            }
-        }
-    }
-
-    if ($action == 'remove') {
-        mainfunc(array("ask" => "favorite_remove", "bid" => $act_bid, "tid" => $act_tid));
-        header("Location: ./?sort=$sort");
-        exit;
-    }
+    mainfunc(array("ask" => "favorite_remove", "bid" => $act_bid, "tid" => $act_tid));
+    header("Location: ./");
+    exit;
 }
 ?>
 <html>
@@ -146,15 +86,7 @@ echo("</div>");
 <div class="back" onclick="window.location='../index/';"><span style="margin-left:32px;"><b>返回</b></span></div>
 <span style="float:left;margin-left:20px;position:relative;">
 <a href='../index/'>CAPUBBS</a>&nbsp;&gt;&nbsp;
-<span>我的收藏</span>&nbsp;
-<span style="margin-left:30px;">
-排序：
-<?php if ($sort == 'time'): ?>
-<b>按收藏时间</b> | <a href="./?sort=custom">自定义排序</a>
-<?php else: ?>
-<a href="./?sort=time">按收藏时间</a> | <b>自定义排序</b>
-<?php endif; ?>
-</span>
+<span>我的收藏</span>
 </span>
 </div>
 
@@ -163,7 +95,7 @@ echo("</div>");
 if (count($fav_list) == 0) {
     echo("<tr><td style='text-align:center;padding:40px;'>还没有收藏任何帖子</td></tr>");
 } else {
-    echo("<tr class='head'><th></th><th>帖子标题</th><th>所在版面</th><th>阅读/回复</th><th>发帖时间</th><th>最后回复</th><th>收藏时间</th><th>操作</th></tr>");
+    echo("<tr class='head'><th>帖子标题</th><th>所在版面</th><th>阅读/回复</th><th>发帖时间</th><th>最后回复</th><th>收藏时间</th><th>操作</th></tr>");
 
     foreach ($fav_list as $idx => $fv) {
         $deleted = (@$fv['deleted'] == '1');
@@ -191,15 +123,6 @@ if (count($fav_list) == 0) {
         $row_class = $deleted ? 'deleted' : ($idx % 2 == 0 ? 'even' : 'odd');
 
         echo("<tr class='content $row_class'>\n");
-
-        // 排序按钮（仅自定义模式）
-        echo("<td style='width:50px;text-align:center;'>");
-        if ($sort == 'custom' && !$deleted) {
-            echo("<a href='./?sort=custom&action=up&bid=$fv_bid&tid=$fv_tid' class='sort-arrow' title='上移'>&#9650;</a>");
-            echo("&nbsp;");
-            echo("<a href='./?sort=custom&action=down&bid=$fv_bid&tid=$fv_tid' class='sort-arrow' title='下移'>&#9660;</a>");
-        }
-        echo("</td>\n");
 
         // 标题
         echo("<td style='text-align:left;'>");
@@ -246,7 +169,7 @@ if (count($fav_list) == 0) {
 
         // 操作
         echo("<td>");
-        echo("<a href='./?sort=$sort&action=remove&bid=$fv_bid&tid=$fv_tid' class='unfav-btn' onclick='return confirm(\"确定取消收藏？\");'>取消收藏</a>");
+        echo("<a href='./?action=remove&bid=$fv_bid&tid=$fv_tid' class='unfav-btn' onclick='return confirm(\"确定取消收藏？\");'>取消收藏</a>");
         echo("</td>\n");
 
         echo("</tr>\n");
