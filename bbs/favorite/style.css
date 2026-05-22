@@ -1,88 +1,24 @@
-.main {
-    width: 90%;
-    margin-left: 5%;
-    border-collapse: collapse;
-    margin-top: 20px;
-}
-
-.main th {
-    background-color: #4a6bb5;
-    color: white;
-    padding: 8px 6px;
-    font-size: 14px;
-}
-
-.main td {
-    padding: 8px 6px;
-    text-align: center;
-    font-size: 14px;
-    border-bottom: 1px solid #e0e0e0;
-}
-
-.main tr.even {
-    background-color: #f9f9f9;
-}
-
-.main tr.odd {
-    background-color: #fff;
-}
-
 .main tr.deleted {
-    background-color: #f0f0f0;
-    color: #999;
+	background-color: #f0f0f0;
+	color: #999;
 }
 
 .deleted-text {
-    color: #aaa;
-    font-style: italic;
+	color: #aaa;
+	font-style: italic;
 }
 
 .unfav-btn {
-    color: #d9534f;
-    text-decoration: none;
-    font-size: 13px;
+	color: #d9534f;
+	text-decoration: none;
+	font-size: 13px;
 }
 
 .unfav-btn:hover {
-    text-decoration: underline;
-}
-
-.fav-btn {
-    cursor: pointer;
-    color: #ccc;
-    font-size: 16px;
-    margin-left: 6px;
-    user-select: none;
-    transition: color 0.2s;
-}
-
-.fav-btn.faved {
-    color: #f0ad4e;
-}
-
-.fav-btn:hover {
-    color: #f0ad4e;
+	text-decoration: underline;
 }
 
 .date {
-    color: #888;
-    font-size: 12px;
-}
-
-.navigation {
-    margin: 10px 5%;
-    line-height: 40px;
-}
-
-.header {
-    text-align: center;
-}
-
-.header h2 {
-    margin: 10px 0;
-    color: #333;
-}
-
-.footer {
-    height: 80px;
+	color: #888;
+	font-size: 12px;
 }
