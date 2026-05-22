@@ -10,28 +10,28 @@
  */
 return array(
     // -- Authentication --
-    'login'             => 'old',
-    'logout'            => 'old',
-    'register'          => 'old',
+    'login'             => 'new',
+    'logout'            => 'new',
+    'register'          => 'new',
 
     // -- Content operations --
-    'post'              => 'old',
-    'reply'             => 'old',
-    'edit'              => 'old',
-    'delete'            => 'old',
-    'move'              => 'old',
-    'lzl'               => 'old',
+    'post'              => 'new',
+    'reply'             => 'new',
+    'edit'              => 'new',
+    'delete'            => 'new',
+    'move'              => 'new',
+    'lzl'               => 'new',
 
     // -- Board / thread read operations --
-    'bbsinfo'           => 'old',
-    'tidinfo'           => 'old',
-    'getpages'          => 'old',
-    'getlznum'          => 'old',
-    'getnum'            => 'old',
-    'hot'               => 'old',
-    'global_top'        => 'old',
-    'online'            => 'old',
-    'search'            => 'old',
+    'bbsinfo'           => 'new',
+    'tidinfo'           => 'new',
+    'getpages'          => 'new',
+    'getlznum'          => 'new',
+    'getnum'            => 'new',
+    'hot'               => 'new',
+    'global_top'        => 'new',
+    'online'            => 'new',
+    'search'            => 'new',
 
     // -- User operations --
     'getuser'           => 'old',
@@ -59,9 +59,9 @@ return array(
 
     // -- Admin actions --
     'admin_reset_password' => 'new',
-    'lock'              => 'old',
-    'extr'              => 'old',
-    'top'               => 'old',
+    'lock'              => 'new',
+    'extr'              => 'new',
+    'top'               => 'new',
     'global_top_action' => 'old',
     'news'              => 'old',
 
@@ -71,7 +71,7 @@ return array(
     'sign_user'         => 'new',
 
     // -- Special paths (no $ask) --
-    '__view'            => 'old',
-    '__bbs_default'     => 'old',
-    '__tid_default'     => 'old',
+    '__view'            => 'new',
+    '__bbs_default'     => 'new',
+    '__tid_default'     => 'new',
 );
