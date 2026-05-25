@@ -1,13 +1,10 @@
 <?php
 require_once "../../bbs/lib/mainfunc.php";
-require_once '../../lib.php';
 
-$con = dbconnect_mysqli();
-
-$bid=@$_GET['bid'];
-$tid=@$_GET['tid'];
-$fid=@$_GET['fid'];
-$pid=@$_GET['pid'];
+$bid = @$_GET['bid'];
+$tid = @$_GET['tid'];
+$fid = @$_GET['fid'];
+$pid = @$_GET['pid'];
 
 if (is_null($bid) || is_null($tid)) {
     echo "error";
@@ -19,18 +16,16 @@ if (is_null($fid) && is_null($pid)) {
 }
 
 if (!is_null($fid)) {
-    $statement = "select bid, tid, fid, pid, text, ishtml from posts where bid=$bid and tid=$tid and fid=$fid";
+    $floor_data = mainfunc(array("bid" => $bid, "tid" => $tid, "fid" => $fid));
 } else {
-    $statement = "select bid, tid, fid, pid, text, ishtml from posts where bid=$bid and tid=$tid and pid=$pid";
+    $floor_data = mainfunc(array("bid" => $bid, "tid" => $tid, "pid" => $pid));
 }
-$result = mysqli_query($con, $statement);
-if (is_null($result)) {
+
+if (count($floor_data) == 0) {
     echo "error";
     exit;
 }
-$floor = mysqli_fetch_array($result, MYSQLI_ASSOC);
-$translated=translate($floor['text'],$floor['ishtml']=="YES");
-$translatedforquote=translateforquote($floor['text'],$floor['ishtml']=="YES");
+$floor = $floor_data[0];
+$translated = translate($floor['text'], $floor['ishtml'] == "YES");
+$translatedforquote = translateforquote($floor['text'], $floor['ishtml'] == "YES");
 echo $translated;
-mysqli_free_result($result);
-mysqli_close($con);

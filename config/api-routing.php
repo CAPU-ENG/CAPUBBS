@@ -32,6 +32,7 @@ return array(
     'global_top'        => 'new',
     'online'            => 'new',
     'search'            => 'new',
+    'calendar'          => 'new',
 
     // -- User operations --
     'getuser'           => 'old',

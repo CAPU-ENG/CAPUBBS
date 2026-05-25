@@ -1915,6 +1915,16 @@ function jiekoufunc_favorite_check($con, $token, $bid, $tid) {
     return array(array('code' => '0', 'favorited' => $favorited));
 }
 
+function jiekoufunc_calendar($con) {
+    $statement = "select * from capubbs.calendar";
+    $results = mysqli_query($con, $statement);
+    $infos = array();
+    while ($res = mysqli_fetch_array($results)) {
+        $infos[] = $res;
+    }
+    return $infos;
+}
+
 // ============================================================================
 //  Middleware
 // ============================================================================
@@ -2083,6 +2093,7 @@ function jiekoufunc_dispatch($con, $params) {
     if ($ask == "favorite_sort")           return jiekoufunc_favorite_sort($con, $token, $bid, $tid, $params);
     if ($ask == "favorite_count")          return jiekoufunc_favorite_count($con, $bid, $tid);
     if ($ask == "favorite_check")          return jiekoufunc_favorite_check($con, $token, $bid, $tid);
+    if ($ask == "calendar")                return jiekoufunc_calendar($con);
     // === Dispatch by $view (no $ask) ===
     if ($view != "")                 return jiekoufunc_view_user_array($con, $view);
 
@@ -2120,7 +2131,9 @@ function jiekoufunc_dispatch($con, $params) {
                     $author = $result[0];
                 }
             }
-            if ($pid != 0)
+            if ($fid != 0)
+                $statement = "select * from posts where bid=$bid && tid=$tid && fid=$fid";
+            elseif ($pid != 0)
                 $statement = "select * from posts where bid=$bid && tid=$tid && pid=$pid";
             elseif ($page != "") {
                 $start = ($page - 1) * 12;
