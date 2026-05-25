@@ -1916,6 +1916,54 @@ function jiekoufunc_favorite_check($con, $token, $bid, $tid) {
 }
 
 // ============================================================================
+//  Middleware
+// ============================================================================
+
+function jiekoufunc_middleware_config($ask) {
+    static $config = null;
+    if ($config === null) {
+        $config = require __DIR__ . '/../config/api-middleware.php';
+    }
+    if (isset($config[$ask])) return $config[$ask];
+    return $config['_default'];
+}
+
+function jiekoufunc_middleware_login($con, $token, $bid, $check_bid1) {
+    if ($check_bid1 && intval($bid) == 1) {
+        $user = jiekoufunc_token2user($con, $token);
+        if (!$user) {
+            return array(false, jiekoufunc_report('-2', '本版块需要登录后才能查看'));
+        }
+        return array(true, null);
+    }
+    $user = jiekoufunc_token2user($con, $token);
+    if (!$user) {
+        return array(false, jiekoufunc_report('-2', '请先登录'));
+    }
+    return array(true, null);
+}
+
+function jiekoufunc_middleware_online($con, $token, $ip) {
+    jiekoufunc_validate_token_and_sign($con, $token, $ip);
+}
+
+function jiekoufunc_middleware_permission($con, $token, $bid, $require_rights, $check_board_mod) {
+    if ($require_rights <= 0 && !$check_board_mod) return null;
+
+    $rights_info = jiekoufunc_getrights($con, $bid, $token);
+    if ($rights_info[0] == -1) {
+        return jiekoufunc_report('1', '会话超时，请重新登录');
+    }
+    $user_rights = intval($rights_info[3]);
+    $board_able = intval($rights_info[0]);
+
+    if ($check_board_mod && $board_able >= 1) return null;
+    if ($user_rights >= $require_rights) return null;
+
+    return jiekoufunc_report('5', '权限不足！');
+}
+
+// ============================================================================
 //  Main dispatcher
 // ============================================================================
 
@@ -1958,8 +2006,21 @@ function jiekoufunc_dispatch($con, $params) {
         return array(array('code' => '-1', 'msg' => '未知错误，请反馈给我们。'));
     }
 
-    // Token validation + auto sign-in
-    jiekoufunc_validate_token_and_sign($con, $token, $ip);
+    // === Middleware ===
+    $mw_config = jiekoufunc_middleware_config($ask);
+    $m_check_bid1 = isset($mw_config['check_bid1']) ? $mw_config['check_bid1'] : false;
+    // Login check
+    if ($mw_config['check_login'] || ($m_check_bid1 && intval($bid) == 1)) {
+        list($m_login_ok, $m_login_err) = jiekoufunc_middleware_login($con, $token, $bid, $m_check_bid1);
+        if (!$m_login_ok) return $m_login_err;
+    }
+    // Online status + auto sign-in
+    jiekoufunc_middleware_online($con, $token, $ip);
+    // Permission check
+    $m_perm_err = jiekoufunc_middleware_permission($con, $token, $bid,
+        $mw_config['require_rights'],
+        isset($mw_config['check_board_mod']) ? $mw_config['check_board_mod'] : false);
+    if ($m_perm_err) return $m_perm_err;
 
     // === Dispatch by $ask ===
 
