@@ -1035,7 +1035,7 @@ function jiekoufunc_post($con, $token, $bid, $ip, $attachs, $params) {
     $delay_err = jiekoufunc_checkDelayTime($time, $star, $rights, $lastpost, $ip, $results);
     if ($delay_err !== null) return $delay_err;
 
-    $statement = "select max(tid) from threads where bid=$bid";
+    $statement = "select max(tid) as m from (select tid from threads where bid=$bid union select tid from trash_threads where bid=$bid) as t";
     $tid = intval(mysqli_fetch_row(mysqli_query($con, $statement))[0]) + 1;
     $title = isset($params['title']) ? $params['title'] : '';
     if (mb_strlen($title, 'utf-8') >= 43)
@@ -1267,15 +1267,17 @@ function jiekoufunc_delete($con, $token, $bid, $tid, $pid) {
     $ip = $a[2];
 
     if ($pid == 0) {
-        $statement = "select author, reply from threads where bid=$bid && tid=$tid";
+        // ========== Delete entire thread ==========
+        $statement = "select author, reply, title, replyer, click, guesture,
+                             extr, top, locked, timestamp, postdate
+                      from threads where bid=$bid && tid=$tid";
         $results = mysqli_query($con, $statement);
-        $num = mysqli_num_rows($results);
-        if ($num == 0) {
+        if (mysqli_num_rows($results) == 0) {
             return array(array('code' => '3', 'msg' => '主题不存在！'));
         }
-        $res = mysqli_fetch_row($results);
-        $author = $res[0];
-        $replynum = intval($res[1]);
+        $thread = mysqli_fetch_array($results);
+        $author = $thread['author'];
+        $replynum = intval($thread['reply']);
         if ($a[0] == 0 && ($username != $author || $replynum != 0)) {
             return array(array('code' => '5', 'msg' => '权限不足！'));
         }
@@ -1302,33 +1304,67 @@ function jiekoufunc_delete($con, $token, $bid, $tid, $pid) {
             mysqli_query($con, $statement);
         }
 
-        $statement = "delete from threads where bid=$bid && tid=$tid";
-        mysqli_query($con, $statement);
-        $statement = "select * from posts where bid=$bid && tid=$tid order by pid";
-        $results = mysqli_query($con, $statement);
-        while ($res = mysqli_fetch_array($results)) {
-            $post_pid = $res['pid'];
-            $title = mysqli_real_escape_string($con, $res['title']);
-            $author = $res['author'];
-            $text = mysqli_real_escape_string($con, $res['text']);
-            $replytime = $res['replytime'];
-            $updatetime = $res['updatetime'];
-            $attach = $res['attachs'];
-            $attachs_arr = explode(" ", $attach);
-            foreach ($attachs_arr as $attachment) {
-                if (!empty($attachment)) {
-                    jiekoufunc__delattach($con, $attachment);
-                }
-            }
-            $replyip = $res['ip'];
-            $statement = "insert into capubbs.null values (null,$bid,$tid,$post_pid,'$title','$text','$author','$username',$replytime,$updatetime,$time,'$replyip','$ip')";
+        // Save thread metadata to trash_threads
+        $t_title    = mysqli_real_escape_string($con, isset($thread['title']) ? $thread['title'] : '');
+        $t_author   = mysqli_real_escape_string($con, isset($thread['author']) ? $thread['author'] : '');
+        $t_replyer  = isset($thread['replyer']) ? "'" . mysqli_real_escape_string($con, $thread['replyer']) . "'" : "NULL";
+        $t_click    = intval(isset($thread['click'])    ? $thread['click']    : 0);
+        $t_guesture = intval(isset($thread['guesture']) ? $thread['guesture'] : 0);
+        $t_extr     = intval(isset($thread['extr'])     ? $thread['extr']     : 0);
+        $t_top      = intval(isset($thread['top'])      ? $thread['top']      : 0);
+        $t_locked   = intval(isset($thread['locked'])   ? $thread['locked']   : 0);
+        $t_ts       = intval(isset($thread['timestamp']) ? $thread['timestamp'] : 0);
+        $t_pd       = isset($thread['postdate']) ? "'" . mysqli_real_escape_string($con, $thread['postdate']) . "'" : "NULL";
+
+        $stmt_th = "replace into trash_threads
+            (bid, tid, title, author, replyer, click, reply, guesture,
+             extr, top, locked, timestamp, postdate, deleter, deletetime, deleteip)
+            values ($bid, $tid, '$t_title', '$t_author', $t_replyer, $t_click,
+                    $replynum, $t_guesture, $t_extr, $t_top, $t_locked,
+                    $t_ts, $t_pd, '$username', $time, '$ip')";
+        mysqli_query($con, $stmt_th);
+
+        // Save each post to trash_posts with ALL fields
+        $stmt_posts = "select * from posts where bid=$bid && tid=$tid order by pid";
+        $res_posts = mysqli_query($con, $stmt_posts);
+        while ($row = mysqli_fetch_array($res_posts)) {
+            $p_fid     = $row['fid'];
+            $p_pid     = $row['pid'];
+            $p_title   = mysqli_real_escape_string($con, $row['title']);
+            $p_author  = mysqli_real_escape_string($con, $row['author']);
+            $p_text    = mysqli_real_escape_string($con, $row['text']);
+            $p_ishtml  = mysqli_real_escape_string($con, $row['ishtml']);
+            $p_attachs = mysqli_real_escape_string($con, $row['attachs']);
+            $p_rtime   = $row['replytime'];
+            $p_utime   = $row['updatetime'];
+            $p_sig     = intval($row['sig']);
+            $p_type    = mysqli_real_escape_string($con, $row['type']);
+            $p_ip      = mysqli_real_escape_string($con, $row['ip']);
+            $p_lzl     = intval($row['lzl']);
+
+            $stmt_ins = "insert into trash_posts
+                (bid, tid, pid, fid, title, author, text, ishtml, attachs,
+                 replytime, updatetime, sig, type, ip, lzl,
+                 deleter, deletetime, deleteip)
+                values ($bid, $tid, $p_pid, $p_fid,
+                        '$p_title', '$p_author', '$p_text', '$p_ishtml', '$p_attachs',
+                        $p_rtime, $p_utime, $p_sig, '$p_type', '$p_ip', $p_lzl,
+                        '$username', $time, '$ip')";
+            mysqli_query($con, $stmt_ins);
+
+            $statement = "insert into capubbs.null values (null,$bid,$tid,$p_pid,'$p_title','$p_text','$p_author','$username',$p_rtime,$p_utime,$time,'$p_ip','$ip')";
             mysqli_query($con, $statement);
         }
+
         $statement = "delete from posts where bid=$bid && tid=$tid";
         mysqli_query($con, $statement);
+        $statement = "delete from threads where bid=$bid && tid=$tid";
+        mysqli_query($con, $statement);
+
         return array(array('code' => '0'));
     }
 
+    // ========== Delete single post ==========
     $statement = "select pid from posts where bid=$bid && tid=$tid order by pid desc";
     $results = mysqli_query($con, $statement);
     $res = mysqli_fetch_array($results);
@@ -1340,75 +1376,88 @@ function jiekoufunc_delete($con, $token, $bid, $tid, $pid) {
     if ($number == 1) {
         return jiekoufunc_delete($con, $token, $bid, $tid, 0);
     }
+
     $statement = "select * from posts where bid=$bid && tid=$tid && pid=$pid";
     $results = mysqli_query($con, $statement);
-    while ($res = mysqli_fetch_array($results)) {
-        $post_pid = $res['pid'];
-        $post_fid = $res['fid'];
-        $title = mysqli_real_escape_string($con, $res['title']);
-        $author = $res['author'];
+    $row = mysqli_fetch_array($results);
 
-        if ($a[0] == 0 && $username != $author) {
-            return array(array('code' => '5', 'msg' => '权限不足！'));
-        }
+    $p_fid_val = $row['fid'];
+    $p_fid     = intval($row['fid']);
+    $p_title   = mysqli_real_escape_string($con, $row['title']);
+    $p_author  = $row['author'];
+    $p_text    = mysqli_real_escape_string($con, $row['text']);
+    $p_ishtml  = mysqli_real_escape_string($con, $row['ishtml']);
+    $p_attachs = mysqli_real_escape_string($con, $row['attachs']);
+    $p_rtime   = $row['replytime'];
+    $p_utime   = $row['updatetime'];
+    $p_sig     = intval($row['sig']);
+    $p_type    = mysqli_real_escape_string($con, $row['type']);
+    $p_ip      = mysqli_real_escape_string($con, $row['ip']);
+    $p_lzl     = intval($row['lzl']);
 
-        $attach = $res['attachs'];
-        $attachs_arr = explode(" ", $attach);
-        foreach ($attachs_arr as $attachment) {
-            if (!empty($attachment)) {
-                jiekoufunc__delattach($con, $attachment);
-            }
-        }
+    if ($a[0] == 0 && $username != $p_author) {
+        return array(array('code' => '5', 'msg' => '权限不足！'));
+    }
 
-        $text = mysqli_real_escape_string($con, $res['text']);
-        $replytime = $res['replytime'];
-        $updatetime = $res['updatetime'];
-        $replyip = $res['ip'];
-        $statement = "insert into capubbs.null values (null,$bid,$tid,$post_pid,'$title','$text','$author','$username',$replytime,$updatetime,$time,'$replyip','$ip')";
+    // Save to trash_posts with ALL fields
+    $stmt_ins = "insert into trash_posts
+        (bid, tid, pid, fid, title, author, text, ishtml, attachs,
+         replytime, updatetime, sig, type, ip, lzl,
+         deleter, deletetime, deleteip)
+        values ($bid, $tid, $pid, $p_fid,
+                '$p_title', '$p_author', '$p_text', '$p_ishtml', '$p_attachs',
+                $p_rtime, $p_utime, $p_sig, '$p_type', '$p_ip', $p_lzl,
+                '$username', $time, '$ip')";
+    mysqli_query($con, $stmt_ins);
+
+    $statement = "insert into capubbs.null values (null,$bid,$tid,$pid,'$p_title','$p_text','$p_author','$username',$p_rtime,$p_utime,$time,'$p_ip','$ip')";
+    mysqli_query($con, $statement);
+
+    // Clean up activity join records
+    $stmt_join = "select join_id from season_activity_join where post_fid=$p_fid_val";
+    $res_join = mysqli_query($con, $stmt_join);
+    if (mysqli_num_rows($res_join) != 0) {
+        $rj = mysqli_fetch_array($res_join);
+        $jid = $rj["join_id"];
+        $statement = "delete from season_join_option_value where join_id=$jid";
+        mysqli_query($con, $statement);
+        $statement = "delete from season_activity_join where join_id=$jid";
         mysqli_query($con, $statement);
     }
+
     $statement = "delete from posts where bid=$bid && tid=$tid && pid=$pid";
     mysqli_query($con, $statement);
-
-    if (isset($post_fid)) {
-        $statement = "select join_id from season_activity_join where post_fid=$post_fid";
-        $result = mysqli_query($con, $statement);
-        if (mysqli_num_rows($result) != 0) {
-            $row = mysqli_fetch_array($result);
-            $join_id = $row["join_id"];
-            $statement = "delete from season_join_option_value where join_id=$join_id";
-            mysqli_query($con, $statement);
-            $statement = "delete from season_activity_join where join_id=$join_id";
-            mysqli_query($con, $statement);
-        }
-    }
     $statement = "update posts set pid=pid-1 where bid=$bid && tid=$tid && pid>$pid";
     mysqli_query($con, $statement);
+
+    $new_reply = $number - 2;
     if ($pid == 1) {
         $statement = "select title, author from posts where bid=$bid && tid=$tid && pid=1";
-        $results = mysqli_query($con, $statement);
-        $res = mysqli_fetch_array($results);
-        $title = mysqli_real_escape_string($con, $res[0]);
-        $author = $res[1];
-        $statement = "update threads set title='$title', author='$author', reply=$number-2 where bid=$bid && tid=$tid";
+        $r2 = mysqli_query($con, $statement);
+        $rf = mysqli_fetch_array($r2);
+        $nt = mysqli_real_escape_string($con, $rf[0]);
+        $na = $rf[1];
+        $statement = "update threads set title='$nt', author='$na', reply=$new_reply where bid=$bid && tid=$tid";
         mysqli_query($con, $statement);
         return array(array('code' => '0'));
     }
     if ($pid == $number) {
         $newpid = $pid - 1;
         $statement = "select author,updatetime from posts where bid=$bid && tid=$tid && pid=$newpid";
-        $results = mysqli_query($con, $statement);
-        $res = mysqli_fetch_row($results);
-        $author = $res[0];
-        $updatetime = $res[1];
-        if ($newpid != 1)
-            $statement = "update threads set replyer='$author',timestamp=$updatetime, reply=$number-2 where bid=$bid && tid=$tid";
-        else
-            $statement = "update threads set replyer=null,timestamp=$updatetime, reply=$number-2 where bid=$bid && tid=$tid";
-        mysqli_query($con, $statement);
+        $r2 = mysqli_query($con, $statement);
+        $rf = mysqli_fetch_row($r2);
+        $na = $rf[0];
+        $nu = $rf[1];
+        if ($newpid != 1) {
+            $statement = "update threads set replyer='$na',timestamp=$nu, reply=$new_reply where bid=$bid && tid=$tid";
+            mysqli_query($con, $statement);
+        } else {
+            $statement = "update threads set replyer=null,timestamp=$nu, reply=$new_reply where bid=$bid && tid=$tid";
+            mysqli_query($con, $statement);
+        }
         return array(array('code' => '0'));
     }
-    $statement = "update threads set reply=$number-2 where bid=$bid && tid=$tid";
+    $statement = "update threads set reply=$new_reply where bid=$bid && tid=$tid";
     mysqli_query($con, $statement);
     return array(array('code' => '0'));
 }
@@ -1418,7 +1467,7 @@ function jiekoufunc_move($con, $token, $bid, $tid, $to) {
     if ($a[0] != 2) {
         return array(array('code' => '5', 'msg' => '权限不足！'));
     }
-    $statement = "select max(tid) from threads where bid=$to";
+    $statement = "select max(tid) as m from (select tid from threads where bid=$to union select tid from trash_threads where bid=$to) as t";
     $totid = intval(mysqli_fetch_row(mysqli_query($con, $statement))[0]) + 1;
     $statement = "select tid from threads where bid=$bid && tid=$tid";
     $results = mysqli_query($con, $statement);
@@ -1974,6 +2023,301 @@ function jiekoufunc_middleware_permission($con, $token, $bid, $require_rights, $
 }
 
 // ============================================================================
+//  Trash / restore / edit-history system
+// ============================================================================
+
+// Get list of board IDs that a user moderates.
+function _jiekoufunc_get_moderator_bids($con, $username) {
+    $bids = array();
+    $stmt = "select bid from boardinfo
+             where m1='$username' or m2='$username' or m3='$username' or m4='$username'";
+    $res = mysqli_query($con, $stmt);
+    while ($row = mysqli_fetch_row($res)) {
+        $bids[] = intval($row[0]);
+    }
+    return $bids;
+}
+
+// List trash items (deleted posts/threads). Board mods see their boards; admins (rights>=2) see all.
+function jiekoufunc_trash_list($con, $token, $bid, $page, $limit, $type) {
+    $user = jiekoufunc_token2user($con, $token);
+    if (!$user) {
+        return jiekoufunc_report('1', '尚未登录。');
+    }
+    $username = $user[0];
+    $rights = intval($user[2]);
+    $is_admin = ($rights >= 2);
+
+    $page = max(1, intval($page ?: 1));
+    $limit = max(1, min(100, intval($limit ?: 20)));
+    $offset = ($page - 1) * $limit;
+
+    // Build shared WHERE clause (same columns across both tables)
+    $where = '';
+    if ($bid > 0) {
+        $where = "where bid=$bid";
+    }
+    if (!$is_admin) {
+        $my_bids = _jiekoufunc_get_moderator_bids($con, $username);
+        if (empty($my_bids)) $my_bids = array(-1);
+        $bid_list = implode(',', $my_bids);
+        $where .= ($where ? ' and' : 'where') . " bid in ($bid_list)";
+    }
+
+    // Build UNION ALL subqueries with common columns
+    $parts = array();
+    if ($type == 'all' || $type == 'post') {
+        $parts[] = "select trash_id, bid, tid, pid, fid, title, text, author, deleter, deletetime, 'post' as trash_type from trash_posts $where";
+    }
+    if ($type == 'all' || $type == 'thread') {
+        $parts[] = "select trash_id, bid, tid, 0 as pid, 0 as fid, title, '' as text, author, deleter, deletetime, 'thread' as trash_type from trash_threads $where";
+    }
+
+    if (empty($parts)) {
+        return array(array('code' => '0', 'msg' => '回收站为空', 'items' => '0'));
+    }
+
+    $union = implode(' union all ', $parts);
+    $stmt = "select * from ($union) as t order by deletetime desc limit $offset, $limit";
+    $res = mysqli_query($con, $stmt);
+
+    $out = array();
+    while ($row = mysqli_fetch_array($res)) {
+        $item = array();
+        foreach ($row as $key => $value) {
+            if (is_long($key)) continue;
+            $item[$key] = is_null($value) ? '' : strval($value);
+        }
+        $out[] = $item;
+    }
+
+    if (empty($out)) {
+        return array(array('code' => '0', 'msg' => '回收站为空', 'items' => '0'));
+    }
+
+    return $out;
+}
+
+// Restore a deleted post or thread from trash.
+function jiekoufunc_trash_restore($con, $token, $type, $bid, $tid, $pid, $trash_id) {
+    $time = time();
+    $a = jiekoufunc_getrights($con, $bid, $token);
+
+    if ($a[0] <= 0) {
+        return jiekoufunc_report('5', '权限不足！仅版主或管理员可恢复帖子。');
+    }
+    $username = $a[1];
+    $ip = $a[2];
+
+    if ($type == 'thread') {
+        // ========== Restore entire thread ==========
+        $stmt = "select * from trash_threads where trash_id=$trash_id and bid=$bid and tid=$tid";
+        $res = mysqli_query($con, $stmt);
+        if (mysqli_num_rows($res) == 0) {
+            return jiekoufunc_report('3', '回收站中未找到该主题。');
+        }
+        $thread = mysqli_fetch_array($res);
+
+        // Check for tid conflict
+        $stmt_chk = "select tid from threads where bid=$bid and tid=$tid";
+        if (mysqli_num_rows(mysqli_query($con, $stmt_chk)) != 0) {
+            return jiekoufunc_report('4', '目标版块已存在相同 tid 的主题。');
+        }
+
+        // Restore threads row
+        $th_title   = mysqli_real_escape_string($con, $thread['title']);
+        $th_author  = mysqli_real_escape_string($con, $thread['author']);
+        $th_replyer = isset($thread['replyer']) ? "'" . mysqli_real_escape_string($con, $thread['replyer']) . "'" : "NULL";
+        $th_click   = intval($thread['click']);
+        $th_reply   = intval($thread['reply']);
+        $th_guest   = intval($thread['guesture']);
+        $th_extr    = intval($thread['extr']);
+        $th_top     = intval($thread['top']);
+        $th_locked  = intval($thread['locked']);
+        $th_ts      = intval($thread['timestamp']);
+        $th_pd      = isset($thread['postdate']) ? "'" . mysqli_real_escape_string($con, $thread['postdate']) . "'" : "NULL";
+
+        $stmt_ins = "insert into threads
+            (bid, tid, title, author, replyer, click, reply, guesture,
+             extr, top, locked, timestamp, postdate)
+            values ($bid, $tid, '$th_title', '$th_author', $th_replyer,
+                    $th_click, $th_reply, $th_guest, $th_extr, $th_top,
+                    $th_locked, $th_ts, $th_pd)";
+        mysqli_query($con, $stmt_ins);
+
+        // Restore all posts under this thread
+        $stmt_posts = "select * from trash_posts where bid=$bid and tid=$tid order by pid";
+        $res_posts = mysqli_query($con, $stmt_posts);
+        $restored_count = 0;
+        while ($row = mysqli_fetch_array($res_posts)) {
+            $p_fid     = intval($row['fid']);
+            $p_pid     = intval($row['pid']);
+            $p_title   = mysqli_real_escape_string($con, $row['title']);
+            $p_author  = mysqli_real_escape_string($con, $row['author']);
+            $p_text    = mysqli_real_escape_string($con, $row['text']);
+            $p_ishtml  = mysqli_real_escape_string($con, $row['ishtml']);
+            $p_attachs = mysqli_real_escape_string($con, $row['attachs']);
+            $p_rtime   = intval($row['replytime']);
+            $p_utime   = intval($row['updatetime']);
+            $p_sig     = intval($row['sig']);
+            $p_type    = mysqli_real_escape_string($con, $row['type']);
+            $p_ip      = mysqli_real_escape_string($con, $row['ip']);
+            $p_lzl     = intval($row['lzl']);
+
+            $stmt_ins_p = "insert ignore into posts
+                (bid, tid, pid, fid, title, author, text, ishtml, attachs,
+                 replytime, updatetime, sig, type, ip, lzl)
+                values ($bid, $tid, $p_pid, $p_fid,
+                        '$p_title', '$p_author', '$p_text', '$p_ishtml', '$p_attachs',
+                        $p_rtime, $p_utime, $p_sig, '$p_type', '$p_ip', $p_lzl)";
+            mysqli_query($con, $stmt_ins_p);
+            if (mysqli_affected_rows($con) > 0) $restored_count++;
+        }
+
+        $statement = "delete from trash_posts where bid=$bid and tid=$tid";
+        mysqli_query($con, $statement);
+        $statement = "delete from trash_threads where trash_id=$trash_id";
+        mysqli_query($con, $statement);
+
+        return array(array(
+            'code' => '0', 'msg' => 'ok', 'restored' => strval($restored_count)
+        ));
+    }
+
+    if ($type == 'post') {
+        // ========== Restore single post ==========
+        $stmt = "select * from trash_posts where trash_id=$trash_id and bid=$bid and tid=$tid and pid=$pid";
+        $res = mysqli_query($con, $stmt);
+        if (mysqli_num_rows($res) == 0) {
+            return jiekoufunc_report('3', '回收站中未找到该帖子。');
+        }
+        $row = mysqli_fetch_array($res);
+
+        // Check parent thread exists
+        $stmt_th = "select reply from threads where bid=$bid and tid=$tid";
+        $res_th = mysqli_query($con, $stmt_th);
+        if (mysqli_num_rows($res_th) == 0) {
+            return jiekoufunc_report('4', '父主题不存在，无法恢复回帖。请先恢复主题。');
+        }
+        $th = mysqli_fetch_row($res_th);
+        $current_reply = intval($th[0]);
+
+        // Determine restore pid by replytime to preserve original post order.
+        // Using stored pid directly is unsafe: if pid=3 was deleted twice, both
+        // trash entries carry pid=3 but belong at different positions.
+        $my_rtime = intval($row['replytime']);
+        $stmt_max = "select max(pid) from posts where bid=$bid and tid=$tid";
+        $res_max = mysqli_query($con, $stmt_max);
+        $max_pid = intval(mysqli_fetch_row($res_max)[0]);
+        $restore_pid = 1;
+        if ($max_pid > 0) {
+            $stmt_pos = "select pid, replytime from posts where bid=$bid and tid=$tid order by pid asc";
+            $res_pos = mysqli_query($con, $stmt_pos);
+            while ($post_pos = mysqli_fetch_array($res_pos)) {
+                if ($my_rtime < intval($post_pos['replytime'])) break;
+                $restore_pid = intval($post_pos['pid']) + 1;
+            }
+        }
+        if ($restore_pid > $max_pid + 1) $restore_pid = $max_pid + 1;
+        if ($restore_pid <= 0) $restore_pid = 1;
+
+        // Shift subsequent posts
+        if ($restore_pid <= $max_pid) {
+            $statement = "update posts set pid=pid+1 where bid=$bid && tid=$tid && pid>=$restore_pid";
+            mysqli_query($con, $statement);
+        }
+
+        $p_fid     = intval($row['fid']);
+        $p_title   = mysqli_real_escape_string($con, $row['title']);
+        $p_author  = mysqli_real_escape_string($con, $row['author']);
+        $p_text    = mysqli_real_escape_string($con, $row['text']);
+        $p_ishtml  = mysqli_real_escape_string($con, $row['ishtml']);
+        $p_attachs = mysqli_real_escape_string($con, $row['attachs']);
+        $p_rtime   = intval($row['replytime']);
+        $p_utime   = intval($row['updatetime']);
+        $p_sig     = intval($row['sig']);
+        $p_type    = mysqli_real_escape_string($con, $row['type']);
+        $p_ip      = mysqli_real_escape_string($con, $row['ip']);
+        $p_lzl     = intval($row['lzl']);
+
+        $stmt_ins = "insert ignore into posts
+            (bid, tid, pid, fid, title, author, text, ishtml, attachs,
+             replytime, updatetime, sig, type, ip, lzl)
+            values ($bid, $tid, $restore_pid, $p_fid,
+                    '$p_title', '$p_author', '$p_text', '$p_ishtml', '$p_attachs',
+                    $p_rtime, $p_utime, $p_sig, '$p_type', '$p_ip', $p_lzl)";
+        mysqli_query($con, $stmt_ins);
+
+        // Update thread metadata
+        $new_reply = $current_reply + 1;
+        if ($restore_pid == 1) {
+            $statement = "update threads set title='$p_title', author='$p_author', reply=$new_reply where bid=$bid && tid=$tid";
+            mysqli_query($con, $statement);
+        } else {
+            $statement = "update threads set reply=$new_reply where bid=$bid && tid=$tid";
+            mysqli_query($con, $statement);
+        }
+
+        $statement = "delete from trash_posts where trash_id=$trash_id";
+        mysqli_query($con, $statement);
+
+        return array(array(
+            'code' => '0', 'msg' => 'ok', 'restored' => '1', 'new_pid' => strval($restore_pid)
+        ));
+    }
+
+    return jiekoufunc_report('14', 'type 参数无效，请使用 post 或 thread。');
+}
+
+// Permanently delete a trash item (admin only).
+function jiekoufunc_trash_delete($con, $token, $type, $bid, $tid, $pid, $trash_id) {
+    $a = jiekoufunc_getrights($con, $bid, $token);
+    if ($a[0] < 2) {
+        return jiekoufunc_report('5', '权限不足！仅管理员可永久删除。');
+    }
+
+    if ($type == 'thread') {
+        $statement = "delete from trash_posts where bid=$bid and tid=$tid";
+        mysqli_query($con, $statement);
+        $statement = "delete from trash_threads where trash_id=$trash_id";
+        mysqli_query($con, $statement);
+        return jiekoufunc_report('0', '');
+    }
+
+    if ($type == 'post') {
+        $statement = "delete from trash_posts where trash_id=" . intval($trash_id);
+        mysqli_query($con, $statement);
+        return jiekoufunc_report('0', '');
+    }
+
+    return jiekoufunc_report('14', 'type 参数无效。');
+}
+
+// Batch clean old trash items (admin only).
+function jiekoufunc_trash_clean($con, $token, $days) {
+    $a = jiekoufunc_getrights($con, 0, $token);
+    if ($a[0] < 2) {
+        return jiekoufunc_report('5', '权限不足！仅管理员可执行批量清理。');
+    }
+
+    $days = max(1, intval($days ?: 90));
+    $cutoff = time() - $days * 86400;
+
+    $statement = "delete from trash_posts where deletetime < $cutoff";
+    mysqli_query($con, $statement);
+    $cnt_posts = mysqli_affected_rows($con);
+    $statement = "delete from trash_threads where deletetime < $cutoff";
+    mysqli_query($con, $statement);
+    $cnt_threads = mysqli_affected_rows($con);
+
+    return array(array(
+        'code'          => '0',
+        'msg'           => 'ok',
+        'deleted_posts' => strval($cnt_posts + $cnt_threads)
+    ));
+}
+
+// ============================================================================
 //  Main dispatcher
 // ============================================================================
 
@@ -2094,6 +2438,28 @@ function jiekoufunc_dispatch($con, $params) {
     if ($ask == "favorite_count")          return jiekoufunc_favorite_count($con, $bid, $tid);
     if ($ask == "favorite_check")          return jiekoufunc_favorite_check($con, $token, $bid, $tid);
     if ($ask == "calendar")                return jiekoufunc_calendar($con);
+
+    // Trash / restore / edit-history routes
+    if ($ask == "trash_list") {
+        $page  = isset($params['page'])  ? $params['page']  : 1;
+        $limit = isset($params['limit']) ? $params['limit'] : 20;
+        $type  = isset($params['type'])  ? $params['type']  : 'all';
+        return jiekoufunc_trash_list($con, $token, $bid, $page, $limit, $type);
+    }
+    if ($ask == "trash_restore") {
+        $trash_id = isset($params['trash_id']) ? intval($params['trash_id']) : 0;
+        $type     = isset($params['type'])     ? $params['type']             : '';
+        return jiekoufunc_trash_restore($con, $token, $type, $bid, $tid, $pid, $trash_id);
+    }
+    if ($ask == "trash_delete") {
+        $trash_id = isset($params['trash_id']) ? intval($params['trash_id']) : 0;
+        $type     = isset($params['type'])     ? $params['type']             : '';
+        return jiekoufunc_trash_delete($con, $token, $type, $bid, $tid, $pid, $trash_id);
+    }
+    if ($ask == "trash_clean") {
+        $days = isset($params['days']) ? intval($params['days']) : 90;
+        return jiekoufunc_trash_clean($con, $token, $days);
+    }
     // === Dispatch by $view (no $ask) ===
     if ($view != "")                 return jiekoufunc_view_user_array($con, $view);
 

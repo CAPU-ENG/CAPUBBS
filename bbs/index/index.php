@@ -50,6 +50,9 @@ if ($username!="") {
 		echo("<br><a href='../home?pos=message' target='_blank'>您有 $msg 条未读消息</a>");
 	}
 	echo("<br><a href='../logout?from=%2Fbbs%2Findex'>注销</a>");
+	if (intval($users['rights']) >= 1) {
+		echo("<br><a href='../manage/' style='color:#337ab7;'>管理工具</a>");
+	}
 	echo("</div>");
 }else{
 	echo("<span class='guest'>欢迎您，游客！<a href='../login?from=%2Fbbs%2Findex'>登录</a> 或者 <a href='../register'>注册</a></span>");

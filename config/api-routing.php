@@ -66,6 +66,12 @@ return array(
     'global_top_action' => 'old',
     'news'              => 'old',
 
+    // -- Trash / restore --
+    'trash_list'        => 'new',
+    'trash_restore'     => 'new',
+    'trash_delete'      => 'new',
+    'trash_clean'       => 'new',
+
     // -- Sign --
     'sign_today'        => 'new',
     'sign_year'         => 'new',
