@@ -300,10 +300,7 @@ function jiekoufunc_validate_token_and_sign($con, $token, $ip) {
 /**
  * Check delay time between posts. Returns null on success, error array on failure.
  */
-function jiekoufunc_checkDelayTime($time, $star, $rights, $lastpost, $ip, $results) {
-    if (mysqli_num_rows($results) == 0) {
-        return array(array('code' => '1', 'msg' => '超时，请重新登录。'));
-    }
+function jiekoufunc_checkDelayTime($time, $star, $rights, $lastpost, $ip) {
     $inschool = true;
     $delta = 180;
     if ($inschool || $rights >= 1 || $star >= 3)
@@ -1032,7 +1029,7 @@ function jiekoufunc_post($con, $token, $bid, $ip, $attachs, $params) {
     $star = intval($res[1]);
     $rights = intval($res[2]);
     $lastpost = intval($res[3]);
-    $delay_err = jiekoufunc_checkDelayTime($time, $star, $rights, $lastpost, $ip, $results);
+    $delay_err = jiekoufunc_checkDelayTime($time, $star, $rights, $lastpost, $ip);
     if ($delay_err !== null) return $delay_err;
 
     $statement = "select max(tid) as m from (select tid from threads where bid=$bid union select tid from trash_threads where bid=$bid) as t";
@@ -1072,7 +1069,7 @@ function jiekoufunc_reply($con, $token, $bid, $tid, $ip, $attachs, $params) {
     $star = intval($res[1]);
     $rights = intval($res[2]);
     $lastpost = intval($res[3]);
-    $delay_err = jiekoufunc_checkDelayTime($time, $star, $rights, $lastpost, $ip, $results);
+    $delay_err = jiekoufunc_checkDelayTime($time, $star, $rights, $lastpost, $ip);
     if ($delay_err !== null) return $delay_err;
 
     $statement = "select activity_id, bid, tid, season_id, name, leader_username
@@ -1506,7 +1503,7 @@ function jiekoufunc_lzl($con, $method, $fid, $token, $ip, $params) {
         $star = intval($res[1]);
         $rights = intval($res[2]);
         $lastpost = intval($res[3]);
-        $delay_err = jiekoufunc_checkDelayTime($time, $star, $rights, $lastpost, $ip, $results);
+        $delay_err = jiekoufunc_checkDelayTime($time, $star, $rights, $lastpost, $ip);
         if ($delay_err !== null) return $delay_err;
 
         $text = isset($params['text']) ? $params['text'] : '';
