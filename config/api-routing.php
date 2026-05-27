@@ -35,36 +35,36 @@ return array(
     'calendar'          => 'new',
 
     // -- User operations --
-    'getuser'           => 'old',
-    'userexists'        => 'old',
-    'rights'            => 'old',
-    'recentpost'        => 'old',
-    'recentreply'       => 'old',
-    'currentUserInfo'   => 'old',
-    'edituser'          => 'old',
-    'changepsd'         => 'old',
-    'update'            => 'old',
-    'editpreview'       => 'old',
+    'getuser'           => 'new',
+    'userexists'        => 'new',
+    'rights'            => 'new',
+    'recentpost'        => 'new',
+    'recentreply'       => 'new',
+    'currentUserInfo'   => 'new',
+    'edituser'          => 'new',
+    'changepsd'         => 'new',
+    'update'            => 'new',
+    'editpreview'       => 'new',
 
     // -- Messaging --
-    'msg'               => 'old',
-    'sendmsg'           => 'old',
-    'boardcast'         => 'old',
+    'msg'               => 'new',
+    'sendmsg'           => 'new',
+    'boardcast'         => 'new',
 
     // -- Attachments --
-    'attach'            => 'old',
-    'attachdl'          => 'old',
-    'attachinfo'        => 'old',
-    'unusedattachinfo'  => 'old',
-    'delattach'         => 'old',
+    'attach'            => 'new',
+    'attachdl'          => 'new',
+    'attachinfo'        => 'new',
+    'unusedattachinfo'  => 'new',
+    'delattach'         => 'new',
 
     // -- Admin actions --
     'admin_reset_password' => 'new',
     'lock'              => 'new',
     'extr'              => 'new',
     'top'               => 'new',
-    'global_top_action' => 'old',
-    'news'              => 'old',
+    'global_top_action' => 'new',
+    'news'              => 'new',
 
     // -- Trash / restore --
     'trash_list'        => 'new',
