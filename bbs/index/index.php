@@ -45,9 +45,11 @@ if ($username!="") {
 	echo("<a href='../user?name=$username' target='_blank'>$username</a>");
 	echo("&nbsp;等级：$rank");
 	if($msg==0){
-	echo("&nbsp;<a href='../home' target='_blank'>个人中心</a>");
+		echo("&nbsp;<a href='../home' target='_blank'>个人中心</a>");
+		echo("&nbsp;<a href='../favorite/'>我的收藏</a>");
 	}else{
-		echo("<br><a href='../home?pos=message' target='_blank'>您有 $msg 条未读消息</a>");
+		echo("，<a href='../home?pos=message' target='_blank'>您有 $msg 条未读消息</a>");
+		echo("&nbsp;<a href='../favorite/'>我的收藏</a>");
 	}
 	echo("<br><a href='../logout?from=%2Fbbs%2Findex'>注销</a>");
 	if (intval($users['rights']) >= 1) {
