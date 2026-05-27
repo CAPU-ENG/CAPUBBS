@@ -724,6 +724,8 @@ function jiekoufunc_searchByKeyword($con, $keyword, $token, $type, $bid, $params
             $statement = "select title,bid,tid,pid,author,updatetime from posts where $bid_str updatetime>=$start && updatetime<=$end and text like '%$keyword%' order by updatetime desc limit 100";
         else
             $statement = "select title,bid,tid,pid,author,updatetime from posts where $bid_str updatetime>=$start && updatetime<=$end and author='$author' and text like '%$keyword%' order by updatetime desc limit 100";
+    } else {
+        return jiekoufunc_report('6', '缺少搜索类型参数（thread 或 post）');
     }
     return jiekoufunc_view_bbs_array($con, $statement);
 }
@@ -1022,6 +1024,7 @@ function jiekoufunc_register($con, $ip, $params) {
 
 function jiekoufunc_post($con, $token, $bid, $ip, $attachs, $params) {
     $time = time();
+    $pid = 1;
     $statement = "select username,star,rights,lastpost from userinfo where token='$token' && $time<=tokentime+{$GLOBALS['validtime']}";
     $results = mysqli_query($con, $statement);
     $res = mysqli_fetch_array($results);
@@ -1051,13 +1054,14 @@ function jiekoufunc_post($con, $token, $bid, $ip, $attachs, $params) {
     mysqli_query($con, $statement);
     $statement = "insert into posts (bid,tid,pid,title,author,text,ishtml,attachs,replytime,updatetime,sig,ip,type,lzl) values ($bid,$tid,1,'$title','$username','$text','YES','$attachs_esc',$time,$time,$sig,'$ip','$type',0)";
     mysqli_query($con, $statement);
+    $fid = mysqli_insert_id($con);
     if ($bid != 4)
         $statement = "update userinfo set post=post+1, lastpost=$time, tokentime=$time where username='$username'";
     else
         $statement = "update userinfo set water=water+1, lastpost=$time, tokentime=$time where username='$username'";
     mysqli_query($con, $statement);
     jiekoufunc_updatestar($con, $username);
-    return array(array('code' => '0', 'bid' => strval($bid), 'tid' => strval($tid)));
+    return array(array('code' => '0', 'bid' => strval($bid), 'tid' => strval($tid), 'pid' => strval($pid), 'fid' => strval($fid)));
 }
 
 function jiekoufunc_reply($con, $token, $bid, $tid, $ip, $attachs, $params) {
@@ -1114,6 +1118,7 @@ function jiekoufunc_reply($con, $token, $bid, $tid, $ip, $attachs, $params) {
 
     $statement = "insert into posts (bid,tid,pid,title,author,text,ishtml,attachs,replytime,updatetime,sig,ip,type,lzl) values ($bid,$tid,$pid,'$title','$username','$text','YES','$attachs_esc',$time,$time,$sig,'$ip','$type',0)";
     mysqli_query($con, $statement);
+    $fid = mysqli_insert_id($con);
     if (mysqli_error($con)) {
         return array(array('code' => '8', 'msg' => 'error:' . mysqli_error($con)));
     }
@@ -1135,7 +1140,7 @@ function jiekoufunc_reply($con, $token, $bid, $tid, $ip, $attachs, $params) {
     if ($tidauthor != $username)
         jiekoufunc_insertmsg($con, "system", $tidauthor, "reply", $bid, $tid, $pid, $username, $tidtitle);
 
-    return array(array('code' => '0', 'bid' => strval($bid), 'tid' => strval($tid), 'pid' => strval($pid)));
+    return array(array('code' => '0', 'bid' => strval($bid), 'tid' => strval($tid), 'pid' => strval($pid), 'fid' => strval($fid)));
 }
 
 function jiekoufunc_edit($con, $token, $bid, $tid, $pid, $ip, $attachs, $params) {
@@ -1144,13 +1149,15 @@ function jiekoufunc_edit($con, $token, $bid, $tid, $pid, $ip, $attachs, $params)
     if ($a[0] == -1) {
         return array(array('code' => '1', 'msg' => '超时，请重新登录。'));
     }
-    $statement = "select author from posts where bid=$bid and tid=$tid and pid=$pid";
+    $statement = "select author, fid, text from posts where bid=$bid and tid=$tid and pid=$pid";
     $results = mysqli_query($con, $statement);
     if (mysqli_num_rows($results) == 0) {
         return array(array('code' => '3', 'msg' => '主题不存在！'));
     }
     $res = mysqli_fetch_array($results);
     $author = $res[0];
+    $fid_edit = intval($res['fid']);
+    $old_text = $res['text'];
     $username = $a[1];
     if ($a[0] == 0 && $username != $author) {
         return array(array('code' => '5', 'msg' => '权限不足！'));
@@ -1177,6 +1184,22 @@ function jiekoufunc_edit($con, $token, $bid, $tid, $pid, $ip, $attachs, $params)
             return array(array('code' => '5', 'msg' => '禁止编辑报名帖！'));
         }
     }
+
+    // 保存编辑历史：将当前内容作为新版本插入版本链
+    $old_text_esc = mysqli_real_escape_string($con, $old_text);
+
+    // 查找当前头版本（最近一条历史记录）
+    $stmt_head = "select version_id from post_edit_history
+                  where fid=$fid_edit order by version_id desc limit 1";
+    $res_head = mysqli_query($con, $stmt_head);
+    $parent_id = (mysqli_num_rows($res_head) > 0)
+        ? intval(mysqli_fetch_row($res_head)[0]) : 'NULL';
+
+    $stmt_hist = "insert into post_edit_history
+        (fid, bid, tid, pid, parent_id, text, author, source, edit_time, edit_by, edit_ip)
+        values ($fid_edit, $bid, $tid, $pid, $parent_id,
+                '$old_text_esc', '$author', 'edit', $time, '$username', '$ip')";
+    mysqli_query($con, $stmt_hist);
 
     $title = isset($params['title']) ? $params['title'] : '';
     $text = isset($params['text']) ? $params['text'] : '';
@@ -1313,7 +1336,7 @@ function jiekoufunc_delete($con, $token, $bid, $tid, $pid) {
         $t_ts       = intval(isset($thread['timestamp']) ? $thread['timestamp'] : 0);
         $t_pd       = isset($thread['postdate']) ? "'" . mysqli_real_escape_string($con, $thread['postdate']) . "'" : "NULL";
 
-        $stmt_th = "replace into trash_threads
+        $stmt_th = "insert into trash_threads
             (bid, tid, title, author, replyer, click, reply, guesture,
              extr, top, locked, timestamp, postdate, deleter, deletetime, deleteip)
             values ($bid, $tid, '$t_title', '$t_author', $t_replyer, $t_click,
@@ -1348,9 +1371,6 @@ function jiekoufunc_delete($con, $token, $bid, $tid, $pid) {
                         $p_rtime, $p_utime, $p_sig, '$p_type', '$p_ip', $p_lzl,
                         '$username', $time, '$ip')";
             mysqli_query($con, $stmt_ins);
-
-            $statement = "insert into capubbs.null values (null,$bid,$tid,$p_pid,'$p_title','$p_text','$p_author','$username',$p_rtime,$p_utime,$time,'$p_ip','$ip')";
-            mysqli_query($con, $statement);
         }
 
         $statement = "delete from posts where bid=$bid && tid=$tid";
@@ -1406,9 +1426,6 @@ function jiekoufunc_delete($con, $token, $bid, $tid, $pid) {
                 $p_rtime, $p_utime, $p_sig, '$p_type', '$p_ip', $p_lzl,
                 '$username', $time, '$ip')";
     mysqli_query($con, $stmt_ins);
-
-    $statement = "insert into capubbs.null values (null,$bid,$tid,$pid,'$p_title','$p_text','$p_author','$username',$p_rtime,$p_utime,$time,'$p_ip','$ip')";
-    mysqli_query($con, $statement);
 
     // Clean up activity join records
     $stmt_join = "select join_id from season_activity_join where post_fid=$p_fid_val";
@@ -1559,7 +1576,10 @@ function jiekoufunc_lzl($con, $method, $fid, $token, $ip, $params) {
     }
 
     if ($method == "delete") {
-        $lzlid = isset($params['lzlid']) ? $params['lzlid'] : '';
+        $lzlid = isset($params['lzlid']) ? intval($params['lzlid']) : (isset($params['id']) ? intval($params['id']) : 0);
+        if ($lzlid <= 0) {
+            return array(array('code' => '3', 'msg' => '帖子不存在！'));
+        }
         $time = time();
         $statement = "select username, rights from userinfo where token='$token' && $time<=tokentime+{$GLOBALS['validtime']}";
         $results = mysqli_query($con, $statement);
@@ -2315,6 +2335,194 @@ function jiekoufunc_trash_clean($con, $token, $days) {
 }
 
 // ============================================================================
+//  Edit history
+// ============================================================================
+
+function jiekoufunc_edit_history($con, $token, $fid, $version_id) {
+    $a = jiekoufunc_getrights($con, 0, $token);
+    if ($a[0] == -1) {
+        return jiekoufunc_report('1', '超时，请重新登录。');
+    }
+    $username = $a[1];
+
+    // 检查是否有自己的编辑记录
+    $stmt = "select max(version_id) from post_edit_history
+             where fid=$fid and edit_by='$username'";
+    $res = mysqli_query($con, $stmt);
+    $row = mysqli_fetch_row($res);
+    $max_own_id = ($row[0] !== null) ? intval($row[0]) : 0;
+
+    // 判断是否当前作者
+    $stmt = "select author from posts where fid=$fid";
+    $res = mysqli_query($con, $stmt);
+    $is_current_author = (mysqli_num_rows($res) > 0 && mysqli_fetch_row($res)[0] == $username);
+
+    // 既没有编辑记录也不是当前作者 → 拒绝
+    if ($max_own_id == 0 && !$is_current_author) {
+        return jiekoufunc_report('5', '权限不足！');
+    }
+    // 当前作者但没有任何编辑记录 → 返回空
+    if ($max_own_id == 0 && $is_current_author) {
+        return array(array('code' => '0', 'msg' => '无编辑历史', 'count' => '0'));
+    }
+
+    // 构建可见范围：自己的记录 + 非当前作者时补一条"接管版本"
+    if ($is_current_author) {
+        $visible = "edit_by='$username'";
+    } else {
+        // 找到自己最后一次编辑之后、别人第一次编辑的那条记录（接管版本）
+        $stmt = "select min(version_id) from post_edit_history
+                 where fid=$fid and edit_by!='$username' and version_id > $max_own_id";
+        $res = mysqli_query($con, $stmt);
+        $row = mysqli_fetch_row($res);
+        $next_id = ($row[0] !== null) ? intval($row[0]) : 0;
+        if ($next_id > 0) {
+            $visible = "(edit_by='$username' or version_id=$next_id)";
+        } else {
+            $visible = "edit_by='$username'";
+        }
+    }
+
+    // 单版本查询
+    if ($version_id > 0) {
+        $stmt = "select * from post_edit_history
+                 where version_id=$version_id and fid=$fid and $visible";
+        $res = mysqli_query($con, $stmt);
+        if (mysqli_num_rows($res) == 0) {
+            return jiekoufunc_report('3', '版本不存在。');
+        }
+        $row = mysqli_fetch_array($res);
+
+        return array(array(
+            'code'       => '0',
+            'version_id' => strval($version_id),
+            'text'       => $row['text'],
+            'edit_time'  => strval($row['edit_time']),
+            'edit_by'    => $row['edit_by'],
+            'parent_id'  => strval($row['parent_id'] ?: '0'),
+            'source'     => $row['source'],
+            'author'     => $row['author'] ?: '',
+            'fid'        => strval($row['fid']),
+            'bid'        => strval($row['bid']),
+            'tid'        => strval($row['tid']),
+            'pid'        => strval($row['pid'])
+        ));
+    }
+
+    // 版本列表
+    $stmt = "select version_id, fid, bid, tid, pid, parent_id, source,
+                    edit_time, edit_by, edit_ip
+             from post_edit_history
+             where fid=$fid and $visible
+             order by version_id asc";
+    $res = mysqli_query($con, $stmt);
+
+    if (mysqli_num_rows($res) == 0) {
+        return array(array('code' => '0', 'msg' => '无编辑历史', 'count' => '0'));
+    }
+
+    $out = array();
+    $out[] = array('code' => '0', 'count' => strval(mysqli_num_rows($res)));
+    while ($row = mysqli_fetch_array($res)) {
+        $item = array();
+        foreach ($row as $key => $value) {
+            if (is_long($key)) continue;
+            $item[$key] = is_null($value) ? '' : strval($value);
+        }
+        $out[] = $item;
+    }
+
+    return $out;
+}
+
+function jiekoufunc_restore_version($con, $token, $fid, $version_id) {
+    $time = time();
+    $a = jiekoufunc_getrights($con, 0, $token);
+    if ($a[0] == -1) {
+        return jiekoufunc_report('1', '超时，请重新登录。');
+    }
+    $username = $a[1];
+    $ip       = $a[2];
+
+    // 获取目标历史版本（必须 fid 匹配，防止跨帖子恢复）
+    $stmt = "select * from post_edit_history where version_id=$version_id and fid=$fid";
+    $res  = mysqli_query($con, $stmt);
+    if (mysqli_num_rows($res) == 0) {
+        return jiekoufunc_report('3', '版本不存在。');
+    }
+    $hist = mysqli_fetch_array($res);
+    $target_text   = $hist['text'];
+    $target_author = $hist['author'];
+    $his_bid = $hist['bid'];
+    $his_tid = $hist['tid'];
+    $his_pid = $hist['pid'];
+
+    // 检查帖子是否仍存在（用 fid 定位，比 bid/tid/pid 更可靠）
+    $stmt_post = "select * from posts where fid=$fid";
+    $res_post  = mysqli_query($con, $stmt_post);
+    if (mysqli_num_rows($res_post) == 0) {
+        return jiekoufunc_report('4', '目标帖子当前不存在（可能已被删除）。请先从回收站恢复。');
+    }
+    $cur = mysqli_fetch_array($res_post);
+    $cur_author = $cur['author'];
+    $cur_text   = mysqli_real_escape_string($con, $cur['text']);
+    $cur_author_esc = mysqli_real_escape_string($con, $cur_author);
+    $cur_bid = intval($cur['bid']);
+    $cur_tid = intval($cur['tid']);
+    $cur_pid = intval($cur['pid']);
+
+    // 权限判断：仅当前作者可恢复
+    if ($username != $cur_author) {
+        return jiekoufunc_report('5', '权限不足！仅帖子作者可恢复。');
+    }
+
+    // 确定恢复后的作者：优先使用历史记录中的 author（编辑前的作者）
+    $restored_author = ($target_author && $target_author != '') ? $target_author : $cur_author;
+    $restored_author_esc = mysqli_real_escape_string($con, $restored_author);
+
+    // 查找当前头版本
+    $stmt_head = "select version_id from post_edit_history
+                  where fid=$fid order by version_id desc limit 1";
+    $res_head = mysqli_query($con, $stmt_head);
+    $head_id = (mysqli_num_rows($res_head) > 0)
+        ? intval(mysqli_fetch_row($res_head)[0]) : 'NULL';
+
+    // 步骤 1：快照当前内容（source=snapshot，防止丢失）
+    $stmt_snap = "insert into post_edit_history
+        (fid, bid, tid, pid, parent_id, text, author, source, edit_time, edit_by, edit_ip)
+        values ($fid, $cur_bid, $cur_tid, $cur_pid, $head_id,
+                '$cur_text', '$cur_author_esc', 'snapshot', $time, '$username', '$ip')";
+    mysqli_query($con, $stmt_snap);
+
+    // 步骤 2：插入恢复标记（source=restore，parent_id 指向被恢复的版本，形成分支）
+    $esc_target = mysqli_real_escape_string($con, $target_text);
+    $stmt_rest = "insert into post_edit_history
+        (fid, bid, tid, pid, parent_id, text, author, source, edit_time, edit_by, edit_ip)
+        values ($fid, $cur_bid, $cur_tid, $cur_pid, $version_id,
+                '$esc_target', '$restored_author_esc', 'restore', $time, '$username', '$ip')";
+    mysqli_query($con, $stmt_rest);
+
+    // 步骤 3：用目标版本覆盖 posts（同时恢复作者）
+    $stmt_upd = "update posts set text='$esc_target', author='$restored_author_esc', updatetime=$time
+                 where fid=$fid";
+    mysqli_query($con, $stmt_upd);
+
+    // 如果恢复的是首帖，同步更新 threads.author
+    if ($cur_pid == 1) {
+        $stmt_th = "update threads set author='$restored_author_esc'
+                    where bid=$cur_bid and tid=$cur_tid";
+        mysqli_query($con, $stmt_th);
+    }
+
+    return array(array(
+        'code'                  => '0',
+        'msg'                   => 'ok',
+        'restored_from_version' => strval($version_id),
+        'restored_author'       => $restored_author
+    ));
+}
+
+// ============================================================================
 //  Main dispatcher
 // ============================================================================
 
@@ -2456,6 +2664,16 @@ function jiekoufunc_dispatch($con, $params) {
     if ($ask == "trash_clean") {
         $days = isset($params['days']) ? intval($params['days']) : 90;
         return jiekoufunc_trash_clean($con, $token, $days);
+    }
+    if ($ask == "edit_history") {
+        $fid = isset($params['fid']) ? intval($params['fid']) : 0;
+        $version_id = isset($params['version_id']) ? intval($params['version_id']) : 0;
+        return jiekoufunc_edit_history($con, $token, $fid, $version_id);
+    }
+    if ($ask == "restore_version") {
+        $fid = isset($params['fid']) ? intval($params['fid']) : 0;
+        $version_id = isset($params['version_id']) ? intval($params['version_id']) : 0;
+        return jiekoufunc_restore_version($con, $token, $fid, $version_id);
     }
     // === Dispatch by $view (no $ask) ===
     if ($view != "")                 return jiekoufunc_view_user_array($con, $view);

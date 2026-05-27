@@ -72,6 +72,10 @@ return array(
     'trash_delete'      => 'new',
     'trash_clean'       => 'new',
 
+    // -- Edit history --
+    'edit_history'      => 'new',
+    'restore_version'   => 'new',
+
     // -- Sign --
     'sign_today'        => 'new',
     'sign_year'         => 'new',
