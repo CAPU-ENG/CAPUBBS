@@ -14,7 +14,16 @@ require_once __DIR__ . '/../lib.php';
 date_default_timezone_set('Asia/Shanghai');
 header('Content-Type: application/json; charset=utf-8');
 
-// Handle CORS preflight if needed in the future
+// CORS: 允许 localhost 任意端口调用
+$origin = isset($_SERVER['HTTP_ORIGIN']) ? $_SERVER['HTTP_ORIGIN'] : '';
+if (preg_match('#^https?://localhost(:\d+)?$#', $origin)) {
+    header('Access-Control-Allow-Origin: ' . $origin);
+    header('Access-Control-Allow-Methods: POST, GET, OPTIONS');
+    header('Access-Control-Allow-Headers: Content-Type');
+    header('Access-Control-Allow-Credentials: true');
+}
+
+// Handle CORS preflight
 if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
     http_response_code(204);
     exit;
