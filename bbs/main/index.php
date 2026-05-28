@@ -289,7 +289,7 @@ foreach($infos as $info){
 		echo("<a href='javascript:settid(\"lock\",$tid);'>锁定</a>");
 	}
 	echo("&nbsp;");
-	echo("<a href='javascript:deltid($tid);'>删除</a>");
+	echo("<a href='javascript:deltid($tid," . json_encode($info['title']) . ");'>删除</a>");
 	if($rights>=2) {
 		echo "&nbsp;";
 		echo "<a href='javascript:move($tid);'>移动</a>";
@@ -793,8 +793,8 @@ function doreply(){
 }
 
 
-function deltid(tid) {
-	if (confirm("你确定要删除这个主题嘛？")) {
+function deltid(tid, title) {
+	if (confirm("你确定要删除\"" + title + "\"吗？")) {
 		//window.location="../delete/?ask=deltid&bid="+bid+"&tid="+tid+"&p="+page;
 		$.post("../delete/",{
 			ask:"deltid",
