@@ -236,6 +236,8 @@ span.tip{
 			if($pidinfo['text']!="<br>") print $pidinfo['text'];
 ?></div><br>
 		<progress max="100" value="20" id="progress"></progress>
+		<div id="edi_attach" onclick="attach();">添加附件</div>
+		<input type="file" id="file" style="display:none;" onchange="fileselected();">
 
 		选择签名档：
 		<?php
