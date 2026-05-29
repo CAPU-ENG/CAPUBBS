@@ -37,49 +37,49 @@ body{
     margin: 0;
 }
 div.main{
-	width: 1000px;
-	/*height: 1200px;*/
-	overflow: hidden;
-	margin-left: auto;
-	margin-right: auto;
-/* 	background-color: #CBD0E3; */
+    width: 1000px;
+    /*height: 1200px;*/
+    overflow: hidden;
+    margin-left: auto;
+    margin-right: auto;
+/*  background-color: #CBD0E3; */
 }
 div.head{
-	height: 200px;
+    height: 200px;
 }
 div.content{
-	width: 700px;
-	margin-left: auto;
-	margin-right: auto;
-	line-height: 30px;
+    width: 700px;
+    margin-left: auto;
+    margin-right: auto;
+    line-height: 30px;
 }
 div.content a{
-	text-decoration: none;
-	color: #484848;
-	font-size: 14px;
+    text-decoration: none;
+    color: #484848;
+    font-size: 14px;
 }
 div.content a:hover{
-	text-decoration: underline;
+    text-decoration: underline;
 }
 div.searchArea{
-	width: 100%;
-	margin-left: 20px;
-	position: relative;
+    width: 100%;
+    margin-left: 20px;
+    position: relative;
 }
 div.searchArea input.search{
-	background-color: #E9EBF2;
-	border-radius: 10px;
-	outline: none;
-	padding-left: 20px;
-	height: 20px;
+    background-color: #E9EBF2;
+    border-radius: 10px;
+    outline: none;
+    padding-left: 20px;
+    height: 20px;
 }
 div.searchLogo{
-	width: 15px;
-	height: 15px;
-	position: absolute;
-	left: 7px;
-	top: 8px;
-	background-image:url('data:image/svg+xml;base64,PHN2ZyB2ZXJzaW9uPSIxLjEiIGJhc2VQcm9maWxlPSJmdWxsIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHhtbG5zOnhsaW5rPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5L3hsaW5rIiB4bWxuczpldj0iaHR0cDovL3d3dy53My5vcmcvMjAwMS94bWwtZXZlbnRzIj4KPGc%2BCgk8cG9seWdvbiBmaWxsPSIjNjY2IiBwb2ludHM9IjkuMjA3LDYuMTI2IDcuNzkzLDcuNTQxIDExLjc5MywxMS41NDEgMTMuMjA3LDEwLjEyNiIgLz4KCTxwYXRoIGZpbGw9IiM2NjYiIGQ9Ik01LjkxNywyYzEuNjA4LDAsMi45MTcsMS4zMDgsMi45MTcsMi45MTdTNy41MjUsNy44MzMsNS45MTcsNy44MzNTMyw2LjUyNSwzLDQuOTE3UzQuMzA4LDIsNS45MTcsMgoJCSBNNS45MTcsMEMzLjIwMSwwLDEsMi4yMDEsMSw0LjkxN3MyLjIwMSw0LjkxNyw0LjkxNyw0LjkxN3M0LjkxNy0yLjIwMSw0LjkxNy00LjkxN0MxMC44MzMsMi4yMDEsOC42MzIsMCw1LjkxNywwTDUuOTE3LDB6IiAvPgo8L2c%2BCjwvc3ZnPgo%3D');
+    width: 15px;
+    height: 15px;
+    position: absolute;
+    left: 7px;
+    top: 8px;
+    background-image:url('data:image/svg+xml;base64,PHN2ZyB2ZXJzaW9uPSIxLjEiIGJhc2VQcm9maWxlPSJmdWxsIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHhtbG5zOnhsaW5rPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5L3hsaW5rIiB4bWxuczpldj0iaHR0cDovL3d3dy53My5vcmcvMjAwMS94bWwtZXZlbnRzIj4KPGc%2BCgk8cG9seWdvbiBmaWxsPSIjNjY2IiBwb2ludHM9IjkuMjA3LDYuMTI2IDcuNzkzLDcuNTQxIDExLjc5MywxMS41NDEgMTMuMjA3LDEwLjEyNiIgLz4KCTxwYXRoIGZpbGw9IiM2NjYiIGQ9Ik01LjkxNywyYzEuNjA4LDAsMi45MTcsMS4zMDgsMi45MTcsMi45MTdTNy41MjUsNy44MzMsNS45MTcsNy44MzNTMyw2LjUyNSwzLDQuOTE3UzQuMzA4LDIsNS45MTcsMgoJCSBNNS45MTcsMEMzLjIwMSwwLDEsMi4yMDEsMSw0LjkxN3MyLjIwMSw0LjkxNyw0LjkxNyw0LjkxN3M0LjkxNy0yLjIwMSw0LjkxNy00LjkxN0MxMC44MzMsMi4yMDEsOC42MzIsMCw1LjkxNywwTDUuOTE3LDB6IiAvPgo8L2c%2BCjwvc3ZnPgo%3D');
 }
 </style>
 </head>
@@ -99,12 +99,12 @@ div.searchLogo{
 </select>
 <select name="bid">
 <?php
-	$list=array("-1"=>"不限版面","1"=>"车协工作区","2"=>"行者足音","3"=>"车友宝典","4"=>"纯净水","5"=>"考察与社会","6"=>"五湖四海","7"=>"一技之长","9"=>"竞赛竞技","28"=>"网站维护");
-	foreach ( $list as $key => $value ) {
-		echo '<option value="'.$key.'"';
-		if (intval($bid)==intval($key)) echo ' selected';
-		echo '>'.$value.'</option>'."\n";
-	}
+    $list=array("-1"=>"不限版面","1"=>"车协工作区","2"=>"行者足音","3"=>"车友宝典","4"=>"纯净水","5"=>"考察与社会","6"=>"五湖四海","7"=>"一技之长","9"=>"竞赛竞技","28"=>"网站维护");
+    foreach ( $list as $key => $value ) {
+        echo '<option value="'.$key.'"';
+        if (intval($bid)==intval($key)) echo ' selected';
+        echo '>'.$value.'</option>'."\n";
+    }
 ?>
 </select>
 <input type="hidden" name="show" value="<?php echo $showall ?>" id="show">
@@ -122,44 +122,44 @@ div.searchLogo{
 <ul>
 <?php
 if($result==null || count(@$result)==0){
-	echo("<b>未找到相关结果</b>");
+    echo("<b>未找到相关结果</b>");
 }
 else if($type=="post"){
 
-	echo '<div align="center";>共'.count($result).'条</div>';
-	foreach($result as $value){
-		if(!@$value['title']) continue;
-		$bid=$value['bid'];
-		$tid=$value['tid'];
-		$pid=$value['pid'];
-		$pidi = intval($pid);
-		$page=intval(($pidi-1)/12)+1;
-		$title=$value['title'];
-		$author=$value['author'];
-		$time=formatstamp($value['updatetime']);
-		// $translated=$value['text'];
-		// $translated=str_replace("<", "&lt;",$translated);
-		// $translated=str_replace(">", "&gt;",$translated);
+    echo '<div align="center";>共'.count($result).'条</div>';
+    foreach($result as $value){
+        if(!@$value['title']) continue;
+        $bid=$value['bid'];
+        $tid=$value['tid'];
+        $pid=$value['pid'];
+        $pidi = intval($pid);
+        $page=intval(($pidi-1)/12)+1;
+        $title=$value['title'];
+        $author=$value['author'];
+        $time=formatstamp($value['updatetime']);
+        // $translated=$value['text'];
+        // $translated=str_replace("<", "&lt;",$translated);
+        // $translated=str_replace(">", "&gt;",$translated);
 
-		#$translated=translate($value['text'],$value['ishtml']=="YES");
-		// if (mb_strlen($translated,'utf-8')>=200) $translated=mb_substr($translated,0,200,'utf-8')."....";
-		echo("<li>");
-		echo($title."&nbsp;&nbsp;&nbsp;<a href='../content/?bid=$bid&tid=$tid&p=$page#$pid' style='color:#5c7084'>查看原帖</a><br>");
-		// echo("<p style='text-indet:2em'>".$translated."<br><font color='#989898'>&nbsp;--- $author 发表于 $time</font></p>");
-		echo("<p style='text-indet:2em'><font color='#989898'>&nbsp;--- $author 发表于 $time</font></p>");
-	}
+        #$translated=translate($value['text'],$value['ishtml']=="YES");
+        // if (mb_strlen($translated,'utf-8')>=200) $translated=mb_substr($translated,0,200,'utf-8')."....";
+        echo("<li>");
+        echo($title."&nbsp;&nbsp;&nbsp;<a href='../content/?bid=$bid&tid=$tid&p=$page#$pid' style='color:#5c7084'>查看原帖</a><br>");
+        // echo("<p style='text-indet:2em'>".$translated."<br><font color='#989898'>&nbsp;--- $author 发表于 $time</font></p>");
+        echo("<p style='text-indet:2em'><font color='#989898'>&nbsp;--- $author 发表于 $time</font></p>");
+    }
 } else{
-	echo '<div align="center";>共'.count($result).'条</div>';
-	foreach($result as $value){
-		if(!@$value['title']) continue;
-		$bid=$value['bid'];
-		$tid=$value['tid'];
-		$title=$value['title'];
-		$author=$value['author'];
-		//$time=formatstamp($value['timestamp']);
-		$time=formatstamp($value['replytime']);
-		echo("<li><a href='../content/?bid=$bid&tid=$tid'>".$value['title']."</a><font color='#989898'>&nbsp;---$author 发表于 $time</font>");
-	}
+    echo '<div align="center";>共'.count($result).'条</div>';
+    foreach($result as $value){
+        if(!@$value['title']) continue;
+        $bid=$value['bid'];
+        $tid=$value['tid'];
+        $title=$value['title'];
+        $author=$value['author'];
+        //$time=formatstamp($value['timestamp']);
+        $time=formatstamp($value['replytime']);
+        echo("<li><a href='../content/?bid=$bid&tid=$tid'>".$value['title']."</a><font color='#989898'>&nbsp;---$author 发表于 $time</font>");
+    }
 }
 ?>
 </ul>

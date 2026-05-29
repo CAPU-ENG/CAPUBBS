@@ -41,12 +41,12 @@ $result=mainfunc(array(
 $result=$result[0];
 header('Content-type:text/html;charset=utf-8');
 if(intval($result['code'])==0){
-	$time=time()+999999;
-	$date=date("D, d M Y H:i:s",$time)." GMT";
-	header('Set-cookie: token='.$result['token'].'; domain=.'.CAPUBBS_HOST.'; expires='.$date.'; path=/'."\n");
-	echo 0;
-	exit;
+    $time=time()+999999;
+    $date=date("D, d M Y H:i:s",$time)." GMT";
+    header('Set-cookie: token='.$result['token'].'; domain=.'.CAPUBBS_HOST.'; expires='.$date.'; path=/'."\n");
+    echo 0;
+    exit;
 }else{
-	echo($result['msg']);
+    echo($result['msg']);
 }
 ?>

@@ -1,8 +1,8 @@
 <?php
     $con = dbconnect_mysqli();
-	checkUserAndSign($con, $ip, $token);
-	$data = getOnePage($con, $bid, $tid, $page, $see_lz, $ip, $token);
-	$tdata = getTidInfo($con, $bid, $tid);
+    checkUserAndSign($con, $ip, $token);
+    $data = getOnePage($con, $bid, $tid, $page, $see_lz, $ip, $token);
+    $tdata = getTidInfo($con, $bid, $tid);
     if(count($tdata)==0){
         $tdata=null;
     }
@@ -184,7 +184,7 @@ for($i=0;$i<count(@$data);$i++){
     echo("<!-- fid: ".$floor['fid'].", pid: ".$floor['pid']." -->");
     echo("<hr class='hrt'></div>\n");
     $translated=translate($floor['text'],$floor['ishtml']=="YES");
-    
+
     // textblock
     {
         echo "<div class='textblock' id='floor$i' style='line-height:160% !important'>";
@@ -213,7 +213,7 @@ for($i=0;$i<count(@$data);$i++){
                             echo "<div>";
                             echo $option["comment"];
                             echo "</div>";
-                            
+
                             switch ($option["type_id"]) {
                                 case 1: // 单项选择
                                     $cases = $option["cases"];
@@ -333,7 +333,7 @@ for($i=0;$i<count(@$data);$i++){
                                     $_username = $join_value[$user_idx]['username'];
                                     $_option_value = $join_value[$user_idx]['option_value'];
                                     $cancel = $join_value[$user_idx]['cancel'];
-                                    
+
                                     echo '<tr>';
                                     if ($cancel) {
                                         echo $tag_begin.'<font color="red"><strike>'.$_username.'</strike></font>'.$tag_end;
@@ -438,7 +438,7 @@ for($i=0;$i<count(@$data);$i++){
                 <br><br><hr>
                 <div style='justify-content: center; align-items: center; border: 1px solid black; padding: 10px 10px 10px 10px;'>
                     <div style="text-align: center;">
-                        <font size="6px">已报名<?php 
+                        <font size="6px">已报名<?php
                             $floor_num1 = get_floor_num_1($currentuser, $activity_id);
                             $floor_num2 = get_floor_num_2($currentuser, $bid, $tid);
                             if ($floor_num1 == -1 || $floor_num2 == -1 || $floor_num1 != $floor_num2) {
@@ -473,7 +473,7 @@ for($i=0;$i<count(@$data);$i++){
                             echo "<div>";
                             echo $option["comment"];
                             echo "</div>";
-                            
+
                             switch ($option["type_id"]) {
                                 case 1:
                                     $cases = $option["cases"];
@@ -603,7 +603,7 @@ for($i=0;$i<count(@$data);$i++){
     if(@$userinfo['sig'.$floor['sig']]){
         echo("<div class='sigblock'>\n");
         echo("<span class='sigtip'>--------</span>\n");
-        echo("<div class='sig'>".translate($userinfo['sig'.$floor['sig']],false,false)."<br><br><br>"."</div>\n");		
+        echo("<div class='sig'>".translate($userinfo['sig'.$floor['sig']],false,false)."<br><br><br>"."</div>\n");
         echo("</div>");
     }
     $lzl=mainfunc(array(
@@ -633,9 +633,9 @@ for($i=0;$i<count(@$data);$i++){
             $authorinfo=$authorinfo[0];
             echo('<tr><td class="lzltd">');
             echo('<div class="lzlicon"><img src="'.translateicon($authorinfo['icon']).'" class="lzlicon"></div>');
-			$html=str_replace(chr(10), "<br>",htmlspecialchars($lzl[$j]['text']));
-			$html=str_replace(chr(13), "<br>",$html);
-			echo('<div class="lzlcontent">'.userhref($author).': '.$html.'<br>');
+            $html=str_replace(chr(10), "<br>",htmlspecialchars($lzl[$j]['text']));
+            $html=str_replace(chr(13), "<br>",$html);
+            echo('<div class="lzlcontent">'.userhref($author).': '.$html.'<br>');
             echo('<span class="lzltime">'.formatstamp($lzl[$j]['time']));
             if ($canreply) echo '&nbsp;<a href="javascript:insertlzlreply('.$i.',\''.$author.'\');" class="lzlreplybt">回复</a>';
             if($right>=1|| $author==$currentuser){
@@ -681,9 +681,9 @@ for($i=0;$i<count(@$data);$i++){
     echo("</div>\n");
     echo("</div>\n");
     echo("</div>\n");
-    
+
     echo("<tr class='white'><td><div class='white'></div></td></tr>\n");
-    
+
 }
 ?>
         </table>
@@ -734,7 +734,7 @@ var unusedattachs = [];
 <?php
 $result=mainfunc(array("ask"=>"unusedattachinfo"));
 for ($i = 1; $i < count($result); $i++) {
-	echo "unusedattachs.push(" . json_encode($result[$i]) . ");\n";
+    echo "unusedattachs.push(" . json_encode($result[$i]) . ");\n";
 }
 ?>
 

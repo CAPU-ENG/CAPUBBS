@@ -1,8 +1,8 @@
 <?php
-	include "../lib/mainfunc.php";
-	$user=getuser();
-	$rights=intval($user['rights']);
-	if ($rights!=4) exit;
+    include "../lib/mainfunc.php";
+    $user=getuser();
+    $rights=intval($user['rights']);
+    if ($rights!=4) exit;
 ?>
 <!DOCTYPE html>
 <html>
@@ -24,17 +24,17 @@
 </center>
 <script>
 function sendto() {
-	var text=$('#message').val();
-	$.post("action.php",{text:text},
-		function (val) {
-			var x=parseInt(val);
-			if (x==0) {
-				alert("群发消息成功！");
-				$('#message').val("");
-			}
-			else alert("Error: msg"+val);
-		}
-	);
+    var text=$('#message').val();
+    $.post("action.php",{text:text},
+        function (val) {
+            var x=parseInt(val);
+            if (x==0) {
+                alert("群发消息成功！");
+                $('#message').val("");
+            }
+            else alert("Error: msg"+val);
+        }
+    );
 }
 </script>
 </body>

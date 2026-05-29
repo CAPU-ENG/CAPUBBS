@@ -38,7 +38,7 @@
                 $statement="insert ignore into username_lastip (username, lastip) values ('$username', '$ip')";
                 mysqli_query($con, $statement);
             }
-    
+
             if ($ip!="") $statement="update userinfo set tokentime=$nowtime, token='$token', lastip='$ip',lastdate='$today',onlinetype='$onlinetype',logininfo='$logininfo' where username='$username'";
             else $statement="update userinfo set tokentime=$nowtime, token='$token', lastdate='$today',onlinetype='$onlinetype',logininfo='$logininfo' where username='$username'";
             mysqli_query($con, $statement);

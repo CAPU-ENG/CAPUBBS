@@ -404,7 +404,7 @@ require_once __DIR__.'/../config/api-routing.php';
         $icon=@$_POST['icon'];
         if ($icon=="")
             $icon="/bbsimg/icons/zebra.jpeg";//默认头像
-        
+
         $results=request(array("ask"=>"edituser",
                                "sex"=>$sex,
                                "qq"=>$qq,
@@ -417,7 +417,7 @@ require_once __DIR__.'/../config/api-routing.php';
                                "sig2"=>$sig2,
                                "sig3"=>$sig3,
                                ));
-        
+
         $results=$results[0];
         echo '<capu><info><code>'.@$results['code'].'</code>';
         if (@$results['error']=="")
@@ -442,7 +442,7 @@ require_once __DIR__.'/../config/api-routing.php';
 
     function seemain() {
         echo '<capu><info><code>-1</code>';
-	    require_once '../lib.php';
+        require_once '../lib.php';
         $con = dbconnect_mysqli();
         $statement="select * from capubbs.mainpage where id=-1";
         $results=mysqli_query($con, $statement);
@@ -457,7 +457,7 @@ require_once __DIR__.'/../config/api-routing.php';
             $statement="select * from capubbs.mainpage where id=1 order by number desc limit 0,20";//增加了首页最多显示的通知数量
         else
             $statement="select * from capubbs.mainpage where id=1 order by number desc limit 0,6";//增加了首页最多显示的通知数量
-        
+
         $results=mysqli_query($con, $statement);
         while (($res=mysqli_fetch_row($results))!=null) {
             echo '<info><text>'."<![CDATA[".$res[2].']]></text>';
@@ -539,9 +539,9 @@ require_once __DIR__.'/../config/api-routing.php';
         $type = $_REQUEST['type'];
         $page = $_REQUEST['page'];
         $chatter = isset($_REQUEST['chatter']) ? $_REQUEST['chatter'] : "";
-        
+
         $id = request(array("ask"=>"msg", "token"=>$token, "type"=>$type, "p"=>$page, "to"=>$chatter, "shrink"=>"no"));
-        
+
         if (intval($id[0]['code']) == 1){
             echo("<capu><info><code>1</code><msg>".$id[0]['msg']."</msg></info></capu>");
             return;
@@ -550,7 +550,7 @@ require_once __DIR__.'/../config/api-routing.php';
         echo("<sysmsg>".$id[0]['sysmsg']."</sysmsg>");
         echo("<prvmsg>".$id[0]['prvmsg']."</prvmsg>");
         echo("</info>");
-        
+
         if ($type == "system") {
             for ($i = 1; $i < count($id); $i++) {
                 echo("<info>");
@@ -595,7 +595,7 @@ require_once __DIR__.'/../config/api-routing.php';
                 echo("</info>");
             }
         }
-        
+
         echo("</capu>");
     }
 
@@ -633,7 +633,7 @@ require_once __DIR__.'/../config/api-routing.php';
         echo '<newmsg><![CDATA['.$id[0]['newmsg'].']]></newmsg>';
         echo '<extr><![CDATA['.$id[0]['extr'].']]></extr>';
         echo '</info>';
-        
+
         $recent=@$_REQUEST['recent'];
         if ($recent == 'YES') {
             echo '<info>';
@@ -659,7 +659,7 @@ require_once __DIR__.'/../config/api-routing.php';
             }
             echo '</info>';
         }
-        
+
         echo '</capu>';
     }
 
@@ -718,7 +718,7 @@ require_once __DIR__.'/../config/api-routing.php';
             echo '<capu><info><code>1</code><msg>文件太大</msg></info></capu>';
             exit;
         }
-        
+
         $random=mt_rand(0,999999999);
         while (file_exists("..$path/$random.$extension")) {
             $random=mt_rand(0,999999999);

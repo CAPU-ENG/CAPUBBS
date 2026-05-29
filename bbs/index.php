@@ -1,3 +1,3 @@
 <?php
-	header("Location: /bbs/index/");
+    header("Location: /bbs/index/");
 ?>

@@ -13,11 +13,11 @@ $INDEX = array("A","B","C","D","E","F","G","H","I","J","K","L","M","N","O","P","
 
 $activity = getActivity($bid, $tid);
 if (!$activity || (
-        $activity["leader_username"] != $username 
+        $activity["leader_username"] != $username
         && "网络组" != $username
-        && "组织部" != $username 
-        && "文体部" != $username 
-        && "主席团" != $username 
+        && "组织部" != $username
+        && "文体部" != $username
+        && "主席团" != $username
         && "理事会" != $username
     )
 ) {
@@ -33,12 +33,12 @@ $objPHPExcel = new PHPExcel();
 
 // Set document properties
 $objPHPExcel->getProperties()->setCreator("CAPUBBS")
-							 ->setLastModifiedBy("CAPUBBS")
-							 ->setTitle("Office 2007 XLSX Test Document")
-							 ->setSubject("Office 2007 XLSX Test Document")
-							 ->setDescription("Test document for Office 2007 XLSX, generated using PHP classes.")
-							 ->setKeywords("office 2007 openxml php")
-							 ->setCategory("Test result file");
+                             ->setLastModifiedBy("CAPUBBS")
+                             ->setTitle("Office 2007 XLSX Test Document")
+                             ->setSubject("Office 2007 XLSX Test Document")
+                             ->setDescription("Test document for Office 2007 XLSX, generated using PHP classes.")
+                             ->setKeywords("office 2007 openxml php")
+                             ->setCategory("Test result file");
 
 $objPHPExcel->setActiveSheetIndex(0)->setCellValueExplicit("A1", "用户名", PHPExcel_Cell_DataType::TYPE_STRING);
 $objPHPExcel->setActiveSheetIndex(0)->setCellValueExplicit("B1", "是否有罚跑", PHPExcel_Cell_DataType::TYPE_STRING);
@@ -55,7 +55,7 @@ for ($user_idx = 0; $user_idx < count(@$join_value); $user_idx++){
     $cancel = $join_value[$user_idx]['cancel'];
     if ($cancel)
         continue;
-    
+
     $line_idx++;
     $objPHPExcel->setActiveSheetIndex(0)->setCellValueExplicit("A".($line_idx), $_username, PHPExcel_Cell_DataType::TYPE_STRING);
     $objPHPExcel->setActiveSheetIndex(0)->setCellValueExplicit("B".($line_idx), $_has_punishment==1?"是":"", PHPExcel_Cell_DataType::TYPE_STRING);
@@ -63,7 +63,7 @@ for ($user_idx = 0; $user_idx < count(@$join_value); $user_idx++){
         $option = $activity["options"][$option_idx];
         if ($option["option_name"] == "想说的话")
             break;
-        
+
         switch ($option["type_id"]) {
             case 1:
                 $cases = $option["cases"];

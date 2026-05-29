@@ -787,7 +787,7 @@ function jiekoufunc_news($con, $token, $params) {
     }
 }
 
-	function jiekoufunc_attach($con, $token, $path, $filename) {
+    function jiekoufunc_attach($con, $token, $path, $filename) {
     $user = jiekoufunc_token2user($con, $token);
     if (!$user) return jiekoufunc_report('3', "unauthorized");
     $user_name = $user['username'];

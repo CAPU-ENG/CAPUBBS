@@ -29,9 +29,9 @@ $result=mainfunc(array(
 $result=$result[0];
 #echo(json_encode($result));
 if($result['code']=="0"){
-	header("Location: ../index");
-	echo("Succeed.");
+    header("Location: ../index");
+    echo("Succeed.");
 }else{
-	echo($result['msg']);
+    echo($result['msg']);
 }
 ?>

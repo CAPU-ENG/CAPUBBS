@@ -1275,7 +1275,7 @@
 
             $results=mysqli_query($con, $statement);
             $res=mysqli_fetch_array($results);
-            
+
             for ($i=0;$i<=3;$i++){
                 if ($res[$i]==$username) $able=1;
             }

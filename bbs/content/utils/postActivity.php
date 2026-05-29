@@ -92,7 +92,7 @@ if ($action == "join") {
 
 function cancel_join_activity_by_content($bid, $tid, $username, $option_values, $title, $cancel) {
     if (empty($bid) || empty($tid) || empty($username) || empty($option_values)) {
-        return array("code"=> -1,"msg"=> "param empty");    
+        return array("code"=> -1,"msg"=> "param empty");
     }
     $activity = getActivity($bid, $tid);
     $activity_id = $activity["activity_id"];
@@ -105,7 +105,7 @@ function cancel_join_activity_by_content($bid, $tid, $username, $option_values, 
     }
 
     $options = $activity["options"];
-    
+
     $con = dbconnect_mysqli();
     mysqli_select_db($con, "capubbs");
 
@@ -138,7 +138,7 @@ function cancel_join_activity_by_content($bid, $tid, $username, $option_values, 
                 $text = $text."已隐藏";
             } else if (!is_null($option_values[$option_id])) {
                 $value = $option_values[$option_id];
-                
+
                 switch ($option["type_id"]) {
                     case 1:
                         $value = intval($value);
@@ -175,13 +175,13 @@ function cancel_join_activity_by_content($bid, $tid, $username, $option_values, 
             $text = "<strike>".$text."</strike>";
         }
 
-	    @$token=$_COOKIE['token'];
+        @$token=$_COOKIE['token'];
         $time = time();
         $statement="select username,star,rights,lastpost from userinfo where token='$token' && $time-tokentime<={$GLOBALS['validtime']}";
         $results=mysqli_query($con, $statement);
         $res=mysqli_fetch_array($results);
         if ($res[0] != $username) {
-            return array("code"=> -1,"msg"=> "user error");    
+            return array("code"=> -1,"msg"=> "user error");
         }
         $statement="select locked,author,title from threads where bid=$bid && tid=$tid";
         $results=mysqli_query($con, $statement);
@@ -208,7 +208,7 @@ function cancel_join_activity_by_content($bid, $tid, $username, $option_values, 
         $pid = $row["pid"];
 
         $text=search_replace_exec_at_2($con,$text,$bid,$tid,$pid,$username,$title);
-	    $ip = $_SERVER["REMOTE_ADDR"];
+        $ip = $_SERVER["REMOTE_ADDR"];
 
         $type=@$_REQUEST['type'];
         $sig=intval(@$_REQUEST['sig']);
@@ -227,7 +227,7 @@ function cancel_join_activity_by_content($bid, $tid, $username, $option_values, 
 
 function modify_join_activity_by_content($bid, $tid, $username, $option_values, $title, $sig) {
     if (empty($bid) || empty($tid) || empty($username) || empty($option_values)) {
-        return array("code"=> -1,"msg"=> "param empty");    
+        return array("code"=> -1,"msg"=> "param empty");
     }
     $activity = getActivity($bid, $tid);
     $activity_id = $activity["activity_id"];
@@ -248,7 +248,7 @@ function modify_join_activity_by_content($bid, $tid, $username, $option_values, 
             return array("code"=> -1,"msg"=> "option(#".$option_id.") not found");
         }
     }
-    
+
     $con = dbconnect_mysqli();
     mysqli_select_db($con, "capubbs");
 
@@ -295,7 +295,7 @@ function modify_join_activity_by_content($bid, $tid, $username, $option_values, 
                 $text = $text."已隐藏";
             } else if (!is_null($option_values[$option_id])) {
                 $value = $option_values[$option_id];
-                
+
                 switch ($option["type_id"]) {
                     case 1:
                         $value = intval($value);
@@ -329,13 +329,13 @@ function modify_join_activity_by_content($bid, $tid, $username, $option_values, 
             $text = $text."</div>";
         }
 
-	    @$token=$_COOKIE['token'];
+        @$token=$_COOKIE['token'];
         $time = time();
         $statement="select username,star,rights,lastpost from userinfo where token='$token' && $time-tokentime<={$GLOBALS['validtime']}";
         $results=mysqli_query($con, $statement);
         $res=mysqli_fetch_array($results);
         if ($res[0] != $username) {
-            return array("code"=> -1,"msg"=> "user error");    
+            return array("code"=> -1,"msg"=> "user error");
         }
         $statement="select locked,author,title from threads where bid=$bid && tid=$tid";
         $results=mysqli_query($con, $statement);
@@ -362,7 +362,7 @@ function modify_join_activity_by_content($bid, $tid, $username, $option_values, 
         $pid = $row["pid"];
 
         $text=search_replace_exec_at_2($con,$text,$bid,$tid,$pid,$username,$title);
-	    $ip = $_SERVER["REMOTE_ADDR"];
+        $ip = $_SERVER["REMOTE_ADDR"];
 
         $type=@$_REQUEST['type'];
         $statement="update posts set title='$title', author='$username', text='$text', ishtml='YES', sig=$sig, ip='$ip', type='$type', updatetime=$time where bid=$bid && tid=$tid && pid=$pid";
@@ -379,7 +379,7 @@ function modify_join_activity_by_content($bid, $tid, $username, $option_values, 
 
 function join_activity_by_content($bid, $tid, $username, $option_values, $title, $sig) {
     if (empty($bid) || empty($tid) || empty($username) || empty($option_values)) {
-        return array("code"=> -1,"msg"=> "param empty");    
+        return array("code"=> -1,"msg"=> "param empty");
     }
     $activity = getActivity($bid, $tid);
     $activity_id = $activity["activity_id"];
@@ -387,7 +387,7 @@ function join_activity_by_content($bid, $tid, $username, $option_values, $title,
         return array("code"=> -1,"msg"=> "activity not found");
     }
 
-    
+
     $filePath = "/tmp/capu_log";
     $log_data = "$username $bid $tid\n";
     $log_data = $log_data.implode(",", $option_values)."\n";
@@ -432,7 +432,7 @@ function join_activity_by_content($bid, $tid, $username, $option_values, $title,
     }
 
     file_put_contents($filePath, "[3] $username $bid $tid\n", FILE_APPEND);
-    
+
     $con = dbconnect_mysqli();
     mysqli_select_db($con, "capubbs");
     // posts
@@ -450,7 +450,7 @@ function join_activity_by_content($bid, $tid, $username, $option_values, $title,
                 $text = $text."已隐藏";
             } else if (!is_null($option_values[$option_id])) {
                 $value = $option_values[$option_id];
-                
+
                 switch ($option["type_id"]) {
                     case 1:
                         $value = intval($value);
@@ -487,7 +487,7 @@ function join_activity_by_content($bid, $tid, $username, $option_values, $title,
 
 
         file_put_contents($filePath, "[5] $username $bid $tid\n", FILE_APPEND);
-        
+
         $statement="select pid from posts where bid=$bid && tid=$tid order by pid desc";
         $results=mysqli_query($con, $statement);
         if (mysqli_num_rows($results)==0) {
@@ -522,7 +522,7 @@ function join_activity_by_content($bid, $tid, $username, $option_values, $title,
         file_put_contents($filePath, "[8] $username $bid $tid\n", FILE_APPEND);
         $text=search_replace_exec_at_2($con,$text,$bid,$tid,$pid,$username,$title);
         $attachs = "";
-	    $ip = $_SERVER["REMOTE_ADDR"];
+        $ip = $_SERVER["REMOTE_ADDR"];
         $statement="insert into posts (bid,tid,pid,title,author,text,ishtml,attachs,replytime,updatetime,sig,ip,type,lzl) values ($bid,$tid,$pid,'$title','$username','$text','YES','$attachs',$time,$time,$sig,'$ip','$type',0)";
         mysqli_query($con, $statement);
         if(mysqli_error($con)){
@@ -561,7 +561,7 @@ function join_activity_by_content($bid, $tid, $username, $option_values, $title,
             if (!is_null($option_values[$option_id])) {
                 $value = $option_values[$option_id];
                 $value = mysqli_real_escape_string($con, $value);
-                
+
                 $statement = "insert into season_join_option_value (join_id, option_id, value) values
                     ($join_id, $option_id, '$value')";
                 mysqli_query($con, $statement);
