@@ -16,7 +16,7 @@ $params = array(
 );
 
 $con = dbconnect_mysqli();
-require_once __DIR__.'/jiekoufunc.php';
+require_once __DIR__.'/dispatch.php';
 $result = jiekoufunc_dispatch($con, $params);
 
 if (!empty($result[0]['code']) && $result[0]['code'] != '0') {

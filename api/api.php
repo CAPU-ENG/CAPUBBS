@@ -57,7 +57,7 @@ if (in_array($params['ask'], $mainpage_asks, true)) {
     require_once __DIR__ . '/lib/MainpageHandlers.php';
     $result = mainpage_dispatch($con, $params);
 } else {
-    require_once __DIR__ . '/jiekoufunc.php';
+    require_once __DIR__ . '/dispatch.php';
     $result = jiekoufunc_dispatch($con, $params);
 }
 
