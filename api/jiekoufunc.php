@@ -2526,6 +2526,143 @@ function jiekoufunc_restore_version($con, $token, $fid, $version_id) {
 //  Main dispatcher
 // ============================================================================
 
+// ============================================================================
+//  Business functions — Thread listing
+// ============================================================================
+
+/**
+ * Return the N most recently posted threads.
+ *
+ * @param $con    mysqli connection
+ * @param $params array with optional keys: limit (default 10, max 100), bid (0=all)
+ */
+function jiekoufunc_recent_threads($con, $params) {
+    $limit = isset($params['limit']) ? intval($params['limit']) : 10;
+    if ($limit <= 0) $limit = 10;
+    if ($limit > 100) $limit = 100;
+    $bid = isset($params['bid']) ? intval($params['bid']) : 0;
+
+    $bid_where = ($bid > 0) ? "AND t.bid = $bid" : "";
+
+    $sql = "SELECT t.bid, t.tid, t.title, t.author, t.replyer,
+                   t.click, t.reply, t.timestamp, t.postdate, t.extr, t.top, t.locked
+            FROM threads t
+            WHERE 1 = 1 $bid_where
+            ORDER BY t.timestamp DESC
+            LIMIT $limit";
+
+    return jiekoufunc_view_bbs_array($con, $sql);
+}
+
+/**
+ * Return the N hottest threads, with multiple heat-calculation methods.
+ *
+ * Supported methods (params['method']):
+ *   reply_count    — pure reply count
+ *   recent_activity — reply count within the time window
+ *   engagement     — replies + unique participants + clicks
+ *   hacker_news    — gravity-based decay: replies / (hours + 2)^1.5
+ *   composite      — weighted mix of replies, 24h activity, and clicks (default)
+ *
+ * @param $con    mysqli connection
+ * @param $params array with optional keys:
+ *                limit   (default 10, max 100)
+ *                bid     (0=all boards)
+ *                method  (default 'composite')
+ *                days    (time window in days, default 7)
+ *                min_replies (minimum reply count threshold, default 0)
+ */
+function jiekoufunc_hot_threads($con, $params) {
+    $limit       = isset($params['limit'])       ? intval($params['limit'])       : 10;
+    $bid         = isset($params['bid'])         ? intval($params['bid'])         : 0;
+    $method      = isset($params['method'])      ? $params['method']              : 'composite';
+    $days        = isset($params['days'])        ? intval($params['days'])        : 7;
+    $min_replies = isset($params['min_replies']) ? intval($params['min_replies']) : 0;
+
+    if ($limit <= 0)   $limit = 10;
+    if ($limit > 100)  $limit = 100;
+    if ($days  <= 0)   $days  = 7;
+
+    $cutoff    = time() - ($days * 86400);
+    $bid_where = ($bid > 0) ? "AND t.bid = $bid" : "";
+    $reply_min = ($min_replies > 0) ? "AND t.reply >= $min_replies" : "";
+
+    switch ($method) {
+        case 'reply_count':
+            $sql = "SELECT t.bid, t.tid, t.title, t.author, t.replyer,
+                           t.click, t.reply, t.timestamp, t.postdate,
+                           t.extr, t.top, t.locked, t.reply AS score
+                    FROM threads t
+                    WHERE t.timestamp >= $cutoff $bid_where $reply_min
+                    ORDER BY t.reply DESC
+                    LIMIT $limit";
+            break;
+
+        case 'recent_activity':
+            // Count replies within the time window
+            $sql = "SELECT t.bid, t.tid, t.title, t.author, t.replyer,
+                           t.click, t.reply, t.timestamp, t.postdate,
+                           t.extr, t.top, t.locked,
+                           COUNT(p.fid) AS score
+                    FROM threads t
+                    LEFT JOIN posts p ON t.bid = p.bid AND t.tid = p.tid
+                                      AND p.replytime >= $cutoff
+                    WHERE t.timestamp >= $cutoff $bid_where $reply_min
+                    GROUP BY t.bid, t.tid
+                    ORDER BY score DESC
+                    LIMIT $limit";
+            break;
+
+        case 'engagement':
+            // Replies + unique participants + clicks
+            $sql = "SELECT t.bid, t.tid, t.title, t.author, t.replyer,
+                           t.click, t.reply, t.timestamp, t.postdate,
+                           t.extr, t.top, t.locked,
+                           (t.reply * 1.0
+                            + COUNT(DISTINCT p.author) * 2.0
+                            + t.click * 0.1) AS score
+                    FROM threads t
+                    LEFT JOIN posts p ON t.bid = p.bid AND t.tid = p.tid
+                    WHERE t.timestamp >= $cutoff $bid_where $reply_min
+                    GROUP BY t.bid, t.tid
+                    ORDER BY score DESC
+                    LIMIT $limit";
+            break;
+
+        case 'hacker_news':
+            // HN-style: replies / (hours_since_post + 2)^1.5
+            $sql = "SELECT t.bid, t.tid, t.title, t.author, t.replyer,
+                           t.click, t.reply, t.timestamp, t.postdate,
+                           t.extr, t.top, t.locked,
+                           (t.reply) / POW(GREATEST(($cutoff - t.timestamp) / 3600 + 2, 1), 1.5) AS score
+                    FROM threads t
+                    WHERE 1 = 1 $bid_where $reply_min
+                    ORDER BY score DESC
+                    LIMIT $limit";
+            break;
+
+        case 'composite':
+        default:
+            // Weighted mix: replies + 24h activity + clicks
+            $one_day_ago = time() - 86400;
+            $sql = "SELECT t.bid, t.tid, t.title, t.author, t.replyer,
+                           t.click, t.reply, t.timestamp, t.postdate,
+                           t.extr, t.top, t.locked,
+                           (t.reply * 0.6
+                            + (SELECT COUNT(*) FROM posts p
+                               WHERE p.bid = t.bid AND p.tid = t.tid
+                               AND p.replytime >= $one_day_ago) * 2.0
+                            + t.click * 0.01) AS score
+                    FROM threads t
+                    WHERE t.timestamp >= $cutoff $bid_where $reply_min
+                    ORDER BY score DESC
+                    LIMIT $limit";
+            break;
+    }
+
+    return jiekoufunc_view_bbs_array($con, $sql);
+}
+
 /**
  * Route a request to the appropriate business function.
  *
@@ -2675,6 +2812,10 @@ function jiekoufunc_dispatch($con, $params) {
         $version_id = isset($params['version_id']) ? intval($params['version_id']) : 0;
         return jiekoufunc_restore_version($con, $token, $fid, $version_id);
     }
+    // Thread listing
+    if ($ask == "recent_threads")     return jiekoufunc_recent_threads($con, $params);
+    if ($ask == "hot_threads")        return jiekoufunc_hot_threads($con, $params);
+
     // === Dispatch by $view (no $ask) ===
     if ($view != "")                 return jiekoufunc_view_user_array($con, $view);
 
