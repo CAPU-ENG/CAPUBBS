@@ -6,7 +6,7 @@
 header('Content-Type: application/json; charset=utf-8');
 
 require_once dirname(__DIR__) . '/../lib.php';
-require_once dirname(__DIR__) . '/../api/jiekoufunc.php';
+require_once dirname(__DIR__) . '/../api/dispatch.php';
 
 $con = dbconnect_mysqli();
 

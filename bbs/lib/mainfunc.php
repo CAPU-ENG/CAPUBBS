@@ -10,7 +10,7 @@ function mainfunc($posts,$debug=false){
 		$mode = isset($routing[$route_key]) ? $routing[$route_key] : 'new';
 		if ($mode === 'new') {
 			$con = dbconnect_mysqli();
-			require_once __DIR__.'/../../api/jiekoufunc.php';
+			require_once __DIR__.'/../../api/dispatch.php';
 			$posts['ip'] = isset($_SERVER['REMOTE_ADDR']) ? $_SERVER['REMOTE_ADDR'] : '';
 			$posts['token'] = isset($_COOKIE['token']) ? $_COOKIE['token'] : '';
 			return jiekoufunc_dispatch($con, $posts);

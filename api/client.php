@@ -46,7 +46,7 @@ require_once __DIR__.'/../config/api-routing.php';
         $mode = isset($routing[$route_key]) ? $routing[$route_key] : 'old';
         if ($mode === 'new') {
             $con = dbconnect_mysqli();
-            require_once __DIR__.'/jiekoufunc.php';
+            require_once __DIR__.'/dispatch.php';
             $posts['ip'] = isset($_SERVER['REMOTE_ADDR']) ? $_SERVER['REMOTE_ADDR'] : '';
             $posts['token'] = isset($_POST['token']) ? $_POST['token'] : '';
             return jiekoufunc_dispatch($con, $posts);
