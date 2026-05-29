@@ -32,8 +32,10 @@ return array(
     'recentpost'  => array('check_login' => false, 'require_rights' => 0),
     'recentreply' => array('check_login' => false, 'require_rights' => 0),
     'lzl'         => array('check_login' => false, 'require_rights' => 0),
-    'calendar'    => array('check_login' => false, 'require_rights' => 0),
-    '__view'      => array('check_login' => false, 'require_rights' => 0),
+    'calendar'        => array('check_login' => false, 'require_rights' => 0),
+    'recent_threads'  => array('check_login' => false, 'require_rights' => 0),
+    'hot_threads'     => array('check_login' => false, 'require_rights' => 0),
+    '__view'          => array('check_login' => false, 'require_rights' => 0),
 
     // ================================================================
     // Group 2: Login required — any authenticated user
