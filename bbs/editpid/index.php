@@ -261,16 +261,6 @@ span.tip{
 		</div>
 	</div>
 </div>
-	<div id="overlay">
-		<div>
-			为此附件填写阅读权限与下载售价：<br><br>
-        	阅读权限：<input type="number" value="0" style="width:40px" id="auth">
-        	<span class='tip'>&nbsp;积分不少于此数值才能浏览附件</span><br>
-        	下载售价：<input type="number" value="0" style="width:40px" id="price">
-        	<span class='tip'>&nbsp;每位下载者需向您支付的积分数</span><br><br>
-        	<input type="button" value="&nbsp;好&nbsp;" onclick="priceok();" />
-		</div>
-	 </div>
 
 
 	<form method="post" id="fm" action="action.php">
@@ -304,9 +294,7 @@ for($i=1;$i< count($result);$i++){
 	echo("unusedattachs.push({
 	name:'".$result[$i]['name']."',
 	size:'".$result[$i]['size']."',
-	price:'".$result[$i]['price']."',
 	id:'".$result[$i]['id']."',
-	auth:'".$result[$i]['auth']."'
 	});\n");
 }
 if($pidinfo['attachs']){
@@ -320,9 +308,7 @@ foreach($attachs as $aid){
 	echo("attachs.push({
 	name:'".$result['name']."',
 	size:'".$result['size']."',
-	price:'".$result['price']."',
 	id:'".$result['id']."',
-	auth:'".$result['auth']."'
 	});\n");
 }
 ?>
@@ -349,14 +335,14 @@ function refreshAttach(){
 	var s="";
 	for(var i=0;i<attachs.length;i++){
 		var a=attachs[i];
-		s+=generateattach(a['name'],a['size'],a['price'],a['id'],false);
+		s+=generateattach(a['name'],a['size'],a['id'],false);
 	}
 	//document.getElementById("attachs").innerHTML=s;
 	$('#attachs').html(s);
 	var s2="";
 	for(var i=0;i<unusedattachs.length;i++){
 		var a=unusedattachs[i];
-		s2+=generateattach(a['name'],a['size'],a['price'],a['id'],true);
+		s2+=generateattach(a['name'],a['size'],a['id'],true);
 	}
 	//document.getElementById("unusedattachs").innerHTML=s2;
 	$('#unusedattachs').html(s2);
@@ -368,8 +354,7 @@ function attach(){
 function fileselected(){
 //	if(document.getElementById("file").value){
 	if ($('#file').val()) {
-		//showoverlay();
-		priceok();
+		uploadFile();
 	}
 }
 function appendattach(id){
@@ -392,7 +377,7 @@ function removeattach(id){
 	}
 	refreshAttach();	
 }
-function generateattach(filename,size,price,aid,useforappend){
+function generateattach(filename,size,aid,useforappend){
 	var extension=filename.slice(filename.lastIndexOf(".")+1);
 	var supportedExt="bmp csv gif html jpg jpeg key mov mp3 mp4 numbers pages pdf png rtf tiff txt zip ipa ipsw doc docx ppt pptx xls avi wmv mkv mts".split(" ");
 	var imgsrc="file";
@@ -447,59 +432,38 @@ function packSize(size){
 	if(size<1024*1024*1024) return (size/1024/1024).toFixed(1)+"MB";
 	return (size/1024/1024/1024).toFixed(1)+"GB";
 }
-function priceok(){
-	//var price=parseInt(document.getElementById("price").value);
-	//var auth=parseInt(document.getElementById("auth").value);
-	var price=0;
-	var auth=0;
-	if(price<0||price>200){
-		alert("请填写一个有效的售价（0-200）");
-		return;
-	}
-	if(auth<0){
-		alert("请填写一个有效的阅读权限（>0）");
-		return;
-	}
-	document.getElementById("overlay").style.visibility="hidden";
-	var fileObj=document.getElementById("file").files[0];
-	var FileController = "../attach/";
-	var form = new FormData();
-	var price=document.getElementById("price").value;
-	var auth=document.getElementById("auth").value;
-    form.append("auth", auth);
-    form.append("price", price);
-    form.append("file", fileObj);
-    var xhr = new XMLHttpRequest();
-	xhr.open("post", FileController, true);
-	xhr.onload = function () {
-		var prob=document.getElementById("progress");
-		if(prob.style.visibility!="hidden") prob.style.visibility="hidden";
-		//alert("response:"+xhr.responseText+" code:"+xhr.status);
-		try{
-			var result=JSON.parse(xhr.responseText);
-			if(result.code==0){
-				attachs.push({name:fileObj.name,size:fileObj.size,price:price,id:result.msg});
-				refreshAttach();
-			}else{
-				alert("附件上传失败："+result.msg+" code:"+result.code);
+function uploadFile(){
+		var fileObj=document.getElementById("file").files[0];
+		var FileController = "../attach/";
+		var form = new FormData();
+	    form.append("file", fileObj);
+	    var xhr = new XMLHttpRequest();
+		xhr.open("post", FileController, true);
+		xhr.onload = function () {
+			var prob=document.getElementById("progress");
+			if(prob.style.visibility!="hidden") prob.style.visibility="hidden";
+			try{
+				var result=JSON.parse(xhr.responseText);
+				if(result.code==0){
+					attachs.push({name:fileObj.name,size:fileObj.size,id:result.msg});
+					refreshAttach();
+				}else{
+					alert("附件上传失败："+result.msg+" code:"+result.code);
+				}
+			}catch(e){
+				alert("出bug了");
 			}
-		}catch(e){
-			alert("出bug了");
+		};
+		function onprogress(evt){
+			var prob=document.getElementById("progress");
+			if(prob.style.visibility!="visible") prob.style.visibility="visible";
+			prob.value=evt.loaded;
+			prob.max=evt.total;
+			prob.label=(evt.loaded/evt.total*100).toFixed(1)+"%";
 		}
-	};
-	function onprogress(evt){
-		var prob=document.getElementById("progress");
-		if(prob.style.visibility!="visible") prob.style.visibility="visible";
-		prob.value=evt.loaded;
-		prob.max=evt.total;
-		prob.label=(evt.loaded/evt.total*100).toFixed(1)+"%";
+		xhr.upload.addEventListener("progress", onprogress, false);
+		xhr.send(form);
 	}
-	xhr.upload.addEventListener("progress", onprogress, false);
-	xhr.send(form);
-}
-function showoverlay(){
-	document.getElementById("overlay").style.visibility="visible";
-}
 function doreply(){
 	var token=getcookie("token");
 	if(!token){

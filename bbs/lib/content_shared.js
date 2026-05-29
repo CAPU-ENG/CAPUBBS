@@ -100,7 +100,7 @@ function deletepid(pid) {
 }
 
 /* ---- attachments ---- */
-function generateattach(filename, size, price, aid, useforappend) {
+function generateattach(filename, size, aid, useforappend) {
     var extension = filename.slice(filename.lastIndexOf(".") + 1);
     var supportedExt = "bmp csv gif html jpg jpeg key mov mp3 mp4 numbers pages pdf png rtf tiff txt zip ipa ipsw doc docx ppt pptx xls avi wmv mkv mts".split(" ");
     var imgsrc = "file";
@@ -143,13 +143,13 @@ function refreshAttach() {
     var s = "";
     for (var i = 0; i < attachs.length; i++) {
         var a = attachs[i];
-        s += generateattach(a['name'], a['size'], a['price'], a['id'], false);
+        s += generateattach(a['name'], a['size'], a['id'], false);
     }
     document.getElementById("attachs").innerHTML = s;
     var s2 = "";
     for (var i = 0; i < unusedattachs.length; i++) {
         var a = unusedattachs[i];
-        s2 += generateattach(a['name'], a['size'], a['price'], a['id'], true);
+        s2 += generateattach(a['name'], a['size'], a['id'], true);
     }
     $('#unusedattachs').html(s2);
 }
@@ -160,7 +160,7 @@ function attach() {
 
 function fileselected() {
     if ($('#file').val() != "") {
-        showoverlay();
+        uploadFile();
     }
 }
 
@@ -207,28 +207,7 @@ function delattach(id) {
     }
 }
 
-function showoverlay() {
-    $('#overlay').show();
-}
-
-function attachdl(name, price, auth, id, free) {
-    if (score == -1) {
-        alert("请先登录或注册后下载附件！");
-        return;
-    }
-    if (free) {
-        reallyattachdl(id);
-        return;
-    }
-    if (score < auth) {
-        alert("您无权下载此附件，此附件要求积分不少于" + auth + "，而您拥有" + score + "个积分。加油攒积分吧！");
-        return;
-    }
-    if (price != 0) {
-        if (!confirm("您确定要以" + price + "积分（您拥有" + score + "个积分）的价格购买 " + name + " 么？购买后您将可以永久免费下载此附件。")) {
-            return;
-        }
-    }
+function attachdl(id) {
     reallyattachdl(id);
 }
 
@@ -236,25 +215,10 @@ function reallyattachdl(id) {
     window.open("../download/?id=" + id, "_blank");
 }
 
-function priceok() {
-    var price = parseInt(document.getElementById("price").value);
-    var auth = parseInt(document.getElementById("auth").value);
-    if (price < 0 || price > 200) {
-        alert("请填写一个有效的售价（0-200）");
-        return;
-    }
-    if (auth < 0) {
-        alert("请填写一个有效的阅读权限（>0）");
-        return;
-    }
-    document.getElementById("overlay").style.visibility = "hidden";
+function uploadFile() {
     var fileObj = document.getElementById("file").files[0];
     var FileController = "../attach/";
     var form = new FormData();
-    var price = document.getElementById("price").value;
-    var auth = document.getElementById("auth").value;
-    form.append("auth", auth);
-    form.append("price", price);
     form.append("file", fileObj);
     var xhr = new XMLHttpRequest();
     xhr.open("post", FileController, true);
@@ -264,7 +228,7 @@ function priceok() {
         try {
             var result = JSON.parse(xhr.responseText);
             if (result.code == 0) {
-                attachs.push({name: fileObj.name, size: fileObj.size, price: price, id: result.msg});
+                attachs.push({name: fileObj.name, size: fileObj.size, id: result.msg});
                 refreshAttach();
             } else {
                 alert("附件上传失败：" + result.msg + " code:" + result.code);

@@ -596,7 +596,7 @@ for($i=0;$i<count(@$data);$i++){
         foreach($atts as $value){
             $nowa=mainfunc(array("ask"=>"attachinfo","id"=>$value));
             $nowa=$nowa[0];
-            echo generateattach_html(@$nowa['name'],@$nowa['size'],@$nowa['price'],@$nowa['auth'],@$nowa['id'],@$nowa['isAuthor']=='YES'||@$nowa['hasPurchased']=='YES',@$nowa['count']);
+            echo generateattach_html(@$nowa['name'],@$nowa['size'],@$nowa['id'],@$nowa['count']);
         }
         echo("</div>\n");
     }

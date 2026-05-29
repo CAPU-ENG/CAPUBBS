@@ -100,7 +100,7 @@
     else if ($ask=="recentpost") recentpost($con,$view,$limit_raw);
     else if ($ask=="recentreply") recentreply($con,$view,$limit_raw);
     else if ($ask=="rights") rights($con,$bid,$token);
-    else if ($ask=="attach") attach($con,$token,$path,$filename,$price,$auth);
+    else if ($ask=="attach") attach($con,$token,$path,$filename);
     else if ($ask=="attachdl") attachdl($con,$token,$id);
     else if ($ask=="attachinfo") attachinfo($con,$id,$token);
     else if ($ask=="unusedattachinfo") unusedattachinfo($con,$token);
@@ -1319,21 +1319,18 @@
         $result=mysqli_query($con, $statement);
         return mysqli_fetch_array($result);
     }
-    function attach($con,$token,$path,$filename,$price,$auth){
+    function attach($con,$token,$path,$filename){
         $user=token2user($con,$token);
         if(!$user) report(3,"unauthorized:$token");
         $user=$user['username'];
         if(strstr($path, "'")!=""){
             report(1,"illegal");
         }
-        if(!islegal($price)||!islegal($auth)){
-            report(1,"illegal");
-        }
         $filename=str_replace("&", "&amp;", $filename);
         $filename=sanitize_xml($filename);
         $filename=mysqli_real_escape_string($con, $filename);
         $size=filesize("{$GLOBALS['attachroot']}".$path);
-        $statement="insert into attachments (name,path,size,uploader,price,auth,time) values('$filename','$path',$size,'$user',$price,$auth,".time().")";
+        $statement="insert into attachments (name,path,size,uploader,price,auth,time) values('$filename','$path',$size,'$user',0,0,".time().")";
         mysqli_query($con, $statement);
         if(!mysqli_error($con)) report(0, mysqli_insert_id($con));
         else report(2, "error:".mysqli_error($con));
@@ -1345,33 +1342,13 @@
     function attachdl($con,$token,$id){
         $user=token2user($con,$token);
         if(!$user) report(3,"unauthorized");
-        $username=$user['username'];
-        $score=intval($user['score']);
         if(!islegal($id)){
             report(1,"illegal");
         }
         $statement="select * from attachments where id=$id limit 1";
         $result=mysqli_query($con, $statement);
         $ainfo=mysqli_fetch_array($result);
-        $auth=$ainfo['auth'];
-        $price=intval($ainfo['price']);
-        if($score<$auth) report(4,"no enough auth");
-        if($price>0){
-            $statement="select * from purchaserecord where username='$username' and aid=$id limit 1";
-            $rows=mysqli_num_rows(mysqli_query($con, $statement));
-            if($rows==0){
-                if($score-$price<0){
-                    report(5,"no enough score");
-                }
-                $statement="update userinfo set score=score-$price";
-                $result=mysqli_query($con, $statement);
-                if(!($result&& mysqli_affected_rows($con)>0)){
-                    report(2, mysqli_error($con));
-                }
-                $statement="insert into purchaserecord (username,aid) values('$username',$id)";
-                mysqli_query($con, $statement);
-            }
-        }
+        if(!$ainfo) report(6,"attachment not found");
         $statement="update attachments set count=count+1 where id=$id limit 1";
         mysqli_query($con, $statement);
         echo("<capu><info><code>0</code><aid>$id</aid><path>".$ainfo['path']."</path><name>".$ainfo['name']."</name></info></capu>");
@@ -1391,13 +1368,10 @@
         $ainfo=mysqli_fetch_array($result);
         $user=token2user($con,$token);
         $isAuthor=false;
-        $hasPurchased=false;
         if($user){
             $username=$user['username'];
             if($username==$ainfo['uploader']){
                 $isAuthor=true;
-            }else{
-                $hasPurchased=false;
             }
         }
         $statement="";
@@ -1406,7 +1380,6 @@
         if($ainfo){
             echo("<exist>YES</exist>\n");
             echo("<isAuthor>".packBool($isAuthor)."</isAuthor>\n");
-            echo("<hasPurchased>".packBool($hasPurchased)."</hasPurchased>\n");
             foreach ( $ainfo as $key => $value ) {
                 if (is_long($key)) continue;
                 echo '<'.$key.'>'.trans($value).'</'.$key.">\n";

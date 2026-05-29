@@ -129,8 +129,7 @@
 
 			$right=$right[0]['code'];
 			echo("<script type='text/javascript'>");
-			echo("var score=".$userinfo['score'].";");
-			echo("var star=".$userinfo['star'].";");
+						echo("var star=".$userinfo['star'].";");
 			echo("</script>");
 			$msg=intval($userinfo['newmsg']);
 			if($msg==0){
@@ -152,8 +151,7 @@
 			$right=-1;
 			$currentuser=null;
 			echo("欢迎您，游客！<a href='../login?from=$nowurl'>登录</a> 或者 <a href='../register'>注册</a>");
-			echo("<script type='text/javascript'>var score=-1;</script>");
-		}
+					}
 		echo("<script type='text/javascript'>");
 		echo("var bid=".$bid.";");
 		echo("var tid=".$tid.";");
@@ -250,7 +248,7 @@ for($i=0;$i<count(@$data);$i++){
 		foreach($atts as $value){
 			$nowa=mainfunc(array("ask"=>"attachinfo","id"=>$value));
 			$nowa=$nowa[0];
-			echo generateattach_html(@$nowa['name'],@$nowa['size'],@$nowa['price'],@$nowa['auth'],@$nowa['id'],@$nowa['isAuthor']=='YES'||@$nowa['hasPurchased']=='YES',@$nowa['count']);
+			echo generateattach_html(@$nowa['name'],@$nowa['size'],@$nowa['id'],@$nowa['count']);
 		}
 		echo("</div>\n");
 	}
@@ -395,85 +393,3 @@ else echo '
 		</div>';?>
 	</div>
 	
-	<div id="overlay">
-		<div>
-			为此附件填写阅读权限与下载售价：<br><br>
-        	阅读权限：<input type="number" value="0" style="width:40px" id="auth">
-        	<span class='tip'>&nbsp;积分不少于此数值才能浏览附件</span><br>
-        	下载售价：<input type="number" value="0" style="width:40px" id="price">
-        	<span class='tip'>&nbsp;每位下载者需向您支付的积分数</span><br><br>
-        	<input type="button" value="&nbsp;好&nbsp;" onclick="priceok();" />
-		</div>
-	 </div>
-	 
-	<div id="msg_overlay">
-		<div>
-			<span>您要对&nbsp;<span id='msg_to'></span>&nbsp;说：</span><br><br>
-			<textarea id="msg_ta" style="width:400px;height:200px;font-size:13px;padding:5px;"></textarea><br><br>
-			<button onclick="msg_send();" id="msg_sendbt">发送</button>&nbsp;<button onclick="msg_cancel();" id="msg_cancelbt">取消</button>
-		</div>
-	 </div>
-	 
-	<div class="footer">
-	</div>
-	<form method="post" id="fm" action="../post/">
-	<input type="hidden" name="bid" id="fm_bid" value="<?php echo($tdata['bid']); ?>">
-	<input type="hidden" name="tid" id="fm_tid" value="<?php echo($tdata['tid']); ?>">
-	<input type="hidden" name="icon" value="1" id="fm_icon">
-	<input type="hidden" name="token" id="fm_token">
-	<input type="hidden" name="title" id="fm_title">
-	<input type="hidden" name="text" id="fm_text">
-	<input type="hidden" name="sig" id="fm_sig">
-	<input type="hidden" name="attachs" id="fm_attachs">
-	</form>
-<script type="text/javascript" src="../lib/nic.js"></script>
-<script type="text/javascript" src="../lib/content_shared.js"></script>
-<script type="text/javascript">
-var myNicEditor = new nicEditor({fullPanel : true});
-myNicEditor.setPanel('edi_bar');
-myNicEditor.addInstance('edi_content');
-var attachs = [];
-var unusedattachs = [];
-<?php
-$result=mainfunc(array("ask"=>"unusedattachinfo"));
-for ($i = 1; $i < count($result); $i++) {
-	echo "unusedattachs.push(" . json_encode($result[$i]) . ");\n";
-}
-?>
-
-
-var favTimer = null;
-function toggleFav() {
-	var $btn = $('#fav-btn');
-	if (favTimer) return;
-	favTimer = setTimeout(function() { favTimer = null; }, 500);
-	var isFaved = $btn.hasClass('faved');
-	var ask = isFaved ? 'favorite_remove' : 'favorite_add';
-	$.post('/api/jiekoujson.php', { ask: ask, bid: bid, tid: tid }, function(res) {
-		if (res.code === 0) {
-			if (isFaved) {
-				$btn.removeClass('faved').html('☆');
-			} else {
-				$btn.addClass('faved').html('★');
-			}
-		} else if (res.code === -2) {
-			alert('请先登录');
-		}
-	});
-}
-
-refreshAttach();
-$(window).load(function() {
-    $(".textblock").each(function() {
-        var text = $(this);
-        text.find("img").each(function() {
-            var img = $(this);
-            var width = parseInt(img.css("width"));
-            width = (width > 700) ? 700 : width;
-            img.css("width", width);
-        });
-    });
-});
-</script>
-</body>
-</html>

@@ -657,7 +657,6 @@ function jiekoufunc_attachinfo($con, $id, $token) {
     $ainfo = mysqli_fetch_array($result);
     $user = jiekoufunc_token2user($con, $token);
     $isAuthor = false;
-    $hasPurchased = false;
     if ($user) {
         $username = $user['username'];
         if ($username == $ainfo['uploader']) {
@@ -665,7 +664,7 @@ function jiekoufunc_attachinfo($con, $id, $token) {
         }
     }
     if ($ainfo) {
-        $info = array('exist' => 'YES', 'isAuthor' => jiekoufunc_packBool($isAuthor), 'hasPurchased' => jiekoufunc_packBool($hasPurchased));
+        $info = array('exist' => 'YES', 'isAuthor' => jiekoufunc_packBool($isAuthor));
         foreach ($ainfo as $key => $value) {
             if (is_long($key)) continue;
             $info[$key] = $value;
@@ -1689,21 +1688,17 @@ function jiekoufunc_news($con, $token, $params) {
     }
 }
 
-function jiekoufunc_attach($con, $token, $path, $filename, $price, $auth) {
+	function jiekoufunc_attach($con, $token, $path, $filename) {
     $user = jiekoufunc_token2user($con, $token);
     if (!$user) return jiekoufunc_report('3', "unauthorized");
     $user_name = $user['username'];
     if (strstr($path, "'") != "") {
         return jiekoufunc_report('1', "illegal");
     }
-    if (!jiekoufunc_islegal($price) || !jiekoufunc_islegal($auth)) {
-        return jiekoufunc_report('1', "illegal");
-    }
     $filename = str_replace("&", "&amp;", $filename);
     $filename = mysqli_real_escape_string($con, $filename);
     $size = filesize($GLOBALS['attachroot'] . $path);
-    $statement = "insert into attachments (name,path,size,uploader,price,auth,time) values('$filename','$path',$size,'$user_name',$price,$auth," . time() . ")";
-    mysqli_query($con, $statement);
+    $statement = "insert into attachments (name,path,size,uploader,price,auth,time) values('$filename','$path',$size,'$user_name',0,0," . time() . ")";
     if (!mysqli_error($con)) return jiekoufunc_report('0', mysqli_insert_id($con));
     else return jiekoufunc_report('2', "error:" . mysqli_error($con));
 }
@@ -1711,33 +1706,13 @@ function jiekoufunc_attach($con, $token, $path, $filename, $price, $auth) {
 function jiekoufunc_attachdl($con, $token, $id) {
     $user = jiekoufunc_token2user($con, $token);
     if (!$user) return jiekoufunc_report('3', "unauthorized");
-    $username = $user['username'];
-    $score = intval($user['score']);
     if (!jiekoufunc_islegal($id)) {
         return jiekoufunc_report('1', "illegal");
     }
     $statement = "select * from attachments where id=$id limit 1";
     $result = mysqli_query($con, $statement);
     $ainfo = mysqli_fetch_array($result);
-    $auth = $ainfo['auth'];
-    $price = intval($ainfo['price']);
-    if ($score < $auth) return jiekoufunc_report('4', "no enough auth");
-    if ($price > 0) {
-        $statement = "select * from purchaserecord where username='$username' and aid=$id limit 1";
-        $rows = mysqli_num_rows(mysqli_query($con, $statement));
-        if ($rows == 0) {
-            if ($score - $price < 0) {
-                return jiekoufunc_report('5', "no enough score");
-            }
-            $statement = "update userinfo set score=score-$price";
-            $result = mysqli_query($con, $statement);
-            if (!($result && mysqli_affected_rows($con) > 0)) {
-                return jiekoufunc_report('2', mysqli_error($con));
-            }
-            $statement = "insert into purchaserecord (username,aid) values('$username',$id)";
-            mysqli_query($con, $statement);
-        }
-    }
+    if (!$ainfo) return jiekoufunc_report('6', "attachment not found");
     $statement = "update attachments set count=count+1 where id=$id limit 1";
     mysqli_query($con, $statement);
     return array(array('code' => '0', 'aid' => strval($id), 'path' => $ainfo['path'], 'name' => $ainfo['name']));
@@ -2695,8 +2670,6 @@ function jiekoufunc_dispatch($con, $params) {
     $path      = isset($params['path']) ? $params['path'] : '';
     $filename  = isset($params['filename']) ? $params['filename'] : '';
     $text      = isset($params['text']) ? $params['text'] : '';
-    $price     = isset($params['price']) ? $params['price'] : '';
-    $auth      = isset($params['auth']) ? $params['auth'] : '';
     $id        = isset($params['id']) ? $params['id'] : '';
     $attachs   = isset($params['attachs']) ? $params['attachs'] : '';
     $keyword   = isset($params['keyword']) ? $params['keyword'] : '';
@@ -2748,7 +2721,7 @@ function jiekoufunc_dispatch($con, $params) {
     if ($ask == "recentpost")        return jiekoufunc_recentpost($con, $view, $limit_raw);
     if ($ask == "recentreply")       return jiekoufunc_recentreply($con, $view, $limit_raw);
     if ($ask == "rights")            return jiekoufunc_rights($con, $bid, $token);
-    if ($ask == "attach")            return jiekoufunc_attach($con, $token, $path, $filename, $price, $auth);
+    if ($ask == "attach")            return jiekoufunc_attach($con, $token, $path, $filename);
     if ($ask == "attachdl")          return jiekoufunc_attachdl($con, $token, $id);
     if ($ask == "attachinfo")        return jiekoufunc_attachinfo($con, $id, $token);
     if ($ask == "unusedattachinfo")  return jiekoufunc_unusedattachinfo($con, $token);

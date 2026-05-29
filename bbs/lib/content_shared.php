@@ -4,7 +4,7 @@
  * Compatible with PHP 5.6 and PHP 8.
  */
 
-function generateattach_html($name, $size, $price, $auth, $id, $free, $count) {
+function generateattach_html($name, $size, $id, $count) {
     $extension = substr($name, strrpos($name, ".") + 1);
     $supportedExt = explode(" ", "bmp csv gif html jpg jpeg key mov mp3 mp4 numbers pages pdf png rtf tiff txt zip ipa ipsw doc docx ppt pptx xls avi wmv mkv mts");
     $imgsrc = "file";
@@ -12,19 +12,11 @@ function generateattach_html($name, $size, $price, $auth, $id, $free, $count) {
         $imgsrc = $extension;
     }
     $imgsrc = "../assets/fileicons/" . $imgsrc . ".png";
-    $s  = '<div class="attachdark" onclick="attachdl(\'' . $name . '\',' . $price . ',' . $auth . ',' . $id . ',' . ($free ? "true" : "false") . ')">';
+    $s  = '<div class="attachdark" onclick="attachdl(' . $id . ')">';
     $s .= '<img src="' . $imgsrc . '" class="fileicon">';
     $s .= '<div class="fileinfo"><span class="filename">' . $name . '<br></span>';
     $s .= '<span class="sub">' . format_size($size) . '<br>';
-    if ($free) {
-        $s .= '您可以免费下载';
-    } else {
-        if ($price == 0) {
-            $s .= '免费';
-        } else {
-            $s .= '售价：' . $price . "积分";
-        }
-    }
+    $s .= '免费';
     if ($count == 0) {
         $s .= "（暂时无人下载）";
     } else {
