@@ -1,8 +1,8 @@
 <?php
     $con = dbconnect_mysqli();
-	checkUserAndSign($con, $ip, $token);
-	$data = getOnePage($con, $bid, $tid, $page, $see_lz, $ip, $token);
-	$tdata = getTidInfo($con, $bid, $tid);
+    checkUserAndSign($con, $ip, $token);
+    $data = getOnePage($con, $bid, $tid, $page, $see_lz, $ip, $token);
+    $tdata = getTidInfo($con, $bid, $tid);
     if(count($tdata)==0){
         $tdata=null;
     }
@@ -605,13 +605,13 @@ for($i=0;$i<count(@$data);$i++){
         $sig_type = isset($userinfo['sig'.$floor['sig'].'_type']) ? $userinfo['sig'.$floor['sig'].'_type'] : 'null';
         echo("<div class='sigblock'>\n");
         echo("<span class='sigtip'>--------</span>\n");
-		if ($sig_type === 'html') {
-			echo("<div class='sig'>".translate($sig_content)."<br><br><br>"."</div>\n");
-		} else if ($sig_type === 'raw') {
-			echo("<div class='sig'>".translate($sig_content,false,true,true)."<br><br><br>"."</div>\n");
-		} else {
-			echo("<div class='sig'>".translate($sig_content,false,false,true)."<br><br><br>"."</div>\n");
-		}
+        if ($sig_type === 'html') {
+            echo("<div class='sig'>".translate($sig_content)."<br><br><br>"."</div>\n");
+        } else if ($sig_type === 'raw') {
+            echo("<div class='sig'>".translate($sig_content,false,true,true)."<br><br><br>"."</div>\n");
+        } else {
+            echo("<div class='sig'>".translate($sig_content,false,false,true)."<br><br><br>"."</div>\n");
+        }
         echo("</div>");
     }
     $lzl=mainfunc(array(
@@ -641,9 +641,9 @@ for($i=0;$i<count(@$data);$i++){
             $authorinfo=$authorinfo[0];
             echo('<tr><td class="lzltd">');
             echo('<div class="lzlicon"><img src="'.translateicon($authorinfo['icon']).'" class="lzlicon"></div>');
-			$html=str_replace(chr(10), "<br>",htmlspecialchars($lzl[$j]['text']));
-			$html=str_replace(chr(13), "<br>",$html);
-			echo('<div class="lzlcontent">'.userhref($author).': '.$html.'<br>');
+            $html=str_replace(chr(10), "<br>",htmlspecialchars($lzl[$j]['text']));
+            $html=str_replace(chr(13), "<br>",$html);
+            echo('<div class="lzlcontent">'.userhref($author).': '.$html.'<br>');
             echo('<span class="lzltime">'.formatstamp($lzl[$j]['time']));
             if ($canreply) echo '&nbsp;<a href="javascript:insertlzlreply('.$i.',\''.$author.'\');" class="lzlreplybt">回复</a>';
             if($right>=1|| $author==$currentuser){
@@ -742,7 +742,7 @@ var unusedattachs = [];
 <?php
 $result=mainfunc(array("ask"=>"unusedattachinfo"));
 for ($i = 1; $i < count($result); $i++) {
-	echo "unusedattachs.push(" . json_encode($result[$i]) . ");\n";
+    echo "unusedattachs.push(" . json_encode($result[$i]) . ");\n";
 }
 ?>
 

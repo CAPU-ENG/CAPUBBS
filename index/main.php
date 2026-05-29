@@ -57,52 +57,52 @@
 </head>
 <body>
 <?php
-	require_once '../lib.php';
-	$res=checkuser_mysqli();
-	$username=$res[0];
-	$rights=intval($res[1]); 
+    require_once '../lib.php';
+    $res=checkuser_mysqli();
+    $username=$res[0];
+    $rights=intval($res[1]); 
 
 
-	date_default_timezone_set("Asia/Shanghai");
-	$con = dbconnect_mysqli();
-	$statement="select * from capubbs.mainpage where id=0";
-	$results=mysqli_query($con, $statement);
-	$imgs=array();
-	$imgthumbs=array();
-	$imgtxts=array();
-	while ($res=mysqli_fetch_array($results)) {
-		array_push($imgs,$res[2]);
-		array_push($imgthumbs,$res[3]);
-		array_push($imgtxts,$res[4]);
-	}
-	$imgnum=count($imgs);
+    date_default_timezone_set("Asia/Shanghai");
+    $con = dbconnect_mysqli();
+    $statement="select * from capubbs.mainpage where id=0";
+    $results=mysqli_query($con, $statement);
+    $imgs=array();
+    $imgthumbs=array();
+    $imgtxts=array();
+    while ($res=mysqli_fetch_array($results)) {
+        array_push($imgs,$res[2]);
+        array_push($imgthumbs,$res[3]);
+        array_push($imgtxts,$res[4]);
+    }
+    $imgnum=count($imgs);
 
-	$statement="select * from capubbs.mainpage where id=1 order by field3 desc limit 0,10";
-	$results=mysqli_query($con, $statement);
-	$informs=array();
-	$informurls=array();
-	$informtimes=array();
-	while ($res=mysqli_fetch_array($results)) {
+    $statement="select * from capubbs.mainpage where id=1 order by field3 desc limit 0,10";
+    $results=mysqli_query($con, $statement);
+    $informs=array();
+    $informurls=array();
+    $informtimes=array();
+    while ($res=mysqli_fetch_array($results)) {
                 array_push($informs,$res[2]);
                 array_push($informurls,$res[3]);
-		array_push($informtimes,intval($res[4]));
+        array_push($informtimes,intval($res[4]));
         }
         $informnum=count($informs);
 
-	$statement="select * from capubbs.mainpage where id=2";
-	$results=mysqli_query($con, $statement);
-	$video=array();
-	$video_title=array();
-	$video_word=array();
-	$video_poster=array();
-	$video_link=array();
-	while ($res=mysqli_fetch_array($results)) {
-		array_push($video,$res[2]);
-		array_push($video_title,$res[3]);
-		array_push($video_word,$res[4]);
-		array_push($video_poster,$res[5]);
-		array_push($video_link,$res[6]);
-	}
+    $statement="select * from capubbs.mainpage where id=2";
+    $results=mysqli_query($con, $statement);
+    $video=array();
+    $video_title=array();
+    $video_word=array();
+    $video_poster=array();
+    $video_link=array();
+    while ($res=mysqli_fetch_array($results)) {
+        array_push($video,$res[2]);
+        array_push($video_title,$res[3]);
+        array_push($video_word,$res[4]);
+        array_push($video_poster,$res[5]);
+        array_push($video_link,$res[6]);
+    }
 
 
 ?>
@@ -115,14 +115,14 @@
 
 <div id="slider" class="nivoSlider">
 <?php
-		for ($i=0;$i<$imgnum;$i++)
-			echo "<a href='$imgs[$i]' data-lightbox='img-0' data-title='$imgtxts[$i]'><img src='$imgthumbs[$i]' class='img-responsive' title='#title$i'></a>\n";
+        for ($i=0;$i<$imgnum;$i++)
+            echo "<a href='$imgs[$i]' data-lightbox='img-0' data-title='$imgtxts[$i]'><img src='$imgthumbs[$i]' class='img-responsive' title='#title$i'></a>\n";
 ?>
     </div>
 
 <?php
-		for ($i=0;$i<$imgnum;$i++)
-			echo "<div class='nivo-html-caption' id='title$i'>$imgtxts[$i]</div>\n";
+        for ($i=0;$i<$imgnum;$i++)
+            echo "<div class='nivo-html-caption' id='title$i'>$imgtxts[$i]</div>\n";
 ?>
 
 </div>
@@ -132,17 +132,17 @@
 <hr style="border-top:1px solid #aaaaaa"/><p>
 <div class="row">
     <div class="col-md-4">
-	<div class="thumbnail">
-	<button class="btn btn-info img-responsive"  id="qrcode_wechat" title="<h5>微信公共号 capu北大车协</h5><br><img width='200px' src='/assets/images/qrcode_wechat.jpg'>"><img src="/assets/images/wechat.png" class="img-responsive img-rounded"/></button>    
-	    <div class="caption">
-	        <p><center><b>微信</b></center></p>
-	    </div>
-	</div>
+    <div class="thumbnail">
+    <button class="btn btn-info img-responsive"  id="qrcode_wechat" title="<h5>微信公共号 capu北大车协</h5><br><img width='200px' src='/assets/images/qrcode_wechat.jpg'>"><img src="/assets/images/wechat.png" class="img-responsive img-rounded"/></button>    
+        <div class="caption">
+            <p><center><b>微信</b></center></p>
+        </div>
+    </div>
     </div>
     <div class="col-md-4">
         <div class="thumbnail">
          <button class="btn btn-info img-responsive" id="qrcode_android" title="<h5>CAPUBBS for Android</h5><br><img width='200px' src='/assets/images/qrcode_android.png'>"><img src="/assets/images/android.png" class="img-responsive img-rounded"/></button>
-	    <div class="caption">
+        <div class="caption">
                 <p><center><b>Android</b></center></p>
             </div>
         </div>
@@ -150,7 +150,7 @@
     <div class="col-md-4">
         <div class="thumbnail">
          <button class="btn btn-info img-responsive" id="qrcode_ios" title="<h5>CAPUBBS for iOS</h5></br><img width='200px' src='/assets/images/qrcode_ios.gif'>"><img src="/assets/images/apple.png" class="img-responsive img-rounded" /></button>
-	    <div class="caption">
+        <div class="caption">
                 <p><center><b>iOS</b></center></p>
             </div>
         </div>
@@ -165,17 +165,17 @@
 <div class="panel-heading"><h4><b>最新通知·公告</b></h4></div>
 <ul class="list-group">
   <?php
-	$nowtime=time();
-	for ($i=0;$i<$informnum;$i++)
-	{
-		echo '<li class="list-group-item">';
-		echo "\n<span class='badge' id='time_$i'>".date("Y/m/d",$informtimes[$i])."</span>\n";
-		if ($nowtime-$informtimes[$i]<=259200)
-			echo '<span class="label label-danger">new</span>&nbsp;&nbsp;';
-		echo "<a href='$informurls[$i]' id='inform_$i' target='_blank'>$informs[$i]</a>";
-		echo "<span style='display:none' id='timestamp_$i'>$informtimes[$i]</span>";
-		echo "\n</li>\n";
-	}
+    $nowtime=time();
+    for ($i=0;$i<$informnum;$i++)
+    {
+        echo '<li class="list-group-item">';
+        echo "\n<span class='badge' id='time_$i'>".date("Y/m/d",$informtimes[$i])."</span>\n";
+        if ($nowtime-$informtimes[$i]<=259200)
+            echo '<span class="label label-danger">new</span>&nbsp;&nbsp;';
+        echo "<a href='$informurls[$i]' id='inform_$i' target='_blank'>$informs[$i]</a>";
+        echo "<span style='display:none' id='timestamp_$i'>$informtimes[$i]</span>";
+        echo "\n</li>\n";
+    }
   ?>
 </ul>
 </div><br>
@@ -190,27 +190,27 @@
 </div>
 </div>
 <div class="col-md-3">
-		<div id="calendar"></div>
+        <div id="calendar"></div>
 
 <?php 
 if ($rights!=0)
 echo '
 <div class="row">
-	<div class="col-md-6" style="padding:0;text-align:center">
-		<button type="button" class="btn btn-primary"  data-toggle="modal" data-target="#image_dialog">设置图片</button>
-	</div>
-	<div class="col-md-6" style="padding:0;text-align:center">
-		<button type="button" class="btn btn-primary" onclick="opencalendar()">设置日历</button>
-	</div>
+    <div class="col-md-6" style="padding:0;text-align:center">
+        <button type="button" class="btn btn-primary"  data-toggle="modal" data-target="#image_dialog">设置图片</button>
+    </div>
+    <div class="col-md-6" style="padding:0;text-align:center">
+        <button type="button" class="btn btn-primary" onclick="opencalendar()">设置日历</button>
+    </div>
 </div>
 <p>
 <div class="row">
-	<div class="col-md-6" style="padding:0;text-align:center">
-		<button type="button" class="btn btn-primary"  data-toggle="modal" data-target="#inform_add_dialog">添加公告</button>
-	</div>
-	<div class="col-md-6" style="padding:0;text-align:center">
-		<button type="button" class="btn btn-primary"  data-toggle="modal" data-target="#inform_del_dialog">删除公告</button>
-	</div>
+    <div class="col-md-6" style="padding:0;text-align:center">
+        <button type="button" class="btn btn-primary"  data-toggle="modal" data-target="#inform_add_dialog">添加公告</button>
+    </div>
+    <div class="col-md-6" style="padding:0;text-align:center">
+        <button type="button" class="btn btn-primary"  data-toggle="modal" data-target="#inform_del_dialog">删除公告</button>
+    </div>
 </div> ';
 ?>
 </div>
@@ -227,50 +227,50 @@ echo '
       </div>
       <div class="modal-body">
         <p><select id="year" onchange="loadcalendar()">
-		<?php
-			$today=intval(date("Y",time()));
-			for ($i=2014;$i<=$today+1;$i++)
-			{
-				$x="";if ($i==$today) $x=" selected";
-				echo "<option value='$i'$x>$i</option>";
-			}
-		?>
-	   </select>&nbsp;&nbsp;
-	   <select id="month" onchange="loadcalendar();">
-		<?php
-			$today=intval(date("m",time()));
-			for ($i=1;$i<=12;$i++)
-			{
-				$j=$i;
-				if ($j<10) $j="0".$j;
-				$x="";if ($i==$today) $x=" selected";
-				echo "<option value='$j'$x>$j</option>";
-			}
-		?>
-	   </select>&nbsp;&nbsp;<select id="day" onchange="loadcalendar();">
-		<?php
-			$today=intval(date("d",time()));
-			for ($i=1;$i<32;$i++)
-			{
-				$j=$i;
-				if ($j<10) $j="0".$j;
-				$x="";if ($i==$today) $x=" selected";
-				echo "<option value='$j'$x>$j</option>";
-			}
-		?>
-	   </select></p>
-		<div id="calendar_list"></div>
-	<div class="alert alert-danger" id="alert_error" style="display:none">
-    		<strong>输入有误！</strong>标题不能为空，且标题与描述不得含有如下七个字符：&nbsp;&nbsp;&nbsp;' " [ ] { } ,
-	</div>
-	<div class="alert alert-success" id="alert_success" style="display:none">
-		日历修改成功！请手动刷新页面。
-	</div>
+        <?php
+            $today=intval(date("Y",time()));
+            for ($i=2014;$i<=$today+1;$i++)
+            {
+                $x="";if ($i==$today) $x=" selected";
+                echo "<option value='$i'$x>$i</option>";
+            }
+        ?>
+       </select>&nbsp;&nbsp;
+       <select id="month" onchange="loadcalendar();">
+        <?php
+            $today=intval(date("m",time()));
+            for ($i=1;$i<=12;$i++)
+            {
+                $j=$i;
+                if ($j<10) $j="0".$j;
+                $x="";if ($i==$today) $x=" selected";
+                echo "<option value='$j'$x>$j</option>";
+            }
+        ?>
+       </select>&nbsp;&nbsp;<select id="day" onchange="loadcalendar();">
+        <?php
+            $today=intval(date("d",time()));
+            for ($i=1;$i<32;$i++)
+            {
+                $j=$i;
+                if ($j<10) $j="0".$j;
+                $x="";if ($i==$today) $x=" selected";
+                echo "<option value='$j'$x>$j</option>";
+            }
+        ?>
+       </select></p>
+        <div id="calendar_list"></div>
+    <div class="alert alert-danger" id="alert_error" style="display:none">
+            <strong>输入有误！</strong>标题不能为空，且标题与描述不得含有如下七个字符：&nbsp;&nbsp;&nbsp;' " [ ] { } ,
+    </div>
+    <div class="alert alert-success" id="alert_success" style="display:none">
+        日历修改成功！请手动刷新页面。
+    </div>
       </div>
       <div class="modal-footer">
         <button type="button" class="btn btn-primary" onclick="savecalendar()">保存</button>
          <button type="button" class="btn btn-primary" onclick="window.location.reload();">刷新</button>
-	<button type="button" class="btn btn-default" data-dismiss="modal">关闭</button>
+    <button type="button" class="btn btn-default" data-dismiss="modal">关闭</button>
       </div>
     </div>
   </div>
@@ -279,31 +279,31 @@ echo '
   <div class="modal-dialog" style="width:900px">
     <div class="modal-content">
       <div class="modal-header">
-	<button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+    <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
         <h4 class="modal-title">修改图片</h4>
       </div>
       <div class="modal-body">
-	<table class='table table-hover'>
-	  <tr><th>编号</th><th>图片地址</th><th>缩略图地址</th><th>标题</th><th>操作</th></tr>
-	<?php
-	  for ($i=0;$i<$imgnum;$i++) {
-		echo '<tr class="imgs" id="img'.($i+1).'">';
-		echo '<td>#'.($i+1).'</td>';
-		echo '<td style="display:none">'.$imgs[$i].'</td>';
-		$x1=$imgs[$i];if (strlen($x1)>25) $x1=substr($x1,0,25)."....";
-		echo '<td>'.$x1.'</td>';
-		echo '<td style="display:none">'.$imgthumbs[$i].'</td>';
-		$x1=$imgthumbs[$i];if (strlen($x1)>25) $x1=substr($x1,0,25)."....";
+    <table class='table table-hover'>
+      <tr><th>编号</th><th>图片地址</th><th>缩略图地址</th><th>标题</th><th>操作</th></tr>
+    <?php
+      for ($i=0;$i<$imgnum;$i++) {
+        echo '<tr class="imgs" id="img'.($i+1).'">';
+        echo '<td>#'.($i+1).'</td>';
+        echo '<td style="display:none">'.$imgs[$i].'</td>';
+        $x1=$imgs[$i];if (strlen($x1)>25) $x1=substr($x1,0,25)."....";
+        echo '<td>'.$x1.'</td>';
+        echo '<td style="display:none">'.$imgthumbs[$i].'</td>';
+        $x1=$imgthumbs[$i];if (strlen($x1)>25) $x1=substr($x1,0,25)."....";
                 echo '<td>'.$x1.'</td>';
-		echo '<td>'.$imgtxts[$i].'</td>';
-		echo '<td><a href="javascript:moveup('.($i+1).')"><span class="glyphicon glyphicon-circle-arrow-up"></span></a>&nbsp;&nbsp;<a href="javascript:movedown('.($i+1).')"><span class="glyphicon glyphicon-circle-arrow-down"></span></a>&nbsp;&nbsp;<a href="javascript:delimg('.($i+1).')"><span class="glyphicon glyphicon-minus-sign"></span></a></td>';
-		echo '</tr>'."\n";
-	  }
-	  ?>
-	  <tr><td></td><td><input type="text" id="inputimg"></td><td><input type="text" id="inputimgthumb"></td><td><input type="text" id="inputimgtxt"></td><td><a href="javascript:check_valid()"><span class="glyphicon glyphicon-plus-sign"></span></a></td></tr></table>
-	  <div class="alert alert-danger" id="img_error" style="display:none"></div>
-	</div>
-    	<div class="modal-footer">
+        echo '<td>'.$imgtxts[$i].'</td>';
+        echo '<td><a href="javascript:moveup('.($i+1).')"><span class="glyphicon glyphicon-circle-arrow-up"></span></a>&nbsp;&nbsp;<a href="javascript:movedown('.($i+1).')"><span class="glyphicon glyphicon-circle-arrow-down"></span></a>&nbsp;&nbsp;<a href="javascript:delimg('.($i+1).')"><span class="glyphicon glyphicon-minus-sign"></span></a></td>';
+        echo '</tr>'."\n";
+      }
+      ?>
+      <tr><td></td><td><input type="text" id="inputimg"></td><td><input type="text" id="inputimgthumb"></td><td><input type="text" id="inputimgtxt"></td><td><a href="javascript:check_valid()"><span class="glyphicon glyphicon-plus-sign"></span></a></td></tr></table>
+      <div class="alert alert-danger" id="img_error" style="display:none"></div>
+    </div>
+        <div class="modal-footer">
         <button type="button" class="btn btn-primary" onclick="saveimg()">提交</button>
         <button type="button" class="btn btn-default" data-dismiss="modal">关闭</button>
       </div>
@@ -319,14 +319,14 @@ echo '
         <h4 class="modal-title">北京大学自行车协会会歌 - 跋涉梦想</h4>
       </div>
       <div class="modal-body" style="background:black">
-      	<video id="huige_video" preload="none" src="/assets/downloads/anthem.mp4" controls="controls" width="640" height="360" poster="/assets/images/huige.jpg" aria-describedby="full-descript">
-	  <p class="text-center"><b>很遗憾，你的浏览器不支持视频播放:（<br>请换用 IE9+/chrome/safari 观看视频，或者直接<a href="/assets/downloads/CAPU_anthem.rmvb" target="_blank">下载观看</a>。</b></p>
-	</video>
+          <video id="huige_video" preload="none" src="/assets/downloads/anthem.mp4" controls="controls" width="640" height="360" poster="/assets/images/huige.jpg" aria-describedby="full-descript">
+      <p class="text-center"><b>很遗憾，你的浏览器不支持视频播放:（<br>请换用 IE9+/chrome/safari 观看视频，或者直接<a href="/assets/downloads/CAPU_anthem.rmvb" target="_blank">下载观看</a>。</b></p>
+    </video>
       </div>
       <div class="modal-footer">
         <a href="/assets/downloads/CAPU_anthem.rmvb" target="_blank" type="button" class="btn btn-primary">下载高清版观看</a>
-	<a href="/assets/downloads/CAPU_anthem.mp3" target="_blank" type="button" class="btn btn-primary">MP3格式</a>
-	<a href="/assets/downloads/CAPU_anthem_lyrics.gif" target="_blank" type="button" class="btn btn-primary">歌曲简谱</a>
+    <a href="/assets/downloads/CAPU_anthem.mp3" target="_blank" type="button" class="btn btn-primary">MP3格式</a>
+    <a href="/assets/downloads/CAPU_anthem_lyrics.gif" target="_blank" type="button" class="btn btn-primary">歌曲简谱</a>
         <button type="button" class="btn btn-default" onclick="closevideo('huige')">关闭</button>
       </div>
     </div>
@@ -341,14 +341,14 @@ echo '
         <h4 class="modal-title">北大车协经典歌曲 - 尘埃</h4>
       </div>
       <div class="modal-body" style="background:black">
-    	<video controls="controls" preload="none" src="/assets/downloads/dust.mp4" width="640" height="360" poster="/assets/images/chenai.jpg" aria-describedby="full-descript" id="chenai_video">
-	  <p class="text-center"><b>很遗憾，你的浏览器不支持视频播放:（<br>请换
+        <video controls="controls" preload="none" src="/assets/downloads/dust.mp4" width="640" height="360" poster="/assets/images/chenai.jpg" aria-describedby="full-descript" id="chenai_video">
+      <p class="text-center"><b>很遗憾，你的浏览器不支持视频播放:（<br>请换
 用 IE9+/chrome/safari 观看视频，或者直接<a href="/assets/downloads/CAPU_dust.rmvb" target="_blank">下载观看</a>。</b></p>
         </video> 
       </div>
       <div class="modal-footer">
         <a href="/assets/downloads/CAPU_dust.rmvb" target="_blank" type="button" class="btn btn-primary">下载高清版观看</a>
-	<a href="/assets/downloads/CAPU_dust.mp3" target="_blank" type="button" class="btn btn-primary">MP3格式</a>
+    <a href="/assets/downloads/CAPU_dust.mp3" target="_blank" type="button" class="btn btn-primary">MP3格式</a>
         <button type="button" class="btn btn-default" onclick="closevideo('chenai')">关闭
 </button>
       </div>
@@ -356,7 +356,7 @@ echo '
   </div>
 </div>
 <?php
-	for ($i=0;$i<=2;$i++) {
+    for ($i=0;$i<=2;$i++) {
 echo '<div class="modal fade" aria-labelledby="myModalLabel" tab-index="-1" id="video_dialog_'.$i.'"  role="dialog"  aria-hidden="true">';
 echo '<div class="modal-dialog" style="width:670px">';
 echo '<div class="modal-content">';
@@ -365,8 +365,8 @@ echo '    <button type="button" class="close" onclick="closevideo('."'$i'".')"><
 echo '        <h4 class="modal-title">'.$video_title[$i].'</h4>';
 echo '      </div>';
 echo '      <div class="modal-body" style="background:black">';
-echo '    	<video id="video_'.$i.'" src="'.$video[$i].'" poster="'.$video_poster[$i].'" controls="controls" preload="none" width="640" height="360" aria-describedby="full-descript">';
-echo '	  <p class="text-center"><b>很遗憾，你的浏览器不支持视频播放:（<br>请换用 IE9+/chrome/safari 观看视频，或者直接下载高清版观看。</b></p></video></div>';echo '    <div class="modal-footer">';
+echo '        <video id="video_'.$i.'" src="'.$video[$i].'" poster="'.$video_poster[$i].'" controls="controls" preload="none" width="640" height="360" aria-describedby="full-descript">';
+echo '      <p class="text-center"><b>很遗憾，你的浏览器不支持视频播放:（<br>请换用 IE9+/chrome/safari 观看视频，或者直接下载高清版观看。</b></p></video></div>';echo '    <div class="modal-footer">';
 echo '        <a id="video_src_'.$i.'" href="'.$video_link[$i].'" target="_blank" type="button" class="btn btn-primary">下载高清版观看</a>';
 echo '        <button type="button" class="btn btn-default" onclick="closevideo('."'$i'".')">关闭</button></div> </div></div></div>';
 echo "\n";
@@ -380,24 +380,24 @@ echo "\n";
         <h4 class="modal-title">添加公告</h4>
       </div>
       <div class="modal-body">
-	<form class="form-horizontal" role="form">
-	  <div class="form-group">
-    	    <label class="col-md-2 control-label">标题</label>
-    	    <div class="col-md-9">
-      	      <input type="text" class="form-control" id="inform_title" max-length="20">
-    	    </div>
-  	  </div>
-	  <div class="form-group">
+    <form class="form-horizontal" role="form">
+      <div class="form-group">
+            <label class="col-md-2 control-label">标题</label>
+            <div class="col-md-9">
+                <input type="text" class="form-control" id="inform_title" max-length="20">
+            </div>
+        </div>
+      <div class="form-group">
             <label class="col-md-2 control-label">链接</label>
             <div class="col-md-6">
               <input type="text" class="form-control" id="inform_url">
             </div>
-	    <label class="control-label" style="color:#8B8B8B">&nbsp;&nbsp;无链接&nbsp;</label><input type="checkbox" id="add_inform_checkbox" onclick="inform_checkbox()">
+        <label class="control-label" style="color:#8B8B8B">&nbsp;&nbsp;无链接&nbsp;</label><input type="checkbox" id="add_inform_checkbox" onclick="inform_checkbox()">
           </div>
-	</form>
+    </form>
       </div>
       <div class="modal-footer">
-	<button type="button" class="btn btn-primary" onclick="add_inform();">发表</button>
+    <button type="button" class="btn btn-primary" onclick="add_inform();">发表</button>
         <button type="button" class="btn btn-default" data-dismiss="modal">关闭</button>
       </div>
     </div>
@@ -412,19 +412,19 @@ echo "\n";
         <h4 class="modal-title">删除公告</h4>
       </div>
       <div class="modal-body">
-      	<p>删除第<select id="inform_id" onchange="select_inform();"><option value="">&nbsp;</option>
-	<?php
-	  for ($i=0;$i<$informnum;$i++)
-		echo '<option value="'.$i.'">'.($i+1).'</option>';
-	?>
-	</select>条公告</p>
-	<hr>
-	<form class="form-horizontal" role="form">
+          <p>删除第<select id="inform_id" onchange="select_inform();"><option value="">&nbsp;</option>
+    <?php
+      for ($i=0;$i<$informnum;$i++)
+        echo '<option value="'.$i.'">'.($i+1).'</option>';
+    ?>
+    </select>条公告</p>
+    <hr>
+    <form class="form-horizontal" role="form">
           <div class="form-group">
             <label class="col-md-2 control-label">标题</label>
             <div class="col-md-8">
               <p class="form-control-static" id="inform_select_title"></p>
-	    </div>
+        </div>
           </div>
           <div class="form-group">
             <label class="col-md-2 control-label">链接</label>
@@ -432,13 +432,13 @@ echo "\n";
               <p class="form-control-static" id="inform_select_url"></p>
             </div>
           </div>
-	  <div class="form-group">
+      <div class="form-group">
             <label class="col-md-2 control-label">发表时间</label>
             <div class="col-md-8">
               <p class="form-control-static" id="inform_select_time"></p>
             </div>
           </div>
-	  <div class="form-group" style="display:none">
+      <div class="form-group" style="display:none">
             <label class="col-md-2 control-label">时间戳</label>
             <div class="col-md-4 ">
               <p class="form-control-static" id="inform_select_timestamp"></p>

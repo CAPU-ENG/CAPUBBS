@@ -94,7 +94,7 @@ ins,a {
     text-decoration:none;
 }
 a {
-	color: #666;
+    color: #666;
 }
 /* 去除 ie6 & ie7 焦点点状线 */
 a:focus,*:focus {
@@ -138,7 +138,7 @@ a:focus,*:focus {
     float:right;
 }
 .oh {
-	overflow: hidden;
+    overflow: hidden;
 }
 /* 设置对齐 */
 .tc {text-align: center;}

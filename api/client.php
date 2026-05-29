@@ -450,7 +450,7 @@ require_once __DIR__.'/../config/api-routing.php';
 
     function seemain() {
         echo '<capu><info><code>-1</code>';
-	    require_once '../lib.php';
+        require_once '../lib.php';
         $con = dbconnect_mysqli();
         $statement="select * from capubbs.mainpage where id=-1";
         $results=mysqli_query($con, $statement);

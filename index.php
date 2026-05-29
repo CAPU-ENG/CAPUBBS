@@ -1,20 +1,20 @@
 <?php
 
-	if (@$_SERVER['HTTP_HOST']=="bbs.chexie.net") {
-		echo '<script>window.location="http://www.chexie.net/bbs/index/";</script></head></html>';
-		exit;
-	}
+    if (@$_SERVER['HTTP_HOST']=="bbs.chexie.net") {
+        echo '<script>window.location="http://www.chexie.net/bbs/index/";</script></head></html>';
+        exit;
+    }
 
 
-	require 'lib.php';
-	$res=checkuser_mysqli();
-	$username=$res[0];$rights=$res[1];
-	if ($username=="" && @$_COOKIE['token']) {
-		date_default_timezone_set("Asia/Shanghai");
-		$time=time()-999999;
-		$date=date("D, d M Y H:i:s",$time)." GMT";
-		header('Set-cookie: token=invalid; expires='.$date.'; path=/'."\n");
-	}
+    require 'lib.php';
+    $res=checkuser_mysqli();
+    $username=$res[0];$rights=$res[1];
+    if ($username=="" && @$_COOKIE['token']) {
+        date_default_timezone_set("Asia/Shanghai");
+        $time=time()-999999;
+        $date=date("D, d M Y H:i:s",$time)." GMT";
+        header('Set-cookie: token=invalid; expires='.$date.'; path=/'."\n");
+    }
 
 ?>
 <!DOCTYPE html>
@@ -90,43 +90,43 @@
    <!-- <nav class="collapse navbar-collapse bs-navbar-collapse" role="navigation"> --><div>
       <ul class="nav navbar-nav">
         <li id="navbar-home"><a href="javascript:setActive('#main')">首页</a></li>
-	<li class="devider"></li>
+    <li class="devider"></li>
         <li><a href="/bbs/index" target="_blank">进入论坛</a></li>
         <li class="devider"></li>
-	<li><a href="https://pan.chexie.net" target="_blank">下载中心</a></li>
+    <li><a href="https://pan.chexie.net" target="_blank">下载中心</a></li>
         <li class="devider"></li>
-	<!-- <li><a href="https://race.chexie.net" target="_blank">交流赛官网</a></li> -->
-	<li class="devider"></li>
+    <!-- <li><a href="https://race.chexie.net" target="_blank">交流赛官网</a></li> -->
+    <li class="devider"></li>
 ?>
-	<li class="devider"></li>
-	<li class="dropdown" id="navbar-about">
-	  <a href="javascript:setActive('#about')">关于协会</a>
-	  <ul class="dropdown-menu" role="menu">
+    <li class="devider"></li>
+    <li class="dropdown" id="navbar-about">
+      <a href="javascript:setActive('#about')">关于协会</a>
+      <ul class="dropdown-menu" role="menu">
 <?php
-//		<li role="presentation"><a role="menuitem" tabindex="-1" href="javascript:setActive('#about-timeline')">新会员的一年</a></li>
+//        <li role="presentation"><a role="menuitem" tabindex="-1" href="javascript:setActive('#about-timeline')">新会员的一年</a></li>
 ?>
-		<li role="presentation"><a role="menuitem" tabindex="-1" href="javascript:setActive('#about')">协会介绍</a></li>
-		<li role="presentation"><a role="menuitem" tabindex="-1" href="javascript:setActive('#about-summer')">暑期介绍</a></li>
-		<li role="presentation"><a role="menuitem" tabindex="-1" href="javascript:setActive('#about-department')">部门介绍</a></li>
-		<li role="presentation"><a role="menuitem" tabindex="-1" href="javascript:setActive('#about-race')">车队介绍</a></li>
-		<li role="presentation"><a role="menuitem" tabindex="-1" href="javascript:setActive('#about-activities')">日常活动</a></li>
-		<li role="presentation"><a role="menuitem" tabindex="-1" href="javascript:setActive('#about-contact')">联系我们</a></li>
-	  </ul>
-	</li>
+        <li role="presentation"><a role="menuitem" tabindex="-1" href="javascript:setActive('#about')">协会介绍</a></li>
+        <li role="presentation"><a role="menuitem" tabindex="-1" href="javascript:setActive('#about-summer')">暑期介绍</a></li>
+        <li role="presentation"><a role="menuitem" tabindex="-1" href="javascript:setActive('#about-department')">部门介绍</a></li>
+        <li role="presentation"><a role="menuitem" tabindex="-1" href="javascript:setActive('#about-race')">车队介绍</a></li>
+        <li role="presentation"><a role="menuitem" tabindex="-1" href="javascript:setActive('#about-activities')">日常活动</a></li>
+        <li role="presentation"><a role="menuitem" tabindex="-1" href="javascript:setActive('#about-contact')">联系我们</a></li>
+      </ul>
+    </li>
         <li class="devider"></li>
-	<li id="navbar-timeline"><a href="javascript:setActive('#timeline')">时间轴</a></li>
+    <li id="navbar-timeline"><a href="javascript:setActive('#timeline')">时间轴</a></li>
       </ul>
       <ul class="nav navbar-nav navbar-right" id="login_li">
      <?php
 
-  	if ($username=="") {
-	 echo '<li><a href="javascript:showlogin()" id="login">登录</a></li>';	
+      if ($username=="") {
+     echo '<li><a href="javascript:showlogin()" id="login">登录</a></li>';    
         echo '<li id="navbar-register"><a href="/bbs/register/">注册</a></li>';}
-	else {
-		echo '<li><a href="javascript:void(0)" style="color:#8db6cd">欢迎您，'.$username.'</a></li><li><a href="javascript:logout()">注销</a>';
-	}
-	?>
-      </ul>	
+    else {
+        echo '<li><a href="javascript:void(0)" style="color:#8db6cd">欢迎您，'.$username.'</a></li><li><a href="javascript:logout()">注销</a>';
+    }
+    ?>
+      </ul>    
     </div>
    </nav>
   </div>
@@ -159,8 +159,8 @@
           </div>
           <br> 
 
-	<button type="button" class="btn btn-warning" onclick="forget()">忘记密码？</button>&nbsp;&nbsp;
-	  <a href="/bbs/register" type="button" class="btn btn-link">没有账号，立即注册！</a>
+    <button type="button" class="btn btn-warning" onclick="forget()">忘记密码？</button>&nbsp;&nbsp;
+      <a href="/bbs/register" type="button" class="btn btn-link">没有账号，立即注册！</a>
         </fieldset>
         <p>
         <div class="alert alert-danger" id="alert" style="display:none">xxx</div>
@@ -185,12 +185,12 @@
       <!-- <a href="https://www.specialized.com/cn/zh" target="_blank"><img src="/assets/images/static/specialized.png" class="img-responsive img-rounded img-thumbnail" alt="闪电" title="闪电" width="70" height="70"></a> -->
       <!-- <a href="https://cps.qixin18.com/llb1000885" target="_blank"><img src="/assets/images/static/insurance.png" class="img-responsive img-rounded img-thumbnail" alt="保险" title="保险" width="70" height="70"></a> -->
     </p>
-	<p>地址：北京市海淀区北京大学新太阳活动中心247室（100871）</p>
-	<p><a href="javascript:setActive('#about')">关于协会</a> | <a href="http://baike.baidu.com/view/1317218.htm" target="_blank">百度百科</a> | <a href="http://weibo.com/beidachexie" target="_blank">新浪微博</a> | <a href="javascript:setActive('#about-contact')">联系我们</a></p>
-	<p><a href="http://www.pku.edu.cn/" target="_blank">北京大学</a> | <a href="http://capu.bdwm.net/" target="_blank">北大未名BBS</a> | <a href="/old/index/" target="_blank">原车协主页</a> | <a href="/old/bbs/main.pl" target="_blank">原车协论坛</a>
-	<p>浏览器要求： IE9+/chrome/firefox/safari | 最佳屏幕分辨率 1366*768</p>
-	<p>Powered by：CAPU ver 3.0 | Copyright&reg;&nbsp; 2001 - <?php date_default_timezone_set("Asia/Shanghai");echo date("Y",time());?></p>
-	<p>京ICP备14031425号</p>
+    <p>地址：北京市海淀区北京大学新太阳活动中心247室（100871）</p>
+    <p><a href="javascript:setActive('#about')">关于协会</a> | <a href="http://baike.baidu.com/view/1317218.htm" target="_blank">百度百科</a> | <a href="http://weibo.com/beidachexie" target="_blank">新浪微博</a> | <a href="javascript:setActive('#about-contact')">联系我们</a></p>
+    <p><a href="http://www.pku.edu.cn/" target="_blank">北京大学</a> | <a href="http://capu.bdwm.net/" target="_blank">北大未名BBS</a> | <a href="/old/index/" target="_blank">原车协主页</a> | <a href="/old/bbs/main.pl" target="_blank">原车协论坛</a>
+    <p>浏览器要求： IE9+/chrome/firefox/safari | 最佳屏幕分辨率 1366*768</p>
+    <p>Powered by：CAPU ver 3.0 | Copyright&reg;&nbsp; 2001 - <?php date_default_timezone_set("Asia/Shanghai");echo date("Y",time());?></p>
+    <p>京ICP备14031425号</p>
 </footer>
 
 <script src="/assets/js/jquery.min.js"></script>

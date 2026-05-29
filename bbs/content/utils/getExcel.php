@@ -33,12 +33,12 @@ $objPHPExcel = new PHPExcel();
 
 // Set document properties
 $objPHPExcel->getProperties()->setCreator("CAPUBBS")
-							 ->setLastModifiedBy("CAPUBBS")
-							 ->setTitle("Office 2007 XLSX Test Document")
-							 ->setSubject("Office 2007 XLSX Test Document")
-							 ->setDescription("Test document for Office 2007 XLSX, generated using PHP classes.")
-							 ->setKeywords("office 2007 openxml php")
-							 ->setCategory("Test result file");
+                             ->setLastModifiedBy("CAPUBBS")
+                             ->setTitle("Office 2007 XLSX Test Document")
+                             ->setSubject("Office 2007 XLSX Test Document")
+                             ->setDescription("Test document for Office 2007 XLSX, generated using PHP classes.")
+                             ->setKeywords("office 2007 openxml php")
+                             ->setCategory("Test result file");
 
 $objPHPExcel->setActiveSheetIndex(0)->setCellValueExplicit("A1", "用户名", PHPExcel_Cell_DataType::TYPE_STRING);
 $objPHPExcel->setActiveSheetIndex(0)->setCellValueExplicit("B1", "是否有罚跑", PHPExcel_Cell_DataType::TYPE_STRING);

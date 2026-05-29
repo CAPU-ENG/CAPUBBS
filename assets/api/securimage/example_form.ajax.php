@@ -92,21 +92,21 @@ process_si_contact_form();
 
     function processForm()
     {
-		jQuery.ajax({
-			url: '<?php echo $_SERVER['PHP_SELF'] ?>',
-			type: 'POST',
-			data: jQuery('#contact_form').serialize(),
-			dataType: 'json',
-		}).done(function(data) {
-			if (data.error === 0) {
-				jQuery('#success_message').show();
-				jQuery('#contact_form')[0].reset();
-				reloadCaptcha();
-				setTimeout("jQuery('#success_message').fadeOut()", 12000);
-			} else {
-				alert("There was an error with your submission.\n\n" + data.message);
-			}
-		});
+        jQuery.ajax({
+            url: '<?php echo $_SERVER['PHP_SELF'] ?>',
+            type: 'POST',
+            data: jQuery('#contact_form').serialize(),
+            dataType: 'json',
+        }).done(function(data) {
+            if (data.error === 0) {
+                jQuery('#success_message').show();
+                jQuery('#contact_form')[0].reset();
+                reloadCaptcha();
+                setTimeout("jQuery('#success_message').fadeOut()", 12000);
+            } else {
+                alert("There was an error with your submission.\n\n" + data.message);
+            }
+        });
 
         return false;
     }

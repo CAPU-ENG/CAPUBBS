@@ -5,27 +5,27 @@
 <link href="/assets/css/style.css" rel="stylesheet">
 <style>
 body {
-	font-family: monospace;
+    font-family: monospace;
 }
 .para {
-	padding-top:20px;
-	padding-left:5%;
-	padding-right:10%;	
+    padding-top:20px;
+    padding-left:5%;
+    padding-right:10%;    
 }
 .para p {
-	text-indent:2em;
-	font-size:13pt;
-	line-height:18pt;
-	margin-bottom:0px;
+    text-indent:2em;
+    font-size:13pt;
+    line-height:18pt;
+    margin-bottom:0px;
 }
 .para h2 {
-	margin-bottom:30px;
-	font-family:华文新魏;
-	text-align:center;
+    margin-bottom:30px;
+    font-family:华文新魏;
+    text-align:center;
 }
 .para h3 {
-	margin-top:50px;
-	margin-bottom:30px;
+    margin-top:50px;
+    margin-bottom:30px;
 }
 </style>
 </head>
@@ -323,7 +323,7 @@ body {
     <label class="col-md-3 control-label">其他方式</label>
     <div class="col-md-9">
       <p class="form-control-static">
-	每周一三五晚8:45五四体育场日常训练&nbsp;&nbsp;&nbsp;&nbsp;<span class="label label-danger pic_contact" title="<img width='450' src='/assets/images/xunlian.jpg'>">pic</span>
+    每周一三五晚8:45五四体育场日常训练&nbsp;&nbsp;&nbsp;&nbsp;<span class="label label-danger pic_contact" title="<img width='450' src='/assets/images/xunlian.jpg'>">pic</span>
       </p>
     </div>
   </div>
@@ -332,7 +332,7 @@ body {
     <label class="col-md-3 control-label"></label>
     <div class="col-md-9">
       <p class="form-control-static">
-	每周五下午农园西北角 2:30-5:00&nbsp;&nbsp;&nbsp;&nbsp;<span class="label label-danger pic_contact" title="<img width='450' src='/assets/images/xiuche.jpg'>">pic</span>
+    每周五下午农园西北角 2:30-5:00&nbsp;&nbsp;&nbsp;&nbsp;<span class="label label-danger pic_contact" title="<img width='450' src='/assets/images/xiuche.jpg'>">pic</span>
       </p>
     </div>
   </div>
@@ -347,78 +347,78 @@ body {
 <script src="/assets/js/minitip.js"></script>
 <script>
 $(document).ready(function(){
-	$('a[data-toggle="tab"]').on('shown.bs.tab', function (e) {
-		window.parent.setSize($('.mycontainer').height()+300);
-	});
-	switch (window.location.hash) {
-		case '#timeline':
-			$('#nav-timeline').tab("show");
-			break;
-		case '#summer':
-			$('#nav-summer').tab("show");
-			break;
-		case '#department':
+    $('a[data-toggle="tab"]').on('shown.bs.tab', function (e) {
+        window.parent.setSize($('.mycontainer').height()+300);
+    });
+    switch (window.location.hash) {
+        case '#timeline':
+            $('#nav-timeline').tab("show");
+            break;
+        case '#summer':
+            $('#nav-summer').tab("show");
+            break;
+        case '#department':
                         $('#nav-department').tab("show");
                         break;
-		case '#race':
+        case '#race':
                         $('#nav-race').tab('show');
                         break;
-		case '#activities':
+        case '#activities':
                         $('#nav-activities').tab('show');
                         break;
-		case '#contact':
+        case '#contact':
                         $('#nav-contact').tab('show');
                         break;
-		default:
+        default:
                         $('#nav-about').tab('show');
-			window.location.hash="#about";
+            window.location.hash="#about";
                         break;
-	}
-	changetab(window.location.hash);
+    }
+    changetab(window.location.hash);
 });
 
 function changetab(tab) {
-	switch (tab) {
-		case '#about':
-		$('#about_img').attr("src","/assests/images/shuqi.jpg");
-		break;
-		case '#summer':
-		$('#summer_img_1').attr("src","/assets/images/kaocha1.jpg");
-		$('#summer_img_2').attr("src","/assets/images/kaocha2.jpg");
-		break;
-		case '#race':
-		for (var i=1;i<=3;i++) {
-			$('#race_img_'+i).attr("src","/assets/images/race"+i+".jpg");
-		}
-		break;
-		case '#contact':
-			$('#qrcode').miniTip({
-        			className: 'green',
-        			showAnimateProperties: {'top': '-=10'},
-        			hideAnimateProperties: {'top': '+=10'},
-        			position: 'right',
-        			onLoad: function(element, minitip) {
-          			      $(element).animate({'opacity': 0.35}, '350');
-        			},
-        			onHide: function(element, minitip) {
-                			$(element).animate({'opacity': 1}, '250');
-        			}
-  			});
-			$('.pic_contact').miniTip({
-        			className: 'green',
-        		       	anchor: 'w',
-				showAnimateProperties: {'top': '-=20'},
-               			hideAnimateProperties: {'top': '+=20'},
-               			position: 'top',
-               			onLoad: function(element, minitip) {
-               			      $(element).animate({'opacity': 0.35}, '350');
-               			},
-               			onHide: function(element, minitip) {
-               			        $(element).animate({'opacity': 1}, '250');
-               			}
-			});
-		break;
-	}
+    switch (tab) {
+        case '#about':
+        $('#about_img').attr("src","/assests/images/shuqi.jpg");
+        break;
+        case '#summer':
+        $('#summer_img_1').attr("src","/assets/images/kaocha1.jpg");
+        $('#summer_img_2').attr("src","/assets/images/kaocha2.jpg");
+        break;
+        case '#race':
+        for (var i=1;i<=3;i++) {
+            $('#race_img_'+i).attr("src","/assets/images/race"+i+".jpg");
+        }
+        break;
+        case '#contact':
+            $('#qrcode').miniTip({
+                    className: 'green',
+                    showAnimateProperties: {'top': '-=10'},
+                    hideAnimateProperties: {'top': '+=10'},
+                    position: 'right',
+                    onLoad: function(element, minitip) {
+                            $(element).animate({'opacity': 0.35}, '350');
+                    },
+                    onHide: function(element, minitip) {
+                            $(element).animate({'opacity': 1}, '250');
+                    }
+              });
+            $('.pic_contact').miniTip({
+                    className: 'green',
+                           anchor: 'w',
+                showAnimateProperties: {'top': '-=20'},
+                           hideAnimateProperties: {'top': '+=20'},
+                           position: 'top',
+                           onLoad: function(element, minitip) {
+                                 $(element).animate({'opacity': 0.35}, '350');
+                           },
+                           onHide: function(element, minitip) {
+                                   $(element).animate({'opacity': 1}, '250');
+                           }
+            });
+        break;
+    }
 }
 </script>
 </html>

@@ -175,7 +175,7 @@ function cancel_join_activity_by_content($bid, $tid, $username, $option_values, 
             $text = "<strike>".$text."</strike>";
         }
 
-	    @$token=$_COOKIE['token'];
+        @$token=$_COOKIE['token'];
         $time = time();
         $statement="select username,star,rights,lastpost from userinfo where token='$token' && $time-tokentime<={$GLOBALS['validtime']}";
         $results=mysqli_query($con, $statement);
@@ -208,7 +208,7 @@ function cancel_join_activity_by_content($bid, $tid, $username, $option_values, 
         $pid = $row["pid"];
 
         $text=search_replace_exec_at_2($con,$text,$bid,$tid,$pid,$username,$title);
-	    $ip = $_SERVER["REMOTE_ADDR"];
+        $ip = $_SERVER["REMOTE_ADDR"];
 
         $type=@$_REQUEST['type'];
         $sig=intval(@$_REQUEST['sig']);
@@ -329,7 +329,7 @@ function modify_join_activity_by_content($bid, $tid, $username, $option_values, 
             $text = $text."</div>";
         }
 
-	    @$token=$_COOKIE['token'];
+        @$token=$_COOKIE['token'];
         $time = time();
         $statement="select username,star,rights,lastpost from userinfo where token='$token' && $time-tokentime<={$GLOBALS['validtime']}";
         $results=mysqli_query($con, $statement);
@@ -362,7 +362,7 @@ function modify_join_activity_by_content($bid, $tid, $username, $option_values, 
         $pid = $row["pid"];
 
         $text=search_replace_exec_at_2($con,$text,$bid,$tid,$pid,$username,$title);
-	    $ip = $_SERVER["REMOTE_ADDR"];
+        $ip = $_SERVER["REMOTE_ADDR"];
 
         $type=@$_REQUEST['type'];
         $statement="update posts set title='$title', author='$username', text='$text', ishtml='YES', sig=$sig, ip='$ip', type='$type', updatetime=$time where bid=$bid && tid=$tid && pid=$pid";
@@ -522,7 +522,7 @@ function join_activity_by_content($bid, $tid, $username, $option_values, $title,
         file_put_contents($filePath, "[8] $username $bid $tid\n", FILE_APPEND);
         $text=search_replace_exec_at_2($con,$text,$bid,$tid,$pid,$username,$title);
         $attachs = "";
-	    $ip = $_SERVER["REMOTE_ADDR"];
+        $ip = $_SERVER["REMOTE_ADDR"];
         $statement="insert into posts (bid,tid,pid,title,author,text,ishtml,attachs,replytime,updatetime,sig,ip,type,lzl) values ($bid,$tid,$pid,'$title','$username','$text','YES','$attachs',$time,$time,$sig,'$ip','$type',0)";
         mysqli_query($con, $statement);
         if(mysqli_error($con)){

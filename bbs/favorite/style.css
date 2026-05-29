@@ -1,24 +1,24 @@
 .main tr.deleted {
-	background-color: #f0f0f0;
-	color: #999;
+    background-color: #f0f0f0;
+    color: #999;
 }
 
 .deleted-text {
-	color: #aaa;
-	font-style: italic;
+    color: #aaa;
+    font-style: italic;
 }
 
 .unfav-btn {
-	color: #d9534f;
-	text-decoration: none;
-	font-size: 13px;
+    color: #d9534f;
+    text-decoration: none;
+    font-size: 13px;
 }
 
 .unfav-btn:hover {
-	text-decoration: underline;
+    text-decoration: underline;
 }
 
 .date {
-	color: #888;
-	font-size: 12px;
+    color: #888;
+    font-size: 12px;
 }

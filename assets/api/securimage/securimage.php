@@ -1734,7 +1734,7 @@ class Securimage
                 $y *= $this->iscale;
                 if ($x >= 0 && $x < $width2 && $y >= 0 && $y < $height2) {
                    error_reporting(E_ALL & ~E_NOTICE);
-		   $c = imagecolorat($this->tmpimg, $x, $y);
+           $c = imagecolorat($this->tmpimg, $x, $y);
                 }
                 if ($c != $bgCol) { // only copy pixels of letters to preserve any background image
                     imagesetpixel($this->im, $ix, $iy, $c);

@@ -8,11 +8,11 @@ $result=$result[0];
 #echo($result);exit;
 $aroot="../attachment/";
 if($result['code']=="0"){
-	$sourceFile=$aroot.$result['path'];
-	$outFile=$result['name'];
+    $sourceFile=$aroot.$result['path'];
+    $outFile=$result['name'];
 }else{
-	echo("Error when downloading, ".$result['msg']);
-	exit;
+    echo("Error when downloading, ".$result['msg']);
+    exit;
 }
 if (!is_file($sourceFile)) { 
 die("<b>404 File not found!</b>"); 

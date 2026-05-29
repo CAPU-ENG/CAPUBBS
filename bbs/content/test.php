@@ -1,28 +1,28 @@
 <?php
-	include("../lib/mainfunc.php");
-	header('content-type: application/json');
-	$folder = '../images/';
-	if(!is_dir($folder)){
-		mkdir($folder);
-	}
-	if (!@$_FILES['image']) exit;
-	$name = $_FILES['image']['name'];
-	$extension=get_extension($name);
+    include("../lib/mainfunc.php");
+    header('content-type: application/json');
+    $folder = '../images/';
+    if(!is_dir($folder)){
+        mkdir($folder);
+    }
+    if (!@$_FILES['image']) exit;
+    $name = $_FILES['image']['name'];
+    $extension=get_extension($name);
     if ($extension == "HEIC") exit;
     if ($extension == "heic") exit;
-	$filename = sha1(@microtime()) . '.'. $extension;
+    $filename = sha1(@microtime()) . '.'. $extension;
 
-	$target=$folder.$filename;
-	move_uploaded_file($_FILES["image"]["tmp_name"], $target);
-	
-	function get_extension($file){
-		return substr(strrchr($file, '.'), 1);
-	}
+    $target=$folder.$filename;
+    move_uploaded_file($_FILES["image"]["tmp_name"], $target);
+    
+    function get_extension($file){
+        return substr(strrchr($file, '.'), 1);
+    }
     // CreateThumbnail($target,1920,1920);
-	$result=array("upload"=> array("links"=> array("original"=> $target)));
-	echo(json_encode($result));
-	
-	function CreateThumbnail($srcFile, $toW, $toH, $toFile="")   
+    $result=array("upload"=> array("links"=> array("original"=> $target)));
+    echo(json_encode($result));
+    
+    function CreateThumbnail($srcFile, $toW, $toH, $toFile="")   
     {  
         if ($toFile == "")  
         {   

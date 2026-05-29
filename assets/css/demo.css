@@ -23,10 +23,10 @@ h1{
     position:relative;
     font-weight: 400;
     padding: 30px 5px 10px 5px;
-	margin: 0px 15px;
-	color: rgba(153,157,181,0.6);
-	text-shadow: 0px 1px 1px #fff;
-	border-bottom: 1px solid rgba(17,17,22,0.1);
+    margin: 0px 15px;
+    color: rgba(153,157,181,0.6);
+    text-shadow: 0px 1px 1px #fff;
+    border-bottom: 1px solid rgba(17,17,22,0.1);
 }
 /* Header Style */
 .header{
@@ -63,8 +63,8 @@ h1{
     position:relative;
     z-index: 1000;
     text-align:center;
-	float: right;
-	padding: 10px;
+    float: right;
+    padding: 10px;
 }
 .demos a{
     display: inline-block;
@@ -72,9 +72,9 @@ h1{
     background: #000;
     color: #fff;
     text-transform: uppercase;
-	font-family: Arial;
+    font-family: Arial;
     font-size: 11px;
-	-webkit-font-smoothing:antialiased;
+    -webkit-font-smoothing:antialiased;
     box-shadow: 1px 1px 4px rgba(0,0,0,0.2);
     -webkit-transition: all 0.2s linear;
     -moz-transition: all 0.2s linear;
@@ -91,5 +91,5 @@ h1{
     font-weight: bold;
     background: #c90047;
     color: #fff;
-	cursor: default;
+    cursor: default;
 }

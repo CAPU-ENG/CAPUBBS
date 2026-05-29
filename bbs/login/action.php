@@ -16,8 +16,8 @@ $time=time()+999999;
 $date=date("D, d M Y H:i:s",$time)." GMT";
 
 if($code==0){
-	$token=$result['token'];
-	header('Set-cookie: token='.$token.'; domain=.'.CAPUBBS_HOST.'; expires='.$date.'; path=/'."\n");
-	echo 0;
+    $token=$result['token'];
+    header('Set-cookie: token='.$token.'; domain=.'.CAPUBBS_HOST.'; expires='.$date.'; path=/'."\n");
+    echo 0;
 } else echo $result['msg'];
 ?>

@@ -1,175 +1,175 @@
 /*
-	Copyright (c) 2013 Ivan Kuckir  ( ivan@kuckir.com )
+    Copyright (c) 2013 Ivan Kuckir  ( ivan@kuckir.com )
 
-	Permission is hereby granted, free of charge, to any person
-	obtaining a copy of this software and associated documentation
-	files (the "Software"), to deal in the Software without
-	restriction, including without limitation the rights to use,
-	copy, modify, merge, publish, distribute, sublicense, and/or sell
-	copies of the Software, and to permit persons to whom the
-	Software is furnished to do so, subject to the following
-	conditions:
+    Permission is hereby granted, free of charge, to any person
+    obtaining a copy of this software and associated documentation
+    files (the "Software"), to deal in the Software without
+    restriction, including without limitation the rights to use,
+    copy, modify, merge, publish, distribute, sublicense, and/or sell
+    copies of the Software, and to permit persons to whom the
+    Software is furnished to do so, subject to the following
+    conditions:
 
-	The above copyright notice and this permission notice shall be
-	included in all copies or substantial portions of the Software.
+    The above copyright notice and this permission notice shall be
+    included in all copies or substantial portions of the Software.
 
-	THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-	EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
-	OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
-	NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
-	HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
-	WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-	FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
-	OTHER DEALINGS IN THE SOFTWARE.
-	
-	
-	History:
-	
-	22. 10. 2103
-		Bug with delay removed.
-	
-	11. 10. 2013
-		Implementing onStart, onStartParams, onUpdate, onUpdateParams, onComplete, onCompleteParams
-	
-	1. 3. 2013
-		Tweener depends on framerate now, not expecting 60 fps 
-	
-	6. 6. 2012
-		First version, addTween with time, delay and transition parameters
+    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+    EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+    OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+    NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+    HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+    WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+    FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+    OTHER DEALINGS IN THE SOFTWARE.
+    
+    
+    History:
+    
+    22. 10. 2103
+        Bug with delay removed.
+    
+    11. 10. 2013
+        Implementing onStart, onStartParams, onUpdate, onUpdateParams, onComplete, onCompleteParams
+    
+    1. 3. 2013
+        Tweener depends on framerate now, not expecting 60 fps 
+    
+    6. 6. 2012
+        First version, addTween with time, delay and transition parameters
 */
 
 
 var Tweener = 
 {
-	twns    : [],		// all tweens for object
-	looping : false,	// if Tweener is looping
-	_ptime  : 0,		// previous time
-	def     : {			// default values
-		time: 1,
-		transition: "easeOutExpo",
-		delay: 0,
-		onStart: null,
-		onStartParams: null,
-		onUpdate: null,
-		onUpdateParams: null,
-		onComplete: null,
-		onCompleteParams: null
-	}
+    twns    : [],        // all tweens for object
+    looping : false,    // if Tweener is looping
+    _ptime  : 0,        // previous time
+    def     : {            // default values
+        time: 1,
+        transition: "easeOutExpo",
+        delay: 0,
+        onStart: null,
+        onStartParams: null,
+        onUpdate: null,
+        onUpdateParams: null,
+        onComplete: null,
+        onCompleteParams: null
+    }
 };
 
 
 Tweener.addTween = function(o, ps)
 {
-	var T = Tweener;
-	
-	var tp = {}, prms = [], tgts = []; 
-	for(var p in T.def)  tp[p] = ps[p] ? ps[p] : T.def[p];
-	
-	for(var p in ps)
-	{
-		if(T.def[p]) continue;
-		prms.push(p);
-		tgts.push(ps[p]);
-		//bgns.push(o[p]);
-		//cngs.push(ps[p]-o[p]);
-		
-	}
-	if(tp.onStart) if(tp.onStartParams) tp.onStart.apply(null, tp.onStartParams);  else tp.onStart();
-	
-	T.twns.push(new T.Tween(o, tp, prms, tgts));
-	T.loop();
+    var T = Tweener;
+    
+    var tp = {}, prms = [], tgts = []; 
+    for(var p in T.def)  tp[p] = ps[p] ? ps[p] : T.def[p];
+    
+    for(var p in ps)
+    {
+        if(T.def[p]) continue;
+        prms.push(p);
+        tgts.push(ps[p]);
+        //bgns.push(o[p]);
+        //cngs.push(ps[p]-o[p]);
+        
+    }
+    if(tp.onStart) if(tp.onStartParams) tp.onStart.apply(null, tp.onStartParams);  else tp.onStart();
+    
+    T.twns.push(new T.Tween(o, tp, prms, tgts));
+    T.loop();
 }
 
 Tweener.loop = function()
 {
-	var T = Tweener;
-	if(!T.looping)
-	{
-		T._ptime = new Date().getTime();
-		requestAnimFrame(T.step);
-	}
-	T.looping = true; 
+    var T = Tweener;
+    if(!T.looping)
+    {
+        T._ptime = new Date().getTime();
+        requestAnimFrame(T.step);
+    }
+    T.looping = true; 
 }
 
 Tweener.step = function()
 {
-	var T = Tweener;
-	var ptime = T._ptime;
-	T._ptime = new Date().getTime();
-	var step = (T._ptime - ptime)*0.001;
-	
-	for(var i=0; i<T.twns.length; i++)
-	{
-		var t = T.twns[i];
-		
-		if(t.tp.delay > 0) t.tp.delay -= step;
-		else
-		{
-			if(t.bgns.length==0)
-				for(var j=0; j<t.prms.length; j++)
-				{
-					t.bgns.push(t.obj[t.prms[j]]);
-					t.cngs.push(t.tgts[j]-t.bgns[j]);
-				}
-				
-			t.t += step;
-			var dur = t.tp.time;
-			for(var j=0; j<t.prms.length; j++)
-			{
-				if(t.t > dur) t.obj[t.prms[j]] = t.bgns[j]+t.cngs[j]; 
-				else t.obj[t.prms[j]] = Tweener.easingFunctions[t.tp.transition] (t.t, t.bgns[j], t.cngs[j], dur);
-			}
-			if(t.tp.onUpdate) if(t.tp.onUpdateParams) t.tp.onUpdate.apply(null, t.tp.onUpdateParams);  else t.tp.onUpdate();
-			if(t.t > dur) 
-			{
-				T.twns.splice(i--, 1); 
-				if(t.tp.onComplete) if(t.tp.onCompleteParams) t.tp.onComplete.apply(null, t.tp.onCompleteParams);  else t.tp.onComplete();
-			}
-		}
-	}
-	if(T.twns.length>0) requestAnimFrame(T.step);
-	else T.looping = false;
+    var T = Tweener;
+    var ptime = T._ptime;
+    T._ptime = new Date().getTime();
+    var step = (T._ptime - ptime)*0.001;
+    
+    for(var i=0; i<T.twns.length; i++)
+    {
+        var t = T.twns[i];
+        
+        if(t.tp.delay > 0) t.tp.delay -= step;
+        else
+        {
+            if(t.bgns.length==0)
+                for(var j=0; j<t.prms.length; j++)
+                {
+                    t.bgns.push(t.obj[t.prms[j]]);
+                    t.cngs.push(t.tgts[j]-t.bgns[j]);
+                }
+                
+            t.t += step;
+            var dur = t.tp.time;
+            for(var j=0; j<t.prms.length; j++)
+            {
+                if(t.t > dur) t.obj[t.prms[j]] = t.bgns[j]+t.cngs[j]; 
+                else t.obj[t.prms[j]] = Tweener.easingFunctions[t.tp.transition] (t.t, t.bgns[j], t.cngs[j], dur);
+            }
+            if(t.tp.onUpdate) if(t.tp.onUpdateParams) t.tp.onUpdate.apply(null, t.tp.onUpdateParams);  else t.tp.onUpdate();
+            if(t.t > dur) 
+            {
+                T.twns.splice(i--, 1); 
+                if(t.tp.onComplete) if(t.tp.onCompleteParams) t.tp.onComplete.apply(null, t.tp.onCompleteParams);  else t.tp.onComplete();
+            }
+        }
+    }
+    if(T.twns.length>0) requestAnimFrame(T.step);
+    else T.looping = false;
 }
 
 /*
-	Animation Frame
+    Animation Frame
 */
 if(window.requestAnimFrame == null) window.requestAnimFrame = (function() {
   return window.requestAnimationFrame ||
-	 window.webkitRequestAnimationFrame ||
-	 window.mozRequestAnimationFrame ||
-	 window.oRequestAnimationFrame ||
-	 window.msRequestAnimationFrame ||
-	 function(/* function FrameRequestCallback */ callback, /* DOMElement Element */ element) {
-	   window.setTimeout(callback, 1000/60);
-	 };
+     window.webkitRequestAnimationFrame ||
+     window.mozRequestAnimationFrame ||
+     window.oRequestAnimationFrame ||
+     window.msRequestAnimationFrame ||
+     function(/* function FrameRequestCallback */ callback, /* DOMElement Element */ element) {
+       window.setTimeout(callback, 1000/60);
+     };
 })();
 
 
 /*
-	Tween class
+    Tween class
 */
 Tweener.Tween = function(obj, tp, prms, tgts)
 {
-	this.t   = 0;		// current time of tween (0 .. dur)
-	this.obj = obj;		// object
-	this.tp  = tp;		// tweening parameters
+    this.t   = 0;        // current time of tween (0 .. dur)
+    this.obj = obj;        // object
+    this.tp  = tp;        // tweening parameters
 
-	this.prms = prms;	// parameter (string)
-	this.tgts = tgts;
-	this.bgns = [];	// starting value
-	this.cngs = [];	// change (total during the whole tween)
+    this.prms = prms;    // parameter (string)
+    this.tgts = tgts;
+    this.bgns = [];    // starting value
+    this.cngs = [];    // change (total during the whole tween)
 }
 
 
 Tweener.easingFunctions = 
 {
-	/*
-		t - current time of tween
-		b - starting value of property
-		c - change needed in value
-		d - total duration of tween
-	*/
+    /*
+        t - current time of tween
+        b - starting value of property
+        c - change needed in value
+        d - total duration of tween
+    */
     easeNone: function(t, b, c, d) {
         return c*t/d + b;
     },    
