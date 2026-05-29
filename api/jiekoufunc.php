@@ -2585,25 +2585,35 @@ function jiekoufunc_hot_threads($con, $params) {
 
     $cutoff    = time() - ($days * 86400);
     $bid_where = ($bid > 0) ? "AND t.bid = $bid" : "";
-    $reply_min = ($min_replies > 0) ? "AND t.reply >= $min_replies" : "";
+
+    // Total LZL count per thread (sum of lzl counters across all posts)
+    $lzl_total  = "(SELECT COALESCE(SUM(p2.lzl), 0) FROM posts p2 WHERE p2.bid = t.bid AND p2.tid = t.tid)";
+    // Total replies + LZL (used for scoring and threshold)
+    $total_eng  = "(t.reply + $lzl_total)";
+    $reply_min  = ($min_replies > 0) ? "AND $total_eng >= $min_replies" : "";
 
     switch ($method) {
         case 'reply_count':
             $sql = "SELECT t.bid, t.tid, t.title, t.author, t.replyer,
                            t.click, t.reply, t.timestamp, t.postdate,
-                           t.extr, t.top, t.locked, t.reply AS score
+                           t.extr, t.top, t.locked,
+                           $total_eng AS score
                     FROM threads t
                     WHERE t.timestamp >= $cutoff $bid_where $reply_min
-                    ORDER BY t.reply DESC
+                    ORDER BY score DESC
                     LIMIT $limit";
             break;
 
         case 'recent_activity':
-            // Count replies within the time window
+            // Recent posts + recent LZL within the time window.
+            // LZL is stored in the `lzl` table with a `time` column.
+            $lzl_recent = "(SELECT COUNT(*) FROM lzl
+                            WHERE fid IN (SELECT fid FROM posts WHERE bid = t.bid AND tid = t.tid)
+                            AND time >= $cutoff)";
             $sql = "SELECT t.bid, t.tid, t.title, t.author, t.replyer,
                            t.click, t.reply, t.timestamp, t.postdate,
                            t.extr, t.top, t.locked,
-                           COUNT(p.fid) AS score
+                           (COUNT(p.fid) + COALESCE($lzl_recent, 0)) AS score
                     FROM threads t
                     LEFT JOIN posts p ON t.bid = p.bid AND t.tid = p.tid
                                       AND p.replytime >= $cutoff
@@ -2614,11 +2624,11 @@ function jiekoufunc_hot_threads($con, $params) {
             break;
 
         case 'engagement':
-            // Replies + unique participants + clicks
+            // Total engagement: replies + LZL + unique participants + clicks
             $sql = "SELECT t.bid, t.tid, t.title, t.author, t.replyer,
                            t.click, t.reply, t.timestamp, t.postdate,
                            t.extr, t.top, t.locked,
-                           (t.reply * 1.0
+                           ($total_eng * 1.0
                             + COUNT(DISTINCT p.author) * 2.0
                             + t.click * 0.1) AS score
                     FROM threads t
@@ -2630,11 +2640,11 @@ function jiekoufunc_hot_threads($con, $params) {
             break;
 
         case 'hacker_news':
-            // HN-style: replies / (hours_since_post + 2)^1.5
+            $now = time();
             $sql = "SELECT t.bid, t.tid, t.title, t.author, t.replyer,
                            t.click, t.reply, t.timestamp, t.postdate,
                            t.extr, t.top, t.locked,
-                           (t.reply) / POW(GREATEST(($cutoff - t.timestamp) / 3600 + 2, 1), 1.5) AS score
+                           ($total_eng) / POW(GREATEST(($now - t.timestamp) / 3600 + 2, 1), 1.5) AS score
                     FROM threads t
                     WHERE 1 = 1 $bid_where $reply_min
                     ORDER BY score DESC
@@ -2643,15 +2653,19 @@ function jiekoufunc_hot_threads($con, $params) {
 
         case 'composite':
         default:
-            // Weighted mix: replies + 24h activity + clicks
+            // Weighted mix: total engagement + 24h activity + clicks
             $one_day_ago = time() - 86400;
+            $lzl_24h = "(SELECT COALESCE(COUNT(*), 0) FROM lzl
+                         WHERE fid IN (SELECT fid FROM posts WHERE bid = t.bid AND tid = t.tid)
+                         AND time >= $one_day_ago)";
             $sql = "SELECT t.bid, t.tid, t.title, t.author, t.replyer,
                            t.click, t.reply, t.timestamp, t.postdate,
                            t.extr, t.top, t.locked,
-                           (t.reply * 0.6
+                           ($total_eng * 0.6
                             + (SELECT COUNT(*) FROM posts p
                                WHERE p.bid = t.bid AND p.tid = t.tid
                                AND p.replytime >= $one_day_ago) * 2.0
+                            + COALESCE($lzl_24h, 0) * 2.0
                             + t.click * 0.01) AS score
                     FROM threads t
                     WHERE t.timestamp >= $cutoff $bid_where $reply_min
