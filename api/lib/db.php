@@ -258,15 +258,6 @@ function jiekoufunc_checkDelayTime($time, $star, $rights, $lastpost, $ip) {
 //  Middleware
 // ============================================================================
 
-function jiekoufunc_middleware_config($ask) {
-    static $config = null;
-    if ($config === null) {
-        $config = require __DIR__ . '/../../config/api-middleware.php';
-    }
-    if (isset($config[$ask])) return $config[$ask];
-    return $config['_default'];
-}
-
 function jiekoufunc_middleware_login($con, $token, $bid, $check_bid1) {
     if ($check_bid1 && intval($bid) == 1) {
         $user = jiekoufunc_token2user($con, $token);
