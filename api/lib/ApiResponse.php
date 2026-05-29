@@ -88,7 +88,7 @@ class ApiResponse {
                 }
             }
             if (!empty($extra)) {
-                $dataRows = count($extra) === 1 ? reset($extra) : $extra;
+                $dataRows = $extra;
             } elseif (!empty($meta)) {
                 $dataRows = $meta;
                 $meta = array();
