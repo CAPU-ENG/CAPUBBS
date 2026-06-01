@@ -9,12 +9,6 @@
         exit();
     }
 
-    // 认证检查
-    $user = getuser();
-    if ($user['username'] == '') {
-        reportWithCode(2, '请先登录');
-    }
-
     if (!isset($_FILES['file'])) {
         reportWithCode(1, '未收到文件');
     }
