@@ -8,6 +8,8 @@
 	if (!@$_FILES['image']) exit;
 	$name = $_FILES['image']['name'];
 	$extension=get_extension($name);
+    if ($extension == "HEIC") exit;
+    if ($extension == "heic") exit;
 	$filename = sha1(@microtime()) . '.'. $extension;
 
 	$target=$folder.$filename;
@@ -16,7 +18,7 @@
 	function get_extension($file){
 		return substr(strrchr($file, '.'), 1);
 	}
-	CreateThumbnail($target,1920,1920);
+    // CreateThumbnail($target,1920,1920);
 	$result=array("upload"=> array("links"=> array("original"=> $target)));
 	echo(json_encode($result));
 	
