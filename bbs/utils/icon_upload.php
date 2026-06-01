@@ -54,8 +54,16 @@
         }
     }
 
-    // 使用带更多熵值的随机文件名（microtime + uniqid + 原文件名）
-    $filename = sha1(microtime() . uniqid('', true) . $_FILES['file']['name']) . '.png';
+    // 生成唯一随机文件名，避免覆盖已有文件
+    $maxRetries = 10;
+    do {
+        $filename = sha1(microtime() . uniqid('', true) . $_FILES['file']['name'] . mt_rand()) . '.png';
+        $maxRetries--;
+    } while (file_exists($folder . $filename) && $maxRetries > 0);
+
+    if ($maxRetries <= 0 && file_exists($folder . $filename)) {
+        reportWithCode(2, '服务器错误：文件名冲突，请重试');
+    }
 
     if (!move_uploaded_file($_FILES['file']['tmp_name'], $folder . $filename)) {
         reportWithCode(2, '服务器错误：文件保存失败');
