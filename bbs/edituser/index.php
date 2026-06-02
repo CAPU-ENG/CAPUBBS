@@ -192,13 +192,13 @@ textarea{
 
 <tr><td class="left"><span>爱好：</span></td><td class="right"><input placeholder="用逗号分隔" type="text" id="hobby" name="hobby" value="<?php echo(trans($userinfo['hobby'])); ?>"></td></tr>
 
-<tr><td class="left"><span>签名档1：</span></td><td><textarea placeholder="每个签名档不超过300字节；支持如[img]或[color]之类的转义" name="sig1" maxlength=250><?php echo(trans($userinfo['sig1'])); ?></textarea></td></tr>
+<tr><td class="left"><span>签名档1：</span></td><td><textarea placeholder="每个签名档不超过3000字节；支持如[img]或[color]之类的转义" name="sig1" maxlength=3000><?php echo(trans($userinfo['sig1'])); ?></textarea></td></tr>
 
-<tr><td class="left"><span>签名档2：</span></td><td><textarea placeholder="每个签名档不超过300字节；支持如[img]或[color]之类的转义" name="sig2" maxlength=250><?php echo(trans($userinfo['sig2'])); ?></textarea></td></tr>
+<tr><td class="left"><span>签名档2：</span></td><td><textarea placeholder="每个签名档不超过3000字节；支持如[img]或[color]之类的转义" name="sig2" maxlength=3000><?php echo(trans($userinfo['sig2'])); ?></textarea></td></tr>
 
-<tr><td class="left"><span>签名档3：</span></td><td><textarea placeholder="每个签名档不超过300字节；支持如[img]或[color]之类的转义" name="sig3" maxlength=250><?php echo(trans($userinfo['sig3'])); ?></textarea></td></tr>
+<tr><td class="left"><span>签名档3：</span></td><td><textarea placeholder="每个签名档不超过3000字节；支持如[img]或[color]之类的转义" name="sig3" maxlength=3000><?php echo(trans($userinfo['sig3'])); ?></textarea></td></tr>
 
-<tr><td class="left">个人简介：</td><td><textarea name="intro" placeholder="向大家更好的介绍自己吧！不超过300字节" maxlength="250"><?php echo(trans($userinfo['intro']));?></textarea></td><td class="right"></td></tr>
+<tr><td class="left">个人简介：</td><td><textarea name="intro" placeholder="向大家更好的介绍自己吧！不超过400字节" maxlength="400"><?php echo(trans($userinfo['intro']));?></textarea></td><td class="right"></td></tr>
 <tr><td colspan="2">&nbsp;</td></tr>
 
 <tr><td></td><td><input type="submit" style="width:70px;"></td><td></td></tr>
