@@ -17,6 +17,7 @@
  */
 
 require_once __DIR__.'/jiekoufunc.php';
+require_once __DIR__.'/lib/ThreadDetailQuery.php';
 
 function _dispatch_build_routes() {
     return array(
@@ -345,6 +346,11 @@ function jiekoufunc_dispatch($con, $params) {
         }
 
         if ($tid != 0) {
+            $version = isset($params['version']) ? strtolower(trim($params['version'])) : 'old';
+            if ($version === 'new') {
+                return jiekoufunc_thread_detail($con, $bid, $tid, $params, $token, $ip);
+            }
+
             $author = "";
             if ($see_lz != "") {
                 $statement = "select author from threads where bid=$bid && tid=$tid";
