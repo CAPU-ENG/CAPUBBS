@@ -112,7 +112,6 @@ function jiekoufunc_thread_detail($con, $bid, $tid, $params, $token, $ip) {
             'bid' => $bid,
             'tid' => $tid,
             'page' => $page,
-            'version' => 'new',
             'render' => $render,
             'authorOnly' => $author_only,
         ),
