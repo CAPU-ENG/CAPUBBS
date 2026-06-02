@@ -28,6 +28,7 @@ function _dispatch_build_routes() {
         'hot'             => array('handler' => 'jiekoufunc_hot',             'check_login' => false, 'require_rights' => 0),
         'global_top'      => array('handler' => 'jiekoufunc_global_top',      'check_login' => false, 'require_rights' => 0),
         'tidinfo'         => array('handler' => 'jiekoufunc_tidinfo',         'check_login' => false, 'require_rights' => 0),
+        'thread_detail'   => array('handler' => 'jiekoufunc_thread_detail',   'check_login' => false, 'require_rights' => 0, 'check_bid1' => true),
         'getpages'        => array('handler' => 'jiekoufunc_getpages',        'check_login' => false, 'require_rights' => 0),
         'getlznum'        => array('handler' => 'jiekoufunc_getlznum',        'check_login' => false, 'require_rights' => 0),
         'getnum'          => array('handler' => 'jiekoufunc_getnum',          'check_login' => false, 'require_rights' => 0),
@@ -201,6 +202,8 @@ function jiekoufunc_dispatch($con, $params) {
                 return jiekoufunc_news($con, $token, $params);
             case 'jiekoufunc_tidinfo':
                 return jiekoufunc_tidinfo($con, $bid, $tid);
+            case 'jiekoufunc_thread_detail':
+                return jiekoufunc_thread_detail($con, $bid, $tid, $params, $token, $ip);
             case 'jiekoufunc_recentpost':
                 return jiekoufunc_recentpost($con, $view, $limit_raw);
             case 'jiekoufunc_recentreply':
@@ -346,11 +349,6 @@ function jiekoufunc_dispatch($con, $params) {
         }
 
         if ($tid != 0) {
-            $version = isset($params['version']) ? strtolower(trim($params['version'])) : 'old';
-            if ($version === 'new') {
-                return jiekoufunc_thread_detail($con, $bid, $tid, $params, $token, $ip);
-            }
-
             $author = "";
             if ($see_lz != "") {
                 $statement = "select author from threads where bid=$bid && tid=$tid";
