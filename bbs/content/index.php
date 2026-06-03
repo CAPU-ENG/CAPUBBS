@@ -178,6 +178,7 @@ if (intval($bid)==1 && $currentuser=="") {
 	exit;
 }
 ?>
+		<script>var username='<?php echo $currentuser;?>';</script>
 		<br>
 		<div class="pagecontainer" style="margin-top:60px">
 			<div class="pagecontrol">
