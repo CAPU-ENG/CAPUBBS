@@ -168,18 +168,26 @@ require_once __DIR__.'/../config/api-routing.php';
         echo "<icon><![CDATA[".$id[0]['icon']."]]></icon>";
         echo "<star><![CDATA[".$id[0]['star']."]]></star>";
         echo "<title><![CDATA[".$title."]]></title>\n";
-        if ($content['sig'] >= 1 && $content['sig'] <= 3)
+        if ($content['sig'] >= 1 && $content['sig'] <= 3) {
             $sig = $id[0]['sig'.@$content['sig']];
-        else
+            $sig_type = isset($id[0]['sig'.@$content['sig'].'_type']) ? $id[0]['sig'.@$content['sig'].'_type'] : 'raw';
+        } else {
             $sig = "";
+            $sig_type = 'raw';
+        }
         if ($raw) {
             echo "<textraw><![CDATA[".@$content['text']."]]></textraw>\n";
             echo "<ishtml>".@$content['ishtml']."</ishtml>\n";
             echo "<signum>".@$content['sig']."</signum>\n";
             echo "<sigraw><![CDATA[".$sig."]]></sigraw>\n";
+            echo "<sig_type><![CDATA[".$sig_type."]]></sig_type>\n";
         } else {
             echo "<text><![CDATA[".translate(@$content['text'],@$content['ishtml'],false)."]]></text>\n";
-            echo "<sig><![CDATA[".translate($sig,false,true)."]]></sig>\n";
+            if ($sig_type === 'html') {
+                echo "<sig><![CDATA[".$sig."]]></sig>\n";
+            } else {
+                echo "<sig><![CDATA[".translate($sig,false,true)."]]></sig>\n";
+            }
         }
         if($raw&&$content["attachs"]){
             $attachs=explode(" ", $content["attachs"]);
@@ -615,10 +623,19 @@ require_once __DIR__.'/../config/api-routing.php';
             echo '<sig1><![CDATA['.$id[0]['sig1'].']]></sig1>';
             echo '<sig2><![CDATA['.$id[0]['sig2'].']]></sig2>';
             echo '<sig3><![CDATA['.$id[0]['sig3'].']]></sig3>';
+            echo '<sig1_type><![CDATA['.(isset($id[0]['sig1_type']) ? $id[0]['sig1_type'] : 'raw').']]></sig1_type>';
+            echo '<sig2_type><![CDATA['.(isset($id[0]['sig2_type']) ? $id[0]['sig2_type'] : 'raw').']]></sig2_type>';
+            echo '<sig3_type><![CDATA['.(isset($id[0]['sig3_type']) ? $id[0]['sig3_type'] : 'raw').']]></sig3_type>';
         }else{
-            echo '<sig1><![CDATA['.translate($id[0]['sig1'],false,true).']]></sig1>';
-            echo '<sig2><![CDATA['.translate($id[0]['sig2'],false,true).']]></sig2>';
-            echo '<sig3><![CDATA['.translate($id[0]['sig3'],false,true).']]></sig3>';
+            $sig1_type = isset($id[0]['sig1_type']) ? $id[0]['sig1_type'] : 'raw';
+            $sig2_type = isset($id[0]['sig2_type']) ? $id[0]['sig2_type'] : 'raw';
+            $sig3_type = isset($id[0]['sig3_type']) ? $id[0]['sig3_type'] : 'raw';
+            echo '<sig1><![CDATA['.($sig1_type === 'html' ? $id[0]['sig1'] : translate($id[0]['sig1'],false,true)).']]></sig1>';
+            echo '<sig2><![CDATA['.($sig2_type === 'html' ? $id[0]['sig2'] : translate($id[0]['sig2'],false,true)).']]></sig2>';
+            echo '<sig3><![CDATA['.($sig3_type === 'html' ? $id[0]['sig3'] : translate($id[0]['sig3'],false,true)).']]></sig3>';
+            echo '<sig1_type><![CDATA['.$sig1_type.']]></sig1_type>';
+            echo '<sig2_type><![CDATA['.$sig2_type.']]></sig2_type>';
+            echo '<sig3_type><![CDATA['.$sig3_type.']]></sig3_type>';
         }
         echo '<hobby><![CDATA['.$id[0]['hobby'].']]></hobby>';
         echo '<qq><![CDATA['.$id[0]['qq'].']]></qq>';
