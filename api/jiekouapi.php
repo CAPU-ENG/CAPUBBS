@@ -194,12 +194,8 @@
         return "<![CDATA[".$data."]]>";
     }
 
-    // 过滤 XML 1.0 非法控制字符（即使在 CDATA 内也非法）。
-    // XML 1.0 仅允许: 0x09 (tab), 0x0A (LF), 0x0D (CR)
-    function sanitize_xml($str) {
-        if ($str === null || $str === '') return $str;
-        return preg_replace('/[\x00-\x08\x0B\x0C\x0E-\x1F]/', '', $str);
-    }
+    // sanitize_xml() is now defined in lib.php (shared).
+    // It strips XML 1.0 illegal control characters (0x00-0x08,0x0B,0x0C,0x0E-0x1F).
 
     function getlznum($con,$bid,$tid) {
         $author="";
@@ -264,7 +260,8 @@
         $statement="select * from userinfo where username='$username'";
         $results=mysqli_query($con, $statement);
         while ($res=mysqli_fetch_array($results)) {
-            echo "<info>\n";
+            // Build info array from userinfo
+            $info = array();
             foreach ( $res as $key => $value ) {
                 if (is_long($key)) continue;
                 if ($key=="password") continue;
@@ -272,6 +269,11 @@
                 if ($key=="tokentime") continue;
                 if ($key=="lastpost") continue;
                 if ($key=="nowboard") continue;
+                $info[$key] = $value;
+            }
+            enrich_user_sigs($con, $username, $info);
+            echo "<info>\n";
+            foreach ( $info as $key => $value ) {
                 echo '<'.$key.'>'.trans($value).'</'.$key.">\n";
             }
             echo "</info>\n";
@@ -418,6 +420,9 @@
         if ($onlinetype=="web") $logininfo=$browser;
         if ($onlinetype=="android" || $onlinetype=="ios") $logininfo=$system;
 
+        $sig1_type=mysqli_real_escape_string($con, sanitize_xml(@$_REQUEST['sig1_type'] ?: 'raw'));
+        $sig2_type=mysqli_real_escape_string($con, sanitize_xml(@$_REQUEST['sig2_type'] ?: 'raw'));
+        $sig3_type=mysqli_real_escape_string($con, sanitize_xml(@$_REQUEST['sig3_type'] ?: 'raw'));
 
         $statement="insert into userinfo values ('$username','$password','$token',$time,'$sex','$icon','$intro','$sig1','$sig2','$sig3','$hobby','$qq','$mail'," .
                    "'$place','$date','$date','$ip',1,0,0,0,0,0,0,0,0,NULL,NULL,'$onlinetype','$logininfo',null,null,null,null,null,null,null)";
@@ -425,6 +430,13 @@
         $error=mysqli_errno($con);
         if ($error!=0) {
             echo '<capu><info><code>'.$error.'</code><msg>'.mysqli_error($con).'</msg></info></capu>';exit;
+        }
+        // Also insert into user_sig table
+        $sig_type_vals = array(1 => $sig1_type, 2 => $sig2_type, 3 => $sig3_type);
+        $sig_vals = array(1 => $sig1, 2 => $sig2, 3 => $sig3);
+        $upsert_err = upsert_user_sigs($con, $username, $sig_vals, $sig_type_vals);
+        if ($upsert_err !== null) {
+            echo '<capu><info><code>1</code><msg>保存签名档失败: '.$upsert_err.'</msg></info></capu>';exit;
         }
         echo '<capu><info><code>0</code><username>'.trans($username).'</username><token>'.$token.'</token></info></capu>';
         exit;
@@ -450,6 +462,16 @@
                        "lastip='$ip', icon='$icon', mail='$mail', qq='$qq', intro='$intro', place='$place'," .
                        "hobby='$hobby', sig1='$sig1', sig2='$sig2', sig3='$sig3' where username='$username'";
         mysqli_query($con, $statement);
+        // Also upsert into user_sig table for each signature
+        $sig1_type=mysqli_real_escape_string($con, sanitize_xml(@$_REQUEST['sig1_type'] ?: 'raw'));
+        $sig2_type=mysqli_real_escape_string($con, sanitize_xml(@$_REQUEST['sig2_type'] ?: 'raw'));
+        $sig3_type=mysqli_real_escape_string($con, sanitize_xml(@$_REQUEST['sig3_type'] ?: 'raw'));
+        $sig_type_vals = array(1 => $sig1_type, 2 => $sig2_type, 3 => $sig3_type);
+        $sig_vals = array(1 => $sig1, 2 => $sig2, 3 => $sig3);
+        $upsert_err = upsert_user_sigs($con, $username, $sig_vals, $sig_type_vals);
+        if ($upsert_err !== null) {
+            echo '<capu><info><code>1</code><error>保存签名档失败: '.$upsert_err.'</error></info></capu>';exit;
+        }
         if(mysqli_error($con)){
             echo '<capu><info><code>1</code><error>'.mysqli_error($con).'</error></info></capu>';
         }else{

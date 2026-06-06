@@ -14,7 +14,7 @@ require_once __DIR__.'/lib/helpers.php';
 require_once __DIR__.'/lib/db.php';
 
 $GLOBALS['validtime']  = 60 * 60 * 24 * 7;   // 7 days
-$GLOBALS['attachroot'] = "../bbs/attachment/";
+$GLOBALS['attachroot'] = __DIR__ . "/../bbs/attachment/";
 $GLOBALS['_jiekoufunc_nowuser'] = null;
 
 // ============================================================================
@@ -688,19 +688,25 @@ function jiekoufunc_register($con, $ip, $params) {
     $intro_raw = isset($params['intro']) ? $params['intro'] : '';
     $place_raw = isset($params['place']) ? $params['place'] : '';
     $hobby_raw = isset($params['hobby']) ? $params['hobby'] : '';
-    $sig1_raw = isset($params['sig1']) ? $params['sig1'] : '';
-    $sig2_raw = isset($params['sig2']) ? $params['sig2'] : '';
-    $sig3_raw = isset($params['sig3']) ? $params['sig3'] : '';
+    $sig1_raw = isset($params['sig1']) ? sanitize_xml($params['sig1']) : '';
+    $sig2_raw = isset($params['sig2']) ? sanitize_xml($params['sig2']) : '';
+    $sig3_raw = isset($params['sig3']) ? sanitize_xml($params['sig3']) : '';
+    $sig1_type_raw = isset($params['sig1_type']) ? $params['sig1_type'] : 'null';
+    $sig2_type_raw = isset($params['sig2_type']) ? $params['sig2_type'] : 'null';
+    $sig3_type_raw = isset($params['sig3_type']) ? $params['sig3_type'] : 'null';
     $time = time();
     $date = date("Y-m-d");
     $token = md5($username . $time);
     $sig1 = mysqli_real_escape_string($con, $sig1_raw);
     $sig2 = mysqli_real_escape_string($con, $sig2_raw);
     $sig3 = mysqli_real_escape_string($con, $sig3_raw);
-    $place = mysqli_real_escape_string($con, $place_raw);
-    $hobby = mysqli_real_escape_string($con, $hobby_raw);
-    $intro = mysqli_real_escape_string($con, $intro_raw);
-    $mail = mysqli_real_escape_string($con, $mail_raw);
+    $sig1_type = mysqli_real_escape_string($con, $sig1_type_raw);
+    $sig2_type = mysqli_real_escape_string($con, $sig2_type_raw);
+    $sig3_type = mysqli_real_escape_string($con, $sig3_type_raw);
+    $place = mysqli_real_escape_string($con, sanitize_xml($place_raw));
+    $hobby = mysqli_real_escape_string($con, sanitize_xml($hobby_raw));
+    $intro = mysqli_real_escape_string($con, sanitize_xml($intro_raw));
+    $mail = mysqli_real_escape_string($con, sanitize_xml($mail_raw));
 
     $onlinetype = isset($params['onlinetype']) ? mysqli_real_escape_string($con, $params['onlinetype']) : '';
     $browser = isset($params['browser']) ? mysqli_real_escape_string($con, $params['browser']) : '';
@@ -715,6 +721,12 @@ function jiekoufunc_register($con, $ip, $params) {
     $error = mysqli_errno($con);
     if ($error != 0) {
         return array(array('code' => strval($error), 'msg' => mysqli_error($con)));
+    }
+    $sig_type_vals = array(1 => $sig1_type, 2 => $sig2_type, 3 => $sig3_type);
+    $sig_vals = array(1 => $sig1, 2 => $sig2, 3 => $sig3);
+    $upsert_err = upsert_user_sigs($con, $username, $sig_vals, $sig_type_vals);
+    if ($upsert_err !== null) {
+        return array(array('code' => '1', 'msg' => '保存签名档失败: ' . $upsert_err));
     }
     return array(array('code' => '0', 'username' => $username, 'token' => $token));
 }
@@ -787,17 +799,22 @@ function jiekoufunc_news($con, $token, $params) {
     }
 }
 
-    function jiekoufunc_attach($con, $token, $path, $filename) {
+function jiekoufunc_attach($con, $token, $path, $filename) {
     $user = jiekoufunc_token2user($con, $token);
     if (!$user) return jiekoufunc_report('3', "unauthorized");
-    $user_name = $user['username'];
+    $user_name = mysqli_real_escape_string($con, $user['username']);
     if (strstr($path, "'") != "") {
         return jiekoufunc_report('1', "illegal");
     }
     $filename = str_replace("&", "&amp;", $filename);
     $filename = mysqli_real_escape_string($con, $filename);
-    $size = filesize($GLOBALS['attachroot'] . $path);
+    $fullpath = $GLOBALS['attachroot'] . $path;
+    if (!file_exists($fullpath)) {
+        return jiekoufunc_report('2', "error: file not found");
+    }
+    $size = (int) filesize($fullpath);
     $statement = "insert into attachments (name,path,size,uploader,price,auth,time) values('$filename','$path',$size,'$user_name',0,0," . time() . ")";
+    mysqli_query($con, $statement);
     if (!mysqli_error($con)) return jiekoufunc_report('0', mysqli_insert_id($con));
     else return jiekoufunc_report('2', "error:" . mysqli_error($con));
 }
@@ -872,25 +889,34 @@ function jiekoufunc_edituser($con, $token, $ip, $params) {
         return array(array('code' => '1', 'msg' => '超时，请重新登录。'));
     }
     $username = $a['username'];
-    $sex = isset($params['sex']) ? mysqli_real_escape_string($con, $params['sex']) : '';
-    $icon = isset($params['icon']) ? mysqli_real_escape_string($con, $params['icon']) : '';
-    $qq = isset($params['qq']) ? mysqli_real_escape_string($con, $params['qq']) : '';
-    $mail = isset($params['mail']) ? mysqli_real_escape_string($con, $params['mail']) : '';
-    $place = isset($params['place']) ? mysqli_real_escape_string($con, $params['place']) : '';
-    $hobby = isset($params['hobby']) ? mysqli_real_escape_string($con, $params['hobby']) : '';
-    $sig1 = isset($params['sig1']) ? mysqli_real_escape_string($con, $params['sig1']) : '';
-    $sig2 = isset($params['sig2']) ? mysqli_real_escape_string($con, $params['sig2']) : '';
-    $sig3 = isset($params['sig3']) ? mysqli_real_escape_string($con, $params['sig3']) : '';
-    $intro = isset($params['intro']) ? mysqli_real_escape_string($con, $params['intro']) : '';
+    $username_esc = mysqli_real_escape_string($con, $username);
+    $sex = isset($params['sex']) ? mysqli_real_escape_string($con, sanitize_xml($params['sex'])) : '';
+    $icon = isset($params['icon']) ? mysqli_real_escape_string($con, sanitize_xml($params['icon'])) : '';
+    $qq = isset($params['qq']) ? mysqli_real_escape_string($con, sanitize_xml($params['qq'])) : '';
+    $mail = isset($params['mail']) ? mysqli_real_escape_string($con, sanitize_xml($params['mail'])) : '';
+    $place = isset($params['place']) ? mysqli_real_escape_string($con, sanitize_xml($params['place'])) : '';
+    $hobby = isset($params['hobby']) ? mysqli_real_escape_string($con, sanitize_xml($params['hobby'])) : '';
+    $sig1 = isset($params['sig1']) ? mysqli_real_escape_string($con, sanitize_xml($params['sig1'])) : '';
+    $sig2 = isset($params['sig2']) ? mysqli_real_escape_string($con, sanitize_xml($params['sig2'])) : '';
+    $sig3 = isset($params['sig3']) ? mysqli_real_escape_string($con, sanitize_xml($params['sig3'])) : '';
+    $intro = isset($params['intro']) ? mysqli_real_escape_string($con, sanitize_xml($params['intro'])) : '';
     $statement = "update userinfo set tokentime=$time, sex='$sex'," .
                  "lastip='$ip', icon='$icon', mail='$mail', qq='$qq', intro='$intro', place='$place'," .
-                 "hobby='$hobby', sig1='$sig1', sig2='$sig2', sig3='$sig3' where username='$username'";
+                 "hobby='$hobby', sig1='$sig1', sig2='$sig2', sig3='$sig3' where username='$username_esc'";
     mysqli_query($con, $statement);
     if (mysqli_error($con)) {
         return array(array('code' => '1', 'error' => mysqli_error($con)));
-    } else {
-        return array(array('code' => '0', 'username' => $username));
     }
+    $sig1_type = isset($params['sig1_type']) ? $params['sig1_type'] : 'null';
+    $sig2_type = isset($params['sig2_type']) ? $params['sig2_type'] : 'null';
+    $sig3_type = isset($params['sig3_type']) ? $params['sig3_type'] : 'null';
+    $sig_type_vals = array(1 => $sig1_type, 2 => $sig2_type, 3 => $sig3_type);
+    $sig_vals = array(1 => $sig1, 2 => $sig2, 3 => $sig3);
+    $upsert_err = upsert_user_sigs($con, $username_esc, $sig_vals, $sig_type_vals);
+    if ($upsert_err !== null) {
+        return array(array('code' => '1', 'error' => '保存签名档失败: ' . $upsert_err));
+    }
+    return array(array('code' => '0', 'username' => $username));
 }
 
 function jiekoufunc_changepsd($con, $token, $params) {

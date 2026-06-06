@@ -167,7 +167,11 @@ function jiekoufunc_view_bbs_array($con, $statement) {
 }
 
 function jiekoufunc_view_user_array($con, $username) {
+    static $cache = array();
     $username = mysqli_real_escape_string($con, $username);
+    if (isset($cache[$username])) {
+        return $cache[$username];
+    }
     $statement = "select * from userinfo where username='$username'";
     $results = mysqli_query($con, $statement);
     $infos = array();
@@ -182,8 +186,10 @@ function jiekoufunc_view_user_array($con, $username) {
             if ($key == "nowboard") continue;
             $info[$key] = $value;
         }
+        enrich_user_sigs($con, $username, $info);
         $infos[] = $info;
     }
+    $cache[$username] = $infos;
     return $infos;
 }
 

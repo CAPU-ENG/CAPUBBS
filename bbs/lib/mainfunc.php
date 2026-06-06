@@ -128,27 +128,39 @@ function translateforquote($raw,$ishtml){
     $html=preg_replace("#(\\[i])(.+?)(\\[/i])#", "<i>$2</i>", $html);
     return $html;
 }
-function translate($raw,$ishtml,$space=true){
-    $html=$raw;
-    if(!$ishtml){
-        $html=htmlspecialchars_decode($html);
-    }
-    $html=str_replace(chr(10)."<br>", "<br>",$html);
-    $html=str_replace(chr(10), "<br>",$html);
-    $html=str_replace(chr(13), "<br>",$html);
-    if(!$space) $html=str_replace(" ", "&nbsp;",$html);
+function translate_bbcode($html) {
     $html=preg_replace("#(\\[img])(.+?)(\\[/img])#", "<img src='$2'>", $html);
-    $quoteend="<div class='quotel'><div class='quoter'>引用自 ".userhref("$2")." ：<br>$4<br></div><br></div>";
-    $html=preg_replace("#(\\[quote=)(.+?)(])([\\s\\S]+?)(\\[/quote])#", $quoteend,$html);
+    $html=preg_replace_callback("#(\\[quote=)(.+?)(])([\\s\\S]+?)(\\[/quote])#", function($m){
+        return "<div class='quotel'><div class='quoter'>引用自 ".userhref($m[2])." ：<br>".$m[4]."<br></div><br></div>";
+    }, $html);
     $html=preg_replace("#(\\[size=)(.+?)(])([\\s\\S]+?)(\\[/size])#", "<font size='$2'>$4</font>", $html);
     $html=preg_replace("#(\\[font=)(.+?)(])([\\s\\S]+?)(\\[/font])#", "<font face='$2'>$4</font>", $html);
     $html=preg_replace("#(\\[color=)(.+?)(])([\\s\\S]+?)(\\[/color])#", "<font color='$2'>$4</font>", $html);
     $html=preg_replace("#(\\[color=)(.+?)(])([\\s\\S]+?)#", "<font color='$2'>$4</font>", $html);
-    $html=preg_replace("#(\\[at])(.+?)(\\[/at])#", athref("$2"), $html);
+    $html=preg_replace_callback("#(\\[at])(.+?)(\\[/at])#", function($m){
+        return athref($m[2]);
+    }, $html);
     $html=preg_replace("#(\\[url])(.+?)(\\[/url])#", href("$2","$2"), $html);
     $html=preg_replace("#(\\[url=)(.+?)(])([\\s\\S]+?)(\\[/url])#", href("$2","$4"), $html);
     $html=preg_replace("#(\\[b])(.+?)(\\[/b])#", "<b>$2</b>", $html);
     $html=preg_replace("#(\\[i])(.+?)(\\[/i])#", "<i>$2</i>", $html);
     return $html;
+}
+
+function translate($raw,$ishtml=true,$israw=false,$issign=false){
+    $html=$raw;
+    if(!$ishtml){
+        if(!$issign){
+            $html=htmlspecialchars_decode($html);
+        }
+        if($issign && $israw){
+            $html=htmlspecialchars($html);
+        }
+    }
+    $html=str_replace(chr(10)."<br>", "<br>",$html);
+    $html=str_replace(chr(10), "<br>",$html);
+    $html=str_replace(chr(13), "<br>",$html);
+    if(!$ishtml) $html=str_replace(" ", "&nbsp;",$html);
+    return translate_bbcode($html);
 }
 ?>

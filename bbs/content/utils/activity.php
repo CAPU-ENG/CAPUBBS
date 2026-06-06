@@ -601,9 +601,17 @@ for($i=0;$i<count(@$data);$i++){
         echo("</div>\n");
     }
     if(@$userinfo['sig'.$floor['sig']]){
+        $sig_content = $userinfo['sig'.$floor['sig']];
+        $sig_type = isset($userinfo['sig'.$floor['sig'].'_type']) ? $userinfo['sig'.$floor['sig'].'_type'] : 'null';
         echo("<div class='sigblock'>\n");
         echo("<span class='sigtip'>--------</span>\n");
-        echo("<div class='sig'>".translate($userinfo['sig'.$floor['sig']],false,false)."<br><br><br>"."</div>\n");
+        if ($sig_type === 'html') {
+            echo("<div class='sig'>".translate($sig_content)."<br><br><br>"."</div>\n");
+        } else if ($sig_type === 'raw') {
+            echo("<div class='sig'>".translate($sig_content,false,true,true)."<br><br><br>"."</div>\n");
+        } else {
+            echo("<div class='sig'>".translate($sig_content,false,false,true)."<br><br><br>"."</div>\n");
+        }
         echo("</div>");
     }
     $lzl=mainfunc(array(

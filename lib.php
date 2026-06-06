@@ -68,6 +68,51 @@ function _jiekoufunc_get_api_routing() {
     return $routing;
 }
 
+// Sanitize string for XML 1.0 compliance: strip control characters that are
+// illegal even inside CDATA sections (0x00-0x08, 0x0B, 0x0C, 0x0E-0x1F).
+function sanitize_xml($str) {
+    if ($str === null || $str === '') return $str;
+    return preg_replace('/[\x00-\x08\x0B\x0C\x0E-\x1F]/', '', $str);
+}
+
+// Enrich user info array with signature data from user_sig table.
+// Prefers user_sig values over any existing sig1/sig2/sig3 in $info.
+// $username must already be SQL-escaped.
+function enrich_user_sigs($con, $username, &$info) {
+    $sig_statement = "SELECT sig_num, sig, sig_type FROM user_sig WHERE username='$username'";
+    $sig_results = mysqli_query($con, $sig_statement);
+    while ($sig_row = mysqli_fetch_array($sig_results)) {
+        $n = intval($sig_row['sig_num']);
+        if ($n >= 1 && $n <= 3) {
+            $info['sig' . $n] = $sig_row['sig'];
+            $info['sig' . $n . '_type'] = $sig_row['sig_type'];
+        }
+    }
+    for ($n = 1; $n <= 3; $n++) {
+        if (!isset($info['sig' . $n . '_type'])) {
+            $info['sig' . $n . '_type'] = 'null';
+        }
+    }
+}
+
+// Upsert signature content and type into user_sig table.
+// $username must already be SQL-escaped.
+// $sigs and $sig_types are arrays indexed by sig_num (1, 2, 3).
+// Values must already be SQL-escaped.
+// Returns null on success, or the error message string on failure.
+function upsert_user_sigs($con, $username, $sigs, $sig_types) {
+    for ($n = 1; $n <= 3; $n++) {
+        $sig_val = $sigs[$n];
+        $sig_type_val = $sig_types[$n];
+        $upsert = "INSERT INTO user_sig (username, sig_num, sig, sig_type) VALUES ('$username', $n, '$sig_val', '$sig_type_val') ON DUPLICATE KEY UPDATE sig='$sig_val', sig_type='$sig_type_val'";
+        mysqli_query($con, $upsert);
+        if (mysqli_error($con)) {
+            return mysqli_error($con);
+        }
+    }
+    return null;
+}
+
 // Parse the 'limit' parameter for recentpost/recentrely APIs.
 // Returns: 10 (default), null (no limit), or positive int N.
 function _parse_limit($raw, $default=10) {

@@ -86,7 +86,7 @@
         回复&nbsp;<?php echo($tdata['reply']) ?>
         </span>
     </div>
-    
+
     <div class="top">
         <div class="navigation"><div class="back" onclick="goback();"><span style="margin-left:32px;"><b>返回</b></span></div>
         <span style="float:left;margin-left:20px;"> 
@@ -187,6 +187,7 @@ if ($page < 1) $page = 1;
 echo_page_control($page, $pages, $bid, $tid, $see_lz);
 ?>
 </div></div>
+        <script>var username='<?php echo $currentuser;?>';</script>
     </div>
 
 
@@ -253,9 +254,17 @@ for($i=0;$i<count(@$data);$i++){
         echo("</div>\n");
     }
     if(@$userinfo['sig'.$floor['sig']]){
+        $sig_content = $userinfo['sig'.$floor['sig']];
+        $sig_type = isset($userinfo['sig'.$floor['sig'].'_type']) ? $userinfo['sig'.$floor['sig'].'_type'] : 'null';
         echo("<div class='sigblock'>\n");
         echo("<span class='sigtip'>--------</span>\n");
-        echo("<div class='sig'>".translate($userinfo['sig'.$floor['sig']],false,false)."<br><br><br>"."</div>\n");
+        if ($sig_type === 'html') {
+            echo("<div class='sig'>".translate($sig_content)."<br><br><br>"."</div>\n");
+        } else if ($sig_type === 'raw') {
+            echo("<div class='sig'>".translate($sig_content,false,true,true)."<br><br><br>"."</div>\n");
+        } else {
+            echo("<div class='sig'>".translate($sig_content,false,false,true)."<br><br><br>"."</div>\n");
+        }
         echo("</div>");
     }
     $lzl=mainfunc(array(
@@ -392,4 +401,3 @@ else echo '
         <span class="editip">您需要&nbsp;<a href="../login?from='.$nowurl.'">登录</a>&nbsp;后回复此贴；没有账号？&nbsp;<a href="../register">现在注册</a>&nbsp;</span>
         </div>';?>
     </div>
-    

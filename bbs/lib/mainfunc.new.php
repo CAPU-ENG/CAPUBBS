@@ -66,7 +66,6 @@
 
     function getOnePage($con, $bid, $tid, $page, $see_lz, $ip, $token) {
         $GLOBALS['validtime']=60*60*24*7;
-        $GLOBALS['attachroot']="../bbs/attachment/";
 
         $token = mysqli_real_escape_string($con, $token);
         $ip    = mysqli_real_escape_string($con, $ip);

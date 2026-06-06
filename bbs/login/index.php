@@ -50,20 +50,22 @@ input.button{
 </head>
 <body>
 <div class="main">
+<div>
 <h1>登录CAPUBBS</h1>
 <form>
 用户名：<input name="username" type="text" class="text" id="username" value="<?php echo(@$_GET['username']) ?>"><br>
 　密码：<input name="password" type="password" class="text" id="password"><br>
 <input type="hidden" value="" name="password1" id="password1">
 <input type="hidden" value="<?php echo(@$_GET['from']); ?>" name="from" id="from">
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+&nbsp;&nbsp;&nbsp;&nbsp;
 <input type="button" value="登录" class="button" onclick="check();">
 <input type="button" value="注册" class="button" onclick="register();">
-&nbsp;&nbsp;<a href="javascript:forget()">忘记密码？</a>
+&nbsp;<a href="javascript:forget()">忘记密码？</a>
 </form>
 <div id="tip" class="tip">
 <?php echo(@$_GET['tip']); ?>
 </span>
+</div>
 </div>
 <script type="text/javascript" src="../lib/md5.js"></script>
 <script src="../lib/jquery.min.js"></script>

@@ -76,6 +76,9 @@ return array(
     'edit_history'      => 'new',
     'restore_version'   => 'new',
 
+    // -- View user (explicit ask=view) --
+    'view'              => 'new',
+
     // -- Sign --
     'sign_today'        => 'new',
     'sign_year'         => 'new',

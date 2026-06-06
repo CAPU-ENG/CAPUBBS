@@ -21,3 +21,13 @@ assets/images/*
 !assets/images/static
 
 scripts/
+
+.well-known/
+
+capubbs-home-demo*/
+capubbs-new/
+
+chexie2048/
+bbs/images
+*debug*
+*test*
