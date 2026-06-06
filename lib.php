@@ -90,7 +90,7 @@ function enrich_user_sigs($con, $username, &$info) {
     }
     for ($n = 1; $n <= 3; $n++) {
         if (!isset($info['sig' . $n . '_type'])) {
-            $info['sig' . $n . '_type'] = 'raw';
+            $info['sig' . $n . '_type'] = 'null';
         }
     }
 }

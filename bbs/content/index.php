@@ -240,9 +240,7 @@ for($i=0;$i<count(@$data);$i++){
 	echo("<span class='floornum'>".transfloornum($floor['pid'])."</span>\n");
 	echo("<hr class='hrt'></div>\n");
 	$translated=translate($floor['text'],$floor['ishtml']=="YES");
-	#$translated=$floor['text'];
 	$translatedforquote=translateforquote($floor['text'],$floor['ishtml']=="YES");
-	#echo("<div class='textblock' id='floor$i'>$translated</div>\n");
 	print "<div class='textblock' id='floor$i' style='line-height:160% !important'>$translated</div>\n";
 	if($floor['attachs']){
 		echo('<span id="attachtipdark">本帖包含如下的附件：</span>');
@@ -257,13 +255,15 @@ for($i=0;$i<count(@$data);$i++){
 	}
 	if(@$userinfo['sig'.$floor['sig']]){
 		$sig_content = $userinfo['sig'.$floor['sig']];
-		$sig_type = isset($userinfo['sig'.$floor['sig'].'_type']) ? $userinfo['sig'.$floor['sig'].'_type'] : 'raw';
+		$sig_type = isset($userinfo['sig'.$floor['sig'].'_type']) ? $userinfo['sig'.$floor['sig'].'_type'] : 'null';
 		echo("<div class='sigblock'>\n");
 		echo("<span class='sigtip'>--------</span>\n");
 		if ($sig_type === 'html') {
-			echo("<div class='sig'>".$sig_content."<br><br><br>"."</div>\n");
+			echo("<div class='sig'>".translate($sig_content)."<br><br><br>"."</div>\n");
+		} else if ($sig_type === 'raw') {
+			echo("<div class='sig'>".translate($sig_content,false,true,true)."<br><br><br>"."</div>\n");
 		} else {
-			echo("<div class='sig'>".translate($sig_content,false,false)."<br><br><br>"."</div>\n");
+			echo("<div class='sig'>".translate($sig_content,false,false,true)."<br><br><br>"."</div>\n");
 		}
 		echo("</div>");
 	}

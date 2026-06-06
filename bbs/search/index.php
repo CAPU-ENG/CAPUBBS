@@ -137,15 +137,8 @@ else if($type=="post"){
 		$title=$value['title'];
 		$author=$value['author'];
 		$time=formatstamp($value['updatetime']);
-		// $translated=$value['text'];
-		// $translated=str_replace("<", "&lt;",$translated);
-		// $translated=str_replace(">", "&gt;",$translated);
-
-		#$translated=translate($value['text'],$value['ishtml']=="YES");
-		// if (mb_strlen($translated,'utf-8')>=200) $translated=mb_substr($translated,0,200,'utf-8')."....";
 		echo("<li>");
 		echo($title."&nbsp;&nbsp;&nbsp;<a href='../content/?bid=$bid&tid=$tid&p=$page#$pid' style='color:#5c7084'>查看原帖</a><br>");
-		// echo("<p style='text-indet:2em'>".$translated."<br><font color='#989898'>&nbsp;--- $author 发表于 $time</font></p>");
 		echo("<p style='text-indet:2em'><font color='#989898'>&nbsp;--- $author 发表于 $time</font></p>");
 	}
 } else{

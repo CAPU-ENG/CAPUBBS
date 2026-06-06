@@ -996,9 +996,9 @@ function jiekoufunc_register($con, $ip, $params) {
     $sig1_raw = isset($params['sig1']) ? sanitize_xml($params['sig1']) : '';
     $sig2_raw = isset($params['sig2']) ? sanitize_xml($params['sig2']) : '';
     $sig3_raw = isset($params['sig3']) ? sanitize_xml($params['sig3']) : '';
-    $sig1_type_raw = isset($params['sig1_type']) ? $params['sig1_type'] : 'raw';
-    $sig2_type_raw = isset($params['sig2_type']) ? $params['sig2_type'] : 'raw';
-    $sig3_type_raw = isset($params['sig3_type']) ? $params['sig3_type'] : 'raw';
+    $sig1_type_raw = isset($params['sig1_type']) ? $params['sig1_type'] : 'null';
+    $sig2_type_raw = isset($params['sig2_type']) ? $params['sig2_type'] : 'null';
+    $sig3_type_raw = isset($params['sig3_type']) ? $params['sig3_type'] : 'null';
     $time = time();
     $date = date("Y-m-d");
     $token = md5($username . $time);
@@ -1836,9 +1836,9 @@ function jiekoufunc_edituser($con, $token, $ip, $params) {
         return array(array('code' => '1', 'error' => mysqli_error($con)));
     }
     // Also upsert into user_sig table for each signature
-    $sig1_type = isset($params['sig1_type']) ? $params['sig1_type'] : 'raw';
-    $sig2_type = isset($params['sig2_type']) ? $params['sig2_type'] : 'raw';
-    $sig3_type = isset($params['sig3_type']) ? $params['sig3_type'] : 'raw';
+    $sig1_type = isset($params['sig1_type']) ? $params['sig1_type'] : 'null';
+    $sig2_type = isset($params['sig2_type']) ? $params['sig2_type'] : 'null';
+    $sig3_type = isset($params['sig3_type']) ? $params['sig3_type'] : 'null';
     $sig_type_vals = array(1 => $sig1_type, 2 => $sig2_type, 3 => $sig3_type);
     $sig_vals = array(1 => $sig1, 2 => $sig2, 3 => $sig3);
     $upsert_err = upsert_user_sigs($con, $username_esc, $sig_vals, $sig_type_vals);

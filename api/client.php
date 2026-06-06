@@ -170,10 +170,10 @@ require_once __DIR__.'/../config/api-routing.php';
         echo "<title><![CDATA[".$title."]]></title>\n";
         if ($content['sig'] >= 1 && $content['sig'] <= 3) {
             $sig = $id[0]['sig'.@$content['sig']];
-            $sig_type = isset($id[0]['sig'.@$content['sig'].'_type']) ? $id[0]['sig'.@$content['sig'].'_type'] : 'raw';
+            $sig_type = isset($id[0]['sig'.@$content['sig'].'_type']) ? $id[0]['sig'.@$content['sig'].'_type'] : 'null';
         } else {
             $sig = "";
-            $sig_type = 'raw';
+            $sig_type = 'null';
         }
         if ($raw) {
             echo "<textraw><![CDATA[".@$content['text']."]]></textraw>\n";
@@ -623,13 +623,13 @@ require_once __DIR__.'/../config/api-routing.php';
             echo '<sig1><![CDATA['.$id[0]['sig1'].']]></sig1>';
             echo '<sig2><![CDATA['.$id[0]['sig2'].']]></sig2>';
             echo '<sig3><![CDATA['.$id[0]['sig3'].']]></sig3>';
-            echo '<sig1_type><![CDATA['.(isset($id[0]['sig1_type']) ? $id[0]['sig1_type'] : 'raw').']]></sig1_type>';
-            echo '<sig2_type><![CDATA['.(isset($id[0]['sig2_type']) ? $id[0]['sig2_type'] : 'raw').']]></sig2_type>';
-            echo '<sig3_type><![CDATA['.(isset($id[0]['sig3_type']) ? $id[0]['sig3_type'] : 'raw').']]></sig3_type>';
+            echo '<sig1_type><![CDATA['.(isset($id[0]['sig1_type']) ? $id[0]['sig1_type'] : 'null').']]></sig1_type>';
+            echo '<sig2_type><![CDATA['.(isset($id[0]['sig2_type']) ? $id[0]['sig2_type'] : 'null').']]></sig2_type>';
+            echo '<sig3_type><![CDATA['.(isset($id[0]['sig3_type']) ? $id[0]['sig3_type'] : 'null').']]></sig3_type>';
         }else{
-            $sig1_type = isset($id[0]['sig1_type']) ? $id[0]['sig1_type'] : 'raw';
-            $sig2_type = isset($id[0]['sig2_type']) ? $id[0]['sig2_type'] : 'raw';
-            $sig3_type = isset($id[0]['sig3_type']) ? $id[0]['sig3_type'] : 'raw';
+            $sig1_type = isset($id[0]['sig1_type']) ? $id[0]['sig1_type'] : 'null';
+            $sig2_type = isset($id[0]['sig2_type']) ? $id[0]['sig2_type'] : 'null';
+            $sig3_type = isset($id[0]['sig3_type']) ? $id[0]['sig3_type'] : 'null';
             echo '<sig1><![CDATA['.($sig1_type === 'html' ? $id[0]['sig1'] : translate($id[0]['sig1'],false,true)).']]></sig1>';
             echo '<sig2><![CDATA['.($sig2_type === 'html' ? $id[0]['sig2'] : translate($id[0]['sig2'],false,true)).']]></sig2>';
             echo '<sig3><![CDATA['.($sig3_type === 'html' ? $id[0]['sig3'] : translate($id[0]['sig3'],false,true)).']]></sig3>';
