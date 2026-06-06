@@ -12,7 +12,7 @@
 require_once __DIR__.'/../lib.php';
 
 $GLOBALS['validtime']  = 60 * 60 * 24 * 7;   // 7 days
-$GLOBALS['attachroot'] = "../bbs/attachment/";
+$GLOBALS['attachroot'] = __DIR__ . "/../bbs/attachment/";
 $GLOBALS['_jiekoufunc_nowuser'] = null;
 
 // ============================================================================
@@ -1711,7 +1711,7 @@ function jiekoufunc_news($con, $token, $params) {
 function jiekoufunc_attach($con, $token, $path, $filename, $price, $auth) {
     $user = jiekoufunc_token2user($con, $token);
     if (!$user) return jiekoufunc_report('3', "unauthorized");
-    $user_name = $user['username'];
+    $user_name = mysqli_real_escape_string($con, $user['username']);
     if (strstr($path, "'") != "") {
         return jiekoufunc_report('1', "illegal");
     }
@@ -1720,7 +1720,11 @@ function jiekoufunc_attach($con, $token, $path, $filename, $price, $auth) {
     }
     $filename = str_replace("&", "&amp;", $filename);
     $filename = mysqli_real_escape_string($con, $filename);
-    $size = filesize($GLOBALS['attachroot'] . $path);
+    $fullpath = $GLOBALS['attachroot'] . $path;
+    if (!file_exists($fullpath)) {
+        return jiekoufunc_report('2', "error: file not found");
+    }
+    $size = (int) filesize($fullpath);
     $statement = "insert into attachments (name,path,size,uploader,price,auth,time) values('$filename','$path',$size,'$user_name',$price,$auth," . time() . ")";
     mysqli_query($con, $statement);
     if (!mysqli_error($con)) return jiekoufunc_report('0', mysqli_insert_id($con));
