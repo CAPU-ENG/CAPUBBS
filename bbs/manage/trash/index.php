@@ -8,7 +8,7 @@ $username = $users['username'];
 $rights = intval($users['rights']);
 
 // 版主及以上可访问
-$can_access = ($username != '' && $rights >= 1);
+$can_access = ($username != '' && $rights >= 5);
 
 // 获取版块列表（用于筛选下拉）
 $all_boards_raw = mainfunc(array("ask" => "bbsinfo"));

@@ -52,14 +52,16 @@ $can_access = ($username != '' && $rights >= 1);
 
     <div class="manage-list">
 
-        <a class="manage-item" href="trash/">
+        <?php if ($rights >= 5): ?>
+            <a class="manage-item" href="trash/">
             <span class="manage-item-icon">&#128465;</span>
             <span>
                 <div class="manage-item-title">回收站管理</div>
                 <div class="manage-item-desc">查看、恢复或永久删除被删帖子和主题</div>
             </span>
             <span class="manage-item-arrow">&rsaquo;</span>
-        </a>
+            </a>
+        <?php endif; ?>
 
         <?php if ($rights >= 1): ?>
         <a class="manage-item" href="post_activity/">

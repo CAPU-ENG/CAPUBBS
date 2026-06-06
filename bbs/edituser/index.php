@@ -245,7 +245,7 @@ textarea{
 	var imgs;
 	<?php
 		$handler=opendir("../../bbsimg/icons");
-		$limit=50;
+		$limit=150;
 		$count=0;
 		echo("imgs=[");
 		while(($filename=readdir($handler))!==false&&$count++<$limit){

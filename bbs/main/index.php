@@ -143,7 +143,7 @@ if($username!=""){
 <?php
 if($rights>=1){
 	echo('<div style="width:80%;margin-left:10%"><a href="javascript:manage();">管理本版</a></div>');
-	echo('<div style="width:80%;margin-left:10%;margin-top:4px"><a href="../manage/" style="color:#337ab7;">管理工具</a></div>');
+	// echo('<div style="width:80%;margin-left:10%;margin-top:4px"><a href="../manage/" style="color:#337ab7;">管理工具</a></div>');
 }
 ?>
 

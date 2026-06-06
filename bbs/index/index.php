@@ -1,5 +1,5 @@
 <?php
-	include("../lib/mainfunc.php");
+	require_once "../lib/mainfunc.php";
     require_once "../content/utils/activityService.php";
     require_once "../../lib.php";
 	date_default_timezone_set('Asia/Shanghai');
@@ -52,9 +52,9 @@ if ($username!="") {
 		echo("&nbsp;<a href='../favorite/'>我的收藏</a>");
 	}
 	echo("<br><a href='../logout?from=%2Fbbs%2Findex'>注销</a>");
-	if (intval($users['rights']) >= 1) {
-		echo("<br><a href='../manage/' style='color:#337ab7;'>管理工具</a>");
-	}
+	// if (intval($users['rights']) >= 1) {
+	// 	echo("<br><a href='../manage/' style='color:#337ab7;'>管理工具</a>");
+	// }
 	echo("</div>");
 }else{
 	echo("<span class='guest'>欢迎您，游客！<a href='../login?from=%2Fbbs%2Findex'>登录</a> 或者 <a href='../register'>注册</a></span>");
