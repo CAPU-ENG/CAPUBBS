@@ -36,7 +36,7 @@
     $keyword=@$_REQUEST['keyword'];
     $type=@$_REQUEST['type'];
     $limit_raw=@$_REQUEST['limit'];
-
+    error_log("jiekouapi.php ask:{$ask},bid:{$bid},tid:{$tid},pid:{$pid},to:{$to},fid:{$fid},path:{$path},filename:{$filename},text:{$text},price:{$price},auth:{$auth},id:{$id},attachs:{$attachs},keyword:{$keyword},type:{$type},limit:{$limit_raw}");
     if(!islegal($bid)||!islegal($tid)||!islegal($pid)||!islegal($fid)){
         echo("<capu><info><code>-1</code><msg>未知错误，请反馈给我们。</msg></info></capu>");
         exit;
