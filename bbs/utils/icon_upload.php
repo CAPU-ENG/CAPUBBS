@@ -41,8 +41,8 @@
     }
 
     $datePath = date('Y') . '/' . date('m') . '/';
-    $folder = '../../bbsimg/icons/user_upload/' . $datePath;
-    $urlroot = 'user_upload/' . $datePath;
+    $folder = '../../bbsimg/icons/user_upload_by_day/' . $datePath;
+    $urlroot = 'user_upload_by_day/' . $datePath;
     if (!is_dir($folder)) {
         if (!mkdir($folder, 0755, true)) {
             reportWithCode(2, '服务器错误：无法创建目录');
