@@ -182,11 +182,11 @@ require_once __DIR__.'/../config/api-routing.php';
             echo "<sigraw><![CDATA[".$sig."]]></sigraw>\n";
             echo "<sig_type><![CDATA[".$sig_type."]]></sig_type>\n";
         } else {
-            echo "<text><![CDATA[".translate(@$content['text'],@$content['ishtml'],false)."]]></text>\n";
+            echo "<text><![CDATA[".translateclient(@$content['text'],@$content['ishtml'],false)."]]></text>\n";
             if ($sig_type === 'html') {
                 echo "<sig><![CDATA[".$sig."]]></sig>\n";
             } else {
-                echo "<sig><![CDATA[".translate($sig,false,true)."]]></sig>\n";
+                echo "<sig><![CDATA[".translateclient($sig,false,true)."]]></sig>\n";
             }
         }
         if($raw&&$content["attachs"]){
@@ -630,9 +630,9 @@ require_once __DIR__.'/../config/api-routing.php';
             $sig1_type = isset($id[0]['sig1_type']) ? $id[0]['sig1_type'] : 'null';
             $sig2_type = isset($id[0]['sig2_type']) ? $id[0]['sig2_type'] : 'null';
             $sig3_type = isset($id[0]['sig3_type']) ? $id[0]['sig3_type'] : 'null';
-            echo '<sig1><![CDATA['.($sig1_type === 'html' ? $id[0]['sig1'] : translate($id[0]['sig1'],false,true)).']]></sig1>';
-            echo '<sig2><![CDATA['.($sig2_type === 'html' ? $id[0]['sig2'] : translate($id[0]['sig2'],false,true)).']]></sig2>';
-            echo '<sig3><![CDATA['.($sig3_type === 'html' ? $id[0]['sig3'] : translate($id[0]['sig3'],false,true)).']]></sig3>';
+            echo '<sig1><![CDATA['.($sig1_type === 'html' ? $id[0]['sig1'] : translateclient($id[0]['sig1'],false,true)).']]></sig1>';
+            echo '<sig2><![CDATA['.($sig2_type === 'html' ? $id[0]['sig2'] : translateclient($id[0]['sig2'],false,true)).']]></sig2>';
+            echo '<sig3><![CDATA['.($sig3_type === 'html' ? $id[0]['sig3'] : translateclient($id[0]['sig3'],false,true)).']]></sig3>';
             echo '<sig1_type><![CDATA['.$sig1_type.']]></sig1_type>';
             echo '<sig2_type><![CDATA['.$sig2_type.']]></sig2_type>';
             echo '<sig3_type><![CDATA['.$sig3_type.']]></sig3_type>';
@@ -933,7 +933,7 @@ require_once __DIR__.'/../config/api-routing.php';
     }
 
 
-    function translate($raw,$ishtml,$issig){
+    function translateclient($raw,$ishtml,$issig){
         $html=is_array($raw)?"":$raw;
         if(!$ishtml){
             $html=htmlspecialchars_decode($html);
