@@ -236,7 +236,8 @@ span.tip{
 			if($pidinfo['text']!="<br>") print $pidinfo['text'];
 ?></div><br>
 		<progress max="100" value="20" id="progress"></progress>
-
+		<div id="edi_attach" onclick="attach();">添加附件</div>
+		<input type="file" id="file" style="display:none;" onchange="fileselected();">
 		选择签名档：
 		<?php
 			for ($i=0;$i<=3;$i++) {
@@ -329,21 +330,13 @@ foreach($attachs as $aid){
 refreshAttach();
 function refreshAttach(){
 	if(attachs.length==0){
-		//document.getElementById("attachtip").style.display="none";
-		//document.getElementById("attachs").style.display="none";
 		$('#attachtip,#attachs').hide();
 	}else{
-		//document.getElementById("attachtip").style.display="block";
-		//document.getElementById("attachs").style.display="block";
 		$('#attachtip,#attachs').show();
 	}
 	if(unusedattachs.length==0){
-		//document.getElementById("unusedattachtip").style.display="none";
-		//document.getElementById("unusedattachs").style.display="none";
 		$('#unusedattachtip,#unusedattachs').hide();
 	}else{
-		//document.getElementById("unusedattachtip").style.display="block";
-		//document.getElementById("unusedattachs").style.display="block";
 		$('#unusedattachtip,#unusedattachs').show();
 	}
 	var s="";
@@ -351,24 +344,19 @@ function refreshAttach(){
 		var a=attachs[i];
 		s+=generateattach(a['name'],a['size'],a['price'],a['id'],false);
 	}
-	//document.getElementById("attachs").innerHTML=s;
 	$('#attachs').html(s);
 	var s2="";
 	for(var i=0;i<unusedattachs.length;i++){
 		var a=unusedattachs[i];
 		s2+=generateattach(a['name'],a['size'],a['price'],a['id'],true);
 	}
-	//document.getElementById("unusedattachs").innerHTML=s2;
 	$('#unusedattachs').html(s2);
 }
 function attach(){
 	document.getElementById("file").click();
-	//$('#file').click();
 }
 function fileselected(){
-//	if(document.getElementById("file").value){
 	if ($('#file').val()) {
-		//showoverlay();
 		priceok();
 	}
 }
@@ -404,7 +392,6 @@ function generateattach(filename,size,price,aid,useforappend){
 	s+='<img src="'+imgsrc+'" class="fileicon">';
 	s+='<div class="fileinfo"><span class="filename">'+filename+'<br></span>';
 	s+='<span class="sub">'+packSize(size)+'<br>';
-	//s+='售价：'+price+"积分</span>";
 	if(useforappend){
 		s+='<a href="javascript:appendattach('+aid+');">引用</a>&nbsp;&nbsp;';
 		s+='<a href="javascript:delattach('+aid+');">彻底删除</a>';
@@ -416,15 +403,8 @@ function generateattach(filename,size,price,aid,useforappend){
 }
 function delattach(id){
 	if(confirm("您确定要彻底删除此附件么？")){
-		//document.getElementById("waitinggif").style.visibility="visible";
 		$('#waitinggif').show();
-		//var r=new XMLHttpRequest();
-		//r.open("GET", "../delattach/?id="+id , true);
-		//r.send();
-		//r.onreadystatechange=function(){
-		//	if(r.readyState==4&&r.status==200){
 		$.post("../delattach/",{id:id},function(r) {	
-			//var result=JSON.parse(r.responseText);
 			var result=JSON.parse(r);
 			if(result.code==0){
 				for(var i=0;i<unusedattachs.length;i++){
@@ -448,8 +428,6 @@ function packSize(size){
 	return (size/1024/1024/1024).toFixed(1)+"GB";
 }
 function priceok(){
-	//var price=parseInt(document.getElementById("price").value);
-	//var auth=parseInt(document.getElementById("auth").value);
 	var price=0;
 	var auth=0;
 	if(price<0||price>200){
@@ -474,7 +452,6 @@ function priceok(){
 	xhr.onload = function () {
 		var prob=document.getElementById("progress");
 		if(prob.style.visibility!="hidden") prob.style.visibility="hidden";
-		//alert("response:"+xhr.responseText+" code:"+xhr.status);
 		try{
 			var result=JSON.parse(xhr.responseText);
 			if(result.code==0){
@@ -527,7 +504,6 @@ function doreply(){
 		s+=attachs[i]['id']+" ";
 	}
 	if(s) s=s.slice(0,s.length-1);
-	//document.getElementById("fm").submit();
 	var bbid=$('#fm_bid').val();
 	var ttid=$('#fm_tid').val();
 	var ppid=parseInt($('#fm_pid').val());
