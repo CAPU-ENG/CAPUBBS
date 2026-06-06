@@ -79,7 +79,6 @@ function createActivity($username, $bid, $title, $text, $options, $sig, $attachs
 
     $season_id = -1;
     $GLOBALS['validtime']=1800;
-    $GLOBALS['attachroot']="../bbs/attachment/";
     $con = dbconnect_mysqli();
     mysqli_select_db($con, "capubbs");
 
