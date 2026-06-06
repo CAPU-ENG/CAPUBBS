@@ -16,16 +16,10 @@
 	$name = $_FILES['file']['name'];
 	$name=str_replace("%", "%25", $name);
 	move_uploaded_file($_FILES["file"]["tmp_name"], $folder.$filename);
-	$auth=$_POST['auth'];
-	$price=$_POST['price'];
-	if(!$auth) $auth=0;
-	if(!$price) $price=0;
 	$result=mainfunc(array(
 	"ask"=>"attach",
 	"path"=>$filename,
-	"filename"=>$name,
-	"auth"=>$auth,
-	"price"=>$price));
+	"filename"=>$name));
 	$result=$result[0];
 	if($result['code']=='0'){
 		$ans=array(

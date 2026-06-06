@@ -134,9 +134,7 @@ if ($username!="") {
         echo("unusedattachs.push({
         name:'".$result[$i]['name']."',
         size:'".$result[$i]['size']."',
-        price:'".$result[$i]['price']."',
         id:'".$result[$i]['id']."',
-        auth:'".$result[$i]['auth']."'
         });\n");
     }
 }
@@ -171,7 +169,7 @@ function attach(){
 }
 function fileselected(){
 	if ($('#file').val()) {
-		priceok();
+		uploadFile();
 	}
 }
 function appendattach(id){
@@ -250,12 +248,10 @@ function onprogress(evt){
     prob.label=(evt.loaded/evt.total*100).toFixed(1)+"%";
 }
 
-function priceok(){
+function uploadFile(){
 	var fileObj=document.getElementById("file").files[0];
 	var FileController = "/bbs/attach/";
 	var form = new FormData();
-    form.append("auth", auth);
-    form.append("price", price);
     form.append("file", fileObj);
     var xhr = new XMLHttpRequest();
 	xhr.open("post", FileController, true);
@@ -265,7 +261,7 @@ function priceok(){
 		try{
 			var result=JSON.parse(xhr.responseText);
 			if(result.code==0){
-				attachs.push({name:fileObj.name,size:fileObj.size,price:price,id:result.msg});
+				attachs.push({name:fileObj.name,size:fileObj.size,id:result.msg});
 				refreshAttach();
 			}else{
 				alert("附件上传失败："+result.msg+" code:"+result.code);

@@ -129,8 +129,7 @@
 
 			$right=$right[0]['code'];
 			echo("<script type='text/javascript'>");
-			echo("var score=".$userinfo['score'].";");
-			echo("var star=".$userinfo['star'].";");
+						echo("var star=".$userinfo['star'].";");
 			echo("</script>");
 			$msg=intval($userinfo['newmsg']);
 			if($msg==0){
@@ -152,8 +151,7 @@
 			$right=-1;
 			$currentuser=null;
 			echo("欢迎您，游客！<a href='../login?from=$nowurl'>登录</a> 或者 <a href='../register'>注册</a>");
-			echo("<script type='text/javascript'>var score=-1;</script>");
-		}
+					}
 		echo("<script type='text/javascript'>");
 		echo("var bid=".$bid.";");
 		echo("var tid=".$tid.";");
@@ -249,7 +247,7 @@ for($i=0;$i<count(@$data);$i++){
 		foreach($atts as $value){
 			$nowa=mainfunc(array("ask"=>"attachinfo","id"=>$value));
 			$nowa=$nowa[0];
-			echo generateattach_html(@$nowa['name'],@$nowa['size'],@$nowa['price'],@$nowa['auth'],@$nowa['id'],@$nowa['isAuthor']=='YES'||@$nowa['hasPurchased']=='YES',@$nowa['count']);
+			echo generateattach_html(@$nowa['name'],@$nowa['size'],@$nowa['id'],@$nowa['count']);
 		}
 		echo("</div>\n");
 	}
@@ -401,18 +399,7 @@ else echo '
 		<span class="editip">您需要&nbsp;<a href="../login?from='.$nowurl.'">登录</a>&nbsp;后回复此贴；没有账号？&nbsp;<a href="../register">现在注册</a>&nbsp;</span>
 		</div>';?>
 	</div>
-	
-	<div id="overlay">
-		<div>
-			为此附件填写阅读权限与下载售价：<br><br>
-        	阅读权限：<input type="number" value="0" style="width:40px" id="auth">
-        	<span class='tip'>&nbsp;积分不少于此数值才能浏览附件</span><br>
-        	下载售价：<input type="number" value="0" style="width:40px" id="price">
-        	<span class='tip'>&nbsp;每位下载者需向您支付的积分数</span><br><br>
-        	<input type="button" value="&nbsp;好&nbsp;" onclick="priceok();" />
-		</div>
-	 </div>
-	 
+
 	<div id="msg_overlay">
 		<div>
 			<span>您要对&nbsp;<span id='msg_to'></span>&nbsp;说：</span><br><br>

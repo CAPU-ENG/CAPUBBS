@@ -148,10 +148,7 @@ require_once __DIR__.'/../config/api-routing.php';
     function showattach($attach) {
         echo '<name><![CDATA['.@$attach['name'].']]></name>';
         echo '<size>'.@$attach['size'].'</size>';
-        echo '<price>'.@$attach['price'].'</price>';
-        echo '<minscore>'.@$attach['auth'].'</minscore>';
         echo '<id>'.@$attach['id'].'</id>';
-        echo '<free>'.packBool(@$attach['isAuthor']=='YES'||@$attach['hasPurchased']=='YES').'</free>';
         echo '<count>'.@$attach['count'].'</count>';
     }
 
