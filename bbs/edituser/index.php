@@ -27,8 +27,8 @@ body{
 }
 div.main{
     width: 1000px;
-    height: 1200px;
-    overflow: hidden;
+    min-height: 1200px;
+    overflow: auto;
     margin-left: auto;
     margin-right: auto;
 /*  background-color: #CBD0E3; */
@@ -191,28 +191,28 @@ textarea{
 
 <tr><td class="left"><span>Email：</span></td><td class="right">
     <?php $mail_val = trans($userinfo['mail']); ?>
-    <input type="text" name="email" id="email" value="<?php echo $mail_val; ?>"<?php if (!empty($mail_val)) echo ' readonly style="background:#eee;"'; ?>>
+    <input type="text" name="email" id="email" value="<?php echo $mail_val; ?>" readonly style="background:#eee;">
     <?php
     $verified = isset($userinfo['verified']) ? intval($userinfo['verified']) : 0;
     $email_visible_val = isset($userinfo['email_visible']) ? intval($userinfo['email_visible']) : 0;
+    $no_email = empty($mail_val);
     if (CAPUBBS_ENABLE_EMAIL_VERIFY):
-        if (empty($mail_val)) {
+        if ($no_email) {
             echo '<span style="color:#f44336;font-size:12px;margin-left:8px;">未设置</span>';
         } elseif ($verified) {
             echo '<span style="color:#4CAF50;font-size:12px;margin-left:8px;">已验证</span>';
+            echo ' <a href="javascript:showEmailChange()" style="font-size:12px;">更换邮箱</a>';
         } else {
             echo '<span style="color:#FF9800;font-size:12px;margin-left:8px;">未验证</span>';
             echo ' <a href="../home/?pos=verify_email" style="font-size:12px;">去验证</a>';
+            echo ' <a href="javascript:showEmailChange()" style="font-size:12px;margin-left:4px;">更换邮箱</a>';
         }
-        if (!empty($mail_val)):
-            echo ' <a href="javascript:showEmailChange()" style="font-size:12px;">更换邮箱</a>';
-        endif;
     endif;
     ?>
     </td></tr>
     <?php if (CAPUBBS_ENABLE_EMAIL_VERIFY): ?>
-    <tr id="emailChangeRow" style="display:none;"><td class="left"><span>新邮箱：</span></td><td class="right">
-        <input type="text" id="newEmail" placeholder="输入新的PKU邮箱">
+    <tr id="emailChangeRow" style="<?php echo $no_email ? '' : 'display:none;'; ?>"><td class="left"><span><?php echo $no_email ? '设置邮箱：' : '新邮箱：'; ?></span></td><td class="right">
+        <input type="text" id="newEmail" placeholder="输入PKU邮箱">
         <input type="button" value="发送验证码" id="changeSendBtn" onclick="sendChangeCode()" style="width:auto;font-size:12px;">
         <span id="changeCountdown" style="font-size:12px;color:#999;margin-left:4px;"></span>
         <br><input type="text" id="changeCode" placeholder="6位验证码" maxlength="6" style="width:100px;margin-top:4px;">
@@ -484,12 +484,8 @@ textarea{
         API.call('verifyEmail', { code: code, type: 'change_email' }, { silent: true })
             .done(function(resp) {
                 if (resp.code === 0) {
-                    $('#changeMsg').css('color','#4CAF50').text('邮箱更换成功！');
-                    var newEmail = $('#newEmail').val().trim();
-                    $('#email').val(newEmail);
-                    $('#emailChangeRow').hide();
-                    $('#newEmail').val('');
-                    $('#changeCode').val('');
+                    $('#changeMsg').css('color','#4CAF50').text('邮箱设置成功！');
+                    setTimeout(function() { location.reload(); }, 800);
                 } else {
                     $('#changeMsg').css('color','#f44336').text('[' + (resp.code || '?') + '] ' + (resp.message || resp.msg || '验证失败'));
                 }
