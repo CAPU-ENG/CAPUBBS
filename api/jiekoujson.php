@@ -4,7 +4,7 @@ require_once __DIR__.'/../lib.php';
 header('Content-Type: application/json; charset=utf-8');
 date_default_timezone_set('Asia/Shanghai');
 
-$params = array_merge($_REQUEST, array(
+$params = array_merge($_GET, $_POST, array(
     'token' => isset($_COOKIE['token'])  ? $_COOKIE['token']  : '',
     'ip'    => $_SERVER['REMOTE_ADDR'],
 ));

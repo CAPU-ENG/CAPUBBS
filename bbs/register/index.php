@@ -482,8 +482,9 @@ function checkEmail(){
 var regCodeTimer = null;
 
 function sendRegCode() {
+    if (regCodeTimer) clearInterval(regCodeTimer);
     var email = $('#email').val().trim();
-    if (!/^[a-zA-Z0-9._%+\-]+@(.+\.)*pku\.edu\.cn$/i.test(email)) {
+    if (!/^\d{10}@((.+\.)*pku\.edu\.cn|bjmu\.edu\.cn)$/i.test(email)) {
         alert('请先填写正确的邮箱地址（学号@pku.edu.cn 或 学号@bjmu.edu.cn）。');
         return;
     }

@@ -24,7 +24,7 @@ class Mailer {
         return self::sendMail($toEmail, $subject, $htmlBody, $textBody);
     }
 
-    public static function sendPasswordResetNotice($toEmail, $username) {
+    public static function sendPasswordResetNotice($toEmail, $username, $newPassword) {
         $subject = "【" . CAPUBBS_SMTP_FROM_NAME . "】密码重置通知";
         $htmlBody = <<<HTML
 <div style="max-width:520px;margin:0 auto;font-family:'Microsoft YaHei','PingFang SC',Arial,sans-serif;color:#333;background:#fff;">
@@ -33,7 +33,7 @@ class Mailer {
     </div>
     <div style="border:1px solid #e0e0e0;border-top:none;padding:30px 24px;border-radius:0 0 8px 8px;">
         <p style="font-size:15px;line-height:1.8;">您好，用户 <strong>{$username}</strong>，</p>
-        <p style="font-size:15px;line-height:1.8;">您的密码已被重置为 <strong style="color:#e74c3c;">123456</strong>。</p>
+        <p style="font-size:15px;line-height:1.8;">您的密码已被重置为 <strong style="color:#e74c3c;">{$newPassword}</strong>。</p>
         <p style="font-size:14px;line-height:1.8;">请尽快登录并修改密码，避免账号被盗。</p>
         <hr style="border:none;border-top:1px solid #eee;margin:24px 0 12px;" />
         <p style="text-align:center;font-size:11px;color:#bbb;">此邮件由系统自动发送，请勿回复。</p>
@@ -42,7 +42,7 @@ class Mailer {
 HTML;
         $textBody = "【密码重置通知】\n\n"
             . "您好，用户 {$username}，\n"
-            . "您的密码已被重置为 123456。\n"
+            . "您的密码已被重置为 {$newPassword}。\n"
             . "请尽快登录并修改密码。\n\n"
             . "此邮件由系统自动发送，请勿回复。\n";
         return self::sendMail($toEmail, $subject, $htmlBody, $textBody);

@@ -1801,7 +1801,7 @@ function jiekoufunc_is_muted($con, $username) {
         if ($mail) {
             $mail_esc = mysqli_real_escape_string($con, $mail);
             $mute_check = mysqli_fetch_array(mysqli_query($con,
-                "SELECT COUNT(*) as cnt FROM email_mutes WHERE email='$mail_esc'"));
+                "SELECT COUNT(*) as cnt FROM email_mutes WHERE email='$mail_esc' AND active=1"));
             if ($mute_check && intval($mute_check['cnt']) > 0) {
                 return '邮箱已被管理员禁言';
             }
@@ -1853,11 +1853,6 @@ function jiekoufunc_sendRegisterCode($con, $params) {
 
     $email_esc = mysqli_real_escape_string($con, $email);
 
-    // 统计该邮箱已注册的账号数（不阻止，仅提示）
-    $user_check = mysqli_fetch_array(mysqli_query($con,
-        "SELECT COUNT(*) as cnt FROM userinfo WHERE mail='$email_esc'"));
-    $email_account_count = ($user_check && intval($user_check['cnt']) > 0) ? intval($user_check['cnt']) : 0;
-
     $one_min_ago = time() - 60;
     $rate_check = mysqli_fetch_array(mysqli_query($con,
         "SELECT COUNT(*) as cnt FROM email_verification
@@ -1885,11 +1880,7 @@ function jiekoufunc_sendRegisterCode($con, $params) {
         return jiekoufunc_report('8', '邮件发送失败: ' . $result['message']);
     }
 
-    $msg = '验证码已发送，请检查邮箱。';
-    if ($email_account_count > 0) {
-        $msg = '该邮箱已注册' . $email_account_count . '个账号。' . $msg;
-    }
-    return array(array('code' => '0', 'msg' => $msg));
+    return array(array('code' => '0', 'msg' => '验证码已发送，请检查邮箱。'));
 }
 
 function jiekoufunc_sendVerifyCode($con, $token, $params) {
@@ -2025,9 +2016,9 @@ function jiekoufunc_sendResetPasswordCode($con, $params) {
     $res = mysqli_fetch_array(mysqli_query($con,
         "SELECT username FROM userinfo WHERE mail='$email_esc' AND verified=1 LIMIT 1"));
 
+    // 不管邮箱是否匹配，统一返回成功，避免邮箱枚举
     if (!$res) {
-        return array(array('code' => strval(ApiError::EMAIL_NOT_FOUND),
-            'msg' => '未找到匹配的已验证邮箱。'));
+        return array(array('code' => '0', 'msg' => '验证码已发送，请检查邮箱。'));
     }
     $username = $res['username'];
 
@@ -2068,6 +2059,11 @@ function jiekoufunc_resetPasswordByEmail($con, $params) {
         return jiekoufunc_report('3', '缺少参数。');
     }
 
+    if (!jiekoufunc_is_pku_email($email)) {
+        return array(array('code' => strval(ApiError::INVALID_EMAIL_DOMAIN),
+            'msg' => '仅支持 学号@*.pku.edu.cn 或 学号@bjmu.edu.cn。'));
+    }
+
     $email_esc = mysqli_real_escape_string($con, $email);
     $code_esc = mysqli_real_escape_string($con, $code);
     $result = mysqli_fetch_array(mysqli_query($con,
@@ -2090,13 +2086,18 @@ function jiekoufunc_resetPasswordByEmail($con, $params) {
     mysqli_query($con, "UPDATE email_verification SET used=1 WHERE id=$verification_id");
 
     $username_esc = mysqli_real_escape_string($con, $username);
-    $newPassword = md5('123456');
+    $chars = 'abcdefghijklmnopqrstuvwxyz0123456789';
+    $newPassword = '';
+    for ($i = 0; $i < 8; $i++) {
+        $newPassword .= $chars[mt_rand(0, strlen($chars) - 1)];
+    }
+    $newPasswordHash = md5($newPassword);
     mysqli_query($con,
-        "UPDATE userinfo SET password='$newPassword', tokentime=0 WHERE username='$username_esc'");
+        "UPDATE userinfo SET password='$newPasswordHash', tokentime=0 WHERE username='$username_esc'");
 
-    Mailer::sendPasswordResetNotice($email, $username);
+    Mailer::sendPasswordResetNotice($email, $username, $newPassword);
 
-    return array(array('code' => '0', 'msg' => '密码已重置为 123456，请登录后修改密码。'));
+    return array(array('code' => '0', 'msg' => '密码已重置，新密码已发送至您的邮箱，请登录后尽快修改。'));
 }
 
 function jiekoufunc_muteEmail($con, $token, $params) {
@@ -2123,10 +2124,20 @@ function jiekoufunc_muteEmail($con, $token, $params) {
 
     $email_esc = mysqli_real_escape_string($con, $email);
     $check = mysqli_fetch_array(mysqli_query($con,
-        "SELECT COUNT(*) as cnt FROM email_mutes WHERE email='$email_esc'"));
-    if ($check && intval($check['cnt']) > 0) {
-        return array(array('code' => strval(ApiError::EMAIL_ALREADY_MUTED),
-            'msg' => '该邮箱已被禁言。'));
+        "SELECT id, active FROM email_mutes WHERE email='$email_esc' LIMIT 1"));
+    if ($check) {
+        if (intval($check['active']) === 1) {
+            return array(array('code' => strval(ApiError::EMAIL_ALREADY_MUTED),
+                'msg' => '该邮箱已被禁言。'));
+        }
+        // 之前禁言过但已解除，重新激活
+        $mute_id = intval($check['id']);
+        $reason = isset($params['reason']) ? mysqli_real_escape_string($con, $params['reason']) : '';
+        $operator_esc = mysqli_real_escape_string($con, $operator);
+        $now = time();
+        mysqli_query($con,
+            "UPDATE email_mutes SET muted_by='$operator_esc', reason='$reason', created_at=$now, active=1 WHERE id=$mute_id");
+        return array(array('code' => '0', 'msg' => '已禁言邮箱 ' . $email));
     }
 
     $reason = isset($params['reason']) ? mysqli_real_escape_string($con, $params['reason']) : '';
@@ -2156,7 +2167,7 @@ function jiekoufunc_unmuteEmail($con, $token, $params) {
     }
 
     $email_esc = mysqli_real_escape_string($con, $email);
-    mysqli_query($con, "DELETE FROM email_mutes WHERE email='$email_esc'");
+    mysqli_query($con, "UPDATE email_mutes SET active=0 WHERE email='$email_esc' AND active=1");
     if (mysqli_affected_rows($con) === 0) {
         return array(array('code' => strval(ApiError::EMAIL_NOT_MUTED),
             'msg' => '该邮箱未被禁言。'));
@@ -2176,7 +2187,7 @@ function jiekoufunc_listEmailMutes($con, $token) {
         return jiekoufunc_report('1', '会话超时，请重新登录。');
     }
 
-    $result = mysqli_query($con, "SELECT * FROM email_mutes ORDER BY created_at DESC");
+    $result = mysqli_query($con, "SELECT * FROM email_mutes WHERE active=1 ORDER BY created_at DESC");
     $infos = array();
     while ($res = mysqli_fetch_array($result)) {
         $info = array();

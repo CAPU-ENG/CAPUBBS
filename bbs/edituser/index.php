@@ -436,7 +436,7 @@ textarea{
 
     function sendChangeCode() {
         var email = $('#newEmail').val().trim();
-        if (!/^[a-zA-Z0-9._%+\-]+@(.+\.)*pku\.edu\.cn$/i.test(email)) {
+        if (!/^\d{10}@((.+\.)*pku\.edu\.cn|bjmu\.edu\.cn)$/i.test(email)) {
             $('#changeMsg').css('color','#f44336').text('请输入正确的邮箱地址（学号@*.pku.edu.cn 或 学号@bjmu.edu.cn）。');
             return;
         }
