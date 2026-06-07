@@ -99,7 +99,7 @@ for($i=0;$i<count($icons);$i++){
         if($userinfo['sex']=="男"){
             echo("<img class='tipic' src='../user/icons/boy.png'>");
         }else if($userinfo['sex']=="女"){
-            echo("<img class='tipic' src='../user/icons/girl.png'>");    
+            echo("<img class='tipic' src='../user/icons/girl.png'>");
         }
     }
     echo("</span>");

@@ -29,7 +29,7 @@ div.main{
     overflow: hidden;
     margin-left: auto;
     margin-right: auto;
-/*     background-color: #CBD0E3; */
+/*  background-color: #CBD0E3; */
 }
 div.head{
     height: 200px;
@@ -138,7 +138,7 @@ div.switch_left{
 }
 div.switch_right{
     border-top-right-radius: 10px;
-    border-bottom-right-radius: 10px;    
+    border-bottom-right-radius: 10px;
     border-right: 1px solid #555555;
 }
 .selected{

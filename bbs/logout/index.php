@@ -7,7 +7,7 @@
     $result=mainfunc(array("ask"=>"logout"));
     $result=$result[0];
     $code=$result["code"];
-    
+
     $time=time()-999999;
     $date=date("D, d M Y H:i:s",$time)." GMT";
     if(!$from) $from="../index";

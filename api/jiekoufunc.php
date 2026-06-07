@@ -9,11 +9,11 @@
  * PHP 5.6 & PHP 8 compatible.  MySQL 5.7 / 8.0 / 9.0+ compatible.
  */
 
-require_once __DIR__.'/../lib.php';
-require_once __DIR__.'/lib/helpers.php';
-require_once __DIR__.'/lib/db.php';
+require_once __DIR__ . '/../lib.php';
+require_once __DIR__ . '/lib/helpers.php';
+require_once __DIR__ . '/lib/db.php';
 
-$GLOBALS['validtime']  = 60 * 60 * 24 * 7;   // 7 days
+$GLOBALS['validtime'] = 60 * 60 * 24 * 7;   // 7 days
 $GLOBALS['attachroot'] = __DIR__ . "/../bbs/attachment/";
 $GLOBALS['_jiekoufunc_nowuser'] = null;
 
@@ -264,10 +264,10 @@ function jiekoufunc_getnum($con) {
     }
 
     return array(array(
-        'sign'   => strval($sign_num),
+        'sign' => strval($sign_num),
         'online' => strval($online_num),
         'maxnum' => strval($maxnum),
-        'time'   => date("Y-m-d", $thattime)
+        'time' => date("Y-m-d", $thattime)
     ));
 }
 
@@ -716,13 +716,12 @@ function jiekoufunc_register($con, $ip, $params) {
     if ($onlinetype == "android" || $onlinetype == "ios") $logininfo = $system_val;
 
     $statement = "insert into userinfo values ('$username','$password','$token',$time,'$sex','$icon','$intro','$sig1','$sig2','$sig3','$hobby','$qq_val','$mail'," .
-                 "'$place','$date','$date','$ip',1,0,0,0,0,0,0,0,0,NULL,NULL,'$onlinetype','$logininfo',null,null,null,null,null,null,null)";
+        "'$place','$date','$date','$ip',1,0,0,0,0,0,0,0,0,NULL,NULL,'$onlinetype','$logininfo',null,null,null,null,null,null,null)";
     mysqli_query($con, $statement);
     $error = mysqli_errno($con);
     if ($error != 0) {
         return array(array('code' => strval($error), 'msg' => mysqli_error($con)));
     }
-    // Also insert into user_sig table
     $sig_type_vals = array(1 => $sig1_type, 2 => $sig2_type, 3 => $sig3_type);
     $sig_vals = array(1 => $sig1, 2 => $sig2, 3 => $sig3);
     $upsert_err = upsert_user_sigs($con, $username, $sig_vals, $sig_type_vals);
@@ -732,7 +731,7 @@ function jiekoufunc_register($con, $ip, $params) {
     return array(array('code' => '0', 'username' => $username, 'token' => $token));
 }
 
-require_once __DIR__.'/jiekoufunc_thread.php';
+require_once __DIR__ . '/jiekoufunc_thread.php';
 
 function jiekoufunc_sendmsg($con, $token, $to, $text) {
     $user = jiekoufunc_token2user($con, $token);
@@ -800,7 +799,7 @@ function jiekoufunc_news($con, $token, $params) {
     }
 }
 
-    function jiekoufunc_attach($con, $token, $path, $filename) {
+function jiekoufunc_attach($con, $token, $path, $filename) {
     $user = jiekoufunc_token2user($con, $token);
     if (!$user) return jiekoufunc_report('3', "unauthorized");
     $user_name = mysqli_real_escape_string($con, $user['username']);
@@ -813,7 +812,7 @@ function jiekoufunc_news($con, $token, $params) {
     if (!file_exists($fullpath)) {
         return jiekoufunc_report('2', "error: file not found");
     }
-    $size = (int) filesize($fullpath);
+    $size = (int)filesize($fullpath);
     $statement = "insert into attachments (name,path,size,uploader,price,auth,time) values('$filename','$path',$size,'$user_name',0,0," . time() . ")";
     mysqli_query($con, $statement);
     if (!mysqli_error($con)) return jiekoufunc_report('0', mysqli_insert_id($con));
@@ -902,13 +901,12 @@ function jiekoufunc_edituser($con, $token, $ip, $params) {
     $icon = isset($params['icon']) ? mysqli_real_escape_string($con, sanitize_xml($params['icon'])) : '';
     $sex = isset($params['sex']) ? mysqli_real_escape_string($con, sanitize_xml($params['sex'])) : '';
     $statement = "update userinfo set tokentime=$time, sex='$sex'," .
-                 "lastip='$ip', icon='$icon', mail='$mail', qq='$qq', intro='$intro', place='$place'," .
-                 "hobby='$hobby', sig1='$sig1', sig2='$sig2', sig3='$sig3' where username='$username_esc'";
+        "lastip='$ip', icon='$icon', mail='$mail', qq='$qq', intro='$intro', place='$place'," .
+        "hobby='$hobby', sig1='$sig1', sig2='$sig2', sig3='$sig3' where username='$username_esc'";
     mysqli_query($con, $statement);
     if (mysqli_error($con)) {
         return array(array('code' => '1', 'error' => mysqli_error($con)));
     }
-    // Also upsert into user_sig table for each signature
     $sig1_type = isset($params['sig1_type']) ? $params['sig1_type'] : 'null';
     $sig2_type = isset($params['sig2_type']) ? $params['sig2_type'] : 'null';
     $sig3_type = isset($params['sig3_type']) ? $params['sig3_type'] : 'null';
@@ -1196,17 +1194,17 @@ function jiekoufunc_trash_restore($con, $token, $type, $bid, $tid, $pid, $trash_
         }
 
         // Restore threads row
-        $th_title   = mysqli_real_escape_string($con, $thread['title']);
-        $th_author  = mysqli_real_escape_string($con, $thread['author']);
+        $th_title = mysqli_real_escape_string($con, $thread['title']);
+        $th_author = mysqli_real_escape_string($con, $thread['author']);
         $th_replyer = isset($thread['replyer']) ? "'" . mysqli_real_escape_string($con, $thread['replyer']) . "'" : "NULL";
-        $th_click   = intval($thread['click']);
-        $th_reply   = intval($thread['reply']);
-        $th_guest   = intval($thread['guesture']);
-        $th_extr    = intval($thread['extr']);
-        $th_top     = intval($thread['top']);
-        $th_locked  = intval($thread['locked']);
-        $th_ts      = intval($thread['timestamp']);
-        $th_pd      = isset($thread['postdate']) ? "'" . mysqli_real_escape_string($con, $thread['postdate']) . "'" : "NULL";
+        $th_click = intval($thread['click']);
+        $th_reply = intval($thread['reply']);
+        $th_guest = intval($thread['guesture']);
+        $th_extr = intval($thread['extr']);
+        $th_top = intval($thread['top']);
+        $th_locked = intval($thread['locked']);
+        $th_ts = intval($thread['timestamp']);
+        $th_pd = isset($thread['postdate']) ? "'" . mysqli_real_escape_string($con, $thread['postdate']) . "'" : "NULL";
 
         $stmt_ins = "insert into threads
             (bid, tid, title, author, replyer, click, reply, guesture,
@@ -1221,19 +1219,19 @@ function jiekoufunc_trash_restore($con, $token, $type, $bid, $tid, $pid, $trash_
         $res_posts = mysqli_query($con, $stmt_posts);
         $restored_count = 0;
         while ($row = mysqli_fetch_array($res_posts)) {
-            $p_fid     = intval($row['fid']);
-            $p_pid     = intval($row['pid']);
-            $p_title   = mysqli_real_escape_string($con, $row['title']);
-            $p_author  = mysqli_real_escape_string($con, $row['author']);
-            $p_text    = mysqli_real_escape_string($con, $row['text']);
-            $p_ishtml  = mysqli_real_escape_string($con, $row['ishtml']);
+            $p_fid = intval($row['fid']);
+            $p_pid = intval($row['pid']);
+            $p_title = mysqli_real_escape_string($con, $row['title']);
+            $p_author = mysqli_real_escape_string($con, $row['author']);
+            $p_text = mysqli_real_escape_string($con, $row['text']);
+            $p_ishtml = mysqli_real_escape_string($con, $row['ishtml']);
             $p_attachs = mysqli_real_escape_string($con, $row['attachs']);
-            $p_rtime   = intval($row['replytime']);
-            $p_utime   = intval($row['updatetime']);
-            $p_sig     = intval($row['sig']);
-            $p_type    = mysqli_real_escape_string($con, $row['type']);
-            $p_ip      = mysqli_real_escape_string($con, $row['ip']);
-            $p_lzl     = intval($row['lzl']);
+            $p_rtime = intval($row['replytime']);
+            $p_utime = intval($row['updatetime']);
+            $p_sig = intval($row['sig']);
+            $p_type = mysqli_real_escape_string($con, $row['type']);
+            $p_ip = mysqli_real_escape_string($con, $row['ip']);
+            $p_lzl = intval($row['lzl']);
 
             $stmt_ins_p = "insert ignore into posts
                 (bid, tid, pid, fid, title, author, text, ishtml, attachs,
@@ -1298,18 +1296,18 @@ function jiekoufunc_trash_restore($con, $token, $type, $bid, $tid, $pid, $trash_
             mysqli_query($con, $statement);
         }
 
-        $p_fid     = intval($row['fid']);
-        $p_title   = mysqli_real_escape_string($con, $row['title']);
-        $p_author  = mysqli_real_escape_string($con, $row['author']);
-        $p_text    = mysqli_real_escape_string($con, $row['text']);
-        $p_ishtml  = mysqli_real_escape_string($con, $row['ishtml']);
+        $p_fid = intval($row['fid']);
+        $p_title = mysqli_real_escape_string($con, $row['title']);
+        $p_author = mysqli_real_escape_string($con, $row['author']);
+        $p_text = mysqli_real_escape_string($con, $row['text']);
+        $p_ishtml = mysqli_real_escape_string($con, $row['ishtml']);
         $p_attachs = mysqli_real_escape_string($con, $row['attachs']);
-        $p_rtime   = intval($row['replytime']);
-        $p_utime   = intval($row['updatetime']);
-        $p_sig     = intval($row['sig']);
-        $p_type    = mysqli_real_escape_string($con, $row['type']);
-        $p_ip      = mysqli_real_escape_string($con, $row['ip']);
-        $p_lzl     = intval($row['lzl']);
+        $p_rtime = intval($row['replytime']);
+        $p_utime = intval($row['updatetime']);
+        $p_sig = intval($row['sig']);
+        $p_type = mysqli_real_escape_string($con, $row['type']);
+        $p_ip = mysqli_real_escape_string($con, $row['ip']);
+        $p_lzl = intval($row['lzl']);
 
         $stmt_ins = "insert ignore into posts
             (bid, tid, pid, fid, title, author, text, ishtml, attachs,
@@ -1382,8 +1380,8 @@ function jiekoufunc_trash_clean($con, $token, $days) {
     $cnt_threads = mysqli_affected_rows($con);
 
     return array(array(
-        'code'          => '0',
-        'msg'           => 'ok',
+        'code' => '0',
+        'msg' => 'ok',
         'deleted_posts' => strval($cnt_posts + $cnt_threads)
     ));
 }
@@ -1448,18 +1446,18 @@ function jiekoufunc_edit_history($con, $token, $fid, $version_id) {
         $row = mysqli_fetch_array($res);
 
         return array(array(
-            'code'       => '0',
+            'code' => '0',
             'version_id' => strval($version_id),
-            'text'       => $row['text'],
-            'edit_time'  => strval($row['edit_time']),
-            'edit_by'    => $row['edit_by'],
-            'parent_id'  => strval($row['parent_id'] ?: '0'),
-            'source'     => $row['source'],
-            'author'     => $row['author'] ?: '',
-            'fid'        => strval($row['fid']),
-            'bid'        => strval($row['bid']),
-            'tid'        => strval($row['tid']),
-            'pid'        => strval($row['pid'])
+            'text' => $row['text'],
+            'edit_time' => strval($row['edit_time']),
+            'edit_by' => $row['edit_by'],
+            'parent_id' => strval($row['parent_id'] ?: '0'),
+            'source' => $row['source'],
+            'author' => $row['author'] ?: '',
+            'fid' => strval($row['fid']),
+            'bid' => strval($row['bid']),
+            'tid' => strval($row['tid']),
+            'pid' => strval($row['pid'])
         ));
     }
 
@@ -1496,16 +1494,16 @@ function jiekoufunc_restore_version($con, $token, $fid, $version_id) {
         return jiekoufunc_report('1', '超时，请重新登录。');
     }
     $username = $a[1];
-    $ip       = $a[2];
+    $ip = $a[2];
 
     // 获取目标历史版本（必须 fid 匹配，防止跨帖子恢复）
     $stmt = "select * from post_edit_history where version_id=$version_id and fid=$fid";
-    $res  = mysqli_query($con, $stmt);
+    $res = mysqli_query($con, $stmt);
     if (mysqli_num_rows($res) == 0) {
         return jiekoufunc_report('3', '版本不存在。');
     }
     $hist = mysqli_fetch_array($res);
-    $target_text   = $hist['text'];
+    $target_text = $hist['text'];
     $target_author = $hist['author'];
     $his_bid = $hist['bid'];
     $his_tid = $hist['tid'];
@@ -1513,13 +1511,13 @@ function jiekoufunc_restore_version($con, $token, $fid, $version_id) {
 
     // 检查帖子是否仍存在（用 fid 定位，比 bid/tid/pid 更可靠）
     $stmt_post = "select * from posts where fid=$fid";
-    $res_post  = mysqli_query($con, $stmt_post);
+    $res_post = mysqli_query($con, $stmt_post);
     if (mysqli_num_rows($res_post) == 0) {
         return jiekoufunc_report('4', '目标帖子当前不存在（可能已被删除）。请先从回收站恢复。');
     }
     $cur = mysqli_fetch_array($res_post);
     $cur_author = $cur['author'];
-    $cur_text   = mysqli_real_escape_string($con, $cur['text']);
+    $cur_text = mysqli_real_escape_string($con, $cur['text']);
     $cur_author_esc = mysqli_real_escape_string($con, $cur_author);
     $cur_bid = intval($cur['bid']);
     $cur_tid = intval($cur['tid']);
@@ -1569,10 +1567,10 @@ function jiekoufunc_restore_version($con, $token, $fid, $version_id) {
     }
 
     return array(array(
-        'code'                  => '0',
-        'msg'                   => 'ok',
+        'code' => '0',
+        'msg' => 'ok',
         'restored_from_version' => strval($version_id),
-        'restored_author'       => $restored_author
+        'restored_author' => $restored_author
     ));
 }
 
@@ -1623,24 +1621,24 @@ function jiekoufunc_recent_threads($con, $params) {
  *                min_replies (minimum reply count threshold, default 0)
  */
 function jiekoufunc_hot_threads($con, $params) {
-    $limit       = isset($params['limit'])       ? intval($params['limit'])       : 10;
-    $bid         = isset($params['bid'])         ? intval($params['bid'])         : 0;
-    $method      = isset($params['method'])      ? $params['method']              : 'composite';
-    $days        = isset($params['days'])        ? intval($params['days'])        : 7;
+    $limit = isset($params['limit']) ? intval($params['limit']) : 10;
+    $bid = isset($params['bid']) ? intval($params['bid']) : 0;
+    $method = isset($params['method']) ? $params['method'] : 'composite';
+    $days = isset($params['days']) ? intval($params['days']) : 7;
     $min_replies = isset($params['min_replies']) ? intval($params['min_replies']) : 0;
 
-    if ($limit <= 0)   $limit = 10;
-    if ($limit > 100)  $limit = 100;
-    if ($days  <= 0)   $days  = 7;
+    if ($limit <= 0) $limit = 10;
+    if ($limit > 100) $limit = 100;
+    if ($days <= 0) $days = 7;
 
-    $cutoff    = time() - ($days * 86400);
+    $cutoff = time() - ($days * 86400);
     $bid_where = ($bid > 0) ? "AND t.bid = $bid" : "";
 
     // Total LZL count per thread (sum of lzl counters across all posts)
-    $lzl_total  = "(SELECT COALESCE(SUM(p2.lzl), 0) FROM posts p2 WHERE p2.bid = t.bid AND p2.tid = t.tid)";
+    $lzl_total = "(SELECT COALESCE(SUM(p2.lzl), 0) FROM posts p2 WHERE p2.bid = t.bid AND p2.tid = t.tid)";
     // Total replies + LZL (used for scoring and threshold)
-    $total_eng  = "(t.reply + $lzl_total)";
-    $reply_min  = ($min_replies > 0) ? "AND $total_eng >= $min_replies" : "";
+    $total_eng = "(t.reply + $lzl_total)";
+    $reply_min = ($min_replies > 0) ? "AND $total_eng >= $min_replies" : "";
 
     switch ($method) {
         case 'reply_count':

@@ -10,7 +10,7 @@ body {
 .para {
     padding-top:20px;
     padding-left:5%;
-    padding-right:10%;    
+    padding-right:10%;
 }
 .para p {
     text-indent:2em;
@@ -398,24 +398,24 @@ function changetab(tab) {
                     hideAnimateProperties: {'top': '+=10'},
                     position: 'right',
                     onLoad: function(element, minitip) {
-                            $(element).animate({'opacity': 0.35}, '350');
+                          $(element).animate({'opacity': 0.35}, '350');
                     },
                     onHide: function(element, minitip) {
                             $(element).animate({'opacity': 1}, '250');
                     }
-              });
+            });
             $('.pic_contact').miniTip({
                     className: 'green',
-                           anchor: 'w',
+                        anchor: 'w',
                 showAnimateProperties: {'top': '-=20'},
-                           hideAnimateProperties: {'top': '+=20'},
-                           position: 'top',
-                           onLoad: function(element, minitip) {
-                                 $(element).animate({'opacity': 0.35}, '350');
-                           },
-                           onHide: function(element, minitip) {
-                                   $(element).animate({'opacity': 1}, '250');
-                           }
+                        hideAnimateProperties: {'top': '+=20'},
+                        position: 'top',
+                        onLoad: function(element, minitip) {
+                              $(element).animate({'opacity': 0.35}, '350');
+                        },
+                        onHide: function(element, minitip) {
+                                $(element).animate({'opacity': 1}, '250');
+                        }
             });
         break;
     }

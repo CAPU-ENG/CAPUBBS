@@ -103,7 +103,7 @@
       <a href="javascript:setActive('#about')">关于协会</a>
       <ul class="dropdown-menu" role="menu">
 <?php
-//        <li role="presentation"><a role="menuitem" tabindex="-1" href="javascript:setActive('#about-timeline')">新会员的一年</a></li>
+//      <li role="presentation"><a role="menuitem" tabindex="-1" href="javascript:setActive('#about-timeline')">新会员的一年</a></li>
 ?>
         <li role="presentation"><a role="menuitem" tabindex="-1" href="javascript:setActive('#about')">协会介绍</a></li>
         <li role="presentation"><a role="menuitem" tabindex="-1" href="javascript:setActive('#about-summer')">暑期介绍</a></li>
@@ -119,14 +119,14 @@
       <ul class="nav navbar-nav navbar-right" id="login_li">
      <?php
 
-      if ($username=="") {
-     echo '<li><a href="javascript:showlogin()" id="login">登录</a></li>';    
+    if ($username=="") {
+     echo '<li><a href="javascript:showlogin()" id="login">登录</a></li>';
         echo '<li id="navbar-register"><a href="/bbs/register/">注册</a></li>';}
     else {
         echo '<li><a href="javascript:void(0)" style="color:#8db6cd">欢迎您，'.$username.'</a></li><li><a href="javascript:logout()">注销</a>';
     }
     ?>
-      </ul>    
+      </ul>
     </div>
    </nav>
   </div>

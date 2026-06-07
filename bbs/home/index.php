@@ -23,10 +23,10 @@ div.main{
     overflow: hidden;
     margin-left: auto;
     margin-right: auto;
-/*     background-color: #CBD0E3; */
+/*  background-color: #CBD0E3; */
 }
 div.head{
-/*     background-color: red; */
+/*  background-color: red; */
     height: 240px;
 }
 div.navi{
@@ -49,7 +49,7 @@ li{
     border-bottom: 1px dashed rgba(0,0,0,0.38);
 }
 span.userinfo a{
-    color: #6d90ee;    
+    color: #6d90ee;
     text-decoration: none;
 }
 span.userinfo{

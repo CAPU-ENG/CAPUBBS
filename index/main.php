@@ -60,7 +60,7 @@
     require_once '../lib.php';
     $res=checkuser_mysqli();
     $username=$res[0];
-    $rights=intval($res[1]); 
+    $rights=intval($res[1]);
 
 
     date_default_timezone_set("Asia/Shanghai");
@@ -319,7 +319,7 @@ echo '
         <h4 class="modal-title">北京大学自行车协会会歌 - 跋涉梦想</h4>
       </div>
       <div class="modal-body" style="background:black">
-          <video id="huige_video" preload="none" src="/assets/downloads/anthem.mp4" controls="controls" width="640" height="360" poster="/assets/images/huige.jpg" aria-describedby="full-descript">
+        <video id="huige_video" preload="none" src="/assets/downloads/anthem.mp4" controls="controls" width="640" height="360" poster="/assets/images/huige.jpg" aria-describedby="full-descript">
       <p class="text-center"><b>很遗憾，你的浏览器不支持视频播放:（<br>请换用 IE9+/chrome/safari 观看视频，或者直接<a href="/assets/downloads/CAPU_anthem.rmvb" target="_blank">下载观看</a>。</b></p>
     </video>
       </div>
@@ -365,8 +365,8 @@ echo '    <button type="button" class="close" onclick="closevideo('."'$i'".')"><
 echo '        <h4 class="modal-title">'.$video_title[$i].'</h4>';
 echo '      </div>';
 echo '      <div class="modal-body" style="background:black">';
-echo '        <video id="video_'.$i.'" src="'.$video[$i].'" poster="'.$video_poster[$i].'" controls="controls" preload="none" width="640" height="360" aria-describedby="full-descript">';
-echo '      <p class="text-center"><b>很遗憾，你的浏览器不支持视频播放:（<br>请换用 IE9+/chrome/safari 观看视频，或者直接下载高清版观看。</b></p></video></div>';echo '    <div class="modal-footer">';
+echo '      <video id="video_'.$i.'" src="'.$video[$i].'" poster="'.$video_poster[$i].'" controls="controls" preload="none" width="640" height="360" aria-describedby="full-descript">';
+echo '    <p class="text-center"><b>很遗憾，你的浏览器不支持视频播放:（<br>请换用 IE9+/chrome/safari 观看视频，或者直接下载高清版观看。</b></p></video></div>';echo '    <div class="modal-footer">';
 echo '        <a id="video_src_'.$i.'" href="'.$video_link[$i].'" target="_blank" type="button" class="btn btn-primary">下载高清版观看</a>';
 echo '        <button type="button" class="btn btn-default" onclick="closevideo('."'$i'".')">关闭</button></div> </div></div></div>';
 echo "\n";
@@ -384,9 +384,9 @@ echo "\n";
       <div class="form-group">
             <label class="col-md-2 control-label">标题</label>
             <div class="col-md-9">
-                <input type="text" class="form-control" id="inform_title" max-length="20">
+              <input type="text" class="form-control" id="inform_title" max-length="20">
             </div>
-        </div>
+      </div>
       <div class="form-group">
             <label class="col-md-2 control-label">链接</label>
             <div class="col-md-6">
@@ -412,7 +412,7 @@ echo "\n";
         <h4 class="modal-title">删除公告</h4>
       </div>
       <div class="modal-body">
-          <p>删除第<select id="inform_id" onchange="select_inform();"><option value="">&nbsp;</option>
+        <p>删除第<select id="inform_id" onchange="select_inform();"><option value="">&nbsp;</option>
     <?php
       for ($i=0;$i<$informnum;$i++)
         echo '<option value="'.$i.'">'.($i+1).'</option>';

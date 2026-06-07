@@ -42,7 +42,7 @@ div.main{
     overflow: hidden;
     margin-left: auto;
     margin-right: auto;
-/*     background-color: #CBD0E3; */
+/*  background-color: #CBD0E3; */
 }
 div.head{
     height: 200px;

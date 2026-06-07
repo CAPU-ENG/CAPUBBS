@@ -128,7 +128,6 @@ function translateforquote($raw,$ishtml){
     $html=preg_replace("#(\\[i])(.+?)(\\[/i])#", "<i>$2</i>", $html);
     return $html;
 }
-
 function translate_bbcode($html) {
     $html=preg_replace("#(\\[img])(.+?)(\\[/img])#", "<img src='$2'>", $html);
     $html=preg_replace_callback("#(\\[quote=)(.+?)(])([\\s\\S]+?)(\\[/quote])#", function($m){

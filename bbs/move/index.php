@@ -4,7 +4,7 @@
     $tid=$_GET['tid'];
     $p=$_GET['p'];
     $to=$_GET['to'];
-    
+
     $result=mainfunc(array(
         "ask"=>"move",
         "bid"=>$from,

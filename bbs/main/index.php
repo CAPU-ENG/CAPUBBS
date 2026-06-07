@@ -79,11 +79,11 @@ if($username!=""){
     echo("<div class='userinfo'>");
     echo("<a href='../user/?name=$username' target='_blank'>$username</a>");
     echo("&nbsp;等级：$star");
-    
+
     echo("<script type='text/javascript'>");
         echo("var star=".$star.";");
     echo("</script>");
-    
+
     if($msg==0){
         echo("&nbsp;<a href='../home' target='_blank'>个人中心</a>");
         echo("&nbsp;<a href='../favorite/'>我的收藏</a>");
@@ -251,7 +251,7 @@ function search_time_change() {
             echo("<td>$reply / $click</td>\n");
             echo("<td>".userhref($replyer?$replyer:$author)."<br><span class='date'>".formatstamp($info['timestamp'])."</span></td>\n</tr>\n");
         }
-    }    
+    }
 ?>
 </table>
 
@@ -572,7 +572,7 @@ function delattach(id){
         //r.open("GET", "../delattach/?id="+id , true);
         //r.send();
         //r.onreadystatechange=function(){
-        //    if(r.readyState==4&&r.status==200){
+        //  if(r.readyState==4&&r.status==200){
         $.post("../delattach/",{id:id},function(r) {
             var result=JSON.parse(r);
             if(result.code==0){
@@ -588,7 +588,7 @@ function delattach(id){
             }else{
                 alert(result.msg);
             }
-        });        
+        });
     }
 }
 function generateattach(filename,size,aid,useforappend){

@@ -75,9 +75,9 @@ div.editor{
     width: 800px;
     margin-left: auto;
     margin-right: auto;
-      height: auto; 
-      margin-top: 30px;
-      padding-bottom: 100px;
+    height: auto;
+    margin-top: 30px;
+    padding-bottom: 100px;
 }
 div#edi_content{
     width: 782px;
@@ -148,7 +148,7 @@ div.attachs{
     border-radius: 10px;
     overflow: hidden;
     width:100%;
-    border: 3px dashed white;    
+    border: 3px dashed white;
 }
 div.attach{
     overflow: hidden;
@@ -164,7 +164,7 @@ div.attach:hover{
 }
 div.attach a{
     text-decoration: none;
-    color: #6d90ee;    
+    color: #6d90ee;
 }
 div.attach a:hover{
     text-decoration: underline;
@@ -232,7 +232,7 @@ span.tip{
 
         ?>
         <div id="edi_bar"></div>
-        <div id="edi_content" onfocus="starttimer();" onblur="stoptimer();"><?php 
+        <div id="edi_content" onfocus="starttimer();" onblur="stoptimer();"><?php
             if($pidinfo['text']!="<br>") print $pidinfo['text'];
 ?></div><br>
         <progress max="100" value="20" id="progress"></progress>
@@ -279,7 +279,7 @@ span.tip{
 <script type="text/javascript">
     // var star=<?php echo $user['star'];?>;
     // if(star<0){
-    //     document.getElementById("edi_attach").style.visibility="hidden";
+    //  document.getElementById("edi_attach").style.visibility="hidden";
     // }
 </script>
 <script type="text/javascript" src="../lib/nic.js"></script>
@@ -404,7 +404,7 @@ function delattach(id){
             }else{
                 alert(result.msg);
             }
-        });    
+        });
     }
 }
 function packSize(size){

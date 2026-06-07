@@ -6,7 +6,7 @@
 <?php
     require_once '../lib.php';
     $res=checkuser_mysqli();
-    $username=$res[0];$rights=intval($res[1]); 
+    $username=$res[0];$rights=intval($res[1]);
 ?>
 </head>
 
@@ -58,11 +58,11 @@ echo '
         <h4 class="modal-title">编辑下载项</h4>
       </div>
       <div class="modal-body">
-          <p>请选择第<select id="edit_id" onchange="select_item();"><option value="">&nbsp;</option>
+        <p>请选择第<select id="edit_id" onchange="select_item();"><option value="">&nbsp;</option>
 <?php
-    for ($i=0;$i<$num;$i++) 
+    for ($i=0;$i<$num;$i++)
         echo '<option value="'.$i.'">'.($i+1).'</option>';
-?>    
+?>
 </select>个下载项，若为空则代表添加新项目</p>
     <hr>
     <form class="form-horizontal" role="form">

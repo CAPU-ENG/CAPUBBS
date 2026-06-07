@@ -34,12 +34,12 @@ if($username!=""){
     echo("<div class='userinfo'>");
     echo("<a href='/bbs/user/?name=$username' target='_blank'>$username</a>");
     echo("&nbsp;等级：$star");
-    
+
     echo("<script type='text/javascript'>");
     echo("var score=".$userinfo['score'].";");
     echo("var star=".$star.";");
     echo("</script>");
-    
+
     if($msg==0){
         echo("&nbsp;<a href='/bbs/home' target='_blank'>个人中心</a>");
     }else{
@@ -209,7 +209,7 @@ function delattach(id){
             }else{
                 alert(result.msg);
             }
-        });        
+        });
     }
 }
 function generateattach(filename,size,aid,useforappend){

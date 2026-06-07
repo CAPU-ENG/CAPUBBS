@@ -2,7 +2,7 @@
     include "../lib/mainfunc.php";
     header("Content-type:text/html;charset=utf-8");
     date_default_timezone_set('Asia/Shanghai');
-    
+
     echo '<title>签到统计</title>'."\n";
     $date=@$_GET['view'];
     $time=strtotime($date." 00:00:00");

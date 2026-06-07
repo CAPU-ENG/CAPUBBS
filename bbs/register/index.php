@@ -68,7 +68,7 @@ div.switch_left{
 }
 div.switch_right{
     border-top-right-radius: 10px;
-    border-bottom-right-radius: 10px;    
+    border-bottom-right-radius: 10px;
     border-right: 1px solid white;
 }
 .selected{
@@ -104,7 +104,7 @@ div#strength{
     height: 13px;
     border-radius: 10px;
     background-color: white;
-/*     overflow: hidden; */
+/*  overflow: hidden; */
     display: none;
     float: left;
 }

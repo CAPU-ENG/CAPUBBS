@@ -58,7 +58,7 @@ a:hover#top{font-weight:bold}
         if ($board==null) $board="";
         if ($board!="") {
             $board=intval($board);
-            $board=$boardmap[$board];    
+            $board=$boardmap[$board];
         }
         echo '<td>'.$board.'</td>';
         $type=$nowonlines[$i]['onlinetype'];
@@ -97,8 +97,8 @@ a:hover#top{font-weight:bold}
     }
 
 
-    function getBrowser($u_agent) 
-    { 
+    function getBrowser($u_agent)
+    {
         $bname = 'Unknown';
         $platform = 'Unknown';
         $version= "";
@@ -127,11 +127,11 @@ a:hover#top{font-weight:bold}
                     $platform.=" 4.0.3";
                 else if (preg_match('/Android 4.0/',$u_agent))
                     $platform.=" 4.0";
-                    
+
             }else{
                 $platform = 'linux';
             }
-            
+
         }
         elseif (preg_match('/macintosh|mac os x/i', $u_agent)) {
             if(preg_match('/iphone/i', $u_agent)){
@@ -155,47 +155,47 @@ a:hover#top{font-weight:bold}
             if (preg_match('/WOW64/i', $u_agent) || preg_match('/x64/i', $u_agent)) { $platform .= ' (x64)'; }
         }
     //echo($u_agent.":".preg_match('/Safari/i',$u_agent));
-        if(preg_match('/MSIE/i',$u_agent) && !preg_match('/Opera/i',$u_agent)) 
-        { 
-            $bname = 'Internet Explorer'; 
+        if(preg_match('/MSIE/i',$u_agent) && !preg_match('/Opera/i',$u_agent))
+        {
+            $bname = 'Internet Explorer';
             $ub = "MSIE";
         }elseif(preg_match('/rv:11/i',$u_agent)){
             $bname = 'Internet Explorer';
             $ub = "MSIE";
             $version="11";
         }
-        elseif(preg_match('/Firefox/i',$u_agent)) 
+        elseif(preg_match('/Firefox/i',$u_agent))
         {
-            $bname = 'Mozilla Firefox'; 
-            $ub = "Firefox"; 
+            $bname = 'Mozilla Firefox';
+            $ub = "Firefox";
         }
-        elseif(preg_match('/Chrome/i',$u_agent)) 
+        elseif(preg_match('/Chrome/i',$u_agent))
         {
-            $bname = 'Google Chrome'; 
-            $ub = "Chrome"; 
+            $bname = 'Google Chrome';
+            $ub = "Chrome";
         }
-        elseif(preg_match('/Safari/i',$u_agent)) 
+        elseif(preg_match('/Safari/i',$u_agent))
         {
-            $bname = 'Apple Safari'; 
+            $bname = 'Apple Safari';
             $ub = "Safari";
         }
-        elseif(preg_match('/Opera/i',$u_agent)) 
+        elseif(preg_match('/Opera/i',$u_agent))
         {
-            $bname = 'Opera'; 
+            $bname = 'Opera';
             $ub = "Opera";
         }
-        elseif(preg_match('/Netscape/i',$u_agent)) 
-        { 
-            $bname = 'Netscape'; 
-            $ub = "Netscape"; 
-        } 
-    
+        elseif(preg_match('/Netscape/i',$u_agent))
+        {
+            $bname = 'Netscape';
+            $ub = "Netscape";
+        }
+
         $known = array('Version', $ub, 'other');
         $pattern = '#(?<browser>' . join('|', $known) .
             ')[/ ]+(?<version>[0-9.|a-zA-Z.]*)#';
         if (!preg_match_all($pattern, $u_agent, $matches)) {
         }
-    
+
         $i = count($matches['browser']);
         if ($ub!="MSIE" && $version!="11") {
         if ($i != 1) {

@@ -114,7 +114,7 @@
                 echo '&nbsp;在帖子 <a href="'.$url.'" target="_blank">'.$title.'</a> 中引用了您的文章';
             }
             echo '<br><span class="lzltime">'.$time.'</span></div></td></tr>';
-            
+
         }
         if ($page!=1 || $page!=$pages) {
             echo '<tr><td align="center">';
@@ -124,7 +124,7 @@
             if ($page!=1 && $page!=$pages) echo '&nbsp;&nbsp;';
             if ($page!=$pages) {
                 echo '<a href="message.php?type=system&p='.($page+1).'">下一页</a>';
-                
+
             }
             echo '</td></tr>';
         }
@@ -195,7 +195,7 @@
         else {
             echo '<div class="talk_recordbox">';
             echo '<div class="user"><img src="'.$hisicon.'" class="lzlicon"></div>';
-            
+
         }
         echo '<div class="talk_recordtextbg">&nbsp;</div>';
         echo '<div class="talk_recordtext"><pre>'.$text.'</pre><span class="talk_time">'.$time.'</span></div>';
@@ -218,7 +218,7 @@ function sendto() {
     var text=$('#msg_ta').val();
     if (user=="") {alert("ID不能为空！");$('#msg_to').focus();return;}
     if (text=="") {alert("内容不能为空！");$('#msg_ta').focus();return;}
-    confirmsendto(user,text);    
+    confirmsendto(user,text);
 }
 <?php
 }

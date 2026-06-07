@@ -167,7 +167,7 @@ function getUsernameOptionValue($username, $activity_id) {
         $row_join_id = mysqli_fetch_array($results);
         $join_id = $row_join_id["join_id"];
         $post_fid = $row_join_id["post_fid"];
-        
+
         $statement = "select join_id from season_activity_join
             where activity_id=$activity_id and username='$username'";
         $results = mysqli_query($con, $statement);
@@ -180,7 +180,7 @@ function getUsernameOptionValue($username, $activity_id) {
         while ($row = mysqli_fetch_array($results)) {
             $ret[$row["option_id"]] = $row["value"];
         }
-        
+
         $statement = "select sig from posts where fid=$post_fid";
         $results = mysqli_query($con, $statement);
         $row = mysqli_fetch_array($results);
@@ -203,7 +203,7 @@ function getActivity($bid, $tid) {
         from season_threads_activity 
         where bid=$bid and tid=$tid";
     $result_activity = mysqli_query($con, $statement);
-    
+
     if ($result_activity and $row_activity = mysqli_fetch_array($result_activity)) {
         $activity_id = $row_activity["activity_id"];
         $season_id = $row_activity["season_id"];

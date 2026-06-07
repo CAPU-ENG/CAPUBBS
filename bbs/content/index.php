@@ -29,7 +29,7 @@
     checkUserAndSign($con, $ip, $token);
     $data = getOnePage($con, $bid, $tid, $page, $see_lz, $ip, $token);
     $tdata = getTidInfo($con, $bid, $tid);
-    
+
     $floordata="";
     if ($see_lz!="") {
         $floordata=mainfunc(array("bid"=>$bid,"tid"=>$tid,"ask"=>"getlznum"));
@@ -86,7 +86,7 @@
         回复&nbsp;<?php echo($tdata['reply']) ?>
         </span>
     </div>
-    
+
     <div class="top">
         <div class="navigation"><div class="back" onclick="goback();"><span style="margin-left:32px;"><b>返回</b></span></div>
         <span style="float:left;margin-left:20px;"> 
@@ -339,9 +339,9 @@ for($i=0;$i<count(@$data);$i++){
     echo("</div>\n");
     echo("</div>\n");
     echo("</div>\n");
-    
+
     echo("<tr class='white'><td><div class='white'></div></td></tr>\n");
-    
+
 }
 ?>
         </table>
@@ -366,7 +366,7 @@ if ($canreply) {echo '
             <div id="edi_content" onfocus="editorFocus();" onblur="editorBlur();"></div>
             <br>
 ';
-if ($rights>=0 || $star>=0)    echo '
+if ($rights>=0 || $star>=0) echo '
             <div id="edi_attach" onclick="attach();">添加附件</div>
             <input type="file" id="file" style="display:none;" onchange="fileselected();"> ';
 echo '

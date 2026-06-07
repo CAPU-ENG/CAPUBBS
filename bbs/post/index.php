@@ -26,7 +26,7 @@
             echo $result['msg'];
         }
     }else{
-        
+
         $result=mainfunc(array(
         "ask"=>"reply",
         "bid"=>$bid,
@@ -45,7 +45,7 @@
             //header("Content-type: text/html; charest=utf-8");
             //echo '<html><head><script>alert(\''.$result['msg'].'\');window.history.back();</script></head></html>';
             echo $result['msg'];
-        }        
+        }
     }
-    
+
 ?>
