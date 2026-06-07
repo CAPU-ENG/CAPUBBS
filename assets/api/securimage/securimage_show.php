@@ -44,8 +44,9 @@
  *
  */
 
-// Remove the "//" from the following line for debugging problems
-// error_reporting(E_ALL); ini_set('display_errors', 1);
+// PHP 8 兼容：关闭 deprecated 警告，避免污染图片二进制输出
+error_reporting(E_ALL & ~E_DEPRECATED & ~E_NOTICE);
+ini_set('display_errors', 0);
 
 require_once dirname(__FILE__) . '/securimage.php';
 

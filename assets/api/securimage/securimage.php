@@ -3,7 +3,7 @@
 require_once $_SERVER['DOCUMENT_ROOT'] . "/config.php";
 
 // error_reporting(E_ALL); ini_set('display_errors', 1); // uncomment this line for debugging
-error_reporting(E_ALL & ~E_NOTICE);
+error_reporting(E_ALL & ~E_NOTICE & ~E_DEPRECATED);
 /**
  * Project:  Securimage: A PHP class dealing with CAPTCHA images, audio, and validation
  * File:     securimage.php
@@ -317,6 +317,12 @@ class Securimage {
      * @var Securimage_Color
      */
     public $noise_color = '#707070';
+
+    /**
+     * GD noise color resource (PHP 8.2+ dynamic property fix)
+     * @var mixed
+     */
+    public $gdnoisecolor;
 
     /**
      * How transparent to make the text.
@@ -1726,8 +1732,8 @@ class Securimage {
                 $x *= $this->iscale;
                 $y *= $this->iscale;
                 if ($x >= 0 && $x < $width2 && $y >= 0 && $y < $height2) {
-                    error_reporting(E_ALL & ~E_NOTICE);
-                    $c = imagecolorat($this->tmpimg, $x, $y);
+                    error_reporting(E_ALL & ~E_NOTICE & ~E_DEPRECATED);
+		            $c = imagecolorat($this->tmpimg, $x, $y);
                 }
                 if ($c != $bgCol) { // only copy pixels of letters to preserve any background image
                     imagesetpixel($this->im, $ix, $iy, $c);
@@ -1903,8 +1909,8 @@ class Securimage {
 
             $length = strlen($code['display']);
 
-            for ($i = 0; $i < $length; ++$i) {
-                $letter = $code['display']{$i};
+            for($i = 0; $i < $length; ++$i) {
+                $letter    = $code['display'][$i];
                 $letters[] = $letter;
             }
         }

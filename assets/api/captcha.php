@@ -4,17 +4,20 @@
 
     if (@$_POST['ask']=="check") echo captcha_check();
 
-    function captcha_check($code="",$auto=true) {
-        session_start();
-        if ($code=="") $code=@$_POST['captcha'];
-        $securimage = new Securimage();
-        if ($securimage->check($code) == false) {
-            if ($auto) {
-                echo '-44';
-                exit;
-            }
-            else return -1;
-        }
-        else return 0;
-    }
+	function captcha_check($code="",$auto=true) {
+		if ( session_id() == '' ) {
+			session_name('capucaptcha');
+			session_start();
+		}
+		if ($code=="") $code=@$_POST['captcha'];
+		$securimage = new Securimage();
+		if ($securimage->check($code) == false) {
+			if ($auto) {
+				echo '-44';
+				exit;
+			}
+			else return -1;
+		}
+		else return 0;
+	}
 ?>
