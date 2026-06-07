@@ -89,6 +89,10 @@ class ApiError {
      */
     public static function fromLegacy($legacyCode) {
         $legacyCode = intval($legacyCode);
+        // Codes >= 2100 are already in the new format, pass through
+        if ($legacyCode >= 2100) {
+            return $legacyCode;
+        }
         $map = [
             0   => self::SUCCESS,
             -1  => self::BAD_REQUEST,

@@ -93,6 +93,7 @@ return array(
     'muteEmail'             => 'new',
     'unmuteEmail'           => 'new',
     'listEmailMutes'        => 'new',
+    'toggleEmailVisible'    => 'new',
 
     // -- Special paths (no $ask) --
     '__view'            => 'new',

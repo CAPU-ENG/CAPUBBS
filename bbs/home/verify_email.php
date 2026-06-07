@@ -21,6 +21,9 @@ $mail = isset($userinfo['mail']) ? $userinfo['mail'] : '';
 $verified = isset($userinfo['verified']) ? intval($userinfo['verified']) : 0;
 $is_pku_email = preg_match('/^\d{10}@(.+\.)*pku\.edu\.cn$/i', $mail)
     || preg_match('/^\d{10}@bjmu\.edu\.cn$/i', $mail);
+$no_email = empty($mail);
+$email_visible_val = isset($userinfo['email_visible']) ? intval($userinfo['email_visible']) : 0;
+$need_change = $no_email || !$is_pku_email;
 ?>
 <html>
 <head>
@@ -29,128 +32,251 @@ $is_pku_email = preg_match('/^\d{10}@(.+\.)*pku\.edu\.cn$/i', $mail)
 <script src="../lib/jquery.min.js"></script>
 <script src="/assets/js/api.js"></script>
 <style>
-    .verify-container { max-width: 500px; margin: 40px auto; font-family: "Microsoft YaHei", sans-serif; }
-    .verify-box { background: #fff; border-radius: 8px; padding: 30px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
-    .verify-box h3 { margin: 0 0 20px; color: #444; text-align: center; }
-    .verify-status { text-align: center; padding: 20px; }
-    .verified-badge { display: inline-block; background: #4CAF50; color: #fff; padding: 8px 20px; border-radius: 20px; font-size: 15px; }
-    .unverified-badge { display: inline-block; background: #FF9800; color: #fff; padding: 8px 20px; border-radius: 20px; font-size: 15px; }
-    .no-email-badge { display: inline-block; background: #f44336; color: #fff; padding: 8px 20px; border-radius: 20px; font-size: 15px; }
-    .invalid-badge { display: inline-block; background: #f44336; color: #fff; padding: 8px 20px; border-radius: 20px; font-size: 15px; }
-    .form-group { margin: 15px 0; }
-    .form-group label { display: block; margin-bottom: 5px; color: #666; font-size: 13px; }
-    .form-group input[type="text"] { width: 100%; padding: 8px 12px; border: 1px solid #ddd; border-radius: 4px; font-size: 14px; box-sizing: border-box; }
-    .btn { display: inline-block; padding: 8px 20px; border: none; border-radius: 4px; cursor: pointer; font-size: 14px; }
-    .btn-primary { background: #337ab7; color: #fff; }
-    .btn-primary:disabled { background: #ccc; cursor: not-allowed; }
-    .msg { margin-top: 10px; font-size: 13px; }
-    .msg-success { color: #4CAF50; }
-    .msg-error { color: #f44336; }
-    .email-display { font-size: 16px; color: #333; word-break: break-all; }
-    .countdown { color: #999; font-size: 12px; margin-left: 10px; }
+body {
+    background-color: #ABC9B6;
+    background-position: center top;
+    background-repeat: no-repeat;
+    margin: 0;
+}
+div.main {
+    width: 600px;
+    margin-left: auto;
+    margin-right: auto;
+    padding: 20px;
+}
+div.tag {
+    text-align: center;
+    color: #777777;
+    font-size: 22px;
+    letter-spacing: 5px;
+}
+hr {
+    width: 60%;
+}
+table.content {
+    width: 500px;
+    margin-left: auto;
+    margin-right: auto;
+}
+td.left {
+    text-align: right;
+    width: 100px;
+}
+td.right {
+    text-align: left;
+    width: 250px;
+}
+input[type="text"] {
+    width: 200px;
+    height: 23px;
+    border-radius: 10px;
+    outline: none;
+    padding-left: 10px;
+    background-color: #faffd7;
+}
+input[readonly] {
+    background: #eee;
+}
+input[type="button"] {
+    width: auto;
+    font-size: 12px;
+}
+table.content tr {
+    height: 35px;
+}
 </style>
 </head>
 <body>
-<div class="verify-container">
-<div class="verify-box">
-<h3>邮箱验证</h3>
+<div class="main">
+<div class="tag">邮箱管理</div>
+<hr>
+<table class="content">
 
-<?php if (empty($mail)): ?>
-    <div class="verify-status">
-        <span class="no-email-badge">未设置邮箱</span>
-        <p style="color:#666;margin-top:15px;">请先前往 <a href="../edituser/" target="_blank">编辑资料</a> 页面设置邮箱。</p>
-    </div>
-<?php elseif ($verified): ?>
-    <div class="verify-status">
-        <span class="verified-badge">已验证</span>
-        <p class="email-display" style="margin-top:15px;"><?php echo htmlspecialchars($mail); ?></p>
-    </div>
-<?php elseif (!$is_pku_email): ?>
-    <div class="verify-status">
-        <span class="invalid-badge">邮箱格式不正确</span>
-        <p class="email-display" style="margin-top:15px;"><?php echo htmlspecialchars($mail); ?></p>
-        <p style="color:#f44336;margin-top:15px;">当前邮箱不是有效的北大邮箱（需为 学号@*.pku.edu.cn 或 学号@bjmu.edu.cn 格式）。</p>
-        <p style="color:#666;margin-top:10px;">请前往 <a href="../edituser/" target="_blank">编辑资料</a> 页面更换邮箱。</p>
-    </div>
-<?php else: ?>
-    <div class="verify-status">
-        <span class="unverified-badge" id="statusBadge">未验证</span>
-        <p class="email-display" style="margin-top:15px;" id="emailDisplay">
-            <?php
-            // 脱敏显示邮箱
-            $parts = explode('@', $mail);
-            if (count($parts) == 2) {
-                $name = $parts[0];
-                $domain = $parts[1];
-                $masked = substr($name, 0, 1) . str_repeat('*', max(strlen($name) - 1, 0));
-                echo htmlspecialchars($masked . '@' . $domain);
-            } else {
-                echo htmlspecialchars($mail);
-            }
-            ?>
-        </p>
-    </div>
+<tr>
+    <td class="left"><span>当前邮箱：</span></td>
+    <td class="right">
+        <input type="text" value="<?php echo htmlspecialchars($mail); ?>" readonly>
+        <?php if ($no_email): ?>
+            <span style="color:#f44336;font-size:12px;margin-left:8px;">未设置</span>
+        <?php elseif ($verified): ?>
+            <span style="color:#4CAF50;font-size:12px;margin-left:8px;">已验证</span>
+        <?php elseif (!$is_pku_email): ?>
+            <span style="color:#f44336;font-size:12px;margin-left:8px;">格式不正确</span>
+        <?php else: ?>
+            <span style="color:#FF9800;font-size:12px;margin-left:8px;">未验证</span>
+        <?php endif; ?>
+    </td>
+</tr>
 
-    <div class="form-group">
-        <label>验证码</label>
-        <input type="text" id="verifyCode" placeholder="请输入邮箱中的6位验证码" maxlength="6" style="width:150px;">
-        <button class="btn btn-primary" id="sendBtn" onclick="sendCode()">发送验证码</button>
-        <span class="countdown" id="countdown"></span>
-    </div>
-    <button class="btn btn-primary" onclick="verify()">验证</button>
-    <div class="msg" id="msg"></div>
+<tr id="emailChangeRow" style="<?php echo $need_change ? '' : 'display:none;'; ?>">
+    <td class="left"><span id="changeLabel"><?php echo $no_email ? '设置邮箱：' : '新邮箱：'; ?></span></td>
+    <td class="right">
+        <input type="text" id="newEmail" placeholder="输入PKU邮箱">
+        <input type="button" value="发送验证码" id="changeSendBtn" onclick="sendChangeCode()">
+        <span id="changeCountdown" style="font-size:12px;color:#999;margin-left:4px;"></span>
+        <br><input type="text" id="changeCode" placeholder="6位验证码" maxlength="6" style="width:100px;margin-top:4px;">
+        <input type="button" value="确认更换" id="changeVerifyBtn" onclick="verifyChangeEmail()" style="margin-top:4px;">
+        <span id="changeMsg" style="font-size:12px;margin-left:8px;"></span>
+    </td>
+</tr>
+
+<?php if (!$no_email): ?>
+<tr id="changeLinkRow" style="<?php echo $need_change ? 'display:none;' : ''; ?>">
+    <td></td>
+    <td class="right">
+        <a href="javascript:showEmailChange()" style="font-size:12px;">更换邮箱</a>
+    </td>
+</tr>
 <?php endif; ?>
-</div>
+
+<?php if (!$no_email && !$verified && $is_pku_email): ?>
+<tr>
+    <td class="left"><span>验证邮箱：</span></td>
+    <td class="right">
+        <input type="text" id="verifyCode" placeholder="6位验证码" maxlength="6" style="width:100px;">
+        <input type="button" value="发送验证码" id="sendBtn" onclick="sendCode()">
+        <span id="countdown" style="font-size:12px;color:#999;margin-left:4px;"></span>
+        <br><input type="button" value="验证" onclick="verify()" style="margin-top:4px;">
+        <span id="msg" style="font-size:12px;margin-left:8px;"></span>
+    </td>
+</tr>
+<?php endif; ?>
+
+<?php if (!$no_email): ?>
+<tr>
+    <td class="left"><span>邮箱公开：</span></td>
+    <td class="right">
+        <label style="width:initial;">
+            <input type="checkbox" id="emailVisible" value="1" <?php echo $email_visible_val ? 'checked' : ''; ?> onchange="toggleEmailVisible()" style="width:initial;">
+            在个人主页公开显示邮箱
+        </label>
+        <span id="visibleMsg" style="font-size:12px;margin-left:8px;"></span>
+    </td>
+</tr>
+<?php endif; ?>
+
+</table>
 </div>
 
 <script>
+var changeTimer = null;
 var countdownTimer = null;
 var countdownNum = 0;
 
-function sendCode() {
-    var btn = $('#sendBtn');
-    if (btn.prop('disabled')) return;
-    btn.prop('disabled', true);
-    $('#msg').removeClass('msg-error msg-success').text('发送中...');
+function showEmailChange() {
+    $('#emailChangeRow').toggle();
+    $('#changeLinkRow').toggle();
+    if ($('#emailChangeRow').is(':visible')) {
+        $('#changeLabel').text('新邮箱：');
+    }
+}
 
-    API.call('sendVerifyCode', { type: 'verify_existing' })
+function sendChangeCode() {
+    var email = $('#newEmail').val().trim();
+    if (!/^\d{10}@((.+\.)*pku\.edu\.cn|bjmu\.edu\.cn)$/i.test(email)) {
+        $('#changeMsg').css('color','#f44336').text('请输入正确的邮箱地址（学号@*.pku.edu.cn 或 学号@bjmu.edu.cn）。');
+        return;
+    }
+    if (email === '<?php echo htmlspecialchars($mail, ENT_QUOTES); ?>') {
+        $('#changeMsg').css('color','#f44336').text('新邮箱与当前邮箱相同，无需更换。');
+        return;
+    }
+
+    var btn = $('#changeSendBtn');
+    btn.prop('disabled', true);
+    $('#changeMsg').css('color','#666').text('发送中...');
+
+    API.call('sendVerifyCode', { type: 'change_email', new_email: email }, { silent: true })
         .done(function(resp) {
             if (resp.code === 0) {
-                $('#msg').addClass('msg-success').text('验证码已发送，请检查邮箱。');
-                startCountdown(60);
+                $('#changeMsg').css('color','#4CAF50').text(resp.message || '验证码已发送。');
+                var sec = 60;
+                if (changeTimer) clearInterval(changeTimer);
+                changeTimer = setInterval(function() {
+                    sec--;
+                    if (sec <= 0) {
+                        clearInterval(changeTimer);
+                        $('#changeCountdown').text('');
+                        btn.prop('disabled', false);
+                    } else {
+                        $('#changeCountdown').text('(' + sec + 's)');
+                    }
+                }, 1000);
             } else {
-                $('#msg').addClass('msg-error').text(resp.message || resp.msg || '发送失败');
+                $('#changeMsg').css('color','#f44336').text(resp.message || resp.msg || '发送失败');
                 btn.prop('disabled', false);
             }
         })
         .fail(function(err) {
-            $('#msg').addClass('msg-error').text(err.message || '网络错误，请重试。');
+            $('#changeMsg').css('color','#f44336').text('[' + (err.code || '?') + '] ' + (err.message || '网络错误'));
+            btn.prop('disabled', false);
+        });
+}
+
+function verifyChangeEmail() {
+    var code = $('#changeCode').val().trim();
+    if (!code || code.length !== 6) {
+        $('#changeMsg').css('color','#f44336').text('请输入6位验证码。');
+        return;
+    }
+
+    $('#changeMsg').css('color','#666').text('验证中...');
+
+    API.call('verifyEmail', { code: code, type: 'change_email' }, { silent: true })
+        .done(function(resp) {
+            if (resp.code === 0) {
+                $('#changeMsg').css('color','#4CAF50').text('邮箱设置成功！');
+                setTimeout(function() { location.reload(); }, 800);
+            } else {
+                $('#changeMsg').css('color','#f44336').text('[' + (resp.code || '?') + '] ' + (resp.message || resp.msg || '验证失败'));
+            }
+        })
+        .fail(function(err) {
+            $('#changeMsg').css('color','#f44336').text('[' + (err.code || '?') + '] ' + (err.message || '网络错误'));
+        });
+}
+
+<?php if (!$no_email && !$verified && $is_pku_email): ?>
+function sendCode() {
+    var btn = $('#sendBtn');
+    if (btn.prop('disabled')) return;
+    btn.prop('disabled', true);
+    $('#msg').css('color','#666').text('发送中...');
+
+    API.call('sendVerifyCode', { type: 'verify_existing' })
+        .done(function(resp) {
+            if (resp.code === 0) {
+                $('#msg').css('color','#4CAF50').text('验证码已发送，请检查邮箱。');
+                startCountdown(60);
+            } else {
+                $('#msg').css('color','#f44336').text(resp.message || resp.msg || '发送失败');
+                btn.prop('disabled', false);
+            }
+        })
+        .fail(function(err) {
+            $('#msg').css('color','#f44336').text(err.message || '网络错误，请重试。');
             btn.prop('disabled', false);
         });
 }
 
 function verify() {
     var code = $('#verifyCode').val().trim();
-    if (!code) { $('#msg').addClass('msg-error').text('请输入验证码。'); return; }
-    if (code.length !== 6) { $('#msg').addClass('msg-error').text('验证码为6位数字。'); return; }
+    if (!code) { $('#msg').css('color','#f44336').text('请输入验证码。'); return; }
+    if (code.length !== 6) { $('#msg').css('color','#f44336').text('验证码为6位数字。'); return; }
 
-    $('#msg').removeClass('msg-error msg-success').text('验证中...');
+    $('#msg').css('color','#666').text('验证中...');
 
     API.call('verifyEmail', { code: code, type: 'verify_existing' })
         .done(function(resp) {
             if (resp.code === 0) {
-                $('#msg').addClass('msg-success').text('验证成功！');
-                $('#statusBadge').removeClass('unverified-badge').addClass('verified-badge').text('已验证');
-                $('#sendBtn').hide();
-                $('#verifyCode').hide();
-                $('#countdown').hide();
-                $('#emailDisplay').text('<?php echo htmlspecialchars($mail); ?>');
+                $('#msg').css('color','#4CAF50').text('验证成功！');
+                setTimeout(function() { location.reload(); }, 800);
             } else {
-                $('#msg').addClass('msg-error').text(resp.message || resp.msg || '验证失败');
+                $('#msg').css('color','#f44336').text(resp.message || resp.msg || '验证失败');
             }
         })
         .fail(function(err) {
-            $('#msg').addClass('msg-error').text(err.message || '网络错误，请重试。');
+            $('#msg').css('color','#f44336').text(err.message || '网络错误，请重试。');
         });
 }
 
@@ -171,6 +297,26 @@ function startCountdown(sec) {
 
 function updateCountdown() {
     $('#countdown').text('(' + countdownNum + 's后重新发送)');
+}
+<?php endif; ?>
+
+function toggleEmailVisible() {
+    var visible = $('#emailVisible').is(':checked') ? 1 : 0;
+    $('#visibleMsg').css('color','#666').text('...');
+    API.call('toggleEmailVisible', { email_visible: visible }, { silent: true })
+        .done(function(resp) {
+            if (resp.code === 0) {
+                $('#visibleMsg').css('color','#4CAF50').text('已更新');
+                setTimeout(function() { $('#visibleMsg').text(''); }, 1500);
+            } else {
+                $('#visibleMsg').css('color','#f44336').text('更新失败');
+                $('#emailVisible').prop('checked', !$('#emailVisible').is(':checked'));
+            }
+        })
+        .fail(function() {
+            $('#visibleMsg').css('color','#f44336').text('网络错误');
+            $('#emailVisible').prop('checked', !$('#emailVisible').is(':checked'));
+        });
 }
 
 $(function() {

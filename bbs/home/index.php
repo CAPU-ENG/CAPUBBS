@@ -134,7 +134,7 @@ if($username!=""){
         if($msg!=0) echo("<font color='#AA0000'>($msg)</font>");
 ?></a></li>
 <?php if (CAPUBBS_ENABLE_EMAIL_VERIFY): ?>
-<li><a href='javascript:setframe("verify_email");'>邮箱验证</a></li>
+<li><a href='javascript:setframe("verify_email");'>邮箱管理</a></li>
 <?php endif; ?>
 <li><a href='javascript:setframe("security");'>账号安全</a></li>
 <li><a href='../logout'>登出</a></li>

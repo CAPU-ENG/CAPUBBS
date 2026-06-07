@@ -90,6 +90,7 @@ function _dispatch_build_routes() {
         'muteEmail'        => array('handler' => null, 'check_login' => true,  'require_rights' => 1, 'check_board_mod' => true),
         'unmuteEmail'      => array('handler' => null, 'check_login' => true,  'require_rights' => 1, 'check_board_mod' => true),
         'listEmailMutes'   => array('handler' => null, 'check_login' => true,  'require_rights' => 1, 'check_board_mod' => true),
+        'toggleEmailVisible' => array('handler' => null, 'check_login' => true,  'require_rights' => 0),
 
         // ================================================================
         // Login + board moderator OR self-service (function-level auth)
@@ -354,6 +355,7 @@ function jiekoufunc_dispatch($con, $params) {
     if ($ask == "muteEmail")             return jiekoufunc_muteEmail($con, $token, $params);
     if ($ask == "unmuteEmail")           return jiekoufunc_unmuteEmail($con, $token, $params);
     if ($ask == "listEmailMutes")        return jiekoufunc_listEmailMutes($con, $token);
+    if ($ask == "toggleEmailVisible")    return jiekoufunc_toggleEmailVisible($con, $token, $params);
 
     // === Dispatch by $view (no $ask) ===
     if ($view != "") {

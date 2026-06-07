@@ -933,7 +933,7 @@ function jiekoufunc_edituser($con, $token, $ip, $params) {
     $sig3 = isset($params['sig3']) ? mysqli_real_escape_string($con, sanitize_xml($params['sig3'])) : '';
     $intro = isset($params['intro']) ? mysqli_real_escape_string($con, sanitize_xml($params['intro'])) : '';
     $mail = isset($params['mail']) ? mysqli_real_escape_string($con, sanitize_xml($params['mail'])) : '';
-    $email_visible = isset($params['email_visible']) ? intval($params['email_visible']) : 0;
+    $email_visible = isset($params['email_visible']) ? intval($params['email_visible']) : (isset($a['email_visible']) ? intval($a['email_visible']) : 0);
     $place = isset($params['place']) ? mysqli_real_escape_string($con, sanitize_xml($params['place'])) : '';
     $hobby = isset($params['hobby']) ? mysqli_real_escape_string($con, sanitize_xml($params['hobby'])) : '';
     $qq = isset($params['qq']) ? mysqli_real_escape_string($con, sanitize_xml($params['qq'])) : '';
@@ -1905,6 +1905,9 @@ function jiekoufunc_sendVerifyCode($con, $token, $params) {
         if (empty($target_email)) {
             return jiekoufunc_report('3', '缺少新邮箱地址。');
         }
+        if ($target_email === $user['mail']) {
+            return jiekoufunc_report('3', '新邮箱与当前邮箱相同，无需更换。');
+        }
     } else {
         $username_esc = mysqli_real_escape_string($con, $username);
         $res = mysqli_fetch_array(mysqli_query($con,
@@ -2198,4 +2201,21 @@ function jiekoufunc_listEmailMutes($con, $token) {
         $infos[] = $info;
     }
     return $infos;
+}
+
+function jiekoufunc_toggleEmailVisible($con, $token, $params) {
+    $a = jiekoufunc_token2user($con, $token);
+    if (!$a) {
+        return array(array('code' => '1', 'msg' => '会话超时，请重新登录。'));
+    }
+    $username = $a['username'];
+    $username_esc = mysqli_real_escape_string($con, $username);
+    $email_visible = isset($params['email_visible']) ? intval($params['email_visible']) : 0;
+
+    $statement = "update userinfo set email_visible=$email_visible where username='$username_esc'";
+    mysqli_query($con, $statement);
+    if (mysqli_error($con)) {
+        return array(array('code' => '1', 'error' => mysqli_error($con)));
+    }
+    return array(array('code' => '0'));
 }
