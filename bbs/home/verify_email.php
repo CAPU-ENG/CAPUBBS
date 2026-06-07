@@ -208,7 +208,7 @@ function sendChangeCode() {
             }
         })
         .fail(function(err) {
-            $('#changeMsg').css('color','#f44336').text('[' + (err.code || '?') + '] ' + (err.message || '网络错误'));
+            $('#changeMsg').css('color','#f44336').text(err.message || '网络错误，请重试。');
             btn.prop('disabled', false);
         });
 }
@@ -228,11 +228,11 @@ function verifyChangeEmail() {
                 $('#changeMsg').css('color','#4CAF50').text('邮箱设置成功！');
                 setTimeout(function() { location.reload(); }, 800);
             } else {
-                $('#changeMsg').css('color','#f44336').text('[' + (resp.code || '?') + '] ' + (resp.message || resp.msg || '验证失败'));
+                $('#changeMsg').css('color','#f44336').text(resp.message || resp.msg || '验证失败');
             }
         })
         .fail(function(err) {
-            $('#changeMsg').css('color','#f44336').text('[' + (err.code || '?') + '] ' + (err.message || '网络错误'));
+            $('#changeMsg').css('color','#f44336').text(err.message || '网络错误，请重试。');
         });
 }
 
