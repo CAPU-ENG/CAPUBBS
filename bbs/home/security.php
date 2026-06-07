@@ -26,6 +26,7 @@ window.onload=function(){
 <h2 align="center">修改密码</h2>
 <?php
 include_once "../../config.php";
+include_once "../lib/mainfunc.php";
 if (CAPUBBS_ENABLE_EMAIL_VERIFY) {
     $userinfo = mainfunc(array("ask" => "currentUserInfo"));
     if (!empty($userinfo)) {
