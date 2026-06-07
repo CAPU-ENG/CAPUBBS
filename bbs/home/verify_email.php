@@ -70,7 +70,7 @@ $is_pku_email = preg_match('/^\d{10}@(.+\.)*pku\.edu\.cn$/i', $mail)
         <span class="invalid-badge">邮箱格式不正确</span>
         <p class="email-display" style="margin-top:15px;"><?php echo htmlspecialchars($mail); ?></p>
         <p style="color:#f44336;margin-top:15px;">当前邮箱不是有效的北大邮箱（需为 学号@*.pku.edu.cn 或 学号@bjmu.edu.cn 格式）。</p>
-        <p style="color:#666;margin-top:10px;">请前往 <a href="../edituser/" target="_blank">编辑资料</a> 页面更换邮箱。</p>
+        <p style="color:#666;margin-top:10px;">请前往 <a href="../edituser/"  target="_blank">编辑资料</a> 页面更换邮箱。</p>
     </div>
 <?php else: ?>
     <div class="verify-status">
