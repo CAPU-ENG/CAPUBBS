@@ -297,9 +297,44 @@ div.icon:hover{
 <tr><td class="left">qq：</td><td><input type="text" name="qq" id="qq"></td><td class="right"><img id="confirm_qq"></td></tr>
 <tr><td class="left">来自于：</td><td><input type="text" placeholder="来自哪个城市" name="place" id="place"></td><td class="right"></td></tr>
 <tr><td class="left">爱好：</td><td><input type="text" placeholder="使用逗号分隔" name="hobby" id="hobby"></td><td class="right"></td></tr>
-<tr><td class="left">签名档1：</td><td><textarea name="sig1" placeholder="每个签名档不超过300字节；支持如[img]或[color]之类的转义" id="sig1" maxlength="250" rows="3"></textarea><br><span style="font-size:12px;color:#888;">类型：</span> <label style="font-size:12px;"><input type="radio" name="sig1_type" value="raw" checked> Raw</label> <label style="font-size:12px;margin-left:8px;"><input type="radio" name="sig1_type" value="html"> HTML</label></td><td class="right"></td></tr>
-<tr><td class="left">签名档2：</td><td><textarea name="sig2" maxlength="250" rows="3" id="sig2"></textarea><br><span style="font-size:12px;color:#888;">类型：</span> <label style="font-size:12px;"><input type="radio" name="sig2_type" value="raw" checked> Raw</label> <label style="font-size:12px;margin-left:8px;"><input type="radio" name="sig2_type" value="html"> HTML</label></td><td class="right"></td></tr>
-<tr><td class="left">签名档3：</td><td><textarea name="sig3" maxlength="250" rows="3" id="sig3"></textarea><br><span style="font-size:12px;color:#888;">类型：</span> <label style="font-size:12px;"><input type="radio" name="sig3_type" value="raw" checked> Raw</label> <label style="font-size:12px;margin-left:8px;"><input type="radio" name="sig3_type" value="html"> HTML</label></td><td class="right"></td></tr>
+<tr>
+	<td class="left">签名档1：</td>
+	<td>
+		<textarea name="sig1" placeholder="每个签名档不超过50000字节；支持如[img]或[color]之类的转义" id="sig1" maxlength="50000" rows="3"></textarea>
+	</td>
+</tr>
+<tr>
+<td class="left"><span>签名档1类型：</span></td>
+<td>
+<input style="width: initial;" type="radio" name="sig1_type" value="raw" checked><span>Raw</span>
+<input style="width: initial;" type="radio" name="sig1_type" value="html" <span>HTML</span>
+</td>
+</tr>
+<tr>
+	<td class="left">签名档2：</td>
+	<td>
+		<textarea name="sig2" id="sig2" maxlength="50000" rows="3"></textarea>
+	</td>
+</tr>
+<tr>
+<td class="left"><span>签名档2类型：</span></td>
+<td>
+<input style="width: initial;" type="radio" name="sig2_type" value="raw" checked><span>Raw</span>
+<input style="width: initial;" type="radio" name="sig2_type" value="html" <span>HTML</span>
+</td>
+</tr><tr>
+	<td class="left">签名档3：</td>
+	<td>
+		<textarea name="sig3" id="sig3" maxlength="50000" rows="3"></textarea>
+	</td>
+</tr>
+<tr>
+<td class="left"><span>签名档3类型：</span></td>
+<td>
+<input style="width: initial;" type="radio" name="sig3_type" value="raw" checked><span>Raw</span>
+<input style="width: initial;" type="radio" name="sig3_type" value="html" <span>HTML</span>
+</td>
+</tr>
 <tr><td class="left">个人简介：</td><td><textarea name="intro" placeholder="向大家更好的介绍自己吧！" rows="3" id="intro"></textarea></td><td class="right"></td></tr>
 <td class="left">验证码*：</td><td><input type="text" placeholder="输入结果；点击图片更换验证码" name="captcha" id="captcha">&nbsp;</td><td class="right"><img id="img_captcha" src="/assets/api/securimage/securimage_show.php?<?php echo rand();?>" onclick="changecaptcha()" style="cursor:pointer"></td></tr>
 <tr><td colspan="1">&nbsp;</td></tr>
