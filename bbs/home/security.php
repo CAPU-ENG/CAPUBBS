@@ -24,6 +24,17 @@ window.onload=function(){
 </head>
 <body>
 <h2 align="center">修改密码</h2>
+<?php
+include_once "../../config.php";
+if (CAPUBBS_ENABLE_EMAIL_VERIFY) {
+    $userinfo = mainfunc(array("ask" => "currentUserInfo"));
+    if (!empty($userinfo)) {
+        $u = $userinfo[0];
+        $mail_val2 = isset($u['mail']) ? $u['mail'] : '';
+        $verified2 = isset($u['verified']) ? intval($u['verified']) : 0;
+    }
+}
+?>
 <form action="s_action.php" onsubmit="return check();" method="post">
 　　原密码：<input type="password" name="old_psd" id="old_psd"><br>
 　　新密码：<input type="password" name="new_psd" id="new_psd"><br>
@@ -59,5 +70,22 @@ function check(){
 }
 
 </script>
+
+<?php if (CAPUBBS_ENABLE_EMAIL_VERIFY && isset($mail_val2)): ?>
+<br>
+<div style="text-align:center;font-size:13px;color:#444;">
+	<strong>邮箱状态：</strong>
+	<?php if (empty($mail_val2)): ?>
+		<span style="color:#f44336;">未设置邮箱</span>
+		<a href="../edituser/" style="margin-left:8px;">去设置</a>
+	<?php elseif ($verified2): ?>
+		<span style="color:#4CAF50;">已验证 (<?php echo htmlspecialchars($mail_val2); ?>)</span>
+	<?php else: ?>
+		<span style="color:#FF9800;">未验证</span>
+		<a href="javascript:window.parent.setframe('verify_email');" style="margin-left:8px;">去验证</a>
+	<?php endif; ?>
+</div>
+<?php endif; ?>
+
 </body>
 </html>

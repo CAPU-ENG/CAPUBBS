@@ -115,9 +115,86 @@ function check(){
     });
 }
 function forget() {
-    var x="请联系管理员，邮箱：<a href='mailto:pkuzhd@pku.edu.cn'>pkuzhd@pku.edu.cn</a>";
-    $('#tip').html(x);
+    <?php if (CAPUBBS_ENABLE_EMAIL_VERIFY): ?>
+    var html = '<div style="margin-top:15px;text-align:left;">' +
+        '<p style="font-size:13px;">第一步：输入注册邮箱，发送验证码</p>' +
+        '<input id="resetEmail" type="text" class="text" placeholder="请输入PKU邮箱" style="width:200px;">' +
+        '<input type="button" value="发送验证码" class="button" id="resetSendBtn" onclick="sendResetCode()" style="margin-left:5px;">' +
+        '<span id="resetCountdown" style="font-size:12px;color:#999;margin-left:5px;"></span>' +
+        '<p style="font-size:13px;margin-top:10px;">第二步：输入验证码，重置密码</p>' +
+        '<input id="resetCode" type="text" class="text" placeholder="6位验证码" style="width:200px;">' +
+        '<input type="button" value="重置密码" class="button" onclick="resetPassword()" style="margin-left:5px;">' +
+        '<p style="font-size:12px;color:#999;margin-top:5px;">密码将重置为 123456，请登录后尽快修改。</p>' +
+        '<div id="resetMsg" style="font-size:12px;margin-top:5px;"></div>' +
+        '</div>';
+    $('#tip').html(html);
+    <?php else: ?>
+    $('#tip').html('请联系管理员，邮箱：<a href="mailto:<?php echo ADMIN_EMAIL; ?>"><?php echo ADMIN_EMAIL; ?></a>');
+    <?php endif; ?>
 }
+
+<?php if (CAPUBBS_ENABLE_EMAIL_VERIFY): ?>
+var resetCountdownTimer = null;
+
+function sendResetCode() {
+    var email = $('#resetEmail').val().trim();
+    if (!email) { $('#resetMsg').css('color','#be0000').text('请输入邮箱地址。'); return; }
+
+    var btn = $('#resetSendBtn');
+    btn.prop('disabled', true);
+    $('#resetMsg').css('color','#666').text('发送中...');
+
+    $.post('/api/jiekoujson.php', {
+        ask: 'sendResetPasswordCode',
+        email: email
+    }, function(resp) {
+        try { var r = JSON.parse(resp); } catch(e) { r = resp; }
+        if (r.code == 0) {
+            $('#resetMsg').css('color','green').text('验证码已发送，请检查邮箱。');
+            var sec = 60;
+            resetCountdownTimer = setInterval(function() {
+                sec--;
+                if (sec <= 0) {
+                    clearInterval(resetCountdownTimer);
+                    $('#resetCountdown').text('');
+                    btn.prop('disabled', false);
+                } else {
+                    $('#resetCountdown').text('(' + sec + 's)');
+                }
+            }, 1000);
+        } else {
+            $('#resetMsg').css('color','#be0000').text(r.msg || '发送失败');
+            btn.prop('disabled', false);
+        }
+    }).fail(function() {
+        $('#resetMsg').css('color','#be0000').text('网络错误，请重试。');
+        btn.prop('disabled', false);
+    });
+}
+
+function resetPassword() {
+    var email = $('#resetEmail').val().trim();
+    var code = $('#resetCode').val().trim();
+    if (!email || !code) { $('#resetMsg').css('color','#be0000').text('请填写邮箱和验证码。'); return; }
+
+    $('#resetMsg').css('color','#666').text('处理中...');
+
+    $.post('/api/jiekoujson.php', {
+        ask: 'resetPasswordByEmail',
+        email: email,
+        code: code
+    }, function(resp) {
+        try { var r = JSON.parse(resp); } catch(e) { r = resp; }
+        if (r.code == 0) {
+            $('#resetMsg').css('color','green').text('密码已重置为 123456，请登录后修改密码。');
+        } else {
+            $('#resetMsg').css('color','#be0000').text(r.msg || '重置失败');
+        }
+    }).fail(function() {
+        $('#resetMsg').css('color','#be0000').text('网络错误，请重试。');
+    });
+}
+<?php endif; ?>
 </script>
 </body>
 </html>

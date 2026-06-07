@@ -15,6 +15,8 @@
 
 <link rel="stylesheet" href="../lib/general.css">
 <link rel="shortcut icon" href="/assets/images/capu.jpg">
+<script src="../lib/jquery.min.js"></script>
+<script src="/assets/js/api.js"></script>
 <style>
 body{
     background-color: #ABC9B6;
@@ -187,7 +189,40 @@ textarea{
 
 <tr><td class="left"><span>QQ：</span></td><td class="right"><input placeholder="" type="text" name="qq" id="qq" value="<?php echo(trans($userinfo['qq'])); ?>"></td></tr>
 
-<tr><td class="left"><span>Email：</span></td><td class="right"><input type="text" name="email" id="email" value="<?php echo(trans($userinfo['mail'])); ?>"></td></tr>
+<tr><td class="left"><span>Email：</span></td><td class="right">
+    <?php $mail_val = trans($userinfo['mail']); ?>
+    <input type="text" name="email" id="email" value="<?php echo $mail_val; ?>"<?php if (!empty($mail_val)) echo ' readonly style="background:#eee;"'; ?>>
+    <?php
+    $verified = isset($userinfo['verified']) ? intval($userinfo['verified']) : 0;
+    $email_visible_val = isset($userinfo['email_visible']) ? intval($userinfo['email_visible']) : 0;
+    if (CAPUBBS_ENABLE_EMAIL_VERIFY):
+        if (empty($mail_val)) {
+            echo '<span style="color:#f44336;font-size:12px;margin-left:8px;">未设置</span>';
+        } elseif ($verified) {
+            echo '<span style="color:#4CAF50;font-size:12px;margin-left:8px;">已验证</span>';
+        } else {
+            echo '<span style="color:#FF9800;font-size:12px;margin-left:8px;">未验证</span>';
+            echo ' <a href="../home/?pos=verify_email" style="font-size:12px;">去验证</a>';
+        }
+        if (!empty($mail_val)):
+            echo ' <a href="javascript:showEmailChange()" style="font-size:12px;">更换邮箱</a>';
+        endif;
+    endif;
+    ?>
+    </td></tr>
+    <?php if (CAPUBBS_ENABLE_EMAIL_VERIFY): ?>
+    <tr id="emailChangeRow" style="display:none;"><td class="left"><span>新邮箱：</span></td><td class="right">
+        <input type="text" id="newEmail" placeholder="输入新的PKU邮箱">
+        <input type="button" value="发送验证码" id="changeSendBtn" onclick="sendChangeCode()" style="width:auto;font-size:12px;">
+        <span id="changeCountdown" style="font-size:12px;color:#999;margin-left:4px;"></span>
+        <br><input type="text" id="changeCode" placeholder="6位验证码" maxlength="6" style="width:100px;margin-top:4px;">
+        <input type="button" value="确认更换" id="changeVerifyBtn" onclick="verifyChangeEmail()" style="width:auto;font-size:12px;margin-top:4px;">
+        <span id="changeMsg" style="font-size:12px;margin-left:8px;"></span>
+    </td></tr>
+    <tr><td class="left"><span>邮箱公开：</span></td><td class="right">
+    <label style="width: initial;"><input type="checkbox" name="email_visible" value="1" <?php echo $email_visible_val ? 'checked' : ''; ?> style="width: initial;"> 在个人主页公开显示邮箱</label>
+    </td></tr>
+    <?php endif; ?>
 <tr><td class="left"><span>来自于：</span></td><td class="right"><input placeholder="哪个城市" type="text" name="place" id="place" value="<?php echo(trans($userinfo['place'])); ?>"></td></tr>
 
 <tr><td class="left"><span>爱好：</span></td><td class="right"><input placeholder="用逗号分隔" type="text" id="hobby" name="hobby" value="<?php echo(trans($userinfo['hobby'])); ?>"></td></tr>
@@ -390,5 +425,81 @@ textarea{
         return true;
     }
     </script>
+
+    <?php if (CAPUBBS_ENABLE_EMAIL_VERIFY): ?>
+    <script>
+    var changeTimer = null;
+
+    function showEmailChange() {
+        $('#emailChangeRow').toggle();
+    }
+
+    function sendChangeCode() {
+        var email = $('#newEmail').val().trim();
+        if (!/^[a-zA-Z0-9._%+\-]+@(.+\.)*pku\.edu\.cn$/i.test(email)) {
+            $('#changeMsg').css('color','#f44336').text('请输入正确的邮箱地址（学号@*.pku.edu.cn 或 学号@bjmu.edu.cn）。');
+            return;
+        }
+
+        var btn = $('#changeSendBtn');
+        btn.prop('disabled', true);
+        $('#changeMsg').css('color','#666').text('发送中...');
+
+        API.call('sendVerifyCode', { type: 'change_email', new_email: email }, { silent: true })
+            .done(function(resp) {
+                if (resp.code === 0) {
+                    $('#changeMsg').css('color','#4CAF50').text(resp.message || '验证码已发送。');
+                    var sec = 60;
+                    if (changeTimer) clearInterval(changeTimer);
+                    changeTimer = setInterval(function() {
+                        sec--;
+                        if (sec <= 0) {
+                            clearInterval(changeTimer);
+                            $('#changeCountdown').text('');
+                            btn.prop('disabled', false);
+                        } else {
+                            $('#changeCountdown').text('(' + sec + 's)');
+                        }
+                    }, 1000);
+                } else {
+                    $('#changeMsg').css('color','#f44336').text(resp.message || resp.msg || '发送失败');
+                    btn.prop('disabled', false);
+                }
+            })
+            .fail(function(err) {
+                $('#changeMsg').css('color','#f44336').text('[' + (err.code || '?') + '] ' + (err.message || '网络错误'));
+                btn.prop('disabled', false);
+            });
+    }
+
+    function verifyChangeEmail() {
+        var code = $('#changeCode').val().trim();
+        if (!code || code.length !== 6) {
+            $('#changeMsg').css('color','#f44336').text('请输入6位验证码。');
+            return;
+        }
+
+        $('#changeMsg').css('color','#666').text('验证中...');
+
+        API.call('verifyEmail', { code: code, type: 'change_email' }, { silent: true })
+            .done(function(resp) {
+                if (resp.code === 0) {
+                    $('#changeMsg').css('color','#4CAF50').text('邮箱更换成功！');
+                    var newEmail = $('#newEmail').val().trim();
+                    $('#email').val(newEmail);
+                    $('#emailChangeRow').hide();
+                    $('#newEmail').val('');
+                    $('#changeCode').val('');
+                } else {
+                    $('#changeMsg').css('color','#f44336').text('[' + (resp.code || '?') + '] ' + (resp.message || resp.msg || '验证失败'));
+                }
+            })
+            .fail(function(err) {
+                $('#changeMsg').css('color','#f44336').text('[' + (err.code || '?') + '] ' + (err.message || '网络错误'));
+            });
+    }
+    </script>
+    <?php endif; ?>
+
 </body>
 </html>

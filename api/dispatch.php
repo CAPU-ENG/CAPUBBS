@@ -77,6 +77,20 @@ function _dispatch_build_routes() {
         'favorite_check'   => array('handler' => 'jiekoufunc_favorite_check',   'check_login' => true, 'require_rights' => 0),
         'news'             => array('handler' => 'jiekoufunc_news',             'check_login' => false, 'require_rights' => 0),
 
+        // -- Email verification (login required) --
+        'sendVerifyCode'   => array('handler' => null, 'check_login' => true,  'require_rights' => 0),
+        'verifyEmail'      => array('handler' => null, 'check_login' => true,  'require_rights' => 0),
+
+        // -- Password reset (public, no login) --
+        'sendRegisterCode'       => array('handler' => null, 'check_login' => false, 'require_rights' => 0),
+        'sendResetPasswordCode' => array('handler' => null, 'check_login' => false, 'require_rights' => 0),
+        'resetPasswordByEmail'  => array('handler' => null, 'check_login' => false, 'require_rights' => 0),
+
+        // -- Email mute management (moderator+) --
+        'muteEmail'        => array('handler' => null, 'check_login' => true,  'require_rights' => 1, 'check_board_mod' => true),
+        'unmuteEmail'      => array('handler' => null, 'check_login' => true,  'require_rights' => 1, 'check_board_mod' => true),
+        'listEmailMutes'   => array('handler' => null, 'check_login' => true,  'require_rights' => 1, 'check_board_mod' => true),
+
         // ================================================================
         // Login + board moderator OR self-service (function-level auth)
         // ================================================================
@@ -135,6 +149,9 @@ function jiekoufunc_dispatch($con, $params) {
     $attachs   = isset($params['attachs']) ? $params['attachs'] : '';
     $keyword   = isset($params['keyword']) ? $params['keyword'] : '';
     $type      = isset($params['type']) ? $params['type'] : '';
+    $email     = isset($params['email'])  ? $params['email']  : '';
+    $code      = isset($params['code'])   ? $params['code']   : '';
+    $reason    = isset($params['reason']) ? $params['reason'] : '';
     $token     = isset($params['token']) ? $params['token'] : '';
     $ip        = isset($params['ip']) ? $params['ip'] : '';
     $view      = isset($params['view']) ? $params['view'] : '';
@@ -322,8 +339,31 @@ function jiekoufunc_dispatch($con, $params) {
         return jiekoufunc_restore_version($con, $token, $fid, $version_id);
     }
 
+    // === Email verification ===
+    if ($ask == "sendVerifyCode")        return jiekoufunc_sendVerifyCode($con, $token, $params);
+    if ($ask == "verifyEmail")           return jiekoufunc_verifyEmail($con, $token, $params);
+
+    // === Registration verification (public, no login) ===
+    if ($ask == "sendRegisterCode")      return jiekoufunc_sendRegisterCode($con, $params);
+
+    // === Password reset ===
+    if ($ask == "sendResetPasswordCode") return jiekoufunc_sendResetPasswordCode($con, $params);
+    if ($ask == "resetPasswordByEmail")  return jiekoufunc_resetPasswordByEmail($con, $params);
+
+    // === Email mute management ===
+    if ($ask == "muteEmail")             return jiekoufunc_muteEmail($con, $token, $params);
+    if ($ask == "unmuteEmail")           return jiekoufunc_unmuteEmail($con, $token, $params);
+    if ($ask == "listEmailMutes")        return jiekoufunc_listEmailMutes($con, $token);
+
     // === Dispatch by $view (no $ask) ===
-    if ($view != "") return jiekoufunc_view_user_array($con, $view);
+    if ($view != "") {
+        $viewer = '';
+        if ($token) {
+            $viewer_user = jiekoufunc_token2user($con, $token);
+            if ($viewer_user) $viewer = $viewer_user['username'];
+        }
+        return jiekoufunc_view_user_array($con, $view, $viewer);
+    }
 
     // === Dispatch by $bid (no $ask, default board/thread rendering) ===
     if ($bid != 0) {

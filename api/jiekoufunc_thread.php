@@ -25,6 +25,12 @@ function jiekoufunc_post($con, $token, $bid, $ip, $attachs, $params) {
     $delay_err = jiekoufunc_checkDelayTime($time, $star, $rights, $lastpost, $ip);
     if ($delay_err !== null) return $delay_err;
 
+    $muted_reason = jiekoufunc_is_muted($con, $username);
+    if ($muted_reason) {
+        return array(array('code' => strval(ApiError::USER_MUTED),
+            'msg' => '您暂时不能发帖（' . $muted_reason . '）。请先验证邮箱或联系管理员。'));
+    }
+
     $statement = "select max(tid) as m from (select tid from threads where bid=$bid union select tid from trash_threads where bid=$bid) as t";
     $tid = intval(mysqli_fetch_row(mysqli_query($con, $statement))[0]) + 1;
     $title = isset($params['title']) ? $params['title'] : '';
@@ -65,6 +71,12 @@ function jiekoufunc_reply($con, $token, $bid, $tid, $ip, $attachs, $params) {
     $lastpost = intval($res[3]);
     $delay_err = jiekoufunc_checkDelayTime($time, $star, $rights, $lastpost, $ip);
     if ($delay_err !== null) return $delay_err;
+
+    $muted_reason = jiekoufunc_is_muted($con, $username);
+    if ($muted_reason) {
+        return array(array('code' => strval(ApiError::USER_MUTED),
+            'msg' => '您暂时不能发帖（' . $muted_reason . '）。请先验证邮箱或联系管理员。'));
+    }
 
     $statement = "select activity_id, bid, tid, season_id, name, leader_username
         from season_threads_activity
@@ -510,6 +522,13 @@ function jiekoufunc_lzl($con, $method, $fid, $token, $ip, $params) {
         $star = intval($res[1]);
         $rights = intval($res[2]);
         $lastpost = intval($res[3]);
+
+        $muted_reason = jiekoufunc_is_muted($con, $username);
+        if ($muted_reason) {
+            return array(array('code' => strval(ApiError::USER_MUTED),
+                'msg' => '您暂时不能发帖（' . $muted_reason . '）。请先验证邮箱或联系管理员。'));
+        }
+
         $delay_err = jiekoufunc_checkDelayTime($time, $star, $rights, $lastpost, $ip);
         if ($delay_err !== null) return $delay_err;
 

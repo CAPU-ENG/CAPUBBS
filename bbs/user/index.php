@@ -105,25 +105,32 @@ span.time{
 $icons=array('username','qq','level','email','hobby','place','time','date','key','rank','post','reply','pen','water');
 $tips=array('用户名','QQ','星数','Email','爱好','地点','上次在线','注册日期','权限','精品','发帖','回复','签到','灌水');
 $keys=array('username','qq','star','mail','hobby','place','lastdate','regdate','rights','extr','post','reply','sign','water');
+$email_visible = isset($userinfo['email_visible']) ? intval($userinfo['email_visible']) : 0;
+$verified = isset($userinfo['verified']) ? intval($userinfo['verified']) : 0;
 for($i=0;$i<count($icons);$i++){
     if($i%2==0){
         echo("<tr height='27px'>");
     }
     echo("<td width='120px'><img src='icons/".$icons[$i].".png' class='tipic'>&nbsp;&nbsp;&nbsp;");
     echo("<span class='info'>".$tips[$i]."：</span></td>");
-    echo("<td><span class='info'>".trans(@$key,$userinfo[$keys[$i]]));
+    echo("<td><span class='info'>".trans($keys[$i],$userinfo[$keys[$i]]));
     if($tips[$i]=='用户名'){
         echo("&nbsp;&nbsp;");
         if($userinfo['sex']=="男"){
             echo("<img class='tipic' src='icons/boy.png'>");
         }else if($userinfo['sex']=="女"){
-            echo("<img class='tipic' src='icons/girl.png'>");
+            echo("<img class='tipic' src='icons/girl.png'>");	
         }
     }
     echo("</span>");
     echo("</td>");
 }
 function trans($key,$value){
+    if ($key == 'mail') {
+        $ev = isset($GLOBALS['email_visible']) ? intval($GLOBALS['email_visible']) : 0;
+        if (!$ev) return "已隐藏";
+        if(!$value&&$value!=0) return "未设置";
+    }
     if(!$value&&$value!=0) return "不知道";
     return $value;
 }

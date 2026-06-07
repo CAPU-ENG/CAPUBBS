@@ -22,6 +22,7 @@ $sig1_type=@$_POST['sig1_type'];
 $sig2_type=@$_POST['sig2_type'];
 $sig3_type=@$_POST['sig3_type'];
 
+$verify_code=isset($_POST['verify_code']) ? $_POST['verify_code'] : '';
 $result=mainfunc(array(
 "ask"=>"register",
 "username"=>$username,
@@ -41,7 +42,8 @@ $result=mainfunc(array(
 "sig2_type"=>$sig2_type,
 "sig3_type"=>$sig3_type,
 "onlinetype"=>"web",
-"browser"=>@$_SERVER['HTTP_USER_AGENT']
+"browser"=>@$_SERVER['HTTP_USER_AGENT'],
+"verify_code"=>$verify_code
 ));
 
 $result=$result[0];

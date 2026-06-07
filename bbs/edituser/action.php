@@ -14,6 +14,7 @@ $sig3=@$_POST['sig3'];
 $sig1_type=@$_POST['sig1_type'];
 $sig2_type=@$_POST['sig2_type'];
 $sig3_type=@$_POST['sig3_type'];
+$email_visible=isset($_POST['email_visible']) ? intval($_POST['email_visible']) : 0;
 $result=mainfunc(array(
 "ask"=>"edituser",
 "sex"=>$sex,
@@ -27,6 +28,7 @@ $result=mainfunc(array(
 "sig3_type"=>$sig3_type,
 "icon"=>$icon,
 "mail"=>$mail,
+"email_visible"=>$email_visible,
 "intro"=>$intro,
 "hobby"=>$hobby,
 "place"=>$place
@@ -35,7 +37,7 @@ $result=mainfunc(array(
 $result=$result[0];
 #echo(json_encode($result));
 if($result['code']=="0"){
-    header("Location: ../index");
+    header("Location: ../home");
     echo("Succeed.");
 }else{
     echo($result['msg']);

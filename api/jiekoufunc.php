@@ -9,9 +9,11 @@
  * PHP 5.6 & PHP 8 compatible.  MySQL 5.7 / 8.0 / 9.0+ compatible.
  */
 
-require_once __DIR__ . '/../lib.php';
-require_once __DIR__ . '/lib/helpers.php';
-require_once __DIR__ . '/lib/db.php';
+require_once __DIR__.'/../lib.php';
+require_once __DIR__.'/lib/helpers.php';
+require_once __DIR__.'/lib/db.php';
+require_once __DIR__.'/lib/Mailer.php';
+require_once __DIR__.'/lib/ApiError.php';
 
 $GLOBALS['validtime'] = 60 * 60 * 24 * 7;   // 7 days
 $GLOBALS['attachroot'] = __DIR__ . "/../bbs/attachment/";
@@ -477,7 +479,7 @@ function jiekoufunc_currentUserInfo($con, $token) {
     if (!$user) {
         return array(array());
     }
-    return jiekoufunc_view_user_array($con, $user['username']);
+    return jiekoufunc_view_user_array($con, $user['username'], $user['username']);
 }
 
 function jiekoufunc_msg($con, $token, $type, $params) {
@@ -706,7 +708,42 @@ function jiekoufunc_register($con, $ip, $params) {
     $place = mysqli_real_escape_string($con, sanitize_xml($place_raw));
     $hobby = mysqli_real_escape_string($con, sanitize_xml($hobby_raw));
     $intro = mysqli_real_escape_string($con, sanitize_xml($intro_raw));
-    $mail = mysqli_real_escape_string($con, sanitize_xml($mail_raw));
+    $mail = mysqli_real_escape_string($con, sanitize_xml(trim($mail_raw)));
+
+    // PKU 邮箱域名校验 + 验证码校验（受开关控制）
+    if (CAPUBBS_ENABLE_EMAIL_VERIFY) {
+        if (!jiekoufunc_is_pku_email(trim($mail_raw))) {
+            return array(array('code' => strval(ApiError::INVALID_EMAIL_DOMAIN),
+                'msg' => '仅支持 学号@*.pku.edu.cn 或 学号@bjmu.edu.cn（学号为10位数字）。'));
+        }
+
+        $verify_code = isset($params['verify_code']) ? $params['verify_code'] : '';
+        if (empty($verify_code)) {
+            return array(array('code' => strval(ApiError::MISSING_FIELD),
+                'msg' => '请先验证邮箱，输入邮件中的验证码。'));
+        }
+
+        $code_esc = mysqli_real_escape_string($con, $verify_code);
+        // $mail 已在 line ~711 被 escape，这里直接用于 SQL 查询
+        $mail_esc = $mail;
+        $vresult = mysqli_fetch_array(mysqli_query($con,
+            "SELECT * FROM email_verification
+             WHERE email='$mail_esc' AND code='$code_esc' AND type='register'
+             AND used=0 ORDER BY id DESC LIMIT 1"));
+
+        if (!$vresult) {
+            return array(array('code' => strval(ApiError::VERIFY_CODE_INVALID),
+                'msg' => '验证码无效，请重新获取。'));
+        }
+
+        if (intval($vresult['expires_at']) < time()) {
+            return array(array('code' => strval(ApiError::VERIFY_CODE_EXPIRED),
+                'msg' => '验证码已过期，请重新获取。'));
+        }
+
+        // 标记验证码为已使用
+        mysqli_query($con, "UPDATE email_verification SET used=1 WHERE id=" . intval($vresult['id']));
+    }
 
     $onlinetype = isset($params['onlinetype']) ? mysqli_real_escape_string($con, $params['onlinetype']) : '';
     $browser = isset($params['browser']) ? mysqli_real_escape_string($con, $params['browser']) : '';
@@ -715,8 +752,9 @@ function jiekoufunc_register($con, $ip, $params) {
     if ($onlinetype == "web") $logininfo = $browser;
     if ($onlinetype == "android" || $onlinetype == "ios") $logininfo = $system_val;
 
+    $verified_val = (CAPUBBS_ENABLE_EMAIL_VERIFY) ? 1 : 0;
     $statement = "insert into userinfo values ('$username','$password','$token',$time,'$sex','$icon','$intro','$sig1','$sig2','$sig3','$hobby','$qq_val','$mail'," .
-        "'$place','$date','$date','$ip',1,0,0,0,0,0,0,0,0,NULL,NULL,'$onlinetype','$logininfo',null,null,null,null,null,null,null)";
+        "'$place','$date','$date','$ip',1,0,0,0,0,0,0,0,0,NULL,NULL,'$onlinetype','$logininfo',null,null,null,null,null,null,null,$verified_val,0)";
     mysqli_query($con, $statement);
     $error = mysqli_errno($con);
     if ($error != 0) {
@@ -895,14 +933,22 @@ function jiekoufunc_edituser($con, $token, $ip, $params) {
     $sig3 = isset($params['sig3']) ? mysqli_real_escape_string($con, sanitize_xml($params['sig3'])) : '';
     $intro = isset($params['intro']) ? mysqli_real_escape_string($con, sanitize_xml($params['intro'])) : '';
     $mail = isset($params['mail']) ? mysqli_real_escape_string($con, sanitize_xml($params['mail'])) : '';
+    $email_visible = isset($params['email_visible']) ? intval($params['email_visible']) : 0;
     $place = isset($params['place']) ? mysqli_real_escape_string($con, sanitize_xml($params['place'])) : '';
     $hobby = isset($params['hobby']) ? mysqli_real_escape_string($con, sanitize_xml($params['hobby'])) : '';
     $qq = isset($params['qq']) ? mysqli_real_escape_string($con, sanitize_xml($params['qq'])) : '';
     $icon = isset($params['icon']) ? mysqli_real_escape_string($con, sanitize_xml($params['icon'])) : '';
     $sex = isset($params['sex']) ? mysqli_real_escape_string($con, sanitize_xml($params['sex'])) : '';
+
+    // 邮箱变更不再通过此表单提交，仅当 mail 与当前值相同时保留
+    $current_mail = $a['mail'];
+    if ($mail !== $current_mail) {
+        $mail = $current_mail; // 跳过邮箱变更（通过验证流程完成）
+    }
+
     $statement = "update userinfo set tokentime=$time, sex='$sex'," .
-        "lastip='$ip', icon='$icon', mail='$mail', qq='$qq', intro='$intro', place='$place'," .
-        "hobby='$hobby', sig1='$sig1', sig2='$sig2', sig3='$sig3' where username='$username_esc'";
+                 "lastip='$ip', icon='$icon', mail='$mail', email_visible=$email_visible, qq='$qq', intro='$intro', place='$place'," .
+                 "hobby='$hobby', sig1='$sig1', sig2='$sig2', sig3='$sig3' where username='$username_esc'";
     mysqli_query($con, $statement);
     if (mysqli_error($con)) {
         return array(array('code' => '1', 'error' => mysqli_error($con)));
@@ -1723,4 +1769,422 @@ function jiekoufunc_hot_threads($con, $params) {
     }
 
     return jiekoufunc_view_bbs_array($con, $sql);
+}
+
+// ============================================================================
+//  Email verification — Helper functions
+// ============================================================================
+
+function jiekoufunc_is_pku_email($email) {
+    // 学号 = 10 位数字，域名 = *.pku.edu.cn 或 bjmu.edu.cn
+    if (preg_match('/^\d{10}@(.+\.)*pku\.edu\.cn$/i', $email)) return true;
+    if (preg_match('/^\d{10}@bjmu\.edu\.cn$/i', $email)) return true;
+    return false;
+}
+
+function jiekoufunc_is_muted($con, $username) {
+    if (!CAPUBBS_ENABLE_POST_CONTROL) return false;
+
+    $username_esc = mysqli_real_escape_string($con, $username);
+    $result = mysqli_fetch_array(mysqli_query($con,
+        "SELECT verified, post, reply, mail FROM userinfo WHERE username='$username_esc'"));
+    if (!$result) return false;
+
+    if (intval($result['verified']) === 0) {
+        if ((intval($result['post']) + intval($result['reply'])) <= 20) {
+            return '邮箱未验证';
+        }
+    }
+
+    if (CAPUBBS_ENABLE_EMAIL_MUTE) {
+        $mail = $result['mail'];
+        if ($mail) {
+            $mail_esc = mysqli_real_escape_string($con, $mail);
+            $mute_check = mysqli_fetch_array(mysqli_query($con,
+                "SELECT COUNT(*) as cnt FROM email_mutes WHERE email='$mail_esc'"));
+            if ($mute_check && intval($mute_check['cnt']) > 0) {
+                return '邮箱已被管理员禁言';
+            }
+        }
+    }
+
+    return false;
+}
+
+function jiekoufunc_can_send_code($con, $username, $email, $type) {
+    $username_esc = mysqli_real_escape_string($con, $username);
+    $email_esc = mysqli_real_escape_string($con, $email);
+    $one_min_ago = time() - 60;
+    $result = mysqli_fetch_array(mysqli_query($con,
+        "SELECT COUNT(*) as cnt FROM email_verification
+         WHERE username='$username_esc' AND email='$email_esc' AND type='$type'
+         AND created_at > $one_min_ago"));
+    return ($result && intval($result['cnt']) === 0);
+}
+
+function jiekoufunc_invalidate_codes($con, $username, $email, $type) {
+    $username_esc = mysqli_real_escape_string($con, $username);
+    $email_esc = mysqli_real_escape_string($con, $email);
+    mysqli_query($con,
+        "UPDATE email_verification SET used=1
+         WHERE username='$username_esc' AND email='$email_esc' AND type='$type' AND used=0");
+}
+
+// ============================================================================
+//  Email verification — API handlers
+// ============================================================================
+
+function jiekoufunc_sendRegisterCode($con, $params) {
+    if (!CAPUBBS_ENABLE_EMAIL_VERIFY) {
+        return array(array('code' => strval(ApiError::FEATURE_DISABLED),
+            'msg' => '邮箱验证功能已被管理员关闭。'));
+    }
+
+    $email = isset($params['email']) ? trim($params['email']) : '';
+    if (empty($email)) {
+        return array(array('code' => strval(ApiError::MISSING_FIELD),
+            'msg' => '请输入邮箱地址。'));
+    }
+
+    if (!jiekoufunc_is_pku_email($email)) {
+        return array(array('code' => strval(ApiError::INVALID_EMAIL_DOMAIN),
+            'msg' => '仅支持 学号@*.pku.edu.cn 或 学号@bjmu.edu.cn（学号为10位数字）。'));
+    }
+
+    $email_esc = mysqli_real_escape_string($con, $email);
+
+    // 统计该邮箱已注册的账号数（不阻止，仅提示）
+    $user_check = mysqli_fetch_array(mysqli_query($con,
+        "SELECT COUNT(*) as cnt FROM userinfo WHERE mail='$email_esc'"));
+    $email_account_count = ($user_check && intval($user_check['cnt']) > 0) ? intval($user_check['cnt']) : 0;
+
+    $one_min_ago = time() - 60;
+    $rate_check = mysqli_fetch_array(mysqli_query($con,
+        "SELECT COUNT(*) as cnt FROM email_verification
+         WHERE email='$email_esc' AND type='register' AND created_at > $one_min_ago"));
+    if ($rate_check && intval($rate_check['cnt']) > 0) {
+        return array(array('code' => strval(ApiError::VERIFY_RATE_LIMITED),
+            'msg' => '发送过于频繁，请1分钟后再试。'));
+    }
+
+    // 标记旧的同邮箱注册验证码为已使用
+    mysqli_query($con,
+        "UPDATE email_verification SET used=1
+         WHERE email='$email_esc' AND type='register' AND used=0");
+
+    $code = Mailer::generateCode();
+    $now = time();
+    $expires = $now + CAPUBBS_VERIFY_CODE_EXPIRE * 60;
+
+    mysqli_query($con,
+        "INSERT INTO email_verification (username, email, code, type, created_at, expires_at)
+         VALUES ('', '$email_esc', '$code', 'register', $now, $expires)");
+
+    $result = Mailer::sendVerifyCode($email, $code);
+    if (!$result['success']) {
+        return jiekoufunc_report('8', '邮件发送失败: ' . $result['message']);
+    }
+
+    $msg = '验证码已发送，请检查邮箱。';
+    if ($email_account_count > 0) {
+        $msg = '该邮箱已注册' . $email_account_count . '个账号。' . $msg;
+    }
+    return array(array('code' => '0', 'msg' => $msg));
+}
+
+function jiekoufunc_sendVerifyCode($con, $token, $params) {
+    if (!CAPUBBS_ENABLE_EMAIL_VERIFY) {
+        return array(array('code' => strval(ApiError::FEATURE_DISABLED),
+            'msg' => '邮箱验证功能已被管理员关闭。'));
+    }
+
+    $user = jiekoufunc_token2user($con, $token);
+    if (!$user) {
+        return jiekoufunc_report('1', '会话超时，请重新登录。');
+    }
+    $username = $user['username'];
+
+    $type = isset($params['type']) ? $params['type'] : 'verify_existing';
+    if (!in_array($type, array('register', 'change_email', 'verify_existing'))) {
+        return jiekoufunc_report('14', '无效的验证类型。');
+    }
+
+    if ($type === 'change_email') {
+        $target_email = isset($params['new_email']) ? $params['new_email'] : '';
+        if (empty($target_email)) {
+            return jiekoufunc_report('3', '缺少新邮箱地址。');
+        }
+    } else {
+        $username_esc = mysqli_real_escape_string($con, $username);
+        $res = mysqli_fetch_array(mysqli_query($con,
+            "SELECT mail FROM userinfo WHERE username='$username_esc'"));
+        $target_email = $res ? $res['mail'] : '';
+        if (empty($target_email)) {
+            return jiekoufunc_report('3', '您尚未设置邮箱，请先在编辑资料页面设置邮箱。');
+        }
+    }
+
+    if (!jiekoufunc_is_pku_email($target_email)) {
+        return array(array('code' => strval(ApiError::INVALID_EMAIL_DOMAIN),
+            'msg' => '仅支持 学号@*.pku.edu.cn 或 学号@bjmu.edu.cn。'));
+    }
+
+    if (!jiekoufunc_can_send_code($con, $username, $target_email, $type)) {
+        return array(array('code' => strval(ApiError::VERIFY_RATE_LIMITED),
+            'msg' => '发送过于频繁，请1分钟后再试。'));
+    }
+
+    jiekoufunc_invalidate_codes($con, $username, $target_email, $type);
+
+    $code = Mailer::generateCode();
+    $now = time();
+    $expires = $now + CAPUBBS_VERIFY_CODE_EXPIRE * 60;
+    $username_esc = mysqli_real_escape_string($con, $username);
+    $email_esc = mysqli_real_escape_string($con, $target_email);
+
+    mysqli_query($con,
+        "INSERT INTO email_verification (username, email, code, type, created_at, expires_at)
+         VALUES ('$username_esc', '$email_esc', '$code', '$type', $now, $expires)");
+
+    $result = Mailer::sendVerifyCode($target_email, $code);
+    if (!$result['success']) {
+        return jiekoufunc_report('8', '邮件发送失败: ' . $result['message']);
+    }
+
+    return array(array('code' => '0', 'msg' => '验证码已发送，请检查邮箱。'));
+}
+
+function jiekoufunc_verifyEmail($con, $token, $params) {
+    if (!CAPUBBS_ENABLE_EMAIL_VERIFY) {
+        return array(array('code' => strval(ApiError::FEATURE_DISABLED),
+            'msg' => '邮箱验证功能已被管理员关闭。'));
+    }
+
+    $user = jiekoufunc_token2user($con, $token);
+    if (!$user) {
+        return jiekoufunc_report('1', '会话超时，请重新登录。');
+    }
+    $username = $user['username'];
+
+    $code = isset($params['code']) ? $params['code'] : '';
+    $type = isset($params['type']) ? $params['type'] : 'verify_existing';
+    if (empty($code)) {
+        return jiekoufunc_report('3', '缺少验证码。');
+    }
+
+    $username_esc = mysqli_real_escape_string($con, $username);
+    $code_esc = mysqli_real_escape_string($con, $code);
+    $result = mysqli_fetch_array(mysqli_query($con,
+        "SELECT * FROM email_verification
+         WHERE username='$username_esc' AND code='$code_esc' AND type='$type'
+         AND used=0 ORDER BY id DESC LIMIT 1"));
+
+    if (!$result) {
+        return array(array('code' => strval(ApiError::VERIFY_CODE_INVALID),
+            'msg' => '验证码无效。'));
+    }
+
+    if (intval($result['expires_at']) < time()) {
+        return array(array('code' => strval(ApiError::VERIFY_CODE_EXPIRED),
+            'msg' => '验证码已过期，请重新发送。'));
+    }
+
+    $verification_id = intval($result['id']);
+    $verified_email = $result['email'];
+    mysqli_query($con, "UPDATE email_verification SET used=1 WHERE id=$verification_id");
+
+    if ($type === 'change_email') {
+        $email_esc = mysqli_real_escape_string($con, $verified_email);
+        mysqli_query($con,
+            "UPDATE userinfo SET mail='$email_esc', verified=1 WHERE username='$username_esc'");
+    } else {
+        mysqli_query($con,
+            "UPDATE userinfo SET verified=1 WHERE username='$username_esc'");
+    }
+
+    return array(array('code' => '0', 'msg' => '邮箱验证成功。'));
+}
+
+function jiekoufunc_sendResetPasswordCode($con, $params) {
+    if (!CAPUBBS_ENABLE_EMAIL_VERIFY) {
+        return array(array('code' => strval(ApiError::FEATURE_DISABLED),
+            'msg' => '邮箱验证功能已被管理员关闭。'));
+    }
+
+    $email = isset($params['email']) ? $params['email'] : '';
+    if (empty($email)) {
+        return jiekoufunc_report('3', '请输入邮箱地址。');
+    }
+
+    if (!jiekoufunc_is_pku_email($email)) {
+        return array(array('code' => strval(ApiError::INVALID_EMAIL_DOMAIN),
+            'msg' => '仅支持 学号@*.pku.edu.cn 或 学号@bjmu.edu.cn。'));
+    }
+
+    $email_esc = mysqli_real_escape_string($con, $email);
+    $res = mysqli_fetch_array(mysqli_query($con,
+        "SELECT username FROM userinfo WHERE mail='$email_esc' AND verified=1 LIMIT 1"));
+
+    if (!$res) {
+        return array(array('code' => strval(ApiError::EMAIL_NOT_FOUND),
+            'msg' => '未找到匹配的已验证邮箱。'));
+    }
+    $username = $res['username'];
+
+    $type = 'reset_password';
+    if (!jiekoufunc_can_send_code($con, $username, $email, $type)) {
+        return array(array('code' => strval(ApiError::VERIFY_RATE_LIMITED),
+            'msg' => '发送过于频繁，请1分钟后再试。'));
+    }
+
+    jiekoufunc_invalidate_codes($con, $username, $email, $type);
+
+    $code = Mailer::generateCode();
+    $now = time();
+    $expires = $now + CAPUBBS_VERIFY_CODE_EXPIRE * 60;
+    $username_esc = mysqli_real_escape_string($con, $username);
+
+    mysqli_query($con,
+        "INSERT INTO email_verification (username, email, code, type, created_at, expires_at)
+         VALUES ('$username_esc', '$email_esc', '$code', '$type', $now, $expires)");
+
+    $result = Mailer::sendVerifyCode($email, $code);
+    if (!$result['success']) {
+        return jiekoufunc_report('8', '邮件发送失败: ' . $result['message']);
+    }
+
+    return array(array('code' => '0', 'msg' => '验证码已发送，请检查邮箱。'));
+}
+
+function jiekoufunc_resetPasswordByEmail($con, $params) {
+    if (!CAPUBBS_ENABLE_EMAIL_VERIFY) {
+        return array(array('code' => strval(ApiError::FEATURE_DISABLED),
+            'msg' => '邮箱验证功能已被管理员关闭。'));
+    }
+
+    $email = isset($params['email']) ? $params['email'] : '';
+    $code = isset($params['code']) ? $params['code'] : '';
+    if (empty($email) || empty($code)) {
+        return jiekoufunc_report('3', '缺少参数。');
+    }
+
+    $email_esc = mysqli_real_escape_string($con, $email);
+    $code_esc = mysqli_real_escape_string($con, $code);
+    $result = mysqli_fetch_array(mysqli_query($con,
+        "SELECT * FROM email_verification
+         WHERE email='$email_esc' AND code='$code_esc' AND type='reset_password'
+         AND used=0 ORDER BY id DESC LIMIT 1"));
+
+    if (!$result) {
+        return array(array('code' => strval(ApiError::VERIFY_CODE_INVALID),
+            'msg' => '验证码无效。'));
+    }
+
+    if (intval($result['expires_at']) < time()) {
+        return array(array('code' => strval(ApiError::VERIFY_CODE_EXPIRED),
+            'msg' => '验证码已过期，请重新发送。'));
+    }
+
+    $verification_id = intval($result['id']);
+    $username = $result['username'];
+    mysqli_query($con, "UPDATE email_verification SET used=1 WHERE id=$verification_id");
+
+    $username_esc = mysqli_real_escape_string($con, $username);
+    $newPassword = md5('123456');
+    mysqli_query($con,
+        "UPDATE userinfo SET password='$newPassword', tokentime=0 WHERE username='$username_esc'");
+
+    Mailer::sendPasswordResetNotice($email, $username);
+
+    return array(array('code' => '0', 'msg' => '密码已重置为 123456，请登录后修改密码。'));
+}
+
+function jiekoufunc_muteEmail($con, $token, $params) {
+    if (!CAPUBBS_ENABLE_EMAIL_MUTE) {
+        return array(array('code' => strval(ApiError::FEATURE_DISABLED),
+            'msg' => '邮箱禁言功能已被管理员关闭。'));
+    }
+
+    $user = jiekoufunc_token2user($con, $token);
+    if (!$user) {
+        return jiekoufunc_report('1', '会话超时，请重新登录。');
+    }
+    $operator = $user['username'];
+
+    $email = isset($params['email']) ? $params['email'] : '';
+    if (empty($email)) {
+        return jiekoufunc_report('3', '缺少邮箱地址。');
+    }
+
+    if (!jiekoufunc_is_pku_email($email)) {
+        return array(array('code' => strval(ApiError::INVALID_EMAIL_DOMAIN),
+            'msg' => '仅支持 学号@*.pku.edu.cn 或 学号@bjmu.edu.cn。'));
+    }
+
+    $email_esc = mysqli_real_escape_string($con, $email);
+    $check = mysqli_fetch_array(mysqli_query($con,
+        "SELECT COUNT(*) as cnt FROM email_mutes WHERE email='$email_esc'"));
+    if ($check && intval($check['cnt']) > 0) {
+        return array(array('code' => strval(ApiError::EMAIL_ALREADY_MUTED),
+            'msg' => '该邮箱已被禁言。'));
+    }
+
+    $reason = isset($params['reason']) ? mysqli_real_escape_string($con, $params['reason']) : '';
+    $operator_esc = mysqli_real_escape_string($con, $operator);
+    $now = time();
+    mysqli_query($con,
+        "INSERT INTO email_mutes (email, muted_by, reason, created_at)
+         VALUES ('$email_esc', '$operator_esc', '$reason', $now)");
+
+    return array(array('code' => '0', 'msg' => '已禁言邮箱 ' . $email));
+}
+
+function jiekoufunc_unmuteEmail($con, $token, $params) {
+    if (!CAPUBBS_ENABLE_EMAIL_MUTE) {
+        return array(array('code' => strval(ApiError::FEATURE_DISABLED),
+            'msg' => '邮箱禁言功能已被管理员关闭。'));
+    }
+
+    $user = jiekoufunc_token2user($con, $token);
+    if (!$user) {
+        return jiekoufunc_report('1', '会话超时，请重新登录。');
+    }
+
+    $email = isset($params['email']) ? $params['email'] : '';
+    if (empty($email)) {
+        return jiekoufunc_report('3', '缺少邮箱地址。');
+    }
+
+    $email_esc = mysqli_real_escape_string($con, $email);
+    mysqli_query($con, "DELETE FROM email_mutes WHERE email='$email_esc'");
+    if (mysqli_affected_rows($con) === 0) {
+        return array(array('code' => strval(ApiError::EMAIL_NOT_MUTED),
+            'msg' => '该邮箱未被禁言。'));
+    }
+
+    return array(array('code' => '0', 'msg' => '已取消禁言邮箱 ' . $email));
+}
+
+function jiekoufunc_listEmailMutes($con, $token) {
+    if (!CAPUBBS_ENABLE_EMAIL_MUTE) {
+        return array(array('code' => strval(ApiError::FEATURE_DISABLED),
+            'msg' => '邮箱禁言功能已被管理员关闭。'));
+    }
+
+    $user = jiekoufunc_token2user($con, $token);
+    if (!$user) {
+        return jiekoufunc_report('1', '会话超时，请重新登录。');
+    }
+
+    $result = mysqli_query($con, "SELECT * FROM email_mutes ORDER BY created_at DESC");
+    $infos = array();
+    while ($res = mysqli_fetch_array($result)) {
+        $info = array();
+        foreach ($res as $key => $value) {
+            if (is_long($key)) continue;
+            $info[$key] = $value;
+        }
+        $infos[] = $info;
+    }
+    return $infos;
 }

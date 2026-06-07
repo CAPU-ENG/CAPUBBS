@@ -74,6 +74,17 @@ $can_access = ($username != '' && $rights >= 1);
         </a>
         <?php endif; ?>
 
+        <?php if (CAPUBBS_ENABLE_EMAIL_MUTE && $rights >= 1): ?>
+        <a class="manage-item" href="email_mute/">
+            <span class="manage-item-icon">&#128231;</span>
+            <span>
+                <div class="manage-item-title">邮箱禁言管理</div>
+                <div class="manage-item-desc">按邮箱地址设置禁言，该邮箱下所有账号将被限制发言</div>
+            </span>
+            <span class="manage-item-arrow">&rsaquo;</span>
+        </a>
+        <?php endif; ?>
+
         <?php if ($rights >= 10): ?>
         <a class="manage-item" href="reset_password/">
             <span class="manage-item-icon">&#128273;</span>

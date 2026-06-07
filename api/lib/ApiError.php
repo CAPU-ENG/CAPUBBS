@@ -39,6 +39,20 @@ class ApiError {
     const INVALID_CHARACTERS  = 2103;
     const INVALID_FILE_TYPE   = 2104;
     const FILE_TOO_LARGE      = 2105;
+    const INVALID_EMAIL_DOMAIN = 2106;
+    const EMAIL_NOT_VERIFIED   = 2107;
+    const VERIFICATION_FAILED  = 2108;
+    const USER_MUTED           = 2109;
+    const EMAIL_NOT_FOUND      = 2110;
+
+    // === Email Verification (2200-2299) ===
+    const VERIFY_CODE_EXPIRED  = 2200;
+    const VERIFY_CODE_INVALID  = 2201;
+    const VERIFY_RATE_LIMITED  = 2202;
+    const VERIFY_ALREADY_DONE  = 2203;
+    const EMAIL_ALREADY_MUTED  = 2204;
+    const EMAIL_NOT_MUTED      = 2205;
+    const FEATURE_DISABLED     = 2206;
 
     // === Request (3000-3099) ===
     const BAD_REQUEST         = 3000;
@@ -64,6 +78,7 @@ class ApiError {
         if ($code >= 1100 && $code < 1200) return 403;
         if ($code >= 2000 && $code < 2100) return ($code === 2005) ? 409 : 404;
         if ($code >= 2100 && $code < 2200) return 422;
+        if ($code >= 2200 && $code < 2300) return 400;
         if ($code >= 3000 && $code < 3100) return ($code === 3002) ? 429 : 400;
         if ($code >= 4000 && $code < 4100) return 500;
         return 400;
@@ -91,6 +106,7 @@ class ApiError {
             10  => self::CANNOT_DELETE,
             14  => self::INVALID_ACTION,
             -25 => self::NOT_LOGGED_IN,
+            -44 => self::VALIDATION_ERROR,
         ];
         return isset($map[$legacyCode]) ? $map[$legacyCode] : self::INTERNAL_ERROR;
     }

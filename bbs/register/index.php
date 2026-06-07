@@ -1,3 +1,4 @@
+<?php include_once "../../config.php"; ?>
 <html>
 <head>
 <title>CAPUBBS - 注册</title>
@@ -210,7 +211,6 @@ div.icon:hover{
 <tr><td class="left">&nbsp;</td><td><a href="../content/?bid=2&tid=6205" target='_blank'>如何才能起一个好的ID？</a></td><td class="right">&nbsp;</td></tr>
 <tr><td class="left">密码*：</td><td><input type="password" name="password" placeholder="至少6位密码" id="psd" maxlength="18" oninput ="checkPsdStrength();"><input type="hidden" name="password1" id="psd1"></td><td class="right"><div id="strength"><span id="psdstr" class="tip"></span><div id="content"></div></div></td></tr>
 <tr><td class="left">确认密码*：</td><td><input type="password" name="password2" placeholder="请重复输入密码" id="psd2" oninput ="checkPsd2();"></td><td class="right"><img id="confirm_psd" src="ok.png" class="confirm"></td></tr>
-<tr><td class="left">&nbsp;</td><td colspan="2" style="color:red">若遗失或有疑问，请邮件联系<a href="pkuzhd@pku.edu.cn">pkuzhd@pku.edu.cn</a></td></tr>
 <tr><td colspan="3">&nbsp;</td></tr>
 <tr><td class="left">性别*：</td><td>
 <div class="switch">
@@ -220,7 +220,15 @@ div.icon:hover{
 <input name="sex" type="hidden" id="sex">
 </div>
 </td><td class="right"><img id="confirm_sex" src="ok.png" class="confirm"></td></tr>
-<tr><td class="left">E-mail*：</td><td><input type="email" name="email" placeholder="请输入您的常用邮箱"  id="email" oninput ="checkEmail();" id="email"></td><td class="right"><img id="confirm_email" src="ok.png" class="confirm"></td></tr>
+<tr><td class="left">E-mail*：</td><td><input type="email" name="email" placeholder="请输入您的PKU邮箱"  id="email" oninput ="checkEmail();">
+<?php if (CAPUBBS_ENABLE_EMAIL_VERIFY): ?>
+<br><input type="button" value="发送验证码" id="sendCodeBtn" onclick="sendRegCode();" style="width:100px;height:24px;font-size:12px;margin-top:4px;">
+<span id="codeCountdown" style="font-size:12px;color:#999;margin-left:5px;"></span>
+<?php endif; ?>
+</td><td class="right"><img id="confirm_email" src="ok.png" class="confirm"><span class="error" id="error_email"></span></td></tr>
+<?php if (CAPUBBS_ENABLE_EMAIL_VERIFY): ?>
+<tr><td class="left">邮箱验证码*：</td><td><input type="text" name="verify_code" placeholder="请输入邮件中的6位数字" id="verify_code" maxlength="6" style="width:100px;"></td><td class="right"></td></tr>
+<?php endif; ?>
 <tr><td class="left">&nbsp;</td><td colspan="2" style="color:red">邮箱是找回密码时主要的身份认证方式，建议填写长期使用的邮箱</td></tr>
 <tr><td colspan="3">&nbsp;</td></tr>
 
@@ -298,10 +306,10 @@ div.icon:hover{
 <tr><td class="left">来自于：</td><td><input type="text" placeholder="来自哪个城市" name="place" id="place"></td><td class="right"></td></tr>
 <tr><td class="left">爱好：</td><td><input type="text" placeholder="使用逗号分隔" name="hobby" id="hobby"></td><td class="right"></td></tr>
 <tr>
-	<td class="left">签名档1：</td>
-	<td>
-		<textarea name="sig1" placeholder="每个签名档不超过50000字节；支持如[img]或[color]之类的转义" id="sig1" maxlength="50000" rows="3"></textarea>
-	</td>
+    <td class="left">签名档1：</td>
+    <td>
+        <textarea name="sig1" placeholder="每个签名档不超过50000字节；支持如[img]或[color]之类的转义" id="sig1" maxlength="50000" rows="3"></textarea>
+    </td>
 </tr>
 <tr>
 <td class="left"><span>签名档1类型：</span></td>
@@ -311,10 +319,10 @@ div.icon:hover{
 </td>
 </tr>
 <tr>
-	<td class="left">签名档2：</td>
-	<td>
-		<textarea name="sig2" id="sig2" maxlength="50000" rows="3"></textarea>
-	</td>
+    <td class="left">签名档2：</td>
+    <td>
+        <textarea name="sig2" id="sig2" maxlength="50000" rows="3"></textarea>
+    </td>
 </tr>
 <tr>
 <td class="left"><span>签名档2类型：</span></td>
@@ -323,10 +331,10 @@ div.icon:hover{
 <input style="width: initial;" type="radio" name="sig2_type" value="html" <span>HTML</span>
 </td>
 </tr><tr>
-	<td class="left">签名档3：</td>
-	<td>
-		<textarea name="sig3" id="sig3" maxlength="50000" rows="3"></textarea>
-	</td>
+    <td class="left">签名档3：</td>
+    <td>
+        <textarea name="sig3" id="sig3" maxlength="50000" rows="3"></textarea>
+    </td>
 </tr>
 <tr>
 <td class="left"><span>签名档3类型：</span></td>
@@ -336,7 +344,7 @@ div.icon:hover{
 </td>
 </tr>
 <tr><td class="left">个人简介：</td><td><textarea name="intro" placeholder="向大家更好的介绍自己吧！" rows="3" id="intro"></textarea></td><td class="right"></td></tr>
-<td class="left">验证码*：</td><td><input type="text" placeholder="输入结果；点击图片更换验证码" name="captcha" id="captcha">&nbsp;</td><td class="right"><img id="img_captcha" src="/assets/api/securimage/securimage_show.php?<?php echo rand();?>" onclick="changecaptcha()" style="cursor:pointer"></td></tr>
+<td class="left">图片验证码*：</td><td><input type="text" placeholder="输入图片中的字符" name="captcha" id="captcha">&nbsp;</td><td class="right"><img id="img_captcha" src="/assets/api/securimage/securimage_show.php?<?php echo rand();?>" onclick="changecaptcha()" style="cursor:pointer"></td></tr>
 <tr><td colspan="1">&nbsp;</td></tr>
 <tr><td></td><td><input type="button" style="width:70px;" onclick="register()" value="注册"></td><td></td></tr>
 </table>
@@ -379,16 +387,21 @@ function register() {
         sig3:$('#sig3').val(),
         sig3_type:$('input[name="sig3_type"]:checked').val(),
         intro:$('#intro').val(),
-        captcha:$('#captcha').val()
+        captcha:$('#captcha').val(),
+        verify_code:$('#verify_code').val()
         },function (data) {
             var x=parseInt(data);
             if (x==-44) {
-                alert("验证码错误。");
+                alert("图片验证码错误。");
                 changecaptcha();
                 return;
             }
             if (x==0) {
+                <?php if (CAPUBBS_ENABLE_EMAIL_VERIFY): ?>
+                window.location="/bbs/home/?pos=verify_email";
+                <?php else: ?>
                 window.location="/bbs/index/";
+                <?php endif; ?>
                 return;
             }
             alert(data);
@@ -448,12 +461,65 @@ function checkUsernameUsed(){
 }
 function checkEmail(){
     var email=document.getElementById("email").value;
+    <?php if (CAPUBBS_ENABLE_EMAIL_VERIFY): ?>
+    if(/^\d{10}@((.+\.)*pku\.edu\.cn|bjmu\.edu\.cn)$/i.test(email)){
+        document.getElementById("confirm_email").style.display="block";
+        document.getElementById("error_email").innerHTML="";
+    }else{
+        document.getElementById("confirm_email").style.display="none";
+        document.getElementById("error_email").innerHTML="仅支持学号@pku.edu.cn或学号@bjmu.edu.cn（学号为10位数字）";
+    }
+    <?php else: ?>
     if(/[0-9a-zA-Z_.]+@[0-9a-zA-Z_.]+/.test(email)){
         document.getElementById("confirm_email").style.display="block";
     }else{
         document.getElementById("confirm_email").style.display="none";
     }
+    <?php endif; ?>
 }
+
+<?php if (CAPUBBS_ENABLE_EMAIL_VERIFY): ?>
+var regCodeTimer = null;
+
+function sendRegCode() {
+    var email = $('#email').val().trim();
+    if (!/^[a-zA-Z0-9._%+\-]+@(.+\.)*pku\.edu\.cn$/i.test(email)) {
+        alert('请先填写正确的邮箱地址（学号@pku.edu.cn 或 学号@bjmu.edu.cn）。');
+        return;
+    }
+
+    var btn = $('#sendCodeBtn');
+    btn.prop('disabled', true);
+    $('#error_email').html('').css('color','#777');
+
+    $.post('/api/jiekoujson.php', {
+        ask: 'sendRegisterCode',
+        email: email
+    }, function(resp) {
+        try { var r = JSON.parse(resp); } catch(e) { r = resp; }
+        if (r.code == 0) {
+                $('#error_email').html(r.msg || '验证码已发送').css('color','#4CAF50');
+            var sec = 60;
+            regCodeTimer = setInterval(function() {
+                sec--;
+                if (sec <= 0) {
+                    clearInterval(regCodeTimer);
+                    $('#codeCountdown').text('');
+                    btn.prop('disabled', false);
+                } else {
+                    $('#codeCountdown').text('(' + sec + 's)');
+                }
+            }, 1000);
+        } else {
+            $('#error_email').html(r.msg || '发送失败').css('color','#990000');
+            btn.prop('disabled', false);
+        }
+    }).fail(function() {
+        $('#error_email').html('网络错误，请重试。').css('color','#990000');
+        btn.prop('disabled', false);
+    });
+}
+<?php endif; ?>
 function checkPsd2(){
     var psd2=document.getElementById("psd2").value;
     var psd=document.getElementById("psd").value;

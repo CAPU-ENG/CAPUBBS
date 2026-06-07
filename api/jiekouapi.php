@@ -271,6 +271,17 @@
                 if ($key=="nowboard") continue;
                 $info[$key] = $value;
             }
+            // email_visible 隐私控制：非本人且设置了隐藏，则去除 mail
+            global $token;
+            $viewer = '';
+            if ($token) {
+                $nowtime = time();
+                $vt = mysqli_fetch_array(mysqli_query($con, "SELECT username FROM userinfo WHERE token='$token' && $nowtime<=tokentime+{$GLOBALS['validtime']}"));
+                if ($vt) $viewer = $vt['username'];
+            }
+            if ($viewer !== $username && isset($info['email_visible']) && intval($info['email_visible']) === 0) {
+                $info['mail'] = '';
+            }
             enrich_user_sigs($con, $username, $info);
             echo "<info>\n";
             foreach ( $info as $key => $value ) {

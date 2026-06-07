@@ -84,6 +84,16 @@ return array(
     'sign_year'         => 'new',
     'sign_user'         => 'new',
 
+    // -- Email verification --
+    'sendVerifyCode'        => 'new',
+    'verifyEmail'           => 'new',
+    'sendRegisterCode'      => 'new',
+    'sendResetPasswordCode' => 'new',
+    'resetPasswordByEmail'  => 'new',
+    'muteEmail'             => 'new',
+    'unmuteEmail'           => 'new',
+    'listEmailMutes'        => 'new',
+
     // -- Special paths (no $ask) --
     '__view'            => 'new',
     '__bbs_default'     => 'new',

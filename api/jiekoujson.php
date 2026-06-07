@@ -4,16 +4,10 @@ require_once __DIR__.'/../lib.php';
 header('Content-Type: application/json; charset=utf-8');
 date_default_timezone_set('Asia/Shanghai');
 
-$params = array(
-    'ask'   => isset($_REQUEST['ask'])   ? $_REQUEST['ask']   : '',
-    'view'  => isset($_REQUEST['view'])  ? $_REQUEST['view']  : '',
-    'limit' => isset($_REQUEST['limit']) ? $_REQUEST['limit'] : '',
-    'bid'   => intval(isset($_REQUEST['bid']) ? $_REQUEST['bid'] : 0),
-    'tid'   => intval(isset($_REQUEST['tid']) ? $_REQUEST['tid'] : 0),
-    'pid'   => intval(isset($_REQUEST['pid']) ? $_REQUEST['pid'] : 0),
+$params = array_merge($_REQUEST, array(
     'token' => isset($_COOKIE['token'])  ? $_COOKIE['token']  : '',
     'ip'    => $_SERVER['REMOTE_ADDR'],
-);
+));
 
 $con = dbconnect_mysqli();
 require_once __DIR__.'/dispatch.php';
