@@ -19,6 +19,8 @@ if (count($userinfo) == 0) {
 $userinfo = $userinfo[0];
 $mail = isset($userinfo['mail']) ? $userinfo['mail'] : '';
 $verified = isset($userinfo['verified']) ? intval($userinfo['verified']) : 0;
+$is_pku_email = preg_match('/^\d{10}@(.+\.)*pku\.edu\.cn$/i', $mail)
+    || preg_match('/^\d{10}@bjmu\.edu\.cn$/i', $mail);
 ?>
 <html>
 <head>
@@ -34,6 +36,7 @@ $verified = isset($userinfo['verified']) ? intval($userinfo['verified']) : 0;
     .verified-badge { display: inline-block; background: #4CAF50; color: #fff; padding: 8px 20px; border-radius: 20px; font-size: 15px; }
     .unverified-badge { display: inline-block; background: #FF9800; color: #fff; padding: 8px 20px; border-radius: 20px; font-size: 15px; }
     .no-email-badge { display: inline-block; background: #f44336; color: #fff; padding: 8px 20px; border-radius: 20px; font-size: 15px; }
+    .invalid-badge { display: inline-block; background: #f44336; color: #fff; padding: 8px 20px; border-radius: 20px; font-size: 15px; }
     .form-group { margin: 15px 0; }
     .form-group label { display: block; margin-bottom: 5px; color: #666; font-size: 13px; }
     .form-group input[type="text"] { width: 100%; padding: 8px 12px; border: 1px solid #ddd; border-radius: 4px; font-size: 14px; box-sizing: border-box; }
@@ -61,6 +64,13 @@ $verified = isset($userinfo['verified']) ? intval($userinfo['verified']) : 0;
     <div class="verify-status">
         <span class="verified-badge">已验证</span>
         <p class="email-display" style="margin-top:15px;"><?php echo htmlspecialchars($mail); ?></p>
+    </div>
+<?php elseif (!$is_pku_email): ?>
+    <div class="verify-status">
+        <span class="invalid-badge">邮箱格式不正确</span>
+        <p class="email-display" style="margin-top:15px;"><?php echo htmlspecialchars($mail); ?></p>
+        <p style="color:#f44336;margin-top:15px;">当前邮箱不是有效的北大邮箱（需为 学号@*.pku.edu.cn 或 学号@bjmu.edu.cn 格式）。</p>
+        <p style="color:#666;margin-top:10px;">请前往 <a href="../edituser/" target="_blank">编辑资料</a> 页面更换邮箱。</p>
     </div>
 <?php else: ?>
     <div class="verify-status">
