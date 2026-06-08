@@ -75,6 +75,18 @@ if($username!=""){
     $msg=intval($userinfo['newmsg']);
     $icon=translateicon($userinfo['icon']);
     $star=intval($userinfo['star']);
+
+    // 检查邮箱验证禁言状态（bid=28 板块豁免）
+    $email_muted = false;
+    if (CAPUBBS_ENABLE_POST_CONTROL && intval($bid) !== 28) {
+        $cu_verified = isset($userinfo['verified']) ? intval($userinfo['verified']) : 0;
+        $cu_post = isset($userinfo['post']) ? intval($userinfo['post']) : 0;
+        $cu_reply = isset($userinfo['reply']) ? intval($userinfo['reply']) : 0;
+        if ($cu_verified === 0 && ($cu_post + $cu_reply) <= 20) {
+            $email_muted = true;
+        }
+    }
+
     echo("<img src='$icon' class='usericon'></img>");
     echo("<div class='userinfo'>");
     echo("<a href='../user/?name=$username' target='_blank'>$username</a>");
@@ -98,6 +110,7 @@ if($username!=""){
 }else{
     $nowurl=$_SERVER["PHP_SELF"]. "?".$_SERVER["QUERY_STRING"];
     $nowurl=urlencode($nowurl);
+	    $email_muted = false;
     echo("<span class='guest'>欢迎您，游客！<a href='../login?from=$nowurl'>登录</a> 或者 <a href='../register'>注册</a></span>");
 }
 ?>
@@ -365,6 +378,11 @@ if ($right<=1 && $star<$need) echo '
         <span class="editip">在本版发帖或回复至少需要 '.$need.' 星</span>
         </div>
 ';
+else if ($email_muted) {echo '
+        <div class="editip" id="editip">
+        <span class="editip">您的邮箱尚未验证，暂时无法发言。请前往&nbsp;<a href="../home/" target="_blank">个人中心</a>&nbsp;验证邮箱。</span>
+        </div>
+';}
 else {
 
 echo '

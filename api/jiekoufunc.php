@@ -1782,7 +1782,7 @@ function jiekoufunc_is_pku_email($email) {
     return false;
 }
 
-function jiekoufunc_is_muted($con, $username) {
+function jiekoufunc_is_muted($con, $username, $bid = 0) {
     if (!CAPUBBS_ENABLE_POST_CONTROL) return false;
 
     $username_esc = mysqli_real_escape_string($con, $username);
@@ -1790,9 +1790,12 @@ function jiekoufunc_is_muted($con, $username) {
         "SELECT verified, post, reply, mail FROM userinfo WHERE username='$username_esc'"));
     if (!$result) return false;
 
+    // bid=28 板块允许未验证邮箱且发帖/回帖数不足的用户发言
     if (intval($result['verified']) === 0) {
         if ((intval($result['post']) + intval($result['reply'])) <= 20) {
-            return '邮箱未验证';
+            if (intval($bid) !== 28) {
+                return '邮箱未验证';
+            }
         }
     }
 

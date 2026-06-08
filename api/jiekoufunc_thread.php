@@ -25,7 +25,7 @@ function jiekoufunc_post($con, $token, $bid, $ip, $attachs, $params) {
     $delay_err = jiekoufunc_checkDelayTime($time, $star, $rights, $lastpost, $ip);
     if ($delay_err !== null) return $delay_err;
 
-    $muted_reason = jiekoufunc_is_muted($con, $username);
+    $muted_reason = jiekoufunc_is_muted($con, $username, $bid);
     if ($muted_reason) {
         return array(array('code' => strval(ApiError::USER_MUTED),
             'msg' => '您暂时不能发帖（' . $muted_reason . '）。请先验证邮箱或联系管理员。'));
@@ -72,7 +72,7 @@ function jiekoufunc_reply($con, $token, $bid, $tid, $ip, $attachs, $params) {
     $delay_err = jiekoufunc_checkDelayTime($time, $star, $rights, $lastpost, $ip);
     if ($delay_err !== null) return $delay_err;
 
-    $muted_reason = jiekoufunc_is_muted($con, $username);
+    $muted_reason = jiekoufunc_is_muted($con, $username, $bid);
     if ($muted_reason) {
         return array(array('code' => strval(ApiError::USER_MUTED),
             'msg' => '您暂时不能发帖（' . $muted_reason . '）。请先验证邮箱或联系管理员。'));
@@ -523,7 +523,16 @@ function jiekoufunc_lzl($con, $method, $fid, $token, $ip, $params) {
         $rights = intval($res[2]);
         $lastpost = intval($res[3]);
 
-        $muted_reason = jiekoufunc_is_muted($con, $username);
+        // 从 fid 解析 bid，用于 is_muted 的 bid=28 豁免判断
+        $statement = "select bid from posts where fid=$fid limit 1";
+        $result_bid = mysqli_query($con, $statement);
+        $lzl_bid = 0;
+        if (mysqli_num_rows($result_bid) > 0) {
+            $info_bid = mysqli_fetch_array($result_bid);
+            $lzl_bid = intval($info_bid['bid']);
+        }
+
+        $muted_reason = jiekoufunc_is_muted($con, $username, $lzl_bid);
         if ($muted_reason) {
             return array(array('code' => strval(ApiError::USER_MUTED),
                 'msg' => '您暂时不能发帖（' . $muted_reason . '）。请先验证邮箱或联系管理员。'));
@@ -543,7 +552,6 @@ function jiekoufunc_lzl($con, $method, $fid, $token, $ip, $params) {
         $statement = "select bid,tid,pid,author from posts where fid=$fid limit 1";
         $result = mysqli_query($con, $statement);
         $info = mysqli_fetch_array($result);
-        $lzl_bid = $info['bid'];
         $lzl_tid = $info['tid'];
         $lzl_pid = $info['pid'];
         $pidauthor = $info['author'];

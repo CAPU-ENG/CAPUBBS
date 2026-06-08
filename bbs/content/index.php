@@ -125,6 +125,17 @@
             $userinfo=$userinfo[0];
             $star=intval($userinfo['star']);
 
+            // 检查邮箱验证禁言状态（bid=28 板块豁免）
+            $email_muted = false;
+            if (CAPUBBS_ENABLE_POST_CONTROL && $bid != 28) {
+                $cu_verified = isset($userinfo['verified']) ? intval($userinfo['verified']) : 0;
+                $cu_post = isset($userinfo['post']) ? intval($userinfo['post']) : 0;
+                $cu_reply = isset($userinfo['reply']) ? intval($userinfo['reply']) : 0;
+                if ($cu_verified === 0 && ($cu_post + $cu_reply) <= 20) {
+                    $email_muted = true;
+                }
+            }
+
             $right=mainfunc(array("ask"=>"rights","bid"=> $bid));
 
             $right=$right[0]['code'];
@@ -150,6 +161,7 @@
             $nowurl=urlencode($nowurl);
             $right=-1;
             $currentuser=null;
+            $email_muted = false;
             echo("欢迎您，游客！<a href='../login?from=$nowurl'>登录</a> 或者 <a href='../register'>注册</a>");
                     }
         echo("<script type='text/javascript'>");
@@ -296,7 +308,7 @@ for($i=0;$i<count(@$data);$i++){
             $html=str_replace(chr(13), "<br>",$html);
             echo('<div class="lzlcontent">'.userhref($author).': '.$html.'<br>');
             echo('<span class="lzltime">'.formatstamp($lzl[$j]['time']));
-            if ($canreply) echo '&nbsp;<a href="javascript:insertlzlreply('.$i.',\''.$author.'\');" class="lzlreplybt">回复</a>';
+            if ($canreply && !$email_muted) echo '&nbsp;<a href="javascript:insertlzlreply('.$i.',\''.$author.'\');" class="lzlreplybt">回复</a>';
             if($right>=1|| $author==$currentuser){
                 echo('&nbsp;<a href="javascript:deletelzlreply('.$floor['fid'].','.$lzl[$j]['id'].');" class="lzlreplybt">删除</a>');
             }
@@ -305,7 +317,7 @@ for($i=0;$i<count(@$data);$i++){
         }
         ?>
         <tr><td class="lzltd">
-            <?php if ($canreply) echo '
+            <?php if ($canreply && !$email_muted) echo '
             <button style="float:right" onclick="toggleslide('.$i.')">我也说一句</button>
             <div id="writeboard'.$i.'" style="display:none;">
                 <textarea class="lzltextarea" id="textarea'.$i.'"></textarea>
@@ -332,7 +344,7 @@ for($i=0;$i<count(@$data);$i++){
         echo("<a class='replylzlbt' href='javascript:deletepid(".$floor['pid'].");'>删除</a>\n");
         echo("<a class='replylzlbt' href='../editpid?bid=$bid&tid=$tid&pid=".$floor['pid']."'>编辑</a>\n");
     }
-    if ($canreply) {
+    if ($canreply && !$email_muted) {
     echo("<a class='replylzlbt' href='javascript:toggle".(count($lzl)==0?"reply":"slide")."($i);'>回复</a>\n");
     echo("<a class='message reply' href='javascript:quote(\"".$floor['author']."\",$i)'><img src='reply.png' height='17px' style='position:relative;top:3px;'>&nbsp;引用</a>");
 }
@@ -360,7 +372,7 @@ echo_page_control($page, $pages, $bid, $tid, $see_lz);
         </div>
 <?php
 if ($currentuser!="") {
-if ($canreply) {echo '
+if ($canreply && !$email_muted) {echo '
         <div class="editor" id="editor">
             <div id="edi_bar"></div>
             <div id="edi_content" onfocus="editorFocus();" onblur="editorBlur();"></div>
@@ -388,7 +400,12 @@ echo '
             </div>
         </div>
 ';}
-else echo '
+	else if ($canreply && $email_muted) {echo '
+	        <div class="editip" id="editip">
+	        <span class="editip">您的邮箱尚未验证，暂时无法发言。请前往&nbsp;<a href="../home/" target="_blank">个人中心</a>&nbsp;验证邮箱。</span>
+	        </div>
+	';}
+	else echo '
         <div class="editip" id="editip">
         <span class="editip">在本版发帖或回复至少需要 '.$need.' 星</span>
         </div>
