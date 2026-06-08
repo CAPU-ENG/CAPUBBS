@@ -402,7 +402,7 @@ echo '
 ';}
 	else if ($canreply && $email_muted) {echo '
 	        <div class="editip" id="editip">
-	        <span class="editip">您的邮箱尚未验证，暂时无法发言。请前往&nbsp;<a href="../home/" target="_blank">个人中心</a>&nbsp;验证邮箱。</span>
+	        <span class="editip">您的邮箱尚未验证，暂时无法发言。请前往&nbsp;<a href="../home/?pos=verify_email" target="_blank">个人中心</a>&nbsp;验证邮箱。</span>
 	        </div>
 	';}
 	else echo '
