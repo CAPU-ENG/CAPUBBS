@@ -310,7 +310,7 @@ for($i=0;$i<count(@$data);$i++){
             echo('<span class="lzltime">'.formatstamp($lzl[$j]['time']));
             if ($canreply && !$email_muted) echo '&nbsp;<a href="javascript:insertlzlreply('.$i.',\''.$author.'\');" class="lzlreplybt">回复</a>';
             else if ($canreply && $email_muted) echo '&nbsp;<a href="../home/?pos=verify_email" target="_blank" class="lzlreplybt" style="color:#FF9800;">验证邮箱后可回复</a>';
-            if($right>=1|| $author==$currentuser){
+            if(($right>=1|| $author==$currentuser) && !$email_muted){
                 echo('&nbsp;<a href="javascript:deletelzlreply('.$floor['fid'].','.$lzl[$j]['id'].');" class="lzlreplybt">删除</a>');
             }
             echo("</span>");
@@ -344,7 +344,7 @@ for($i=0;$i<count(@$data);$i++){
     else if ($os=="ios") {
         echo "<span class='oshint'>来自于<a href='/index/download_file.php?d=14' target='_blank'>iOS客户端</a></span>";
     }
-    if($right>=1|| $floor['author']==$currentuser){
+    if(($right>=1|| $floor['author']==$currentuser) && !$email_muted){
         echo("<a class='replylzlbt' href='javascript:deletepid(".$floor['pid'].");'>删除</a>\n");
         echo("<a class='replylzlbt' href='../editpid?bid=$bid&tid=$tid&pid=".$floor['pid']."'>编辑</a>\n");
     }

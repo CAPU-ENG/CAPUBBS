@@ -165,6 +165,15 @@ function jiekoufunc_edit($con, $token, $bid, $tid, $pid, $ip, $attachs, $params)
         return array(array('code' => '5', 'msg' => '权限不足！'));
     }
 
+    // 检查邮箱验证禁言（bid=28 豁免）
+    if ($a[0] == 0 && $username == $author) {
+        $muted_reason = jiekoufunc_is_muted($con, $username, $bid);
+        if ($muted_reason) {
+            return array(array('code' => strval(ApiError::USER_MUTED),
+                'msg' => '您暂时不能编辑帖子（' . $muted_reason . '）。请先验证邮箱或联系管理员。'));
+        }
+    }
+
     $statement = "select locked from threads where bid=$bid && tid=$tid";
     $results = mysqli_query($con, $statement);
     if (mysqli_num_rows($results) == 0) {
@@ -287,6 +296,15 @@ function jiekoufunc_delete($con, $token, $bid, $tid, $pid) {
     }
     $username = $a[1];
     $ip = $a[2];
+
+    // 检查邮箱验证禁言（bid=28 豁免），仅对普通用户（非版主/管理员）删除自己帖子时生效
+    if ($a[0] == 0) {
+        $muted_reason = jiekoufunc_is_muted($con, $username, $bid);
+        if ($muted_reason) {
+            return array(array('code' => strval(ApiError::USER_MUTED),
+                'msg' => '您暂时不能删除帖子（' . $muted_reason . '）。请先验证邮箱或联系管理员。'));
+        }
+    }
 
     if ($pid == 0) {
         // ========== Delete entire thread ==========
@@ -615,13 +633,24 @@ function jiekoufunc_lzl($con, $method, $fid, $token, $ip, $params) {
         $res = mysqli_fetch_row($results);
         $lzl_author = $res[0];
 
+        // 解析 bid，用于后续的禁言检查和版主权限检查
         $statement = "select bid from posts where fid=$fid";
-        $results = mysqli_query($con, $statement);
-        if (mysqli_num_rows($results) == 0) {
+        $results_bid = mysqli_query($con, $statement);
+        if (mysqli_num_rows($results_bid) == 0) {
             return array(array('code' => '3', 'msg' => '帖子不存在！'));
         }
-        $res = mysqli_fetch_array($results);
-        $lzl_bid = $res[0];
+        $lzl_bid = intval(mysqli_fetch_row($results_bid)[0]);
+
+        // 检查邮箱验证禁言，仅对自己删除自己楼中楼时生效（bid=28 豁免）
+        if ($lzl_author == $username) {
+            $muted_reason = jiekoufunc_is_muted($con, $username, $lzl_bid);
+            if ($muted_reason) {
+                return array(array('code' => strval(ApiError::USER_MUTED),
+                    'msg' => '您暂时不能删除帖子（' . $muted_reason . '）。请先验证邮箱或联系管理员。'));
+            }
+        }
+
+        $statement = "select m1,m2,m3,m4 from boardinfo where bid=$lzl_bid";
         $statement = "select m1,m2,m3,m4 from boardinfo where bid=$lzl_bid";
         $results2 = mysqli_query($con, $statement);
         $res2 = mysqli_fetch_array($results2);
