@@ -309,6 +309,7 @@ for($i=0;$i<count(@$data);$i++){
             echo('<div class="lzlcontent">'.userhref($author).': '.$html.'<br>');
             echo('<span class="lzltime">'.formatstamp($lzl[$j]['time']));
             if ($canreply && !$email_muted) echo '&nbsp;<a href="javascript:insertlzlreply('.$i.',\''.$author.'\');" class="lzlreplybt">回复</a>';
+            else if ($canreply && $email_muted) echo '&nbsp;<a href="../home/?pos=verify_email" target="_blank" class="lzlreplybt" style="color:#FF9800;">验证邮箱后可回复</a>';
             if($right>=1|| $author==$currentuser){
                 echo('&nbsp;<a href="javascript:deletelzlreply('.$floor['fid'].','.$lzl[$j]['id'].');" class="lzlreplybt">删除</a>');
             }
@@ -318,11 +319,14 @@ for($i=0;$i<count(@$data);$i++){
         ?>
         <tr><td class="lzltd">
             <?php if ($canreply && !$email_muted) echo '
-            <button style="float:right" onclick="toggleslide('.$i.')">我也说一句</button>
-            <div id="writeboard'.$i.'" style="display:none;">
-                <textarea class="lzltextarea" id="textarea'.$i.'"></textarea>
-                <button style="float:right" onclick="dolzlreply('.$i.",".$floor['fid'].',this);">发表</button>
-            </div>';?>
+                        <button style="float:right" onclick="toggleslide('.$i.')">我也说一句</button>
+                        <div id="writeboard'.$i.'" style="display:none;">
+                            <textarea class="lzltextarea" id="textarea'.$i.'"></textarea>
+                            <button style="float:right" onclick="dolzlreply('.$i.",".$floor['fid'].',this);">发表</button>
+                        </div>';
+                        else if ($canreply && $email_muted) echo '
+                        <span style="float:right;font-size:12px;color:#FF9800;"><a href="../home/?pos=verify_email" target="_blank">验证邮箱后可回复</span>
+                        ';?>
             </td></tr>
             </table>
         <?php
@@ -345,9 +349,13 @@ for($i=0;$i<count(@$data);$i++){
         echo("<a class='replylzlbt' href='../editpid?bid=$bid&tid=$tid&pid=".$floor['pid']."'>编辑</a>\n");
     }
     if ($canreply && !$email_muted) {
-    echo("<a class='replylzlbt' href='javascript:toggle".(count($lzl)==0?"reply":"slide")."($i);'>回复</a>\n");
-    echo("<a class='message reply' href='javascript:quote(\"".$floor['author']."\",$i)'><img src='reply.png' height='17px' style='position:relative;top:3px;'>&nbsp;引用</a>");
-}
+        echo("<a class='replylzlbt' href='javascript:toggle".(count($lzl)==0?"reply":"slide")."($i);'>回复</a>
+");
+        echo("<a class='message reply' href='javascript:quote(\"".$floor['author']."\",$i)'><img src='reply.png' height='17px' style='position:relative;top:3px;'>&nbsp;引用</a>");
+    } else if ($canreply && $email_muted) {
+        echo("<a class='replylzlbt' href='../home/?pos=verify_email' target='_blank' style='color:#FF9800;'>验证邮箱后可回复</a>
+");
+    }
     echo("</div>\n");
     echo("</div>\n");
     echo("</div>\n");
