@@ -115,7 +115,7 @@ table.content tr {
         <input type="button" value="发送验证码" id="changeSendBtn" onclick="sendChangeCode()">
         <span id="changeCountdown" style="font-size:12px;color:#999;margin-left:4px;"></span>
         <br><input type="text" id="changeCode" placeholder="6位验证码" maxlength="6" style="width:100px;margin-top:4px;">
-        <input type="button" value="确认更换" id="changeVerifyBtn" onclick="verifyChangeEmail()" style="margin-top:4px;">
+        <input type="button" value="验证" id="changeVerifyBtn" onclick="verifyChangeEmail()" style="margin-top:4px;">
         <span id="changeMsg" style="font-size:12px;margin-left:8px;"></span>
     </td>
 </tr>
