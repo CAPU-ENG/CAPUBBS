@@ -14,6 +14,17 @@
     "bid"=>$bid));
     if (@$boardinfo[0]) $boardinfo=$boardinfo[0];
     else $boardinfo=array();
+    // 校验版块是否存在（bbsinfo 返回 error code 时无 bid 字段）
+    if (!isset($boardinfo['bid'])) {
+        echo '<!DOCTYPE html><html><head><meta charset="utf-8"><title>版块不存在</title>';
+        echo '<link rel="stylesheet" href="../lib/general.css">';
+        echo '</head><body style="text-align:center;padding-top:80px;font-family:sans-serif;">';
+        echo '<h2 style="color:#c33;">版块不存在</h2>';
+        echo '<p>该版块 ID 无效或已被删除。</p>';
+        echo '<p><a href="../index/">返回首页选择版块</a></p>';
+        echo '</body></html>';
+        exit;
+    }
     $xx="";if ($extr) $xx="（精品区）";
 ?>
 <html>

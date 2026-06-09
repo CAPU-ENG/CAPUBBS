@@ -27,6 +27,23 @@ $bid  = isset($_GET['bid'])  ? intval($_GET['bid'])  : 0;
 $type = isset($_GET['type']) ? $_GET['type']         : 'all';
 if ($page < 1) $page = 1;
 
+// 校验版块是否存在（bid=0 表示全部版块，合法）
+if ($bid > 0) {
+    $bid_valid = false;
+    foreach ($all_boards as $b) {
+        if (intval($b['bid']) === $bid) { $bid_valid = true; break; }
+    }
+    if (!$bid_valid) {
+        echo '<!DOCTYPE html><html><head><meta charset="utf-8"><title>版块不存在</title>';
+        echo '</head><body style="text-align:center;padding-top:80px;font-family:sans-serif;">';
+        echo '<h2 style="color:#c33;">版块不存在</h2>';
+        echo '<p>该版块 ID 无效或已被删除。</p>';
+        echo '<p><a href="./">返回回收站</a></p>';
+        echo '</body></html>';
+        exit;
+    }
+}
+
 // 获取回收站列表
 $trash = array();
 if ($can_access) {

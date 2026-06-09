@@ -20,6 +20,32 @@ $GLOBALS['attachroot'] = __DIR__ . "/../bbs/attachment/";
 $GLOBALS['_jiekoufunc_nowuser'] = null;
 
 // ============================================================================
+//  Utility functions
+// ============================================================================
+
+/**
+ * 验证 bid 是否存在于 boardinfo 表中。
+ * 使用静态缓存避免同一请求中重复查询数据库。
+ *
+ * @param mysqli $con  数据库连接
+ * @param int   $bid  版块 ID
+ * @return bool        true = 存在于 boardinfo（或 bid <= 0 为特殊值放行）
+ */
+function jiekoufunc_is_valid_bid($con, $bid) {
+    $bid = intval($bid);
+    if ($bid <= 0) return true;  // bid=0（全部版块）和 bid=-1（搜索全站）是特殊值
+    static $valid_bids = null;
+    if ($valid_bids === null) {
+        $valid_bids = array();
+        $result = mysqli_query($con, "select bid from boardinfo where bid!=0");
+        while ($row = mysqli_fetch_row($result)) {
+            $valid_bids[intval($row[0])] = true;
+        }
+    }
+    return isset($valid_bids[$bid]);
+}
+
+// ============================================================================
 //  Business functions — Read-only
 // ============================================================================
 

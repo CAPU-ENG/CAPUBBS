@@ -41,6 +41,16 @@
         echo("<capu><info><code>-1</code><msg>未知错误，请反馈给我们。</msg></info></capu>");
         exit;
     }
+
+    // 校验 bid 是否有效（bid=0 全部版块、bid=-1 搜索全站 放行）
+    if ($bid > 0) {
+        $bid_check = mysqli_query($con, "select bid from boardinfo where bid=$bid limit 1");
+        if (mysqli_num_rows($bid_check) == 0) {
+            echo("<capu><info><code>-1</code><msg>版块不存在。</msg></info></capu>");
+            exit;
+        }
+    }
+
     $token=@$_REQUEST['token'];
     if ($token == null) $token="";
     $token=mysqli_real_escape_string($con, $token);
@@ -511,6 +521,7 @@
     }
 
     function post($con,$token,$bid,$ip,$attachs) {
+        if ($bid <= 0) {echo '<capu><info><code>15</code><msg>版块不存在。</msg></info></capu>';exit;}
         $time=time();
         $statement="select username,star,rights,lastpost from userinfo where token='$token' && $time<=tokentime+{$GLOBALS['validtime']}";
         $results=mysqli_query($con, $statement);
@@ -555,6 +566,7 @@
     }
 
     function reply($con,$token,$bid,$tid,$ip,$attachs) {
+        if ($bid <= 0) {echo '<capu><info><code>15</code><msg>版块不存在。</msg></info></capu>';exit;}
         $time=time();
         $statement="select username,star,rights,lastpost from userinfo where token='$token' && $time<=tokentime+{$GLOBALS['validtime']}";
         $results=mysqli_query($con, $statement);
@@ -641,6 +653,7 @@
     }
 
     function edit($con,$token,$bid,$tid,$pid,$ip,$attachs) {
+        if ($bid <= 0) {echo '<capu><info><code>15</code><msg>版块不存在。</msg></info></capu>';exit;}
         echo '<capu>';
         $time=time();
         $a=getrights($con,$bid,$token);
@@ -710,6 +723,7 @@
     }
 
     function threads_action($con,$token,$bid,$tid,$action) {
+        if ($bid <= 0) {echo '<capu><info><code>15</code><msg>版块不存在。</msg></info></capu>';exit;}
         $a=getrights($con,$bid,$token);
         if ($a[0]==-1) {echo '<capu><info><code>1</code><msg>超时，请重新登录。</msg></info></capu>';exit;}
         if ($a[0]==0) {echo '<capu><info><code>5</code><msg>权限不足！</msg></info></capu>';exit;}
@@ -760,6 +774,7 @@
     }
 
     function delete($con,$token,$bid,$tid,$pid) {
+        if ($bid <= 0) {echo '<capu><info><code>15</code><msg>版块不存在。</msg></info></capu>';exit;}
         $time=time();
         $a=getrights($con,$bid,$token);
 
@@ -944,6 +959,8 @@
     }
 
     function move($con,$token,$bid,$tid,$to) {
+        if ($bid <= 0) {echo '<capu><info><code>15</code><msg>版块不存在。</msg></info></capu>';exit;}
+        if ($to <= 0) {echo '<capu><info><code>15</code><msg>目标版块不存在。</msg></info></capu>';exit;}
         $a=getrights($con,$bid,$token);
         if ($a[0]!=2) {echo '<capu><info><code>5</code><msg>权限不足！</msg></info></capu>';exit;}
         $statement="select max(tid) from threads where bid=$to";

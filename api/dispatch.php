@@ -168,6 +168,11 @@ function jiekoufunc_dispatch($con, $params) {
         return array(array('code' => '-1', 'msg' => '未知错误，请反馈给我们。'));
     }
 
+    // 校验 bid 是否有效（bid=0 全部版块、bid=-1 搜索全站 放行）
+    if ($bid > 0 && !jiekoufunc_is_valid_bid($con, $bid)) {
+        return array(array('code' => '15', 'msg' => '版块不存在。'));
+    }
+
     // Resolve route key (same logic as _jiekoufunc_resolve_route_key in lib.php)
     if ($ask == '') {
         if ($view != '')         $ask = '__view';

@@ -26,6 +26,22 @@
     }
 
     $con = dbconnect_mysqli();
+
+    // 校验版块是否存在
+    if ($bid > 0) {
+        $bid_check = mysqli_query($con, "select bid from boardinfo where bid=$bid limit 1");
+        if (mysqli_num_rows($bid_check) == 0) {
+            echo '<!DOCTYPE html><html><head><meta charset="utf-8"><title>版块不存在</title>';
+            echo '<link rel="stylesheet" href="../lib/general.css">';
+            echo '</head><body style="text-align:center;padding-top:80px;font-family:sans-serif;">';
+            echo '<h2 style="color:#c33;">版块不存在</h2>';
+            echo '<p>该版块 ID 无效或已被删除。</p>';
+            echo '<p><a href="../index/">返回首页选择版块</a></p>';
+            echo '</body></html>';
+            exit;
+        }
+    }
+
     checkUserAndSign($con, $ip, $token);
     $data = getOnePage($con, $bid, $tid, $page, $see_lz, $ip, $token);
     $tdata = getTidInfo($con, $bid, $tid);

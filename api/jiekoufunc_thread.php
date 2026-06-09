@@ -13,6 +13,10 @@
 // ============================================================================
 
 function jiekoufunc_post($con, $token, $bid, $ip, $attachs, $params) {
+    // 校验版块有效性：bid 必须为正数且存在于 boardinfo
+    if ($bid <= 0 || !jiekoufunc_is_valid_bid($con, $bid)) {
+        return array(array('code' => '15', 'msg' => '版块不存在。'));
+    }
     $time = time();
     $pid = 1;
     $statement = "select username,star,rights,lastpost from userinfo where token='$token' && $time<=tokentime+{$GLOBALS['validtime']}";
@@ -61,6 +65,10 @@ function jiekoufunc_post($con, $token, $bid, $ip, $attachs, $params) {
 }
 
 function jiekoufunc_reply($con, $token, $bid, $tid, $ip, $attachs, $params) {
+    // 校验版块有效性：bid 必须为正数且存在于 boardinfo
+    if ($bid <= 0 || !jiekoufunc_is_valid_bid($con, $bid)) {
+        return array(array('code' => '15', 'msg' => '版块不存在。'));
+    }
     $time = time();
     $statement = "select username,star,rights,lastpost from userinfo where token='$token' && $time<=tokentime+{$GLOBALS['validtime']}";
     $results = mysqli_query($con, $statement);
@@ -146,6 +154,9 @@ function jiekoufunc_reply($con, $token, $bid, $tid, $ip, $attachs, $params) {
 }
 
 function jiekoufunc_edit($con, $token, $bid, $tid, $pid, $ip, $attachs, $params) {
+    if ($bid <= 0 || !jiekoufunc_is_valid_bid($con, $bid)) {
+        return array(array('code' => '15', 'msg' => '版块不存在。'));
+    }
     $time = time();
     $a = jiekoufunc_getrights($con, $bid, $token);
     if ($a[0] == -1) {
@@ -238,6 +249,9 @@ function jiekoufunc_edit($con, $token, $bid, $tid, $pid, $ip, $attachs, $params)
 }
 
 function jiekoufunc_threads_action($con, $token, $bid, $tid, $action) {
+    if ($bid <= 0 || !jiekoufunc_is_valid_bid($con, $bid)) {
+        return array(array('code' => '15', 'msg' => '版块不存在。'));
+    }
     $a = jiekoufunc_getrights($con, $bid, $token);
     if ($a[0] == -1) {
         return array(array('code' => '1', 'msg' => '超时，请重新登录。'));
@@ -288,6 +302,9 @@ function jiekoufunc_threads_action($con, $token, $bid, $tid, $action) {
 }
 
 function jiekoufunc_delete($con, $token, $bid, $tid, $pid) {
+    if ($bid <= 0 || !jiekoufunc_is_valid_bid($con, $bid)) {
+        return array(array('code' => '15', 'msg' => '版块不存在。'));
+    }
     $time = time();
     $a = jiekoufunc_getrights($con, $bid, $token);
 
@@ -497,6 +514,12 @@ function jiekoufunc_delete($con, $token, $bid, $tid, $pid) {
 }
 
 function jiekoufunc_move($con, $token, $bid, $tid, $to) {
+    if ($bid <= 0 || !jiekoufunc_is_valid_bid($con, $bid)) {
+        return array(array('code' => '15', 'msg' => '版块不存在。'));
+    }
+    if ($to <= 0 || !jiekoufunc_is_valid_bid($con, $to)) {
+        return array(array('code' => '15', 'msg' => '目标版块不存在。'));
+    }
     $a = jiekoufunc_getrights($con, $bid, $token);
     if ($a[0] != 2) {
         return array(array('code' => '5', 'msg' => '权限不足！'));
