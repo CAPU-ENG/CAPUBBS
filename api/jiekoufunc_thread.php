@@ -535,6 +535,9 @@ function jiekoufunc_lzl($con, $method, $fid, $token, $ip, $params) {
         $time = time();
         $statement = "select username,star,rights,lastpost from userinfo where token='$token' && $time<=tokentime+{$GLOBALS['validtime']}";
         $results = mysqli_query($con, $statement);
+        if (mysqli_num_rows($results) == 0) {
+            return array(array('code' => '1', 'msg' => '超时，请重新登录。'));
+        }
         $res = mysqli_fetch_row($results);
         $username = $res[0];
         $star = intval($res[1]);
@@ -560,6 +563,9 @@ function jiekoufunc_lzl($con, $method, $fid, $token, $ip, $params) {
         if ($delay_err !== null) return $delay_err;
 
         $text = isset($params['text']) ? $params['text'] : '';
+        if (trim($text) === '') {
+            return array(array('code' => '11', 'msg' => '内容不能为空。'));
+        }
 
         $statement = "select author from lzl where fid=$fid";
         $result_lzl = mysqli_query($con, $statement);
@@ -569,6 +575,9 @@ function jiekoufunc_lzl($con, $method, $fid, $token, $ip, $params) {
 
         $statement = "select bid,tid,pid,author from posts where fid=$fid limit 1";
         $result = mysqli_query($con, $statement);
+        if (mysqli_num_rows($result) == 0) {
+            return array(array('code' => '3', 'msg' => '帖子不存在！'));
+        }
         $info = mysqli_fetch_array($result);
         $lzl_tid = $info['tid'];
         $lzl_pid = $info['pid'];
@@ -650,7 +659,6 @@ function jiekoufunc_lzl($con, $method, $fid, $token, $ip, $params) {
             }
         }
 
-        $statement = "select m1,m2,m3,m4 from boardinfo where bid=$lzl_bid";
         $statement = "select m1,m2,m3,m4 from boardinfo where bid=$lzl_bid";
         $results2 = mysqli_query($con, $statement);
         $res2 = mysqli_fetch_array($results2);
