@@ -14,6 +14,60 @@
     }
     $GLOBALS['validtime']=60*60*24*7;
     $GLOBALS['attachroot']="../bbs/attachment/";
+
+    /**
+     * 详细的入口/路由追踪日志。
+     * 用途：在所有接口切换到 new 之后，排查还有哪些情况会调用 jiekouapi（旧API）。
+     *
+     * @param string $stage  日志阶段：'entry' 入口记录, 'route' 路由决策记录
+     * @param string $extra  额外信息，如路由目标描述
+     */
+    function jiekouapi_trace_log($stage = 'entry', $extra = '') {
+        $log = array();
+        $log[] = 'stage=' . $stage;
+        $log[] = 'time=' . date('Y-m-d H:i:s');
+        $log[] = 'ip=' . (isset($_SERVER['REMOTE_ADDR']) ? $_SERVER['REMOTE_ADDR'] : 'cli');
+        $log[] = 'method=' . (isset($_SERVER['REQUEST_METHOD']) ? $_SERVER['REQUEST_METHOD'] : '?');
+        $log[] = 'uri=' . (isset($_SERVER['REQUEST_URI']) ? $_SERVER['REQUEST_URI'] : '?');
+        $log[] = 'ref=' . substr(@$_SERVER['HTTP_REFERER'], 0, 500);
+        $log[] = 'ua=' . substr(@$_SERVER['HTTP_USER_AGENT'], 0, 200);
+
+        // 核心路由参数 ask
+        $ask = @$_REQUEST['ask'];
+        $log[] = 'ask=' . ($ask !== null && $ask !== '' ? $ask : '(empty)');
+
+        // 其他业务关键参数（仅记录非空的，避免日志膨胀）
+        $track_keys = array('bid','tid','pid','fid','to','view','type','keyword','name','p','page','method','see_lz','extr','hotnum','id','path','filename','limit','price','auth');
+        foreach ($track_keys as $k) {
+            if (!empty($_REQUEST[$k])) {
+                $val = $_REQUEST[$k];
+                if (is_string($val) && mb_strlen($val, 'utf-8') > 100) {
+                    $val = mb_substr($val, 0, 100, 'utf-8') . '...[truncated]';
+                }
+                $log[] = "{$k}=" . $val;
+            }
+        }
+
+        // token / username 只记有无，不记明文（安全）
+        $log[] = 'has_token=' . (!empty($_REQUEST['token']) ? '1' : '0');
+        $log[] = 'has_username=' . (!empty($_REQUEST['username']) ? '1' : '0');
+        $log[] = 'has_text=' . (!empty($_REQUEST['text']) ? '1' : '0');
+        $log[] = 'has_attachs=' . (!empty($_REQUEST['attachs']) ? '1' : '0');
+        $log[] = 'has_password=' . (!empty($_REQUEST['password']) ? '1' : '0');
+
+        // 记录 GET 和 POST 的 key 列表（不含值），用于发现未知参数
+        $get_keys = array_keys($_GET);
+        $post_keys = array_keys($_POST);
+        $log[] = 'GET_keys=' . implode(',', $get_keys);
+        $log[] = 'POST_keys=' . implode(',', $post_keys);
+
+        if ($extra !== null && $extra !== '') {
+            $log[] = 'route=' . $extra;
+        }
+
+        error_log('[JIEKOUAPI_OLD] ' . implode(' | ', $log));
+    }
+
     header('Content-type: application/xml');
     echo '<?xml version="1.0" encoding="UTF-8"?>';
     echo "\n";
@@ -36,7 +90,8 @@
     $keyword=@$_REQUEST['keyword'];
     $type=@$_REQUEST['type'];
     $limit_raw=@$_REQUEST['limit'];
-    error_log("jiekouapi.php ask:{$ask},bid:{$bid},tid:{$tid},pid:{$pid},to:{$to},fid:{$fid},path:{$path},filename:{$filename},text:{$text},price:{$price},auth:{$auth},id:{$id},attachs:{$attachs},keyword:{$keyword},type:{$type},limit:{$limit_raw}");
+    // ★ 详细入口日志：排查所有接口切到 new 之后，哪些情况还在调旧 API
+    jiekouapi_trace_log('entry');
     if(!islegal($bid)||!islegal($tid)||!islegal($pid)||!islegal($fid)){
         echo("<capu><info><code>-1</code><msg>未知错误，请反馈给我们。</msg></info></capu>");
         exit;
@@ -96,6 +151,13 @@
     }
 
     if ($ip=="") $ip=$_SERVER["REMOTE_ADDR"];
+
+    // ★ 路由决策日志：记录最终匹配到的处理分支
+    {
+        $route = $ask ?: ($view ? "view_user({$view})" : ($bid ? "view_bbs(bid={$bid})" : 'ask_error'));
+        jiekouapi_trace_log('route', $route);
+    }
+
     if ($ask=="bbsinfo") bbsinfo($con,$bid,@$_REQUEST['name']);
     else if ($ask=="login") login($con,@$_REQUEST['username'],@$_REQUEST['password'],$ip);
     else if ($ask=="logout") logout($con,$token,$ip);
