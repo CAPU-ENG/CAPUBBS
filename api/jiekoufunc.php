@@ -2248,3 +2248,12 @@ function jiekoufunc_toggleEmailVisible($con, $token, $params) {
     }
     return array(array('code' => '0'));
 }
+
+function jiekoufunc_verifiedCount($con) {
+    if (!CAPUBBS_ENABLE_EMAIL_VERIFY) {
+        return array(array('count' => '0'));
+    }
+    $result = mysqli_fetch_array(mysqli_query($con, "SELECT COUNT(*) as cnt FROM userinfo WHERE verified=1"));
+    $count = intval($result['cnt']);
+    return array(array('count' => strval($count)));
+}

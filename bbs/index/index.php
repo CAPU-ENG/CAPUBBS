@@ -99,6 +99,22 @@ if ($username!="") {
         <div class="title">
             <img src="ltrd.png" width="150">
         </div>
+        <?php if (CAPUBBS_ENABLE_EMAIL_VERIFY): ?>
+        <?php
+        $vc_data = mainfunc(array("ask" => "verifiedCount"));
+        $verified_count = intval($vc_data[0]['count']);
+        $current_verified = 1;
+        if ($username != "" && isset($userinfo) && isset($userinfo['verified'])) {
+            $current_verified = intval($userinfo['verified']);
+        }
+        ?>
+        <div style="text-align:center;padding:8px;margin:8px 10px;border-radius:6px;font-size:16px;color:#555;">
+            论坛已有 <b><?php echo $verified_count; ?></b> 个账户已经认证邮箱。
+            <?php if ($username != "" && $current_verified === 0): ?>
+            <br><button><a href="../home/?pos=verify_email" target="_blank">立即认证您的邮箱</a></button>
+            <?php endif; ?>
+        </div>
+        <?php endif; ?>
         <div class="hot">
         <?php
         $hots=mainfunc(array("ask"=>"hot"));

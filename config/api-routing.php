@@ -30,6 +30,7 @@ return array(
     'getnum'            => 'new',
     'hot'               => 'new',
     'global_top'        => 'new',
+    'verifiedCount'     => 'new',
     'online'            => 'new',
     'search'            => 'new',
     'calendar'          => 'new',
