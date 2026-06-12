@@ -116,6 +116,35 @@ function jiekoufunc_userexists($con, $params) {
     }
 }
 
+function jiekoufunc_user_profile($con, $params) {
+    $username = '';
+    foreach (array('username', 'user', 'view') as $key) {
+        if (isset($params[$key]) && trim($params[$key]) !== '') {
+            $username = trim($params[$key]);
+            break;
+        }
+    }
+
+    if ($username === '') {
+        return jiekoufunc_report('14', '缺少用户名。');
+    }
+
+    $viewer = '';
+    if (isset($params['token']) && $params['token'] !== '') {
+        $viewer_user = jiekoufunc_token2user($con, $params['token']);
+        if ($viewer_user) {
+            $viewer = $viewer_user['username'];
+        }
+    }
+
+    $rows = jiekoufunc_view_user_array($con, $username, $viewer);
+    if (count($rows) === 0) {
+        return jiekoufunc_report('3', '用户不存在。');
+    }
+
+    return array_merge(array(array('code' => '0', 'count' => strval(count($rows)))), $rows);
+}
+
 function jiekoufunc_hot($con, $token, $params) {
     $hotnum = 10;
     if (isset($params['hotnum']) && $params['hotnum'])

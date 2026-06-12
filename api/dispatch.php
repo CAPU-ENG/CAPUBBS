@@ -39,6 +39,7 @@ function _dispatch_build_routes() {
         'sign_year'       => array('handler' => 'jiekoufunc_sign_year',       'check_login' => false, 'require_rights' => 0),
         'sign_user'       => array('handler' => 'jiekoufunc_sign_user',       'check_login' => false, 'require_rights' => 0),
         'getuser'         => array('handler' => 'jiekoufunc_getuser',         'check_login' => false, 'require_rights' => 0),
+        'user_profile'    => array('handler' => 'jiekoufunc_user_profile',    'check_login' => false, 'require_rights' => 0),
         'userexists'      => array('handler' => 'jiekoufunc_userexists',      'check_login' => false, 'require_rights' => 0),
         'rights'          => array('handler' => 'jiekoufunc_rights',          'check_login' => false, 'require_rights' => 0),
         'recentpost'      => array('handler' => 'jiekoufunc_recentpost',      'check_login' => false, 'require_rights' => 0),
@@ -216,6 +217,8 @@ function jiekoufunc_dispatch($con, $params) {
                 return jiekoufunc_boardcast($con, $token, $text);
             case 'jiekoufunc_getuser':
                 return jiekoufunc_getuser($con, $token);
+            case 'jiekoufunc_user_profile':
+                return jiekoufunc_user_profile($con, $params);
             case 'jiekoufunc_userexists':
                 return jiekoufunc_userexists($con, $params);
             case 'jiekoufunc_hot':
