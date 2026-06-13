@@ -164,4 +164,67 @@ function translate($raw, $ishtml=true, $israw=false, $issign=false){
     $html = translate_bbcode($html);
     return $html;
 }
+
+/**
+ * 将签名中的 [post=fid] 或 [post bid=X tid=Y pid=Z] 替换为对应帖子的渲染后内容。
+ * 只在签名档调用，不在正文中处理。
+ * 属性不依赖顺序，非法格式或帖子不存在时保持原文。
+ */
+function translate_post_tag($html, $con) {
+    if (!$con) return $html;
+
+    // [post=fid]
+    $html = preg_replace_callback(
+        "#\[post=(\d+)\]#",
+        function($m) use ($con) {
+            $fid = intval($m[1]);
+            $stmt = "SELECT text, ishtml FROM posts WHERE fid=$fid LIMIT 1";
+            $res = mysqli_query($con, $stmt);
+            if (!$res || mysqli_num_rows($res) === 0) {
+                return $m[0]; // 帖子不存在，保留原文
+            }
+            $row = mysqli_fetch_array($res, MYSQLI_ASSOC);
+            return translate($row['text'], $row['ishtml'] === 'YES', false, false);
+        },
+        $html
+    );
+
+    // [post bid=X tid=Y pid=Z] — 属性顺序无关，非法则不转换
+    $html = preg_replace_callback(
+        "#\[post\s+(.*?)\]#",
+        function($m) use ($con) {
+            $raw = $m[1];
+            // 解析所有 key=value 对
+            preg_match_all('#\b(bid|tid|pid)=(\d+)\b#', $raw, $attrs, PREG_SET_ORDER);
+            if (count($attrs) !== 3) {
+                return $m[0]; // 属性数量不对，保留原文
+            }
+            $params = [];
+            foreach ($attrs as $a) {
+                if (isset($params[$a[1]])) {
+                    return $m[0]; // 重复属性，保留原文
+                }
+                $params[$a[1]] = intval($a[2]);
+            }
+            // 必须三个属性都存在
+            if (!isset($params['bid']) || !isset($params['tid']) || !isset($params['pid'])) {
+                return $m[0];
+            }
+            $bid = $params['bid'];
+            $tid = $params['tid'];
+            $pid = $params['pid'];
+
+            $stmt = "SELECT text, ishtml FROM posts WHERE bid=$bid AND tid=$tid AND pid=$pid LIMIT 1";
+            $res = mysqli_query($con, $stmt);
+            if (!$res || mysqli_num_rows($res) === 0) {
+                return $m[0]; // 帖子不存在，保留原文
+            }
+            $row = mysqli_fetch_array($res, MYSQLI_ASSOC);
+            return translate($row['text'], $row['ishtml'] === 'YES', false, false);
+        },
+        $html
+    );
+
+    return $html;
+}
 ?>

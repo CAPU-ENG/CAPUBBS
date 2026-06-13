@@ -620,11 +620,11 @@ $is_leader = ($currentuser == $activity["leader_username"] || $currentuser == "ç
                 echo("<div class='sigblock'>\n");
                 echo("<span class='sigtip'>--------</span>\n");
                 if ($sig_type === 'html') {
-                    echo("<div class='sig'>" . translate($sig_content) . "<br><br><br>" . "</div>\n");
+                    echo("<div class='sig'>" . translate_post_tag(translate($sig_content), $con) . "<br><br><br>" . "</div>\n");
                 } else if ($sig_type === 'raw') {
-                    echo("<div class='sig'>" . translate($sig_content, false, true, true) . "<br><br><br>" . "</div>\n");
+                    echo("<div class='sig'>" . translate_post_tag(translate($sig_content, false, true, true), $con) . "<br><br><br>" . "</div>\n");
                 } else {
-                    echo("<div class='sig'>" . translate($sig_content, false, false, true) . "<br><br><br>" . "</div>\n");
+                    echo("<div class='sig'>" . translate_post_tag(translate($sig_content, false, false, true), $con) . "<br><br><br>" . "</div>\n");
                 }
                 echo("</div>");
             }
