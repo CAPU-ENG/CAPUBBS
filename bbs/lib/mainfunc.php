@@ -173,7 +173,7 @@ function translate($raw, $ishtml=true, $israw=false, $issign=false){
 function translate_post_tag($html, $con) {
     if (!$con) return $html;
 
-    // [post=fid]
+    // [post=fid] — 无空格，不受 &nbsp; 转换影响
     $html = preg_replace_callback(
         "#\[post=(\d+)\]#",
         function($m) use ($con) {
@@ -193,11 +193,11 @@ function translate_post_tag($html, $con) {
     $html = preg_replace_callback(
         "#\[post\s+(.*?)\]#",
         function($m) use ($con) {
-            $raw = $m[1];
-            // 解析所有 key=value 对
+            // 仅在解析属性时临时还原 &nbsp;，失败时返回 $m[0] 保留原文字段
+            $raw = str_replace('&nbsp;', ' ', $m[1]);
             preg_match_all('#\b(bid|tid|pid)=(\d+)\b#', $raw, $attrs, PREG_SET_ORDER);
             if (count($attrs) !== 3) {
-                return $m[0]; // 属性数量不对，保留原文
+                return $m[0]; // 属性数量不对，保留含 &nbsp; 的原文
             }
             $params = [];
             foreach ($attrs as $a) {
@@ -206,7 +206,6 @@ function translate_post_tag($html, $con) {
                 }
                 $params[$a[1]] = intval($a[2]);
             }
-            // 必须三个属性都存在
             if (!isset($params['bid']) || !isset($params['tid']) || !isset($params['pid'])) {
                 return $m[0];
             }
