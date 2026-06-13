@@ -234,7 +234,7 @@ for($i=0;$i<count(@$data);$i++){
     echo("<div class='userpic drop-shadow'>\n");
     $userinfo=mainfunc(array("view"=>$floor['author']));
     $userinfo=@$userinfo[0];
-    echo("<img src='".translateicon($userinfo['icon'])."' class='icon'>");
+    echo("<img src='".translateicon($userinfo['icon'])."' class='icon' loading='lazy'>");
     echo "<p align='center' class='starline'>";
     for ($k=1;$k<=intval($userinfo['star']);$k++)
         echo "<img src='/bbsimg/star$k.gif' style='margin-left:3px;'>";
@@ -319,7 +319,7 @@ for($i=0;$i<count(@$data);$i++){
             $authorinfo=mainfunc(array("view"=>$author));
             $authorinfo=$authorinfo[0];
             echo('<tr><td class="lzltd">');
-            echo('<div class="lzlicon"><img src="'.translateicon($authorinfo['icon']).'" class="lzlicon"></div>');
+            echo('<div class="lzlicon"><img src="'.translateicon($authorinfo['icon']).'" class="lzlicon" loading="lazy"></div>');
             $html=str_replace(chr(10), "<br>",htmlspecialchars($lzl[$j]['text']));
             $html=str_replace(chr(13), "<br>",$html);
             echo('<div class="lzlcontent">'.userhref($author).': '.$html.'<br>');
