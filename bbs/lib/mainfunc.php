@@ -162,7 +162,48 @@ function translate($raw, $ishtml=true, $israw=false, $issign=false){
         $html=str_replace(" ", "&nbsp;",$html);
     }
     $html = translate_bbcode($html);
+    $html = translate_cdn_urls($html);
     return $html;
+}
+
+/**
+ * 将帖子 HTML 中内部图片路径重写为 CDN 地址。
+ * - 已配置 CAPUBBS_CDN_URL 时生效，否则原样返回。
+ * - 外部 URL (http/https) 不处理。
+ * - 旧帖中的相对路径 (../images/ 和 images/) 同时规范化为根相对路径。
+ */
+function translate_cdn_urls($html) {
+    if (!defined('CAPUBBS_CDN_URL') || CAPUBBS_CDN_URL === '') {
+        return $html;
+    }
+    $cdn = rtrim(CAPUBBS_CDN_URL, '/');
+
+    return preg_replace_callback(
+        '#<img\s+([^>]*?)src=(["\'])(.*?)\2([^>]*)>#is',
+        function($m) use ($cdn) {
+            $src = $m[3];
+
+            // 外部链接跳过
+            if (preg_match('#^https?://#i', $src)) {
+                return $m[0];
+            }
+
+            // 将已知的内部路径转为 CDN 绝对路径
+            if (strpos($src, '/bbs/images/') === 0 || strpos($src, '/bbsimg/') === 0) {
+                // 根相对路径 → CDN
+                $src = $cdn . $src;
+            } elseif (preg_match('#^(?:\.\./)+images/([^/\s]+)$#', $src, $mm)) {
+                // ../images/xxx → CDN/bbs/images/xxx （同时修正旧帖相对路径）
+                $src = $cdn . '/bbs/images/' . $mm[1];
+            } elseif (preg_match('#^images/([^/\s]+)$#', $src, $mm)) {
+                // images/xxx → CDN/bbs/images/xxx
+                $src = $cdn . '/bbs/images/' . $mm[1];
+            }
+
+            return '<img ' . $m[1] . 'src="' . $src . '"' . $m[4] . '>';
+        },
+        $html
+    );
 }
 
 /**

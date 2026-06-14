@@ -35,6 +35,9 @@ define('ADMIN_EMAIL', 'admin@example.com');
 // define('OSS_ADDRESS', '');
 define('OSS_ADDRESS', 'https://example.oss-cn-beijing.aliyuncs.com');
 
+/** CDN 地址（留空则不启用 CDN 重写，如 https://cdn.chexie.net） */
+define('CAPUBBS_CDN_URL', '');
+
 // ========== 邮箱认证体系功能开关 ==========
 
 // 邮箱验证功能总开关（前后端）。关闭后不强制PKU邮箱、不显示验证UI、sendVerifyCode/verifyEmail API 拒绝服务
