@@ -1117,7 +1117,7 @@
                 $matches = array();
                 if(preg_match('/^回复 @(.*)(:|：).*/s', $text, $matches)) {
                     $replied=$matches[1];
-                    if($replied!=$pidauthor && $replied!=$tidauthor) insertmsg($con,"system",$replied,"replylzlreply",$bid,$tid,$pid,$username,$tidtitle);
+                    if($replied!=$username && $replied!=$pidauthor && $replied!=$tidauthor) insertmsg($con,"system",$replied,"replylzlreply",$bid,$tid,$pid,$username,$tidtitle);
                 }
                 echo("<capu><info><code>0</code></info></capu>");
             }else{
@@ -1726,14 +1726,14 @@
         preg_match_all("#\[at\](.+?)\[\/at\]#", $text, $matches,PREG_SET_ORDER);
         foreach($matches as $one){
             $str=$one[1];
-            if(_userexists($con,$str)){
+            if($str!=$username && _userexists($con,$str)){
                 insertmsg($con,"system",$str,"at",$bid,$tid,$pid,$username,$tidtitle);
             }
         }
         preg_match_all("#\[quote=(.+?)\](.+?)\[\/quote\]#", $text, $matches,PREG_SET_ORDER);
         foreach($matches as $one){
             $str=$one[1];
-            if(_userexists($con,$str)){
+            if($str!=$username && _userexists($con,$str)){
                 insertmsg($con,"system",$str,"quote",$bid,$tid,$pid,$username,$tidtitle);
             }
         }

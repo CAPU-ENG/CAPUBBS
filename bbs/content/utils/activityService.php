@@ -265,14 +265,14 @@ function search_replace_exec_at_2($con,$text,$bid,$tid,$pid,$username,$tidtitle)
     preg_match_all("#\[at\](.+?)\[\/at\]#", $text, $matches,PREG_SET_ORDER);
     foreach($matches as $one){
         $str=$one[1];
-        if(_userexists_2($con,$str)){
+        if($str!=$username && _userexists_2($con,$str)){
             insertmsg_2($con,"system",$str,"at",$bid,$tid,$pid,$username,$tidtitle);
         }
     }
     preg_match_all("#\[quote=(.+?)\](.+?)\[\/quote\]#", $text, $matches,PREG_SET_ORDER);
     foreach($matches as $one){
         $str=$one[1];
-        if(_userexists_2($con,$str)){
+        if($str!=$username && _userexists_2($con,$str)){
             insertmsg_2($con,"system",$str,"quote",$bid,$tid,$pid,$username,$tidtitle);
         }
     }

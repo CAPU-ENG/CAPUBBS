@@ -634,7 +634,7 @@ function jiekoufunc_lzl($con, $method, $fid, $token, $ip, $params) {
             $matches = array();
             if (preg_match('/^回复 @(.*)(:|：).*/s', $text, $matches)) {
                 $replied = $matches[1];
-                if ($replied != $pidauthor && $replied != $tidauthor) jiekoufunc_insertmsg($con, "system", $replied, "replylzlreply", $lzl_bid, $lzl_tid, $lzl_pid, $username, $tidtitle);
+                if ($replied != $username && $replied != $pidauthor && $replied != $tidauthor) jiekoufunc_insertmsg($con, "system", $replied, "replylzlreply", $lzl_bid, $lzl_tid, $lzl_pid, $username, $tidtitle);
             }
             return array(array('code' => '0'));
         } else {
