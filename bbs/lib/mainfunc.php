@@ -191,7 +191,7 @@ function translate_post_tag($html, $con) {
 
     // [post bid=X tid=Y pid=Z] — 属性顺序无关，非法则不转换
     $html = preg_replace_callback(
-        "#\[post\s+(.*?)\]#",
+        "#\[post(?:\s|&nbsp;)+(.*?)\]#",
         function($m) use ($con) {
             // 仅在解析属性时临时还原 &nbsp;，失败时返回 $m[0] 保留原文字段
             $raw = str_replace('&nbsp;', ' ', $m[1]);
