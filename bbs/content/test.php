@@ -19,7 +19,7 @@
         return substr(strrchr($file, '.'), 1);
     }
     // CreateThumbnail($target,1920,1920);
-    $result=array("upload"=> array("links"=> array("original"=> $target)));
+    $result=array("upload"=> array("links"=> array("original"=> '/bbs/images/' . $filename)));
     echo(json_encode($result));
 
     function CreateThumbnail($srcFile, $toW, $toH, $toFile="")
