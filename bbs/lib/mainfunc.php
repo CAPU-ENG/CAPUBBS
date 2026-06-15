@@ -1,6 +1,7 @@
 <?php
 require_once __DIR__.'/../../config.php';
 require_once __DIR__.'/../../lib.php';
+require_once __DIR__.'/../../src/Bootstrap.php';
 
 function mainfunc($posts,$debug=false){
     // New direct-function-call path
@@ -172,18 +173,17 @@ function translate($raw, $ishtml=true, $israw=false, $issign=false){
  */
 function translate_post_tag($html, $con) {
     if (!$con) return $html;
+    $postRepository = capubbs_post_repository($con);
 
     // [post=fid] — 无空格，不受 &nbsp; 转换影响
     $html = preg_replace_callback(
         "#\[post=(\d+)\]#",
-        function($m) use ($con) {
+        function($m) use ($postRepository) {
             $fid = intval($m[1]);
-            $stmt = "SELECT text, ishtml FROM posts WHERE fid=$fid LIMIT 1";
-            $res = mysqli_query($con, $stmt);
-            if (!$res || mysqli_num_rows($res) === 0) {
+            $row = $postRepository->findTextPayloadByFid($fid);
+            if (!$row) {
                 return $m[0]; // 帖子不存在，保留原文
             }
-            $row = mysqli_fetch_array($res, MYSQLI_ASSOC);
             return translate($row['text'], $row['ishtml'] === 'YES', false, false);
         },
         $html
@@ -192,7 +192,7 @@ function translate_post_tag($html, $con) {
     // [post bid=X tid=Y pid=Z] — 属性顺序无关，非法则不转换
     $html = preg_replace_callback(
         "#\[post(?:\s|&nbsp;)+(.*?)\]#",
-        function($m) use ($con) {
+        function($m) use ($postRepository) {
             // 仅在解析属性时临时还原 &nbsp;，失败时返回 $m[0] 保留原文字段
             $raw = str_replace('&nbsp;', ' ', $m[1]);
             preg_match_all('#\b(bid|tid|pid)=(\d+)\b#', $raw, $attrs, PREG_SET_ORDER);
@@ -213,12 +213,10 @@ function translate_post_tag($html, $con) {
             $tid = $params['tid'];
             $pid = $params['pid'];
 
-            $stmt = "SELECT text, ishtml FROM posts WHERE bid=$bid AND tid=$tid AND pid=$pid LIMIT 1";
-            $res = mysqli_query($con, $stmt);
-            if (!$res || mysqli_num_rows($res) === 0) {
+            $row = $postRepository->findTextPayloadByBidTidPid($bid, $tid, $pid);
+            if (!$row) {
                 return $m[0]; // 帖子不存在，保留原文
             }
-            $row = mysqli_fetch_array($res, MYSQLI_ASSOC);
             return translate($row['text'], $row['ishtml'] === 'YES', false, false);
         },
         $html

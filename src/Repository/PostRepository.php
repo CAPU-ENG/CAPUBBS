@@ -34,6 +34,18 @@ class CapubbsPostRepository {
         return $this->fetchOne("select * from posts where fid=$fid limit 1");
     }
 
+    public function findTextPayloadByFid($fid) {
+        $fid = intval($fid);
+        return $this->fetchOne("select text, ishtml from posts where fid=$fid limit 1");
+    }
+
+    public function findTextPayloadByBidTidPid($bid, $tid, $pid) {
+        $bid = intval($bid);
+        $tid = intval($tid);
+        $pid = intval($pid);
+        return $this->fetchOne("select text, ishtml from posts where bid=$bid and tid=$tid and pid=$pid limit 1");
+    }
+
     public function countByAuthorInThread($bid, $tid, $author) {
         $bid = intval($bid);
         $tid = intval($tid);
