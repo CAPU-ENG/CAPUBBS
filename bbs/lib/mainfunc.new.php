@@ -1,115 +1,15 @@
 <?php
+    require_once __DIR__ . '/../../src/Bootstrap.php';
+
     function getTidInfo($con, $bid, $tid) {
-        $statement="select * from threads where bid=$bid && tid=$tid";
-        $results = mysqli_query($con, $statement);
-        $ret = array();
-        while ($res = mysqli_fetch_array($results)) {
-            $ret[] = $res;
-        }
-        return $ret;
+        return capubbs_thread_read_service($con)->legacyGetTidInfo($bid, $tid);
     }
 
     function checkUserAndSign($con, $ip, $token) {
-        $GLOBALS['validtime']=60*60*24*7;
-
-        $token = mysqli_real_escape_string($con, $token);
-
-        $nowtime=time();
-        $time=time();
-        $statement="select username,star,rights,lastpost from userinfo
-            where token='$token' && $time-tokentime<={$GLOBALS['validtime']}";
-        $results = mysqli_query($con, $statement);
-        $res = mysqli_fetch_array($results, MYSQLI_ASSOC);
-        $username = is_array($res) ? $res['username'] : null;
-
-        if ($username) {
-            $today=date("Y-m-d");
-            $onlinetype="web";
-            $browser=@$_REQUEST['browser'];
-            $system=@$_REQUEST['system'];
-            $logininfo="";
-            if ($onlinetype=="web") $logininfo=$browser;
-            if ($onlinetype=="android" || $onlinetype=="ios") $logininfo=$system;
-
-            $username = mysqli_real_escape_string($con, $username);
-            $ip       = mysqli_real_escape_string($con, $ip);
-
-            if ($ip!="") {
-                $statement="insert ignore into username_lastip (username, lastip) values ('$username', '$ip')";
-                mysqli_query($con, $statement);
-            }
-
-            if ($ip!="") $statement="update userinfo set tokentime=$nowtime, token='$token', lastip='$ip',lastdate='$today',onlinetype='$onlinetype',logininfo='$logininfo' where username='$username'";
-            else $statement="update userinfo set tokentime=$nowtime, token='$token', lastdate='$today',onlinetype='$onlinetype',logininfo='$logininfo' where username='$username'";
-            mysqli_query($con, $statement);
-
-            $year=date("Y",$time);
-            $month=date("m",$time);
-            $day=date("d",$time);
-            $statement="select * from capubbs.sign where year=$year && month=$month && day=$day && username='$username'";
-            $result = mysqli_query($con, $statement);
-            if (mysqli_num_rows($result)==0) {
-                $hour=date("H",$time);
-                $minute=date("i",$time);
-                $second=date("s",$time);
-                $week=date("N",$time);
-                $statement="insert into capubbs.sign values ($year,$month,$day,$hour,$minute,$second,$week,'$username')";
-                mysqli_query($con, $statement);
-                $statement="update capubbs.userinfo set sign=sign+1 where username='$username'";
-                mysqli_query($con, $statement);
-            }
-        }
-
-        mysqli_free_result($results);
-        return $username;
+        return capubbs_auth_service($con)->legacyCheckUserAndSign($token, $ip, $_REQUEST);
     }
 
     function getOnePage($con, $bid, $tid, $page, $see_lz, $ip, $token) {
-        $GLOBALS['validtime']=60*60*24*7;
-
-        $token = mysqli_real_escape_string($con, $token);
-        $ip    = mysqli_real_escape_string($con, $ip);
-
-        $user="";
-        if ($token!="") {
-            $nowtime=time();
-            $statement="select username from userinfo where token='$token' && $nowtime-tokentime<={$GLOBALS['validtime']}";
-            $result = mysqli_query($con, $statement);
-            while ($res=mysqli_fetch_array($result)) {
-                foreach ( $res as $key => $value ) {
-                    if ($key=="username") { $user=$value;}
-                }
-                if ($ip!="")
-                    $statement="update userinfo set tokentime=$nowtime, nowboard=$bid, lastip='$ip' where username='$user'";
-                else
-                    $statement="update userinfo set tokentime=$nowtime, nowboard=$bid where username='$user'";
-                mysqli_query($con, $statement);
-            }
-        }
-        $author="";
-        if ($see_lz!="") {
-            $statement="select author from threads where bid=$bid && tid=$tid";
-            $results=mysqli_query($con, $statement);
-            if (mysqli_num_rows($results)!=0) {
-                $result=mysqli_fetch_row($results);
-                $author=$result[0];
-            }
-        }
-        $today=date("Y-m-d");
-        $user_escaped = mysqli_real_escape_string($con, $user);
-        $statement="insert ignore into username_view (username, date, bid, tid, ip) values ('$user_escaped', '$today', $bid, $tid, '$ip')";
-        mysqli_query($con, $statement);
-        $start=($page-1)*12;
-        if ($author!="")
-            $statement="select * from posts where bid=$bid && tid=$tid && author='$author' order by pid limit $start, 12";
-        else
-            $statement="select * from posts where bid=$bid && tid=$tid order by pid limit $start, 12";
-
-        $results = mysqli_query($con, $statement);
-        $ret = mysqli_fetch_all($results, MYSQLI_ASSOC);
-
-        $statement = "update threads set click=click+1 where bid=$bid && tid=$tid";
-        mysqli_query($con, $statement);
-        return $ret;
+        return capubbs_thread_read_service($con)->legacyGetOnePage($bid, $tid, $page, $see_lz, $ip, $token);
     }
 ?>

@@ -7,6 +7,8 @@
  * returns the usual dispatch array shape.
  */
 
+require_once __DIR__ . '/../../src/Bootstrap.php';
+
 if (!defined('THREAD_DETAIL_QUERY_PAGE_SIZE')) {
     define('THREAD_DETAIL_QUERY_PAGE_SIZE', 12);
 }
@@ -163,7 +165,7 @@ function thread_detail_query_current_username($con, $token) {
     if (!$token) {
         return '';
     }
-    $row = jiekoufunc_token2user($con, $token);
+    $row = capubbs_user_repository($con)->findByToken($token);
     if (!$row) {
         return '';
     }
@@ -177,33 +179,18 @@ function thread_detail_query_current_username($con, $token) {
 }
 
 function thread_detail_query_get_thread($con, $bid, $tid) {
-    $statement = "
-        select
-            threads.bid, threads.tid, threads.title, threads.author, threads.replyer,
-            threads.click, threads.reply, threads.extr, threads.top, threads.locked,
-            threads.timestamp, threads.postdate,
-            case when thread_global_top.bid is null then 0 else 1 end as global_top,
-            season_threads_activity.activity_id
-        from threads
-        left join thread_global_top
-            on threads.bid=thread_global_top.bid and threads.tid=thread_global_top.tid
-        left join season_threads_activity
-            on threads.bid=season_threads_activity.bid and threads.tid=season_threads_activity.tid
-        where threads.bid=$bid and threads.tid=$tid
-        limit 1";
-    return thread_detail_query_fetch_one($con, $statement);
+    return capubbs_thread_repository($con)->findDetailedByBidTid($bid, $tid);
 }
 
 function thread_detail_query_get_board($con, $bid) {
-    return thread_detail_query_fetch_one($con, "select * from boardinfo where bid=$bid limit 1");
+    return capubbs_board_repository($con)->findByBid($bid);
 }
 
 function thread_detail_query_get_viewer($con, $username) {
     if (!$username) {
         return null;
     }
-    $username_escaped = mysqli_real_escape_string($con, $username);
-    $row = thread_detail_query_fetch_one($con, "select * from userinfo where username='$username_escaped' limit 1");
+    $row = capubbs_user_repository($con)->findRawUserByUsername($username);
     if (!$row || $row === false) {
         return null;
     }
@@ -211,44 +198,20 @@ function thread_detail_query_get_viewer($con, $username) {
 }
 
 function thread_detail_query_record_view($con, $bid, $tid, $username, $ip) {
-    $nowtime = time();
-    $today = date('Y-m-d');
-    $username_escaped = mysqli_real_escape_string($con, $username);
-    $ip_escaped = mysqli_real_escape_string($con, $ip);
-
-    if ($username !== '') {
-        $statement = "update userinfo set tokentime=$nowtime, nowboard=$bid, lastip='$ip_escaped' where username='$username_escaped'";
-        mysqli_query($con, $statement);
-    }
-
-    $statement = "insert ignore into username_view (username, date, bid, tid, ip)
-        values ('$username_escaped', '$today', $bid, $tid, '$ip_escaped')";
-    mysqli_query($con, $statement);
-    mysqli_query($con, "update threads set click=click+1 where bid=$bid and tid=$tid");
+    capubbs_thread_read_service($con)->recordThreadView($bid, $tid, $username, $ip, true);
 }
 
 function thread_detail_query_count_author_floors($con, $bid, $tid, $author) {
-    $author_escaped = mysqli_real_escape_string($con, $author);
-    $row = thread_detail_query_fetch_one($con, "select count(*) as num from posts where bid=$bid and tid=$tid and author='$author_escaped'");
-    if (!$row || $row === false) {
-        return 1;
-    }
-    return max(1, intval($row['num']));
+    $num = capubbs_post_repository($con)->countByAuthorInThread($bid, $tid, $author);
+    return max(1, intval($num));
 }
 
 function thread_detail_query_get_page_posts($con, $bid, $tid, $page, $author) {
-    $start = max(0, ($page - 1) * THREAD_DETAIL_QUERY_PAGE_SIZE);
-    $where_author = '';
-    if ($author !== '') {
-        $author_escaped = mysqli_real_escape_string($con, $author);
-        $where_author = " and author='$author_escaped'";
-    }
-    $statement = "select * from posts where bid=$bid and tid=$tid$where_author order by pid limit $start, " . THREAD_DETAIL_QUERY_PAGE_SIZE;
-    return thread_detail_query_fetch_all($con, $statement);
+    return capubbs_post_repository($con)->findByThreadPage($bid, $tid, $page, THREAD_DETAIL_QUERY_PAGE_SIZE, $author);
 }
 
 function thread_detail_query_get_post($con, $bid, $tid, $pid) {
-    return thread_detail_query_fetch_one($con, "select * from posts where bid=$bid and tid=$tid and pid=$pid limit 1");
+    return capubbs_post_repository($con)->findByBidTidPid($bid, $tid, $pid);
 }
 
 function thread_detail_query_find_post_by_pid($rows, $pid) {
@@ -349,22 +312,7 @@ function thread_detail_query_collect_authors($post_rows, $lzl_by_fid) {
 }
 
 function thread_detail_query_get_profiles_by_username($con, $usernames) {
-    if (count($usernames) === 0) {
-        return array();
-    }
-    $escaped = array();
-    foreach ($usernames as $username) {
-        $escaped[] = "'" . mysqli_real_escape_string($con, $username) . "'";
-    }
-    $rows = thread_detail_query_fetch_all($con, "select * from userinfo where username in (" . implode(',', $escaped) . ")");
-    if ($rows === false) {
-        return array();
-    }
-    $profiles = array();
-    foreach ($rows as $row) {
-        $profiles[$row['username']] = $row;
-    }
-    return $profiles;
+    return capubbs_user_repository($con)->findRawUsersByUsernames($usernames);
 }
 
 function thread_detail_query_get_board_rights($board_row, $viewer) {

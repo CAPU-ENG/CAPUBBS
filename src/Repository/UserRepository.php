@@ -21,8 +21,45 @@ class CapubbsUserRepository {
         return $this->findRowByValidToken($token, 'username,rights,lastip');
     }
 
+    public function findThreadReadSessionByToken($token) {
+        return $this->findRowByValidToken($token, 'username,star,rights,lastpost');
+    }
+
     public function findUsernameByValidToken($token) {
         return $this->findRowByValidToken($token, 'username');
+    }
+
+    public function findRawUserByUsername($username) {
+        $usernameEscaped = mysqli_real_escape_string($this->con, $username);
+        $statement = "select * from userinfo where username='$usernameEscaped' limit 1";
+        $results = mysqli_query($this->con, $statement);
+        if (!$results || mysqli_num_rows($results) == 0) {
+            return null;
+        }
+        return mysqli_fetch_array($results, MYSQLI_ASSOC);
+    }
+
+    public function findRawUsersByUsernames($usernames) {
+        if (count($usernames) == 0) {
+            return array();
+        }
+
+        $escaped = array();
+        foreach ($usernames as $username) {
+            $escaped[] = "'" . mysqli_real_escape_string($this->con, $username) . "'";
+        }
+
+        $statement = "select * from userinfo where username in (" . implode(',', $escaped) . ")";
+        $results = mysqli_query($this->con, $statement);
+        if (!$results) {
+            return array();
+        }
+
+        $rows = array();
+        while ($row = mysqli_fetch_array($results, MYSQLI_ASSOC)) {
+            $rows[$row['username']] = $row;
+        }
+        return $rows;
     }
 
     public function findForLogin($username) {
@@ -81,6 +118,47 @@ class CapubbsUserRepository {
         } else {
             $statement = "update userinfo set tokentime=$time where username='$usernameEscaped'";
         }
+        return mysqli_query($this->con, $statement);
+    }
+
+    public function insertUsernameLastIp($username, $ip) {
+        if ($username === '' || $ip === '') {
+            return false;
+        }
+
+        $usernameEscaped = mysqli_real_escape_string($this->con, $username);
+        $ipEscaped = mysqli_real_escape_string($this->con, $ip);
+        $statement = "insert ignore into username_lastip (username, lastip) values ('$usernameEscaped', '$ipEscaped')";
+        return mysqli_query($this->con, $statement);
+    }
+
+    public function refreshValidatedSession($username, $token, $nowtime, $ip, $today, $onlinetype, $logininfo) {
+        $usernameEscaped = mysqli_real_escape_string($this->con, $username);
+        $tokenEscaped = mysqli_real_escape_string($this->con, $token);
+        $ipEscaped = mysqli_real_escape_string($this->con, $ip);
+        $onlineTypeEscaped = mysqli_real_escape_string($this->con, $onlinetype);
+        $loginInfoEscaped = mysqli_real_escape_string($this->con, $logininfo);
+
+        if ($ip !== '') {
+            $statement = "update userinfo set tokentime=$nowtime, token='$tokenEscaped', lastip='$ipEscaped',lastdate='$today',onlinetype='$onlineTypeEscaped',logininfo='$loginInfoEscaped' where username='$usernameEscaped'";
+        } else {
+            $statement = "update userinfo set tokentime=$nowtime, token='$tokenEscaped', lastdate='$today',onlinetype='$onlineTypeEscaped',logininfo='$loginInfoEscaped' where username='$usernameEscaped'";
+        }
+
+        return mysqli_query($this->con, $statement);
+    }
+
+    public function updateReadBoardSession($username, $nowtime, $ip, $bid) {
+        $usernameEscaped = mysqli_real_escape_string($this->con, $username);
+        $ipEscaped = mysqli_real_escape_string($this->con, $ip);
+        $bid = intval($bid);
+
+        if ($ip !== '') {
+            $statement = "update userinfo set tokentime=$nowtime, nowboard=$bid, lastip='$ipEscaped' where username='$usernameEscaped'";
+        } else {
+            $statement = "update userinfo set tokentime=$nowtime, nowboard=$bid where username='$usernameEscaped'";
+        }
+
         return mysqli_query($this->con, $statement);
     }
 

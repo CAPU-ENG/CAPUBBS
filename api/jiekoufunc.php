@@ -180,44 +180,15 @@ function jiekoufunc_global_top($con, $token) {
 }
 
 function jiekoufunc_tidinfo($con, $bid, $tid) {
-    $statement = "select * from threads where bid=$bid && tid=$tid";
-    return jiekoufunc_view_bbs_array($con, $statement);
+    return capubbs_thread_read_service($con)->legacyGetTidInfo($bid, $tid);
 }
 
 function jiekoufunc_recentpost($con, $view, $limit_raw = '') {
-    $view = mysqli_real_escape_string($con, $view);
-    $limit_val = _parse_limit($limit_raw, 10);
-    $limit_clause = ($limit_val === null) ? '' : " limit 0,$limit_val";
-    $results = mysqli_query($con, "select bid,tid,pid,title,author,replytime as timestamp from posts where author='$view' and pid=1 order by replytime desc$limit_clause");
-    $infos = array();
-    $infos[] = array('nowuser' => '');
-    while ($res = mysqli_fetch_array($results)) {
-        $info = array();
-        foreach ($res as $key => $value) {
-            if (is_long($key)) continue;
-            $info[$key] = $value;
-        }
-        $infos[] = $info;
-    }
-    return $infos;
+    return capubbs_thread_read_service($con)->legacyRecentPost($view, $limit_raw);
 }
 
 function jiekoufunc_recentreply($con, $view, $limit_raw = '') {
-    $view = mysqli_real_escape_string($con, $view);
-    $limit_val = _parse_limit($limit_raw, 10);
-    $limit_clause = ($limit_val === null) ? '' : " limit 0,$limit_val";
-    $results = mysqli_query($con, "select title, bid, tid, pid, updatetime from posts where author='$view' order by updatetime desc$limit_clause");
-    $infos = array();
-    $infos[] = array('nowuser' => '');
-    while ($res = mysqli_fetch_array($results)) {
-        $info = array();
-        foreach ($res as $key => $value) {
-            if (is_long($key)) continue;
-            $info[$key] = $value;
-        }
-        $infos[] = $info;
-    }
-    return $infos;
+    return capubbs_thread_read_service($con)->legacyRecentReply($view, $limit_raw);
 }
 
 function jiekoufunc_rights($con, $bid, $token) {
@@ -225,37 +196,11 @@ function jiekoufunc_rights($con, $bid, $token) {
 }
 
 function jiekoufunc_getpages($con, $bid, $tid) {
-    if ($tid == 0) {
-        $statement = "select count(*) from threads where bid=$bid";
-        $results = mysqli_query($con, $statement);
-        $res = mysqli_fetch_row($results);
-        $num = intval($res[0]);
-        $pages = ceil($num / 25);
-    } else {
-        $statement = "select reply from threads where bid=$bid && tid=$tid";
-        $results = mysqli_query($con, $statement);
-        $res = mysqli_fetch_row($results);
-        $num = intval($res[0]);
-        $pages = ceil(($num + 1) / 12);
-    }
-    return array(array('code' => '0', 'pages' => strval($pages)));
+    return capubbs_thread_read_service($con)->legacyGetPages($bid, $tid);
 }
 
 function jiekoufunc_getlznum($con, $bid, $tid) {
-    $author = "";
-    $statement = "select author from threads where bid=$bid && tid=$tid";
-    $results = mysqli_query($con, $statement);
-    if (mysqli_num_rows($results) != 0) {
-        $result = mysqli_fetch_row($results);
-        $author = mysqli_real_escape_string($con, $result[0]);
-    }
-    if ($author == "") {
-        return array(array('num' => '0'));
-    }
-    $statement = "select pid from posts where bid=$bid && tid=$tid && author='$author'";
-    $results = mysqli_query($con, $statement);
-    $num = mysqli_num_rows($results);
-    return array(array('num' => strval($num)));
+    return capubbs_thread_read_service($con)->legacyGetLzNum($bid, $tid);
 }
 
 function jiekoufunc_getnum($con) {

@@ -66,6 +66,40 @@ class CapubbsAuthService {
         return array(array('code' => '0'));
     }
 
+    public function legacyCheckUserAndSign($token, $ip, $params) {
+        $user = $this->userRepository->findThreadReadSessionByToken($token);
+        if (!$user || !isset($user['username'])) {
+            return null;
+        }
+
+        $username = $user['username'];
+        $nowtime = time();
+        $today = date("Y-m-d");
+        $onlinetype = "web";
+        $browser = isset($params['browser']) ? $params['browser'] : '';
+        $system = isset($params['system']) ? $params['system'] : '';
+        $logininfo = "";
+        if ($onlinetype == "web") $logininfo = $browser;
+        if ($onlinetype == "android" || $onlinetype == "ios") $logininfo = $system;
+
+        if ($ip != "") {
+            $this->userRepository->insertUsernameLastIp($username, $ip);
+        }
+
+        $this->userRepository->refreshValidatedSession(
+            $username,
+            $token,
+            $nowtime,
+            $ip,
+            $today,
+            $onlinetype,
+            $logininfo
+        );
+
+        $this->signRepository->ensureSignedToday($username);
+        return $username;
+    }
+
     public function legacyTouchSession($token, $ip) {
         $user = $this->userRepository->findUsernameByValidToken($token);
         if (!$user) {
