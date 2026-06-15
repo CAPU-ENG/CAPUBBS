@@ -170,6 +170,36 @@ class CapubbsMaintenanceService {
         return 9;
     }
 
+    public function repairCounters($scope) {
+        $username = isset($scope['username']) ? trim(strval($scope['username'])) : '';
+        $bid = isset($scope['bid']) ? intval($scope['bid']) : 0;
+        $tid = isset($scope['tid']) ? intval($scope['tid']) : 0;
+
+        $stats = array();
+        $stats['userinfo_post'] = $this->normalizeAffected($this->maintenanceRepository->repairUserPostCounts($username));
+        $stats['userinfo_reply'] = $this->normalizeAffected($this->maintenanceRepository->repairUserReplyCounts($username));
+        $stats['userinfo_water'] = $this->normalizeAffected($this->maintenanceRepository->repairUserWaterCounts($username));
+        $stats['userinfo_extr'] = $this->normalizeAffected($this->maintenanceRepository->repairUserExtrCounts($username));
+        $stats['userinfo_sign'] = $this->normalizeAffected($this->maintenanceRepository->repairUserSignCounts($username));
+        $stats['userinfo_newmsg'] = $this->normalizeAffected($this->maintenanceRepository->repairUserNewMessageCounts($username));
+        $stats['userinfo_star'] = $this->normalizeAffected($this->maintenanceRepository->repairUserStar($username));
+        $stats['thread_reply'] = $this->normalizeAffected($this->maintenanceRepository->repairThreadReplyCounts($bid, $tid));
+        $stats['thread_replyer'] = $this->normalizeAffected($this->maintenanceRepository->repairThreadReplyer($bid, $tid));
+        $stats['thread_timestamp'] = $this->normalizeAffected($this->maintenanceRepository->repairThreadTimestamp($bid, $tid));
+
+        return array(
+            'updated' => $stats,
+            'summary' => array(
+                'users' => $this->maintenanceRepository->countUsersTotal(),
+                'threads' => $this->maintenanceRepository->countThreadsTotal(),
+                'posts' => $this->maintenanceRepository->countPostsTotal(),
+                'users_with_post' => $this->maintenanceRepository->countUsersWithPositiveField('post'),
+                'users_with_reply' => $this->maintenanceRepository->countUsersWithPositiveField('reply'),
+                'users_with_sign' => $this->maintenanceRepository->countUsersWithPositiveField('sign'),
+            ),
+        );
+    }
+
     private function analyzeUserStarMismatches() {
         $rows = $this->maintenanceRepository->findAllUserStarRows();
         if ($rows === false) {
@@ -191,5 +221,12 @@ class CapubbsMaintenanceService {
             $issues[] = $row;
         }
         return $issues;
+    }
+
+    private function normalizeAffected($value) {
+        if ($value === false || $value === null) {
+            return 0;
+        }
+        return intval($value);
     }
 }

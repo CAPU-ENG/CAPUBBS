@@ -17,6 +17,139 @@ class CapubbsMaintenanceRepository {
         return intval($row['cnt']);
     }
 
+    public function repairUserPostCounts($username) {
+        $where = $this->buildUsernameWhereClause('u', $username);
+        return $this->execUpdate("UPDATE userinfo u
+            LEFT JOIN (
+                SELECT author, COUNT(*) AS actual
+                FROM threads
+                WHERE bid != 4
+                GROUP BY author
+            ) t ON u.username COLLATE utf8mb4_general_ci = t.author COLLATE utf8mb4_general_ci
+            SET u.post = COALESCE(t.actual, 0)$where");
+    }
+
+    public function repairUserReplyCounts($username) {
+        $where = $this->buildUsernameWhereClause('u', $username);
+        return $this->execUpdate("UPDATE userinfo u
+            LEFT JOIN (
+                SELECT author, COUNT(*) AS actual
+                FROM posts
+                WHERE pid != 1 AND bid != 4
+                GROUP BY author
+            ) p ON u.username COLLATE utf8mb4_general_ci = p.author COLLATE utf8mb4_general_ci
+            SET u.reply = COALESCE(p.actual, 0)$where");
+    }
+
+    public function repairUserWaterCounts($username) {
+        $where = $this->buildUsernameWhereClause('u', $username);
+        return $this->execUpdate("UPDATE userinfo u
+            LEFT JOIN (
+                SELECT author, SUM(cnt) AS actual
+                FROM (
+                    SELECT author, COUNT(*) AS cnt FROM threads WHERE bid = 4 GROUP BY author
+                    UNION ALL
+                    SELECT author, COUNT(*) AS cnt FROM posts WHERE bid = 4 AND pid != 1 GROUP BY author
+                ) combined
+                GROUP BY author
+            ) w ON u.username COLLATE utf8mb4_general_ci = w.author COLLATE utf8mb4_general_ci
+            SET u.water = COALESCE(w.actual, 0)$where");
+    }
+
+    public function repairUserExtrCounts($username) {
+        $where = $this->buildUsernameWhereClause('u', $username);
+        return $this->execUpdate("UPDATE userinfo u
+            LEFT JOIN (
+                SELECT author, COUNT(*) AS actual
+                FROM threads
+                WHERE extr = 1
+                GROUP BY author
+            ) t ON u.username COLLATE utf8mb4_general_ci = t.author COLLATE utf8mb4_general_ci
+            SET u.extr = COALESCE(t.actual, 0)$where");
+    }
+
+    public function repairUserSignCounts($username) {
+        $where = $this->buildUsernameWhereClause('u', $username);
+        return $this->execUpdate("UPDATE userinfo u
+            LEFT JOIN (
+                SELECT username, COUNT(*) AS actual
+                FROM sign
+                GROUP BY username
+            ) s ON u.username COLLATE utf8mb4_general_ci = s.username COLLATE utf8mb4_general_ci
+            SET u.sign = COALESCE(s.actual, 0)$where");
+    }
+
+    public function repairUserNewMessageCounts($username) {
+        $where = $this->buildUsernameWhereClause('u', $username);
+        return $this->execUpdate("UPDATE userinfo u
+            LEFT JOIN (
+                SELECT receiver, COUNT(*) AS actual
+                FROM messages
+                WHERE hasread = 0
+                GROUP BY receiver
+            ) m ON u.username COLLATE utf8mb4_general_ci = m.receiver COLLATE utf8mb4_general_ci
+            SET u.newmsg = COALESCE(m.actual, 0)$where");
+    }
+
+    public function repairUserStar($username) {
+        $where = $this->buildUsernameWhereClause('', $username);
+        return $this->execUpdate("UPDATE userinfo
+            SET star = CASE
+                WHEN other2 IS NOT NULL AND other2 >= 1 AND other2 <= 9 THEN other2
+                WHEN CAST(post AS SIGNED) + CAST(reply AS SIGNED) < 20 THEN 1
+                WHEN CAST(post AS SIGNED) + CAST(reply AS SIGNED) < 109 THEN 2
+                WHEN CAST(post AS SIGNED) + CAST(reply AS SIGNED) < 317 THEN 3
+                WHEN CAST(post AS SIGNED) + CAST(reply AS SIGNED) < 675 THEN 4
+                WHEN CAST(post AS SIGNED) + CAST(reply AS SIGNED) < 1278 THEN 5
+                WHEN CAST(post AS SIGNED) + CAST(reply AS SIGNED) < 2303 THEN 6
+                WHEN CAST(post AS SIGNED) + CAST(reply AS SIGNED) < 3550 THEN 7
+                WHEN CAST(post AS SIGNED) + CAST(reply AS SIGNED) < 4885 THEN 8
+                ELSE 9
+            END$where");
+    }
+
+    public function repairThreadReplyCounts($bid, $tid) {
+        $where = $this->buildThreadWhereClause('t', $bid, $tid);
+        return $this->execUpdate("UPDATE threads t
+            LEFT JOIN (
+                SELECT bid, tid, COUNT(*) AS total_posts
+                FROM posts
+                GROUP BY bid, tid
+            ) p ON t.bid = p.bid AND t.tid = p.tid
+            SET t.reply = GREATEST(COALESCE(p.total_posts, 0) - 1, 0)$where");
+    }
+
+    public function repairThreadReplyer($bid, $tid) {
+        $where = $this->buildThreadWhereClause('t', $bid, $tid);
+        return $this->execUpdate("UPDATE threads t
+            INNER JOIN (
+                SELECT p1.bid, p1.tid, p1.author
+                FROM posts p1
+                INNER JOIN (
+                    SELECT bid, tid, MAX(pid) AS max_pid
+                    FROM posts
+                    GROUP BY bid, tid
+                ) p2 ON p1.bid = p2.bid AND p1.tid = p2.tid AND p1.pid = p2.max_pid
+            ) last_post ON t.bid = last_post.bid AND t.tid = last_post.tid
+            SET t.replyer = CASE WHEN t.reply > 0 THEN last_post.author ELSE NULL END$where");
+    }
+
+    public function repairThreadTimestamp($bid, $tid) {
+        $where = $this->buildThreadWhereClause('t', $bid, $tid);
+        return $this->execUpdate("UPDATE threads t
+            INNER JOIN (
+                SELECT p1.bid, p1.tid, p1.replytime
+                FROM posts p1
+                INNER JOIN (
+                    SELECT bid, tid, MAX(pid) AS max_pid
+                    FROM posts
+                    GROUP BY bid, tid
+                ) p2 ON p1.bid = p2.bid AND p1.tid = p2.tid AND p1.pid = p2.max_pid
+            ) last_post ON t.bid = last_post.bid AND t.tid = last_post.tid
+            SET t.timestamp = last_post.replytime
+            WHERE t.reply > 0" . $this->buildThreadWhereAndClause('t', $bid, $tid));
+    }
+
     public function findUserPostCounterMismatches() {
         return $this->fetchAll("SELECT u.username, u.post AS stored_count,
                COALESCE(t.actual, 0) AS actual_count,
@@ -242,6 +375,30 @@ class CapubbsMaintenanceRepository {
         return $row ? intval($row['cnt']) : 0;
     }
 
+    public function countUsersTotal() {
+        $row = $this->fetchOne("SELECT COUNT(*) AS cnt FROM userinfo");
+        return $row ? intval($row['cnt']) : 0;
+    }
+
+    public function countThreadsTotal() {
+        $row = $this->fetchOne("SELECT COUNT(*) AS cnt FROM threads");
+        return $row ? intval($row['cnt']) : 0;
+    }
+
+    public function countPostsTotal() {
+        $row = $this->fetchOne("SELECT COUNT(*) AS cnt FROM posts");
+        return $row ? intval($row['cnt']) : 0;
+    }
+
+    public function countUsersWithPositiveField($field) {
+        $allowed = array('post', 'reply', 'sign');
+        if (!in_array($field, $allowed, true)) {
+            return 0;
+        }
+        $row = $this->fetchOne("SELECT COUNT(*) AS cnt FROM userinfo WHERE $field > 0");
+        return $row ? intval($row['cnt']) : 0;
+    }
+
     public function findDirtyPostRowsByByte($filters, $byteValue) {
         $byteValue = intval($byteValue);
         if ($byteValue < 0 || $byteValue > 255) {
@@ -292,6 +449,51 @@ class CapubbsMaintenanceRepository {
             }
         }
         return $normalized;
+    }
+
+    private function buildUsernameWhereClause($alias, $username) {
+        $username = trim(strval($username));
+        if ($username === '') {
+            return '';
+        }
+        $prefix = $alias !== '' ? ($alias . '.') : '';
+        $usernameEscaped = mysqli_real_escape_string($this->con, $username);
+        return " WHERE {$prefix}username='$usernameEscaped'";
+    }
+
+    private function buildThreadWhereClause($alias, $bid, $tid) {
+        $clauses = array();
+        $prefix = $alias !== '' ? ($alias . '.') : '';
+        $bid = intval($bid);
+        $tid = intval($tid);
+        if ($bid > 0) {
+            $clauses[] = "{$prefix}bid=$bid";
+        }
+        if ($tid > 0) {
+            $clauses[] = "{$prefix}tid=$tid";
+        }
+        if (count($clauses) === 0) {
+            return '';
+        }
+        return " WHERE " . implode(' AND ', $clauses);
+    }
+
+    private function buildThreadWhereAndClause($alias, $bid, $tid) {
+        $where = $this->buildThreadWhereClause($alias, $bid, $tid);
+        if ($where === '') {
+            return '';
+        }
+        return str_replace(' WHERE ', ' AND ', $where);
+    }
+
+    private function execUpdate($statement) {
+        $this->lastError = '';
+        $ok = mysqli_query($this->con, $statement);
+        if (!$ok) {
+            $this->lastError = mysqli_error($this->con);
+            return false;
+        }
+        return mysqli_affected_rows($this->con);
     }
 
     private function fetchOne($statement) {
