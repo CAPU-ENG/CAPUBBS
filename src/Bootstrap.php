@@ -19,6 +19,7 @@ require_once __DIR__ . '/Repository/TrashRepository.php';
 require_once __DIR__ . '/Repository/ActivityRepository.php';
 require_once __DIR__ . '/Repository/MainpageRepository.php';
 require_once __DIR__ . '/Repository/PunishmentRepository.php';
+require_once __DIR__ . '/Repository/MaintenanceRepository.php';
 require_once __DIR__ . '/Service/PermissionService.php';
 require_once __DIR__ . '/Service/UserService.php';
 require_once __DIR__ . '/Service/AuthService.php';
@@ -36,6 +37,7 @@ require_once __DIR__ . '/Service/EmailVerificationService.php';
 require_once __DIR__ . '/Service/MainpageService.php';
 require_once __DIR__ . '/Service/PunishmentService.php';
 require_once __DIR__ . '/Service/ActivityService.php';
+require_once __DIR__ . '/Service/MaintenanceService.php';
 
 function capubbs_user_sig_repository($con) {
     return new CapubbsUserSigRepository($con);
@@ -107,6 +109,10 @@ function capubbs_mainpage_repository($con) {
 
 function capubbs_punishment_repository($con) {
     return new CapubbsPunishmentRepository($con);
+}
+
+function capubbs_maintenance_repository($con) {
+    return new CapubbsMaintenanceRepository($con);
 }
 
 function capubbs_permission_service($con) {
@@ -264,5 +270,11 @@ function capubbs_activity_service($con) {
         capubbs_notification_service($con),
         capubbs_punishment_repository($con),
         $con
+    );
+}
+
+function capubbs_maintenance_service($con) {
+    return new CapubbsMaintenanceService(
+        capubbs_maintenance_repository($con)
     );
 }
