@@ -1,5 +1,8 @@
 <?php
 
+require_once __DIR__ . '/../../../lib.php';
+require_once __DIR__ . '/../../../src/Bootstrap.php';
+
 function get_joint($username, $activity_id) {
     $con = dbconnect_mysqli();
     mysqli_select_db($con, "capubbs");
@@ -20,23 +23,17 @@ function get_activity_join($activity_id) {
     $ret = array();
     $con = dbconnect_mysqli();
     mysqli_select_db($con, "capubbs");
-    $statement = "select season_activity_join.username,cancel,case when has_punishment is null then 0 else 1 end as has_punishment
-        from 
-            season_activity_join 
-        left join 
-            (select username, 1 as has_punishment from punishment where is_end=0 and is_deleted=0 group by username) punishment 
-        on 
-            season_activity_join.username=punishment.username
-        where 
-            activity_id=$activity_id 
-        order by
-            join_id";
+    $punishedUsers = array_flip(capubbs_punishment_repository($con)->findActivePunishmentUsernames());
+    $statement = "select username, cancel
+        from season_activity_join
+        where activity_id=$activity_id
+        order by join_id";
     $results = mysqli_query($con, $statement);
     if (mysqli_num_rows($results)!=0) {
         while ($rows = mysqli_fetch_array($results)) {
             $username = $rows["username"];
             $cancel = $rows["cancel"];
-            $has_punishment = $rows["has_punishment"];
+            $has_punishment = isset($punishedUsers[$username]) ? 1 : 0;
             $option_value = getUsernameOptionValue($username, $activity_id);
             $ret[] = array("username"=> $username,"option_value"=> $option_value, "cancel"=> $cancel, "has_punishment"=>$has_punishment);
         }
