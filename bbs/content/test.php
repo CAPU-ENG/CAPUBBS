@@ -1,6 +1,47 @@
 <?php
     include("../lib/mainfunc.php");
     header('content-type: application/json');
+
+    // 登录检查
+    $con = dbconnect_mysqli();
+    mysqli_select_db($con, "capubbs");
+    $user = checkuser_con($con);
+    $username = isset($user["username"]) ? $user["username"] : '';
+    if ($username == "") {
+        http_response_code(401);
+        echo "请先登录再上传图片";
+        exit;
+    }
+
+    // 邮箱验证禁言检查（与普通发帖对齐）
+    if (CAPUBBS_ENABLE_POST_CONTROL) {
+        $username_esc = mysqli_real_escape_string($con, $username);
+        $user_check = mysqli_fetch_array(mysqli_query($con,
+            "SELECT verified, post, reply, mail FROM userinfo WHERE username='$username_esc'"));
+        if ($user_check) {
+            if (intval($user_check['verified']) === 0) {
+                if ((intval($user_check['post']) + intval($user_check['reply'])) <= 20) {
+                    http_response_code(403);
+                    echo "您暂时不能上传图片（邮箱未验证）。请先验证邮箱或联系管理员。";
+                    exit;
+                }
+            }
+            if (CAPUBBS_ENABLE_EMAIL_MUTE) {
+                $mail = $user_check['mail'];
+                if ($mail) {
+                    $mail_esc = mysqli_real_escape_string($con, $mail);
+                    $mute_check = mysqli_fetch_array(mysqli_query($con,
+                        "SELECT COUNT(*) as cnt FROM email_mutes WHERE email='$mail_esc' AND active=1"));
+                    if ($mute_check && intval($mute_check['cnt']) > 0) {
+                        http_response_code(403);
+                        echo "您暂时不能上传图片（邮箱已被管理员禁言）。请先验证邮箱或联系管理员。";
+                        exit;
+                    }
+                }
+            }
+        }
+    }
+
     $folder = '../images/';
     if(!is_dir($folder)){
         mkdir($folder);

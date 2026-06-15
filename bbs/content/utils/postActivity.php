@@ -54,6 +54,37 @@ if ($locked==1) {
     exit;
 }
 
+// 邮箱验证禁言检查（与普通发帖对齐）
+if (CAPUBBS_ENABLE_POST_CONTROL) {
+    $con = dbconnect_mysqli();
+    mysqli_select_db($con, "capubbs");
+    $username_esc = mysqli_real_escape_string($con, $username);
+    $user_check = mysqli_fetch_array(mysqli_query($con,
+        "SELECT verified, post, reply, mail FROM userinfo WHERE username='$username_esc'"));
+    if ($user_check) {
+        if (intval($user_check['verified']) === 0) {
+            if ((intval($user_check['post']) + intval($user_check['reply'])) <= 20) {
+                if (intval($bid) !== 28) {
+                    echo json_encode(array("code"=> -1, "msg"=> "您暂时不能发帖（邮箱未验证）。请先验证邮箱或联系管理员。"));
+                    exit;
+                }
+            }
+        }
+        if (CAPUBBS_ENABLE_EMAIL_MUTE) {
+            $mail = $user_check['mail'];
+            if ($mail) {
+                $mail_esc = mysqli_real_escape_string($con, $mail);
+                $mute_check = mysqli_fetch_array(mysqli_query($con,
+                    "SELECT COUNT(*) as cnt FROM email_mutes WHERE email='$mail_esc' AND active=1"));
+                if ($mute_check && intval($mute_check['cnt']) > 0) {
+                    echo json_encode(array("code"=> -1, "msg"=> "您暂时不能发帖（邮箱已被管理员禁言）。请先验证邮箱或联系管理员。"));
+                    exit;
+                }
+            }
+        }
+    }
+}
+
 if ($action == "join") {
     $ret = join_activity_by_content($bid, $tid, $username, $option_values, $title, $sig);
     if (!$ret) {
