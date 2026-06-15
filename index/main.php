@@ -58,6 +58,7 @@
 <body>
 <?php
     require_once '../lib.php';
+    require_once '../src/Bootstrap.php';
     $res=checkuser_mysqli();
     $username=$res[0];
     $rights=intval($res[1]);
@@ -65,43 +66,39 @@
 
     date_default_timezone_set("Asia/Shanghai");
     $con = dbconnect_mysqli();
-    $statement="select * from capubbs.mainpage where id=0";
-    $results=mysqli_query($con, $statement);
+    $homepage = capubbs_mainpage_service($con)->getHomepageSections(10);
+
     $imgs=array();
     $imgthumbs=array();
     $imgtxts=array();
-    while ($res=mysqli_fetch_array($results)) {
-        array_push($imgs,$res[2]);
-        array_push($imgthumbs,$res[3]);
-        array_push($imgtxts,$res[4]);
+    foreach ($homepage['images'] as $row) {
+        array_push($imgs, isset($row['field1']) ? $row['field1'] : '');
+        array_push($imgthumbs, isset($row['field2']) ? $row['field2'] : '');
+        array_push($imgtxts, isset($row['field3']) ? $row['field3'] : '');
     }
     $imgnum=count($imgs);
 
-    $statement="select * from capubbs.mainpage where id=1 order by field3 desc limit 0,10";
-    $results=mysqli_query($con, $statement);
     $informs=array();
     $informurls=array();
     $informtimes=array();
-    while ($res=mysqli_fetch_array($results)) {
-                array_push($informs,$res[2]);
-                array_push($informurls,$res[3]);
-        array_push($informtimes,intval($res[4]));
-        }
-        $informnum=count($informs);
+    foreach ($homepage['announcements'] as $row) {
+        array_push($informs, isset($row['field1']) ? $row['field1'] : '');
+        array_push($informurls, isset($row['field2']) ? $row['field2'] : '');
+        array_push($informtimes, intval(isset($row['field3']) ? $row['field3'] : 0));
+    }
+    $informnum=count($informs);
 
-    $statement="select * from capubbs.mainpage where id=2";
-    $results=mysqli_query($con, $statement);
     $video=array();
     $video_title=array();
     $video_word=array();
     $video_poster=array();
     $video_link=array();
-    while ($res=mysqli_fetch_array($results)) {
-        array_push($video,$res[2]);
-        array_push($video_title,$res[3]);
-        array_push($video_word,$res[4]);
-        array_push($video_poster,$res[5]);
-        array_push($video_link,$res[6]);
+    foreach ($homepage['videos'] as $row) {
+        array_push($video, isset($row['field1']) ? $row['field1'] : '');
+        array_push($video_title, isset($row['field2']) ? $row['field2'] : '');
+        array_push($video_word, isset($row['field3']) ? $row['field3'] : '');
+        array_push($video_poster, isset($row['field4']) ? $row['field4'] : '');
+        array_push($video_link, isset($row['field5']) ? $row['field5'] : '');
     }
 
 

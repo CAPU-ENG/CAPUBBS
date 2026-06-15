@@ -450,34 +450,30 @@ require_once __DIR__.'/../config/api-routing.php';
 
     function seemain() {
         echo '<capu><info><code>-1</code>';
-        require_once '../lib.php';
+        require_once __DIR__ . '/../lib.php';
+        require_once __DIR__ . '/../src/Bootstrap.php';
         $con = dbconnect_mysqli();
-        $statement="select * from capubbs.mainpage where id=-1";
-        $results=mysqli_query($con, $statement);
-        $results=mysqli_fetch_row($results);
-        echo '<updatetext><![CDATA['.$results[2].']]></updatetext>';
-        echo '<updateurl><![CDATA['.$results[3].']]></updateurl>';
-        echo '<updatetime><![CDATA['.$results[4].']]></updatetime>';
+        $moreinfo=@$_REQUEST['more'];//兼容老版本无法显示超过六条通知的Bug
+        $payload = capubbs_mainpage_service($con)->getClientHomepagePayload($moreinfo=="YES");
+        $update = isset($payload['update']) ? $payload['update'] : null;
+        echo '<updatetext><![CDATA['.@$update['field1'].']]></updatetext>';
+        echo '<updateurl><![CDATA['.@$update['field2'].']]></updateurl>';
+        echo '<updatetime><![CDATA['.@$update['field3'].']]></updatetime>';
         echo '</info>'."\n";
 
-        $moreinfo=@$_REQUEST['more'];//兼容老版本无法显示超过六条通知的Bug
-        if ($moreinfo=="YES")
-            $statement="select * from capubbs.mainpage where id=1 order by number desc limit 0,20";//增加了首页最多显示的通知数量
-        else
-            $statement="select * from capubbs.mainpage where id=1 order by number desc limit 0,6";//增加了首页最多显示的通知数量
-
-        $results=mysqli_query($con, $statement);
-        while (($res=mysqli_fetch_row($results))!=null) {
-            echo '<info><text>'."<![CDATA[".$res[2].']]></text>';
-            $ar=parse_url($res[3],PHP_URL_QUERY);
-            echo '<time>'.$res[4].'</time>';
+        $announcements = isset($payload['announcements']) ? $payload['announcements'] : array();
+        foreach ($announcements as $res) {
+            echo '<info><text>'."<![CDATA[".@$res['field1'].']]></text>';
+            $url = isset($res['field2']) ? $res['field2'] : '';
+            $ar=parse_url($url,PHP_URL_QUERY);
+            echo '<time>'.@$res['field3'].'</time>';
             if ($ar!=null) {
                 parse_str($ar,$params);
                 echo '<bid>'.$params['bid'].'</bid>';
                 echo '<tid>'.$params['tid'].'</tid>';
             }
             else echo '<bid></bid><tid></tid>';
-            echo '<url>'."<![CDATA[".$res[3].']]></url>';//原始url
+            echo '<url>'."<![CDATA[".$url.']]></url>';//原始url
             echo '</info>'."\n";
         }
 
@@ -957,4 +953,3 @@ require_once __DIR__.'/../config/api-routing.php';
 
     function href($link,$href) {return "<a href='$link'>$href</a>";}
 ?>
-

@@ -5,6 +5,7 @@
 <link href="/assets/css/style.css" rel="stylesheet">
 <?php
     require_once '../lib.php';
+    require_once '../src/Bootstrap.php';
     $res=checkuser_mysqli();
     $username=$res[0];$rights=intval($res[1]);
 ?>
@@ -16,23 +17,22 @@
     
 <?php
     $con = dbconnect_mysqli();
-    $statement="select * from capubbs.downloads where name!='' order by id desc limit 0,10";
-    $results=mysqli_query($con, $statement);
+    $downloads = capubbs_mainpage_service($con)->getDownloads(10);
     $id=0;
-    $num=mysqli_num_rows($results);
+    $num=count($downloads);
     $ids=array();
     $names=array();
     $urls=array();
-    while (($res=mysqli_fetch_row($results))!=null) {
-        array_push($names,$res[1]);
-        array_push($urls,$res[2]);
-        array_push($ids,$res[0]);
+    foreach ($downloads as $res) {
+        array_push($names, isset($res['name']) ? $res['name'] : '');
+        array_push($urls, isset($res['url']) ? $res['url'] : '');
+        array_push($ids, isset($res['id']) ? $res['id'] : 0);
         echo '<li class="list-group-item" id="d_'.$id.'">
-            <span class="badge">'.$res[3].'</span>
-            <a href="/index/download_file.php?d='.$res[0].
-            '" target="_blank">'.$res[1].'</a>
-            <span style="display:none" id="id">'.$res[0].'</span>
-            <span style="display:none" id="url">'.$res[2].'</span>
+            <span class="badge">'.@$res['times'].'</span>
+            <a href="/index/download_file.php?d='.@$res['id'].
+            '" target="_blank">'.@$res['name'].'</a>
+            <span style="display:none" id="id">'.@$res['id'].'</span>
+            <span style="display:none" id="url">'.@$res['url'].'</span>
             </li>'."\n";
         $id++;
     }

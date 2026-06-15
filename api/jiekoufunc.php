@@ -173,33 +173,7 @@ function jiekoufunc_boardcast($con, $token, $text) {
 }
 
 function jiekoufunc_news($con, $token, $params) {
-    $a = jiekoufunc_getrights($con, 0, $token);
-    if (intval($a[3]) < 1) {
-        return array(array('code' => '-1', 'msg' => '您的权限不足！'));
-    }
-    $method = isset($params['method']) ? $params['method'] : '';
-    if ($method == "delete") {
-        $newstime = isset($params['time']) ? mysqli_real_escape_string($con, $params['time']) : '';
-        mysqli_query($con, "delete from capubbs.mainpage where id=1 && field3='$newstime'");
-        mysqli_query($con, "alter table capubbs.mainpage order by number");
-        return array(array('code' => '0'));
-    } elseif ($method == "add") {
-        $title = isset($params['text']) ? mysqli_real_escape_string($con, $params['text']) : '';
-        $url_raw = isset($params['url']) ? $params['url'] : '';
-        $url = mysqli_real_escape_string($con, $url_raw);
-        if (strlen($title) == 0) {
-            return array(array('code' => '-1', 'msg' => '您未填写公告内容！'));
-        }
-        if (strlen($url) == 0) {
-            $url = "javascript:void(0)";
-        }
-        $newstime = time();
-        mysqli_query($con, "insert into capubbs.mainpage values (null,1,'$title','$url','$newstime','','')");
-        mysqli_query($con, "alter table capubbs.mainpage order by number");
-        return array(array('code' => '0'));
-    } else {
-        return array(array('code' => '-1', 'msg' => '错误操作！'));
-    }
+    return capubbs_mainpage_service($con)->legacyNews($token, $params);
 }
 
 function jiekoufunc_attach($con, $token, $path, $filename) {
@@ -262,13 +236,7 @@ function jiekoufunc_favorite_check($con, $token, $bid, $tid) {
 }
 
 function jiekoufunc_calendar($con) {
-    $statement = "select * from capubbs.calendar";
-    $results = mysqli_query($con, $statement);
-    $infos = array();
-    while ($res = mysqli_fetch_array($results)) {
-        $infos[] = $res;
-    }
-    return $infos;
+    return capubbs_mainpage_service($con)->legacyCalendarRows();
 }
 
 // ============================================================================
