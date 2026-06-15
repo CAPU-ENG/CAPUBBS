@@ -131,4 +131,12 @@ class CapubbsUserService {
 
         return array(array('code' => '0', 'username' => $username));
     }
+
+    public function findAdminResetPasswordSearchUser($username) {
+        $username = trim(strval($username));
+        if ($username === '') {
+            return null;
+        }
+        return $this->userRepository->findResetPasswordSearchUser($username);
+    }
 }

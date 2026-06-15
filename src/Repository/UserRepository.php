@@ -39,6 +39,19 @@ class CapubbsUserRepository {
         return mysqli_fetch_array($results, MYSQLI_ASSOC);
     }
 
+    public function findResetPasswordSearchUser($username) {
+        $usernameEscaped = mysqli_real_escape_string($this->con, $username);
+        $statement = "select username, rights, regdate, lastdate, mail, star
+            from userinfo
+            where username='$usernameEscaped'
+            limit 1";
+        $results = mysqli_query($this->con, $statement);
+        if (!$results || mysqli_num_rows($results) == 0) {
+            return null;
+        }
+        return mysqli_fetch_array($results, MYSQLI_ASSOC);
+    }
+
     public function existsByUsername($username) {
         return $this->findRawUserByUsername($username) !== null;
     }

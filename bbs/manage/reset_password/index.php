@@ -22,12 +22,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
             $message = '请输入要查询的用户名';
             $message_type = 'error';
         } else {
-            $safe_username = mysqli_real_escape_string($con, $search_username);
-            $stmt = "SELECT username, rights, regdate, lastdate, mail, star
-                     FROM capubbs.userinfo
-                     WHERE username='$safe_username' LIMIT 1";
-            $result = mysqli_query($con, $stmt);
-            if ($row = mysqli_fetch_assoc($result)) {
+            $row = capubbs_user_service($con)->findAdminResetPasswordSearchUser($search_username);
+            if ($row) {
                 $search_result = $row;
             } else {
                 $message = '用户 "' . htmlspecialchars($search_username, ENT_QUOTES, 'UTF-8') . '" 不存在';
