@@ -10,7 +10,7 @@ class CapubbsUserRepository {
     }
 
     public function findByToken($token) {
-        return $this->findRowByValidToken($token, 'username,score,star,mail');
+        return $this->findRowByValidToken($token, 'username,score,star,mail,email_visible,verified');
     }
 
     public function findUsernameAndRightsByToken($token) {
@@ -41,6 +41,13 @@ class CapubbsUserRepository {
 
     public function existsByUsername($username) {
         return $this->findRawUserByUsername($username) !== null;
+    }
+
+    public function legacyUserExistsCode($username) {
+        if (strstr($username, "'") != "") {
+            return '2';
+        }
+        return $this->existsByUsername($username) ? '1' : '0';
     }
 
     public function findRawUsersByUsernames($usernames) {
@@ -74,6 +81,14 @@ class CapubbsUserRepository {
             return null;
         }
         return mysqli_fetch_array($results);
+    }
+
+    public function findPasswordByToken($token) {
+        $row = $this->findRowByValidToken($token, 'password');
+        if (!$row) {
+            return null;
+        }
+        return isset($row['password']) ? $row['password'] : null;
     }
 
     public function findValidTokenByUsername($username, $nowtime) {
@@ -262,6 +277,79 @@ class CapubbsUserRepository {
         return mysqli_query($this->con, $statement);
     }
 
+    public function insertRegisteredUser($data) {
+        $usernameEscaped = mysqli_real_escape_string($this->con, isset($data['username']) ? $data['username'] : '');
+        $passwordEscaped = mysqli_real_escape_string($this->con, isset($data['password']) ? $data['password'] : '');
+        $tokenEscaped = mysqli_real_escape_string($this->con, isset($data['token']) ? $data['token'] : '');
+        $time = intval(isset($data['time']) ? $data['time'] : 0);
+        $sexEscaped = mysqli_real_escape_string($this->con, isset($data['sex']) ? $data['sex'] : '');
+        $iconEscaped = mysqli_real_escape_string($this->con, isset($data['icon']) ? $data['icon'] : '');
+        $introEscaped = mysqli_real_escape_string($this->con, isset($data['intro']) ? $data['intro'] : '');
+        $sig1Escaped = mysqli_real_escape_string($this->con, isset($data['sig1']) ? $data['sig1'] : '');
+        $sig2Escaped = mysqli_real_escape_string($this->con, isset($data['sig2']) ? $data['sig2'] : '');
+        $sig3Escaped = mysqli_real_escape_string($this->con, isset($data['sig3']) ? $data['sig3'] : '');
+        $hobbyEscaped = mysqli_real_escape_string($this->con, isset($data['hobby']) ? $data['hobby'] : '');
+        $qqValue = intval(isset($data['qq']) ? $data['qq'] : 0);
+        $mailEscaped = mysqli_real_escape_string($this->con, isset($data['mail']) ? $data['mail'] : '');
+        $placeEscaped = mysqli_real_escape_string($this->con, isset($data['place']) ? $data['place'] : '');
+        $regdateEscaped = mysqli_real_escape_string($this->con, isset($data['regdate']) ? $data['regdate'] : '');
+        $lastdateEscaped = mysqli_real_escape_string($this->con, isset($data['lastdate']) ? $data['lastdate'] : '');
+        $lastipEscaped = mysqli_real_escape_string($this->con, isset($data['lastip']) ? $data['lastip'] : '');
+        $onlinetypeEscaped = mysqli_real_escape_string($this->con, isset($data['onlinetype']) ? $data['onlinetype'] : '');
+        $logininfoEscaped = mysqli_real_escape_string($this->con, isset($data['logininfo']) ? $data['logininfo'] : '');
+        $verified = intval(isset($data['verified']) ? $data['verified'] : 0);
+        $emailVisible = intval(isset($data['email_visible']) ? $data['email_visible'] : 0);
+
+        $statement = "insert into userinfo values (
+            '$usernameEscaped','$passwordEscaped','$tokenEscaped',$time,'$sexEscaped','$iconEscaped','$introEscaped',
+            '$sig1Escaped','$sig2Escaped','$sig3Escaped','$hobbyEscaped','$qqValue','$mailEscaped',
+            '$placeEscaped','$regdateEscaped','$lastdateEscaped','$lastipEscaped',
+            1,0,0,0,0,0,0,0,0,NULL,NULL,'$onlinetypeEscaped','$logininfoEscaped',
+            null,null,null,null,null,null,null,$verified,$emailVisible
+        )";
+
+        return mysqli_query($this->con, $statement);
+    }
+
+    public function updateUserProfileByUsername($username, $data) {
+        $usernameEscaped = mysqli_real_escape_string($this->con, $username);
+        $time = intval(isset($data['tokentime']) ? $data['tokentime'] : 0);
+        $sexEscaped = mysqli_real_escape_string($this->con, isset($data['sex']) ? $data['sex'] : '');
+        $ipEscaped = mysqli_real_escape_string($this->con, isset($data['lastip']) ? $data['lastip'] : '');
+        $iconEscaped = mysqli_real_escape_string($this->con, isset($data['icon']) ? $data['icon'] : '');
+        $mailEscaped = mysqli_real_escape_string($this->con, isset($data['mail']) ? $data['mail'] : '');
+        $emailVisible = intval(isset($data['email_visible']) ? $data['email_visible'] : 0);
+        $qqEscaped = mysqli_real_escape_string($this->con, isset($data['qq']) ? $data['qq'] : '');
+        $introEscaped = mysqli_real_escape_string($this->con, isset($data['intro']) ? $data['intro'] : '');
+        $placeEscaped = mysqli_real_escape_string($this->con, isset($data['place']) ? $data['place'] : '');
+        $hobbyEscaped = mysqli_real_escape_string($this->con, isset($data['hobby']) ? $data['hobby'] : '');
+        $sig1Escaped = mysqli_real_escape_string($this->con, isset($data['sig1']) ? $data['sig1'] : '');
+        $sig2Escaped = mysqli_real_escape_string($this->con, isset($data['sig2']) ? $data['sig2'] : '');
+        $sig3Escaped = mysqli_real_escape_string($this->con, isset($data['sig3']) ? $data['sig3'] : '');
+
+        $statement = "update userinfo set tokentime=$time, sex='$sexEscaped',
+            lastip='$ipEscaped', icon='$iconEscaped', mail='$mailEscaped', email_visible=$emailVisible,
+            qq='$qqEscaped', intro='$introEscaped', place='$placeEscaped',
+            hobby='$hobbyEscaped', sig1='$sig1Escaped', sig2='$sig2Escaped', sig3='$sig3Escaped'
+            where username='$usernameEscaped'";
+        return mysqli_query($this->con, $statement);
+    }
+
+    public function updatePasswordAndTokenByToken($token, $passwordHash, $newToken) {
+        $tokenEscaped = mysqli_real_escape_string($this->con, $token);
+        $passwordEscaped = mysqli_real_escape_string($this->con, $passwordHash);
+        $newTokenEscaped = mysqli_real_escape_string($this->con, $newToken);
+        return mysqli_query($this->con, "update userinfo set password='$passwordEscaped',token='$newTokenEscaped' where token='$tokenEscaped' limit 1");
+    }
+
+    public function updatePasswordTokenAndTimeByUsername($username, $passwordHash, $token, $tokenTime) {
+        $usernameEscaped = mysqli_real_escape_string($this->con, $username);
+        $passwordEscaped = mysqli_real_escape_string($this->con, $passwordHash);
+        $tokenEscaped = mysqli_real_escape_string($this->con, $token);
+        $tokenTime = intval($tokenTime);
+        return mysqli_query($this->con, "update userinfo set password='$passwordEscaped', token='$tokenEscaped', tokentime='$tokenTime' where username='$usernameEscaped' limit 1");
+    }
+
     public function updateReadBoardSession($username, $nowtime, $ip, $bid) {
         $usernameEscaped = mysqli_real_escape_string($this->con, $username);
         $ipEscaped = mysqli_real_escape_string($this->con, $ip);
@@ -396,6 +484,18 @@ class CapubbsUserRepository {
             return 0;
         }
         return intval($row['cnt']);
+    }
+
+    public function lastError() {
+        return mysqli_error($this->con);
+    }
+
+    public function lastErrno() {
+        return mysqli_errno($this->con);
+    }
+
+    public function affectedRows() {
+        return mysqli_affected_rows($this->con);
     }
 
     private function findRowByValidToken($token, $fields) {

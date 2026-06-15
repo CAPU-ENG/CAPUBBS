@@ -106,14 +106,17 @@ function capubbs_permission_service($con) {
 function capubbs_user_service($con) {
     return new CapubbsUserService(
         capubbs_user_repository($con),
-        capubbs_permission_service($con)
+        capubbs_permission_service($con),
+        capubbs_user_sig_repository($con)
     );
 }
 
 function capubbs_auth_service($con) {
     return new CapubbsAuthService(
         capubbs_user_repository($con),
-        capubbs_sign_repository($con)
+        capubbs_sign_repository($con),
+        capubbs_user_sig_repository($con),
+        capubbs_email_verification_repository($con)
     );
 }
 

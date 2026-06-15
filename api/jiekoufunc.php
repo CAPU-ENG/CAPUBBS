@@ -59,17 +59,7 @@ function jiekoufunc_getuser($con, $token) {
 }
 
 function jiekoufunc_userexists($con, $params) {
-    $user_raw = isset($params['user']) ? $params['user'] : '';
-    if (strstr($user_raw, "'") != "") {
-        return array(array('code' => '2'));
-    }
-    $user = mysqli_real_escape_string($con, $user_raw);
-    $statement = "select * from userinfo where username='$user' limit 1";
-    if (mysqli_num_rows(mysqli_query($con, $statement)) == 0) {
-        return array(array('code' => '0'));
-    } else {
-        return array(array('code' => '1'));
-    }
+    return capubbs_user_service($con)->legacyUserExists($params);
 }
 
 function jiekoufunc_user_profile($con, $params) {
@@ -169,102 +159,7 @@ function jiekoufunc_logout($con, $token, $ip) {
 }
 
 function jiekoufunc_register($con, $ip, $params) {
-    $username_raw = isset($params['username']) ? $params['username'] : '';
-    if (empty(trim($username_raw))) {
-        return array(array('code' => '1', 'msg' => '用户名不能为空。'));
-    }
-    $username = mysqli_real_escape_string($con, $username_raw);
-    $statement = "select * from userinfo where username='$username'";
-    if (mysqli_num_rows(mysqli_query($con, $statement)) > 0) {
-        return array(array('code' => '1', 'msg' => '用户已存在。'));
-    }
-
-    $password = isset($params['password']) ? mysqli_real_escape_string($con, $params['password']) : '';
-    if (isset($params['md5']) && $params['md5'] == "yes") $password = md5($password);
-    $sex = isset($params['sex']) ? mysqli_real_escape_string($con, $params['sex']) : '';
-    $icon = isset($params['icon']) ? mysqli_real_escape_string($con, $params['icon']) : '';
-    $qq_val = isset($params['qq']) ? intval($params['qq']) : 0;
-    $mail_raw = isset($params['mail']) ? $params['mail'] : '';
-    $intro_raw = isset($params['intro']) ? $params['intro'] : '';
-    $place_raw = isset($params['place']) ? $params['place'] : '';
-    $hobby_raw = isset($params['hobby']) ? $params['hobby'] : '';
-    $sig1_raw = isset($params['sig1']) ? sanitize_xml($params['sig1']) : '';
-    $sig2_raw = isset($params['sig2']) ? sanitize_xml($params['sig2']) : '';
-    $sig3_raw = isset($params['sig3']) ? sanitize_xml($params['sig3']) : '';
-    $sig1_type_raw = isset($params['sig1_type']) ? $params['sig1_type'] : 'null';
-    $sig2_type_raw = isset($params['sig2_type']) ? $params['sig2_type'] : 'null';
-    $sig3_type_raw = isset($params['sig3_type']) ? $params['sig3_type'] : 'null';
-    $time = time();
-    $date = date("Y-m-d");
-    $token = md5($username . $time);
-    $sig1 = mysqli_real_escape_string($con, $sig1_raw);
-    $sig2 = mysqli_real_escape_string($con, $sig2_raw);
-    $sig3 = mysqli_real_escape_string($con, $sig3_raw);
-    $sig1_type = mysqli_real_escape_string($con, $sig1_type_raw);
-    $sig2_type = mysqli_real_escape_string($con, $sig2_type_raw);
-    $sig3_type = mysqli_real_escape_string($con, $sig3_type_raw);
-    $place = mysqli_real_escape_string($con, sanitize_xml($place_raw));
-    $hobby = mysqli_real_escape_string($con, sanitize_xml($hobby_raw));
-    $intro = mysqli_real_escape_string($con, sanitize_xml($intro_raw));
-    $mail = mysqli_real_escape_string($con, sanitize_xml(trim($mail_raw)));
-
-    // PKU 邮箱域名校验 + 验证码校验（受开关控制）
-    if (CAPUBBS_ENABLE_EMAIL_VERIFY) {
-        if (!jiekoufunc_is_pku_email(trim($mail_raw))) {
-            return array(array('code' => strval(ApiError::INVALID_EMAIL_DOMAIN),
-                'msg' => '仅支持 学号@*.pku.edu.cn 或 学号@bjmu.edu.cn（学号为10位数字）。'));
-        }
-
-        $verify_code = isset($params['verify_code']) ? $params['verify_code'] : '';
-        if (empty($verify_code)) {
-            return array(array('code' => strval(ApiError::MISSING_FIELD),
-                'msg' => '请先验证邮箱，输入邮件中的验证码。'));
-        }
-
-        $code_esc = mysqli_real_escape_string($con, $verify_code);
-        // $mail 已在 line ~711 被 escape，这里直接用于 SQL 查询
-        $mail_esc = $mail;
-        $vresult = mysqli_fetch_array(mysqli_query($con,
-            "SELECT * FROM email_verification
-             WHERE email='$mail_esc' AND code='$code_esc' AND type='register'
-             AND used=0 ORDER BY id DESC LIMIT 1"));
-
-        if (!$vresult) {
-            return array(array('code' => strval(ApiError::VERIFY_CODE_INVALID),
-                'msg' => '验证码无效，请重新获取。'));
-        }
-
-        if (intval($vresult['expires_at']) < time()) {
-            return array(array('code' => strval(ApiError::VERIFY_CODE_EXPIRED),
-                'msg' => '验证码已过期，请重新获取。'));
-        }
-
-        // 标记验证码为已使用
-        mysqli_query($con, "UPDATE email_verification SET used=1 WHERE id=" . intval($vresult['id']));
-    }
-
-    $onlinetype = isset($params['onlinetype']) ? mysqli_real_escape_string($con, $params['onlinetype']) : '';
-    $browser = isset($params['browser']) ? mysqli_real_escape_string($con, $params['browser']) : '';
-    $system_val = isset($params['system']) ? mysqli_real_escape_string($con, $params['system']) : '';
-    $logininfo = "";
-    if ($onlinetype == "web") $logininfo = $browser;
-    if ($onlinetype == "android" || $onlinetype == "ios") $logininfo = $system_val;
-
-    $verified_val = (CAPUBBS_ENABLE_EMAIL_VERIFY) ? 1 : 0;
-    $statement = "insert into userinfo values ('$username','$password','$token',$time,'$sex','$icon','$intro','$sig1','$sig2','$sig3','$hobby','$qq_val','$mail'," .
-        "'$place','$date','$date','$ip',1,0,0,0,0,0,0,0,0,NULL,NULL,'$onlinetype','$logininfo',null,null,null,null,null,null,null,$verified_val,0)";
-    mysqli_query($con, $statement);
-    $error = mysqli_errno($con);
-    if ($error != 0) {
-        return array(array('code' => strval($error), 'msg' => mysqli_error($con)));
-    }
-    $sig_type_vals = array(1 => $sig1_type, 2 => $sig2_type, 3 => $sig3_type);
-    $sig_vals = array(1 => $sig1, 2 => $sig2, 3 => $sig3);
-    $upsert_err = upsert_user_sigs($con, $username, $sig_vals, $sig_type_vals);
-    if ($upsert_err !== null) {
-        return array(array('code' => '1', 'msg' => '保存签名档失败: ' . $upsert_err));
-    }
-    return array(array('code' => '0', 'username' => $username, 'token' => $token));
+    return capubbs_auth_service($con)->legacyRegister($ip, $params);
 }
 
 require_once __DIR__ . '/jiekoufunc_thread.php';
@@ -327,113 +222,15 @@ function jiekoufunc_updatetokentime($con, $token, $ip) {
 }
 
 function jiekoufunc_edituser($con, $token, $ip, $params) {
-    $time = time();
-    $a = jiekoufunc_token2user($con, $token);
-    if (!$a) {
-        return array(array('code' => '1', 'msg' => '超时，请重新登录。'));
-    }
-    $username = $a['username'];
-    $username_esc = mysqli_real_escape_string($con, $username);
-    $sig1 = isset($params['sig1']) ? mysqli_real_escape_string($con, sanitize_xml($params['sig1'])) : '';
-    $sig2 = isset($params['sig2']) ? mysqli_real_escape_string($con, sanitize_xml($params['sig2'])) : '';
-    $sig3 = isset($params['sig3']) ? mysqli_real_escape_string($con, sanitize_xml($params['sig3'])) : '';
-    $intro = isset($params['intro']) ? mysqli_real_escape_string($con, sanitize_xml($params['intro'])) : '';
-    $mail = isset($params['mail']) ? mysqli_real_escape_string($con, sanitize_xml($params['mail'])) : '';
-    $email_visible = isset($params['email_visible']) ? intval($params['email_visible']) : (isset($a['email_visible']) ? intval($a['email_visible']) : 0);
-    $place = isset($params['place']) ? mysqli_real_escape_string($con, sanitize_xml($params['place'])) : '';
-    $hobby = isset($params['hobby']) ? mysqli_real_escape_string($con, sanitize_xml($params['hobby'])) : '';
-    $qq = isset($params['qq']) ? mysqli_real_escape_string($con, sanitize_xml($params['qq'])) : '';
-    $icon = isset($params['icon']) ? mysqli_real_escape_string($con, sanitize_xml($params['icon'])) : '';
-    $sex = isset($params['sex']) ? mysqli_real_escape_string($con, sanitize_xml($params['sex'])) : '';
-
-    // 邮箱变更不再通过此表单提交，仅当 mail 与当前值相同时保留
-    $current_mail = $a['mail'];
-    if ($mail !== $current_mail) {
-        $mail = $current_mail; // 跳过邮箱变更（通过验证流程完成）
-    }
-
-    $statement = "update userinfo set tokentime=$time, sex='$sex'," .
-                 "lastip='$ip', icon='$icon', mail='$mail', email_visible=$email_visible, qq='$qq', intro='$intro', place='$place'," .
-                 "hobby='$hobby', sig1='$sig1', sig2='$sig2', sig3='$sig3' where username='$username_esc'";
-    mysqli_query($con, $statement);
-    if (mysqli_error($con)) {
-        return array(array('code' => '1', 'error' => mysqli_error($con)));
-    }
-    $sig1_type = isset($params['sig1_type']) ? $params['sig1_type'] : 'null';
-    $sig2_type = isset($params['sig2_type']) ? $params['sig2_type'] : 'null';
-    $sig3_type = isset($params['sig3_type']) ? $params['sig3_type'] : 'null';
-    $sig_type_vals = array(1 => $sig1_type, 2 => $sig2_type, 3 => $sig3_type);
-    $sig_vals = array(1 => $sig1, 2 => $sig2, 3 => $sig3);
-    $upsert_err = upsert_user_sigs($con, $username_esc, $sig_vals, $sig_type_vals);
-    if ($upsert_err !== null) {
-        return array(array('code' => '1', 'error' => '保存签名档失败: ' . $upsert_err));
-    }
-    return array(array('code' => '0', 'username' => $username));
+    return capubbs_user_service($con)->legacyEditProfile($token, $ip, $params);
 }
 
 function jiekoufunc_changepsd($con, $token, $params) {
-    $nowtime = time();
-    $statement = "select password from userinfo where token='$token' and $nowtime<=tokentime+{$GLOBALS['validtime']} limit 1";
-    $result = mysqli_query($con, $statement);
-    $result = mysqli_fetch_array($result);
-    if (!$result) {
-        return jiekoufunc_report('1', "会话超时，请重新<a href='../login'>登录</a>");
-    }
-    $oldpsd = isset($params['old']) ? $params['old'] : '';
-    if (strtoupper($result['password']) != strtoupper($oldpsd)) {
-        return jiekoufunc_report('2', '旧密码不正确，请重新输入');
-    }
-    $newpsd_raw = isset($params['new']) ? $params['new'] : '';
-    $newpsd = mysqli_real_escape_string($con, $newpsd_raw);
-    $newpsd = strtoupper($newpsd);
-
-    $newtoken = md5($oldpsd . $nowtime);
-    $statement = "update userinfo set password='$newpsd',token='$newtoken' where token='$token' limit 1";
-    if (mysqli_query($con, $statement)) {
-        return jiekoufunc_report('0', $newtoken);
-    } else {
-        return jiekoufunc_report('3', mysqli_error($con));
-    }
+    return capubbs_auth_service($con)->legacyChangePassword($token, $params);
 }
 
 function jiekoufunc_admin_reset_password($con, $token, $params) {
-    $nowtime = time();
-    if (!$token) {
-        return jiekoufunc_report('1', '尚未登录');
-    }
-    $statement = "select username, rights from userinfo where token='$token' and $nowtime<=tokentime+{$GLOBALS['validtime']} limit 1";
-    $result = mysqli_query($con, $statement);
-    $caller = mysqli_fetch_array($result);
-    if (!$caller) {
-        return jiekoufunc_report('1', '会话超时，请重新登录');
-    }
-    if (intval($caller[1]) < 10) {
-        return jiekoufunc_report('2', '权限不足：仅限 rights >= 10 的管理员操作');
-    }
-
-    $target_username = isset($params['target_username']) ? trim($params['target_username']) : '';
-    if ($target_username === '') {
-        return jiekoufunc_report('3', '参数错误：缺少目标用户名');
-    }
-    $safe_username = mysqli_real_escape_string($con, $target_username);
-
-    $new_password = strtoupper(md5('123456'));
-    $safe_password = mysqli_real_escape_string($con, $new_password);
-
-    $new_token = md5($target_username . $nowtime);
-    $safe_token = mysqli_real_escape_string($con, $new_token);
-
-    $statement = "update userinfo set password='$safe_password', token='$safe_token', tokentime='$nowtime' where username='$safe_username' limit 1";
-    error_log($statement);
-    if (mysqli_query($con, $statement)) {
-        if (mysqli_affected_rows($con) > 0) {
-            return jiekoufunc_report('0', '密码已重置为 123456');
-        } else {
-            return jiekoufunc_report('4', '用户不存在');
-        }
-    } else {
-        return jiekoufunc_report('5', mysqli_error($con));
-    }
+    return capubbs_auth_service($con)->legacyAdminResetPassword($token, $params);
 }
 
 // ============================================================================

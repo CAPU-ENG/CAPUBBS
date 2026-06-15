@@ -24,25 +24,31 @@ function dbconnect_mysqli() {
 
 function checkuser_mysqli() {
     $token = @$_COOKIE['token'];
-    if ($token == "") return array("", 0);
+    if ($token == "") return array(0 => "", 'username' => "", 1 => 0, 'rights' => 0);
     $con = dbconnect_mysqli();
-    $time = time();
-    $statement = "select username, rights from capubbs.userinfo where token='$token' && $time-tokentime<=60*60*24*7";
-    $results = mysqli_query($con, $statement);
-    if (mysqli_num_rows($results) == 0) return array("", 0);
-    $res = mysqli_fetch_array($results);
-    return $res;
+    require_once __DIR__ . '/src/Bootstrap.php';
+    $row = capubbs_user_repository($con)->findUsernameAndRightsByToken($token);
+    if (!$row) return array(0 => "", 'username' => "", 1 => 0, 'rights' => 0);
+    return array(
+        0 => $row['username'],
+        'username' => $row['username'],
+        1 => intval($row['rights']),
+        'rights' => intval($row['rights']),
+    );
 }
 
 function checkuser_con($con) {
     $token = @$_COOKIE['token'];
-    if ($token == "") return array("", 0);
-    $time = time();
-    $statement = "select username, rights from capubbs.userinfo where token='$token' && $time-tokentime<=60*60*24*7";
-    $results = mysqli_query($con, $statement);
-    if (mysqli_num_rows($results) == 0) return array("", 0);
-    $res = mysqli_fetch_array($results);
-    return $res;
+    if ($token == "") return array(0 => "", 'username' => "", 1 => 0, 'rights' => 0);
+    require_once __DIR__ . '/src/Bootstrap.php';
+    $row = capubbs_user_repository($con)->findUsernameAndRightsByToken($token);
+    if (!$row) return array(0 => "", 'username' => "", 1 => 0, 'rights' => 0);
+    return array(
+        0 => $row['username'],
+        'username' => $row['username'],
+        1 => intval($row['rights']),
+        'rights' => intval($row['rights']),
+    );
 }
 
 // Shared routing key resolver used by both mainfunc.php and client.php.
@@ -79,20 +85,8 @@ function sanitize_xml($str) {
 // Prefers user_sig values over any existing sig1/sig2/sig3 in $info.
 // $username must already be SQL-escaped.
 function enrich_user_sigs($con, $username, &$info) {
-    $sig_statement = "SELECT sig_num, sig, sig_type FROM user_sig WHERE username='$username'";
-    $sig_results = mysqli_query($con, $sig_statement);
-    while ($sig_row = mysqli_fetch_array($sig_results)) {
-        $n = intval($sig_row['sig_num']);
-        if ($n >= 1 && $n <= 3) {
-            $info['sig' . $n] = $sig_row['sig'];
-            $info['sig' . $n . '_type'] = $sig_row['sig_type'];
-        }
-    }
-    for ($n = 1; $n <= 3; $n++) {
-        if (!isset($info['sig' . $n . '_type'])) {
-            $info['sig' . $n . '_type'] = 'null';
-        }
-    }
+    require_once __DIR__ . '/src/Bootstrap.php';
+    capubbs_user_sig_repository($con)->applyToEscapedUserInfo($username, $info);
 }
 
 // Upsert signature content and type into user_sig table.
@@ -101,16 +95,8 @@ function enrich_user_sigs($con, $username, &$info) {
 // Values must already be SQL-escaped.
 // Returns null on success, or the error message string on failure.
 function upsert_user_sigs($con, $username, $sigs, $sig_types) {
-    for ($n = 1; $n <= 3; $n++) {
-        $sig_val = $sigs[$n];
-        $sig_type_val = $sig_types[$n];
-        $upsert = "INSERT INTO user_sig (username, sig_num, sig, sig_type) VALUES ('$username', $n, '$sig_val', '$sig_type_val') ON DUPLICATE KEY UPDATE sig='$sig_val', sig_type='$sig_type_val'";
-        mysqli_query($con, $upsert);
-        if (mysqli_error($con)) {
-            return mysqli_error($con);
-        }
-    }
-    return null;
+    require_once __DIR__ . '/src/Bootstrap.php';
+    return capubbs_user_sig_repository($con)->upsertAllEscaped($username, $sigs, $sig_types);
 }
 
 // Parse the 'limit' parameter for recentpost/recentrely APIs.

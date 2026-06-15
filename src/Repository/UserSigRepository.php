@@ -10,11 +10,65 @@ class CapubbsUserSigRepository {
     }
 
     public function getByUsername($username) {
-        if (isset($this->cache[$username])) {
-            return $this->cache[$username];
+        $usernameEscaped = mysqli_real_escape_string($this->con, $username);
+        return $this->getByEscapedUsernameWithCacheKey($usernameEscaped, 'raw:' . $username);
+    }
+
+    public function applyToUserInfo($username, &$info) {
+        $rows = $this->getByUsername($username);
+        for ($sigNum = 1; $sigNum <= 3; $sigNum++) {
+            if (isset($rows[$sigNum])) {
+                $info['sig' . $sigNum] = $rows[$sigNum]['sig'];
+                $info['sig' . $sigNum . '_type'] = $rows[$sigNum]['sig_type'];
+            } elseif (!isset($info['sig' . $sigNum . '_type'])) {
+                $info['sig' . $sigNum . '_type'] = 'null';
+            }
+        }
+    }
+
+    public function applyToEscapedUserInfo($usernameEscaped, &$info) {
+        $rows = $this->getByEscapedUsernameWithCacheKey($usernameEscaped, 'escaped:' . $usernameEscaped);
+        for ($sigNum = 1; $sigNum <= 3; $sigNum++) {
+            if (isset($rows[$sigNum])) {
+                $info['sig' . $sigNum] = $rows[$sigNum]['sig'];
+                $info['sig' . $sigNum . '_type'] = $rows[$sigNum]['sig_type'];
+            } elseif (!isset($info['sig' . $sigNum . '_type'])) {
+                $info['sig' . $sigNum . '_type'] = 'null';
+            }
+        }
+    }
+
+    public function upsertAll($username, $sigs, $sigTypes) {
+        $usernameEscaped = mysqli_real_escape_string($this->con, $username);
+        return $this->upsertAllEscaped($usernameEscaped, $sigs, $sigTypes);
+    }
+
+    public function upsertAllEscaped($usernameEscaped, $sigs, $sigTypes) {
+        for ($sigNum = 1; $sigNum <= 3; $sigNum++) {
+            $sigValue = isset($sigs[$sigNum]) ? $sigs[$sigNum] : '';
+            $sigTypeValue = isset($sigTypes[$sigNum]) ? $sigTypes[$sigNum] : 'null';
+
+            $sigEscaped = mysqli_real_escape_string($this->con, $sigValue);
+            $sigTypeEscaped = mysqli_real_escape_string($this->con, $sigTypeValue);
+
+            $statement = "insert into user_sig (username, sig_num, sig, sig_type)
+                values ('$usernameEscaped', $sigNum, '$sigEscaped', '$sigTypeEscaped')
+                on duplicate key update sig='$sigEscaped', sig_type='$sigTypeEscaped'";
+            mysqli_query($this->con, $statement);
+            if (mysqli_error($this->con)) {
+                return mysqli_error($this->con);
+            }
         }
 
-        $usernameEscaped = mysqli_real_escape_string($this->con, $username);
+        $this->cache = array();
+        return null;
+    }
+
+    private function getByEscapedUsernameWithCacheKey($usernameEscaped, $cacheKey) {
+        if (isset($this->cache[$cacheKey])) {
+            return $this->cache[$cacheKey];
+        }
+
         $statement = "SELECT sig_num, sig, sig_type FROM user_sig WHERE username='$usernameEscaped'";
         $results = mysqli_query($this->con, $statement);
 
@@ -31,19 +85,7 @@ class CapubbsUserSigRepository {
             }
         }
 
-        $this->cache[$username] = $rows;
+        $this->cache[$cacheKey] = $rows;
         return $rows;
-    }
-
-    public function applyToUserInfo($username, &$info) {
-        $rows = $this->getByUsername($username);
-        for ($sigNum = 1; $sigNum <= 3; $sigNum++) {
-            if (isset($rows[$sigNum])) {
-                $info['sig' . $sigNum] = $rows[$sigNum]['sig'];
-                $info['sig' . $sigNum . '_type'] = $rows[$sigNum]['sig_type'];
-            } elseif (!isset($info['sig' . $sigNum . '_type'])) {
-                $info['sig' . $sigNum . '_type'] = 'null';
-            }
-        }
     }
 }

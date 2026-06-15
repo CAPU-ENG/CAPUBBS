@@ -24,13 +24,7 @@ function jiekoufunc_getrights($con, $bid, $token) {
 }
 
 function jiekoufunc__userexists($con, $user) {
-    if (strstr($user, "'") != "") return false;
-    $statement = "select * from userinfo where username='$user' limit 1";
-    if (mysqli_num_rows(mysqli_query($con, $statement)) == 0) {
-        return false;
-    } else {
-        return true;
-    }
+    return capubbs_user_repository($con)->legacyUserExistsCode($user) === '1';
 }
 
 function jiekoufunc_insertmsg($con, $from, $to, $text, $bid, $tid, $pid, $ruser, $rmsg) {
@@ -38,26 +32,7 @@ function jiekoufunc_insertmsg($con, $from, $to, $text, $bid, $tid, $pid, $ruser,
 }
 
 function jiekoufunc_updatestar($con, $username) {
-    $statement = "select post,reply,other2 from userinfo where username='$username'";
-    $results = mysqli_query($con, $statement);
-    $res = mysqli_fetch_array($results);
-    $post = intval($res['post']);
-    $reply = intval($res['reply']);
-    $total = $post + $reply;
-    $star = 1;
-    if ($total < 20) $star = 1;
-    elseif ($total < 109) $star = 2;
-    elseif ($total < 317) $star = 3;
-    elseif ($total < 675) $star = 4;
-    elseif ($total < 1278) $star = 5;
-    elseif ($total < 2303) $star = 6;
-    elseif ($total < 3550) $star = 7;
-    elseif ($total < 4885) $star = 8;
-    else $star = 9;
-    $ss = intval(isset($res['other2']) ? $res['other2'] : 0);
-    if ($ss != "" && $ss >= 1 && $ss <= 9) $star = $ss;
-    $statement = "update userinfo set star=$star where username='$username'";
-    mysqli_query($con, $statement);
+    capubbs_user_repository($con)->recalculateStar($username);
 }
 
 function jiekoufunc_search_replace_exec_at($con, $text, $bid, $tid, $pid, $username, $tidtitle) {
@@ -116,45 +91,7 @@ function jiekoufunc_view_user_array($con, $username, $viewer = null) {
 // ============================================================================
 
 function jiekoufunc_validate_token_and_sign($con, $token, $ip) {
-    $time = time();
-    $nowtime = $time;
-    $token = mysqli_real_escape_string($con, $token);
-    $statement = "select username,star,rights,lastpost from userinfo where token='$token' && $time<=tokentime+{$GLOBALS['validtime']}";
-    $results = mysqli_query($con, $statement);
-    if (mysqli_num_rows($results) > 0) {
-        $res = mysqli_fetch_array($results);
-        $username = is_array($res) ? $res[0] : null;
-    } else {
-        $username = null;
-    }
-
-    if ($username) {
-        $today = date("Y-m-d");
-
-        if ($ip != "")
-            $statement = "update userinfo set tokentime=$nowtime, token='$token', lastip='$ip',lastdate='$today' where username='$username'";
-        else
-            $statement = "update userinfo set tokentime=$nowtime, token='$token', lastdate='$today' where username='$username'";
-
-        mysqli_query($con, $statement);
-
-        $year = date("Y", $time);
-        $month = date("m", $time);
-        $day = date("d", $time);
-        $statement = "select * from capubbs.sign where year=$year && month=$month && day=$day && username='$username'";
-        $result = mysqli_query($con, $statement);
-        if (mysqli_num_rows($result) == 0) {
-            $hour = date("H", $time);
-            $minute = date("i", $time);
-            $second = date("s", $time);
-            $week = date("N", $time);
-            $statement = "insert into capubbs.sign values ($year,$month,$day,$hour,$minute,$second,$week,'$username')";
-            mysqli_query($con, $statement);
-            $statement = "update capubbs.userinfo set sign=sign+1 where username='$username'";
-            mysqli_query($con, $statement);
-        }
-    }
-    return $username;
+    return capubbs_auth_service($con)->legacyCheckUserAndSign($token, $ip, $_REQUEST);
 }
 
 function jiekoufunc_checkDelayTime($time, $star, $rights, $lastpost, $ip) {
