@@ -123,6 +123,14 @@ class CapubbsPostRepository {
         return mysqli_query($this->con, $statement);
     }
 
+    public function updatePostTextAndAuthorByFid($fid, $text, $author, $updatetime) {
+        $fid = intval($fid);
+        $updatetime = intval($updatetime);
+        $textEscaped = mysqli_real_escape_string($this->con, $text);
+        $authorEscaped = mysqli_real_escape_string($this->con, $author);
+        return mysqli_query($this->con, "update posts set text='$textEscaped', author='$authorEscaped', updatetime=$updatetime where fid=$fid");
+    }
+
     public function findAllByThreadOrdered($bid, $tid) {
         $bid = intval($bid);
         $tid = intval($tid);

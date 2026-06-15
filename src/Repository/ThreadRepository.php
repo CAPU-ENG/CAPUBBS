@@ -105,6 +105,13 @@ class CapubbsThreadRepository {
         return mysqli_query($this->con, $statement);
     }
 
+    public function updateAuthor($bid, $tid, $author) {
+        $bid = intval($bid);
+        $tid = intval($tid);
+        $authorEscaped = mysqli_real_escape_string($this->con, $author);
+        return mysqli_query($this->con, "update threads set author='$authorEscaped' where bid=$bid && tid=$tid");
+    }
+
     public function updateReplyCount($bid, $tid, $reply) {
         $bid = intval($bid);
         $tid = intval($tid);
