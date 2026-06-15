@@ -7,6 +7,7 @@ require_once __DIR__ . '/Repository/BoardRepository.php';
 require_once __DIR__ . '/Repository/SignRepository.php';
 require_once __DIR__ . '/Repository/ThreadRepository.php';
 require_once __DIR__ . '/Repository/PostRepository.php';
+require_once __DIR__ . '/Repository/NestedReplyRepository.php';
 require_once __DIR__ . '/Repository/ThreadViewRepository.php';
 require_once __DIR__ . '/Repository/MessageRepository.php';
 require_once __DIR__ . '/Repository/AttachmentRepository.php';
@@ -18,6 +19,7 @@ require_once __DIR__ . '/Service/UserService.php';
 require_once __DIR__ . '/Service/AuthService.php';
 require_once __DIR__ . '/Service/ThreadReadService.php';
 require_once __DIR__ . '/Service/PostService.php';
+require_once __DIR__ . '/Service/NestedReplyService.php';
 
 function capubbs_user_sig_repository($con) {
     return new CapubbsUserSigRepository($con);
@@ -41,6 +43,10 @@ function capubbs_thread_repository($con) {
 
 function capubbs_post_repository($con) {
     return new CapubbsPostRepository($con);
+}
+
+function capubbs_nested_reply_repository($con) {
+    return new CapubbsNestedReplyRepository($con);
 }
 
 function capubbs_thread_view_repository($con) {
@@ -109,5 +115,16 @@ function capubbs_post_service($con) {
         capubbs_trash_repository($con),
         capubbs_activity_repository($con),
         capubbs_permission_service($con)
+    );
+}
+
+function capubbs_nested_reply_service($con) {
+    return new CapubbsNestedReplyService(
+        capubbs_nested_reply_repository($con),
+        capubbs_post_repository($con),
+        capubbs_thread_repository($con),
+        capubbs_user_repository($con),
+        capubbs_message_repository($con),
+        capubbs_board_repository($con)
     );
 }

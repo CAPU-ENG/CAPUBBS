@@ -149,6 +149,16 @@ class CapubbsPostRepository {
         return mysqli_query($this->con, "update posts set pid=pid-1 where bid=$bid && tid=$tid && pid>$pid");
     }
 
+    public function incrementNestedReplyCountByFid($fid) {
+        $fid = intval($fid);
+        return mysqli_query($this->con, "update posts set lzl=lzl+1 where fid=$fid");
+    }
+
+    public function decrementNestedReplyCountByFid($fid) {
+        $fid = intval($fid);
+        return mysqli_query($this->con, "update posts set lzl=lzl-1 where fid=$fid");
+    }
+
     public function moveThreadPosts($bid, $tid, $toBid, $toTid) {
         $bid = intval($bid);
         $tid = intval($tid);

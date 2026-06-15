@@ -238,30 +238,14 @@ function thread_detail_query_get_nested_replies_by_fid($con, $post_rows) {
     $fid_values = array();
     foreach ($post_rows as $row) {
         $fid = intval($row['fid']);
-        $lzl = intval(isset($row['lzl']) ? $row['lzl'] : 0);
-        if ($fid > 0 && $lzl > 0) {
+        if ($fid > 0) {
             $fid_values[$fid] = $fid;
         }
     }
     if (count($fid_values) === 0) {
         return array();
     }
-
-    $statement = "select * from lzl where visible=1 and fid in (" . implode(',', $fid_values) . ") order by fid, id";
-    $rows = thread_detail_query_fetch_all($con, $statement);
-    if ($rows === false) {
-        return array();
-    }
-
-    $grouped = array();
-    foreach ($rows as $row) {
-        $fid = intval($row['fid']);
-        if (!isset($grouped[$fid])) {
-            $grouped[$fid] = array();
-        }
-        $grouped[$fid][] = $row;
-    }
-    return $grouped;
+    return capubbs_nested_reply_service($con)->groupVisibleByFids($fid_values);
 }
 
 function thread_detail_query_collect_attachment_ids($post_rows) {

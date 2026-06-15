@@ -164,6 +164,12 @@ class CapubbsUserRepository {
         return mysqli_query($this->con, $statement);
     }
 
+    public function touchPostingActivity($username, $time) {
+        $usernameEscaped = mysqli_real_escape_string($this->con, $username);
+        $time = intval($time);
+        return mysqli_query($this->con, "update userinfo set lastpost=$time, tokentime=$time where username='$usernameEscaped'");
+    }
+
     public function adjustExtrCount($username, $delta) {
         $usernameEscaped = mysqli_real_escape_string($this->con, $username);
         $delta = intval($delta);
