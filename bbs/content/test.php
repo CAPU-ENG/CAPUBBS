@@ -42,25 +42,81 @@
         }
     }
 
-    $folder = '../images/';
-    if(!is_dir($folder)){
-        mkdir($folder);
-    }
     if (!@$_FILES['image']) exit;
+
+    // 检查上传错误
+    if ($_FILES['image']['error'] !== UPLOAD_ERR_OK) {
+        http_response_code(400);
+        echo "上传出错，错误码: " . $_FILES['image']['error'];
+        exit;
+    }
+
+    // 验证文件是否为真实图片
+    $finfo = finfo_open(FILEINFO_MIME_TYPE);
+    if ($finfo) {
+        $mime = finfo_file($finfo, $_FILES['image']['tmp_name']);
+        finfo_close($finfo);
+        $allowed = array('image/png', 'image/jpeg', 'image/gif', 'image/webp');
+        if (!in_array($mime, $allowed, true)) {
+            http_response_code(400);
+            echo "不支持的文件类型";
+            exit;
+        }
+    }
+
+    // 二次验证：用 getimagesize 确保是有效的图片文件
+    $imageInfo = @getimagesize($_FILES['image']['tmp_name']);
+    if ($imageInfo === false) {
+        http_response_code(400);
+        echo "无法识别的图片格式";
+        exit;
+    }
+
     $name = $_FILES['image']['name'];
     $extension=get_extension($name);
-    if ($extension == "HEIC") exit;
-    if ($extension == "heic") exit;
-    $filename = sha1(@microtime()) . '.'. $extension;
+    if (strcasecmp($extension, "HEIC") === 0) {
+        http_response_code(400);
+        echo "不支持的图片格式（HEIC）";
+        exit;
+    }
 
-    $target=$folder.$filename;
-    move_uploaded_file($_FILES["image"]["tmp_name"], $target);
+    // 按日期分文件夹：bbs/images/YYYY/MM/
+    $datePath = date('Y') . '/' . date('m') . '/';
+    $folder = '../images/' . $datePath;
+    $urlPath = '/bbs/images/' . $datePath;
+    if (!is_dir($folder)) {
+        if (!mkdir($folder, 0755, true)) {
+            http_response_code(500);
+            echo "服务器错误：无法创建目录";
+            exit;
+        }
+    }
+
+    // 生成唯一随机文件名，避免覆盖已有文件
+    $maxRetries = 10;
+    do {
+        $filename = sha1(microtime() . uniqid('', true) . $name . mt_rand()) . '.' . $extension;
+        $maxRetries--;
+    } while (file_exists($folder . $filename) && $maxRetries > 0);
+
+    if ($maxRetries <= 0 && file_exists($folder . $filename)) {
+        http_response_code(500);
+        echo "服务器错误：文件名冲突，请重试";
+        exit;
+    }
+
+    $target = $folder . $filename;
+    if (!move_uploaded_file($_FILES["image"]["tmp_name"], $target)) {
+        http_response_code(500);
+        echo "服务器错误：文件保存失败";
+        exit;
+    }
 
     function get_extension($file){
         return substr(strrchr($file, '.'), 1);
     }
     // CreateThumbnail($target,1920,1920);
-    $result=array("upload"=> array("links"=> array("original"=> '/bbs/images/' . $filename)));
+    $result=array("upload"=> array("links"=> array("original"=> $urlPath . $filename)));
     echo(json_encode($result));
 
     function CreateThumbnail($srcFile, $toW, $toH, $toFile="")
