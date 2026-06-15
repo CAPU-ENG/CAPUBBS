@@ -320,6 +320,38 @@ class CapubbsUserRepository {
         return $result;
     }
 
+    public function countOnlineUsers($secondsWindow) {
+        $cutoff = time() - intval($secondsWindow);
+        $row = $this->fetchOne("select count(*) as num from userinfo where tokentime >= $cutoff");
+        if (!$row) {
+            return 0;
+        }
+        return intval($row['num']);
+    }
+
+    public function findOnlineUsers($secondsWindow) {
+        $cutoff = time() - intval($secondsWindow);
+        $statement = "select username, nowboard, tokentime, lastip, onlinetype, logininfo from userinfo where tokentime >= $cutoff";
+        return $this->fetchAll($statement);
+    }
+
+    public function ensureDailyOnlineMax($onlineNum, $time) {
+        $record = $this->fetchOne("select field1, field2 from mainpage where id=-2 limit 1");
+        $maxNum = $record ? intval(isset($record['field1']) ? $record['field1'] : 0) : 0;
+        $thatTime = $record ? intval(isset($record['field2']) ? $record['field2'] : 0) : 0;
+
+        if ($onlineNum > $maxNum) {
+            $maxNum = intval($onlineNum);
+            $thatTime = intval($time);
+            mysqli_query($this->con, "update mainpage set field1='$maxNum', field2='$thatTime' where id=-2");
+        }
+
+        return array(
+            'maxnum' => $maxNum,
+            'time' => $thatTime,
+        );
+    }
+
     private function findRowByValidToken($token, $fields) {
         $nowtime = time();
         if (!$token) return null;
@@ -347,5 +379,29 @@ class CapubbsUserRepository {
             $copy[] = $row;
         }
         return $copy;
+    }
+
+    private function fetchOne($statement) {
+        $result = mysqli_query($this->con, $statement);
+        if (!$result) {
+            return false;
+        }
+        $row = mysqli_fetch_array($result, MYSQLI_ASSOC);
+        mysqli_free_result($result);
+        return $row ? $row : null;
+    }
+
+    private function fetchAll($statement) {
+        $result = mysqli_query($this->con, $statement);
+        if (!$result) {
+            return array();
+        }
+
+        $rows = array();
+        while (($row = mysqli_fetch_array($result, MYSQLI_ASSOC)) !== null) {
+            $rows[] = $row;
+        }
+        mysqli_free_result($result);
+        return $rows;
     }
 }

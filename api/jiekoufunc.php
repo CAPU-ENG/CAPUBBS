@@ -204,120 +204,23 @@ function jiekoufunc_getlznum($con, $bid, $tid) {
 }
 
 function jiekoufunc_getnum($con) {
-    $time = time();
-    $year = date("Y", $time);
-    $month = date("m", $time);
-    $day = date("d", $time);
-
-    $statement = "select * from sign where year=$year && month=$month && day=$day order by hour, minute, second";
-    $results = mysqli_query($con, $statement);
-    $sign_num = mysqli_num_rows($results);
-
-    $statement = "select username from userinfo where $time<=tokentime+600";
-    $result = mysqli_query($con, $statement);
-    $online_num = mysqli_num_rows($result);
-
-    $statement = "select field1,field2 from mainpage where id=-2";
-    $result = mysqli_query($con, $statement);
-    $res = mysqli_fetch_row($result);
-    $maxnum = intval($res[0]);
-    $thattime = intval($res[1]);
-
-    if ($online_num > $maxnum) {
-        $maxnum = $online_num;
-        $thattime = $time;
-        $statement = "update mainpage set field1='$maxnum', field2='$thattime' where id=-2";
-        mysqli_query($con, $statement);
-    }
-
-    return array(array(
-        'sign' => strval($sign_num),
-        'online' => strval($online_num),
-        'maxnum' => strval($maxnum),
-        'time' => date("Y-m-d", $thattime)
-    ));
+    return capubbs_sign_service($con)->legacyGetNum();
 }
 
 function jiekoufunc_sign_today($con, $params) {
-    $date = isset($params['view']) ? $params['view'] : '';
-    $time = strtotime($date . " 00:00:00");
-    if ($time == false || $time == -1) $time = time();
-    $year = date("Y", $time);
-    $month = date("m", $time);
-    $day = date("d", $time);
-    $statement = "select username from capubbs.sign where year=$year && month=$month && day=$day order by hour, minute, second";
-    $todays = mysqli_query($con, $statement);
-    $infos = array();
-    while (($res = mysqli_fetch_row($todays)) != null) {
-        $infos[] = array('username' => $res[0]);
-    }
-    return $infos;
+    return capubbs_sign_service($con)->legacyToday($params);
 }
 
 function jiekoufunc_sign_year($con) {
-    $time = time();
-    $year = date("Y", $time);
-    $statement = "select * from capubbs.sign where year=$year order by month, day";
-    $results = mysqli_query($con, $statement);
-    $datas = array();
-    while (($res = mysqli_fetch_array($results)) != null) {
-        $m = intval($res['month']);
-        if ($m < 10) $m = "0" . $m;
-        $date = $res['year'] . "-" . $m;
-        $d = intval($res['day']);
-        if (!isset($datas[$date])) $datas[$date] = array();
-        if (!isset($datas[$date][$d])) $datas[$date][$d] = 0;
-        $datas[$date][$d] = intval($datas[$date][$d]) + 1;
-    }
-    $infos = array();
-    foreach ($datas as $key => $value) {
-        $info = array('month' => $key);
-        $y = intval(substr($key, 0, 4));
-        $m = intval(substr($key, 5, 2));
-        $data_items = array();
-        for ($i = 1; $i <= jiekoufunc_getdays($y, $m); $i++) {
-            $x = 0;
-            if (isset($value[$i])) $x = $value[$i];
-            $data_items[] = array('day' => $i, 'number' => $x);
-        }
-        $info['data'] = $data_items;
-        $infos[] = $info;
-    }
-    return $infos;
+    return capubbs_sign_service($con)->legacyYear();
 }
 
 function jiekoufunc_sign_user($con) {
-    $statement = "select username,sign from capubbs.userinfo order by sign desc,username limit 0,100";
-    $results = mysqli_query($con, $statement);
-    $infos = array();
-    $i = 1;
-    $j = 1;
-    $last = 0;
-    while (($res = mysqli_fetch_row($results)) != null) {
-        $username = $res[0];
-        $sign = intval($res[1]);
-        if ($sign != $last) $j = $i;
-        $infos[] = array('number' => strval($j), 'username' => $username, 'times' => strval($sign));
-        $last = $sign;
-        $i++;
-    }
-    return $infos;
+    return capubbs_sign_service($con)->legacyUserRank();
 }
 
 function jiekoufunc_viewonline($con) {
-    $nowtime = time();
-    $statement = "select username, nowboard, tokentime, lastip, onlinetype, logininfo from userinfo where $nowtime<=tokentime+600";
-    $result = mysqli_query($con, $statement);
-    $infos = array();
-    while ($res = mysqli_fetch_array($result)) {
-        $info = array();
-        foreach ($res as $key => $value) {
-            if (is_long($key)) continue;
-            $info[$key] = $value;
-        }
-        $infos[] = $info;
-    }
-    return $infos;
+    return capubbs_sign_service($con)->legacyViewOnline();
 }
 
 function jiekoufunc_attachinfo($con, $id, $token) {
@@ -382,22 +285,7 @@ function jiekoufunc_login($con, $username_raw, $password, $ip, $params) {
 }
 
 function jiekoufunc_auto_sign($con, $username) {
-    $time = time();
-    $year = date("Y", $time);
-    $month = date("m", $time);
-    $day = date("d", $time);
-    $statement = "select * from capubbs.sign where year=$year && month=$month && day=$day && username='$username'";
-    $result = mysqli_query($con, $statement);
-    if (mysqli_num_rows($result) == 0) {
-        $hour = date("H", $time);
-        $minute = date("i", $time);
-        $second = date("s", $time);
-        $week = date("N", $time);
-        $statement = "insert into capubbs.sign values ($year,$month,$day,$hour,$minute,$second,$week,'$username')";
-        mysqli_query($con, $statement);
-        $statement = "update capubbs.userinfo set sign=sign+1 where username='$username'";
-        mysqli_query($con, $statement);
-    }
+    capubbs_sign_service($con)->legacyAutoSign($username);
 }
 
 function jiekoufunc_logout($con, $token, $ip) {
