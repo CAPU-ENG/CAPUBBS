@@ -328,8 +328,11 @@ textarea{
                     alert("头像上传失败："+result.msg+" code:"+result.code);
                 }
             }catch(e){
-                alert("出bug了");
+                alert("头像上传失败：服务器返回了无效的响应，请重试。");
             }
+        };
+        xhr.onerror = function () {
+            alert("头像上传失败：网络错误，请重试。");
         };
         xhr.send(form);
     }

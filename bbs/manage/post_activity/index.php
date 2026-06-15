@@ -267,8 +267,13 @@ function uploadFile(){
                 alert("附件上传失败："+result.msg+" code:"+result.code);
             }
         }catch(e){
-            alert("出bug了");
+            alert("附件上传失败：服务器返回了无效的响应，请重试。");
         }
+    };
+    xhr.onerror = function () {
+        var prob=document.getElementById("progress");
+        if(prob.style.visibility!="hidden") prob.style.visibility="hidden";
+        alert("附件上传失败：网络错误，请重试。");
     };
     xhr.upload.addEventListener("progress", onprogress, false);
     xhr.send(form);

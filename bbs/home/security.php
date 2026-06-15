@@ -57,7 +57,7 @@ function check(){
         alert("请输入新密码");
         return false;
     }
-    if(!newpsd2==newpsd){
+    if(newpsd2!=newpsd){
         alert("两次输入的新密码不一致");
         return false;
     }

@@ -292,8 +292,11 @@ div.icon:hover{
                     alert("头像上传失败："+result.msg+" code:"+result.code);
                 }
             }catch(e){
-                alert("出bug了");
+                alert("头像上传失败：服务器返回了无效的响应，请重试。");
             }
+        };
+        xhr.onerror = function () {
+            alert("头像上传失败：网络错误，请重试。");
         };
         xhr.send(form);
     }
@@ -571,7 +574,7 @@ function psdStrength(psd){
     if(/\d/.test(psd)) types+=0.5;
     if(/[a-z]/.test(psd)) types++;
     if(/[A-Z]/.test(psd)) types++;
-    if(/[_=+.,!@#$%&*]/.test(psd)) types+0.8;
+    if(/[_=+.,!@#$%&*]/.test(psd)) types+=0.8;
     var ans=types*psd.length/30;
     if(ans>1) ans=1;
     return ans;
