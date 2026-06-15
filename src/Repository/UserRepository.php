@@ -352,6 +352,52 @@ class CapubbsUserRepository {
         );
     }
 
+    public function countByEmail($email) {
+        $emailEscaped = mysqli_real_escape_string($this->con, $email);
+        $row = $this->fetchOne("select count(*) as cnt from userinfo where mail='$emailEscaped'");
+        if (!$row) {
+            return 0;
+        }
+        return intval($row['cnt']);
+    }
+
+    public function findVerifiedUserByEmail($email) {
+        $emailEscaped = mysqli_real_escape_string($this->con, $email);
+        return $this->fetchOne("select username from userinfo where mail='$emailEscaped' and verified=1 limit 1");
+    }
+
+    public function updateVerifiedByUsername($username) {
+        $usernameEscaped = mysqli_real_escape_string($this->con, $username);
+        return mysqli_query($this->con, "update userinfo set verified=1 where username='$usernameEscaped'");
+    }
+
+    public function updateEmailAndVerified($username, $email) {
+        $usernameEscaped = mysqli_real_escape_string($this->con, $username);
+        $emailEscaped = mysqli_real_escape_string($this->con, $email);
+        return mysqli_query($this->con, "update userinfo set mail='$emailEscaped', verified=1 where username='$usernameEscaped'");
+    }
+
+    public function updatePasswordAndTokenTimeByUsername($username, $passwordHash, $tokenTime) {
+        $usernameEscaped = mysqli_real_escape_string($this->con, $username);
+        $passwordEscaped = mysqli_real_escape_string($this->con, $passwordHash);
+        $tokenTime = intval($tokenTime);
+        return mysqli_query($this->con, "update userinfo set password='$passwordEscaped', tokentime=$tokenTime where username='$usernameEscaped'");
+    }
+
+    public function updateEmailVisible($username, $emailVisible) {
+        $usernameEscaped = mysqli_real_escape_string($this->con, $username);
+        $emailVisible = intval($emailVisible);
+        return mysqli_query($this->con, "update userinfo set email_visible=$emailVisible where username='$usernameEscaped'");
+    }
+
+    public function countVerifiedUsers() {
+        $row = $this->fetchOne("select count(*) as cnt from userinfo where verified=1");
+        if (!$row) {
+            return 0;
+        }
+        return intval($row['cnt']);
+    }
+
     private function findRowByValidToken($token, $fields) {
         $nowtime = time();
         if (!$token) return null;

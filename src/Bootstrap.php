@@ -5,6 +5,8 @@ require_once __DIR__ . '/Repository/UserSigRepository.php';
 require_once __DIR__ . '/Repository/UserRepository.php';
 require_once __DIR__ . '/Repository/BoardRepository.php';
 require_once __DIR__ . '/Repository/SignRepository.php';
+require_once __DIR__ . '/Repository/EmailVerificationRepository.php';
+require_once __DIR__ . '/Repository/EmailMuteRepository.php';
 require_once __DIR__ . '/Repository/ThreadRepository.php';
 require_once __DIR__ . '/Repository/PostRepository.php';
 require_once __DIR__ . '/Repository/NestedReplyRepository.php';
@@ -28,6 +30,7 @@ require_once __DIR__ . '/Service/NotificationService.php';
 require_once __DIR__ . '/Service/EditHistoryService.php';
 require_once __DIR__ . '/Service/TrashService.php';
 require_once __DIR__ . '/Service/SignService.php';
+require_once __DIR__ . '/Service/EmailVerificationService.php';
 
 function capubbs_user_sig_repository($con) {
     return new CapubbsUserSigRepository($con);
@@ -43,6 +46,14 @@ function capubbs_board_repository($con) {
 
 function capubbs_sign_repository($con) {
     return new CapubbsSignRepository($con);
+}
+
+function capubbs_email_verification_repository($con) {
+    return new CapubbsEmailVerificationRepository($con);
+}
+
+function capubbs_email_mute_repository($con) {
+    return new CapubbsEmailMuteRepository($con);
 }
 
 function capubbs_thread_repository($con) {
@@ -199,5 +210,17 @@ function capubbs_sign_service($con) {
     return new CapubbsSignService(
         capubbs_sign_repository($con),
         capubbs_user_repository($con)
+    );
+}
+
+function capubbs_email_verification_service($con) {
+    return new CapubbsEmailVerificationService(
+        capubbs_email_verification_repository($con),
+        capubbs_email_mute_repository($con),
+        capubbs_user_repository($con),
+        capubbs_permission_service($con),
+        array('Mailer', 'generateCode'),
+        array('Mailer', 'sendVerifyCode'),
+        array('Mailer', 'sendPasswordResetNotice')
     );
 }
