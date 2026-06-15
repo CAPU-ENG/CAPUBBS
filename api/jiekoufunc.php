@@ -399,44 +399,7 @@ function jiekoufunc_searchByKeyword($con, $keyword, $token, $type, $bid, $params
 }
 
 function jiekoufunc_editpreview($con, $token, $bid, $tid, $pid) {
-    $user = jiekoufunc_token2user($con, $token);
-    if (!$user) {
-        return jiekoufunc_report('1', '尚未登录');
-    }
-    $statement = "select * from posts where bid=$bid and tid=$tid and pid=$pid limit 1";
-    $result = mysqli_query($con, $statement);
-    $info = mysqli_fetch_array($result);
-    if (!$info) {
-        return jiekoufunc_report('4', '贴子不存在');
-    }
-    if ($info['author'] != $user['username']) {
-        $rights = jiekoufunc_getrights($con, $bid, $token);
-        if ($rights[0] < 1) {
-            return jiekoufunc_report('2', '无权编辑');
-        }
-    }
-    $infos = array();
-    $infos[] = array('code' => '0');
-    // user info
-    $user_info = array();
-    foreach ($user as $key => $value) {
-        if (is_long($key)) continue;
-        if ($key == "password") continue;
-        if ($key == "token") continue;
-        if ($key == "tokentime") continue;
-        if ($key == "lastpost") continue;
-        if ($key == "nowboard") continue;
-        $user_info[$key] = $value;
-    }
-    $infos[] = $user_info;
-    // post info
-    $post_info = array();
-    foreach ($info as $key => $value) {
-        if (is_long($key)) continue;
-        $post_info[$key] = $value;
-    }
-    $infos[] = $post_info;
-    return $infos;
+    return capubbs_post_service($con)->legacyEditPreview($token, $bid, $tid, $pid);
 }
 
 function jiekoufunc_currentUserInfo($con, $token) {

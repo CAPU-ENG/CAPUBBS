@@ -48,6 +48,141 @@ class CapubbsThreadRepository {
         return mysqli_query($this->con, "update threads set click=click+1 where bid=$bid && tid=$tid");
     }
 
+    public function findMaxTidIncludingTrash($bid) {
+        $bid = intval($bid);
+        $statement = "
+            select max(tid) as m from (
+                select tid from threads where bid=$bid
+                union
+                select tid from posts where bid=$bid
+                union
+                select tid from trash_threads where bid=$bid
+                union
+                select tid from trash_posts where bid=$bid
+            ) as t";
+        $row = $this->fetchOne($statement);
+        if (!$row || $row['m'] === null) {
+            return 0;
+        }
+        return intval($row['m']);
+    }
+
+    public function insertThread($bid, $tid, $title, $author, $timestamp, $postdate) {
+        $bid = intval($bid);
+        $tid = intval($tid);
+        $timestamp = intval($timestamp);
+        $titleEscaped = mysqli_real_escape_string($this->con, $title);
+        $authorEscaped = mysqli_real_escape_string($this->con, $author);
+        $postdateEscaped = mysqli_real_escape_string($this->con, $postdate);
+
+        $statement = "insert into threads values ($bid,$tid,'$titleEscaped','$authorEscaped',null,0,0,1,0,0,0,$timestamp,'$postdateEscaped')";
+        return mysqli_query($this->con, $statement);
+    }
+
+    public function incrementReply($bid, $tid, $replyer, $timestamp) {
+        $bid = intval($bid);
+        $tid = intval($tid);
+        $timestamp = intval($timestamp);
+        $replyerEscaped = mysqli_real_escape_string($this->con, $replyer);
+        $statement = "update threads set reply=reply+1, replyer='$replyerEscaped', timestamp=$timestamp where bid=$bid && tid=$tid";
+        return mysqli_query($this->con, $statement);
+    }
+
+    public function updateTitleAndAuthor($bid, $tid, $title, $author) {
+        $bid = intval($bid);
+        $tid = intval($tid);
+        $titleEscaped = mysqli_real_escape_string($this->con, $title);
+        $authorEscaped = mysqli_real_escape_string($this->con, $author);
+        $statement = "update threads set title='$titleEscaped', author='$authorEscaped' where bid=$bid && tid=$tid";
+        return mysqli_query($this->con, $statement);
+    }
+
+    public function updateReplyer($bid, $tid, $replyer) {
+        $bid = intval($bid);
+        $tid = intval($tid);
+        $replyerEscaped = mysqli_real_escape_string($this->con, $replyer);
+        $statement = "update threads set replyer='$replyerEscaped' where bid=$bid && tid=$tid";
+        return mysqli_query($this->con, $statement);
+    }
+
+    public function updateReplyCount($bid, $tid, $reply) {
+        $bid = intval($bid);
+        $tid = intval($tid);
+        $reply = intval($reply);
+        $statement = "update threads set reply=$reply where bid=$bid && tid=$tid";
+        return mysqli_query($this->con, $statement);
+    }
+
+    public function updateAfterDeletingFirstPost($bid, $tid, $title, $author, $reply) {
+        $bid = intval($bid);
+        $tid = intval($tid);
+        $reply = intval($reply);
+        $titleEscaped = mysqli_real_escape_string($this->con, $title);
+        $authorEscaped = mysqli_real_escape_string($this->con, $author);
+        $statement = "update threads set title='$titleEscaped', author='$authorEscaped', reply=$reply where bid=$bid && tid=$tid";
+        return mysqli_query($this->con, $statement);
+    }
+
+    public function updateAfterDeletingLastPost($bid, $tid, $reply, $replyer, $timestamp) {
+        $bid = intval($bid);
+        $tid = intval($tid);
+        $reply = intval($reply);
+        $timestamp = intval($timestamp);
+        if ($replyer === null) {
+            $statement = "update threads set replyer=null,timestamp=$timestamp, reply=$reply where bid=$bid && tid=$tid";
+        } else {
+            $replyerEscaped = mysqli_real_escape_string($this->con, $replyer);
+            $statement = "update threads set replyer='$replyerEscaped',timestamp=$timestamp, reply=$reply where bid=$bid && tid=$tid";
+        }
+        return mysqli_query($this->con, $statement);
+    }
+
+    public function toggleField($bid, $tid, $field) {
+        $bid = intval($bid);
+        $tid = intval($tid);
+        if (!in_array($field, array('locked', 'top', 'extr'), true)) {
+            return false;
+        }
+        return mysqli_query($this->con, "update threads set $field=1-$field where bid=$bid && tid=$tid");
+    }
+
+    public function isGlobalTop($bid, $tid) {
+        $bid = intval($bid);
+        $tid = intval($tid);
+        $row = $this->fetchOne("select bid, tid from thread_global_top where bid=$bid and tid=$tid limit 1");
+        return $row !== null;
+    }
+
+    public function addGlobalTop($bid, $tid) {
+        $bid = intval($bid);
+        $tid = intval($tid);
+        return mysqli_query($this->con, "insert into thread_global_top (bid,tid) values ($bid,$tid)");
+    }
+
+    public function removeGlobalTop($bid, $tid) {
+        $bid = intval($bid);
+        $tid = intval($tid);
+        return mysqli_query($this->con, "delete from thread_global_top where bid=$bid and tid=$tid");
+    }
+
+    public function moveThread($bid, $tid, $toBid, $toTid) {
+        $bid = intval($bid);
+        $tid = intval($tid);
+        $toBid = intval($toBid);
+        $toTid = intval($toTid);
+        return mysqli_query($this->con, "update threads set bid=$toBid, tid=$toTid where bid=$bid && tid=$tid");
+    }
+
+    public function deleteByBidTid($bid, $tid) {
+        $bid = intval($bid);
+        $tid = intval($tid);
+        return mysqli_query($this->con, "delete from threads where bid=$bid && tid=$tid");
+    }
+
+    public function lastError() {
+        return mysqli_error($this->con);
+    }
+
     private function fetchOne($statement) {
         $result = mysqli_query($this->con, $statement);
         if (!$result) {

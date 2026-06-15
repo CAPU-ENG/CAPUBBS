@@ -8,10 +8,16 @@ require_once __DIR__ . '/Repository/SignRepository.php';
 require_once __DIR__ . '/Repository/ThreadRepository.php';
 require_once __DIR__ . '/Repository/PostRepository.php';
 require_once __DIR__ . '/Repository/ThreadViewRepository.php';
+require_once __DIR__ . '/Repository/MessageRepository.php';
+require_once __DIR__ . '/Repository/AttachmentRepository.php';
+require_once __DIR__ . '/Repository/EditHistoryRepository.php';
+require_once __DIR__ . '/Repository/TrashRepository.php';
+require_once __DIR__ . '/Repository/ActivityRepository.php';
 require_once __DIR__ . '/Service/PermissionService.php';
 require_once __DIR__ . '/Service/UserService.php';
 require_once __DIR__ . '/Service/AuthService.php';
 require_once __DIR__ . '/Service/ThreadReadService.php';
+require_once __DIR__ . '/Service/PostService.php';
 
 function capubbs_user_sig_repository($con) {
     return new CapubbsUserSigRepository($con);
@@ -41,6 +47,26 @@ function capubbs_thread_view_repository($con) {
     return new CapubbsThreadViewRepository($con);
 }
 
+function capubbs_message_repository($con) {
+    return new CapubbsMessageRepository($con);
+}
+
+function capubbs_attachment_repository($con) {
+    return new CapubbsAttachmentRepository($con);
+}
+
+function capubbs_edit_history_repository($con) {
+    return new CapubbsEditHistoryRepository($con);
+}
+
+function capubbs_trash_repository($con) {
+    return new CapubbsTrashRepository($con);
+}
+
+function capubbs_activity_repository($con) {
+    return new CapubbsActivityRepository($con);
+}
+
 function capubbs_permission_service($con) {
     return new CapubbsPermissionService(
         capubbs_user_repository($con),
@@ -68,5 +94,20 @@ function capubbs_thread_read_service($con) {
         capubbs_post_repository($con),
         capubbs_user_repository($con),
         capubbs_thread_view_repository($con)
+    );
+}
+
+function capubbs_post_service($con) {
+    return new CapubbsPostService(
+        capubbs_board_repository($con),
+        capubbs_thread_repository($con),
+        capubbs_post_repository($con),
+        capubbs_user_repository($con),
+        capubbs_message_repository($con),
+        capubbs_attachment_repository($con),
+        capubbs_edit_history_repository($con),
+        capubbs_trash_repository($con),
+        capubbs_activity_repository($con),
+        capubbs_permission_service($con)
     );
 }
