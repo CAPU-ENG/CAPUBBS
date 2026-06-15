@@ -321,48 +321,11 @@ function jiekoufunc_viewonline($con) {
 }
 
 function jiekoufunc_attachinfo($con, $id, $token) {
-    $statement = "select * from attachments where id=$id limit 1";
-    $result = mysqli_query($con, $statement);
-    $ainfo = mysqli_fetch_array($result);
-    $user = jiekoufunc_token2user($con, $token);
-    $isAuthor = false;
-    if ($user) {
-        $username = $user['username'];
-        if ($username == $ainfo['uploader']) {
-            $isAuthor = true;
-        }
-    }
-    if ($ainfo) {
-        $info = array('exist' => 'YES', 'isAuthor' => jiekoufunc_packBool($isAuthor));
-        foreach ($ainfo as $key => $value) {
-            if (is_long($key)) continue;
-            $info[$key] = $value;
-        }
-        return array($info);
-    } else {
-        return array(array('exist' => 'NO'));
-    }
+    return capubbs_attachment_service($con)->legacyInfo($id, $token);
 }
 
 function jiekoufunc_unusedattachinfo($con, $token) {
-    $user = jiekoufunc_token2user($con, $token);
-    if (!$user) {
-        return array(array('code' => '1'));
-    }
-    $username = $user['username'];
-    $statement = "select * from attachments where uploader='$username' and ref=0";
-    $result = mysqli_query($con, $statement);
-    $infos = array();
-    $infos[] = array('code' => '0');
-    while ($ainfo = mysqli_fetch_array($result)) {
-        $info = array();
-        foreach ($ainfo as $key => $value) {
-            if (is_long($key)) continue;
-            $info[$key] = $value;
-        }
-        $infos[] = $info;
-    }
-    return $infos;
+    return capubbs_attachment_service($con)->legacyUnusedInfo($token);
 }
 
 function jiekoufunc_searchByKeyword($con, $keyword, $token, $type, $bid, $params) {
@@ -581,70 +544,18 @@ function jiekoufunc_news($con, $token, $params) {
 }
 
 function jiekoufunc_attach($con, $token, $path, $filename) {
-    $user = jiekoufunc_token2user($con, $token);
-    if (!$user) return jiekoufunc_report('3', "unauthorized");
-    $user_name = mysqli_real_escape_string($con, $user['username']);
-    if (strstr($path, "'") != "") {
-        return jiekoufunc_report('1', "illegal");
-    }
-    $filename = str_replace("&", "&amp;", $filename);
-    $filename = mysqli_real_escape_string($con, $filename);
-    $fullpath = $GLOBALS['attachroot'] . $path;
-    if (!file_exists($fullpath)) {
-        return jiekoufunc_report('2', "error: file not found");
-    }
-    $size = (int)filesize($fullpath);
-    $statement = "insert into attachments (name,path,size,uploader,price,auth,time) values('$filename','$path',$size,'$user_name',0,0," . time() . ")";
-    mysqli_query($con, $statement);
-    if (!mysqli_error($con)) return jiekoufunc_report('0', mysqli_insert_id($con));
-    else return jiekoufunc_report('2', "error:" . mysqli_error($con));
+    return capubbs_attachment_service($con)->legacyUpload($token, $path, $filename);
 }
 
 function jiekoufunc_attachdl($con, $token, $id) {
-    $user = jiekoufunc_token2user($con, $token);
-    if (!$user) return jiekoufunc_report('3', "unauthorized");
     if (!jiekoufunc_islegal($id)) {
         return jiekoufunc_report('1', "illegal");
     }
-    $statement = "select * from attachments where id=$id limit 1";
-    $result = mysqli_query($con, $statement);
-    $ainfo = mysqli_fetch_array($result);
-    if (!$ainfo) return jiekoufunc_report('6', "attachment not found");
-    $statement = "update attachments set count=count+1 where id=$id limit 1";
-    mysqli_query($con, $statement);
-    return array(array('code' => '0', 'aid' => strval($id), 'path' => $ainfo['path'], 'name' => $ainfo['name']));
+    return capubbs_attachment_service($con)->legacyDownload($token, $id);
 }
 
 function jiekoufunc_delattach($con, $token, $id) {
-    $user = jiekoufunc_token2user($con, $token);
-    if (!$user) {
-        return array(array('code' => '1', 'msg' => '超时，请重新登录。'));
-    }
-    $username = $user['username'];
-    $statement = "select * from attachments where id=$id limit 1";
-    $result = mysqli_query($con, $statement);
-    $ainfo = mysqli_fetch_array($result);
-    if (!$ainfo) {
-        return array(array('code' => '6', 'msg' => '找不到该附件'));
-    }
-    if ($ainfo['uploader'] != $username) {
-        return array(array('code' => '2', 'msg' => '无权删除'));
-    }
-    if ($ainfo['path']) {
-        if (!file_exists($GLOBALS['attachroot'] . $ainfo['path']) || true) {
-            $statement = "update attachments set uploader=concat(uploader, '|删除') where id=$id limit 1";
-            mysqli_query($con, $statement);
-            if (!mysqli_error($con)) {
-                return array(array('code' => '0'));
-            } else {
-                return array(array('code' => '3', 'msg' => mysqli_error($con)));
-            }
-        } else {
-            return array(array('code' => '4', 'msg' => '无法删除附件'));
-        }
-    } else {
-        return array(array('code' => '5', 'msg' => '数据库错误'));
-    }
+    return capubbs_attachment_service($con)->legacyDelete($token, $id);
 }
 
 function jiekoufunc_updatetokentime($con, $token, $ip) {

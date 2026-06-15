@@ -66,17 +66,13 @@ function jiekoufunc_search_replace_exec_at($con, $text, $bid, $tid, $pid, $usern
 }
 
 function jiekoufunc__delattach($con, $id) {
-    $statement = "select * from attachments where id=$id limit 1";
-    $result = mysqli_query($con, $statement);
-    $ainfo = mysqli_fetch_array($result);
+    $ainfo = capubbs_attachment_repository($con)->findById($id);
     if (!$ainfo) {
         return false;
     }
     if ($ainfo['path']) {
         if (!file_exists($GLOBALS['attachroot'] . $ainfo['path']) || true) {
-            $statement = "update attachments set uploader=concat(uploader, '|删除') where id=$id limit 1";
-            mysqli_query($con, $statement);
-            if (!mysqli_error($con)) {
+            if (capubbs_attachment_repository($con)->markDeletedById($id)) {
                 return true;
             } else {
                 return false;

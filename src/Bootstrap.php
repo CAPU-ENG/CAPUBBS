@@ -23,6 +23,7 @@ require_once __DIR__ . '/Service/PostService.php';
 require_once __DIR__ . '/Service/NestedReplyService.php';
 require_once __DIR__ . '/Service/FavoriteService.php';
 require_once __DIR__ . '/Service/MessageService.php';
+require_once __DIR__ . '/Service/AttachmentService.php';
 require_once __DIR__ . '/Service/NotificationService.php';
 
 function capubbs_user_sig_repository($con) {
@@ -158,5 +159,14 @@ function capubbs_message_service($con) {
         capubbs_message_repository($con),
         capubbs_user_repository($con),
         capubbs_permission_service($con)
+    );
+}
+
+function capubbs_attachment_service($con) {
+    $attachRoot = isset($GLOBALS['attachroot']) ? $GLOBALS['attachroot'] : (__DIR__ . '/../bbs/attachment/');
+    return new CapubbsAttachmentService(
+        capubbs_attachment_repository($con),
+        capubbs_user_repository($con),
+        $attachRoot
     );
 }
