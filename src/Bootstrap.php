@@ -26,6 +26,7 @@ require_once __DIR__ . '/Service/MessageService.php';
 require_once __DIR__ . '/Service/AttachmentService.php';
 require_once __DIR__ . '/Service/NotificationService.php';
 require_once __DIR__ . '/Service/EditHistoryService.php';
+require_once __DIR__ . '/Service/TrashService.php';
 
 function capubbs_user_sig_repository($con) {
     return new CapubbsUserSigRepository($con);
@@ -177,6 +178,17 @@ function capubbs_edit_history_service($con) {
         capubbs_edit_history_repository($con),
         capubbs_post_repository($con),
         capubbs_thread_repository($con),
+        capubbs_permission_service($con)
+    );
+}
+
+function capubbs_trash_service($con) {
+    return new CapubbsTrashService(
+        capubbs_trash_repository($con),
+        capubbs_thread_repository($con),
+        capubbs_post_repository($con),
+        capubbs_board_repository($con),
+        capubbs_user_repository($con),
         capubbs_permission_service($con)
     );
 }

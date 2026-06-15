@@ -42,4 +42,25 @@ class CapubbsBoardRepository {
 
         return false;
     }
+
+    public function findModeratorBids($username) {
+        if ($username === '') {
+            return array();
+        }
+
+        $usernameEscaped = mysqli_real_escape_string($this->con, $username);
+        $statement = "select bid from boardinfo
+            where m1='$usernameEscaped' or m2='$usernameEscaped' or m3='$usernameEscaped' or m4='$usernameEscaped'";
+        $results = mysqli_query($this->con, $statement);
+        if (!$results) {
+            return array();
+        }
+
+        $bids = array();
+        while (($row = mysqli_fetch_row($results)) !== null) {
+            $bids[] = intval($row[0]);
+        }
+        mysqli_free_result($results);
+        return $bids;
+    }
 }

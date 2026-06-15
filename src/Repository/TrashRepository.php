@@ -66,4 +66,116 @@ class CapubbsTrashRepository {
                     '$deleterEscaped', $deletetime, '$deleteIpEscaped')";
         return mysqli_query($this->con, $statement);
     }
+
+    public function findItems($bid, $allowedBids, $page, $limit, $type) {
+        $bid = intval($bid);
+        $page = max(1, intval($page));
+        $limit = max(1, min(100, intval($limit)));
+        $offset = ($page - 1) * $limit;
+
+        $where = '';
+        if ($bid > 0) {
+            $where = "where bid=$bid";
+        }
+
+        if (is_array($allowedBids)) {
+            if (count($allowedBids) === 0) {
+                $allowedBids = array(-1);
+            }
+
+            $bidList = array();
+            foreach ($allowedBids as $allowedBid) {
+                $bidList[] = intval($allowedBid);
+            }
+            $where .= ($where ? ' and' : 'where') . " bid in (" . implode(',', $bidList) . ")";
+        }
+
+        $parts = array();
+        if ($type === 'all' || $type === 'post') {
+            $parts[] = "select trash_id, bid, tid, pid, fid, title, text, author, deleter, deletetime, 'post' as trash_type from trash_posts $where";
+        }
+        if ($type === 'all' || $type === 'thread') {
+            $parts[] = "select trash_id, bid, tid, 0 as pid, 0 as fid, title, '' as text, author, deleter, deletetime, 'thread' as trash_type from trash_threads $where";
+        }
+
+        if (count($parts) === 0) {
+            return array();
+        }
+
+        $statement = "select * from (" . implode(' union all ', $parts) . ") as t order by deletetime desc limit $offset, $limit";
+        return $this->fetchAll($statement);
+    }
+
+    public function findThreadSnapshot($trashId, $bid, $tid) {
+        $trashId = intval($trashId);
+        $bid = intval($bid);
+        $tid = intval($tid);
+        return $this->fetchOne("select * from trash_threads where trash_id=$trashId and bid=$bid and tid=$tid limit 1");
+    }
+
+    public function findPostSnapshot($trashId, $bid, $tid, $pid) {
+        $trashId = intval($trashId);
+        $bid = intval($bid);
+        $tid = intval($tid);
+        $pid = intval($pid);
+        return $this->fetchOne("select * from trash_posts where trash_id=$trashId and bid=$bid and tid=$tid and pid=$pid limit 1");
+    }
+
+    public function findPostSnapshotsByThread($bid, $tid) {
+        $bid = intval($bid);
+        $tid = intval($tid);
+        return $this->fetchAll("select * from trash_posts where bid=$bid and tid=$tid order by pid");
+    }
+
+    public function deletePostSnapshotsByThread($bid, $tid) {
+        $bid = intval($bid);
+        $tid = intval($tid);
+        return mysqli_query($this->con, "delete from trash_posts where bid=$bid and tid=$tid");
+    }
+
+    public function deleteThreadSnapshotById($trashId) {
+        $trashId = intval($trashId);
+        return mysqli_query($this->con, "delete from trash_threads where trash_id=$trashId");
+    }
+
+    public function deletePostSnapshotById($trashId) {
+        $trashId = intval($trashId);
+        return mysqli_query($this->con, "delete from trash_posts where trash_id=$trashId");
+    }
+
+    public function deletePostSnapshotsOlderThan($cutoff) {
+        $cutoff = intval($cutoff);
+        mysqli_query($this->con, "delete from trash_posts where deletetime < $cutoff");
+        return mysqli_affected_rows($this->con);
+    }
+
+    public function deleteThreadSnapshotsOlderThan($cutoff) {
+        $cutoff = intval($cutoff);
+        mysqli_query($this->con, "delete from trash_threads where deletetime < $cutoff");
+        return mysqli_affected_rows($this->con);
+    }
+
+    private function fetchOne($statement) {
+        $result = mysqli_query($this->con, $statement);
+        if (!$result) {
+            return false;
+        }
+        $row = mysqli_fetch_array($result, MYSQLI_ASSOC);
+        mysqli_free_result($result);
+        return $row ? $row : null;
+    }
+
+    private function fetchAll($statement) {
+        $result = mysqli_query($this->con, $statement);
+        if (!$result) {
+            return array();
+        }
+
+        $rows = array();
+        while (($row = mysqli_fetch_array($result, MYSQLI_ASSOC)) !== null) {
+            $rows[] = $row;
+        }
+        mysqli_free_result($result);
+        return $rows;
+    }
 }

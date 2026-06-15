@@ -157,6 +157,13 @@ class CapubbsPostRepository {
         return mysqli_query($this->con, "update posts set pid=pid-1 where bid=$bid && tid=$tid && pid>$pid");
     }
 
+    public function incrementPidFrom($bid, $tid, $pid) {
+        $bid = intval($bid);
+        $tid = intval($tid);
+        $pid = intval($pid);
+        return mysqli_query($this->con, "update posts set pid=pid+1 where bid=$bid && tid=$tid && pid>=$pid");
+    }
+
     public function incrementNestedReplyCountByFid($fid) {
         $fid = intval($fid);
         return mysqli_query($this->con, "update posts set lzl=lzl+1 where fid=$fid");
@@ -173,6 +180,36 @@ class CapubbsPostRepository {
         $toBid = intval($toBid);
         $toTid = intval($toTid);
         return mysqli_query($this->con, "update posts set bid=$toBid, tid=$toTid where bid=$bid && tid=$tid");
+    }
+
+    public function insertRestoredPost($post, $pidOverride) {
+        $bid = intval(isset($post['bid']) ? $post['bid'] : 0);
+        $tid = intval(isset($post['tid']) ? $post['tid'] : 0);
+        $pid = intval($pidOverride);
+        $fid = intval(isset($post['fid']) ? $post['fid'] : 0);
+        $titleEscaped = mysqli_real_escape_string($this->con, isset($post['title']) ? $post['title'] : '');
+        $authorEscaped = mysqli_real_escape_string($this->con, isset($post['author']) ? $post['author'] : '');
+        $textEscaped = mysqli_real_escape_string($this->con, isset($post['text']) ? $post['text'] : '');
+        $ishtmlEscaped = mysqli_real_escape_string($this->con, isset($post['ishtml']) ? $post['ishtml'] : '');
+        $attachsEscaped = mysqli_real_escape_string($this->con, isset($post['attachs']) ? $post['attachs'] : '');
+        $replytime = intval(isset($post['replytime']) ? $post['replytime'] : 0);
+        $updatetime = intval(isset($post['updatetime']) ? $post['updatetime'] : 0);
+        $sig = intval(isset($post['sig']) ? $post['sig'] : 0);
+        $typeEscaped = mysqli_real_escape_string($this->con, isset($post['type']) ? $post['type'] : '');
+        $ipEscaped = mysqli_real_escape_string($this->con, isset($post['ip']) ? $post['ip'] : '');
+        $lzl = intval(isset($post['lzl']) ? $post['lzl'] : 0);
+
+        $statement = "insert ignore into posts
+            (bid, tid, pid, fid, title, author, text, ishtml, attachs,
+             replytime, updatetime, sig, type, ip, lzl)
+            values ($bid, $tid, $pid, $fid,
+                    '$titleEscaped', '$authorEscaped', '$textEscaped', '$ishtmlEscaped', '$attachsEscaped',
+                    $replytime, $updatetime, $sig, '$typeEscaped', '$ipEscaped', $lzl)";
+        return mysqli_query($this->con, $statement);
+    }
+
+    public function lastAffectedRows() {
+        return mysqli_affected_rows($this->con);
     }
 
     public function lastError() {

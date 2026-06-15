@@ -186,6 +186,33 @@ class CapubbsThreadRepository {
         return mysqli_query($this->con, "delete from threads where bid=$bid && tid=$tid");
     }
 
+    public function insertRestoredThread($thread) {
+        $bid = intval(isset($thread['bid']) ? $thread['bid'] : 0);
+        $tid = intval(isset($thread['tid']) ? $thread['tid'] : 0);
+        $titleEscaped = mysqli_real_escape_string($this->con, isset($thread['title']) ? $thread['title'] : '');
+        $authorEscaped = mysqli_real_escape_string($this->con, isset($thread['author']) ? $thread['author'] : '');
+        $replyerSql = isset($thread['replyer']) ? "'" . mysqli_real_escape_string($this->con, $thread['replyer']) . "'" : "NULL";
+        $click = intval(isset($thread['click']) ? $thread['click'] : 0);
+        $reply = intval(isset($thread['reply']) ? $thread['reply'] : 0);
+        $guesture = intval(isset($thread['guesture']) ? $thread['guesture'] : 0);
+        $extr = intval(isset($thread['extr']) ? $thread['extr'] : 0);
+        $top = intval(isset($thread['top']) ? $thread['top'] : 0);
+        $locked = intval(isset($thread['locked']) ? $thread['locked'] : 0);
+        $timestamp = intval(isset($thread['timestamp']) ? $thread['timestamp'] : 0);
+        $postdateSql = isset($thread['postdate']) ? "'" . mysqli_real_escape_string($this->con, $thread['postdate']) . "'" : "NULL";
+
+        $statement = "insert into threads
+            (bid, tid, title, author, replyer, click, reply, guesture,
+             extr, top, locked, timestamp, postdate)
+            values ($bid, $tid, '$titleEscaped', '$authorEscaped', $replyerSql,
+                    $click, $reply, $guesture, $extr, $top, $locked, $timestamp, $postdateSql)";
+        return mysqli_query($this->con, $statement);
+    }
+
+    public function lastAffectedRows() {
+        return mysqli_affected_rows($this->con);
+    }
+
     public function lastError() {
         return mysqli_error($this->con);
     }
