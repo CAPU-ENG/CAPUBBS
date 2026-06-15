@@ -29,8 +29,7 @@
 
     // 校验版块是否存在
     if ($bid > 0) {
-        $bid_check = mysqli_query($con, "select bid from boardinfo where bid=$bid limit 1");
-        if (mysqli_num_rows($bid_check) == 0) {
+        if (!capubbs_board_repository($con)->findByBid($bid)) {
             echo '<!DOCTYPE html><html><head><meta charset="utf-8"><title>版块不存在</title>';
             echo '<link rel="stylesheet" href="../lib/general.css">';
             echo '</head><body style="text-align:center;padding-top:80px;font-family:sans-serif;">';
@@ -73,9 +72,7 @@
     // 检查当前用户是否已收藏
     $isFaved = false;
     if ($currentuser != "") {
-        $username_escaped = mysqli_real_escape_string($con, $currentuser);
-        $fav_check = mysqli_query($con, "select 1 from favorites where username='$username_escaped' and bid=$bid and tid=$tid");
-        $isFaved = (mysqli_num_rows($fav_check) > 0);
+        $isFaved = capubbs_favorite_repository($con)->exists($currentuser, $bid, $tid);
     }
 ?>
 
