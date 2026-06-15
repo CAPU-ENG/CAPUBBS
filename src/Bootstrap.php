@@ -115,6 +115,7 @@ function capubbs_notification_service($con) {
 
 function capubbs_thread_read_service($con) {
     return new CapubbsThreadReadService(
+        capubbs_board_repository($con),
         capubbs_thread_repository($con),
         capubbs_post_repository($con),
         capubbs_user_repository($con),

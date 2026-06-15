@@ -51,42 +51,7 @@ function jiekoufunc_is_valid_bid($con, $bid) {
 // ============================================================================
 
 function jiekoufunc_bbsinfo($con, $bid, $name) {
-    $askforall = 1;
-    if ($bid != 0) {
-        $askforall = 0;
-        $statement = "select * from boardinfo where bid=$bid";
-    } else {
-        $statement = "select * from boardinfo where bid!=0 order by bid";
-    }
-    $results = mysqli_query($con, $statement);
-    $infos = array();
-    while ($res = mysqli_fetch_array($results)) {
-        $info = array();
-        foreach ($res as $key => $value) {
-            if (is_long($key)) continue;
-            if ($key == "key" || $key == "msg") continue;
-            if ($key == "bid") $bid = $value;
-            $info[$key] = $value;
-        }
-        if ($askforall == 0) {
-            $date = date("Y-m-d");
-            $time1 = strtotime("$date 00:00:00");
-            $time2 = strtotime("$date 23:59:59");
-            $statement = "select
-                (select count(*) from threads where bid=$bid) as topics,
-                (select count(*) from threads where bid=$bid && extr=1) as extr,
-                (select count(*) from threads where bid=$bid && postdate='$date') as newpost,
-                (select count(*) from posts where bid=$bid && replytime>=$time1 && replytime<=$time2) as newreply";
-            $resultt = mysqli_query($con, $statement);
-            $counts = mysqli_fetch_row($resultt);
-            $info['topics'] = $counts[0];
-            $info['extr'] = $counts[1];
-            $info['newpost'] = $counts[2];
-            $info['newreply'] = $counts[3];
-        }
-        $infos[] = $info;
-    }
-    return $infos;
+    return capubbs_thread_read_service($con)->legacyBbsInfo($bid, $name);
 }
 
 function jiekoufunc_getuser($con, $token) {
@@ -112,71 +77,11 @@ function jiekoufunc_user_profile($con, $params) {
 }
 
 function jiekoufunc_hot($con, $token, $params) {
-    $hotnum = 10;
-    if (isset($params['hotnum']) && $params['hotnum'])
-        $hotnum = $params['hotnum'];
-    $time = time();
-    $infos = array();
-
-    $statement = "select username from userinfo where token='$token' && $time<=tokentime+{$GLOBALS['validtime']}";
-    $results = mysqli_query($con, $statement);
-    if (mysqli_num_rows($results) == 0) {
-        $infos[] = array('nowuser' => '');
-    } else {
-        $res = mysqli_fetch_array($results);
-        $infos[] = array('nowuser' => $res[0]);
-    }
-
-    $results = mysqli_query($con, "
-        select threads.bid,threads.tid,title,author,replyer,click,reply,extr,top,locked,timestamp,postdate,
-        case
-            when thread_global_top.bid is null then 0
-            else 1
-        end as global_top
-        from threads left join thread_global_top on threads.bid=thread_global_top.bid and threads.tid=thread_global_top.tid
-        where thread_global_top.bid is null
-        order by timestamp desc
-        limit 0,$hotnum");
-    while ($res = mysqli_fetch_array($results)) {
-        $info = array();
-        foreach ($res as $key => $value) {
-            if (is_long($key)) continue;
-            $info[$key] = $value;
-        }
-        $infos[] = $info;
-    }
-    return $infos;
+    return capubbs_thread_read_service($con)->legacyHot($token, $params);
 }
 
 function jiekoufunc_global_top($con, $token) {
-    $time = time();
-    $infos = array();
-
-    $statement = "select username from userinfo where token='$token' && $time<=tokentime+{$GLOBALS['validtime']}";
-    $results = mysqli_query($con, $statement);
-    if (mysqli_num_rows($results) == 0) {
-        $infos[] = array('nowuser' => '');
-    } else {
-        $res = mysqli_fetch_array($results);
-        $infos[] = array('nowuser' => $res[0]);
-    }
-
-    $results = mysqli_query($con, "
-        select threads.bid,threads.tid,title,author,replyer,click,reply,extr,top,locked,timestamp,postdate,
-        case when thread_global_top.bid is null then 0 else 1 end as global_top
-        from threads left join thread_global_top on threads.bid=thread_global_top.bid and threads.tid=thread_global_top.tid
-        where thread_global_top.bid is not null
-        order by timestamp desc");
-
-    while ($res = mysqli_fetch_array($results)) {
-        $info = array();
-        foreach ($res as $key => $value) {
-            if (is_long($key)) continue;
-            $info[$key] = $value;
-        }
-        $infos[] = $info;
-    }
-    return $infos;
+    return capubbs_thread_read_service($con)->legacyGlobalTop($token);
 }
 
 function jiekoufunc_tidinfo($con, $bid, $tid) {
@@ -232,36 +137,7 @@ function jiekoufunc_unusedattachinfo($con, $token) {
 }
 
 function jiekoufunc_searchByKeyword($con, $keyword, $token, $type, $bid, $params) {
-    $keyword = mysqli_real_escape_string($con, $keyword);
-    $starttime = isset($params['starttime']) ? mysqli_real_escape_string($con, $params['starttime']) : '';
-    $endtime = isset($params['endtime']) ? mysqli_real_escape_string($con, $params['endtime']) : '';
-    $author = isset($params['author']) ? mysqli_real_escape_string($con, $params['author']) : '';
-    $start = strtotime($starttime . " 00:00:00");
-    $end = strtotime($endtime . " 23:59:59");
-    if ($start == false || $start == -1) {
-        $start = strtotime("2001-01-01 00:00:00");
-    }
-    if ($end == false || $end == -1) {
-        $end = time();
-    }
-    if ($bid == -1)
-        $bid_str = "  ";
-    else
-        $bid_str = " bid=$bid and ";
-    if ($type == "thread") {
-        if ($author == "")
-            $statement = "select title,bid,tid,author,replytime from posts where $bid_str replytime>=$start && replytime<=$end and pid=1 and title like '%$keyword%' order by replytime desc limit 100";
-        else
-            $statement = "select title,bid,tid,author,replytime from posts where $bid_str replytime>=$start && replytime<=$end and pid=1 and author='$author' and title like '%$keyword%' order by replytime desc limit 100";
-    } elseif ($type == "post") {
-        if ($author == "")
-            $statement = "select title,bid,tid,pid,author,updatetime from posts where $bid_str updatetime>=$start && updatetime<=$end and text like '%$keyword%' order by updatetime desc limit 100";
-        else
-            $statement = "select title,bid,tid,pid,author,updatetime from posts where $bid_str updatetime>=$start && updatetime<=$end and author='$author' and text like '%$keyword%' order by updatetime desc limit 100";
-    } else {
-        return jiekoufunc_report('6', '缺少搜索类型参数（thread 或 post）');
-    }
-    return jiekoufunc_view_bbs_array($con, $statement);
+    return capubbs_thread_read_service($con)->legacySearchByKeyword($keyword, $type, $bid, $params);
 }
 
 function jiekoufunc_editpreview($con, $token, $bid, $tid, $pid) {
@@ -645,21 +521,7 @@ function jiekoufunc_restore_version($con, $token, $fid, $version_id) {
  * @param $params array with optional keys: limit (default 10, max 100), bid (0=all)
  */
 function jiekoufunc_recent_threads($con, $params) {
-    $limit = isset($params['limit']) ? intval($params['limit']) : 10;
-    if ($limit <= 0) $limit = 10;
-    if ($limit > 100) $limit = 100;
-    $bid = isset($params['bid']) ? intval($params['bid']) : 0;
-
-    $bid_where = ($bid > 0) ? "AND t.bid = $bid" : "";
-
-    $sql = "SELECT t.bid, t.tid, t.title, t.author, t.replyer,
-                   t.click, t.reply, t.timestamp, t.postdate, t.extr, t.top, t.locked
-            FROM threads t
-            WHERE 1 = 1 $bid_where
-            ORDER BY t.timestamp DESC
-            LIMIT $limit";
-
-    return jiekoufunc_view_bbs_array($con, $sql);
+    return capubbs_thread_read_service($con)->legacyRecentThreads($params);
 }
 
 /**
@@ -681,108 +543,7 @@ function jiekoufunc_recent_threads($con, $params) {
  *                min_replies (minimum reply count threshold, default 0)
  */
 function jiekoufunc_hot_threads($con, $params) {
-    $limit = isset($params['limit']) ? intval($params['limit']) : 10;
-    $bid = isset($params['bid']) ? intval($params['bid']) : 0;
-    $method = isset($params['method']) ? $params['method'] : 'composite';
-    $days = isset($params['days']) ? intval($params['days']) : 7;
-    $min_replies = isset($params['min_replies']) ? intval($params['min_replies']) : 0;
-
-    if ($limit <= 0) $limit = 10;
-    if ($limit > 100) $limit = 100;
-    if ($days <= 0) $days = 7;
-
-    $cutoff = time() - ($days * 86400);
-    $bid_where = ($bid > 0) ? "AND t.bid = $bid" : "";
-
-    // Total LZL count per thread (sum of lzl counters across all posts)
-    $lzl_total = "(SELECT COALESCE(SUM(p2.lzl), 0) FROM posts p2 WHERE p2.bid = t.bid AND p2.tid = t.tid)";
-    // Total replies + LZL (used for scoring and threshold)
-    $total_eng = "(t.reply + $lzl_total)";
-    $reply_min = ($min_replies > 0) ? "AND $total_eng >= $min_replies" : "";
-
-    switch ($method) {
-        case 'reply_count':
-            $sql = "SELECT t.bid, t.tid, t.title, t.author, t.replyer,
-                           t.click, t.reply, t.timestamp, t.postdate,
-                           t.extr, t.top, t.locked,
-                           $total_eng AS score
-                    FROM threads t
-                    WHERE t.timestamp >= $cutoff $bid_where $reply_min
-                    ORDER BY score DESC
-                    LIMIT $limit";
-            break;
-
-        case 'recent_activity':
-            // Recent posts + recent LZL within the time window.
-            // LZL is stored in the `lzl` table with a `time` column.
-            $lzl_recent = "(SELECT COUNT(*) FROM lzl
-                            WHERE fid IN (SELECT fid FROM posts WHERE bid = t.bid AND tid = t.tid)
-                            AND time >= $cutoff)";
-            $sql = "SELECT t.bid, t.tid, t.title, t.author, t.replyer,
-                           t.click, t.reply, t.timestamp, t.postdate,
-                           t.extr, t.top, t.locked,
-                           (COUNT(p.fid) + COALESCE($lzl_recent, 0)) AS score
-                    FROM threads t
-                    LEFT JOIN posts p ON t.bid = p.bid AND t.tid = p.tid
-                                      AND p.replytime >= $cutoff
-                    WHERE t.timestamp >= $cutoff $bid_where $reply_min
-                    GROUP BY t.bid, t.tid
-                    ORDER BY score DESC
-                    LIMIT $limit";
-            break;
-
-        case 'engagement':
-            // Total engagement: replies + LZL + unique participants + clicks
-            $sql = "SELECT t.bid, t.tid, t.title, t.author, t.replyer,
-                           t.click, t.reply, t.timestamp, t.postdate,
-                           t.extr, t.top, t.locked,
-                           ($total_eng * 1.0
-                            + COUNT(DISTINCT p.author) * 2.0
-                            + t.click * 0.1) AS score
-                    FROM threads t
-                    LEFT JOIN posts p ON t.bid = p.bid AND t.tid = p.tid
-                    WHERE t.timestamp >= $cutoff $bid_where $reply_min
-                    GROUP BY t.bid, t.tid
-                    ORDER BY score DESC
-                    LIMIT $limit";
-            break;
-
-        case 'hacker_news':
-            $now = time();
-            $sql = "SELECT t.bid, t.tid, t.title, t.author, t.replyer,
-                           t.click, t.reply, t.timestamp, t.postdate,
-                           t.extr, t.top, t.locked,
-                           ($total_eng) / POW(GREATEST(($now - t.timestamp) / 3600 + 2, 1), 1.5) AS score
-                    FROM threads t
-                    WHERE 1 = 1 $bid_where $reply_min
-                    ORDER BY score DESC
-                    LIMIT $limit";
-            break;
-
-        case 'composite':
-        default:
-            // Weighted mix: total engagement + 24h activity + clicks
-            $one_day_ago = time() - 86400;
-            $lzl_24h = "(SELECT COALESCE(COUNT(*), 0) FROM lzl
-                         WHERE fid IN (SELECT fid FROM posts WHERE bid = t.bid AND tid = t.tid)
-                         AND time >= $one_day_ago)";
-            $sql = "SELECT t.bid, t.tid, t.title, t.author, t.replyer,
-                           t.click, t.reply, t.timestamp, t.postdate,
-                           t.extr, t.top, t.locked,
-                           ($total_eng * 0.6
-                            + (SELECT COUNT(*) FROM posts p
-                               WHERE p.bid = t.bid AND p.tid = t.tid
-                               AND p.replytime >= $one_day_ago) * 2.0
-                            + COALESCE($lzl_24h, 0) * 2.0
-                            + t.click * 0.01) AS score
-                    FROM threads t
-                    WHERE t.timestamp >= $cutoff $bid_where $reply_min
-                    ORDER BY score DESC
-                    LIMIT $limit";
-            break;
-    }
-
-    return jiekoufunc_view_bbs_array($con, $sql);
+    return capubbs_thread_read_service($con)->legacyHotThreads($params);
 }
 
 // ============================================================================

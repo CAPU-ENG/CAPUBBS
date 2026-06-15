@@ -17,6 +17,10 @@ class CapubbsBoardRepository {
         return $row ? $row : null;
     }
 
+    public function findAll() {
+        return $this->fetchAll("select * from boardinfo where bid!=0 order by bid");
+    }
+
     public function isModerator($bid, $username) {
         $bid = intval($bid);
         if ($bid <= 0 || $username === '') {
@@ -62,5 +66,19 @@ class CapubbsBoardRepository {
         }
         mysqli_free_result($results);
         return $bids;
+    }
+
+    private function fetchAll($statement) {
+        $results = mysqli_query($this->con, $statement);
+        if (!$results) {
+            return array();
+        }
+
+        $rows = array();
+        while (($row = mysqli_fetch_array($results, MYSQLI_ASSOC)) !== null) {
+            $rows[] = $row;
+        }
+        mysqli_free_result($results);
+        return $rows;
     }
 }

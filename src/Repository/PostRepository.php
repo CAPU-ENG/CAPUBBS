@@ -79,6 +79,17 @@ class CapubbsPostRepository {
         return intval($row['num']);
     }
 
+    public function countByBidReplyTimeRange($bid, $startTime, $endTime) {
+        $bid = intval($bid);
+        $startTime = intval($startTime);
+        $endTime = intval($endTime);
+        $row = $this->fetchOne("select count(*) as num from posts where bid=$bid && replytime>=$startTime && replytime<=$endTime");
+        if (!$row) {
+            return 0;
+        }
+        return intval($row['num']);
+    }
+
     public function insertPost($bid, $tid, $pid, $title, $author, $text, $ishtml, $attachs, $replytime, $updatetime, $sig, $ip, $type, $lzl) {
         $bid = intval($bid);
         $tid = intval($tid);
@@ -180,6 +191,42 @@ class CapubbsPostRepository {
         $toBid = intval($toBid);
         $toTid = intval($toTid);
         return mysqli_query($this->con, "update posts set bid=$toBid, tid=$toTid where bid=$bid && tid=$tid");
+    }
+
+    public function searchThreadsByKeyword($keyword, $bid, $start, $end, $author, $limit) {
+        $keywordEscaped = mysqli_real_escape_string($this->con, $keyword);
+        $bid = intval($bid);
+        $start = intval($start);
+        $end = intval($end);
+        $limit = max(1, intval($limit));
+        $bidWhere = ($bid == -1) ? "" : " bid=$bid and ";
+        $authorWhere = '';
+        if ($author !== '') {
+            $authorEscaped = mysqli_real_escape_string($this->con, $author);
+            $authorWhere = " and author='$authorEscaped'";
+        }
+        $statement = "select title,bid,tid,author,replytime from posts
+            where $bidWhere replytime>=$start && replytime<=$end and pid=1$authorWhere and title like '%$keywordEscaped%'
+            order by replytime desc limit $limit";
+        return $this->fetchAll($statement);
+    }
+
+    public function searchPostsByKeyword($keyword, $bid, $start, $end, $author, $limit) {
+        $keywordEscaped = mysqli_real_escape_string($this->con, $keyword);
+        $bid = intval($bid);
+        $start = intval($start);
+        $end = intval($end);
+        $limit = max(1, intval($limit));
+        $bidWhere = ($bid == -1) ? "" : " bid=$bid and ";
+        $authorWhere = '';
+        if ($author !== '') {
+            $authorEscaped = mysqli_real_escape_string($this->con, $author);
+            $authorWhere = " and author='$authorEscaped'";
+        }
+        $statement = "select title,bid,tid,pid,author,updatetime from posts
+            where $bidWhere updatetime>=$start && updatetime<=$end$authorWhere and text like '%$keywordEscaped%'
+            order by updatetime desc limit $limit";
+        return $this->fetchAll($statement);
     }
 
     public function insertRestoredPost($post, $pidOverride) {

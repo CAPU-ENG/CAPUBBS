@@ -1,16 +1,71 @@
 <?php
 
 class CapubbsThreadReadService {
+    private $boardRepository;
     private $threadRepository;
     private $postRepository;
     private $userRepository;
     private $threadViewRepository;
 
-    public function __construct($threadRepository, $postRepository, $userRepository, $threadViewRepository) {
+    public function __construct($boardRepository, $threadRepository, $postRepository, $userRepository, $threadViewRepository) {
+        $this->boardRepository = $boardRepository;
         $this->threadRepository = $threadRepository;
         $this->postRepository = $postRepository;
         $this->userRepository = $userRepository;
         $this->threadViewRepository = $threadViewRepository;
+    }
+
+    public function legacyBbsInfo($bid, $name) {
+        $bid = intval($bid);
+        if ($bid != 0) {
+            $board = $this->boardRepository->findByBid($bid);
+            if (!$board) {
+                return array();
+            }
+            $info = $board;
+            $date = date("Y-m-d");
+            $time1 = strtotime($date . " 00:00:00");
+            $time2 = strtotime($date . " 23:59:59");
+            $info['topics'] = $this->threadRepository->countByBid($bid);
+            $info['extr'] = $this->threadRepository->countExtrByBid($bid);
+            $info['newpost'] = $this->threadRepository->countByBidAndPostdate($bid, $date);
+            $info['newreply'] = $this->postRepository->countByBidReplyTimeRange($bid, $time1, $time2);
+            return array($info);
+        }
+
+        return $this->boardRepository->findAll();
+    }
+
+    public function legacyHot($token, $params) {
+        $hotnum = 10;
+        if (isset($params['hotnum']) && $params['hotnum']) {
+            $hotnum = intval($params['hotnum']);
+        }
+        if ($hotnum <= 0) {
+            $hotnum = 10;
+        }
+
+        $infos = array();
+        $user = $this->userRepository->findUsernameByValidToken($token);
+        $infos[] = array('nowuser' => $user && isset($user['username']) ? $user['username'] : '');
+
+        $rows = $this->threadRepository->findHotList($hotnum, false);
+        foreach ($rows as $row) {
+            $infos[] = $row;
+        }
+        return $infos;
+    }
+
+    public function legacyGlobalTop($token) {
+        $infos = array();
+        $user = $this->userRepository->findUsernameByValidToken($token);
+        $infos[] = array('nowuser' => $user && isset($user['username']) ? $user['username'] : '');
+
+        $rows = $this->threadRepository->findHotList(null, true);
+        foreach ($rows as $row) {
+            $infos[] = $row;
+        }
+        return $infos;
     }
 
     public function legacyGetTidInfo($bid, $tid) {
@@ -77,6 +132,62 @@ class CapubbsThreadReadService {
 
         $num = $this->postRepository->countByAuthorInThread($bid, $tid, $thread['author']);
         return array(array('num' => strval($num)));
+    }
+
+    public function legacySearchByKeyword($keyword, $type, $bid, $params) {
+        $starttime = isset($params['starttime']) ? $params['starttime'] : '';
+        $endtime = isset($params['endtime']) ? $params['endtime'] : '';
+        $author = isset($params['author']) ? $params['author'] : '';
+
+        $start = strtotime($starttime . " 00:00:00");
+        $end = strtotime($endtime . " 23:59:59");
+        if ($start == false || $start == -1) {
+            $start = strtotime("2001-01-01 00:00:00");
+        }
+        if ($end == false || $end == -1) {
+            $end = time();
+        }
+
+        if ($type == "thread") {
+            return $this->postRepository->searchThreadsByKeyword($keyword, $bid, $start, $end, $author, 100);
+        }
+        if ($type == "post") {
+            return $this->postRepository->searchPostsByKeyword($keyword, $bid, $start, $end, $author, 100);
+        }
+
+        return CapubbsLegacyResultAdapter::report('6', '缺少搜索类型参数（thread 或 post）');
+    }
+
+    public function legacyRecentThreads($params) {
+        $limit = isset($params['limit']) ? intval($params['limit']) : 10;
+        if ($limit <= 0) {
+            $limit = 10;
+        }
+        if ($limit > 100) {
+            $limit = 100;
+        }
+        $bid = isset($params['bid']) ? intval($params['bid']) : 0;
+        return $this->threadRepository->findRecentThreads($limit, $bid);
+    }
+
+    public function legacyHotThreads($params) {
+        $limit = isset($params['limit']) ? intval($params['limit']) : 10;
+        $bid = isset($params['bid']) ? intval($params['bid']) : 0;
+        $method = isset($params['method']) ? $params['method'] : 'composite';
+        $days = isset($params['days']) ? intval($params['days']) : 7;
+        $minReplies = isset($params['min_replies']) ? intval($params['min_replies']) : 0;
+
+        if ($limit <= 0) {
+            $limit = 10;
+        }
+        if ($limit > 100) {
+            $limit = 100;
+        }
+        if ($days <= 0) {
+            $days = 7;
+        }
+
+        return $this->threadRepository->findHotThreads($limit, $bid, $method, $days, $minReplies);
     }
 
     public function legacyGetOnePage($bid, $tid, $page, $seeLz, $ip, $token) {

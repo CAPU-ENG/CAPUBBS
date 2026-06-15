@@ -42,6 +42,25 @@ class CapubbsThreadRepository {
         return intval($row['num']);
     }
 
+    public function countExtrByBid($bid) {
+        $bid = intval($bid);
+        $row = $this->fetchOne("select count(*) as num from threads where bid=$bid && extr=1");
+        if (!$row) {
+            return 0;
+        }
+        return intval($row['num']);
+    }
+
+    public function countByBidAndPostdate($bid, $postdate) {
+        $bid = intval($bid);
+        $postdateEscaped = mysqli_real_escape_string($this->con, $postdate);
+        $row = $this->fetchOne("select count(*) as num from threads where bid=$bid && postdate='$postdateEscaped'");
+        if (!$row) {
+            return 0;
+        }
+        return intval($row['num']);
+    }
+
     public function incrementClick($bid, $tid) {
         $bid = intval($bid);
         $tid = intval($tid);
@@ -186,6 +205,139 @@ class CapubbsThreadRepository {
         return mysqli_query($this->con, "delete from threads where bid=$bid && tid=$tid");
     }
 
+    public function findHotList($limit, $globalOnly) {
+        $globalWhere = $globalOnly
+            ? "where thread_global_top.bid is not null"
+            : "where thread_global_top.bid is null";
+        $limitClause = '';
+        if ($limit !== null) {
+            $limit = max(1, intval($limit));
+            $limitClause = "limit 0,$limit";
+        }
+
+        $statement = "
+            select threads.bid,threads.tid,title,author,replyer,click,reply,extr,top,locked,timestamp,postdate,
+            case
+                when thread_global_top.bid is null then 0
+                else 1
+            end as global_top
+            from threads
+            left join thread_global_top
+                on threads.bid=thread_global_top.bid and threads.tid=thread_global_top.tid
+            $globalWhere
+            order by timestamp desc
+            $limitClause";
+
+        return $this->fetchAll($statement);
+    }
+
+    public function findRecentThreads($limit, $bid) {
+        $limit = max(1, min(100, intval($limit)));
+        $bid = intval($bid);
+        $bidWhere = ($bid > 0) ? "and t.bid=$bid" : "";
+        $statement = "select t.bid, t.tid, t.title, t.author, t.replyer,
+                t.click, t.reply, t.timestamp, t.postdate, t.extr, t.top, t.locked
+            from threads t
+            where 1=1 $bidWhere
+            order by t.timestamp desc
+            limit $limit";
+        return $this->fetchAll($statement);
+    }
+
+    public function findHotThreads($limit, $bid, $method, $days, $minReplies) {
+        $limit = max(1, min(100, intval($limit)));
+        $bid = intval($bid);
+        $days = max(1, intval($days));
+        $minReplies = max(0, intval($minReplies));
+
+        $cutoff = time() - ($days * 86400);
+        $bidWhere = ($bid > 0) ? "AND t.bid = $bid" : "";
+
+        $lzlTotal = "(SELECT COALESCE(SUM(p2.lzl), 0) FROM posts p2 WHERE p2.bid = t.bid AND p2.tid = t.tid)";
+        $totalEng = "(t.reply + $lzlTotal)";
+        $replyMin = ($minReplies > 0) ? "AND $totalEng >= $minReplies" : "";
+
+        switch ($method) {
+            case 'reply_count':
+                $statement = "SELECT t.bid, t.tid, t.title, t.author, t.replyer,
+                        t.click, t.reply, t.timestamp, t.postdate,
+                        t.extr, t.top, t.locked,
+                        $totalEng AS score
+                    FROM threads t
+                    WHERE t.timestamp >= $cutoff $bidWhere $replyMin
+                    ORDER BY score DESC
+                    LIMIT $limit";
+                break;
+
+            case 'recent_activity':
+                $lzlRecent = "(SELECT COUNT(*) FROM lzl
+                        WHERE fid IN (SELECT fid FROM posts WHERE bid = t.bid AND tid = t.tid)
+                        AND time >= $cutoff)";
+                $statement = "SELECT t.bid, t.tid, t.title, t.author, t.replyer,
+                        t.click, t.reply, t.timestamp, t.postdate,
+                        t.extr, t.top, t.locked,
+                        (COUNT(p.fid) + COALESCE($lzlRecent, 0)) AS score
+                    FROM threads t
+                    LEFT JOIN posts p ON t.bid = p.bid AND t.tid = p.tid
+                                  AND p.replytime >= $cutoff
+                    WHERE t.timestamp >= $cutoff $bidWhere $replyMin
+                    GROUP BY t.bid, t.tid
+                    ORDER BY score DESC
+                    LIMIT $limit";
+                break;
+
+            case 'engagement':
+                $statement = "SELECT t.bid, t.tid, t.title, t.author, t.replyer,
+                        t.click, t.reply, t.timestamp, t.postdate,
+                        t.extr, t.top, t.locked,
+                        ($totalEng * 1.0
+                            + COUNT(DISTINCT p.author) * 2.0
+                            + t.click * 0.1) AS score
+                    FROM threads t
+                    LEFT JOIN posts p ON t.bid = p.bid AND t.tid = p.tid
+                    WHERE t.timestamp >= $cutoff $bidWhere $replyMin
+                    GROUP BY t.bid, t.tid
+                    ORDER BY score DESC
+                    LIMIT $limit";
+                break;
+
+            case 'hacker_news':
+                $now = time();
+                $statement = "SELECT t.bid, t.tid, t.title, t.author, t.replyer,
+                        t.click, t.reply, t.timestamp, t.postdate,
+                        t.extr, t.top, t.locked,
+                        ($totalEng) / POW(GREATEST(($now - t.timestamp) / 3600 + 2, 1), 1.5) AS score
+                    FROM threads t
+                    WHERE 1 = 1 $bidWhere $replyMin
+                    ORDER BY score DESC
+                    LIMIT $limit";
+                break;
+
+            case 'composite':
+            default:
+                $oneDayAgo = time() - 86400;
+                $lzl24h = "(SELECT COALESCE(COUNT(*), 0) FROM lzl
+                        WHERE fid IN (SELECT fid FROM posts WHERE bid = t.bid AND tid = t.tid)
+                        AND time >= $oneDayAgo)";
+                $statement = "SELECT t.bid, t.tid, t.title, t.author, t.replyer,
+                        t.click, t.reply, t.timestamp, t.postdate,
+                        t.extr, t.top, t.locked,
+                        ($totalEng * 0.6
+                            + (SELECT COUNT(*) FROM posts p
+                               WHERE p.bid = t.bid AND p.tid = t.tid
+                               AND p.replytime >= $oneDayAgo) * 2.0
+                            + COALESCE($lzl24h, 0) * 2.0
+                            + t.click * 0.01) AS score
+                    FROM threads t
+                    WHERE t.timestamp >= $cutoff $bidWhere $replyMin
+                    ORDER BY score DESC
+                    LIMIT $limit";
+                break;
+        }
+
+        return $this->fetchAll($statement);
+    }
+
     public function insertRestoredThread($thread) {
         $bid = intval(isset($thread['bid']) ? $thread['bid'] : 0);
         $tid = intval(isset($thread['tid']) ? $thread['tid'] : 0);
@@ -225,5 +377,19 @@ class CapubbsThreadRepository {
         $row = mysqli_fetch_array($result, MYSQLI_ASSOC);
         mysqli_free_result($result);
         return $row ? $row : null;
+    }
+
+    private function fetchAll($statement) {
+        $result = mysqli_query($this->con, $statement);
+        if (!$result) {
+            return array();
+        }
+
+        $rows = array();
+        while (($row = mysqli_fetch_array($result, MYSQLI_ASSOC)) !== null) {
+            $rows[] = $row;
+        }
+        mysqli_free_result($result);
+        return $rows;
     }
 }
