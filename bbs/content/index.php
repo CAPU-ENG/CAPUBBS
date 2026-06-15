@@ -477,11 +477,11 @@ for ($i = 1; $i < count($result); $i++) {
 ?>
 
 
-var favTimer = null;
+var favPending = false;
 function toggleFav() {
     var $btn = $('#fav-btn');
-    if (favTimer) return;
-    favTimer = setTimeout(function() { favTimer = null; }, 500);
+    if (favPending) return;
+    favPending = true;
     var isFaved = $btn.hasClass('faved');
     var ask = isFaved ? 'favorite_remove' : 'favorite_add';
     $.post('/api/jiekoujson.php', { ask: ask, bid: bid, tid: tid }, function(res) {
@@ -494,6 +494,10 @@ function toggleFav() {
         } else if (res.code === -2) {
             alert('请先登录');
         }
+    }).fail(function() {
+        // Network error — no UI change needed, allow retry
+    }).always(function() {
+        favPending = false;
     });
 }
 

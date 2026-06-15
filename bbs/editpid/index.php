@@ -485,6 +485,7 @@ function doreply(){
     var ttid=$('#fm_tid').val();
     var ppid=parseInt($('#fm_pid').val());
     var p=parseInt((ppid-1)/12)+1;
+    $('#edi_submit').css('pointer-events','none').text('正在保存...');
     $.post("action.php",{
         title:$('#ip_title').val(),
         text:content,
@@ -496,11 +497,17 @@ function doreply(){
         sig:sig,
         attachs:s
         },function(x) {
-            var data=parseInt(x.substr(0,1));
-            if (data==0) {
-                window.location=x.substr(1);
+            var code = parseInt(x);
+            if (code === 0) {
+                var redirect = x.replace(/^\d+/, '');
+                window.location = redirect || ('../content/?bid=' + bbid + '&tid=' + ttid + '&p=' + p);
+            } else {
+                alert(x.replace(/^\d+/, ''));
+                $('#edi_submit').css('pointer-events','').text('保存更改');
             }
-            else alert(x.substr(1));
+    }).fail(function() {
+        alert("网络错误，请重试。");
+        $('#edi_submit').css('pointer-events','').text('保存更改');
     });
 
 }

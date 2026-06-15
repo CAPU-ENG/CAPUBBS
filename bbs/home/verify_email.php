@@ -188,24 +188,19 @@ function sendChangeCode() {
 
     API.call('sendVerifyCode', { type: 'change_email', new_email: email }, { silent: true })
         .done(function(resp) {
-            if (resp.code === 0) {
-                $('#changeMsg').css('color','#4CAF50').text(resp.message || '验证码已发送。');
-                var sec = 60;
-                if (changeTimer) clearInterval(changeTimer);
-                changeTimer = setInterval(function() {
-                    sec--;
-                    if (sec <= 0) {
-                        clearInterval(changeTimer);
-                        $('#changeCountdown').text('');
-                        btn.prop('disabled', false);
-                    } else {
-                        $('#changeCountdown').text('(' + sec + 's)');
-                    }
-                }, 1000);
-            } else {
-                $('#changeMsg').css('color','#f44336').text(resp.message || resp.msg || '发送失败');
-                btn.prop('disabled', false);
-            }
+            $('#changeMsg').css('color','#4CAF50').text(resp.message || '验证码已发送。');
+            var sec = 60;
+            if (changeTimer) clearInterval(changeTimer);
+            changeTimer = setInterval(function() {
+                sec--;
+                if (sec <= 0) {
+                    clearInterval(changeTimer);
+                    $('#changeCountdown').text('');
+                    btn.prop('disabled', false);
+                } else {
+                    $('#changeCountdown').text('(' + sec + 's)');
+                }
+            }, 1000);
         })
         .fail(function(err) {
             $('#changeMsg').css('color','#f44336').text(err.message || '网络错误，请重试。');
@@ -224,12 +219,8 @@ function verifyChangeEmail() {
 
     API.call('verifyEmail', { code: code, type: 'change_email' }, { silent: true })
         .done(function(resp) {
-            if (resp.code === 0) {
-                $('#changeMsg').css('color','#4CAF50').text('邮箱设置成功！');
-                setTimeout(function() { location.reload(); }, 800);
-            } else {
-                $('#changeMsg').css('color','#f44336').text(resp.message || resp.msg || '验证失败');
-            }
+            $('#changeMsg').css('color','#4CAF50').text('邮箱设置成功！');
+            setTimeout(function() { location.reload(); }, 800);
         })
         .fail(function(err) {
             $('#changeMsg').css('color','#f44336').text(err.message || '网络错误，请重试。');
@@ -245,13 +236,8 @@ function sendCode() {
 
     API.call('sendVerifyCode', { type: 'verify_existing' })
         .done(function(resp) {
-            if (resp.code === 0) {
-                $('#msg').css('color','#4CAF50').text('验证码已发送，请检查邮箱。');
-                startCountdown(60);
-            } else {
-                $('#msg').css('color','#f44336').text(resp.message || resp.msg || '发送失败');
-                btn.prop('disabled', false);
-            }
+            $('#msg').css('color','#4CAF50').text('验证码已发送，请检查邮箱。');
+            startCountdown(60);
         })
         .fail(function(err) {
             $('#msg').css('color','#f44336').text(err.message || '网络错误，请重试。');
@@ -268,12 +254,8 @@ function verify() {
 
     API.call('verifyEmail', { code: code, type: 'verify_existing' })
         .done(function(resp) {
-            if (resp.code === 0) {
-                $('#msg').css('color','#4CAF50').text('验证成功！');
-                setTimeout(function() { location.reload(); }, 800);
-            } else {
-                $('#msg').css('color','#f44336').text(resp.message || resp.msg || '验证失败');
-            }
+            $('#msg').css('color','#4CAF50').text('验证成功！');
+            setTimeout(function() { location.reload(); }, 800);
         })
         .fail(function(err) {
             $('#msg').css('color','#f44336').text(err.message || '网络错误，请重试。');
@@ -305,13 +287,8 @@ function toggleEmailVisible() {
     $('#visibleMsg').css('color','#666').text('...');
     API.call('toggleEmailVisible', { email_visible: visible }, { silent: true })
         .done(function(resp) {
-            if (resp.code === 0) {
-                $('#visibleMsg').css('color','#4CAF50').text('已更新');
-                setTimeout(function() { $('#visibleMsg').text(''); }, 1500);
-            } else {
-                $('#visibleMsg').css('color','#f44336').text('更新失败');
-                $('#emailVisible').prop('checked', !$('#emailVisible').is(':checked'));
-            }
+            $('#visibleMsg').css('color','#4CAF50').text('已更新');
+            setTimeout(function() { $('#visibleMsg').text(''); }, 1500);
         })
         .fail(function() {
             $('#visibleMsg').css('color','#f44336').text('网络错误');

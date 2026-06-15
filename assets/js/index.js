@@ -24,7 +24,6 @@ function forget() {
 
 function login() {
     $('#alert').hide();
-    $('#alert').html("验证码无效，请重新输入");
     var username=$('#username').val();
     var password=$('#password').val();
     if (username==""||password=="") {

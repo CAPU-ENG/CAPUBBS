@@ -265,8 +265,8 @@ $is_leader = ($currentuser == $activity["leader_username"] || $currentuser == "ç
                                     if (!validateMultiChoice($(this))) {
                                         return;
                                     }
-                                    option_values_array = $("#join_activity").serializeArray();
-                                    option_values = {};
+                                    var option_values_array = $("#join_activity").serializeArray();
+                                    var option_values = {};
                                     for (let index = 0; index < option_values_array.length; index++) {
                                         const element = option_values_array[index];
                                         let name = element["name"].replace("[]", "");
@@ -276,7 +276,7 @@ $is_leader = ($currentuser == $activity["leader_username"] || $currentuser == "ç
                                             option_values[name] += "," + element["value"];
                                         }
                                     }
-                                    send_data = {
+                                    var send_data = {
                                         data: {
                                             action: "join",
                                             bid: bid,
@@ -415,7 +415,7 @@ $is_leader = ($currentuser == $activity["leader_username"] || $currentuser == "ç
                             </div>
                             <script>
                                 $("#restore_join").click(function (e) {
-                                    send_data = {
+                                    var send_data = {
                                         data: {
                                             action: "restore",
                                             bid: bid,
@@ -536,7 +536,7 @@ $is_leader = ($currentuser == $activity["leader_username"] || $currentuser == "ç
                             </form>
                             <script>
                                 $("#cancel_join").click(function (e) {
-                                    send_data = {
+                                    var send_data = {
                                         data: {
                                             action: "cancel",
                                             bid: bid,
@@ -563,8 +563,8 @@ $is_leader = ($currentuser == $activity["leader_username"] || $currentuser == "ç
                                     if (!validateMultiChoice($(this))) {
                                         return;
                                     }
-                                    option_values_array = $("#modify_join_activity").serializeArray();
-                                    option_values = {};
+                                    var option_values_array = $("#modify_join_activity").serializeArray();
+                                    var option_values = {};
                                     for (let index = 0; index < option_values_array.length; index++) {
                                         const element = option_values_array[index];
                                         let name = element["name"].replace("[]", "");
@@ -574,7 +574,7 @@ $is_leader = ($currentuser == $activity["leader_username"] || $currentuser == "ç
                                             option_values[name] += "," + element["value"];
                                         }
                                     }
-                                    send_data = {
+                                    var send_data = {
                                         data: {
                                             action: "modify",
                                             bid: bid,
