@@ -115,7 +115,7 @@ function generateattach(filename, size, aid, useforappend) {
     if (supportedExt.indexOf(extension) != -1) {
         imgsrc = extension;
     }
-    imgsrc = "../assets/fileicons/" + imgsrc + ".png";
+    imgsrc = "/bbs/assets/fileicons/" + imgsrc + ".png";
     var s = '<div class="attach">';
     s += '<img src="' + imgsrc + '" class="fileicon">';
     s += '<div class="fileinfo"><span class="filename">' + filename + '<br></span>';
@@ -197,7 +197,7 @@ function removeattach(id) {
 function delattach(id) {
     if (confirm("您确定要彻底删除此附件么？")) {
         $('#waitinggif').show();
-        $.post("../delattach/", {id: id}, function(r) {
+        $.post("/bbs/delattach/", {id: id}, function(r) {
             var result = JSON.parse(r);
             if (result.code == 0) {
                 for (var i = 0; i < unusedattachs.length; i++) {
@@ -225,7 +225,7 @@ function reallyattachdl(id) {
 
 function uploadFile() {
     var fileObj = document.getElementById("file").files[0];
-    var FileController = "../attach/";
+    var FileController = "/bbs/attach/";
     var form = new FormData();
     form.append("file", fileObj);
     var xhr = new XMLHttpRequest();

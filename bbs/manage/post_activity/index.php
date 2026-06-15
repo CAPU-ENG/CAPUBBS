@@ -121,6 +121,7 @@ if($username!=""){
 </div>
 
 <script type="text/javascript" src="../../lib/nic.js"></script>
+<script type="text/javascript" src="../../lib/content_shared.js"></script>
 <script type="text/javascript">
 var myNicEditor = new nicEditor({fullPanel : true});
 myNicEditor.setPanel('edi_bar');
@@ -140,144 +141,6 @@ if ($username!="") {
 }
 ?>
 refreshAttach();
-function refreshAttach(){
-    if(attachs.length==0){
-        $('#attachtip,#attachs').hide();
-    }else{
-        $('#attachtip,#attachs').show();
-    }
-    if(unusedattachs.length==0){
-        $('#unusedattachtip,#unusedattachs').hide();
-    }else{
-        $('#unusedattachtip,#unusedattachs').show();
-    }
-    var s="";
-    for(var i=0;i<attachs.length;i++){
-        var a=attachs[i];
-        s+=generateattach(a['name'],a['size'],a['id'],false);
-    }
-    $('#attachs').html(s);
-    var s2="";
-    for(var i=0;i<unusedattachs.length;i++){
-        var a=unusedattachs[i];
-        s2+=generateattach(a['name'],a['size'],a['id'],true);
-    }
-    $('#unusedattachs').html(s2);
-}
-function attach(){
-    $('#file').click();
-}
-function fileselected(){
-    if ($('#file').val()) {
-        uploadFile();
-    }
-}
-function appendattach(id){
-    for(var i=0;i<unusedattachs.length;i++){
-        if(unusedattachs[i]['id']==id){
-            attachs.push(unusedattachs[i]);
-            unusedattachs.splice(i,1);
-            break;
-        }
-    }
-    refreshAttach();
-}
-function removeattach(id){
-    for(var i=0;i<attachs.length;i++){
-        if(attachs[i]['id']==id){
-            unusedattachs.push(attachs[i]);
-            attachs.splice(i,1);
-            break;
-        }
-    }
-    refreshAttach();    
-}
-function delattach(id){
-    if(confirm("您确定要彻底删除此附件么？")){
-        $('#waitinggif').show();
-        $.post("/bbs/delattach/",{id:id},function(r) {
-            var result=JSON.parse(r);
-            if(result.code==0){
-                for(var i=0;i<unusedattachs.length;i++){
-                    if(unusedattachs[i]['id']==id){
-                        unusedattachs.splice(i,1);
-                        break;
-                    }
-                }
-            $('#waitinggif').hide();
-            refreshAttach();
-            }else{
-                alert(result.msg);
-            }
-        });
-    }
-}
-function generateattach(filename,size,aid,useforappend){
-    var extension=filename.slice(filename.lastIndexOf(".")+1);
-    var supportedExt="bmp csv gif html jpg jpeg key mov mp3 mp4 numbers pages pdf png rtf tiff txt zip ipa ipsw doc docx ppt pptx xls avi wmv mkv mts".split(" ");
-    var imgsrc="file";
-    if(supportedExt.indexOf(extension)!=-1){
-        imgsrc=extension;
-    }
-    imgsrc="/bbs/assets/fileicons/"+imgsrc+".png";
-    var s='<div class="attach">';
-    s+='<img src="'+imgsrc+'" class="fileicon">';
-    s+='<div class="fileinfo"><span class="filename">'+filename+'<br></span>';
-    s+='<span class="sub">'+packSize(size)+'<br>';
-    if(useforappend){
-        s+='<a href="javascript:appendattach('+aid+');">引用</a>&nbsp;&nbsp;';
-        s+='<a href="javascript:delattach('+aid+');">彻底删除</a>';
-    }else{
-        s+='<a href="javascript:removeattach('+aid+');">删除</a>';
-    }
-    s+='</div></div>';
-    return s;
-}
-function packSize(size){
-    if(size<1024) return size+"字节";
-    if(size<1024*1024) return (size/1024).toFixed(1)+"KB";
-    if(size<1024*1024*1024) return (size/1024/1024).toFixed(1)+"MB";
-    return (size/1024/1024/1024).toFixed(1)+"GB";
-}
-
-function onprogress(evt){
-    var prob=document.getElementById("progress");
-    if(prob.style.visibility!="visible") prob.style.visibility="visible";
-    prob.value=evt.loaded;
-    prob.max=evt.total;
-    prob.label=(evt.loaded/evt.total*100).toFixed(1)+"%";
-}
-
-function uploadFile(){
-    var fileObj=document.getElementById("file").files[0];
-    var FileController = "/bbs/attach/";
-    var form = new FormData();
-    form.append("file", fileObj);
-    var xhr = new XMLHttpRequest();
-    xhr.open("post", FileController, true);
-    xhr.onload = function () {
-        var prob=document.getElementById("progress");
-        if(prob.style.visibility!="hidden") prob.style.visibility="hidden";
-        try{
-            var result=JSON.parse(xhr.responseText);
-            if(result.code==0){
-                attachs.push({name:fileObj.name,size:fileObj.size,id:result.msg});
-                refreshAttach();
-            }else{
-                alert("附件上传失败："+result.msg+" code:"+result.code);
-            }
-        }catch(e){
-            alert("附件上传失败：服务器返回了无效的响应，请重试。");
-        }
-    };
-    xhr.onerror = function () {
-        var prob=document.getElementById("progress");
-        if(prob.style.visibility!="hidden") prob.style.visibility="hidden";
-        alert("附件上传失败：网络错误，请重试。");
-    };
-    xhr.upload.addEventListener("progress", onprogress, false);
-    xhr.send(form);
-}
 
 var questionCounter = 0;
 var caseCounter = {};
@@ -459,21 +322,7 @@ function doreply(){
 
 }
 
-const editorPlaceholder = '<div style="color: rgb(118, 118, 118);">如需上传图片请使用右上角的“上传图片”功能，不要将图片直接粘贴在文本框中</div>';
 myNicEditor.instanceById('edi_content').setContent(editorPlaceholder);
-function editorFocus() {
-    if (myNicEditor.instanceById('edi_content').getContent() == editorPlaceholder) {
-        myNicEditor.instanceById('edi_content').setContent('<br>');
-    }
-}
-
-function editorBlur() {
-    let newText = myNicEditor.instanceById('edi_content').getContent();
-    if (newText == '' || newText == '<br>') {
-        myNicEditor.instanceById('edi_content').setContent(editorPlaceholder);
-    }
-}
-
 
 // 添加默认问题
 addQuestion();
