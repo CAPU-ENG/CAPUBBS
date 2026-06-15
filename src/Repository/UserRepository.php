@@ -1,0 +1,159 @@
+<?php
+
+class CapubbsUserRepository {
+    private $con;
+    private $userSigRepository;
+
+    public function __construct($con, $userSigRepository) {
+        $this->con = $con;
+        $this->userSigRepository = $userSigRepository;
+    }
+
+    public function findByToken($token) {
+        return $this->findRowByValidToken($token, 'username,score,star,mail');
+    }
+
+    public function findUsernameAndRightsByToken($token) {
+        return $this->findRowByValidToken($token, 'username,rights');
+    }
+
+    public function findSessionUserByToken($token) {
+        return $this->findRowByValidToken($token, 'username,rights,lastip');
+    }
+
+    public function findUsernameByValidToken($token) {
+        return $this->findRowByValidToken($token, 'username');
+    }
+
+    public function findForLogin($username) {
+        $usernameEscaped = mysqli_real_escape_string($this->con, $username);
+        $statement = "select username,password from userinfo where username='$usernameEscaped'";
+        $results = mysqli_query($this->con, $statement);
+        if (!$results || mysqli_num_rows($results) == 0) {
+            return null;
+        }
+        return mysqli_fetch_array($results);
+    }
+
+    public function findValidTokenByUsername($username, $nowtime) {
+        $usernameEscaped = mysqli_real_escape_string($this->con, $username);
+        $statement = "select token from userinfo where username='$usernameEscaped' && $nowtime<=tokentime+" . $this->getValidTime();
+        $results = mysqli_query($this->con, $statement);
+        if (!$results || mysqli_num_rows($results) == 0) {
+            return null;
+        }
+        $row = mysqli_fetch_array($results);
+        if (!$row || is_null($row[0]) || $row[0] === '') {
+            return null;
+        }
+        return $row[0];
+    }
+
+    public function updateLoginSession($username, $token, $nowtime, $ip, $today, $onlinetype, $logininfo) {
+        $usernameEscaped = mysqli_real_escape_string($this->con, $username);
+        $tokenEscaped = mysqli_real_escape_string($this->con, $token);
+        $ipEscaped = mysqli_real_escape_string($this->con, $ip);
+        $onlineTypeEscaped = mysqli_real_escape_string($this->con, $onlinetype);
+        $loginInfoEscaped = mysqli_real_escape_string($this->con, $logininfo);
+
+        if ($ip !== '') {
+            $statement = "update userinfo set tokentime=$nowtime, token='$tokenEscaped', nowboard=null, lastip='$ipEscaped',lastdate='$today',onlinetype='$onlineTypeEscaped',logininfo='$loginInfoEscaped' where username='$usernameEscaped'";
+        } else {
+            $statement = "update userinfo set tokentime=$nowtime, token='$tokenEscaped', nowboard=null, lastdate='$today',onlinetype='$onlineTypeEscaped',logininfo='$loginInfoEscaped' where username='$usernameEscaped'";
+        }
+
+        return mysqli_query($this->con, $statement);
+    }
+
+    public function updateLogoutSessionByToken($token, $ip, $today) {
+        $tokenEscaped = mysqli_real_escape_string($this->con, $token);
+        $ipEscaped = mysqli_real_escape_string($this->con, $ip);
+        $statement = "update userinfo set nowboard=null, lastip='$ipEscaped',lastdate='$today' where token='$tokenEscaped'";
+        return mysqli_query($this->con, $statement);
+    }
+
+    public function touchTokenByUsername($username, $ip, $time) {
+        $usernameEscaped = mysqli_real_escape_string($this->con, $username);
+        $ipEscaped = mysqli_real_escape_string($this->con, $ip);
+
+        if ($ip !== '') {
+            $statement = "update userinfo set tokentime=$time, lastip='$ipEscaped' where username='$usernameEscaped'";
+        } else {
+            $statement = "update userinfo set tokentime=$time where username='$usernameEscaped'";
+        }
+        return mysqli_query($this->con, $statement);
+    }
+
+    public function findPublicProfiles($username, $viewer) {
+        static $cache = array();
+
+        if (isset($cache[$username])) {
+            $result = $this->copyRows($cache[$username]);
+        } else {
+            $usernameEscaped = mysqli_real_escape_string($this->con, $username);
+            $statement = "select * from userinfo where username='$usernameEscaped'";
+            $results = mysqli_query($this->con, $statement);
+
+            $infos = array();
+            if ($results) {
+                while ($res = mysqli_fetch_array($results)) {
+                    $info = array();
+                    foreach ($res as $key => $value) {
+                        if (is_long($key)) continue;
+                        if ($key == "password") continue;
+                        if ($key == "token") continue;
+                        if ($key == "tokentime") continue;
+                        if ($key == "lastpost") continue;
+                        if ($key == "nowboard") continue;
+                        $info[$key] = $value;
+                    }
+                    $this->userSigRepository->applyToUserInfo($username, $info);
+                    $infos[] = $info;
+                }
+            }
+
+            $cache[$username] = $infos;
+            $result = $this->copyRows($infos);
+        }
+
+        if ($viewer !== null && $viewer !== $username && !empty($result)) {
+            foreach ($result as &$info) {
+                if (isset($info['email_visible']) && intval($info['email_visible']) === 0) {
+                    $info['mail'] = '';
+                }
+            }
+            unset($info);
+        }
+
+        return $result;
+    }
+
+    private function findRowByValidToken($token, $fields) {
+        $nowtime = time();
+        if (!$token) return null;
+        if (strstr($token, "'") != "") return null;
+
+        $tokenEscaped = mysqli_real_escape_string($this->con, $token);
+        $statement = "select $fields from userinfo where token='$tokenEscaped' && $nowtime<=tokentime+" . $this->getValidTime();
+        $results = mysqli_query($this->con, $statement);
+        if (!$results || mysqli_num_rows($results) == 0) {
+            return null;
+        }
+        return mysqli_fetch_array($results);
+    }
+
+    private function getValidTime() {
+        if (isset($GLOBALS['validtime'])) {
+            return intval($GLOBALS['validtime']);
+        }
+        return 60 * 60 * 24 * 7;
+    }
+
+    private function copyRows($rows) {
+        $copy = array();
+        foreach ($rows as $row) {
+            $copy[] = $row;
+        }
+        return $copy;
+    }
+}

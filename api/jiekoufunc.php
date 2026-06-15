@@ -14,6 +14,7 @@ require_once __DIR__.'/lib/helpers.php';
 require_once __DIR__.'/lib/db.php';
 require_once __DIR__.'/lib/Mailer.php';
 require_once __DIR__.'/lib/ApiError.php';
+require_once __DIR__.'/../src/Bootstrap.php';
 
 $GLOBALS['validtime'] = 60 * 60 * 24 * 7;   // 7 days
 $GLOBALS['attachroot'] = __DIR__ . "/../bbs/attachment/";
@@ -89,17 +90,7 @@ function jiekoufunc_bbsinfo($con, $bid, $name) {
 }
 
 function jiekoufunc_getuser($con, $token) {
-    $nowtime = time();
-    if ($token == "") {
-        return array(array('username' => '', 'rights' => '0'));
-    }
-    $statement = "select username,rights from userinfo where token='$token' && $nowtime<=tokentime+{$GLOBALS['validtime']}";
-    $result = mysqli_query($con, $statement);
-    if (mysqli_num_rows($result) == 0) {
-        return array(array('username' => '', 'rights' => '0'));
-    }
-    $res = mysqli_fetch_row($result);
-    return array(array('username' => $res[0], 'rights' => $res[1]));
+    return capubbs_user_service($con)->legacyGetUser($token);
 }
 
 function jiekoufunc_userexists($con, $params) {
@@ -117,32 +108,7 @@ function jiekoufunc_userexists($con, $params) {
 }
 
 function jiekoufunc_user_profile($con, $params) {
-    $username = '';
-    foreach (array('username', 'user', 'view') as $key) {
-        if (isset($params[$key]) && trim($params[$key]) !== '') {
-            $username = trim($params[$key]);
-            break;
-        }
-    }
-
-    if ($username === '') {
-        return jiekoufunc_report('14', '缺少用户名。');
-    }
-
-    $viewer = '';
-    if (isset($params['token']) && $params['token'] !== '') {
-        $viewer_user = jiekoufunc_token2user($con, $params['token']);
-        if ($viewer_user) {
-            $viewer = $viewer_user['username'];
-        }
-    }
-
-    $rows = jiekoufunc_view_user_array($con, $username, $viewer);
-    if (count($rows) === 0) {
-        return jiekoufunc_report('3', '用户不存在。');
-    }
-
-    return array_merge(array(array('code' => '0', 'count' => strval(count($rows)))), $rows);
+    return capubbs_user_service($con)->legacyUserProfile($params);
 }
 
 function jiekoufunc_hot($con, $token, $params) {
@@ -255,8 +221,7 @@ function jiekoufunc_recentreply($con, $view, $limit_raw = '') {
 }
 
 function jiekoufunc_rights($con, $bid, $token) {
-    $a = jiekoufunc_getrights($con, $bid, $token);
-    return array(array('username' => $a[1], 'code' => strval($a[0])));
+    return capubbs_permission_service($con)->getLegacyRightsRow($bid, $token);
 }
 
 function jiekoufunc_getpages($con, $bid, $tid) {
@@ -530,11 +495,7 @@ function jiekoufunc_editpreview($con, $token, $bid, $tid, $pid) {
 }
 
 function jiekoufunc_currentUserInfo($con, $token) {
-    $user = jiekoufunc_token2user($con, $token);
-    if (!$user) {
-        return array(array());
-    }
-    return jiekoufunc_view_user_array($con, $user['username'], $user['username']);
+    return capubbs_user_service($con)->legacyCurrentUserInfo($token);
 }
 
 function jiekoufunc_msg($con, $token, $type, $params) {
@@ -658,45 +619,7 @@ function jiekoufunc_msg($con, $token, $type, $params) {
 // ============================================================================
 
 function jiekoufunc_login($con, $username_raw, $password, $ip, $params) {
-    if (isset($params['md5']) && $params['md5'] == "yes") $password = md5($password);
-    $username = mysqli_real_escape_string($con, $username_raw);
-    $statement = "select password from userinfo where username='$username'";
-    $results = mysqli_query($con, $statement);
-    if (mysqli_num_rows($results) == 0) {
-        return array(array('code' => '1', 'msg' => '用户不存在。'));
-    }
-    $res = mysqli_fetch_array($results);
-    $psd = $res[0];
-    if (strtoupper($psd) != strtoupper($password)) {
-        return array(array('code' => '2', 'msg' => '密码错误。'));
-    }
-    $nowtime = time();
-    $statement = "select token from userinfo where username='$username' && $nowtime<=tokentime+{$GLOBALS['validtime']}";
-    $results = mysqli_query($con, $statement);
-    $token = md5($username . $nowtime);
-    if (mysqli_num_rows($results) != 0) {
-        $res2 = mysqli_fetch_array($results);
-        if (!is_null($res2[0]) && $res2[0] != '') {
-            $token = $res2[0];
-        }
-    }
-    $today = date("Y-m-d");
-    $onlinetype = isset($params['onlinetype']) ? mysqli_real_escape_string($con, $params['onlinetype']) : '';
-    $browser = isset($params['browser']) ? mysqli_real_escape_string($con, $params['browser']) : '';
-    $system_str = isset($params['system']) ? mysqli_real_escape_string($con, $params['system']) : '';
-    $logininfo = "";
-    if ($onlinetype == "web") $logininfo = $browser;
-    if ($onlinetype == "android" || $onlinetype == "ios") $logininfo = $system_str;
-
-    if ($ip != "")
-        $statement = "update userinfo set tokentime=$nowtime, token='$token', nowboard=null, lastip='$ip',lastdate='$today',onlinetype='$onlinetype',logininfo='$logininfo' where username='$username'";
-    else
-        $statement = "update userinfo set tokentime=$nowtime, token='$token', nowboard=null, lastdate='$today',onlinetype='$onlinetype',logininfo='$logininfo' where username='$username'";
-    mysqli_query($con, $statement);
-
-    jiekoufunc_auto_sign($con, $username);
-
-    return array(array('code' => '0', 'username' => $username, 'token' => $token));
+    return capubbs_auth_service($con)->legacyLogin($username_raw, $password, $ip, $params);
 }
 
 function jiekoufunc_auto_sign($con, $username) {
@@ -719,10 +642,7 @@ function jiekoufunc_auto_sign($con, $username) {
 }
 
 function jiekoufunc_logout($con, $token, $ip) {
-    $today = date("Y-m-d");
-    $statement = "update userinfo set nowboard=null, lastip='$ip',lastdate='$today' where token='$token'";
-    mysqli_query($con, $statement);
-    return array(array('code' => '0'));
+    return capubbs_auth_service($con)->legacyLogout($token, $ip);
 }
 
 function jiekoufunc_register($con, $ip, $params) {
@@ -960,19 +880,7 @@ function jiekoufunc_delattach($con, $token, $id) {
 }
 
 function jiekoufunc_updatetokentime($con, $token, $ip) {
-    $ip_esc = mysqli_real_escape_string($con, $ip);
-    $time = time();
-    $statement = "select username from userinfo where token='$token' && $time<=tokentime+{$GLOBALS['validtime']}";
-    $results = mysqli_query($con, $statement);
-    if (mysqli_num_rows($results) == 0) {
-        return array(array('code' => '1', 'msg' => '超时，请重新登录。'));
-    }
-    $res = mysqli_fetch_array($results);
-    $username = $res[0];
-    if ($ip != "") $statement = "update userinfo set tokentime=$time, lastip='$ip_esc' where username='$username'";
-    else $statement = "update userinfo set tokentime=$time where username='$username'";
-    mysqli_query($con, $statement);
-    return array(array('code' => '0', 'username' => $username));
+    return capubbs_auth_service($con)->legacyTouchSession($token, $ip);
 }
 
 function jiekoufunc_edituser($con, $token, $ip, $params) {

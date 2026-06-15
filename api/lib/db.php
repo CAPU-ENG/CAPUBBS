@@ -9,46 +9,18 @@
  * All functions require a live mysqli $con.  Keep GLOBALS references minimal.
  */
 
+require_once __DIR__ . '/../../src/Bootstrap.php';
+
 // ============================================================================
 //  DB helper functions
 // ============================================================================
 
 function jiekoufunc_token2user($con, $token) {
-    $nowtime = time();
-    if (!$token) return null;
-    if (strstr($token, "'") != "") {
-        return null;
-    }
-    $statement = "select username,score,star,mail from userinfo where token='$token' && $nowtime<=tokentime+{$GLOBALS['validtime']}";
-    $result = mysqli_query($con, $statement);
-    return mysqli_fetch_array($result);
+    return capubbs_user_repository($con)->findByToken($token);
 }
 
 function jiekoufunc_getrights($con, $bid, $token) {
-    $time = time();
-    $statement = "select username, rights, lastip from userinfo where token='$token' && $time<=tokentime+{$GLOBALS['validtime']}";
-    $results = mysqli_query($con, $statement);
-    if (mysqli_num_rows($results) == 0)
-        return array(-1, "", "", 0);
-    $res = mysqli_fetch_array($results);
-    $username = $res[0];
-    $rights = intval($res[1]);
-    $ip = $res[2];
-
-    if ($rights >= 3) {
-        return array(2, $username, $ip, $rights);
-    }
-
-    $able = 0;
-    if ($bid > 0) {
-        $statement = "select m1,m2,m3,m4 from boardinfo where bid=$bid";
-        $results = mysqli_query($con, $statement);
-        $res = mysqli_fetch_array($results);
-        for ($i = 0; $i <= 3; $i++) {
-            if ($res[$i] == $username) $able = 1;
-        }
-    }
-    return array($able, $username, $ip, $rights);
+    return capubbs_permission_service($con)->getLegacyRightsTuple($bid, $token);
 }
 
 function jiekoufunc__userexists($con, $user) {
@@ -167,43 +139,7 @@ function jiekoufunc_view_bbs_array($con, $statement) {
 }
 
 function jiekoufunc_view_user_array($con, $username, $viewer = null) {
-    static $cache = array();
-    $username = mysqli_real_escape_string($con, $username);
-    if (isset($cache[$username])) {
-        $result = $cache[$username];
-    } else {
-        $statement = "select * from userinfo where username='$username'";
-        $results = mysqli_query($con, $statement);
-        $infos = array();
-        while ($res = mysqli_fetch_array($results)) {
-            $info = array();
-            foreach ($res as $key => $value) {
-                if (is_long($key)) continue;
-                if ($key == "password") continue;
-                if ($key == "token") continue;
-                if ($key == "tokentime") continue;
-                if ($key == "lastpost") continue;
-                if ($key == "nowboard") continue;
-                $info[$key] = $value;
-            }
-            enrich_user_sigs($con, $username, $info);
-            $infos[] = $info;
-        }
-        $cache[$username] = $infos;
-        $result = $infos;
-    }
-
-    // 邮箱可见性控制：非本人且 email_visible=0 时隐藏邮箱
-    // $viewer === null 表示调用方不关心可见性（如 currentUserInfo），不隐藏
-    if ($viewer !== null && $viewer !== $username && !empty($result)) {
-        foreach ($result as &$info) {
-            if (isset($info['email_visible']) && intval($info['email_visible']) === 0) {
-                $info['mail'] = '';
-            }
-        }
-    }
-
-    return $result;
+    return capubbs_user_repository($con)->findPublicProfiles($username, $viewer);
 }
 
 // ============================================================================
