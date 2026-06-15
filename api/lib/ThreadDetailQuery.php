@@ -334,14 +334,11 @@ function thread_detail_query_get_board_rights($board_row, $viewer) {
 }
 
 function thread_detail_query_get_favorite_count($con, $bid, $tid) {
-    $row = thread_detail_query_fetch_one($con, "select count(*) as num from favorites where bid=$bid and tid=$tid");
-    return intval($row && $row !== false ? $row['num'] : 0);
+    return capubbs_favorite_repository($con)->countByThread($bid, $tid);
 }
 
 function thread_detail_query_is_favorite($con, $username, $bid, $tid) {
-    $username_escaped = mysqli_real_escape_string($con, $username);
-    $row = thread_detail_query_fetch_one($con, "select 1 as hit from favorites where username='$username_escaped' and bid=$bid and tid=$tid limit 1");
-    return $row && $row !== false ? true : false;
+    return capubbs_favorite_repository($con)->exists($username, $bid, $tid);
 }
 
 function thread_detail_query_get_activity($con, $bid, $tid) {

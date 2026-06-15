@@ -906,96 +906,27 @@ function jiekoufunc_admin_reset_password($con, $token, $params) {
 // ============================================================================
 
 function jiekoufunc_favorite_add($con, $token, $bid, $tid) {
-    $user = jiekoufunc_token2user($con, $token);
-    if (!$user) {
-        return array(array('code' => '-2', 'msg' => '请先登录'));
-    }
-    $username = mysqli_real_escape_string($con, $user['username']);
-    $now = time();
-    $statement = "insert into favorites (username, bid, tid, timestamp, last_read_time) values ('$username', $bid, $tid, $now, $now)";
-    if (mysqli_query($con, $statement)) {
-        return array(array('code' => '0', 'msg' => '收藏成功'));
-    }
-    if (mysqli_errno($con) == 1062) {
-        return array(array('code' => '1', 'msg' => '已经收藏过了'));
-    }
-    return array(array('code' => '2', 'msg' => mysqli_error($con)));
+    return capubbs_favorite_service($con)->legacyAdd($token, $bid, $tid);
 }
 
 function jiekoufunc_favorite_remove($con, $token, $bid, $tid) {
-    $user = jiekoufunc_token2user($con, $token);
-    if (!$user) {
-        return array(array('code' => '-2', 'msg' => '请先登录'));
-    }
-    $username = mysqli_real_escape_string($con, $user['username']);
-    mysqli_query($con, "delete from favorites where username='$username' and bid=$bid and tid=$tid");
-    return array(array('code' => '0', 'msg' => '已取消收藏'));
+    return capubbs_favorite_service($con)->legacyRemove($token, $bid, $tid);
 }
 
 function jiekoufunc_favorite_list($con, $token, $params) {
-    $user = jiekoufunc_token2user($con, $token);
-    if (!$user) {
-        return array(array('code' => '-2', 'msg' => '请先登录'));
-    }
-    $username = mysqli_real_escape_string($con, $user['username']);
-    $sort = isset($params['sort']) ? $params['sort'] : 'time';
-    $limit_raw = isset($params['limit']) ? $params['limit'] : '';
-    $limit_val = _parse_limit($limit_raw, 50);
-    $limit_clause = ($limit_val === null) ? '' : " limit 0,$limit_val";
-
-    if ($sort == 'custom') {
-        $order = "order by f.sort_order, f.timestamp desc";
-    } else {
-        $order = "order by f.timestamp desc";
-    }
-
-    $statement = "select f.id, f.bid, f.tid, f.timestamp as fav_timestamp, f.sort_order,
-        t.title, t.author, t.click, t.reply, t.timestamp, t.postdate
-        from favorites f
-        left join threads t on f.bid=t.bid and f.tid=t.tid
-        where f.username='$username'
-        $order$limit_clause";
-
-    $results = mysqli_query($con, $statement);
-    $infos = array();
-    $infos[] = array('code' => '0');
-    while ($res = mysqli_fetch_array($results, MYSQLI_ASSOC)) {
-        $info = array();
-        foreach ($res as $key => $value) {
-            if (is_long($key)) continue;
-            $info[$key] = $value;
-        }
-        $info['deleted'] = ($res['title'] === null) ? '1' : '0';
-        $infos[] = $info;
-    }
-    return $infos;
+    return capubbs_favorite_service($con)->legacyList($token, $params);
 }
 
 function jiekoufunc_favorite_sort($con, $token, $bid, $tid, $params) {
-    $user = jiekoufunc_token2user($con, $token);
-    if (!$user) {
-        return array(array('code' => '-2', 'msg' => '请先登录'));
-    }
-    $username = mysqli_real_escape_string($con, $user['username']);
-    $sort_order = isset($params['sort_order']) ? intval($params['sort_order']) : 0;
-    mysqli_query($con, "update favorites set sort_order=$sort_order where username='$username' and bid=$bid and tid=$tid");
-    return array(array('code' => '0'));
+    return capubbs_favorite_service($con)->legacySort($token, $bid, $tid, $params);
 }
 
 function jiekoufunc_favorite_count($con, $bid, $tid) {
-    $result = mysqli_fetch_array(mysqli_query($con, "select count(*) as c from favorites where bid=$bid and tid=$tid"));
-    return array(array('code' => '0', 'count' => strval($result['c'])));
+    return capubbs_favorite_service($con)->legacyCount($bid, $tid);
 }
 
 function jiekoufunc_favorite_check($con, $token, $bid, $tid) {
-    $user = jiekoufunc_token2user($con, $token);
-    if (!$user) {
-        return array(array('code' => '0', 'favorited' => 'false'));
-    }
-    $username = mysqli_real_escape_string($con, $user['username']);
-    $result = mysqli_query($con, "select 1 from favorites where username='$username' and bid=$bid and tid=$tid");
-    $favorited = (mysqli_num_rows($result) > 0) ? 'true' : 'false';
-    return array(array('code' => '0', 'favorited' => $favorited));
+    return capubbs_favorite_service($con)->legacyCheck($token, $bid, $tid);
 }
 
 function jiekoufunc_calendar($con) {
