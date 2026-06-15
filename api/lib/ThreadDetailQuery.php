@@ -266,11 +266,7 @@ function thread_detail_query_get_attachments_by_id($con, $attachment_ids) {
     if (count($attachment_ids) === 0) {
         return array();
     }
-    $statement = "select * from attachments where id in (" . implode(',', $attachment_ids) . ")";
-    $rows = thread_detail_query_fetch_all($con, $statement);
-    if ($rows === false) {
-        return array();
-    }
+    $rows = capubbs_attachment_repository($con)->findByIds($attachment_ids);
     $by_id = array();
     foreach ($rows as $row) {
         $by_id[intval($row['id'])] = $row;
@@ -589,29 +585,6 @@ function thread_detail_query_visible_ip($ip, $author, $rights, $current_username
         return thread_detail_query_string($ip);
     }
     return '*.*.*.*';
-}
-
-function thread_detail_query_fetch_one($con, $statement) {
-    $result = mysqli_query($con, $statement);
-    if (!$result) {
-        return false;
-    }
-    $row = mysqli_fetch_array($result, MYSQLI_ASSOC);
-    mysqli_free_result($result);
-    return $row ? $row : null;
-}
-
-function thread_detail_query_fetch_all($con, $statement) {
-    $result = mysqli_query($con, $statement);
-    if (!$result) {
-        return false;
-    }
-    $rows = array();
-    while ($row = mysqli_fetch_array($result, MYSQLI_ASSOC)) {
-        $rows[] = $row;
-    }
-    mysqli_free_result($result);
-    return $rows;
 }
 
 function thread_detail_query_format_timestamp($value) {

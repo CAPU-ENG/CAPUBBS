@@ -21,6 +21,20 @@ class CapubbsBoardRepository {
         return $this->fetchAll("select * from boardinfo where bid!=0 order by bid");
     }
 
+    public function findAllBidMap() {
+        $results = mysqli_query($this->con, "select bid from boardinfo where bid!=0");
+        if (!$results) {
+            return array();
+        }
+
+        $bids = array();
+        while (($row = mysqli_fetch_row($results)) !== null) {
+            $bids[intval($row[0])] = true;
+        }
+        mysqli_free_result($results);
+        return $bids;
+    }
+
     public function isModerator($bid, $username) {
         $bid = intval($bid);
         if ($bid <= 0 || $username === '') {

@@ -37,11 +37,7 @@ function jiekoufunc_is_valid_bid($con, $bid) {
     if ($bid <= 0) return true;  // bid=0（全部版块）和 bid=-1（搜索全站）是特殊值
     static $valid_bids = null;
     if ($valid_bids === null) {
-        $valid_bids = array();
-        $result = mysqli_query($con, "select bid from boardinfo where bid!=0");
-        while ($row = mysqli_fetch_row($result)) {
-            $valid_bids[intval($row[0])] = true;
-        }
+        $valid_bids = capubbs_board_repository($con)->findAllBidMap();
     }
     return isset($valid_bids[$bid]);
 }

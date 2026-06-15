@@ -49,6 +49,22 @@ class CapubbsAttachmentRepository {
         return $this->fetchOne("select * from attachments where id=$id limit 1");
     }
 
+    public function findByIds($ids) {
+        $idList = array();
+        foreach ($ids as $id) {
+            $id = intval($id);
+            if ($id > 0) {
+                $idList[$id] = $id;
+            }
+        }
+
+        if (count($idList) === 0) {
+            return array();
+        }
+
+        return $this->fetchAll("select * from attachments where id in (" . implode(',', $idList) . ")");
+    }
+
     public function findUnusedByUploader($username) {
         $usernameEscaped = mysqli_real_escape_string($this->con, $username);
         return $this->fetchAll("select * from attachments where uploader='$usernameEscaped' and ref=0");
