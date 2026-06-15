@@ -342,62 +342,7 @@ function thread_detail_query_is_favorite($con, $username, $bid, $tid) {
 }
 
 function thread_detail_query_get_activity($con, $bid, $tid) {
-    $statement = "select activity_id, bid, tid, season_id, name, leader_username
-        from season_threads_activity
-        where bid=$bid and tid=$tid
-        limit 1";
-    $activity_row = thread_detail_query_fetch_one($con, $statement);
-    if (!$activity_row || $activity_row === false) {
-        return null;
-    }
-
-    $activity_id = intval($activity_row['activity_id']);
-    $options = array();
-    $option_rows = thread_detail_query_fetch_all($con, "select id, type_id, option_name, required, comment, hiden
-        from season_activity_option
-        where activity_id=$activity_id order by id");
-    if ($option_rows === false) {
-        $option_rows = array();
-    }
-
-    foreach ($option_rows as $option_row) {
-        $option = array(
-            'option_id' => $option_row['id'],
-            'type_id' => $option_row['type_id'],
-            'option_name' => $option_row['option_name'],
-            'required' => $option_row['required'],
-            'comment' => $option_row['comment'],
-            'hiden' => $option_row['hiden'],
-        );
-        $option_id = intval($option_row['id']);
-        $type_id = intval($option_row['type_id']);
-        if ($type_id === 1 || $type_id === 3) {
-            $case_rows = thread_detail_query_fetch_all($con, "select case_id, case_name, comment, need_value
-                from season_option_case
-                where option_id=$option_id order by case_id");
-            $cases = array();
-            if ($case_rows !== false) {
-                foreach ($case_rows as $case_row) {
-                    $cases[] = array(
-                        'case_id' => $case_row['case_id'],
-                        'case_name' => $case_row['case_name'],
-                        'comment' => $case_row['comment'],
-                        'need_value' => $case_row['need_value'],
-                    );
-                }
-            }
-            $option['cases'] = $cases;
-        }
-        $options[] = $option;
-    }
-
-    return array(
-        'activity_id' => $activity_row['activity_id'],
-        'season_id' => $activity_row['season_id'],
-        'name' => $activity_row['name'],
-        'leader_username' => $activity_row['leader_username'],
-        'options' => $options,
-    );
+    return capubbs_activity_repository($con)->findThreadActivityDetail($bid, $tid);
 }
 
 function thread_detail_query_pack_board($row) {

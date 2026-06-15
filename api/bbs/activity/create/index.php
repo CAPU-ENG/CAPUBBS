@@ -2,6 +2,7 @@
 require_once "../../../../bbs/lib/mainfunc.php";
 require_once '../../../../lib.php';
 require_once '../../../../bbs/content/utils/activityService.php';
+require_once '../../../../src/Bootstrap.php';
 
 $con = dbconnect_mysqli();
 $user = checkuser_con($con);
@@ -60,7 +61,7 @@ foreach ($options as $option) {
     }
 }
 
-$result = createActivity($username, $bid, $title, $text, $options, $sig, $attachs);
+$result = capubbs_activity_service($con)->createActivity($username, $bid, $title, $text, $options, $sig, $attachs);
 
 header('Content-Type:application/json; charset=utf-8');
 echo json_encode(array("code"=> 0, "msg"=> "success", "bid"=> $result["bid"], "tid"=> $result["tid"]));

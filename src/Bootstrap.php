@@ -35,6 +35,7 @@ require_once __DIR__ . '/Service/SignService.php';
 require_once __DIR__ . '/Service/EmailVerificationService.php';
 require_once __DIR__ . '/Service/MainpageService.php';
 require_once __DIR__ . '/Service/PunishmentService.php';
+require_once __DIR__ . '/Service/ActivityService.php';
 
 function capubbs_user_sig_repository($con) {
     return new CapubbsUserSigRepository($con);
@@ -251,5 +252,17 @@ function capubbs_mainpage_service($con) {
 function capubbs_punishment_service($con) {
     return new CapubbsPunishmentService(
         capubbs_punishment_repository($con)
+    );
+}
+
+function capubbs_activity_service($con) {
+    return new CapubbsActivityService(
+        capubbs_thread_repository($con),
+        capubbs_post_repository($con),
+        capubbs_user_repository($con),
+        capubbs_activity_repository($con),
+        capubbs_notification_service($con),
+        capubbs_punishment_repository($con),
+        $con
     );
 }
