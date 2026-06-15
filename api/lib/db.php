@@ -34,20 +34,7 @@ function jiekoufunc__userexists($con, $user) {
 }
 
 function jiekoufunc_insertmsg($con, $from, $to, $text, $bid, $tid, $pid, $ruser, $rmsg) {
-    $time = time();
-    $from = mysqli_real_escape_string($con, $from);
-    $to = mysqli_real_escape_string($con, $to);
-    $text = mysqli_real_escape_string($con, $text);
-    $ruser = mysqli_real_escape_string($con, $ruser);
-    $rmsg = mysqli_real_escape_string($con, $rmsg);
-    $statement = "insert into messages (sender,receiver,text,time,rbid,rtid,rpid,ruser,rmsg) values('$from','$to','$text',$time,$bid,$tid,$pid,'$ruser','$rmsg')";
-    if (mysqli_query($con, $statement)) {
-        $statement = "update userinfo set newmsg=newmsg+1 where username='$to' limit 1";
-        mysqli_query($con, $statement);
-        return true;
-    } else {
-        return false;
-    }
+    return capubbs_message_repository($con)->insert($from, $to, $text, $bid, $tid, $pid, $ruser, $rmsg);
 }
 
 function jiekoufunc_updatestar($con, $username) {
@@ -74,21 +61,7 @@ function jiekoufunc_updatestar($con, $username) {
 }
 
 function jiekoufunc_search_replace_exec_at($con, $text, $bid, $tid, $pid, $username, $tidtitle) {
-    $matches = array();
-    preg_match_all("#\[at\](.+?)\[\/at\]#", $text, $matches, PREG_SET_ORDER);
-    foreach ($matches as $one) {
-        $str = $one[1];
-        if (jiekoufunc__userexists($con, $str)) {
-            jiekoufunc_insertmsg($con, "system", $str, "at", $bid, $tid, $pid, $username, $tidtitle);
-        }
-    }
-    preg_match_all("#\[quote=(.+?)\](.+?)\[\/quote\]#", $text, $matches, PREG_SET_ORDER);
-    foreach ($matches as $one) {
-        $str = $one[1];
-        if (jiekoufunc__userexists($con, $str)) {
-            jiekoufunc_insertmsg($con, "system", $str, "quote", $bid, $tid, $pid, $username, $tidtitle);
-        }
-    }
+    capubbs_notification_service($con)->notifyMentionsAndQuotes($text, $bid, $tid, $pid, $username, $tidtitle);
     return $text;
 }
 

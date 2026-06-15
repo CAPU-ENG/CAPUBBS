@@ -11,6 +11,7 @@ class CapubbsPostService {
     private $trashRepository;
     private $activityRepository;
     private $permissionService;
+    private $notificationService;
 
     public function __construct(
         $boardRepository,
@@ -22,7 +23,8 @@ class CapubbsPostService {
         $editHistoryRepository,
         $trashRepository,
         $activityRepository,
-        $permissionService
+        $permissionService,
+        $notificationService
     ) {
         $this->boardRepository = $boardRepository;
         $this->threadRepository = $threadRepository;
@@ -34,6 +36,7 @@ class CapubbsPostService {
         $this->trashRepository = $trashRepository;
         $this->activityRepository = $activityRepository;
         $this->permissionService = $permissionService;
+        $this->notificationService = $notificationService;
     }
 
     public function legacyPost($token, $bid, $ip, $attachs, $params) {
@@ -71,7 +74,7 @@ class CapubbsPostService {
         $pid = 1;
         $postdate = date('Y-m-d');
 
-        $this->notifyMentionsAndQuotes($text, $bid, $tid, $pid, $username, $title);
+        $this->notificationService->notifyMentionsAndQuotes($text, $bid, $tid, $pid, $username, $title);
 
         $this->threadRepository->insertThread($bid, $tid, $title, $username, $time, $postdate);
         $fid = $this->postRepository->insertPost($bid, $tid, $pid, $title, $username, $text, 'YES', $attachs, $time, $time, $sig, $ip, $type, 0);
@@ -133,7 +136,7 @@ class CapubbsPostService {
         $type = isset($params['type']) ? $params['type'] : '';
         $sig = isset($params['sig']) ? intval($params['sig']) : 0;
 
-        $this->notifyMentionsAndQuotes($text, $bid, $tid, $pid, $username, $title);
+        $this->notificationService->notifyMentionsAndQuotes($text, $bid, $tid, $pid, $username, $title);
 
         $fid = $this->postRepository->insertPost($bid, $tid, $pid, $title, $username, $text, 'YES', $attachs, $time, $time, $sig, $ip, $type, 0);
         if ($fid === false) {
@@ -146,9 +149,14 @@ class CapubbsPostService {
         $this->userRepository->recalculateStar($username);
 
         $threadAuthor = isset($thread['author']) ? $thread['author'] : '';
-        if ($threadAuthor !== '' && $threadAuthor != $username) {
-            $this->messageRepository->insert('system', $threadAuthor, 'reply', $bid, $tid, $pid, $username, isset($thread['title']) ? $thread['title'] : '');
-        }
+        $this->notificationService->notifyThreadReply(
+            $threadAuthor,
+            $username,
+            $bid,
+            $tid,
+            $pid,
+            isset($thread['title']) ? $thread['title'] : ''
+        );
 
         return array(array(
             'code' => '0',
@@ -501,25 +509,6 @@ class CapubbsPostService {
             return array(array('code' => '2', 'msg' => $msg . '！'));
         }
         return null;
-    }
-
-    private function notifyMentionsAndQuotes($text, $bid, $tid, $pid, $username, $tidtitle) {
-        $matches = array();
-        preg_match_all("#\\[at\\](.+?)\\[/at\\]#", $text, $matches, PREG_SET_ORDER);
-        foreach ($matches as $one) {
-            $target = $one[1];
-            if ($this->userRepository->existsByUsername($target)) {
-                $this->messageRepository->insert('system', $target, 'at', $bid, $tid, $pid, $username, $tidtitle);
-            }
-        }
-
-        preg_match_all("#\\[quote=(.+?)\\](.+?)\\[/quote\\]#", $text, $matches, PREG_SET_ORDER);
-        foreach ($matches as $one) {
-            $target = $one[1];
-            if ($this->userRepository->existsByUsername($target)) {
-                $this->messageRepository->insert('system', $target, 'quote', $bid, $tid, $pid, $username, $tidtitle);
-            }
-        }
     }
 
     private function buildUserInfoRow($user) {

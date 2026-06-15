@@ -407,119 +407,7 @@ function jiekoufunc_currentUserInfo($con, $token) {
 }
 
 function jiekoufunc_msg($con, $token, $type, $params) {
-    $user = jiekoufunc_token2user($con, $token);
-    if (!$user) {
-        return array(array('code' => '1', 'msg' => '尚未登录'));
-    }
-    $username = mysqli_real_escape_string($con, $user['username']);
-    $p = isset($params['p']) ? $params['p'] : '';
-
-    $result = mysqli_fetch_array(mysqli_query($con, "select count(1) as c from messages where receiver='$username' and sender='system' and hasread=0"));
-    $sysmsg = $result['c'];
-    $result = mysqli_fetch_array(mysqli_query($con, "select count(1) as c from messages where receiver='$username' and sender='system'"));
-    $systotal = $result['c'];
-    if (isset($params['to']) && $params['to']) {
-        $to = $params['to'];
-        $statement = "select count(1) as c from messages where receiver='$username' and sender!='system' and sender!='$to' and hasread=0";
-    } else {
-        $statement = "select count(1) as c from messages where receiver='$username' and sender!='system' and hasread=0";
-    }
-    $result = mysqli_fetch_array(mysqli_query($con, $statement));
-    $prvmsg = $result['c'];
-
-    $infos = array();
-    $infos[] = array('code' => '0', 'sysmsg' => strval($sysmsg), 'prvmsg' => strval($prvmsg), 'systotal' => strval($systotal));
-
-    if ($type == "system") {
-        if ($p < 1) $p = 1;
-        $limit = 10;
-        $start = $limit * ($p - 1);
-        $result = mysqli_query($con, "select * from messages where receiver='$username' and sender='system' order by hasread,time desc limit $start,$limit");
-        while (($one = mysqli_fetch_array($result)) != null) {
-            $username2 = $one['ruser'];
-            $msgtype = $one['text'];
-            $title = $one['rmsg'];
-            if ($msgtype != "reply" && $msgtype != "at" && $msgtype != "replylzl" && $msgtype != "replylzlreply" && $msgtype != "quote") {
-                $title = $msgtype;
-                $msgtype = "plain";
-            }
-            $rpid = intval($one['rpid']);
-            $page = ceil($rpid / 12);
-            $url = "/bbs/content/?bid=" . $one['rbid'] . "&tid=" . $one['rtid'] . "&p=$page#$rpid";
-            $msgtime = $one['time'];
-            $hasread = $one['hasread'];
-            $infos[] = array(
-                'username' => $username2, 'type' => $msgtype, 'title' => $title,
-                'url' => $url, 'time' => strval($msgtime), 'hasread' => strval($hasread)
-            );
-        }
-        mysqli_query($con, "update messages set hasread=1 where receiver='$username' and sender='system' and hasread=0");
-    } elseif ($type == "private") {
-        $ans = array();
-        $senders = array();
-        $result = mysqli_query($con, "select sender,group_concat(time order by time desc),group_concat(hasread) from messages where receiver='$username' and sender!='system' group by sender order by hasread,time desc");
-        while ($one = mysqli_fetch_array($result)) {
-            array_push($ans, $one);
-            array_push($senders, $one[0]);
-        }
-        $senderarea = "(";
-        for ($i = 0; $i < count($senders); $i++) {
-            $senderarea = $senderarea . "'" . $senders[$i] . "',";
-        }
-        $senderarea = substr($senderarea, 0, strlen($senderarea) - 1) . ")";
-        if (count($senders) == 0) {
-            $statement = "select receiver,group_concat(time order by time desc) from messages where sender='$username' group by receiver order by hasread,time desc";
-        } else {
-            $statement = "select receiver,group_concat(time order by time desc) from messages where sender='$username' and receiver not in $senderarea group by receiver order by hasread,time desc";
-        }
-        $result = mysqli_query($con, $statement);
-        while ($one = mysqli_fetch_array($result)) {
-            $ans[] = $one;
-        }
-        for ($i = 0; $i < count($ans); $i++) {
-            $times = $ans[$i][1];
-            $times = explode(",", $times);
-            $ans[$i][1] = $times[0];
-        }
-        usort($ans, "jiekoufunc_comp");
-        for ($i = 0; $i < count($ans); $i++) {
-            $one = $ans[$i];
-            $sender = $one[0];
-            if (empty($one[2]) && $one[2] !== "0") {
-                $hasread = "";
-            } else {
-                $hasread = $one[2];
-            }
-            $number = substr_count($hasread, "0");
-            $textresult = mysqli_fetch_array(mysqli_query($con, "select text,time from messages where (receiver='$username' and sender='$sender') or (receiver='$sender' and sender='$username') order by time desc limit 1"));
-            $text = $textresult[0];
-            $msgtime = $textresult[1];
-            $shrink = isset($params['shrink']) ? $params['shrink'] : '';
-            if ($shrink != "no" && mb_strlen($text, "utf-8") > 30) {
-                $text = mb_substr($text, 0, 30, "utf-8") . "......";
-            }
-            $tresult = mysqli_fetch_array(mysqli_query($con, "select count(1) as c from messages where (receiver='$username' and sender='$sender') or (receiver='$sender' and sender='$username')"));
-            $totalnum = $tresult['c'];
-            $infos[] = array(
-                'username' => $sender, 'text' => $text, 'time' => strval($msgtime),
-                'number' => strval($number), 'totalnum' => strval($totalnum)
-            );
-        }
-    } elseif ($type == "chat") {
-        $to = isset($params['to']) ? $params['to'] : '';
-        $result = mysqli_query($con, "select * from messages where (receiver='$username' and sender='$to') or (sender='$username' and receiver='$to') order by time");
-        while ($one = mysqli_fetch_array($result)) {
-            $atype = $one['sender'] == $username ? "send" : "get";
-            $text = $one['text'];
-            $msgtime = $one['time'];
-            $infos[] = array('type' => $atype, 'text' => $text, 'time' => strval($msgtime));
-        }
-        mysqli_query($con, "update messages set hasread=1 where receiver='$username' and sender='$to' and hasread=0");
-    }
-    $result = mysqli_fetch_array(mysqli_query($con, "select count(1) as c from messages where hasread=0 and receiver='$username'"));
-    $num = $result['c'];
-    mysqli_query($con, "update userinfo set newmsg=$num where username='$username' limit 1");
-    return $infos;
+    return capubbs_message_service($con)->legacyList($token, $type, $params);
 }
 
 // ============================================================================
@@ -655,39 +543,11 @@ function jiekoufunc_register($con, $ip, $params) {
 require_once __DIR__ . '/jiekoufunc_thread.php';
 
 function jiekoufunc_sendmsg($con, $token, $to, $text) {
-    $user = jiekoufunc_token2user($con, $token);
-    if (!$user) {
-        return jiekoufunc_report('1', '尚未登录');
-    }
-    $sender = $user['username'];
-    $text = mysqli_real_escape_string($con, $text);
-    $to_esc = mysqli_real_escape_string($con, $to);
-    $statement = "select username from userinfo where username='$to_esc'";
-    if (!mysqli_fetch_array(mysqli_query($con, $statement))) {
-        return jiekoufunc_report('3', '留言的对象不存在！');
-    }
-    if (jiekoufunc_insertmsg($con, $sender, $to_esc, $text, 0, 0, 0, "", "")) {
-        return jiekoufunc_report('0', 'success');
-    } else {
-        return jiekoufunc_report('4', 'Database Error');
-    }
+    return capubbs_message_service($con)->legacySend($token, $to, $text);
 }
 
 function jiekoufunc_boardcast($con, $token, $text) {
-    $rights = jiekoufunc_getrights($con, 1, $token);
-    $rights_val = intval($rights[3]);
-    if ($rights_val != 4) {
-        return array(array('code' => '1', 'msg' => '权限不足'));
-    }
-    $statement = "select username from userinfo";
-    $results = mysqli_query($con, $statement);
-    $text = mysqli_real_escape_string($con, $text);
-    while ($res = mysqli_fetch_row($results)) {
-        $user = $res[0];
-        $tmptext = "尊敬的 " . $user . " 用户您好，" . $text;
-        jiekoufunc_insertmsg($con, "admin", $user, $tmptext, 0, 0, 0, "", "");
-    }
-    return array(array('code' => '0'));
+    return capubbs_message_service($con)->legacyBroadcast($token, $text);
 }
 
 function jiekoufunc_news($con, $token, $params) {

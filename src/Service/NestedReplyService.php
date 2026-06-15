@@ -7,6 +7,7 @@ class CapubbsNestedReplyService {
     private $userRepository;
     private $messageRepository;
     private $boardRepository;
+    private $notificationService;
 
     public function __construct(
         $nestedReplyRepository,
@@ -14,7 +15,8 @@ class CapubbsNestedReplyService {
         $threadRepository,
         $userRepository,
         $messageRepository,
-        $boardRepository
+        $boardRepository,
+        $notificationService
     ) {
         $this->nestedReplyRepository = $nestedReplyRepository;
         $this->postRepository = $postRepository;
@@ -22,6 +24,7 @@ class CapubbsNestedReplyService {
         $this->userRepository = $userRepository;
         $this->messageRepository = $messageRepository;
         $this->boardRepository = $boardRepository;
+        $this->notificationService = $notificationService;
     }
 
     public function legacyList($fid) {
@@ -113,7 +116,7 @@ class CapubbsNestedReplyService {
 
         $threadAuthor = isset($thread['author']) ? $thread['author'] : '';
         $threadTitle = isset($thread['title']) ? $thread['title'] : '';
-        $this->notifyCreate($text, $bid, $tid, $pid, $username, $threadTitle, $threadAuthor, $postAuthor);
+        $this->notificationService->notifyNestedReply($text, $bid, $tid, $pid, $username, $threadTitle, $threadAuthor, $postAuthor);
 
         return array(array('code' => '0'));
     }
@@ -164,24 +167,6 @@ class CapubbsNestedReplyService {
         $this->postRepository->decrementNestedReplyCountByFid($fid);
 
         return array(array('code' => '0'));
-    }
-
-    private function notifyCreate($text, $bid, $tid, $pid, $username, $threadTitle, $threadAuthor, $postAuthor) {
-        if ($postAuthor != '' && $postAuthor != $username) {
-            $this->messageRepository->insert('system', $postAuthor, 'replylzl', $bid, $tid, $pid, $username, $threadTitle);
-        }
-
-        if ($threadAuthor != '' && $threadAuthor != $username && $threadAuthor != $postAuthor) {
-            $this->messageRepository->insert('system', $threadAuthor, 'reply', $bid, $tid, $pid, $username, $threadTitle);
-        }
-
-        $matches = array();
-        if (preg_match('/^回复 @(.*)(:|：).*/s', $text, $matches)) {
-            $replied = $matches[1];
-            if ($replied != $postAuthor && $replied != $threadAuthor) {
-                $this->messageRepository->insert('system', $replied, 'replylzlreply', $bid, $tid, $pid, $username, $threadTitle);
-            }
-        }
     }
 
     private function checkDelay($time, $session, $ip) {
