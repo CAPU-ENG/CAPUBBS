@@ -58,6 +58,10 @@ function insertlzlreply(id, author) {
 
 function dolzlreply(id, fid, sender) {
     var text = $('#textarea' + id).val();
+    if (!text || text.trim() === '') {
+        alert("请填写回复内容！");
+        return;
+    }
     sender.disabled = true;
     sender.innerHTML = "正在发布...";
     $.post("../postlzl/", {fid: fid, text: text}, function(text) {
@@ -69,6 +73,10 @@ function dolzlreply(id, fid, sender) {
         } else {
             alert(result.msg);
         }
+    }).fail(function() {
+        sender.disabled = false;
+        sender.innerHTML = "发表";
+        alert("网络错误，请重试。");
     });
 }
 
@@ -234,8 +242,13 @@ function uploadFile() {
                 alert("附件上传失败：" + result.msg + " code:" + result.code);
             }
         } catch (e) {
-            alert("出bug了");
+            alert("附件上传失败：服务器返回了无效的响应，请重试。");
         }
+    };
+    xhr.onerror = function () {
+        var prob = document.getElementById("progress");
+        if (prob.style.visibility != "hidden") prob.style.visibility = "hidden";
+        alert("附件上传失败：网络错误，请重试。");
     };
     function onprogress(evt) {
         var prob = document.getElementById("progress");
@@ -259,9 +272,14 @@ function sendMessageTo(target) {
 }
 
 function msg_send() {
+    var msgText = $('#msg_ta').val();
+    if (!msgText || msgText.trim() === '') {
+        alert("请填写消息内容！");
+        return;
+    }
     $('#msg_sendbt,#msg_cancelbt').prop("disabled", true);
     $('#msg_sendbt').html("正在发送...");
-    $.post("../message/", {target: temptarget, text: $('#msg_ta').val()},
+    $.post("../message/", {target: temptarget, text: msgText},
         function (text) {
             var result = JSON.parse(text);
             if (result.code == 0) {
@@ -273,6 +291,10 @@ function msg_send() {
             }
             $("#msg_sendbt,#msg_cancelbt").prop("disabled", false);
             $('#msg_sendbt').html("发送");
+        }).fail(function() {
+            $("#msg_sendbt,#msg_cancelbt").prop("disabled", false);
+            $('#msg_sendbt').html("发送");
+            alert("网络错误，请重试。");
         });
 }
 

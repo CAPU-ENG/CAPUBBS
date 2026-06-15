@@ -282,7 +282,6 @@ $is_leader = ($currentuser == $activity["leader_username"] || $currentuser == "�
                                             bid: bid,
                                             tid: tid,
                                             title: "Re: " + $('#page_title').text(),
-                                            activity_id: <?php echo $activity["activity_id"]; ?>,
                                             option_values: option_values
                                         }
                                     };
@@ -297,7 +296,9 @@ $is_leader = ($currentuser == $activity["leader_username"] || $currentuser == "�
                                                 alert(result.msg);
                                             }
                                         }
-                                    );
+                                    ).fail(function() {
+                                        alert("网络错误，请重试。");
+                                    });
                                 })
                             </script>
                         </div>
@@ -418,8 +419,7 @@ $is_leader = ($currentuser == $activity["leader_username"] || $currentuser == "�
                                         data: {
                                             action: "restore",
                                             bid: bid,
-                                            tid: tid,
-                                            activity_id: <?php echo $activity["activity_id"]; ?>
+                                            tid: tid
                                         }
                                     };
                                     $.post("/bbs/content/utils/postActivity.php",
@@ -433,7 +433,9 @@ $is_leader = ($currentuser == $activity["leader_username"] || $currentuser == "�
                                                 alert(result.msg);
                                             }
                                         }
-                                    );
+                                    ).fail(function() {
+                                        alert("网络错误，请重试。");
+                                    });
                                 });
                             </script>
                         </div>
@@ -538,8 +540,7 @@ $is_leader = ($currentuser == $activity["leader_username"] || $currentuser == "�
                                         data: {
                                             action: "cancel",
                                             bid: bid,
-                                            tid: tid,
-                                            activity_id: <?php echo $activity["activity_id"]; ?>
+                                            tid: tid
                                         }
                                     };
                                     $.post("/bbs/content/utils/postActivity.php",
@@ -553,7 +554,9 @@ $is_leader = ($currentuser == $activity["leader_username"] || $currentuser == "�
                                                 alert(result.msg);
                                             }
                                         }
-                                    );
+                                    ).fail(function() {
+                                        alert("网络错误，请重试。");
+                                    });
                                 });
                                 $("#modify_join_activity").submit(function (e) {
                                     e.preventDefault();
@@ -577,7 +580,6 @@ $is_leader = ($currentuser == $activity["leader_username"] || $currentuser == "�
                                             bid: bid,
                                             tid: tid,
                                             title: "Re: " + $('#page_title').text(),
-                                            activity_id: <?php echo $activity["activity_id"]; ?>,
                                             option_values: option_values
                                         }
                                     };
@@ -592,7 +594,9 @@ $is_leader = ($currentuser == $activity["leader_username"] || $currentuser == "�
                                                 alert(result.msg);
                                             }
                                         }
-                                    );
+                                    ).fail(function() {
+                                        alert("网络错误，请重试。");
+                                    });
                                 })
                             </script>
                         </div>

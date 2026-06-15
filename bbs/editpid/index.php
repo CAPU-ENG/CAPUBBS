@@ -459,6 +459,10 @@ function doreply(){
     var content=document.getElementById("edi_content").innerHTML;
     content=content.replace(/&/g, "&amp;");
 
+    if (content == "" || content == "<br>") {
+        alert("请填写回复内容！");
+        return;
+    }
     if (content.length > 100000) {
         alert("内容字符数为"+content.length+"（超过10万字符），请检查是否粘贴了图片。");
         return;
