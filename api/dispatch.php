@@ -384,66 +384,38 @@ function jiekoufunc_dispatch($con, $params) {
         $see_lz = isset($params['see_lz']) ? $params['see_lz'] : '';
         $extr = isset($params['extr']) ? $params['extr'] : '';
 
-        if ($token != "") {
-            $nowtime = time();
-            $statement = "select username from userinfo where token='$token' && $nowtime<=tokentime+{$GLOBALS['validtime']}";
-            $result = mysqli_query($con, $statement);
-            $user = "";
-            while ($res = mysqli_fetch_array($result)) {
-                foreach ($res as $key => $value) {
-                    if ($key == "username") { $user = $value; }
-                }
-                if ($ip != "")
-                    $statement = "update userinfo set tokentime=$nowtime, nowboard=$bid, lastip='$ip' where username='$user'";
-                else
-                    $statement = "update userinfo set tokentime=$nowtime, nowboard=$bid where username='$user'";
-                mysqli_query($con, $statement);
-            }
-        }
-
         if ($tid != 0) {
-            $author = "";
-            if ($see_lz != "") {
-                $statement = "select author from threads where bid=$bid && tid=$tid";
-                $results = mysqli_query($con, $statement);
-                if (mysqli_num_rows($results) != 0) {
-                    $result = mysqli_fetch_row($results);
-                    $author = $result[0];
+            if ($fid != 0) {
+                $row = capubbs_post_repository($con)->findByFid($fid);
+                return $row ? array($row) : array();
+            }
+
+            if ($pid != 0) {
+                $row = capubbs_post_repository($con)->findByBidTidPid($bid, $tid, $pid);
+                return $row ? array($row) : array();
+            }
+
+            $pageValue = ($page !== '') ? intval($page) : 1;
+            if ($pageValue < 1) {
+                $pageValue = 1;
+            }
+            return capubbs_thread_read_service($con)->legacyGetOnePage($bid, $tid, $pageValue, $see_lz, $ip, $token);
+        } else {
+            $pageValue = ($page !== '') ? intval($page) : 1;
+            if ($pageValue < 1) {
+                $pageValue = 1;
+            }
+            $extrValue = ($extr == "") ? 0 : 1;
+
+            if ($token != "") {
+                $viewer = capubbs_user_repository($con)->findUsernameByValidToken($token);
+                if ($viewer && isset($viewer['username'])) {
+                    capubbs_user_repository($con)->updateReadBoardSession($viewer['username'], time(), $ip, $bid);
                 }
             }
-            if ($fid != 0)
-                $statement = "select * from posts where bid=$bid && tid=$tid && fid=$fid";
-            elseif ($pid != 0)
-                $statement = "select * from posts where bid=$bid && tid=$tid && pid=$pid";
-            elseif ($page != "") {
-                $start = ($page - 1) * 12;
-                if ($author != "")
-                    $statement = "select * from posts where bid=$bid && tid=$tid && author='$author' order by pid limit $start, 12";
-                else
-                    $statement = "select * from posts where bid=$bid && tid=$tid order by pid limit $start, 12";
-            } else {
-                $statement = "select * from posts where bid=$bid && tid=$tid order by pid";
-            }
-        } else {
-            if ($extr == "") $extr = 0;
-            else $extr = 1;
-            if ($page == "") $page = 1;
-            $start = ($page - 1) * 25;
-            $statement = "
-            select threads.bid,threads.tid,title,author,replyer,click,reply,extr,top,locked,timestamp,postdate,
-            case when thread_global_top.bid is null then 0 else 1 end as global_top
-            from threads left join thread_global_top on threads.bid=thread_global_top.bid and threads.tid=thread_global_top.tid
-            where threads.bid=$bid and extr>=$extr order by top desc, timestamp desc limit $start, 25";
+
+            return capubbs_thread_repository($con)->findBoardThreadsPage($bid, $pageValue, 25, $extrValue);
         }
-
-        $result = jiekoufunc_view_bbs_array($con, $statement);
-
-        if ($tid != 0 && $pid == 0) {
-            $statement = "update threads set click=click+1 where bid=$bid && tid=$tid";
-            mysqli_query($con, $statement);
-        }
-
-        return $result;
     }
 
     return array(array('code' => '14', 'msg' => 'ask错误。'));

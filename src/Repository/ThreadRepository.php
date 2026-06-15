@@ -244,6 +244,22 @@ class CapubbsThreadRepository {
         return $this->fetchAll($statement);
     }
 
+    public function findBoardThreadsPage($bid, $page, $pageSize, $extrMin) {
+        $bid = intval($bid);
+        $page = max(1, intval($page));
+        $pageSize = max(1, intval($pageSize));
+        $extrMin = intval($extrMin);
+        $start = ($page - 1) * $pageSize;
+
+        $statement = "
+            select threads.bid,threads.tid,title,author,replyer,click,reply,extr,top,locked,timestamp,postdate,
+            case when thread_global_top.bid is null then 0 else 1 end as global_top
+            from threads left join thread_global_top on threads.bid=thread_global_top.bid and threads.tid=thread_global_top.tid
+            where threads.bid=$bid and extr>=$extrMin order by top desc, timestamp desc limit $start, $pageSize";
+
+        return $this->fetchAll($statement);
+    }
+
     public function findHotThreads($limit, $bid, $method, $days, $minReplies) {
         $limit = max(1, min(100, intval($limit)));
         $bid = intval($bid);
