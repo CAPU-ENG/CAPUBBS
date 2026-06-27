@@ -1319,6 +1319,7 @@ function jiekoufunc_trash_restore($con, $token, $type, $bid, $tid, $pid, $trash_
         $stmt_posts = "select * from trash_posts where bid=$bid and tid=$tid order by pid";
         $res_posts = mysqli_query($con, $stmt_posts);
         $restored_count = 0;
+        $restored_authors = array();  // 收集作者信息用于恢复计数器
         while ($row = mysqli_fetch_array($res_posts)) {
             $p_fid = intval($row['fid']);
             $p_pid = intval($row['pid']);
@@ -1341,7 +1342,28 @@ function jiekoufunc_trash_restore($con, $token, $type, $bid, $tid, $pid, $trash_
                         '$p_title', '$p_author', '$p_text', '$p_ishtml', '$p_attachs',
                         $p_rtime, $p_utime, $p_sig, '$p_type', '$p_ip', $p_lzl)";
             mysqli_query($con, $stmt_ins_p);
-            if (mysqli_affected_rows($con) > 0) $restored_count++;
+            if (mysqli_affected_rows($con) > 0) {
+                $restored_count++;
+                // 记录每位作者的首帖/回帖数量（同一作者可能同时有首帖和回帖）
+                if (!isset($restored_authors[$p_author])) {
+                    $restored_authors[$p_author] = array('first' => 0, 'reply' => 0);
+                }
+                if (intval($p_pid) == 1) {
+                    $restored_authors[$p_author]['first']++;
+                } else {
+                    $restored_authors[$p_author]['reply']++;
+                }
+            }
+        }
+
+        // 恢复所有涉及用户的发帖/回帖/灌水计数器
+        foreach ($restored_authors as $author_name => $counts) {
+            for ($i = 0; $i < $counts['first']; $i++) {
+                jiekoufunc_adjust_post_count($con, $author_name, $bid, true, +1);
+            }
+            for ($i = 0; $i < $counts['reply']; $i++) {
+                jiekoufunc_adjust_post_count($con, $author_name, $bid, false, +1);
+            }
         }
 
         $statement = "delete from trash_posts where bid=$bid and tid=$tid";
@@ -1417,6 +1439,9 @@ function jiekoufunc_trash_restore($con, $token, $type, $bid, $tid, $pid, $trash_
                     '$p_title', '$p_author', '$p_text', '$p_ishtml', '$p_attachs',
                     $p_rtime, $p_utime, $p_sig, '$p_type', '$p_ip', $p_lzl)";
         mysqli_query($con, $stmt_ins);
+
+        // 恢复被删帖作者的计数器（首帖恢复 post/water，回帖恢复 reply/water）
+        jiekoufunc_adjust_post_count($con, $p_author, $bid, ($restore_pid == 1), +1);
 
         // Update thread metadata
         $new_reply = $current_reply + 1;
@@ -1659,6 +1684,12 @@ function jiekoufunc_restore_version($con, $token, $fid, $version_id) {
     $stmt_upd = "update posts set text='$esc_target', author='$restored_author_esc', updatetime=$time
                  where fid=$fid";
     mysqli_query($con, $stmt_upd);
+
+    // 如果作者发生变化，转移计数器
+    if ($cur_author !== $restored_author) {
+        jiekoufunc_adjust_post_count($con, $cur_author, $cur_bid, ($cur_pid == 1), -1);
+        jiekoufunc_adjust_post_count($con, $restored_author, $cur_bid, ($cur_pid == 1), +1);
+    }
 
     // 如果恢复的是首帖，同步更新 threads.author
     if ($cur_pid == 1) {

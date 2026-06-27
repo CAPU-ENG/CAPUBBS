@@ -101,6 +101,32 @@ function jiekoufunc_updatestar($con, $username) {
     mysqli_query($con, $statement);
 }
 
+/**
+ * 调整用户的发帖/回帖/灌水计数器。
+ *
+ * @param $con           mysqli 连接
+ * @param $username      用户名
+ * @param $bid           版块 ID（4=灌水版，走 water 字段）
+ * @param $is_first_post true=首帖（走 post/water），false=回帖（走 reply/water）
+ * @param $delta         变化量（+1 或 -1）
+ */
+function jiekoufunc_adjust_post_count($con, $username, $bid, $is_first_post, $delta) {
+    if (empty($username)) return;
+    $username_esc = mysqli_real_escape_string($con, $username);
+    if ($bid == 4) {
+        $field = 'water';
+    } else {
+        $field = $is_first_post ? 'post' : 'reply';
+    }
+    if ($delta < 0) {
+        $statement = "update userinfo set $field = GREATEST(CAST($field AS SIGNED) + ($delta), 0) where username='$username_esc'";
+    } else {
+        $statement = "update userinfo set $field = $field + ($delta) where username='$username_esc'";
+    }
+    mysqli_query($con, $statement);
+    jiekoufunc_updatestar($con, $username);
+}
+
 function jiekoufunc_search_replace_exec_at($con, $text, $bid, $tid, $pid, $username, $tidtitle) {
     $matches = array();
     preg_match_all("#\[at\](.+?)\[\/at\]#", $text, $matches, PREG_SET_ORDER);

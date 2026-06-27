@@ -232,17 +232,18 @@ function jiekoufunc_edit($con, $token, $bid, $tid, $pid, $ip, $attachs, $params)
     $text = html_entity_decode($text);
     $title = mysqli_real_escape_string($con, $title);
     $text = mysqli_real_escape_string($con, $text);
-    $statement = "update posts set title='$title', author='$username', text='$text', ishtml='YES', sig=$sig, ip='$ip', type='$type', attachs='$attachs_esc', updatetime=$time where bid=$bid && tid=$tid && pid=$pid";
+    // 保留原作者（版主/管理员编辑时不覆盖 author）
+    $statement = "update posts set title='$title', author='$author', text='$text', ishtml='YES', sig=$sig, ip='$ip', type='$type', attachs='$attachs_esc', updatetime=$time where bid=$bid && tid=$tid && pid=$pid";
     mysqli_query($con, $statement);
     if (intval($pid) == 1) {
-        $statement = "update threads set title='$title', author='$username' where bid=$bid && tid=$tid";
+        $statement = "update threads set title='$title', author='$author' where bid=$bid && tid=$tid";
         mysqli_query($con, $statement);
     }
     $statement = "select pid from posts where bid=$bid && tid=$tid order by pid desc";
     $res = mysqli_query($con, $statement);
     $number = mysqli_num_rows($res);
     if (intval($pid) == intval($number)) {
-        $statement = "update threads set replyer='$username' where bid=$bid && tid=$tid";
+        $statement = "update threads set replyer='$author' where bid=$bid && tid=$tid";
         mysqli_query($con, $statement);
     }
     return array(array('code' => '0', 'bid' => strval($bid), 'tid' => strval($tid), 'pid' => strval($pid)));
@@ -384,6 +385,7 @@ function jiekoufunc_delete($con, $token, $bid, $tid, $pid) {
         // Save each post to trash_posts with ALL fields
         $stmt_posts = "select * from posts where bid=$bid && tid=$tid order by pid";
         $res_posts = mysqli_query($con, $stmt_posts);
+        $deleted_authors = array();  // 收集作者信息用于扣减计数器
         while ($row = mysqli_fetch_array($res_posts)) {
             $p_fid     = $row['fid'];
             $p_pid     = $row['pid'];
@@ -399,6 +401,16 @@ function jiekoufunc_delete($con, $token, $bid, $tid, $pid) {
             $p_ip      = mysqli_real_escape_string($con, $row['ip']);
             $p_lzl     = intval($row['lzl']);
 
+            // 记录每位作者的首帖/回帖数量（同一作者可能同时有首帖和回帖）
+            if (!isset($deleted_authors[$p_author])) {
+                $deleted_authors[$p_author] = array('first' => 0, 'reply' => 0);
+            }
+            if (intval($p_pid) == 1) {
+                $deleted_authors[$p_author]['first']++;
+            } else {
+                $deleted_authors[$p_author]['reply']++;
+            }
+
             $stmt_ins = "insert into trash_posts
                 (bid, tid, pid, fid, title, author, text, ishtml, attachs,
                  replytime, updatetime, sig, type, ip, lzl,
@@ -408,6 +420,16 @@ function jiekoufunc_delete($con, $token, $bid, $tid, $pid) {
                         $p_rtime, $p_utime, $p_sig, '$p_type', '$p_ip', $p_lzl,
                         '$username', $time, '$ip')";
             mysqli_query($con, $stmt_ins);
+        }
+
+        // 扣减所有涉及用户的发帖/回帖/灌水计数器
+        foreach ($deleted_authors as $author_name => $counts) {
+            for ($i = 0; $i < $counts['first']; $i++) {
+                jiekoufunc_adjust_post_count($con, $author_name, $bid, true, -1);
+            }
+            for ($i = 0; $i < $counts['reply']; $i++) {
+                jiekoufunc_adjust_post_count($con, $author_name, $bid, false, -1);
+            }
         }
 
         $statement = "delete from posts where bid=$bid && tid=$tid";
@@ -463,6 +485,9 @@ function jiekoufunc_delete($con, $token, $bid, $tid, $pid) {
                 $p_rtime, $p_utime, $p_sig, '$p_type', '$p_ip', $p_lzl,
                 '$username', $time, '$ip')";
     mysqli_query($con, $stmt_ins);
+
+    // 扣减被删帖作者的计数器（首帖扣 post/water，回帖扣 reply/water）
+    jiekoufunc_adjust_post_count($con, $p_author, $bid, ($pid == 1), -1);
 
     // Clean up activity join records
     $stmt_join = "select join_id from season_activity_join where post_fid=$p_fid_val";
@@ -531,6 +556,42 @@ function jiekoufunc_move($con, $token, $bid, $tid, $to) {
     if (mysqli_num_rows($results) == 0) {
         return array(array('code' => '3', 'msg' => '主题不存在！'));
     }
+
+    // 当源/目标版块一个是灌水版(bid=4)一个不是时，需要转换计数器
+    $src_is_water = ($bid == 4);
+    $dst_is_water = ($to == 4);
+    $need_convert = ($src_is_water != $dst_is_water);
+
+    if ($need_convert) {
+        // 查询主题下所有帖子及其作者，批量转换计数器
+        $stmt_authors = "select pid, author from posts where bid=$bid && tid=$tid";
+        $res_authors = mysqli_query($con, $stmt_authors);
+        // 统计每位作者的首帖/回帖数量
+        $author_counts = array();
+        while ($row = mysqli_fetch_array($res_authors)) {
+            $a_name = $row['author'];
+            if (!isset($author_counts[$a_name])) {
+                $author_counts[$a_name] = array('first' => 0, 'reply' => 0);
+            }
+            if (intval($row['pid']) == 1) {
+                $author_counts[$a_name]['first']++;
+            } else {
+                $author_counts[$a_name]['reply']++;
+            }
+        }
+        // 对每位作者：先从旧字段扣除，再计入新字段
+        foreach ($author_counts as $a_name => $counts) {
+            for ($i = 0; $i < $counts['first']; $i++) {
+                jiekoufunc_adjust_post_count($con, $a_name, $bid, true, -1);
+                jiekoufunc_adjust_post_count($con, $a_name, $to, true, +1);
+            }
+            for ($i = 0; $i < $counts['reply']; $i++) {
+                jiekoufunc_adjust_post_count($con, $a_name, $bid, false, -1);
+                jiekoufunc_adjust_post_count($con, $a_name, $to, false, +1);
+            }
+        }
+    }
+
     $statement = "update threads set bid=$to, tid=$totid where bid=$bid && tid=$tid";
     mysqli_query($con, $statement);
     $statement = "update posts set bid=$to, tid=$totid where bid=$bid && tid=$tid";
