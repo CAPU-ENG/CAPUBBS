@@ -1,0 +1,31 @@
+/* === 签名档 iframe 内联样式 === */
+/* 从 bbs/content/style.css 和 bbs/lib/general.css 提取 */
+
+/* === iframe 基础重置 === */
+html, body {
+    margin: 0;
+    padding: 0;
+    background: transparent;
+    font-family: monospace;  /* 继承 general.css 的全局字体 */
+}
+
+/* === 签名档样式（从 style.css 提取） === */
+span.sigtip {
+    color: gray;
+    font-size: 14px;
+}
+div.sig {
+    color: #999999;
+    font-size: 14px;
+}
+
+/* === 签名档中图片最大宽度限制（来自 style.css） === */
+.sig img {
+    max-width: 100%;
+    min-height: 20px;  /* 未加载图片避免坍缩为 0px */
+}
+
+/* === 链接基础样式（来自 general.css） === */
+a:hover {
+    text-decoration: underline;
+}

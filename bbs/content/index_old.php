@@ -90,20 +90,6 @@
 <link rel="stylesheet" href="../lib/general.css">
 <link rel="stylesheet" href="style.css">
 <link rel="shortcut icon" href="/assets/images/capu.jpg">
-<script>
-// 监听签名档 iframe 发来的高度消息，校验来源后更新 iframe 高度
-window.addEventListener('message', function(e) {
-    if (e.data && typeof e.data.sigHeight === 'number') {
-        var frames = document.getElementsByClassName('sigframe');
-        for (var i = 0; i < frames.length; i++) {
-            if (frames[i].contentWindow === e.source) {
-                frames[i].style.height = e.data.sigHeight + 'px';
-                break;
-            }
-        }
-    }
-});
-</script>
 </head>
 <body>
     <div class="content">
@@ -296,86 +282,16 @@ for($i=0;$i<count(@$data);$i++){
     if(@$userinfo['sig'.$floor['sig']]){
         $sig_content = $userinfo['sig'.$floor['sig']];
         $sig_type = isset($userinfo['sig'.$floor['sig'].'_type']) ? $userinfo['sig'.$floor['sig'].'_type'] : 'null';
-
-        // 按照签名类型处理内容
+        echo("<div class='sigblock'>\n");
+        echo("<span class='sigtip'>--------</span>\n");
         if ($sig_type === 'html') {
-            $sig_html = translate_post_tag(translate($sig_content), $con);
+            echo("<div class='sig'>".translate_post_tag(translate($sig_content), $con)."<br><br><br>"."</div>\n");
         } else if ($sig_type === 'raw') {
-            $sig_html = translate_post_tag(translate($sig_content, false, true, true), $con);
+            echo("<div class='sig'>".translate_post_tag(translate($sig_content,false,true,true), $con)."<br><br><br>"."</div>\n");
         } else {
-            $sig_html = translate_post_tag(translate($sig_content, false, false, true), $con);
+            echo("<div class='sig'>".translate_post_tag(translate($sig_content,false,false,true), $con)."<br><br><br>"."</div>\n");
         }
-
-        // 读取内联 CSS
-        $css = file_get_contents(__DIR__ . '/../lib/sig_iframe.css');
-        if ($css === false) {
-            $css = '';
-        }
-
-        // 构建 iframe 内部的自适应高度 JS（放在签名内容之前，确保先执行）
-        // 全部采用事件回调驱动，零轮询开销
-        $sig_js = '<script>'
-            . 'var _sigResize=function(){'
-            .   'var h=document.body.scrollHeight;'
-            .   'parent.postMessage({sigHeight:h},"*");'
-            . '};'
-            // ① 初次加载完成
-            . 'window.addEventListener("load",_sigResize);'
-            // ② CSS transition 结束（签名 JS 可能通过 class 切换触发 CSS 过渡动画）
-            . 'document.addEventListener("transitionend",_sigResize);'
-            // ③ CSS animation 结束
-            . 'document.addEventListener("animationend",_sigResize);'
-            // ④ Web 字体加载完成（字体变化可能改变文字排版高度）
-            . 'if(document.fonts&&document.fonts.ready){document.fonts.ready.then(_sigResize);}'
-            // ⑤ MutationObserver：监听 body 子树所有 DOM 变更
-            //    对新增 <img> 绑定 load/error；缓存图片同步读取尺寸立即触发
-            . 'if(window.MutationObserver){'
-            .   'var _sigO=new MutationObserver(function(mutations){'
-            .     '_sigResize();'
-            .     'mutations.forEach(function(m){'
-            .       'm.addedNodes.forEach(function(node){'
-            .         'if(node.tagName==="IMG"){'
-            .           'node.addEventListener("load",_sigResize);'
-            .           'node.addEventListener("error",_sigResize);'
-            // 缓存图片：complete===true，尺寸立即可用，同步触发 resize
-            .           'if(node.complete){_sigResize();}'
-            .         '}'
-            .         'if(node.querySelectorAll){'
-            .           'var imgs=node.querySelectorAll("img");'
-            .           'for(var j=0;j<imgs.length;j++){'
-            .             'imgs[j].addEventListener("load",_sigResize);'
-            .             'imgs[j].addEventListener("error",_sigResize);'
-            .             'if(imgs[j].complete){_sigResize();}'
-            .           '}'
-            .         '}'
-            .       '});'
-            .     '});'
-            .   '});'
-            .   '_sigO.observe(document.body,{childList:true,subtree:true,attributes:true,characterData:true});'
-            . '}'
-            . '<' . '/script>';
-
-        // 构建 iframe 的 srcdoc 内容
-        // 用 dirname 取脚本所在目录作为 base，无论 index.php / frame.php 均正确
-        $base_url = (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off' ? 'https' : 'http')
-                   . '://' . $_SERVER['HTTP_HOST']
-                   . rtrim(dirname($_SERVER['SCRIPT_NAME']), '/')
-                   . '/';
-        $srcdoc  = '<!DOCTYPE html><html><head><meta charset="utf-8">'
-                 . '<base href="' . $base_url . '">'
-                 . '<script src="/bbs/lib/jquery.min.js"></' . 'script>'
-                 . '<style>' . $css . '</style></head>';
-        $srcdoc .= '<body>';
-        $srcdoc .= $sig_js;
-        $srcdoc .= '<span class="sigtip">--------</span><div class="sig">' . $sig_html . '<br><br><br></div>';
-        $srcdoc .= '</body></html>';
-
-        // 输出 iframe
-        $srcdoc_escaped = htmlspecialchars($srcdoc, ENT_QUOTES, 'UTF-8');
-        echo '<iframe class="sigframe" srcdoc="' . $srcdoc_escaped . '" '
-           . 'frameborder="0" scrolling="no" '
-           . 'style="width:98%;margin-left:2%;margin-top:20px;border:none;overflow:hidden;min-height:40px;" '
-           . 'onload="this.style.height=this.contentWindow.document.body.scrollHeight+\'px\'"></iframe>';
+        echo("</div>");
     }
     $lzl=mainfunc(array(
     "ask"=>"lzl",

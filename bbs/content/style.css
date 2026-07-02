@@ -579,3 +579,9 @@ table.lzltable{
     color:#676767;
 
 }
+
+/* === iframe 签名档（新增） === */
+iframe.sigframe {
+    display: block;
+    background: transparent;
+}
