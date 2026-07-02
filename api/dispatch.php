@@ -111,7 +111,7 @@ function _dispatch_build_routes() {
         // Admin only
         // ================================================================
         'move'                => array('handler' => 'jiekoufunc_move',                'check_login' => true, 'require_rights' => 2),
-        'global_top_action'   => array('handler' => 'jiekoufunc_threads_action',      'check_login' => true, 'require_rights' => 2),
+        'global_top_action'   => array('handler' => 'jiekoufunc_threads_action',      'check_login' => true, 'require_rights' => 2, 'check_board_mod' => true),
         'boardcast'           => array('handler' => 'jiekoufunc_boardcast',           'check_login' => true, 'require_rights' => 3),
         'admin_reset_password' => array('handler' => 'jiekoufunc_admin_reset_password', 'check_login' => true, 'require_rights' => 10),
 
