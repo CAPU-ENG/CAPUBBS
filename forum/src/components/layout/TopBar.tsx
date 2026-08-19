@@ -156,11 +156,6 @@ export function TopBar({
                 >
                   版块 <ChevronDown size={14} className={`transition-transform ${boardsOpen ? 'rotate-180' : ''}`} />
                 </button>
-                {boardsOpen && (
-                  <div className="desktop-board-drawer-wrap">
-                    <DesktopBoardDrawer onNavigate={closeAllLayers} />
-                  </div>
-                )}
               </div>
             </nav>
 
@@ -226,6 +221,20 @@ export function TopBar({
             </div>
           </div>
         </div>
+
+        {boardsOpen && !threadTitleVisible && (
+          <div
+            className="desktop-board-drawer-wrap"
+            onMouseEnter={openBoards}
+            onMouseLeave={scheduleCloseBoards}
+            onFocus={openBoards}
+            onBlur={(event) => {
+              if (!event.currentTarget.contains(event.relatedTarget)) scheduleCloseBoards();
+            }}
+          >
+            <DesktopBoardDrawer onNavigate={closeAllLayers} />
+          </div>
+        )}
       </header>
 
       {anyOverlayOpen && <button className="page-overlay" type="button" aria-label="关闭当前面板" onClick={closeAllLayers} />}
