@@ -1,9 +1,3 @@
-export const pinnedThreads = [
-  '关于周末骑行路线的临时调整',
-  '新人装备避坑清单与集中答疑',
-  '论坛发帖规范与常用功能说明',
-];
-
 export const activities = [
   { date: '2026-08-23', title: '周末轻骑', time: '08:30', place: '东门集合' },
   { date: '2026-08-27', title: '夜骑安全训练', time: '19:00', place: '活动室门口' },

@@ -3,5 +3,11 @@ import react from '@vitejs/plugin-react';
 
 export default defineConfig({
   plugins: [react()],
+  server: {
+    proxy: {
+      '/api': {
+        target: process.env.CAPUBBS_PHP_ORIGIN || 'http://localhost:8080',
+      },
+    },
+  },
 });
-

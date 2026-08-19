@@ -1,6 +1,8 @@
 import { useEffect, useMemo, useState } from 'react';
-import { Bike, CalendarDays, ChevronLeft, ChevronRight, Clock3, MapPin, Pin } from 'lucide-react';
-import { activities, pinnedThreads, signupActivities } from './homeData';
+import { Bike, CalendarDays, ChevronLeft, ChevronRight, Clock3, LoaderCircle, MapPin, Pin, RefreshCw } from 'lucide-react';
+import type { HomeThread } from '../../api/home';
+import type { HomeDataStatus } from '../../hooks/useHomeData';
+import { activities, signupActivities } from './homeData';
 
 function formatCountdown(deadline: string, now: number) {
   const remaining = new Date(deadline).getTime() - now;
@@ -18,7 +20,14 @@ function dateKey(year: number, month: number, day: number) {
   return `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
 }
 
-function PinnedPanel() {
+type PinnedProps = {
+  error: string;
+  items: HomeThread[];
+  onRetry: () => void;
+  status: HomeDataStatus;
+};
+
+function PinnedPanel({ error, items, onRetry, status }: PinnedProps) {
   return (
     <section className="aside-card" aria-labelledby="pinned-title">
       <header className="aside-card-header">
@@ -26,16 +35,26 @@ function PinnedPanel() {
         <h2 id="pinned-title">全局置顶</h2>
       </header>
       <ul className="pinned-list">
-        {pinnedThreads.map((thread, index) => (
-          <li key={thread}>
-            <a href={`#pinned-${index}`}>
-              {index < 2 && <span>新</span>}
-              <strong>{thread}</strong>
+        {items.map((thread) => (
+          <li key={thread.id}>
+            <a href={thread.href}>
+              {thread.isRecent && <span>新</span>}
+              <strong>{thread.title}</strong>
               <ChevronRight size={14} />
             </a>
           </li>
         ))}
       </ul>
+      {status === 'loading' && items.length === 0 && (
+        <div className="aside-data-state"><LoaderCircle className="animate-spin" size={16} />加载中…</div>
+      )}
+      {status === 'error' && items.length === 0 && (
+        <div className="aside-data-state aside-data-error">
+          <span>{error}</span>
+          <button type="button" onClick={onRetry}><RefreshCw size={13} />重试</button>
+        </div>
+      )}
+      {status === 'ready' && items.length === 0 && <p className="aside-data-state">暂无全局置顶</p>}
     </section>
   );
 }
@@ -176,10 +195,10 @@ export function ActivityCalendar({ compact = false }: { compact?: boolean }) {
   );
 }
 
-export function DesktopHomeAside() {
+export function DesktopHomeAside({ error, items, onRetry, status }: PinnedProps) {
   return (
     <aside className="home-aside">
-      <PinnedPanel />
+      <PinnedPanel error={error} items={items} onRetry={onRetry} status={status} />
       <ActivitySignupPanel />
       <ActivityCalendar />
     </aside>

@@ -137,6 +137,45 @@
     background: var(--brand-faint);
   }
 
+  .home-data-state {
+    display: flex;
+    min-height: 180px;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 28px;
+    color: var(--text-muted);
+    font-size: 0.8rem;
+    text-align: center;
+  }
+
+  .home-data-error {
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .home-data-error button,
+  .aside-data-error button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+    border: 1px solid var(--line-strong);
+    border-radius: var(--control-radius);
+    color: var(--brand-strong);
+    font-weight: 700;
+  }
+
+  .home-data-error button {
+    min-height: 32px;
+    padding: 0 11px;
+  }
+
+  .home-data-error button:hover,
+  .aside-data-error button:hover {
+    background: var(--brand-faint);
+  }
+
   .home-aside {
     align-self: start;
     display: flex;
@@ -220,6 +259,28 @@
   .pinned-list a > svg {
     grid-column: 3;
     justify-self: end;
+  }
+
+  .aside-data-state {
+    display: flex;
+    min-height: 54px;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    padding: 4px 12px 16px;
+    color: var(--text-faint);
+    font-size: 0.68rem;
+    text-align: center;
+  }
+
+  .aside-data-error {
+    flex-direction: column;
+  }
+
+  .aside-data-error button {
+    min-height: 27px;
+    padding: 0 8px;
+    font-size: 0.66rem;
   }
 
   .signup-list {
@@ -629,4 +690,3 @@
   }
 
 }
-

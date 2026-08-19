@@ -3,6 +3,7 @@ import { BoardPage } from './pages/BoardPage';
 import { PublicProfilePage } from './pages/PublicProfilePage';
 import { ThreadPage } from './pages/ThreadPage';
 import { UserCenterPage } from './pages/UserCenterPage';
+import { isDemoBoardId } from './data/boardDemo';
 import { getPublicProfileNameFromLocation } from './utils/userRoutes';
 
 export function App() {
@@ -13,7 +14,8 @@ export function App() {
     return <PublicProfilePage profileName={getPublicProfileNameFromLocation(pathname, window.location.search)} />;
   }
   if (params.get('thread') === '102') return <ThreadPage />;
-  if (params.get('board') === '3') return <BoardPage />;
+  const boardId = Number(params.get('board'));
+  if (isDemoBoardId(boardId)) return <BoardPage boardId={boardId} />;
   return <HomePage />;
 }
 

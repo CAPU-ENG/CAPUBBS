@@ -14,18 +14,107 @@ export type BoardThreadData = {
   views: number;
 };
 
-export const demoBoard = {
-  id: 3,
-  moderators: ['灵车漂移', '清风拂山岗', '大橘为重'],
-  name: '车友宝典',
-  perPage: 8,
+export type DemoBoardData = {
+  id: number;
+  moderators: string[];
+  name: string;
+  perPage: number;
   stats: {
-    online: 38,
-    replies: 12846,
-    today: 76,
-    topics: 2341,
+    online: number;
+    replies: number;
+    today: number;
+    topics: number;
+  };
+};
+
+export const demoBoardIds = [1, 2, 3, 4, 5, 6, 7, 9, 28] as const;
+export type DemoBoardId = (typeof demoBoardIds)[number];
+
+export const demoBoards: Record<DemoBoardId, DemoBoardData> = {
+  1: {
+    id: 1,
+    moderators: ['会长团', '网站维护'],
+    name: '车协工作区',
+    perPage: 8,
+    stats: { online: 42, replies: 2864, today: 9, topics: 318 },
+  },
+  2: {
+    id: 2,
+    moderators: ['阿北', '小林'],
+    name: '行者足音',
+    perPage: 8,
+    stats: { online: 56, replies: 9832, today: 24, topics: 1324 },
+  },
+  3: {
+    id: 3,
+    moderators: ['灵车漂移', '清风拂山岗', '大橘为重'],
+    name: '车友宝典',
+    perPage: 8,
+    stats: { online: 38, replies: 12846, today: 76, topics: 2341 },
+  },
+  4: {
+    id: 4,
+    moderators: ['小白', '蓝色车架'],
+    name: '纯净水',
+    perPage: 8,
+    stats: { online: 64, replies: 18562, today: 31, topics: 2110 },
+  },
+  5: {
+    id: 5,
+    moderators: ['小林', '阿北'],
+    name: '考察与社会',
+    perPage: 8,
+    stats: { online: 21, replies: 1428, today: 6, topics: 246 },
+  },
+  6: {
+    id: 6,
+    moderators: ['蓝色车架', '小白'],
+    name: '五湖四海',
+    perPage: 8,
+    stats: { online: 29, replies: 3084, today: 7, topics: 412 },
+  },
+  7: {
+    id: 7,
+    moderators: ['阿北', '网站维护'],
+    name: '一技之长',
+    perPage: 8,
+    stats: { online: 33, replies: 2240, today: 8, topics: 368 },
+  },
+  9: {
+    id: 9,
+    moderators: ['小林', '蓝色车架'],
+    name: '竞赛竞技',
+    perPage: 8,
+    stats: { online: 26, replies: 1986, today: 5, topics: 286 },
+  },
+  28: {
+    id: 28,
+    moderators: ['网站维护', '会长团'],
+    name: '网站维护',
+    perPage: 8,
+    stats: { online: 18, replies: 916, today: 4, topics: 154 },
   },
 };
+
+const boardThreadTitlePools: Record<DemoBoardId, string[]> = {
+  1: ['值班表更新', '器材借用记录', '报名数据复核', '社团仓库整理'],
+  2: ['周末路线确认', '夜骑集合提醒', '新人骑行回顾', '补给点同步'],
+  3: ['通勤装备问答', '轮胎选择记录', '刹车调校心得', '雨天维护建议'],
+  4: ['今日骑车碎碎念', '晚霞照片接龙', '临时问答小楼', '校园路况闲聊'],
+  5: ['考察路线纪要', '实践报名确认', '资料记录格式', '观察点整理'],
+  6: ['外地路线咨询', '长途补给复盘', '城市骑行记录', '目的地问答'],
+  7: ['维修技巧记录', '地图工具教程', '摄影机位分享', '训练数据整理'],
+  9: ['间歇训练安排', '比赛报名提醒', '赛后复盘记录', '队伍配速讨论'],
+  28: ['新版反馈收集', '接口联调记录', '页面空态检查', '迁移问题追踪'],
+};
+
+export function isDemoBoardId(boardId: number): boardId is DemoBoardId {
+  return (demoBoardIds as readonly number[]).includes(boardId);
+}
+
+export function getDemoBoard(boardId: DemoBoardId) {
+  return demoBoards[boardId];
+}
 
 export const demoBoardThreads: BoardThreadData[] = [
   {
@@ -156,3 +245,23 @@ export const demoBoardThreads: BoardThreadData[] = [
     views: 775,
   },
 ];
+
+export function getDemoBoardThreads(boardId: DemoBoardId) {
+  if (boardId === 3) return demoBoardThreads;
+
+  const board = getDemoBoard(boardId);
+  const titlePool = boardThreadTitlePools[boardId];
+  if (!board || !titlePool) return [];
+
+  return demoBoardThreads.map((thread, index) => {
+    const title = index === 0
+      ? `${board.name}版规与常用资料索引`
+      : `${titlePool[(index - 1) % titlePool.length]} ${String(index).padStart(3, '0')}`;
+
+    return {
+      ...thread,
+      id: boardId * 1000 + index + 1,
+      title,
+    };
+  });
+}

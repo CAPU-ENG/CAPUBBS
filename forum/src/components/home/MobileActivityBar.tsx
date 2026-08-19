@@ -1,11 +1,19 @@
 import { useEffect, useRef, useState } from 'react';
-import { Bike, CalendarDays, ChevronDown, ChevronRight, Pin } from 'lucide-react';
+import { Bike, CalendarDays, ChevronDown, ChevronRight, LoaderCircle, Pin, RefreshCw } from 'lucide-react';
+import type { HomeThread } from '../../api/home';
+import type { HomeDataStatus } from '../../hooks/useHomeData';
 import { ActivityCalendar, ActivitySignupList } from './HomeAside';
-import { pinnedThreads } from './homeData';
 
 type ExpandedPanel = 'pinned' | 'signup' | 'calendar' | null;
 
-export function MobileActivityBar() {
+type MobileActivityBarProps = {
+  pinnedError: string;
+  pinnedItems: HomeThread[];
+  pinnedStatus: HomeDataStatus;
+  onRetryPinned: () => void;
+};
+
+export function MobileActivityBar({ pinnedError, pinnedItems, pinnedStatus, onRetryPinned }: MobileActivityBarProps) {
   const [expandedPanel, setExpandedPanel] = useState<ExpandedPanel>(null);
   const [hideOffset, setHideOffset] = useState(0);
   const overviewRef = useRef<HTMLElement | null>(null);
@@ -102,16 +110,26 @@ export function MobileActivityBar() {
       {expandedPanel === 'pinned' && (
         <div className="mobile-overview-panel" id="mobile-pinned-panel">
           <ul className="mobile-pinned-list">
-            {pinnedThreads.map((thread, index) => (
-              <li key={thread}>
-                <a href={`#pinned-${index}`}>
-                  {index < 2 && <span>新</span>}
-                  <strong>{thread}</strong>
+            {pinnedItems.map((thread) => (
+              <li key={thread.id}>
+                <a href={thread.href}>
+                  {thread.isRecent && <span>新</span>}
+                  <strong>{thread.title}</strong>
                   <ChevronRight size={14} />
                 </a>
               </li>
             ))}
           </ul>
+          {pinnedStatus === 'loading' && pinnedItems.length === 0 && (
+            <div className="aside-data-state"><LoaderCircle className="animate-spin" size={16} />加载中…</div>
+          )}
+          {pinnedStatus === 'error' && pinnedItems.length === 0 && (
+            <div className="aside-data-state aside-data-error">
+              <span>{pinnedError}</span>
+              <button type="button" onClick={onRetryPinned}><RefreshCw size={13} />重试</button>
+            </div>
+          )}
+          {pinnedStatus === 'ready' && pinnedItems.length === 0 && <p className="aside-data-state">暂无全局置顶</p>}
         </div>
       )}
 

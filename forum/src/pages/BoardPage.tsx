@@ -1,9 +1,14 @@
 import { LockKeyhole, PenLine, Settings2, Sparkles } from 'lucide-react';
-import boardCover from '../assets/board/b3.webp';
 import { AppBackground } from '../components/layout/AppBackground';
 import { Pagination } from '../components/layout/Pagination';
 import { TopBar } from '../components/layout/TopBar';
-import { demoBoard, demoBoardThreads, type BoardThreadData } from '../data/boardDemo';
+import { getBoardCoverImage } from '../data/boardCovers';
+import {
+  getDemoBoard,
+  getDemoBoardThreads,
+  type BoardThreadData,
+  type DemoBoardId,
+} from '../data/boardDemo';
 import { useScrollContextTitle } from '../hooks/useScrollContextTitle';
 import { useMemo, useRef } from 'react';
 
@@ -16,9 +21,9 @@ function getDigestOnly() {
   return new URLSearchParams(window.location.search).get('digest') === '1';
 }
 
-function boardPageHref(page: number, digestOnly: boolean) {
+function boardPageHref(boardId: DemoBoardId, page: number, digestOnly: boolean) {
   const params = new URLSearchParams();
-  params.set('board', String(demoBoard.id));
+  params.set('board', String(boardId));
   if (page > 1) params.set('page', String(page));
   if (digestOnly) params.set('digest', '1');
   return `/?${params.toString()}`;
@@ -89,13 +94,16 @@ function ThreadRow({ thread }: { thread: BoardThreadData }) {
   );
 }
 
-export function BoardPage() {
+export function BoardPage({ boardId }: { boardId: DemoBoardId }) {
   const titleRef = useRef<HTMLHeadingElement | null>(null);
   const digestOnly = getDigestOnly();
   const showTitleInTopBar = useScrollContextTitle(titleRef);
+  const demoBoard = getDemoBoard(boardId);
+  const boardCover = getBoardCoverImage(boardId);
+  const demoBoardThreads = useMemo(() => getDemoBoardThreads(boardId), [boardId]);
   const visibleThreads = useMemo(
     () => digestOnly ? demoBoardThreads.filter((thread) => thread.status?.digest) : demoBoardThreads,
-    [digestOnly],
+    [demoBoardThreads, digestOnly],
   );
   const pinnedThreads = visibleThreads.filter((thread) => thread.status?.pinned);
   const regularThreads = visibleThreads.filter((thread) => !thread.status?.pinned);
@@ -108,7 +116,7 @@ export function BoardPage() {
   const rows = currentPage === 1 ? [...pinnedThreads, ...pageThreads] : pageThreads;
 
   function toggleDigestOnly() {
-    window.location.href = boardPageHref(1, !digestOnly);
+    window.location.href = boardPageHref(boardId, 1, !digestOnly);
   }
 
   return (
@@ -191,7 +199,7 @@ export function BoardPage() {
               ariaLabel="版面分页"
               currentPage={currentPage}
               pageCount={pageCount}
-              pageHref={(page) => boardPageHref(page, digestOnly)}
+              pageHref={(page) => boardPageHref(boardId, page, digestOnly)}
             />
           </footer>
         </section>

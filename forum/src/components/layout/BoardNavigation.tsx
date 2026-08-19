@@ -50,7 +50,7 @@ const otherBoards: SecondaryBoard[] = [
 ];
 
 function boardHref(id: number) {
-  if (id === 3) return '/?board=3';
+  if (primaryBoards.some((board) => board.id === id)) return `/?board=${id}`;
   return `/bbs/index.php?bid=${id}`;
 }
 
