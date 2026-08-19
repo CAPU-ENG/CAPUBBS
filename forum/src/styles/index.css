@@ -1382,16 +1382,27 @@
   .author-hover-card {
     position: absolute;
     z-index: 35;
-    top: -4px;
-    left: calc(100% + 10px);
+    top: calc(100% + 8px);
+    right: -10px;
+    left: auto;
     display: none;
-    width: 280px;
+    width: 260px;
     border: 1px solid var(--line-strong);
     border-radius: 2px;
     padding: 16px;
     background: var(--surface-raised);
     box-shadow: var(--shadow-float);
+    transform-origin: top right;
     animation: local-panel-in 150ms ease both;
+  }
+
+  .author-hover-card::before {
+    position: absolute;
+    right: 0;
+    bottom: 100%;
+    width: 68px;
+    height: 10px;
+    content: "";
   }
 
   .thread-avatar-rail:hover .author-hover-card,
