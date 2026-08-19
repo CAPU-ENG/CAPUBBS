@@ -1,7 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import {
   ExternalLink,
-  Flag,
   Link2,
   MoreHorizontal,
   Pencil,
@@ -44,15 +43,16 @@ function FloorMenu({ floor, onClose }: { floor: ThreadFloorData; onClose: () => 
   return (
     <div className="floor-more-menu" role="menu">
       <button onClick={copyFloorLink} role="menuitem" type="button"><Link2 size={15} />复制楼层链接</button>
-      {floor.isOwn ? (
-        <>
-          <button onClick={onClose} role="menuitem" type="button"><Pencil size={15} />编辑楼层</button>
-          <button className="floor-menu-danger" onClick={onClose} role="menuitem" type="button"><Trash2 size={15} />删除楼层</button>
-        </>
-      ) : (
-        <button onClick={onClose} role="menuitem" type="button"><Flag size={15} />举报</button>
-      )}
+      <button onClick={onClose} role="menuitem" type="button"><Pencil size={15} />编辑楼层</button>
+      <button className="floor-menu-danger" onClick={onClose} role="menuitem" type="button"><Trash2 size={15} />删除楼层</button>
     </div>
+  );
+}
+
+function formatFloorTime(value: string) {
+  return value.replace(
+    /^(\d{4})年(\d{2})月(\d{2})日\s+(\d{2})时(\d{2})分(\d{2})秒$/,
+    '$1-$2-$3 $4:$5:$6',
   );
 }
 
@@ -100,14 +100,18 @@ export function ThreadFloor({
         <header className="thread-floor-header">
           <div className="thread-floor-author">
             <a href={`#author-${encodeURIComponent(floor.author.name)}`}>{floor.author.name}</a>
-            <span>{floor.author.role}</span>
             {isMainPost && <em>楼主</em>}
           </div>
           <div className="thread-floor-time">
-            <time>发布于 {floor.publishedAt}</time>
-            {floor.editedAt && <time>最后编辑于 {floor.editedAt}</time>}
-            <a href={`#floor-${floor.floor}`}>#{floor.floor}</a>
+            <time>{formatFloorTime(floor.publishedAt)}</time>
+            {floor.editedAt && (
+              <>
+                <span>·</span>
+                <time>编辑于 {formatFloorTime(floor.editedAt)}</time>
+              </>
+            )}
           </div>
+          <a className="thread-floor-index" href={`#floor-${floor.floor}`}>#{floor.floor}</a>
         </header>
 
         <div className="thread-floor-body">
@@ -120,13 +124,13 @@ export function ThreadFloor({
               <article key={reply.id}>
                 <img src={reply.author.avatar} alt="" />
                 <div>
-                  <div className="nested-reply-meta">
-                    <strong>{reply.author.name}</strong>
-                    <time>{reply.publishedAt}</time>
-                  </div>
+                  <strong className="nested-reply-author">{reply.author.name}</strong>
                   <p>{reply.content}</p>
+                  <footer className="nested-reply-footer">
+                    <time>{formatFloorTime(reply.publishedAt)}</time>
+                    <button onClick={() => onReply(floor, reply.author.name)} type="button">回复</button>
+                  </footer>
                 </div>
-                <button onClick={() => onReply(floor, reply.author.name)} type="button">回复</button>
               </article>
             ))}
           </section>
@@ -134,7 +138,6 @@ export function ThreadFloor({
 
         {floor.signature && (
           <footer className="thread-signature">
-            <span>签名档</span>
             <p>{floor.signature}</p>
           </footer>
         )}
@@ -142,19 +145,21 @@ export function ThreadFloor({
         <div className="thread-floor-actions">
           <button onClick={() => onQuote(floor)} type="button"><Quote size={15} />引用</button>
           <button onClick={() => onReply(floor)} type="button"><Reply size={15} />回复</button>
-          <div className="relative" ref={menuRef}>
-            <button
-              aria-expanded={menuOpen}
-              aria-haspopup="menu"
-              aria-label={`${floor.floor} 楼更多操作`}
-              className="thread-more-button"
-              onClick={() => setMenuOpen((open) => !open)}
-              type="button"
-            >
-              <MoreHorizontal size={18} />
-            </button>
-            {menuOpen && <FloorMenu floor={floor} onClose={() => setMenuOpen(false)} />}
-          </div>
+          {floor.isOwn && (
+            <div className="relative" ref={menuRef}>
+              <button
+                aria-expanded={menuOpen}
+                aria-haspopup="menu"
+                aria-label={`${floor.floor} 楼更多操作`}
+                className="thread-more-button"
+                onClick={() => setMenuOpen((open) => !open)}
+                type="button"
+              >
+                <MoreHorizontal size={18} />
+              </button>
+              {menuOpen && <FloorMenu floor={floor} onClose={() => setMenuOpen(false)} />}
+            </div>
+          )}
         </div>
       </div>
     </article>

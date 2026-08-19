@@ -1200,9 +1200,19 @@
     gap: 5px;
   }
 
-  .thread-title-meta > button {
-    min-height: 32px;
+  .thread-title-actions {
+    display: flex;
+    align-items: center;
+    gap: 7px;
     margin-left: auto;
+  }
+
+  .thread-title-actions > button {
+    display: inline-flex;
+    min-height: 32px;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
     border: 1px solid var(--line);
     border-radius: var(--control-radius);
     padding: 0 12px;
@@ -1212,8 +1222,8 @@
     transition: 140ms ease;
   }
 
-  .thread-title-meta > button:hover,
-  .thread-title-meta > .author-only-active {
+  .thread-title-actions > button:hover,
+  .thread-title-actions > .thread-title-action-active {
     border-color: color-mix(in srgb, var(--brand) 45%, var(--line));
     background: var(--brand-soft);
     color: var(--brand-strong);
@@ -1378,13 +1388,13 @@
   }
 
   .thread-floor-header {
-    display: flex;
-    min-height: 48px;
-    align-items: flex-start;
-    justify-content: space-between;
-    gap: 16px;
+    display: grid;
+    min-height: 38px;
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 12px;
     border-bottom: 1px solid var(--line);
-    padding-bottom: 12px;
+    padding-bottom: 10px;
   }
 
   .thread-floor-author {
@@ -1400,7 +1410,6 @@
     font-weight: 760;
   }
 
-  .thread-floor-author > span,
   .thread-floor-author > em {
     border: 1px solid var(--line);
     border-radius: var(--control-radius);
@@ -1419,24 +1428,25 @@
 
   .thread-floor-time {
     display: flex;
-    flex-shrink: 0;
-    flex-direction: column;
-    align-items: flex-end;
-    gap: 3px;
+    min-width: 0;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 5px;
     color: var(--text-faint);
     font-size: 0.6rem;
     font-variant-numeric: tabular-nums;
+    white-space: nowrap;
   }
 
-  .thread-floor-time > a {
-    margin-top: 2px;
+  .thread-floor-index {
     color: var(--brand-strong);
     font-size: 0.68rem;
     font-weight: 760;
   }
 
   .thread-floor-body {
-    max-width: 760px;
+    width: 100%;
+    max-width: none;
     padding: 18px 0 8px;
     color: var(--text);
     font-size: 0.98rem;
@@ -1456,7 +1466,7 @@
 
   .nested-replies > article {
     display: grid;
-    grid-template-columns: 28px minmax(0, 1fr) auto;
+    grid-template-columns: 28px minmax(0, 1fr);
     gap: 9px;
     padding: 11px 12px;
   }
@@ -1473,32 +1483,33 @@
     object-fit: cover;
   }
 
-  .nested-reply-meta {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: baseline;
-    gap: 6px;
-  }
-
-  .nested-reply-meta strong {
+  .nested-reply-author {
     color: var(--text-strong);
     font-size: 0.7rem;
   }
 
-  .nested-reply-meta time {
-    color: var(--text-faint);
-    font-size: 0.58rem;
-  }
-
   .nested-replies p {
-    margin-top: 3px;
+    margin-top: 5px;
     color: var(--text-muted);
     font-size: 0.75rem;
     line-height: 1.55;
   }
 
-  .nested-replies > article > button {
-    align-self: end;
+  .nested-reply-footer {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 10px;
+    margin-top: 7px;
+  }
+
+  .nested-reply-footer time {
+    color: var(--text-faint);
+    font-size: 0.58rem;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .nested-reply-footer button {
     color: var(--brand-strong);
     font-size: 0.64rem;
     font-weight: 720;
@@ -1510,15 +1521,7 @@
     padding-top: 10px;
   }
 
-  .thread-signature > span {
-    color: var(--text-faint);
-    font-size: 0.56rem;
-    font-weight: 780;
-    letter-spacing: 0.15em;
-  }
-
   .thread-signature > p {
-    margin-top: 5px;
     color: var(--text-faint);
     font-family: "Noto Serif CJK SC", "Source Han Serif SC", "Songti SC", serif;
     font-size: 0.72rem;
@@ -2136,7 +2139,11 @@
       margin-top: 12px;
     }
 
-    .thread-title-meta > button {
+    .thread-title-actions {
+      margin-left: auto;
+    }
+
+    .thread-title-actions > button {
       min-height: 36px;
     }
 
@@ -2177,29 +2184,30 @@
     }
 
     .thread-floor-header {
-      display: block;
-      min-height: 70px;
+      display: grid;
+      min-height: 44px;
+      grid-template-columns: auto minmax(0, 1fr) auto;
+      gap: 7px;
       padding-bottom: 10px;
       padding-left: 44px;
     }
 
     .thread-floor-author {
-      min-height: 34px;
+      min-height: 0;
+      flex-wrap: nowrap;
     }
 
     .thread-floor-time {
-      position: relative;
-      align-items: flex-start;
-      gap: 2px;
-      margin-top: 5px;
-      font-size: 0.57rem;
+      justify-content: flex-start;
+      gap: 4px;
+      overflow-x: auto;
+      font-size: 0.52rem;
       line-height: 1.45;
+      scrollbar-width: none;
     }
 
-    .thread-floor-time > a {
-      position: absolute;
-      right: 0;
-      bottom: 0;
+    .thread-floor-time::-webkit-scrollbar {
+      display: none;
     }
 
     .thread-floor-body {
@@ -2218,18 +2226,8 @@
       height: 24px;
     }
 
-    .nested-replies > article > button {
-      grid-column: 2;
-      justify-self: end;
-    }
-
-    .nested-reply-meta {
-      display: block;
-    }
-
-    .nested-reply-meta time {
-      display: block;
-      margin-top: 2px;
+    .nested-reply-footer {
+      justify-content: space-between;
     }
 
     .thread-signature {

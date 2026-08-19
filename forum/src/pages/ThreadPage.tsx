@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { Eye, MessageCircle } from 'lucide-react';
+import { Bookmark, BookmarkCheck, Eye, MessageCircle } from 'lucide-react';
 import { ReplyEditor, type ReplyTarget } from '../components/thread/ReplyEditor';
 import { ThreadFloor } from '../components/thread/ThreadFloor';
 import { FloorNodes, MobileFloorNode, ThreadPagination } from '../components/thread/ThreadNavigation';
@@ -19,6 +19,9 @@ function getAuthorOnly() {
 export function ThreadPage() {
   const [replyTarget, setReplyTarget] = useState<ReplyTarget | null>(null);
   const [activeFloor, setActiveFloor] = useState(1);
+  const [bookmarked, setBookmarked] = useState(
+    () => window.localStorage.getItem(`capubbs-bookmark-${demoThread.id}`) === '1',
+  );
   const editorRef = useRef<HTMLElement | null>(null);
   const authorOnly = getAuthorOnly();
 
@@ -88,6 +91,14 @@ export function ThreadPage() {
     window.location.href = `/?${params.toString()}`;
   }
 
+  function toggleBookmark() {
+    setBookmarked((current) => {
+      const next = !current;
+      window.localStorage.setItem(`capubbs-bookmark-${demoThread.id}`, next ? '1' : '0');
+      return next;
+    });
+  }
+
   const nodeFloors = pageFloors.map((floor) => ({ floor: floor.floor, author: floor.author.name }));
 
   return (
@@ -116,14 +127,25 @@ export function ThreadPage() {
           <div className="thread-title-meta">
             <span><MessageCircle size={15} />{demoThread.floors.length - 1} 条回复</span>
             <span><Eye size={16} />{demoThread.views} 次浏览</span>
-            <button
-              aria-pressed={authorOnly}
-              className={authorOnly ? 'author-only-active' : ''}
-              onClick={toggleAuthorOnly}
-              type="button"
-            >
-              {authorOnly ? '查看全部' : '只看楼主'}
-            </button>
+            <div className="thread-title-actions">
+              <button
+                aria-pressed={authorOnly}
+                className={authorOnly ? 'thread-title-action-active' : ''}
+                onClick={toggleAuthorOnly}
+                type="button"
+              >
+                {authorOnly ? '查看全部' : '只看楼主'}
+              </button>
+              <button
+                aria-pressed={bookmarked}
+                className={bookmarked ? 'thread-title-action-active' : ''}
+                onClick={toggleBookmark}
+                type="button"
+              >
+                {bookmarked ? <BookmarkCheck size={14} /> : <Bookmark size={14} />}
+                {bookmarked ? '取消收藏' : '收藏'}
+              </button>
+            </div>
           </div>
         </header>
 
