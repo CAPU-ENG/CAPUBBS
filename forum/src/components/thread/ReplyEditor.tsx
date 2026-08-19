@@ -34,7 +34,6 @@ const signatureOptions = [
   { label: "签名档 1", value: 1 },
   { label: "签名档 2", value: 2 },
   { label: "签名档 3", value: 3 },
-  { label: "自选", value: 4 },
 ] as const;
 
 export function ReplyEditor({
