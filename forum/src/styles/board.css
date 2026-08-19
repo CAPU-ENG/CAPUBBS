@@ -175,6 +175,12 @@
     color: var(--brand-strong);
   }
 
+  .board-management-action-active {
+    border-color: var(--brand-strong);
+    background: var(--brand-strong);
+    color: var(--surface-raised);
+  }
+
   .board-primary-action:hover {
     background: color-mix(in srgb, var(--brand-strong) 88%, black);
   }
@@ -240,6 +246,23 @@
     box-shadow: var(--shadow-card);
   }
 
+  .board-management-feedback {
+    border-bottom: 1px solid var(--line);
+    padding: 9px 15px;
+    font-size: 0.68rem;
+    font-weight: 650;
+  }
+
+  .board-management-feedback-success {
+    background: var(--brand-faint);
+    color: var(--brand-strong);
+  }
+
+  .board-management-feedback-error {
+    background: color-mix(in srgb, #c84d4d 9%, var(--surface));
+    color: #ad3434;
+  }
+
   .board-thread-table-wrap {
     overflow-x: auto;
   }
@@ -249,6 +272,10 @@
     min-width: 850px;
     border-collapse: collapse;
     table-layout: fixed;
+  }
+
+  .board-thread-table-managing {
+    min-width: 1080px;
   }
 
   .board-thread-title-column {
@@ -265,6 +292,10 @@
 
   .board-thread-count-column {
     width: 92px;
+  }
+
+  .board-thread-management-column {
+    width: 244px;
   }
 
   .board-thread-table thead {
@@ -403,6 +434,45 @@
     margin-inline: 3px;
     color: var(--text-faint);
     font-style: normal;
+  }
+
+  .board-thread-management-cell {
+    padding-inline: 10px !important;
+  }
+
+  .board-thread-management-actions {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+  }
+
+  .board-thread-management-actions button {
+    height: 26px;
+    border: 1px solid var(--line-strong);
+    border-radius: var(--control-radius);
+    padding: 0 7px;
+    background: var(--surface-raised);
+    color: var(--text-muted);
+    font-size: 0.58rem;
+    font-weight: 700;
+    white-space: nowrap;
+    transition: 120ms ease;
+  }
+
+  .board-thread-management-actions button:hover:not(:disabled) {
+    border-color: var(--brand);
+    color: var(--brand-strong);
+  }
+
+  .board-thread-management-actions button:disabled {
+    cursor: wait;
+    opacity: 0.5;
+  }
+
+  .board-thread-management-actions .board-thread-management-danger {
+    border-color: color-mix(in srgb, #c84d4d 36%, var(--line));
+    color: #b43b3b;
   }
 
   .board-pagination-footer {
@@ -597,6 +667,22 @@
 
     .board-thread-time time > span {
       display: block;
+    }
+
+    .board-thread-management-cell {
+      grid-column: 1 / -1;
+      border-top: 1px solid color-mix(in srgb, var(--line) 75%, transparent) !important;
+      padding: 8px 6px 9px !important;
+    }
+
+    .board-thread-management-actions {
+      justify-content: flex-start;
+      flex-wrap: wrap;
+    }
+
+    .board-thread-management-actions button {
+      height: 28px;
+      font-size: 0.6rem;
     }
 
     .board-pagination-footer {

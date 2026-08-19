@@ -13,6 +13,7 @@ type ApiRow = Record<string, unknown>;
 
 export type SessionViewer = {
   avatar: string;
+  rights: number;
   unreadMessages: number;
   username: string;
 };
@@ -63,6 +64,7 @@ export async function loginSession(username: string, passwordHash: string) {
 
   return {
     avatar: '',
+    rights: 0,
     unreadMessages: 0,
     username: stringValue(loginRow?.username) || username,
   };
@@ -114,6 +116,7 @@ function mapViewer(row: ApiRow): SessionViewer | null {
 
   return {
     avatar: normalizeLegacyAvatar(row.icon),
+    rights: toNumber(row.rights),
     unreadMessages: toNumber(row.newmsg),
     username,
   };

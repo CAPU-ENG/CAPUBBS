@@ -3,10 +3,15 @@ import { AppBackground } from '../components/layout/AppBackground';
 import { Pagination } from '../components/layout/Pagination';
 import { TopBar } from '../components/layout/TopBar';
 import { getBoardCoverImage } from '../data/boardCovers';
-import type { BoardThreadData } from '../api/board';
+import {
+  manageBoardThread,
+  type BoardThreadAction,
+  type BoardThreadData,
+} from '../api/board';
+import { useAuth } from '../context/AuthContext';
 import { useBoardData } from '../hooks/useBoardData';
 import { useScrollContextTitle } from '../hooks/useScrollContextTitle';
-import { useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
 function getRequestedPage() {
   const params = new URLSearchParams(window.location.search);
@@ -69,7 +74,57 @@ function TrailingThreadStatuses({ thread }: { thread: BoardThreadData }) {
   );
 }
 
-function ThreadRow({ thread }: { thread: BoardThreadData }) {
+function ThreadManagementActions({
+  busyAction,
+  onAction,
+  thread,
+}: {
+  busyAction: string | null;
+  onAction: (thread: BoardThreadData, action: BoardThreadAction) => void;
+  thread: BoardThreadData;
+}) {
+  const actions: Array<{ action: BoardThreadAction; danger?: boolean; label: string }> = [
+    { action: 'extr', label: thread.status.digest ? '取消加精' : '加精' },
+    { action: 'top', label: thread.status.top ? '取消置顶' : '置顶' },
+    { action: 'lock', label: thread.status.locked ? '解锁' : '锁定' },
+    { action: 'delete', danger: true, label: '删除' },
+  ];
+
+  return (
+    <td className="board-thread-management-cell">
+      <div className="board-thread-management-actions">
+        {actions.map(({ action, danger, label }) => {
+          const actionKey = `${thread.id}-${action}`;
+          const pending = busyAction === actionKey;
+          return (
+            <button
+              aria-label={`${label}主题：${thread.title}`}
+              className={danger ? 'board-thread-management-danger' : undefined}
+              disabled={busyAction !== null}
+              key={action}
+              onClick={() => onAction(thread, action)}
+              type="button"
+            >
+              {pending ? '处理中' : label}
+            </button>
+          );
+        })}
+      </div>
+    </td>
+  );
+}
+
+function ThreadRow({
+  busyAction,
+  managementMode,
+  onManage,
+  thread,
+}: {
+  busyAction: string | null;
+  managementMode: boolean;
+  onManage: (thread: BoardThreadData, action: BoardThreadAction) => void;
+  thread: BoardThreadData;
+}) {
   return (
     <tr className="board-thread-row">
       <td className="board-thread-title-cell">
@@ -92,6 +147,9 @@ function ThreadRow({ thread }: { thread: BoardThreadData }) {
         <i aria-hidden="true">/</i>
         <span>{thread.views}</span>
       </td>
+      {managementMode ? (
+        <ThreadManagementActions busyAction={busyAction} onAction={onManage} thread={thread} />
+      ) : null}
     </tr>
   );
 }
@@ -101,11 +159,58 @@ export function BoardPage({ boardId }: { boardId: number }) {
   const digestOnly = getDigestOnly();
   const requestedPage = getRequestedPage();
   const { data, error, retry, status } = useBoardData(boardId, requestedPage, digestOnly);
+  const { status: authStatus, viewer } = useAuth();
+  const [managementMode, setManagementMode] = useState(false);
+  const [busyAction, setBusyAction] = useState<string | null>(null);
+  const [managementFeedback, setManagementFeedback] = useState<{
+    kind: 'error' | 'success';
+    text: string;
+  } | null>(null);
   const showTitleInTopBar = useScrollContextTitle(titleRef);
   const boardCover = getBoardCoverImage(boardId);
+  const canManage = Boolean(
+    data
+    && authStatus === 'authenticated'
+    && viewer
+    && (viewer.rights >= 3 || data.board.moderators.includes(viewer.username)),
+  );
+
+  useEffect(() => {
+    if (!canManage) setManagementMode(false);
+  }, [canManage]);
 
   function toggleDigestOnly() {
     window.location.href = boardPageHref(boardId, 1, !digestOnly);
+  }
+
+  async function handleThreadAction(thread: BoardThreadData, action: BoardThreadAction) {
+    if (!canManage || busyAction) return;
+    if (action === 'delete' && !window.confirm(`确定删除主题“${thread.title}”吗？删除后可在回收站恢复。`)) {
+      return;
+    }
+
+    const actionKey = `${thread.id}-${action}`;
+    const actionLabel = {
+      delete: '删除',
+      extr: thread.status.digest ? '取消加精' : '加精',
+      lock: thread.status.locked ? '解锁' : '锁定',
+      top: thread.status.top ? '取消置顶' : '置顶',
+    }[action];
+
+    setBusyAction(actionKey);
+    setManagementFeedback(null);
+    try {
+      await manageBoardThread(boardId, thread.id, action);
+      setManagementFeedback({ kind: 'success', text: `“${thread.title}”已${actionLabel}。` });
+      retry();
+    } catch (actionError) {
+      setManagementFeedback({
+        kind: 'error',
+        text: actionError instanceof Error ? actionError.message : '管理操作失败，请稍后重试。',
+      });
+    } finally {
+      setBusyAction(null);
+    }
   }
 
   if (!data) {
@@ -178,9 +283,19 @@ export function BoardPage({ boardId }: { boardId: number }) {
                 >
                   <Sparkles size={15} />{digestOnly ? '取消筛选' : '只看精品'}
                 </button>
-                <a className="board-secondary-action" href={`/bbs/manage/?bid=${board.id}`}>
-                  <Settings2 size={15} />管理版面
-                </a>
+                {canManage ? (
+                  <button
+                    aria-pressed={managementMode}
+                    className={`board-secondary-action ${managementMode ? 'board-management-action-active' : ''}`}
+                    onClick={() => {
+                      setManagementMode((current) => !current);
+                      setManagementFeedback(null);
+                    }}
+                    type="button"
+                  >
+                    <Settings2 size={15} />{managementMode ? '退出管理' : '管理版面'}
+                  </button>
+                ) : null}
                 <a className="board-primary-action" href={`/bbs/post/?bid=${board.id}`}>
                   <PenLine size={15} />发表主题
                 </a>
@@ -190,13 +305,22 @@ export function BoardPage({ boardId }: { boardId: number }) {
         </header>
 
         <section className="board-thread-section" aria-label="主题列表">
+          {managementMode && managementFeedback ? (
+            <div
+              className={`board-management-feedback board-management-feedback-${managementFeedback.kind}`}
+              role={managementFeedback.kind === 'error' ? 'alert' : 'status'}
+            >
+              {managementFeedback.text}
+            </div>
+          ) : null}
           <div className="board-thread-table-wrap">
-            <table className="board-thread-table">
+            <table className={`board-thread-table ${managementMode ? 'board-thread-table-managing' : ''}`}>
               <colgroup>
                 <col className="board-thread-title-column" />
                 <col className="board-thread-author-column" />
                 <col className="board-thread-last-column" />
                 <col className="board-thread-count-column" />
+                {managementMode ? <col className="board-thread-management-column" /> : null}
               </colgroup>
               <thead>
                 <tr>
@@ -204,10 +328,19 @@ export function BoardPage({ boardId }: { boardId: number }) {
                   <th scope="col">作者</th>
                   <th scope="col">最后回复</th>
                   <th scope="col">回复/浏览</th>
+                  {managementMode ? <th scope="col">管理</th> : null}
                 </tr>
               </thead>
               <tbody>
-                {threads.map((thread) => <ThreadRow key={thread.id} thread={thread} />)}
+                {threads.map((thread) => (
+                  <ThreadRow
+                    busyAction={busyAction}
+                    key={thread.id}
+                    managementMode={managementMode}
+                    onManage={handleThreadAction}
+                    thread={thread}
+                  />
+                ))}
               </tbody>
             </table>
             {threads.length === 0 ? (

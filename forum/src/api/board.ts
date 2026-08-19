@@ -2,6 +2,8 @@ const BOARD_API_URL = import.meta.env.VITE_API_URL?.trim() || '/api/api.php';
 
 export const BOARD_THREADS_PER_PAGE = 25;
 
+export type BoardThreadAction = 'delete' | 'extr' | 'lock' | 'top';
+
 type ApiEnvelope = {
   code: number;
   data?: unknown;
@@ -34,6 +36,7 @@ export type BoardThreadData = {
     digest: boolean;
     locked: boolean;
     pinned: boolean;
+    top: boolean;
   };
   title: string;
   views: number;
@@ -51,6 +54,21 @@ export class BoardApiError extends Error {
     super(message);
     this.name = 'BoardApiError';
   }
+}
+
+export async function manageBoardThread(
+  boardId: number,
+  threadId: number,
+  action: BoardThreadAction,
+) {
+  const params: Record<string, string | number> = {
+    ask: action,
+    bid: boardId,
+    tid: threadId,
+  };
+
+  if (action === 'delete') params.pid = 0;
+  await requestRows(params);
 }
 
 export async function fetchBoardPage(
@@ -171,6 +189,7 @@ function mapThreadRow(row: ApiRow, boardId: number): BoardThreadData | null {
   if (bid !== boardId || id <= 0 || !title) return null;
 
   const author = plainText(row.author) || '匿名用户';
+  const top = toNumber(row.top) > 0;
 
   return {
     author,
@@ -183,7 +202,8 @@ function mapThreadRow(row: ApiRow, boardId: number): BoardThreadData | null {
     status: {
       digest: toNumber(row.extr) > 0,
       locked: toNumber(row.locked) > 0,
-      pinned: toNumber(row.top) > 0 || toNumber(row.global_top) > 0,
+      pinned: top || toNumber(row.global_top) > 0,
+      top,
     },
     title,
     views: toNumber(row.click),
