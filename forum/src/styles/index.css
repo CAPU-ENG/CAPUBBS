@@ -2711,7 +2711,7 @@
 
   .board-title-card {
     position: relative;
-    min-height: 254px;
+    min-height: 204px;
     overflow: hidden;
     border: 1px solid var(--line);
     border-radius: 2px;
@@ -2750,11 +2750,11 @@
 
   .board-title-content {
     display: grid;
-    min-height: 252px;
-    grid-template-columns: minmax(0, 1fr) 396px;
+    min-height: 202px;
+    grid-template-columns: minmax(0, 1fr) 344px;
     align-items: center;
-    gap: 44px;
-    padding: 32px 36px;
+    gap: 36px;
+    padding: 26px 32px;
   }
 
   .board-title-copy {
@@ -2762,7 +2762,6 @@
   }
 
   .board-title-copy h1 {
-    margin-top: 9px;
     color: var(--text-strong);
     font-family: "Noto Serif CJK SC", "Source Han Serif SC", "Songti SC", serif;
     font-size: clamp(1.85rem, 3.3vw, 2.75rem);
@@ -2771,20 +2770,12 @@
     line-height: 1.13;
   }
 
-  .board-title-copy > p:not(.eyebrow) {
-    max-width: 570px;
-    margin-top: 14px;
-    color: var(--text-muted);
-    font-size: 0.86rem;
-    line-height: 1.85;
-  }
-
   .board-moderators {
     display: flex;
     flex-wrap: wrap;
     align-items: center;
     gap: 7px;
-    margin-top: 20px;
+    margin-top: 16px;
     font-size: 0.68rem;
   }
 
@@ -2814,7 +2805,7 @@
 
   .board-stat-grid > div {
     min-width: 0;
-    padding: 15px 7px 14px;
+    padding: 9px 5px 8px;
     text-align: center;
   }
 
@@ -2824,17 +2815,17 @@
 
   .board-stat-grid dt {
     color: var(--text-faint);
-    font-size: 0.62rem;
+    font-size: 0.56rem;
     font-weight: 680;
     letter-spacing: 0.08em;
   }
 
   .board-stat-grid dd {
     overflow: hidden;
-    margin-top: 5px;
+    margin-top: 3px;
     color: var(--text-strong);
     font-family: ui-monospace, "SFMono-Regular", Consolas, monospace;
-    font-size: 0.94rem;
+    font-size: 0.8rem;
     font-weight: 760;
     text-overflow: ellipsis;
   }
@@ -2843,13 +2834,13 @@
     display: flex;
     justify-content: flex-end;
     gap: 8px;
-    margin-top: 14px;
+    margin-top: 10px;
   }
 
   .board-primary-action,
   .board-secondary-action {
     display: inline-flex;
-    height: 36px;
+    height: 34px;
     align-items: center;
     justify-content: center;
     gap: 6px;
@@ -2893,12 +2884,12 @@
 
   .board-thread-toolbar {
     display: flex;
-    min-height: 72px;
+    min-height: 62px;
     align-items: center;
     justify-content: space-between;
     gap: 18px;
     border-bottom: 1px solid var(--line);
-    padding: 14px 18px;
+    padding: 11px 16px;
   }
 
   .board-thread-toolbar h2 {
@@ -2927,45 +2918,23 @@
   }
 
   .board-digest-filter input {
-    position: absolute;
-    width: 1px;
-    height: 1px;
-    opacity: 0;
-  }
-
-  .board-digest-filter > span {
-    position: relative;
-    width: 28px;
-    height: 16px;
+    width: 14px;
+    height: 14px;
+    appearance: none;
     border: 1px solid var(--line-strong);
-    border-radius: 999px;
-    background: var(--surface-soft);
+    border-radius: var(--control-radius);
+    background: var(--surface-raised);
+    cursor: pointer;
     transition: 140ms ease;
   }
 
-  .board-digest-filter > span::after {
-    position: absolute;
-    top: 2px;
-    left: 2px;
-    width: 10px;
-    height: 10px;
-    border-radius: 50%;
-    background: var(--text-faint);
-    content: "";
-    transition: 140ms ease;
-  }
-
-  .board-digest-filter input:checked + span {
+  .board-digest-filter input:checked {
     border-color: var(--brand);
-    background: var(--brand-soft);
+    background-color: var(--brand-strong);
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath fill='none' stroke='white' stroke-linecap='square' stroke-linejoin='miter' stroke-width='2' d='m3.5 8 3 3 6-7'/%3E%3C/svg%3E");
   }
 
-  .board-digest-filter input:checked + span::after {
-    background: var(--brand-strong);
-    transform: translateX(12px);
-  }
-
-  .board-digest-filter input:focus-visible + span {
+  .board-digest-filter input:focus-visible {
     outline: 2px solid color-mix(in srgb, var(--brand) 55%, transparent);
     outline-offset: 2px;
   }
@@ -3002,13 +2971,13 @@
   }
 
   .board-thread-table th {
-    height: 48px;
+    height: 42px;
     border-bottom: 1px solid var(--line);
     padding: 0 15px;
     color: var(--text-muted);
     font-size: 0.67rem;
     font-weight: 720;
-    text-align: left;
+    text-align: center;
   }
 
   .board-thread-table th > span,
@@ -3023,10 +2992,6 @@
     font-weight: 560;
   }
 
-  .board-thread-table th:last-child {
-    text-align: right;
-  }
-
   .board-thread-row {
     transition: background-color 140ms ease;
   }
@@ -3036,9 +3001,9 @@
   }
 
   .board-thread-row td {
-    height: 78px;
+    height: 62px;
     border-bottom: 1px solid var(--line);
-    padding: 13px 15px;
+    padding: 9px 15px;
     vertical-align: middle;
   }
 
@@ -3112,6 +3077,7 @@
     font-size: 0.68rem;
     font-weight: 700;
     text-overflow: ellipsis;
+    text-align: center;
     white-space: nowrap;
   }
 
@@ -3121,7 +3087,7 @@
 
   .board-thread-time {
     display: block;
-    margin-top: 5px;
+    margin-top: 3px;
     color: var(--text-faint);
     font-family: ui-monospace, "SFMono-Regular", Consolas, monospace;
     font-size: 0.55rem;
@@ -3134,20 +3100,23 @@
 
   .board-thread-time time {
     display: flex;
+    justify-content: center;
     gap: 4px;
   }
 
   .board-thread-counts {
     color: var(--text-faint);
     font-family: ui-monospace, "SFMono-Regular", Consolas, monospace;
-    font-size: 0.61rem;
-    text-align: right;
+    font-size: 0.64rem;
+    font-weight: 680;
+    text-align: center;
     white-space: nowrap;
   }
 
-  .board-thread-counts strong {
-    color: var(--text-muted);
-    font-size: 0.72rem;
+  .board-thread-counts i {
+    margin-inline: 3px;
+    color: var(--text-faint);
+    font-style: normal;
   }
 
   .board-pagination-footer {
@@ -3227,9 +3196,9 @@
     }
 
     .board-title-content {
-      grid-template-columns: minmax(0, 1fr) 330px;
+      grid-template-columns: minmax(0, 1fr) 312px;
       gap: 26px;
-      padding: 28px;
+      padding: 24px 28px;
     }
 
     .thread-content-layout {
@@ -3361,18 +3330,11 @@
     .board-title-content {
       display: block;
       min-height: 0;
-      padding: 22px 18px 18px;
+      padding: 20px 18px 16px;
     }
 
     .board-title-copy h1 {
-      margin-top: 7px;
       font-size: 1.65rem;
-    }
-
-    .board-title-copy > p:not(.eyebrow) {
-      margin-top: 10px;
-      font-size: 0.76rem;
-      line-height: 1.7;
     }
 
     .board-moderators {
@@ -3382,11 +3344,11 @@
     }
 
     .board-title-side {
-      margin-top: 20px;
+      margin-top: 16px;
     }
 
     .board-stat-grid > div {
-      padding: 11px 4px 10px;
+      padding: 8px 4px 7px;
     }
 
     .board-stat-grid dt {
@@ -3414,8 +3376,8 @@
     }
 
     .board-thread-toolbar {
-      min-height: 64px;
-      padding: 12px 13px;
+      min-height: 58px;
+      padding: 10px 13px;
     }
 
     .board-thread-table-wrap {
@@ -3447,7 +3409,7 @@
       display: block;
       height: auto;
       border-bottom: 0;
-      padding: 11px 6px 13px;
+      padding: 9px 6px 10px;
     }
 
     .board-thread-row + .board-thread-row {
@@ -3456,7 +3418,7 @@
 
     .board-thread-title-cell {
       grid-column: 1 / -1;
-      padding-top: 14px !important;
+      padding-top: 11px !important;
       padding-right: 66px !important;
       padding-bottom: 8px !important;
     }
@@ -3481,14 +3443,12 @@
 
     .board-thread-counts {
       position: absolute;
-      top: 15px;
+      top: 12px;
       right: 15px;
       padding: 0 !important;
-      font-size: 0.55rem;
-    }
-
-    .board-thread-counts strong {
-      font-size: 0.66rem;
+      width: 54px;
+      font-size: 0.56rem;
+      text-align: center;
     }
 
     .board-thread-author-cell,

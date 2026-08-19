@@ -16,7 +16,6 @@ export type BoardThreadData = {
 };
 
 export const demoBoard = {
-  description: '汇集骑行经验、装备选择、车辆维护与新手入门，让每一段路都有迹可循。',
   id: 3,
   moderators: ['灵车漂移', '清风拂山岗', '大橘为重'],
   name: '车友宝典',

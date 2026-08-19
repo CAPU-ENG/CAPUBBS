@@ -76,8 +76,9 @@ function ThreadRow({ thread }: { thread: BoardThreadData }) {
         <ExactTime label="最后回复时间" value={thread.lastReplyAt} />
       </td>
       <td className="board-thread-counts">
-        <strong>{thread.replies}</strong>
-        <span>/ {thread.views}</span>
+        <span>{thread.replies}</span>
+        <i aria-hidden="true">-</i>
+        <span>{thread.views}</span>
       </td>
     </tr>
   );
@@ -120,9 +121,7 @@ export function BoardPage() {
           <div className="board-title-overlay" />
           <div className="board-title-content">
             <div className="board-title-copy">
-              <p className="eyebrow">BOARD · 03</p>
               <h1 id="board-title" ref={titleRef}>{demoBoard.name}</h1>
-              <p>{demoBoard.description}</p>
               <div className="board-moderators">
                 <span>版主</span>
                 {demoBoard.moderators.map((moderator) => (
@@ -140,7 +139,7 @@ export function BoardPage() {
               </dl>
               <div className="board-title-actions">
                 <a className="board-secondary-action" href={`/bbs/manage/?bid=${demoBoard.id}`}>
-                  <Settings2 size={15} />管理
+                  <Settings2 size={15} />管理版面
                 </a>
                 <a className="board-primary-action" href={`/bbs/post/?bid=${demoBoard.id}`}>
                   <PenLine size={15} />发表主题
@@ -158,7 +157,6 @@ export function BoardPage() {
             </div>
             <label className="board-digest-filter">
               <input checked={digestOnly} onChange={toggleDigestOnly} type="checkbox" />
-              <span aria-hidden="true" />
               只看精品
             </label>
           </div>
@@ -176,7 +174,7 @@ export function BoardPage() {
                   <th scope="col">主题</th>
                   <th scope="col"><span>作者</span><small>发布时间</small></th>
                   <th scope="col"><span>最后回复</span><small>最后回复时间</small></th>
-                  <th scope="col"><span>回复</span><small>浏览</small></th>
+                  <th scope="col">回复-浏览</th>
                 </tr>
               </thead>
               <tbody>
