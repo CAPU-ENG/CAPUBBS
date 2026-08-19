@@ -1,16 +1,13 @@
-import { LockKeyhole, PenLine, Settings2, Sparkles } from 'lucide-react';
+import { LoaderCircle, LockKeyhole, PenLine, RefreshCw, Settings2, Sparkles } from 'lucide-react';
 import { AppBackground } from '../components/layout/AppBackground';
 import { Pagination } from '../components/layout/Pagination';
 import { TopBar } from '../components/layout/TopBar';
 import { getBoardCoverImage } from '../data/boardCovers';
-import {
-  getDemoBoard,
-  getDemoBoardThreads,
-  type BoardThreadData,
-  type DemoBoardId,
-} from '../data/boardDemo';
+import type { BoardThreadData } from '../api/board';
+import type { DemoBoardId } from '../data/boardDemo';
+import { useBoardData } from '../hooks/useBoardData';
 import { useScrollContextTitle } from '../hooks/useScrollContextTitle';
-import { useMemo, useRef } from 'react';
+import { useRef } from 'react';
 
 function getRequestedPage() {
   const value = Number(new URLSearchParams(window.location.search).get('page') ?? '1');
@@ -29,8 +26,13 @@ function boardPageHref(boardId: DemoBoardId, page: number, digestOnly: boolean) 
   return `/?${params.toString()}`;
 }
 
-function threadHref(threadId: number) {
-  return threadId === 102 ? `/?thread=${threadId}` : `/?thread=102&preview=${threadId}`;
+function threadHref(thread: BoardThreadData) {
+  const params = new URLSearchParams({
+    bid: String(thread.bid),
+    page: '1',
+    thread: String(thread.id),
+  });
+  return `/?${params.toString()}`;
 }
 
 function authorHref(author: string) {
@@ -42,9 +44,9 @@ function ExactTime({ label, value }: { label: string; value: string }) {
   return (
     <span className="board-thread-time">
       <span className="board-thread-time-label">{label}</span>
-      <time dateTime={value.replace(' ', 'T')}>
+      <time dateTime={time?.includes(':') ? value.replace(' ', 'T') : undefined}>
         <span>{date}</span>
-        <span>{time}</span>
+        {time ? <span>{time}</span> : null}
       </time>
     </span>
   );
@@ -73,7 +75,7 @@ function ThreadRow({ thread }: { thread: BoardThreadData }) {
       <td className="board-thread-title-cell">
         <div className="board-thread-title-line">
           <PinnedStatus thread={thread} />
-          <a href={threadHref(thread.id)}>{thread.title}</a>
+          <a href={threadHref(thread)}>{thread.title}</a>
           <TrailingThreadStatuses thread={thread} />
         </div>
       </td>
@@ -97,34 +99,49 @@ function ThreadRow({ thread }: { thread: BoardThreadData }) {
 export function BoardPage({ boardId }: { boardId: DemoBoardId }) {
   const titleRef = useRef<HTMLHeadingElement | null>(null);
   const digestOnly = getDigestOnly();
+  const requestedPage = getRequestedPage();
+  const { data, error, retry, status } = useBoardData(boardId, requestedPage, digestOnly);
   const showTitleInTopBar = useScrollContextTitle(titleRef);
-  const demoBoard = getDemoBoard(boardId);
   const boardCover = getBoardCoverImage(boardId);
-  const demoBoardThreads = useMemo(() => getDemoBoardThreads(boardId), [boardId]);
-  const visibleThreads = useMemo(
-    () => digestOnly ? demoBoardThreads.filter((thread) => thread.status?.digest) : demoBoardThreads,
-    [demoBoardThreads, digestOnly],
-  );
-  const pinnedThreads = visibleThreads.filter((thread) => thread.status?.pinned);
-  const regularThreads = visibleThreads.filter((thread) => !thread.status?.pinned);
-  const pageCount = Math.max(1, Math.ceil(regularThreads.length / demoBoard.perPage));
-  const currentPage = Math.min(getRequestedPage(), pageCount);
-  const pageThreads = regularThreads.slice(
-    (currentPage - 1) * demoBoard.perPage,
-    currentPage * demoBoard.perPage,
-  );
-  const rows = currentPage === 1 ? [...pinnedThreads, ...pageThreads] : pageThreads;
 
   function toggleDigestOnly() {
     window.location.href = boardPageHref(boardId, 1, !digestOnly);
   }
+
+  if (!data) {
+    return (
+      <div className="relative min-h-screen text-[var(--text)] transition-colors duration-200">
+        <AppBackground />
+        <TopBar />
+        <main className="board-page-shell">
+          <section className="board-data-state" aria-live="polite">
+            {status === 'loading' ? (
+              <>
+                <LoaderCircle className="animate-spin" size={22} />
+                <h1>正在读取版面</h1>
+                <p>版面信息和最新回复正在载入。</p>
+              </>
+            ) : (
+              <>
+                <h1>版面暂时无法打开</h1>
+                <p>{error}</p>
+                <button onClick={retry} type="button"><RefreshCw size={15} />重新加载</button>
+              </>
+            )}
+          </section>
+        </main>
+      </div>
+    );
+  }
+
+  const { board, currentPage, pageCount, threads } = data;
 
   return (
     <div className="relative min-h-screen text-[var(--text)] transition-colors duration-200">
       <AppBackground />
       <TopBar
         contextHref="#board-title"
-        contextTitle={demoBoard.name}
+        contextTitle={board.name}
         showContextTitle={showTitleInTopBar}
       />
 
@@ -135,21 +152,22 @@ export function BoardPage({ boardId }: { boardId: DemoBoardId }) {
           </div>
           <div className="board-title-content">
             <div className="board-title-copy">
-              <h1 id="board-title" ref={titleRef}>{demoBoard.name}</h1>
+              <h1 id="board-title" ref={titleRef}>{board.name}</h1>
               <div className="board-moderators">
                 <span>版主</span>
-                {demoBoard.moderators.map((moderator) => (
+                {board.moderators.map((moderator) => (
                   <a href={authorHref(moderator)} key={moderator}>{moderator}</a>
                 ))}
+                {board.moderators.length === 0 ? <small>暂无</small> : null}
               </div>
             </div>
 
             <div className="board-title-side">
               <dl className="board-stat-grid">
-                <div><dt>主题</dt><dd>{demoBoard.stats.topics.toLocaleString()}</dd></div>
-                <div><dt>回复</dt><dd>{demoBoard.stats.replies.toLocaleString()}</dd></div>
-                <div><dt>今日</dt><dd>{demoBoard.stats.today}</dd></div>
-                <div><dt>在线</dt><dd>{demoBoard.stats.online}</dd></div>
+                <div><dt>主题</dt><dd>{board.stats.topics.toLocaleString()}</dd></div>
+                <div><dt>回复</dt><dd>{board.stats.replies.toLocaleString()}</dd></div>
+                <div><dt>今日</dt><dd>{board.stats.today.toLocaleString()}</dd></div>
+                <div><dt>在线</dt><dd>{board.stats.online?.toLocaleString() ?? '—'}</dd></div>
               </dl>
               <div className="board-title-actions">
                 <button
@@ -160,10 +178,10 @@ export function BoardPage({ boardId }: { boardId: DemoBoardId }) {
                 >
                   <Sparkles size={15} />{digestOnly ? '取消筛选' : '只看精品'}
                 </button>
-                <a className="board-secondary-action" href={`/bbs/manage/?bid=${demoBoard.id}`}>
+                <a className="board-secondary-action" href={`/bbs/manage/?bid=${board.id}`}>
                   <Settings2 size={15} />管理版面
                 </a>
-                <a className="board-primary-action" href={`/bbs/post/?bid=${demoBoard.id}`}>
+                <a className="board-primary-action" href={`/bbs/post/?bid=${board.id}`}>
                   <PenLine size={15} />发表主题
                 </a>
               </div>
@@ -189,9 +207,12 @@ export function BoardPage({ boardId }: { boardId: DemoBoardId }) {
                 </tr>
               </thead>
               <tbody>
-                {rows.map((thread) => <ThreadRow key={thread.id} thread={thread} />)}
+                {threads.map((thread) => <ThreadRow key={thread.id} thread={thread} />)}
               </tbody>
             </table>
+            {threads.length === 0 ? (
+              <div className="board-thread-empty">{digestOnly ? '这个版面暂时没有精品主题。' : '这个版面暂时还没有主题。'}</div>
+            ) : null}
           </div>
 
           <footer className="board-pagination-footer">

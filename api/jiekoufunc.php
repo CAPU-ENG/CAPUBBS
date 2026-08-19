@@ -73,15 +73,18 @@ function jiekoufunc_bbsinfo($con, $bid, $name) {
             $time2 = strtotime("$date 23:59:59");
             $statement = "select
                 (select count(*) from threads where bid=$bid) as topics,
+                /* 新版版面标题卡片需要真实回复总数，保留原有统计字段并追加 replies。 */
+                (select coalesce(sum(reply), 0) from threads where bid=$bid) as replies,
                 (select count(*) from threads where bid=$bid && extr=1) as extr,
                 (select count(*) from threads where bid=$bid && postdate='$date') as newpost,
                 (select count(*) from posts where bid=$bid && replytime>=$time1 && replytime<=$time2) as newreply";
             $resultt = mysqli_query($con, $statement);
-            $counts = mysqli_fetch_row($resultt);
-            $info['topics'] = $counts[0];
-            $info['extr'] = $counts[1];
-            $info['newpost'] = $counts[2];
-            $info['newreply'] = $counts[3];
+            $counts = mysqli_fetch_assoc($resultt);
+            $info['topics'] = $counts['topics'];
+            $info['replies'] = $counts['replies'];
+            $info['extr'] = $counts['extr'];
+            $info['newpost'] = $counts['newpost'];
+            $info['newreply'] = $counts['newreply'];
         }
         $infos[] = $info;
     }

@@ -430,10 +430,17 @@ function jiekoufunc_dispatch($con, $params) {
             if ($page == "") $page = 1;
             $start = ($page - 1) * 25;
             $statement = "
-            select threads.bid,threads.tid,title,author,replyer,click,reply,extr,top,locked,timestamp,postdate,
+            select threads.bid,threads.tid,threads.title,threads.author,threads.replyer,threads.click,threads.reply,
+            threads.extr,threads.top,threads.locked,threads.timestamp,threads.postdate,
+            /* 新版版面列表展示精确发布时间；首楼 replytime 是主题真实创建时间。 */
+            first_post.replytime as created_at,
             case when thread_global_top.bid is null then 0 else 1 end as global_top
-            from threads left join thread_global_top on threads.bid=thread_global_top.bid and threads.tid=thread_global_top.tid
-            where threads.bid=$bid and extr>=$extr order by top desc, timestamp desc limit $start, 25";
+            from threads
+            left join thread_global_top on threads.bid=thread_global_top.bid and threads.tid=thread_global_top.tid
+            left join posts as first_post
+                on first_post.bid=threads.bid and first_post.tid=threads.tid and first_post.pid=1
+            where threads.bid=$bid and threads.extr>=$extr
+            order by threads.top desc, threads.timestamp desc limit $start, 25";
         }
 
         $result = jiekoufunc_view_bbs_array($con, $statement);
