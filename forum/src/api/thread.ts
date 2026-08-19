@@ -1,5 +1,6 @@
 import defaultAvatar from '../assets/avatar/default-avatar.avif';
 import type { NestedReply, ThreadAuthor, ThreadFloorData } from '../data/threadDemo';
+import { forumMarkupToPlainText, renderForumMarkup } from '../utils/forumMarkup';
 
 const THREAD_API_URL = import.meta.env.VITE_API_URL?.trim() || '/api/api.php';
 const PUBLIC_ASSET_ORIGIN = 'https://chexie.net';
@@ -150,10 +151,11 @@ function mapFloor(row: ApiRow, viewerName: string): ThreadFloorData {
   const floor = positiveInteger(row.pid, 1);
   const profile = nullableRow(row.authorProfile);
   const authorName = plainText(row.author) || '匿名用户';
-  const contentHtml = sanitizeForumHtml(stringValue(row.contentHtml));
-  const signatureHtml = sanitizeForumHtml(stringValue(row.signatureHtml));
   const rawText = stringValue(row.rawText);
-  const quoteText = plainTextFromHtml(rawText || contentHtml);
+  const contentHtml = renderForumMarkup(stringValue(row.contentHtml) || rawText);
+  const signatureHtml = renderForumMarkup(stringValue(row.signatureHtml));
+  const quoteHtml = renderForumMarkup(stringValue(row.quoteHtml));
+  const quoteText = forumMarkupToPlainText(quoteHtml || contentHtml);
   const canEdit = Boolean(row.canEdit);
   const canDelete = Boolean(row.canDelete);
 
@@ -170,18 +172,18 @@ function mapFloor(row: ApiRow, viewerName: string): ThreadFloorData {
     paragraphs: [quoteText || '此楼层暂无可显示的正文。'],
     publishedAt: stringValue(row.createdAt),
     quoteText,
-    signature: plainTextFromHtml(signatureHtml),
+    signature: forumMarkupToPlainText(signatureHtml),
     signatureHtml,
   };
 }
 
 function mapNestedReply(row: ApiRow): NestedReply {
   const authorName = plainText(row.author) || '匿名用户';
-  const contentHtml = sanitizeForumHtml(stringValue(row.contentHtml));
+  const contentHtml = renderForumMarkup(stringValue(row.contentHtml) || stringValue(row.content));
 
   return {
     author: mapAuthor({ username: authorName, avatar: row.authorAvatar }, authorName),
-    content: plainTextFromHtml(contentHtml || stringValue(row.content)),
+    content: forumMarkupToPlainText(contentHtml),
     contentHtml,
     id: String(row.id ?? `${authorName}-${row.createdAt ?? ''}`),
     publishedAt: stringValue(row.createdAt),
@@ -204,57 +206,7 @@ function mapAuthor(row: ApiRow, fallbackName: string): ThreadAuthor {
 
 function mapViewerSignatures(value: unknown) {
   const signatures = asRow(value);
-  return ['1', '2', '3'].map((key) => plainTextFromHtml(sanitizeForumHtml(stringValue(signatures[key]))));
-}
-
-function sanitizeForumHtml(value: string) {
-  if (!value.trim()) return '';
-
-  const parser = new DOMParser();
-  const document = parser.parseFromString(value, 'text/html');
-  const blockedTags = new Set(['BUTTON', 'EMBED', 'FORM', 'IFRAME', 'INPUT', 'META', 'OBJECT', 'SCRIPT', 'STYLE', 'SVG']);
-  const allowedTags = new Set([
-    'A', 'ABBR', 'B', 'BLOCKQUOTE', 'BR', 'CODE', 'DEL', 'DIV', 'EM',
-    'H1', 'H2', 'H3', 'H4', 'H5', 'H6', 'HR', 'I', 'IMG', 'LI', 'OL',
-    'P', 'PRE', 'S', 'SPAN', 'STRONG', 'SUB', 'SUP', 'TABLE', 'TBODY',
-    'TD', 'TH', 'THEAD', 'TR', 'U', 'UL',
-  ]);
-  const elements = Array.from(document.body.querySelectorAll('*'));
-
-  elements.forEach((element) => {
-    if (blockedTags.has(element.tagName)) {
-      element.remove();
-      return;
-    }
-    if (!allowedTags.has(element.tagName)) {
-      element.replaceWith(...Array.from(element.childNodes));
-      return;
-    }
-
-    Array.from(element.attributes).forEach((attribute) => {
-      const name = attribute.name.toLowerCase();
-      const allowed = name === 'class'
-        || name === 'title'
-        || (element.tagName === 'A' && ['href', 'target'].includes(name))
-        || (element.tagName === 'IMG' && ['alt', 'height', 'src', 'width'].includes(name))
-        || (['TD', 'TH'].includes(element.tagName) && ['colspan', 'rowspan'].includes(name));
-      if (!allowed) element.removeAttribute(attribute.name);
-    });
-
-    if (element instanceof HTMLAnchorElement) {
-      const href = safeLinkUrl(element.getAttribute('href') ?? '');
-      if (href) element.setAttribute('href', href);
-      else element.removeAttribute('href');
-      element.setAttribute('rel', 'noopener noreferrer');
-    }
-    if (element instanceof HTMLImageElement) {
-      const src = normalizeAssetUrl(element.getAttribute('src'));
-      if (src) element.setAttribute('src', src);
-      else element.remove();
-    }
-  });
-
-  return document.body.innerHTML;
+  return ['1', '2', '3'].map((key) => forumMarkupToPlainText(renderForumMarkup(stringValue(signatures[key]))));
 }
 
 function normalizeAssetUrl(value: unknown) {
@@ -267,14 +219,6 @@ function normalizeAssetUrl(value: unknown) {
   if (path.startsWith('/')) return `${PUBLIC_ASSET_ORIGIN}${path}`;
   if (/^\d+$/.test(path)) return `${PUBLIC_ASSET_ORIGIN}/bbsimg/i/${path}.gif`;
   return `${PUBLIC_ASSET_ORIGIN}/${path.replace(/^\.?\//, '')}`;
-}
-
-function safeLinkUrl(value: string) {
-  const href = value.trim();
-  if (!href) return '';
-  if (/^(?:https?:|mailto:)/i.test(href)) return href;
-  if (href.startsWith('/') || href.startsWith('#') || href.startsWith('?')) return href;
-  return '';
 }
 
 function plainTextFromHtml(value: string) {

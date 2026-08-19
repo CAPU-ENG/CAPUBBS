@@ -9,6 +9,7 @@ import {
 } from 'lucide-react';
 import type { ThreadAuthor, ThreadFloorData } from '../../data/threadDemo';
 import { getPublicProfilePath } from '../../utils/userRoutes';
+import { ForumMarkup } from './ForumMarkup';
 
 function AuthorCard({ author }: { author: ThreadAuthor }) {
   return (
@@ -152,9 +153,10 @@ export function ThreadFloor({
         </header>
 
         {floor.contentHtml ? (
-          <div
-            className="capubbs-editor-prose thread-floor-body"
-            dangerouslySetInnerHTML={{ __html: floor.contentHtml }}
+          <ForumMarkup
+            className="thread-floor-body"
+            html={floor.contentHtml}
+            variant="floor"
           />
         ) : (
           <div className="thread-floor-body">
@@ -167,7 +169,7 @@ export function ThreadFloor({
         {(floor.signatureHtml || floor.signature) && (
           <footer className="thread-signature">
             {floor.signatureHtml ? (
-              <div dangerouslySetInnerHTML={{ __html: floor.signatureHtml }} />
+              <ForumMarkup html={floor.signatureHtml} variant="signature" />
             ) : (
               <p>{floor.signature}</p>
             )}
@@ -210,9 +212,10 @@ export function ThreadFloor({
                     {reply.author.name}
                   </strong>
                   {reply.contentHtml ? (
-                    <div
+                    <ForumMarkup
                       className="nested-reply-content"
-                      dangerouslySetInnerHTML={{ __html: reply.contentHtml }}
+                      html={reply.contentHtml}
+                      variant="nested"
                     />
                   ) : (
                     <p>{reply.content}</p>

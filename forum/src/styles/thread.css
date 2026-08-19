@@ -435,22 +435,145 @@
     padding: 18px 0 8px;
     color: var(--text);
     font-size: 0.92rem;
-    line-height: 1.82;
+    line-height: 1.6;
+    overflow-wrap: anywhere;
+    word-break: break-word;
   }
 
-  .thread-floor-body p + p {
-    margin-top: 1em;
+  .forum-markup > :first-child {
+    margin-top: 0;
   }
 
-  .thread-floor-body img {
+  .forum-markup > :last-child {
+    margin-bottom: 0;
+  }
+
+  .forum-markup p,
+  .forum-markup div {
+    margin: 0;
+  }
+
+  .forum-markup-floor > p + p,
+  .forum-markup-floor > div + div {
+    margin-top: 0.55em;
+  }
+
+  .forum-markup a {
+    color: var(--brand-strong);
+    font-weight: 680;
+    text-decoration: underline;
+    text-decoration-thickness: 1px;
+    text-underline-offset: 0.16em;
+  }
+
+  .forum-markup .forum-mention {
+    text-decoration: none;
+  }
+
+  .forum-markup .forum-legacy-quote,
+  .forum-markup blockquote {
+    margin: 0.8em 0;
+    border-left: 3px solid color-mix(in srgb, var(--brand) 38%, var(--line));
+    padding: 0.55em 0.75em;
+    background: var(--surface-soft);
+    color: var(--text-muted);
+  }
+
+  .forum-markup .forum-legacy-quote-content {
+    margin: 0;
+  }
+
+  .forum-markup h1,
+  .forum-markup h2,
+  .forum-markup h3,
+  .forum-markup h4,
+  .forum-markup h5,
+  .forum-markup h6 {
+    margin: 0.8em 0 0.35em;
+    color: var(--text-strong);
+    font-weight: 760;
+    line-height: 1.35;
+  }
+
+  .forum-markup h1 { font-size: 1.45em; }
+  .forum-markup h2 { font-size: 1.3em; }
+  .forum-markup h3 { font-size: 1.18em; }
+  .forum-markup h4,
+  .forum-markup h5,
+  .forum-markup h6 { font-size: 1.05em; }
+
+  .forum-markup ul,
+  .forum-markup ol {
+    margin: 0.65em 0;
+    padding-left: 1.45em;
+  }
+
+  .forum-markup ul {
+    list-style: disc;
+  }
+
+  .forum-markup ol {
+    list-style: decimal;
+  }
+
+  .forum-markup pre {
+    max-width: 100%;
+    overflow-x: auto;
+    margin: 0.75em 0;
+    border-radius: 2px;
+    padding: 0.75em;
+    background: #182531;
+    color: #f8fafc;
+    white-space: pre-wrap;
+  }
+
+  .forum-markup code,
+  .forum-markup kbd {
+    border-radius: 2px;
+    padding: 0.08em 0.25em;
+    background: color-mix(in srgb, var(--surface-soft) 75%, var(--line));
+    font-family: "SFMono-Regular", "Cascadia Code", Consolas, monospace;
+    font-size: 0.9em;
+  }
+
+  .forum-markup pre code {
+    padding: 0;
+    background: transparent;
+    color: inherit;
+  }
+
+  .forum-markup font[size="1"] { font-size: 0.72em; }
+  .forum-markup font[size="2"] { font-size: 0.86em; }
+  .forum-markup font[size="3"] { font-size: 1em; }
+  .forum-markup font[size="4"] { font-size: 1.12em; }
+  .forum-markup font[size="5"] { font-size: 1.24em; }
+  .forum-markup font[size="6"] { font-size: 1.38em; }
+  .forum-markup font[size="7"] { font-size: 1.55em; }
+
+  .forum-markup hr {
+    margin: 0.9em 0;
+    border: 0;
+    border-top: 1px solid var(--line-strong);
+  }
+
+  .forum-markup img {
+    display: inline-block;
     height: auto;
     max-width: 100%;
+    vertical-align: middle;
   }
 
-  .thread-floor-body table {
+  .forum-markup table {
     display: block;
     max-width: 100%;
     overflow-x: auto;
+    border-collapse: collapse;
+  }
+
+  .forum-markup td,
+  .forum-markup th {
+    border: 1px solid var(--line);
+    padding: 0.35em 0.5em;
   }
 
   .nested-replies {
@@ -516,14 +639,16 @@
     margin-top: 18px;
     border-top: 1px dashed var(--line-strong);
     padding-top: 10px;
+    overflow: hidden;
   }
 
   .thread-signature > p,
   .thread-signature > div {
     color: var(--text-faint);
     font-family: "Noto Serif CJK SC", "Source Han Serif SC", "Songti SC", serif;
-    font-size: 0.72rem;
+    font-size: 0.82rem;
     line-height: 1.6;
+    overflow-wrap: anywhere;
   }
 
   .thread-signature img {
@@ -871,7 +996,7 @@
     .thread-floor-body {
       padding-top: 14px;
       font-size: 0.86rem;
-      line-height: 1.78;
+      line-height: 1.6;
     }
 
     .nested-replies > article {
