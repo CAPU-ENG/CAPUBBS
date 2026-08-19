@@ -2,6 +2,7 @@ import { normalizeLegacyAvatar } from '../utils/legacyAssets';
 
 const AUTH_API_URL = import.meta.env.VITE_API_URL?.trim() || '/api/api.php';
 const TOKEN_MAX_AGE_SECONDS = 999999;
+const PRODUCTION_COOKIE_DOMAIN = 'chexie.net';
 
 type ApiEnvelope = {
   code: number;
@@ -152,9 +153,32 @@ function toNumber(value: unknown) {
 }
 
 function writeTokenCookie(token: string) {
-  document.cookie = `token=${encodeURIComponent(token)}; path=/; max-age=${TOKEN_MAX_AGE_SECONDS}; SameSite=Lax`;
+  const domain = sharedCookieDomain();
+  const secure = window.location.protocol === 'https:' ? '; Secure' : '';
+  const attributes = `path=/; max-age=${TOKEN_MAX_AGE_SECONDS}; SameSite=Lax${secure}`;
+
+  // Remove a host-only token left by an earlier frontend build before writing
+  // the shared-domain cookie used by the legacy forum.
+  expireTokenCookie('', secure);
+  document.cookie = `token=${encodeURIComponent(token)}; ${attributes}${domain ? `; domain=${domain}` : ''}`;
 }
 
 function clearTokenCookie() {
-  document.cookie = 'token=; path=/; max-age=0; expires=Thu, 01 Jan 1970 00:00:00 GMT; SameSite=Lax';
+  const secure = window.location.protocol === 'https:' ? '; Secure' : '';
+  expireTokenCookie('', secure);
+
+  const domain = sharedCookieDomain();
+  if (domain) expireTokenCookie(domain, secure);
+}
+
+function expireTokenCookie(domain: string, secure: string) {
+  document.cookie = `token=; path=/; max-age=0; expires=Thu, 01 Jan 1970 00:00:00 GMT; SameSite=Lax${secure}${domain ? `; domain=${domain}` : ''}`;
+}
+
+function sharedCookieDomain() {
+  const configuredDomain = import.meta.env.VITE_COOKIE_DOMAIN?.trim().replace(/^\./, '');
+  const hostname = window.location.hostname.toLowerCase();
+  const domain = configuredDomain || PRODUCTION_COOKIE_DOMAIN;
+
+  return hostname === domain || hostname.endsWith(`.${domain}`) ? domain : '';
 }
