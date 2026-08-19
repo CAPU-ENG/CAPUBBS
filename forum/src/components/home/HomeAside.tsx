@@ -40,7 +40,7 @@ function PinnedPanel() {
   );
 }
 
-function ActivitySignupPanel() {
+export function ActivitySignupList({ className = '' }: { className?: string }) {
   const [now, setNow] = useState(() => Date.now());
 
   useEffect(() => {
@@ -49,34 +49,40 @@ function ActivitySignupPanel() {
   }, []);
 
   return (
+    <div className={`signup-list ${className}`}>
+      {signupActivities.map((activity) => (
+        <a className="signup-activity-card" href={`#signup-${activity.title}`} key={activity.title}>
+          <div className="signup-card-topline">
+            <span>{activity.date}</span>
+            <em>报名中</em>
+          </div>
+          <h3>{activity.title}</h3>
+          <div className="signup-card-footer">
+            <time className="signup-card-countdown" dateTime={activity.deadline}>
+              <Clock3 size={13} />
+              <strong>{formatCountdown(activity.deadline, now)}</strong>
+            </time>
+            <span className="signup-card-count">{activity.signupCount} 人报名</span>
+          </div>
+        </a>
+      ))}
+    </div>
+  );
+}
+
+function ActivitySignupPanel() {
+  return (
     <section className="aside-card" aria-labelledby="signup-title">
       <header className="aside-card-header">
         <span className="aside-card-icon"><Bike size={16} /></span>
         <h2 id="signup-title">活动报名</h2>
       </header>
-      <div className="signup-list">
-        {signupActivities.map((activity) => (
-          <a className="signup-activity-card" href={`#signup-${activity.title}`} key={activity.title}>
-            <div className="signup-card-topline">
-              <span>{activity.date}</span>
-              <em>报名中</em>
-            </div>
-            <h3>{activity.title}</h3>
-            <div className="signup-card-footer">
-              <time className="signup-card-countdown" dateTime={activity.deadline}>
-                <Clock3 size={13} />
-                <strong>{formatCountdown(activity.deadline, now)}</strong>
-              </time>
-              <span className="signup-card-count">{activity.signupCount} 人报名</span>
-            </div>
-          </a>
-        ))}
-      </div>
+      <ActivitySignupList />
     </section>
   );
 }
 
-function ActivityCalendar() {
+export function ActivityCalendar({ compact = false }: { compact?: boolean }) {
   const [monthCursor, setMonthCursor] = useState({ year: 2026, month: 7 });
   const [selectedKey, setSelectedKey] = useState('2026-08-23');
   const { year, month } = monthCursor;
@@ -107,11 +113,18 @@ function ActivityCalendar() {
   }
 
   return (
-    <section className="aside-card" id="activity-calendar" aria-labelledby="calendar-title">
-      <header className="aside-card-header">
-        <span className="aside-card-icon"><CalendarDays size={15} /></span>
-        <h2 id="calendar-title">活动日历</h2>
-      </header>
+    <section
+      className={`aside-card activity-calendar ${compact ? 'activity-calendar-compact' : ''}`}
+      id={compact ? 'mobile-activity-calendar' : 'activity-calendar'}
+      aria-label={compact ? '活动日历' : undefined}
+      aria-labelledby={compact ? undefined : 'calendar-title'}
+    >
+      {!compact && (
+        <header className="aside-card-header">
+          <span className="aside-card-icon"><CalendarDays size={15} /></span>
+          <h2 id="calendar-title">活动日历</h2>
+        </header>
+      )}
 
       <div className="calendar-month-nav">
         <button type="button" aria-label="上个月" onClick={() => moveMonth(-1)}><ChevronLeft size={16} /></button>

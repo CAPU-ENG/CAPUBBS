@@ -645,8 +645,7 @@
   }
 
   .home-aside {
-    position: sticky;
-    top: calc(var(--topbar-height) + 10px);
+    align-self: start;
     display: flex;
     flex-direction: column;
     gap: 10px;
@@ -829,7 +828,7 @@
     height: 32px;
     align-items: center;
     justify-content: center;
-    border-radius: 7px;
+    border-radius: var(--control-radius);
     color: var(--text-muted);
   }
 
@@ -956,7 +955,7 @@
   .mobile-overview-tabs {
     display: grid;
     max-width: 780px;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-columns: repeat(3, minmax(0, 1fr));
     gap: 4px;
     margin: 0 auto;
     padding: 4px 10px;
@@ -969,7 +968,7 @@
     justify-content: space-between;
     border: 1px solid transparent;
     border-radius: var(--control-radius);
-    padding: 0 10px;
+    padding: 0 8px;
     color: var(--text-muted);
     font-size: 0.72rem;
     font-weight: 750;
@@ -1001,7 +1000,10 @@
   .mobile-overview-panel {
     position: absolute;
     inset: 100% max(10px, calc((100vw - 760px) / 2)) auto;
-    overflow: hidden;
+    max-height: calc(100vh - var(--topbar-height) - 54px);
+    overflow-x: hidden;
+    overflow-y: auto;
+    overscroll-behavior: contain;
     border: 1px solid var(--line);
     border-radius: 0 0 2px 2px;
     background: var(--surface-raised);
@@ -1013,8 +1015,7 @@
     padding: 4px;
   }
 
-  .mobile-pinned-list li + li,
-  .mobile-activity-list > a + a {
+  .mobile-pinned-list li + li {
     border-top: 1px solid var(--line);
   }
 
@@ -1052,38 +1053,22 @@
     justify-self: end;
   }
 
-  .mobile-activity-list > a {
-    display: flex;
-    min-height: 50px;
-    align-items: center;
-    justify-content: space-between;
-    gap: 12px;
-    padding: 9px 13px;
+  .mobile-signup-list {
+    max-width: 440px;
+    margin: 0 auto;
+    padding: 4px;
   }
 
-  .mobile-activity-list div {
-    display: grid;
-    gap: 2px;
+  .activity-calendar-compact {
+    max-width: 360px;
+    margin: 0 auto;
+    border: 0;
+    border-radius: 0;
+    box-shadow: none;
   }
 
-  .mobile-activity-list div span {
-    color: var(--danger);
-    font-size: 0.64rem;
-    font-weight: 800;
-  }
-
-  .mobile-activity-list div strong {
-    color: var(--text-strong);
-    font-size: 0.78rem;
-  }
-
-  .mobile-activity-list p {
-    display: flex;
-    align-items: center;
-    gap: 5px;
-    color: var(--text-faint);
-    font-size: 0.66rem;
-    white-space: nowrap;
+  .activity-calendar-compact .calendar-month-nav {
+    margin-top: 12px;
   }
 }
 

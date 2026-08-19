@@ -1,8 +1,9 @@
 import { useState } from 'react';
-import { CalendarDays, ChevronDown, ChevronRight, Clock3, MapPin, Pin } from 'lucide-react';
-import { activities, pinnedThreads } from './homeData';
+import { Bike, CalendarDays, ChevronDown, ChevronRight, Pin } from 'lucide-react';
+import { ActivityCalendar, ActivitySignupList } from './HomeAside';
+import { pinnedThreads } from './homeData';
 
-type ExpandedPanel = 'pinned' | 'activities' | null;
+type ExpandedPanel = 'pinned' | 'signup' | 'calendar' | null;
 
 export function MobileActivityBar() {
   const [expandedPanel, setExpandedPanel] = useState<ExpandedPanel>(null);
@@ -12,7 +13,7 @@ export function MobileActivityBar() {
   }
 
   return (
-    <section className="mobile-overview-wrap lg:hidden" aria-label="首页置顶与活动">
+    <section className="mobile-overview-wrap lg:hidden" aria-label="首页置顶、活动报名与活动日历">
       <div className="mobile-overview-tabs">
         <button
           className={expandedPanel === 'pinned' ? 'mobile-overview-tab-active' : ''}
@@ -25,14 +26,24 @@ export function MobileActivityBar() {
           <ChevronDown size={15} className={expandedPanel === 'pinned' ? 'rotate-180' : ''} />
         </button>
         <button
-          className={expandedPanel === 'activities' ? 'mobile-overview-tab-active' : ''}
+          className={expandedPanel === 'signup' ? 'mobile-overview-tab-active' : ''}
           type="button"
-          aria-expanded={expandedPanel === 'activities'}
-          aria-controls="mobile-activities-panel"
-          onClick={() => togglePanel('activities')}
+          aria-expanded={expandedPanel === 'signup'}
+          aria-controls="mobile-signup-panel"
+          onClick={() => togglePanel('signup')}
         >
-          <span><CalendarDays size={15} />活动</span>
-          <ChevronDown size={15} className={expandedPanel === 'activities' ? 'rotate-180' : ''} />
+          <span><Bike size={15} />报名</span>
+          <ChevronDown size={15} className={expandedPanel === 'signup' ? 'rotate-180' : ''} />
+        </button>
+        <button
+          className={expandedPanel === 'calendar' ? 'mobile-overview-tab-active' : ''}
+          type="button"
+          aria-expanded={expandedPanel === 'calendar'}
+          aria-controls="mobile-calendar-panel"
+          onClick={() => togglePanel('calendar')}
+        >
+          <span><CalendarDays size={15} />日历</span>
+          <ChevronDown size={15} className={expandedPanel === 'calendar' ? 'rotate-180' : ''} />
         </button>
       </div>
 
@@ -52,19 +63,15 @@ export function MobileActivityBar() {
         </div>
       )}
 
-      {expandedPanel === 'activities' && (
-        <div className="mobile-overview-panel" id="mobile-activities-panel">
-          <div className="mobile-activity-list">
-            {activities.map((activity) => (
-              <a href={`#activity-${activity.date}`} key={activity.title}>
-                <div>
-                  <span>{activity.date.slice(5).replace('-', '.')}</span>
-                  <strong>{activity.title}</strong>
-                </div>
-                <p><Clock3 size={13} />{activity.time}<MapPin size={13} />{activity.place}</p>
-              </a>
-            ))}
-          </div>
+      {expandedPanel === 'signup' && (
+        <div className="mobile-overview-panel" id="mobile-signup-panel">
+          <ActivitySignupList className="mobile-signup-list" />
+        </div>
+      )}
+
+      {expandedPanel === 'calendar' && (
+        <div className="mobile-overview-panel" id="mobile-calendar-panel">
+          <ActivityCalendar compact />
         </div>
       )}
     </section>
