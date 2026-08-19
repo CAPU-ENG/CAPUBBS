@@ -132,7 +132,7 @@
   .app-background::after {
     position: absolute;
     inset: 0;
-    background: rgb(246 247 245 / 0.7);
+    background: rgb(246 247 245 / 0.4);
     content: "";
     pointer-events: none;
     transition: background-color 200ms ease;
