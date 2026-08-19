@@ -8,16 +8,17 @@ import { TopBar } from '../components/layout/TopBar';
 import type { ThreadFloorData } from '../data/threadDemo';
 import { useScrollContextTitle } from '../hooks/useScrollContextTitle';
 import { useThreadData } from '../hooks/useThreadData';
+import { getLoginPathWithReturnTo } from '../utils/authRoutes';
 
 function getThreadRequest() {
   const params = new URLSearchParams(window.location.search);
-  const tid = positiveInteger(params.get('thread') ?? params.get('tid'));
+  const tid = positiveInteger(params.get('tid') ?? params.get('thread'));
   const requestedBid = positiveInteger(params.get('bid'));
 
   return {
-    authorOnly: params.get('author') === '1',
+    authorOnly: params.get('see_lz') === '1' || params.get('author') === '1',
     bid: requestedBid || (tid === 102 ? 3 : 0),
-    page: positiveInteger(params.get('page')) || 1,
+    page: positiveInteger(params.get('p') ?? params.get('page')) || 1,
     tid,
   };
 }
@@ -79,7 +80,7 @@ export function ThreadPage() {
     window.addEventListener('resize', scheduleActiveFloorUpdate);
     scheduleActiveFloorUpdate();
 
-    const hashFloor = Number(window.location.hash.match(/floor-(\d+)/)?.[1]);
+    const hashFloor = Number(window.location.hash.match(/^#(?:floor-)?(\d+)$/)?.[1]);
     if (hashFloor) {
       window.requestAnimationFrame(() => {
         document.getElementById(`floor-${hashFloor}`)?.scrollIntoView({ block: 'start' });
@@ -114,10 +115,10 @@ export function ThreadPage() {
     if (!data) return;
     const params = new URLSearchParams({
       bid: String(data.bid),
-      page: '1',
-      thread: String(data.tid),
+      p: '1',
+      tid: String(data.tid),
     });
-    if (!data.authorOnly) params.set('author', '1');
+    if (!data.authorOnly) params.set('see_lz', '1');
     window.location.href = `/?${params.toString()}`;
   }
 
@@ -157,7 +158,7 @@ export function ThreadPage() {
   }
 
   const nodeFloors = pageFloors.map((floor) => ({ floor: floor.floor, author: floor.author.name }));
-  const loginHref = `/bbs/login?from=${encodeURIComponent(`${window.location.pathname}${window.location.search}`)}`;
+  const loginHref = getLoginPathWithReturnTo();
 
   return (
     <div className="relative min-h-screen text-[var(--text)] transition-colors duration-200">

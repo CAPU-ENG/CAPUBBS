@@ -126,7 +126,7 @@ function mapThreadDetail(
     authorOnly: Boolean(floorsPage.authorOnly ?? request.authorOnly),
     bid: positiveInteger(thread.bid, request.bid),
     board: boardTitle || `版块 ${request.bid}`,
-    boardHref: `/?board=${positiveInteger(thread.bid, request.bid)}`,
+    boardHref: `/?bid=${positiveInteger(thread.bid, request.bid)}`,
     bookmarked: Boolean(viewerState.bookmarked),
     canReply: Boolean(viewerState.canReply),
     currentPage,

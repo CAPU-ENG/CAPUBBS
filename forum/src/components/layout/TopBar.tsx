@@ -2,6 +2,8 @@ import { useEffect, useRef, useState } from 'react';
 import {
   Bell,
   ChevronDown,
+  LoaderCircle,
+  LogIn,
   LogOut,
   Menu,
   Moon,
@@ -14,6 +16,8 @@ import defaultAvatar from '../../assets/avatar/default-avatar.avif';
 import logo1 from '../../assets/logo/logo1.webp';
 import logo2 from '../../assets/logo/logo2.webp';
 import { DesktopBoardDrawer, MobileBoardSidebar } from './BoardNavigation';
+import { useAuth } from '../../context/AuthContext';
+import { getLoginPathWithReturnTo } from '../../utils/authRoutes';
 
 type Theme = 'light' | 'dark';
 
@@ -33,8 +37,13 @@ export function TopBar({
   contextTitle?: string;
   showContextTitle?: boolean;
 }) {
+  const { logout, status: authStatus, viewer } = useAuth();
   const params = new URLSearchParams(window.location.search);
-  const isHomePage = window.location.pathname === '/' && !params.has('thread') && !params.has('board');
+  const isHomePage = window.location.pathname === '/'
+    && !params.has('tid')
+    && !params.has('thread')
+    && !params.has('bid')
+    && !params.has('board');
   const [theme, setTheme] = useState<Theme>(initialTheme);
   const [boardsOpen, setBoardsOpen] = useState(false);
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
@@ -57,6 +66,10 @@ export function TopBar({
     window.addEventListener('keydown', onKeyDown);
     return () => window.removeEventListener('keydown', onKeyDown);
   }, []);
+
+  useEffect(() => {
+    if (authStatus !== 'authenticated') setProfileOpen(false);
+  }, [authStatus]);
 
   useEffect(() => {
     const layerOpen = boardsOpen || mobileSidebarOpen;
@@ -211,35 +224,62 @@ export function TopBar({
               {theme === 'light' ? <Moon size={18} /> : <Sun size={18} />}
             </button>
 
-            <button className="icon-button relative" type="button" aria-label="消息通知">
-              <Bell size={19} />
-              <span className="notification-dot" aria-label="有未读消息" />
-            </button>
+            {authStatus === 'authenticated' && (
+              <a className="icon-button relative" href="/bbs/home?pos=message" aria-label="消息通知">
+                <Bell size={19} />
+                {Boolean(viewer?.unreadMessages) && <span className="notification-dot" aria-label="有未读消息" />}
+              </a>
+            )}
 
-            <div className="relative" ref={profileMenuRef}>
-              <button
-                className="profile-trigger"
-                type="button"
-                aria-label="打开头像菜单"
-                aria-haspopup="menu"
-                aria-expanded={profileOpen}
-                onClick={() => {
-                  setProfileOpen((open) => !open);
-                  setBoardsOpen(false);
-                }}
-              >
-                <img src={defaultAvatar} alt="" />
-                <ChevronDown size={14} className="hidden sm:block" />
-              </button>
+            {authStatus === 'loading' ? (
+              <span className="auth-session-loading" aria-label="正在恢复登录状态">
+                <LoaderCircle className="animate-spin" size={17} />
+              </span>
+            ) : authStatus === 'guest' ? (
+              <a className="topbar-login-link" href={getLoginPathWithReturnTo()}>
+                <LogIn size={15} />登录
+              </a>
+            ) : (
+              <div className="relative" ref={profileMenuRef}>
+                <button
+                  className="profile-trigger"
+                  type="button"
+                  aria-label={`${viewer?.username ?? '用户'}的个人菜单`}
+                  aria-haspopup="menu"
+                  aria-expanded={profileOpen}
+                  onClick={() => {
+                    setProfileOpen((open) => !open);
+                    setBoardsOpen(false);
+                  }}
+                >
+                  <img
+                    src={viewer?.avatar || defaultAvatar}
+                    alt=""
+                    onError={(event) => {
+                      if (event.currentTarget.src !== defaultAvatar) event.currentTarget.src = defaultAvatar;
+                    }}
+                  />
+                  <ChevronDown size={14} className="hidden sm:block" />
+                </button>
 
-              {profileOpen && (
-                <div className="profile-menu" role="menu">
-                  <a href="/user-center" role="menuitem"><UserRound size={16} />个人中心</a>
-                  <a href="/user-center#account-security" role="menuitem"><Settings size={16} />设置</a>
-                  <button type="button" role="menuitem"><LogOut size={16} />退出登录</button>
-                </div>
-              )}
-            </div>
+                {profileOpen && (
+                  <div className="profile-menu" role="menu">
+                    <a href="/user-center" role="menuitem"><UserRound size={16} />个人中心</a>
+                    <a href="/user-center#account-security" role="menuitem"><Settings size={16} />设置</a>
+                    <button
+                      type="button"
+                      role="menuitem"
+                      onClick={() => {
+                        setProfileOpen(false);
+                        void logout();
+                      }}
+                    >
+                      <LogOut size={16} />退出登录
+                    </button>
+                  </div>
+                )}
+              </div>
+            )}
           </div>
         </div>
 

@@ -1,7 +1,7 @@
 import { getPublicProfilePath } from '../utils/userRoutes';
+import { normalizeLegacyAvatar } from '../utils/legacyAssets';
 
 const HOME_API_URL = import.meta.env.VITE_API_URL?.trim() || '/api/api.php';
-const PUBLIC_ASSET_ORIGIN = 'https://chexie.net';
 const avatarCache = new Map<string, string>();
 const avatarRequests = new Map<string, Promise<string>>();
 
@@ -129,7 +129,7 @@ function mapThreadRow(row: ApiRow): HomeThread | null {
     authorHref: getPublicProfilePath(author),
     avatar: '',
     bid,
-    href: `/?thread=${tid}&bid=${bid}&page=1`,
+    href: `/?bid=${bid}&tid=${tid}&p=1`,
     id: `${bid}-${tid}`,
     isRecent: timestamp ? Date.now() - new Date(timestamp).getTime() < 24 * 60 * 60 * 1000 : false,
     replies: toNumber(row.reply),
@@ -150,7 +150,7 @@ async function fetchUserAvatar(username: string) {
   if (pendingRequest) return pendingRequest;
 
   const request = requestRows({ ask: 'user_profile', username })
-    .then((rows) => normalizeAvatar(rows[0]?.icon))
+    .then((rows) => normalizeLegacyAvatar(rows[0]?.icon))
     .catch(() => '')
     .then((avatar) => {
       avatarCache.set(username, avatar);
@@ -164,19 +164,6 @@ async function fetchUserAvatar(username: string) {
 
 function throwIfAborted(signal?: AbortSignal) {
   if (signal?.aborted) throw new DOMException('Request aborted', 'AbortError');
-}
-
-function normalizeAvatar(value: unknown) {
-  if (typeof value !== 'string') return '';
-  const avatar = value.trim();
-
-  if (!avatar) return '';
-  if (/^data:image\//i.test(avatar)) return avatar;
-  if (/^https?:\/\//i.test(avatar)) return avatar;
-  if (avatar.startsWith('//')) return `https:${avatar}`;
-  if (avatar.startsWith('/')) return `${PUBLIC_ASSET_ORIGIN}${avatar}`;
-  if (/^\d+$/.test(avatar)) return `${PUBLIC_ASSET_ORIGIN}/bbsimg/i/${avatar}.gif`;
-  return `${PUBLIC_ASSET_ORIGIN}/bbsimg/icons/${avatar.replace(/^\.?\//, '')}`;
 }
 
 function excerptText(value: string) {

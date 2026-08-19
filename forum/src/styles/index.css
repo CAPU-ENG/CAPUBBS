@@ -6,6 +6,7 @@
 @import './rich-text-editor.css';
 @import './board.css';
 @import './profile.css';
+@import './auth.css';
 @import './utilities.css';
 
 @tailwind base;

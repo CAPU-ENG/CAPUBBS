@@ -100,7 +100,7 @@ export function ThreadFloor({
   }, []);
 
   async function copyFloorLink() {
-    const link = `${window.location.origin}${window.location.pathname}${window.location.search}#floor-${floor.floor}`;
+    const link = `${window.location.origin}${window.location.pathname}${window.location.search}#${floor.floor}`;
     const copied = await writeClipboardText(link);
     if (!copied) return;
 

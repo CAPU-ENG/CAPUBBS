@@ -13,10 +13,10 @@ type PaginationProps = {
 function pageHref(boardId: number, threadId: number, page: number, authorOnly: boolean) {
   const params = new URLSearchParams({
     bid: String(boardId),
-    page: String(page),
-    thread: String(threadId),
+    p: String(page),
+    tid: String(threadId),
   });
-  if (authorOnly) params.set('author', '1');
+  if (authorOnly) params.set('see_lz', '1');
   return `/?${params.toString()}`;
 }
 
@@ -50,7 +50,7 @@ export function FloorNodes({
 }) {
   function navigateToFloor(floor: number) {
     document.getElementById(`floor-${floor}`)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    window.history.replaceState(null, '', `${window.location.pathname}${window.location.search}#floor-${floor}`);
+    window.history.replaceState(null, '', `${window.location.pathname}${window.location.search}#${floor}`);
   }
 
   return (

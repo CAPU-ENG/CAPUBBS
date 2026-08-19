@@ -10,7 +10,8 @@ import { useScrollContextTitle } from '../hooks/useScrollContextTitle';
 import { useRef } from 'react';
 
 function getRequestedPage() {
-  const value = Number(new URLSearchParams(window.location.search).get('page') ?? '1');
+  const params = new URLSearchParams(window.location.search);
+  const value = Number(params.get('p') ?? params.get('page') ?? '1');
   return Number.isFinite(value) && value > 0 ? Math.floor(value) : 1;
 }
 
@@ -20,8 +21,8 @@ function getDigestOnly() {
 
 function boardPageHref(boardId: DemoBoardId, page: number, digestOnly: boolean) {
   const params = new URLSearchParams();
-  params.set('board', String(boardId));
-  if (page > 1) params.set('page', String(page));
+  params.set('bid', String(boardId));
+  if (page > 1) params.set('p', String(page));
   if (digestOnly) params.set('digest', '1');
   return `/?${params.toString()}`;
 }
@@ -29,8 +30,8 @@ function boardPageHref(boardId: DemoBoardId, page: number, digestOnly: boolean) 
 function threadHref(thread: BoardThreadData) {
   const params = new URLSearchParams({
     bid: String(thread.bid),
-    page: '1',
-    thread: String(thread.id),
+    p: '1',
+    tid: String(thread.id),
   });
   return `/?${params.toString()}`;
 }
