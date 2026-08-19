@@ -11,37 +11,6 @@
     padding: calc(var(--topbar-height) + 18px) 16px 20px;
   }
 
-  .thread-route-row {
-    display: flex;
-    min-height: 42px;
-    align-items: center;
-    justify-content: space-between;
-    gap: 18px;
-    border-bottom: 1px solid var(--line-strong);
-    padding: 0 2px 10px;
-  }
-
-  .thread-route-row > nav {
-    display: flex;
-    min-width: 0;
-    align-items: center;
-    gap: 8px;
-    color: var(--text-faint);
-    font-size: 0.72rem;
-  }
-
-  .thread-route-row > nav a {
-    flex-shrink: 0;
-    color: var(--brand-strong);
-    font-weight: 720;
-  }
-
-  .thread-route-row > nav span:last-child {
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-  }
-
   .thread-pagination {
     display: flex;
     flex-shrink: 0;
@@ -111,12 +80,19 @@
 
   .thread-title-card {
     width: 100%;
-    margin-top: 12px;
     border: 1px solid var(--line);
     border-radius: 2px;
     padding: 24px 26px 18px;
     background: var(--surface);
     box-shadow: var(--shadow-card);
+  }
+
+  .thread-title-heading {
+    display: flex;
+    min-width: 0;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 22px;
   }
 
   .thread-title-card h1 {
@@ -127,6 +103,45 @@
     font-weight: 760;
     letter-spacing: -0.035em;
     line-height: 1.38;
+  }
+
+  .thread-board-card {
+    display: inline-flex;
+    max-width: 180px;
+    min-height: 42px;
+    flex: 0 0 auto;
+    align-items: flex-start;
+    justify-content: center;
+    flex-direction: column;
+    gap: 2px;
+    border: 1px solid color-mix(in srgb, var(--brand) 28%, var(--line));
+    border-radius: 2px;
+    padding: 7px 11px;
+    background: var(--brand-soft);
+    color: var(--brand-strong);
+    transition: border-color 140ms ease, background 140ms ease;
+  }
+
+  .thread-board-card:hover {
+    border-color: color-mix(in srgb, var(--brand) 55%, var(--line));
+    background: color-mix(in srgb, var(--brand-soft) 72%, var(--surface));
+  }
+
+  .thread-board-card > span {
+    color: var(--text-faint);
+    font-size: 0.58rem;
+    font-weight: 650;
+    letter-spacing: 0.08em;
+  }
+
+  .thread-board-card > strong {
+    display: block;
+    max-width: 100%;
+    overflow: hidden;
+    font-size: 0.72rem;
+    font-weight: 760;
+    text-overflow: ellipsis;
+    white-space: nowrap;
   }
 
   .thread-title-meta {
@@ -969,27 +984,21 @@
       padding: calc(var(--topbar-height) + 10px) 9px 72px;
     }
 
-    .thread-route-row {
-      align-items: flex-start;
-      flex-direction: column;
-      gap: 9px;
-      padding-inline: 2px;
-    }
-
-    .thread-route-row > nav {
-      width: 100%;
-    }
-
-    .thread-route-row > .thread-pagination {
-      width: 100%;
-      justify-content: flex-start;
-      overflow-x: auto;
-      padding-bottom: 2px;
-    }
-
     .thread-title-card {
-      margin-top: 9px;
       padding: 18px 16px 14px;
+    }
+
+    .thread-title-heading {
+      align-items: stretch;
+      flex-direction: column-reverse;
+      gap: 10px;
+    }
+
+    .thread-board-card {
+      max-width: min(55vw, 180px);
+      min-height: 36px;
+      align-self: flex-end;
+      padding: 5px 9px;
     }
 
     .thread-title-card h1 {
