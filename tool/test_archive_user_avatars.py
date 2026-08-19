@@ -166,5 +166,16 @@ class ArchiveTests(unittest.TestCase):
             self.assertEqual(manifest["users"]["Alice"]["status"], "skipped")
 
 
+class DefaultPathTests(unittest.TestCase):
+    def test_default_output_is_public_and_git_ignored(self) -> None:
+        self.assertEqual(
+            avatars.default_output_dir(),
+            Path(__file__).resolve().parent.parent
+            / "bbsimg"
+            / "icons"
+            / "user_archive",
+        )
+
+
 if __name__ == "__main__":
     unittest.main()

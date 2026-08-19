@@ -427,6 +427,10 @@ def default_input_path() -> Path:
     )
 
 
+def default_output_dir() -> Path:
+    return Path(__file__).resolve().parent.parent / "bbsimg" / "icons" / "user_archive"
+
+
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
         description="下载用户归档中的头像，统一转换为不超过指定大小的 WebP。"
@@ -441,7 +445,7 @@ def parse_args() -> argparse.Namespace:
         "--output",
         type=Path,
         default=None,
-        help="头像输出目录（默认用户归档目录下的 avatars/）",
+        help="头像输出目录（默认 bbsimg/icons/user_archive/）",
     )
     parser.add_argument(
         "--site-url",
@@ -490,7 +494,7 @@ def main() -> int:
         return 2
 
     input_path = (args.input or default_input_path()).expanduser().resolve()
-    output_dir = (args.output or input_path.parent / "avatars").expanduser().resolve()
+    output_dir = (args.output or default_output_dir()).expanduser().resolve()
     try:
         profiles = load_profiles(input_path)
         site_url = normalize_site_url(args.site_url or infer_site_url(input_path))
