@@ -563,6 +563,15 @@
     vertical-align: middle;
   }
 
+  .forum-markup img[role="button"] {
+    cursor: zoom-in;
+  }
+
+  .forum-markup img[role="button"]:focus-visible {
+    outline: 2px solid var(--brand);
+    outline-offset: 3px;
+  }
+
   .forum-markup table {
     display: block;
     max-width: 100%;
@@ -594,7 +603,7 @@
     border-top: 1px solid var(--line);
   }
 
-  .nested-replies img {
+  .nested-replies > article > img {
     width: 28px;
     height: 28px;
     border: 1px solid var(--line);
@@ -654,6 +663,78 @@
   .thread-signature img {
     height: auto;
     max-width: 100%;
+  }
+
+  .thread-image-lightbox-backdrop {
+    position: fixed;
+    z-index: 220;
+    inset: 0;
+    display: grid;
+    place-items: center;
+    padding: 28px;
+    background: rgb(7 12 16 / 0.88);
+    backdrop-filter: blur(5px);
+    animation: thread-image-backdrop-in 160ms ease both;
+  }
+
+  .thread-image-lightbox {
+    position: relative;
+    display: flex;
+    max-width: min(94vw, 1440px);
+    max-height: 92vh;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    gap: 10px;
+    margin: 0;
+  }
+
+  .thread-image-lightbox > img {
+    display: block;
+    width: auto;
+    max-width: 100%;
+    height: auto;
+    max-height: 86vh;
+    border-radius: 2px;
+    box-shadow: 0 18px 70px rgb(0 0 0 / 0.48);
+    object-fit: contain;
+  }
+
+  .thread-image-lightbox > button {
+    position: absolute;
+    z-index: 1;
+    top: 10px;
+    right: 10px;
+    display: inline-flex;
+    width: 38px;
+    height: 38px;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid rgb(255 255 255 / 0.25);
+    border-radius: var(--control-radius);
+    background: rgb(0 0 0 / 0.62);
+    color: #fff;
+    transition: background 140ms ease;
+  }
+
+  .thread-image-lightbox > button:hover {
+    background: rgb(0 0 0 / 0.82);
+  }
+
+  .thread-image-lightbox > button:focus-visible {
+    outline: 2px solid #fff;
+    outline-offset: 2px;
+  }
+
+  .thread-image-lightbox > figcaption {
+    max-width: min(88vw, 760px);
+    overflow: hidden;
+    color: rgb(255 255 255 / 0.78);
+    font-size: 0.72rem;
+    line-height: 1.5;
+    text-align: center;
+    text-overflow: ellipsis;
+    white-space: nowrap;
   }
 
   .thread-request-state,
@@ -1004,7 +1085,7 @@
       padding: 10px;
     }
 
-    .nested-replies img {
+    .nested-replies > article > img {
       width: 24px;
       height: 24px;
     }
@@ -1039,6 +1120,24 @@
       padding: 0 9px;
     }
 
+    .thread-image-lightbox-backdrop {
+      padding: 8px;
+    }
+
+    .thread-image-lightbox {
+      max-width: calc(100vw - 16px);
+      max-height: calc(100vh - 16px);
+    }
+
+    .thread-image-lightbox > img {
+      max-height: calc(100vh - 32px);
+    }
+
+    .thread-image-lightbox > button {
+      top: 8px;
+      right: 8px;
+    }
+
   }
   @media (hover: none) {
     .thread-avatar-rail:hover .author-hover-card {
@@ -1050,6 +1149,12 @@
   @keyframes thread-request-spin {
     to {
       transform: rotate(360deg);
+    }
+  }
+
+  @keyframes thread-image-backdrop-in {
+    from {
+      opacity: 0;
     }
   }
 

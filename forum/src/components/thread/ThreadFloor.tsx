@@ -9,7 +9,8 @@ import {
 } from 'lucide-react';
 import type { ThreadAuthor, ThreadFloorData } from '../../data/threadDemo';
 import { getPublicProfilePath } from '../../utils/userRoutes';
-import { ForumMarkup } from './ForumMarkup';
+import { ForumMarkup, type ForumMarkupImage } from './ForumMarkup';
+import { ThreadImageLightbox } from './ThreadImageLightbox';
 
 function AuthorCard({ author }: { author: ThreadAuthor }) {
   return (
@@ -92,7 +93,9 @@ export function ThreadFloor({
   onReply: (floor: ThreadFloorData, targetName?: string) => void;
 }) {
   const [copyNoticeOpen, setCopyNoticeOpen] = useState(false);
+  const [previewImage, setPreviewImage] = useState<ForumMarkupImage | null>(null);
   const copyNoticeTimerRef = useRef<number | null>(null);
+  const previewTriggerRef = useRef<HTMLImageElement | null>(null);
 
   useEffect(() => {
     return () => {
@@ -108,6 +111,16 @@ export function ThreadFloor({
     setCopyNoticeOpen(true);
     if (copyNoticeTimerRef.current !== null) window.clearTimeout(copyNoticeTimerRef.current);
     copyNoticeTimerRef.current = window.setTimeout(() => setCopyNoticeOpen(false), 1800);
+  }
+
+  function openImagePreview(image: ForumMarkupImage, trigger: HTMLImageElement) {
+    previewTriggerRef.current = trigger;
+    setPreviewImage(image);
+  }
+
+  function closeImagePreview() {
+    setPreviewImage(null);
+    window.requestAnimationFrame(() => previewTriggerRef.current?.focus());
   }
 
   return (
@@ -156,6 +169,7 @@ export function ThreadFloor({
           <ForumMarkup
             className="thread-floor-body"
             html={floor.contentHtml}
+            onImageOpen={openImagePreview}
             variant="floor"
           />
         ) : (
@@ -169,7 +183,11 @@ export function ThreadFloor({
         {(floor.signatureHtml || floor.signature) && (
           <footer className="thread-signature">
             {floor.signatureHtml ? (
-              <ForumMarkup html={floor.signatureHtml} variant="signature" />
+              <ForumMarkup
+                html={floor.signatureHtml}
+                onImageOpen={openImagePreview}
+                variant="signature"
+              />
             ) : (
               <p>{floor.signature}</p>
             )}
@@ -215,6 +233,7 @@ export function ThreadFloor({
                     <ForumMarkup
                       className="nested-reply-content"
                       html={reply.contentHtml}
+                      onImageOpen={openImagePreview}
                       variant="nested"
                     />
                   ) : (
@@ -241,6 +260,9 @@ export function ThreadFloor({
           <Check aria-hidden="true" size={15} />
           已复制楼层链接
         </div>
+      )}
+      {previewImage && (
+        <ThreadImageLightbox image={previewImage} onClose={closeImagePreview} />
       )}
     </article>
   );

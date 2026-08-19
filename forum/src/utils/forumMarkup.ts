@@ -124,6 +124,10 @@ function sanitizeImage(image: HTMLImageElement) {
 
   image.setAttribute('src', src);
   image.setAttribute('loading', 'lazy');
+  image.setAttribute('role', 'button');
+  image.setAttribute('tabindex', '0');
+  image.setAttribute('aria-label', image.alt.trim() ? `查看大图：${image.alt.trim()}` : '查看大图');
+  if (!image.title) image.setAttribute('title', '点击查看大图');
   sanitizeDimension(image, 'width');
   sanitizeDimension(image, 'height');
 }
