@@ -645,8 +645,8 @@
   .thread-signature > p,
   .thread-signature > div {
     color: var(--text-faint);
-    font-family: "Noto Serif CJK SC", "Source Han Serif SC", "Songti SC", serif;
-    font-size: 0.82rem;
+    font-family: inherit;
+    font-size: 0.92rem;
     line-height: 1.6;
     overflow-wrap: anywhere;
   }
@@ -1015,6 +1015,11 @@
 
     .thread-signature {
       margin-top: 14px;
+    }
+
+    .thread-signature > p,
+    .thread-signature > div {
+      font-size: 0.86rem;
     }
 
     .thread-bottom-pagination {

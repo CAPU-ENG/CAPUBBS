@@ -27,15 +27,27 @@ const ALLOWED_CLASSES = new Set([
 declare const safeForumHtmlBrand: unique symbol;
 export type SafeForumHtml = string & { readonly [safeForumHtmlBrand]: true };
 
-export function renderForumMarkup(value: string): SafeForumHtml {
+export function renderForumMarkup(
+  value: string,
+  options: { normalizeLegacyLineBreaks?: boolean } = {},
+): SafeForumHtml {
   if (!value.trim()) return '' as SafeForumHtml;
 
   const parser = new DOMParser();
-  const document = parser.parseFromString(translateLegacyBbcode(value), 'text/html');
+  const source = options.normalizeLegacyLineBreaks ? normalizeLegacyLineBreaks(value) : value;
+  const document = parser.parseFromString(translateLegacyBbcode(source), 'text/html');
   const elements = Array.from(document.body.querySelectorAll('*'));
 
   elements.forEach((element) => sanitizeElement(element));
   return document.body.innerHTML as SafeForumHtml;
+}
+
+function normalizeLegacyLineBreaks(value: string) {
+  const normalized = value.replace(/(?:<br\s*\/?>\s*){2,}/gi, (sequence) => {
+    const breakCount = sequence.match(/<br\b/gi)?.length ?? 1;
+    return '<br>'.repeat(Math.ceil(breakCount / 2));
+  });
+  return normalized.replace(/(?:<br\s*\/?>\s*)+$/gi, '');
 }
 
 export function forumMarkupToPlainText(value: string) {

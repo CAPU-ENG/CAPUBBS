@@ -153,7 +153,10 @@ function mapFloor(row: ApiRow, viewerName: string): ThreadFloorData {
   const authorName = plainText(row.author) || '匿名用户';
   const rawText = stringValue(row.rawText);
   const contentHtml = renderForumMarkup(stringValue(row.contentHtml) || rawText);
-  const signatureHtml = renderForumMarkup(stringValue(row.signatureHtml));
+  const signatureHtml = renderForumMarkup(
+    stringValue(row.signatureHtml),
+    { normalizeLegacyLineBreaks: true },
+  );
   const quoteHtml = renderForumMarkup(stringValue(row.quoteHtml));
   const quoteText = forumMarkupToPlainText(quoteHtml || contentHtml);
   const canEdit = Boolean(row.canEdit);
@@ -206,7 +209,10 @@ function mapAuthor(row: ApiRow, fallbackName: string): ThreadAuthor {
 
 function mapViewerSignatures(value: unknown) {
   const signatures = asRow(value);
-  return ['1', '2', '3'].map((key) => forumMarkupToPlainText(renderForumMarkup(stringValue(signatures[key]))));
+  return ['1', '2', '3'].map((key) => forumMarkupToPlainText(renderForumMarkup(
+    stringValue(signatures[key]),
+    { normalizeLegacyLineBreaks: true },
+  )));
 }
 
 function normalizeAssetUrl(value: unknown) {
