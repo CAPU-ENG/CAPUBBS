@@ -2944,6 +2944,8 @@
 
   .board-thread-title-line > a {
     overflow: hidden;
+    min-width: 0;
+    flex: 1 1 auto;
     color: var(--text-strong);
     font-size: 0.82rem;
     font-weight: 680;
@@ -2991,11 +2993,6 @@
 
   .dark .board-status-digest {
     color: #dfbc70;
-  }
-
-  .board-status-hot {
-    border-color: color-mix(in srgb, var(--danger) 33%, var(--line));
-    color: var(--danger);
   }
 
   .board-thread-user {
@@ -3350,13 +3347,11 @@
 
     .board-thread-title-line {
       align-items: flex-start;
-      flex-wrap: wrap;
       gap: 5px 7px;
     }
 
     .board-thread-title-line > a {
       display: -webkit-box;
-      flex-basis: 100%;
       overflow: hidden;
       font-size: 0.77rem;
       line-height: 1.52;

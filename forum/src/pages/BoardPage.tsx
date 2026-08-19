@@ -1,4 +1,4 @@
-import { LockKeyhole, PenLine, Settings2, Sparkles, TrendingUp } from 'lucide-react';
+import { LockKeyhole, PenLine, Settings2, Sparkles } from 'lucide-react';
 import boardCover from '../assets/board/b3.webp';
 import { AppBackground } from '../components/layout/AppBackground';
 import { Pagination } from '../components/layout/Pagination';
@@ -45,15 +45,19 @@ function ExactTime({ label, value }: { label: string; value: string }) {
   );
 }
 
-function ThreadStatus({ thread }: { thread: BoardThreadData }) {
-  if (!thread.status) return null;
+function PinnedStatus({ thread }: { thread: BoardThreadData }) {
+  if (!thread.status?.pinned) return null;
+
+  return <span className="board-status board-status-pinned">置顶</span>;
+}
+
+function TrailingThreadStatuses({ thread }: { thread: BoardThreadData }) {
+  if (!thread.status?.digest && !thread.status?.locked) return null;
 
   return (
     <span className="board-thread-statuses" aria-label="主题状态">
-      {thread.status.pinned ? <span className="board-status board-status-pinned">置顶</span> : null}
-      {thread.status.digest ? <span className="board-status board-status-digest"><Sparkles size={11} />精品</span> : null}
-      {thread.status.hot ? <span className="board-status board-status-hot"><TrendingUp size={11} />热议</span> : null}
-      {thread.status.locked ? <span className="board-status"><LockKeyhole size={11} />锁定</span> : null}
+      {thread.status?.digest ? <span className="board-status board-status-digest"><Sparkles size={11} />精品</span> : null}
+      {thread.status?.locked ? <span className="board-status"><LockKeyhole size={11} />锁定</span> : null}
     </span>
   );
 }
@@ -63,8 +67,9 @@ function ThreadRow({ thread }: { thread: BoardThreadData }) {
     <tr className="board-thread-row">
       <td className="board-thread-title-cell">
         <div className="board-thread-title-line">
-          <ThreadStatus thread={thread} />
+          <PinnedStatus thread={thread} />
           <a href={threadHref(thread.id)}>{thread.title}</a>
+          <TrailingThreadStatuses thread={thread} />
         </div>
       </td>
       <td className="board-thread-author-cell">

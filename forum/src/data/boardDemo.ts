@@ -7,7 +7,6 @@ export type BoardThreadData = {
   replies: number;
   status?: {
     digest?: boolean;
-    hot?: boolean;
     locked?: boolean;
     pinned?: boolean;
   };
@@ -58,7 +57,6 @@ export const demoBoardThreads: BoardThreadData[] = [
     lastReplyAt: '2026-08-20 22:13:45',
     lastReplyBy: '桥下看风景',
     replies: 26,
-    status: { hot: true },
     title: '长途骑行如何分配补给？分享一份两百公里实测清单',
     views: 936,
   },
@@ -111,7 +109,6 @@ export const demoBoardThreads: BoardThreadData[] = [
     lastReplyAt: '2026-08-20 13:47:11',
     lastReplyBy: '灵车漂移',
     replies: 44,
-    status: { hot: true },
     title: '折叠车带上地铁的尺寸与收纳经验汇总',
     views: 1872,
   },
