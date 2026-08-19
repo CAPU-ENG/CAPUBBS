@@ -3,7 +3,7 @@ import { ArrowRight, Bike, LoaderCircle, LockKeyhole, UserRound } from 'lucide-r
 import { AppBackground } from '../components/layout/AppBackground';
 import { TopBar } from '../components/layout/TopBar';
 import { useAuth } from '../context/AuthContext';
-import { getAuthReturnTo } from '../utils/authRoutes';
+import { getAuthReturnTo, replaceForumLocation } from '../utils/authRoutes';
 import { md5LegacyStringHex } from '../utils/md5';
 
 export function LoginPage() {
@@ -15,7 +15,9 @@ export function LoginPage() {
   const returnTo = getAuthReturnTo(window.location.search);
 
   useEffect(() => {
-    if (status === 'authenticated') window.location.replace(returnTo);
+    if (status !== 'authenticated') return;
+    const frame = window.requestAnimationFrame(() => replaceForumLocation(returnTo));
+    return () => window.cancelAnimationFrame(frame);
   }, [returnTo, status]);
 
   async function submit(event: FormEvent<HTMLFormElement>) {
@@ -29,7 +31,6 @@ export function LoginPage() {
     setError('');
     try {
       await login(username, md5LegacyStringHex(password));
-      window.location.replace(returnTo);
     } catch (submitError) {
       setError(submitError instanceof Error ? submitError.message : '登录失败，请稍后重试。');
     } finally {

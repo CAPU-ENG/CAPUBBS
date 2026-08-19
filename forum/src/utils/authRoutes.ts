@@ -1,4 +1,5 @@
 const LOCAL_ORIGIN = 'http://capubbs.local';
+export const FORUM_LOCATION_CHANGE_EVENT = 'capubbs:location-change';
 
 export function getLoginPathWithReturnTo() {
   const returnTo = getSafeReturnTo(`${window.location.pathname}${window.location.search}${window.location.hash}`);
@@ -7,6 +8,11 @@ export function getLoginPathWithReturnTo() {
 
 export function getAuthReturnTo(search: string) {
   return getSafeReturnTo(new URLSearchParams(search).get('returnTo'));
+}
+
+export function replaceForumLocation(href: string) {
+  window.history.replaceState(null, '', getSafeReturnTo(href));
+  window.dispatchEvent(new Event(FORUM_LOCATION_CHANGE_EVENT));
 }
 
 function getSafeReturnTo(value: string | null | undefined) {

@@ -1,12 +1,26 @@
+import { useEffect, useReducer } from 'react';
 import { HomePage } from './pages/HomePage';
 import { BoardPage } from './pages/BoardPage';
 import { PublicProfilePage } from './pages/PublicProfilePage';
 import { ThreadPage } from './pages/ThreadPage';
 import { UserCenterPage } from './pages/UserCenterPage';
 import { LoginPage } from './pages/LoginPage';
+import { FORUM_LOCATION_CHANGE_EVENT } from './utils/authRoutes';
 import { getPublicProfileNameFromLocation } from './utils/userRoutes';
 
 export function App() {
+  const [, refreshLocation] = useReducer((revision: number) => revision + 1, 0);
+
+  useEffect(() => {
+    const refresh = () => refreshLocation();
+    window.addEventListener('popstate', refresh);
+    window.addEventListener(FORUM_LOCATION_CHANGE_EVENT, refresh);
+    return () => {
+      window.removeEventListener('popstate', refresh);
+      window.removeEventListener(FORUM_LOCATION_CHANGE_EVENT, refresh);
+    };
+  }, []);
+
   const pathname = normalizePathname(window.location.pathname);
   const params = new URLSearchParams(window.location.search);
   if (pathname === '/login') return <LoginPage />;
