@@ -289,8 +289,8 @@ export function RichTextEditor({
       : 'overflow-hidden'
     : 'overflow-auto';
   const splitPaneClassName = isMobileViewport
-    ? `flex flex-col ${isAutoHeightEnabled ? 'min-h-[56vh]' : 'h-[56vh]'}`
-    : `flex flex-row ${isAutoHeightEnabled ? 'min-h-[56vh]' : 'h-[56vh]'}`;
+    ? `flex flex-col ${isAutoHeightEnabled ? 'min-h-[50vh]' : 'h-[50vh]'}`
+    : `flex flex-row ${isAutoHeightEnabled ? 'min-h-[50vh]' : 'h-[50vh]'}`;
   const splitPaneChildClassName = 'min-h-0 min-w-0 flex-1 basis-0';
   const splitPaneDividerClassName = isMobileViewport
     ? 'border-t border-zinc-200/80 dark:border-white/10'
@@ -1513,7 +1513,7 @@ export function RichTextEditor({
               onKeyDown={handleEditorKeyDown}
               onPaste={handleEditorPaste}
               onScroll={handleMarkdownSourceScroll}
-              className={`min-w-0 flex-1 resize-none border-0 bg-transparent px-3 py-3 text-sm leading-6 text-zinc-800 outline-none placeholder:text-zinc-400 focus:ring-0 dark:text-white dark:placeholder:text-zinc-500 ${isAutoHeightEnabled ? 'min-h-[56vh]' : 'min-h-0'} ${markdownSourceOverflowClassName}`}
+              className={`min-w-0 flex-1 resize-none border-0 bg-transparent px-3 py-3 text-sm leading-6 text-zinc-800 outline-none placeholder:text-zinc-400 focus:ring-0 dark:text-white dark:placeholder:text-zinc-500 ${isAutoHeightEnabled ? 'min-h-[50vh]' : 'min-h-0'} ${markdownSourceOverflowClassName}`}
             />
           </div>
           <div
@@ -1530,7 +1530,7 @@ export function RichTextEditor({
               <span>{value.content.length} 字符</span>
             </div>
             <div
-              className={`capubbs-code-shell flex ${isAutoHeightEnabled ? 'min-h-[calc(56vh-2.25rem)]' : 'min-h-0 flex-1'}`}
+              className={`capubbs-code-shell flex ${isAutoHeightEnabled ? 'min-h-[calc(50vh-2.25rem)]' : 'min-h-0 flex-1'}`}
               data-source-line-numbers={shouldShowSourceLineNumbers ? 'true' : undefined}
             >
               {renderSourceLineNumbers('code')}
@@ -1590,7 +1590,7 @@ export function RichTextEditor({
           onKeyDown={handleEditorKeyDown}
           onPaste={handleEditorPaste}
           onScroll={updateRichImageResizeHandle}
-          className={`capubbs-editor-prose capubbs-rich-editor-input px-3 py-3 text-sm leading-6 text-zinc-800 outline-none dark:text-zinc-100 ${isAutoHeightEnabled ? 'min-h-[56vh] overflow-visible' : 'h-[56vh] overflow-y-auto'}`}
+          className={`capubbs-editor-prose capubbs-rich-editor-input px-3 py-3 text-sm leading-6 text-zinc-800 outline-none dark:text-zinc-100 ${isAutoHeightEnabled ? 'min-h-[50vh] overflow-visible' : 'h-[50vh] overflow-y-auto'}`}
           style={{ fontFamily: defaultRichTextFont }}
         />
       )}

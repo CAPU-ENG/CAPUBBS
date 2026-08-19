@@ -1596,46 +1596,8 @@
     color: var(--brand-strong);
   }
 
-  .thread-more-button {
-    width: 34px;
-    justify-content: center;
-    padding: 0 !important;
-  }
-
-  .floor-more-menu {
-    position: absolute;
-    z-index: 30;
-    right: 0;
-    bottom: calc(100% + 7px);
-    width: max-content;
-    min-width: 142px;
-    border: 1px solid var(--line);
-    border-radius: 2px;
-    padding: 4px;
-    background: var(--surface-raised);
-    box-shadow: var(--shadow-float);
-    animation: local-panel-in 140ms ease both;
-  }
-
-  .floor-more-menu > button {
-    display: flex;
-    width: 100%;
-    min-height: 34px;
-    align-items: center;
-    gap: 7px;
-    border-radius: var(--control-radius);
-    padding: 0 9px;
-    color: var(--text-muted);
-    font-size: 0.7rem;
-    text-align: left;
-  }
-
-  .floor-more-menu > button:hover {
-    background: var(--surface-soft);
-    color: var(--text-strong);
-  }
-
-  .floor-more-menu > .floor-menu-danger {
+  .thread-floor-actions > .floor-action-danger,
+  .thread-floor-actions > .floor-action-danger:hover {
     color: var(--danger);
   }
 
@@ -1792,8 +1754,8 @@
 
   .reply-editor-core .capubbs-rich-text-editor[data-auto-height="false"] {
     display: flex;
-    height: 66.667vh;
-    height: 66.667dvh;
+    height: 50vh;
+    height: 50dvh;
     flex-direction: column;
   }
 

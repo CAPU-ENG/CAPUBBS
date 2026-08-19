@@ -2,8 +2,6 @@ import { useEffect, useRef, useState } from 'react';
 import {
   Check,
   ExternalLink,
-  Link2,
-  MoreHorizontal,
   Pencil,
   Quote,
   Reply,
@@ -30,25 +28,6 @@ function AuthorCard({ author }: { author: ThreadAuthor }) {
       <a href={`#author-${encodeURIComponent(author.name)}`}>
         查看个人主页 <ExternalLink size={13} />
       </a>
-    </div>
-  );
-}
-
-function FloorMenu({ onClose, onCopy }: { onClose: () => void; onCopy: () => Promise<void> }) {
-  return (
-    <div className="floor-more-menu" role="menu">
-      <button
-        onClick={async () => {
-          await onCopy();
-          onClose();
-        }}
-        role="menuitem"
-        type="button"
-      >
-        <Link2 size={15} />复制楼层链接
-      </button>
-      <button onClick={onClose} role="menuitem" type="button"><Pencil size={15} />编辑楼层</button>
-      <button className="floor-menu-danger" onClick={onClose} role="menuitem" type="button"><Trash2 size={15} />删除楼层</button>
     </div>
   );
 }
@@ -97,20 +76,17 @@ export function ThreadFloor({
   onReply: (floor: ThreadFloorData, targetName?: string) => void;
 }) {
   const [authorCardOpen, setAuthorCardOpen] = useState(false);
-  const [menuOpen, setMenuOpen] = useState(false);
   const [copyNoticeOpen, setCopyNoticeOpen] = useState(false);
   const authorRef = useRef<HTMLDivElement | null>(null);
-  const menuRef = useRef<HTMLDivElement | null>(null);
   const copyNoticeTimerRef = useRef<number | null>(null);
 
   useEffect(() => {
-    function closeMenu(event: PointerEvent) {
-      if (menuRef.current && !menuRef.current.contains(event.target as Node)) setMenuOpen(false);
+    function closeAuthorCard(event: PointerEvent) {
       if (authorRef.current && !authorRef.current.contains(event.target as Node)) setAuthorCardOpen(false);
     }
-    document.addEventListener('pointerdown', closeMenu);
+    document.addEventListener('pointerdown', closeAuthorCard);
     return () => {
-      document.removeEventListener('pointerdown', closeMenu);
+      document.removeEventListener('pointerdown', closeAuthorCard);
       if (copyNoticeTimerRef.current !== null) window.clearTimeout(copyNoticeTimerRef.current);
     };
   }, []);
@@ -181,6 +157,29 @@ export function ThreadFloor({
           ))}
         </div>
 
+        {floor.signature && (
+          <footer className="thread-signature">
+            <p>{floor.signature}</p>
+          </footer>
+        )}
+
+        <div className="thread-floor-actions">
+          <button onClick={() => onQuote(floor)} type="button">
+            <Quote size={15} />
+            引用
+          </button>
+          <button onClick={() => onReply(floor)} type="button">
+            <Reply size={15} />
+            回复
+          </button>
+          {floor.isOwn && (
+            <>
+              <button type="button"><Pencil size={15} />编辑楼层</button>
+              <button className="floor-action-danger" type="button"><Trash2 size={15} />删除楼层</button>
+            </>
+          )}
+        </div>
+
         {floor.nestedReplies && floor.nestedReplies.length > 0 && (
           <section
             className="nested-replies"
@@ -208,43 +207,6 @@ export function ThreadFloor({
             ))}
           </section>
         )}
-
-        {floor.signature && (
-          <footer className="thread-signature">
-            <p>{floor.signature}</p>
-          </footer>
-        )}
-
-        <div className="thread-floor-actions">
-          <button onClick={() => onQuote(floor)} type="button">
-            <Quote size={15} />
-            引用
-          </button>
-          <button onClick={() => onReply(floor)} type="button">
-            <Reply size={15} />
-            回复
-          </button>
-          {floor.isOwn && (
-            <div className="relative" ref={menuRef}>
-              <button
-                aria-expanded={menuOpen}
-                aria-haspopup="menu"
-                aria-label={`${floor.floor} 楼更多操作`}
-                className="thread-more-button"
-                onClick={() => setMenuOpen((open) => !open)}
-                type="button"
-              >
-                <MoreHorizontal size={18} />
-              </button>
-              {menuOpen && (
-                <FloorMenu
-                  onClose={() => setMenuOpen(false)}
-                  onCopy={copyFloorLink}
-                />
-              )}
-            </div>
-          )}
-        </div>
       </div>
 
       {copyNoticeOpen && (
