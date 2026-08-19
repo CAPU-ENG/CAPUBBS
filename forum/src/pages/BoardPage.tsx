@@ -4,7 +4,6 @@ import { Pagination } from '../components/layout/Pagination';
 import { TopBar } from '../components/layout/TopBar';
 import { getBoardCoverImage } from '../data/boardCovers';
 import type { BoardThreadData } from '../api/board';
-import type { DemoBoardId } from '../data/boardDemo';
 import { useBoardData } from '../hooks/useBoardData';
 import { useScrollContextTitle } from '../hooks/useScrollContextTitle';
 import { useRef } from 'react';
@@ -19,7 +18,7 @@ function getDigestOnly() {
   return new URLSearchParams(window.location.search).get('digest') === '1';
 }
 
-function boardPageHref(boardId: DemoBoardId, page: number, digestOnly: boolean) {
+function boardPageHref(boardId: number, page: number, digestOnly: boolean) {
   const params = new URLSearchParams();
   params.set('bid', String(boardId));
   if (page > 1) params.set('p', String(page));
@@ -97,7 +96,7 @@ function ThreadRow({ thread }: { thread: BoardThreadData }) {
   );
 }
 
-export function BoardPage({ boardId }: { boardId: DemoBoardId }) {
+export function BoardPage({ boardId }: { boardId: number }) {
   const titleRef = useRef<HTMLHeadingElement | null>(null);
   const digestOnly = getDigestOnly();
   const requestedPage = getRequestedPage();

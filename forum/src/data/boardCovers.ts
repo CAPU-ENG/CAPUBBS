@@ -7,9 +7,8 @@ import boardCover6 from '../assets/board/b6.webp';
 import boardCover7 from '../assets/board/b7.webp';
 import boardCover9 from '../assets/board/b9.webp';
 import boardCover28 from '../assets/board/b28.webp';
-import type { DemoBoardId } from './boardDemo';
 
-const boardCoverImages: Record<DemoBoardId, string> = {
+const boardCoverImages: Record<number, string> = {
   1: boardCover1,
   2: boardCover2,
   3: boardCover3,
@@ -21,6 +20,6 @@ const boardCoverImages: Record<DemoBoardId, string> = {
   28: boardCover28,
 };
 
-export function getBoardCoverImage(boardId: DemoBoardId) {
-  return boardCoverImages[boardId];
+export function getBoardCoverImage(boardId: number) {
+  return boardCoverImages[boardId] ?? boardCover3;
 }

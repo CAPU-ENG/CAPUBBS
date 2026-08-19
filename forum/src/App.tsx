@@ -4,7 +4,6 @@ import { PublicProfilePage } from './pages/PublicProfilePage';
 import { ThreadPage } from './pages/ThreadPage';
 import { UserCenterPage } from './pages/UserCenterPage';
 import { LoginPage } from './pages/LoginPage';
-import { isDemoBoardId } from './data/boardDemo';
 import { getPublicProfileNameFromLocation } from './utils/userRoutes';
 
 export function App() {
@@ -18,7 +17,7 @@ export function App() {
   const threadId = Number(params.get('tid') ?? params.get('thread'));
   if (Number.isFinite(threadId) && threadId > 0) return <ThreadPage />;
   const boardId = Number(params.get('bid') ?? params.get('board'));
-  if (isDemoBoardId(boardId)) return <BoardPage boardId={boardId} />;
+  if (Number.isInteger(boardId) && boardId > 0) return <BoardPage boardId={boardId} />;
   return <HomePage />;
 }
 
