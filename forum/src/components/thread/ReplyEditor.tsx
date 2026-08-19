@@ -1,19 +1,10 @@
-import { useEffect, useRef, useState } from 'react';
+import { FileText, Paperclip, Save, Send, Trash2, UploadCloud, X } from 'lucide-react';
+import { useEffect, useRef, useState, type ChangeEvent } from 'react';
 import {
-  Bold,
-  Code2,
-  Image,
-  Italic,
-  Link,
-  List,
-  Paperclip,
-  Quote,
-  Save,
-  Send,
-  Underline,
-  X,
-  type LucideIcon,
-} from 'lucide-react';
+  getRichTextEditorStorageValue,
+  RichTextEditor,
+  type RichTextEditorValue,
+} from '../editor/RichTextEditor';
 
 export type ReplyTarget = {
   author: string;
@@ -21,21 +12,14 @@ export type ReplyTarget = {
   quote?: string;
 };
 
-type EditorMode = 'rich' | 'markdown' | 'html';
+type ReplyAttachment = {
+  id: string;
+  name: string;
+  size: number;
+  type: string;
+};
 
-const toolbarItems: Array<{
-  command: string;
-  icon: LucideIcon;
-  label: string;
-  value?: string;
-}> = [
-  { command: 'bold', icon: Bold, label: '粗体' },
-  { command: 'italic', icon: Italic, label: '斜体' },
-  { command: 'underline', icon: Underline, label: '下划线' },
-  { command: 'insertUnorderedList', icon: List, label: '列表' },
-  { command: 'formatBlock', value: 'blockquote', icon: Quote, label: '引用' },
-  { command: 'formatBlock', value: 'pre', icon: Code2, label: '代码' },
-];
+const draftStorageKey = 'capubbs-thread-reply-draft';
 
 export function ReplyEditor({
   editorRef,
@@ -48,74 +32,111 @@ export function ReplyEditor({
   target: ReplyTarget | null;
   threadTitle: string;
 }) {
-  const [mode, setMode] = useState<EditorMode>('rich');
-  const [content, setContent] = useState('');
-  const [signature, setSignature] = useState('1');
-  const [attachments, setAttachments] = useState<string[]>([]);
+  const [editorValue, setEditorValue] = useState<RichTextEditorValue>({ content: '', mode: 'rich' });
+  const [signatureIndex, setSignatureIndex] = useState(1);
+  const [attachments, setAttachments] = useState<ReplyAttachment[]>([]);
+  const [attachmentDialogOpen, setAttachmentDialogOpen] = useState(false);
+  const [focusRequest, setFocusRequest] = useState(0);
   const [status, setStatus] = useState('');
-  const richEditorRef = useRef<HTMLDivElement | null>(null);
-  const fileInputRef = useRef<HTMLInputElement | null>(null);
+  const appliedTargetRef = useRef('');
 
   useEffect(() => {
-    const draft = window.localStorage.getItem('capubbs-thread-reply-draft');
+    const draft = window.localStorage.getItem(draftStorageKey);
     if (!draft) return;
+
     try {
-      const parsed = JSON.parse(draft) as { content?: string; mode?: EditorMode; signature?: string };
-      setContent(parsed.content ?? '');
-      setMode(parsed.mode ?? 'rich');
-      setSignature(parsed.signature ?? '1');
+      const parsed = JSON.parse(draft) as {
+        attachments?: ReplyAttachment[];
+        content?: string;
+        editor?: RichTextEditorValue;
+        mode?: RichTextEditorValue['mode'];
+        signature?: string;
+        signatureIndex?: number;
+      };
+      setEditorValue(parsed.editor ?? {
+        content: parsed.content ?? '',
+        mode: parsed.mode ?? 'rich',
+      });
+      setSignatureIndex(parsed.signatureIndex ?? Number(parsed.signature ?? 1));
+      setAttachments(parsed.attachments ?? []);
+      setStatus('草稿已恢复');
     } catch {
-      window.localStorage.removeItem('capubbs-thread-reply-draft');
+      window.localStorage.removeItem(draftStorageKey);
     }
   }, []);
 
   useEffect(() => {
-    if (mode === 'rich' && richEditorRef.current && richEditorRef.current.innerHTML !== content) {
-      richEditorRef.current.innerHTML = content;
+    if (!target) {
+      appliedTargetRef.current = '';
+      return;
     }
-  }, [content, mode]);
 
-  function runCommand(command: string, value?: string) {
-    richEditorRef.current?.focus();
-    document.execCommand(command, false, value);
-    setContent(richEditorRef.current?.innerHTML ?? '');
+    const targetKey = `${target.floor}:${target.author}:${target.quote ?? ''}`;
+    if (appliedTargetRef.current === targetKey) return;
+    appliedTargetRef.current = targetKey;
+
+    if (target.quote) {
+      setEditorValue((current) => appendQuote(current, target));
+    }
+    setFocusRequest((request) => request + 1);
+    setStatus('');
+  }, [target]);
+
+  function updateEditorValue(nextValue: RichTextEditorValue) {
+    setEditorValue(nextValue);
+    setStatus('');
   }
 
-  function addLink() {
-    const href = window.prompt('输入链接地址');
-    if (href) runCommand('createLink', href);
+  function addAttachments(files: File[]) {
+    if (files.length === 0) return;
+
+    setAttachments((current) => [
+      ...current,
+      ...files.map((file) => ({
+        id: `${file.name}-${file.size}-${file.lastModified}-${crypto.randomUUID?.() ?? Date.now()}`,
+        name: file.name,
+        size: file.size,
+        type: file.type || 'application/octet-stream',
+      })),
+    ]);
+    setStatus('');
   }
 
-  function addImage() {
-    const src = window.prompt('输入图片地址');
-    if (src) runCommand('insertImage', src);
+  function removeAttachment(id: string) {
+    setAttachments((current) => current.filter((attachment) => attachment.id !== id));
+    setStatus('');
   }
 
   function saveDraft() {
-    window.localStorage.setItem('capubbs-thread-reply-draft', JSON.stringify({ content, mode, signature }));
-    setStatus('草稿已保存在本机');
+    if (!hasEditorContent(editorValue) && attachments.length === 0) {
+      setStatus('没有可保存的内容');
+      return;
+    }
+
+    window.localStorage.setItem(draftStorageKey, JSON.stringify({
+      attachments,
+      editor: getRichTextEditorStorageValue(editorValue),
+      signatureIndex,
+      threadTitle,
+    }));
+    setStatus('已存入本机草稿');
   }
 
   function publishReply() {
-    const plainText = mode === 'rich'
-      ? (richEditorRef.current?.textContent ?? '').trim()
-      : content.trim();
-    if (!plainText) {
+    if (!hasEditorContent(editorValue)) {
       setStatus('请先填写回复内容');
-      richEditorRef.current?.focus();
+      setFocusRequest((request) => request + 1);
       return;
     }
+
     setStatus('演示模式：回复内容已通过本地校验');
   }
 
   return (
     <section className="reply-editor" ref={editorRef} aria-labelledby="reply-editor-title">
       <header className="reply-editor-heading">
-        <div>
-          <span className="eyebrow">REPLY</span>
-          <h2 id="reply-editor-title">写回复</h2>
-        </div>
-        <p>Re: {threadTitle}</p>
+        <h2 id="reply-editor-title">写回复</h2>
+        <p>回复主题 · {threadTitle}</p>
       </header>
 
       {target && (
@@ -126,91 +147,183 @@ export function ReplyEditor({
         </div>
       )}
 
-      <div className="editor-mode-tabs" role="tablist" aria-label="编辑模式">
-        {(['rich', 'markdown', 'html'] as EditorMode[]).map((editorMode) => (
-          <button
-            aria-selected={mode === editorMode}
-            className={mode === editorMode ? 'editor-mode-active' : ''}
-            key={editorMode}
-            onClick={() => setMode(editorMode)}
-            role="tab"
-            type="button"
-          >
-            {editorMode === 'rich' ? '富文本' : editorMode === 'markdown' ? 'Markdown' : 'HTML'}
-          </button>
-        ))}
+      <div className="reply-editor-core">
+        <RichTextEditor
+          ariaLabel={`回复主题：${threadTitle}`}
+          focusRequest={focusRequest}
+          onChange={updateEditorValue}
+          placeholder="写下你的回复……"
+          value={editorValue}
+        />
       </div>
 
-      {mode === 'rich' && (
-        <div className="editor-toolbar" role="toolbar" aria-label="文本格式">
-          <select aria-label="段落样式" defaultValue="p" onChange={(event) => runCommand('formatBlock', event.target.value)}>
-            <option value="p">正文</option>
-            <option value="h2">二级标题</option>
-            <option value="h3">三级标题</option>
+      <section className="reply-signature-panel" aria-label="签名档设置">
+        <label className="reply-signature-toggle">
+          <input
+            checked={signatureIndex > 0}
+            onChange={(event) => setSignatureIndex(event.target.checked ? 1 : 0)}
+            type="checkbox"
+          />
+          <FileText size={15} />
+          使用签名档
+        </label>
+        {signatureIndex > 0 && (
+          <select
+            aria-label="选择签名档"
+            onChange={(event) => setSignatureIndex(Number(event.target.value))}
+            value={signatureIndex}
+          >
+            <option value={1}>签名档 1</option>
+            <option value={2}>签名档 2</option>
+            <option value={3}>签名档 3</option>
           </select>
-          {toolbarItems.map(({ command, icon: Icon, label, value }) => (
-            <button aria-label={label} key={label} onClick={() => runCommand(command, value)} title={label} type="button">
-              <Icon size={16} />
-            </button>
-          ))}
-          <span className="editor-toolbar-divider" />
-          <button aria-label="插入链接" onClick={addLink} title="插入链接" type="button"><Link size={16} /></button>
-          <button aria-label="插入图片" onClick={addImage} title="插入图片" type="button"><Image size={16} /></button>
-        </div>
-      )}
-
-      {mode === 'rich' ? (
-        <div
-          aria-label="回复内容"
-          className="rich-reply-input"
-          contentEditable
-          data-placeholder="写下你的回复……"
-          onInput={(event) => setContent(event.currentTarget.innerHTML)}
-          ref={richEditorRef}
-          role="textbox"
-          suppressContentEditableWarning
-        />
-      ) : (
-        <textarea
-          aria-label={`${mode} 回复内容`}
-          className="source-reply-input"
-          onChange={(event) => setContent(event.target.value)}
-          placeholder={mode === 'markdown' ? '使用 Markdown 写下你的回复……' : '使用 HTML 写下你的回复……'}
-          value={content}
-        />
-      )}
+        )}
+        <p>{signatureIndex > 0 ? `发布时附带签名档 ${signatureIndex}` : '本次回复不使用签名档'}</p>
+      </section>
 
       {attachments.length > 0 && (
-        <ul className="reply-attachments">
-          {attachments.map((attachment) => <li key={attachment}><Paperclip size={13} />{attachment}</li>)}
+        <ul className="reply-attachments" aria-label="待上传附件">
+          {attachments.map((attachment) => (
+            <li key={attachment.id}>
+              <Paperclip size={13} />
+              <span>{attachment.name}</span>
+              <small>{formatBytes(attachment.size)}</small>
+              <button
+                aria-label={`移除附件 ${attachment.name}`}
+                onClick={() => removeAttachment(attachment.id)}
+                type="button"
+              >
+                <X size={13} />
+              </button>
+            </li>
+          ))}
         </ul>
       )}
 
       <footer className="reply-editor-footer">
-        <label>
-          <span>签名档</span>
-          <select value={signature} onChange={(event) => setSignature(event.target.value)}>
-            <option value="0">不使用签名</option>
-            <option value="1">签名档 1</option>
-            <option value="2">签名档 2</option>
-          </select>
-        </label>
-        <input
-          className="sr-only"
-          multiple
-          onChange={(event) => setAttachments(Array.from(event.target.files ?? []).map((file) => file.name))}
-          ref={fileInputRef}
-          type="file"
-        />
-        <button className="reply-secondary-button" onClick={() => fileInputRef.current?.click()} type="button">
+        <button
+          className="reply-secondary-button"
+          onClick={() => setAttachmentDialogOpen(true)}
+          type="button"
+        >
           <Paperclip size={15} />添加附件
+          {attachments.length > 0 && <span className="reply-attachment-count">{attachments.length}</span>}
         </button>
         {status && <span className="reply-editor-status" role="status">{status}</span>}
         <div className="reply-editor-submit">
-          <button className="reply-secondary-button" onClick={saveDraft} type="button"><Save size={15} />保存草稿</button>
-          <button className="reply-publish-button" onClick={publishReply} type="button"><Send size={15} />发布回复</button>
+          <button className="reply-secondary-button" onClick={saveDraft} type="button">
+            <Save size={15} />存入草稿
+          </button>
+          <button className="reply-publish-button" onClick={publishReply} type="button">
+            <Send size={15} />发布回复
+          </button>
         </div>
       </footer>
+
+      {attachmentDialogOpen && (
+        <AttachmentDialog
+          attachments={attachments}
+          onAdd={addAttachments}
+          onClose={() => setAttachmentDialogOpen(false)}
+          onRemove={removeAttachment}
+        />
+      )}
     </section>
   );
+}
+
+function AttachmentDialog({
+  attachments,
+  onAdd,
+  onClose,
+  onRemove,
+}: {
+  attachments: ReplyAttachment[];
+  onAdd: (files: File[]) => void;
+  onClose: () => void;
+  onRemove: (id: string) => void;
+}) {
+  const inputRef = useRef<HTMLInputElement | null>(null);
+
+  function handleFileChange(event: ChangeEvent<HTMLInputElement>) {
+    onAdd(Array.from(event.currentTarget.files ?? []));
+    event.currentTarget.value = '';
+  }
+
+  return (
+    <div className="attachment-dialog-backdrop" onClick={onClose} role="presentation">
+      <section
+        aria-labelledby="attachment-dialog-title"
+        aria-modal="true"
+        className="attachment-dialog"
+        onClick={(event) => event.stopPropagation()}
+        role="dialog"
+      >
+        <header>
+          <span><UploadCloud size={17} /></span>
+          <h2 id="attachment-dialog-title">文件上传</h2>
+          <button aria-label="关闭文件上传" onClick={onClose} type="button"><X size={18} /></button>
+        </header>
+        <button className="attachment-drop-button" onClick={() => inputRef.current?.click()} type="button">
+          <UploadCloud size={22} />
+          <strong>选择一个或多个文件</strong>
+          <span>文件会先加入当前回复，发布时一并上传</span>
+        </button>
+        <input className="sr-only" multiple onChange={handleFileChange} ref={inputRef} type="file" />
+        {attachments.length > 0 && (
+          <ul>
+            {attachments.map((attachment) => (
+              <li key={attachment.id}>
+                <div><strong>{attachment.name}</strong><span>{formatBytes(attachment.size)}</span></div>
+                <button aria-label={`移除附件 ${attachment.name}`} onClick={() => onRemove(attachment.id)} type="button">
+                  <Trash2 size={15} />
+                </button>
+              </li>
+            ))}
+          </ul>
+        )}
+        <footer>
+          <button className="reply-publish-button" onClick={onClose} type="button">完成</button>
+        </footer>
+      </section>
+    </div>
+  );
+}
+
+function appendQuote(current: RichTextEditorValue, target: ReplyTarget): RichTextEditorValue {
+  const quote = target.quote?.trim();
+  if (!quote) return current;
+
+  const separator = current.content.trim() ? (current.mode === 'rich' ? '<p><br></p>' : '\n\n') : '';
+  if (current.mode === 'markdown') {
+    return {
+      ...current,
+      content: `${current.content}${separator}> ${quote}\n>\n> 引用自 @${target.author} · #${target.floor}\n\n`,
+    };
+  }
+
+  const quoteMarkup = `<blockquote><p>${escapeHtml(quote)}</p><p>引用自 @${escapeHtml(target.author)} · #${target.floor}</p></blockquote><p><br></p>`;
+  return { ...current, content: `${current.content}${separator}${quoteMarkup}` };
+}
+
+function hasEditorContent(value: RichTextEditorValue) {
+  if (value.mode !== 'rich') return value.content.trim().length > 0;
+
+  const container = document.createElement('div');
+  container.innerHTML = value.content;
+  return (container.textContent ?? '').replace(/\u00a0/g, ' ').trim().length > 0 || !!container.querySelector('img, hr');
+}
+
+function escapeHtml(value: string) {
+  return value
+    .replaceAll('&', '&amp;')
+    .replaceAll('<', '&lt;')
+    .replaceAll('>', '&gt;')
+    .replaceAll('"', '&quot;')
+    .replaceAll("'", '&#039;');
+}
+
+function formatBytes(bytes: number) {
+  if (bytes >= 1024 * 1024) return `${(bytes / 1024 / 1024).toFixed(2)} MB`;
+  return `${Math.max(1, Math.round(bytes / 1024))} KB`;
 }
