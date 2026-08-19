@@ -2,7 +2,7 @@
 
 Frontend scaffold built with React, TypeScript, Tailwind CSS, and Vite.
 
-The current homepage is a static UI baseline. It intentionally contains no API requests, routing, authentication, or data interactions so its layout and visual system can be refined first.
+The current homepage is a static reconstruction of the visual baseline in the detached `bbs-new` reference worktree. It intentionally contains no API requests, routing, authentication, or data interactions so the established layout and styling can be refined first.
 
 ## Commands
 

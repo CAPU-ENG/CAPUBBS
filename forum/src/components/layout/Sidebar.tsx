@@ -1,72 +1,70 @@
 import {
-  Bike,
+  BarChart3,
+  BookOpen,
+  ChevronDown,
   Compass,
-  House,
-  MessageCircle,
-  Settings2,
-  Sparkles,
+  Flame,
+  Footprints,
+  Globe2,
+  Home,
+  Megaphone,
+  PanelLeftClose,
+  QrCode,
+  SlidersHorizontal,
+  Trophy,
+  Wrench,
   type LucideIcon,
 } from 'lucide-react';
 
-type NavigationItem = {
-  icon: LucideIcon;
-  label: string;
-};
+type SidebarItem = { icon: LucideIcon; label: string };
 
-const primaryItems: NavigationItem[] = [
-  { icon: House, label: '社区首页' },
-  { icon: MessageCircle, label: '最新讨论' },
-  { icon: Sparkles, label: '精华归档' },
+const boards: SidebarItem[] = [
+  { icon: Megaphone, label: '车协工作区' },
+  { icon: Footprints, label: '行者足音' },
+  { icon: BookOpen, label: '车友宝典' },
+  { icon: Flame, label: '纯净水' },
+  { icon: Compass, label: '考察与社会' },
+  { icon: Globe2, label: '五湖四海' },
+  { icon: Wrench, label: '一技之长' },
+  { icon: Trophy, label: '竞赛竞技' },
+  { icon: QrCode, label: '网站维护' },
 ];
 
-const boardItems: NavigationItem[] = [
-  { icon: Bike, label: '骑行与路线' },
-  { icon: Compass, label: '装备与维修' },
-  { icon: MessageCircle, label: '校园生活' },
-];
-
-function NavigationGroup({ items, active = false }: { items: NavigationItem[]; active?: boolean }) {
+function SidebarLink({ icon: Icon, label }: SidebarItem) {
   return (
-    <div className="space-y-1.5">
-      {items.map((item, index) => {
-        const Icon = item.icon;
-        const isActive = active && index === 0;
-
-        return (
-          <a className={`sidebar-link${isActive ? ' sidebar-link-active' : ''}`} href="#main-feed" key={item.label}>
-            <Icon aria-hidden="true" size={18} strokeWidth={1.7} />
-            <span>{item.label}</span>
-            {isActive ? <span className="ml-auto h-1.5 w-1.5 rounded-full bg-current" /> : null}
-          </a>
-        );
-      })}
-    </div>
+    <a href="#feed" className="card-option sidebar-option flex h-10 items-center gap-3 rounded-md border border-transparent px-3 text-sm font-medium text-zinc-600">
+      <span className="flex h-5 w-5 shrink-0 items-center justify-center"><Icon size={18} /></span>
+      <span>{label}</span>
+    </a>
   );
 }
 
 export function Sidebar() {
   return (
-    <aside className="surface sticky top-20 flex min-h-[calc(100vh-6rem)] flex-col p-3">
-      <div>
-        <p className="sidebar-label">浏览</p>
-        <NavigationGroup items={primaryItems} active />
-      </div>
-
-      <div className="mt-7">
-        <div className="mb-2 flex items-center justify-between px-3">
-          <p className="sidebar-label m-0 p-0">版块</p>
-          <span className="text-[10px] font-semibold tracking-wider text-moss/70">03</span>
-        </div>
-        <NavigationGroup items={boardItems} />
-      </div>
-
-      <div className="mt-auto border-t border-ink/10 pt-3">
-        <a className="sidebar-link" href="#interface-settings">
-          <Settings2 aria-hidden="true" size={18} strokeWidth={1.7} />
-          <span>界面设置</span>
+    <aside className="card-surface flex h-[calc(100vh-6rem)] flex-col overflow-hidden rounded-lg border border-zinc-200 p-3 shadow-panel">
+      <div className="shrink-0 space-y-1">
+        <a href="#feed" className="sidebar-option flex h-10 items-center gap-3 rounded-md border border-transparent bg-teal-50 px-3 text-sm font-medium text-teal-800">
+          <span className="flex h-5 w-5 shrink-0 items-center justify-center"><Home size={18} /></span>
+          <span>首页</span>
         </a>
-        <p className="px-3 pb-1 pt-4 text-[10px] leading-relaxed text-moss/70">CAPUBBS · UI Preview</p>
       </div>
+
+      <div className="sidebar-board-scroll scrollbar-none mt-2 min-h-0 flex-1 space-y-1 overflow-y-auto pb-8">
+        {boards.map((item) => <SidebarLink key={item.label} {...item} />)}
+        <a href="#more" className="card-option sidebar-option flex h-10 items-center gap-3 rounded-md border border-transparent px-3 text-sm font-medium text-zinc-600">
+          <span className="flex h-5 w-5 shrink-0 items-center justify-center"><ChevronDown size={18} /></span>
+          <span>更多</span>
+        </a>
+      </div>
+
+      <div className="shrink-0 space-y-1 border-b border-zinc-200 pb-2">
+        <SidebarLink icon={BarChart3} label="数据展示" />
+        <SidebarLink icon={SlidersHorizontal} label="界面设置" />
+      </div>
+      <button type="button" className="card-option sidebar-option mt-2 flex h-10 w-full items-center gap-3 rounded-md border border-transparent px-3 text-sm font-medium text-zinc-600">
+        <span className="flex h-5 w-5 shrink-0 items-center justify-center"><PanelLeftClose size={18} /></span>
+        <span>折叠侧栏</span>
+      </button>
     </aside>
   );
 }

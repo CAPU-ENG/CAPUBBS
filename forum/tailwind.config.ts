@@ -2,21 +2,14 @@ import type { Config } from 'tailwindcss';
 
 export default {
   content: ['./index.html', './src/**/*.{ts,tsx}'],
+  darkMode: 'class',
   theme: {
     extend: {
-      colors: {
-        ink: '#213a4a',
-        lake: '#385772',
-        moss: '#567260',
-        paper: '#f8faf7',
-        clay: '#875a41',
-      },
       fontFamily: {
-        display: ['Songti SC', 'STSong', 'Noto Serif CJK SC', 'serif'],
-        sans: ['Avenir Next', 'PingFang SC', 'Hiragino Sans GB', 'sans-serif'],
+        sans: ['Inter', 'ui-sans-serif', 'system-ui', 'BlinkMacSystemFont', 'Segoe UI', 'sans-serif'],
       },
       boxShadow: {
-        paper: '0 18px 50px rgb(31 63 44 / 0.10)',
+        panel: '0 18px 55px rgba(15, 23, 42, 0.08)',
       },
     },
   },
