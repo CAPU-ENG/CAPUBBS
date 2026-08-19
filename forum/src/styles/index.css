@@ -5,6 +5,7 @@
 @import './reply-editor.css';
 @import './rich-text-editor.css';
 @import './board.css';
+@import './profile.css';
 @import './utilities.css';
 
 @tailwind base;

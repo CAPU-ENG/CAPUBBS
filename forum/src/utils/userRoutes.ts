@@ -27,7 +27,12 @@ export function getPublicProfileNameFromLocation(pathname: string, search: strin
 
   if (pathname.startsWith(`${PUBLIC_PROFILE_PATH}/`)) {
     const userSlug = pathname.slice(`${PUBLIC_PROFILE_PATH}/`.length).split('/')[0];
-    return userSlug ? decodeURIComponent(userSlug) : null;
+    if (!userSlug) return null;
+    try {
+      return decodeURIComponent(userSlug);
+    } catch {
+      return null;
+    }
   }
 
   return null;

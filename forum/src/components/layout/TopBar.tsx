@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import {
   Bell,
   ChevronDown,
+  IdCard,
   LogOut,
   Menu,
   Moon,
@@ -34,7 +35,7 @@ export function TopBar({
   showContextTitle?: boolean;
 }) {
   const params = new URLSearchParams(window.location.search);
-  const isHomePage = !params.has('thread') && !params.has('board');
+  const isHomePage = window.location.pathname === '/' && !params.has('thread') && !params.has('board');
   const [theme, setTheme] = useState<Theme>(initialTheme);
   const [boardsOpen, setBoardsOpen] = useState(false);
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
@@ -216,8 +217,9 @@ export function TopBar({
 
               {profileOpen && (
                 <div className="profile-menu" role="menu">
-                  <a href="/bbs/home/" role="menuitem"><UserRound size={16} />个人中心</a>
-                  <a href="#settings" role="menuitem"><Settings size={16} />设置</a>
+                  <a href="/users/blue-frame" role="menuitem"><IdCard size={16} />个人主页</a>
+                  <a href="/user-center" role="menuitem"><UserRound size={16} />个人中心</a>
+                  <a href="/user-center#account-security" role="menuitem"><Settings size={16} />设置</a>
                   <button type="button" role="menuitem"><LogOut size={16} />退出登录</button>
                 </div>
               )}
