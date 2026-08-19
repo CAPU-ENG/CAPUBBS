@@ -1,7 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
-import { Bike, CalendarDays, ChevronLeft, ChevronRight, Clock3, LoaderCircle, MapPin, Pin, RefreshCw } from 'lucide-react';
+import { Bike, CalendarDays, ChevronLeft, ChevronRight, Clock3, MapPin, Pin } from 'lucide-react';
 import type { HomeThread } from '../../api/home';
-import type { HomeDataStatus } from '../../hooks/useHomeData';
 import { activities, signupActivities } from './homeData';
 
 function formatCountdown(deadline: string, now: number) {
@@ -21,13 +20,10 @@ function dateKey(year: number, month: number, day: number) {
 }
 
 type PinnedProps = {
-  error: string;
   items: HomeThread[];
-  onRetry: () => void;
-  status: HomeDataStatus;
 };
 
-function PinnedPanel({ error, items, onRetry, status }: PinnedProps) {
+function PinnedPanel({ items }: PinnedProps) {
   return (
     <section className="aside-card" aria-labelledby="pinned-title">
       <header className="aside-card-header">
@@ -45,16 +41,6 @@ function PinnedPanel({ error, items, onRetry, status }: PinnedProps) {
           </li>
         ))}
       </ul>
-      {status === 'loading' && items.length === 0 && (
-        <div className="aside-data-state"><LoaderCircle className="animate-spin" size={16} />加载中…</div>
-      )}
-      {status === 'error' && items.length === 0 && (
-        <div className="aside-data-state aside-data-error">
-          <span>{error}</span>
-          <button type="button" onClick={onRetry}><RefreshCw size={13} />重试</button>
-        </div>
-      )}
-      {status === 'ready' && items.length === 0 && <p className="aside-data-state">暂无全局置顶</p>}
     </section>
   );
 }
@@ -195,11 +181,11 @@ export function ActivityCalendar({ compact = false }: { compact?: boolean }) {
   );
 }
 
-export function DesktopHomeAside({ error, items, onRetry, status }: PinnedProps) {
+export function DesktopHomeAside({ items }: PinnedProps) {
   return (
     <aside className="home-aside">
-      <PinnedPanel error={error} items={items} onRetry={onRetry} status={status} />
-      <ActivitySignupPanel />
+      {items.length > 0 && <PinnedPanel items={items} />}
+      {signupActivities.length > 0 && <ActivitySignupPanel />}
       <ActivityCalendar />
     </aside>
   );

@@ -1,22 +1,22 @@
 import { useEffect, useRef, useState } from 'react';
-import { Bike, CalendarDays, ChevronDown, ChevronRight, LoaderCircle, Pin, RefreshCw } from 'lucide-react';
+import { Bike, CalendarDays, ChevronDown, ChevronRight, Pin } from 'lucide-react';
 import type { HomeThread } from '../../api/home';
-import type { HomeDataStatus } from '../../hooks/useHomeData';
 import { ActivityCalendar, ActivitySignupList } from './HomeAside';
+import { signupActivities } from './homeData';
 
 type ExpandedPanel = 'pinned' | 'signup' | 'calendar' | null;
 
 type MobileActivityBarProps = {
-  pinnedError: string;
   pinnedItems: HomeThread[];
-  pinnedStatus: HomeDataStatus;
-  onRetryPinned: () => void;
 };
 
-export function MobileActivityBar({ pinnedError, pinnedItems, pinnedStatus, onRetryPinned }: MobileActivityBarProps) {
+export function MobileActivityBar({ pinnedItems }: MobileActivityBarProps) {
   const [expandedPanel, setExpandedPanel] = useState<ExpandedPanel>(null);
   const [hideOffset, setHideOffset] = useState(0);
   const overviewRef = useRef<HTMLElement | null>(null);
+  const hasPinnedThreads = pinnedItems.length > 0;
+  const hasSignupActivities = signupActivities.length > 0;
+  const tabCount = Number(hasPinnedThreads) + Number(hasSignupActivities) + 1;
 
   useEffect(() => {
     const mobileQuery = window.matchMedia('(max-width: 1023px)');
@@ -70,31 +70,35 @@ export function MobileActivityBar({ pinnedError, pinnedItems, pinnedStatus, onRe
   return (
     <section
       className="mobile-overview-wrap lg:hidden"
-      aria-label="首页置顶、活动报名与活动日历"
+      aria-label="首页活动速览"
       ref={overviewRef}
       style={{ transform: `translateY(-${hideOffset}px)` }}
     >
-      <div className="mobile-overview-tabs">
-        <button
-          className={expandedPanel === 'pinned' ? 'mobile-overview-tab-active' : ''}
-          type="button"
-          aria-expanded={expandedPanel === 'pinned'}
-          aria-controls="mobile-pinned-panel"
-          onClick={() => togglePanel('pinned')}
-        >
-          <span><Pin size={15} />置顶</span>
-          <ChevronDown size={15} className={expandedPanel === 'pinned' ? 'rotate-180' : ''} />
-        </button>
-        <button
-          className={expandedPanel === 'signup' ? 'mobile-overview-tab-active' : ''}
-          type="button"
-          aria-expanded={expandedPanel === 'signup'}
-          aria-controls="mobile-signup-panel"
-          onClick={() => togglePanel('signup')}
-        >
-          <span><Bike size={15} />报名</span>
-          <ChevronDown size={15} className={expandedPanel === 'signup' ? 'rotate-180' : ''} />
-        </button>
+      <div className="mobile-overview-tabs" style={{ gridTemplateColumns: `repeat(${tabCount}, minmax(0, 1fr))` }}>
+        {hasPinnedThreads && (
+          <button
+            className={expandedPanel === 'pinned' ? 'mobile-overview-tab-active' : ''}
+            type="button"
+            aria-expanded={expandedPanel === 'pinned'}
+            aria-controls="mobile-pinned-panel"
+            onClick={() => togglePanel('pinned')}
+          >
+            <span><Pin size={15} />置顶</span>
+            <ChevronDown size={15} className={expandedPanel === 'pinned' ? 'rotate-180' : ''} />
+          </button>
+        )}
+        {hasSignupActivities && (
+          <button
+            className={expandedPanel === 'signup' ? 'mobile-overview-tab-active' : ''}
+            type="button"
+            aria-expanded={expandedPanel === 'signup'}
+            aria-controls="mobile-signup-panel"
+            onClick={() => togglePanel('signup')}
+          >
+            <span><Bike size={15} />报名</span>
+            <ChevronDown size={15} className={expandedPanel === 'signup' ? 'rotate-180' : ''} />
+          </button>
+        )}
         <button
           className={expandedPanel === 'calendar' ? 'mobile-overview-tab-active' : ''}
           type="button"
@@ -107,7 +111,7 @@ export function MobileActivityBar({ pinnedError, pinnedItems, pinnedStatus, onRe
         </button>
       </div>
 
-      {expandedPanel === 'pinned' && (
+      {hasPinnedThreads && expandedPanel === 'pinned' && (
         <div className="mobile-overview-panel" id="mobile-pinned-panel">
           <ul className="mobile-pinned-list">
             {pinnedItems.map((thread) => (
@@ -120,20 +124,10 @@ export function MobileActivityBar({ pinnedError, pinnedItems, pinnedStatus, onRe
               </li>
             ))}
           </ul>
-          {pinnedStatus === 'loading' && pinnedItems.length === 0 && (
-            <div className="aside-data-state"><LoaderCircle className="animate-spin" size={16} />加载中…</div>
-          )}
-          {pinnedStatus === 'error' && pinnedItems.length === 0 && (
-            <div className="aside-data-state aside-data-error">
-              <span>{pinnedError}</span>
-              <button type="button" onClick={onRetryPinned}><RefreshCw size={13} />重试</button>
-            </div>
-          )}
-          {pinnedStatus === 'ready' && pinnedItems.length === 0 && <p className="aside-data-state">暂无全局置顶</p>}
         </div>
       )}
 
-      {expandedPanel === 'signup' && (
+      {hasSignupActivities && expandedPanel === 'signup' && (
         <div className="mobile-overview-panel" id="mobile-signup-panel">
           <ActivitySignupList className="mobile-signup-list" />
         </div>

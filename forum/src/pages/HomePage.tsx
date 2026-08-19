@@ -12,12 +12,7 @@ export function HomePage() {
     <div className="relative min-h-screen text-[var(--text)] transition-colors duration-200">
       <AppBackground />
       <TopBar />
-      <MobileActivityBar
-        onRetryPinned={retry}
-        pinnedError={pinned.error}
-        pinnedItems={pinned.items}
-        pinnedStatus={pinned.status}
-      />
+      <MobileActivityBar pinnedItems={pinned.items} />
 
       <main className="page-shell">
         <FeedSection
@@ -28,10 +23,7 @@ export function HomePage() {
         />
         <div className="hidden lg:block">
           <DesktopHomeAside
-            error={pinned.error}
             items={pinned.items}
-            onRetry={retry}
-            status={pinned.status}
           />
         </div>
       </main>
