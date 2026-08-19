@@ -226,9 +226,9 @@ export function ThreadFloor({
               <article key={reply.id}>
                 <img src={reply.author.avatar} alt="" />
                 <div>
-                  <strong className="nested-reply-author">
+                  <a className="nested-reply-author" href={getPublicProfilePath(reply.author.name)}>
                     {reply.author.name}
-                  </strong>
+                  </a>
                   {reply.contentHtml ? (
                     <ForumMarkup
                       className="nested-reply-content"

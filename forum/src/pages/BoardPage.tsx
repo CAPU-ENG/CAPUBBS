@@ -11,6 +11,7 @@ import {
 import { useAuth } from '../context/AuthContext';
 import { useBoardData } from '../hooks/useBoardData';
 import { useScrollContextTitle } from '../hooks/useScrollContextTitle';
+import { getPublicProfilePath } from '../utils/userRoutes';
 import { useEffect, useRef, useState } from 'react';
 
 function getRequestedPage() {
@@ -38,10 +39,6 @@ function threadHref(thread: BoardThreadData) {
     tid: String(thread.id),
   });
   return `/?${params.toString()}`;
-}
-
-function authorHref(author: string) {
-  return `/bbs/home/?user=${encodeURIComponent(author)}`;
 }
 
 function ExactTime({ label, value }: { label: string; value: string }) {
@@ -135,11 +132,11 @@ function ThreadRow({
         </div>
       </td>
       <td className="board-thread-author-cell">
-        <a className="board-thread-user" href={authorHref(thread.author)}>{thread.author}</a>
+        <a className="board-thread-user" href={getPublicProfilePath(thread.author)}>{thread.author}</a>
         <ExactTime label="发布时间" value={thread.createdAt} />
       </td>
       <td className="board-thread-last-cell">
-        <a className="board-thread-user" href={authorHref(thread.lastReplyBy)}>{thread.lastReplyBy}</a>
+        <a className="board-thread-user" href={getPublicProfilePath(thread.lastReplyBy)}>{thread.lastReplyBy}</a>
         <ExactTime label="最后回复时间" value={thread.lastReplyAt} />
       </td>
       <td className="board-thread-counts">
@@ -261,7 +258,7 @@ export function BoardPage({ boardId }: { boardId: number }) {
               <div className="board-moderators">
                 <span>版主</span>
                 {board.moderators.map((moderator) => (
-                  <a href={authorHref(moderator)} key={moderator}>{moderator}</a>
+                  <a href={getPublicProfilePath(moderator)} key={moderator}>{moderator}</a>
                 ))}
                 {board.moderators.length === 0 ? <small>暂无</small> : null}
               </div>

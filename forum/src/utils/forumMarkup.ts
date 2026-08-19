@@ -155,10 +155,8 @@ function normalizeForumLink(value: string, isMention: boolean) {
   const href = value.trim();
   if (!href) return '';
 
-  if (isMention) {
-    const mentionName = getLegacyMentionName(href);
-    if (mentionName) return getPublicProfilePath(mentionName);
-  }
+  const legacyProfileName = getLegacyProfileName(href, isMention);
+  if (legacyProfileName) return getPublicProfilePath(legacyProfileName);
   if (/^mailto:[^\s@]+@[^\s@]+$/i.test(href)) return href;
   if (/^https?:\/\//i.test(href)) return href;
   if (href.startsWith('//')) return `https:${href}`;
@@ -176,10 +174,13 @@ function normalizeForumLink(value: string, isMention: boolean) {
   return '';
 }
 
-function getLegacyMentionName(href: string) {
+function getLegacyProfileName(href: string, isMention: boolean) {
   try {
     const resolved = new URL(href, `${PUBLIC_ASSET_ORIGIN}/bbs/content/`);
-    return resolved.searchParams.get('name')?.trim() ?? '';
+    const legacyUser = resolved.searchParams.get('user')?.trim()
+      || resolved.searchParams.get('view')?.trim();
+    if (legacyUser && /\/bbs\/(?:home|user)\/?$/i.test(resolved.pathname)) return legacyUser;
+    return isMention ? resolved.searchParams.get('name')?.trim() ?? '' : '';
   } catch {
     return '';
   }
