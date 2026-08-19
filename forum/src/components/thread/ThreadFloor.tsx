@@ -126,8 +126,15 @@ export function ThreadFloor({
   }
 
   return (
-    <article className="thread-floor" id={`floor-${floor.floor}`} data-floor={floor.floor}>
-      <div className={`thread-avatar-rail ${authorCardOpen ? 'author-card-click-open' : ''}`} ref={authorRef}>
+    <article
+      className="thread-floor"
+      id={`floor-${floor.floor}`}
+      data-floor={floor.floor}
+    >
+      <div
+        className={`thread-avatar-rail ${authorCardOpen ? "author-card-click-open" : ""}`}
+        ref={authorRef}
+      >
         <button
           aria-expanded={authorCardOpen}
           aria-label={`查看 ${floor.author.name} 的资料`}
@@ -143,7 +150,9 @@ export function ThreadFloor({
       <div className="thread-floor-main">
         <header className="thread-floor-header">
           <div className="thread-floor-author">
-            <a href={`#author-${encodeURIComponent(floor.author.name)}`}>{floor.author.name}</a>
+            <a href={`#author-${encodeURIComponent(floor.author.name)}`}>
+              {floor.author.name}
+            </a>
             {isMainPost && <em>楼主</em>}
           </div>
           <div className="thread-floor-time">
@@ -167,20 +176,32 @@ export function ThreadFloor({
         </header>
 
         <div className="thread-floor-body">
-          {floor.paragraphs.map((paragraph) => <p key={paragraph}>{paragraph}</p>)}
+          {floor.paragraphs.map((paragraph) => (
+            <p key={paragraph}>{paragraph}</p>
+          ))}
         </div>
 
         {floor.nestedReplies && floor.nestedReplies.length > 0 && (
-          <section className="nested-replies" aria-label={`${floor.floor} 楼的楼中楼回复`}>
+          <section
+            className="nested-replies"
+            aria-label={`${floor.floor} 楼的楼中楼回复`}
+          >
             {floor.nestedReplies.map((reply) => (
               <article key={reply.id}>
                 <img src={reply.author.avatar} alt="" />
                 <div>
-                  <strong className="nested-reply-author">{reply.author.name}</strong>
+                  <strong className="nested-reply-author">
+                    {reply.author.name}
+                  </strong>
                   <p>{reply.content}</p>
                   <footer className="nested-reply-footer">
                     <time>{formatFloorTime(reply.publishedAt)}</time>
-                    <button onClick={() => onReply(floor, reply.author.name)} type="button">回复</button>
+                    <button
+                      onClick={() => onReply(floor, reply.author.name)}
+                      type="button"
+                    >
+                      回复
+                    </button>
                   </footer>
                 </div>
               </article>
@@ -195,8 +216,14 @@ export function ThreadFloor({
         )}
 
         <div className="thread-floor-actions">
-          <button onClick={() => onQuote(floor)} type="button"><Quote size={15} />引用</button>
-          <button onClick={() => onReply(floor)} type="button"><Reply size={15} />回复</button>
+          <button onClick={() => onQuote(floor)} type="button">
+            <Quote size={15} />
+            引用
+          </button>
+          <button onClick={() => onReply(floor)} type="button">
+            <Reply size={15} />
+            回复
+          </button>
           {floor.isOwn && (
             <div className="relative" ref={menuRef}>
               <button
@@ -209,7 +236,12 @@ export function ThreadFloor({
               >
                 <MoreHorizontal size={18} />
               </button>
-              {menuOpen && <FloorMenu onClose={() => setMenuOpen(false)} onCopy={copyFloorLink} />}
+              {menuOpen && (
+                <FloorMenu
+                  onClose={() => setMenuOpen(false)}
+                  onCopy={copyFloorLink}
+                />
+              )}
             </div>
           )}
         </div>
@@ -218,7 +250,7 @@ export function ThreadFloor({
       {copyNoticeOpen && (
         <div aria-live="polite" className="copy-floor-toast" role="status">
           <Check aria-hidden="true" size={15} />
-          已复制楼层
+          已复制楼层链接
         </div>
       )}
     </article>
