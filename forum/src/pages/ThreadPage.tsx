@@ -1,56 +1,48 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
-import { Bookmark, BookmarkCheck, Eye, MessageCircle } from 'lucide-react';
+import { useEffect, useRef, useState } from 'react';
+import { Bookmark, BookmarkCheck, Eye, MessageCircle, RotateCw } from 'lucide-react';
 import { ReplyEditor, type ReplyTarget } from '../components/thread/ReplyEditor';
 import { ThreadFloor } from '../components/thread/ThreadFloor';
 import { FloorNodes, MobileFloorNode, ThreadPagination } from '../components/thread/ThreadNavigation';
 import { AppBackground } from '../components/layout/AppBackground';
 import { TopBar } from '../components/layout/TopBar';
-import { demoThread, type ThreadFloorData } from '../data/threadDemo';
+import type { ThreadFloorData } from '../data/threadDemo';
 import { useScrollContextTitle } from '../hooks/useScrollContextTitle';
+import { useThreadData } from '../hooks/useThreadData';
 
-function getRequestedPage() {
-  const value = Number(new URLSearchParams(window.location.search).get('page') ?? '1');
-  return Number.isFinite(value) && value > 0 ? Math.floor(value) : 1;
+function getThreadRequest() {
+  const params = new URLSearchParams(window.location.search);
+  const tid = positiveInteger(params.get('thread') ?? params.get('tid'));
+  const requestedBid = positiveInteger(params.get('bid'));
+
+  return {
+    authorOnly: params.get('author') === '1',
+    bid: requestedBid || (tid === 102 ? 3 : 0),
+    page: positiveInteger(params.get('page')) || 1,
+    tid,
+  };
 }
 
-function getAuthorOnly() {
-  return new URLSearchParams(window.location.search).get('author') === '1';
+function positiveInteger(value: string | null) {
+  const number = Number(value);
+  return Number.isFinite(number) && number > 0 ? Math.floor(number) : 0;
 }
-
-const demoViewer = demoThread.floors.find((floor) => floor.isOwn)?.author ?? demoThread.floors[0].author;
-const nextDemoFloor = Math.max(...demoThread.floors.map((floor) => floor.floor)) + 1;
-const demoViewerSignatures = Array.from(new Set(
-  demoThread.floors
-    .filter((floor) => floor.author.name === demoViewer.name && floor.signature)
-    .map((floor) => floor.signature as string),
-));
 
 export function ThreadPage() {
+  const request = getThreadRequest();
+  const { data, error, retry, status } = useThreadData(request);
   const [replyTarget, setReplyTarget] = useState<ReplyTarget | null>(null);
   const [activeFloor, setActiveFloor] = useState(1);
-  const [bookmarked, setBookmarked] = useState(
-    () => window.localStorage.getItem(`capubbs-bookmark-${demoThread.id}`) === '1',
-  );
+  const [bookmarked, setBookmarked] = useState(false);
   const editorRef = useRef<HTMLElement | null>(null);
   const titleRef = useRef<HTMLHeadingElement | null>(null);
-  const authorOnly = getAuthorOnly();
   const showTitleInTopBar = useScrollContextTitle(titleRef);
+  const pageFloors = data?.floors ?? [];
 
-  const filteredFloors = useMemo(
-    () => authorOnly
-      ? demoThread.floors.filter((floor) => floor.author.name === demoThread.authorName)
-      : demoThread.floors,
-    [authorOnly],
-  );
-  const pageCount = Math.max(1, Math.ceil(filteredFloors.length / demoThread.perPage));
-  const currentPage = Math.min(getRequestedPage(), pageCount);
-  const pageFloors = useMemo(
-    () => filteredFloors.slice(
-      (currentPage - 1) * demoThread.perPage,
-      currentPage * demoThread.perPage,
-    ),
-    [currentPage, filteredFloors],
-  );
+  useEffect(() => {
+    if (!data) return;
+    const saved = window.localStorage.getItem(`capubbs-bookmark-${data.id}`);
+    setBookmarked(saved === null ? data.bookmarked : saved === '1');
+  }, [data]);
 
   useEffect(() => {
     const floorElements = pageFloors
@@ -99,7 +91,7 @@ export function ThreadPage() {
       window.removeEventListener('resize', scheduleActiveFloorUpdate);
       if (frame) window.cancelAnimationFrame(frame);
     };
-  }, [currentPage, pageFloors]);
+  }, [data?.currentPage, pageFloors]);
 
   function scrollToEditor(target: ReplyTarget) {
     setReplyTarget(target);
@@ -114,67 +106,98 @@ export function ThreadPage() {
     scrollToEditor({
       author: floor.author.name,
       floor: floor.floor,
-      quote: floor.paragraphs[0].slice(0, 90),
+      quote: (floor.quoteText || floor.paragraphs[0] || '').slice(0, 90),
     });
   }
 
   function toggleAuthorOnly() {
-    const params = new URLSearchParams(window.location.search);
-    params.set('thread', String(demoThread.id));
-    params.set('page', '1');
-    if (authorOnly) params.delete('author');
-    else params.set('author', '1');
+    if (!data) return;
+    const params = new URLSearchParams({
+      bid: String(data.bid),
+      page: '1',
+      thread: String(data.tid),
+    });
+    if (!data.authorOnly) params.set('author', '1');
     window.location.href = `/?${params.toString()}`;
   }
 
   function toggleBookmark() {
+    if (!data) return;
     setBookmarked((current) => {
       const next = !current;
-      window.localStorage.setItem(`capubbs-bookmark-${demoThread.id}`, next ? '1' : '0');
+      window.localStorage.setItem(`capubbs-bookmark-${data.id}`, next ? '1' : '0');
       return next;
     });
   }
 
+  if (!data) {
+    return (
+      <div className="relative min-h-screen text-[var(--text)] transition-colors duration-200">
+        <AppBackground />
+        <TopBar />
+        <main className="thread-page-shell">
+          <section className="thread-request-state" aria-live="polite">
+            {status === 'loading' ? (
+              <>
+                <span className="thread-request-spinner" aria-hidden="true" />
+                <h1>正在读取帖子</h1>
+                <p>楼层、作者资料与回复会一起载入。</p>
+              </>
+            ) : (
+              <>
+                <h1>帖子暂时无法打开</h1>
+                <p>{error}</p>
+                <button onClick={retry} type="button"><RotateCw size={15} />重新加载</button>
+              </>
+            )}
+          </section>
+        </main>
+      </div>
+    );
+  }
+
   const nodeFloors = pageFloors.map((floor) => ({ floor: floor.floor, author: floor.author.name }));
+  const loginHref = `/bbs/login?from=${encodeURIComponent(`${window.location.pathname}${window.location.search}`)}`;
 
   return (
     <div className="relative min-h-screen text-[var(--text)] transition-colors duration-200">
       <AppBackground />
       <TopBar
         contextHref="#thread-title"
-        contextTitle={demoThread.title}
+        contextTitle={data.title}
         showContextTitle={showTitleInTopBar}
       />
 
       <main className="thread-page-shell">
         <div className="thread-route-row">
           <nav aria-label="面包屑">
-            <a href={demoThread.boardHref}>{demoThread.board}</a>
+            <a href={data.boardHref}>{data.board}</a>
             <span>/</span>
-            <span>{demoThread.title}</span>
+            <span>{data.title}</span>
           </nav>
           <ThreadPagination
-            authorOnly={authorOnly}
+            authorOnly={data.authorOnly}
+            boardId={data.bid}
             compact
-            currentPage={currentPage}
-            pageCount={pageCount}
-            threadId={demoThread.id}
+            currentPage={data.currentPage}
+            pageCount={data.pageCount}
+            threadId={data.tid}
           />
         </div>
 
         <header className="thread-title-card">
-          <h1 id="thread-title" ref={titleRef}>{demoThread.title}</h1>
+          <h1 id="thread-title" ref={titleRef}>{data.title}</h1>
           <div className="thread-title-meta">
-            <span><MessageCircle size={15} />{demoThread.floors.length - 1} 条回复</span>
-            <span><Eye size={16} />{demoThread.views} 次浏览</span>
+            <span><MessageCircle size={15} />{data.replies} 条回复</span>
+            <span><Eye size={16} />{data.views} 次浏览</span>
             <div className="thread-title-actions">
               <button
-                aria-pressed={authorOnly}
-                className={authorOnly ? 'thread-title-action-active' : ''}
+                aria-pressed={data.authorOnly}
+                className={data.authorOnly ? 'thread-title-action-active' : ''}
                 onClick={toggleAuthorOnly}
                 type="button"
               >
-                {authorOnly ? '查看全部' : '只看楼主'}
+                {data.authorOnly ? '查看全部' : '只看楼主'}
               </button>
               <button
                 aria-pressed={bookmarked}
@@ -190,7 +213,7 @@ export function ThreadPage() {
         </header>
 
         <div className="thread-content-layout">
-          <section className="thread-floor-list" aria-label={`第 ${currentPage} 页楼层`}>
+          <section className="thread-floor-list" aria-label={`第 ${data.currentPage} 页楼层`}>
             {pageFloors.map((floor) => (
               <ThreadFloor
                 floor={floor}
@@ -206,22 +229,31 @@ export function ThreadPage() {
 
         <div className="thread-bottom-pagination">
           <ThreadPagination
-            authorOnly={authorOnly}
-            currentPage={currentPage}
-            pageCount={pageCount}
-            threadId={demoThread.id}
+            authorOnly={data.authorOnly}
+            boardId={data.bid}
+            currentPage={data.currentPage}
+            pageCount={data.pageCount}
+            threadId={data.tid}
           />
         </div>
 
-        <ReplyEditor
-          editorRef={editorRef}
-          onClearTarget={() => setReplyTarget(null)}
-          previewAuthor={demoViewer}
-          previewFloor={nextDemoFloor}
-          previewSignatures={demoViewerSignatures}
-          target={replyTarget}
-          threadTitle={demoThread.title}
-        />
+        {data.canReply && data.viewer ? (
+          <ReplyEditor
+            editorRef={editorRef}
+            onClearTarget={() => setReplyTarget(null)}
+            previewAuthor={data.viewer}
+            previewFloor={data.replies + 2}
+            previewSignatures={data.viewerSignatures}
+            target={replyTarget}
+            threadTitle={data.title}
+          />
+        ) : (
+          <section className="thread-reply-unavailable">
+            <strong>{data.locked ? '本主题已锁定' : '登录后参与回复'}</strong>
+            <p>{data.locked ? '当前主题暂不接受新的楼层回复。' : '登录后即可使用完整编辑器、签名档与附件功能。'}</p>
+            {!data.locked && <a href={loginHref}>前往登录</a>}
+          </section>
+        )}
       </main>
 
       {nodeFloors.length > 0 && <MobileFloorNode activeFloor={activeFloor} floors={nodeFloors} />}

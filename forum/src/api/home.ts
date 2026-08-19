@@ -129,7 +129,7 @@ function mapThreadRow(row: ApiRow): HomeThread | null {
     authorHref: getPublicProfilePath(author),
     avatar: '',
     bid,
-    href: `/bbs/content/?bid=${bid}&tid=${tid}&p=1`,
+    href: `/?thread=${tid}&bid=${bid}&page=1`,
     id: `${bid}-${tid}`,
     isRecent: timestamp ? Date.now() - new Date(timestamp).getTime() < 24 * 60 * 60 * 1000 : false,
     replies: toNumber(row.reply),

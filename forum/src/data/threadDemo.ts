@@ -16,6 +16,7 @@ export type NestedReply = {
   author: ThreadAuthor;
   publishedAt: string;
   content: string;
+  contentHtml?: string;
 };
 
 export type ThreadFloorData = {
@@ -26,8 +27,13 @@ export type ThreadFloorData = {
   editedAt?: string;
   paragraphs: string[];
   signature?: string;
+  contentHtml?: string;
+  quoteText?: string;
+  signatureHtml?: string;
   nestedReplies?: NestedReply[];
   isOwn?: boolean;
+  canEdit?: boolean;
+  canDelete?: boolean;
 };
 
 const authors = {

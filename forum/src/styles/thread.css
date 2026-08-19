@@ -442,6 +442,17 @@
     margin-top: 1em;
   }
 
+  .thread-floor-body img {
+    height: auto;
+    max-width: 100%;
+  }
+
+  .thread-floor-body table {
+    display: block;
+    max-width: 100%;
+    overflow-x: auto;
+  }
+
   .nested-replies {
     margin: 14px 0 10px;
     border: 1px solid var(--line);
@@ -473,7 +484,8 @@
     font-size: 0.7rem;
   }
 
-  .nested-replies p {
+  .nested-replies p,
+  .nested-reply-content {
     margin-top: 5px;
     color: var(--text-muted);
     font-size: 0.75rem;
@@ -506,11 +518,77 @@
     padding-top: 10px;
   }
 
-  .thread-signature > p {
+  .thread-signature > p,
+  .thread-signature > div {
     color: var(--text-faint);
     font-family: "Noto Serif CJK SC", "Source Han Serif SC", "Songti SC", serif;
     font-size: 0.72rem;
     line-height: 1.6;
+  }
+
+  .thread-signature img {
+    height: auto;
+    max-width: 100%;
+  }
+
+  .thread-request-state,
+  .thread-reply-unavailable {
+    display: flex;
+    min-height: 220px;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    gap: 9px;
+    border: 1px solid var(--line);
+    border-radius: 2px;
+    padding: 28px;
+    background: var(--surface);
+    box-shadow: var(--shadow-card);
+    text-align: center;
+  }
+
+  .thread-request-state h1,
+  .thread-reply-unavailable strong {
+    color: var(--text-strong);
+    font-size: 1rem;
+    font-weight: 760;
+  }
+
+  .thread-request-state p,
+  .thread-reply-unavailable p {
+    color: var(--text-faint);
+    font-size: 0.75rem;
+    line-height: 1.65;
+  }
+
+  .thread-request-state button,
+  .thread-reply-unavailable a {
+    display: inline-flex;
+    min-height: 34px;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    margin-top: 4px;
+    border: 1px solid var(--line-strong);
+    border-radius: var(--control-radius);
+    padding: 0 12px;
+    color: var(--brand-strong);
+    font-size: 0.72rem;
+    font-weight: 720;
+  }
+
+  .thread-request-spinner {
+    width: 22px;
+    height: 22px;
+    border: 2px solid var(--line-strong);
+    border-top-color: var(--brand);
+    border-radius: 50%;
+    animation: thread-request-spin 720ms linear infinite;
+  }
+
+  .thread-reply-unavailable {
+    min-height: 150px;
+    margin-top: 18px;
   }
 
   .thread-floor-actions {
@@ -839,5 +917,10 @@
 
   }
 
-}
+  @keyframes thread-request-spin {
+    to {
+      transform: rotate(360deg);
+    }
+  }
 
+}

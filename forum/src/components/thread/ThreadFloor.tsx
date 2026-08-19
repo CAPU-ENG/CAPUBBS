@@ -8,6 +8,7 @@ import {
   Trash2,
 } from 'lucide-react';
 import type { ThreadAuthor, ThreadFloorData } from '../../data/threadDemo';
+import { getPublicProfilePath } from '../../utils/userRoutes';
 
 function AuthorCard({ author }: { author: ThreadAuthor }) {
   return (
@@ -16,7 +17,13 @@ function AuthorCard({ author }: { author: ThreadAuthor }) {
         <img src={author.avatar} alt="" />
         <div>
           <strong>{author.name}</strong>
-          <span>{'★'.repeat(author.stars)} · {author.role}</span>
+          {(author.stars > 0 || author.role) && (
+            <span>
+              {'★'.repeat(author.stars)}
+              {author.stars > 0 && author.role ? ' · ' : ''}
+              {author.role}
+            </span>
+          )}
         </div>
       </div>
       <dl>
@@ -25,7 +32,7 @@ function AuthorCard({ author }: { author: ThreadAuthor }) {
         <div><dt>签到</dt><dd>{author.checkins}</dd></div>
       </dl>
       <p>最近在线：{author.lastSeen}</p>
-      <a href={`#author-${encodeURIComponent(author.name)}`}>
+      <a href={getPublicProfilePath(author.name)}>
         查看个人主页 <ExternalLink size={13} />
       </a>
     </div>
@@ -119,7 +126,7 @@ export function ThreadFloor({
       <div className="thread-floor-main">
         <header className="thread-floor-header">
           <div className="thread-floor-author">
-            <a href={`#author-${encodeURIComponent(floor.author.name)}`}>
+            <a href={getPublicProfilePath(floor.author.name)}>
               {floor.author.name}
             </a>
             {isMainPost && <em>楼主</em>}
@@ -144,15 +151,26 @@ export function ThreadFloor({
           </button>
         </header>
 
-        <div className="thread-floor-body">
-          {floor.paragraphs.map((paragraph) => (
-            <p key={paragraph}>{paragraph}</p>
-          ))}
-        </div>
+        {floor.contentHtml ? (
+          <div
+            className="capubbs-editor-prose thread-floor-body"
+            dangerouslySetInnerHTML={{ __html: floor.contentHtml }}
+          />
+        ) : (
+          <div className="thread-floor-body">
+            {floor.paragraphs.map((paragraph) => (
+              <p key={paragraph}>{paragraph}</p>
+            ))}
+          </div>
+        )}
 
-        {floor.signature && (
+        {(floor.signatureHtml || floor.signature) && (
           <footer className="thread-signature">
-            <p>{floor.signature}</p>
+            {floor.signatureHtml ? (
+              <div dangerouslySetInnerHTML={{ __html: floor.signatureHtml }} />
+            ) : (
+              <p>{floor.signature}</p>
+            )}
           </footer>
         )}
 
@@ -165,17 +183,17 @@ export function ThreadFloor({
             <Reply size={15} />
             回复
           </button>
-          {floor.isOwn && (
-            <>
+          {(floor.canEdit ?? floor.isOwn) && (
               <button type="button">
                 <Pencil size={15} />
                 编辑
               </button>
+          )}
+          {(floor.canDelete ?? floor.isOwn) && (
               <button className="floor-action-danger" type="button">
                 <Trash2 size={15} />
                 删除
               </button>
-            </>
           )}
         </div>
 
@@ -191,7 +209,14 @@ export function ThreadFloor({
                   <strong className="nested-reply-author">
                     {reply.author.name}
                   </strong>
-                  <p>{reply.content}</p>
+                  {reply.contentHtml ? (
+                    <div
+                      className="nested-reply-content"
+                      dangerouslySetInnerHTML={{ __html: reply.contentHtml }}
+                    />
+                  ) : (
+                    <p>{reply.content}</p>
+                  )}
                   <footer className="nested-reply-footer">
                     <time>{formatFloorTime(reply.publishedAt)}</time>
                     <button

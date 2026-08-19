@@ -2,6 +2,7 @@ import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { Pagination } from '../layout/Pagination';
 
 type PaginationProps = {
+  boardId: number;
   currentPage: number;
   pageCount: number;
   threadId: number;
@@ -9,14 +10,19 @@ type PaginationProps = {
   compact?: boolean;
 };
 
-function pageHref(threadId: number, page: number, authorOnly: boolean) {
-  const params = new URLSearchParams({ thread: String(threadId), page: String(page) });
+function pageHref(boardId: number, threadId: number, page: number, authorOnly: boolean) {
+  const params = new URLSearchParams({
+    bid: String(boardId),
+    page: String(page),
+    thread: String(threadId),
+  });
   if (authorOnly) params.set('author', '1');
   return `/?${params.toString()}`;
 }
 
 export function ThreadPagination({
   authorOnly = false,
+  boardId,
   compact = false,
   currentPage,
   pageCount,
@@ -28,7 +34,7 @@ export function ThreadPagination({
       compact={compact}
       currentPage={currentPage}
       pageCount={pageCount}
-      pageHref={(page) => pageHref(threadId, page, authorOnly)}
+      pageHref={(page) => pageHref(boardId, threadId, page, authorOnly)}
     />
   );
 }

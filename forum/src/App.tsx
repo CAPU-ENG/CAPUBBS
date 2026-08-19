@@ -13,7 +13,8 @@ export function App() {
   if (pathname === '/users' || pathname.startsWith('/users/')) {
     return <PublicProfilePage profileName={getPublicProfileNameFromLocation(pathname, window.location.search)} />;
   }
-  if (params.get('thread') === '102') return <ThreadPage />;
+  const threadId = Number(params.get('thread') ?? params.get('tid'));
+  if (Number.isFinite(threadId) && threadId > 0) return <ThreadPage />;
   const boardId = Number(params.get('board'));
   if (isDemoBoardId(boardId)) return <BoardPage boardId={boardId} />;
   return <HomePage />;
