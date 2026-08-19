@@ -6,6 +6,7 @@ from __future__ import annotations
 import argparse
 import datetime as dt
 import hashlib
+import http.client
 import io
 import json
 import os
@@ -93,12 +94,22 @@ def resolve_icon_url(icon: Any, site_url: str) -> str | None:
     if parsed.scheme:
         if parsed.scheme not in {"http", "https"} or not parsed.netloc:
             raise AvatarError(f"不支持的头像地址：{icon_value}")
-        return icon_value
+        return encode_url(icon_value)
 
     legacy_value = icon_value[1:] if len(icon_value) > 1 else ""
     if icon_value.isdigit() or legacy_value.isdigit():
         icon_value = f"/bbsimg/i/{icon_value}.gif"
-    return urllib.parse.urljoin(site_url.rstrip("/") + "/", icon_value)
+    return encode_url(urllib.parse.urljoin(site_url.rstrip("/") + "/", icon_value))
+
+
+def encode_url(url: str) -> str:
+    """Percent-encode non-ASCII and unsafe characters without double encoding."""
+    parsed = urllib.parse.urlsplit(url)
+    path = urllib.parse.quote(parsed.path, safe="/%:@!$&'()*+,;=-._~")
+    query = urllib.parse.quote(parsed.query, safe="%&=/:?@!$'()*+,;+-._~")
+    return urllib.parse.urlunsplit(
+        (parsed.scheme, parsed.netloc, path, query, parsed.fragment)
+    )
 
 
 def avatar_output_path(output_dir: Path, username: str) -> Path:
@@ -151,7 +162,12 @@ def download_avatar(
                 return data
         except AvatarError:
             raise
-        except (OSError, ValueError, urllib.error.URLError) as exc:
+        except (
+            http.client.HTTPException,
+            OSError,
+            ValueError,
+            urllib.error.URLError,
+        ) as exc:
             last_error = exc
             if attempt < retries:
                 time.sleep(min(2**attempt, 5))
@@ -227,25 +243,43 @@ def compress_avatar(
         image = image.resize(next_size, Image.Resampling.LANCZOS)
 
 
-def is_reusable_avatar(
+def reusable_avatar_info(
+    username: str,
     entry: Any,
     icon: str,
     output_dir: Path,
     max_bytes: int,
-) -> bool:
-    if not isinstance(entry, dict) or entry.get("sourceIcon") != icon:
-        return False
-    relative_path = entry.get("avatarFile")
-    if not isinstance(relative_path, str):
-        return False
-    path = output_dir / relative_path
+) -> dict[str, Any] | None:
+    if isinstance(entry, dict) and entry.get("sourceIcon") != icon:
+        return None
+
+    path = avatar_output_path(output_dir, username)
     try:
-        if not path.is_file() or path.stat().st_size > max_bytes:
-            return False
+        size = path.stat().st_size
+        if not path.is_file() or size <= 0 or size > max_bytes:
+            return None
         with Image.open(path) as image:
-            return image.format == "WEBP"
+            if image.format != "WEBP":
+                return None
+            width, height = image.size
+            image.verify()
     except (OSError, UnidentifiedImageError):
-        return False
+        return None
+
+    info: dict[str, Any] = {}
+    if isinstance(entry, dict):
+        for key in ("originalWidth", "originalHeight", "quality"):
+            if key in entry:
+                info[key] = entry[key]
+    info.update(
+        {
+            "avatarFile": str(path.relative_to(output_dir)),
+            "bytes": size,
+            "width": width,
+            "height": height,
+        }
+    )
+    return info
 
 
 def load_previous_users(manifest_path: Path) -> dict[str, Any]:
@@ -327,11 +361,17 @@ def archive_avatars(
                 continue
             entry["sourceUrl"] = source_url
 
-            if not force and is_reusable_avatar(
-                previous_users.get(username), icon, output_dir, max_bytes
-            ):
-                previous_entry = previous_users[username]
-                entry.update(previous_entry)
+            reusable_info = None
+            if not force:
+                reusable_info = reusable_avatar_info(
+                    username,
+                    previous_users.get(username),
+                    icon,
+                    output_dir,
+                    max_bytes,
+                )
+            if reusable_info is not None:
+                entry.update(reusable_info)
                 entry["status"] = "skipped"
                 counts["skipped"] += 1
                 print("  已存在且符合限制，跳过", file=sys.stderr)
@@ -365,7 +405,8 @@ def archive_avatars(
                 f"  已保存：{output_path}（{len(avatar_data)} 字节）",
                 file=sys.stderr,
             )
-        except (AvatarError, OSError, ValueError) as exc:
+        except Exception as exc:
+            # A malformed or unusual avatar must never stop the remaining batch.
             entry["status"] = "error"
             entry["error"] = str(exc)
             errors.append({"username": username, "icon": icon, "error": str(exc)})

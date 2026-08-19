@@ -42,6 +42,14 @@ class ResolveIconUrlTests(unittest.TestCase):
         with self.assertRaises(avatars.AvatarError):
             avatars.resolve_icon_url("file:///tmp/avatar.png", "https://example.test")
 
+    def test_encodes_spaces_and_unicode_in_path(self) -> None:
+        self.assertEqual(
+            avatars.resolve_icon_url(
+                "/bbsimg/icons/姜饼 man.jpeg", "https://www.chexie.net"
+            ),
+            "https://www.chexie.net/bbsimg/icons/%E5%A7%9C%E9%A5%BC%20man.jpeg",
+        )
+
 
 class CompressionTests(unittest.TestCase):
     def test_compressed_output_obeys_hard_byte_limit(self) -> None:
@@ -61,6 +69,26 @@ class CompressionTests(unittest.TestCase):
 
 
 class ArchiveTests(unittest.TestCase):
+    def archive(
+        self,
+        profiles: dict[str, dict[str, str]],
+        input_path: Path,
+        output_dir: Path,
+    ) -> tuple[dict[str, int], list[dict[str, str]]]:
+        return avatars.archive_avatars(
+            profiles=profiles,
+            input_path=input_path,
+            output_dir=output_dir,
+            site_url="https://example.test",
+            max_bytes=500 * 1024,
+            max_dimension=2048,
+            max_download_bytes=1024 * 1024,
+            timeout=1,
+            retries=0,
+            delay=0,
+            force=False,
+        )
+
     def test_writes_per_user_file_and_manifest(self) -> None:
         profiles = {
             "Alice": {"icon": "/avatars/alice.png"},
@@ -75,19 +103,7 @@ class ArchiveTests(unittest.TestCase):
             with mock.patch.object(
                 avatars, "download_avatar", return_value=png_bytes()
             ):
-                counts, errors = avatars.archive_avatars(
-                    profiles=profiles,
-                    input_path=input_path,
-                    output_dir=output_dir,
-                    site_url="https://example.test",
-                    max_bytes=500 * 1024,
-                    max_dimension=2048,
-                    max_download_bytes=1024 * 1024,
-                    timeout=1,
-                    retries=0,
-                    delay=0,
-                    force=False,
-                )
+                counts, errors = self.archive(profiles, input_path, output_dir)
 
             self.assertEqual(
                 counts, {"saved": 1, "skipped": 0, "missing": 1, "errors": 0}
@@ -101,6 +117,53 @@ class ArchiveTests(unittest.TestCase):
             self.assertTrue(avatar_path.is_file())
             self.assertLessEqual(avatar_path.stat().st_size, 500 * 1024)
             self.assertEqual(manifest["users"]["No Avatar"]["status"], "missing")
+
+    def test_one_avatar_error_does_not_stop_batch(self) -> None:
+        profiles = {
+            "Broken": {"icon": "/avatars/broken.png"},
+            "Working": {"icon": "/avatars/working.png"},
+        }
+        with tempfile.TemporaryDirectory() as temporary_dir:
+            root = Path(temporary_dir)
+            input_path = root / "profiles_by_username.json"
+            output_dir = root / "avatars"
+            with mock.patch.object(
+                avatars,
+                "download_avatar",
+                side_effect=[RuntimeError("unexpected failure"), png_bytes()],
+            ):
+                counts, errors = self.archive(profiles, input_path, output_dir)
+
+            self.assertEqual(counts["saved"], 1)
+            self.assertEqual(counts["errors"], 1)
+            self.assertEqual(errors[0]["username"], "Broken")
+            manifest = json.loads(
+                (output_dir / "manifest.json").read_text(encoding="utf-8")
+            )
+            self.assertEqual(manifest["users"]["Broken"]["status"], "error")
+            self.assertEqual(manifest["users"]["Working"]["status"], "saved")
+
+    def test_skips_existing_file_when_previous_manifest_is_incomplete(self) -> None:
+        profiles = {"Alice": {"icon": "/avatars/alice.png"}}
+        with tempfile.TemporaryDirectory() as temporary_dir:
+            root = Path(temporary_dir)
+            input_path = root / "profiles_by_username.json"
+            output_dir = root / "avatars"
+            existing_path = avatars.avatar_output_path(output_dir, "Alice")
+            existing_path.parent.mkdir(parents=True)
+            image = Image.open(io.BytesIO(png_bytes()))
+            image.save(existing_path, format="WEBP")
+
+            with mock.patch.object(avatars, "download_avatar") as download:
+                counts, errors = self.archive(profiles, input_path, output_dir)
+
+            download.assert_not_called()
+            self.assertEqual(counts["skipped"], 1)
+            self.assertEqual(errors, [])
+            manifest = json.loads(
+                (output_dir / "manifest.json").read_text(encoding="utf-8")
+            )
+            self.assertEqual(manifest["users"]["Alice"]["status"], "skipped")
 
 
 if __name__ == "__main__":
