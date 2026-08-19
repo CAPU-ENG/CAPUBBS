@@ -287,16 +287,51 @@
     transform: scaleX(1);
   }
 
+  .topbar-primary-slot {
+    overflow: hidden;
+  }
+
+  .topbar-primary-slot > * {
+    min-width: 0;
+    grid-area: 1 / 1;
+  }
+
+  .topbar-primary-nav {
+    display: flex;
+    height: 100%;
+    align-items: stretch;
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+    transition:
+      opacity 170ms ease,
+      transform 220ms cubic-bezier(0.22, 1, 0.36, 1),
+      visibility 0s linear;
+  }
+
   .topbar-thread-title {
+    display: flex;
+    min-width: 0;
+    height: 100%;
+    align-items: center;
+    justify-content: flex-start;
     overflow: hidden;
     margin-right: 24px;
-    color: var(--text-strong);
-    font-family: "Noto Serif CJK SC", "Source Han Serif SC", "Songti SC", serif;
-    font-size: 0.86rem;
-    font-weight: 720;
-    letter-spacing: -0.015em;
+    padding: 0 18px;
+    color: var(--text-muted);
+    font: inherit;
+    font-size: 0.9rem;
+    font-weight: 650;
     line-height: 1.35;
-    animation: local-panel-in 150ms ease both;
+    opacity: 0;
+    pointer-events: none;
+    visibility: hidden;
+    transform: translateY(14px);
+    transition:
+      color 160ms ease,
+      opacity 170ms ease,
+      transform 220ms cubic-bezier(0.22, 1, 0.36, 1),
+      visibility 0s linear 220ms;
   }
 
   .topbar-thread-title > span {
@@ -308,6 +343,29 @@
 
   .topbar-thread-title:hover {
     color: var(--brand-strong);
+  }
+
+  .topbar-primary-slot[data-thread-title-visible="true"] .topbar-primary-nav {
+    opacity: 0;
+    pointer-events: none;
+    visibility: hidden;
+    transform: translateY(-14px);
+    transition:
+      opacity 170ms ease,
+      transform 220ms cubic-bezier(0.22, 1, 0.36, 1),
+      visibility 0s linear 220ms;
+  }
+
+  .topbar-primary-slot[data-thread-title-visible="true"] .topbar-thread-title {
+    opacity: 1;
+    pointer-events: auto;
+    visibility: visible;
+    transform: translateY(0);
+    transition:
+      color 160ms ease,
+      opacity 170ms ease,
+      transform 220ms cubic-bezier(0.22, 1, 0.36, 1),
+      visibility 0s linear;
   }
 
   .topbar-thread-title:focus-visible {

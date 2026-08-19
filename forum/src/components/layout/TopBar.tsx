@@ -59,10 +59,12 @@ export function TopBar({
     return () => document.body.classList.remove('layer-open');
   }, [boardsOpen, mobileSidebarOpen]);
 
+  const threadTitleVisible = Boolean(showThreadTitle && threadTitle);
+
   useEffect(() => {
-    if (!showThreadTitle) return;
+    if (!threadTitleVisible) return;
     setBoardsOpen(false);
-  }, [showThreadTitle]);
+  }, [threadTitleVisible]);
 
   useEffect(() => {
     function onPointerDown(event: PointerEvent) {
@@ -119,17 +121,22 @@ export function TopBar({
             <img src={logo2} alt="车协论坛" className="brand-wordmark" />
           </a>
 
-          {showThreadTitle && threadTitle ? (
-            <a
-              className="topbar-thread-title ml-8 hidden min-w-0 flex-1 items-center justify-center lg:flex"
-              href="#thread-title"
-              title={threadTitle}
+          <div
+            className="topbar-primary-slot ml-8 hidden h-full min-w-0 flex-1 lg:grid"
+            data-thread-title-visible={threadTitleVisible}
+          >
+            <nav
+              aria-hidden={threadTitleVisible}
+              aria-label="主导航"
+              className="topbar-primary-nav"
             >
-              <span>{threadTitle}</span>
-            </a>
-          ) : (
-            <nav className="ml-8 hidden h-full items-stretch lg:flex" aria-label="主导航">
-              <a href="/" className={`top-nav-link ${isHomePage ? 'top-nav-link-active' : ''}`}>首页</a>
+              <a
+                href="/"
+                className={`top-nav-link ${isHomePage ? 'top-nav-link-active' : ''}`}
+                tabIndex={threadTitleVisible ? -1 : undefined}
+              >
+                首页
+              </a>
               <div
                 className="flex h-full items-stretch"
                 onMouseEnter={openBoards}
@@ -145,6 +152,7 @@ export function TopBar({
                   aria-haspopup="true"
                   aria-expanded={boardsOpen}
                   onClick={() => setBoardsOpen((open) => !open)}
+                  tabIndex={threadTitleVisible ? -1 : undefined}
                 >
                   版块 <ChevronDown size={14} className={`transition-transform ${boardsOpen ? 'rotate-180' : ''}`} />
                 </button>
@@ -155,7 +163,19 @@ export function TopBar({
                 )}
               </div>
             </nav>
-          )}
+
+            {threadTitle && (
+              <a
+                aria-hidden={!threadTitleVisible}
+                className="topbar-thread-title"
+                href="#thread-title"
+                tabIndex={threadTitleVisible ? undefined : -1}
+                title={threadTitle}
+              >
+                <span>{threadTitle}</span>
+              </a>
+            )}
+          </div>
 
           <div className="ml-auto flex items-center gap-1.5 sm:gap-2">
             <a
