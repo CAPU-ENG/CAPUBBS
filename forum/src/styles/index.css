@@ -716,12 +716,18 @@
   }
 
   .pinned-list strong {
+    grid-column: 2;
     overflow: hidden;
     font-size: 0.77rem;
     font-weight: 600;
     line-height: 1.45;
     text-overflow: ellipsis;
     white-space: nowrap;
+  }
+
+  .pinned-list a > svg {
+    grid-column: 3;
+    justify-self: end;
   }
 
   .signup-list {
@@ -937,7 +943,7 @@
     text-align: center;
   }
 
-  .mobile-activity-wrap {
+  .mobile-overview-wrap {
     position: sticky;
     z-index: 35;
     top: var(--topbar-height);
@@ -947,44 +953,54 @@
     backdrop-filter: blur(16px);
   }
 
-  .mobile-activity-bar {
+  .mobile-overview-tabs {
+    display: grid;
+    max-width: 780px;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 4px;
+    margin: 0 auto;
+    padding: 4px 10px;
+  }
+
+  .mobile-overview-tabs > button {
     display: flex;
-    width: 100%;
-    min-height: 45px;
+    min-height: 38px;
     align-items: center;
-    gap: 10px;
-    padding: 0 14px;
+    justify-content: space-between;
+    border: 1px solid transparent;
+    border-radius: var(--control-radius);
+    padding: 0 10px;
     color: var(--text-muted);
-  }
-
-  .mobile-activity-label {
-    display: inline-flex;
-    flex-shrink: 0;
-    align-items: center;
-    gap: 5px;
-    color: var(--brand-strong);
     font-size: 0.72rem;
-    font-weight: 800;
+    font-weight: 750;
+    transition: 140ms ease;
   }
 
-  .mobile-activity-track {
-    display: flex;
-    min-width: 0;
-    flex: 1;
-    gap: 14px;
-    overflow: hidden;
-    font-size: 0.7rem;
-    white-space: nowrap;
+  .mobile-overview-tabs > button:hover,
+  .mobile-overview-tabs > .mobile-overview-tab-active {
+    border-color: var(--line);
+    background: var(--surface-soft);
+    color: var(--brand-strong);
   }
 
-  .mobile-activity-track strong {
-    color: var(--danger);
-    font-size: 0.66rem;
+  .mobile-overview-tabs > button:focus-visible {
+    outline: 2px solid color-mix(in srgb, var(--brand) 65%, transparent);
+    outline-offset: -2px;
   }
 
-  .mobile-activity-panel {
+  .mobile-overview-tabs > button > span {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .mobile-overview-tabs > button > svg {
+    transition: transform 160ms ease;
+  }
+
+  .mobile-overview-panel {
     position: absolute;
-    inset: 100% 10px auto;
+    inset: 100% max(10px, calc((100vw - 760px) / 2)) auto;
     overflow: hidden;
     border: 1px solid var(--line);
     border-radius: 0 0 2px 2px;
@@ -993,47 +1009,81 @@
     animation: panel-in 160ms ease both;
   }
 
-  .mobile-activity-panel > a:not(.mobile-activity-all) {
+  .mobile-pinned-list {
+    padding: 4px;
+  }
+
+  .mobile-pinned-list li + li,
+  .mobile-activity-list > a + a {
+    border-top: 1px solid var(--line);
+  }
+
+  .mobile-pinned-list a {
+    display: grid;
+    min-height: 42px;
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 7px;
+    border-radius: var(--control-radius);
+    padding: 6px 9px;
+    color: var(--text-muted);
+  }
+
+  .mobile-pinned-list a > span {
+    border-radius: var(--control-radius);
+    padding: 2px 4px;
+    background: color-mix(in srgb, var(--danger) 12%, transparent);
+    color: var(--danger);
+    font-size: 0.58rem;
+    font-weight: 800;
+  }
+
+  .mobile-pinned-list strong {
+    grid-column: 2;
+    overflow: hidden;
+    font-size: 0.76rem;
+    font-weight: 650;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .mobile-pinned-list a > svg {
+    grid-column: 3;
+    justify-self: end;
+  }
+
+  .mobile-activity-list > a {
     display: flex;
+    min-height: 50px;
     align-items: center;
     justify-content: space-between;
     gap: 12px;
-    border-bottom: 1px solid var(--line);
-    padding: 12px 14px;
+    padding: 9px 13px;
   }
 
-  .mobile-activity-panel div {
+  .mobile-activity-list div {
     display: grid;
     gap: 2px;
   }
 
-  .mobile-activity-panel div span {
+  .mobile-activity-list div span {
     color: var(--danger);
     font-size: 0.64rem;
     font-weight: 800;
   }
 
-  .mobile-activity-panel div strong {
+  .mobile-activity-list div strong {
     color: var(--text-strong);
     font-size: 0.78rem;
   }
 
-  .mobile-activity-panel p {
+  .mobile-activity-list p {
     display: flex;
     align-items: center;
     gap: 5px;
     color: var(--text-faint);
     font-size: 0.66rem;
-  }
-
-  .mobile-activity-all {
-    display: flex;
-    min-height: 40px;
-    align-items: center;
-    justify-content: center;
-    color: var(--brand-strong);
-    font-size: 0.7rem;
-    font-weight: 700;
+    white-space: nowrap;
   }
 }
 
@@ -1049,7 +1099,7 @@
   }
 
   .profile-menu,
-  .mobile-activity-panel {
+  .mobile-overview-panel {
     animation-name: local-panel-in;
   }
 
