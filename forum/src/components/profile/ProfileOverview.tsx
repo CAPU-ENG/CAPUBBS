@@ -1,5 +1,5 @@
 import { AtSign, Bike, Edit3, ExternalLink, Mail, MapPin, MessageCircle, ShieldCheck } from 'lucide-react';
-import type { ComponentType, CSSProperties, SVGProps } from 'react';
+import type { ComponentType, SVGProps } from 'react';
 import type { ProfileDetailKey, ProfileViewData } from '../../data/profileDemo';
 
 export type ProfileDraft = {
@@ -165,8 +165,8 @@ export function ProfileOverview({
       </div>
 
       <div className="profile-stat-grid">
-        {profile.stats.map((stat, index) => (
-          <section className="profile-stat-card" key={stat.label} style={{ '--profile-stat-index': index } as CSSProperties}>
+        {profile.stats.map((stat) => (
+          <section className="profile-stat-card" key={stat.label}>
             <span>{stat.label}</span>
             <strong>{stat.value}</strong>
           </section>

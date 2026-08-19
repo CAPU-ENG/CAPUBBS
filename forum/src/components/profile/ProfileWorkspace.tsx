@@ -156,7 +156,7 @@ export function ProfileWorkspace({
       <header className="profile-content-heading">
         <div>
           <span className="eyebrow">{readOnly ? 'PUBLIC ACTIVITY' : 'MY ARCHIVE'}</span>
-          <h2>{ownerLabel}{readOnly ? '的' : '的'}{activeTabMeta.label}</h2>
+          <h2>{ownerLabel}的{activeTabMeta.label}</h2>
         </div>
         {activeTab !== 'signatures' ? (
           <button

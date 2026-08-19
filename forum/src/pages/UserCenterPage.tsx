@@ -11,7 +11,6 @@ type OpenDialog = 'avatar' | 'email' | 'security' | null;
 export function UserCenterPage() {
   const [profile, setProfile] = useState(currentProfile);
   const [avatarSrc, setAvatarSrc] = useState(currentProfile.avatarSrc);
-  const [emailVisible, setEmailVisible] = useState(currentProfile.emailVisible);
   const [isEditing, setIsEditing] = useState(false);
   const [draft, setDraft] = useState<ProfileDraft>(() => createDraft(currentProfile.details, currentProfile.intro));
   const [openDialog, setOpenDialog] = useState<OpenDialog>(() => window.location.hash === '#account-security' ? 'security' : null);
@@ -51,7 +50,6 @@ export function UserCenterPage() {
       details: current.details.map((detail) => detail.key === 'email' ? { ...detail, value: nextEmail } : detail),
       emailVisible: nextVisible,
     }));
-    setEmailVisible(nextVisible);
     setNotice('邮箱设置已保存到当前页面会话。');
   }
 
@@ -63,7 +61,7 @@ export function UserCenterPage() {
         <ProfileOverview
           avatarSrc={avatarSrc}
           draft={draft}
-          emailVisible={emailVisible}
+          emailVisible={profile.emailVisible}
           isEditing={isEditing}
           mode="private"
           profile={profile}
@@ -97,7 +95,7 @@ export function UserCenterPage() {
         onClose={() => setOpenDialog(null)}
         onSave={saveEmail}
         open={openDialog === 'email'}
-        visible={emailVisible}
+        visible={profile.emailVisible}
       />
       <SecurityDialog onClose={() => setOpenDialog(null)} open={openDialog === 'security'} />
     </div>
