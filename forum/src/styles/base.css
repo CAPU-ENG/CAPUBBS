@@ -1,0 +1,87 @@
+@layer base {
+  :root {
+    color-scheme: light;
+    --topbar-height: 64px;
+    --control-radius: 0.5px;
+    --page: #f3f5f1;
+    --surface: #fffefa;
+    --surface-raised: #ffffff;
+    --surface-soft: #f6f8f4;
+    --text: #20231f;
+    --text-strong: #111411;
+    --text-muted: #687068;
+    --text-faint: #919991;
+    --line: #e1e6df;
+    --line-strong: #cdd5cc;
+    --brand: #236b4c;
+    --brand-strong: #174f38;
+    --brand-soft: #e6f0e9;
+    --brand-faint: #f0f6f1;
+    --danger: #b8473f;
+    --overlay: rgb(20 27 22 / 0.46);
+    --shadow-card: 0 1px 2px rgb(20 32 24 / 0.04), 0 12px 32px rgb(20 32 24 / 0.05);
+    --shadow-float: 0 24px 70px rgb(11 23 16 / 0.2), 0 2px 8px rgb(11 23 16 / 0.1);
+  }
+
+  :root.dark {
+    color-scheme: dark;
+    --page: #111613;
+    --surface: #171d19;
+    --surface-raised: #1c241f;
+    --surface-soft: #1f2822;
+    --text: #dde5de;
+    --text-strong: #f6faf6;
+    --text-muted: #a0aca2;
+    --text-faint: #748078;
+    --line: #2c362f;
+    --line-strong: #3c493f;
+    --brand: #69b98d;
+    --brand-strong: #8bcca6;
+    --brand-soft: #203c2d;
+    --brand-faint: #1b2b22;
+    --danger: #ef8178;
+    --overlay: rgb(2 7 4 / 0.68);
+    --shadow-card: 0 1px 2px rgb(0 0 0 / 0.2), 0 14px 34px rgb(0 0 0 / 0.18);
+    --shadow-float: 0 28px 80px rgb(0 0 0 / 0.55), 0 2px 8px rgb(0 0 0 / 0.4);
+  }
+
+  html {
+    min-width: 320px;
+    scroll-behavior: smooth;
+    font-family: "Noto Sans CJK SC", "Source Han Sans SC", "PingFang SC", "Microsoft YaHei", sans-serif;
+    background: var(--page);
+  }
+
+  body {
+    min-width: 320px;
+    min-height: 100vh;
+    margin: 0;
+    background: var(--page);
+    color: var(--text);
+    text-rendering: optimizeLegibility;
+  }
+
+  body.layer-open {
+    overflow: hidden;
+  }
+
+  button,
+  input {
+    font: inherit;
+  }
+
+  button,
+  a {
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  a {
+    color: inherit;
+    text-decoration: none;
+  }
+
+  ::selection {
+    background: color-mix(in srgb, var(--brand) 24%, transparent);
+  }
+}
+
