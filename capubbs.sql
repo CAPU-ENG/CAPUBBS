@@ -43,7 +43,7 @@ CREATE TABLE `attachments` (
   `size` int(11) NOT NULL,
   `uploader` mediumtext COLLATE utf8mb4_unicode_ci NOT NULL,
   `ref` int(11) NOT NULL DEFAULT '0',
-  `count` int(11) NOT NULL,
+  `count` int(11) NOT NULL DEFAULT '0',
   `price` int(11) NOT NULL,
   `auth` int(11) NOT NULL,
   `time` int(11) NOT NULL,
@@ -215,7 +215,7 @@ CREATE TABLE `messages` (
   `receiver` varchar(30) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
   `text` mediumtext COLLATE utf8mb4_unicode_ci NOT NULL,
   `time` int(11) NOT NULL,
-  `hasread` int(11) NOT NULL,
+  `hasread` int(11) NOT NULL DEFAULT '0',
   `rbid` int(11) NOT NULL,
   `rtid` int(11) NOT NULL,
   `rpid` int(11) NOT NULL,
@@ -563,8 +563,9 @@ DROP TABLE IF EXISTS `thread_global_top`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `thread_global_top` (
-  `bid` int(11) DEFAULT NULL,
-  `tid` int(11) DEFAULT NULL
+  `bid` int(11) NOT NULL,
+  `tid` int(11) NOT NULL,
+  PRIMARY KEY (`bid`,`tid`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -589,7 +590,7 @@ CREATE TABLE `threads` (
   `locked` tinyint(4) DEFAULT NULL,
   `timestamp` bigint(20) DEFAULT NULL,
   `postdate` varchar(30) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
-  UNIQUE KEY `unique_thread_per_board` (`tid`,`bid`),
+  UNIQUE KEY `unique_thread_per_board` (`bid`,`tid`),
   KEY `bid` (`bid`),
   KEY `postdate` (`postdate`),
   KEY `extr` (`extr`),
@@ -648,11 +649,216 @@ CREATE TABLE `userinfo` (
   `other6` text COLLATE utf8mb4_unicode_ci,
   `userid` int(11) NOT NULL AUTO_INCREMENT,
   `verified` tinyint(1) NOT NULL DEFAULT '0',
+  `email_visible` tinyint(1) NOT NULL DEFAULT '0',
   PRIMARY KEY (`userid`),
-  KEY `username` (`username`),
+  UNIQUE KEY `unique_username` (`username`),
   KEY `token` (`token`),
+  KEY `mail_verified` (`mail`,`verified`),
   FULLTEXT KEY `username_2` (`username`)
 ) ENGINE=MyISAM AUTO_INCREMENT=14963 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- API-derived table structures
+--
+-- The following tables were inferred from the complete set of API SQL reads
+-- and writes.  They intentionally avoid foreign keys because several parent
+-- tables use MyISAM and because trash/history rows must survive parent deletion.
+--
+
+--
+-- Table structure for table `email_mutes`
+--
+
+DROP TABLE IF EXISTS `email_mutes`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `email_mutes` (
+  `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
+  `email` varchar(254) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `muted_by` varchar(30) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `reason` varchar(500) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '',
+  `created_at` bigint(20) unsigned NOT NULL,
+  `active` tinyint(1) NOT NULL DEFAULT '1',
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `unique_email` (`email`),
+  KEY `active_created_at` (`active`,`created_at`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Table structure for table `email_verification`
+--
+
+DROP TABLE IF EXISTS `email_verification`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `email_verification` (
+  `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+  `username` varchar(30) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '',
+  `email` varchar(254) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `code` varchar(32) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `type` varchar(32) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `created_at` bigint(20) unsigned NOT NULL,
+  `expires_at` bigint(20) unsigned NOT NULL,
+  `used` tinyint(1) NOT NULL DEFAULT '0',
+  PRIMARY KEY (`id`),
+  KEY `email_code_lookup` (`email`,`type`,`code`,`used`,`id`),
+  KEY `username_code_lookup` (`username`,`type`,`code`,`used`,`id`),
+  KEY `email_rate_limit` (`email`,`type`,`created_at`),
+  KEY `username_rate_limit` (`username`,`email`,`type`,`created_at`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Table structure for table `favorites`
+--
+
+DROP TABLE IF EXISTS `favorites`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `favorites` (
+  `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+  `username` varchar(30) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `bid` tinyint(4) NOT NULL,
+  `tid` int(11) NOT NULL,
+  `timestamp` bigint(20) unsigned NOT NULL,
+  `last_read_time` bigint(20) unsigned NOT NULL,
+  `sort_order` int(11) NOT NULL DEFAULT '0',
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `unique_user_thread` (`username`,`bid`,`tid`),
+  KEY `thread_favorites` (`bid`,`tid`),
+  KEY `user_time` (`username`,`timestamp`),
+  KEY `user_sort` (`username`,`sort_order`,`timestamp`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Table structure for table `post_edit_history`
+--
+
+DROP TABLE IF EXISTS `post_edit_history`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `post_edit_history` (
+  `version_id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+  `fid` int(10) unsigned NOT NULL,
+  `bid` tinyint(4) NOT NULL,
+  `tid` int(11) NOT NULL,
+  `pid` int(11) NOT NULL,
+  `parent_id` bigint(20) unsigned DEFAULT NULL,
+  `text` longtext COLLATE utf8mb4_unicode_ci NOT NULL,
+  `author` varchar(30) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `source` varchar(16) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'edit',
+  `edit_time` bigint(20) unsigned NOT NULL,
+  `edit_by` varchar(30) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `edit_ip` varchar(60) COLLATE utf8mb4_unicode_ci NOT NULL,
+  PRIMARY KEY (`version_id`),
+  KEY `fid_version` (`fid`,`version_id`),
+  KEY `fid_editor_version` (`fid`,`edit_by`,`version_id`),
+  KEY `parent_id` (`parent_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Table structure for table `trash_posts`
+--
+
+DROP TABLE IF EXISTS `trash_posts`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `trash_posts` (
+  `trash_id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+  `bid` tinyint(4) NOT NULL,
+  `tid` int(11) NOT NULL,
+  `pid` int(11) NOT NULL,
+  `fid` int(10) unsigned NOT NULL,
+  `title` text COLLATE utf8mb4_unicode_ci,
+  `author` varchar(30) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `text` longtext COLLATE utf8mb4_unicode_ci,
+  `ishtml` text COLLATE utf8mb4_unicode_ci NOT NULL,
+  `attachs` mediumtext COLLATE utf8mb4_unicode_ci NOT NULL,
+  `replytime` bigint(20) DEFAULT NULL,
+  `updatetime` bigint(20) DEFAULT NULL,
+  `sig` tinyint(4) DEFAULT NULL,
+  `type` text COLLATE utf8mb4_unicode_ci,
+  `ip` varchar(60) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `lzl` int(11) NOT NULL DEFAULT '0',
+  `deleter` varchar(30) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `deletetime` bigint(20) unsigned NOT NULL,
+  `deleteip` varchar(60) COLLATE utf8mb4_unicode_ci NOT NULL,
+  PRIMARY KEY (`trash_id`),
+  KEY `thread_post` (`bid`,`tid`,`pid`),
+  KEY `fid` (`fid`),
+  KEY `board_deleted` (`bid`,`deletetime`),
+  KEY `deletetime` (`deletetime`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Table structure for table `trash_threads`
+--
+
+DROP TABLE IF EXISTS `trash_threads`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `trash_threads` (
+  `trash_id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+  `bid` tinyint(4) NOT NULL,
+  `tid` int(11) NOT NULL,
+  `title` text COLLATE utf8mb4_unicode_ci,
+  `author` varchar(30) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `replyer` varchar(30) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `click` int(11) DEFAULT NULL,
+  `reply` int(11) DEFAULT NULL,
+  `guesture` tinyint(4) DEFAULT NULL,
+  `extr` tinyint(4) DEFAULT NULL,
+  `top` tinyint(4) DEFAULT NULL,
+  `locked` tinyint(4) DEFAULT NULL,
+  `timestamp` bigint(20) DEFAULT NULL,
+  `postdate` varchar(30) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `deleter` varchar(30) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `deletetime` bigint(20) unsigned NOT NULL,
+  `deleteip` varchar(60) COLLATE utf8mb4_unicode_ci NOT NULL,
+  PRIMARY KEY (`trash_id`),
+  UNIQUE KEY `unique_thread_per_board` (`bid`,`tid`),
+  KEY `board_deleted` (`bid`,`deletetime`),
+  KEY `deletetime` (`deletetime`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Table structure for table `user_sig`
+--
+
+DROP TABLE IF EXISTS `user_sig`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `user_sig` (
+  `username` varchar(30) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `sig_num` tinyint(3) unsigned NOT NULL,
+  `sig` mediumtext COLLATE utf8mb4_unicode_ci NOT NULL,
+  `sig_type` varchar(16) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'null',
+  PRIMARY KEY (`username`,`sig_num`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Table structure for table `username_view`
+--
+
+DROP TABLE IF EXISTS `username_view`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `username_view` (
+  `username` varchar(30) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '',
+  `date` date NOT NULL,
+  `bid` tinyint(4) NOT NULL,
+  `tid` int(11) NOT NULL,
+  `ip` varchar(60) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '',
+  PRIMARY KEY (`username`,`date`,`bid`,`tid`,`ip`),
+  KEY `thread_date` (`bid`,`tid`,`date`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 /*!40101 SET SQL_MODE=@OLD_SQL_MODE */;
