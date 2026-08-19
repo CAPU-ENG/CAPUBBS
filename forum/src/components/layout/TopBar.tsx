@@ -68,7 +68,7 @@ export function TopBar({
   }, []);
 
   useEffect(() => {
-    if (authStatus !== 'authenticated') setProfileOpen(false);
+    if (authStatus !== 'authenticated' && authStatus !== 'restoring') setProfileOpen(false);
   }, [authStatus]);
 
   useEffect(() => {
