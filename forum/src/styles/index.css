@@ -797,7 +797,7 @@
   }
 
   .pinned-list {
-    padding: 0 12px 7px;
+    padding: 0 12px 12px;
   }
 
   .pinned-list a {
@@ -835,17 +835,84 @@
     white-space: nowrap;
   }
 
-  .aside-card-more {
+  .signup-list {
     display: flex;
-    min-height: 42px;
+    flex-direction: column;
+    gap: 8px;
+    padding: 0 12px 12px;
+  }
+
+  .signup-activity-card {
+    display: block;
+    border: 1px solid var(--line);
+    border-radius: 2px;
+    padding: 11px;
+    background: var(--surface-soft);
+    transition: 150ms ease;
+  }
+
+  .signup-activity-card:hover {
+    border-color: color-mix(in srgb, var(--brand) 42%, var(--line));
+    background: var(--brand-faint);
+  }
+
+  .signup-card-topline,
+  .signup-card-people {
+    display: flex;
     align-items: center;
-    justify-content: flex-end;
+    justify-content: space-between;
+    gap: 10px;
+  }
+
+  .signup-card-topline > span {
+    color: var(--danger);
+    font-size: 0.63rem;
+    font-weight: 800;
+  }
+
+  .signup-card-topline em {
+    border-radius: 2px;
+    padding: 2px 5px;
+    background: var(--brand-soft);
+    color: var(--brand-strong);
+    font-size: 0.58rem;
+    font-style: normal;
+    font-weight: 750;
+  }
+
+  .signup-activity-card h3 {
+    margin-top: 6px;
+    color: var(--text-strong);
+    font-size: 0.82rem;
+    font-weight: 720;
+  }
+
+  .signup-card-meta {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-top: 7px;
+  }
+
+  .signup-card-meta span,
+  .signup-card-people span {
+    display: inline-flex;
+    align-items: center;
     gap: 4px;
+    color: var(--text-muted);
+    font-size: 0.64rem;
+  }
+
+  .signup-card-people {
+    margin-top: 9px;
     border-top: 1px solid var(--line);
-    padding: 0 16px;
-    color: var(--brand);
-    font-size: 0.7rem;
-    font-weight: 700;
+    padding-top: 8px;
+  }
+
+  .signup-card-people strong {
+    color: var(--brand-strong);
+    font-size: 0.65rem;
+    font-weight: 750;
   }
 
   .calendar-month-nav {

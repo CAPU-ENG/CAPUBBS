@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { CalendarDays, ChevronLeft, ChevronRight, Clock3, MapPin, Pin } from 'lucide-react';
+import { CalendarDays, ChevronLeft, ChevronRight, Clock3, MapPin, Pin, TicketCheck, Users } from 'lucide-react';
 
 const pinnedThreads = [
   '关于周末骑行路线的临时调整',
@@ -11,6 +11,11 @@ const activities = [
   { date: '2026-08-23', title: '周末轻骑', time: '08:30', place: '东门集合' },
   { date: '2026-08-27', title: '夜骑安全训练', time: '19:00', place: '活动室门口' },
   { date: '2026-09-05', title: '新生骑行说明会', time: '14:00', place: '二教 205' },
+];
+
+const signupActivities = [
+  { date: '08.23 周日', title: '周末轻骑', time: '08:30', place: '东门集合', enrolled: 24, capacity: 30 },
+  { date: '08.27 周四', title: '夜骑安全训练', time: '19:00', place: '活动室门口', enrolled: 12, capacity: 20 },
 ];
 
 function dateKey(year: number, month: number, day: number) {
@@ -35,7 +40,36 @@ function PinnedPanel() {
           </li>
         ))}
       </ul>
-      <a className="aside-card-more" href="#all-pinned">查看全部置顶 <ChevronRight size={14} /></a>
+    </section>
+  );
+}
+
+function ActivitySignupPanel() {
+  return (
+    <section className="aside-card" aria-labelledby="signup-title">
+      <header className="aside-card-header">
+        <span className="aside-card-icon"><TicketCheck size={15} /></span>
+        <h2 id="signup-title">活动报名</h2>
+      </header>
+      <div className="signup-list">
+        {signupActivities.map((activity) => (
+          <a className="signup-activity-card" href={`#signup-${activity.title}`} key={activity.title}>
+            <div className="signup-card-topline">
+              <span>{activity.date}</span>
+              <em>报名中</em>
+            </div>
+            <h3>{activity.title}</h3>
+            <div className="signup-card-meta">
+              <span><Clock3 size={13} />{activity.time}</span>
+              <span><MapPin size={13} />{activity.place}</span>
+            </div>
+            <div className="signup-card-people">
+              <span><Users size={13} />已报名 {activity.enrolled} 人</span>
+              <strong>{activity.enrolled} / {activity.capacity}</strong>
+            </div>
+          </a>
+        ))}
+      </div>
     </section>
   );
 }
@@ -123,7 +157,6 @@ function ActivityCalendar() {
           <p>当天暂无活动</p>
         )}
       </div>
-      <a className="aside-card-more" href="#all-activities">查看全部活动 <ChevronRight size={14} /></a>
     </section>
   );
 }
@@ -132,6 +165,7 @@ export function DesktopHomeAside() {
   return (
     <aside className="home-aside">
       <PinnedPanel />
+      <ActivitySignupPanel />
       <ActivityCalendar />
     </aside>
   );
