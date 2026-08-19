@@ -162,11 +162,6 @@
     white-space: nowrap;
   }
 
-  .profile-rating i {
-    color: color-mix(in srgb, var(--text-faint) 34%, transparent);
-    font-style: normal;
-  }
-
   .profile-intro {
     margin: 10px 0 0;
     color: var(--text-muted);
@@ -310,17 +305,16 @@
   }
 
   .profile-data-card {
-    min-height: 92px;
-    padding: 15px 16px 13px;
+    min-height: 68px;
+    padding: 11px 13px;
     animation: profile-rise 260ms 45ms cubic-bezier(.2,.8,.2,1) both;
   }
 
-  .profile-data-card::after {
-    position: absolute;
-    inset: auto 16px 0;
-    height: 2px;
-    background: color-mix(in srgb, var(--brand) 30%, transparent);
-    content: "";
+  .profile-data-card-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
   }
 
   .profile-data-label {
@@ -340,7 +334,7 @@
 
   .profile-data-value {
     overflow: hidden;
-    margin-top: 11px;
+    margin-top: 7px;
     color: var(--text-strong);
     font-size: 0.86rem;
     font-weight: 680;
@@ -354,14 +348,13 @@
   }
 
   .profile-data-card input {
-    height: 32px;
-    margin-top: 8px;
+    height: 30px;
+    margin-top: 6px;
     padding: 0 8px;
     font-size: 0.82rem;
   }
 
   .profile-inline-action {
-    margin-top: 7px;
     color: var(--brand);
     font-size: 0.69rem;
     font-weight: 720;
@@ -412,19 +405,20 @@
     overflow-wrap: anywhere;
   }
 
-  .profile-page-notice,
-  .profile-notice {
+  .profile-toast {
+    position: fixed;
+    z-index: 110;
+    right: 24px;
+    bottom: 24px;
     border: 1px solid color-mix(in srgb, var(--brand) 28%, var(--line));
     border-radius: 2px;
-    padding: 10px 13px;
-    background: var(--brand-faint);
+    padding: 11px 14px;
+    background: var(--surface-raised);
     color: var(--brand-strong);
     font-size: 0.78rem;
     font-weight: 650;
-  }
-
-  .profile-page-notice {
-    margin-top: 12px;
+    box-shadow: var(--shadow-float);
+    animation: profile-toast-in 180ms ease both;
   }
 
   .profile-workspace {
@@ -435,6 +429,8 @@
   .profile-tabs {
     display: flex;
     overflow-x: auto;
+    overflow-y: hidden;
+    overscroll-behavior: contain;
     border: 1px solid var(--line);
     border-radius: 2px;
     background: var(--surface);
@@ -506,21 +502,10 @@
     color: var(--brand-strong);
   }
 
-  .profile-content-heading {
-    display: flex;
-    align-items: flex-end;
-    justify-content: space-between;
-    gap: 16px;
-    padding: 24px 2px 12px;
-  }
-
-  .profile-content-heading h2 {
-    margin: 5px 0 0;
-    color: var(--text-strong);
-    font-family: "Noto Serif CJK SC", "Source Han Serif SC", "Songti SC", serif;
-    font-size: 1.25rem;
-    font-weight: 740;
-    letter-spacing: -0.025em;
+  .profile-filter-toolbar {
+    display: none;
+    justify-content: flex-end;
+    padding: 12px 0;
   }
 
   .profile-filter-toggle {
@@ -541,6 +526,7 @@
     grid-template-columns: minmax(0, 1fr) 288px;
     align-items: start;
     gap: 16px;
+    margin-top: 12px;
   }
 
   .profile-record-panel {
@@ -558,8 +544,6 @@
 
   .profile-record {
     position: relative;
-    display: grid;
-    grid-template-columns: minmax(0, 1fr) 38px;
     min-width: 0;
     border-bottom: 1px solid var(--line);
     transition: background 150ms ease;
@@ -573,84 +557,35 @@
     background: color-mix(in srgb, var(--brand-faint) 58%, var(--surface));
   }
 
-  .profile-record-body {
-    min-width: 0;
-    padding: 20px 20px 18px;
-  }
-
-  .profile-record-kicker {
+  .profile-record-line {
     display: flex;
-    flex-wrap: wrap;
+    min-height: 52px;
     align-items: center;
-    gap: 5px;
-    color: var(--text-faint);
-    font-size: 0.68rem;
-    font-weight: 620;
-  }
-
-  .profile-record-kicker a {
-    color: var(--brand);
-    font-weight: 740;
-  }
-
-  .profile-record-status {
-    border: 1px solid color-mix(in srgb, var(--brand) 20%, var(--line));
-    border-radius: 999px;
-    padding: 2px 7px;
-    background: var(--brand-faint);
-    color: var(--brand-strong);
-    font-size: 0.61rem;
+    gap: 16px;
+    padding: 0 18px;
   }
 
   .profile-record h3 {
-    margin: 8px 0 0;
+    min-width: 0;
+    flex: 1;
+    overflow: hidden;
+    margin: 0;
     color: var(--text-strong);
-    font-family: "Noto Serif CJK SC", "Source Han Serif SC", "Songti SC", serif;
-    font-size: 1rem;
-    font-weight: 720;
-    line-height: 1.45;
+    font-size: 0.84rem;
+    font-weight: 680;
+    line-height: 1.4;
+    text-overflow: ellipsis;
+    white-space: nowrap;
   }
 
   .profile-record h3 a:hover {
     color: var(--brand-strong);
   }
 
-  .profile-record-body > p {
-    display: -webkit-box;
-    overflow: hidden;
-    margin: 7px 0 0;
-    color: var(--text-muted);
-    font-size: 0.83rem;
-    line-height: 1.72;
-    -webkit-box-orient: vertical;
-    -webkit-line-clamp: 2;
-  }
-
-  .profile-record footer {
-    display: flex;
-    min-height: 26px;
-    flex-wrap: wrap;
-    align-items: center;
-    gap: 8px 16px;
-    margin-top: 15px;
-  }
-
-  .profile-record-author,
-  .profile-record-metrics {
-    display: flex;
-    align-items: center;
-    gap: 13px;
+  .profile-record-line > time {
+    flex: none;
     color: var(--text-faint);
     font-size: 0.68rem;
-  }
-
-  .profile-record-metrics {
-    margin-left: auto;
-  }
-
-  .profile-record-metrics strong {
-    color: var(--text-muted);
-    font-weight: 760;
   }
 
   .profile-record-actions {
@@ -685,23 +620,10 @@
     color: var(--brand-strong);
   }
 
-  .profile-record-arrow {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: var(--text-faint);
-    transition: color 150ms ease, transform 150ms ease;
-  }
-
-  .profile-record:hover .profile-record-arrow {
-    color: var(--brand);
-    transform: translateX(2px);
-  }
-
   .profile-signature-editor {
     display: grid;
     gap: 8px;
-    margin-top: 10px;
+    padding: 0 18px 14px;
   }
 
   .profile-signature-editor textarea {
@@ -793,8 +715,7 @@
   }
 
   .profile-filter-panel,
-  .profile-aside-link,
-  .profile-demo-note {
+  .profile-aside-link {
     border: 1px solid var(--line);
     border-radius: 2px;
     background: var(--surface);
@@ -893,23 +814,6 @@
     background: var(--brand-faint);
   }
 
-  .profile-demo-note {
-    padding: 14px 15px;
-    color: var(--text-faint);
-  }
-
-  .profile-demo-note strong {
-    color: var(--text-muted);
-    font-size: 0.7rem;
-    letter-spacing: 0.07em;
-  }
-
-  .profile-demo-note p {
-    margin: 7px 0 0;
-    font-size: 0.68rem;
-    line-height: 1.65;
-  }
-
   .profile-mobile-filter {
     display: none;
     margin-bottom: 12px;
@@ -919,8 +823,9 @@
     position: fixed;
     z-index: 100;
     inset: 0;
-    display: grid;
-    place-items: center;
+    display: flex;
+    align-items: center;
+    justify-content: center;
     overflow-y: auto;
     padding: 24px;
     background: var(--overlay);
@@ -1219,6 +1124,10 @@
       grid-template-columns: 1fr;
     }
 
+    .profile-filter-toolbar {
+      display: flex;
+    }
+
     .profile-filter-toggle {
       display: inline-flex;
     }
@@ -1333,8 +1242,8 @@
     }
 
     .profile-data-card {
-      min-height: 88px;
-      padding: 13px;
+      min-height: 68px;
+      padding: 10px 12px;
     }
 
     .profile-tab {
@@ -1342,38 +1251,14 @@
       padding: 13px 14px;
     }
 
-    .profile-content-heading {
-      padding-top: 20px;
-    }
-
-    .profile-content-heading h2 {
-      font-size: 1.08rem;
-    }
-
-    .profile-record {
-      grid-template-columns: minmax(0, 1fr) 30px;
-    }
-
-    .profile-record-body {
-      padding: 17px 14px 15px;
-    }
-
-    .profile-record footer,
-    .profile-record-metrics,
-    .profile-record-actions {
-      margin-left: 0;
-    }
-
-    .profile-record-metrics {
-      width: 100%;
+    .profile-record-line {
+      min-height: 48px;
+      gap: 10px;
+      padding: 0 12px;
     }
 
     .profile-workspace-aside {
       grid-template-columns: 1fr;
-    }
-
-    .profile-demo-note {
-      order: 2;
     }
 
     .profile-date-fields {
@@ -1381,7 +1266,6 @@
     }
 
     .profile-dialog-backdrop {
-      align-items: end;
       padding: 12px;
     }
 
@@ -1399,6 +1283,11 @@
     .profile-pagination {
       gap: 10px;
     }
+
+    .profile-toast {
+      right: 12px;
+      bottom: 12px;
+    }
   }
 
   @media (prefers-reduced-motion: reduce) {
@@ -1412,8 +1301,7 @@
     }
 
     .profile-avatar-button,
-    .profile-primary-action,
-    .profile-record-arrow {
+    .profile-primary-action {
       transition: none;
     }
   }
@@ -1422,6 +1310,17 @@
     from {
       opacity: 0;
       transform: translateY(7px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  @keyframes profile-toast-in {
+    from {
+      opacity: 0;
+      transform: translateY(8px);
     }
     to {
       opacity: 1;

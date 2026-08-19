@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { AppBackground } from '../components/layout/AppBackground';
 import { TopBar } from '../components/layout/TopBar';
 import { AvatarDialog, EmailDialog, SecurityDialog } from '../components/profile/ProfileDialogs';
@@ -16,6 +16,12 @@ export function UserCenterPage() {
   const [openDialog, setOpenDialog] = useState<OpenDialog>(() => window.location.hash === '#account-security' ? 'security' : null);
   const [notice, setNotice] = useState('');
   const email = useMemo(() => profile.details.find((detail) => detail.key === 'email')?.value ?? '', [profile.details]);
+
+  useEffect(() => {
+    if (!notice) return;
+    const timeout = window.setTimeout(() => setNotice(''), 2600);
+    return () => window.clearTimeout(timeout);
+  }, [notice]);
 
   function updateDraft(key: keyof ProfileDraft, value: string) {
     setDraft((current) => ({ ...current, [key]: value }));
@@ -35,7 +41,7 @@ export function UserCenterPage() {
       intro: draft.intro,
     }));
     setIsEditing(false);
-    setNotice('资料已保存到当前页面会话。');
+    setNotice('资料保存成功');
   }
 
   function cancelEdit() {
@@ -73,7 +79,7 @@ export function UserCenterPage() {
           onOpenSecurity={() => setOpenDialog('security')}
         />
 
-        {notice ? <div className="profile-page-notice" role="status">{notice}</div> : null}
+        {notice ? <div className="profile-toast" role="status">{notice}</div> : null}
 
         <ProfileWorkspace
           allowedTabs={['posts', 'replies', 'activities', 'bookmarks', 'drafts', 'signatures']}

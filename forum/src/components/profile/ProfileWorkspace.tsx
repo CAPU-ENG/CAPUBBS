@@ -11,7 +11,6 @@ import {
   Quote,
   RotateCcw,
   Search,
-  Trash2,
 } from 'lucide-react';
 import { useEffect, useMemo, useState, type ReactNode } from 'react';
 import {
@@ -76,6 +75,12 @@ export function ProfileWorkspace({
     setNotice('');
   }, [activeTab, keyword, startDate, endDate]);
 
+  useEffect(() => {
+    if (!notice) return;
+    const timeout = window.setTimeout(() => setNotice(''), 2600);
+    return () => window.clearTimeout(timeout);
+  }, [notice]);
+
   const filteredRecords = useMemo(() => {
     const normalizedKeyword = keyword.trim().toLocaleLowerCase();
     return records[activeTab].filter((record) => {
@@ -103,14 +108,6 @@ export function ProfileWorkspace({
     setKeyword('');
     setStartDate('');
     setEndDate('');
-  }
-
-  function removeRecord(record: ProfileRecord) {
-    setRecords((current) => ({
-      ...current,
-      [activeTab]: current[activeTab].filter((candidate) => candidate.id !== record.id),
-    }));
-    setNotice(activeTab === 'drafts' ? '草稿已从本地演示列表移除。' : '收藏已从本地演示列表移除。');
   }
 
   function saveSignature(record: ProfileRecord, excerpt: string) {
@@ -153,12 +150,8 @@ export function ProfileWorkspace({
         ))}
       </nav>
 
-      <header className="profile-content-heading">
-        <div>
-          <span className="eyebrow">{readOnly ? 'PUBLIC ACTIVITY' : 'MY ARCHIVE'}</span>
-          <h2>{ownerLabel}的{activeTabMeta.label}</h2>
-        </div>
-        {activeTab !== 'signatures' ? (
+      {activeTab !== 'signatures' ? (
+        <div className="profile-filter-toolbar">
           <button
             aria-expanded={filtersOpen}
             className="profile-filter-toggle"
@@ -167,12 +160,12 @@ export function ProfileWorkspace({
           >
             <Filter size={15} />筛选{filterCount ? ` ${filterCount}` : ''}
           </button>
-        ) : null}
-      </header>
+        </div>
+      ) : null}
 
       {filtersOpen && activeTab !== 'signatures' ? <div className="profile-mobile-filter">{filterPanel}</div> : null}
 
-      {notice ? <div className="profile-notice" role="status">{notice}</div> : null}
+      {notice ? <div className="profile-toast" role="status">{notice}</div> : null}
 
       <div className="profile-content-layout">
         <div className="profile-record-panel">
@@ -186,7 +179,6 @@ export function ProfileWorkspace({
                   readOnly={readOnly}
                   record={record}
                   onEdit={() => setEditingRecordId(record.id)}
-                  onRemove={() => removeRecord(record)}
                   onSaveSignature={(value) => saveSignature(record, value)}
                 />
               ))}
@@ -212,10 +204,6 @@ export function ProfileWorkspace({
               <span>{asideLink.label}</span><ExternalLink size={15} />
             </a>
           ) : null}
-          <div className="profile-demo-note">
-            <strong>演示数据</strong>
-            <p>当前页面用于确认新版信息结构和交互，尚未连接服务器资料。</p>
-          </div>
         </aside>
       </div>
     </section>
@@ -272,7 +260,6 @@ function ProfileRecordRow({
   activeTab,
   editing,
   onEdit,
-  onRemove,
   onSaveSignature,
   readOnly,
   record,
@@ -280,7 +267,6 @@ function ProfileRecordRow({
   activeTab: ProfileTab;
   editing: boolean;
   onEdit: () => void;
-  onRemove: () => void;
   onSaveSignature: (value: string) => void;
   readOnly: boolean;
   record: ProfileRecord;
@@ -291,48 +277,19 @@ function ProfileRecordRow({
 
   return (
     <article className="profile-record">
-      <div className="profile-record-body">
-        <div className="profile-record-kicker">
-          <a href={`/?board=3`}>{record.board}</a>
-          <span aria-hidden="true">·</span>
-          <time dateTime={record.date}>{formatDate(record.date)}</time>
-          {record.status ? <span className="profile-record-status">{record.status}</span> : null}
-        </div>
+      <div className="profile-record-line">
         <h3><a href={record.href}>{record.title}</a></h3>
-        {editing && activeTab === 'signatures' ? (
-          <div className="profile-signature-editor">
-            <textarea value={signatureValue} rows={3} onChange={(event) => setSignatureValue(event.target.value)} />
-            <div>
-              <button type="button" onClick={() => onSaveSignature(signatureValue)}>保存签名档</button>
-            </div>
-          </div>
-        ) : (
-          <p>{record.excerpt}</p>
-        )}
-        <footer>
-          <div className="profile-record-author">
-            {record.author ? <span>作者 {record.author}</span> : <span>更新于 {formatDate(record.date)}</span>}
-          </div>
-          {record.metrics ? (
-            <div className="profile-record-metrics">
-              {record.metrics.map((metric) => <span key={metric.label}>{metric.label} <strong>{metric.value}</strong></span>)}
-            </div>
-          ) : null}
-          {!readOnly && activeTab === 'drafts' ? (
-            <div className="profile-record-actions">
-              <a href={record.href}>继续编辑</a>
-              <button type="button" onClick={onRemove}><Trash2 size={13} />删除</button>
-            </div>
-          ) : null}
-          {!readOnly && activeTab === 'bookmarks' ? (
-            <div className="profile-record-actions"><button type="button" onClick={onRemove}>取消收藏</button></div>
-          ) : null}
-          {!readOnly && activeTab === 'signatures' && !editing ? (
-            <div className="profile-record-actions"><button type="button" onClick={onEdit}>编辑签名档</button></div>
-          ) : null}
-        </footer>
+        <time dateTime={record.date}>{formatDate(record.date)}</time>
+        {!readOnly && activeTab === 'signatures' && !editing ? (
+          <div className="profile-record-actions"><button type="button" onClick={onEdit}>编辑签名档</button></div>
+        ) : null}
       </div>
-      <a className="profile-record-arrow" href={record.href} aria-label={`打开${record.title}`}><ChevronRight size={18} /></a>
+      {editing && activeTab === 'signatures' ? (
+        <div className="profile-signature-editor">
+          <textarea value={signatureValue} rows={3} onChange={(event) => setSignatureValue(event.target.value)} />
+          <div><button type="button" onClick={() => onSaveSignature(signatureValue)}>保存签名档</button></div>
+        </div>
+      ) : null}
     </article>
   );
 }

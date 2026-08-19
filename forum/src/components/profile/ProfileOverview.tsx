@@ -84,11 +84,11 @@ export function ProfileOverview({
           )}
 
           <div className="profile-identity-copy">
-            <span className="eyebrow">{privateMode ? '个人档案 · 演示数据' : '公开骑行档案'}</span>
+            {!privateMode ? <span className="eyebrow">公开骑行档案</span> : null}
             <div className="profile-name-line">
               <h1>{profile.id}</h1>
               <span className="profile-rating" aria-label={`${profile.rating}星用户`}>
-                {'★'.repeat(profile.rating)}<i>{'★'.repeat(Math.max(0, 5 - profile.rating))}</i>
+                {'★'.repeat(profile.rating)}
               </span>
             </div>
 
@@ -142,7 +142,14 @@ export function ProfileOverview({
 
           return (
             <section className="profile-data-card" key={detail.key}>
-              <div className="profile-data-label"><Icon width={15} height={15} />{detail.label}</div>
+              <div className="profile-data-card-head">
+                <div className="profile-data-label"><Icon width={15} height={15} />{detail.label}</div>
+                {isEmail && privateMode ? (
+                  <button className="profile-inline-action" type="button" onClick={onOpenEmail}>
+                    {emailVisible ? '已公开' : '私密'} · 管理
+                  </button>
+                ) : null}
+              </div>
               {editable && draft ? (
                 <input
                   aria-label={detail.label}
@@ -154,11 +161,6 @@ export function ProfileOverview({
                   {detail.value || '未填写'}
                 </div>
               )}
-              {isEmail && privateMode ? (
-                <button className="profile-inline-action" type="button" onClick={onOpenEmail}>
-                  {emailVisible ? '已公开' : '私密'} · 管理
-                </button>
-              ) : null}
             </section>
           );
         })}
