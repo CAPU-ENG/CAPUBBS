@@ -8,6 +8,12 @@ export default defineConfig({
       '/api': {
         target: process.env.CAPUBBS_PHP_ORIGIN || 'http://localhost:8080',
       },
+      '/bbs': {
+        target: process.env.CAPUBBS_PHP_ORIGIN || 'http://localhost:8080',
+      },
+      '/bbsimg': {
+        target: process.env.CAPUBBS_PHP_ORIGIN || 'http://localhost:8080',
+      },
     },
   },
 });

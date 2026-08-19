@@ -4,11 +4,9 @@ import {
   ChevronDown,
   LoaderCircle,
   LogIn,
-  LogOut,
   Menu,
   Moon,
   Search,
-  Settings,
   Sun,
   UserRound,
 } from 'lucide-react';
@@ -37,7 +35,7 @@ export function TopBar({
   contextTitle?: string;
   showContextTitle?: boolean;
 }) {
-  const { logout, status: authStatus, viewer } = useAuth();
+  const { status: authStatus, viewer } = useAuth();
   const params = new URLSearchParams(window.location.search);
   const isHomePage = window.location.pathname === '/'
     && !params.has('tid')
@@ -265,17 +263,6 @@ export function TopBar({
                 {profileOpen && (
                   <div className="profile-menu" role="menu">
                     <a href="/user-center" role="menuitem"><UserRound size={16} />个人中心</a>
-                    <a href="/user-center#account-security" role="menuitem"><Settings size={16} />设置</a>
-                    <button
-                      type="button"
-                      role="menuitem"
-                      onClick={() => {
-                        setProfileOpen(false);
-                        void logout();
-                      }}
-                    >
-                      <LogOut size={16} />退出登录
-                    </button>
                   </div>
                 )}
               </div>

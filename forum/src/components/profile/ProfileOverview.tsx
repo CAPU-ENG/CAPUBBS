@@ -10,6 +10,7 @@ export type ProfileDraft = {
 };
 
 type ProfileOverviewProps = {
+  actionsDisabled?: boolean;
   avatarSrc?: string;
   draft?: ProfileDraft;
   emailVisible?: boolean;
@@ -34,6 +35,7 @@ const detailIcons: Record<ProfileDetailKey, ComponentType<SVGProps<SVGSVGElement
 };
 
 export function ProfileOverview({
+  actionsDisabled = false,
   avatarSrc,
   draft,
   emailVisible,
@@ -111,13 +113,13 @@ export function ProfileOverview({
         <div className="profile-identity-actions">
           {privateMode ? (
             <>
-              <button className="profile-primary-action" type="button" onClick={onEditToggle}>
-                <Edit3 size={16} />{isEditing ? '保存资料' : '编辑资料'}
+              <button className="profile-primary-action" disabled={actionsDisabled} type="button" onClick={onEditToggle}>
+                <Edit3 size={16} />{actionsDisabled ? '保存中' : isEditing ? '保存资料' : '编辑资料'}
               </button>
               {isEditing ? (
-                <button className="profile-secondary-action" type="button" onClick={onCancelEdit}>取消</button>
+                <button className="profile-secondary-action" disabled={actionsDisabled} type="button" onClick={onCancelEdit}>取消</button>
               ) : (
-                <button className="profile-secondary-action" type="button" onClick={onOpenSecurity}>
+                <button className="profile-secondary-action" disabled={actionsDisabled} type="button" onClick={onOpenSecurity}>
                   <ShieldCheck size={16} />账号安全
                 </button>
               )}

@@ -34,6 +34,7 @@ export type ProfileViewData = {
   avatarSrc: string;
   counts: Partial<Record<ProfileTab, number>>;
   details: ProfileDetail[];
+  emailVerified: boolean;
   emailVisible: boolean;
   id: string;
   intro: string;
@@ -106,6 +107,7 @@ export const currentProfile: ProfileViewData = {
     { key: 'email', label: 'Email', value: 'blueframe@example.com' },
     { key: 'location', label: '地点', value: '北京' },
   ],
+  emailVerified: true,
   emailVisible: false,
   id: '蓝色车架',
   intro: '总有一天要把学校周边的路线都骑一遍。',
@@ -156,6 +158,7 @@ const xiaolinProfile: ProfileViewData = {
     { key: 'email', label: 'Email', value: 'xiaolin@example.com' },
     { key: 'location', label: '地点', value: '北京' },
   ],
+  emailVerified: true,
   emailVisible: false,
   id: '小林',
   intro: '喜欢把复杂路线整理成新人也能放心出发的说明。',

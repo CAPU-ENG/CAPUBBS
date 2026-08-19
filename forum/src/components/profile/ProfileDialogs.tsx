@@ -48,15 +48,21 @@ export function EmailDialog({
   email,
   onClose,
   onNotify,
+  onSendCode,
   onSave,
+  onVerify,
   open,
+  verified,
   visible,
 }: {
   email: string;
   onClose: () => void;
   onNotify: (message: string, tone: 'error' | 'success') => void;
-  onSave: (email: string, visible: boolean) => void;
+  onSendCode: (email: string) => Promise<void>;
+  onSave: (visible: boolean) => Promise<void>;
+  onVerify: (code: string) => Promise<void>;
   open: boolean;
+  verified: boolean;
   visible: boolean;
 }) {
   const [changeOpen, setChangeOpen] = useState(false);
@@ -64,6 +70,9 @@ export function EmailDialog({
   const [codeSent, setCodeSent] = useState(false);
   const [newEmail, setNewEmail] = useState('');
   const [draftVisible, setDraftVisible] = useState(visible);
+  const [isSending, setIsSending] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
+  const [isVerifying, setIsVerifying] = useState(false);
 
   useEffect(() => {
     setChangeOpen(false);
@@ -71,12 +80,15 @@ export function EmailDialog({
     setCodeSent(false);
     setNewEmail('');
     setDraftVisible(visible);
+    setIsSending(false);
+    setIsSaving(false);
+    setIsVerifying(false);
   }, [email, open, visible]);
 
-  function sendCode() {
+  async function sendCode() {
     const normalizedEmail = newEmail.trim();
     if (!isPkuEmail(normalizedEmail)) {
-      onNotify('请输入有效的 PKU 邮箱', 'error');
+      onNotify('请输入有效的 PKU 邮箱（10 位学号）', 'error');
       return;
     }
     if (normalizedEmail.toLowerCase() === email.trim().toLowerCase()) {
@@ -84,11 +96,19 @@ export function EmailDialog({
       return;
     }
 
-    setCodeSent(true);
-    onNotify('验证码已发送（演示验证码：123456）', 'success');
+    try {
+      setIsSending(true);
+      await onSendCode(normalizedEmail);
+      setCodeSent(true);
+      onNotify('验证码已发送，请检查邮箱', 'success');
+    } catch (error) {
+      onNotify(getDialogError(error, '验证码发送失败'), 'error');
+    } finally {
+      setIsSending(false);
+    }
   }
 
-  function verifyCode() {
+  async function verifyCode() {
     if (!codeSent) {
       onNotify('请先发送验证码', 'error');
       return;
@@ -97,17 +117,19 @@ export function EmailDialog({
       onNotify('请输入 6 位验证码', 'error');
       return;
     }
-    if (code.trim() !== '123456') {
-      onNotify('验证码错误或已失效', 'error');
-      return;
+    try {
+      setIsVerifying(true);
+      await onVerify(code.trim());
+      setChangeOpen(false);
+      setCode('');
+      setCodeSent(false);
+      setNewEmail('');
+      onNotify('邮箱验证成功', 'success');
+    } catch (error) {
+      onNotify(getDialogError(error, '验证码错误或已失效'), 'error');
+    } finally {
+      setIsVerifying(false);
     }
-
-    onSave(newEmail.trim(), draftVisible);
-    setChangeOpen(false);
-    setCode('');
-    setCodeSent(false);
-    setNewEmail('');
-    onNotify('邮箱验证成功', 'success');
   }
 
   return (
@@ -118,7 +140,7 @@ export function EmailDialog({
           <input className="profile-email-locked" type="email" value={email} readOnly aria-readonly="true" />
         </label>
         <div className="profile-email-status-line">
-          <div className="profile-verification-line"><CheckCircle2 size={15} />已验证</div>
+          <div className="profile-verification-line"><CheckCircle2 size={15} />{verified ? '已验证' : '未验证'}</div>
           <button type="button" onClick={() => setChangeOpen((current) => !current)}>
             {changeOpen ? '取消更换' : '更换邮箱'}
           </button>
@@ -134,7 +156,9 @@ export function EmailDialog({
                 value={newEmail}
                 onChange={(event) => { setNewEmail(event.target.value); setCodeSent(false); }}
               />
-              <button type="button" onClick={sendCode}>{codeSent ? '重新发送' : '发送验证码'}</button>
+              <button disabled={isSending || isVerifying} type="button" onClick={sendCode}>
+                {isSending ? '发送中' : codeSent ? '重新发送' : '发送验证码'}
+              </button>
             </div>
             <div className="profile-email-action-row">
               <input
@@ -146,7 +170,9 @@ export function EmailDialog({
                 value={code}
                 onChange={(event) => setCode(event.target.value.replace(/\D/g, '').slice(0, 6))}
               />
-              <button className="profile-email-verify" type="button" onClick={verifyCode}>验证</button>
+              <button className="profile-email-verify" disabled={isSending || isVerifying} type="button" onClick={verifyCode}>
+                {isVerifying ? '验证中' : '验证'}
+              </button>
             </div>
           </section>
         ) : null}
@@ -156,22 +182,45 @@ export function EmailDialog({
         </label>
       </div>
       <DialogFooter
+        confirmDisabled={isSaving || isSending || isVerifying}
         confirmLabel="完成"
         onCancel={onClose}
-        onConfirm={() => { onSave(email, draftVisible); onClose(); }}
+        onConfirm={async () => {
+          try {
+            setIsSaving(true);
+            await onSave(draftVisible);
+            onNotify('邮箱公开设置已更新', 'success');
+            onClose();
+          } catch (error) {
+            onNotify(getDialogError(error, '邮箱设置保存失败'), 'error');
+          } finally {
+            setIsSaving(false);
+          }
+        }}
       />
     </DialogFrame>
   );
 }
 
 function isPkuEmail(value: string) {
-  return /^[^\s@]+@(?:(?:[a-z0-9-]+\.)*pku\.edu\.cn|bjmu\.edu\.cn)$/i.test(value.trim());
+  return /^\d{10}@(?:(?:[a-z0-9-]+\.)*pku\.edu\.cn|bjmu\.edu\.cn)$/i.test(value.trim());
 }
 
-export function SecurityDialog({ onClose, open }: { onClose: () => void; open: boolean }) {
+export function SecurityDialog({
+  onClose,
+  onNotify,
+  onSave,
+  open,
+}: {
+  onClose: () => void;
+  onNotify: (message: string, tone: 'error' | 'success') => void;
+  onSave: (oldPassword: string, newPassword: string) => Promise<void>;
+  open: boolean;
+}) {
   const [currentPassword, setCurrentPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
+  const [isSaving, setIsSaving] = useState(false);
   const mismatch = Boolean(confirmPassword && newPassword !== confirmPassword);
 
   useEffect(() => {
@@ -179,6 +228,7 @@ export function SecurityDialog({ onClose, open }: { onClose: () => void; open: b
     setCurrentPassword('');
     setNewPassword('');
     setConfirmPassword('');
+    setIsSaving(false);
   }, [open]);
 
   return (
@@ -188,13 +238,24 @@ export function SecurityDialog({ onClose, open }: { onClose: () => void; open: b
         <label className="profile-dialog-field"><span>新密码</span><input type="password" value={newPassword} onChange={(event) => setNewPassword(event.target.value)} /></label>
         <label className="profile-dialog-field"><span>确认新密码</span><input type="password" value={confirmPassword} onChange={(event) => setConfirmPassword(event.target.value)} /></label>
         {mismatch ? <p className="profile-dialog-error">两次输入的新密码不一致。</p> : null}
-        <p className="profile-dialog-copy">演示模式不会提交或保存任何密码。</p>
+        <p className="profile-dialog-copy">密码修改成功后，出于安全原因需要重新登录。</p>
       </div>
       <DialogFooter
-        confirmDisabled={!currentPassword || !newPassword || mismatch}
-        confirmLabel="演示修改密码"
+        confirmDisabled={!currentPassword || !newPassword || mismatch || isSaving}
+        confirmLabel={isSaving ? '修改中' : '修改密码'}
         onCancel={onClose}
-        onConfirm={onClose}
+        onConfirm={async () => {
+          try {
+            setIsSaving(true);
+            await onSave(currentPassword, newPassword);
+            onClose();
+            onNotify('密码已修改，请重新登录', 'success');
+          } catch (error) {
+            onNotify(getDialogError(error, '密码修改失败'), 'error');
+          } finally {
+            setIsSaving(false);
+          }
+        }}
       />
     </DialogFrame>
   );
@@ -202,41 +263,69 @@ export function SecurityDialog({ onClose, open }: { onClose: () => void; open: b
 
 export function PrivateMessageDialog({
   onClose,
+  onSend,
   open,
   recipient,
 }: {
   onClose: () => void;
+  onSend: (message: string) => Promise<void>;
   open: boolean;
   recipient: string;
 }) {
   const [message, setMessage] = useState('');
   const [sent, setSent] = useState(false);
+  const [error, setError] = useState('');
+  const [isSending, setIsSending] = useState(false);
 
   useEffect(() => {
     if (!open) return;
     setMessage('');
     setSent(false);
+    setError('');
+    setIsSending(false);
   }, [open]);
 
   return (
     <DialogFrame icon={<MessageCircle size={18} />} onClose={onClose} open={open} title={`私信 ${recipient}`}>
       <div className="profile-dialog-body">
         {sent ? (
-          <div className="profile-message-sent"><CheckCircle2 size={28} /><strong>消息已加入演示发送队列</strong><p>尚未连接服务器，不会真正发送。</p></div>
+          <div className="profile-message-sent"><CheckCircle2 size={28} /><strong>私信已发送</strong><p>对方可以在论坛消息中查看。</p></div>
         ) : (
           <label className="profile-dialog-field">
             <span>消息内容</span>
             <textarea maxLength={500} rows={6} value={message} onChange={(event) => setMessage(event.target.value)} placeholder="写下想说的话……" />
           </label>
         )}
+        {error ? <p className="profile-dialog-error">{error}</p> : null}
       </div>
       {sent ? (
         <DialogFooter confirmLabel="完成" onCancel={onClose} onConfirm={onClose} hideCancel />
       ) : (
-        <DialogFooter confirmDisabled={!message.trim()} confirmIcon={<Send size={14} />} confirmLabel="演示发送" onCancel={onClose} onConfirm={() => setSent(true)} />
+        <DialogFooter
+          confirmDisabled={!message.trim() || isSending}
+          confirmIcon={<Send size={14} />}
+          confirmLabel={isSending ? '发送中' : '发送'}
+          onCancel={onClose}
+          onConfirm={async () => {
+            try {
+              setIsSending(true);
+              setError('');
+              await onSend(message.trim());
+              setSent(true);
+            } catch (sendError) {
+              setError(getDialogError(sendError, '私信发送失败'));
+            } finally {
+              setIsSending(false);
+            }
+          }}
+        />
       )}
     </DialogFrame>
   );
+}
+
+function getDialogError(error: unknown, fallback: string) {
+  return error instanceof Error && error.message.trim() ? error.message : fallback;
 }
 
 function DialogFooter({

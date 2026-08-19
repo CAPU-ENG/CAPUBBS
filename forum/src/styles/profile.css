@@ -1387,7 +1387,11 @@
     font-size: 0.82rem;
   }
 
-  .profile-not-found a {
+  .profile-not-found a,
+  .profile-not-found button {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
     margin-top: 22px;
     border: 1px solid var(--brand);
     padding: 9px 13px;
@@ -1395,6 +1399,10 @@
     color: #fff;
     font-size: 0.76rem;
     font-weight: 720;
+  }
+
+  .profile-loading-icon {
+    animation: profile-loading-spin 0.9s linear infinite;
   }
 
   @media (max-width: 980px) {
@@ -1673,5 +1681,9 @@
       opacity: 1;
       transform: translateY(0);
     }
+  }
+
+  @keyframes profile-loading-spin {
+    to { transform: rotate(360deg); }
   }
 }

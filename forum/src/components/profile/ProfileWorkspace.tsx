@@ -39,8 +39,11 @@ type ProfileWorkspaceProps = {
   asideLink?: { href: string; label: string };
   initialRecords: ProfileRecordMap;
   ownerLabel: string;
+  onSaveSignatures?: (records: ProfileRecord[]) => Promise<void>;
   readOnly?: boolean;
 };
+
+type WorkspaceNotice = { message: string; tone: 'error' | 'success' } | null;
 
 const tabIcons: Record<ProfileTab, ReactNode> = {
   activities: <CalendarCheck2 size={15} />,
@@ -58,6 +61,7 @@ export function ProfileWorkspace({
   asideLink,
   initialRecords,
   ownerLabel,
+  onSaveSignatures,
   readOnly = false,
 }: ProfileWorkspaceProps) {
   const initialTab = getRequestedTab(allowedTabs);
@@ -69,7 +73,8 @@ export function ProfileWorkspace({
   const [page, setPage] = useState(1);
   const [filtersOpen, setFiltersOpen] = useState(false);
   const [editingRecordId, setEditingRecordId] = useState<string | null>(null);
-  const [notice, setNotice] = useState('');
+  const [notice, setNotice] = useState<WorkspaceNotice>(null);
+  const [savingRecordId, setSavingRecordId] = useState<string | null>(null);
 
   useEffect(() => {
     setRecords(initialRecords);
@@ -84,12 +89,12 @@ export function ProfileWorkspace({
   useEffect(() => {
     setPage(1);
     setEditingRecordId(null);
-    setNotice('');
+    setNotice(null);
   }, [activeTab, keyword, startDate, endDate]);
 
   useEffect(() => {
     if (!notice) return;
-    const timeout = window.setTimeout(() => setNotice(''), 2600);
+    const timeout = window.setTimeout(() => setNotice(null), 2600);
     return () => window.clearTimeout(timeout);
   }, [notice]);
 
@@ -122,16 +127,26 @@ export function ProfileWorkspace({
     setEndDate('');
   }
 
-  function saveSignature(record: ProfileRecord, value: RichTextEditorValue) {
+  async function saveSignature(record: ProfileRecord, value: RichTextEditorValue) {
     const storedValue = getRichTextEditorStorageValue(value);
-    setRecords((current) => ({
-      ...current,
-      signatures: current.signatures.map((candidate) => candidate.id === record.id
-        ? { ...candidate, contentMode: storedValue.mode, excerpt: storedValue.content }
-        : candidate),
-    }));
-    setEditingRecordId(null);
-    setNotice('签名档修改成功');
+    const nextSignatures = records.signatures.map((candidate) => candidate.id === record.id
+      ? { ...candidate, contentMode: storedValue.mode, excerpt: storedValue.content }
+      : candidate);
+
+    try {
+      setSavingRecordId(record.id);
+      await onSaveSignatures?.(nextSignatures);
+      setRecords((current) => ({ ...current, signatures: nextSignatures }));
+      setEditingRecordId(null);
+      setNotice({ message: '签名档修改成功', tone: 'success' });
+    } catch (error) {
+      setNotice({
+        message: error instanceof Error ? error.message : '签名档保存失败，请稍后重试',
+        tone: 'error',
+      });
+    } finally {
+      setSavingRecordId(null);
+    }
   }
 
   const filterPanel = (
@@ -179,7 +194,12 @@ export function ProfileWorkspace({
 
       {filtersOpen && activeTab !== 'signatures' ? <div className="profile-mobile-filter">{filterPanel}</div> : null}
 
-      {notice ? createPortal(<div className="profile-toast" role="status">{notice}</div>, document.body) : null}
+      {notice ? createPortal(
+        <div className={`profile-toast ${notice.tone === 'error' ? 'profile-toast-error' : ''}`} role="status">
+          {notice.message}
+        </div>,
+        document.body,
+      ) : null}
 
       <div className="profile-content-layout">
         <div className="profile-record-panel">
@@ -192,6 +212,7 @@ export function ProfileWorkspace({
                   key={record.id}
                   readOnly={readOnly}
                   record={record}
+                  saving={savingRecordId === record.id}
                   onEdit={() => setEditingRecordId(record.id)}
                   onSaveSignature={(value) => saveSignature(record, value)}
                 />
@@ -277,6 +298,7 @@ function ProfileRecordRow({
   onSaveSignature,
   readOnly,
   record,
+  saving,
 }: {
   activeTab: ProfileTab;
   editing: boolean;
@@ -284,6 +306,7 @@ function ProfileRecordRow({
   onSaveSignature: (value: RichTextEditorValue) => void;
   readOnly: boolean;
   record: ProfileRecord;
+  saving: boolean;
 }) {
   const [floorLinkOpen, setFloorLinkOpen] = useState(false);
   const [signatureValue, setSignatureValue] = useState<RichTextEditorValue>({
@@ -306,10 +329,10 @@ function ProfileRecordRow({
         {!readOnly && activeTab === 'signatures' ? (
           <div className="profile-record-actions">
             {editing ? (
-              <button type="button" onClick={() => setFloorLinkOpen(true)}><Link2 size={13} />链接到楼层</button>
+              <button disabled={saving} type="button" onClick={() => setFloorLinkOpen(true)}><Link2 size={13} />链接到楼层</button>
             ) : null}
-            <button type="button" onClick={editing ? () => onSaveSignature(signatureValue) : onEdit}>
-              {editing ? '保存' : '编辑'}
+            <button disabled={saving} type="button" onClick={editing ? () => onSaveSignature(signatureValue) : onEdit}>
+              {saving ? '保存中' : editing ? '保存' : '编辑'}
             </button>
           </div>
         ) : null}
@@ -459,6 +482,7 @@ function updateTabInUrl(tab: ProfileTab) {
 }
 
 function formatDate(value: string) {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(value)) return '时间未知';
   const [year, month, day] = value.split('-');
   return `${year}.${month}.${day}`;
 }
