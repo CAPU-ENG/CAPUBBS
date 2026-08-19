@@ -2715,7 +2715,7 @@
 
   .board-title-card {
     position: relative;
-    min-height: 188px;
+    min-height: 160px;
     overflow: hidden;
     border: 1px solid var(--line);
     border-radius: 2px;
@@ -2726,7 +2726,7 @@
   .board-title-artwork {
     position: absolute;
     inset: 0 auto 0 0;
-    width: 330px;
+    width: 285px;
     overflow: hidden;
   }
 
@@ -2754,16 +2754,16 @@
     position: relative;
     z-index: 1;
     display: grid;
-    min-height: 186px;
+    min-height: 158px;
     grid-template-columns: minmax(0, 1fr) 306px;
     align-items: center;
     gap: 30px;
-    padding: 22px 28px 22px 250px;
+    padding: 16px 28px 16px 210px;
   }
 
   .board-title-copy {
     min-width: 0;
-    padding-left: 56px;
+    padding-left: 24px;
   }
 
   .board-title-copy h1 {
@@ -2780,7 +2780,7 @@
     flex-wrap: wrap;
     align-items: center;
     gap: 7px;
-    margin-top: 16px;
+    margin-top: 12px;
     font-size: 0.68rem;
   }
 
@@ -3137,11 +3137,11 @@
     .board-title-content {
       grid-template-columns: minmax(0, 1fr) 292px;
       gap: 26px;
-      padding: 22px 26px 22px 195px;
+      padding: 16px 26px 16px 170px;
     }
 
     .board-title-artwork {
-      width: 260px;
+      width: 235px;
     }
 
     .thread-content-layout {
@@ -3264,7 +3264,7 @@
     .board-title-content {
       display: block;
       min-height: 0;
-      padding: 20px 14px 16px 118px;
+      padding: 14px 12px 12px 100px;
     }
 
     .board-title-copy h1 {
@@ -3272,21 +3272,21 @@
     }
 
     .board-title-copy {
-      padding-left: 20px;
+      padding-left: 8px;
     }
 
     .board-title-artwork {
-      width: 172px;
+      width: 148px;
     }
 
     .board-moderators {
       gap: 6px;
-      margin-top: 14px;
+      margin-top: 10px;
       font-size: 0.62rem;
     }
 
     .board-title-side {
-      margin-top: 16px;
+      margin-top: 12px;
     }
 
     .board-stat-grid > div {
