@@ -39,11 +39,6 @@
     font: inherit;
   }
 
-  @media (min-width: 1024px) {
-    body {
-      overflow: hidden;
-    }
-  }
 }
 
 @layer components {
@@ -189,6 +184,12 @@
       gap: 0.2rem;
       padding-inline: 0.5rem;
       font-size: 0.72rem;
+    }
+  }
+
+  @media (min-width: 1024px) {
+    .capubbs-background-symbol {
+      opacity: 0.14;
     }
   }
 }

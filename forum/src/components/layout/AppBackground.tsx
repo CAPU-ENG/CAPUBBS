@@ -36,6 +36,7 @@ export function AppBackground() {
                 y={symbol.row * cellSize + (cellSize - symbolHeight) / 2}
                 width={symbolWidth}
                 height={symbolHeight}
+                className="capubbs-background-symbol"
                 opacity={0.25}
                 filter="url(#capubbs-symbol-tint)"
                 transform={symbol.rotation === 0 ? undefined : `rotate(${symbol.rotation} ${symbol.column * cellSize + cellSize / 2} ${symbol.row * cellSize + cellSize / 2})`}
