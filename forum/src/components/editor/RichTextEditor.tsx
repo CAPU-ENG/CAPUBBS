@@ -115,6 +115,11 @@ export function getRichTextEditorStorageValue(value: RichTextEditorValue): RichT
   };
 }
 
+export function getRichTextEditorPreviewDocument(value: RichTextEditorValue) {
+  const previewHtml = value.mode === 'markdown' ? renderMarkdownToHtml(value.content) : value.content;
+  return buildHtmlPreviewDocument(previewHtml, document.documentElement.classList.contains('dark'));
+}
+
 function areEditorValuesEqual(currentValue: RichTextEditorValue, nextValue: RichTextEditorValue) {
   return currentValue.content === nextValue.content && currentValue.mode === nextValue.mode;
 }
@@ -1247,7 +1252,7 @@ export function RichTextEditor({
     <>
     <section
       ref={editorShellRef}
-      className="capubbs-rich-text-editor relative overflow-hidden rounded-lg border border-zinc-200 bg-white/70 shadow-sm dark:border-white/10 dark:bg-white/[0.05]"
+      className="capubbs-rich-text-editor relative overflow-hidden rounded-[2px] border border-zinc-200 bg-white/70 shadow-sm dark:border-white/10 dark:bg-white/[0.05]"
       data-auto-height={isAutoHeightEnabled ? 'true' : 'false'}
     >
       <div className="border-b border-zinc-200/80 bg-white/70 dark:border-white/10 dark:bg-white/[0.04]">
@@ -1283,7 +1288,7 @@ export function RichTextEditor({
                 <ToolbarButton label="斜体" icon={<Italic size={15} />} onMouseDown={handleToolbarMouseDown} onClick={() => runRichCommand('italic')} />
                 <ToolbarButton label="下划线" icon={<Underline size={15} />} onMouseDown={handleToolbarMouseDown} onClick={() => runRichCommand('underline')} />
                 <ToolbarButton label="删除线" icon={<Strikethrough size={15} />} onMouseDown={handleToolbarMouseDown} onClick={() => runRichCommand('strikeThrough')} />
-                <div className="flex h-8 items-center gap-1 rounded-md border border-zinc-200 bg-white/70 px-1.5 dark:border-white/10 dark:bg-white/[0.06]">
+                <div className="flex h-8 items-center gap-1 rounded-[1px] border border-zinc-200 bg-white/70 px-1.5 dark:border-white/10 dark:bg-white/[0.06]">
                   <Type size={14} className="shrink-0 text-zinc-500 dark:text-zinc-300" />
                   <select
                     aria-label="字体"
@@ -1301,7 +1306,7 @@ export function RichTextEditor({
                     ))}
                   </select>
                 </div>
-                <div className="flex h-8 items-center gap-1 rounded-md border border-zinc-200 bg-white/70 px-1.5 dark:border-white/10 dark:bg-white/[0.06]">
+                <div className="flex h-8 items-center gap-1 rounded-[1px] border border-zinc-200 bg-white/70 px-1.5 dark:border-white/10 dark:bg-white/[0.06]">
                   <ALargeSmall size={14} className="shrink-0 text-zinc-500 dark:text-zinc-300" />
                   <select
                     aria-label="字号"
@@ -1349,7 +1354,7 @@ export function RichTextEditor({
                     title="文字颜色"
                     onMouseDown={handleToolbarMouseDown}
                     onClick={toggleColorPicker}
-                    className="flex h-8 w-8 items-center justify-center rounded-md border border-transparent text-[#174f38] transition hover:border-zinc-200 hover:bg-zinc-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#174f38] dark:text-white dark:hover:border-white/10 dark:hover:bg-white/[0.1]"
+                    className="flex h-8 w-8 items-center justify-center rounded-[1px] border border-transparent text-[#174f38] transition hover:border-zinc-200 hover:bg-zinc-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#174f38] dark:text-white dark:hover:border-white/10 dark:hover:bg-white/[0.1]"
                   >
                     <span className="relative flex h-5 w-5 items-center justify-center">
                       <Palette size={16} />
@@ -1360,11 +1365,11 @@ export function RichTextEditor({
                     </span>
                   </button>
                   {isColorPickerOpen ? (
-                    <div className="absolute left-0 top-9 z-30 w-72 rounded-lg border border-zinc-200 bg-white p-3 text-xs shadow-xl dark:border-white/10 dark:bg-zinc-950">
+                    <div className="absolute left-0 top-9 z-30 w-72 rounded-[2px] border border-zinc-200 bg-white p-3 text-xs shadow-xl dark:border-white/10 dark:bg-zinc-950">
                       <div className="flex items-center gap-3">
                         <div
                           aria-hidden="true"
-                          className="h-16 w-16 shrink-0 rounded-md border border-zinc-200 shadow-inner dark:border-white/10"
+                          className="h-16 w-16 shrink-0 rounded-[1px] border border-zinc-200 shadow-inner dark:border-white/10"
                           style={{ backgroundColor: selectedTextColor }}
                         />
                         <div className="min-w-0 flex-1">
@@ -1378,7 +1383,7 @@ export function RichTextEditor({
                                 setRgbSourceValue(hexToRgbSource(event.target.value));
                               }}
                               onMouseDown={saveSelection}
-                              className="mt-1 h-8 w-full cursor-pointer rounded-md border border-zinc-200 bg-transparent p-0.5 dark:border-white/10"
+                              className="mt-1 h-8 w-full cursor-pointer rounded-[1px] border border-zinc-200 bg-transparent p-0.5 dark:border-white/10"
                             />
                           </label>
                         </div>
@@ -1392,7 +1397,7 @@ export function RichTextEditor({
                             title={color.label}
                             onMouseDown={handleToolbarMouseDown}
                             onClick={() => applyRichTextColor(color.value)}
-                            className="h-7 rounded-md border border-zinc-200 shadow-sm transition hover:scale-105 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#174f38] dark:border-white/10"
+                            className="h-7 rounded-[1px] border border-zinc-200 shadow-sm transition hover:scale-105 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#174f38] dark:border-white/10"
                             style={{ backgroundColor: color.value }}
                           />
                         ))}
@@ -1405,13 +1410,13 @@ export function RichTextEditor({
                             onChange={(event) => handleRgbSourceChange(event.target.value)}
                             onMouseDown={saveSelection}
                             placeholder="rgb(17, 24, 39)"
-                            className="h-8 min-w-0 flex-1 rounded-md border border-zinc-200 bg-white px-2 font-mono text-xs text-zinc-800 outline-none transition focus:border-[#174f38] focus:ring-2 focus:ring-[#174f38] dark:border-white/10 dark:bg-white/[0.06] dark:text-white"
+                            className="h-8 min-w-0 flex-1 rounded-[1px] border border-zinc-200 bg-white px-2 font-mono text-xs text-zinc-800 outline-none transition focus:border-[#174f38] focus:ring-2 focus:ring-[#174f38] dark:border-white/10 dark:bg-white/[0.06] dark:text-white"
                           />
                           <button
                             type="button"
                             onMouseDown={handleToolbarMouseDown}
                             onClick={applyRgbSourceColor}
-                            className="h-8 rounded-md bg-[#174f38] px-2.5 text-xs font-bold text-white transition hover:bg-[#123d2c] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#174f38] dark:bg-emerald-200 dark:text-zinc-950"
+                            className="h-8 rounded-[1px] bg-[#174f38] px-2.5 text-xs font-bold text-white transition hover:bg-[#123d2c] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#174f38] dark:bg-emerald-200 dark:text-zinc-950"
                           >
                             应用
                           </button>
@@ -1420,7 +1425,7 @@ export function RichTextEditor({
                     </div>
                   ) : null}
                 </div>
-                <div className="flex h-8 items-center gap-1 rounded-md border border-zinc-200 bg-white/70 px-1.5 dark:border-white/10 dark:bg-white/[0.06]">
+                <div className="flex h-8 items-center gap-1 rounded-[1px] border border-zinc-200 bg-white/70 px-1.5 dark:border-white/10 dark:bg-white/[0.06]">
                   {commonTextColors.map((color) => (
                     <button
                       key={color.value}
@@ -1452,7 +1457,7 @@ export function RichTextEditor({
                     value={popoverTextValue}
                     onChange={(event) => setPopoverTextValue(event.target.value)}
                     placeholder="链接文本"
-                    className="h-9 w-full rounded-md border border-zinc-200 bg-white/80 px-3 text-sm font-semibold text-zinc-800 outline-none transition placeholder:text-zinc-400 focus:border-[#174f38] focus:ring-2 focus:ring-[#174f38] dark:border-white/10 dark:bg-white/[0.06] dark:text-white dark:placeholder:text-zinc-500"
+                    className="h-9 w-full rounded-[1px] border border-zinc-200 bg-white/80 px-3 text-sm font-semibold text-zinc-800 outline-none transition placeholder:text-zinc-400 focus:border-[#174f38] focus:ring-2 focus:ring-[#174f38] dark:border-white/10 dark:bg-white/[0.06] dark:text-white dark:placeholder:text-zinc-500"
                   />
                 </label>
                 <label className="min-w-[12rem] flex-[1.4]">
@@ -1461,7 +1466,7 @@ export function RichTextEditor({
                     value={popoverValue}
                     onChange={(event) => setPopoverValue(event.target.value)}
                     placeholder="链接地址"
-                    className="h-9 w-full rounded-md border border-zinc-200 bg-white/80 px-3 text-sm font-semibold text-zinc-800 outline-none transition placeholder:text-zinc-400 focus:border-[#174f38] focus:ring-2 focus:ring-[#174f38] dark:border-white/10 dark:bg-white/[0.06] dark:text-white dark:placeholder:text-zinc-500"
+                    className="h-9 w-full rounded-[1px] border border-zinc-200 bg-white/80 px-3 text-sm font-semibold text-zinc-800 outline-none transition placeholder:text-zinc-400 focus:border-[#174f38] focus:ring-2 focus:ring-[#174f38] dark:border-white/10 dark:bg-white/[0.06] dark:text-white dark:placeholder:text-zinc-500"
                   />
                 </label>
               </>
@@ -1473,20 +1478,20 @@ export function RichTextEditor({
                   value={popoverValue}
                   onChange={(event) => setPopoverValue(event.target.value)}
                   placeholder={popoverConfig.placeholder}
-                  className="h-9 w-full rounded-md border border-zinc-200 bg-white/80 px-3 text-sm font-semibold text-zinc-800 outline-none transition placeholder:text-zinc-400 focus:border-[#174f38] focus:ring-2 focus:ring-[#174f38] dark:border-white/10 dark:bg-white/[0.06] dark:text-white dark:placeholder:text-zinc-500"
+                  className="h-9 w-full rounded-[1px] border border-zinc-200 bg-white/80 px-3 text-sm font-semibold text-zinc-800 outline-none transition placeholder:text-zinc-400 focus:border-[#174f38] focus:ring-2 focus:ring-[#174f38] dark:border-white/10 dark:bg-white/[0.06] dark:text-white dark:placeholder:text-zinc-500"
                 />
               </label>
             )}
             <button
               type="submit"
-              className="h-9 rounded-md bg-[#174f38] px-3 text-sm font-bold text-white transition hover:bg-[#123d2c] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#174f38] dark:bg-emerald-200 dark:text-zinc-950 dark:hover:bg-emerald-100"
+              className="h-9 rounded-[1px] bg-[#174f38] px-3 text-sm font-bold text-white transition hover:bg-[#123d2c] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#174f38] dark:bg-emerald-200 dark:text-zinc-950 dark:hover:bg-emerald-100"
             >
               插入
             </button>
             <button
               type="button"
               onClick={closePopover}
-              className="h-9 rounded-md border border-zinc-200 bg-white/70 px-3 text-sm font-semibold text-zinc-700 transition hover:bg-zinc-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#174f38] dark:border-white/10 dark:bg-white/[0.06] dark:text-white dark:hover:bg-white/[0.1]"
+              className="h-9 rounded-[1px] border border-zinc-200 bg-white/70 px-3 text-sm font-semibold text-zinc-700 transition hover:bg-zinc-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#174f38] dark:border-white/10 dark:bg-white/[0.06] dark:text-white dark:hover:bg-white/[0.1]"
             >
               取消
             </button>
@@ -1599,7 +1604,7 @@ export function RichTextEditor({
           onPointerDown={handleRichImageResizePointerDown}
           onPointerMove={handleRichImageResizePointerMove}
           onPointerUp={finishRichImageResize}
-          className="absolute z-20 flex h-5 w-5 -translate-x-1/2 -translate-y-1/2 cursor-nwse-resize items-center justify-center rounded border border-[#174f38] bg-white shadow-md transition hover:bg-zinc-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#174f38] dark:border-emerald-200 dark:bg-zinc-950"
+          className="absolute z-20 flex h-5 w-5 -translate-x-1/2 -translate-y-1/2 cursor-nwse-resize items-center justify-center rounded-[1px] border border-[#174f38] bg-white shadow-md transition hover:bg-zinc-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#174f38] dark:border-emerald-200 dark:bg-zinc-950"
           style={{
             left: `${richImageResizeHandle.left}px`,
             top: `${richImageResizeHandle.top}px`,
@@ -1612,7 +1617,7 @@ export function RichTextEditor({
       <footer className="flex flex-wrap items-center justify-between gap-2 border-t border-zinc-200/80 px-3 py-2 text-xs font-semibold text-zinc-500 dark:border-white/10 dark:text-zinc-400">
         <span>{plainTextLength(value.content, value.mode)} 字</span>
         <div className="flex flex-wrap items-center gap-3">
-          <label className="inline-flex h-7 items-center gap-1.5 rounded-md border border-zinc-200 bg-white/60 px-2 text-[0.72rem] font-bold text-zinc-600 dark:border-white/10 dark:bg-white/[0.06] dark:text-zinc-300">
+          <label className="inline-flex h-7 items-center gap-1.5 rounded-[1px] border border-zinc-200 bg-white/60 px-2 text-[0.72rem] font-bold text-zinc-600 dark:border-white/10 dark:bg-white/[0.06] dark:text-zinc-300">
             <input
               type="checkbox"
               checked={isAutoHeightEnabled}
@@ -1622,7 +1627,7 @@ export function RichTextEditor({
             自适应高度
           </label>
           {isSourceMode ? (
-            <label className="inline-flex h-7 items-center gap-1.5 rounded-md border border-zinc-200 bg-white/60 px-2 text-[0.72rem] font-bold text-zinc-600 dark:border-white/10 dark:bg-white/[0.06] dark:text-zinc-300">
+            <label className="inline-flex h-7 items-center gap-1.5 rounded-[1px] border border-zinc-200 bg-white/60 px-2 text-[0.72rem] font-bold text-zinc-600 dark:border-white/10 dark:bg-white/[0.06] dark:text-zinc-300">
               <input
                 type="checkbox"
                 checked={showSourceLineNumbers}
@@ -1634,7 +1639,7 @@ export function RichTextEditor({
           ) : null}
           <div
             aria-label="编辑模式"
-            className="inline-flex h-7 shrink-0 items-center rounded-md border border-zinc-200 bg-white/60 p-0.5 text-[0.72rem] font-bold dark:border-white/10 dark:bg-white/[0.06]"
+            className="inline-flex h-7 shrink-0 items-center rounded-[1px] border border-zinc-200 bg-white/60 p-0.5 text-[0.72rem] font-bold dark:border-white/10 dark:bg-white/[0.06]"
             role="group"
           >
             {editorModes.map((modeOption) => {
@@ -1646,7 +1651,7 @@ export function RichTextEditor({
                   type="button"
                   aria-pressed={isActive}
                   onClick={() => updateMode(modeOption.mode)}
-                  className={`h-6 rounded px-2 transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#174f38] ${
+                  className={`h-6 rounded-[1px] px-2 transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#174f38] ${
                     isActive
                       ? 'bg-[#174f38] text-white shadow-sm dark:bg-emerald-200 dark:text-zinc-950'
                       : 'text-zinc-600 hover:bg-zinc-100 hover:text-[#174f38] dark:text-zinc-300 dark:hover:bg-white/[0.08] dark:hover:text-white'
@@ -1688,7 +1693,7 @@ function ToolbarButton({
       title={label}
       onMouseDown={onMouseDown}
       onClick={onClick}
-      className="flex h-8 w-8 items-center justify-center rounded-md border border-transparent text-[#174f38] transition hover:border-zinc-200 hover:bg-zinc-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#174f38] dark:text-white dark:hover:border-white/10 dark:hover:bg-white/[0.1]"
+      className="flex h-8 w-8 items-center justify-center rounded-[1px] border border-transparent text-[#174f38] transition hover:border-zinc-200 hover:bg-zinc-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#174f38] dark:text-white dark:hover:border-white/10 dark:hover:bg-white/[0.1]"
     >
       {icon}
     </button>

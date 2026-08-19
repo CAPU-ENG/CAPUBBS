@@ -46,11 +46,11 @@ export function PastedImageDialog({
       onClick={image.isUploading ? undefined : onCancel}
     >
       <section
-        className="w-[min(calc(100vw-1.5rem),34rem)] overflow-hidden rounded-lg border border-zinc-200 bg-white text-zinc-950 shadow-2xl dark:border-zinc-800 dark:bg-zinc-950 dark:text-white"
+        className="w-[min(calc(100vw-1.5rem),34rem)] overflow-hidden rounded-[2px] border border-zinc-200 bg-white text-zinc-950 shadow-2xl dark:border-zinc-800 dark:bg-zinc-950 dark:text-white"
         onClick={(event) => event.stopPropagation()}
       >
         <header className="flex items-center gap-2 border-b border-zinc-200 px-4 py-3 dark:border-white/10">
-          <span className="flex h-8 w-8 items-center justify-center rounded-md bg-emerald-50 text-[#385772] dark:bg-emerald-200 dark:text-zinc-950">
+          <span className="flex h-8 w-8 items-center justify-center rounded-[1px] bg-emerald-50 text-[#174f38] dark:bg-emerald-200 dark:text-zinc-950">
             <ImageIcon size={17} />
           </span>
           <div className="min-w-0">
@@ -63,19 +63,19 @@ export function PastedImageDialog({
         </header>
 
         <div className="grid gap-4 px-4 py-4">
-          <div className="flex max-h-[42vh] items-center justify-center overflow-hidden rounded-lg border border-zinc-200 bg-zinc-50 dark:border-white/10 dark:bg-white/[0.04]">
+          <div className="flex max-h-[42vh] items-center justify-center overflow-hidden rounded-[2px] border border-zinc-200 bg-zinc-50 dark:border-white/10 dark:bg-white/[0.04]">
             <img src={image.previewUrl} alt={previewAlt} className="max-h-[42vh] w-auto max-w-full object-contain" />
           </div>
 
           {isTooLarge ? (
-            <div className="rounded-lg border border-amber-200 bg-amber-50 px-3 py-3 text-sm text-amber-900 dark:border-amber-100/15 dark:bg-amber-300/10 dark:text-amber-100">
+            <div className="rounded-[2px] border border-amber-200 bg-amber-50 px-3 py-3 text-sm text-amber-900 dark:border-amber-100/15 dark:bg-amber-300/10 dark:text-amber-100">
               <div className="flex flex-wrap items-center justify-between gap-3">
                 <span className="font-semibold">{tooLargeMessage}</span>
                 <button
                   type="button"
                   disabled={isBusy}
                   onClick={onCompress}
-                  className="inline-flex h-9 items-center rounded-md bg-[#385772] px-3 text-xs font-bold text-white transition hover:bg-[#28465f] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#385772] disabled:cursor-wait disabled:opacity-60 dark:bg-emerald-200 dark:text-zinc-950 dark:hover:bg-emerald-100"
+                  className="inline-flex h-9 items-center rounded-[1px] bg-[#174f38] px-3 text-xs font-bold text-white transition hover:bg-[#123d2c] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#174f38] disabled:cursor-wait disabled:opacity-60 dark:bg-emerald-200 dark:text-zinc-950 dark:hover:bg-emerald-100"
                 >
                   {image.isCompressing ? compressingLabel : compressLabel}
                 </button>
@@ -84,7 +84,7 @@ export function PastedImageDialog({
           ) : null}
 
           {image.error ? (
-            <p className="rounded-lg border border-rose-200 bg-rose-50 px-3 py-2 text-xs font-semibold text-rose-700 dark:border-rose-100/20 dark:bg-rose-300/10 dark:text-rose-100">
+            <p className="rounded-[2px] border border-rose-200 bg-rose-50 px-3 py-2 text-xs font-semibold text-rose-700 dark:border-rose-100/20 dark:bg-rose-300/10 dark:text-rose-100">
               {image.error}
             </p>
           ) : null}
@@ -95,7 +95,7 @@ export function PastedImageDialog({
             type="button"
             onClick={onUpload}
             disabled={isTooLarge || isBusy}
-            className="inline-flex h-9 items-center rounded-md bg-[#385772] px-3 text-sm font-bold text-white transition hover:bg-[#28465f] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#385772] disabled:cursor-not-allowed disabled:opacity-45 dark:bg-emerald-200 dark:text-zinc-950 dark:hover:bg-emerald-100"
+            className="inline-flex h-9 items-center rounded-[1px] bg-[#174f38] px-3 text-sm font-bold text-white transition hover:bg-[#123d2c] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#174f38] disabled:cursor-not-allowed disabled:opacity-45 dark:bg-emerald-200 dark:text-zinc-950 dark:hover:bg-emerald-100"
           >
             {image.isUploading ? uploadingLabel : uploadLabel}
           </button>
@@ -103,7 +103,7 @@ export function PastedImageDialog({
             type="button"
             onClick={onCancel}
             disabled={image.isUploading}
-            className="inline-flex h-9 items-center rounded-md border border-zinc-200 bg-white px-3 text-sm font-semibold text-zinc-700 transition hover:bg-zinc-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#385772] dark:border-white/10 dark:bg-zinc-900 dark:text-zinc-200 dark:hover:bg-zinc-800"
+            className="inline-flex h-9 items-center rounded-[1px] border border-zinc-200 bg-white px-3 text-sm font-semibold text-zinc-700 transition hover:bg-zinc-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#174f38] dark:border-white/10 dark:bg-zinc-900 dark:text-zinc-200 dark:hover:bg-zinc-800"
           >
             取消
           </button>

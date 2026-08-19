@@ -1,10 +1,20 @@
-import { FileText, Paperclip, Save, Send, Trash2, UploadCloud, X } from 'lucide-react';
-import { useEffect, useRef, useState, type ChangeEvent } from 'react';
+import {
+  Eye,
+  FileText,
+  Paperclip,
+  Save,
+  Send,
+  Trash2,
+  UploadCloud,
+  X,
+} from "lucide-react";
+import { useEffect, useRef, useState, type ChangeEvent } from "react";
 import {
   getRichTextEditorStorageValue,
+  getRichTextEditorPreviewDocument,
   RichTextEditor,
   type RichTextEditorValue,
-} from '../editor/RichTextEditor';
+} from "../editor/RichTextEditor";
 
 export type ReplyTarget = {
   author: string;
@@ -19,7 +29,13 @@ type ReplyAttachment = {
   type: string;
 };
 
-const draftStorageKey = 'capubbs-thread-reply-draft';
+const draftStorageKey = "capubbs-thread-reply-draft";
+const signatureOptions = [
+  { label: "不使用签名档", value: 0 },
+  { label: "签名档 1", value: 1 },
+  { label: "签名档 2", value: 2 },
+  { label: "签名档 3", value: 3 },
+];
 
 export function ReplyEditor({
   editorRef,
@@ -32,13 +48,17 @@ export function ReplyEditor({
   target: ReplyTarget | null;
   threadTitle: string;
 }) {
-  const [editorValue, setEditorValue] = useState<RichTextEditorValue>({ content: '', mode: 'rich' });
-  const [signatureIndex, setSignatureIndex] = useState(1);
+  const [editorValue, setEditorValue] = useState<RichTextEditorValue>({
+    content: "",
+    mode: "rich",
+  });
+  const [signatureIndex, setSignatureIndex] = useState(0);
   const [attachments, setAttachments] = useState<ReplyAttachment[]>([]);
   const [attachmentDialogOpen, setAttachmentDialogOpen] = useState(false);
+  const [previewOpen, setPreviewOpen] = useState(false);
   const [focusRequest, setFocusRequest] = useState(0);
-  const [status, setStatus] = useState('');
-  const appliedTargetRef = useRef('');
+  const [status, setStatus] = useState("");
+  const appliedTargetRef = useRef("");
 
   useEffect(() => {
     const draft = window.localStorage.getItem(draftStorageKey);
@@ -49,17 +69,19 @@ export function ReplyEditor({
         attachments?: ReplyAttachment[];
         content?: string;
         editor?: RichTextEditorValue;
-        mode?: RichTextEditorValue['mode'];
+        mode?: RichTextEditorValue["mode"];
         signature?: string;
         signatureIndex?: number;
       };
-      setEditorValue(parsed.editor ?? {
-        content: parsed.content ?? '',
-        mode: parsed.mode ?? 'rich',
-      });
-      setSignatureIndex(parsed.signatureIndex ?? Number(parsed.signature ?? 1));
+      setEditorValue(
+        parsed.editor ?? {
+          content: parsed.content ?? "",
+          mode: parsed.mode ?? "rich",
+        },
+      );
+      setSignatureIndex(parsed.signatureIndex ?? Number(parsed.signature ?? 0));
       setAttachments(parsed.attachments ?? []);
-      setStatus('草稿已恢复');
+      setStatus("草稿已恢复");
     } catch {
       window.localStorage.removeItem(draftStorageKey);
     }
@@ -67,11 +89,11 @@ export function ReplyEditor({
 
   useEffect(() => {
     if (!target) {
-      appliedTargetRef.current = '';
+      appliedTargetRef.current = "";
       return;
     }
 
-    const targetKey = `${target.floor}:${target.author}:${target.quote ?? ''}`;
+    const targetKey = `${target.floor}:${target.author}:${target.quote ?? ""}`;
     if (appliedTargetRef.current === targetKey) return;
     appliedTargetRef.current = targetKey;
 
@@ -79,12 +101,12 @@ export function ReplyEditor({
       setEditorValue((current) => appendQuote(current, target));
     }
     setFocusRequest((request) => request + 1);
-    setStatus('');
+    setStatus("");
   }, [target]);
 
   function updateEditorValue(nextValue: RichTextEditorValue) {
     setEditorValue(nextValue);
-    setStatus('');
+    setStatus("");
   }
 
   function addAttachments(files: File[]) {
@@ -96,44 +118,64 @@ export function ReplyEditor({
         id: `${file.name}-${file.size}-${file.lastModified}-${crypto.randomUUID?.() ?? Date.now()}`,
         name: file.name,
         size: file.size,
-        type: file.type || 'application/octet-stream',
+        type: file.type || "application/octet-stream",
       })),
     ]);
-    setStatus('');
+    setStatus("");
   }
 
   function removeAttachment(id: string) {
-    setAttachments((current) => current.filter((attachment) => attachment.id !== id));
-    setStatus('');
+    setAttachments((current) =>
+      current.filter((attachment) => attachment.id !== id),
+    );
+    setStatus("");
   }
 
   function saveDraft() {
     if (!hasEditorContent(editorValue) && attachments.length === 0) {
-      setStatus('没有可保存的内容');
+      setStatus("没有可保存的内容");
       return;
     }
 
-    window.localStorage.setItem(draftStorageKey, JSON.stringify({
-      attachments,
-      editor: getRichTextEditorStorageValue(editorValue),
-      signatureIndex,
-      threadTitle,
-    }));
-    setStatus('已存入本机草稿');
+    window.localStorage.setItem(
+      draftStorageKey,
+      JSON.stringify({
+        attachments,
+        editor: getRichTextEditorStorageValue(editorValue),
+        signatureIndex,
+        threadTitle,
+      }),
+    );
+    setStatus("已存入本机草稿");
   }
 
   function publishReply() {
     if (!hasEditorContent(editorValue)) {
-      setStatus('请先填写回复内容');
+      setStatus("请先填写回复内容");
       setFocusRequest((request) => request + 1);
       return;
     }
 
-    setStatus('演示模式：回复内容已通过本地校验');
+    setStatus("演示模式：回复内容已通过本地校验");
+  }
+
+  function openPreview() {
+    if (!hasEditorContent(editorValue)) {
+      setStatus("请先填写回复内容");
+      setFocusRequest((request) => request + 1);
+      return;
+    }
+
+    setPreviewOpen(true);
+    setStatus("");
   }
 
   return (
-    <section className="reply-editor" ref={editorRef} aria-labelledby="reply-editor-title">
+    <section
+      className="reply-editor"
+      ref={editorRef}
+      aria-labelledby="reply-editor-title"
+    >
       <header className="reply-editor-heading">
         <h2 id="reply-editor-title">写回复</h2>
         <p>Re: {threadTitle}</p>
@@ -141,9 +183,17 @@ export function ReplyEditor({
 
       {target && (
         <div className="reply-target">
-          <span>回复 @{target.author} · #{target.floor}</span>
+          <span>
+            回复 @{target.author} · #{target.floor}
+          </span>
           {target.quote && <q>{target.quote}</q>}
-          <button aria-label="取消回复目标" onClick={onClearTarget} type="button"><X size={15} /></button>
+          <button
+            aria-label="取消回复目标"
+            onClick={onClearTarget}
+            type="button"
+          >
+            <X size={15} />
+          </button>
         </div>
       )}
 
@@ -157,29 +207,27 @@ export function ReplyEditor({
         />
       </div>
 
-      <section className="reply-signature-panel" aria-label="签名档设置">
-        <label className="reply-signature-toggle">
-          <input
-            checked={signatureIndex > 0}
-            onChange={(event) => setSignatureIndex(event.target.checked ? 1 : 0)}
-            type="checkbox"
-          />
+      <fieldset className="reply-signature-panel">
+        <legend>
           <FileText size={15} />
-          使用签名档
-        </label>
-        {signatureIndex > 0 && (
-          <select
-            aria-label="选择签名档"
-            onChange={(event) => setSignatureIndex(Number(event.target.value))}
-            value={signatureIndex}
-          >
-            <option value={1}>签名档 1</option>
-            <option value={2}>签名档 2</option>
-            <option value={3}>签名档 3</option>
-          </select>
-        )}
-        <p>{signatureIndex > 0 ? `发布时附带签名档 ${signatureIndex}` : '本次回复不使用签名档'}</p>
-      </section>
+          签名档
+        </legend>
+        <div className="reply-signature-options">
+          {signatureOptions.map((option) => (
+            <label key={option.value}>
+              <input
+                checked={signatureIndex === option.value}
+                name="reply-signature"
+                onChange={() => setSignatureIndex(option.value)}
+                type="radio"
+                value={option.value}
+              />
+              {option.label}
+            </label>
+          ))}
+        </div>
+        <p>{getSignatureSummary(signatureIndex)}</p>
+      </fieldset>
 
       {attachments.length > 0 && (
         <ul className="reply-attachments" aria-label="待上传附件">
@@ -206,16 +254,41 @@ export function ReplyEditor({
           onClick={() => setAttachmentDialogOpen(true)}
           type="button"
         >
-          <Paperclip size={15} />添加附件
-          {attachments.length > 0 && <span className="reply-attachment-count">{attachments.length}</span>}
+          <Paperclip size={15} />
+          添加附件
+          {attachments.length > 0 && (
+            <span className="reply-attachment-count">{attachments.length}</span>
+          )}
         </button>
-        {status && <span className="reply-editor-status" role="status">{status}</span>}
+        {status && (
+          <span className="reply-editor-status" role="status">
+            {status}
+          </span>
+        )}
         <div className="reply-editor-submit">
-          <button className="reply-secondary-button" onClick={saveDraft} type="button">
-            <Save size={15} />存入草稿
+          <button
+            className="reply-secondary-button"
+            onClick={openPreview}
+            type="button"
+          >
+            <Eye size={15} />
+            预览
           </button>
-          <button className="reply-publish-button" onClick={publishReply} type="button">
-            <Send size={15} />发布回复
+          <button
+            className="reply-secondary-button"
+            onClick={saveDraft}
+            type="button"
+          >
+            <Save size={15} />
+            存入草稿
+          </button>
+          <button
+            className="reply-publish-button"
+            onClick={publishReply}
+            type="button"
+          >
+            <Send size={15} />
+            发布回复
           </button>
         </div>
       </footer>
@@ -228,7 +301,85 @@ export function ReplyEditor({
           onRemove={removeAttachment}
         />
       )}
+      {previewOpen && (
+        <ReplyPreviewDialog
+          attachments={attachments}
+          editorValue={editorValue}
+          onClose={() => setPreviewOpen(false)}
+          signatureIndex={signatureIndex}
+          threadTitle={threadTitle}
+        />
+      )}
     </section>
+  );
+}
+
+function ReplyPreviewDialog({
+  attachments,
+  editorValue,
+  onClose,
+  signatureIndex,
+  threadTitle,
+}: {
+  attachments: ReplyAttachment[];
+  editorValue: RichTextEditorValue;
+  onClose: () => void;
+  signatureIndex: number;
+  threadTitle: string;
+}) {
+  useEffect(() => {
+    function closeOnEscape(event: KeyboardEvent) {
+      if (event.key === "Escape") onClose();
+    }
+
+    document.addEventListener("keydown", closeOnEscape);
+    return () => document.removeEventListener("keydown", closeOnEscape);
+  }, [onClose]);
+
+  return (
+    <div
+      className="reply-preview-backdrop"
+      onClick={onClose}
+      role="presentation"
+    >
+      <section
+        aria-labelledby="reply-preview-title"
+        aria-modal="true"
+        className="reply-preview-dialog"
+        onClick={(event) => event.stopPropagation()}
+        role="dialog"
+      >
+        <header>
+          <div>
+            <span>回复预览</span>
+            <h2 id="reply-preview-title">Re: {threadTitle}</h2>
+          </div>
+          <button aria-label="关闭回复预览" onClick={onClose} type="button">
+            <X size={18} />
+          </button>
+        </header>
+        <iframe
+          sandbox=""
+          srcDoc={getRichTextEditorPreviewDocument(editorValue)}
+          title="回复正文预览"
+        />
+        <div className="reply-preview-meta">
+          <span>{getSignatureSummary(signatureIndex)}</span>
+          <span>
+            {attachments.length > 0 ? `${attachments.length} 个附件` : "无附件"}
+          </span>
+        </div>
+        <footer>
+          <button
+            className="reply-secondary-button"
+            onClick={onClose}
+            type="button"
+          >
+            返回编辑
+          </button>
+        </footer>
+      </section>
+    </div>
   );
 }
 
@@ -247,11 +398,15 @@ function AttachmentDialog({
 
   function handleFileChange(event: ChangeEvent<HTMLInputElement>) {
     onAdd(Array.from(event.currentTarget.files ?? []));
-    event.currentTarget.value = '';
+    event.currentTarget.value = "";
   }
 
   return (
-    <div className="attachment-dialog-backdrop" onClick={onClose} role="presentation">
+    <div
+      className="attachment-dialog-backdrop"
+      onClick={onClose}
+      role="presentation"
+    >
       <section
         aria-labelledby="attachment-dialog-title"
         aria-modal="true"
@@ -260,22 +415,43 @@ function AttachmentDialog({
         role="dialog"
       >
         <header>
-          <span><UploadCloud size={17} /></span>
+          <span>
+            <UploadCloud size={17} />
+          </span>
           <h2 id="attachment-dialog-title">文件上传</h2>
-          <button aria-label="关闭文件上传" onClick={onClose} type="button"><X size={18} /></button>
+          <button aria-label="关闭文件上传" onClick={onClose} type="button">
+            <X size={18} />
+          </button>
         </header>
-        <button className="attachment-drop-button" onClick={() => inputRef.current?.click()} type="button">
+        <button
+          className="attachment-drop-button"
+          onClick={() => inputRef.current?.click()}
+          type="button"
+        >
           <UploadCloud size={22} />
           <strong>选择一个或多个文件</strong>
           <span>文件会先加入当前回复，发布时一并上传</span>
         </button>
-        <input className="sr-only" multiple onChange={handleFileChange} ref={inputRef} type="file" />
+        <input
+          className="sr-only"
+          multiple
+          onChange={handleFileChange}
+          ref={inputRef}
+          type="file"
+        />
         {attachments.length > 0 && (
           <ul>
             {attachments.map((attachment) => (
               <li key={attachment.id}>
-                <div><strong>{attachment.name}</strong><span>{formatBytes(attachment.size)}</span></div>
-                <button aria-label={`移除附件 ${attachment.name}`} onClick={() => onRemove(attachment.id)} type="button">
+                <div>
+                  <strong>{attachment.name}</strong>
+                  <span>{formatBytes(attachment.size)}</span>
+                </div>
+                <button
+                  aria-label={`移除附件 ${attachment.name}`}
+                  onClick={() => onRemove(attachment.id)}
+                  type="button"
+                >
                   <Trash2 size={15} />
                 </button>
               </li>
@@ -283,19 +459,32 @@ function AttachmentDialog({
           </ul>
         )}
         <footer>
-          <button className="reply-publish-button" onClick={onClose} type="button">完成</button>
+          <button
+            className="reply-publish-button"
+            onClick={onClose}
+            type="button"
+          >
+            完成
+          </button>
         </footer>
       </section>
     </div>
   );
 }
 
-function appendQuote(current: RichTextEditorValue, target: ReplyTarget): RichTextEditorValue {
+function appendQuote(
+  current: RichTextEditorValue,
+  target: ReplyTarget,
+): RichTextEditorValue {
   const quote = target.quote?.trim();
   if (!quote) return current;
 
-  const separator = current.content.trim() ? (current.mode === 'rich' ? '<p><br></p>' : '\n\n') : '';
-  if (current.mode === 'markdown') {
+  const separator = current.content.trim()
+    ? current.mode === "rich"
+      ? "<p><br></p>"
+      : "\n\n"
+    : "";
+  if (current.mode === "markdown") {
     return {
       ...current,
       content: `${current.content}${separator}> ${quote}\n>\n> 引用自 @${target.author} · #${target.floor}\n\n`,
@@ -303,27 +492,39 @@ function appendQuote(current: RichTextEditorValue, target: ReplyTarget): RichTex
   }
 
   const quoteMarkup = `<blockquote><p>${escapeHtml(quote)}</p><p>引用自 @${escapeHtml(target.author)} · #${target.floor}</p></blockquote><p><br></p>`;
-  return { ...current, content: `${current.content}${separator}${quoteMarkup}` };
+  return {
+    ...current,
+    content: `${current.content}${separator}${quoteMarkup}`,
+  };
 }
 
 function hasEditorContent(value: RichTextEditorValue) {
-  if (value.mode !== 'rich') return value.content.trim().length > 0;
+  if (value.mode !== "rich") return value.content.trim().length > 0;
 
-  const container = document.createElement('div');
+  const container = document.createElement("div");
   container.innerHTML = value.content;
-  return (container.textContent ?? '').replace(/\u00a0/g, ' ').trim().length > 0 || !!container.querySelector('img, hr');
+  return (
+    (container.textContent ?? "").replace(/\u00a0/g, " ").trim().length > 0 ||
+    !!container.querySelector("img, hr")
+  );
 }
 
 function escapeHtml(value: string) {
   return value
-    .replaceAll('&', '&amp;')
-    .replaceAll('<', '&lt;')
-    .replaceAll('>', '&gt;')
-    .replaceAll('"', '&quot;')
-    .replaceAll("'", '&#039;');
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&#039;");
 }
 
 function formatBytes(bytes: number) {
   if (bytes >= 1024 * 1024) return `${(bytes / 1024 / 1024).toFixed(2)} MB`;
   return `${Math.max(1, Math.round(bytes / 1024))} KB`;
+}
+
+function getSignatureSummary(signatureIndex: number) {
+  if (signatureIndex === 0) return "本次回复不使用签名档";
+  if (signatureIndex === 4) return "发布时使用自选签名档";
+  return `发布时附带签名档 ${signatureIndex}`;
 }
