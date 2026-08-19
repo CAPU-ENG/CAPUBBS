@@ -25,13 +25,16 @@ function initialTheme(): Theme {
 }
 
 export function TopBar({
-  showThreadTitle = false,
-  threadTitle,
+  contextHref = '#page-title',
+  contextTitle,
+  showContextTitle = false,
 }: {
-  showThreadTitle?: boolean;
-  threadTitle?: string;
+  contextHref?: string;
+  contextTitle?: string;
+  showContextTitle?: boolean;
 }) {
-  const isHomePage = !new URLSearchParams(window.location.search).has('thread');
+  const params = new URLSearchParams(window.location.search);
+  const isHomePage = !params.has('thread') && !params.has('board');
   const [theme, setTheme] = useState<Theme>(initialTheme);
   const [boardsOpen, setBoardsOpen] = useState(false);
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
@@ -59,12 +62,12 @@ export function TopBar({
     return () => document.body.classList.remove('layer-open');
   }, [boardsOpen, mobileSidebarOpen]);
 
-  const threadTitleVisible = Boolean(showThreadTitle && threadTitle);
+  const contextTitleVisible = Boolean(showContextTitle && contextTitle);
 
   useEffect(() => {
-    if (!threadTitleVisible) return;
+    if (!contextTitleVisible) return;
     setBoardsOpen(false);
-  }, [threadTitleVisible]);
+  }, [contextTitleVisible]);
 
   useEffect(() => {
     function onPointerDown(event: PointerEvent) {
@@ -123,17 +126,17 @@ export function TopBar({
 
           <div
             className="topbar-primary-slot ml-8 hidden h-full min-w-0 flex-1 lg:grid"
-            data-thread-title-visible={threadTitleVisible}
+            data-context-title-visible={contextTitleVisible}
           >
             <nav
-              aria-hidden={threadTitleVisible}
+              aria-hidden={contextTitleVisible}
               aria-label="主导航"
               className="topbar-primary-nav"
             >
               <a
                 href="/"
                 className={`top-nav-link ${isHomePage ? 'top-nav-link-active' : ''}`}
-                tabIndex={threadTitleVisible ? -1 : undefined}
+                tabIndex={contextTitleVisible ? -1 : undefined}
               >
                 首页
               </a>
@@ -152,22 +155,22 @@ export function TopBar({
                   aria-haspopup="true"
                   aria-expanded={boardsOpen}
                   onClick={() => setBoardsOpen((open) => !open)}
-                  tabIndex={threadTitleVisible ? -1 : undefined}
+                  tabIndex={contextTitleVisible ? -1 : undefined}
                 >
                   版块 <ChevronDown size={14} className={`transition-transform ${boardsOpen ? 'rotate-180' : ''}`} />
                 </button>
               </div>
             </nav>
 
-            {threadTitle && (
+            {contextTitle && (
               <a
-                aria-hidden={!threadTitleVisible}
-                className="topbar-thread-title"
-                href="#thread-title"
-                tabIndex={threadTitleVisible ? undefined : -1}
-                title={threadTitle}
+                aria-hidden={!contextTitleVisible}
+                className="topbar-context-title"
+                href={contextHref}
+                tabIndex={contextTitleVisible ? undefined : -1}
+                title={contextTitle}
               >
-                <span>{threadTitle}</span>
+                <span>{contextTitle}</span>
               </a>
             )}
           </div>
@@ -222,7 +225,7 @@ export function TopBar({
           </div>
         </div>
 
-        {boardsOpen && !threadTitleVisible && (
+        {boardsOpen && !contextTitleVisible && (
           <div
             className="desktop-board-drawer-wrap"
             onMouseEnter={openBoards}

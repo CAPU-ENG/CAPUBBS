@@ -6,6 +6,7 @@ import { FloorNodes, MobileFloorNode, ThreadPagination } from '../components/thr
 import { AppBackground } from '../components/layout/AppBackground';
 import { TopBar } from '../components/layout/TopBar';
 import { demoThread, type ThreadFloorData } from '../data/threadDemo';
+import { useScrollContextTitle } from '../hooks/useScrollContextTitle';
 
 function getRequestedPage() {
   const value = Number(new URLSearchParams(window.location.search).get('page') ?? '1');
@@ -27,13 +28,13 @@ const demoViewerSignatures = Array.from(new Set(
 export function ThreadPage() {
   const [replyTarget, setReplyTarget] = useState<ReplyTarget | null>(null);
   const [activeFloor, setActiveFloor] = useState(1);
-  const [showTitleInTopBar, setShowTitleInTopBar] = useState(false);
   const [bookmarked, setBookmarked] = useState(
     () => window.localStorage.getItem(`capubbs-bookmark-${demoThread.id}`) === '1',
   );
   const editorRef = useRef<HTMLElement | null>(null);
   const titleRef = useRef<HTMLHeadingElement | null>(null);
   const authorOnly = getAuthorOnly();
+  const showTitleInTopBar = useScrollContextTitle(titleRef);
 
   const filteredFloors = useMemo(
     () => authorOnly
@@ -100,49 +101,6 @@ export function ThreadPage() {
     };
   }, [currentPage, pageFloors]);
 
-  useEffect(() => {
-    let frame = 0;
-    let lastScrollY = Math.max(0, window.scrollY);
-
-    function updateTopBarTitle() {
-      frame = 0;
-      const currentScrollY = Math.max(0, window.scrollY);
-      const scrollDelta = currentScrollY - lastScrollY;
-      lastScrollY = currentScrollY;
-
-      const topBarHeight = Number.parseFloat(
-        window.getComputedStyle(document.documentElement).getPropertyValue('--topbar-height'),
-      ) || 64;
-      const titleIsCovered = (titleRef.current?.getBoundingClientRect().bottom ?? Infinity) <= topBarHeight + 8;
-
-      if (!titleIsCovered) {
-        setShowTitleInTopBar(false);
-        return;
-      }
-
-      if (scrollDelta > 1) {
-        setShowTitleInTopBar(true);
-      } else if (scrollDelta < -1) {
-        setShowTitleInTopBar(false);
-      }
-    }
-
-    function scheduleTopBarTitleUpdate() {
-      if (frame) return;
-      frame = window.requestAnimationFrame(updateTopBarTitle);
-    }
-
-    window.addEventListener('scroll', scheduleTopBarTitleUpdate, { passive: true });
-    window.addEventListener('resize', scheduleTopBarTitleUpdate);
-    scheduleTopBarTitleUpdate();
-
-    return () => {
-      window.removeEventListener('scroll', scheduleTopBarTitleUpdate);
-      window.removeEventListener('resize', scheduleTopBarTitleUpdate);
-      if (frame) window.cancelAnimationFrame(frame);
-    };
-  }, []);
-
   function scrollToEditor(target: ReplyTarget) {
     setReplyTarget(target);
     window.requestAnimationFrame(() => editorRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }));
@@ -182,7 +140,11 @@ export function ThreadPage() {
   return (
     <div className="relative min-h-screen text-[var(--text)] transition-colors duration-200">
       <AppBackground />
-      <TopBar showThreadTitle={showTitleInTopBar} threadTitle={demoThread.title} />
+      <TopBar
+        contextHref="#thread-title"
+        contextTitle={demoThread.title}
+        showContextTitle={showTitleInTopBar}
+      />
 
       <main className="thread-page-shell">
         <div className="thread-route-row">

@@ -51,6 +51,7 @@ const otherBoards: SecondaryBoard[] = [
 ];
 
 function boardHref(id: number) {
+  if (id === 3) return '/?board=3';
   return `/bbs/index.php?bid=${id}`;
 }
 

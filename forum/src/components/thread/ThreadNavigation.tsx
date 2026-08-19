@@ -1,4 +1,5 @@
-import { ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight } from 'lucide-react';
+import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { Pagination } from '../layout/Pagination';
 
 type PaginationProps = {
   currentPage: number;
@@ -14,13 +15,6 @@ function pageHref(threadId: number, page: number, authorOnly: boolean) {
   return `/?${params.toString()}`;
 }
 
-function visiblePages(currentPage: number, pageCount: number) {
-  if (pageCount <= 7) return Array.from({ length: pageCount }, (_, index) => index + 1);
-  return Array.from(new Set([1, currentPage - 1, currentPage, currentPage + 1, pageCount]))
-    .filter((page) => page > 0 && page <= pageCount)
-    .sort((left, right) => left - right);
-}
-
 export function ThreadPagination({
   authorOnly = false,
   compact = false,
@@ -28,66 +22,14 @@ export function ThreadPagination({
   pageCount,
   threadId,
 }: PaginationProps) {
-  const pages = visiblePages(currentPage, pageCount);
-
   return (
-    <nav className={`thread-pagination ${compact ? 'thread-pagination-compact' : ''}`} aria-label="帖子分页">
-      <a
-        aria-disabled={currentPage === 1}
-        aria-label="首页"
-        className="thread-page-button"
-        href={currentPage === 1 ? undefined : pageHref(threadId, 1, authorOnly)}
-        title="首页"
-      >
-        <ChevronsLeft size={15} />
-      </a>
-
-      <a
-        aria-disabled={currentPage === 1}
-        aria-label="上一页"
-        className="thread-page-button"
-        href={currentPage === 1 ? undefined : pageHref(threadId, currentPage - 1, authorOnly)}
-        title="上一页"
-      >
-        <ChevronLeft size={15} />
-      </a>
-
-      {pages.map((page, index) => {
-        const previous = pages[index - 1];
-        return (
-          <span className="contents" key={page}>
-            {previous && page - previous > 1 ? <span className="thread-page-gap">…</span> : null}
-            <a
-              aria-current={page === currentPage ? 'page' : undefined}
-              className="thread-page-number"
-              href={pageHref(threadId, page, authorOnly)}
-            >
-              {page}
-            </a>
-          </span>
-        );
-      })}
-
-      <a
-        aria-disabled={currentPage === pageCount}
-        aria-label="下一页"
-        className="thread-page-button"
-        href={currentPage === pageCount ? undefined : pageHref(threadId, currentPage + 1, authorOnly)}
-        title="下一页"
-      >
-        <ChevronRight size={15} />
-      </a>
-
-      <a
-        aria-disabled={currentPage === pageCount}
-        aria-label="尾页"
-        className="thread-page-button"
-        href={currentPage === pageCount ? undefined : pageHref(threadId, pageCount, authorOnly)}
-        title="尾页"
-      >
-        <ChevronsRight size={15} />
-      </a>
-    </nav>
+    <Pagination
+      ariaLabel="帖子分页"
+      compact={compact}
+      currentPage={currentPage}
+      pageCount={pageCount}
+      pageHref={(page) => pageHref(threadId, page, authorOnly)}
+    />
   );
 }
 
