@@ -149,8 +149,11 @@ function jiekoufunc_hot($con, $token, $params) {
     $hotnum = 10;
     if (isset($params['hotnum']) && $params['hotnum'])
         $hotnum = $params['hotnum'];
+    $text_param = isset($params['text']) ? strtolower(trim(strval($params['text']))) : '';
+    $include_text = in_array($text_param, array('1', 'true', 'yes', 'on'), true);
     $time = time();
     $infos = array();
+    $nowuser = '';
 
     $statement = "select username from userinfo where token='$token' && $time<=tokentime+{$GLOBALS['validtime']}";
     $results = mysqli_query($con, $statement);
@@ -158,11 +161,27 @@ function jiekoufunc_hot($con, $token, $params) {
         $infos[] = array('nowuser' => '');
     } else {
         $res = mysqli_fetch_array($results);
-        $infos[] = array('nowuser' => $res[0]);
+        $nowuser = $res[0];
+        $infos[] = array('nowuser' => $nowuser);
+    }
+
+    $text_select = '';
+    if ($include_text) {
+        $latest_text = "
+            select posts.text
+            from posts
+            where posts.bid=threads.bid and posts.tid=threads.tid
+            order by posts.pid desc
+            limit 1";
+        if ($nowuser === '') {
+            $text_select = ",case when threads.bid=1 then null else ($latest_text) end as text";
+        } else {
+            $text_select = ",($latest_text) as text";
+        }
     }
 
     $results = mysqli_query($con, "
-        select threads.bid,threads.tid,title,author,replyer,click,reply,extr,top,locked,timestamp,postdate,
+        select threads.bid,threads.tid,title,author,replyer,click,reply,extr,top,locked,timestamp,postdate$text_select,
         case
             when thread_global_top.bid is null then 0
             else 1
