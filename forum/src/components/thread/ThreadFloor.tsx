@@ -174,8 +174,14 @@ export function ThreadFloor({
           </button>
           {floor.isOwn && (
             <>
-              <button type="button"><Pencil size={15} />编辑楼层</button>
-              <button className="floor-action-danger" type="button"><Trash2 size={15} />删除楼层</button>
+              <button type="button">
+                <Pencil size={15} />
+                编辑
+              </button>
+              <button className="floor-action-danger" type="button">
+                <Trash2 size={15} />
+                删除
+              </button>
             </>
           )}
         </div>
