@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import {
+  Check,
   ExternalLink,
   Link2,
   MoreHorizontal,
@@ -33,20 +34,48 @@ function AuthorCard({ author }: { author: ThreadAuthor }) {
   );
 }
 
-function FloorMenu({ floor, onClose }: { floor: ThreadFloorData; onClose: () => void }) {
-  async function copyFloorLink() {
-    const link = `${window.location.origin}${window.location.pathname}${window.location.search}#floor-${floor.floor}`;
-    await navigator.clipboard?.writeText(link);
-    onClose();
-  }
-
+function FloorMenu({ onClose, onCopy }: { onClose: () => void; onCopy: () => Promise<void> }) {
   return (
     <div className="floor-more-menu" role="menu">
-      <button onClick={copyFloorLink} role="menuitem" type="button"><Link2 size={15} />复制楼层链接</button>
+      <button
+        onClick={async () => {
+          await onCopy();
+          onClose();
+        }}
+        role="menuitem"
+        type="button"
+      >
+        <Link2 size={15} />复制楼层链接
+      </button>
       <button onClick={onClose} role="menuitem" type="button"><Pencil size={15} />编辑楼层</button>
       <button className="floor-menu-danger" onClick={onClose} role="menuitem" type="button"><Trash2 size={15} />删除楼层</button>
     </div>
   );
+}
+
+async function writeClipboardText(value: string) {
+  try {
+    if (navigator.clipboard?.writeText) {
+      await navigator.clipboard.writeText(value);
+      return true;
+    }
+  } catch {
+    // Clipboard permissions can be unavailable; fall back to the legacy copy command.
+  }
+
+  const textarea = document.createElement('textarea');
+  textarea.value = value;
+  textarea.setAttribute('readonly', '');
+  textarea.style.position = 'fixed';
+  textarea.style.opacity = '0';
+  document.body.appendChild(textarea);
+  textarea.select();
+
+  try {
+    return document.execCommand('copy');
+  } finally {
+    textarea.remove();
+  }
 }
 
 function formatFloorTime(value: string) {
@@ -69,8 +98,10 @@ export function ThreadFloor({
 }) {
   const [authorCardOpen, setAuthorCardOpen] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
+  const [copyNoticeOpen, setCopyNoticeOpen] = useState(false);
   const authorRef = useRef<HTMLDivElement | null>(null);
   const menuRef = useRef<HTMLDivElement | null>(null);
+  const copyNoticeTimerRef = useRef<number | null>(null);
 
   useEffect(() => {
     function closeMenu(event: PointerEvent) {
@@ -78,8 +109,21 @@ export function ThreadFloor({
       if (authorRef.current && !authorRef.current.contains(event.target as Node)) setAuthorCardOpen(false);
     }
     document.addEventListener('pointerdown', closeMenu);
-    return () => document.removeEventListener('pointerdown', closeMenu);
+    return () => {
+      document.removeEventListener('pointerdown', closeMenu);
+      if (copyNoticeTimerRef.current !== null) window.clearTimeout(copyNoticeTimerRef.current);
+    };
   }, []);
+
+  async function copyFloorLink() {
+    const link = `${window.location.origin}${window.location.pathname}${window.location.search}#floor-${floor.floor}`;
+    const copied = await writeClipboardText(link);
+    if (!copied) return;
+
+    setCopyNoticeOpen(true);
+    if (copyNoticeTimerRef.current !== null) window.clearTimeout(copyNoticeTimerRef.current);
+    copyNoticeTimerRef.current = window.setTimeout(() => setCopyNoticeOpen(false), 1800);
+  }
 
   return (
     <article className="thread-floor" id={`floor-${floor.floor}`} data-floor={floor.floor}>
@@ -111,7 +155,15 @@ export function ThreadFloor({
               </>
             )}
           </div>
-          <a className="thread-floor-index" href={`#floor-${floor.floor}`}>#{floor.floor}</a>
+          <button
+            aria-label={`复制第 ${floor.floor} 楼链接`}
+            className="thread-floor-index"
+            onClick={copyFloorLink}
+            title="复制楼层链接"
+            type="button"
+          >
+            #{floor.floor}
+          </button>
         </header>
 
         <div className="thread-floor-body">
@@ -157,11 +209,18 @@ export function ThreadFloor({
               >
                 <MoreHorizontal size={18} />
               </button>
-              {menuOpen && <FloorMenu floor={floor} onClose={() => setMenuOpen(false)} />}
+              {menuOpen && <FloorMenu onClose={() => setMenuOpen(false)} onCopy={copyFloorLink} />}
             </div>
           )}
         </div>
       </div>
+
+      {copyNoticeOpen && (
+        <div aria-live="polite" className="copy-floor-toast" role="status">
+          <Check aria-hidden="true" size={15} />
+          已复制楼层
+        </div>
+      )}
     </article>
   );
 }
