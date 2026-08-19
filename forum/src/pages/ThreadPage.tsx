@@ -42,18 +42,39 @@ export function ThreadPage() {
   );
 
   useEffect(() => {
+    const floorElements = pageFloors
+      .map((floor) => document.getElementById(`floor-${floor.floor}`))
+      .filter((floor): floor is HTMLElement => floor !== null);
+    let frame = 0;
+
+    function updateActiveFloor() {
+      frame = 0;
+      if (floorElements.length === 0) return;
+
+      const readingLine = window.innerHeight * 0.28;
+      const reachedPageBottom = window.scrollY + window.innerHeight >= document.documentElement.scrollHeight - 2;
+      let nextFloor = Number(floorElements[0].dataset.floor);
+
+      for (const floor of floorElements) {
+        if (floor.getBoundingClientRect().top > readingLine) break;
+        nextFloor = Number(floor.dataset.floor);
+      }
+
+      if (reachedPageBottom) {
+        nextFloor = Number(floorElements[floorElements.length - 1].dataset.floor);
+      }
+      if (nextFloor) setActiveFloor(nextFloor);
+    }
+
+    function scheduleActiveFloorUpdate() {
+      if (frame) return;
+      frame = window.requestAnimationFrame(updateActiveFloor);
+    }
+
     setActiveFloor(pageFloors[0]?.floor ?? 1);
-    const observer = new IntersectionObserver(
-      (entries) => {
-        const visible = entries
-          .filter((entry) => entry.isIntersecting)
-          .sort((left, right) => left.boundingClientRect.top - right.boundingClientRect.top);
-        const floor = Number((visible[0]?.target as HTMLElement | undefined)?.dataset.floor);
-        if (floor) setActiveFloor(floor);
-      },
-      { rootMargin: '-18% 0px -64% 0px', threshold: [0, 0.01] },
-    );
-    document.querySelectorAll<HTMLElement>('.thread-floor').forEach((floor) => observer.observe(floor));
+    window.addEventListener('scroll', scheduleActiveFloorUpdate, { passive: true });
+    window.addEventListener('resize', scheduleActiveFloorUpdate);
+    scheduleActiveFloorUpdate();
 
     const hashFloor = Number(window.location.hash.match(/floor-(\d+)/)?.[1]);
     if (hashFloor) {
@@ -62,7 +83,11 @@ export function ThreadPage() {
       });
     }
 
-    return () => observer.disconnect();
+    return () => {
+      window.removeEventListener('scroll', scheduleActiveFloorUpdate);
+      window.removeEventListener('resize', scheduleActiveFloorUpdate);
+      if (frame) window.cancelAnimationFrame(frame);
+    };
   }, [currentPage, pageFloors]);
 
   function scrollToEditor(target: ReplyTarget) {

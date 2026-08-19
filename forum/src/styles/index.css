@@ -1069,7 +1069,7 @@
     width: 100%;
     max-width: calc(var(--thread-main-column) + var(--thread-rail-column) + var(--thread-column-gap) + 32px);
     margin: 0 auto;
-    padding: calc(var(--topbar-height) + 18px) 16px 54px;
+    padding: calc(var(--topbar-height) + 18px) 16px 0;
   }
 
   .thread-route-row {
@@ -1171,7 +1171,6 @@
 
   .thread-title-card {
     width: 100%;
-    max-width: var(--thread-main-column);
     margin-top: 12px;
     border: 1px solid var(--line);
     border-radius: 2px;
@@ -1781,7 +1780,7 @@
   }
 
   .reply-editor-core {
-    padding: 0 16px 16px;
+    padding: 0 16px;
   }
 
   .reply-editor .reply-editor-core > section {
@@ -1789,6 +1788,19 @@
     border-radius: 2px;
     background: var(--surface-raised);
     box-shadow: none;
+  }
+
+  .reply-editor-core .capubbs-rich-text-editor[data-auto-height="false"] {
+    display: flex;
+    height: 66.667vh;
+    height: 66.667dvh;
+    flex-direction: column;
+  }
+
+  .reply-editor-core .capubbs-rich-text-editor[data-auto-height="false"] > [data-editor-mode] {
+    min-height: 0 !important;
+    flex: 1 1 auto;
+    height: auto !important;
   }
 
   .reply-signature-panel {
@@ -2839,7 +2851,7 @@
     }
 
     .reply-editor-core {
-      padding: 0 10px 10px;
+      padding: 0 10px;
     }
 
     .reply-signature-panel {

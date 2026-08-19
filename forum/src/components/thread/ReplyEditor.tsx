@@ -136,7 +136,7 @@ export function ReplyEditor({
     <section className="reply-editor" ref={editorRef} aria-labelledby="reply-editor-title">
       <header className="reply-editor-heading">
         <h2 id="reply-editor-title">写回复</h2>
-        <p>回复主题 · {threadTitle}</p>
+        <p>Re: {threadTitle}</p>
       </header>
 
       {target && (

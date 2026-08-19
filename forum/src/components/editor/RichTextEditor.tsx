@@ -1247,7 +1247,8 @@ export function RichTextEditor({
     <>
     <section
       ref={editorShellRef}
-      className="relative overflow-hidden rounded-lg border border-zinc-200 bg-white/70 shadow-sm dark:border-white/10 dark:bg-white/[0.05]"
+      className="capubbs-rich-text-editor relative overflow-hidden rounded-lg border border-zinc-200 bg-white/70 shadow-sm dark:border-white/10 dark:bg-white/[0.05]"
+      data-auto-height={isAutoHeightEnabled ? 'true' : 'false'}
     >
       <div className="border-b border-zinc-200/80 bg-white/70 dark:border-white/10 dark:bg-white/[0.04]">
         <div className="px-2 py-2">
