@@ -60,7 +60,7 @@
   }
 
   .topbar-surface {
-    background-color: rgb(211 225 215 / 0.72);
+    background-color: rgb(255 255 255 / var(--capubbs-card-bg-opacity));
     border-bottom-color: rgb(255 255 255 / 0.38);
     -webkit-backdrop-filter: blur(14px) saturate(140%);
     backdrop-filter: blur(14px) saturate(140%);
