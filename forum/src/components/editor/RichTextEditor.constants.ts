@@ -3,12 +3,6 @@ import type { RichTextEditorMode } from './RichTextEditor.types';
 export const maxInlineImageBytes = 2 * 1024 * 1024;
 export const imageCompressionMaxEdge = 2200;
 
-export const commonTextColors = [
-  { label: '黑色', value: '#111827' },
-  { label: '红色', value: '#DC2626' },
-  { label: '蓝色', value: '#2563EB' },
-];
-
 export const editorModes: Array<{ label: string; mode: RichTextEditorMode }> = [
   { label: '富文本', mode: 'rich' },
   { label: 'Markdown', mode: 'markdown' },
@@ -37,7 +31,7 @@ export const richTextFontSizeOptions = [
 
 export const defaultRichTextFont = richTextFontOptions[0].value;
 export const defaultRichTextFontSize = richTextFontSizeOptions[1].value;
-export const defaultTextColor = commonTextColors[0].value;
+export const defaultTextColor = '#111827';
 export const mobileViewportQuery = '(max-width: 767px)';
 
 export const htmlVoidTags = new Set([

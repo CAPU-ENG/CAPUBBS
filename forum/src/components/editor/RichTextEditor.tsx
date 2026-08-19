@@ -1,12 +1,10 @@
 import {
-  ALargeSmall,
   AlignCenter,
   AlignJustify,
   AlignLeft,
   AlignRight,
   AtSign,
   Bold,
-  Code2,
   Eraser,
   Heading1,
   Image as ImageIcon,
@@ -20,7 +18,6 @@ import {
   Strikethrough,
   Subscript,
   Superscript,
-  Type,
   Underline,
 } from 'lucide-react';
 import {
@@ -39,7 +36,6 @@ import {
 import { getPublicProfileAppPath } from '../../utils/userRoutes';
 import { PastedImageDialog } from './PastedImageDialog';
 import {
-  commonTextColors,
   defaultRichTextFont,
   defaultRichTextFontSize,
   defaultTextColor,
@@ -63,7 +59,6 @@ import {
   applyInlineStyleToElement,
   focusRichTextEditorAtEnd,
   getInheritedRichInlineStyle,
-  hexToRgbSource,
   normalizeCssColor,
   richInlineStyleToString,
 } from './RichTextEditor.richText';
@@ -261,7 +256,7 @@ export function RichTextEditor({
   const [fontSizeSelectValue, setFontSizeSelectValue] = useState(defaultRichTextFontSize);
   const [pastedImage, setPastedImage] = useState<PastedImageState | null>(null);
   const [selectedTextColor, setSelectedTextColor] = useState(defaultTextColor);
-  const [rgbSourceValue, setRgbSourceValue] = useState(hexToRgbSource(defaultTextColor));
+  const [hexSourceValue, setHexSourceValue] = useState(defaultTextColor);
   const [richImageResizeHandle, setRichImageResizeHandle] = useState<RichImageResizeHandle | null>(null);
   const isDarkTheme = useIsDarkTheme();
   const isMobileViewport = useIsMobileViewport();
@@ -895,21 +890,23 @@ export function RichTextEditor({
     }
 
     setSelectedTextColor(normalizedColor);
-    setRgbSourceValue(hexToRgbSource(normalizedColor));
+    setHexSourceValue(normalizedColor);
     applyRichInlineStyle({ color: normalizedColor }, '文字');
   };
 
-  const handleRgbSourceChange = (nextValue: string) => {
-    setRgbSourceValue(nextValue);
-    const normalizedColor = normalizeCssColor(nextValue);
+  const handleHexSourceChange = (nextValue: string) => {
+    const normalizedInput = nextValue.toUpperCase();
+    setHexSourceValue(normalizedInput);
 
-    if (normalizedColor) {
-      setSelectedTextColor(normalizedColor);
+    if (/^#[0-9A-F]{6}$/.test(normalizedInput)) {
+      setSelectedTextColor(normalizedInput);
     }
   };
 
-  const applyRgbSourceColor = () => {
-    applyRichTextColor(rgbSourceValue);
+  const applyHexSourceColor = () => {
+    if (/^#[0-9A-F]{6}$/.test(hexSourceValue)) {
+      applyRichTextColor(hexSourceValue);
+    }
   };
 
   const toggleColorPicker = () => {
@@ -1159,48 +1156,6 @@ export function RichTextEditor({
     insertRichHtml('<hr><p><br></p>');
   };
 
-  const transformSourceLines = (transform: (line: string, index: number) => string) => {
-    const range = getSourceSelection();
-    if (!range) {
-      return;
-    }
-
-    const selectedText = range.selectedText || '';
-    const transformedText = selectedText
-      ? selectedText.split('\n').map(transform).join('\n')
-      : transform('', 0);
-    replaceSourceRange(range, transformedText, range.start, range.start + transformedText.length);
-  };
-
-  const insertHtmlList = (isOrdered: boolean) => {
-    const range = getSourceSelection();
-    if (!range) {
-      return;
-    }
-
-    const listTag = isOrdered ? 'ol' : 'ul';
-    const items = (range.selectedText || '列表项')
-      .split('\n')
-      .map((line) => line.trim())
-      .filter(Boolean);
-    const itemHtml = items.map((item) => `  <li>${escapeHtml(item)}</li>`).join('\n');
-    const replacement = `<${listTag}>\n${itemHtml}\n</${listTag}>`;
-    replaceSourceRange(range, replacement);
-  };
-
-  const wrapHtmlCodeSelection = (isBlock: boolean) => {
-    const range = getSourceSelection();
-    if (!range) {
-      return;
-    }
-
-    const code = escapeHtml(range.selectedText || 'code');
-    const replacement = isBlock ? `<pre><code>${code}</code></pre>` : `<code>${code}</code>`;
-    const prefixLength = isBlock ? '<pre><code>'.length : '<code>'.length;
-    const suffixLength = isBlock ? '</code></pre>'.length : '</code>'.length;
-    replaceSourceRange(range, replacement, range.start + prefixLength, range.start + replacement.length - suffixLength);
-  };
-
   const handleMarkdownSourceScroll = () => {
     syncSourceLineNumbersScroll();
   };
@@ -1255,194 +1210,183 @@ export function RichTextEditor({
       className="capubbs-rich-text-editor relative overflow-hidden rounded-[2px] border border-zinc-200 bg-white/70 shadow-sm dark:border-white/10 dark:bg-white/[0.05]"
       data-auto-height={isAutoHeightEnabled ? 'true' : 'false'}
     >
-      <div className="border-b border-zinc-200/80 bg-white/70 dark:border-white/10 dark:bg-white/[0.04]">
-        <div className="px-2 py-2">
-          <div className="flex min-w-0 flex-wrap items-center gap-1">
-            {isMarkdownMode ? (
-              <>
-                <ToolbarButton label="加粗" icon={<Bold size={15} />} onMouseDown={handleToolbarMouseDown} onClick={() => wrapSourceSelection('**', '**', '加粗文字')} />
-                <ToolbarButton label="斜体" icon={<Italic size={15} />} onMouseDown={handleToolbarMouseDown} onClick={() => wrapSourceSelection('_', '_', '斜体文字')} />
-                <ToolbarButton label="删除线" icon={<Strikethrough size={15} />} onMouseDown={handleToolbarMouseDown} onClick={() => wrapSourceSelection('~~', '~~', '删除文字')} />
-                <ToolbarButton label="标题" icon={<Heading1 size={15} />} onMouseDown={handleToolbarMouseDown} onClick={() => transformSourceLines((line) => `## ${line || '标题'}`)} />
-                <ToolbarButton label="引用" icon={<MessageSquareQuote size={15} />} onMouseDown={handleToolbarMouseDown} onClick={() => transformSourceLines((line) => `> ${line || '引用内容'}`)} />
-                <ToolbarButton label="无序列表" icon={<List size={15} />} onMouseDown={handleToolbarMouseDown} onClick={() => transformSourceLines((line) => `- ${line || '列表项'}`)} />
-                <ToolbarButton label="有序列表" icon={<ListOrdered size={15} />} onMouseDown={handleToolbarMouseDown} onClick={() => transformSourceLines((line, index) => `${index + 1}. ${line || '列表项'}`)} />
-                <ToolbarButton label="行内代码" icon={<Code2 size={15} />} onMouseDown={handleToolbarMouseDown} onClick={() => wrapSourceSelection('`', '`', 'code')} />
-                <ToolbarButton label="代码块" icon={<Code2 size={15} />} onMouseDown={handleToolbarMouseDown} onClick={() => wrapSourceSelection('```\n', '\n```', 'code')} />
-              </>
-            ) : isHtmlMode ? (
-              <>
-                <ToolbarButton label="加粗" icon={<Bold size={15} />} onMouseDown={handleToolbarMouseDown} onClick={() => wrapSourceSelection('<strong>', '</strong>', '加粗文字')} />
-                <ToolbarButton label="斜体" icon={<Italic size={15} />} onMouseDown={handleToolbarMouseDown} onClick={() => wrapSourceSelection('<em>', '</em>', '斜体文字')} />
-                <ToolbarButton label="删除线" icon={<Strikethrough size={15} />} onMouseDown={handleToolbarMouseDown} onClick={() => wrapSourceSelection('<del>', '</del>', '删除文字')} />
-                <ToolbarButton label="标题" icon={<Heading1 size={15} />} onMouseDown={handleToolbarMouseDown} onClick={() => wrapSourceSelection('<h2>', '</h2>', '标题')} />
-                <ToolbarButton label="引用块" icon={<MessageSquareQuote size={15} />} onMouseDown={handleToolbarMouseDown} onClick={() => wrapSourceSelection('<blockquote>', '</blockquote>', '引用内容')} />
-                <ToolbarButton label="无序列表" icon={<List size={15} />} onMouseDown={handleToolbarMouseDown} onClick={() => insertHtmlList(false)} />
-                <ToolbarButton label="有序列表" icon={<ListOrdered size={15} />} onMouseDown={handleToolbarMouseDown} onClick={() => insertHtmlList(true)} />
-                <ToolbarButton label="行内代码" icon={<Code2 size={15} />} onMouseDown={handleToolbarMouseDown} onClick={() => wrapHtmlCodeSelection(false)} />
-                <ToolbarButton label="代码块" icon={<Code2 size={15} />} onMouseDown={handleToolbarMouseDown} onClick={() => wrapHtmlCodeSelection(true)} />
-              </>
-            ) : (
-              <>
-                <ToolbarButton label="加粗" icon={<Bold size={15} />} onMouseDown={handleToolbarMouseDown} onClick={() => runRichCommand('bold')} />
-                <ToolbarButton label="斜体" icon={<Italic size={15} />} onMouseDown={handleToolbarMouseDown} onClick={() => runRichCommand('italic')} />
-                <ToolbarButton label="下划线" icon={<Underline size={15} />} onMouseDown={handleToolbarMouseDown} onClick={() => runRichCommand('underline')} />
-                <ToolbarButton label="删除线" icon={<Strikethrough size={15} />} onMouseDown={handleToolbarMouseDown} onClick={() => runRichCommand('strikeThrough')} />
-                <div className="flex h-8 items-center gap-1 rounded-[1px] border border-zinc-200 bg-white/70 px-1.5 dark:border-white/10 dark:bg-white/[0.06]">
-                  <Type size={14} className="shrink-0 text-zinc-500 dark:text-zinc-300" />
-                  <select
-                    aria-label="字体"
-                    value={fontSelectValue}
-                    onMouseDown={saveSelection}
-                    onFocus={saveSelection}
-                    onChange={handleRichFontChange}
-                    className="h-7 max-w-[7.25rem] bg-transparent text-xs font-bold text-[#174f38] outline-none dark:text-white"
-                  >
-                    <option value="">默认</option>
-                    {richTextFontOptions.map((fontOption) => (
-                      <option key={fontOption.value} value={fontOption.value}>
-                        {fontOption.label}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-                <div className="flex h-8 items-center gap-1 rounded-[1px] border border-zinc-200 bg-white/70 px-1.5 dark:border-white/10 dark:bg-white/[0.06]">
-                  <ALargeSmall size={14} className="shrink-0 text-zinc-500 dark:text-zinc-300" />
-                  <select
-                    aria-label="字号"
-                    value={fontSizeSelectValue}
-                    onMouseDown={saveSelection}
-                    onFocus={saveSelection}
-                    onChange={handleRichFontSizeChange}
-                    className="h-7 w-[3.75rem] bg-transparent text-xs font-bold text-[#174f38] outline-none dark:text-white"
-                  >
-                    {richTextFontSizeOptions.map((fontSizeOption) => (
-                      <option key={fontSizeOption.value} value={fontSizeOption.value}>
-                        {fontSizeOption.label}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-                <ToolbarButton label="上标" icon={<Superscript size={15} />} onMouseDown={handleToolbarMouseDown} onClick={() => runRichCommand('superscript')} />
-                <ToolbarButton label="下标" icon={<Subscript size={15} />} onMouseDown={handleToolbarMouseDown} onClick={() => runRichCommand('subscript')} />
-                <ToolbarButton label="标题" icon={<Heading1 size={15} />} onMouseDown={handleToolbarMouseDown} onClick={() => wrapRichSelectionWithTag('h2', '标题')} />
-                <ToolbarButton label="引用块" icon={<MessageSquareQuote size={15} />} onMouseDown={handleToolbarMouseDown} onClick={() => wrapRichSelectionWithTag('blockquote', '引用内容')} />
-                <ToolbarButton label="左对齐" icon={<AlignLeft size={15} />} onMouseDown={handleToolbarMouseDown} onClick={() => runRichCommand('justifyLeft')} />
-                <ToolbarButton label="居中" icon={<AlignCenter size={15} />} onMouseDown={handleToolbarMouseDown} onClick={() => runRichCommand('justifyCenter')} />
-                <ToolbarButton label="右对齐" icon={<AlignRight size={15} />} onMouseDown={handleToolbarMouseDown} onClick={() => runRichCommand('justifyRight')} />
-                <ToolbarButton label="两端对齐" icon={<AlignJustify size={15} />} onMouseDown={handleToolbarMouseDown} onClick={() => runRichCommand('justifyFull')} />
-                <ToolbarButton label="无序列表" icon={<List size={15} />} onMouseDown={handleToolbarMouseDown} onClick={() => runRichCommand('insertUnorderedList')} />
-                <ToolbarButton label="有序列表" icon={<ListOrdered size={15} />} onMouseDown={handleToolbarMouseDown} onClick={() => runRichCommand('insertOrderedList')} />
-              </>
-            )}
+      <div className="bg-white/70 dark:bg-white/[0.04]">
+        {!isSourceMode ? (
+          <div className="capubbs-rich-toolbar overflow-x-auto border-b border-zinc-200/80 px-1.5 py-1 dark:border-white/10">
+            <div className="flex min-w-max flex-nowrap items-center gap-px">
+              <ToolbarButton label="加粗" onMouseDown={handleToolbarMouseDown} onClick={() => runRichCommand('bold')}>
+                <Bold size={14} />
+              </ToolbarButton>
+              <ToolbarButton label="斜体" onMouseDown={handleToolbarMouseDown} onClick={() => runRichCommand('italic')}>
+                <Italic size={14} />
+              </ToolbarButton>
+              <ToolbarButton label="下划线" onMouseDown={handleToolbarMouseDown} onClick={() => runRichCommand('underline')}>
+                <Underline size={14} />
+              </ToolbarButton>
+              <ToolbarButton label="删除线" onMouseDown={handleToolbarMouseDown} onClick={() => runRichCommand('strikeThrough')}>
+                <Strikethrough size={14} />
+              </ToolbarButton>
 
-            <ToolbarDivider />
-            <ToolbarButton label="链接" icon={<Link2 size={15} />} onMouseDown={handleToolbarMouseDown} onClick={() => openPopover('link')} />
-            <ToolbarButton label="图片" icon={<ImageIcon size={15} />} onMouseDown={handleToolbarMouseDown} onClick={() => openPopover('image')} />
-            <ToolbarButton label="@用户" icon={<AtSign size={15} />} onMouseDown={handleToolbarMouseDown} onClick={() => openPopover('mention')} />
-            <ToolbarButton label="分割线" icon={<Minus size={15} />} onMouseDown={handleToolbarMouseDown} onClick={insertHorizontalRule} />
-            {isHtmlMode ? <ToolbarButton label="引用用户" icon={<MessageSquareQuote size={15} />} onMouseDown={handleToolbarMouseDown} onClick={() => openPopover('quote')} /> : null}
+              <ToolbarDivider />
 
-            {!isSourceMode ? (
-              <>
-                <ToolbarButton label="清除格式" icon={<Eraser size={15} />} onMouseDown={handleToolbarMouseDown} onClick={() => runRichCommand('removeFormat')} />
-                <ToolbarDivider />
-                <div className="relative">
-                  <button
-                    type="button"
-                    aria-label="文字颜色"
-                    title="文字颜色"
-                    onMouseDown={handleToolbarMouseDown}
-                    onClick={toggleColorPicker}
-                    className="flex h-8 w-8 items-center justify-center rounded-[1px] border border-transparent text-[#174f38] transition hover:border-zinc-200 hover:bg-zinc-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#174f38] dark:text-white dark:hover:border-white/10 dark:hover:bg-white/[0.1]"
-                  >
-                    <span className="relative flex h-5 w-5 items-center justify-center">
-                      <Palette size={16} />
-                      <span
-                        className="absolute -bottom-0.5 h-1.5 w-4 rounded-full border border-black/10 dark:border-white/20"
-                        style={{ backgroundColor: selectedTextColor }}
-                      />
-                    </span>
-                  </button>
-                  {isColorPickerOpen ? (
-                    <div className="absolute left-0 top-9 z-30 w-72 rounded-[2px] border border-zinc-200 bg-white p-3 text-xs shadow-xl dark:border-white/10 dark:bg-zinc-950">
-                      <div className="flex items-center gap-3">
-                        <div
-                          aria-hidden="true"
-                          className="h-16 w-16 shrink-0 rounded-[1px] border border-zinc-200 shadow-inner dark:border-white/10"
-                          style={{ backgroundColor: selectedTextColor }}
-                        />
-                        <div className="min-w-0 flex-1">
-                          <label className="block text-[0.7rem] font-bold text-zinc-500 dark:text-zinc-400">
-                            色彩
-                            <input
-                              type="color"
-                              value={normalizeCssColor(selectedTextColor) ?? defaultTextColor}
-                              onChange={(event) => {
-                                setSelectedTextColor(event.target.value);
-                                setRgbSourceValue(hexToRgbSource(event.target.value));
-                              }}
-                              onMouseDown={saveSelection}
-                              className="mt-1 h-8 w-full cursor-pointer rounded-[1px] border border-zinc-200 bg-transparent p-0.5 dark:border-white/10"
-                            />
-                          </label>
-                        </div>
-                      </div>
-                      <div className="mt-3 grid grid-cols-3 gap-1.5">
-                        {commonTextColors.map((color) => (
-                          <button
-                            key={color.value}
-                            type="button"
-                            aria-label={color.label}
-                            title={color.label}
-                            onMouseDown={handleToolbarMouseDown}
-                            onClick={() => applyRichTextColor(color.value)}
-                            className="h-7 rounded-[1px] border border-zinc-200 shadow-sm transition hover:scale-105 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#174f38] dark:border-white/10"
-                            style={{ backgroundColor: color.value }}
-                          />
-                        ))}
-                      </div>
-                      <label className="mt-3 block text-[0.7rem] font-bold text-zinc-500 dark:text-zinc-400">
-                        RGB源码
-                        <div className="mt-1 flex gap-2">
-                          <input
-                            value={rgbSourceValue}
-                            onChange={(event) => handleRgbSourceChange(event.target.value)}
-                            onMouseDown={saveSelection}
-                            placeholder="rgb(17, 24, 39)"
-                            className="h-8 min-w-0 flex-1 rounded-[1px] border border-zinc-200 bg-white px-2 font-mono text-xs text-zinc-800 outline-none transition focus:border-[#174f38] focus:ring-2 focus:ring-[#174f38] dark:border-white/10 dark:bg-white/[0.06] dark:text-white"
-                          />
-                          <button
-                            type="button"
-                            onMouseDown={handleToolbarMouseDown}
-                            onClick={applyRgbSourceColor}
-                            className="h-8 rounded-[1px] bg-[#174f38] px-2.5 text-xs font-bold text-white transition hover:bg-[#123d2c] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#174f38] dark:bg-emerald-200 dark:text-zinc-950"
-                          >
-                            应用
-                          </button>
-                        </div>
-                      </label>
-                    </div>
-                  ) : null}
-                </div>
-                <div className="flex h-8 items-center gap-1 rounded-[1px] border border-zinc-200 bg-white/70 px-1.5 dark:border-white/10 dark:bg-white/[0.06]">
-                  {commonTextColors.map((color) => (
-                    <button
-                      key={color.value}
-                      type="button"
-                      aria-label={`文字颜色 ${color.label}`}
-                      title={`文字颜色 ${color.label}`}
-                      onMouseDown={handleToolbarMouseDown}
-                      onClick={() => applyRichTextColor(color.value)}
-                      className="h-4 w-4 rounded-full border border-black/10 shadow-sm transition hover:scale-110 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#174f38] dark:border-white/20"
-                      style={{ backgroundColor: color.value }}
-                    />
+              <label className="flex h-7 items-center rounded-[var(--control-radius)] border border-zinc-200 bg-white px-1 dark:border-white/10 dark:bg-zinc-950">
+                <span className="sr-only">字体</span>
+                <select
+                  value={fontSelectValue}
+                  onMouseDown={saveSelection}
+                  onFocus={saveSelection}
+                  onChange={handleRichFontChange}
+                  className="h-6 w-[5.25rem] border-0 bg-transparent px-0 text-[0.68rem] font-medium text-zinc-700 outline-none dark:text-zinc-200"
+                  aria-label="字体"
+                >
+                  <option value="">默认</option>
+                  {richTextFontOptions.map((fontOption) => (
+                    <option key={fontOption.value} value={fontOption.value}>
+                      {fontOption.label}
+                    </option>
                   ))}
-                </div>
-              </>
-            ) : null}
+                </select>
+              </label>
+              <label className="flex h-7 items-center rounded-[var(--control-radius)] border border-zinc-200 bg-white px-1 dark:border-white/10 dark:bg-zinc-950">
+                <span className="sr-only">字号</span>
+                <select
+                  value={fontSizeSelectValue}
+                  onMouseDown={saveSelection}
+                  onFocus={saveSelection}
+                  onChange={handleRichFontSizeChange}
+                  className="h-6 w-11 border-0 bg-transparent px-0 text-[0.68rem] font-medium text-zinc-700 outline-none dark:text-zinc-200"
+                  aria-label="字号"
+                >
+                  {richTextFontSizeOptions.map((fontSizeOption) => (
+                    <option key={fontSizeOption.value} value={fontSizeOption.value}>
+                      {fontSizeOption.label}
+                    </option>
+                  ))}
+                </select>
+              </label>
+
+              <ToolbarDivider />
+
+              <ToolbarButton label="上标" onMouseDown={handleToolbarMouseDown} onClick={() => runRichCommand('superscript')}>
+                <Superscript size={14} />
+              </ToolbarButton>
+              <ToolbarButton label="下标" onMouseDown={handleToolbarMouseDown} onClick={() => runRichCommand('subscript')}>
+                <Subscript size={14} />
+              </ToolbarButton>
+              <ToolbarButton label="标题" onMouseDown={handleToolbarMouseDown} onClick={() => wrapRichSelectionWithTag('h2', '标题')}>
+                <Heading1 size={14} />
+              </ToolbarButton>
+              <ToolbarButton label="引用" onMouseDown={handleToolbarMouseDown} onClick={() => wrapRichSelectionWithTag('blockquote', '引用内容')}>
+                <MessageSquareQuote size={14} />
+              </ToolbarButton>
+
+              <ToolbarDivider />
+
+              <ToolbarButton label="左对齐" onMouseDown={handleToolbarMouseDown} onClick={() => runRichCommand('justifyLeft')}>
+                <AlignLeft size={14} />
+              </ToolbarButton>
+              <ToolbarButton label="居中" onMouseDown={handleToolbarMouseDown} onClick={() => runRichCommand('justifyCenter')}>
+                <AlignCenter size={14} />
+              </ToolbarButton>
+              <ToolbarButton label="右对齐" onMouseDown={handleToolbarMouseDown} onClick={() => runRichCommand('justifyRight')}>
+                <AlignRight size={14} />
+              </ToolbarButton>
+              <ToolbarButton label="两端对齐" onMouseDown={handleToolbarMouseDown} onClick={() => runRichCommand('justifyFull')}>
+                <AlignJustify size={14} />
+              </ToolbarButton>
+              <ToolbarButton label="无序列表" onMouseDown={handleToolbarMouseDown} onClick={() => runRichCommand('insertUnorderedList')}>
+                <List size={14} />
+              </ToolbarButton>
+              <ToolbarButton label="有序列表" onMouseDown={handleToolbarMouseDown} onClick={() => runRichCommand('insertOrderedList')}>
+                <ListOrdered size={14} />
+              </ToolbarButton>
+
+              <ToolbarDivider />
+
+              <ToolbarButton label="插入链接" onMouseDown={handleToolbarMouseDown} onClick={() => openPopover('link')}>
+                <Link2 size={14} />
+              </ToolbarButton>
+              <ToolbarButton label="插入图片" onMouseDown={handleToolbarMouseDown} onClick={() => openPopover('image')}>
+                <ImageIcon size={14} />
+              </ToolbarButton>
+              <ToolbarButton label="@ 用户" onMouseDown={handleToolbarMouseDown} onClick={() => openPopover('mention')}>
+                <AtSign size={14} />
+              </ToolbarButton>
+              <ToolbarButton label="分隔线" onMouseDown={handleToolbarMouseDown} onClick={insertHorizontalRule}>
+                <Minus size={14} />
+              </ToolbarButton>
+              <ToolbarButton label="清除格式" onMouseDown={handleToolbarMouseDown} onClick={() => runRichCommand('removeFormat')}>
+                <Eraser size={14} />
+              </ToolbarButton>
+
+              <ToolbarDivider />
+
+              <button
+                type="button"
+                onMouseDown={(event) => {
+                  handleToolbarMouseDown(event);
+                  saveSelection();
+                }}
+                onClick={toggleColorPicker}
+                className={`relative inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-[var(--control-radius)] text-zinc-600 transition hover:bg-zinc-100 hover:text-zinc-950 dark:text-zinc-300 dark:hover:bg-white/10 dark:hover:text-white ${
+                  isColorPickerOpen ? 'bg-zinc-100 text-zinc-950 dark:bg-white/10 dark:text-white' : ''
+                }`}
+                aria-label="文字颜色"
+                title="文字颜色"
+              >
+                <Palette size={14} />
+                <span
+                  className="pointer-events-none absolute inset-x-1 bottom-0.5 h-0.5 rounded-full"
+                  style={{ backgroundColor: normalizeCssColor(selectedTextColor) ?? defaultTextColor }}
+                  aria-hidden="true"
+                />
+              </button>
+            </div>
           </div>
-        </div>
+        ) : null}
+
+        {isColorPickerOpen && !isSourceMode ? (
+          <div className="capubbs-editor-color-panel flex flex-wrap items-end gap-2 border-b border-zinc-200/80 px-2 py-2 dark:border-white/10">
+            <label className="grid gap-1 text-[0.68rem] font-semibold text-zinc-500 dark:text-zinc-400">
+              取色
+              <input
+                type="color"
+                value={normalizeCssColor(selectedTextColor) ?? defaultTextColor}
+                onMouseDown={saveSelection}
+                onChange={(event) => {
+                  const color = event.target.value.toUpperCase();
+                  setSelectedTextColor(color);
+                  setHexSourceValue(color);
+                }}
+                className="h-8 w-10 cursor-pointer border border-zinc-200 bg-white p-1 dark:border-white/10 dark:bg-zinc-950"
+                aria-label="选择文字颜色"
+              />
+            </label>
+            <label className="grid min-w-[10rem] flex-1 gap-1 text-[0.68rem] font-semibold text-zinc-500 dark:text-zinc-400">
+              HEX 色值
+              <input
+                value={hexSourceValue}
+                onChange={(event) => handleHexSourceChange(event.target.value)}
+                maxLength={7}
+                pattern="#[0-9A-Fa-f]{6}"
+                placeholder="#174F38"
+                spellCheck={false}
+                className="h-8 border border-zinc-200 bg-white px-2 font-mono text-xs font-medium uppercase text-zinc-800 outline-none transition focus:border-emerald-700/60 focus:ring-2 focus:ring-emerald-700/10 dark:border-white/10 dark:bg-zinc-950 dark:text-zinc-100"
+                aria-label="六位十六进制颜色"
+              />
+            </label>
+            <button
+              type="button"
+              onMouseDown={handleToolbarMouseDown}
+              onClick={applyHexSourceColor}
+              disabled={!/^#[0-9A-F]{6}$/.test(hexSourceValue)}
+              className="h-8 rounded-[var(--control-radius)] bg-emerald-800 px-3 text-xs font-semibold text-white transition hover:bg-emerald-900 disabled:cursor-not-allowed disabled:opacity-40 dark:bg-emerald-600 dark:hover:bg-emerald-500"
+            >
+              应用
+            </button>
+          </div>
+        ) : null}
+
         {popoverConfig ? (
           <form
             onSubmit={handlePopoverSubmit}
@@ -1676,12 +1620,12 @@ export function RichTextEditor({
 }
 
 function ToolbarButton({
-  icon,
+  children,
   label,
   onClick,
   onMouseDown,
 }: {
-  icon: ReactNode;
+  children: ReactNode;
   label: string;
   onClick: () => void;
   onMouseDown: (event: MouseEvent<HTMLButtonElement>) => void;
@@ -1693,15 +1637,15 @@ function ToolbarButton({
       title={label}
       onMouseDown={onMouseDown}
       onClick={onClick}
-      className="flex h-8 w-8 items-center justify-center rounded-[1px] border border-transparent text-[#174f38] transition hover:border-zinc-200 hover:bg-zinc-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#174f38] dark:text-white dark:hover:border-white/10 dark:hover:bg-white/[0.1]"
+      className="flex h-7 w-7 shrink-0 items-center justify-center rounded-[var(--control-radius)] border border-transparent text-[#174f38] transition hover:border-zinc-200 hover:bg-zinc-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#174f38] dark:text-white dark:hover:border-white/10 dark:hover:bg-white/[0.1]"
     >
-      {icon}
+      {children}
     </button>
   );
 }
 
 function ToolbarDivider() {
-  return <span className="mx-1 h-5 w-px bg-zinc-200 dark:bg-white/10" />;
+  return <span className="mx-0.5 h-4 w-px shrink-0 bg-zinc-200 dark:bg-white/10" />;
 }
 
 function getPopoverConfig(popover: EditorPopover) {

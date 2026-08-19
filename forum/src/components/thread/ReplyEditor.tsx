@@ -1,6 +1,5 @@
 import {
   Eye,
-  FileText,
   Paperclip,
   Save,
   Send,
@@ -30,12 +29,6 @@ type ReplyAttachment = {
 };
 
 const draftStorageKey = "capubbs-thread-reply-draft";
-const signatureOptions = [
-  { label: "不使用签名档", value: 0 },
-  { label: "签名档 1", value: 1 },
-  { label: "签名档 2", value: 2 },
-  { label: "签名档 3", value: 3 },
-];
 
 export function ReplyEditor({
   editorRef,
@@ -52,7 +45,6 @@ export function ReplyEditor({
     content: "",
     mode: "rich",
   });
-  const [signatureIndex, setSignatureIndex] = useState(0);
   const [attachments, setAttachments] = useState<ReplyAttachment[]>([]);
   const [attachmentDialogOpen, setAttachmentDialogOpen] = useState(false);
   const [previewOpen, setPreviewOpen] = useState(false);
@@ -70,8 +62,6 @@ export function ReplyEditor({
         content?: string;
         editor?: RichTextEditorValue;
         mode?: RichTextEditorValue["mode"];
-        signature?: string;
-        signatureIndex?: number;
       };
       setEditorValue(
         parsed.editor ?? {
@@ -79,7 +69,6 @@ export function ReplyEditor({
           mode: parsed.mode ?? "rich",
         },
       );
-      setSignatureIndex(parsed.signatureIndex ?? Number(parsed.signature ?? 0));
       setAttachments(parsed.attachments ?? []);
       setStatus("草稿已恢复");
     } catch {
@@ -142,7 +131,6 @@ export function ReplyEditor({
       JSON.stringify({
         attachments,
         editor: getRichTextEditorStorageValue(editorValue),
-        signatureIndex,
         threadTitle,
       }),
     );
@@ -206,28 +194,6 @@ export function ReplyEditor({
           value={editorValue}
         />
       </div>
-
-      <fieldset className="reply-signature-panel">
-        <legend>
-          <FileText size={15} />
-          签名档
-        </legend>
-        <div className="reply-signature-options">
-          {signatureOptions.map((option) => (
-            <label key={option.value}>
-              <input
-                checked={signatureIndex === option.value}
-                name="reply-signature"
-                onChange={() => setSignatureIndex(option.value)}
-                type="radio"
-                value={option.value}
-              />
-              {option.label}
-            </label>
-          ))}
-        </div>
-        <p>{getSignatureSummary(signatureIndex)}</p>
-      </fieldset>
 
       {attachments.length > 0 && (
         <ul className="reply-attachments" aria-label="待上传附件">
@@ -306,7 +272,6 @@ export function ReplyEditor({
           attachments={attachments}
           editorValue={editorValue}
           onClose={() => setPreviewOpen(false)}
-          signatureIndex={signatureIndex}
           threadTitle={threadTitle}
         />
       )}
@@ -318,13 +283,11 @@ function ReplyPreviewDialog({
   attachments,
   editorValue,
   onClose,
-  signatureIndex,
   threadTitle,
 }: {
   attachments: ReplyAttachment[];
   editorValue: RichTextEditorValue;
   onClose: () => void;
-  signatureIndex: number;
   threadTitle: string;
 }) {
   useEffect(() => {
@@ -364,7 +327,6 @@ function ReplyPreviewDialog({
           title="回复正文预览"
         />
         <div className="reply-preview-meta">
-          <span>{getSignatureSummary(signatureIndex)}</span>
           <span>
             {attachments.length > 0 ? `${attachments.length} 个附件` : "无附件"}
           </span>
@@ -521,10 +483,4 @@ function escapeHtml(value: string) {
 function formatBytes(bytes: number) {
   if (bytes >= 1024 * 1024) return `${(bytes / 1024 / 1024).toFixed(2)} MB`;
   return `${Math.max(1, Math.round(bytes / 1024))} KB`;
-}
-
-function getSignatureSummary(signatureIndex: number) {
-  if (signatureIndex === 0) return "本次回复不使用签名档";
-  if (signatureIndex === 4) return "发布时使用自选签名档";
-  return `发布时附带签名档 ${signatureIndex}`;
 }

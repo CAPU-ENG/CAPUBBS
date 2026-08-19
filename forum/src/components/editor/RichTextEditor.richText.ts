@@ -63,16 +63,6 @@ export function normalizeCssColor(value: string) {
   return rgbToHex(rgb.red, rgb.green, rgb.blue);
 }
 
-export function hexToRgbSource(value: string) {
-  const rgb = parseCssColor(value);
-
-  if (!rgb) {
-    return value;
-  }
-
-  return `rgb(${rgb.red}, ${rgb.green}, ${rgb.blue})`;
-}
-
 function getElementFromNode(node: Node) {
   return node instanceof HTMLElement ? node : node.parentElement;
 }

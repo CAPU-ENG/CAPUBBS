@@ -1772,65 +1772,6 @@
     border-radius: var(--control-radius) !important;
   }
 
-  .reply-signature-panel {
-    display: grid;
-    gap: 8px;
-    margin: 0 16px 14px;
-    border: 1px solid var(--line);
-    border-radius: 2px;
-    padding: 10px 12px;
-    background: var(--surface-soft);
-  }
-
-  .reply-signature-panel > legend {
-    display: inline-flex;
-    align-items: center;
-    gap: 7px;
-    padding: 0 4px;
-    color: var(--brand-strong);
-    font-size: 0.69rem;
-    font-weight: 760;
-  }
-
-  .reply-signature-options {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 6px;
-  }
-
-  .reply-signature-options > label {
-    display: inline-flex;
-    min-height: 34px;
-    align-items: center;
-    gap: 6px;
-    border: 1px solid var(--line);
-    border-radius: var(--control-radius);
-    padding: 0 10px;
-    background: var(--surface);
-    color: var(--text-muted);
-    font-size: 0.68rem;
-    font-weight: 680;
-    transition: 140ms ease;
-  }
-
-  .reply-signature-options > label:hover,
-  .reply-signature-options > label:has(input:checked) {
-    border-color: color-mix(in srgb, var(--brand) 45%, var(--line));
-    background: var(--brand-soft);
-    color: var(--brand-strong);
-  }
-
-  .reply-signature-options input {
-    width: 14px;
-    height: 14px;
-    accent-color: var(--brand-strong);
-  }
-
-  .reply-signature-panel > p {
-    color: var(--text-faint);
-    font-size: 0.64rem;
-  }
-
   .editor-mode-tabs {
     display: flex;
     border-top: 1px solid var(--line);
@@ -2928,20 +2869,6 @@
 
     .reply-editor-core {
       padding: 0 10px;
-    }
-
-    .reply-signature-panel {
-      margin: 0 10px 10px;
-      padding: 10px;
-    }
-
-    .reply-signature-options {
-      display: grid;
-      grid-template-columns: repeat(2, minmax(0, 1fr));
-    }
-
-    .reply-signature-options > label {
-      padding-inline: 8px;
     }
 
     .editor-mode-tabs {
