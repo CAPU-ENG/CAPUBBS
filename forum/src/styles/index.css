@@ -412,11 +412,11 @@
     z-index: 80;
     top: calc(100% + 10px);
     right: 0;
-    width: 226px;
+    width: max-content;
     overflow: hidden;
     border: 1px solid var(--line);
     border-radius: 2px;
-    padding: 7px;
+    padding: 4px;
     background: var(--surface-raised);
     box-shadow: var(--shadow-float);
     animation: panel-in 160ms ease both;
@@ -426,14 +426,15 @@
   .profile-menu > button {
     display: flex;
     width: 100%;
-    min-height: 38px;
+    min-height: 34px;
     align-items: center;
-    gap: 9px;
-    border-radius: 7px;
-    padding: 0 10px;
+    gap: 7px;
+    border-radius: var(--control-radius);
+    padding: 0 8px;
     color: var(--text-muted);
     font-size: 0.8rem;
     font-weight: 600;
+    white-space: nowrap;
     transition: 140ms ease;
   }
 
