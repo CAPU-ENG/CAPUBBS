@@ -2929,9 +2929,9 @@
   }
 
   .board-thread-row td {
-    height: 62px;
+    height: 54px;
     border-bottom: 1px solid var(--line);
-    padding: 9px 15px;
+    padding: 6px 15px;
     vertical-align: middle;
   }
 
@@ -2945,7 +2945,7 @@
   .board-thread-title-line > a {
     overflow: hidden;
     min-width: 0;
-    flex: 1 1 auto;
+    flex: 0 1 auto;
     color: var(--text-strong);
     font-size: 0.82rem;
     font-weight: 680;
@@ -3331,7 +3331,7 @@
       display: block;
       height: auto;
       border-bottom: 0;
-      padding: 9px 6px 10px;
+      padding: 7px 6px 8px;
     }
 
     .board-thread-row + .board-thread-row {
@@ -3340,9 +3340,9 @@
 
     .board-thread-title-cell {
       grid-column: 1 / -1;
-      padding-top: 11px !important;
+      padding-top: 9px !important;
       padding-right: 66px !important;
-      padding-bottom: 8px !important;
+      padding-bottom: 6px !important;
     }
 
     .board-thread-title-line {
@@ -3363,7 +3363,7 @@
 
     .board-thread-counts {
       position: absolute;
-      top: 12px;
+      top: 10px;
       right: 15px;
       padding: 0 !important;
       width: 54px;

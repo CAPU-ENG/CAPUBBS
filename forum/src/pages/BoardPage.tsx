@@ -179,7 +179,7 @@ export function BoardPage() {
               <thead>
                 <tr>
                   <th scope="col">主题</th>
-                  <th aria-label="作者及发布时间" scope="col" />
+                  <th scope="col">作者</th>
                   <th scope="col">最后回复</th>
                   <th scope="col">回复/浏览</th>
                 </tr>
