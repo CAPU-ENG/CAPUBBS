@@ -6,7 +6,6 @@ import {
   Droplets,
   Footprints,
   Globe2,
-  Home,
   Megaphone,
   ServerCog,
   Trophy,
@@ -108,12 +107,7 @@ export function MobileBoardSidebar({ open, onClose }: { open: boolean; onClose: 
       </div>
 
       <div className="mobile-sidebar-scroll">
-        <a className="mobile-home-link" href="/" onClick={onClose}>
-          <Home size={18} />
-          <span>首页</span>
-        </a>
-
-        <div className="mt-6">
+        <div>
           <div className="grid grid-cols-2 gap-2">
             {primaryBoards.map(({ id, label, icon: Icon }) => (
               <a className="mobile-board-link" href={boardHref(id)} key={id} onClick={onClose}>
