@@ -1216,7 +1216,8 @@
   }
 
   .thread-page-button {
-    padding: 0 10px;
+    width: 36px;
+    padding: 0;
   }
 
   .thread-pagination-compact .thread-page-button {

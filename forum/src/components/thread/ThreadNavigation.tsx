@@ -40,7 +40,6 @@ export function ThreadPagination({
         title="首页"
       >
         <ChevronsLeft size={15} />
-        {!compact && <span>首页</span>}
       </a>
 
       <a
@@ -48,9 +47,9 @@ export function ThreadPagination({
         aria-label="上一页"
         className="thread-page-button"
         href={currentPage === 1 ? undefined : pageHref(threadId, currentPage - 1, authorOnly)}
+        title="上一页"
       >
         <ChevronLeft size={15} />
-        {!compact && <span>上一页</span>}
       </a>
 
       {pages.map((page, index) => {
@@ -74,8 +73,8 @@ export function ThreadPagination({
         aria-label="下一页"
         className="thread-page-button"
         href={currentPage === pageCount ? undefined : pageHref(threadId, currentPage + 1, authorOnly)}
+        title="下一页"
       >
-        {!compact && <span>下一页</span>}
         <ChevronRight size={15} />
       </a>
 
@@ -86,7 +85,6 @@ export function ThreadPagination({
         href={currentPage === pageCount ? undefined : pageHref(threadId, pageCount, authorOnly)}
         title="尾页"
       >
-        {!compact && <span>尾页</span>}
         <ChevronsRight size={15} />
       </a>
     </nav>
