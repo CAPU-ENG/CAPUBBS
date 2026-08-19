@@ -19,10 +19,12 @@ function getAuthorOnly() {
 export function ThreadPage() {
   const [replyTarget, setReplyTarget] = useState<ReplyTarget | null>(null);
   const [activeFloor, setActiveFloor] = useState(1);
+  const [showTitleInTopBar, setShowTitleInTopBar] = useState(false);
   const [bookmarked, setBookmarked] = useState(
     () => window.localStorage.getItem(`capubbs-bookmark-${demoThread.id}`) === '1',
   );
   const editorRef = useRef<HTMLElement | null>(null);
+  const titleRef = useRef<HTMLHeadingElement | null>(null);
   const authorOnly = getAuthorOnly();
 
   const filteredFloors = useMemo(
@@ -90,6 +92,49 @@ export function ThreadPage() {
     };
   }, [currentPage, pageFloors]);
 
+  useEffect(() => {
+    let frame = 0;
+    let lastScrollY = Math.max(0, window.scrollY);
+
+    function updateTopBarTitle() {
+      frame = 0;
+      const currentScrollY = Math.max(0, window.scrollY);
+      const scrollDelta = currentScrollY - lastScrollY;
+      lastScrollY = currentScrollY;
+
+      const topBarHeight = Number.parseFloat(
+        window.getComputedStyle(document.documentElement).getPropertyValue('--topbar-height'),
+      ) || 64;
+      const titleIsCovered = (titleRef.current?.getBoundingClientRect().bottom ?? Infinity) <= topBarHeight + 8;
+
+      if (!titleIsCovered) {
+        setShowTitleInTopBar(false);
+        return;
+      }
+
+      if (scrollDelta > 1) {
+        setShowTitleInTopBar(true);
+      } else if (scrollDelta < -1) {
+        setShowTitleInTopBar(false);
+      }
+    }
+
+    function scheduleTopBarTitleUpdate() {
+      if (frame) return;
+      frame = window.requestAnimationFrame(updateTopBarTitle);
+    }
+
+    window.addEventListener('scroll', scheduleTopBarTitleUpdate, { passive: true });
+    window.addEventListener('resize', scheduleTopBarTitleUpdate);
+    scheduleTopBarTitleUpdate();
+
+    return () => {
+      window.removeEventListener('scroll', scheduleTopBarTitleUpdate);
+      window.removeEventListener('resize', scheduleTopBarTitleUpdate);
+      if (frame) window.cancelAnimationFrame(frame);
+    };
+  }, []);
+
   function scrollToEditor(target: ReplyTarget) {
     setReplyTarget(target);
     window.requestAnimationFrame(() => editorRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }));
@@ -129,7 +174,7 @@ export function ThreadPage() {
   return (
     <div className="relative min-h-screen text-[var(--text)] transition-colors duration-200">
       <AppBackground />
-      <TopBar />
+      <TopBar showThreadTitle={showTitleInTopBar} threadTitle={demoThread.title} />
 
       <main className="thread-page-shell">
         <div className="thread-route-row">
@@ -148,7 +193,7 @@ export function ThreadPage() {
         </div>
 
         <header className="thread-title-card">
-          <h1>{demoThread.title}</h1>
+          <h1 id="thread-title" ref={titleRef}>{demoThread.title}</h1>
           <div className="thread-title-meta">
             <span><MessageCircle size={15} />{demoThread.floors.length - 1} 条回复</span>
             <span><Eye size={16} />{demoThread.views} 次浏览</span>

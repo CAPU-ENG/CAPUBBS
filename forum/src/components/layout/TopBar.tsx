@@ -24,7 +24,13 @@ function initialTheme(): Theme {
   return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
 }
 
-export function TopBar() {
+export function TopBar({
+  showThreadTitle = false,
+  threadTitle,
+}: {
+  showThreadTitle?: boolean;
+  threadTitle?: string;
+}) {
   const isHomePage = !new URLSearchParams(window.location.search).has('thread');
   const [theme, setTheme] = useState<Theme>(initialTheme);
   const [boardsOpen, setBoardsOpen] = useState(false);
@@ -52,6 +58,11 @@ export function TopBar() {
     document.body.classList.toggle('layer-open', layerOpen);
     return () => document.body.classList.remove('layer-open');
   }, [boardsOpen, mobileSidebarOpen]);
+
+  useEffect(() => {
+    if (!showThreadTitle) return;
+    setBoardsOpen(false);
+  }, [showThreadTitle]);
 
   useEffect(() => {
     function onPointerDown(event: PointerEvent) {
@@ -108,33 +119,43 @@ export function TopBar() {
             <img src={logo2} alt="车协论坛" className="brand-wordmark" />
           </a>
 
-          <nav className="ml-8 hidden h-full items-stretch lg:flex" aria-label="主导航">
-            <a href="/" className={`top-nav-link ${isHomePage ? 'top-nav-link-active' : ''}`}>首页</a>
-            <div
-              className="flex h-full items-stretch"
-              onMouseEnter={openBoards}
-              onMouseLeave={scheduleCloseBoards}
-              onFocus={openBoards}
-              onBlur={(event) => {
-                if (!event.currentTarget.contains(event.relatedTarget)) scheduleCloseBoards();
-              }}
+          {showThreadTitle && threadTitle ? (
+            <a
+              className="topbar-thread-title ml-8 hidden min-w-0 flex-1 items-center justify-center lg:flex"
+              href="#thread-title"
+              title={threadTitle}
             >
-              <button
-                className={`top-nav-link ${boardsOpen ? 'top-nav-link-active' : ''}`}
-                type="button"
-                aria-haspopup="true"
-                aria-expanded={boardsOpen}
-                onClick={() => setBoardsOpen((open) => !open)}
+              <span>{threadTitle}</span>
+            </a>
+          ) : (
+            <nav className="ml-8 hidden h-full items-stretch lg:flex" aria-label="主导航">
+              <a href="/" className={`top-nav-link ${isHomePage ? 'top-nav-link-active' : ''}`}>首页</a>
+              <div
+                className="flex h-full items-stretch"
+                onMouseEnter={openBoards}
+                onMouseLeave={scheduleCloseBoards}
+                onFocus={openBoards}
+                onBlur={(event) => {
+                  if (!event.currentTarget.contains(event.relatedTarget)) scheduleCloseBoards();
+                }}
               >
-                版块 <ChevronDown size={14} className={`transition-transform ${boardsOpen ? 'rotate-180' : ''}`} />
-              </button>
-              {boardsOpen && (
-                <div className="desktop-board-drawer-wrap">
-                  <DesktopBoardDrawer onNavigate={closeAllLayers} />
-                </div>
-              )}
-            </div>
-          </nav>
+                <button
+                  className={`top-nav-link ${boardsOpen ? 'top-nav-link-active' : ''}`}
+                  type="button"
+                  aria-haspopup="true"
+                  aria-expanded={boardsOpen}
+                  onClick={() => setBoardsOpen((open) => !open)}
+                >
+                  版块 <ChevronDown size={14} className={`transition-transform ${boardsOpen ? 'rotate-180' : ''}`} />
+                </button>
+                {boardsOpen && (
+                  <div className="desktop-board-drawer-wrap">
+                    <DesktopBoardDrawer onNavigate={closeAllLayers} />
+                  </div>
+                )}
+              </div>
+            </nav>
+          )}
 
           <div className="ml-auto flex items-center gap-1.5 sm:gap-2">
             <a

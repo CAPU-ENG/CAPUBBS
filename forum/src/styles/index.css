@@ -287,6 +287,35 @@
     transform: scaleX(1);
   }
 
+  .topbar-thread-title {
+    overflow: hidden;
+    margin-right: 24px;
+    color: var(--text-strong);
+    font-family: "Noto Serif CJK SC", "Source Han Serif SC", "Songti SC", serif;
+    font-size: 0.86rem;
+    font-weight: 720;
+    letter-spacing: -0.015em;
+    line-height: 1.35;
+    animation: local-panel-in 150ms ease both;
+  }
+
+  .topbar-thread-title > span {
+    overflow: hidden;
+    max-width: 620px;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .topbar-thread-title:hover {
+    color: var(--brand-strong);
+  }
+
+  .topbar-thread-title:focus-visible {
+    border-radius: var(--control-radius);
+    outline: 2px solid color-mix(in srgb, var(--brand) 65%, transparent);
+    outline-offset: 3px;
+  }
+
   .page-overlay {
     position: fixed;
     z-index: 40;
