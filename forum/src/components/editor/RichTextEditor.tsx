@@ -1565,10 +1565,10 @@ export function RichTextEditor({
         </button>
       ) : null}
 
-      <footer className="flex flex-wrap items-center justify-between gap-2 border-t border-zinc-200/80 px-3 py-2 text-xs font-semibold text-zinc-500 dark:border-white/10 dark:text-zinc-400">
+      <footer className="capubbs-editor-statusbar flex flex-wrap items-center justify-between gap-2 border-t border-zinc-200/80 px-3 py-2 text-xs font-semibold text-zinc-500 dark:border-white/10 dark:text-zinc-400">
         <span>{plainTextLength(value.content, value.mode)} 字</span>
-        <div className="flex flex-wrap items-center gap-3">
-          <label className="inline-flex h-7 items-center gap-1.5 rounded-[1px] border border-zinc-200 bg-white/60 px-2 text-[0.72rem] font-bold text-zinc-600 dark:border-white/10 dark:bg-white/[0.06] dark:text-zinc-300">
+        <div className="capubbs-editor-statusbar-controls flex flex-wrap items-center gap-3">
+          <label className="capubbs-editor-toggle inline-flex h-7 items-center gap-1.5 rounded-[1px] border border-zinc-200 bg-white/60 px-2 text-[0.72rem] font-bold text-zinc-600 dark:border-white/10 dark:bg-white/[0.06] dark:text-zinc-300">
             <input
               type="checkbox"
               checked={isAutoHeightEnabled}
@@ -1578,7 +1578,7 @@ export function RichTextEditor({
             自适应高度
           </label>
           {isSourceMode ? (
-            <label className="inline-flex h-7 items-center gap-1.5 rounded-[1px] border border-zinc-200 bg-white/60 px-2 text-[0.72rem] font-bold text-zinc-600 dark:border-white/10 dark:bg-white/[0.06] dark:text-zinc-300">
+            <label className="capubbs-editor-toggle inline-flex h-7 items-center gap-1.5 rounded-[1px] border border-zinc-200 bg-white/60 px-2 text-[0.72rem] font-bold text-zinc-600 dark:border-white/10 dark:bg-white/[0.06] dark:text-zinc-300">
               <input
                 type="checkbox"
                 checked={showSourceLineNumbers}
@@ -1590,7 +1590,7 @@ export function RichTextEditor({
           ) : null}
           <div
             aria-label="编辑模式"
-            className="inline-flex h-7 shrink-0 items-center rounded-[1px] border border-zinc-200 bg-white/60 p-0.5 text-[0.72rem] font-bold dark:border-white/10 dark:bg-white/[0.06]"
+            className="capubbs-editor-mode-tabs inline-flex h-7 shrink-0 items-center rounded-[1px] border border-zinc-200 bg-white/60 p-0.5 text-[0.72rem] font-bold dark:border-white/10 dark:bg-white/[0.06]"
             role="group"
           >
             {editorModes.map((modeOption) => {
@@ -1602,7 +1602,7 @@ export function RichTextEditor({
                   type="button"
                   aria-pressed={isActive}
                   onClick={() => updateMode(modeOption.mode)}
-                  className={`h-6 rounded-[1px] px-2 transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#174f38] ${
+                  className={`capubbs-editor-mode-tab h-6 rounded-[1px] px-2 transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#174f38] ${
                     isActive
                       ? 'bg-[#174f38] text-white shadow-sm dark:bg-emerald-200 dark:text-zinc-950'
                       : 'text-zinc-600 hover:bg-zinc-100 hover:text-[#174f38] dark:text-zinc-300 dark:hover:bg-white/[0.08] dark:hover:text-white'

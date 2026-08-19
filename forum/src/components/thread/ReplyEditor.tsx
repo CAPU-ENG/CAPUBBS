@@ -267,7 +267,8 @@ export function ReplyEditor({
           type="button"
         >
           <Paperclip size={15} />
-          添加附件
+          <span className="reply-action-label-full">添加附件</span>
+          <span className="reply-action-label-compact">附件</span>
           {attachments.length > 0 && (
             <span className="reply-attachment-count">{attachments.length}</span>
           )}
@@ -292,7 +293,8 @@ export function ReplyEditor({
             type="button"
           >
             <Save size={15} />
-            存入草稿
+            <span className="reply-action-label-full">存入草稿</span>
+            <span className="reply-action-label-compact">草稿</span>
           </button>
           <button
             className="reply-publish-button"
@@ -300,7 +302,8 @@ export function ReplyEditor({
             type="button"
           >
             <Send size={15} />
-            发布回复
+            <span className="reply-action-label-full">发布回复</span>
+            <span className="reply-action-label-compact">发布</span>
           </button>
         </div>
       </footer>
