@@ -315,17 +315,8 @@
     box-shadow: var(--shadow-float);
   }
 
-  .board-drawer-intro,
   .board-drawer-section {
     padding: 20px 22px;
-  }
-
-  .drawer-section-label {
-    color: var(--text-faint);
-    font-size: 0.7rem;
-    font-weight: 800;
-    letter-spacing: 0.11em;
-    text-transform: uppercase;
   }
 
   .board-tile {
@@ -395,7 +386,6 @@
     transform: translateX(2px);
   }
 
-  .board-chip,
   .supplement-link {
     display: inline-flex;
     min-height: 34px;
@@ -410,7 +400,6 @@
     transition: 150ms ease;
   }
 
-  .board-chip:hover,
   .supplement-link:hover {
     border-color: var(--line-strong);
     background: var(--surface-soft);
@@ -598,23 +587,6 @@
   .mobile-board-link:active {
     border-color: color-mix(in srgb, var(--brand) 45%, var(--line));
     color: var(--brand-strong);
-  }
-
-  .mobile-list-link {
-    display: flex;
-    min-height: 40px;
-    align-items: center;
-    gap: 9px;
-    border-radius: 7px;
-    padding: 0 8px;
-    color: var(--text-muted);
-    font-size: 0.82rem;
-    font-weight: 620;
-  }
-
-  .mobile-list-link:hover {
-    background: var(--surface-soft);
-    color: var(--text-strong);
   }
 
   .page-shell {
@@ -856,8 +828,7 @@
     background: var(--brand-faint);
   }
 
-  .signup-card-topline,
-  .signup-card-people {
+  .signup-card-topline {
     display: flex;
     align-items: center;
     justify-content: space-between;
@@ -887,32 +858,23 @@
     font-weight: 720;
   }
 
-  .signup-card-meta {
+  .signup-card-countdown {
     display: flex;
     align-items: center;
-    gap: 12px;
-    margin-top: 7px;
-  }
-
-  .signup-card-meta span,
-  .signup-card-people span {
-    display: inline-flex;
-    align-items: center;
     gap: 4px;
+    margin-top: 9px;
+    border-top: 1px solid var(--line);
+    padding-top: 8px;
     color: var(--text-muted);
     font-size: 0.64rem;
   }
 
-  .signup-card-people {
-    margin-top: 9px;
-    border-top: 1px solid var(--line);
-    padding-top: 8px;
-  }
-
-  .signup-card-people strong {
+  .signup-card-countdown strong {
+    margin-left: auto;
     color: var(--brand-strong);
-    font-size: 0.65rem;
-    font-weight: 750;
+    font-variant-numeric: tabular-nums;
+    font-size: 0.67rem;
+    font-weight: 760;
   }
 
   .calendar-month-nav {

@@ -1,5 +1,5 @@
-import { useMemo, useState } from 'react';
-import { CalendarDays, ChevronLeft, ChevronRight, Clock3, MapPin, Pin, TicketCheck, Users } from 'lucide-react';
+import { useEffect, useMemo, useState } from 'react';
+import { Bike, CalendarDays, ChevronLeft, ChevronRight, Clock3, MapPin, Pin } from 'lucide-react';
 
 const pinnedThreads = [
   '关于周末骑行路线的临时调整',
@@ -14,9 +14,23 @@ const activities = [
 ];
 
 const signupActivities = [
-  { date: '08.23 周日', title: '周末轻骑', time: '08:30', place: '东门集合', enrolled: 24, capacity: 30 },
-  { date: '08.27 周四', title: '夜骑安全训练', time: '19:00', place: '活动室门口', enrolled: 12, capacity: 20 },
+  { date: '08.23 周日', title: '周末轻骑', deadline: '2026-08-22T20:00:00+08:00' },
+  { date: '08.27 周四', title: '夜骑安全训练', deadline: '2026-08-26T18:00:00+08:00' },
 ];
+
+function formatCountdown(deadline: string, now: number) {
+  const remaining = new Date(deadline).getTime() - now;
+  if (remaining <= 0) return '报名已截止';
+
+  const totalSeconds = Math.floor(remaining / 1000);
+  const days = Math.floor(totalSeconds / 86400);
+  const hours = Math.floor((totalSeconds % 86400) / 3600);
+  const minutes = Math.floor((totalSeconds % 3600) / 60);
+  const seconds = totalSeconds % 60;
+  const clock = [hours, minutes, seconds].map((value) => String(value).padStart(2, '0')).join(':');
+
+  return days > 0 ? `${days} 天 ${clock}` : clock;
+}
 
 function dateKey(year: number, month: number, day: number) {
   return `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
@@ -45,10 +59,17 @@ function PinnedPanel() {
 }
 
 function ActivitySignupPanel() {
+  const [now, setNow] = useState(() => Date.now());
+
+  useEffect(() => {
+    const timer = window.setInterval(() => setNow(Date.now()), 1000);
+    return () => window.clearInterval(timer);
+  }, []);
+
   return (
     <section className="aside-card" aria-labelledby="signup-title">
       <header className="aside-card-header">
-        <span className="aside-card-icon"><TicketCheck size={15} /></span>
+        <span className="aside-card-icon"><Bike size={16} /></span>
         <h2 id="signup-title">活动报名</h2>
       </header>
       <div className="signup-list">
@@ -59,14 +80,11 @@ function ActivitySignupPanel() {
               <em>报名中</em>
             </div>
             <h3>{activity.title}</h3>
-            <div className="signup-card-meta">
-              <span><Clock3 size={13} />{activity.time}</span>
-              <span><MapPin size={13} />{activity.place}</span>
-            </div>
-            <div className="signup-card-people">
-              <span><Users size={13} />已报名 {activity.enrolled} 人</span>
-              <strong>{activity.enrolled} / {activity.capacity}</strong>
-            </div>
+            <time className="signup-card-countdown" dateTime={activity.deadline}>
+              <Clock3 size={13} />
+              <span>截止报名</span>
+              <strong>{formatCountdown(activity.deadline, now)}</strong>
+            </time>
           </a>
         ))}
       </div>
