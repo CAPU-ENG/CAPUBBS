@@ -29,6 +29,13 @@ type ReplyAttachment = {
 };
 
 const draftStorageKey = "capubbs-thread-reply-draft";
+const signatureOptions = [
+  { label: "不使用签名档", value: 0 },
+  { label: "签名档 1", value: 1 },
+  { label: "签名档 2", value: 2 },
+  { label: "签名档 3", value: 3 },
+  { label: "自选", value: 4 },
+] as const;
 
 export function ReplyEditor({
   editorRef,
@@ -45,6 +52,7 @@ export function ReplyEditor({
     content: "",
     mode: "rich",
   });
+  const [signatureIndex, setSignatureIndex] = useState(0);
   const [attachments, setAttachments] = useState<ReplyAttachment[]>([]);
   const [attachmentDialogOpen, setAttachmentDialogOpen] = useState(false);
   const [previewOpen, setPreviewOpen] = useState(false);
@@ -62,6 +70,8 @@ export function ReplyEditor({
         content?: string;
         editor?: RichTextEditorValue;
         mode?: RichTextEditorValue["mode"];
+        signature?: string;
+        signatureIndex?: number;
       };
       setEditorValue(
         parsed.editor ?? {
@@ -69,6 +79,7 @@ export function ReplyEditor({
           mode: parsed.mode ?? "rich",
         },
       );
+      setSignatureIndex(parsed.signatureIndex ?? Number(parsed.signature ?? 0));
       setAttachments(parsed.attachments ?? []);
       setStatus("草稿已恢复");
     } catch {
@@ -131,6 +142,7 @@ export function ReplyEditor({
       JSON.stringify({
         attachments,
         editor: getRichTextEditorStorageValue(editorValue),
+        signatureIndex,
         threadTitle,
       }),
     );
@@ -193,6 +205,28 @@ export function ReplyEditor({
           placeholder="写下你的回复……"
           value={editorValue}
         />
+      </div>
+
+      <div
+        aria-label="选择签名档"
+        className="reply-signature-options"
+        role="radiogroup"
+      >
+        {signatureOptions.map((option) => (
+          <label key={option.value}>
+            <input
+              checked={signatureIndex === option.value}
+              name="reply-signature"
+              onChange={() => {
+                setSignatureIndex(option.value);
+                setStatus("");
+              }}
+              type="radio"
+              value={option.value}
+            />
+            {option.label}
+          </label>
+        ))}
       </div>
 
       {attachments.length > 0 && (

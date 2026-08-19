@@ -1772,6 +1772,36 @@
     border-radius: var(--control-radius) !important;
   }
 
+  .reply-signature-options {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px 18px;
+    margin: 10px 16px 12px;
+    padding-inline: 2px;
+  }
+
+  .reply-signature-options > label {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    color: var(--text-muted);
+    font-size: 0.68rem;
+    font-weight: 680;
+    cursor: pointer;
+  }
+
+  .reply-signature-options > label:has(input:checked) {
+    color: var(--brand-strong);
+  }
+
+  .reply-signature-options input {
+    width: 14px;
+    height: 14px;
+    margin: 0;
+    accent-color: var(--brand-strong);
+  }
+
   .editor-mode-tabs {
     display: flex;
     border-top: 1px solid var(--line);
@@ -2869,6 +2899,11 @@
 
     .reply-editor-core {
       padding: 0 10px;
+    }
+
+    .reply-signature-options {
+      gap: 8px 14px;
+      margin: 10px 12px;
     }
 
     .editor-mode-tabs {
