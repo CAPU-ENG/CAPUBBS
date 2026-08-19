@@ -1,4 +1,4 @@
-import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight } from 'lucide-react';
 
 type PaginationProps = {
   currentPage: number;
@@ -34,6 +34,17 @@ export function ThreadPagination({
     <nav className={`thread-pagination ${compact ? 'thread-pagination-compact' : ''}`} aria-label="帖子分页">
       <a
         aria-disabled={currentPage === 1}
+        aria-label="首页"
+        className="thread-page-button"
+        href={currentPage === 1 ? undefined : pageHref(threadId, 1, authorOnly)}
+        title="首页"
+      >
+        <ChevronsLeft size={15} />
+        {!compact && <span>首页</span>}
+      </a>
+
+      <a
+        aria-disabled={currentPage === 1}
         aria-label="上一页"
         className="thread-page-button"
         href={currentPage === 1 ? undefined : pageHref(threadId, currentPage - 1, authorOnly)}
@@ -66,6 +77,17 @@ export function ThreadPagination({
       >
         {!compact && <span>下一页</span>}
         <ChevronRight size={15} />
+      </a>
+
+      <a
+        aria-disabled={currentPage === pageCount}
+        aria-label="尾页"
+        className="thread-page-button"
+        href={currentPage === pageCount ? undefined : pageHref(threadId, pageCount, authorOnly)}
+        title="尾页"
+      >
+        {!compact && <span>尾页</span>}
+        <ChevronsRight size={15} />
       </a>
     </nav>
   );
