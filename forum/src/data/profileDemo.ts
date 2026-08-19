@@ -18,6 +18,7 @@ export type ProfileStat = {
 export type ProfileRecord = {
   author?: string;
   board: string;
+  contentMode?: 'html' | 'markdown' | 'rich';
   date: string;
   excerpt: string;
   href: string;

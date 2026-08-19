@@ -13,17 +13,22 @@ import {
   Search,
 } from 'lucide-react';
 import { useEffect, useMemo, useState, type ReactNode } from 'react';
+import { createPortal } from 'react-dom';
 import {
   profileTabs,
   type ProfileRecord,
   type ProfileRecordMap,
   type ProfileTab,
 } from '../../data/profileDemo';
+import {
+  getRichTextEditorStorageValue,
+  RichTextEditor,
+  type RichTextEditorValue,
+} from '../editor/RichTextEditor';
 
 type ProfileWorkspaceProps = {
   allowedTabs: ProfileTab[];
   asideLink?: { href: string; label: string };
-  counts: Partial<Record<ProfileTab, number>>;
   initialRecords: ProfileRecordMap;
   ownerLabel: string;
   readOnly?: boolean;
@@ -43,7 +48,6 @@ const PAGE_SIZE = 3;
 export function ProfileWorkspace({
   allowedTabs,
   asideLink,
-  counts,
   initialRecords,
   ownerLabel,
   readOnly = false,
@@ -110,13 +114,16 @@ export function ProfileWorkspace({
     setEndDate('');
   }
 
-  function saveSignature(record: ProfileRecord, excerpt: string) {
+  function saveSignature(record: ProfileRecord, value: RichTextEditorValue) {
+    const storedValue = getRichTextEditorStorageValue(value);
     setRecords((current) => ({
       ...current,
-      signatures: current.signatures.map((candidate) => candidate.id === record.id ? { ...candidate, excerpt } : candidate),
+      signatures: current.signatures.map((candidate) => candidate.id === record.id
+        ? { ...candidate, contentMode: storedValue.mode, excerpt: storedValue.content }
+        : candidate),
     }));
     setEditingRecordId(null);
-    setNotice('签名档已保存到当前页面会话。');
+    setNotice('签名档修改成功');
   }
 
   const filterPanel = (
@@ -145,7 +152,6 @@ export function ProfileWorkspace({
           >
             {tabIcons[tab.key]}
             <span>{tab.label}</span>
-            <small>{counts[tab.key] ?? records[tab.key].length}</small>
           </button>
         ))}
       </nav>
@@ -165,7 +171,7 @@ export function ProfileWorkspace({
 
       {filtersOpen && activeTab !== 'signatures' ? <div className="profile-mobile-filter">{filterPanel}</div> : null}
 
-      {notice ? <div className="profile-toast" role="status">{notice}</div> : null}
+      {notice ? createPortal(<div className="profile-toast" role="status">{notice}</div>, document.body) : null}
 
       <div className="profile-content-layout">
         <div className="profile-record-panel">
@@ -267,29 +273,42 @@ function ProfileRecordRow({
   activeTab: ProfileTab;
   editing: boolean;
   onEdit: () => void;
-  onSaveSignature: (value: string) => void;
+  onSaveSignature: (value: RichTextEditorValue) => void;
   readOnly: boolean;
   record: ProfileRecord;
 }) {
-  const [signatureValue, setSignatureValue] = useState(record.excerpt);
+  const [signatureValue, setSignatureValue] = useState<RichTextEditorValue>({
+    content: record.excerpt,
+    mode: record.contentMode ?? 'rich',
+  });
 
-  useEffect(() => setSignatureValue(record.excerpt), [record.excerpt]);
+  useEffect(() => {
+    setSignatureValue({ content: record.excerpt, mode: record.contentMode ?? 'rich' });
+  }, [record.contentMode, record.excerpt]);
 
   return (
     <article className="profile-record">
       <div className="profile-record-line">
         <h3><a href={record.href}>{record.title}</a></h3>
         <time dateTime={record.date}>{formatDate(record.date)}</time>
-        {!readOnly && activeTab === 'signatures' && !editing ? (
-          <div className="profile-record-actions"><button type="button" onClick={onEdit}>编辑签名档</button></div>
+        {!readOnly && activeTab === 'signatures' ? (
+          <div className="profile-record-actions">
+            <button type="button" onClick={editing ? () => onSaveSignature(signatureValue) : onEdit}>
+              {editing ? '保存' : '编辑'}
+            </button>
+          </div>
         ) : null}
       </div>
       {editing && activeTab === 'signatures' ? (
         <div className="profile-signature-editor">
-          <textarea value={signatureValue} rows={3} onChange={(event) => setSignatureValue(event.target.value)} />
-          <div><button type="button" onClick={() => onSaveSignature(signatureValue)}>保存签名档</button></div>
+          <RichTextEditor
+            ariaLabel={`${record.title}内容`}
+            placeholder="写下签名档……"
+            value={signatureValue}
+            onChange={setSignatureValue}
+          />
         </div>
-      ) : null}
+      ) : activeTab === 'signatures' ? <p className="profile-signature-content">{toPlainText(record.excerpt, record.contentMode)}</p> : null}
     </article>
   );
 }
@@ -306,7 +325,6 @@ function ProfilePagination({
   return (
     <nav className="profile-pagination" aria-label="个人内容分页">
       <button disabled={currentPage === 1} type="button" onClick={() => onPageChange(currentPage - 1)}><ChevronLeft size={15} />上一页</button>
-      <span>第 <strong>{currentPage}</strong> / {pageCount} 页</span>
       <button disabled={currentPage === pageCount} type="button" onClick={() => onPageChange(currentPage + 1)}>下一页<ChevronRight size={15} /></button>
     </nav>
   );
@@ -328,4 +346,12 @@ function updateTabInUrl(tab: ProfileTab) {
 function formatDate(value: string) {
   const [year, month, day] = value.split('-');
   return `${year}.${month}.${day}`;
+}
+
+function toPlainText(value: string, mode: ProfileRecord['contentMode']) {
+  if (mode === 'markdown') {
+    return value.replace(/[#*_`>\[\]()~-]/g, ' ').replace(/\s+/g, ' ').trim() || '暂未设置签名档';
+  }
+  const documentValue = new DOMParser().parseFromString(value, 'text/html');
+  return documentValue.body.textContent?.trim() || '暂未设置签名档';
 }

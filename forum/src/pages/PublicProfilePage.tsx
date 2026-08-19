@@ -35,7 +35,6 @@ export function PublicProfilePage({ profileName }: { profileName: string | null 
 
         <ProfileWorkspace
           allowedTabs={allowedTabs}
-          counts={profile.counts}
           initialRecords={profile.records}
           ownerLabel={profile.id}
           readOnly

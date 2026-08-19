@@ -1,5 +1,8 @@
-import { CheckCircle2, ImagePlus, LockKeyhole, Mail, MessageCircle, Send, X } from 'lucide-react';
+import { CheckCircle2, LockKeyhole, Mail, MessageCircle, Send, X } from 'lucide-react';
 import { useEffect, useState, type ReactNode } from 'react';
+import { createPortal } from 'react-dom';
+
+export { AvatarDialog } from './AvatarEditorDialog';
 
 type DialogFrameProps = {
   children: ReactNode;
@@ -21,7 +24,7 @@ function DialogFrame({ children, icon, onClose, open, title }: DialogFrameProps)
 
   if (!open) return null;
 
-  return (
+  return createPortal(
     <div className="profile-dialog-backdrop" role="presentation" onMouseDown={onClose}>
       <section
         aria-modal="true"
@@ -36,44 +39,8 @@ function DialogFrame({ children, icon, onClose, open, title }: DialogFrameProps)
         </header>
         {children}
       </section>
-    </div>
-  );
-}
-
-export function AvatarDialog({
-  avatarSrc,
-  onClose,
-  onSave,
-  open,
-}: {
-  avatarSrc: string;
-  onClose: () => void;
-  onSave: (src: string) => void;
-  open: boolean;
-}) {
-  const [preview, setPreview] = useState(avatarSrc);
-
-  useEffect(() => setPreview(avatarSrc), [avatarSrc, open]);
-
-  function readFile(file?: File) {
-    if (!file) return;
-    const reader = new FileReader();
-    reader.onload = () => typeof reader.result === 'string' && setPreview(reader.result);
-    reader.readAsDataURL(file);
-  }
-
-  return (
-    <DialogFrame icon={<ImagePlus size={18} />} onClose={onClose} open={open} title="头像预览">
-      <div className="profile-dialog-body">
-        <img className="profile-avatar-preview" src={preview} alt="当前头像预览" />
-        <p className="profile-dialog-copy">选择一张本地图片预览。演示模式只在当前页面会话中保留头像。</p>
-        <label className="profile-file-input">
-          <ImagePlus size={16} />选择本地图片
-          <input accept="image/*" type="file" onChange={(event) => readFile(event.target.files?.[0])} />
-        </label>
-      </div>
-      <DialogFooter onCancel={onClose} onConfirm={() => { onSave(preview); onClose(); }} confirmLabel="使用此头像" />
-    </DialogFrame>
+    </div>,
+    document.body,
   );
 }
 

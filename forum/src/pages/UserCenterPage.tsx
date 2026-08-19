@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { AppBackground } from '../components/layout/AppBackground';
 import { TopBar } from '../components/layout/TopBar';
 import { AvatarDialog, EmailDialog, SecurityDialog } from '../components/profile/ProfileDialogs';
@@ -79,12 +80,11 @@ export function UserCenterPage() {
           onOpenSecurity={() => setOpenDialog('security')}
         />
 
-        {notice ? <div className="profile-toast" role="status">{notice}</div> : null}
+        {notice ? createPortal(<div className="profile-toast" role="status">{notice}</div>, document.body) : null}
 
         <ProfileWorkspace
           allowedTabs={['posts', 'replies', 'activities', 'bookmarks', 'drafts', 'signatures']}
           asideLink={{ href: `/users/${encodeURIComponent(profile.slug)}`, label: '查看公开个人主页' }}
-          counts={profile.counts}
           initialRecords={profile.records}
           ownerLabel="我"
         />
