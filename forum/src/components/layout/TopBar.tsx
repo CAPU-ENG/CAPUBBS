@@ -4,13 +4,11 @@ import {
   ChevronDown,
   LogOut,
   Menu,
-  MessageSquareText,
   Moon,
   Search,
   Settings,
   Sun,
   UserRound,
-  X,
 } from 'lucide-react';
 import defaultAvatar from '../../assets/avatar/default-avatar.avif';
 import logo1 from '../../assets/logo/logo1.webp';
@@ -30,7 +28,6 @@ export function TopBar() {
   const [theme, setTheme] = useState<Theme>(initialTheme);
   const [boardsOpen, setBoardsOpen] = useState(false);
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
-  const [searchOpen, setSearchOpen] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
   const closeTimer = useRef<number | null>(null);
   const profileMenuRef = useRef<HTMLDivElement | null>(null);
@@ -50,10 +47,10 @@ export function TopBar() {
   }, []);
 
   useEffect(() => {
-    const layerOpen = boardsOpen || mobileSidebarOpen || searchOpen;
+    const layerOpen = boardsOpen || mobileSidebarOpen;
     document.body.classList.toggle('layer-open', layerOpen);
     return () => document.body.classList.remove('layer-open');
-  }, [boardsOpen, mobileSidebarOpen, searchOpen]);
+  }, [boardsOpen, mobileSidebarOpen]);
 
   useEffect(() => {
     function onPointerDown(event: PointerEvent) {
@@ -69,7 +66,6 @@ export function TopBar() {
   function closeAllLayers() {
     setBoardsOpen(false);
     setMobileSidebarOpen(false);
-    setSearchOpen(false);
     setProfileOpen(false);
   }
 
@@ -87,7 +83,7 @@ export function TopBar() {
     setTheme((current) => current === 'light' ? 'dark' : 'light');
   }
 
-  const anyOverlayOpen = boardsOpen || mobileSidebarOpen || searchOpen;
+  const anyOverlayOpen = boardsOpen || mobileSidebarOpen;
 
   return (
     <>
@@ -100,7 +96,6 @@ export function TopBar() {
             aria-expanded={mobileSidebarOpen}
             onClick={() => {
               setMobileSidebarOpen(true);
-              setSearchOpen(false);
               setProfileOpen(false);
             }}
           >
@@ -141,19 +136,13 @@ export function TopBar() {
           </nav>
 
           <div className="ml-auto flex items-center gap-1.5 sm:gap-2">
-            <button
-              className={`icon-button ${searchOpen ? 'icon-button-active' : ''}`}
-              type="button"
+            <a
+              className="icon-button"
+              href="/bbs/search/"
               aria-label="搜索"
-              aria-expanded={searchOpen}
-              onClick={() => {
-                setSearchOpen((open) => !open);
-                setProfileOpen(false);
-                setBoardsOpen(false);
-              }}
             >
-              {searchOpen ? <X size={19} /> : <Search size={19} />}
-            </button>
+              <Search size={19} />
+            </a>
 
             <button
               className="icon-button"
@@ -178,7 +167,6 @@ export function TopBar() {
                 aria-expanded={profileOpen}
                 onClick={() => {
                   setProfileOpen((open) => !open);
-                  setSearchOpen(false);
                   setBoardsOpen(false);
                 }}
               >
@@ -188,16 +176,7 @@ export function TopBar() {
 
               {profileOpen && (
                 <div className="profile-menu" role="menu">
-                  <div className="profile-summary">
-                    <img src={defaultAvatar} alt="" />
-                    <div className="min-w-0">
-                      <strong>北大车协车友</strong>
-                      <span>欢迎回来，继续出发。</span>
-                    </div>
-                  </div>
                   <a href="#profile" role="menuitem"><UserRound size={16} />个人主页</a>
-                  <a href="#my-threads" role="menuitem"><MessageSquareText size={16} />我的帖子</a>
-                  <div className="profile-menu-separator" />
                   <a href="#settings" role="menuitem"><Settings size={16} />设置</a>
                   <button type="button" role="menuitem"><LogOut size={16} />退出登录</button>
                 </div>
@@ -208,19 +187,6 @@ export function TopBar() {
       </header>
 
       {anyOverlayOpen && <button className="page-overlay" type="button" aria-label="关闭当前面板" onClick={closeAllLayers} />}
-
-      {searchOpen && (
-        <section className="search-panel" role="search">
-          <p className="eyebrow">SEARCH THE FORUM</p>
-          <h2 className="section-title mt-1 text-2xl">搜索论坛</h2>
-          <form className="mt-5 flex gap-2" onSubmit={(event) => event.preventDefault()}>
-            <label className="sr-only" htmlFor="global-search">搜索帖子、作者或版块</label>
-            <input id="global-search" autoFocus placeholder="输入帖子、作者或版块…" />
-            <button type="submit"><Search size={18} /><span className="hidden sm:inline">搜索</span></button>
-          </form>
-          <p className="mt-3 text-xs text-[var(--text-faint)]">可以从帖子标题、正文或作者开始。</p>
-        </section>
-      )}
 
       <MobileBoardSidebar open={mobileSidebarOpen} onClose={closeAllLayers} />
     </>

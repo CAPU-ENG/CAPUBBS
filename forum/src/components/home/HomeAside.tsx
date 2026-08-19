@@ -22,14 +22,12 @@ function formatCountdown(deadline: string, now: number) {
   const remaining = new Date(deadline).getTime() - now;
   if (remaining <= 0) return '报名已截止';
 
-  const totalSeconds = Math.floor(remaining / 1000);
-  const days = Math.floor(totalSeconds / 86400);
-  const hours = Math.floor((totalSeconds % 86400) / 3600);
-  const minutes = Math.floor((totalSeconds % 3600) / 60);
-  const seconds = totalSeconds % 60;
-  const clock = [hours, minutes, seconds].map((value) => String(value).padStart(2, '0')).join(':');
+  const totalMinutes = Math.floor(remaining / 60_000);
+  const days = Math.floor(totalMinutes / 1440);
+  const hours = Math.floor((totalMinutes % 1440) / 60);
+  const minutes = totalMinutes % 60;
 
-  return days > 0 ? `${days} 天 ${clock}` : clock;
+  return `${days} 天 ${hours} 小时 ${minutes} 分钟`;
 }
 
 function dateKey(year: number, month: number, day: number) {
@@ -62,7 +60,7 @@ function ActivitySignupPanel() {
   const [now, setNow] = useState(() => Date.now());
 
   useEffect(() => {
-    const timer = window.setInterval(() => setNow(Date.now()), 1000);
+    const timer = window.setInterval(() => setNow(Date.now()), 60_000);
     return () => window.clearInterval(timer);
   }, []);
 
