@@ -1061,10 +1061,13 @@
   }
 
   .thread-page-shell {
+    --thread-main-column: 836px;
+    --thread-rail-column: 112px;
+    --thread-column-gap: 24px;
     position: relative;
     z-index: 10;
     width: 100%;
-    max-width: 1120px;
+    max-width: calc(var(--thread-main-column) + var(--thread-rail-column) + var(--thread-column-gap) + 32px);
     margin: 0 auto;
     padding: calc(var(--topbar-height) + 18px) 16px 54px;
   }
@@ -1167,6 +1170,8 @@
   }
 
   .thread-title-card {
+    width: 100%;
+    max-width: var(--thread-main-column);
     margin-top: 12px;
     border: 1px solid var(--line);
     border-radius: 2px;
@@ -1231,8 +1236,8 @@
 
   .thread-content-layout {
     display: grid;
-    grid-template-columns: minmax(0, 1fr) 112px;
-    gap: 24px;
+    grid-template-columns: minmax(0, var(--thread-main-column)) var(--thread-rail-column);
+    gap: var(--thread-column-gap);
     margin-top: 14px;
   }
 
@@ -1698,13 +1703,13 @@
   .thread-bottom-pagination {
     display: flex;
     justify-content: center;
-    max-width: calc(100% - 136px);
+    max-width: var(--thread-main-column);
     margin-top: 20px;
   }
 
   .reply-editor {
     scroll-margin-top: calc(var(--topbar-height) + 16px);
-    max-width: calc(100% - 136px);
+    max-width: var(--thread-main-column);
     margin-top: 18px;
     overflow: hidden;
     border: 1px solid var(--line);
