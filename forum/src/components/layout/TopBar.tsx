@@ -218,7 +218,7 @@ export function TopBar({
 
               {profileOpen && (
                 <div className="profile-menu" role="menu">
-                  <a href="#profile" role="menuitem"><UserRound size={16} />个人主页</a>
+                  <a href="/bbs/home/" role="menuitem"><UserRound size={16} />个人中心</a>
                   <a href="#settings" role="menuitem"><Settings size={16} />设置</a>
                   <button type="button" role="menuitem"><LogOut size={16} />退出登录</button>
                 </div>
