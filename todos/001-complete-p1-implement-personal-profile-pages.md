@@ -1,5 +1,5 @@
 ---
-status: ready
+status: complete
 priority: p1
 issue_id: "001"
 tags: [forum, react, ui, profile]
@@ -74,13 +74,13 @@ dependencies: []
 
 ## Acceptance Criteria
 
-- [ ] 个人中心与个人主页均可通过设计路由进入。
-- [ ] 资料、档案、Tab、筛选、分页和隐私分支均按设计实现。
-- [ ] 本地编辑与对话框交互可用且不误导为真实持久化。
-- [ ] 响应式与深色模式规则完整。
-- [ ] 类型检查、构建和本地 PHP 验证通过。
-- [ ] 未修改 API。
-- [ ] Git 提交准确且最终状态干净。
+- [x] 个人中心与个人主页均可通过设计路由进入。
+- [x] 资料、档案、Tab、筛选、分页和隐私分支均按设计实现。
+- [x] 本地编辑与对话框交互可用且不误导为真实持久化。
+- [x] 响应式与深色模式规则完整。
+- [x] 类型检查、构建和本地 PHP 验证通过。
+- [x] 未修改 API。
+- [x] Git 提交准确且最终状态干净。
 
 ## Work Log
 
@@ -100,3 +100,20 @@ dependencies: []
 - 当前代码库足以支持纯前端演示实现。
 - 个人主页权限必须由页面显式 props/数据控制，不能依赖空数组模拟隐私。
 
+### 2026-08-20 - 实现与验证完成
+
+**By:** Codex
+
+**Actions:**
+
+- 新增共享资料概览、内容工作区、筛选分页与对话框组件。
+- 新增个人中心和公开个人主页，并接入 pathname、Tab 查询参数与 Navbar 入口。
+- 新增独立 `profile.css`，覆盖浅色、深色、桌面、窄桌面和移动端。
+- 执行 `npm run typecheck` 与 `npm run build`，均通过。
+- 使用 PHP 8.5.9 本地服务检查构建首页、JS 和 CSS，均返回 HTTP 200。
+- 遵循仓库规定未执行截图或视觉验收，未修改 `api/`。
+
+**Learnings:**
+
+- 当前无路由库的 pathname 分发足以承载演示页；生产深链接仍需要服务器 rewrite。
+- 共享组件通过显式 `readOnly`、`allowedTabs` 和 `isOwnPublicProfile` 保持隐私分支清晰。

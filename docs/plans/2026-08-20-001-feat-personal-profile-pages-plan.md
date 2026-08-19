@@ -1,7 +1,7 @@
 ---
 title: "feat: 实现个人中心与个人主页"
 type: feat
-status: active
+status: completed
 date: 2026-08-20
 origin: docs/brainstorms/2026-08-20-personal-center-ui-brainstorm.md
 ---
@@ -63,18 +63,18 @@ origin: docs/brainstorms/2026-08-20-personal-center-ui-brainstorm.md
 
 ## Acceptance Criteria
 
-- [ ] `/user-center` 渲染个人中心，不影响首页、版面页和帖子页现有分发。
-- [ ] `/users/:name` 渲染公开个人主页，不存在用户显示明确状态。
-- [ ] 个人中心完整显示四项资料、八项论坛档案和六个内容 Tab。
-- [ ] 个人中心支持资料编辑与头像、邮箱、账号安全对话框的本地交互。
-- [ ] 两个页面均支持关键词、日期筛选、分页和 URL Tab 状态。
-- [ ] 他人主页不显示收藏、草稿、签名档和真实私密 Email。
-- [ ] 本人主页显示收藏与“进入个人中心”，不显示给自己发私信。
-- [ ] 页面适配桌面、窄桌面和移动端，并兼容现有深色模式。
-- [ ] 交互控件有可理解的标签、焦点状态和基础键盘支持。
-- [ ] `npm run typecheck` 与 `npm run build` 通过。
-- [ ] 通过本地 PHP 服务验证构建产物可加载；视觉验收留给用户。
-- [ ] 未修改 `api/` 目录。
+- [x] `/user-center` 渲染个人中心，不影响首页、版面页和帖子页现有分发。
+- [x] `/users/:name` 渲染公开个人主页，不存在用户显示明确状态。
+- [x] 个人中心完整显示四项资料、八项论坛档案和六个内容 Tab。
+- [x] 个人中心支持资料编辑与头像、邮箱、账号安全对话框的本地交互。
+- [x] 两个页面均支持关键词、日期筛选、分页和 URL Tab 状态。
+- [x] 他人主页不显示收藏、草稿、签名档和真实私密 Email。
+- [x] 本人主页显示收藏与“进入个人中心”，不显示给自己发私信。
+- [x] 页面适配桌面、窄桌面和移动端，并兼容现有深色模式。
+- [x] 交互控件有可理解的标签、焦点状态和基础键盘支持。
+- [x] `npm run typecheck` 与 `npm run build` 通过。
+- [x] 通过本地 PHP 服务验证构建产物可加载；视觉验收留给用户。
+- [x] 未修改 `api/` 目录。
 
 ## Dependencies & Risks
 
@@ -85,13 +85,13 @@ origin: docs/brainstorms/2026-08-20-personal-center-ui-brainstorm.md
 
 ## Implementation Tasks
 
-- [ ] 建立演示数据、类型与共享资料组件。
-- [ ] 实现个人中心页面和本地管理交互。
-- [ ] 实现公开个人主页和隐私分支。
-- [ ] 接入 App pathname 分发与 TopBar 入口。
-- [ ] 完成独立 profile 样式与响应式规则。
-- [ ] 执行类型检查、构建与本地 PHP 验证。
-- [ ] 更新计划与 todo 状态并提交全部变更。
+- [x] 建立演示数据、类型与共享资料组件。
+- [x] 实现个人中心页面和本地管理交互。
+- [x] 实现公开个人主页和隐私分支。
+- [x] 接入 App pathname 分发与 TopBar 入口。
+- [x] 完成独立 profile 样式与响应式规则。
+- [x] 执行类型检查、构建与本地 PHP 验证。
+- [x] 更新计划与 todo 状态并提交全部变更。
 
 ## Post-Deploy Monitoring & Validation
 
@@ -105,4 +105,3 @@ No additional operational monitoring required：本次仅新增使用演示数�
 - `forum/src/components/layout/Pagination.tsx`
 - `/Users/mac/Code/CAPUBBS-bbs-new-reference/bbs-new/app/src/routes/UserCenterRoute.tsx`
 - `/Users/mac/Code/CAPUBBS-bbs-new-reference/bbs-new/app/src/routes/PublicProfileRoute.tsx`
-
