@@ -128,6 +128,19 @@
     background: #183225;
   }
 
+  .app-background::after {
+    position: absolute;
+    inset: 0;
+    background: rgb(246 247 245 / 0.7);
+    content: "";
+    pointer-events: none;
+    transition: background-color 200ms ease;
+  }
+
+  .dark .app-background::after {
+    background: rgb(13 17 15 / 0.58);
+  }
+
   .capubbs-background-symbol {
     opacity: 0.16;
   }
