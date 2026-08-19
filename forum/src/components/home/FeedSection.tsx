@@ -114,13 +114,9 @@ export function FeedSection() {
   const hasMore = visibleCount < feedItems.length;
 
   return (
-    <section className="feed-section" id="feed" aria-labelledby="recent-replies-title">
+    <section className="feed-section" id="feed" aria-labelledby="forum-hot-title">
       <header className="feed-header">
-        <div>
-          <p className="eyebrow">RECENT CONVERSATIONS</p>
-          <h1 id="recent-replies-title" className="section-title">最近回复</h1>
-        </div>
-        <span className="feed-order-note">按最后回复时间排序</span>
+        <h1 id="forum-hot-title" className="section-title">论坛热点</h1>
       </header>
 
       <div className="divide-y divide-[var(--line)]">

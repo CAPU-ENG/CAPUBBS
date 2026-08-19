@@ -59,7 +59,7 @@ export function DesktopBoardDrawer({ onNavigate }: { onNavigate: () => void }) {
 
       <div className="board-drawer-section">
         <p className="drawer-section-label">主要版块</p>
-        <div className="mt-3 grid grid-cols-3 gap-2.5">
+        <div className="mt-3 grid grid-cols-3 gap-2">
           {primaryBoards.map(({ id, label, description, icon: Icon }) => (
             <a className="board-tile group" href={boardHref(id)} key={id} onClick={onNavigate}>
               <span className="board-tile-icon"><Icon size={17} /></span>
