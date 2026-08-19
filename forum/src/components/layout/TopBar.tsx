@@ -39,7 +39,9 @@ export function TopBar({
   const [boardsOpen, setBoardsOpen] = useState(false);
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
+  const [boardDrawerCenter, setBoardDrawerCenter] = useState<number | null>(null);
   const closeTimer = useRef<number | null>(null);
+  const boardTriggerRef = useRef<HTMLButtonElement | null>(null);
   const profileMenuRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
@@ -70,6 +72,19 @@ export function TopBar({
   }, [contextTitleVisible]);
 
   useEffect(() => {
+    if (!boardsOpen) return;
+
+    function updateBoardDrawerCenter() {
+      const triggerBounds = boardTriggerRef.current?.getBoundingClientRect();
+      if (triggerBounds) setBoardDrawerCenter(triggerBounds.left + triggerBounds.width / 2);
+    }
+
+    updateBoardDrawerCenter();
+    window.addEventListener('resize', updateBoardDrawerCenter);
+    return () => window.removeEventListener('resize', updateBoardDrawerCenter);
+  }, [boardsOpen]);
+
+  useEffect(() => {
     function onPointerDown(event: PointerEvent) {
       if (profileMenuRef.current && !profileMenuRef.current.contains(event.target as Node)) {
         setProfileOpen(false);
@@ -88,6 +103,8 @@ export function TopBar({
 
   function openBoards() {
     if (closeTimer.current) window.clearTimeout(closeTimer.current);
+    const triggerBounds = boardTriggerRef.current?.getBoundingClientRect();
+    if (triggerBounds) setBoardDrawerCenter(triggerBounds.left + triggerBounds.width / 2);
     setBoardsOpen(true);
     setProfileOpen(false);
   }
@@ -152,6 +169,7 @@ export function TopBar({
                 <button
                   className={`top-nav-link ${boardsOpen ? 'top-nav-link-active' : ''}`}
                   type="button"
+                  ref={boardTriggerRef}
                   aria-haspopup="true"
                   aria-expanded={boardsOpen}
                   onClick={() => setBoardsOpen((open) => !open)}
@@ -228,6 +246,7 @@ export function TopBar({
         {boardsOpen && !contextTitleVisible && (
           <div
             className="desktop-board-drawer-wrap"
+            style={{ left: boardDrawerCenter === null ? '50%' : `${boardDrawerCenter}px` }}
             onMouseEnter={openBoards}
             onMouseLeave={scheduleCloseBoards}
             onFocus={openBoards}

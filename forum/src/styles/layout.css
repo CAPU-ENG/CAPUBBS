@@ -298,7 +298,7 @@
     z-index: 70;
     top: var(--topbar-height);
     left: 50%;
-    width: min(520px, calc(100vw - 32px));
+    width: min(460px, calc(100vw - 32px));
     transform: translateX(-50%);
     padding-top: 8px;
     animation: panel-in 180ms cubic-bezier(.2,.8,.2,1) both;
