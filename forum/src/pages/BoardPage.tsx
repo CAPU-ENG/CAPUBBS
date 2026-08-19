@@ -1,5 +1,5 @@
 import { LockKeyhole, PenLine, Settings2, Sparkles, TrendingUp } from 'lucide-react';
-import activityCover from '../assets/activity/activity.avif';
+import boardCover from '../assets/board/b3.webp';
 import { AppBackground } from '../components/layout/AppBackground';
 import { Pagination } from '../components/layout/Pagination';
 import { TopBar } from '../components/layout/TopBar';
@@ -117,16 +117,21 @@ export function BoardPage() {
 
       <main className="board-page-shell">
         <header className="board-title-card">
-          <img alt="" aria-hidden="true" className="board-title-cover" src={activityCover} />
-          <div className="board-title-overlay" />
           <div className="board-title-content">
-            <div className="board-title-copy">
-              <h1 id="board-title" ref={titleRef}>{demoBoard.name}</h1>
-              <div className="board-moderators">
-                <span>版主</span>
-                {demoBoard.moderators.map((moderator) => (
-                  <a href={authorHref(moderator)} key={moderator}>{moderator}</a>
-                ))}
+            <div className="board-title-identity">
+              <img
+                alt={`${demoBoard.name}版面图片`}
+                className="board-title-image"
+                src={boardCover}
+              />
+              <div className="board-title-copy">
+                <h1 id="board-title" ref={titleRef}>{demoBoard.name}</h1>
+                <div className="board-moderators">
+                  <span>版主</span>
+                  {demoBoard.moderators.map((moderator) => (
+                    <a href={authorHref(moderator)} key={moderator}>{moderator}</a>
+                  ))}
+                </div>
               </div>
             </div>
 
@@ -169,8 +174,8 @@ export function BoardPage() {
               <thead>
                 <tr>
                   <th scope="col">主题</th>
-                  <th scope="col"><span>作者</span><small>发布时间</small></th>
-                  <th scope="col"><span>最后回复</span><small>最后回复时间</small></th>
+                  <th aria-label="作者及发布时间" scope="col" />
+                  <th scope="col">最后回复</th>
                   <th scope="col">回复/浏览</th>
                 </tr>
               </thead>
