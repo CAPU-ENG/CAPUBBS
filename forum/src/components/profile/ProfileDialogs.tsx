@@ -47,46 +47,125 @@ function DialogFrame({ children, icon, onClose, open, title }: DialogFrameProps)
 export function EmailDialog({
   email,
   onClose,
+  onNotify,
   onSave,
   open,
   visible,
 }: {
   email: string;
   onClose: () => void;
+  onNotify: (message: string, tone: 'error' | 'success') => void;
   onSave: (email: string, visible: boolean) => void;
   open: boolean;
   visible: boolean;
 }) {
-  const [draftEmail, setDraftEmail] = useState(email);
+  const [changeOpen, setChangeOpen] = useState(false);
+  const [code, setCode] = useState('');
+  const [codeSent, setCodeSent] = useState(false);
+  const [newEmail, setNewEmail] = useState('');
   const [draftVisible, setDraftVisible] = useState(visible);
 
   useEffect(() => {
-    setDraftEmail(email);
+    setChangeOpen(false);
+    setCode('');
+    setCodeSent(false);
+    setNewEmail('');
     setDraftVisible(visible);
   }, [email, open, visible]);
+
+  function sendCode() {
+    const normalizedEmail = newEmail.trim();
+    if (!isPkuEmail(normalizedEmail)) {
+      onNotify('请输入有效的 PKU 邮箱', 'error');
+      return;
+    }
+    if (normalizedEmail.toLowerCase() === email.trim().toLowerCase()) {
+      onNotify('新邮箱不能与当前邮箱相同', 'error');
+      return;
+    }
+
+    setCodeSent(true);
+    onNotify('验证码已发送（演示验证码：123456）', 'success');
+  }
+
+  function verifyCode() {
+    if (!codeSent) {
+      onNotify('请先发送验证码', 'error');
+      return;
+    }
+    if (!/^\d{6}$/.test(code.trim())) {
+      onNotify('请输入 6 位验证码', 'error');
+      return;
+    }
+    if (code.trim() !== '123456') {
+      onNotify('验证码错误或已失效', 'error');
+      return;
+    }
+
+    onSave(newEmail.trim(), draftVisible);
+    setChangeOpen(false);
+    setCode('');
+    setCodeSent(false);
+    setNewEmail('');
+    onNotify('邮箱验证成功', 'success');
+  }
 
   return (
     <DialogFrame icon={<Mail size={18} />} onClose={onClose} open={open} title="邮箱管理">
       <div className="profile-dialog-body">
         <label className="profile-dialog-field">
           <span>当前邮箱</span>
-          <input type="email" value={draftEmail} onChange={(event) => setDraftEmail(event.target.value)} />
+          <input className="profile-email-locked" type="email" value={email} readOnly aria-readonly="true" />
         </label>
-        <div className="profile-verification-line"><CheckCircle2 size={15} />已验证</div>
+        <div className="profile-email-status-line">
+          <div className="profile-verification-line"><CheckCircle2 size={15} />已验证</div>
+          <button type="button" onClick={() => setChangeOpen((current) => !current)}>
+            {changeOpen ? '取消更换' : '更换邮箱'}
+          </button>
+        </div>
+        {changeOpen ? (
+          <section className="profile-email-change-panel" aria-label="更换邮箱">
+            <div className="profile-email-action-row">
+              <input
+                aria-label="输入 PKU 邮箱"
+                autoComplete="email"
+                placeholder="输入 PKU 邮箱"
+                type="email"
+                value={newEmail}
+                onChange={(event) => { setNewEmail(event.target.value); setCodeSent(false); }}
+              />
+              <button type="button" onClick={sendCode}>{codeSent ? '重新发送' : '发送验证码'}</button>
+            </div>
+            <div className="profile-email-action-row">
+              <input
+                aria-label="6 位验证码"
+                autoComplete="one-time-code"
+                inputMode="numeric"
+                maxLength={6}
+                placeholder="6 位验证码"
+                value={code}
+                onChange={(event) => setCode(event.target.value.replace(/\D/g, '').slice(0, 6))}
+              />
+              <button className="profile-email-verify" type="button" onClick={verifyCode}>验证</button>
+            </div>
+          </section>
+        ) : null}
         <label className="profile-switch-field">
           <input type="checkbox" checked={draftVisible} onChange={(event) => setDraftVisible(event.target.checked)} />
           <span><strong>在个人主页公开邮箱</strong><small>关闭后，访客只能看到“未公开”。</small></span>
         </label>
-        <p className="profile-dialog-copy">演示模式不会发送验证码或更新服务器资料。</p>
       </div>
       <DialogFooter
-        confirmDisabled={!draftEmail.trim()}
-        confirmLabel="保存邮箱设置"
+        confirmLabel="完成"
         onCancel={onClose}
-        onConfirm={() => { onSave(draftEmail.trim(), draftVisible); onClose(); }}
+        onConfirm={() => { onSave(email, draftVisible); onClose(); }}
       />
     </DialogFrame>
   );
+}
+
+function isPkuEmail(value: string) {
+  return /^\d{10}@(?:(?:.+\.)?pku\.edu\.cn|bjmu\.edu\.cn)$/i.test(value.trim());
 }
 
 export function SecurityDialog({ onClose, open }: { onClose: () => void; open: boolean }) {

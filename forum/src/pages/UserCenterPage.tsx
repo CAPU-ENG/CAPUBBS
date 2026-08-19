@@ -8,6 +8,7 @@ import { ProfileWorkspace } from '../components/profile/ProfileWorkspace';
 import { currentProfile, type ProfileDetail } from '../data/profileDemo';
 
 type OpenDialog = 'avatar' | 'email' | 'security' | null;
+type PageNotice = { message: string; tone: 'error' | 'success' } | null;
 
 export function UserCenterPage() {
   const [profile, setProfile] = useState(currentProfile);
@@ -15,12 +16,12 @@ export function UserCenterPage() {
   const [isEditing, setIsEditing] = useState(false);
   const [draft, setDraft] = useState<ProfileDraft>(() => createDraft(currentProfile.details, currentProfile.intro));
   const [openDialog, setOpenDialog] = useState<OpenDialog>(() => window.location.hash === '#account-security' ? 'security' : null);
-  const [notice, setNotice] = useState('');
+  const [notice, setNotice] = useState<PageNotice>(null);
   const email = useMemo(() => profile.details.find((detail) => detail.key === 'email')?.value ?? '', [profile.details]);
 
   useEffect(() => {
     if (!notice) return;
-    const timeout = window.setTimeout(() => setNotice(''), 2600);
+    const timeout = window.setTimeout(() => setNotice(null), 2600);
     return () => window.clearTimeout(timeout);
   }, [notice]);
 
@@ -31,7 +32,7 @@ export function UserCenterPage() {
   function toggleEdit() {
     if (!isEditing) {
       setDraft(createDraft(profile.details, profile.intro));
-      setNotice('');
+      setNotice(null);
       setIsEditing(true);
       return;
     }
@@ -42,13 +43,13 @@ export function UserCenterPage() {
       intro: draft.intro,
     }));
     setIsEditing(false);
-    setNotice('资料保存成功');
+    setNotice({ message: '资料保存成功', tone: 'success' });
   }
 
   function cancelEdit() {
     setDraft(createDraft(profile.details, profile.intro));
     setIsEditing(false);
-    setNotice('已取消本次修改。');
+    setNotice({ message: '已取消本次修改', tone: 'success' });
   }
 
   function saveEmail(nextEmail: string, nextVisible: boolean) {
@@ -57,7 +58,6 @@ export function UserCenterPage() {
       details: current.details.map((detail) => detail.key === 'email' ? { ...detail, value: nextEmail } : detail),
       emailVisible: nextVisible,
     }));
-    setNotice('邮箱设置已保存到当前页面会话。');
   }
 
   return (
@@ -80,7 +80,12 @@ export function UserCenterPage() {
           onOpenSecurity={() => setOpenDialog('security')}
         />
 
-        {notice ? createPortal(<div className="profile-toast" role="status">{notice}</div>, document.body) : null}
+        {notice ? createPortal(
+          <div className={`profile-toast ${notice.tone === 'error' ? 'profile-toast-error' : ''}`} role="status">
+            {notice.message}
+          </div>,
+          document.body,
+        ) : null}
 
         <ProfileWorkspace
           allowedTabs={['posts', 'replies', 'activities', 'bookmarks', 'drafts', 'signatures']}
@@ -93,12 +98,13 @@ export function UserCenterPage() {
       <AvatarDialog
         avatarSrc={avatarSrc}
         onClose={() => setOpenDialog(null)}
-        onSave={(src) => { setAvatarSrc(src); setNotice('头像已更新到当前页面会话。'); }}
+        onSave={(src) => { setAvatarSrc(src); setNotice({ message: '头像修改成功', tone: 'success' }); }}
         open={openDialog === 'avatar'}
       />
       <EmailDialog
         email={email}
         onClose={() => setOpenDialog(null)}
+        onNotify={(message, tone) => setNotice({ message, tone })}
         onSave={saveEmail}
         open={openDialog === 'email'}
         visible={profile.emailVisible}
