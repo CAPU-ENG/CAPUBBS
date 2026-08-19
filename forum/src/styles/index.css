@@ -622,19 +622,6 @@
     box-shadow: var(--shadow-card);
   }
 
-  .feed-header {
-    display: flex;
-    min-height: 84px;
-    align-items: center;
-    justify-content: flex-start;
-    border-bottom: 1px solid var(--line);
-    padding: 18px 22px;
-  }
-
-  .feed-header .section-title {
-    font-size: 1.35rem;
-  }
-
   .feed-item {
     padding: 22px;
     transition: background 160ms ease;
@@ -1101,7 +1088,7 @@
       display: grid;
       grid-template-columns: minmax(0, 760px) 304px;
       gap: 10px;
-      padding-top: calc(var(--topbar-height) + 24px);
+      padding-top: calc(var(--topbar-height) + 10px);
     }
   }
 
@@ -1147,15 +1134,6 @@
     .profile-trigger img {
       width: 34px;
       height: 34px;
-    }
-
-    .feed-header {
-      min-height: 72px;
-      padding: 15px 17px;
-    }
-
-    .feed-header .section-title {
-      font-size: 1.2rem;
     }
 
     .feed-item {

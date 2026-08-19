@@ -114,11 +114,7 @@ export function FeedSection() {
   const hasMore = visibleCount < feedItems.length;
 
   return (
-    <section className="feed-section" id="feed" aria-labelledby="forum-hot-title">
-      <header className="feed-header">
-        <h1 id="forum-hot-title" className="section-title">论坛热点</h1>
-      </header>
-
+    <section className="feed-section" id="feed" aria-label="论坛帖子">
       <div className="divide-y divide-[var(--line)]">
         {feedItems.slice(0, visibleCount).map((item) => <FeedItem item={item} key={item.id} />)}
       </div>
