@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, type ClipboardEvent } from 'react';
 import {
   Check,
   ExternalLink,
@@ -64,6 +64,14 @@ function formatFloorTime(value: string) {
   );
 }
 
+function copyAsPlainText(event: ClipboardEvent<HTMLElement>) {
+  const selectedText = window.getSelection()?.toString();
+  if (!selectedText) return;
+
+  event.preventDefault();
+  event.clipboardData.setData('text/plain', selectedText);
+}
+
 export function ThreadFloor({
   floor,
   isMainPost,
@@ -106,6 +114,7 @@ export function ThreadFloor({
       className="thread-floor"
       id={`floor-${floor.floor}`}
       data-floor={floor.floor}
+      onCopy={copyAsPlainText}
     >
       <div
         className={`thread-avatar-rail ${authorCardOpen ? "author-card-click-open" : ""}`}
