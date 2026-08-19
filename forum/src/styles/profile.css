@@ -621,6 +621,47 @@
     line-height: 1.65;
   }
 
+  .profile-signature-floor-draft {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    border: 1px solid color-mix(in srgb, var(--brand) 24%, var(--line));
+    padding: 9px 11px;
+    background: var(--brand-faint);
+    color: var(--brand-strong);
+    font-size: 0.7rem;
+    font-weight: 680;
+    overflow-wrap: anywhere;
+  }
+
+  .profile-signature-floor-link {
+    display: flex;
+    min-height: 48px;
+    align-items: center;
+    gap: 8px;
+    border-top: 1px solid color-mix(in srgb, var(--line) 72%, transparent);
+    padding: 10px 18px;
+    color: var(--brand-strong);
+    font-size: 0.75rem;
+  }
+
+  .profile-signature-floor-link > svg:first-child {
+    color: var(--brand);
+  }
+
+  .profile-signature-floor-link strong {
+    min-width: 0;
+    flex: 1;
+    color: var(--text-faint);
+    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+    font-size: 0.66rem;
+    font-weight: 620;
+  }
+
+  .profile-signature-floor-link:hover {
+    background: var(--brand-faint);
+  }
+
   .profile-empty-state {
     display: grid;
     min-height: 260px;
@@ -1072,6 +1113,31 @@
     overflow-wrap: anywhere;
   }
 
+  .profile-floor-link-dialog {
+    width: min(540px, 100%);
+  }
+
+  .profile-floor-link-preview {
+    display: grid;
+    gap: 6px;
+    border: 1px solid color-mix(in srgb, var(--brand) 24%, var(--line));
+    padding: 10px 11px;
+    background: var(--brand-faint);
+  }
+
+  .profile-floor-link-preview span {
+    color: var(--text-faint);
+    font-size: 0.66rem;
+    font-weight: 680;
+  }
+
+  .profile-floor-link-preview code {
+    color: var(--brand-strong);
+    font-size: 0.75rem;
+    font-weight: 700;
+    overflow-wrap: anywhere;
+  }
+
   .profile-dialog-field {
     display: grid;
     gap: 7px;
@@ -1400,6 +1466,19 @@
       min-height: 48px;
       gap: 10px;
       padding: 0 12px;
+    }
+
+    .profile-signature-floor-link {
+      flex-wrap: wrap;
+      padding-right: 12px;
+      padding-left: 12px;
+    }
+
+    .profile-signature-floor-link strong {
+      order: 3;
+      width: 100%;
+      flex-basis: 100%;
+      padding-left: 23px;
     }
 
     .profile-workspace-aside {

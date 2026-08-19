@@ -6,13 +6,15 @@ import {
   ExternalLink,
   FileText,
   Filter,
+  Link2,
   MessageSquareText,
   PenLine,
   Quote,
   RotateCcw,
   Search,
+  X,
 } from 'lucide-react';
-import { useEffect, useMemo, useState, type ReactNode } from 'react';
+import { useEffect, useMemo, useState, type FormEvent, type ReactNode } from 'react';
 import { createPortal } from 'react-dom';
 import {
   profileTabs,
@@ -20,6 +22,12 @@ import {
   type ProfileRecordMap,
   type ProfileTab,
 } from '../../data/profileDemo';
+import {
+  buildSignatureFloorHref,
+  buildSignatureFloorMarker,
+  parseSignatureFloorLink,
+  type SignatureFloorReference,
+} from '../../utils/signatureFloorLink';
 import {
   getRichTextEditorStorageValue,
   RichTextEditor,
@@ -277,6 +285,7 @@ function ProfileRecordRow({
   readOnly: boolean;
   record: ProfileRecord;
 }) {
+  const [floorLinkOpen, setFloorLinkOpen] = useState(false);
   const [signatureValue, setSignatureValue] = useState<RichTextEditorValue>({
     content: record.excerpt,
     mode: record.contentMode ?? 'rich',
@@ -286,13 +295,19 @@ function ProfileRecordRow({
     setSignatureValue({ content: record.excerpt, mode: record.contentMode ?? 'rich' });
   }, [record.contentMode, record.excerpt]);
 
+  const savedFloorReference = activeTab === 'signatures' ? parseSignatureFloorLink(record.excerpt) : null;
+  const draftFloorReference = activeTab === 'signatures' ? parseSignatureFloorLink(signatureValue.content) : null;
+
   return (
     <article className="profile-record">
       <div className="profile-record-line">
-        <h3><a href={record.href}>{record.title}</a></h3>
-        <time dateTime={record.date}>{formatDate(record.date)}</time>
+        <h3>{activeTab === 'signatures' ? record.title : <a href={record.href}>{record.title}</a>}</h3>
+        {activeTab !== 'signatures' ? <time dateTime={record.date}>{formatDate(record.date)}</time> : null}
         {!readOnly && activeTab === 'signatures' ? (
           <div className="profile-record-actions">
+            {editing ? (
+              <button type="button" onClick={() => setFloorLinkOpen(true)}><Link2 size={13} />链接到楼层</button>
+            ) : null}
             <button type="button" onClick={editing ? () => onSaveSignature(signatureValue) : onEdit}>
               {editing ? '保存' : '编辑'}
             </button>
@@ -307,9 +322,109 @@ function ProfileRecordRow({
             value={signatureValue}
             onChange={setSignatureValue}
           />
+          {draftFloorReference ? (
+            <div className="profile-signature-floor-draft">
+              <Link2 size={14} />将保存为 {buildSignatureFloorMarker(draftFloorReference)}
+            </div>
+          ) : null}
         </div>
-      ) : activeTab === 'signatures' ? <p className="profile-signature-content">{toPlainText(record.excerpt, record.contentMode)}</p> : null}
+      ) : activeTab === 'signatures' ? (
+        savedFloorReference ? (
+          <a className="profile-signature-floor-link" href={buildSignatureFloorHref(savedFloorReference)}>
+            <Link2 size={15} />
+            <span>链接到楼层</span>
+            <strong>bid={savedFloorReference.bid} · tid={savedFloorReference.tid} · pid={savedFloorReference.pid}</strong>
+            <ExternalLink size={14} />
+          </a>
+        ) : <p className="profile-signature-content">{toPlainText(record.excerpt, record.contentMode)}</p>
+      ) : null}
+
+      {floorLinkOpen ? (
+        <SignatureFloorLinkDialog
+          initialValue={draftFloorReference ? buildSignatureFloorHref(draftFloorReference) : ''}
+          onClose={() => setFloorLinkOpen(false)}
+          onLink={(reference) => {
+            setSignatureValue({ content: buildSignatureFloorMarker(reference), mode: 'rich' });
+            setFloorLinkOpen(false);
+          }}
+        />
+      ) : null}
     </article>
+  );
+}
+
+function SignatureFloorLinkDialog({
+  initialValue,
+  onClose,
+  onLink,
+}: {
+  initialValue: string;
+  onClose: () => void;
+  onLink: (reference: SignatureFloorReference) => void;
+}) {
+  const [link, setLink] = useState(initialValue);
+  const [error, setError] = useState('');
+  const parsedReference = parseSignatureFloorLink(link);
+
+  useEffect(() => {
+    function handleKeyDown(event: KeyboardEvent) {
+      if (event.key === 'Escape') onClose();
+    }
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [onClose]);
+
+  function submit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    const reference = parseSignatureFloorLink(link);
+    if (!reference) {
+      setError('无法解析楼层链接，请确认链接包含 bid、tid 和 pid（或 floor）。');
+      return;
+    }
+    onLink(reference);
+  }
+
+  return createPortal(
+    <div className="profile-dialog-backdrop" role="presentation" onMouseDown={onClose}>
+      <form
+        aria-modal="true"
+        className="profile-dialog profile-floor-link-dialog"
+        role="dialog"
+        aria-labelledby="signature-floor-link-title"
+        onMouseDown={(event) => event.stopPropagation()}
+        onSubmit={submit}
+      >
+        <header>
+          <span><Link2 size={18} /></span>
+          <h2 id="signature-floor-link-title">链接到楼层</h2>
+          <button aria-label="关闭" type="button" onClick={onClose}><X size={18} /></button>
+        </header>
+        <div className="profile-dialog-body">
+          <p className="profile-dialog-copy">粘贴新论坛或旧论坛的楼层链接，系统会转换为签名档楼层标记。</p>
+          <label className="profile-dialog-field">
+            <span>楼层链接</span>
+            <input
+              autoFocus
+              value={link}
+              onChange={(event) => { setLink(event.target.value); setError(''); }}
+              placeholder="例如 /bbs/content/?bid=4&tid=19989#pid41"
+            />
+          </label>
+          {parsedReference ? (
+            <div className="profile-floor-link-preview">
+              <span>将转换为</span>
+              <code>{buildSignatureFloorMarker(parsedReference)}</code>
+            </div>
+          ) : null}
+          {error ? <p className="profile-dialog-error">{error}</p> : null}
+        </div>
+        <footer className="profile-dialog-footer">
+          <button className="profile-dialog-cancel" type="button" onClick={onClose}>取消</button>
+          <button className="profile-dialog-confirm" type="submit">转换并链接</button>
+        </footer>
+      </form>
+    </div>,
+    document.body,
   );
 }
 
