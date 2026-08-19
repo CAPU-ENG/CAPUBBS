@@ -1,12 +1,4 @@
 <?php
-    $request_uri = isset($_SERVER['REQUEST_URI']) ? $_SERVER['REQUEST_URI'] : '';
-    $request_path = parse_url($request_uri, PHP_URL_PATH);
-    if ($request_path === '/bbs/index') {
-        $query = parse_url($request_uri, PHP_URL_QUERY);
-        header('Location: /bbs/index/' . ($query !== null ? '?' . $query : ''));
-        exit;
-    }
-
     require_once "../lib/mainfunc.php";
     require_once "../content/utils/activityService.php";
     require_once "../../lib.php";

@@ -2,6 +2,7 @@
 /**
  * Global shared lib for CAPUBBS.
  */
+require_once __DIR__ . '/bootstrap.php';
 require_once __DIR__ . '/config.php';
 
 // Database connector (mysqli).

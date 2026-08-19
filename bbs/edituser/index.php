@@ -1,9 +1,9 @@
+<?php include("../lib/mainfunc.php"); ?>
 <html>
 <head>
 <title>CAPUBBS - 修改资料</title>
 <meta charset="utf-8">
 <?php
-    include("../lib/mainfunc.php");
     $userinfo=mainfunc(array("ask"=>"currentUserInfo"));
     if(count($userinfo)==0) die("尚未登录</head></html>");
     $userinfo=$userinfo[0];

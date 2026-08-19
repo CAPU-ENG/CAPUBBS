@@ -1,3 +1,4 @@
+<?php require_once __DIR__ . '/../bootstrap.php'; ?>
 <!DOCTYPE html>
 <html>
 <head>
@@ -34,6 +35,4 @@ li {line-height:200%}
 </p>
 </body>
 </html>
-
-
 

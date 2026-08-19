@@ -1,4 +1,7 @@
-<?php include_once "../../config.php"; ?>
+<?php
+require_once "../../bootstrap.php";
+include_once "../../config.php";
+?>
 <html>
 <head>
 <title>CAPUBBS - 注册</title>

@@ -1,4 +1,5 @@
 <?php
+    require_once "../../bootstrap.php";
     include_once "../../config.php";
 ?>
 <html>
