@@ -2763,6 +2763,7 @@
 
   .board-title-copy {
     min-width: 0;
+    padding-left: 56px;
   }
 
   .board-title-copy h1 {
@@ -3268,6 +3269,10 @@
 
     .board-title-copy h1 {
       font-size: 1.65rem;
+    }
+
+    .board-title-copy {
+      padding-left: 20px;
     }
 
     .board-title-artwork {
