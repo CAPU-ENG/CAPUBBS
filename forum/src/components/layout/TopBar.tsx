@@ -1,57 +1,228 @@
-import { LogIn, Menu, Moon, Search, UserPlus } from 'lucide-react';
+import { useEffect, useRef, useState } from 'react';
+import {
+  Bell,
+  ChevronDown,
+  LogOut,
+  Menu,
+  MessageSquareText,
+  Moon,
+  Search,
+  Settings,
+  Sun,
+  UserRound,
+  X,
+} from 'lucide-react';
+import defaultAvatar from '../../assets/avatar/default-avatar.avif';
 import logo1 from '../../assets/logo/logo1.webp';
 import logo2 from '../../assets/logo/logo2.webp';
+import { DesktopBoardDrawer, MobileBoardSidebar } from './BoardNavigation';
 
-const actionButtonClass =
-  'flex h-[var(--capubbs-topbar-button-size)] w-[var(--capubbs-topbar-button-size)] shrink-0 items-center justify-center rounded-md border border-white/[0.28] bg-white/[0.28] text-zinc-700 transition hover:border-white/45 hover:bg-white/[0.42] hover:text-zinc-950 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#385772]';
+type Theme = 'light' | 'dark';
+
+function initialTheme(): Theme {
+  if (typeof window === 'undefined') return 'light';
+  const stored = window.localStorage.getItem('capubbs-theme');
+  if (stored === 'light' || stored === 'dark') return stored;
+  return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+}
 
 export function TopBar() {
+  const [theme, setTheme] = useState<Theme>(initialTheme);
+  const [boardsOpen, setBoardsOpen] = useState(false);
+  const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
+  const [searchOpen, setSearchOpen] = useState(false);
+  const [profileOpen, setProfileOpen] = useState(false);
+  const closeTimer = useRef<number | null>(null);
+  const profileMenuRef = useRef<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    document.documentElement.classList.toggle('dark', theme === 'dark');
+    document.documentElement.style.colorScheme = theme;
+    window.localStorage.setItem('capubbs-theme', theme);
+  }, [theme]);
+
+  useEffect(() => {
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') closeAllLayers();
+    };
+    window.addEventListener('keydown', onKeyDown);
+    return () => window.removeEventListener('keydown', onKeyDown);
+  }, []);
+
+  useEffect(() => {
+    const layerOpen = boardsOpen || mobileSidebarOpen || searchOpen;
+    document.body.classList.toggle('layer-open', layerOpen);
+    return () => document.body.classList.remove('layer-open');
+  }, [boardsOpen, mobileSidebarOpen, searchOpen]);
+
+  useEffect(() => {
+    function onPointerDown(event: PointerEvent) {
+      if (profileMenuRef.current && !profileMenuRef.current.contains(event.target as Node)) {
+        setProfileOpen(false);
+      }
+    }
+
+    document.addEventListener('pointerdown', onPointerDown);
+    return () => document.removeEventListener('pointerdown', onPointerDown);
+  }, []);
+
+  function closeAllLayers() {
+    setBoardsOpen(false);
+    setMobileSidebarOpen(false);
+    setSearchOpen(false);
+    setProfileOpen(false);
+  }
+
+  function openBoards() {
+    if (closeTimer.current) window.clearTimeout(closeTimer.current);
+    setBoardsOpen(true);
+    setProfileOpen(false);
+  }
+
+  function scheduleCloseBoards() {
+    closeTimer.current = window.setTimeout(() => setBoardsOpen(false), 150);
+  }
+
+  function toggleTheme() {
+    setTheme((current) => current === 'light' ? 'dark' : 'light');
+  }
+
+  const anyOverlayOpen = boardsOpen || mobileSidebarOpen || searchOpen;
+
   return (
-    <header className="topbar-surface fixed inset-x-0 top-0 z-30 border-b shadow-sm">
-      <div className="topbar-shell mx-auto flex h-[var(--capubbs-topbar-height)] max-w-[1480px] items-center gap-[var(--capubbs-topbar-gap)] px-[var(--capubbs-topbar-x)]">
-        <button className={`${actionButtonClass} lg:hidden`} type="button" aria-label="展开左侧栏">
-          <Menu className="topbar-icon" />
-        </button>
+    <>
+      <header className="topbar">
+        <div className="topbar-shell">
+          <button
+            className="icon-button lg:hidden"
+            type="button"
+            aria-label="打开左侧栏"
+            aria-expanded={mobileSidebarOpen}
+            onClick={() => {
+              setMobileSidebarOpen(true);
+              setSearchOpen(false);
+              setProfileOpen(false);
+            }}
+          >
+            <Menu size={20} />
+          </button>
 
-        <a
-          href="/"
-          aria-label="返回首页"
-          className="flex h-[var(--capubbs-topbar-button-size)] min-w-[var(--capubbs-topbar-logo-min)] shrink-0 items-center gap-0.5 rounded-sm outline-none transition hover:opacity-85 focus-visible:ring-2 focus-visible:ring-[#385772]"
-        >
-          <img src={logo1} alt="" className="h-[var(--capubbs-topbar-logo-height)] w-auto" />
-          <img
-            src={logo2}
-            alt="车协论坛"
-            className="h-[var(--capubbs-topbar-logo-height)] w-[var(--capubbs-topbar-logo2-width)] shrink-0 object-cover object-center"
-          />
-        </a>
+          <a href="/" aria-label="返回首页" className="brand-link">
+            <img src={logo1} alt="" className="brand-mark" />
+            <img src={logo2} alt="车协论坛" className="brand-wordmark" />
+          </a>
 
-        <label className="relative hidden h-[var(--capubbs-topbar-button-size)] min-w-0 flex-1 items-center sm:flex">
-          <Search className="pointer-events-none absolute left-3 text-zinc-500/80" size={18} />
-          <span className="sr-only">搜索帖子标题或正文</span>
-          <input
-            className="h-full min-w-0 w-full rounded-md border border-white/[0.28] bg-[rgb(164_193_172_/_0.36)] pl-10 pr-3 text-sm text-zinc-800 outline-none transition placeholder:text-zinc-700/[0.62] focus:border-white/45 focus:bg-[rgb(164_193_172_/_0.48)]"
-            placeholder="搜索帖子标题 / 正文"
-          />
-        </label>
+          <nav className="ml-8 hidden h-full items-stretch lg:flex" aria-label="主导航">
+            <a href="/" className="top-nav-link top-nav-link-active">首页</a>
+            <div
+              className="flex h-full items-stretch"
+              onMouseEnter={openBoards}
+              onMouseLeave={scheduleCloseBoards}
+              onFocus={openBoards}
+              onBlur={(event) => {
+                if (!event.currentTarget.contains(event.relatedTarget)) scheduleCloseBoards();
+              }}
+            >
+              <button
+                className={`top-nav-link ${boardsOpen ? 'top-nav-link-active' : ''}`}
+                type="button"
+                aria-haspopup="true"
+                aria-expanded={boardsOpen}
+                onClick={() => setBoardsOpen((open) => !open)}
+              >
+                版块 <ChevronDown size={14} className={`transition-transform ${boardsOpen ? 'rotate-180' : ''}`} />
+              </button>
+              {boardsOpen && (
+                <div className="desktop-board-drawer-wrap">
+                  <DesktopBoardDrawer onNavigate={closeAllLayers} />
+                </div>
+              )}
+            </div>
+          </nav>
 
-        <div className="ml-auto flex shrink-0 items-center gap-[var(--capubbs-topbar-action-gap)]">
-          <button className={`${actionButtonClass} sm:hidden`} type="button" aria-label="搜索">
-            <Search className="topbar-icon" />
-          </button>
-          <button className={actionButtonClass} type="button" aria-label="切换暗黑模式">
-            <Moon className="topbar-icon" />
-          </button>
-          <button className="topbar-auth topbar-login" type="button">
-            <LogIn className="topbar-icon" />
-            <span>登录</span>
-          </button>
-          <button className="topbar-auth topbar-register" type="button">
-            <UserPlus className="topbar-icon" />
-            <span>注册</span>
-          </button>
+          <div className="ml-auto flex items-center gap-1.5 sm:gap-2">
+            <button
+              className={`icon-button ${searchOpen ? 'icon-button-active' : ''}`}
+              type="button"
+              aria-label="搜索"
+              aria-expanded={searchOpen}
+              onClick={() => {
+                setSearchOpen((open) => !open);
+                setProfileOpen(false);
+                setBoardsOpen(false);
+              }}
+            >
+              {searchOpen ? <X size={19} /> : <Search size={19} />}
+            </button>
+
+            <button
+              className="icon-button"
+              type="button"
+              aria-label={theme === 'light' ? '切换到夜间模式' : '切换到日间模式'}
+              onClick={toggleTheme}
+            >
+              {theme === 'light' ? <Moon size={18} /> : <Sun size={18} />}
+            </button>
+
+            <button className="icon-button relative" type="button" aria-label="消息通知">
+              <Bell size={19} />
+              <span className="notification-dot" aria-label="有未读消息" />
+            </button>
+
+            <div className="relative" ref={profileMenuRef}>
+              <button
+                className="profile-trigger"
+                type="button"
+                aria-label="打开头像菜单"
+                aria-haspopup="menu"
+                aria-expanded={profileOpen}
+                onClick={() => {
+                  setProfileOpen((open) => !open);
+                  setSearchOpen(false);
+                  setBoardsOpen(false);
+                }}
+              >
+                <img src={defaultAvatar} alt="" />
+                <ChevronDown size={14} className="hidden sm:block" />
+              </button>
+
+              {profileOpen && (
+                <div className="profile-menu" role="menu">
+                  <div className="profile-summary">
+                    <img src={defaultAvatar} alt="" />
+                    <div className="min-w-0">
+                      <strong>北大车协车友</strong>
+                      <span>欢迎回来，继续出发。</span>
+                    </div>
+                  </div>
+                  <a href="#profile" role="menuitem"><UserRound size={16} />个人主页</a>
+                  <a href="#my-threads" role="menuitem"><MessageSquareText size={16} />我的帖子</a>
+                  <div className="profile-menu-separator" />
+                  <a href="#settings" role="menuitem"><Settings size={16} />设置</a>
+                  <button type="button" role="menuitem"><LogOut size={16} />退出登录</button>
+                </div>
+              )}
+            </div>
+          </div>
         </div>
-      </div>
-    </header>
+      </header>
+
+      {anyOverlayOpen && <button className="page-overlay" type="button" aria-label="关闭当前面板" onClick={closeAllLayers} />}
+
+      {searchOpen && (
+        <section className="search-panel" role="search">
+          <p className="eyebrow">SEARCH THE FORUM</p>
+          <h2 className="section-title mt-1 text-2xl">搜索论坛</h2>
+          <form className="mt-5 flex gap-2" onSubmit={(event) => event.preventDefault()}>
+            <label className="sr-only" htmlFor="global-search">搜索帖子、作者或版块</label>
+            <input id="global-search" autoFocus placeholder="输入帖子、作者或版块…" />
+            <button type="submit"><Search size={18} /><span className="hidden sm:inline">搜索</span></button>
+          </form>
+          <p className="mt-3 text-xs text-[var(--text-faint)]">可以从帖子标题、正文或作者开始。</p>
+        </section>
+      )}
+
+      <MobileBoardSidebar open={mobileSidebarOpen} onClose={closeAllLayers} />
+    </>
   );
 }
