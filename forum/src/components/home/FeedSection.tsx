@@ -87,9 +87,11 @@ const feedItems = [
 ];
 
 function FeedItem({ item }: { item: (typeof feedItems)[number] }) {
+  const threadHref = item.id === 102 ? '/?thread=102&page=1' : `#thread-${item.id}`;
+
   return (
     <article className="feed-item">
-      <a className="feed-item-content" href={`#thread-${item.id}`}>
+      <a className="feed-item-content" href={threadHref}>
         <h2>{item.title}</h2>
         <p>{item.summary}</p>
       </a>

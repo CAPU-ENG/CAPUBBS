@@ -25,6 +25,7 @@ function initialTheme(): Theme {
 }
 
 export function TopBar() {
+  const isHomePage = !new URLSearchParams(window.location.search).has('thread');
   const [theme, setTheme] = useState<Theme>(initialTheme);
   const [boardsOpen, setBoardsOpen] = useState(false);
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
@@ -108,7 +109,7 @@ export function TopBar() {
           </a>
 
           <nav className="ml-8 hidden h-full items-stretch lg:flex" aria-label="主导航">
-            <a href="/" className="top-nav-link top-nav-link-active">首页</a>
+            <a href="/" className={`top-nav-link ${isHomePage ? 'top-nav-link-active' : ''}`}>首页</a>
             <div
               className="flex h-full items-stretch"
               onMouseEnter={openBoards}
