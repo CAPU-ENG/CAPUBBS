@@ -21,6 +21,7 @@ assets/images/*
 !assets/images/static
 
 scripts/
+tool/
 
 .well-known/
 
