@@ -298,9 +298,9 @@
     z-index: 70;
     top: var(--topbar-height);
     left: 50%;
-    width: min(640px, calc(100vw - 32px));
+    width: min(520px, calc(100vw - 32px));
     transform: translateX(-50%);
-    padding-top: 10px;
+    padding-top: 8px;
     animation: panel-in 180ms cubic-bezier(.2,.8,.2,1) both;
   }
 
@@ -313,19 +313,19 @@
   }
 
   .board-drawer-section {
-    padding: 20px 22px;
+    padding: 12px 14px;
   }
 
   .board-tile {
     position: relative;
     display: grid;
-    grid-template-columns: 32px minmax(0, 1fr);
+    grid-template-columns: 26px minmax(0, 1fr);
     align-items: center;
-    gap: 9px;
-    min-height: 68px;
+    gap: 7px;
+    min-height: 44px;
     border: 1px solid var(--line);
     border-radius: 2px;
-    padding: 10px;
+    padding: 7px 8px;
     background: var(--surface);
     transition: 170ms ease;
   }
@@ -341,38 +341,28 @@
 
   .board-tile-icon {
     display: inline-flex;
-    width: 32px;
-    height: 32px;
+    width: 26px;
+    height: 26px;
     align-items: center;
     justify-content: center;
-    border-radius: 8px;
+    border-radius: var(--control-radius);
     background: var(--brand-soft);
     color: var(--brand-strong);
   }
 
-  .board-tile strong,
-  .board-tile small {
+  .board-tile strong {
     display: block;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
-  }
-
-  .board-tile strong {
     color: var(--text-strong);
-    font-size: 0.82rem;
+    font-size: 0.78rem;
     font-weight: 700;
-  }
-
-  .board-tile small {
-    margin-top: 3px;
-    color: var(--text-faint);
-    font-size: 0.66rem;
   }
 
   .board-tile-arrow {
     position: absolute;
-    right: 8px;
+    right: 6px;
     color: var(--text-faint);
     opacity: 0;
     transition: 160ms ease;
@@ -395,6 +385,14 @@
     font-size: 0.78rem;
     font-weight: 650;
     transition: 150ms ease;
+  }
+
+  .board-drawer .supplement-link {
+    min-height: 30px;
+    gap: 6px;
+    border-radius: var(--control-radius);
+    padding: 0 9px;
+    font-size: 0.74rem;
   }
 
   .supplement-link:hover {
@@ -548,4 +546,3 @@
   }
 
 }
-

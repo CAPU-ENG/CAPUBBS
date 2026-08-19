@@ -19,22 +19,21 @@ import logo2 from '../../assets/logo/logo2.webp';
 type Board = {
   id: number;
   label: string;
-  description: string;
   icon: LucideIcon;
 };
 
 type SecondaryBoard = Pick<Board, 'id' | 'label'>;
 
 const primaryBoards: Board[] = [
-  { id: 1, label: '车协工作区', description: '协会通知与日常协作', icon: Megaphone },
-  { id: 2, label: '行者足音', description: '骑行见闻与路线故事', icon: Footprints },
-  { id: 3, label: '车友宝典', description: '经验、装备与新手指南', icon: BookOpen },
-  { id: 4, label: '纯净水', description: '轻松闲聊与校园日常', icon: Droplets },
-  { id: 5, label: '考察与社会', description: '观察、实践与思考', icon: Compass },
-  { id: 6, label: '五湖四海', description: '远方来信与各地车友', icon: Globe2 },
-  { id: 7, label: '一技之长', description: '维修、调试与技术交流', icon: Wrench },
-  { id: 9, label: '竞赛竞技', description: '训练、赛事与成绩记录', icon: Trophy },
-  { id: 28, label: '网站维护', description: '站务公告与问题反馈', icon: ServerCog },
+  { id: 1, label: '车协工作区', icon: Megaphone },
+  { id: 2, label: '行者足音', icon: Footprints },
+  { id: 3, label: '车友宝典', icon: BookOpen },
+  { id: 4, label: '纯净水', icon: Droplets },
+  { id: 5, label: '考察与社会', icon: Compass },
+  { id: 6, label: '五湖四海', icon: Globe2 },
+  { id: 7, label: '一技之长', icon: Wrench },
+  { id: 9, label: '竞赛竞技', icon: Trophy },
+  { id: 28, label: '网站维护', icon: ServerCog },
 ];
 
 // 参考 bbs-new 静态版面目录；主要版面之后的项目统一放在第二层。
@@ -60,13 +59,10 @@ export function DesktopBoardDrawer({ onNavigate }: { onNavigate: () => void }) {
     <section className="board-drawer" aria-label="版块导航">
       <div className="board-drawer-section">
         <div className="grid grid-cols-3 gap-2">
-          {primaryBoards.map(({ id, label, description, icon: Icon }) => (
+          {primaryBoards.map(({ id, label, icon: Icon }) => (
             <a className="board-tile group" href={boardHref(id)} key={id} onClick={onNavigate}>
-              <span className="board-tile-icon"><Icon size={17} /></span>
-              <span className="min-w-0">
-                <strong>{label}</strong>
-                <small>{description}</small>
-              </span>
+              <span className="board-tile-icon"><Icon size={15} /></span>
+              <strong>{label}</strong>
               <ChevronRight className="board-tile-arrow" size={14} />
             </a>
           ))}
