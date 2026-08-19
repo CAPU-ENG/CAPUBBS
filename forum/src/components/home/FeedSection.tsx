@@ -2,22 +2,116 @@ import { Check, ChevronRight, Eye, MessageSquare } from 'lucide-react';
 import defaultAvatar from '../../assets/avatar/default-avatar.avif';
 
 const feedItems = [
-  { author: '蓝色车架', board: '行者足音', title: '端午活动报名说明', summary: '集合时间、路线安排与报名注意事项汇总。', time: '05.20 11:48', replies: 18, views: 126 },
-  { author: '阿北', board: '车友宝典', title: '雨天骑行挡泥板推荐', summary: '从覆盖范围、安装方式和日常维护聊聊实际体验。', time: '05.20 10:12', replies: 9, views: 84 },
-  { author: '南门修车铺', board: '一技之长', title: '公路车变速系统基础调试', summary: '异响、跳齿和换挡不顺时可以先检查这些位置。', time: '05.19 21:36', replies: 12, views: 203 },
-  { author: '小白杨', board: '考察与社会', title: '暑期长途路线资料整理', summary: '沿途补给点、住宿和路况信息持续更新中。', time: '05.19 18:20', replies: 24, views: 318 },
-  { author: '蓝色车架', board: '车协工作区', title: '活动室本周开放时间', summary: '工具借用和车辆维护请提前在帖子内登记。', time: '05.19 15:02', replies: 6, views: 96 },
-  { author: '阿北', board: '五湖四海', title: '毕业骑行照片征集', summary: '欢迎补充原图、路线记录以及途中故事。', time: '05.19 12:47', replies: 15, views: 172 },
+  {
+    author: "蓝色车架",
+    board: "行者足音",
+    title: "端午活动报名说明",
+    summary: "集合时间、路线安排与报名注意事项汇总。",
+    time: "05.20 11:48",
+    replies: 18,
+    views: 126,
+  },
+  {
+    author: "阿北",
+    board: "车友宝典",
+    title: "雨天骑行挡泥板推荐",
+    summary: "从覆盖范围、安装方式和日常维护聊聊实际体验。",
+    time: "05.20 10:12",
+    replies: 9,
+    views: 84,
+  },
+  {
+    author: "南门修车铺",
+    board: "一技之长",
+    title: "公路车变速系统基础调试",
+    summary: "异响、跳齿和换挡不顺时可以先检查这些位置。",
+    time: "05.19 21:36",
+    replies: 12,
+    views: 203,
+  },
+  {
+    author: "小白杨",
+    board: "考察与社会",
+    title: "暑期长途路线资料整理",
+    summary: "沿途补给点、住宿和路况信息持续更新中。",
+    time: "05.19 18:20",
+    replies: 24,
+    views: 318,
+  },
+  {
+    author: "蓝色车架",
+    board: "车协工作区",
+    title: "活动室本周开放时间",
+    summary: "工具借用和车辆维护请提前在帖子内登记。",
+    time: "05.19 15:02",
+    replies: 6,
+    views: 96,
+  },
+  {
+    author: "阿北",
+    board: "五湖四海",
+    title: "毕业骑行照片征集",
+    summary: "欢迎补充原图、路线记录以及途中故事。",
+    time: "05.19 12:47",
+    replies: 15,
+    views: 172,
+  },
+  {
+    author: "蓝色车架",
+    board: "行者足音",
+    title: "端午活动报名说明",
+    summary: "集合时间、路线安排与报名注意事项汇总。",
+    time: "05.20 11:48",
+    replies: 18,
+    views: 126,
+  },
+  {
+    author: "阿北",
+    board: "车友宝典",
+    title: "雨天骑行挡泥板推荐",
+    summary: "从覆盖范围、安装方式和日常维护聊聊实际体验。",
+    time: "05.20 10:12",
+    replies: 9,
+    views: 84,
+  },
+  {
+    author: "南门修车铺",
+    board: "一技之长",
+    title: "公路车变速系统基础调试",
+    summary: "异响、跳齿和换挡不顺时可以先检查这些位置。",
+    time: "05.19 21:36",
+    replies: 12,
+    views: 203,
+  },
+  {
+    author: "小白杨",
+    board: "考察与社会",
+    title: "暑期长途路线资料整理",
+    summary: "沿途补给点、住宿和路况信息持续更新中。",
+    time: "05.19 18:20",
+    replies: 24,
+    views: 318,
+  },
+  {
+    author: "蓝色车架",
+    board: "车协工作区",
+    title: "活动室本周开放时间",
+    summary: "工具借用和车辆维护请提前在帖子内登记。",
+    time: "05.19 15:02",
+    replies: 6,
+    views: 96,
+  },
+  {
+    author: "阿北",
+    board: "五湖四海",
+    title: "毕业骑行照片征集",
+    summary: "欢迎补充原图、路线记录以及途中故事。",
+    time: "05.19 12:47",
+    replies: 15,
+    views: 172,
+  },
 ];
 
-function FeedTabs({ desktop = false }: { desktop?: boolean }) {
-  return (
-    <div className={desktop ? 'segmented-tabs-surface flex w-[244px] gap-1 rounded-lg border p-1' : 'segmented-tabs-surface flex gap-1 rounded-lg border p-1 shadow-sm'}>
-      <button type="button" className={`card-surface flex flex-1 items-center justify-center rounded-md border border-zinc-200/80 px-3 text-sm font-semibold text-zinc-950 shadow-sm ${desktop ? 'h-9' : 'h-10'}`}>最新回帖</button>
-      <button type="button" className={`flex flex-1 items-center justify-center rounded-md border border-transparent px-3 text-sm font-semibold text-zinc-700 transition hover:bg-white/45 ${desktop ? 'h-9' : 'h-10'}`}>最新主题</button>
-    </div>
-  );
-}
 
 function FeedToolbar() {
   return (
@@ -84,18 +178,19 @@ function DesktopFeedRow({ item }: { item: (typeof feedItems)[number] }) {
 
 function DesktopFeed() {
   return (
-    <section className="card-surface overflow-hidden rounded-lg border border-zinc-200 shadow-panel" aria-labelledby="desktop-feed-title">
-      <header className="flex min-h-[76px] items-center justify-between gap-6 border-b border-zinc-200/80 px-5">
-        <div>
-          <p className="text-xs font-semibold tracking-[0.16em] text-[#875A41]">首页热门贴</p>
-          <h1 id="desktop-feed-title" className="mt-1 text-lg font-semibold text-zinc-950">社区正在发生</h1>
-        </div>
-        <FeedTabs desktop />
-      </header>
+    <section
+      className="card-surface overflow-hidden rounded-lg border border-zinc-200 shadow-panel"
+      aria-labelledby="desktop-feed-title"
+    >
       <div className="divide-y divide-zinc-200/80">
-        {feedItems.map((item, index) => <DesktopFeedRow key={`${item.author}-${index}`} item={item} />)}
+        {feedItems.map((item, index) => (
+          <DesktopFeedRow key={`${item.author}-${index}`} item={item} />
+        ))}
       </div>
-      <button type="button" className="flex h-12 w-full items-center justify-center gap-1.5 border-t border-zinc-200/80 text-sm font-semibold text-[#385772] transition-colors hover:bg-white/45">
+      <button
+        type="button"
+        className="flex h-12 w-full items-center justify-center gap-1.5 border-t border-zinc-200/80 text-sm font-semibold text-[#385772] transition-colors hover:bg-white/45"
+      >
         查看全部讨论 <ChevronRight size={16} />
       </button>
     </section>
@@ -105,12 +200,15 @@ function DesktopFeed() {
 export function FeedSection() {
   return (
     <section className="min-w-0" id="feed">
-      <div className="hidden lg:block"><DesktopFeed /></div>
+      <div className="hidden lg:block">
+        <DesktopFeed />
+      </div>
       <div className="space-y-4 lg:hidden">
-        <FeedTabs />
         <FeedToolbar />
         <div className="space-y-3">
-          {feedItems.map((item, index) => <MobileFeedCard key={`${item.author}-${index}`} item={item} />)}
+          {feedItems.map((item, index) => (
+            <MobileFeedCard key={`${item.author}-${index}`} item={item} />
+          ))}
         </div>
       </div>
     </section>
