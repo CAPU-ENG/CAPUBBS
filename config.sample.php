@@ -13,6 +13,12 @@
  */
 
 //** MySQL settings. **//
+
+/** Do not expose PHP warnings, deprecations, or stack details in HTTP responses. */
+ini_set('display_errors', '0');
+ini_set('display_startup_errors', '0');
+ini_set('log_errors', '1');
+
 /** The database username. */
 define('CAPUBBS_DB_USERNAME', 'database_username_here');
 
