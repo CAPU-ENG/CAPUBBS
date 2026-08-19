@@ -2888,23 +2888,6 @@
     box-shadow: var(--shadow-card);
   }
 
-  .board-thread-toolbar {
-    display: flex;
-    min-height: 62px;
-    align-items: center;
-    justify-content: space-between;
-    gap: 18px;
-    border-bottom: 1px solid var(--line);
-    padding: 11px 16px;
-  }
-
-  .board-thread-toolbar h2 {
-    color: var(--text-strong);
-    font-size: 0.86rem;
-    font-weight: 760;
-    letter-spacing: -0.015em;
-  }
-
   .board-thread-table-wrap {
     overflow-x: auto;
   }
@@ -3340,11 +3323,6 @@
 
     .board-thread-section {
       margin-top: 9px;
-    }
-
-    .board-thread-toolbar {
-      min-height: 58px;
-      padding: 10px 13px;
     }
 
     .board-thread-table-wrap {

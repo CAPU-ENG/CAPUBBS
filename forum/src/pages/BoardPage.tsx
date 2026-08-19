@@ -157,11 +157,7 @@ export function BoardPage() {
           </div>
         </header>
 
-        <section className="board-thread-section" aria-labelledby="board-thread-list-title">
-          <div className="board-thread-toolbar">
-            <h2 id="board-thread-list-title">主题列表</h2>
-          </div>
-
+        <section className="board-thread-section" aria-label="主题列表">
           <div className="board-thread-table-wrap">
             <table className="board-thread-table">
               <colgroup>
