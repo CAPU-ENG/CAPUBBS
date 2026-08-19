@@ -110,9 +110,16 @@ export function getRichTextEditorStorageValue(value: RichTextEditorValue): RichT
   };
 }
 
-export function getRichTextEditorPreviewDocument(value: RichTextEditorValue) {
+export function getRichTextEditorPreviewDocument(
+  value: RichTextEditorValue,
+  options: { embedded?: boolean } = {},
+) {
   const previewHtml = value.mode === 'markdown' ? renderMarkdownToHtml(value.content) : value.content;
-  return buildHtmlPreviewDocument(previewHtml, document.documentElement.classList.contains('dark'));
+  return buildHtmlPreviewDocument(
+    previewHtml,
+    document.documentElement.classList.contains('dark'),
+    options.embedded,
+  );
 }
 
 function areEditorValuesEqual(currentValue: RichTextEditorValue, nextValue: RichTextEditorValue) {
@@ -1700,7 +1707,7 @@ function convertEditorContent(content: string, from: RichTextEditorMode, to: Ric
   return formatHtmlForSource(content);
 }
 
-function buildHtmlPreviewDocument(html: string, isDarkTheme: boolean) {
+function buildHtmlPreviewDocument(html: string, isDarkTheme: boolean, embedded = false) {
   const theme = isDarkTheme
     ? {
         background: 'rgb(24 24 27 / 0.9)',
@@ -1765,13 +1772,13 @@ function buildHtmlPreviewDocument(html: string, isDarkTheme: boolean) {
       font-size: 14px;
       line-height: 1.7;
       margin: 0;
-      padding: 16px;
+      padding: ${embedded ? '0' : '16px'};
       word-break: break-word;
     }
 
     @media (min-width: 640px) {
       body {
-        font-size: 16px;
+        font-size: 15px;
       }
     }
 

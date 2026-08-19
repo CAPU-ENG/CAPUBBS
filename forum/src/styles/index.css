@@ -2208,9 +2208,9 @@
 
   .reply-preview-dialog {
     display: grid;
-    width: min(100%, 820px);
+    width: min(100%, 920px);
     max-height: calc(100dvh - 32px);
-    grid-template-rows: auto minmax(260px, 1fr) auto auto;
+    grid-template-rows: auto minmax(260px, 1fr) auto;
     overflow: hidden;
     border: 1px solid var(--line-strong);
     border-radius: 2px;
@@ -2260,23 +2260,72 @@
     color: var(--text-faint);
   }
 
-  .reply-preview-dialog > iframe {
-    width: 100%;
-    height: min(62dvh, 620px);
-    min-height: 260px;
-    border: 0;
-    background: var(--surface);
+  .reply-preview-stage {
+    min-height: 0;
+    overflow: auto;
+    padding: 16px;
+    background: var(--surface-soft);
   }
 
-  .reply-preview-meta {
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: space-between;
-    gap: 6px 16px;
+  .reply-preview-floor {
+    width: 100%;
+    scroll-margin-top: 0;
+    box-shadow: none;
+  }
+
+  .reply-preview-avatar-rail {
+    position: static;
+  }
+
+  .reply-preview-floor .thread-floor-author > strong {
+    color: var(--text-strong);
+    font-size: 0.86rem;
+    font-weight: 760;
+  }
+
+  .reply-preview-floor .thread-floor-index {
+    pointer-events: none;
+  }
+
+  .reply-preview-floor-body {
+    overflow: hidden;
+  }
+
+  .reply-preview-floor-body > iframe {
+    display: block;
+    width: 100%;
+    min-height: 120px;
+    border: 0;
+    background: transparent;
+  }
+
+  .reply-preview-attachments {
+    display: grid;
+    gap: 6px;
+    margin-top: 8px;
     border-top: 1px solid var(--line);
-    padding: 9px 14px;
+    padding-top: 12px;
+  }
+
+  .reply-preview-attachments > li {
+    display: flex;
+    min-width: 0;
+    align-items: center;
+    gap: 7px;
+    color: var(--text-muted);
+    font-size: 0.68rem;
+  }
+
+  .reply-preview-attachments span {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .reply-preview-attachments small {
+    flex-shrink: 0;
+    margin-left: auto;
     color: var(--text-faint);
-    font-size: 0.62rem;
   }
 
   .reply-preview-dialog > footer {
@@ -2968,6 +3017,18 @@
     .reply-editor-submit > button {
       flex: 1;
       min-height: 40px;
+    }
+
+    .reply-preview-backdrop {
+      padding: 8px;
+    }
+
+    .reply-preview-dialog {
+      max-height: calc(100dvh - 16px);
+    }
+
+    .reply-preview-stage {
+      padding: 8px;
     }
   }
 

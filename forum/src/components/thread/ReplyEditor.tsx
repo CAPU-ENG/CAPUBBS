@@ -28,6 +28,11 @@ type ReplyAttachment = {
   type: string;
 };
 
+type ReplyPreviewAuthor = {
+  avatar: string;
+  name: string;
+};
+
 const draftStorageKey = "capubbs-thread-reply-draft";
 const signatureOptions = [
   { label: "不使用签名档", value: 0 },
@@ -39,11 +44,17 @@ const signatureOptions = [
 export function ReplyEditor({
   editorRef,
   onClearTarget,
+  previewAuthor,
+  previewFloor,
+  previewSignatures,
   target,
   threadTitle,
 }: {
   editorRef: React.RefObject<HTMLElement | null>;
   onClearTarget: () => void;
+  previewAuthor: ReplyPreviewAuthor;
+  previewFloor: number;
+  previewSignatures: string[];
   target: ReplyTarget | null;
   threadTitle: string;
 }) {
@@ -55,6 +66,7 @@ export function ReplyEditor({
   const [attachments, setAttachments] = useState<ReplyAttachment[]>([]);
   const [attachmentDialogOpen, setAttachmentDialogOpen] = useState(false);
   const [previewOpen, setPreviewOpen] = useState(false);
+  const [previewedAt, setPreviewedAt] = useState("");
   const [focusRequest, setFocusRequest] = useState(0);
   const [status, setStatus] = useState("");
   const appliedTargetRef = useRef("");
@@ -165,6 +177,7 @@ export function ReplyEditor({
       return;
     }
 
+    setPreviewedAt(formatPreviewTimestamp(new Date()));
     setPreviewOpen(true);
     setStatus("");
   }
@@ -305,6 +318,10 @@ export function ReplyEditor({
           attachments={attachments}
           editorValue={editorValue}
           onClose={() => setPreviewOpen(false)}
+          previewAuthor={previewAuthor}
+          previewFloor={previewFloor}
+          previewSignature={signatureIndex > 0 ? previewSignatures[signatureIndex - 1] : undefined}
+          previewedAt={previewedAt}
           threadTitle={threadTitle}
         />
       )}
@@ -316,11 +333,19 @@ function ReplyPreviewDialog({
   attachments,
   editorValue,
   onClose,
+  previewAuthor,
+  previewFloor,
+  previewSignature,
+  previewedAt,
   threadTitle,
 }: {
   attachments: ReplyAttachment[];
   editorValue: RichTextEditorValue;
   onClose: () => void;
+  previewAuthor: ReplyPreviewAuthor;
+  previewFloor: number;
+  previewSignature?: string;
+  previewedAt: string;
   threadTitle: string;
 }) {
   useEffect(() => {
@@ -331,6 +356,20 @@ function ReplyPreviewDialog({
     document.addEventListener("keydown", closeOnEscape);
     return () => document.removeEventListener("keydown", closeOnEscape);
   }, [onClose]);
+
+  function resizePreviewFrame(frame: HTMLIFrameElement) {
+    const previewDocument = frame.contentDocument;
+    if (!previewDocument) return;
+
+    const updateHeight = () => {
+      frame.style.height = `${Math.max(120, previewDocument.documentElement.scrollHeight)}px`;
+    };
+
+    updateHeight();
+    previewDocument.querySelectorAll("img").forEach((image) => {
+      if (!image.complete) image.addEventListener("load", updateHeight, { once: true });
+    });
+  }
 
   return (
     <div
@@ -354,15 +393,53 @@ function ReplyPreviewDialog({
             <X size={18} />
           </button>
         </header>
-        <iframe
-          sandbox=""
-          srcDoc={getRichTextEditorPreviewDocument(editorValue)}
-          title="回复正文预览"
-        />
-        <div className="reply-preview-meta">
-          <span>
-            {attachments.length > 0 ? `${attachments.length} 个附件` : "无附件"}
-          </span>
+        <div className="reply-preview-stage">
+          <article className="thread-floor reply-preview-floor">
+            <div className="thread-avatar-rail reply-preview-avatar-rail">
+              <div className="thread-avatar-button">
+                <img src={previewAuthor.avatar} alt="" />
+              </div>
+            </div>
+
+            <div className="thread-floor-main">
+              <header className="thread-floor-header">
+                <div className="thread-floor-author">
+                  <strong>{previewAuthor.name}</strong>
+                </div>
+                <div className="thread-floor-time">
+                  <time>{previewedAt}</time>
+                </div>
+                <span className="thread-floor-index">#{previewFloor}</span>
+              </header>
+
+              <div className="thread-floor-body reply-preview-floor-body">
+                <iframe
+                  onLoad={(event) => resizePreviewFrame(event.currentTarget)}
+                  sandbox="allow-same-origin"
+                  srcDoc={getRichTextEditorPreviewDocument(editorValue, { embedded: true })}
+                  title="回复正文预览"
+                />
+              </div>
+
+              {previewSignature && (
+                <footer className="thread-signature">
+                  <p>{previewSignature}</p>
+                </footer>
+              )}
+
+              {attachments.length > 0 && (
+                <ul className="reply-preview-attachments" aria-label="回复附件预览">
+                  {attachments.map((attachment) => (
+                    <li key={attachment.id}>
+                      <Paperclip size={13} />
+                      <span>{attachment.name}</span>
+                      <small>{formatBytes(attachment.size)}</small>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
+          </article>
         </div>
         <footer>
           <button
@@ -376,6 +453,11 @@ function ReplyPreviewDialog({
       </section>
     </div>
   );
+}
+
+function formatPreviewTimestamp(value: Date) {
+  const pad = (part: number) => String(part).padStart(2, "0");
+  return `${value.getFullYear()}-${pad(value.getMonth() + 1)}-${pad(value.getDate())} ${pad(value.getHours())}:${pad(value.getMinutes())}:${pad(value.getSeconds())}`;
 }
 
 function AttachmentDialog({

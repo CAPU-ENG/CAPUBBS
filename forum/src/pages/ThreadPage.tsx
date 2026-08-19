@@ -16,6 +16,14 @@ function getAuthorOnly() {
   return new URLSearchParams(window.location.search).get('author') === '1';
 }
 
+const demoViewer = demoThread.floors.find((floor) => floor.isOwn)?.author ?? demoThread.floors[0].author;
+const nextDemoFloor = Math.max(...demoThread.floors.map((floor) => floor.floor)) + 1;
+const demoViewerSignatures = Array.from(new Set(
+  demoThread.floors
+    .filter((floor) => floor.author.name === demoViewer.name && floor.signature)
+    .map((floor) => floor.signature as string),
+));
+
 export function ThreadPage() {
   const [replyTarget, setReplyTarget] = useState<ReplyTarget | null>(null);
   const [activeFloor, setActiveFloor] = useState(1);
@@ -246,6 +254,9 @@ export function ThreadPage() {
         <ReplyEditor
           editorRef={editorRef}
           onClearTarget={() => setReplyTarget(null)}
+          previewAuthor={demoViewer}
+          previewFloor={nextDemoFloor}
+          previewSignatures={demoViewerSignatures}
           target={replyTarget}
           threadTitle={demoThread.title}
         />
