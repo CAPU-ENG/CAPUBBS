@@ -2711,7 +2711,7 @@
 
   .board-title-card {
     position: relative;
-    min-height: 204px;
+    min-height: 188px;
     overflow: hidden;
     border: 1px solid var(--line);
     border-radius: 2px;
@@ -2750,11 +2750,11 @@
 
   .board-title-content {
     display: grid;
-    min-height: 202px;
-    grid-template-columns: minmax(0, 1fr) 344px;
+    min-height: 186px;
+    grid-template-columns: minmax(0, 1fr) 306px;
     align-items: center;
-    gap: 36px;
-    padding: 26px 32px;
+    gap: 30px;
+    padding: 22px 28px;
   }
 
   .board-title-copy {
@@ -2805,7 +2805,7 @@
 
   .board-stat-grid > div {
     min-width: 0;
-    padding: 9px 5px 8px;
+    padding: 6px 4px 5px;
     text-align: center;
   }
 
@@ -2815,17 +2815,17 @@
 
   .board-stat-grid dt {
     color: var(--text-faint);
-    font-size: 0.56rem;
+    font-size: 0.52rem;
     font-weight: 680;
     letter-spacing: 0.08em;
   }
 
   .board-stat-grid dd {
     overflow: hidden;
-    margin-top: 3px;
+    margin-top: 2px;
     color: var(--text-strong);
     font-family: ui-monospace, "SFMono-Regular", Consolas, monospace;
-    font-size: 0.8rem;
+    font-size: 0.72rem;
     font-weight: 760;
     text-overflow: ellipsis;
   }
@@ -2869,6 +2869,12 @@
     color: var(--brand-strong);
   }
 
+  .board-digest-action-active {
+    border-color: color-mix(in srgb, var(--brand) 52%, var(--line));
+    background: var(--brand-soft);
+    color: var(--brand-strong);
+  }
+
   .board-primary-action:hover {
     background: color-mix(in srgb, var(--brand-strong) 88%, black);
   }
@@ -2897,46 +2903,6 @@
     font-size: 0.86rem;
     font-weight: 760;
     letter-spacing: -0.015em;
-  }
-
-  .board-thread-toolbar p {
-    margin-top: 3px;
-    color: var(--text-faint);
-    font-size: 0.63rem;
-  }
-
-  .board-digest-filter {
-    display: inline-flex;
-    flex-shrink: 0;
-    align-items: center;
-    gap: 7px;
-    color: var(--text-muted);
-    cursor: pointer;
-    font-size: 0.7rem;
-    font-weight: 690;
-    user-select: none;
-  }
-
-  .board-digest-filter input {
-    width: 14px;
-    height: 14px;
-    appearance: none;
-    border: 1px solid var(--line-strong);
-    border-radius: var(--control-radius);
-    background: var(--surface-raised);
-    cursor: pointer;
-    transition: 140ms ease;
-  }
-
-  .board-digest-filter input:checked {
-    border-color: var(--brand);
-    background-color: var(--brand-strong);
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath fill='none' stroke='white' stroke-linecap='square' stroke-linejoin='miter' stroke-width='2' d='m3.5 8 3 3 6-7'/%3E%3C/svg%3E");
-  }
-
-  .board-digest-filter input:focus-visible {
-    outline: 2px solid color-mix(in srgb, var(--brand) 55%, transparent);
-    outline-offset: 2px;
   }
 
   .board-thread-table-wrap {
@@ -3196,9 +3162,9 @@
     }
 
     .board-title-content {
-      grid-template-columns: minmax(0, 1fr) 312px;
+      grid-template-columns: minmax(0, 1fr) 292px;
       gap: 26px;
-      padding: 24px 28px;
+      padding: 22px 26px;
     }
 
     .thread-content-layout {
@@ -3348,19 +3314,20 @@
     }
 
     .board-stat-grid > div {
-      padding: 8px 4px 7px;
+      padding: 6px 3px 5px;
     }
 
     .board-stat-grid dt {
-      font-size: 0.55rem;
+      font-size: 0.5rem;
     }
 
     .board-stat-grid dd {
-      margin-top: 4px;
-      font-size: 0.76rem;
+      margin-top: 2px;
+      font-size: 0.68rem;
     }
 
     .board-title-actions {
+      flex-wrap: wrap;
       margin-top: 9px;
     }
 

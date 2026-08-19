@@ -77,7 +77,7 @@ function ThreadRow({ thread }: { thread: BoardThreadData }) {
       </td>
       <td className="board-thread-counts">
         <span>{thread.replies}</span>
-        <i aria-hidden="true">-</i>
+        <i aria-hidden="true">/</i>
         <span>{thread.views}</span>
       </td>
     </tr>
@@ -138,6 +138,14 @@ export function BoardPage() {
                 <div><dt>在线</dt><dd>{demoBoard.stats.online}</dd></div>
               </dl>
               <div className="board-title-actions">
+                <button
+                  aria-pressed={digestOnly}
+                  className={`board-secondary-action ${digestOnly ? 'board-digest-action-active' : ''}`}
+                  onClick={toggleDigestOnly}
+                  type="button"
+                >
+                  <Sparkles size={15} />{digestOnly ? '取消筛选' : '只看精品'}
+                </button>
                 <a className="board-secondary-action" href={`/bbs/manage/?bid=${demoBoard.id}`}>
                   <Settings2 size={15} />管理版面
                 </a>
@@ -151,14 +159,7 @@ export function BoardPage() {
 
         <section className="board-thread-section" aria-labelledby="board-thread-list-title">
           <div className="board-thread-toolbar">
-            <div>
-              <h2 id="board-thread-list-title">主题列表</h2>
-              <p>默认按最新回复排序</p>
-            </div>
-            <label className="board-digest-filter">
-              <input checked={digestOnly} onChange={toggleDigestOnly} type="checkbox" />
-              只看精品
-            </label>
+            <h2 id="board-thread-list-title">主题列表</h2>
           </div>
 
           <div className="board-thread-table-wrap">
@@ -174,7 +175,7 @@ export function BoardPage() {
                   <th scope="col">主题</th>
                   <th scope="col"><span>作者</span><small>发布时间</small></th>
                   <th scope="col"><span>最后回复</span><small>最后回复时间</small></th>
-                  <th scope="col">回复-浏览</th>
+                  <th scope="col">回复/浏览</th>
                 </tr>
               </thead>
               <tbody>
