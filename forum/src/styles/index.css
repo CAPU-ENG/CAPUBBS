@@ -6,6 +6,7 @@
   :root {
     color-scheme: light;
     --topbar-height: 64px;
+    --control-radius: 0.5px;
     --page: #f3f5f1;
     --surface: #fffefa;
     --surface-raised: #ffffff;
@@ -195,7 +196,7 @@
     align-items: center;
     justify-content: center;
     border: 1px solid transparent;
-    border-radius: 999px;
+    border-radius: var(--control-radius);
     color: var(--text-muted);
     transition: 160ms ease;
   }
@@ -230,7 +231,7 @@
     height: 42px;
     align-items: center;
     gap: 5px;
-    border-radius: 0.5px;
+    border-radius: var(--control-radius);
     padding: 3px 5px 3px 3px;
     color: var(--text-muted);
     transition: background 160ms ease, color 160ms ease;
@@ -245,7 +246,7 @@
     width: 34px;
     height: 34px;
     border: 0.5px solid var(--line);
-    border-radius: 0.5px;
+    border-radius: var(--control-radius);
     object-fit: cover;
   }
 
@@ -591,7 +592,7 @@
     height: 24px;
     flex-shrink: 0;
     border: 0.5px solid var(--line);
-    border-radius: 0.5px;
+    border-radius: var(--control-radius);
     object-fit: cover;
   }
 
@@ -857,7 +858,7 @@
     align-items: center;
     justify-content: center;
     border: 1px solid transparent;
-    border-radius: 0.5px;
+    border-radius: var(--control-radius);
     color: var(--text-muted);
     font-size: 0.68rem;
     transition: 120ms ease;
