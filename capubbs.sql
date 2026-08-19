@@ -380,7 +380,8 @@ CREATE TABLE `season_activity_option` (
   `required` tinyint(4) NOT NULL,
   `hiden` tinyint(4) NOT NULL DEFAULT '0',
   `comment` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL,
-  PRIMARY KEY (`id`)
+  PRIMARY KEY (`id`),
+  KEY `activity_id` (`activity_id`)
 ) ENGINE=InnoDB AUTO_INCREMENT=954 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -428,7 +429,8 @@ CREATE TABLE `season_option_case` (
   `case_name` varchar(45) COLLATE utf8mb4_unicode_ci NOT NULL,
   `comment` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL,
   `need_value` tinyint(4) NOT NULL DEFAULT '0',
-  PRIMARY KEY (`case_id`)
+  PRIMARY KEY (`case_id`),
+  KEY `option_id` (`option_id`)
 ) ENGINE=InnoDB AUTO_INCREMENT=588 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -462,7 +464,8 @@ CREATE TABLE `season_threads_activity` (
   `season_id` int(11) NOT NULL DEFAULT '-1',
   `name` text COLLATE utf8mb4_unicode_ci NOT NULL,
   `leader_username` varchar(30) COLLATE utf8mb4_unicode_ci NOT NULL,
-  PRIMARY KEY (`activity_id`)
+  PRIMARY KEY (`activity_id`),
+  UNIQUE KEY `unique_thread_activity` (`bid`,`tid`)
 ) ENGINE=InnoDB AUTO_INCREMENT=84 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
