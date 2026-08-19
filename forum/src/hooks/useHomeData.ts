@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from 'react';
 import {
   fetchGlobalPinnedThreads,
   fetchHomeFeed,
+  hydrateHomeThreadAvatars,
   isAbortError,
   type HomeThread,
 } from '../api/home';
@@ -33,7 +34,15 @@ export function useHomeData() {
     setPinned((current) => ({ ...current, error: '', status: 'loading' }));
 
     void fetchHomeFeed(controller.signal).then(
-      (items) => setFeed({ error: '', items, status: 'ready' }),
+      async (items) => {
+        setFeed({ error: '', items, status: 'ready' });
+        try {
+          const hydratedItems = await hydrateHomeThreadAvatars(items, controller.signal);
+          setFeed({ error: '', items: hydratedItems, status: 'ready' });
+        } catch (error) {
+          if (isAbortError(error)) return;
+        }
+      },
       (error: unknown) => {
         if (!isAbortError(error)) {
           setFeed((current) => ({
@@ -46,7 +55,15 @@ export function useHomeData() {
     );
 
     void fetchGlobalPinnedThreads(controller.signal).then(
-      (items) => setPinned({ error: '', items, status: 'ready' }),
+      async (items) => {
+        setPinned({ error: '', items, status: 'ready' });
+        try {
+          const hydratedItems = await hydrateHomeThreadAvatars(items, controller.signal);
+          setPinned({ error: '', items: hydratedItems, status: 'ready' });
+        } catch (error) {
+          if (isAbortError(error)) return;
+        }
+      },
       (error: unknown) => {
         if (!isAbortError(error)) {
           setPinned((current) => ({

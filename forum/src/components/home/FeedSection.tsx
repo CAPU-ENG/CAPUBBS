@@ -5,6 +5,10 @@ import type { HomeThread } from '../../api/home';
 import type { HomeDataStatus } from '../../hooks/useHomeData';
 
 function FeedItem({ item }: { item: HomeThread }) {
+  function useDefaultAvatar(event: React.SyntheticEvent<HTMLImageElement>) {
+    if (event.currentTarget.src !== defaultAvatar) event.currentTarget.src = defaultAvatar;
+  }
+
   return (
     <article className="feed-item">
       <a className="feed-item-content" href={item.href}>
@@ -13,7 +17,13 @@ function FeedItem({ item }: { item: HomeThread }) {
       </a>
       <div className="feed-item-meta">
         <a className="feed-author" href={item.authorHref}>
-          <img src={defaultAvatar} alt="" />
+          <img
+            src={item.avatar || defaultAvatar}
+            alt=""
+            decoding="async"
+            loading="lazy"
+            onError={useDefaultAvatar}
+          />
           <strong>{item.author}</strong>
         </a>
         <span className="feed-meta-separator">·</span>

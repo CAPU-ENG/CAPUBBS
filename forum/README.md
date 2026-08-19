@@ -2,7 +2,7 @@
 
 Frontend built with React, TypeScript, Tailwind CSS, and Vite.
 
-The homepage loads its latest-reply feed and global pinned threads from `/api/api.php`. Activity registration and calendar data remain local placeholders until matching list APIs are available.
+The homepage loads its latest-reply feed, author avatars, and global pinned threads from `/api/api.php`. Activity registration and calendar data remain local placeholders until matching list APIs are available.
 
 ## Commands
 
@@ -20,4 +20,4 @@ For local API development, start PHP from the repository root before Vite:
 php -S localhost:8080
 ```
 
-Vite proxies `/api` to that server. Set `CAPUBBS_PHP_ORIGIN` to use a different PHP origin, or `VITE_API_URL` to override the browser API endpoint directly.
+Vite proxies `/api` to that server; legacy avatar paths use the public `chexie.net` asset origin. Set `CAPUBBS_PHP_ORIGIN` to use a different PHP origin, or `VITE_API_URL` to override the browser API endpoint directly.

@@ -1,6 +1,9 @@
 import { getPublicProfilePath } from '../utils/userRoutes';
 
 const HOME_API_URL = import.meta.env.VITE_API_URL?.trim() || '/api/api.php';
+const PUBLIC_ASSET_ORIGIN = 'https://chexie.net';
+const avatarCache = new Map<string, string>();
+const avatarRequests = new Map<string, Promise<string>>();
 
 type ApiEnvelope = {
   code: number;
@@ -13,6 +16,7 @@ type ApiRow = Record<string, unknown>;
 export type HomeThread = {
   author: string;
   authorHref: string;
+  avatar: string;
   bid: number;
   href: string;
   id: string;
@@ -41,6 +45,31 @@ export async function fetchHomeFeed(signal?: AbortSignal) {
 export async function fetchGlobalPinnedThreads(signal?: AbortSignal) {
   const rows = await requestRows({ ask: 'global_top' }, signal);
   return rows.map(mapThreadRow).filter((thread): thread is HomeThread => thread !== null);
+}
+
+export async function hydrateHomeThreadAvatars(threads: HomeThread[], signal?: AbortSignal) {
+  throwIfAborted(signal);
+  const authors = Array.from(new Set(threads.map((thread) => thread.author).filter(Boolean)));
+  const avatars = new Map<string, string>();
+  let nextAuthorIndex = 0;
+
+  async function loadNextAvatar() {
+    while (nextAuthorIndex < authors.length) {
+      const author = authors[nextAuthorIndex];
+      nextAuthorIndex += 1;
+      avatars.set(author, await fetchUserAvatar(author));
+    }
+  }
+
+  await Promise.all(
+    Array.from({ length: Math.min(4, authors.length) }, () => loadNextAvatar()),
+  );
+  throwIfAborted(signal);
+
+  return threads.map((thread) => ({
+    ...thread,
+    avatar: avatars.get(thread.author) ?? '',
+  }));
 }
 
 async function requestRows(params: Record<string, string | number>, signal?: AbortSignal) {
@@ -98,6 +127,7 @@ function mapThreadRow(row: ApiRow): HomeThread | null {
   return {
     author,
     authorHref: getPublicProfilePath(author),
+    avatar: '',
     bid,
     href: `/bbs/content/?bid=${bid}&tid=${tid}&p=1`,
     id: `${bid}-${tid}`,
@@ -110,6 +140,43 @@ function mapThreadRow(row: ApiRow): HomeThread | null {
     title,
     views: toNumber(row.click),
   };
+}
+
+async function fetchUserAvatar(username: string) {
+  const cachedAvatar = avatarCache.get(username);
+  if (cachedAvatar !== undefined) return cachedAvatar;
+
+  const pendingRequest = avatarRequests.get(username);
+  if (pendingRequest) return pendingRequest;
+
+  const request = requestRows({ ask: 'user_profile', username })
+    .then((rows) => normalizeAvatar(rows[0]?.icon))
+    .catch(() => '')
+    .then((avatar) => {
+      avatarCache.set(username, avatar);
+      return avatar;
+    })
+    .finally(() => avatarRequests.delete(username));
+
+  avatarRequests.set(username, request);
+  return request;
+}
+
+function throwIfAborted(signal?: AbortSignal) {
+  if (signal?.aborted) throw new DOMException('Request aborted', 'AbortError');
+}
+
+function normalizeAvatar(value: unknown) {
+  if (typeof value !== 'string') return '';
+  const avatar = value.trim();
+
+  if (!avatar) return '';
+  if (/^data:image\//i.test(avatar)) return avatar;
+  if (/^https?:\/\//i.test(avatar)) return avatar;
+  if (avatar.startsWith('//')) return `https:${avatar}`;
+  if (avatar.startsWith('/')) return `${PUBLIC_ASSET_ORIGIN}${avatar}`;
+  if (/^\d+$/.test(avatar)) return `${PUBLIC_ASSET_ORIGIN}/bbsimg/i/${avatar}.gif`;
+  return `${PUBLIC_ASSET_ORIGIN}/bbsimg/icons/${avatar.replace(/^\.?\//, '')}`;
 }
 
 function excerptText(value: string) {
