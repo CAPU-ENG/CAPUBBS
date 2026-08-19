@@ -165,7 +165,7 @@ export function EmailDialog({
 }
 
 function isPkuEmail(value: string) {
-  return /^\d{10}@(?:(?:.+\.)?pku\.edu\.cn|bjmu\.edu\.cn)$/i.test(value.trim());
+  return /^[^\s@]+@(?:(?:[a-z0-9-]+\.)*pku\.edu\.cn|bjmu\.edu\.cn)$/i.test(value.trim());
 }
 
 export function SecurityDialog({ onClose, open }: { onClose: () => void; open: boolean }) {
