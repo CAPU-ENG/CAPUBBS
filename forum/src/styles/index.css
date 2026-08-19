@@ -1374,11 +1374,6 @@
     object-fit: cover;
   }
 
-  .thread-avatar-button:focus-visible {
-    outline: 2px solid var(--brand);
-    outline-offset: 3px;
-  }
-
   .author-hover-card {
     position: absolute;
     z-index: 35;
@@ -1405,9 +1400,7 @@
     content: "";
   }
 
-  .thread-avatar-rail:hover .author-hover-card,
-  .thread-avatar-rail:focus-within .author-hover-card,
-  .thread-avatar-rail.author-card-click-open .author-hover-card {
+  .thread-avatar-rail:hover .author-hover-card {
     display: block;
   }
 
@@ -3772,6 +3765,12 @@
 
     .feed-meta-separator {
       margin: 0 4px;
+    }
+  }
+
+  @media (hover: none) {
+    .thread-avatar-rail:hover .author-hover-card {
+      display: none;
     }
   }
 

@@ -83,18 +83,11 @@ export function ThreadFloor({
   onQuote: (floor: ThreadFloorData) => void;
   onReply: (floor: ThreadFloorData, targetName?: string) => void;
 }) {
-  const [authorCardOpen, setAuthorCardOpen] = useState(false);
   const [copyNoticeOpen, setCopyNoticeOpen] = useState(false);
-  const authorRef = useRef<HTMLDivElement | null>(null);
   const copyNoticeTimerRef = useRef<number | null>(null);
 
   useEffect(() => {
-    function closeAuthorCard(event: PointerEvent) {
-      if (authorRef.current && !authorRef.current.contains(event.target as Node)) setAuthorCardOpen(false);
-    }
-    document.addEventListener('pointerdown', closeAuthorCard);
     return () => {
-      document.removeEventListener('pointerdown', closeAuthorCard);
       if (copyNoticeTimerRef.current !== null) window.clearTimeout(copyNoticeTimerRef.current);
     };
   }, []);
@@ -116,19 +109,10 @@ export function ThreadFloor({
       data-floor={floor.floor}
       onCopy={copyAsPlainText}
     >
-      <div
-        className={`thread-avatar-rail ${authorCardOpen ? "author-card-click-open" : ""}`}
-        ref={authorRef}
-      >
-        <button
-          aria-expanded={authorCardOpen}
-          aria-label={`查看 ${floor.author.name} 的资料`}
-          className="thread-avatar-button"
-          onClick={() => setAuthorCardOpen((open) => !open)}
-          type="button"
-        >
+      <div className="thread-avatar-rail">
+        <div className="thread-avatar-button">
           <img src={floor.author.avatar} alt="" />
-        </button>
+        </div>
         <AuthorCard author={floor.author} />
       </div>
 
