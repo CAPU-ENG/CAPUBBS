@@ -122,21 +122,17 @@ export function BoardPage() {
 
       <main className="board-page-shell">
         <header className="board-title-card">
+          <div aria-hidden="true" className="board-title-artwork">
+            <img alt="" src={boardCover} />
+          </div>
           <div className="board-title-content">
-            <div className="board-title-identity">
-              <img
-                alt={`${demoBoard.name}版面图片`}
-                className="board-title-image"
-                src={boardCover}
-              />
-              <div className="board-title-copy">
-                <h1 id="board-title" ref={titleRef}>{demoBoard.name}</h1>
-                <div className="board-moderators">
-                  <span>版主</span>
-                  {demoBoard.moderators.map((moderator) => (
-                    <a href={authorHref(moderator)} key={moderator}>{moderator}</a>
-                  ))}
-                </div>
+            <div className="board-title-copy">
+              <h1 id="board-title" ref={titleRef}>{demoBoard.name}</h1>
+              <div className="board-moderators">
+                <span>版主</span>
+                {demoBoard.moderators.map((moderator) => (
+                  <a href={authorHref(moderator)} key={moderator}>{moderator}</a>
+                ))}
               </div>
             </div>
 
