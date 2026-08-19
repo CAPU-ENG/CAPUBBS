@@ -230,7 +230,7 @@
     height: 42px;
     align-items: center;
     gap: 5px;
-    border-radius: 2px;
+    border-radius: 0.5px;
     padding: 3px 5px 3px 3px;
     color: var(--text-muted);
     transition: background 160ms ease, color 160ms ease;
@@ -244,8 +244,8 @@
   .profile-trigger img {
     width: 34px;
     height: 34px;
-    border: 1px solid var(--line-strong);
-    border-radius: 2px;
+    border: 0.5px solid var(--line);
+    border-radius: 0.5px;
     object-fit: cover;
   }
 
@@ -590,8 +590,8 @@
     width: 24px;
     height: 24px;
     flex-shrink: 0;
-    border: 1px solid var(--line);
-    border-radius: 2px;
+    border: 0.5px solid var(--line);
+    border-radius: 0.5px;
     object-fit: cover;
   }
 
@@ -773,23 +773,39 @@
     font-weight: 720;
   }
 
-  .signup-card-countdown {
+  .signup-card-footer {
     display: flex;
     align-items: center;
-    gap: 4px;
+    justify-content: space-between;
+    gap: 10px;
     margin-top: 9px;
     border-top: 1px solid var(--line);
     padding-top: 8px;
+  }
+
+  .signup-card-countdown {
+    display: inline-flex;
+    min-width: 0;
+    align-items: center;
+    gap: 4px;
     color: var(--text-muted);
     font-size: 0.64rem;
   }
 
   .signup-card-countdown strong {
-    margin-left: auto;
     color: var(--brand-strong);
     font-variant-numeric: tabular-nums;
     font-size: 0.67rem;
     font-weight: 760;
+    white-space: nowrap;
+  }
+
+  .signup-card-count {
+    flex-shrink: 0;
+    color: var(--text-muted);
+    font-variant-numeric: tabular-nums;
+    font-size: 0.64rem;
+    font-weight: 680;
   }
 
   .calendar-month-nav {
@@ -841,7 +857,7 @@
     align-items: center;
     justify-content: center;
     border: 1px solid transparent;
-    border-radius: 7px;
+    border-radius: 0.5px;
     color: var(--text-muted);
     font-size: 0.68rem;
     transition: 120ms ease;

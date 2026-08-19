@@ -14,8 +14,8 @@ const activities = [
 ];
 
 const signupActivities = [
-  { date: '08.23 周日', title: '周末轻骑', deadline: '2026-08-22T20:00:00+08:00' },
-  { date: '08.27 周四', title: '夜骑安全训练', deadline: '2026-08-26T18:00:00+08:00' },
+  { date: '08.23 周日', title: '周末轻骑', deadline: '2026-08-22T20:00:00+08:00', signupCount: 32 },
+  { date: '08.27 周四', title: '夜骑安全训练', deadline: '2026-08-26T18:00:00+08:00', signupCount: 18 },
 ];
 
 function formatCountdown(deadline: string, now: number) {
@@ -78,11 +78,13 @@ function ActivitySignupPanel() {
               <em>报名中</em>
             </div>
             <h3>{activity.title}</h3>
-            <time className="signup-card-countdown" dateTime={activity.deadline}>
-              <Clock3 size={13} />
-              <span>截止报名</span>
-              <strong>{formatCountdown(activity.deadline, now)}</strong>
-            </time>
+            <div className="signup-card-footer">
+              <time className="signup-card-countdown" dateTime={activity.deadline}>
+                <Clock3 size={13} />
+                <strong>{formatCountdown(activity.deadline, now)}</strong>
+              </time>
+              <span className="signup-card-count">{activity.signupCount} 人报名</span>
+            </div>
           </a>
         ))}
       </div>
