@@ -744,7 +744,7 @@
 
   .home-aside {
     position: sticky;
-    top: calc(var(--topbar-height) + 24px);
+    top: calc(var(--topbar-height) + 10px);
     display: flex;
     flex-direction: column;
     gap: 10px;
