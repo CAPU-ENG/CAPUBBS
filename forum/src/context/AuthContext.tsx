@@ -12,6 +12,7 @@ type AuthContextValue = {
   login: (username: string, passwordHash: string) => Promise<SessionViewer>;
   logout: () => Promise<void>;
   status: AuthStatus;
+  updateViewerAvatar: (avatar: string) => void;
   viewer: SessionViewer | null;
 };
 
@@ -55,7 +56,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   }, []);
 
-  const value = useMemo(() => ({ login, logout, status, viewer }), [login, logout, status, viewer]);
+  const updateViewerAvatar = useCallback((avatar: string) => {
+    setViewer((current) => current ? { ...current, avatar } : current);
+  }, []);
+
+  const value = useMemo(
+    () => ({ login, logout, status, updateViewerAvatar, viewer }),
+    [login, logout, status, updateViewerAvatar, viewer],
+  );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }

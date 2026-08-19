@@ -62,11 +62,13 @@ export async function loginSession(username: string, passwordHash: string) {
   const viewer = await fetchSessionViewer();
   if (viewer) return viewer;
 
+  const fallbackUsername = stringValue(loginRow?.username) || username;
+
   return {
-    avatar: '',
+    avatar: await fetchPublicAvatar(fallbackUsername),
     rights: 0,
     unreadMessages: 0,
-    username: stringValue(loginRow?.username) || username,
+    username: fallbackUsername,
   };
 }
 
@@ -108,6 +110,15 @@ async function requestAuthApi(params: Record<string, string>, signal?: AbortSign
   }
 
   return payload.data;
+}
+
+async function fetchPublicAvatar(username: string) {
+  try {
+    const data = await requestAuthApi({ ask: 'user_profile', username });
+    return normalizeLegacyAvatar(asRows(data)[0]?.icon);
+  } catch {
+    return '';
+  }
 }
 
 function mapViewer(row: ApiRow): SessionViewer | null {

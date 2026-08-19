@@ -24,7 +24,7 @@ type OpenDialog = 'avatar' | 'email' | 'security' | null;
 type PageNotice = { message: string; tone: 'error' | 'success' } | null;
 
 export function UserCenterPage() {
-  const { logout } = useAuth();
+  const { logout, updateViewerAvatar } = useAuth();
   const profileState = useUserCenterProfile();
   const profile = profileState.data;
   const [isEditing, setIsEditing] = useState(false);
@@ -133,6 +133,7 @@ export function UserCenterPage() {
         onSave={async (src) => {
           const updatedProfile = await updateProfileAvatar(src);
           profileState.replace(updatedProfile);
+          updateViewerAvatar(updatedProfile.avatarSrc);
           setNotice({ message: '头像修改成功', tone: 'success' });
         }}
         open={openDialog === 'avatar'}
