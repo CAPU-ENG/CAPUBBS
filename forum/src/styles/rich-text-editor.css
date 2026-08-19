@@ -301,3 +301,54 @@
   }
 
 }
+@layer utilities {
+@media (max-width: 640px) {
+
+    .capubbs-editor-statusbar {
+      flex-wrap: nowrap !important;
+      gap: 4px !important;
+      padding: 5px 6px !important;
+      font-size: 0.6rem !important;
+    }
+
+    .capubbs-editor-statusbar > span {
+      flex-shrink: 0;
+    }
+
+    .capubbs-editor-statusbar-controls {
+      min-width: 0;
+      flex: 1;
+      flex-wrap: nowrap !important;
+      gap: 4px !important;
+      overflow-x: auto;
+      scrollbar-width: none;
+    }
+
+    .capubbs-editor-toggle {
+      height: 24px !important;
+      flex-shrink: 0;
+      gap: 3px !important;
+      padding-inline: 5px !important;
+      font-size: 0.58rem !important;
+      white-space: nowrap;
+    }
+
+    .capubbs-editor-toggle > input {
+      width: 12px !important;
+      height: 12px !important;
+    }
+
+    .capubbs-editor-mode-tabs {
+      height: 24px !important;
+      font-size: 0.58rem !important;
+    }
+
+    .capubbs-editor-mode-tab {
+      height: 21px !important;
+      padding-inline: 5px !important;
+    }
+
+}
+
+}
+

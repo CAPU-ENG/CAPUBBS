@@ -643,3 +643,145 @@
   }
 
 }
+@layer utilities {
+  @media (max-width: 640px) {
+
+    .reply-editor {
+      margin-top: 12px;
+    }
+
+    .reply-editor-heading {
+      align-items: flex-start;
+      padding: 15px 14px 12px;
+    }
+
+    .reply-editor-heading > p {
+      max-width: 55%;
+    }
+
+    .reply-target {
+      margin: 0 10px 10px;
+    }
+
+    .reply-editor-core {
+      padding: 3px 10px 5px;
+    }
+
+    .reply-signature-options {
+      flex-wrap: nowrap;
+      gap: 6px 10px;
+      overflow-x: auto;
+      margin: 8px 10px;
+      padding-bottom: 2px;
+      scrollbar-width: none;
+    }
+
+    .reply-signature-options::-webkit-scrollbar,
+    .capubbs-editor-statusbar-controls::-webkit-scrollbar {
+      display: none;
+    }
+
+    .reply-signature-options > label {
+      flex-shrink: 0;
+      gap: 4px;
+      font-size: 0.6rem;
+      white-space: nowrap;
+    }
+
+    .reply-signature-options input {
+      width: 12px;
+      height: 12px;
+    }
+
+    .editor-mode-tabs {
+      overflow-x: auto;
+      padding: 0 8px;
+    }
+
+    .editor-toolbar {
+      padding-inline: 8px;
+    }
+
+    .rich-reply-input,
+    .source-reply-input {
+      min-height: 200px;
+      padding: 15px 14px;
+      font-size: 0.84rem;
+    }
+
+    .reply-editor-footer {
+      display: grid;
+      grid-template-columns: auto max-content;
+      align-items: center;
+      gap: 5px;
+      padding: 7px 8px;
+    }
+
+    .reply-editor-footer > .reply-secondary-button {
+      grid-row: 1;
+      grid-column: 1;
+    }
+
+    .reply-editor-status {
+      grid-row: 2;
+      grid-column: 1 / -1;
+      width: 100%;
+    }
+
+    .reply-editor-submit {
+      grid-row: 1;
+      grid-column: 2;
+      width: auto;
+      min-width: max-content;
+      gap: 4px;
+      margin-left: 0;
+    }
+
+    .reply-editor-footer .reply-secondary-button,
+    .reply-editor-footer .reply-publish-button {
+      min-height: 30px;
+      gap: 3px;
+      padding-inline: 6px;
+      font-size: 0.6rem;
+      white-space: nowrap;
+    }
+
+    .reply-editor-submit > button {
+      flex: 0 0 auto;
+    }
+
+    .reply-editor-footer svg {
+      width: 13px;
+      height: 13px;
+    }
+
+    .reply-editor-footer .reply-action-label-full {
+      display: none;
+    }
+
+    .reply-editor-footer .reply-action-label-compact {
+      display: inline;
+    }
+
+    .reply-attachment-count {
+      min-width: 16px;
+      height: 16px;
+      font-size: 0.52rem;
+    }
+
+    .reply-preview-backdrop {
+      padding: 8px;
+    }
+
+    .reply-preview-dialog {
+      max-height: calc(100dvh - 16px);
+    }
+
+    .reply-preview-stage {
+      padding: 8px;
+    }
+
+  }
+
+}
+

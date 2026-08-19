@@ -567,3 +567,66 @@
   }
 
 }
+@layer utilities {
+  @media (min-width: 1024px) {
+    .page-shell {
+      display: grid;
+      grid-template-columns: minmax(0, 760px) 304px;
+      gap: 10px;
+      padding-top: calc(var(--topbar-height) + 10px);
+    }
+
+  }
+  @media (max-width: 1023px) {
+
+    .page-shell {
+      max-width: 780px;
+    }
+
+  }
+  @media (max-width: 640px) {
+
+    .feed-item {
+      padding: 18px 17px;
+    }
+
+    .feed-item h2 {
+      font-size: 1rem;
+      line-height: 1.48;
+    }
+
+    .feed-item-content > p {
+      margin-top: 7px;
+      font-size: 0.86rem;
+      line-height: 1.72;
+    }
+
+    .feed-item-meta {
+      margin-top: 14px;
+      font-size: 0.68rem;
+    }
+
+    .feed-stats {
+      gap: 11px;
+    }
+
+    .feed-author img {
+      width: 22px;
+      height: 22px;
+    }
+
+  }
+  @media (max-width: 420px) {
+
+    .feed-author {
+      max-width: 108px;
+    }
+
+    .feed-meta-separator {
+      margin: 0 4px;
+    }
+
+  }
+
+}
+

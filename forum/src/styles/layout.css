@@ -490,3 +490,62 @@
   }
 
 }
+@layer utilities {
+  @media (max-width: 1023px) {
+    :root {
+      --topbar-height: 56px;
+    }
+
+    .topbar-shell {
+      padding: 0 12px;
+    }
+
+    .brand-mark,
+    .brand-wordmark {
+      height: 27px;
+    }
+
+    .brand-wordmark {
+      width: 74px;
+    }
+
+  }
+  @media (max-width: 640px) {
+    .topbar-shell {
+      gap: 6px;
+      padding: 0 9px;
+    }
+
+    .icon-button {
+      width: 36px;
+      height: 36px;
+    }
+
+    .profile-trigger {
+      width: 38px;
+      padding: 2px;
+    }
+
+    .profile-trigger img {
+      width: 34px;
+      height: 34px;
+    }
+
+  }
+  @media (max-width: 420px) {
+    .brand-wordmark {
+      display: none;
+    }
+
+    .brand-link {
+      margin-right: auto;
+    }
+
+    .topbar-shell > .ml-auto {
+      margin-left: 0;
+    }
+
+  }
+
+}
+
