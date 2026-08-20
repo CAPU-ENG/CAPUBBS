@@ -9,6 +9,12 @@
   }
 
   .thread-edit-heading-card,
+  .thread-edit-source-card {
+    width: 100%;
+    max-width: var(--thread-main-column);
+  }
+
+  .thread-edit-heading-card,
   .thread-edit-source-card,
   .thread-edit-request-state {
     border: 1px solid var(--line);
