@@ -86,7 +86,7 @@ export function StarRulesDialog({
             ))}
           </tbody>
         </table>
-        <p className="profile-dialog-copy">灌水版内容单独计入灌水数，不参与星级计算。少数账号可能由系统设置固定星级，此时不按上述区间自动变化。</p>
+        <p className="profile-dialog-copy">灌水版内容单独计入灌水数，不参与星级计算。</p>
       </div>
       <DialogFooter confirmLabel="知道了" hideCancel onCancel={onClose} onConfirm={onClose} />
     </DialogFrame>
