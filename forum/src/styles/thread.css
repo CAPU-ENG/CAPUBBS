@@ -107,6 +107,24 @@
     min-width: 0;
   }
 
+  .thread-title-copy-button {
+    display: block;
+    border: 0;
+    padding: 0;
+    background: transparent;
+    color: inherit;
+    font: inherit;
+    letter-spacing: inherit;
+    text-align: left;
+    cursor: pointer;
+  }
+
+  .thread-title-copy-button:focus-visible {
+    border-radius: 2px;
+    outline: 2px solid var(--brand);
+    outline-offset: 4px;
+  }
+
   .thread-activity-management-link {
     display: inline-flex;
     min-height: 36px;

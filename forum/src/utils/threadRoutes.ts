@@ -18,6 +18,15 @@ export function getThreadPageForFloor(floor: number) {
   return Math.max(1, Math.ceil(floor / THREAD_PAGE_SIZE));
 }
 
+export function getThreadHref(bid: number, tid: number) {
+  const params = new URLSearchParams({
+    bid: String(bid),
+    p: '1',
+    tid: String(tid),
+  });
+  return `/?${params.toString()}`;
+}
+
 export function getThreadComposeHref(bid: number, tid?: number, kind: 'activity' | 'thread' = 'thread') {
   const params = new URLSearchParams({ bid: String(bid) });
   if (tid) params.set('tid', String(tid));

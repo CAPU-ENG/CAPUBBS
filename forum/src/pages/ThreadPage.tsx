@@ -1,5 +1,5 @@
 import { Fragment, useEffect, useLayoutEffect, useRef, useState } from 'react';
-import { Bookmark, BookmarkCheck, Eye, MessageCircle, RotateCw, Settings } from 'lucide-react';
+import { Bookmark, BookmarkCheck, Check, Eye, MessageCircle, RotateCw, Settings } from 'lucide-react';
 import { ActivitySignupForm } from '../components/thread/ActivitySignupForm';
 import { ReplyEditor, type QuoteRequest } from '../components/thread/ReplyEditor';
 import { ThreadFloor } from '../components/thread/ThreadFloor';
@@ -13,11 +13,13 @@ import type { NestedReply, ThreadFloorData } from '../data/threadDemo';
 import { useScrollContextTitle } from '../hooks/useScrollContextTitle';
 import { useThreadData } from '../hooks/useThreadData';
 import { getLoginPathWithReturnTo } from '../utils/authRoutes';
+import { writeClipboardText } from '../utils/clipboard';
 import {
   getActivityManagementHref,
   getThreadEditHref,
   getThreadFloorElement,
   getThreadFloorFromHash,
+  getThreadHref,
   getThreadPageForFloor,
 } from '../utils/threadRoutes';
 import { markThreadRead } from '../utils/threadReadState';
@@ -54,6 +56,8 @@ export function ThreadPage() {
   const [bookmarked, setBookmarked] = useState(false);
   const [bookmarkPending, setBookmarkPending] = useState(false);
   const [bookmarkError, setBookmarkError] = useState<string | null>(null);
+  const [copyNoticeOpen, setCopyNoticeOpen] = useState(false);
+  const copyNoticeTimerRef = useRef<number | null>(null);
   const editorRef = useRef<HTMLElement | null>(null);
   const titleRef = useRef<HTMLHeadingElement | null>(null);
   const showTitleInTopBar = useScrollContextTitle(titleRef);
@@ -69,6 +73,12 @@ export function ThreadPage() {
     if (!data) return;
     markThreadRead(`${data.bid}-${data.tid}`, viewer?.username);
   }, [data, viewer?.username]);
+
+  useEffect(() => {
+    return () => {
+      if (copyNoticeTimerRef.current !== null) window.clearTimeout(copyNoticeTimerRef.current);
+    };
+  }, []);
 
   useLayoutEffect(() => {
     if (!data) return;
@@ -249,6 +259,17 @@ export function ThreadPage() {
     }
   }
 
+  async function copyThreadLink() {
+    if (!data) return;
+    const link = new URL(getThreadHref(data.bid, data.tid), window.location.origin).href;
+    const copied = await writeClipboardText(link);
+    if (!copied) return;
+
+    setCopyNoticeOpen(true);
+    if (copyNoticeTimerRef.current !== null) window.clearTimeout(copyNoticeTimerRef.current);
+    copyNoticeTimerRef.current = window.setTimeout(() => setCopyNoticeOpen(false), 1800);
+  }
+
   if (!data) {
     return (
       <div className="relative min-h-screen text-[var(--text)] transition-colors duration-200">
@@ -305,7 +326,17 @@ export function ThreadPage() {
       <main className="thread-page-shell">
         <header className="thread-title-card">
           <div className="thread-title-heading">
-            <h1 id="thread-title" ref={titleRef}>{data.title}</h1>
+            <h1 id="thread-title" ref={titleRef}>
+              <button
+                aria-label="复制帖子链接"
+                className="thread-title-copy-button"
+                onClick={() => { void copyThreadLink(); }}
+                title="复制帖子链接"
+                type="button"
+              >
+                {data.title}
+              </button>
+            </h1>
             {canManageActivity && (
               <a className="thread-activity-management-link" href={getActivityManagementHref(data.bid, data.tid)}>
                 <Settings size={15} />活动管理
@@ -411,6 +442,12 @@ export function ThreadPage() {
       </main>
 
       {nodeFloors.length > 0 && <MobileFloorNode activeFloor={activeFloor} floors={nodeFloors} />}
+      {copyNoticeOpen && (
+        <div aria-live="polite" className="copy-floor-toast" role="status">
+          <Check aria-hidden="true" size={15} />
+          已复制帖子链接
+        </div>
+      )}
     </div>
   );
 }
