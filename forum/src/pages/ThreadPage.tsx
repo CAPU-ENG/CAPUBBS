@@ -238,11 +238,17 @@ export function ThreadPage() {
 
         {data.canReply && data.viewer ? (
           <ReplyEditor
+            bid={data.bid}
+            board={data.board}
+            boardHref={data.boardHref}
+            draftId={new URLSearchParams(window.location.search).get('draft')}
             editorRef={editorRef}
+            ownerKey={data.viewer.name}
             previewAuthor={data.viewer}
             previewFloor={data.replies + 2}
             previewSignatures={data.viewerSignatures}
             quoteRequest={quoteRequest}
+            tid={data.tid}
             threadTitle={data.title}
           />
         ) : (

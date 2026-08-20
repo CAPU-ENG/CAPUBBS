@@ -14,6 +14,11 @@ import {
   RichTextEditor,
   type RichTextEditorValue,
 } from "../editor/RichTextEditor";
+import {
+  readStoredReplyDraft,
+  saveStoredReplyDraft,
+  type StoredReplyAttachment,
+} from "../../utils/replyDraftStorage";
 import { ThreadHtmlContent } from "./ThreadHtmlContent";
 
 export type QuoteRequest = {
@@ -23,19 +28,13 @@ export type QuoteRequest = {
   requestId: number;
 };
 
-type ReplyAttachment = {
-  id: string;
-  name: string;
-  size: number;
-  type: string;
-};
+type ReplyAttachment = StoredReplyAttachment & { restored?: boolean };
 
 type ReplyPreviewAuthor = {
   avatar: string;
   name: string;
 };
 
-const draftStorageKey = "capubbs-thread-reply-draft";
 const signatureOptions = [
   { label: "不使用签名档", value: 0 },
   { label: "签名档 1", value: 1 },
@@ -44,18 +43,30 @@ const signatureOptions = [
 ] as const;
 
 export function ReplyEditor({
+  bid,
+  board,
+  boardHref,
+  draftId,
   editorRef,
+  ownerKey,
   previewAuthor,
   previewFloor,
   previewSignatures,
   quoteRequest,
+  tid,
   threadTitle,
 }: {
+  bid: number;
+  board: string;
+  boardHref: string;
+  draftId: string | null;
   editorRef: React.RefObject<HTMLElement | null>;
+  ownerKey: string;
   previewAuthor: ReplyPreviewAuthor;
   previewFloor: number;
   previewSignatures: string[];
   quoteRequest: QuoteRequest | null;
+  tid: number;
   threadTitle: string;
 }) {
   const [editorValue, setEditorValue] = useState<RichTextEditorValue>({
@@ -69,34 +80,20 @@ export function ReplyEditor({
   const [previewedAt, setPreviewedAt] = useState("");
   const [focusRequest, setFocusRequest] = useState(0);
   const [status, setStatus] = useState("");
+  const [savedDraftId, setSavedDraftId] = useState<string | null>(null);
   const appliedQuoteRequestRef = useRef(0);
 
   useEffect(() => {
-    const draft = window.localStorage.getItem(draftStorageKey);
-    if (!draft) return;
+    const storedDraft = readStoredReplyDraft(draftId, ownerKey);
+    if (!storedDraft || storedDraft.bid !== bid || storedDraft.tid !== tid) return;
 
-    try {
-      const parsed = JSON.parse(draft) as {
-        attachments?: ReplyAttachment[];
-        content?: string;
-        editor?: RichTextEditorValue;
-        mode?: RichTextEditorValue["mode"];
-        signature?: string;
-        signatureIndex?: number;
-      };
-      setEditorValue(
-        parsed.editor ?? {
-          content: parsed.content ?? "",
-          mode: parsed.mode ?? "rich",
-        },
-      );
-      setSignatureIndex(parsed.signatureIndex ?? Number(parsed.signature ?? 0));
-      setAttachments(parsed.attachments ?? []);
-      setStatus("草稿已恢复");
-    } catch {
-      window.localStorage.removeItem(draftStorageKey);
-    }
-  }, []);
+    setEditorValue(storedDraft.editor);
+    setSignatureIndex(storedDraft.signatureIndex ?? 0);
+    setAttachments(storedDraft.attachments.map((attachment) => ({ ...attachment, restored: true })));
+    setSavedDraftId(storedDraft.id);
+    setStatus("草稿已恢复");
+    setFocusRequest((request) => request + 1);
+  }, [bid, draftId, ownerKey, tid]);
 
   useEffect(() => {
     if (!quoteRequest || appliedQuoteRequestRef.current === quoteRequest.requestId) return;
@@ -121,6 +118,7 @@ export function ReplyEditor({
       ...current,
       ...files.map((file) => ({
         id: `${file.name}-${file.size}-${file.lastModified}-${crypto.randomUUID?.() ?? Date.now()}`,
+        lastModified: file.lastModified,
         name: file.name,
         size: file.size,
         type: file.type || "application/octet-stream",
@@ -142,16 +140,29 @@ export function ReplyEditor({
       return;
     }
 
-    window.localStorage.setItem(
-      draftStorageKey,
-      JSON.stringify({
-        attachments,
+    const storedDraft = saveStoredReplyDraft(
+      {
+        attachments: attachments.map(({ restored: _restored, ...attachment }) => attachment),
+        bid,
+        board,
+        boardHref,
         editor: getRichTextEditorStorageValue(editorValue),
+        excerpt: getReplyDraftExcerpt(editorValue, attachments),
+        id: savedDraftId ?? undefined,
         signatureIndex,
         threadTitle,
-      }),
+        tid,
+      },
+      ownerKey,
     );
-    setStatus("已存入本机草稿");
+
+    if (!storedDraft) {
+      setStatus("草稿保存失败，请检查浏览器存储权限");
+      return;
+    }
+
+    setSavedDraftId(storedDraft.id);
+    setStatus("已存入草稿箱");
   }
 
   function publishReply() {
@@ -179,6 +190,7 @@ export function ReplyEditor({
   return (
     <section
       className="reply-editor"
+      id="reply-editor"
       ref={editorRef}
       aria-labelledby="reply-editor-title"
     >
@@ -574,6 +586,22 @@ function hasEditorContent(value: RichTextEditorValue) {
     (container.textContent ?? "").replace(/\u00a0/g, " ").trim().length > 0 ||
     !!container.querySelector("img, hr")
   );
+}
+
+function getReplyDraftExcerpt(value: RichTextEditorValue, attachments: ReplyAttachment[]) {
+  let excerpt = value.content;
+
+  if (value.mode === "rich" || value.mode === "html") {
+    const container = document.createElement("div");
+    container.innerHTML = value.content;
+    excerpt = container.textContent ?? "";
+  } else {
+    excerpt = value.content.replace(/[#*_>`\-[\]()~]/g, " ");
+  }
+
+  const normalizedExcerpt = excerpt.replace(/\s+/g, " ").trim();
+  if (normalizedExcerpt) return normalizedExcerpt.slice(0, 120);
+  return attachments.length > 0 ? "附件回复草稿" : "空白回复草稿";
 }
 
 function escapeHtml(value: string) {

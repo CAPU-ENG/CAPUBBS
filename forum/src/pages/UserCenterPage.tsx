@@ -16,26 +16,43 @@ import { AvatarDialog, EmailDialog, SecurityDialog } from '../components/profile
 import { ProfileOverview, type ProfileDraft } from '../components/profile/ProfileOverview';
 import { ProfileWorkspace } from '../components/profile/ProfileWorkspace';
 import { useAuth } from '../context/AuthContext';
-import type { ProfileDetail } from '../data/profileDemo';
+import type { ProfileDetail, ProfileRecordMap } from '../data/profileDemo';
 import { useUserCenterProfile } from '../hooks/useProfileData';
+import {
+  readStoredReplyDrafts,
+  subscribeStoredReplyDrafts,
+  type StoredReplyDraft,
+} from '../utils/replyDraftStorage';
 import { getPublicProfilePath, USER_CENTER_PATH } from '../utils/userRoutes';
 
 type OpenDialog = 'avatar' | 'email' | 'security' | null;
 type PageNotice = { message: string; tone: 'error' | 'success' } | null;
 
 export function UserCenterPage() {
-  const { logout, status: authStatus, updateViewerAvatar } = useAuth();
+  const { logout, status: authStatus, updateViewerAvatar, viewer } = useAuth();
   const profileState = useUserCenterProfile(authStatus === 'authenticated');
   const profile = authStatus === 'authenticated' ? profileState.data : null;
+  const draftOwnerKey = viewer?.username ?? null;
   const [isEditing, setIsEditing] = useState(false);
   const [isSavingProfile, setIsSavingProfile] = useState(false);
   const [draft, setDraft] = useState<ProfileDraft>(emptyDraft);
+  const [replyDrafts, setReplyDrafts] = useState(() => readStoredReplyDrafts(draftOwnerKey));
   const [openDialog, setOpenDialog] = useState<OpenDialog>(() => window.location.hash === '#account-security' ? 'security' : null);
   const [notice, setNotice] = useState<PageNotice>(null);
   const email = useMemo(
     () => profile?.details.find((detail) => detail.key === 'email')?.value ?? '',
     [profile?.details],
   );
+  const workspaceRecords = useMemo<ProfileRecordMap | null>(() => {
+    if (!profile) return null;
+    return {
+      ...profile.records,
+      drafts: [
+        ...profile.records.drafts,
+        ...replyDrafts.map(mapReplyDraftRecord),
+      ],
+    };
+  }, [profile, replyDrafts]);
 
   useEffect(() => {
     if (!profile || isEditing) return;
@@ -47,6 +64,12 @@ export function UserCenterPage() {
     const timeout = window.setTimeout(() => setNotice(null), 2600);
     return () => window.clearTimeout(timeout);
   }, [notice]);
+
+  useEffect(() => {
+    const refreshReplyDrafts = () => setReplyDrafts(readStoredReplyDrafts(draftOwnerKey));
+    refreshReplyDrafts();
+    return subscribeStoredReplyDrafts(refreshReplyDrafts, draftOwnerKey);
+  }, [draftOwnerKey]);
 
   useEffect(() => {
     function openAccountSecurityFromHash() {
@@ -140,7 +163,7 @@ export function UserCenterPage() {
         <ProfileWorkspace
           allowedTabs={['posts', 'replies', 'activities', 'bookmarks', 'drafts', 'signatures']}
           asideLink={{ href: getPublicProfilePath(profile.id), label: '查看公开个人主页' }}
-          initialRecords={profile.records}
+          initialRecords={workspaceRecords ?? profile.records}
           onSaveSignatures={updateProfileSignatures}
           ownerLabel="我"
         />
@@ -229,6 +252,24 @@ function createDraft(details: ProfileDetail[], intro: string): ProfileDraft {
 
 function emptyDraft(): ProfileDraft {
   return { hobby: '', intro: '', location: '', qq: '' };
+}
+
+function mapReplyDraftRecord(draft: StoredReplyDraft) {
+  const params = new URLSearchParams({
+    bid: String(draft.bid),
+    draft: draft.id,
+    tid: String(draft.tid),
+  });
+
+  return {
+    board: draft.board,
+    date: draft.updatedAt.slice(0, 10),
+    excerpt: draft.excerpt || '附件回复草稿',
+    href: `/?${params.toString()}#reply-editor`,
+    id: draft.id,
+    status: '回帖草稿',
+    title: draft.threadTitle,
+  };
 }
 
 function getPageError(error: unknown, fallback: string) {
