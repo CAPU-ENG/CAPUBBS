@@ -205,17 +205,8 @@ export function SettingsPage() {
           </section>
         </div>
 
-        <aside className="settings-panel settings-save-card" aria-labelledby="save-settings-title">
-          <div className="settings-save-card-heading">
-            <span className="settings-panel-icon"><Save size={17} /></span>
-            <div>
-              <h2 id="save-settings-title">保存设置</h2>
-            </div>
-          </div>
-          <p className="settings-save-status" aria-live="polite" role="status">
-            <Check size={15} />
-            <span>{feedback}</span>
-          </p>
+        <aside className="settings-save-action" aria-label="保存设置">
+          <span className="sr-only" aria-live="polite" role="status">{feedback}</span>
           <button disabled={!hasChanges || isSaving} onClick={() => void saveSettings()} type="button">
             <Save size={15} />{isSaving ? '保存中' : '保存设置'}
           </button>
