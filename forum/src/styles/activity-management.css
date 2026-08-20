@@ -9,7 +9,14 @@
 
   .activity-management-workspace {
     display: grid;
+    min-width: 0;
     gap: 12px;
+  }
+
+  .activity-management-tabpanel,
+  .activity-summary-panel {
+    min-width: 0;
+    max-width: 100%;
   }
 
   .activity-management-heading,
