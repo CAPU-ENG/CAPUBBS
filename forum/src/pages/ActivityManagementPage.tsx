@@ -377,8 +377,8 @@ function SignupSummaryPanel({
                 {records.map((record) => (
                   <tr key={record.floor.id}>
                     <td className="activity-summary-id-column"><strong>{record.floor.author.name}</strong></td>
-                    <td>{record.floor.publishedAt}</td>
-                    <td><ActivityRecordStatus status={record.status} /></td>
+                    <td className="activity-summary-time-column">{record.floor.publishedAt}</td>
+                    <td className="activity-summary-status-column"><ActivityRecordStatus status={record.status} /></td>
                     {questions.map((question) => {
                       const value = getActivityRecordValue(record, question);
                       const expandable = isExpandableSummaryValue(value);

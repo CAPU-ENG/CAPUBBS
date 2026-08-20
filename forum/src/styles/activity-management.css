@@ -261,11 +261,11 @@
 
   .activity-summary-table-wrap th,
   .activity-summary-table-wrap td {
-    width: 240px;
-    min-width: 180px;
-    max-width: 300px;
+    width: 136px;
+    min-width: 136px;
+    max-width: 136px;
     border-bottom: 1px solid var(--line);
-    padding: 11px 13px;
+    padding: 9px;
     color: var(--text-muted);
     font-size: 0.71rem;
     vertical-align: middle;
@@ -287,9 +287,9 @@
     position: sticky;
     left: 0;
     z-index: 1;
-    width: 150px;
-    min-width: 150px;
-    max-width: 150px;
+    width: 108px;
+    min-width: 108px;
+    max-width: 108px;
     background: inherit;
     box-shadow: 1px 0 0 var(--line);
   }
@@ -300,13 +300,15 @@
   }
 
   .activity-summary-table-wrap .activity-summary-time-column {
-    width: 150px;
-    min-width: 150px;
+    width: 140px;
+    min-width: 140px;
+    max-width: 140px;
   }
 
   .activity-summary-table-wrap .activity-summary-status-column {
-    width: 100px;
-    min-width: 100px;
+    width: 76px;
+    min-width: 76px;
+    max-width: 76px;
   }
 
   .activity-summary-table-wrap td strong {
