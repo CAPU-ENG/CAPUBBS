@@ -8,10 +8,10 @@
     position: relative;
     z-index: 1;
     display: grid;
-    width: min(1120px, calc(100% - 40px));
-    grid-template-columns: minmax(0, 1fr) 260px;
+    width: min(1074px, calc(100% - 40px));
+    grid-template-columns: minmax(0, 760px) minmax(240px, 304px);
     align-items: start;
-    gap: 16px;
+    gap: 10px;
     margin: 0 auto;
     padding: calc(var(--topbar-height) + 28px) 0 72px;
   }
@@ -321,6 +321,53 @@
     letter-spacing: 0.08em;
   }
 
+  .settings-board-disclosure {
+    border-top: 1px solid var(--line);
+    padding-top: 14px;
+  }
+
+  .settings-board-disclosure summary {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto 16px;
+    align-items: center;
+    gap: 8px;
+    min-height: 34px;
+    cursor: pointer;
+    color: var(--text-muted);
+    list-style: none;
+  }
+
+  .settings-board-disclosure summary::-webkit-details-marker { display: none; }
+
+  .settings-board-disclosure summary:focus-visible {
+    border-radius: var(--control-radius);
+    outline: 2px solid var(--brand);
+    outline-offset: 2px;
+  }
+
+  .settings-board-disclosure summary strong {
+    font-size: 0.62rem;
+    font-weight: 770;
+    letter-spacing: 0.08em;
+  }
+
+  .settings-board-disclosure summary small {
+    color: var(--text-faint);
+    font-size: 0.58rem;
+  }
+
+  .settings-board-disclosure summary svg {
+    transition: transform 150ms ease;
+  }
+
+  .settings-board-disclosure[open] summary svg {
+    transform: rotate(180deg);
+  }
+
+  .settings-board-disclosure .settings-board-group {
+    padding-top: 10px;
+  }
+
   .settings-board-grid {
     display: grid;
     grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -411,13 +458,6 @@
     color: var(--text-strong);
     font-size: 0.84rem;
     font-weight: 760;
-  }
-
-  .settings-save-card-heading p {
-    margin-top: 4px;
-    color: var(--text-faint);
-    font-size: 0.61rem;
-    line-height: 1.5;
   }
 
   .settings-save-status {

@@ -1,4 +1,4 @@
-import { Check, CirclePlus, MonitorCog, Pin, PinOff, Save } from 'lucide-react';
+import { Check, ChevronDown, CirclePlus, MonitorCog, Pin, PinOff, Save } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import { AppBackground } from '../components/layout/AppBackground';
 import { TopBar } from '../components/layout/TopBar';
@@ -20,6 +20,8 @@ export function SettingsPage() {
   const pinnedBoards = draftBoardIds
     .map(getBoardById)
     .filter((board) => board !== undefined);
+  const secondaryBoardIds = new Set(SECONDARY_BOARDS.map((board) => board.id));
+  const selectedSecondaryBoardCount = draftBoardIds.filter((boardId) => secondaryBoardIds.has(boardId)).length;
   const isFull = draftBoardIds.length >= MAX_PINNED_BOARDS;
   const hasChanges = !sameBoardIds(draftBoardIds, pinnedBoardIds) || draftFollowsSystem !== followsSystem;
 
@@ -183,14 +185,22 @@ export function SettingsPage() {
                 onRemove={removeBoard}
                 boards={PRIMARY_BOARDS}
               />
-              <BoardGroup
-                boardIds={draftBoardIds}
-                disabled={isFull}
-                label="其他版块"
-                onAdd={addBoard}
-                onRemove={removeBoard}
-                boards={SECONDARY_BOARDS}
-              />
+              <details className="settings-board-disclosure">
+                <summary>
+                  <strong>其他版块</strong>
+                  <small>{selectedSecondaryBoardCount > 0 ? `已选择 ${selectedSecondaryBoardCount} 个` : '展开选择'}</small>
+                  <ChevronDown size={15} />
+                </summary>
+                <BoardGroup
+                  boardIds={draftBoardIds}
+                  boards={SECONDARY_BOARDS}
+                  disabled={isFull}
+                  hideLegend
+                  label="其他版块"
+                  onAdd={addBoard}
+                  onRemove={removeBoard}
+                />
+              </details>
             </div>
           </section>
         </div>
@@ -200,7 +210,6 @@ export function SettingsPage() {
             <span className="settings-panel-icon"><Save size={17} /></span>
             <div>
               <h2 id="save-settings-title">保存设置</h2>
-              <p>确认左侧调整后，在这里统一保存并应用。</p>
             </div>
           </div>
           <p className="settings-save-status" aria-live="polite" role="status">
@@ -220,6 +229,7 @@ function BoardGroup({
   boardIds,
   boards,
   disabled,
+  hideLegend = false,
   label,
   onAdd,
   onRemove,
@@ -227,13 +237,14 @@ function BoardGroup({
   boardIds: number[];
   boards: typeof ALL_BOARDS;
   disabled: boolean;
+  hideLegend?: boolean;
   label: string;
   onAdd: (boardId: number) => void;
   onRemove: (boardId: number) => void;
 }) {
   return (
     <fieldset className="settings-board-group">
-      <legend>{label}</legend>
+      <legend className={hideLegend ? 'sr-only' : undefined}>{label}</legend>
       <div className="settings-board-grid">
         {boards.map((board) => {
           const selected = boardIds.includes(board.id);
