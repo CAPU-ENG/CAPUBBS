@@ -236,33 +236,12 @@
     color: var(--brand-strong);
   }
 
-  .register-card-heading p {
-    margin-bottom: 3px;
-    color: var(--text-faint);
-    font-size: 0.66rem;
-    font-weight: 750;
-    letter-spacing: 0.12em;
-  }
-
   .register-card-heading h1 {
     color: var(--text-strong);
     font-family: "Noto Serif CJK SC", "Source Han Serif SC", "Songti SC", serif;
     font-size: 1.35rem;
     font-weight: 760;
     letter-spacing: -0.02em;
-  }
-
-  .register-card-stamp {
-    border: 1px solid color-mix(in srgb, var(--brand) 40%, var(--line));
-    border-radius: 2px;
-    padding: 5px 7px 4px;
-    color: var(--brand-strong);
-    font-family: ui-monospace, "SFMono-Regular", Consolas, monospace;
-    font-size: 0.58rem;
-    font-weight: 800;
-    letter-spacing: 0.14em;
-    opacity: 0.72;
-    transform: rotate(-2deg);
   }
 
   .register-form {
@@ -325,6 +304,7 @@
   }
 
   .register-field > span,
+  .register-field > label,
   .register-field > legend {
     display: block;
     margin-bottom: 7px;
@@ -384,6 +364,50 @@
   .register-valid-icon {
     flex-shrink: 0;
     color: var(--brand);
+  }
+
+  .register-email-help {
+    position: relative;
+    display: inline-flex;
+    flex-shrink: 0;
+    cursor: help;
+    color: var(--text-faint);
+  }
+
+  .register-email-help:focus {
+    border-radius: 50%;
+    outline: 2px solid color-mix(in srgb, var(--brand) 32%, transparent);
+    outline-offset: 2px;
+  }
+
+  .register-email-help [role="tooltip"] {
+    position: absolute;
+    z-index: 20;
+    right: -8px;
+    bottom: calc(100% + 9px);
+    width: max-content;
+    max-width: min(280px, 72vw);
+    visibility: hidden;
+    border: 1px solid var(--line-strong);
+    border-radius: var(--control-radius);
+    padding: 7px 9px;
+    background: var(--surface-raised);
+    box-shadow: var(--shadow-float);
+    color: var(--text-muted);
+    font-size: 0.65rem;
+    font-weight: 650;
+    line-height: 1.45;
+    opacity: 0;
+    pointer-events: none;
+    transform: translateY(3px);
+    transition: opacity 120ms ease, transform 120ms ease, visibility 120ms ease;
+  }
+
+  .register-email-help:hover [role="tooltip"],
+  .register-email-help:focus [role="tooltip"] {
+    visibility: visible;
+    opacity: 1;
+    transform: translateY(0);
   }
 
   .register-inline-field {
@@ -517,6 +541,22 @@
     border-radius: 50%;
     background: var(--brand-strong);
     color: white;
+  }
+
+  .register-avatar-grid .register-avatar-upload {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--brand-strong);
+  }
+
+  .register-avatar-grid .register-avatar-upload:disabled {
+    cursor: wait;
+    opacity: 0.65;
+  }
+
+  .register-avatar-file-input {
+    display: none;
   }
 
   .register-captcha-row {
@@ -694,10 +734,6 @@
     .register-form-footer {
       padding-right: 18px;
       padding-left: 18px;
-    }
-
-    .register-card-stamp {
-      display: none;
     }
 
     .register-form-grid {

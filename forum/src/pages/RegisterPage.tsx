@@ -1,10 +1,11 @@
-import { useEffect, useMemo, useState, type FormEvent } from 'react';
+import { useEffect, useMemo, useRef, useState, type ChangeEvent, type FormEvent } from 'react';
 import {
   ArrowRight,
   AtSign,
   Bike,
   Check,
   ChevronDown,
+  CircleHelp,
   Heart,
   LoaderCircle,
   LockKeyhole,
@@ -12,6 +13,7 @@ import {
   MessageCircle,
   RefreshCw,
   ShieldCheck,
+  Upload,
   UserPlus,
   UserRound,
 } from 'lucide-react';
@@ -32,17 +34,19 @@ const AVATAR_OPTIONS = [
   ['guitar.jpeg', '吉他'],
   ['soccer.jpeg', '足球'],
   ['piano.jpeg', '钢琴'],
-  ['owl.jpeg', '猫头鹰'],
 ].map(([filename, label]) => ({
   label,
   src: `https://chexie.net/bbsimg/icons/${encodeURIComponent(filename)}`,
 }));
+
+const MAX_AVATAR_FILE_SIZE = 2 * 1024 * 1024;
 
 type UsernameState = 'idle' | 'checking' | 'available' | 'taken' | 'invalid';
 type Notice = { message: string; tone: 'error' | 'success' } | null;
 
 export function RegisterPage() {
   const { register, status } = useAuth();
+  const avatarFileInputRef = useRef<HTMLInputElement | null>(null);
   const [username, setUsername] = useState('');
   const [usernameState, setUsernameState] = useState<UsernameState>('idle');
   const [email, setEmail] = useState('');
@@ -51,6 +55,8 @@ export function RegisterPage() {
   const [confirmPassword, setConfirmPassword] = useState('');
   const [sex, setSex] = useState('0');
   const [icon, setIcon] = useState(AVATAR_OPTIONS[0].src);
+  const [customAvatar, setCustomAvatar] = useState<{ icon: string; src: string } | null>(null);
+  const [uploadingAvatar, setUploadingAvatar] = useState(false);
   const [captcha, setCaptcha] = useState('');
   const [captchaNonce, setCaptchaNonce] = useState(() => Date.now());
   const [qq, setQq] = useState('');
@@ -95,7 +101,7 @@ export function RegisterPage() {
   async function sendEmailCode() {
     const normalizedEmail = email.trim();
     if (!PKU_EMAIL_PATTERN.test(normalizedEmail)) {
-      setNotice({ message: '请输入 10 位学号的 pku.edu.cn 或 bjmu.edu.cn 邮箱。', tone: 'error' });
+      setNotice({ message: '请输入允许的 PKU 学号邮箱。', tone: 'error' });
       return;
     }
 
@@ -117,8 +123,52 @@ export function RegisterPage() {
     setCaptchaNonce(Date.now());
   }
 
+  async function uploadAvatar(event: ChangeEvent<HTMLInputElement>) {
+    const file = event.currentTarget.files?.[0];
+    event.currentTarget.value = '';
+    if (!file) return;
+    if (!file.type.startsWith('image/')) {
+      setNotice({ message: '请选择图片文件作为头像。', tone: 'error' });
+      return;
+    }
+    if (file.size > MAX_AVATAR_FILE_SIZE) {
+      setNotice({ message: '头像图片不能超过 2MB。', tone: 'error' });
+      return;
+    }
+
+    const body = new FormData();
+    body.set('file', file);
+    setUploadingAvatar(true);
+    setNotice(null);
+
+    try {
+      const response = await fetch('/bbs/utils/icon_upload.php', {
+        body,
+        credentials: 'include',
+        method: 'POST',
+      });
+      const result: unknown = await response.json();
+      if (!response.ok || !isAvatarUploadResult(result) || result.code !== 0 || !result.url?.trim()) {
+        throw new Error(isAvatarUploadResult(result) && result.msg ? result.msg : '头像上传失败，请重试。');
+      }
+
+      const uploadedIcon = result.url.trim();
+      setCustomAvatar({ icon: uploadedIcon, src: getUploadedAvatarSrc(uploadedIcon) });
+      setIcon(uploadedIcon);
+      setNotice({ message: '头像上传成功。', tone: 'success' });
+    } catch (error) {
+      setNotice({ message: getErrorMessage(error, '头像上传失败，请重试。'), tone: 'error' });
+    } finally {
+      setUploadingAvatar(false);
+    }
+  }
+
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    if (uploadingAvatar) {
+      setNotice({ message: '请等待头像上传完成。', tone: 'error' });
+      return;
+    }
     const normalizedUsername = username.trim();
     const normalizedEmail = email.trim();
     const normalizedCode = emailCode.trim();
@@ -174,12 +224,8 @@ export function RegisterPage() {
           <header className="register-card-header">
             <div className="register-card-heading">
               <span className="register-card-icon"><Bike size={19} /></span>
-              <div>
-                <p>北京大学自行车协会论坛</p>
-                <h1 id="register-title">加入 CAPUBBS</h1>
-              </div>
+              <h1 id="register-title">欢迎加入 CAPU</h1>
             </div>
-            <span className="register-card-stamp">NEW RIDER</span>
           </header>
 
           <form className="register-form" onSubmit={submit}>
@@ -207,7 +253,6 @@ export function RegisterPage() {
                         setUsername(event.currentTarget.value);
                         setUsernameState('idle');
                       }}
-                      placeholder="设置你的论坛 ID"
                       value={username}
                     />
                     <UsernameIndicator state={usernameState} />
@@ -219,25 +264,30 @@ export function RegisterPage() {
                   </small>
                 </label>
 
-                <label className="register-field">
-                  <span>邮箱</span>
+                <div className="register-field">
+                  <label htmlFor="register-email">邮箱</label>
                   <div className="register-input-wrap">
                     <AtSign size={17} />
                     <input
+                      aria-describedby="register-email-domains"
                       autoComplete="email"
+                      id="register-email"
                       maxLength={64}
                       name="email"
                       onChange={(event) => {
                         setEmail(event.currentTarget.value);
                         setEmailCode('');
                       }}
-                      placeholder="10 位学号 @ pku.edu.cn"
+                      placeholder="PKU学号邮箱"
                       type="email"
                       value={email}
                     />
+                    <span className="register-email-help" tabIndex={0} aria-describedby="register-email-domains">
+                      <CircleHelp aria-label="查看允许的 PKU 邮箱" size={16} />
+                      <span id="register-email-domains" role="tooltip">允许的邮箱：@*.pku.edu.cn、@bjmu.edu.cn</span>
+                    </span>
                   </div>
-                  <small>邮箱用于身份验证和找回密码，请填写长期使用的校内邮箱。</small>
-                </label>
+                </div>
 
                 <div className="register-field">
                   <span>邮箱验证码</span>
@@ -357,7 +407,31 @@ export function RegisterPage() {
                         {icon === avatar.src && <span><Check size={12} /></span>}
                       </button>
                     ))}
+                    <button
+                      aria-label="上传自定义头像"
+                      aria-pressed={customAvatar?.icon === icon}
+                      className={`register-avatar-upload${customAvatar?.icon === icon ? ' active' : ''}`}
+                      disabled={uploadingAvatar}
+                      onClick={() => avatarFileInputRef.current?.click()}
+                      type="button"
+                    >
+                      {uploadingAvatar ? (
+                        <LoaderCircle className="animate-spin" size={17} />
+                      ) : customAvatar ? (
+                        <img alt="自定义头像" src={customAvatar.src} />
+                      ) : (
+                        <Upload size={18} />
+                      )}
+                      {customAvatar?.icon === icon && <span><Check size={12} /></span>}
+                    </button>
                   </div>
+                  <input
+                    ref={avatarFileInputRef}
+                    accept="image/png,image/jpeg,image/gif,image/webp"
+                    className="register-avatar-file-input"
+                    onChange={(event) => void uploadAvatar(event)}
+                    type="file"
+                  />
                 </fieldset>
 
                 <div className="register-field">
@@ -369,7 +443,7 @@ export function RegisterPage() {
                         autoComplete="off"
                         name="captcha"
                         onChange={(event) => setCaptcha(event.currentTarget.value)}
-                        placeholder="输入图中字符"
+                        placeholder="输入图中算式答案"
                         value={captcha}
                       />
                     </div>
@@ -425,7 +499,7 @@ export function RegisterPage() {
 
             <footer className="register-form-footer">
               <p>已有账号？<a href={getAuthPathWithReturnTo('/login', returnTo)}>直接登录</a></p>
-              <button className="register-submit" disabled={submitting || status === 'loading'} type="submit">
+              <button className="register-submit" disabled={submitting || uploadingAvatar || status === 'loading'} type="submit">
                 {submitting ? <LoaderCircle className="animate-spin" size={16} /> : <UserPlus size={16} />}
                 {submitting ? '正在注册…' : '创建账号'}
                 {!submitting && <ArrowRight size={15} />}
@@ -470,12 +544,25 @@ function validateRegistration(values: {
 }) {
   if (!values.username || values.username.includes("'")) return '请填写有效的论坛 ID。';
   if (values.usernameState === 'taken') return '这个 ID 已被注册，请换一个。';
-  if (!PKU_EMAIL_PATTERN.test(values.email)) return '请输入 10 位学号的 pku.edu.cn 或 bjmu.edu.cn 邮箱。';
+  if (!PKU_EMAIL_PATTERN.test(values.email)) return '请输入允许的 PKU 学号邮箱。';
   if (!/^\d{6}$/.test(values.emailCode)) return '邮箱验证码应为 6 位数字。';
   if (values.password.length < 6 || values.password.length > 18) return '密码长度应为 6–18 位。';
   if (values.password !== values.confirmPassword) return '两次输入的密码不一致。';
-  if (!values.captcha) return '请输入图片验证码。';
+  if (!values.captcha) return '请输入图中算式答案。';
   return '';
+}
+
+function isAvatarUploadResult(value: unknown): value is { code: number; msg?: string; url?: string } {
+  if (!value || typeof value !== 'object') return false;
+  const result = value as Record<string, unknown>;
+  return typeof result.code === 'number'
+    && (result.url === undefined || typeof result.url === 'string')
+    && (result.msg === undefined || typeof result.msg === 'string');
+}
+
+function getUploadedAvatarSrc(icon: string) {
+  if (/^https?:\/\//i.test(icon) || icon.startsWith('/')) return icon;
+  return `/bbsimg/icons/${icon.replace(/^\.\//, '')}`;
 }
 
 function getErrorMessage(error: unknown, fallback: string) {
