@@ -231,7 +231,6 @@ function normalizeForumAssetUrl(value: string | null) {
 }
 
 function translateLegacyBbcode(value: string) {
-  let html = closeUnclosedLegacyBbcode(value);
   const replacements: Array<[RegExp, (...matches: string[]) => string]> = [
     [/\[quote=([^\]]+)]([\s\S]*?)\[\/quote]/gi, (_match, author, content) => (
       `<blockquote class="forum-legacy-quote"><div class="forum-legacy-quote-content">`
@@ -255,14 +254,20 @@ function translateLegacyBbcode(value: string) {
     [/\[s]([\s\S]*?)\[\/s]/gi, (_match, content) => `<s>${content}</s>`],
   ];
 
-  while (true) {
-    const before = html;
-    replacements.forEach(([pattern, replace]) => {
-      html = html.replace(pattern, replace);
-    });
-    if (html === before) break;
-  }
-  return html;
+  const replaceCompleteBbcode = (input: string) => {
+    let html = input;
+    while (true) {
+      const before = html;
+      replacements.forEach(([pattern, replace]) => {
+        html = html.replace(pattern, replace);
+      });
+      if (html === before) return html;
+    }
+  };
+
+  const html = replaceCompleteBbcode(value);
+  const completedHtml = closeUnclosedLegacyBbcode(html);
+  return completedHtml === html ? html : replaceCompleteBbcode(completedHtml);
 }
 
 function closeUnclosedLegacyBbcode(value: string) {
