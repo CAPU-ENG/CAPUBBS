@@ -3,10 +3,10 @@ import {
   ArrowUp,
   Check,
   CirclePlus,
-  MonitorCog,
   Pin,
   PinOff,
 } from 'lucide-react';
+import { useState } from 'react';
 import { AppBackground } from '../components/layout/AppBackground';
 import { TopBar } from '../components/layout/TopBar';
 import { ALL_BOARDS, PRIMARY_BOARDS, SECONDARY_BOARDS, getBoardById } from '../data/boards';
@@ -15,18 +15,27 @@ import { MAX_PINNED_BOARDS, savePinnedBoardIds } from '../utils/localSettings';
 
 export function SettingsPage() {
   const pinnedBoardIds = usePinnedBoardIds();
+  const [feedback, setFeedback] = useState('更改会立即保存到当前浏览器。');
   const pinnedBoards = pinnedBoardIds
     .map(getBoardById)
     .filter((board) => board !== undefined);
   const isFull = pinnedBoardIds.length >= MAX_PINNED_BOARDS;
 
   function addBoard(boardId: number) {
-    if (isFull || pinnedBoardIds.includes(boardId)) return;
+    const board = getBoardById(boardId);
+    if (isFull) {
+      setFeedback(`最多只能常驻 ${MAX_PINNED_BOARDS} 个版块，请先移除一个。`);
+      return;
+    }
+    if (!board || pinnedBoardIds.includes(boardId)) return;
     savePinnedBoardIds([...pinnedBoardIds, boardId]);
+    setFeedback(`已将“${board.label}”添加到桌面端 Navbar。`);
   }
 
   function removeBoard(boardId: number) {
+    const board = getBoardById(boardId);
     savePinnedBoardIds(pinnedBoardIds.filter((id) => id !== boardId));
+    if (board) setFeedback(`已取消常驻“${board.label}”。`);
   }
 
   function moveBoard(index: number, offset: -1 | 1) {
@@ -36,6 +45,7 @@ export function SettingsPage() {
     const next = [...pinnedBoardIds];
     [next[index], next[targetIndex]] = [next[targetIndex], next[index]];
     savePinnedBoardIds(next);
+    setFeedback('Navbar 中的常驻版块顺序已更新。');
   }
 
   return (
@@ -44,15 +54,6 @@ export function SettingsPage() {
       <TopBar />
 
       <main className="settings-page-shell">
-        <header className="settings-hero">
-          <div>
-            <p className="eyebrow">SETTINGS</p>
-            <h1>设置</h1>
-            <p>调整这台设备上的论坛使用习惯。</p>
-          </div>
-          <span className="settings-local-badge"><MonitorCog size={15} />仅保存在当前浏览器</span>
-        </header>
-
         <section className="settings-panel" aria-labelledby="pinned-boards-title">
           <div className="settings-panel-heading">
             <span className="settings-panel-icon"><Pin size={17} /></span>
@@ -148,8 +149,8 @@ export function SettingsPage() {
             />
           </div>
 
-          <footer className="settings-panel-footer">
-            <Check size={15} />更改会立即保存，并同步到当前浏览器内打开的其他论坛页面。
+          <footer aria-live="polite" className="settings-panel-footer" role="status">
+            <Check size={15} />{feedback}
           </footer>
         </section>
       </main>
@@ -181,8 +182,7 @@ function BoardGroup({
           return (
             <button
               aria-pressed={selected}
-              className={selected ? 'settings-board-option-selected' : ''}
-              disabled={!selected && disabled}
+              className={`${selected ? 'settings-board-option-selected' : ''} ${!selected && disabled ? 'settings-board-option-limit' : ''}`}
               key={board.id}
               onClick={() => selected ? onRemove(board.id) : onAdd(board.id)}
               type="button"

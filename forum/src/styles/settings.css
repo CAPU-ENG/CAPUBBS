@@ -12,54 +12,8 @@
     padding: calc(var(--topbar-height) + 28px) 0 72px;
   }
 
-  .settings-hero {
-    display: flex;
-    min-height: 118px;
-    align-items: center;
-    justify-content: space-between;
-    gap: 24px;
-    border: 1px solid var(--line);
-    border-radius: 2px;
-    padding: 24px 28px;
-    background:
-      linear-gradient(115deg, color-mix(in srgb, var(--brand-faint) 88%, transparent), transparent 62%),
-      var(--surface);
-    box-shadow: var(--shadow-card);
-  }
-
-  .settings-hero h1 {
-    margin-top: 7px;
-    color: var(--text-strong);
-    font-family: "Noto Serif CJK SC", "Source Han Serif SC", "Songti SC", serif;
-    font-size: clamp(1.55rem, 3vw, 2rem);
-    font-weight: 760;
-    letter-spacing: -0.04em;
-  }
-
-  .settings-hero p:last-child {
-    margin-top: 7px;
-    color: var(--text-muted);
-    font-size: 0.78rem;
-  }
-
-  .settings-local-badge {
-    display: inline-flex;
-    min-height: 34px;
-    flex: 0 0 auto;
-    align-items: center;
-    gap: 7px;
-    border: 1px solid color-mix(in srgb, var(--brand) 26%, var(--line));
-    border-radius: var(--control-radius);
-    padding: 0 11px;
-    background: var(--brand-faint);
-    color: var(--brand-strong);
-    font-size: 0.68rem;
-    font-weight: 700;
-  }
-
   .settings-panel {
     overflow: hidden;
-    margin-top: 12px;
     border: 1px solid var(--line);
     border-radius: 2px;
     background: var(--surface);
@@ -325,7 +279,7 @@
     outline-offset: 2px;
   }
 
-  .settings-board-grid button:disabled { cursor: not-allowed; opacity: 0.43; }
+  .settings-board-grid .settings-board-option-limit { opacity: 0.55; }
 
   .settings-board-grid button > span {
     display: inline-flex;
@@ -389,9 +343,6 @@
       padding: calc(var(--topbar-height) + 10px) 0 48px;
     }
 
-    .settings-hero { min-height: 104px; padding: 18px; }
-    .settings-local-badge { align-self: flex-start; width: 34px; padding: 0; justify-content: center; }
-    .settings-local-badge { font-size: 0; }
     .settings-panel-heading { padding: 17px 15px; }
     .settings-nav-preview { align-items: flex-start; flex-direction: column; gap: 3px; margin: 14px 15px 0; }
     .settings-preview-links { width: 100%; }
