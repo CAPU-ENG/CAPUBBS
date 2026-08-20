@@ -377,7 +377,7 @@ function SignupSummaryPanel({
               threadTitle,
               tid,
               displayedQuestions,
-              sortActivitySignupRecords(records, sortBy, sortDirection),
+              displayedRecords,
             )}
             type="button"
           ><Download size={15} />导出表格</button>
