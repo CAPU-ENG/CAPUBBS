@@ -64,6 +64,7 @@ export function ReplyEditor({
   const [previewedAt, setPreviewedAt] = useState("");
   const [focusRequest, setFocusRequest] = useState(0);
   const [status, setStatus] = useState("");
+  const [isSavingDraft, setIsSavingDraft] = useState(false);
   const [savedDraftId, setSavedDraftId] = useState<string | null>(null);
   const appliedQuoteRequestRef = useRef(0);
 
@@ -123,36 +124,44 @@ export function ReplyEditor({
   }
 
   async function saveDraft() {
+    if (isSavingDraft) return;
     if (!hasPostEditorContent(editorValue) && attachments.length === 0) {
       setStatus("没有可保存的内容");
       return;
     }
 
-    const saveResult = await saveStoredReplyDraft(
-      {
-        attachments: attachments.map(({ restored: _restored, ...attachment }) => attachment),
-        bid,
-        board,
-        boardHref,
-        editor: getRichTextEditorStorageValue(editorValue),
-        excerpt: getReplyDraftExcerpt(editorValue, attachments),
-        id: savedDraftId ?? undefined,
-        signatureIndex,
-        threadTitle,
-        tid,
-      },
-      ownerKey,
-    );
+    setIsSavingDraft(true);
+    setStatus("正在保存草稿…");
 
-    if (!saveResult.ok) {
-      setStatus(getReplyDraftSaveError(saveResult.reason));
-      return;
+    try {
+      const saveResult = await saveStoredReplyDraft(
+        {
+          attachments: attachments.map(({ restored: _restored, ...attachment }) => attachment),
+          bid,
+          board,
+          boardHref,
+          editor: getRichTextEditorStorageValue(editorValue),
+          excerpt: getReplyDraftExcerpt(editorValue, attachments),
+          id: savedDraftId ?? undefined,
+          signatureIndex,
+          threadTitle,
+          tid,
+        },
+        ownerKey,
+      );
+
+      if (!saveResult.ok) {
+        setStatus(getReplyDraftSaveError(saveResult.reason));
+        return;
+      }
+
+      setSavedDraftId(saveResult.draft.id);
+      setStatus(saveResult.discardedDraftCount > 0
+        ? `已存入草稿箱，并清理 ${saveResult.discardedDraftCount} 条最旧草稿`
+        : "已存入草稿箱");
+    } finally {
+      setIsSavingDraft(false);
     }
-
-    setSavedDraftId(saveResult.draft.id);
-    setStatus(saveResult.discardedDraftCount > 0
-      ? `已存入草稿箱，并清理 ${saveResult.discardedDraftCount} 条最旧草稿`
-      : "已存入草稿箱");
   }
 
   function publishReply() {
@@ -202,7 +211,7 @@ export function ReplyEditor({
         placeholder="写下你的回复……"
         previewDisabled={!hasPostEditorContent(editorValue)}
         secondaryActions={(
-          <button className="reply-secondary-button" onClick={() => void saveDraft()} type="button">
+          <button className="reply-secondary-button" disabled={isSavingDraft} onClick={() => void saveDraft()} type="button">
             <Save size={15} />
             <span className="reply-action-label-full">存入草稿</span>
             <span className="reply-action-label-compact">草稿</span>

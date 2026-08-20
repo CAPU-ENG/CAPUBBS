@@ -1,3 +1,9 @@
+import {
+  readClientDatabaseValue,
+  requestPersistentClientStorage,
+  writeClientDatabaseValue,
+} from './clientDatabase';
+
 export type StoredReplyEditorMode = 'rich' | 'markdown' | 'html';
 
 export type StoredReplyEditorValue = {
@@ -33,40 +39,46 @@ export type ReplyDraftSaveResult =
   | { discardedDraftCount: number; draft: StoredReplyDraft; ok: true }
   | { ok: false; reason: ReplyDraftSaveFailureReason };
 
-const REPLY_DRAFT_STORAGE_KEY_PREFIX = 'capubbs-reply-drafts:v1';
+const REPLY_DRAFT_DATABASE_KEY_PREFIX = 'reply-drafts:v1';
+const LEGACY_REPLY_DRAFT_STORAGE_KEY_PREFIX = 'capubbs-reply-drafts:v1';
 const REPLY_DRAFT_CHANGE_EVENT = 'capubbs-reply-drafts-change';
+const REPLY_DRAFT_BROADCAST_CHANNEL = 'capubbs-reply-drafts';
 const MAX_STORED_REPLY_DRAFTS = 30;
 
-export function readStoredReplyDrafts(ownerKey: string | null | undefined) {
-  const storageKey = getReplyDraftStorageKey(ownerKey);
-  if (!storageKey || typeof window === 'undefined') return [];
+export async function readStoredReplyDrafts(ownerKey: string | null | undefined) {
+  const databaseKey = getReplyDraftDatabaseKey(ownerKey);
+  if (!databaseKey) return [];
+
+  const legacyDrafts = readLegacyReplyDrafts(ownerKey);
 
   try {
-    const rawDrafts = window.localStorage.getItem(storageKey);
-    if (!rawDrafts) return [];
+    const storedValue = await readClientDatabaseValue<unknown>(databaseKey);
+    if (typeof storedValue !== 'undefined') return sanitizeStoredReplyDrafts(storedValue);
 
-    const parsedDrafts: unknown = JSON.parse(rawDrafts);
-    if (!Array.isArray(parsedDrafts)) return [];
+    if (legacyDrafts.length > 0) {
+      await writeClientDatabaseValue(databaseKey, legacyDrafts);
+      removeLegacyReplyDrafts(ownerKey);
+    }
 
-    return parsedDrafts
-      .filter(isStoredReplyDraft)
-      .sort((firstDraft, secondDraft) => secondDraft.updatedAt.localeCompare(firstDraft.updatedAt));
+    return legacyDrafts;
   } catch {
-    return [];
+    return legacyDrafts;
   }
 }
 
-export function readStoredReplyDraft(draftId: string | null, ownerKey: string | null | undefined) {
+export async function readStoredReplyDraft(draftId: string | null, ownerKey: string | null | undefined) {
   if (!draftId) return null;
-  return readStoredReplyDrafts(ownerKey).find((draft) => draft.id === draftId) ?? null;
+  return (await readStoredReplyDrafts(ownerKey)).find((draft) => draft.id === draftId) ?? null;
 }
 
-export function saveStoredReplyDraft(
+export async function saveStoredReplyDraft(
   draft: Omit<StoredReplyDraft, 'id' | 'updatedAt'> & { id?: string },
   ownerKey: string | null | undefined,
-): ReplyDraftSaveResult {
-  const storageKey = getReplyDraftStorageKey(ownerKey);
-  if (!storageKey) return { ok: false, reason: 'missing-owner' };
+): Promise<ReplyDraftSaveResult> {
+  const databaseKey = getReplyDraftDatabaseKey(ownerKey);
+  if (!databaseKey) return { ok: false, reason: 'missing-owner' };
+
+  void requestPersistentClientStorage();
 
   const updatedDraft: StoredReplyDraft = {
     ...draft,
@@ -75,15 +87,20 @@ export function saveStoredReplyDraft(
   };
   const candidateDrafts = [
     updatedDraft,
-    ...readStoredReplyDrafts(ownerKey).filter((storedDraft) => storedDraft.id !== updatedDraft.id),
+    ...(await readStoredReplyDrafts(ownerKey)).filter((storedDraft) => storedDraft.id !== updatedDraft.id),
   ];
   const nextDrafts = candidateDrafts.slice(0, MAX_STORED_REPLY_DRAFTS);
   let discardedDraftCount = candidateDrafts.length - nextDrafts.length;
 
   while (nextDrafts.length > 0) {
     try {
-      window.localStorage.setItem(storageKey, JSON.stringify(nextDrafts));
+      await writeClientDatabaseValue(databaseKey, nextDrafts);
     } catch (error) {
+      if (isStorageUnavailableError(error) && writeLegacyReplyDrafts(ownerKey, nextDrafts)) {
+        notifyReplyDraftChange(ownerKey);
+        return { discardedDraftCount, draft: updatedDraft, ok: true };
+      }
+
       if (!isStorageQuotaError(error)) {
         return { ok: false, reason: getStorageFailureReason(error) };
       }
@@ -97,7 +114,8 @@ export function saveStoredReplyDraft(
       continue;
     }
 
-    notifyReplyDraftChange(storageKey);
+    removeLegacyReplyDrafts(ownerKey);
+    notifyReplyDraftChange(ownerKey);
     return { discardedDraftCount, draft: updatedDraft, ok: true };
   }
 
@@ -105,8 +123,10 @@ export function saveStoredReplyDraft(
 }
 
 export function subscribeStoredReplyDrafts(listener: () => void, ownerKey: string | null | undefined) {
-  const storageKey = getReplyDraftStorageKey(ownerKey);
-  if (!storageKey || typeof window === 'undefined') return () => {};
+  const storageKey = getLegacyReplyDraftStorageKey(ownerKey);
+  const normalizedOwnerKey = normalizeOwnerKey(ownerKey);
+  if (!storageKey || !normalizedOwnerKey || typeof window === 'undefined') return () => {};
+  const channel = createReplyDraftBroadcastChannel();
 
   const handleStorage = (event: StorageEvent) => {
     if (event.key === storageKey) listener();
@@ -115,21 +135,37 @@ export function subscribeStoredReplyDrafts(listener: () => void, ownerKey: strin
     const draftEvent = event as CustomEvent<{ storageKey?: string }>;
     if (draftEvent.detail?.storageKey === storageKey) listener();
   };
+  const handleBroadcast = (event: MessageEvent<{ ownerKey?: string }>) => {
+    if (event.data?.ownerKey === normalizedOwnerKey) listener();
+  };
 
+  if (channel) channel.onmessage = handleBroadcast;
   window.addEventListener(REPLY_DRAFT_CHANGE_EVENT, handleDraftChange);
   window.addEventListener('storage', handleStorage);
 
   return () => {
     window.removeEventListener(REPLY_DRAFT_CHANGE_EVENT, handleDraftChange);
     window.removeEventListener('storage', handleStorage);
+    channel?.close();
   };
 }
 
-function getReplyDraftStorageKey(ownerKey: string | null | undefined) {
-  const normalizedOwnerKey = ownerKey?.trim();
+function getReplyDraftDatabaseKey(ownerKey: string | null | undefined) {
+  const normalizedOwnerKey = normalizeOwnerKey(ownerKey);
   return normalizedOwnerKey
-    ? `${REPLY_DRAFT_STORAGE_KEY_PREFIX}:${encodeURIComponent(normalizedOwnerKey)}`
+    ? `${REPLY_DRAFT_DATABASE_KEY_PREFIX}:${encodeURIComponent(normalizedOwnerKey)}`
     : null;
+}
+
+function getLegacyReplyDraftStorageKey(ownerKey: string | null | undefined) {
+  const normalizedOwnerKey = normalizeOwnerKey(ownerKey);
+  return normalizedOwnerKey
+    ? `${LEGACY_REPLY_DRAFT_STORAGE_KEY_PREFIX}:${encodeURIComponent(normalizedOwnerKey)}`
+    : null;
+}
+
+function normalizeOwnerKey(ownerKey: string | null | undefined) {
+  return ownerKey?.trim() || null;
 }
 
 function createReplyDraftId(bid: number, tid: number) {
@@ -181,6 +217,48 @@ function isPositiveInteger(value: unknown) {
   return typeof value === 'number' && Number.isInteger(value) && value > 0;
 }
 
+function sanitizeStoredReplyDrafts(value: unknown) {
+  if (!Array.isArray(value)) return [];
+  return value
+    .filter(isStoredReplyDraft)
+    .sort((firstDraft, secondDraft) => secondDraft.updatedAt.localeCompare(firstDraft.updatedAt));
+}
+
+function readLegacyReplyDrafts(ownerKey: string | null | undefined) {
+  const storageKey = getLegacyReplyDraftStorageKey(ownerKey);
+  if (!storageKey || typeof window === 'undefined') return [];
+
+  try {
+    const rawDrafts = window.localStorage.getItem(storageKey);
+    return rawDrafts ? sanitizeStoredReplyDrafts(JSON.parse(rawDrafts) as unknown) : [];
+  } catch {
+    return [];
+  }
+}
+
+function writeLegacyReplyDrafts(ownerKey: string | null | undefined, drafts: StoredReplyDraft[]) {
+  const storageKey = getLegacyReplyDraftStorageKey(ownerKey);
+  if (!storageKey || typeof window === 'undefined') return false;
+
+  try {
+    window.localStorage.setItem(storageKey, JSON.stringify(drafts));
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+function removeLegacyReplyDrafts(ownerKey: string | null | undefined) {
+  const storageKey = getLegacyReplyDraftStorageKey(ownerKey);
+  if (!storageKey || typeof window === 'undefined') return;
+
+  try {
+    window.localStorage.removeItem(storageKey);
+  } catch {
+    // The IndexedDB copy is already durable; stale legacy data can be ignored.
+  }
+}
+
 function isStorageQuotaError(error: unknown) {
   return error instanceof DOMException && (
     error.name === 'QuotaExceededError'
@@ -191,14 +269,37 @@ function isStorageQuotaError(error: unknown) {
 }
 
 function getStorageFailureReason(error: unknown): ReplyDraftSaveFailureReason {
-  if (error instanceof DOMException && error.name === 'SecurityError') return 'unavailable';
+  if (isStorageUnavailableError(error)) return 'unavailable';
   return 'unknown';
 }
 
-function notifyReplyDraftChange(storageKey: string) {
+function isStorageUnavailableError(error: unknown) {
+  return error instanceof DOMException && (error.name === 'SecurityError' || error.name === 'InvalidStateError');
+}
+
+function notifyReplyDraftChange(ownerKey: string | null | undefined) {
+  const storageKey = getLegacyReplyDraftStorageKey(ownerKey);
+  const normalizedOwnerKey = normalizeOwnerKey(ownerKey);
+  if (!storageKey || !normalizedOwnerKey) return;
+
   try {
     window.dispatchEvent(new CustomEvent(REPLY_DRAFT_CHANGE_EVENT, { detail: { storageKey } }));
   } catch {
-    // Cross-tab storage events still keep other pages in sync when custom events are unavailable.
+    // BroadcastChannel still keeps other pages in sync when custom events are unavailable.
+  }
+
+  const channel = createReplyDraftBroadcastChannel();
+  if (channel) {
+    channel.postMessage({ ownerKey: normalizedOwnerKey });
+    channel.close();
+  }
+}
+
+function createReplyDraftBroadcastChannel() {
+  if (typeof BroadcastChannel === 'undefined') return null;
+  try {
+    return new BroadcastChannel(REPLY_DRAFT_BROADCAST_CHANNEL);
+  } catch {
+    return null;
   }
 }

@@ -23,6 +23,11 @@ import {
   subscribeStoredReplyDrafts,
   type StoredReplyDraft,
 } from '../utils/replyDraftStorage';
+import {
+  deleteCachedUserAvatar,
+  readCachedUserAvatarBlob,
+  writeCachedUserAvatarBlob,
+} from '../utils/userAvatarCache';
 import { getPublicProfilePath, USER_CENTER_PATH } from '../utils/userRoutes';
 
 type OpenDialog = 'avatar' | 'email' | 'security' | null;
@@ -36,7 +41,8 @@ export function UserCenterPage() {
   const [isEditing, setIsEditing] = useState(false);
   const [isSavingProfile, setIsSavingProfile] = useState(false);
   const [draft, setDraft] = useState<ProfileDraft>(emptyDraft);
-  const [replyDrafts, setReplyDrafts] = useState(() => readStoredReplyDrafts(draftOwnerKey));
+  const [replyDrafts, setReplyDrafts] = useState<StoredReplyDraft[]>([]);
+  const [cachedAvatarSrc, setCachedAvatarSrc] = useState<string | null>(null);
   const [openDialog, setOpenDialog] = useState<OpenDialog>(() => window.location.hash === '#account-security' ? 'security' : null);
   const [notice, setNotice] = useState<PageNotice>(null);
   const email = useMemo(
@@ -66,10 +72,38 @@ export function UserCenterPage() {
   }, [notice]);
 
   useEffect(() => {
-    const refreshReplyDrafts = () => setReplyDrafts(readStoredReplyDrafts(draftOwnerKey));
+    let active = true;
+    const refreshReplyDrafts = () => {
+      void readStoredReplyDrafts(draftOwnerKey).then((storedDrafts) => {
+        if (active) setReplyDrafts(storedDrafts);
+      });
+    };
     refreshReplyDrafts();
-    return subscribeStoredReplyDrafts(refreshReplyDrafts, draftOwnerKey);
+    const unsubscribe = subscribeStoredReplyDrafts(refreshReplyDrafts, draftOwnerKey);
+    return () => {
+      active = false;
+      unsubscribe();
+    };
   }, [draftOwnerKey]);
+
+  useEffect(() => {
+    let active = true;
+    let objectUrl: string | null = null;
+    setCachedAvatarSrc(null);
+
+    if (profile) {
+      void readCachedUserAvatarBlob(profile.id, profile.avatarSrc).then((blob) => {
+        if (!active || !blob) return;
+        objectUrl = URL.createObjectURL(blob);
+        setCachedAvatarSrc(objectUrl);
+      });
+    }
+
+    return () => {
+      active = false;
+      if (objectUrl) URL.revokeObjectURL(objectUrl);
+    };
+  }, [profile?.avatarSrc, profile?.id]);
 
   useEffect(() => {
     function openAccountSecurityFromHash() {
@@ -139,7 +173,7 @@ export function UserCenterPage() {
       <main className="profile-page-shell">
         <ProfileOverview
           actionsDisabled={isSavingProfile}
-          avatarSrc={profile.avatarSrc}
+          avatarSrc={cachedAvatarSrc ?? profile.avatarSrc}
           draft={draft}
           emailVisible={profile.emailVisible}
           isEditing={isEditing}
@@ -170,10 +204,18 @@ export function UserCenterPage() {
       </main>
 
       <AvatarDialog
-        avatarSrc={profile.avatarSrc}
+        avatarSrc={cachedAvatarSrc ?? profile.avatarSrc}
         onClose={closeDialog}
         onSave={async (src) => {
+          const croppedAvatarBlob = src.startsWith('data:image/')
+            ? await fetch(src).then((response) => response.blob())
+            : null;
           const updatedProfile = await updateProfileAvatar(src);
+          if (croppedAvatarBlob) {
+            await writeCachedUserAvatarBlob(profile.id, updatedProfile.avatarSrc, croppedAvatarBlob);
+          } else {
+            await deleteCachedUserAvatar(profile.id);
+          }
           profileState.replace(updatedProfile);
           updateViewerAvatar(updatedProfile.avatarSrc);
           setNotice({ message: '头像修改成功', tone: 'success' });
