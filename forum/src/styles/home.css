@@ -710,6 +710,18 @@
       padding-top: calc(var(--topbar-height) + 10px);
     }
 
+    .home-aside-column {
+      min-width: 0;
+    }
+
+    .home-aside {
+      position: sticky;
+      top: min(
+        calc(var(--topbar-height) + 10px),
+        calc(100dvh - var(--home-aside-height, 100dvh) - 10px)
+      );
+    }
+
   }
   @media (max-width: 1023px) {
 

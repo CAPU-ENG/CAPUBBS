@@ -1,4 +1,4 @@
-import { useEffect, useId, useMemo, useRef, useState } from 'react';
+import { useEffect, useId, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { Bike, CalendarDays, ChevronLeft, ChevronRight, Clock3, Info, Pin, Settings } from 'lucide-react';
 import type { HomeCalendarEvent, HomeSignupActivity, HomeThread } from '../../api/home';
 import { useAuth } from '../../context/AuthContext';
@@ -366,8 +366,26 @@ export function DesktopHomeAside({
   readThreadIds,
   signupItems,
 }: DesktopHomeAsideProps) {
+  const asideRef = useRef<HTMLElement | null>(null);
+
+  useLayoutEffect(() => {
+    const aside = asideRef.current;
+    if (!aside) return;
+
+    const updateAsideHeight = () => {
+      aside.style.setProperty('--home-aside-height', `${aside.getBoundingClientRect().height}px`);
+    };
+
+    updateAsideHeight();
+    if (typeof ResizeObserver === 'undefined') return;
+
+    const observer = new ResizeObserver(updateAsideHeight);
+    observer.observe(aside);
+    return () => observer.disconnect();
+  }, []);
+
   return (
-    <aside className="home-aside">
+    <aside className="home-aside" ref={asideRef}>
       {items.length > 0 && <PinnedPanel items={items} readThreadIds={readThreadIds} />}
       {signupItems.length > 0 && <ActivitySignupPanel items={signupItems} />}
       <ActivityCalendar

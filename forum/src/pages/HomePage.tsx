@@ -34,7 +34,7 @@ export function HomePage() {
           onRetry={retry}
           status={feed.status}
         />
-        <div className="hidden lg:block">
+        <div className="home-aside-column hidden lg:block">
           <DesktopHomeAside
             calendarError={calendar.error}
             calendarItems={calendar.items}
