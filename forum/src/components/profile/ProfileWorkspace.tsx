@@ -275,7 +275,7 @@ function ProfileFilterPanel({
       <label>
         <span>关键词</span>
         <input
-          placeholder="搜索标题、版块或正文"
+          placeholder="搜索标题"
           type="search"
           value={keyword}
           onChange={(event) => onKeywordChange(event.target.value)}
