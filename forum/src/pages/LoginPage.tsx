@@ -41,15 +41,14 @@ export function LoginPage() {
   return (
     <div className="relative min-h-screen text-[var(--text)] transition-colors duration-200">
       <AppBackground />
-      <TopBar />
+      <TopBar minimal />
 
       <main className="auth-page-shell">
         <section className="auth-card" aria-labelledby="login-title">
           <div className="auth-card-intro">
             <span><Bike size={18} /></span>
             <div>
-              <h1 id="login-title">登录车协论坛</h1>
-              <p>登录后可访问个人中心、消息以及需要身份验证的版块。</p>
+              <h1 id="login-title">CAPUBBS</h1>
             </div>
           </div>
 

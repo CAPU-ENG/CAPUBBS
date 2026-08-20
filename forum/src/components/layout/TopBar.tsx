@@ -30,10 +30,12 @@ function initialTheme(): Theme {
 export function TopBar({
   contextHref = '#page-title',
   contextTitle,
+  minimal = false,
   showContextTitle = false,
 }: {
   contextHref?: string;
   contextTitle?: string;
+  minimal?: boolean;
   showContextTitle?: boolean;
 }) {
   const { status: authStatus, viewer } = useAuth();
@@ -128,6 +130,28 @@ export function TopBar({
 
   function toggleTheme() {
     setTheme((current) => current === 'light' ? 'dark' : 'light');
+  }
+
+  if (minimal) {
+    return (
+      <header className="topbar">
+        <div className="topbar-shell">
+          <a href="/" aria-label="返回首页" className="brand-link">
+            <img src={logo1} alt="" className="brand-mark" />
+            <img src={logo2} alt="车协论坛" className="brand-wordmark" />
+          </a>
+
+          <button
+            className="icon-button ml-auto"
+            type="button"
+            aria-label={theme === 'light' ? '切换到夜间模式' : '切换到日间模式'}
+            onClick={toggleTheme}
+          >
+            {theme === 'light' ? <Moon size={18} /> : <Sun size={18} />}
+          </button>
+        </div>
+      </header>
+    );
   }
 
   const anyOverlayOpen = boardsOpen || mobileSidebarOpen;
