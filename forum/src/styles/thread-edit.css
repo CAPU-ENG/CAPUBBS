@@ -8,7 +8,6 @@
   }
 
   .thread-edit-heading-card,
-  .thread-edit-source-card,
   .thread-edit-form {
     width: 100%;
     max-width: var(--thread-main-column);
@@ -16,7 +15,6 @@
   }
 
   .thread-edit-heading-card,
-  .thread-edit-source-card,
   .thread-edit-request-state {
     border: 1px solid var(--line);
     background: color-mix(in srgb, var(--surface) 96%, transparent);
@@ -68,43 +66,6 @@
     color: var(--text-strong);
     font-size: clamp(1.4rem, 2.5vw, 1.9rem);
     line-height: 1.25;
-  }
-
-  .thread-edit-source-card {
-    display: grid;
-    grid-template-columns: minmax(0, 2fr) repeat(3, minmax(110px, 1fr));
-    margin-top: 12px;
-  }
-
-  .thread-edit-source-card > div {
-    min-width: 0;
-    padding: 15px 18px;
-    border-right: 1px solid var(--line);
-  }
-
-  .thread-edit-source-card > div:last-child {
-    border-right: 0;
-  }
-
-  .thread-edit-source-card span,
-  .thread-edit-source-card strong {
-    display: block;
-  }
-
-  .thread-edit-source-card span {
-    margin-bottom: 5px;
-    color: var(--text-faint);
-    font-size: 0.7rem;
-    font-weight: 700;
-    letter-spacing: 0.04em;
-  }
-
-  .thread-edit-source-card strong {
-    overflow: hidden;
-    color: var(--text);
-    font-size: 0.83rem;
-    text-overflow: ellipsis;
-    white-space: nowrap;
   }
 
   .thread-edit-form .reply-editor-status.thread-edit-error {
@@ -178,39 +139,6 @@
     .thread-edit-heading-card {
       padding: 18px;
     }
-
-    .thread-edit-source-card {
-      grid-template-columns: 1fr 1fr;
-    }
-
-    .thread-edit-source-card > div {
-      border-bottom: 1px solid var(--line);
-    }
-
-    .thread-edit-source-card > div:nth-child(2n) {
-      border-right: 0;
-    }
-
-    .thread-edit-source-card > div:nth-last-child(-n + 2) {
-      border-bottom: 0;
-    }
   }
 
-  @media (max-width: 500px) {
-    .thread-edit-source-card {
-      grid-template-columns: 1fr;
-    }
-
-    .thread-edit-source-card > div,
-    .thread-edit-source-card > div:nth-child(2n),
-    .thread-edit-source-card > div:nth-last-child(-n + 2) {
-      border-right: 0;
-      border-bottom: 1px solid var(--line);
-    }
-
-    .thread-edit-source-card > div:last-child {
-      border-bottom: 0;
-    }
-
-  }
 }

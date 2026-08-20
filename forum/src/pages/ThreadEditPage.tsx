@@ -216,13 +216,6 @@ export function ThreadEditPage() {
               </div>
             </header>
 
-            <section className="thread-edit-source-card" aria-label="原内容信息">
-              <div><span>所属帖子</span><strong>{floor.title}</strong></div>
-              <div><span>楼层</span><strong>#{floor.pid}</strong></div>
-              <div><span>作者</span><strong>{floor.author}</strong></div>
-              <div><span>{floor.updatedAt ? '最后编辑' : '发布时间'}</span><strong>{formatPostTime(floor.updatedAt || floor.createdAt)}</strong></div>
-            </section>
-
             <PostEditor
               ariaLabel={isMainPost ? `编辑《${floor.title}》正文` : `编辑《${floor.title}》第 ${floor.pid} 楼`}
               attachmentDialogDescription="文件会立即上传，并在保存修改后关联到当前楼层"
