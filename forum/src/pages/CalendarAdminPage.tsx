@@ -6,7 +6,6 @@ import {
   Clock3,
   LoaderCircle,
   Pencil,
-  Plus,
   Save,
   ShieldAlert,
   Trash2,
@@ -229,13 +228,9 @@ export function CalendarAdminPage() {
                   <h1 id="calendar-admin-title">日历管理</h1>
                   <em>组织部</em>
                 </div>
-                <p>维护首页活动日历，选择日期后新增、编辑或删除当天活动。</p>
               </div>
               <div className="calendar-admin-heading-actions">
                 <a href="/"><ArrowLeft size={15} />返回首页</a>
-                <button disabled={isSaving} onClick={startCreate} type="button">
-                  <Plus size={15} />新增活动
-                </button>
               </div>
             </header>
 
@@ -304,12 +299,7 @@ export function CalendarAdminPage() {
                 </section>
               </div>
 
-              <section className="calendar-admin-form" aria-labelledby="calendar-admin-form-title">
-                <header>
-                  <span>{editingId ? '编辑' : '新增'}</span>
-                  <h2 id="calendar-admin-form-title">{editingId ? '编辑日历活动' : '新增日历活动'}</h2>
-                  <p>保存后，活动会出现在首页对应日期下。</p>
-                </header>
+              <section className="calendar-admin-form" aria-label="日历活动表单">
                 <div className="calendar-admin-form-fields">
                   <label>
                     <span>活动标题</span>
@@ -331,7 +321,7 @@ export function CalendarAdminPage() {
                   </label>
                 </div>
 
-                <p className={`calendar-admin-feedback calendar-admin-feedback-${feedbackKind}`} aria-live="polite" role={feedbackKind === 'error' ? 'alert' : 'status'}>
+                <p className="sr-only" aria-live="polite" role={feedbackKind === 'error' ? 'alert' : 'status'}>
                   {feedback}
                 </p>
                 <footer>

@@ -88,13 +88,6 @@
     font-weight: 800;
   }
 
-  .calendar-admin-heading > div > p {
-    margin-top: 8px;
-    color: var(--text-muted);
-    font-size: 0.76rem;
-    line-height: 1.65;
-  }
-
   .calendar-admin-heading-actions {
     display: flex;
     flex-shrink: 0;
@@ -102,7 +95,6 @@
   }
 
   .calendar-admin-heading-actions a,
-  .calendar-admin-heading-actions button,
   .calendar-admin-form footer button,
   .calendar-admin-state a {
     display: inline-flex;
@@ -120,14 +112,12 @@
     transition: 150ms ease;
   }
 
-  .calendar-admin-heading-actions button,
   .calendar-admin-form footer .calendar-admin-save {
     border-color: var(--brand-strong);
     background: var(--brand-strong);
     color: var(--surface-raised);
   }
 
-  .dark .calendar-admin-heading-actions button,
   .dark .calendar-admin-form footer .calendar-admin-save {
     color: #101713;
   }
@@ -140,12 +130,10 @@
     color: var(--text-strong);
   }
 
-  .calendar-admin-heading-actions button:hover,
   .calendar-admin-form footer .calendar-admin-save:hover {
     filter: brightness(1.08);
   }
 
-  .calendar-admin-heading-actions button:disabled,
   .calendar-admin-form footer button:disabled,
   .calendar-admin-event-actions button:disabled {
     cursor: not-allowed;
@@ -413,33 +401,6 @@
     background: var(--surface-raised);
   }
 
-  .calendar-admin-form > header {
-    border-bottom: 1px solid var(--line);
-    padding: 20px 22px;
-    background: var(--brand-faint);
-  }
-
-  .calendar-admin-form > header > span {
-    color: var(--brand);
-    font-size: 0.6rem;
-    font-weight: 800;
-    letter-spacing: 0.14em;
-  }
-
-  .calendar-admin-form h2 {
-    margin-top: 5px;
-    color: var(--text-strong);
-    font-family: "Noto Serif CJK SC", "Source Han Serif SC", "Songti SC", serif;
-    font-size: 1.05rem;
-    font-weight: 750;
-  }
-
-  .calendar-admin-form > header p {
-    margin-top: 6px;
-    color: var(--text-muted);
-    font-size: 0.69rem;
-  }
-
   .calendar-admin-form-fields {
     display: grid;
     gap: 16px;
@@ -502,29 +463,6 @@
   .calendar-admin-form-fields input::placeholder,
   .calendar-admin-form-fields textarea::placeholder {
     color: var(--text-faint);
-  }
-
-  .calendar-admin-feedback {
-    margin: 0 22px;
-    border: 1px solid var(--line);
-    border-radius: 2px;
-    padding: 10px 11px;
-    background: var(--surface-soft);
-    color: var(--text-muted);
-    font-size: 0.67rem;
-    line-height: 1.55;
-  }
-
-  .calendar-admin-feedback-success {
-    border-color: color-mix(in srgb, var(--brand) 32%, var(--line));
-    background: var(--brand-faint);
-    color: var(--brand-strong);
-  }
-
-  .calendar-admin-feedback-error {
-    border-color: color-mix(in srgb, var(--danger) 36%, var(--line));
-    background: color-mix(in srgb, var(--danger) 7%, var(--surface));
-    color: var(--danger);
   }
 
   .calendar-admin-form footer {
@@ -624,17 +562,12 @@
       min-height: 34px;
     }
 
-    .calendar-admin-form > header,
     .calendar-admin-form-fields {
       padding: 18px 16px;
     }
 
     .calendar-admin-form-row {
       grid-template-columns: 1fr;
-    }
-
-    .calendar-admin-feedback {
-      margin: 0 16px;
     }
 
     .calendar-admin-form footer {
