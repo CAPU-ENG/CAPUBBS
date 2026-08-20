@@ -7,7 +7,7 @@ import { ForumMarkup, type ForumMarkupImage } from './ForumMarkup';
 const MIN_SIGNATURE_FRAME_HEIGHT = 28;
 const MIN_FLOOR_FRAME_HEIGHT = 64;
 const MAX_FRAME_HEIGHT = 50_000;
-const FRAME_BOTTOM_GUARD = 8;
+const FRAME_BOTTOM_GUARD = 20;
 const HTML_FRAME_MESSAGE_SOURCE = 'capubbs-thread-html-frame';
 
 type ThreadHtmlVariant = 'floor' | 'signature';
