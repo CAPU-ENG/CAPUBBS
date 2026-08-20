@@ -7,7 +7,10 @@ import {
 } from '../../utils/forumMarkup';
 import { FORUM_LOCATION_CHANGE_EVENT } from '../../utils/authRoutes';
 import { translateLegacyForumThreadHref } from '../../utils/legacyForumRoutes';
-import { findSignatureFloorMarkers } from '../../utils/signatureFloorLink';
+import {
+  findSignatureFloorMarkers,
+  replaceLegacySignatureFloorScripts,
+} from '../../utils/signatureFloorLink';
 import { ForumMarkup, type ForumMarkupImage } from './ForumMarkup';
 
 const MIN_SIGNATURE_FRAME_HEIGHT = 28;
@@ -44,7 +47,11 @@ export function ThreadHtmlContent({
   onImageOpen?: (image: ForumMarkupImage, trigger: HTMLImageElement) => void;
   variant: ThreadHtmlVariant;
 }) {
-  const resolvedHtml = useSignaturePostReferences(html, variant === 'signature');
+  const signatureHtml = useMemo(
+    () => variant === 'signature' ? replaceLegacySignatureFloorScripts(html) : html,
+    [html, variant],
+  );
+  const resolvedHtml = useSignaturePostReferences(signatureHtml, variant === 'signature');
   const directHtml = useMemo(
     () => renderForumMarkup(resolvedHtml, { normalizeLegacyLineBreaks: variant === 'signature' }),
     [resolvedHtml, variant],

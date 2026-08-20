@@ -9,7 +9,24 @@ export type SignatureFloorMarker = SignatureFloorReference & {
 };
 
 const signatureFloorMarkerPattern = /\[post(?:\s|&nbsp;|&#160;|\u00a0)+(.*?)\]/gi;
+const legacySignatureScriptPattern = /<script\b[^>]*>([\s\S]*?)<\/script\s*>/gi;
+const legacySignatureGetPattern = /\$\s*\.\s*get\s*\(\s*(["'])(.*?)\1/gi;
 const legacyThreadPageSize = 12;
+
+export function replaceLegacySignatureFloorScripts(value: string) {
+  return value.replace(legacySignatureScriptPattern, (script, body: string) => {
+    const references = Array.from(body.matchAll(legacySignatureGetPattern))
+      .map((match) => parseLegacySignatureFloorRequest(match[2] ?? ''))
+      .filter((reference): reference is SignatureFloorReference => reference !== null);
+
+    if (references.length === 0) return script;
+
+    return Array.from(new Map(references.map((reference) => [
+      `${reference.bid}:${reference.tid}:${reference.pid}`,
+      reference,
+    ])).values()).map(buildSignatureFloorMarker).join('');
+  });
+}
 
 export function parseSignatureFloorLink(value: string): SignatureFloorReference | null {
   const input = value.trim();
@@ -70,6 +87,40 @@ function getFloorFromHash(hash: string) {
   return hash.match(/#?(?:floor-|pid)?(\d+)\b/i)?.[1] ?? null;
 }
 
+function parseLegacySignatureFloorRequest(value: string): SignatureFloorReference | null {
+  const decoded = decodeBasicHtmlEntities(value).replace(/\\\//g, '/').trim();
+  if (!decoded) return null;
+
+  const normalizedRelativePath = decoded.replace(
+    /^(?:\.\.\/)+bbs\/content(?=\/|\?|#|$)/i,
+    '/bbs/content',
+  );
+  const normalizedUrl = /^[\w.-]+\.[a-z]{2,}(?:[/:?#]|$)/i.test(normalizedRelativePath)
+    ? `https://${normalizedRelativePath}`
+    : normalizedRelativePath;
+
+  try {
+    const localOrigin = window.location.origin;
+    const url = new URL(normalizedUrl, `${localOrigin}/bbs/content/`);
+    const hostname = url.hostname.toLowerCase();
+    const trustedHost = url.origin === localOrigin
+      || hostname === 'chexie.net'
+      || hostname.endsWith('.chexie.net');
+    const pathname = url.pathname.replace(/\/{2,}/g, '/');
+    const legacyFloorPath = /^\/(?:api\/)?bbs\/content(?:\/floor)?(?:\/index\.php)?\/?$/i.test(pathname);
+
+    if (!trustedHost || !legacyFloorPath) return null;
+
+    return createReference(
+      url.searchParams.get('bid'),
+      url.searchParams.get('tid'),
+      url.searchParams.get('pid') ?? url.searchParams.get('floor') ?? getFloorFromHash(url.hash),
+    );
+  } catch {
+    return null;
+  }
+}
+
 function createReference(bidValue: string | null | undefined, tidValue: string | null | undefined, pidValue: string | null | undefined) {
   const bid = parsePositiveInteger(bidValue);
   const tid = parsePositiveInteger(tidValue);
@@ -81,4 +132,12 @@ function createReference(bidValue: string | null | undefined, tidValue: string |
 function parsePositiveInteger(value: string | null | undefined) {
   const number = Number.parseInt(value?.trim() ?? '', 10);
   return Number.isInteger(number) && number > 0 ? number : null;
+}
+
+function decodeBasicHtmlEntities(value: string) {
+  return value
+    .replace(/&nbsp;/gi, ' ')
+    .replace(/&amp;/gi, '&')
+    .replace(/&quot;/gi, '"')
+    .replace(/&#0*39;|&apos;/gi, "'");
 }
