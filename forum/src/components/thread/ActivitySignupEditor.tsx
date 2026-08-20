@@ -4,6 +4,7 @@ import {
   ArrowUp,
   CalendarDays,
   ChevronDown,
+  ClipboardList,
   GripVertical,
   LockKeyhole,
   Plus,
@@ -88,6 +89,39 @@ export function ActivitySignupSchedule({
             value={value.endsAt}
           />
         </label>
+      </div>
+    </section>
+  );
+}
+
+export function ActivitySignupFormPreview({
+  value,
+  viewerName,
+}: {
+  value: ActivitySignupSettings;
+  viewerName: string;
+}) {
+  const signupStartsAt = formatActivitySignupPreviewTime(value.startsAt);
+  const signupEndsAt = formatActivitySignupPreviewTime(value.endsAt);
+
+  return (
+    <section aria-labelledby="activity-signup-preview-title" className="activity-signup-card activity-signup-card-preview">
+      <header className="activity-signup-header">
+        <div>
+          <ClipboardList aria-hidden="true" size={18} />
+          <h2 id="activity-signup-preview-title">报名表单</h2>
+        </div>
+        {signupStartsAt && signupEndsAt ? (
+          <div className="activity-signup-window">
+            <time>{signupStartsAt} — {signupEndsAt}</time>
+          </div>
+        ) : null}
+      </header>
+
+      <div className="activity-signup-fields">
+        {value.questions.map((question) => (
+          <ActivitySignupPreviewField key={question.id} question={question} viewerName={viewerName} />
+        ))}
       </div>
     </section>
   );
@@ -343,10 +377,89 @@ function QuestionRuleEditor({
   return <p className="activity-signup-question-hint">{getActivitySignupQuestionHint(question.type)}</p>;
 }
 
+function ActivitySignupPreviewField({
+  question,
+  viewerName,
+}: {
+  question: ActivitySignupQuestion;
+  viewerName: string;
+}) {
+  const label = (
+    <>{question.label}{question.required ? <span aria-hidden="true">*</span> : null}</>
+  );
+  const choiceType = question.type === 'checkbox' || isActivitySignupChoiceType(question.type);
+
+  if (choiceType) {
+    const options = question.type === 'checkbox' ? ['是', '否'] : question.options ?? [];
+    return (
+      <fieldset className={isActivitySignupPreviewWide(question, options) ? 'activity-signup-field-wide' : ''}>
+        <legend>{label}</legend>
+        <div className="activity-signup-choices">
+          {options.map((option, index) => (
+            <label key={`${question.id}-${index}`}>
+              <input
+                disabled
+                name={`activity-signup-preview-${question.id}`}
+                type={question.type === 'multiSelect' ? 'checkbox' : 'radio'}
+              />
+              {option}
+            </label>
+          ))}
+        </div>
+      </fieldset>
+    );
+  }
+
+  const inputType = question.type === 'number'
+    ? 'number'
+    : question.type === 'phone'
+      ? 'tel'
+      : question.type === 'email'
+        ? 'email'
+        : 'text';
+  const wide = question.type === 'textarea' || isActivitySignupPreviewWide(question);
+
+  return (
+    <label className={`activity-signup-field ${wide ? 'activity-signup-field-wide' : ''}`.trim()}>
+      <span>{label}</span>
+      {question.type === 'textarea' ? (
+        <textarea disabled rows={3} value="" />
+      ) : (
+        <input
+          disabled
+          max={question.type === 'number' ? question.max : undefined}
+          min={question.type === 'number' ? question.min : undefined}
+          type={inputType}
+          value={question.type === 'id' ? viewerName : ''}
+        />
+      )}
+    </label>
+  );
+}
+
 function questionTypeLabel(type: ActivitySignupQuestionType) {
   return activitySignupQuestionTypeOptions.find((option) => option.value === type)?.label ?? type;
 }
 
 function optionalNumber(value: string) {
   return value.trim() ? Number(value) : undefined;
+}
+
+function isActivitySignupPreviewWide(question: ActivitySignupQuestion, options = question.options ?? []) {
+  return question.type === 'textarea'
+    || question.label.length > 12
+    || options.some((option) => option.length > 10);
+}
+
+function formatActivitySignupPreviewTime(value: string) {
+  if (!value) return '';
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return '';
+  return new Intl.DateTimeFormat('zh-CN', {
+    day: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+    month: 'short',
+    timeZone: 'Asia/Shanghai',
+  }).format(date);
 }

@@ -23,7 +23,12 @@ import {
   PostEditorPreviewDialog,
   PostEditorTitleField,
 } from '../components/thread/PostEditor';
-import { ActivityDateSchedule, ActivitySignupEditor, ActivitySignupSchedule } from '../components/thread/ActivitySignupEditor';
+import {
+  ActivityDateSchedule,
+  ActivitySignupEditor,
+  ActivitySignupFormPreview,
+  ActivitySignupSchedule,
+} from '../components/thread/ActivitySignupEditor';
 import { useAuth } from '../context/AuthContext';
 import { getLoginPathWithReturnTo } from '../utils/authRoutes';
 import {
@@ -558,6 +563,9 @@ export function ThreadComposePage() {
           label={`${boardName} · ${isReply ? '回帖' : isActivity ? '活动' : '发帖'}预览`}
           onClose={() => setPreviewOpen(false)}
           previewAuthor={{ avatar: editorViewer.avatar, name: editorViewer.name }}
+          previewExtra={isActivity ? (
+            <ActivitySignupFormPreview value={activitySignup} viewerName={editorViewer.name} />
+          ) : undefined}
           previewFloor={isReply ? 2 : 1}
           previewSignature={signatureIndex > 0 ? editorViewer.signatures[signatureIndex - 1] : undefined}
           previewedAt={previewedAt}

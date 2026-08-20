@@ -586,6 +586,21 @@
     box-shadow: none;
   }
 
+  .reply-preview-stage > .activity-signup-card-preview {
+    width: min(100%, var(--thread-main-column));
+    margin: 12px auto 0;
+    box-shadow: none;
+  }
+
+  .activity-signup-card-preview :is(input, textarea) {
+    pointer-events: none;
+  }
+
+  .activity-signup-card-preview :is(input, textarea):disabled,
+  .activity-signup-card-preview .activity-signup-choices label:has(input:disabled) {
+    opacity: 1;
+  }
+
   .reply-preview-avatar-rail {
     position: static;
   }

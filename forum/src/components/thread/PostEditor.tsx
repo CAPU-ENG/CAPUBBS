@@ -246,6 +246,7 @@ export function PostEditorPreviewDialog({
   label,
   onClose,
   previewAuthor,
+  previewExtra,
   previewFloor,
   previewSignature,
   previewedAt,
@@ -257,6 +258,7 @@ export function PostEditorPreviewDialog({
   label: string;
   onClose: () => void;
   previewAuthor: PostEditorPreviewAuthor;
+  previewExtra?: ReactNode;
   previewFloor: number;
   previewSignature?: string;
   previewedAt: string;
@@ -325,6 +327,7 @@ export function PostEditorPreviewDialog({
               )}
             </div>
           </article>
+          {previewExtra}
         </div>
         <footer>
           <button className="reply-secondary-button" onClick={onClose} type="button">返回编辑</button>
