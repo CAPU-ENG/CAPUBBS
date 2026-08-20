@@ -75,12 +75,14 @@ function ThreadSandboxedHtmlFrame({
   const minHeight = variant === 'signature' ? MIN_SIGNATURE_FRAME_HEIGHT : MIN_FLOOR_FRAME_HEIGHT;
   const [frameHeight, setFrameHeight] = useState<number | null>(null);
   const isDarkTheme = useDarkTheme();
+  const parentStyleText = useParentStyleText();
   const frameDocument = useMemo(() => buildHtmlFrameDocument({
     frameId: frameIdRef.current,
     html,
     isDarkTheme,
+    parentStyleText,
     variant,
-  }), [html, isDarkTheme, variant]);
+  }), [html, isDarkTheme, parentStyleText, variant]);
   const frameSource = useMemo(
     () => `data:text/html;charset=utf-8,${encodeURIComponent(frameDocument)}`,
     [frameDocument],
@@ -166,11 +168,13 @@ function buildHtmlFrameDocument({
   frameId,
   html,
   isDarkTheme,
+  parentStyleText,
   variant,
 }: {
   frameId: string;
   html: string;
   isDarkTheme: boolean;
+  parentStyleText: string;
   variant: ThreadHtmlVariant;
 }) {
   const isSignature = variant === 'signature';
@@ -181,21 +185,22 @@ function buildHtmlFrameDocument({
   const fontSize = isSignature ? '13.76px' : '14.72px';
 
   return `<!doctype html>
-<html style="background:transparent;color-scheme:${isDarkTheme ? 'dark' : 'light'}">
+<html class="${isDarkTheme ? 'dark' : 'light'}" style="background:transparent;color-scheme:${isDarkTheme ? 'dark' : 'light'}">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <meta name="referrer" content="no-referrer">
   <base href="${escapeHtmlAttribute(getLegacyContentBaseUrl())}">
   <meta http-equiv="Content-Security-Policy" content="${buildContentSecurityPolicy()}">
+  <style data-capubbs-parent-styles>${escapeStyleText(parentStyleText)}</style>
   <style>
-    html,body{margin:0;padding:0;min-height:0;overflow:hidden;background:transparent!important;color:${color};font-family:ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;font-size:${fontSize};line-height:1.6;overflow-wrap:anywhere;word-break:break-word}
+    html,body{margin:0;padding:0;min-width:0;min-height:0;overflow:hidden;background:transparent!important;color:${color};font-family:ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;font-size:${fontSize};line-height:1.6;overflow-wrap:anywhere;word-break:break-word}
     .capubbs-html-frame-root{display:flow-root}a{color:${linkColor}}img,video,canvas,svg{max-width:100%;height:auto}pre{max-width:100%;overflow:auto;white-space:pre-wrap}table{max-width:100%}
   </style>
   <script>${buildFrameBridgeScript(frameId)}</script>
   <script src="/bbs/lib/jquery.min.js"></script>
 </head>
-<body><main class="capubbs-html-frame-root">${deferUserScripts(html)}</main></body>
+<body><main class="capubbs-html-frame-root forum-markup forum-markup-${variant}">${deferUserScripts(html)}</main></body>
 </html>`;
 }
 
@@ -276,6 +281,50 @@ function buildContentSecurityPolicy() {
 
 function getLegacyContentBaseUrl() {
   return new URL('/bbs/content/', window.location.origin).href;
+}
+
+function getParentStyleText() {
+  return Array.from(document.styleSheets)
+    .map((styleSheet) => {
+      try {
+        return Array.from(styleSheet.cssRules)
+          .map((rule) => rule.cssText)
+          .join('\n');
+      } catch {
+        const ownerNode = styleSheet.ownerNode;
+        return ownerNode instanceof HTMLStyleElement ? ownerNode.textContent ?? '' : '';
+      }
+    })
+    .filter(Boolean)
+    .join('\n');
+}
+
+function useParentStyleText() {
+  const [styleText, setStyleText] = useState(getParentStyleText);
+
+  useEffect(() => {
+    const update = () => {
+      const nextStyleText = getParentStyleText();
+      setStyleText((currentStyleText) => currentStyleText === nextStyleText ? currentStyleText : nextStyleText);
+    };
+    const observer = new MutationObserver(update);
+
+    observer.observe(document.head, {
+      attributes: true,
+      childList: true,
+      characterData: true,
+      subtree: true,
+    });
+    update();
+
+    return () => observer.disconnect();
+  }, []);
+
+  return styleText;
+}
+
+function escapeStyleText(value: string) {
+  return value.replace(/<\/style/gi, '<\\/style');
 }
 
 function escapeHtmlAttribute(value: string) {
