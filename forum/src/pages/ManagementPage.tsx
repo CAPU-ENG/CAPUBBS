@@ -43,7 +43,7 @@ import defaultAvatar from '../assets/avatar/default-avatar.avif';
 import { AppBackground } from '../components/layout/AppBackground';
 import { TopBar } from '../components/layout/TopBar';
 import { useAuth } from '../context/AuthContext';
-import { ALL_BOARDS } from '../data/boards';
+import { ALL_BOARDS, PRIMARY_BOARDS, SECONDARY_BOARDS } from '../data/boards';
 
 type AdminTab = 'pins' | 'move' | 'members' | 'moderators';
 type NoticeKind = 'error' | 'info' | 'success';
@@ -705,6 +705,22 @@ function ModeratorManagementPanel() {
     () => boards.reduce((count, board) => count + board.moderators.length, 0),
     [boards],
   );
+  const primaryBoards = useMemo(() => {
+    const boardById = new Map(boards.map((board) => [board.boardId, board]));
+    return PRIMARY_BOARDS.map((board) => boardById.get(board.id)).filter(
+      (board): board is ManagementBoardModerators => Boolean(board),
+    );
+  }, [boards]);
+  const secondaryBoards = useMemo(() => {
+    const boardById = new Map(boards.map((board) => [board.boardId, board]));
+    const knownBoardIds = new Set(ALL_BOARDS.map((board) => board.id));
+    return [
+      ...SECONDARY_BOARDS.map((board) => boardById.get(board.id)).filter(
+        (board): board is ManagementBoardModerators => Boolean(board),
+      ),
+      ...boards.filter((board) => !knownBoardIds.has(board.boardId)),
+    ];
+  }, [boards]);
 
   useEffect(() => {
     const controller = new AbortController();
@@ -791,6 +807,36 @@ function ModeratorManagementPanel() {
   const selectedBoard = boards.find((board) => board.boardId === Number(selectedBoardId)) ?? null;
   const alreadyModerator = Boolean(selectedMember && selectedBoard?.moderators.includes(selectedMember.id));
 
+  function renderModeratorBoard(board: ManagementBoardModerators) {
+    return (
+      <section className="management-board-moderator-row" key={board.boardId}>
+        <header><h3>{board.boardName}</h3><span>{board.moderators.length} 人</span></header>
+        {board.moderators.length === 0 ? (
+          <p>暂无版主</p>
+        ) : (
+          <div className="management-board-moderators">
+            {board.moderators.map((moderator) => {
+              const actionKey = `remove-${board.boardId}-${moderator}`;
+              return (
+                <article key={moderator}>
+                  <strong>{moderator}</strong>
+                  <button
+                    aria-label={`取消 ${moderator} 的${board.boardName}版主身份`}
+                    disabled={pendingAction !== null}
+                    onClick={() => void removeModerator(board, moderator)}
+                    type="button"
+                  >
+                    {pendingAction === actionKey ? <LoaderCircle className="animate-spin" size={14} /> : <UserMinus size={14} />}
+                  </button>
+                </article>
+              );
+            })}
+          </div>
+        )}
+      </section>
+    );
+  }
+
   return (
     <div className="management-grid management-members-grid">
       <section className="management-card management-action-card" aria-labelledby="moderator-search-title">
@@ -858,33 +904,21 @@ function ModeratorManagementPanel() {
             <EmptyState icon={<CircleAlert size={19} />}>版主列表加载失败。</EmptyState>
           ) : (
             <div className="management-board-moderator-groups">
-              {boards.map((board) => (
-                <section key={board.boardId}>
-                  <header><h3>{board.boardName}</h3><span>{board.moderators.length} 人</span></header>
-                  {board.moderators.length === 0 ? (
-                    <p>暂无版主</p>
-                  ) : (
-                    <div>
-                      {board.moderators.map((moderator) => {
-                        const actionKey = `remove-${board.boardId}-${moderator}`;
-                        return (
-                          <article key={moderator}>
-                            <strong>{moderator}</strong>
-                            <button
-                              aria-label={`取消 ${moderator} 的${board.boardName}版主身份`}
-                              disabled={pendingAction !== null}
-                              onClick={() => void removeModerator(board, moderator)}
-                              type="button"
-                            >
-                              {pendingAction === actionKey ? <LoaderCircle className="animate-spin" size={14} /> : <UserMinus size={14} />}
-                            </button>
-                          </article>
-                        );
-                      })}
-                    </div>
-                  )}
-                </section>
-              ))}
+              <div className="management-board-moderator-list">
+                {primaryBoards.map(renderModeratorBoard)}
+              </div>
+              {secondaryBoards.length > 0 && (
+                <details className="management-secondary-moderators">
+                  <summary>
+                    <span>其他版块</span>
+                    <small>{secondaryBoards.length} 个版块</small>
+                    <ChevronDown size={15} />
+                  </summary>
+                  <div className="management-board-moderator-list">
+                    {secondaryBoards.map(renderModeratorBoard)}
+                  </div>
+                </details>
+              )}
             </div>
           )}
       </section>

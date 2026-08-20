@@ -791,46 +791,57 @@
     display: grid;
   }
 
-  .management-board-moderator-groups > section + section {
+  .management-board-moderator-list {
+    display: grid;
+  }
+
+  .management-board-moderator-row {
+    display: grid;
+    min-height: 54px;
+    grid-template-columns: minmax(118px, 150px) minmax(0, 1fr);
+  }
+
+  .management-board-moderator-row + .management-board-moderator-row {
     border-top: 1px solid var(--line);
   }
 
-  .management-board-moderator-groups > section > header {
-    display: flex;
-    min-height: 42px;
-    align-items: center;
-    justify-content: space-between;
-    gap: 12px;
-    padding: 8px 14px;
+  .management-board-moderator-row > header {
+    display: grid;
+    align-content: center;
+    gap: 3px;
+    border-right: 1px solid var(--line);
+    padding: 9px 12px;
     background: var(--surface-soft);
   }
 
-  .management-board-moderator-groups h3 {
+  .management-board-moderator-row h3 {
     color: var(--text-strong);
     font-size: 0.68rem;
     font-weight: 780;
   }
 
-  .management-board-moderator-groups header > span,
-  .management-board-moderator-groups > section > p {
+  .management-board-moderator-row header > span,
+  .management-board-moderator-row > p {
     color: var(--text-faint);
     font-size: 0.56rem;
   }
 
-  .management-board-moderator-groups > section > p {
-    padding: 14px;
+  .management-board-moderator-row > p {
+    align-self: center;
+    padding: 9px 12px;
   }
 
-  .management-board-moderator-groups > section > div {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(108px, 140px));
+  .management-board-moderators {
+    display: flex;
+    align-content: center;
+    flex-wrap: wrap;
     gap: 6px;
-    border-top: 1px solid var(--line);
     padding: 8px;
   }
 
-  .management-board-moderator-groups article {
+  .management-board-moderators article {
     display: flex;
+    width: min(140px, 100%);
     min-width: 0;
     height: 38px;
     align-items: center;
@@ -842,7 +853,7 @@
     background: var(--surface-soft);
   }
 
-  .management-board-moderator-groups article strong {
+  .management-board-moderators article strong {
     min-width: 0;
     overflow: hidden;
     color: var(--text-strong);
@@ -852,7 +863,7 @@
     white-space: nowrap;
   }
 
-  .management-board-moderator-groups article button {
+  .management-board-moderators article button {
     display: inline-flex;
     width: 27px;
     height: 27px;
@@ -863,13 +874,54 @@
     color: var(--danger);
   }
 
-  .management-board-moderator-groups article button:hover {
+  .management-board-moderators article button:hover {
     background: color-mix(in srgb, var(--danger) 8%, transparent);
   }
 
-  .management-board-moderator-groups article button:disabled {
+  .management-board-moderators article button:disabled {
     cursor: not-allowed;
     opacity: 0.5;
+  }
+
+  .management-secondary-moderators {
+    border-top: 1px solid var(--line);
+  }
+
+  .management-secondary-moderators > summary {
+    display: flex;
+    min-height: 42px;
+    cursor: pointer;
+    list-style: none;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 12px;
+    background: var(--surface-soft);
+    color: var(--text-muted);
+    font-size: 0.64rem;
+    font-weight: 750;
+  }
+
+  .management-secondary-moderators > summary::-webkit-details-marker {
+    display: none;
+  }
+
+  .management-secondary-moderators > summary small {
+    color: var(--text-faint);
+    font-size: 0.56rem;
+    font-weight: 650;
+  }
+
+  .management-secondary-moderators > summary svg {
+    margin-left: auto;
+    transition: transform 150ms ease;
+  }
+
+  .management-secondary-moderators[open] > summary svg {
+    transform: rotate(180deg);
+  }
+
+  .management-secondary-moderators > .management-board-moderator-list {
+    border-top: 1px solid var(--line);
   }
 
   .management-state {
@@ -999,6 +1051,18 @@
 
     .management-moderator-assignment select,
     .management-moderator-assignment > button {
+      width: 100%;
+    }
+
+    .management-board-moderator-row {
+      grid-template-columns: minmax(84px, 100px) minmax(0, 1fr);
+    }
+
+    .management-board-moderator-row > header {
+      padding: 8px;
+    }
+
+    .management-board-moderators article {
       width: 100%;
     }
   }
