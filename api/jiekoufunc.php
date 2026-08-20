@@ -2415,6 +2415,16 @@ function jiekoufunc_management_member_rights($con, $params) {
         return jiekoufunc_report('14', '不支持该会员权限调整。');
     }
 
+    if ($current_rights === 2 && $target_rights === 0) {
+        $moderator_board = mysqli_fetch_assoc(mysqli_query($con,
+            "SELECT bid FROM boardinfo
+             WHERE m1='$username_esc' OR m2='$username_esc' OR m3='$username_esc' OR m4='$username_esc'
+             LIMIT 1"));
+        if ($moderator_board) {
+            $target_rights = 1;
+        }
+    }
+
     mysqli_query($con,
         "UPDATE userinfo
          SET rights=$target_rights
