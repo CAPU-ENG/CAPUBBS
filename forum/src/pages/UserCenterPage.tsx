@@ -28,7 +28,13 @@ import {
   readCachedUserAvatarBlob,
   writeCachedUserAvatarBlob,
 } from '../utils/userAvatarCache';
+import {
+  readStoredThreadComposeDrafts,
+  subscribeStoredThreadComposeDrafts,
+  type StoredThreadComposeDraft,
+} from '../utils/threadComposeDraftStorage';
 import { getPublicProfilePath, USER_CENTER_PATH } from '../utils/userRoutes';
+import { getThreadComposeHref } from '../utils/threadRoutes';
 
 type OpenDialog = 'avatar' | 'email' | 'security' | null;
 type PageNotice = { message: string; tone: 'error' | 'success' } | null;
@@ -42,6 +48,7 @@ export function UserCenterPage() {
   const [isSavingProfile, setIsSavingProfile] = useState(false);
   const [draft, setDraft] = useState<ProfileDraft>(emptyDraft);
   const [replyDrafts, setReplyDrafts] = useState<StoredReplyDraft[]>([]);
+  const [threadComposeDrafts, setThreadComposeDrafts] = useState<StoredThreadComposeDraft[]>([]);
   const [cachedAvatarSrc, setCachedAvatarSrc] = useState<string | null>(null);
   const [openDialog, setOpenDialog] = useState<OpenDialog>(() => window.location.hash === '#account-security' ? 'security' : null);
   const [notice, setNotice] = useState<PageNotice>(null);
@@ -55,10 +62,11 @@ export function UserCenterPage() {
       ...profile.records,
       drafts: [
         ...profile.records.drafts,
+        ...threadComposeDrafts.map(mapThreadComposeDraftRecord),
         ...replyDrafts.map(mapReplyDraftRecord),
       ],
     };
-  }, [profile, replyDrafts]);
+  }, [profile, replyDrafts, threadComposeDrafts]);
 
   useEffect(() => {
     if (!profile || isEditing) return;
@@ -80,6 +88,21 @@ export function UserCenterPage() {
     };
     refreshReplyDrafts();
     const unsubscribe = subscribeStoredReplyDrafts(refreshReplyDrafts, draftOwnerKey);
+    return () => {
+      active = false;
+      unsubscribe();
+    };
+  }, [draftOwnerKey]);
+
+  useEffect(() => {
+    let active = true;
+    const refreshThreadComposeDrafts = () => {
+      void readStoredThreadComposeDrafts(draftOwnerKey).then((storedDrafts) => {
+        if (active) setThreadComposeDrafts(storedDrafts);
+      });
+    };
+    refreshThreadComposeDrafts();
+    const unsubscribe = subscribeStoredThreadComposeDrafts(refreshThreadComposeDrafts, draftOwnerKey);
     return () => {
       active = false;
       unsubscribe();
@@ -311,6 +334,18 @@ function mapReplyDraftRecord(draft: StoredReplyDraft) {
     id: draft.id,
     status: '回帖草稿',
     title: draft.threadTitle,
+  };
+}
+
+function mapThreadComposeDraftRecord(draft: StoredThreadComposeDraft) {
+  return {
+    board: draft.board,
+    date: draft.updatedAt.slice(0, 10),
+    excerpt: draft.excerpt,
+    href: `${getThreadComposeHref(draft.bid)}&draft=${encodeURIComponent(draft.id)}`,
+    id: draft.id,
+    status: '发帖草稿',
+    title: draft.title,
   };
 }
 

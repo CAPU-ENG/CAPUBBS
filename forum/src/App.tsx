@@ -10,6 +10,7 @@ import { RegisterPage } from './pages/RegisterPage';
 import { SearchPage } from './pages/SearchPage';
 import { SettingsPage } from './pages/SettingsPage';
 import { ThreadEditPage } from './pages/ThreadEditPage';
+import { ThreadComposePage } from './pages/ThreadComposePage';
 import { FORUM_LOCATION_CHANGE_EVENT } from './utils/authRoutes';
 import { translateLegacyForumThreadHref } from './utils/legacyForumRoutes';
 import { getPublicProfileNameFromLocation, USER_CENTER_PATH } from './utils/userRoutes';
@@ -84,6 +85,7 @@ function ForumRouter() {
   if (pathname === '/register') return <RegisterPage />;
   if (pathname === '/search') return <SearchPage />;
   if (pathname === '/settings') return <SettingsPage />;
+  if (isThreadComposePath(pathname)) return <ThreadComposePage />;
   if (isThreadEditPath(pathname)) return <ThreadEditPage />;
   if (pathname === USER_CENTER_PATH) return <UserCenterPage />;
   if (pathname === '/users' || pathname.startsWith('/users/')) {
@@ -103,10 +105,17 @@ function isForumAppPath(pathname: string) {
     || normalizedPath === '/register'
     || normalizedPath === '/search'
     || normalizedPath === '/settings'
+    || isThreadComposePath(normalizedPath)
     || isThreadEditPath(normalizedPath)
     || normalizedPath === USER_CENTER_PATH
     || normalizedPath === '/users'
     || normalizedPath.startsWith('/users/');
+}
+
+function isThreadComposePath(pathname: string) {
+  return pathname === '/post'
+    || pathname === '/bbs/post'
+    || pathname === '/bbs/post/index.php';
 }
 
 function isThreadEditPath(pathname: string) {

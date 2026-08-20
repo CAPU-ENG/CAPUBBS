@@ -12,6 +12,7 @@ import { useAuth } from '../context/AuthContext';
 import { useBoardData } from '../hooks/useBoardData';
 import { useScrollContextTitle } from '../hooks/useScrollContextTitle';
 import { getPublicProfilePath } from '../utils/userRoutes';
+import { getThreadComposeHref } from '../utils/threadRoutes';
 import { useEffect, useRef, useState } from 'react';
 
 function getRequestedPage() {
@@ -294,7 +295,7 @@ export function BoardPage({ boardId }: { boardId: number }) {
                   </button>
                 ) : null}
                 {authStatus === 'authenticated' ? (
-                  <a className="board-primary-action" href={`/bbs/post/?bid=${board.id}`}>
+                  <a className="board-primary-action" href={getThreadComposeHref(board.id)}>
                     <PenLine size={15} />发表主题
                   </a>
                 ) : null}
