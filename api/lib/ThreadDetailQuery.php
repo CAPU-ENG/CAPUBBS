@@ -804,17 +804,7 @@ function thread_detail_query_translate_for_quote($raw, $is_html) {
     if (!$is_html) {
         $html = str_replace(' ', '&nbsp;', $html);
     }
-    $html = preg_replace("#(\\[img])(.+?)(\\[/img])#", "<img src='$2'>", $html);
-    $html = preg_replace("#(\\[quote=)(.+?)(])([\\s\\S]+?)(\\[/quote])#", '', $html);
-    $html = preg_replace("#(\\[size=)(.+?)(])([\\s\\S]+?)(\\[/size])#", "<font size='$2'>$4</font>", $html);
-    $html = preg_replace("#(\\[font=)(.+?)(])([\\s\\S]+?)(\\[/font])#", "<font face='$2'>$4</font>", $html);
-    $html = preg_replace("#(\\[color=)(.+?)(])([\\s\\S]+?)(\\[/color])#", "<font color='$2'>$4</font>", $html);
-    $html = preg_replace("#(\\[at])(.+?)(\\[/at])#", "<a class='author' href='../user?name=$2' target='_blank'>@$2</a>", $html);
-    $html = preg_replace("#(\\[url])(.+?)(\\[/url])#", "<a href='$2' class='link' target='_blank'>$2</a>", $html);
-    $html = preg_replace("#(\\[url=)(.+?)(])([\\s\\S]+?)(\\[/url])#", "<a href='$2' class='link' target='_blank'>$4</a>", $html);
-    $html = preg_replace("#(\\[b])(.+?)(\\[/b])#", '<b>$2</b>', $html);
-    $html = preg_replace("#(\\[i])(.+?)(\\[/i])#", '<i>$2</i>', $html);
-    return $html;
+    return thread_detail_query_render_bbcode($html, true);
 }
 
 function thread_detail_query_translate($raw, $is_html, $space = true) {
@@ -828,17 +818,169 @@ function thread_detail_query_translate($raw, $is_html, $space = true) {
     if (!$space) {
         $html = str_replace(' ', '&nbsp;', $html);
     }
-    $html = preg_replace("#(\\[img])(.+?)(\\[/img])#", "<img src='$2'>", $html);
-    $quote = "<div class='quotel'><div class='quoter'>引用自 <a class='author' href='../user?name=$2' target='_blank'>$2</a> ：<br>$4<br></div><br></div>";
-    $html = preg_replace("#(\\[quote=)(.+?)(])([\\s\\S]+?)(\\[/quote])#", $quote, $html);
-    $html = preg_replace("#(\\[size=)(.+?)(])([\\s\\S]+?)(\\[/size])#", "<font size='$2'>$4</font>", $html);
-    $html = preg_replace("#(\\[font=)(.+?)(])([\\s\\S]+?)(\\[/font])#", "<font face='$2'>$4</font>", $html);
-    $html = preg_replace("#(\\[color=)(.+?)(])([\\s\\S]+?)(\\[/color])#", "<font color='$2'>$4</font>", $html);
-    $html = preg_replace("#(\\[color=)(.+?)(])([\\s\\S]+?)#", "<font color='$2'>$4</font>", $html);
-    $html = preg_replace("#(\\[at])(.+?)(\\[/at])#", "<a class='author' href='../user?name=$2' target='_blank'>@$2</a>", $html);
-    $html = preg_replace("#(\\[url])(.+?)(\\[/url])#", "<a href='$2' class='link' target='_blank'>$2</a>", $html);
-    $html = preg_replace("#(\\[url=)(.+?)(])([\\s\\S]+?)(\\[/url])#", "<a href='$2' class='link' target='_blank'>$4</a>", $html);
-    $html = preg_replace("#(\\[b])(.+?)(\\[/b])#", '<b>$2</b>', $html);
-    $html = preg_replace("#(\\[i])(.+?)(\\[/i])#", '<i>$2</i>', $html);
+    return thread_detail_query_render_bbcode($html, false);
+}
+
+/**
+ * Render the BBCode dialect used by legacy posts and signatures.
+ *
+ * The parser deliberately keeps an opening tag active until its matching
+ * closing tag or the end of the content. This mirrors how browsers recover
+ * from unclosed HTML while avoiding byte-wise regex matches that can split a
+ * UTF-8 character. Mismatched inner tags are closed at the current closing
+ * tag, and unmatched closing tags remain visible as literal text.
+ */
+function thread_detail_query_render_bbcode($html, $for_quote) {
+    $root = array(
+        'type' => 'tag',
+        'tag' => 'root',
+        'argument' => null,
+        'children' => array(),
+    );
+    $stack = array();
+    $stack[] =& $root;
+    $pattern = '#\[(/?)(img|quote|size|font|color|at|url|b|i)(?:=([^\]\r\n]*))?\]#iu';
+    $match_count = preg_match_all($pattern, $html, $matches, PREG_SET_ORDER | PREG_OFFSET_CAPTURE);
+
+    if ($match_count === false) {
+        return $html;
+    }
+
+    $cursor = 0;
+    foreach ($matches as $match) {
+        $token = $match[0][0];
+        $token_offset = $match[0][1];
+        if ($token_offset > $cursor) {
+            thread_detail_query_bbcode_append_text($stack, substr($html, $cursor, $token_offset - $cursor));
+        }
+
+        $closing = $match[1][0] === '/';
+        $tag = strtolower($match[2][0]);
+        $argument = isset($match[3]) && $match[3][1] >= 0 ? $match[3][0] : null;
+
+        if ($closing) {
+            $open_index = -1;
+            if ($argument === null) {
+                for ($index = count($stack) - 1; $index >= 1; $index--) {
+                    if ($stack[$index]['tag'] === $tag) {
+                        $open_index = $index;
+                        break;
+                    }
+                }
+            }
+
+            if ($open_index < 0) {
+                thread_detail_query_bbcode_append_text($stack, $token);
+            } else {
+                while (count($stack) - 1 >= $open_index) {
+                    array_pop($stack);
+                }
+            }
+        } elseif (!thread_detail_query_bbcode_valid_opening($tag, $argument)) {
+            thread_detail_query_bbcode_append_text($stack, $token);
+        } else {
+            $current =& $stack[count($stack) - 1];
+            $current['children'][] = array(
+                'type' => 'tag',
+                'tag' => $tag,
+                'argument' => $argument,
+                'children' => array(),
+            );
+            $child_index = count($current['children']) - 1;
+            $stack[] =& $current['children'][$child_index];
+            unset($current);
+        }
+
+        $cursor = $token_offset + strlen($token);
+    }
+
+    if ($cursor < strlen($html)) {
+        thread_detail_query_bbcode_append_text($stack, substr($html, $cursor));
+    }
+
+    return thread_detail_query_render_bbcode_children($root['children'], $for_quote);
+}
+
+function thread_detail_query_bbcode_valid_opening($tag, $argument) {
+    if (in_array($tag, array('quote', 'size', 'font', 'color'), true)) {
+        return $argument !== null && $argument !== '';
+    }
+    if ($tag === 'url') {
+        return $argument === null || $argument !== '';
+    }
+    return $argument === null;
+}
+
+function thread_detail_query_bbcode_append_text(&$stack, $text) {
+    if ($text === '') {
+        return;
+    }
+    $current =& $stack[count($stack) - 1];
+    $current['children'][] = array(
+        'type' => 'text',
+        'value' => $text,
+    );
+    unset($current);
+}
+
+function thread_detail_query_render_bbcode_children($children, $for_quote) {
+    $html = '';
+    foreach ($children as $child) {
+        if ($child['type'] === 'text') {
+            $html .= $child['value'];
+            continue;
+        }
+
+        $content = thread_detail_query_render_bbcode_children($child['children'], $for_quote);
+        $text_content = thread_detail_query_bbcode_text_content($child['children']);
+        $argument = $child['argument'];
+        switch ($child['tag']) {
+            case 'img':
+                $html .= "<img src='$text_content'>";
+                break;
+            case 'quote':
+                if (!$for_quote) {
+                    $html .= "<div class='quotel'><div class='quoter'>引用自 <a class='author' href='../user?name=$argument' target='_blank'>$argument</a> ：<br>$content<br></div><br></div>";
+                }
+                break;
+            case 'size':
+                $html .= "<font size='$argument'>$content</font>";
+                break;
+            case 'font':
+                $html .= "<font face='$argument'>$content</font>";
+                break;
+            case 'color':
+                $html .= "<font color='$argument'>$content</font>";
+                break;
+            case 'at':
+                $html .= "<a class='author' href='../user?name=$text_content' target='_blank'>@$content</a>";
+                break;
+            case 'url':
+                $href = $argument === null ? $text_content : $argument;
+                $html .= "<a href='$href' class='link' target='_blank'>$content</a>";
+                break;
+            case 'b':
+                $html .= "<b>$content</b>";
+                break;
+            case 'i':
+                $html .= "<i>$content</i>";
+                break;
+            default:
+                $html .= $content;
+                break;
+        }
+    }
     return $html;
+}
+
+function thread_detail_query_bbcode_text_content($children) {
+    $text = '';
+    foreach ($children as $child) {
+        if ($child['type'] === 'text') {
+            $text .= $child['value'];
+        } else {
+            $text .= thread_detail_query_bbcode_text_content($child['children']);
+        }
+    }
+    return $text;
 }
