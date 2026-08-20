@@ -191,6 +191,290 @@
     gap: 12px;
   }
 
+  .activity-signup-card {
+    min-width: 0;
+    border: 1px solid color-mix(in srgb, var(--brand) 24%, var(--line));
+    border-radius: 2px;
+    padding: 0 22px 20px;
+    background:
+      linear-gradient(135deg, color-mix(in srgb, var(--brand-soft) 38%, transparent), transparent 34%),
+      var(--surface);
+    box-shadow: var(--shadow-card);
+  }
+
+  .activity-signup-header {
+    display: flex;
+    min-height: 64px;
+    align-items: center;
+    justify-content: space-between;
+    gap: 18px;
+    border-bottom: 1px solid var(--line);
+  }
+
+  .activity-signup-header > div:first-child {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    color: var(--brand-strong);
+  }
+
+  .activity-signup-header h2 {
+    color: var(--text-strong);
+    font-size: 0.94rem;
+    font-weight: 790;
+    letter-spacing: 0.01em;
+  }
+
+  .activity-signup-window {
+    display: flex;
+    min-width: 0;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 10px;
+    color: var(--text-faint);
+    font-size: 0.66rem;
+    font-weight: 650;
+  }
+
+  .activity-signup-window time {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .activity-signup-window span {
+    flex: 0 0 auto;
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    padding: 4px 8px;
+    background: var(--surface-soft);
+    color: var(--text-muted);
+  }
+
+  .activity-signup-window span[data-status="open"] {
+    border-color: color-mix(in srgb, var(--success) 28%, var(--line));
+    background: color-mix(in srgb, var(--success) 10%, var(--surface));
+    color: var(--success);
+  }
+
+  .activity-signup-window span[data-status="closed"],
+  .activity-signup-window span[data-status="not_started"] {
+    border-color: color-mix(in srgb, var(--text-faint) 32%, var(--line));
+  }
+
+  .activity-signup-fields {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 18px 20px;
+    padding: 22px 0 24px;
+  }
+
+  .activity-signup-field,
+  .activity-signup-fields fieldset {
+    display: block;
+    min-width: 0;
+    color: var(--text-muted);
+    font-size: 0.72rem;
+    font-weight: 720;
+  }
+
+  .activity-signup-field-wide {
+    grid-column: 1 / -1;
+  }
+
+  .activity-signup-field > span,
+  .activity-signup-fields legend {
+    display: block;
+    margin-bottom: 8px;
+  }
+
+  .activity-signup-field > span > span,
+  .activity-signup-fields legend > span {
+    margin-left: 3px;
+    color: var(--danger);
+  }
+
+  .activity-signup-field input,
+  .activity-signup-field textarea,
+  .activity-signature-select select {
+    width: 100%;
+    border: 1px solid var(--line);
+    border-radius: var(--control-radius);
+    background: color-mix(in srgb, var(--surface-raised) 88%, transparent);
+    color: var(--text);
+    font-size: 0.8rem;
+    font-weight: 580;
+    outline: none;
+    transition: border-color 140ms ease, box-shadow 140ms ease, background 140ms ease;
+  }
+
+  .activity-signup-field input,
+  .activity-signature-select select {
+    height: 40px;
+    padding: 0 11px;
+  }
+
+  .activity-signup-field textarea {
+    min-height: 82px;
+    resize: vertical;
+    padding: 10px 11px;
+    line-height: 1.55;
+  }
+
+  .activity-signup-field input:focus,
+  .activity-signup-field textarea:focus,
+  .activity-signature-select select:focus {
+    border-color: color-mix(in srgb, var(--brand) 58%, var(--line));
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--brand) 13%, transparent);
+  }
+
+  .activity-signup-field input:disabled,
+  .activity-signup-field textarea:disabled,
+  .activity-signature-select select:disabled {
+    cursor: not-allowed;
+    opacity: 0.62;
+  }
+
+  .activity-signup-choices {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .activity-signup-choices label {
+    display: inline-flex;
+    min-height: 38px;
+    max-width: 100%;
+    cursor: pointer;
+    align-items: center;
+    border: 1px solid var(--line);
+    border-radius: var(--control-radius);
+    padding: 7px 12px;
+    background: color-mix(in srgb, var(--surface-raised) 88%, transparent);
+    color: var(--text-muted);
+    font-size: 0.76rem;
+    font-weight: 680;
+    line-height: 1.35;
+    transition: 140ms ease;
+  }
+
+  .activity-signup-choices label:hover {
+    border-color: var(--line-strong);
+    color: var(--brand-strong);
+  }
+
+  .activity-signup-choices label.activity-signup-choice-selected {
+    border-color: color-mix(in srgb, var(--brand) 52%, var(--line));
+    background: var(--brand-soft);
+    color: var(--brand-strong);
+    box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--brand) 10%, transparent);
+  }
+
+  .activity-signup-choices input {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+
+  .activity-signup-choices label:has(input:focus-visible) {
+    outline: 2px solid var(--brand);
+    outline-offset: 2px;
+  }
+
+  .activity-signup-choices label:has(input:disabled) {
+    cursor: not-allowed;
+    opacity: 0.58;
+  }
+
+  .activity-signup-footer {
+    display: flex;
+    align-items: end;
+    justify-content: space-between;
+    gap: 18px;
+    border-top: 1px solid var(--line);
+    padding-top: 18px;
+  }
+
+  .activity-signature-select {
+    display: grid;
+    width: min(260px, 100%);
+    gap: 7px;
+    color: var(--text-muted);
+    font-size: 0.7rem;
+    font-weight: 720;
+  }
+
+  .activity-signup-actions {
+    display: flex;
+    min-width: 0;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 12px;
+  }
+
+  .activity-signup-actions > span {
+    max-width: 300px;
+    color: var(--success);
+    font-size: 0.7rem;
+    font-weight: 680;
+    text-align: right;
+  }
+
+  .activity-signup-actions > span.activity-signup-status-error {
+    color: var(--danger);
+  }
+
+  .activity-signup-actions > button,
+  .activity-signup-actions > a {
+    display: inline-flex;
+    min-width: 112px;
+    height: 40px;
+    flex: 0 0 auto;
+    align-items: center;
+    justify-content: center;
+    gap: 7px;
+    border: 1px solid var(--brand);
+    border-radius: var(--control-radius);
+    padding: 0 16px;
+    background: var(--brand);
+    color: white;
+    font-size: 0.76rem;
+    font-weight: 760;
+    box-shadow: 0 5px 14px color-mix(in srgb, var(--brand) 18%, transparent);
+    transition: 140ms ease;
+  }
+
+  .activity-signup-actions > button:hover,
+  .activity-signup-actions > a:hover {
+    border-color: var(--brand-strong);
+    background: var(--brand-strong);
+  }
+
+  .activity-signup-actions > button:focus-visible,
+  .activity-signup-actions > a:focus-visible {
+    outline: 2px solid var(--brand);
+    outline-offset: 3px;
+  }
+
+  .activity-signup-actions > button:disabled {
+    cursor: not-allowed;
+    opacity: 0.44;
+    box-shadow: none;
+  }
+
+  .activity-signup-spinner {
+    width: 14px;
+    height: 14px;
+    border: 2px solid rgb(255 255 255 / 0.45);
+    border-top-color: white;
+    border-radius: 999px;
+    animation: thread-request-spin 700ms linear infinite;
+  }
+
   .thread-floor {
     position: relative;
     display: grid;
@@ -1505,6 +1789,58 @@
 
     .thread-floor-list {
       gap: 9px;
+    }
+
+    .activity-signup-card {
+      padding: 0 14px 16px;
+    }
+
+    .activity-signup-header {
+      min-height: 58px;
+      align-items: flex-start;
+      flex-direction: column;
+      gap: 6px;
+      padding: 13px 0;
+    }
+
+    .activity-signup-window {
+      width: 100%;
+      justify-content: space-between;
+    }
+
+    .activity-signup-fields {
+      grid-template-columns: minmax(0, 1fr);
+      gap: 16px;
+      padding: 18px 0 20px;
+    }
+
+    .activity-signup-field-wide {
+      grid-column: auto;
+    }
+
+    .activity-signup-footer {
+      align-items: stretch;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    .activity-signature-select {
+      width: 100%;
+    }
+
+    .activity-signup-actions {
+      flex-wrap: wrap;
+    }
+
+    .activity-signup-actions > span {
+      width: 100%;
+      max-width: none;
+      text-align: left;
+    }
+
+    .activity-signup-actions > button,
+    .activity-signup-actions > a {
+      width: 100%;
     }
 
     .thread-floor {

@@ -1,5 +1,6 @@
-import { useEffect, useLayoutEffect, useRef, useState } from 'react';
+import { Fragment, useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { Bookmark, BookmarkCheck, Eye, MessageCircle, RotateCw } from 'lucide-react';
+import { ActivitySignupForm } from '../components/thread/ActivitySignupForm';
 import { ReplyEditor, type QuoteRequest } from '../components/thread/ReplyEditor';
 import { ThreadFloor } from '../components/thread/ThreadFloor';
 import { FloorNodes, MobileFloorNode, ThreadPagination } from '../components/thread/ThreadNavigation';
@@ -324,18 +325,32 @@ export function ThreadPage() {
         <div className="thread-content-layout">
           <section className="thread-floor-list" aria-label={`第 ${data.currentPage} 页楼层`}>
             {pageFloors.map((floor) => (
-              <ThreadFloor
-                canReply={data.canReply && Boolean(data.viewer)}
-                editHref={getThreadEditHref(data.bid, data.tid, floor.floor)}
-                floor={floor}
-                isMainPost={floor.floor === 1}
-                key={floor.id}
-                onDeleteFloor={removeFloor}
-                onDeleteNestedReply={removeNestedReply}
-                onQuote={quoteFloor}
-                onSubmitNestedReply={submitNestedReply}
-                viewer={data.viewer}
-              />
+              <Fragment key={floor.id}>
+                <ThreadFloor
+                  canReply={!data.isActivity && data.canReply && Boolean(data.viewer)}
+                  editHref={getThreadEditHref(data.bid, data.tid, floor.floor)}
+                  floor={floor}
+                  isMainPost={floor.floor === 1}
+                  onDeleteFloor={removeFloor}
+                  onDeleteNestedReply={removeNestedReply}
+                  onQuote={quoteFloor}
+                  onSubmitNestedReply={submitNestedReply}
+                  viewer={data.viewer}
+                />
+                {floor.floor === 1 && data.activity && (
+                  <ActivitySignupForm
+                    activity={data.activity}
+                    bid={data.bid}
+                    floors={pageFloors}
+                    locked={data.locked}
+                    loginHref={loginHref}
+                    signatures={data.viewerSignatures}
+                    threadTitle={data.title}
+                    tid={data.tid}
+                    viewer={data.viewer}
+                  />
+                )}
+              </Fragment>
             ))}
           </section>
           <FloorNodes activeFloor={activeFloor} floors={nodeFloors} />
@@ -351,7 +366,7 @@ export function ThreadPage() {
           />
         </div>
 
-        {data.canReply && data.viewer ? (
+        {!data.isActivity && (data.canReply && data.viewer ? (
           <ReplyEditor
             bid={data.bid}
             board={data.board}
@@ -371,7 +386,7 @@ export function ThreadPage() {
             <p>{data.locked ? '当前主题暂不接受新的楼层回复。' : '登录后即可使用完整编辑器、签名档与附件功能。'}</p>
             {!data.locked && <a href={loginHref}>前往登录</a>}
           </section>
-        )}
+        ))}
       </main>
 
       {nodeFloors.length > 0 && <MobileFloorNode activeFloor={activeFloor} floors={nodeFloors} />}

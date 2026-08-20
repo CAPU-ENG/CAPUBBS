@@ -20,6 +20,7 @@ type ApiEnvelope = {
 type ApiRow = Record<string, unknown>;
 
 export type ThreadDetail = {
+  activity: ThreadActivity | null;
   authorName: string;
   authorOnly: boolean;
   bid: number;
@@ -30,6 +31,7 @@ export type ThreadDetail = {
   currentPage: number;
   floors: ThreadFloorData[];
   id: string;
+  isActivity: boolean;
   locked: boolean;
   pageCount: number;
   replies: number;
@@ -39,6 +41,28 @@ export type ThreadDetail = {
   viewer: ThreadAuthor | null;
   viewerSignatures: string[];
   views: number;
+};
+
+export type ThreadActivityQuestionOption = {
+  id: string;
+  label: string;
+};
+
+export type ThreadActivityQuestion = {
+  id: string;
+  label: string;
+  options: ThreadActivityQuestionOption[];
+  required: boolean;
+  type: 'choice' | 'multiChoice' | 'text';
+};
+
+export type ThreadActivity = {
+  endsAt: number;
+  id: number;
+  name: string;
+  questions: ThreadActivityQuestion[];
+  startsAt: number;
+  status: 'closed' | 'not_started' | 'open' | null;
 };
 
 export type EditableThreadFloor = {
@@ -73,6 +97,8 @@ export type PublishedThreadReply = {
   pid: number;
   tid: number;
 };
+
+export type ActivitySignupValue = string | string[];
 
 export class ThreadApiError extends Error {
   constructor(message: string) {
@@ -351,6 +377,42 @@ export async function publishThreadReply({
   };
 }
 
+export async function publishActivitySignup({
+  action,
+  bid,
+  signatureIndex,
+  tid,
+  title,
+  values,
+}: {
+  action: 'join' | 'modify' | 'restore';
+  bid: number;
+  signatureIndex: number;
+  tid: number;
+  title: string;
+  values: Record<string, ActivitySignupValue>;
+}) {
+  const body = new URLSearchParams({
+    action,
+    ask: 'activity_signup',
+    bid: String(bid),
+    sig: String(signatureIndex),
+    tid: String(tid),
+    title,
+    type: 'web',
+  });
+
+  Object.entries(values).forEach(([id, value]) => {
+    body.append(`option_values[${id}]`, Array.isArray(value) ? value.join(',') : value.trim());
+  });
+
+  await requestThreadApi(
+    body,
+    undefined,
+    action === 'modify' ? '报名修改失败，请稍后重试。' : action === 'restore' ? '重新报名失败，请稍后重试。' : '报名提交失败，请稍后重试。',
+  );
+}
+
 async function requestThreadApi(body: URLSearchParams, signal: AbortSignal | undefined, fallbackMessage: string) {
   let response: Response;
   try {
@@ -572,6 +634,7 @@ function mapThreadDetail(
   const floorsPage = asRow(data.floorsPage);
   const viewerState = asRow(data.viewerState);
   const mainPost = asRow(data.mainPost);
+  const activity = mapThreadActivity(data.activity);
 
   const title = plainText(thread.title);
   const boardTitle = plainText(board.title) || plainText(board.name);
@@ -590,6 +653,7 @@ function mapThreadDetail(
     : replyFloors;
 
   return {
+    activity,
     authorName: plainText(thread.author),
     authorOnly: Boolean(floorsPage.authorOnly ?? request.authorOnly),
     bid: positiveInteger(thread.bid, request.bid),
@@ -600,6 +664,7 @@ function mapThreadDetail(
     currentPage,
     floors,
     id: plainText(thread.id) || `${request.bid}-${request.tid}`,
+    isActivity: Boolean(thread.isActivity) || activity !== null,
     locked: Boolean(thread.locked),
     pageCount: positiveInteger(floorsPage.pages, 1),
     replies: nonNegativeInteger(thread.replies),
@@ -609,6 +674,48 @@ function mapThreadDetail(
     viewer: viewerRow ? mapAuthor(viewerRow, viewerName) : null,
     viewerSignatures: viewerRow ? mapViewerSignatures(viewerRow.signatures) : [],
     views: nonNegativeInteger(thread.views),
+  };
+}
+
+function mapThreadActivity(value: unknown): ThreadActivity | null {
+  const activity = nullableRow(value);
+  if (!activity) return null;
+
+  const signupWindow = asRow(activity.signup_window);
+  const statusValue = stringValue(signupWindow.status);
+  const status = statusValue === 'open' || statusValue === 'closed' || statusValue === 'not_started'
+    ? statusValue
+    : null;
+  const questions = asRows(activity.options)
+    .filter((option) => nonNegativeInteger(option.hiden) !== 1)
+    .map((option): ThreadActivityQuestion | null => {
+      const id = stringValue(option.option_id);
+      const label = plainText(option.option_name);
+      const typeId = nonNegativeInteger(option.type_id);
+      if (!id || !label) return null;
+
+      return {
+        id,
+        label,
+        options: asRows(option.cases)
+          .map((item) => ({
+            id: stringValue(item.case_id),
+            label: plainText(item.case_name),
+          }))
+          .filter((item) => item.id && item.label),
+        required: Boolean(nonNegativeInteger(option.required)),
+        type: typeId === 1 ? 'choice' : typeId === 3 ? 'multiChoice' : 'text',
+      };
+    })
+    .filter((question): question is ThreadActivityQuestion => question !== null);
+
+  return {
+    endsAt: nonNegativeInteger(signupWindow.ends_at),
+    id: positiveInteger(activity.activity_id, 0),
+    name: plainText(activity.name),
+    questions,
+    startsAt: nonNegativeInteger(signupWindow.starts_at),
+    status,
   };
 }
 
@@ -647,6 +754,7 @@ function mapFloor(row: ApiRow, viewerName: string): ThreadFloorData {
     quoteText,
     signature: forumMarkupToPlainText(safeSignatureHtml),
     signatureHtml,
+    signatureIndex,
   };
 }
 
