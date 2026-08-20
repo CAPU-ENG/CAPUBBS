@@ -403,13 +403,12 @@ function ReplyPreviewDialog({
               </div>
 
               {previewSignature && (
-                <footer className="thread-signature">
-                  <ThreadHtmlContent
-                    floor={previewFloor}
-                    html={previewSignature}
-                    variant="signature"
-                  />
-                </footer>
+                <ThreadHtmlContent
+                  className="thread-signature"
+                  floor={previewFloor}
+                  html={previewSignature}
+                  variant="signature"
+                />
               )}
 
               {attachments.length > 0 && (
