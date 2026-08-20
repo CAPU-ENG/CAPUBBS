@@ -273,28 +273,18 @@ function jiekoufunc_activity_signup_summary($con, $token, $bid, $tid, $params) {
         return activity_handler_error('5', '仅活动楼主或权限值不低于 3 的用户可以查看报名汇总');
     }
 
-    $page = max(1, intval(isset($params['page']) ? $params['page'] : 1));
-    $page_size = intval(isset($params['page_size']) ? $params['page_size'] : 50);
-    if ($page_size <= 0) $page_size = 50;
-    if ($page_size > 100) $page_size = 100;
-
     if (!activity_handler_acquire_update_lock($con, $bid, $tid)) {
         return activity_handler_error('8', '活动正在处理报名，请稍后重试');
     }
 
     try {
-        return activity_handler_signup_summary_locked(
-            $con,
-            intval($activity['activity_id']),
-            $page,
-            $page_size
-        );
+        return activity_handler_signup_summary_locked($con, intval($activity['activity_id']));
     } finally {
         activity_handler_release_update_lock($con, $bid, $tid);
     }
 }
 
-function activity_handler_signup_summary_locked($con, $activity_id, $page, $page_size) {
+function activity_handler_signup_summary_locked($con, $activity_id) {
     $activity_id = intval($activity_id);
     $count_result = mysqli_query($con, "select
             count(*) as total,
@@ -307,9 +297,6 @@ function activity_handler_signup_summary_locked($con, $activity_id, $page, $page
     }
 
     $total = intval($counts['total']);
-    $pages = max(1, intval(ceil($total / $page_size)));
-    $page = min(max(1, intval($page)), $pages);
-    $offset = ($page - 1) * $page_size;
 
     $join_result = mysqli_query($con, "select
             activity_join.join_id,
@@ -319,19 +306,16 @@ function activity_handler_signup_summary_locked($con, $activity_id, $page, $page
         from season_activity_join activity_join
         left join posts on posts.fid=activity_join.post_fid
         where activity_join.activity_id=$activity_id
-        order by activity_join.join_id asc
-        limit $offset, $page_size");
+        order by activity_join.join_id asc");
     if (!$join_result) {
         return activity_handler_error('8', '报名明细读取失败');
     }
 
     $records = array();
     $record_indexes = array();
-    $join_ids = array();
     while ($row = mysqli_fetch_assoc($join_result)) {
         $join_id = intval($row['join_id']);
         $record_indexes[$join_id] = count($records);
-        $join_ids[] = $join_id;
         $records[] = array(
             'record_id' => $join_id,
             'username' => $row['username'],
@@ -341,7 +325,7 @@ function activity_handler_signup_summary_locked($con, $activity_id, $page, $page
         );
     }
 
-    if (!empty($join_ids)) {
+    if (!empty($records)) {
         $option_types = array();
         $option_result = mysqli_query($con, "select id, type_id
             from season_activity_option where activity_id=$activity_id and hiden=0");
@@ -366,11 +350,11 @@ function activity_handler_signup_summary_locked($con, $activity_id, $page, $page
             $case_names[$option_id][intval($row['case_id'])] = $row['case_name'];
         }
 
-        $join_id_list = implode(',', array_map('intval', $join_ids));
         $value_result = mysqli_query($con, "select option_value.join_id, option_value.option_id, option_value.value
             from season_join_option_value option_value
+            inner join season_activity_join activity_join on activity_join.join_id=option_value.join_id
             inner join season_activity_option activity_option on activity_option.id=option_value.option_id
-            where option_value.join_id in ($join_id_list)
+            where activity_join.activity_id=$activity_id
                 and activity_option.activity_id=$activity_id
                 and activity_option.hiden=0
             order by option_value.id asc");
@@ -397,11 +381,6 @@ function activity_handler_signup_summary_locked($con, $activity_id, $page, $page
                 'total' => $total,
                 'effective' => intval($counts['effective']),
                 'canceled' => intval($counts['canceled']),
-            ),
-            'pagination' => array(
-                'page' => $page,
-                'page_size' => $page_size,
-                'pages' => $pages,
             ),
             'records' => $records,
         ),

@@ -127,9 +127,6 @@ export type ActivitySignupSummaryRecord = {
 };
 
 export type ActivitySignupSummary = {
-  page: number;
-  pageCount: number;
-  pageSize: number;
   records: ActivitySignupSummaryRecord[];
   totals: {
     canceled: number;
@@ -491,27 +488,20 @@ export async function updateActivityConfiguration({
 
 export async function fetchActivitySignupSummary({
   bid,
-  page,
-  pageSize = 50,
   signal,
   tid,
 }: {
   bid: number;
-  page: number;
-  pageSize?: number;
   signal?: AbortSignal;
   tid: number;
 }): Promise<ActivitySignupSummary> {
   const payload = await requestThreadApi(new URLSearchParams({
     ask: 'activity_signup_summary',
     bid: String(bid),
-    page: String(page),
-    page_size: String(pageSize),
     tid: String(tid),
   }), signal, '报名汇总读取失败，请稍后重试。');
   const data = asRow(payload.data);
   const totals = asRow(data.totals);
-  const pagination = asRow(data.pagination);
   const records = asRows(data.records).map((record): ActivitySignupSummaryRecord => ({
     id: positiveInteger(record.record_id, 0),
     joinedAt: nonNegativeInteger(record.joined_at),
@@ -524,9 +514,6 @@ export async function fetchActivitySignupSummary({
   }));
 
   return {
-    page: positiveInteger(pagination.page, page),
-    pageCount: positiveInteger(pagination.pages, 1),
-    pageSize: positiveInteger(pagination.page_size, pageSize),
     records,
     totals: {
       canceled: nonNegativeInteger(totals.canceled),

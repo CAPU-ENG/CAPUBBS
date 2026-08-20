@@ -1,7 +1,5 @@
 import {
   ArrowLeft,
-  ChevronLeft,
-  ChevronRight,
   ClipboardList,
   Download,
   FileSpreadsheet,
@@ -47,6 +45,9 @@ import {
 } from '../utils/activitySignup';
 
 type ActivityManagementTab = 'questionnaire' | 'summary';
+type ActivitySignupFilter = 'all' | 'canceled' | 'effective';
+type ActivitySignupSort = 'id' | 'joinedAt';
+type ActivitySignupSortDirection = 'asc' | 'desc';
 
 export function ActivityManagementPage() {
   const request = useMemo(getActivityRequest, []);
@@ -59,7 +60,6 @@ export function ActivityManagementPage() {
   });
   const [activeTab, setActiveTab] = useState<ActivityManagementTab>(readTabFromLocation);
   const [signupSummary, setSignupSummary] = useState<ActivitySignupSummary | null>(null);
-  const [signupPage, setSignupPage] = useState(1);
   const [signupRefreshKey, setSignupRefreshKey] = useState(0);
   const [signupLoadStatus, setSignupLoadStatus] = useState<'error' | 'loading' | 'ready'>('loading');
   const [managedActivity, setManagedActivity] = useState<ThreadActivity | null>(null);
@@ -99,13 +99,11 @@ export function ActivityManagementPage() {
     setSignupLoadStatus('loading');
     void fetchActivitySignupSummary({
       bid: data.bid,
-      page: signupPage,
       signal: controller.signal,
       tid: data.tid,
     }).then(
       (summary) => {
         setSignupSummary(summary);
-        if (summary.page !== signupPage) setSignupPage(summary.page);
         setSignupLoadStatus('ready');
       },
       (loadError: unknown) => {
@@ -115,7 +113,7 @@ export function ActivityManagementPage() {
     );
 
     return () => controller.abort();
-  }, [data, isAuthorized, signupPage, signupRefreshKey]);
+  }, [data, isAuthorized, signupRefreshKey]);
 
   function selectTab(tab: ActivityManagementTab) {
     setActiveTab(tab);
@@ -151,7 +149,6 @@ export function ActivityManagementPage() {
       setQuestionnaire(createEditableActivitySettings(updatedActivity));
       setActivityDateRange(createEditableActivityDateRange(updatedActivity));
       setQuestionCaseIds(createActivityQuestionCaseIds(updatedActivity.questions));
-      setSignupPage(1);
       setSignupRefreshKey((current) => current + 1);
       setQuestionnaireNotice({ error: false, text: '已保存' });
     } catch (saveError) {
@@ -247,11 +244,7 @@ export function ActivityManagementPage() {
                 />
               ) : activeTab === 'summary' ? (
                 <SignupSummaryPanel
-                  bid={data.bid}
                   loadStatus={signupLoadStatus}
-                  onPageChange={setSignupPage}
-                  page={signupSummary?.page ?? signupPage}
-                  pageCount={signupSummary?.pageCount ?? 1}
                   questions={managedActivity.questions}
                   records={records}
                   threadTitle={data.title}
@@ -303,33 +296,36 @@ function QuestionnairePanel({
 }
 
 function SignupSummaryPanel({
-  bid,
   loadStatus,
-  onPageChange,
-  page,
-  pageCount,
   questions,
   records,
   threadTitle,
   tid,
 }: {
-  bid: number;
   loadStatus: 'error' | 'loading' | 'ready';
-  onPageChange: (page: number) => void;
-  page: number;
-  pageCount: number;
   questions: ThreadActivityQuestion[];
   records: ActivitySignupRecord[];
   threadTitle: string;
   tid: number;
 }) {
   const [expandedValue, setExpandedValue] = useState<{ label: string; value: string } | null>(null);
-  const [exportError, setExportError] = useState('');
-  const [isExporting, setIsExporting] = useState(false);
   const [isTableScrolled, setIsTableScrolled] = useState(false);
+  const [recordFilter, setRecordFilter] = useState<ActivitySignupFilter>('all');
+  const [sortBy, setSortBy] = useState<ActivitySignupSort>('joinedAt');
+  const [sortDirection, setSortDirection] = useState<ActivitySignupSortDirection>('asc');
   const displayedQuestions = useMemo(
     () => questions.filter((question) => question.label.trim().toLocaleUpperCase() !== 'ID'),
     [questions],
+  );
+  const displayedRecords = useMemo(
+    () => sortActivitySignupRecords(
+      records.filter((record) => recordFilter === 'all'
+        || (recordFilter === 'effective' && record.status === '有效')
+        || (recordFilter === 'canceled' && record.status === '已取消')),
+      sortBy,
+      sortDirection,
+    ),
+    [recordFilter, records, sortBy, sortDirection],
   );
 
   useEffect(() => {
@@ -341,45 +337,62 @@ function SignupSummaryPanel({
     return () => window.removeEventListener('keydown', closeOnEscape);
   }, [expandedValue]);
 
-  async function exportSignupRecords() {
-    if (isExporting) return;
-    setExportError('');
-    setIsExporting(true);
-    try {
-      await downloadSignupCsv(bid, threadTitle, tid, questions);
-    } catch (error) {
-      setExportError(error instanceof Error ? error.message : '报名汇总导出失败，请稍后重试。');
-    } finally {
-      setIsExporting(false);
-    }
-  }
-
-  function changePage(nextPage: number) {
-    if (loadStatus === 'loading' || nextPage < 1 || nextPage > pageCount || nextPage === page) return;
-    setExpandedValue(null);
-    onPageChange(nextPage);
-  }
-
   return (
     <section className="activity-management-panel activity-summary-panel" aria-label="报名汇总">
       <header className="activity-management-panel-heading">
         <h2>报名信息</h2>
         <div>
-          {exportError && <span className="activity-management-notice-error" role="alert">{exportError}</span>}
           <button
-            disabled={loadStatus !== 'ready' || records.length === 0 || isExporting}
-            onClick={() => { void exportSignupRecords(); }}
+            disabled={loadStatus !== 'ready' || records.length === 0}
+            onClick={() => downloadSignupCsv(
+              threadTitle,
+              tid,
+              displayedQuestions,
+              sortActivitySignupRecords(records, sortBy, sortDirection),
+            )}
             type="button"
-          >{isExporting ? <LoaderCircle className="activity-management-spinner" size={15} /> : <Download size={15} />}{isExporting ? '导出中' : '导出 CSV'}</button>
+          ><Download size={15} />导出 CSV</button>
         </div>
       </header>
+
+      {loadStatus === 'ready' && records.length > 0 && (
+        <div className="activity-summary-controls">
+          <select
+            aria-label="报名状态筛选"
+            onChange={(event) => setRecordFilter(event.target.value as ActivitySignupFilter)}
+            value={recordFilter}
+          >
+            <option value="all">全部报名</option>
+            <option value="effective">只看有效报名</option>
+            <option value="canceled">只看已取消</option>
+          </select>
+          <select
+            aria-label="报名信息排序字段"
+            onChange={(event) => setSortBy(event.target.value as ActivitySignupSort)}
+            value={sortBy}
+          >
+            <option value="id">按 ID</option>
+            <option value="joinedAt">按报名时间</option>
+          </select>
+          <select
+            aria-label="报名信息排序方向"
+            onChange={(event) => setSortDirection(event.target.value as ActivitySignupSortDirection)}
+            value={sortDirection}
+          >
+            <option value="asc">升序</option>
+            <option value="desc">降序</option>
+          </select>
+        </div>
+      )}
 
       {loadStatus === 'loading' ? (
         <div className="activity-summary-state"><LoaderCircle className="activity-management-spinner" size={20} />正在汇总全部报名</div>
       ) : loadStatus === 'error' ? (
-        <div className="activity-summary-state activity-management-notice-error">部分报名页读取失败，请刷新后重试。</div>
+        <div className="activity-summary-state activity-management-notice-error">报名信息读取失败，请刷新后重试。</div>
       ) : records.length === 0 ? (
         <div className="activity-summary-state">暂无报名信息</div>
+      ) : displayedRecords.length === 0 ? (
+        <div className="activity-summary-state">没有符合筛选条件的报名信息</div>
       ) : (
         <>
           <div
@@ -396,7 +409,7 @@ function SignupSummaryPanel({
                 </tr>
               </thead>
               <tbody>
-                {records.map((record) => (
+                {displayedRecords.map((record) => (
                   <tr key={record.id}>
                     <td className="activity-summary-id-column"><strong>{record.username}</strong></td>
                     <td className="activity-summary-time-column">{formatActivityRecordTime(record.joinedAt)}</td>
@@ -426,18 +439,6 @@ function SignupSummaryPanel({
               </tbody>
             </table>
           </div>
-
-          {pageCount > 1 && (
-            <nav aria-label="报名明细分页" className="activity-summary-pagination">
-              <button disabled={page <= 1} onClick={() => changePage(page - 1)} type="button">
-                <ChevronLeft size={15} />上一页
-              </button>
-              <span>{page} / {pageCount}</span>
-              <button disabled={page >= pageCount} onClick={() => changePage(page + 1)} type="button">
-                下一页<ChevronRight size={15} />
-              </button>
-            </nav>
-          )}
 
           {expandedValue && (
             <div
@@ -514,22 +515,12 @@ function ActivityManagementState({
   );
 }
 
-async function downloadSignupCsv(
-  bid: number,
+function downloadSignupCsv(
   threadTitle: string,
   tid: number,
   questions: ThreadActivityQuestion[],
+  records: ActivitySignupRecord[],
 ) {
-  const records: ActivitySignupRecord[] = [];
-  let page = 1;
-  let pageCount = 1;
-  do {
-    const summary = await fetchActivitySignupSummary({ bid, page, pageSize: 100, tid });
-    records.push(...summary.records);
-    pageCount = summary.pageCount;
-    page += 1;
-  } while (page <= pageCount);
-
   const rows = [
     ['ID', '报名时间', '状态', ...questions.map((question) => question.label)],
     ...records.map((record) => [
@@ -546,6 +537,20 @@ async function downloadSignupCsv(
   link.download = `${safeFileName(threadTitle) || `activity-${tid}`}-报名汇总.csv`;
   link.click();
   URL.revokeObjectURL(url);
+}
+
+function sortActivitySignupRecords(
+  records: ActivitySignupRecord[],
+  sortBy: ActivitySignupSort,
+  direction: ActivitySignupSortDirection,
+) {
+  const directionFactor = direction === 'asc' ? 1 : -1;
+  return [...records].sort((left, right) => {
+    const result = sortBy === 'id'
+      ? left.username.localeCompare(right.username, 'zh-CN', { numeric: true, sensitivity: 'base' })
+      : left.joinedAt - right.joinedAt;
+    return (result || left.id - right.id) * directionFactor;
+  });
 }
 
 function csvCell(value: string) {
