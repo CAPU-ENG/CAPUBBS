@@ -603,9 +603,7 @@ function MemberManagementPanel() {
                 setQuery(member.id);
                 void loadMember(member.id);
               }} type="button">
-                <img alt="" src={member.avatar || defaultAvatar} />
-                <span><strong>{member.id}</strong><small>{member.summary}</small></span>
-                <em data-rights={member.rights}>权限 {member.rights}</em>
+                <span><strong>{member.id}</strong><em data-rights={member.rights}>权限 {member.rights}</em></span>
               </button>
             ))}
           </div>
@@ -789,9 +787,7 @@ function ModeratorManagementPanel() {
               setQuery(member.id);
               void loadMember(member.id);
             }} type="button">
-              <img alt="" src={member.avatar || defaultAvatar} />
-              <span><strong>{member.id}</strong><small>{member.summary}</small></span>
-              <em data-rights={member.rights}>权限 {member.rights}</em>
+              <span><strong>{member.id}</strong><em data-rights={member.rights}>权限 {member.rights}</em></span>
             </button>
           ))}
         </div>

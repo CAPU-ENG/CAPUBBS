@@ -487,6 +487,9 @@
 
   .management-member-list {
     display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(104px, 1fr));
+    gap: 8px;
+    padding: 10px;
   }
 
   .management-member-display {
@@ -495,26 +498,24 @@
   }
 
   .management-member-list > button {
-    display: grid;
-    grid-template-columns: 36px minmax(0, 1fr) auto;
-    align-items: center;
-    gap: 10px;
-    min-height: 65px;
-    border-bottom: 1px solid var(--line);
-    padding: 9px 13px;
-    text-align: left;
+    display: flex;
+    aspect-ratio: 1;
+    min-width: 0;
+    align-items: stretch;
+    justify-content: center;
+    border: 1px solid var(--line);
+    border-radius: 2px;
+    padding: 10px;
+    background: var(--surface-soft);
+    text-align: center;
     transition: 130ms ease;
   }
 
-  .management-member-list > button:last-child {
-    border-bottom: 0;
-  }
-
   .management-member-list > button:hover {
-    background: var(--surface-soft);
+    border-color: var(--line-strong);
+    background: var(--surface-raised);
   }
 
-  .management-member-list img,
   .management-member-identity img {
     width: 36px;
     height: 36px;
@@ -526,21 +527,17 @@
   .management-member-list > button > span {
     display: grid;
     min-width: 0;
-    gap: 4px;
+    place-content: center;
+    justify-items: center;
+    gap: 8px;
   }
 
   .management-member-list strong {
+    max-width: 100%;
+    overflow-wrap: anywhere;
     color: var(--text-strong);
     font-size: 0.7rem;
     font-weight: 760;
-  }
-
-  .management-member-list small {
-    overflow: hidden;
-    color: var(--text-faint);
-    font-size: 0.57rem;
-    text-overflow: ellipsis;
-    white-space: nowrap;
   }
 
   .management-member-list em {
@@ -552,6 +549,10 @@
     font-size: 0.56rem;
     font-style: normal;
     font-weight: 760;
+  }
+
+  .management-member-list > .management-empty {
+    grid-column: 1 / -1;
   }
 
   .management-member-list em[data-rights="2"] {
