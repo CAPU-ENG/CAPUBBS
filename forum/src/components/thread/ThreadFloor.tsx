@@ -3,7 +3,6 @@ import {
   AlertTriangle,
   Check,
   ExternalLink,
-  LoaderCircle,
   Pencil,
   Quote,
   Reply,
@@ -231,11 +230,18 @@ export function ThreadFloor({
   }
 
   function closeDeleteDialog() {
-    if (floorDeletePending || nestedReplyDeletingId !== null) return;
     setDeleteDialogTarget(null);
     setFloorDeleteError('');
     setNestedReplyDeleteError('');
     window.requestAnimationFrame(() => deleteTriggerRef.current?.focus());
+  }
+
+  function confirmDelete() {
+    if (!deleteDialogTarget) return;
+    const target = deleteDialogTarget;
+    setDeleteDialogTarget(null);
+    if (target.kind === 'floor') void removeFloor();
+    else void removeNestedReply(target.reply);
   }
 
   return (
@@ -332,6 +338,10 @@ export function ThreadFloor({
           )}
         </div>
 
+        {floorDeleteError && (
+          <p className="thread-floor-delete-error" role="alert">{floorDeleteError}</p>
+        )}
+
         {nestedReplies.length > 0 && (
           <section
             className="nested-replies"
@@ -391,6 +401,9 @@ export function ThreadFloor({
             ))}
           </section>
         )}
+        {nestedReplyDeleteError && (
+          <p className="nested-reply-delete-error" role="alert">{nestedReplyDeleteError}</p>
+        )}
         {nestedReplyTarget !== undefined && canReply && (
           <form className="nested-reply-composer" onSubmit={submitNestedReply}>
             <textarea
@@ -440,17 +453,10 @@ export function ThreadFloor({
       )}
       {deleteDialogTarget && (
         <DeleteReplyDialog
-          error={deleteDialogTarget.kind === 'floor' ? floorDeleteError : nestedReplyDeleteError}
           floor={floor}
           isMainPost={isMainPost}
           onCancel={closeDeleteDialog}
-          onConfirm={() => {
-            if (deleteDialogTarget.kind === 'floor') void removeFloor();
-            else void removeNestedReply(deleteDialogTarget.reply);
-          }}
-          pending={deleteDialogTarget.kind === 'floor'
-            ? floorDeletePending
-            : nestedReplyDeletingId === deleteDialogTarget.reply.id}
+          onConfirm={confirmDelete}
           target={deleteDialogTarget}
         />
       )}
@@ -459,20 +465,16 @@ export function ThreadFloor({
 }
 
 function DeleteReplyDialog({
-  error,
   floor,
   isMainPost,
   onCancel,
   onConfirm,
-  pending,
   target,
 }: {
-  error: string;
   floor: ThreadFloorData;
   isMainPost: boolean;
   onCancel: () => void;
   onConfirm: () => void;
-  pending: boolean;
   target: DeleteDialogTarget;
 }) {
   const nestedReply = target.kind === 'nested' ? target.reply : null;
@@ -493,18 +495,18 @@ function DeleteReplyDialog({
 
   useEffect(() => {
     function closeOnEscape(event: KeyboardEvent) {
-      if (event.key === 'Escape' && !pending) onCancel();
+      if (event.key === 'Escape') onCancel();
     }
 
     document.addEventListener('keydown', closeOnEscape);
     return () => document.removeEventListener('keydown', closeOnEscape);
-  }, [onCancel, pending]);
+  }, [onCancel]);
 
   return (
     <div
       className="thread-delete-dialog-backdrop"
       onMouseDown={(event) => {
-        if (event.currentTarget === event.target && !pending) onCancel();
+        if (event.currentTarget === event.target) onCancel();
       }}
       role="presentation"
     >
@@ -520,7 +522,7 @@ function DeleteReplyDialog({
           <div>
             <h2 id="thread-delete-dialog-title">{title}</h2>
           </div>
-          <button aria-label="关闭删除确认" disabled={pending} onClick={onCancel} type="button"><X size={18} /></button>
+          <button aria-label="关闭删除确认" onClick={onCancel} type="button"><X size={18} /></button>
         </header>
 
         <div className="thread-delete-dialog-body">
@@ -529,14 +531,13 @@ function DeleteReplyDialog({
             <span>{author} · {location}</span>
             <p>{excerpt || '此回复没有可预览的文字内容。'}</p>
           </div>
-          {error && <p className="thread-delete-dialog-error" role="alert">{error}</p>}
         </div>
 
         <footer>
-          <button autoFocus className="thread-delete-dialog-cancel" disabled={pending} onClick={onCancel} type="button">取消</button>
-          <button className="thread-delete-dialog-confirm" disabled={pending} onClick={onConfirm} type="button">
-            {pending ? <LoaderCircle className="thread-delete-dialog-spinner" size={15} /> : <Trash2 size={15} />}
-            {pending ? '正在删除' : '确认删除'}
+          <button autoFocus className="thread-delete-dialog-cancel" onClick={onCancel} type="button">取消</button>
+          <button className="thread-delete-dialog-confirm" onClick={onConfirm} type="button">
+            <Trash2 size={15} />
+            确认删除
           </button>
         </footer>
       </section>

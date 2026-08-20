@@ -11,7 +11,7 @@ import type { NestedReply, ThreadFloorData } from '../data/threadDemo';
 import { useScrollContextTitle } from '../hooks/useScrollContextTitle';
 import { useThreadData } from '../hooks/useThreadData';
 import { getLoginPathWithReturnTo } from '../utils/authRoutes';
-import { getThreadEditHref, getThreadFloorHref } from '../utils/threadRoutes';
+import { getThreadEditHref } from '../utils/threadRoutes';
 
 function getThreadRequest() {
   const params = new URLSearchParams(window.location.search);
@@ -121,6 +121,7 @@ export function ThreadPage() {
   async function removeNestedReply(floor: ThreadFloorData, reply: NestedReply) {
     const text = reply.target ? `回复 @${reply.target}：${reply.content}` : reply.content;
     await deleteNestedReply({ fid: floor.fid, id: Number(reply.id), text });
+    window.location.reload();
   }
 
   async function removeFloor(floor: ThreadFloorData) {
@@ -136,8 +137,7 @@ export function ThreadPage() {
       return;
     }
 
-    const targetFloor = Math.max(1, Math.min(floor.floor, data.replies));
-    window.location.href = getThreadFloorHref(data.bid, data.tid, targetFloor);
+    window.location.reload();
   }
 
   function toggleAuthorOnly() {

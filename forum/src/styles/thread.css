@@ -1068,6 +1068,13 @@
     opacity: 0.55;
   }
 
+  .thread-floor-delete-error {
+    margin-top: 8px;
+    color: var(--danger);
+    font-size: 0.68rem;
+    text-align: right;
+  }
+
   body.thread-delete-dialog-open {
     overflow: hidden;
   }
@@ -1180,13 +1187,6 @@
     -webkit-line-clamp: 2;
   }
 
-  .thread-delete-dialog-error {
-    margin-top: 12px;
-    color: var(--danger);
-    font-size: 0.7rem;
-    line-height: 1.5;
-  }
-
   .thread-delete-dialog > footer {
     display: flex;
     justify-content: flex-end;
@@ -1219,16 +1219,6 @@
     border-color: color-mix(in srgb, var(--danger) 55%, var(--line));
     background: var(--danger);
     color: white;
-  }
-
-  .thread-delete-dialog > footer > button:disabled,
-  .thread-delete-dialog > header > button:disabled {
-    cursor: wait;
-    opacity: 0.55;
-  }
-
-  .thread-delete-dialog-spinner {
-    animation: thread-request-spin 720ms linear infinite;
   }
 
   .floor-node-rail {
