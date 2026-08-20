@@ -2369,6 +2369,64 @@ function jiekoufunc_management_member_lookup($con, $params) {
     );
 }
 
+function jiekoufunc_management_elevated_members($con) {
+    $result = mysqli_query($con,
+        "SELECT username, icon, intro, regdate, rights, mail
+         FROM userinfo
+         WHERE rights>0
+         ORDER BY rights DESC, username");
+    if (!$result) {
+        return jiekoufunc_report('8', '读取权限会员失败。');
+    }
+
+    $members = array(array('code' => '0', 'count' => strval(mysqli_num_rows($result))));
+    while ($member = mysqli_fetch_assoc($result)) {
+        $members[] = $member;
+    }
+    return $members;
+}
+
+function jiekoufunc_management_rights_transition_allowed($current_rights, $target_rights) {
+    $transition = strval(intval($current_rights)) . '>' . strval(intval($target_rights));
+    return in_array($transition, array('0>1', '1>0', '0>2', '2>0', '1>2'), true);
+}
+
+function jiekoufunc_management_member_rights($con, $params) {
+    $username = isset($params['username']) ? trim($params['username']) : '';
+    if ($username === '') {
+        return jiekoufunc_report('14', '缺少会员 ID。');
+    }
+    if (!isset($params['rights']) || !preg_match('/^[0-2]$/', strval($params['rights']))) {
+        return jiekoufunc_report('14', '目标权限必须为 0、1 或 2。');
+    }
+
+    $target_rights = intval($params['rights']);
+    $username_esc = mysqli_real_escape_string($con, $username);
+    $member = mysqli_fetch_assoc(mysqli_query($con,
+        "SELECT rights FROM userinfo WHERE username='$username_esc' LIMIT 1"));
+    if (!$member) {
+        return jiekoufunc_report('3', '用户不存在。');
+    }
+
+    $current_rights = intval($member['rights']);
+    if ($current_rights > 2) {
+        return jiekoufunc_report('5', '高级权限会员受保护。');
+    }
+    if (!jiekoufunc_management_rights_transition_allowed($current_rights, $target_rights)) {
+        return jiekoufunc_report('14', '不支持该会员权限调整。');
+    }
+
+    mysqli_query($con,
+        "UPDATE userinfo
+         SET rights=$target_rights
+         WHERE username='$username_esc' AND rights=$current_rights");
+    if (mysqli_affected_rows($con) !== 1) {
+        return jiekoufunc_report('8', '会员权限已发生变化，请刷新后重试。');
+    }
+
+    return jiekoufunc_management_member_lookup($con, array('username' => $username));
+}
+
 function jiekoufunc_toggleEmailVisible($con, $token, $params) {
     $a = jiekoufunc_token2user($con, $token);
     if (!$a) {

@@ -104,20 +104,30 @@ export async function fetchManagementMember(username: string, signal?: AbortSign
   }, signal);
   const row = asRows(payload.data)[0];
   if (!row) throw new ManagementApiError('没有找到这个会员 ID，请检查后重试。');
+  const member = mapManagementMember(row);
+  if (!member) throw new ManagementApiError('会员资料缺少有效 ID。');
+  return member;
+}
 
-  const id = textValue(row.username);
-  if (!id) throw new ManagementApiError('会员资料缺少有效 ID。');
+export async function fetchManagementElevatedMembers(signal?: AbortSignal) {
+  const payload = await requestManagementApi({ ask: 'management_elevated_members' }, signal);
+  return asRows(payload.data)
+    .map(mapManagementMember)
+    .filter((member): member is ManagementMember => member !== null);
+}
 
-  return {
-    avatar: normalizeLegacyAvatar(row.icon),
-    email: textValue(row.mail),
-    id,
-    joinedAt: textValue(row.regdate),
-    muted: booleanValue(row.muted),
-    relatedIds: stringList(row.related_ids, id),
-    rights: numberValue(row.rights),
-    summary: textValue(row.intro),
-  } satisfies ManagementMember;
+export async function setManagementMemberRights(username: string, rights: 0 | 1 | 2) {
+  const normalizedUsername = username.trim();
+  if (!normalizedUsername) throw new ManagementApiError('请输入会员 ID。');
+  const payload = await requestManagementApi({
+    ask: 'management_member_rights',
+    rights,
+    username: normalizedUsername,
+  });
+  const row = asRows(payload.data)[0];
+  const member = row ? mapManagementMember(row) : null;
+  if (!member) throw new ManagementApiError('权限已更新，但接口没有返回会员资料。');
+  return member;
 }
 
 export async function fetchManagementMutes(signal?: AbortSignal) {
@@ -218,6 +228,21 @@ function mapThread(row: ApiRow): ManagementThread | null {
     id,
     title,
     url: `/?bid=${boardId}&tid=${id}`,
+  };
+}
+
+function mapManagementMember(row: ApiRow): ManagementMember | null {
+  const id = textValue(row.username);
+  if (!id) return null;
+  return {
+    avatar: normalizeLegacyAvatar(row.icon),
+    email: textValue(row.mail),
+    id,
+    joinedAt: textValue(row.regdate),
+    muted: booleanValue(row.muted),
+    relatedIds: stringList(row.related_ids, id),
+    rights: numberValue(row.rights),
+    summary: textValue(row.intro),
   };
 }
 

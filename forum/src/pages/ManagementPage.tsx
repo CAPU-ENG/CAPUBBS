@@ -10,6 +10,7 @@ import {
   Pin,
   PinOff,
   Search,
+  Shield,
   ShieldAlert,
   ShieldCheck,
   UserCog,
@@ -20,11 +21,13 @@ import {
 import { useEffect, useMemo, useState, type FormEvent, type ReactNode } from 'react';
 import {
   fetchGlobalPins,
+  fetchManagementElevatedMembers,
   fetchManagementMember,
   fetchManagementMutes,
   fetchManagementThread,
   moveManagementThread,
   setManagementEmailMute,
+  setManagementMemberRights,
   toggleGlobalPin,
   type ManagementMember,
   type ManagementMute,
@@ -36,22 +39,14 @@ import { TopBar } from '../components/layout/TopBar';
 import { useAuth } from '../context/AuthContext';
 import { ALL_BOARDS } from '../data/boards';
 
-type AdminTab = 'pins' | 'move' | 'members';
+type AdminTab = 'pins' | 'move' | 'members' | 'moderators';
 type NoticeKind = 'error' | 'info' | 'success';
-
-const INITIAL_MEMBERS: ManagementMember[] = [
-  { avatar: defaultAvatar, email: '', id: 'CAPU', joinedAt: '2005-09', muted: false, relatedIds: ['CAPU'], rights: 5, summary: '论坛系统管理员' },
-  { avatar: defaultAvatar, email: '', id: '网站维护', joinedAt: '2012-03', muted: false, relatedIds: ['网站维护'], rights: 4, summary: '新版论坛维护与内容协作' },
-  { avatar: defaultAvatar, email: '', id: '组织部', joinedAt: '2014-10', muted: false, relatedIds: ['组织部'], rights: 3, summary: '协会活动与日历维护' },
-  { avatar: defaultAvatar, email: '', id: '版务小组', joinedAt: '2018-06', muted: false, relatedIds: ['版务小组'], rights: 2, summary: '日常版务协助' },
-  { avatar: defaultAvatar, email: '', id: '追风少年', joinedAt: '2022-09', muted: false, relatedIds: ['追风少年'], rights: 1, summary: '活跃会员 · 行者足音' },
-  { avatar: defaultAvatar, email: '', id: '北纬三十度', joinedAt: '2023-04', muted: false, relatedIds: ['北纬三十度'], rights: 1, summary: '活跃会员 · 车友宝典' },
-];
 
 const TAB_ITEMS: Array<{ icon: typeof Pin; id: AdminTab; label: string }> = [
   { icon: Pin, id: 'pins', label: '全局置顶' },
   { icon: FileInput, id: 'move', label: '帖子挪版' },
   { icon: Users, id: 'members', label: '会员管理' },
+  { icon: Shield, id: 'moderators', label: '版主管理' },
 ];
 
 export function ManagementPage() {
@@ -107,6 +102,7 @@ export function ManagementPage() {
               {activeTab === 'pins' && <GlobalPinsPanel />}
               {activeTab === 'move' && <MoveThreadPanel />}
               {activeTab === 'members' && <MemberManagementPanel />}
+              {activeTab === 'moderators' && <ModeratorManagementPanel />}
             </div>
           </section>
         )}
@@ -382,16 +378,34 @@ function MoveThreadPanel() {
 }
 
 function MemberManagementPanel() {
-  const [members, setMembers] = useState(INITIAL_MEMBERS);
+  const [members, setMembers] = useState<ManagementMember[]>([]);
+  const [membersStatus, setMembersStatus] = useState<'error' | 'loading' | 'ready'>('loading');
   const [mutes, setMutes] = useState<ManagementMute[]>([]);
   const [mutesStatus, setMutesStatus] = useState<'error' | 'loading' | 'ready'>('loading');
   const [query, setQuery] = useState('');
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [isSearching, setIsSearching] = useState(false);
+  const [pendingMemberId, setPendingMemberId] = useState<string | null>(null);
   const [pendingEmail, setPendingEmail] = useState<string | null>(null);
   const [notice, setNotice] = useState<{ kind: NoticeKind; text: string } | null>(null);
-  const elevatedMembers = useMemo(() => members.filter((member) => member.rights > 1), [members]);
+  const elevatedMembers = useMemo(() => members.filter((member) => member.rights > 0), [members]);
   const selectedMember = members.find((member) => member.id === selectedId) ?? null;
+
+  useEffect(() => {
+    const controller = new AbortController();
+    void fetchManagementElevatedMembers(controller.signal).then(
+      (items) => {
+        setMembers(items);
+        setMembersStatus('ready');
+      },
+      (error: unknown) => {
+        if (error instanceof DOMException && error.name === 'AbortError') return;
+        setMembersStatus('error');
+        setNotice({ kind: 'error', text: errorMessage(error, '权限会员列表加载失败，请稍后重试。') });
+      },
+    );
+    return () => controller.abort();
+  }, []);
 
   useEffect(() => {
     const controller = new AbortController();
@@ -409,13 +423,12 @@ function MemberManagementPanel() {
     return () => controller.abort();
   }, []);
 
-  async function searchMember(event: FormEvent) {
-    event.preventDefault();
+  async function loadMember(memberId: string) {
     if (isSearching) return;
     setIsSearching(true);
     setNotice(null);
     try {
-      const result = await fetchManagementMember(query);
+      const result = await fetchManagementMember(memberId);
       setMembers((current) => {
         const existingIndex = current.findIndex((member) => member.id === result.id);
         if (existingIndex < 0) return [...current, result];
@@ -431,16 +444,31 @@ function MemberManagementPanel() {
     }
   }
 
-  function toggleLevelTwo(member: ManagementMember) {
-    if (member.rights > 2) return;
-    const nextRights = member.rights === 2 ? 1 : 2;
-    setMembers((current) => current.map((item) => item.id === member.id ? { ...item, rights: nextRights } : item));
-    setNotice({
-      kind: 'success',
-      text: nextRights === 2
-        ? `已赋予 ${member.id} 会员 2 级权限。`
-        : `已取消 ${member.id} 的会员 2 级权限。`,
-    });
+  function searchMember(event: FormEvent) {
+    event.preventDefault();
+    void loadMember(query);
+  }
+
+  async function toggleLevelTwo(member: ManagementMember) {
+    if (member.rights > 2 || pendingMemberId) return;
+    const nextRights = member.rights === 2 ? 0 : 2;
+    setPendingMemberId(member.id);
+    setNotice(null);
+    try {
+      const updated = await setManagementMemberRights(member.id, nextRights);
+      setMembers((current) => upsertManagementMember(current, updated));
+      setSelectedId(updated.id);
+      setNotice({
+        kind: 'success',
+        text: nextRights === 2
+          ? `已赋予 ${member.id} 会员 2 级权限。`
+          : `已取消 ${member.id} 的会员 2 级权限。`,
+      });
+    } catch (error) {
+      setNotice({ kind: 'error', text: errorMessage(error, '会员权限更新失败，请稍后重试。') });
+    } finally {
+      setPendingMemberId(null);
+    }
   }
 
   async function toggleMemberMute(member: ManagementMember) {
@@ -529,10 +557,12 @@ function MemberManagementPanel() {
               ) : (
                 <button
                   className={selectedMember.rights === 2 ? 'management-danger-button' : 'management-primary-button'}
-                  onClick={() => toggleLevelTwo(selectedMember)}
+                  disabled={pendingMemberId !== null}
+                  onClick={() => void toggleLevelTwo(selectedMember)}
                   type="button"
                 >
-                  <UserCog size={15} />{selectedMember.rights === 2 ? '取消 2 级权限' : '赋予 2 级权限'}
+                  {pendingMemberId === selectedMember.id ? <LoaderCircle className="animate-spin" size={15} /> : <UserCog size={15} />}
+                  {selectedMember.rights === 2 ? '取消 2 级权限' : '赋予 2 级权限'}
                 </button>
               )}
             </div>
@@ -558,15 +588,20 @@ function MemberManagementPanel() {
       <div className="management-member-display">
         <section className="management-card management-list-card" aria-labelledby="elevated-members-title">
           <header className="management-card-heading">
-            <div><h2 id="elevated-members-title">当前高权限会员</h2></div>
+            <div><h2 id="elevated-members-title">当前权限会员</h2></div>
             <span>{elevatedMembers.length} 人</span>
           </header>
           <div className="management-member-list">
-            {elevatedMembers.map((member) => (
+            {membersStatus === 'loading' ? (
+              <EmptyState icon={<LoaderCircle className="animate-spin" size={19} />}>正在加载权限会员。</EmptyState>
+            ) : membersStatus === 'error' ? (
+              <EmptyState icon={<CircleAlert size={19} />}>权限会员列表加载失败。</EmptyState>
+            ) : elevatedMembers.length === 0 ? (
+              <EmptyState icon={<Users size={19} />}>当前没有权限会员。</EmptyState>
+            ) : elevatedMembers.map((member) => (
               <button key={member.id} onClick={() => {
                 setQuery(member.id);
-                setSelectedId(member.id);
-                setNotice({ kind: 'info', text: '已选择会员。' });
+                void loadMember(member.id);
               }} type="button">
                 <img alt="" src={member.avatar || defaultAvatar} />
                 <span><strong>{member.id}</strong><small>{member.summary}</small></span>
@@ -608,6 +643,159 @@ function MemberManagementPanel() {
           </div>
         </section>
       </div>
+    </div>
+  );
+}
+
+function ModeratorManagementPanel() {
+  const [members, setMembers] = useState<ManagementMember[]>([]);
+  const [membersStatus, setMembersStatus] = useState<'error' | 'loading' | 'ready'>('loading');
+  const [query, setQuery] = useState('');
+  const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [isSearching, setIsSearching] = useState(false);
+  const [pendingMemberId, setPendingMemberId] = useState<string | null>(null);
+  const [notice, setNotice] = useState<{ kind: NoticeKind; text: string } | null>(null);
+  const moderators = useMemo(() => members.filter((member) => member.rights === 1), [members]);
+  const selectedMember = members.find((member) => member.id === selectedId) ?? null;
+
+  useEffect(() => {
+    const controller = new AbortController();
+    void fetchManagementElevatedMembers(controller.signal).then(
+      (items) => {
+        setMembers(items);
+        setMembersStatus('ready');
+      },
+      (error: unknown) => {
+        if (error instanceof DOMException && error.name === 'AbortError') return;
+        setMembersStatus('error');
+        setNotice({ kind: 'error', text: errorMessage(error, '版主列表加载失败，请稍后重试。') });
+      },
+    );
+    return () => controller.abort();
+  }, []);
+
+  async function loadMember(memberId: string) {
+    if (isSearching) return;
+    setIsSearching(true);
+    setNotice(null);
+    try {
+      const result = await fetchManagementMember(memberId);
+      setMembers((current) => upsertManagementMember(current, result));
+      setSelectedId(result.id);
+      setNotice({ kind: 'info', text: '已找到会员，请确认身份。' });
+    } catch (error) {
+      setSelectedId(null);
+      setNotice({ kind: 'error', text: errorMessage(error, '会员查询失败，请稍后重试。') });
+    } finally {
+      setIsSearching(false);
+    }
+  }
+
+  function searchMember(event: FormEvent) {
+    event.preventDefault();
+    void loadMember(query);
+  }
+
+  async function toggleModeratorRights(member: ManagementMember) {
+    if ((member.rights !== 0 && member.rights !== 1) || pendingMemberId) return;
+    const nextRights = member.rights === 1 ? 0 : 1;
+    setPendingMemberId(member.id);
+    setNotice(null);
+    try {
+      const updated = await setManagementMemberRights(member.id, nextRights);
+      setMembers((current) => upsertManagementMember(current, updated));
+      setSelectedId(updated.id);
+      setNotice({
+        kind: 'success',
+        text: nextRights === 1
+          ? `已赋予 ${member.id} 会员 1 级权限。`
+          : `已取消 ${member.id} 的会员 1 级权限。`,
+      });
+    } catch (error) {
+      setNotice({ kind: 'error', text: errorMessage(error, '版主权限更新失败，请稍后重试。') });
+    } finally {
+      setPendingMemberId(null);
+    }
+  }
+
+  return (
+    <div className="management-grid management-members-grid">
+      <section className="management-card management-action-card" aria-labelledby="moderator-search-title">
+        <header className="management-card-heading">
+          <div><h2 id="moderator-search-title">查找会员</h2></div>
+        </header>
+        <form className="management-lookup-form" onSubmit={searchMember}>
+          <label htmlFor="moderator-member-id">会员 ID</label>
+          <div className="management-input-action">
+            <input
+              id="moderator-member-id"
+              onChange={(event) => {
+                setQuery(event.target.value);
+                setSelectedId(null);
+                setNotice(null);
+              }}
+              placeholder="输入完整会员 ID"
+              type="search"
+              value={query}
+            />
+            <button disabled={isSearching} type="submit">
+              {isSearching ? <LoaderCircle className="animate-spin" size={15} /> : <Search size={15} />}搜索会员
+            </button>
+          </div>
+        </form>
+
+        {selectedMember && (
+          <div className="management-member-confirmation">
+            <div className="management-member-identity">
+              <img alt="" src={selectedMember.avatar || defaultAvatar} />
+              <div><span>已确认会员身份</span><strong>{selectedMember.id}</strong><p>{selectedMember.summary || selectedMember.joinedAt}</p></div>
+              <BadgeCheck size={19} />
+            </div>
+            <div className="management-permission-row">
+              <div><span>当前权限</span><strong>{rightsLabel(selectedMember.rights)}</strong></div>
+              {selectedMember.rights > 1 ? (
+                <button disabled type="button"><ShieldCheck size={15} />更高权限受保护</button>
+              ) : (
+                <button
+                  className={selectedMember.rights === 1 ? 'management-danger-button' : 'management-primary-button'}
+                  disabled={pendingMemberId !== null}
+                  onClick={() => void toggleModeratorRights(selectedMember)}
+                  type="button"
+                >
+                  {pendingMemberId === selectedMember.id ? <LoaderCircle className="animate-spin" size={15} /> : <Shield size={15} />}
+                  {selectedMember.rights === 1 ? '取消 1 级权限' : '赋予 1 级权限'}
+                </button>
+              )}
+            </div>
+          </div>
+        )}
+        {notice && <ManagementNotice kind={notice.kind}>{notice.text}</ManagementNotice>}
+      </section>
+
+      <section className="management-card management-list-card" aria-labelledby="moderators-title">
+        <header className="management-card-heading">
+          <div><h2 id="moderators-title">当前版主</h2></div>
+          <span>{moderators.length} 人</span>
+        </header>
+        <div className="management-member-list">
+          {membersStatus === 'loading' ? (
+            <EmptyState icon={<LoaderCircle className="animate-spin" size={19} />}>正在加载版主。</EmptyState>
+          ) : membersStatus === 'error' ? (
+            <EmptyState icon={<CircleAlert size={19} />}>版主列表加载失败。</EmptyState>
+          ) : moderators.length === 0 ? (
+            <EmptyState icon={<Shield size={19} />}>当前没有权限为 1 的会员。</EmptyState>
+          ) : moderators.map((member) => (
+            <button key={member.id} onClick={() => {
+              setQuery(member.id);
+              void loadMember(member.id);
+            }} type="button">
+              <img alt="" src={member.avatar || defaultAvatar} />
+              <span><strong>{member.id}</strong><small>{member.summary}</small></span>
+              <em data-rights={member.rights}>权限 {member.rights}</em>
+            </button>
+          ))}
+        </div>
+      </section>
     </div>
   );
 }
@@ -670,6 +858,14 @@ function threadKey(thread: ManagementThread) {
   return `${thread.boardId}-${thread.id}`;
 }
 
+function upsertManagementMember(members: ManagementMember[], nextMember: ManagementMember) {
+  const existingIndex = members.findIndex((member) => member.id === nextMember.id);
+  const nextMembers = existingIndex < 0
+    ? [...members, nextMember]
+    : members.map((member, index) => index === existingIndex ? nextMember : member);
+  return nextMembers.sort((left, right) => right.rights - left.rights || left.id.localeCompare(right.id, 'zh-CN'));
+}
+
 function errorMessage(error: unknown, fallback: string) {
   return error instanceof Error && error.message.trim() ? error.message : fallback;
 }
@@ -682,6 +878,7 @@ function readTabFromLocation(): AdminTab {
 function rightsLabel(rights: number) {
   if (rights >= 4) return `权限 ${rights} · 管理员`;
   if (rights === 3) return '权限 3 · 版面管理';
-  if (rights === 2) return '权限 2 · 协作会员';
-  return '权限 1 · 普通会员';
+  if (rights === 2) return '权限 2 · 活动管理';
+  if (rights === 1) return '权限 1 · 版主';
+  return '权限 0 · 普通会员';
 }
