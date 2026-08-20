@@ -251,6 +251,8 @@ function buildContentSecurityPolicy() {
     'img-src http: https: data: blob:',
     'media-src http: https: data: blob:',
     'font-src http: https: data: blob:',
+    'frame-src http: https: data: blob:',
+    'child-src http: https: data: blob:',
     "connect-src 'none'",
     "object-src 'none'",
     "form-action 'none'",
