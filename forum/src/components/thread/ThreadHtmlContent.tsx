@@ -1,6 +1,10 @@
 import { useEffect, useMemo, useRef, useState, type CSSProperties } from 'react';
 import { fetchSignatureReferencedFloorHtml } from '../../api/thread';
-import { renderForumMarkup, requiresIsolatedForumHtml } from '../../utils/forumMarkup';
+import {
+  renderForumMarkup,
+  requiresIsolatedForumHtml,
+  translateLegacyForumMarkup,
+} from '../../utils/forumMarkup';
 import { FORUM_LOCATION_CHANGE_EVENT } from '../../utils/authRoutes';
 import { translateLegacyForumThreadHref } from '../../utils/legacyForumRoutes';
 import { findSignatureFloorMarkers } from '../../utils/signatureFloorLink';
@@ -45,6 +49,10 @@ export function ThreadHtmlContent({
     () => renderForumMarkup(resolvedHtml, { normalizeLegacyLineBreaks: variant === 'signature' }),
     [resolvedHtml, variant],
   );
+  const isolatedHtml = useMemo(
+    () => translateLegacyForumMarkup(resolvedHtml),
+    [resolvedHtml],
+  );
 
   if (!requiresIsolatedForumHtml(resolvedHtml)) {
     return (
@@ -61,7 +69,7 @@ export function ThreadHtmlContent({
     <ThreadSandboxedHtmlFrame
       className={className}
       floor={floor}
-      html={resolvedHtml}
+      html={isolatedHtml}
       variant={variant}
     />
   );
