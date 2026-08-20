@@ -268,6 +268,11 @@
     white-space: nowrap;
   }
 
+  .activity-summary-table-wrap th:not(:last-child),
+  .activity-summary-table-wrap td:not(:last-child) {
+    border-right: 1px solid var(--line);
+  }
+
   .activity-summary-table-wrap th {
     background: var(--surface-soft);
     color: var(--text-faint);
@@ -284,7 +289,16 @@
     left: 0;
     z-index: 1;
     background: inherit;
-    box-shadow: 1px 0 0 var(--line);
+    box-shadow: none;
+    transition: box-shadow 140ms ease;
+  }
+
+  .activity-summary-table-wrap-scrolled .activity-summary-id-column {
+    box-shadow: 10px 0 14px -12px rgb(15 23 42 / 72%);
+  }
+
+  .dark .activity-summary-table-wrap-scrolled .activity-summary-id-column {
+    box-shadow: 10px 0 14px -12px rgb(0 0 0 / 88%);
   }
 
   .activity-summary-table-wrap th.activity-summary-id-column {

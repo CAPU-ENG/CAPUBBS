@@ -326,6 +326,7 @@ function SignupSummaryPanel({
   const [expandedValue, setExpandedValue] = useState<{ label: string; value: string } | null>(null);
   const [exportError, setExportError] = useState('');
   const [isExporting, setIsExporting] = useState(false);
+  const [isTableScrolled, setIsTableScrolled] = useState(false);
 
   useEffect(() => {
     if (!expandedValue) return;
@@ -377,7 +378,10 @@ function SignupSummaryPanel({
         <div className="activity-summary-state">暂无报名信息</div>
       ) : (
         <>
-          <div className="activity-summary-table-wrap">
+          <div
+            className={`activity-summary-table-wrap${isTableScrolled ? ' activity-summary-table-wrap-scrolled' : ''}`}
+            onScroll={(event) => setIsTableScrolled(event.currentTarget.scrollLeft > 0)}
+          >
             <table>
               <thead>
                 <tr>
