@@ -41,7 +41,7 @@ export const activitySignupQuestionTypeOptions: Array<{
   { label: '勾选', value: 'checkbox' },
   { label: '单选', value: 'radio' },
   { label: '多选', value: 'multiSelect' },
-  { label: '填空', value: 'text' },
+  { label: '单行文本', value: 'text' },
   { label: '数字', value: 'number' },
   { label: '电话', value: 'phone' },
   { label: '邮箱', value: 'email' },
