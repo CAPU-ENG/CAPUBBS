@@ -21,15 +21,7 @@ import { USER_CENTER_PATH } from '../../utils/userRoutes';
 import { MessageCenter } from '../messages/MessageCenter';
 import { getBoardById } from '../../data/boards';
 import { usePinnedBoardIds } from '../../hooks/usePinnedBoards';
-
-type Theme = 'light' | 'dark';
-
-function initialTheme(): Theme {
-  if (typeof window === 'undefined') return 'light';
-  const stored = window.localStorage.getItem('capubbs-theme');
-  if (stored === 'light' || stored === 'dark') return stored;
-  return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
-}
+import { useTheme } from '../../hooks/useTheme';
 
 export function TopBar({
   contextHref = '#page-title',
@@ -55,7 +47,7 @@ export function TopBar({
   const pinnedBoards = usePinnedBoardIds()
     .map(getBoardById)
     .filter((board) => board !== undefined);
-  const [theme, setTheme] = useState<Theme>(initialTheme);
+  const { theme, toggleTheme } = useTheme();
   const [boardsOpen, setBoardsOpen] = useState(false);
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
@@ -63,12 +55,6 @@ export function TopBar({
   const closeTimer = useRef<number | null>(null);
   const boardTriggerRef = useRef<HTMLButtonElement | null>(null);
   const profileMenuRef = useRef<HTMLDivElement | null>(null);
-
-  useEffect(() => {
-    document.documentElement.classList.toggle('dark', theme === 'dark');
-    document.documentElement.style.colorScheme = theme;
-    window.localStorage.setItem('capubbs-theme', theme);
-  }, [theme]);
 
   useEffect(() => {
     const onKeyDown = (event: KeyboardEvent) => {
@@ -135,10 +121,6 @@ export function TopBar({
 
   function scheduleCloseBoards() {
     closeTimer.current = window.setTimeout(() => setBoardsOpen(false), 150);
-  }
-
-  function toggleTheme() {
-    setTheme((current) => current === 'light' ? 'dark' : 'light');
   }
 
   if (minimal) {

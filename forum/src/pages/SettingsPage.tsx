@@ -1,23 +1,27 @@
-import { Check, CirclePlus, Pin, PinOff, Save } from 'lucide-react';
+import { Check, CirclePlus, MonitorCog, Pin, PinOff, Save } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import { AppBackground } from '../components/layout/AppBackground';
 import { TopBar } from '../components/layout/TopBar';
 import { ALL_BOARDS, PRIMARY_BOARDS, SECONDARY_BOARDS, getBoardById } from '../data/boards';
 import { usePinnedBoardIds } from '../hooks/usePinnedBoards';
+import { useTheme } from '../hooks/useTheme';
 import { MAX_PINNED_BOARDS, savePinnedBoardIds } from '../utils/localSettings';
+import { saveThemeFollowsSystem } from '../utils/theme';
 
 export function SettingsPage() {
   const pinnedBoardIds = usePinnedBoardIds();
+  const { followsSystem } = useTheme();
   const [draftBoardIds, setDraftBoardIds] = useState(pinnedBoardIds);
+  const [draftFollowsSystem, setDraftFollowsSystem] = useState(followsSystem);
   const draftBoardIdsRef = useRef(pinnedBoardIds);
   const previousPinnedBoardIdsRef = useRef(pinnedBoardIds);
   const [isSaving, setIsSaving] = useState(false);
-  const [feedback, setFeedback] = useState('调整完成后，点击“保存设置”应用到导航栏。');
+  const [feedback, setFeedback] = useState('调整完成后，点击“保存设置”应用更改。');
   const pinnedBoards = draftBoardIds
     .map(getBoardById)
     .filter((board) => board !== undefined);
   const isFull = draftBoardIds.length >= MAX_PINNED_BOARDS;
-  const hasChanges = !sameBoardIds(draftBoardIds, pinnedBoardIds);
+  const hasChanges = !sameBoardIds(draftBoardIds, pinnedBoardIds) || draftFollowsSystem !== followsSystem;
 
   useEffect(() => {
     const previousPinnedBoardIds = previousPinnedBoardIdsRef.current;
@@ -26,6 +30,10 @@ export function SettingsPage() {
       updateDraftBoardIds(pinnedBoardIds);
     }
   }, [pinnedBoardIds]);
+
+  useEffect(() => {
+    setDraftFollowsSystem(followsSystem);
+  }, [followsSystem]);
 
   function addBoard(boardId: number) {
     const board = getBoardById(boardId);
@@ -51,11 +59,16 @@ export function SettingsPage() {
     setFeedback('正在保存设置…');
 
     try {
-      const result = await savePinnedBoardIds(draftBoardIdsRef.current);
+      const boardsChanged = !sameBoardIds(draftBoardIdsRef.current, pinnedBoardIds);
+      const themeChanged = draftFollowsSystem !== followsSystem;
+      const result = boardsChanged
+        ? await savePinnedBoardIds(draftBoardIdsRef.current)
+        : { boardIds: pinnedBoardIds, saved: true };
+      const themeSaved = themeChanged ? saveThemeFollowsSystem(draftFollowsSystem) : true;
       updateDraftBoardIds(result.boardIds);
       setFeedback(
-        result.saved
-        ? '设置已保存，导航栏已更新。'
+        result.saved && themeSaved
+        ? '设置已保存并应用。'
           : '浏览器未能写入本地设置，请检查隐私模式或网站存储权限。',
       );
     } finally {
@@ -74,6 +87,32 @@ export function SettingsPage() {
       <TopBar />
 
       <main className="settings-page-shell">
+        <section className="settings-panel settings-appearance-panel" aria-labelledby="appearance-settings-title">
+          <div className="settings-panel-heading">
+            <span className="settings-panel-icon"><MonitorCog size={17} /></span>
+            <div>
+              <h2 id="appearance-settings-title">外观</h2>
+              <p>控制论坛界面的昼夜显示方式。</p>
+            </div>
+          </div>
+
+          <label className="settings-checkbox-option">
+            <input
+              checked={draftFollowsSystem}
+              onChange={(event) => {
+                setDraftFollowsSystem(event.target.checked);
+                setFeedback('外观偏好已调整，保存后生效。');
+              }}
+              type="checkbox"
+            />
+            <span className="settings-checkbox-mark" aria-hidden="true"><Check size={14} /></span>
+            <span>
+              <strong>自动跟随系统切换昼夜模式</strong>
+              <small>开启后，论坛会随设备的浅色或深色外观设置实时切换。</small>
+            </span>
+          </label>
+        </section>
+
         <section className="settings-panel settings-pinned-board-panel" aria-labelledby="pinned-boards-title">
           <div className="settings-panel-heading">
             <span className="settings-panel-icon"><Pin size={17} /></span>
@@ -153,13 +192,14 @@ export function SettingsPage() {
             />
           </div>
 
-          <footer className="settings-panel-footer">
-            <p aria-live="polite" role="status"><Check size={15} />{feedback}</p>
-            <button disabled={!hasChanges || isSaving} onClick={() => void saveSettings()} type="button">
-              <Save size={15} />{isSaving ? '保存中' : '保存设置'}
-            </button>
-          </footer>
         </section>
+
+        <footer className="settings-panel settings-panel-footer settings-page-footer">
+          <p aria-live="polite" role="status"><Check size={15} />{feedback}</p>
+          <button disabled={!hasChanges || isSaving} onClick={() => void saveSettings()} type="button">
+            <Save size={15} />{isSaving ? '保存中' : '保存设置'}
+          </button>
+        </footer>
       </main>
     </div>
   );

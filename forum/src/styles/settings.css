@@ -12,6 +12,10 @@
     padding: calc(var(--topbar-height) + 28px) 0 72px;
   }
 
+  .settings-page-shell > * + * {
+    margin-top: 14px;
+  }
+
   .settings-panel {
     overflow: hidden;
     border: 1px solid var(--line);
@@ -53,6 +57,74 @@
     margin-top: 4px;
     color: var(--text-faint);
     font-size: 0.66rem;
+    line-height: 1.55;
+  }
+
+  .settings-appearance-panel .settings-panel-heading {
+    border-bottom: 0;
+  }
+
+  .settings-checkbox-option {
+    display: grid;
+    grid-template-columns: 18px minmax(0, 1fr);
+    align-items: start;
+    gap: 10px;
+    margin: 0 22px 20px 72px;
+    cursor: pointer;
+  }
+
+  .settings-checkbox-option input {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+
+  .settings-checkbox-mark {
+    display: inline-flex;
+    width: 18px;
+    height: 18px;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid var(--line-strong);
+    border-radius: 2px;
+    background: var(--surface-raised);
+    color: transparent;
+    transition: 140ms ease;
+  }
+
+  .settings-checkbox-option input:checked + .settings-checkbox-mark {
+    border-color: var(--brand-strong);
+    background: var(--brand-strong);
+    color: var(--surface-raised);
+  }
+
+  .dark .settings-checkbox-option input:checked + .settings-checkbox-mark {
+    color: #0d1711;
+  }
+
+  .settings-checkbox-option input:focus-visible + .settings-checkbox-mark {
+    outline: 2px solid var(--brand);
+    outline-offset: 2px;
+  }
+
+  .settings-checkbox-option > span:last-child {
+    display: grid;
+    gap: 4px;
+  }
+
+  .settings-checkbox-option strong {
+    color: var(--text-strong);
+    font-size: 0.72rem;
+    font-weight: 720;
+  }
+
+  .settings-checkbox-option small {
+    color: var(--text-faint);
+    font-size: 0.62rem;
     line-height: 1.55;
   }
 
@@ -330,6 +402,10 @@
     line-height: 1.5;
   }
 
+  .settings-page-footer {
+    overflow: visible;
+  }
+
   .settings-panel-footer > p {
     display: flex;
     min-width: 0;
@@ -375,6 +451,7 @@
     }
 
     .settings-panel-heading { padding: 17px 15px; }
+    .settings-checkbox-option { margin: 0 15px 17px; }
     .settings-nav-preview { align-items: flex-start; flex-direction: column; gap: 3px; margin: 14px 15px 0; }
     .settings-preview-links { width: 100%; }
     .settings-selection,
