@@ -6,6 +6,11 @@ export function getLoginPathWithReturnTo() {
   return returnTo === '/' ? '/login' : `/login?returnTo=${encodeURIComponent(returnTo)}`;
 }
 
+export function getAuthPathWithReturnTo(path: '/login' | '/register', returnTo: string) {
+  const safeReturnTo = getSafeReturnTo(returnTo);
+  return safeReturnTo === '/' ? path : `${path}?returnTo=${encodeURIComponent(safeReturnTo)}`;
+}
+
 export function getAuthReturnTo(search: string) {
   return getSafeReturnTo(new URLSearchParams(search).get('returnTo'));
 }
@@ -20,7 +25,7 @@ function getSafeReturnTo(value: string | null | undefined) {
 
   try {
     const url = new URL(value, LOCAL_ORIGIN);
-    if (url.origin !== LOCAL_ORIGIN || url.pathname === '/login') return '/';
+    if (url.origin !== LOCAL_ORIGIN || url.pathname === '/login' || url.pathname === '/register') return '/';
     return `${url.pathname}${url.search}${url.hash}`;
   } catch {
     return '/';

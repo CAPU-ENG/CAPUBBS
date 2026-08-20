@@ -3,7 +3,7 @@ import { ArrowRight, Bike, LoaderCircle, LockKeyhole, UserRound } from 'lucide-r
 import { AppBackground } from '../components/layout/AppBackground';
 import { TopBar } from '../components/layout/TopBar';
 import { useAuth } from '../context/AuthContext';
-import { getAuthReturnTo, replaceForumLocation } from '../utils/authRoutes';
+import { getAuthPathWithReturnTo, getAuthReturnTo, replaceForumLocation } from '../utils/authRoutes';
 import { md5LegacyStringHex } from '../utils/md5';
 
 export function LoginPage() {
@@ -93,7 +93,7 @@ export function LoginPage() {
 
           <footer className="auth-card-footer">
             <span>还没有账号？</span>
-            <a href="/bbs/register/">前往注册</a>
+            <a href={getAuthPathWithReturnTo('/register', returnTo)}>前往注册</a>
           </footer>
         </section>
       </main>

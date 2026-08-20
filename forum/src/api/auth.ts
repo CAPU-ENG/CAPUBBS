@@ -19,6 +19,20 @@ export type SessionViewer = {
   username: string;
 };
 
+export type RegisterDraft = {
+  captcha: string;
+  email: string;
+  emailCode: string;
+  hobby: string;
+  icon: string;
+  intro: string;
+  passwordHash: string;
+  place: string;
+  qq: string;
+  sex: string;
+  username: string;
+};
+
 class AuthApiError extends Error {
   code: number;
 
@@ -93,6 +107,79 @@ export async function loginSession(username: string, passwordHash: string) {
   throw new AuthApiError('登录成功，但浏览器未能建立有效会话，请重新登录。', 1000);
 }
 
+export async function registerSession(draft: RegisterDraft) {
+  let response: Response;
+  try {
+    response = await fetch('/bbs/register/action.php', {
+      body: new URLSearchParams({
+        captcha: draft.captcha,
+        email: draft.email,
+        hobby: draft.hobby,
+        icon: draft.icon,
+        intro: draft.intro,
+        password1: draft.passwordHash,
+        place: draft.place,
+        qq: draft.qq,
+        sex: draft.sex,
+        sig1: '',
+        sig1_type: 'raw',
+        sig2: '',
+        sig2_type: 'raw',
+        sig3: '',
+        sig3_type: 'raw',
+        username: draft.username,
+        verify_code: draft.emailCode,
+      }),
+      credentials: 'include',
+      headers: {
+        Accept: 'text/plain',
+        'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
+      },
+      method: 'POST',
+    });
+  } catch {
+    throw new AuthApiError('暂时无法连接注册服务，请稍后重试。', 4000);
+  }
+
+  const result = (await response.text()).trim();
+  if (!response.ok || result !== '0') {
+    const message = result === '-44' ? '图片验证码错误，请刷新后重试。' : result;
+    throw new AuthApiError(message || '注册失败，请稍后重试。', response.status || 4000);
+  }
+
+  return loginSession(draft.username, draft.passwordHash);
+}
+
+export async function sendRegisterEmailCode(email: string) {
+  const data = await requestAuthApi({ ask: 'sendRegisterCode', email });
+  const row = asRows(data)[0];
+  const legacyCode = stringValue(row?.code);
+
+  if (legacyCode && legacyCode !== '0') {
+    throw new AuthApiError(stringValue(row?.msg) || '验证码发送失败。', Number(legacyCode) || 4000);
+  }
+
+  return stringValue(row?.msg) || '验证码已发送，请检查邮箱。';
+}
+
+export async function isUsernameAvailable(username: string) {
+  let response: Response;
+  try {
+    response = await fetch(`/bbs/register/userexists.php?user=${encodeURIComponent(username)}`, {
+      credentials: 'include',
+      headers: { Accept: 'text/plain' },
+    });
+  } catch {
+    throw new AuthApiError('暂时无法检查 ID。', 4000);
+  }
+
+  const result = (await response.text()).trim();
+  if (!response.ok) throw new AuthApiError('暂时无法检查 ID。', response.status || 4000);
+  if (result === '0') return true;
+  if (result === '1') return false;
+  throw new AuthApiError('ID 含有非法字符。', 4000);
+}
+
 export async function logoutSession() {
   try {
     await requestAuthApi({ ask: 'logout' });
@@ -116,18 +203,18 @@ async function requestAuthApi(params: Record<string, string>, signal?: AbortSign
     });
   } catch (error) {
     if (error instanceof DOMException && error.name === 'AbortError') throw error;
-    throw new AuthApiError('暂时无法连接登录服务，请稍后重试。', 4000);
+    throw new AuthApiError('暂时无法连接账户服务，请稍后重试。', 4000);
   }
 
   let payload: ApiEnvelope;
   try {
     payload = await response.json() as ApiEnvelope;
   } catch {
-    throw new AuthApiError('登录服务返回了无法识别的数据。', response.status || 4000);
+    throw new AuthApiError('账户服务返回了无法识别的数据。', response.status || 4000);
   }
 
   if (!response.ok || payload.code !== 0) {
-    throw new AuthApiError(payload.message?.trim() || '登录服务暂时不可用。', payload.code || response.status);
+    throw new AuthApiError(payload.message?.trim() || '账户服务暂时不可用。', payload.code || response.status);
   }
 
   return payload.data;

@@ -3,6 +3,8 @@ import {
   fetchSessionViewer,
   loginSession,
   logoutSession,
+  registerSession,
+  type RegisterDraft,
   type SessionViewer,
 } from '../api/auth';
 
@@ -17,6 +19,7 @@ type AuthState = {
 type AuthContextValue = {
   login: (username: string, passwordHash: string) => Promise<SessionViewer>;
   logout: () => Promise<void>;
+  register: (draft: RegisterDraft) => Promise<SessionViewer>;
   status: AuthStatus;
   updateViewerAvatar: (avatar: string) => void;
   viewer: SessionViewer | null;
@@ -66,6 +69,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   }, []);
 
+  const register = useCallback(async (draft: RegisterDraft) => {
+    const sessionViewer = await registerSession(draft);
+    cacheViewer(sessionViewer);
+    setAuth({ status: 'authenticated', viewer: sessionViewer });
+    return sessionViewer;
+  }, []);
+
   const updateViewerAvatar = useCallback((avatar: string) => {
     setAuth((current) => {
       if (!current.viewer) return current;
@@ -79,11 +89,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     () => ({
       login,
       logout,
+      register,
       status: auth.status,
       updateViewerAvatar,
       viewer: auth.viewer,
     }),
-    [auth.status, auth.viewer, login, logout, updateViewerAvatar],
+    [auth.status, auth.viewer, login, logout, register, updateViewerAvatar],
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
