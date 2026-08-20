@@ -431,8 +431,8 @@ export function ThreadComposePage() {
                 <ArrowLeft size={19} />
               </button>
               <div className="thread-edit-heading-copy">
-                <span>{boardName} / {isReply ? '回帖草稿' : isActivity ? '发起活动' : '发帖'}</span>
-                <h1 id="compose-page-title">{isReply ? `编辑：${title}` : isActivity ? '发起活动' : '发表新主题'}</h1>
+                <span>{boardName} / {isReply ? '回帖草稿' : '发帖'}</span>
+                <h1 id="compose-page-title">{isReply ? `编辑：${title}` : isActivity ? '发起新活动' : '发表新主题'}</h1>
               </div>
             </header>
 
@@ -453,7 +453,7 @@ export function ThreadComposePage() {
               beforeEditor={!isReply ? (
                 <>
                   <PostEditorTitleField
-                    label={isActivity ? '活动标题' : '帖子标题'}
+                    label={isActivity ? '' : '帖子标题'}
                     onChange={(value) => {
                       setTitle(value);
                       clearStatus();
@@ -476,7 +476,7 @@ export function ThreadComposePage() {
               className={`thread-edit-form ${isActivity ? 'activity-compose-form' : ''}`}
               editorValue={editorValue}
               formatAttachmentMeta={(attachment) => formatPostEditorBytes(attachment.size)}
-              heading={isReply ? '编辑回帖草稿' : isActivity ? '发起活动' : '新主题'}
+              heading={isReply ? '编辑回帖草稿' : isActivity ? '新活动' : '新主题'}
               headingMeta={isReply ? `Re: ${title}` : title.trim() ? title.trim() : `发布到 ${boardName}`}
               name={isReply ? 'reply-draft-compose-signature' : 'thread-compose-signature'}
               onAddAttachments={(files) => void addAttachments(files)}

@@ -78,14 +78,6 @@
     opacity: 0.45;
   }
 
-  .activity-compose-form {
-    border-top: 3px solid #d98b43;
-  }
-
-  .activity-compose-form .reply-editor-heading {
-    background: var(--surface-soft);
-  }
-
   .activity-signup-schedule {
     display: grid;
     grid-template-columns: 120px minmax(0, 1fr);
@@ -111,7 +103,7 @@
   }
 
   .activity-signup-schedule h3 svg {
-    color: #c6742f;
+    color: var(--brand);
   }
 
   .activity-signup-time-range {
@@ -155,7 +147,7 @@
     border: 1px solid var(--line);
     border-radius: var(--control-radius);
     padding: 0 10px;
-    background: var(--surface-raised);
+    background: var(--surface);
     color: var(--text-strong);
     font-size: 0.74rem;
     font-weight: 620;
@@ -167,8 +159,8 @@
   .activity-signup-question-main select:focus,
   .activity-signup-options input:focus,
   .activity-signup-number-range input:focus {
-    border-color: #d98b43;
-    box-shadow: 0 0 0 3px color-mix(in srgb, #d98b43 12%, transparent);
+    border-color: var(--brand);
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--brand) 15%, transparent);
   }
 
   .activity-signup-question-main input:disabled,
@@ -218,7 +210,7 @@
     gap: 5px;
     border: 1px solid var(--line);
     border-radius: var(--control-radius);
-    background: var(--surface-raised);
+    background: var(--surface);
     color: var(--text-muted);
     font-size: 0.66rem;
     font-weight: 750;
@@ -227,20 +219,18 @@
   .activity-signup-fields-heading > button {
     height: 32px;
     padding: 0 10px;
-    border-color: color-mix(in srgb, #d98b43 48%, var(--line));
-    color: #aa5b20;
   }
 
   .activity-signup-question-list {
     overflow: hidden;
     border: 1px solid var(--line);
     border-radius: var(--control-radius);
-    background: var(--surface-raised);
+    background: var(--surface);
   }
 
   .activity-signup-question {
     border-bottom: 1px solid var(--line);
-    background: var(--surface-raised);
+    background: var(--surface);
     transition: background 150ms ease, opacity 150ms ease;
   }
 
@@ -249,8 +239,8 @@
   }
 
   .activity-signup-question-expanded {
-    background: color-mix(in srgb, #f0b77f 5%, var(--surface-raised));
-    box-shadow: inset 2px 0 #d98b43;
+    background: var(--surface-soft);
+    box-shadow: inset 2px 0 var(--brand);
   }
 
   .activity-signup-question-dragging {
@@ -354,8 +344,8 @@
   }
 
   .activity-signup-question-toggle em {
-    background: color-mix(in srgb, #e8a15d 12%, var(--surface-soft));
-    color: #ac6229;
+    background: var(--surface-soft);
+    color: var(--brand-strong);
   }
 
   .activity-signup-question-toggle .activity-signup-locked {
@@ -393,7 +383,7 @@
   .activity-signup-required input {
     width: 15px;
     height: 15px;
-    accent-color: #d98b43;
+    accent-color: var(--brand-strong);
   }
 
   .activity-signup-reorder-actions {
@@ -480,9 +470,8 @@
     position: sticky;
     z-index: 4;
     bottom: 0;
-    background: color-mix(in srgb, var(--surface-raised) 96%, transparent);
+    background: var(--surface-soft);
     box-shadow: 0 -8px 20px color-mix(in srgb, var(--text-strong) 5%, transparent);
-    backdrop-filter: blur(10px);
   }
 
   .thread-edit-request-state {

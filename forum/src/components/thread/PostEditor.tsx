@@ -49,7 +49,7 @@ export function PostEditorTitleField({
 }) {
   return (
     <label className="post-editor-title-field">
-      <span>{label}</span>
+      {label ? <span>{label}</span> : null}
       <input
         autoComplete="off"
         maxLength={maxLength}
