@@ -466,7 +466,7 @@ function jiekoufunc_activity_signup_list($con, $params) {
             activity.activity_id,
             activity.bid,
             activity.tid,
-            activity.name,
+            threads.title as name,
             activity.leader_username,
             signup_window.starts_at,
             signup_window.ends_at,
@@ -479,7 +479,7 @@ function jiekoufunc_activity_signup_list($con, $params) {
         inner join threads on threads.bid=activity.bid and threads.tid=activity.tid
         left join season_activity_join activity_join on activity_join.activity_id=activity.activity_id
         where signup_window.ends_at>$now and threads.locked=0
-        group by activity.activity_id, activity.bid, activity.tid, activity.name,
+        group by activity.activity_id, activity.bid, activity.tid, threads.title,
             activity.leader_username, signup_window.starts_at, signup_window.ends_at,
             schedule.starts_on, schedule.ends_on
         order by schedule.starts_on asc, signup_window.ends_at asc
