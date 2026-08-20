@@ -3,6 +3,7 @@
 @import './messages.css';
 @import './home.css';
 @import './thread.css';
+@import './thread-edit.css';
 @import './reply-editor.css';
 @import './rich-text-editor.css';
 @import './board.css';

@@ -110,6 +110,11 @@ export function getRichTextEditorStorageValue(value: RichTextEditorValue): RichT
   };
 }
 
+export function getRichTextEditorHtmlValue(value: RichTextEditorValue) {
+  const html = value.mode === 'markdown' ? renderMarkdownToHtml(value.content) : value.content;
+  return compactHtmlForStorage(html);
+}
+
 export function getRichTextEditorPreviewDocument(
   value: RichTextEditorValue,
   options: { embedded?: boolean } = {},

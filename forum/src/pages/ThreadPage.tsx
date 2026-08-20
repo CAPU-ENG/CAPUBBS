@@ -10,6 +10,7 @@ import type { NestedReply, ThreadFloorData } from '../data/threadDemo';
 import { useScrollContextTitle } from '../hooks/useScrollContextTitle';
 import { useThreadData } from '../hooks/useThreadData';
 import { getLoginPathWithReturnTo } from '../utils/authRoutes';
+import { getThreadEditHref } from '../utils/threadRoutes';
 
 function getThreadRequest() {
   const params = new URLSearchParams(window.location.search);
@@ -211,6 +212,7 @@ export function ThreadPage() {
             {pageFloors.map((floor) => (
               <ThreadFloor
                 canReply={data.canReply && Boolean(data.viewer)}
+                editHref={getThreadEditHref(data.bid, data.tid, floor.floor)}
                 floor={floor}
                 isMainPost={floor.floor === 1}
                 key={floor.id}

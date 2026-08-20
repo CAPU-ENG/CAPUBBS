@@ -1026,6 +1026,7 @@
   }
 
   .thread-floor-actions > button,
+  .thread-floor-actions > a,
   .thread-floor-actions > div > button {
     display: inline-flex;
     min-height: 32px;
@@ -1039,6 +1040,7 @@
   }
 
   .thread-floor-actions > button:hover,
+  .thread-floor-actions > a:hover,
   .thread-floor-actions > div > button:hover {
     background: var(--surface-soft);
     color: var(--brand-strong);

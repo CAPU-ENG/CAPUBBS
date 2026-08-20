@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict';
 import { translateLegacyForumThreadHref } from './src/utils/legacyForumRoutes.ts';
+import { getThreadEditHref, getThreadFloorHref } from './src/utils/threadRoutes.ts';
 
 const cases = [
   [
@@ -49,4 +50,7 @@ for (const href of [
   assert.equal(translateLegacyForumThreadHref(href), null, href);
 }
 
-console.log(`legacy forum route verification passed (${cases.length + 4} cases)`);
+assert.equal(getThreadEditHref(4, 19989, 13), '/editpid?bid=4&pid=13&tid=19989');
+assert.equal(getThreadFloorHref(4, 19989, 13), '/?bid=4&p=2&tid=19989#13');
+
+console.log(`legacy forum route verification passed (${cases.length + 6} cases)`);

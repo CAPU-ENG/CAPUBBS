@@ -41,6 +41,19 @@ export type ThreadDetail = {
   views: number;
 };
 
+export type EditableThreadFloor = {
+  attachments: string;
+  author: string;
+  bid: number;
+  createdAt: string;
+  pid: number;
+  signatureIndex: number;
+  text: string;
+  tid: number;
+  title: string;
+  updatedAt: string;
+};
+
 export class ThreadApiError extends Error {
   constructor(message: string) {
     super(message);
@@ -99,6 +112,117 @@ export async function fetchThreadDetail({
   }
 
   return mapThreadDetail(payload.data, { authorOnly, bid, page, tid });
+}
+
+export async function fetchEditableThreadFloor({
+  bid,
+  pid,
+  signal,
+  tid,
+}: {
+  bid: number;
+  pid: number;
+  signal?: AbortSignal;
+  tid: number;
+}) {
+  const payload = await requestThreadApi(new URLSearchParams({
+    ask: 'editpreview',
+    bid: String(bid),
+    pid: String(pid),
+    tid: String(tid),
+  }), signal, '编辑内容读取失败，请稍后重试。');
+  const post = asRows(payload.data).find((row) => positiveInteger(row.pid, 0) === pid)
+    ?? asRow(payload.data);
+
+  if (
+    positiveInteger(post.bid, 0) !== bid
+    || positiveInteger(post.tid, 0) !== tid
+    || positiveInteger(post.pid, 0) !== pid
+  ) {
+    throw new ThreadApiError('没有找到可编辑的帖子或楼层。');
+  }
+
+  return {
+    attachments: stringValue(post.attachs),
+    author: plainText(post.author),
+    bid,
+    createdAt: stringValue(post.timestamp ?? post.posttime ?? post.createdAt),
+    pid,
+    signatureIndex: Math.min(3, nonNegativeInteger(post.sig)),
+    text: stringValue(post.text) === '<br>' ? '' : stringValue(post.text),
+    tid,
+    title: plainText(post.title),
+    updatedAt: stringValue(post.updatetime ?? post.updatedAt),
+  } satisfies EditableThreadFloor;
+}
+
+export async function updateThreadFloor({
+  attachments,
+  bid,
+  pid,
+  signatureIndex,
+  text,
+  tid,
+  title,
+}: {
+  attachments: string;
+  bid: number;
+  pid: number;
+  signatureIndex: number;
+  text: string;
+  tid: number;
+  title: string;
+}) {
+  const payload = await requestThreadApi(new URLSearchParams({
+    ask: 'edit',
+    attachs: attachments,
+    bid: String(bid),
+    pid: String(pid),
+    sig: String(signatureIndex),
+    text,
+    tid: String(tid),
+    title,
+    type: 'web',
+  }), undefined, '保存修改失败，请稍后重试。');
+  const row = asRow(payload.data);
+
+  return {
+    bid: positiveInteger(row.bid, bid),
+    pid: positiveInteger(row.pid, pid),
+    tid: positiveInteger(row.tid, tid),
+  };
+}
+
+async function requestThreadApi(body: URLSearchParams, signal: AbortSignal | undefined, fallbackMessage: string) {
+  let response: Response;
+  try {
+    response = await fetch(THREAD_API_URL, {
+      body,
+      credentials: 'include',
+      headers: {
+        Accept: 'application/json',
+        'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
+      },
+      method: 'POST',
+      signal,
+    });
+  } catch (error) {
+    if (isAbortError(error)) throw error;
+    throw new ThreadApiError('暂时无法连接论坛服务，请稍后重试。');
+  }
+
+  let payload: ApiEnvelope;
+  try {
+    payload = await response.json() as ApiEnvelope;
+  } catch {
+    throw new ThreadApiError('论坛服务返回了无法识别的数据。');
+  }
+
+  if (!response.ok || payload.code !== 0) {
+    throw new ThreadApiError(payload.message?.trim() || fallbackMessage);
+  }
+
+  return payload;
 }
 
 export async function fetchSignatureReferencedFloorHtml(

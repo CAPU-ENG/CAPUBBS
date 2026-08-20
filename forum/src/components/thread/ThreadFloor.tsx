@@ -86,6 +86,7 @@ function copyAsPlainText(event: ClipboardEvent<HTMLElement>) {
 
 export function ThreadFloor({
   canReply,
+  editHref,
   floor,
   isMainPost,
   onDeleteNestedReply,
@@ -94,6 +95,7 @@ export function ThreadFloor({
   viewer,
 }: {
   canReply: boolean;
+  editHref: string;
   floor: ThreadFloorData;
   isMainPost: boolean;
   onDeleteNestedReply: (floor: ThreadFloorData, reply: NestedReply) => Promise<void>;
@@ -290,10 +292,10 @@ export function ThreadFloor({
             </>
           )}
           {(floor.canEdit ?? floor.isOwn) && (
-              <button type="button">
+              <a href={editHref}>
                 <Pencil size={15} />
                 编辑
-              </button>
+              </a>
           )}
           {(floor.canDelete ?? floor.isOwn) && (
               <button className="floor-action-danger" type="button">
