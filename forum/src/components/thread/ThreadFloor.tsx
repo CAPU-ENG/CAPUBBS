@@ -103,6 +103,7 @@ export function ThreadFloor({
   canReply,
   editHref,
   floor,
+  isActivityThread,
   isMainPost,
   onDeleteFloor,
   onDeleteNestedReply,
@@ -114,6 +115,7 @@ export function ThreadFloor({
   canReply: boolean;
   editHref: string;
   floor: ThreadFloorData;
+  isActivityThread: boolean;
   isMainPost: boolean;
   onDeleteFloor: (floor: ThreadFloorData) => Promise<void>;
   onDeleteNestedReply: (floor: ThreadFloorData, reply: NestedReply) => Promise<void>;
@@ -143,6 +145,10 @@ export function ThreadFloor({
       .filter((reply) => !deletedNestedReplyIds.includes(reply.id)),
     [deletedNestedReplyIds, floor.nestedReplies, localNestedReplies],
   );
+  const isActivitySignupCanceled = isActivityThread
+    && !isMainPost
+    && /<\s*(?:s|strike)\b/i.test(floor.contentHtml ?? '');
+  const bodyClassName = `thread-floor-body${isActivitySignupCanceled ? ' capubbs-activity-signup-canceled' : ''}`;
 
   useEffect(() => {
     return () => {
@@ -299,14 +305,16 @@ export function ThreadFloor({
 
         <ThreadPostContent
           bodyFallback={(
-            <div className="thread-floor-body">
+            <div className={bodyClassName}>
               {floor.paragraphs.map((paragraph) => (
                 <p key={paragraph}>{paragraph}</p>
               ))}
             </div>
           )}
+          bodyClassName={bodyClassName}
           bodyHtml={floor.contentHtml}
           floor={floor.floor}
+          isActivitySignupCanceled={isActivitySignupCanceled}
           onImageOpen={openImagePreview}
           signatureHtml={floor.signatureHtml}
           signatureText={floor.signature}
@@ -325,27 +333,27 @@ export function ThreadFloor({
               回复
             </button>
           )}
-          {(floor.canEdit ?? floor.isOwn) && (
-              <a href={editHref}>
-                <Pencil size={15} />
-                编辑
-              </a>
+          {(!isActivityThread || isMainPost) && (floor.canEdit ?? floor.isOwn) && (
+            <a href={editHref}>
+              <Pencil size={15} />
+              编辑
+            </a>
           )}
-          {(floor.canDelete ?? floor.isOwn) && (
-              <button
-                aria-busy={floorDeletePending}
-                className="floor-action-danger"
-                disabled={floorDeletePending}
-                onClick={(event) => {
-                  deleteTriggerRef.current = event.currentTarget;
-                  setFloorDeleteError('');
-                  setDeleteDialogTarget({ kind: 'floor' });
-                }}
-                type="button"
-              >
-                <Trash2 size={15} />
-                {floorDeletePending ? '删除中' : '删除'}
-              </button>
+          {(!isActivityThread || isMainPost) && (floor.canDelete ?? floor.isOwn) && (
+            <button
+              aria-busy={floorDeletePending}
+              className="floor-action-danger"
+              disabled={floorDeletePending}
+              onClick={(event) => {
+                deleteTriggerRef.current = event.currentTarget;
+                setFloorDeleteError('');
+                setDeleteDialogTarget({ kind: 'floor' });
+              }}
+              type="button"
+            >
+              <Trash2 size={15} />
+              {floorDeletePending ? '删除中' : '删除'}
+            </button>
           )}
         </div>
 

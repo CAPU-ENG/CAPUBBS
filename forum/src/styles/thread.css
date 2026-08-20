@@ -789,6 +789,14 @@
     word-break: break-word;
   }
 
+  .capubbs-activity-signup-canceled,
+  .capubbs-activity-signup-canceled * {
+    color: var(--danger) !important;
+    text-decoration-color: var(--danger) !important;
+    text-decoration-line: line-through !important;
+    text-decoration-thickness: 2px !important;
+  }
+
   .forum-markup > :first-child {
     margin-top: 0;
   }

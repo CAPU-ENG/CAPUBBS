@@ -7,6 +7,7 @@ export function ThreadPostContent({
   bodyFallback = null,
   bodyHtml,
   floor,
+  isActivitySignupCanceled = false,
   onImageOpen,
   signatureClassName = 'thread-signature',
   signatureHtml,
@@ -16,6 +17,7 @@ export function ThreadPostContent({
   bodyFallback?: ReactNode;
   bodyHtml?: string;
   floor: number;
+  isActivitySignupCanceled?: boolean;
   onImageOpen?: ForumMarkupImageOpenHandler;
   signatureClassName?: string;
   signatureHtml?: string;
@@ -35,6 +37,7 @@ export function ThreadPostContent({
           className={bodyClassName}
           floor={floor}
           html={bodyHtml}
+          isActivitySignupCanceled={isActivitySignupCanceled}
           onImageOpen={onImageOpen}
           variant="floor"
         />

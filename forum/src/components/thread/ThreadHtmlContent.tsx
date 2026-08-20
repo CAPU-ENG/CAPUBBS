@@ -49,12 +49,14 @@ export function ThreadHtmlContent({
   className = '',
   floor,
   html,
+  isActivitySignupCanceled = false,
   onImageOpen,
   variant,
 }: {
   className?: string;
   floor: number;
   html: string;
+  isActivitySignupCanceled?: boolean;
   onImageOpen?: ForumMarkupImageOpenHandler;
   variant: ThreadHtmlVariant;
 }) {
@@ -88,6 +90,7 @@ export function ThreadHtmlContent({
       className={className}
       floor={floor}
       html={isolatedHtml}
+      isActivitySignupCanceled={isActivitySignupCanceled}
       onImageOpen={onImageOpen}
       variant={variant}
     />
@@ -98,12 +101,14 @@ function ThreadSandboxedHtmlFrame({
   className,
   floor,
   html,
+  isActivitySignupCanceled,
   onImageOpen,
   variant,
 }: {
   className: string;
   floor: number;
   html: string;
+  isActivitySignupCanceled: boolean;
   onImageOpen?: ForumMarkupImageOpenHandler;
   variant: ThreadHtmlVariant;
 }) {
@@ -120,10 +125,11 @@ function ThreadSandboxedHtmlFrame({
     canOpenImages,
     frameId: frameIdRef.current,
     html,
+    isActivitySignupCanceled,
     isDarkTheme,
     parentStyleText,
     variant,
-  }), [canOpenImages, html, isDarkTheme, parentStyleText, variant]);
+  }), [canOpenImages, html, isActivitySignupCanceled, isDarkTheme, parentStyleText, variant]);
   const frameSource = useMemo(
     () => `data:text/html;charset=utf-8,${encodeURIComponent(frameDocument)}`,
     [frameDocument],
@@ -240,6 +246,7 @@ function buildHtmlFrameDocument({
   canOpenImages,
   frameId,
   html,
+  isActivitySignupCanceled,
   isDarkTheme,
   parentStyleText,
   variant,
@@ -247,6 +254,7 @@ function buildHtmlFrameDocument({
   canOpenImages: boolean;
   frameId: string;
   html: string;
+  isActivitySignupCanceled: boolean;
   isDarkTheme: boolean;
   parentStyleText: string;
   variant: ThreadHtmlVariant;
@@ -263,6 +271,7 @@ function buildHtmlFrameDocument({
   const signatureRootStyle = isSignature
     ? 'padding-top:10px;color:inherit;font-family:inherit;font-size:inherit;'
     : '';
+  const canceledClassName = isActivitySignupCanceled ? ' capubbs-activity-signup-canceled' : '';
 
   return `<!doctype html>
 <html class="${isDarkTheme ? 'dark' : 'light'}" style="background:transparent;color-scheme:${isDarkTheme ? 'dark' : 'light'}">
@@ -280,7 +289,7 @@ function buildHtmlFrameDocument({
   <script>${buildFrameBridgeScript(frameId, canOpenImages)}</script>
   <script src="/bbs/lib/jquery.min.js"></script>
 </head>
-<body><main class="capubbs-html-frame-root forum-markup forum-markup-${variant}">${deferUserScripts(html)}</main></body>
+<body><main class="capubbs-html-frame-root forum-markup forum-markup-${variant}${canceledClassName}">${deferUserScripts(html)}</main></body>
 </html>`;
 }
 

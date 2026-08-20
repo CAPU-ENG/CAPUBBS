@@ -344,6 +344,7 @@ export function ThreadPage() {
                   canReply={data.canReply && Boolean(data.viewer)}
                   editHref={getThreadEditHref(data.bid, data.tid, floor.floor)}
                   floor={floor}
+                  isActivityThread={data.isActivity}
                   isMainPost={floor.floor === 1}
                   onDeleteFloor={removeFloor}
                   onDeleteNestedReply={removeNestedReply}
