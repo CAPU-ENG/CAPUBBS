@@ -214,7 +214,9 @@ function ActivitySignupField({
   const isUserId = question.label.trim().toUpperCase() === 'ID';
   const useTextarea = /备注|说明|想说|补充|意愿|特长/.test(question.label);
   const inputType = /邮箱|email/i.test(question.label) ? 'email' : /电话|手机/.test(question.label) ? 'tel' : 'text';
-  const className = useTextarea || isWideQuestion(question) ? 'activity-signup-field activity-signup-field-wide' : 'activity-signup-field';
+  const className = !useTextarea && isWideQuestion(question)
+    ? 'activity-signup-field activity-signup-field-wide'
+    : 'activity-signup-field';
 
   return (
     <label className={className}>
@@ -223,7 +225,7 @@ function ActivitySignupField({
         <textarea
           disabled={disabled || isUserId}
           onChange={(event) => onValueChange(question.id, event.currentTarget.value)}
-          rows={3}
+          rows={1}
           value={textValue}
         />
       ) : (

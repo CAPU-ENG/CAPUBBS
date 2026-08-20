@@ -348,9 +348,10 @@
   }
 
   .activity-signup-field textarea {
-    min-height: 82px;
+    height: 40px;
+    min-height: 40px;
     resize: vertical;
-    padding: 10px 11px;
+    padding: 9px 11px;
     line-height: 1.55;
   }
 
