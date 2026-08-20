@@ -23,6 +23,7 @@ import {
   PostEditorPreviewDialog,
   PostEditorTitleField,
 } from '../components/thread/PostEditor';
+import { ActivitySignupEditor } from '../components/thread/ActivitySignupEditor';
 import { useAuth } from '../context/AuthContext';
 import { getLoginPathWithReturnTo } from '../utils/authRoutes';
 import {
@@ -37,8 +38,15 @@ import {
   saveStoredThreadComposeDraft,
 } from '../utils/threadComposeDraftStorage';
 import { getThreadFloorHref } from '../utils/threadRoutes';
+import {
+  buildActivityCreateOptions,
+  createDefaultActivitySignupSettings,
+  validateActivitySignupSettings,
+  type ActivitySignupSettings,
+} from '../utils/activitySignup';
 
 const THREAD_API_URL = import.meta.env.VITE_API_URL?.trim() || '/api/api.php';
+const ACTIVITY_CREATE_API_URL = '/api/bbs/activity/create/';
 
 type ComposeAttachment = ThreadAttachmentInfo & Pick<Partial<StoredReplyAttachment>, 'lastModified' | 'type'>;
 
@@ -53,6 +61,7 @@ export function ThreadComposePage() {
   const [editorValue, setEditorValue] = useState<RichTextEditorValue>({ content: '', mode: 'rich' });
   const [signatureIndex, setSignatureIndex] = useState(0);
   const [attachments, setAttachments] = useState<ComposeAttachment[]>([]);
+  const [activitySignup, setActivitySignup] = useState<ActivitySignupSettings>(createDefaultActivitySignupSettings);
   const [status, setStatus] = useState('');
   const [statusIsError, setStatusIsError] = useState(false);
   const [loadError, setLoadError] = useState('');
@@ -64,16 +73,23 @@ export function ThreadComposePage() {
   const [previewedAt, setPreviewedAt] = useState('');
   const [draftLoadComplete, setDraftLoadComplete] = useState(false);
   const [storedReplyDraftId, setStoredReplyDraftId] = useState<string | null>(null);
-  const [savedSnapshot, setSavedSnapshot] = useState(() => makeSnapshot('', { content: '', mode: 'rich' }, 0, []));
+  const [savedSnapshot, setSavedSnapshot] = useState(() => makeSnapshot('', { content: '', mode: 'rich' }, 0, [], null));
 
   const ownerKey = viewer?.username ?? null;
   const isReply = Boolean(request?.tid);
+  const isActivity = request?.kind === 'activity';
+  const canCreateActivity = Boolean(
+    isActivity
+    && request?.bid === 1
+    && authStatus === 'authenticated'
+    && (viewer?.rights ?? 0) >= 2,
+  );
   const boardName = isReply ? replyBoardName : board?.name ?? '';
   const boardHref = request ? `/?bid=${request.bid}` : '/';
   const backHref = request?.tid
     ? `/?${new URLSearchParams({ bid: String(request.bid), p: '1', tid: String(request.tid) }).toString()}#reply-editor`
     : boardHref;
-  const currentSnapshot = makeSnapshot(title, editorValue, signatureIndex, attachments);
+  const currentSnapshot = makeSnapshot(title, editorValue, signatureIndex, attachments, isActivity ? activitySignup : null);
   const isDirty = currentSnapshot !== savedSnapshot;
   const contentReady = hasPostEditorContent(editorValue);
   const canPublish = Boolean(
@@ -81,6 +97,7 @@ export function ThreadComposePage() {
     && boardName
     && (isReply || title.trim())
     && contentReady
+    && (!isActivity || (canCreateActivity && validateActivitySignupSettings(activitySignup)))
     && !isUploadingAttachments
     && !isPublishing,
   );
@@ -139,7 +156,8 @@ export function ThreadComposePage() {
     setAttachments([]);
     setReplyBoardName('');
     setStoredReplyDraftId(null);
-    setSavedSnapshot(makeSnapshot('', { content: '', mode: 'rich' }, 0, []));
+    setActivitySignup(createDefaultActivitySignupSettings());
+    setSavedSnapshot(makeSnapshot('', { content: '', mode: 'rich' }, 0, [], null));
 
     const loadDraft = async () => {
       if (request.tid) {
@@ -156,21 +174,31 @@ export function ThreadComposePage() {
         setSignatureIndex(draft.signatureIndex ?? 0);
         setAttachments(draft.attachments);
         setStoredReplyDraftId(draft.id);
-        setSavedSnapshot(makeSnapshot(draft.threadTitle, draft.editor, draft.signatureIndex ?? 0, draft.attachments));
+        setSavedSnapshot(makeSnapshot(draft.threadTitle, draft.editor, draft.signatureIndex ?? 0, draft.attachments, null));
         setStatus('已从本机恢复回帖草稿');
         setStatusIsError(false);
         setDraftLoadComplete(true);
         return;
       }
 
-      const draft = await readStoredThreadComposeDraft(request.bid, ownerKey);
+      const draft = await readStoredThreadComposeDraft(request.bid, ownerKey, isActivity ? 'activity' : 'thread');
       if (!active) return;
       if (draft) {
         setTitle(draft.title);
         setEditorValue(draft.editor);
         setSignatureIndex(draft.signatureIndex);
         setAttachments(draft.attachments);
-        setSavedSnapshot(makeSnapshot(draft.title, draft.editor, draft.signatureIndex, draft.attachments));
+        const signupSettings = isActivity
+          ? draft.activitySignup ?? createDefaultActivitySignupSettings()
+          : createDefaultActivitySignupSettings();
+        setActivitySignup(signupSettings);
+        setSavedSnapshot(makeSnapshot(
+          draft.title,
+          draft.editor,
+          draft.signatureIndex,
+          draft.attachments,
+          isActivity ? signupSettings : null,
+        ));
         setStatus('已恢复这个版块的发帖草稿');
         setStatusIsError(false);
       }
@@ -184,7 +212,7 @@ export function ThreadComposePage() {
     });
 
     return () => { active = false; };
-  }, [authStatus, board, isReply, ownerKey, request]);
+  }, [authStatus, board, isActivity, isReply, ownerKey, request]);
 
   useEffect(() => {
     if (!isDirty || isPublishing) return;
@@ -273,12 +301,14 @@ export function ThreadComposePage() {
         setStoredReplyDraftId(result.draft.id);
       } else {
         await saveStoredThreadComposeDraft({
+          activitySignup: isActivity ? activitySignup : undefined,
           attachments,
           bid: request.bid,
           board: boardName,
           boardHref,
           editor: getRichTextEditorStorageValue(editorValue),
           excerpt: getDraftExcerpt(editorValue, attachments, '发帖'),
+          kind: isActivity ? 'activity' : 'thread',
           signatureIndex,
           title: title.trim() || '未命名主题',
         }, ownerKey);
@@ -310,10 +340,11 @@ export function ThreadComposePage() {
     }
 
     setIsPublishing(true);
-    setStatus(`正在发表${isReply ? '回复' : '主题'}…`);
+    setStatus(`正在发表${isReply ? '回复' : isActivity ? '活动报名帖' : '主题'}…`);
     setStatusIsError(false);
     try {
       const published = await publishThread({
+        activitySignup: isActivity ? activitySignup : null,
         attachments: attachments.map((attachment) => attachment.id).join(' '),
         bid: request.bid,
         signatureIndex,
@@ -324,7 +355,7 @@ export function ThreadComposePage() {
       if (ownerKey) {
         try {
           if (request.tid) await deleteStoredReplyDraftForThread(request.bid, request.tid, ownerKey);
-          else await deleteStoredThreadComposeDraft(request.bid, ownerKey);
+          else await deleteStoredThreadComposeDraft(request.bid, ownerKey, isActivity ? 'activity' : 'thread');
         } catch {
           // The content is already published; stale local draft cleanup must not invite a duplicate post.
         }
@@ -385,6 +416,14 @@ export function ThreadComposePage() {
             <h1>正在准备编辑器</h1>
             <p>系统正在读取版面信息和你的本地草稿。</p>
           </section>
+        ) : isActivity && !canCreateActivity ? (
+          <ComposeRequestState
+            backHref={backHref}
+            description={request.bid === 1
+              ? '活动报名帖仅对权限值不低于 2 的会员开放。'
+              : '活动报名帖只能发布在车协工作区。'}
+            title="当前无法创建活动报名帖"
+          />
         ) : boardName ? (
           <>
             <header className="thread-edit-heading-card">
@@ -392,30 +431,43 @@ export function ThreadComposePage() {
                 <ArrowLeft size={19} />
               </button>
               <div className="thread-edit-heading-copy">
-                <span>{boardName} / {isReply ? '回帖草稿' : '发帖'}</span>
-                <h1 id="compose-page-title">{isReply ? `编辑：${title}` : '发表新主题'}</h1>
+                <span>{boardName} / {isReply ? '回帖草稿' : isActivity ? '活动报名帖' : '发帖'}</span>
+                <h1 id="compose-page-title">{isReply ? `编辑：${title}` : isActivity ? '创建活动报名帖' : '发表新主题'}</h1>
               </div>
             </header>
 
             <PostEditor
-              ariaLabel={isReply ? `编辑《${title}》的回帖草稿` : `在「${boardName}」发表新主题`}
+              ariaLabel={isReply ? `编辑《${title}》的回帖草稿` : `在「${boardName}」发表${isActivity ? '活动报名帖' : '新主题'}`}
               attachmentDialogDescription={`文件会立即上传，并在发表${isReply ? '回复' : '主题'}后关联到内容`}
               attachmentLabel={isReply ? '回帖附件' : '主题附件'}
               attachments={attachments}
               beforeEditor={!isReply ? (
-                <PostEditorTitleField
-                  onChange={(value) => {
-                    setTitle(value);
-                    clearStatus();
-                  }}
-                  required
-                  value={title}
-                />
+                <>
+                  <PostEditorTitleField
+                    label={isActivity ? '活动标题' : '帖子标题'}
+                    onChange={(value) => {
+                      setTitle(value);
+                      clearStatus();
+                    }}
+                    placeholder={isActivity ? '请输入活动名称' : '请输入帖子标题'}
+                    required
+                    value={title}
+                  />
+                  {isActivity ? (
+                    <ActivitySignupEditor
+                      onChange={(value) => {
+                        setActivitySignup(value);
+                        clearStatus();
+                      }}
+                      value={activitySignup}
+                    />
+                  ) : null}
+                </>
               ) : undefined}
-              className="thread-edit-form"
+              className={`thread-edit-form ${isActivity ? 'activity-compose-form' : ''}`}
               editorValue={editorValue}
               formatAttachmentMeta={(attachment) => formatPostEditorBytes(attachment.size)}
-              heading={isReply ? '编辑回帖草稿' : '新主题'}
+              heading={isReply ? '编辑回帖草稿' : isActivity ? '活动报名帖' : '新主题'}
               headingMeta={isReply ? `Re: ${title}` : title.trim() ? title.trim() : `发布到 ${boardName}`}
               name={isReply ? 'reply-draft-compose-signature' : 'thread-compose-signature'}
               onAddAttachments={(files) => void addAttachments(files)}
@@ -430,7 +482,7 @@ export function ThreadComposePage() {
                 clearStatus();
               }}
               onSubmit={() => void publish()}
-              placeholder={isReply ? '继续编辑你的回复……' : '写下正文，可以补充背景、细节和你希望大家讨论的问题……'}
+              placeholder={isReply ? '继续编辑你的回复……' : isActivity ? '填写活动介绍、行程安排和注意事项……' : '写下正文，可以补充背景、细节和你希望大家讨论的问题……'}
               previewDisabled={!contentReady}
               secondaryActions={(
                 <button
@@ -447,10 +499,10 @@ export function ThreadComposePage() {
               signatureIndex={signatureIndex}
               status={status}
               statusIsError={statusIsError}
-              submitCompactLabel={isPublishing ? '发表中' : isReply ? '回复' : '发表'}
+              submitCompactLabel={isPublishing ? '发表中' : isReply ? '回复' : isActivity ? '发布活动' : '发表'}
               submitDisabled={!canPublish}
               submitIcon={isPublishing ? <LoaderCircle className="thread-edit-spinner" size={15} /> : <Send size={15} />}
-              submitLabel={isPublishing ? '正在发表' : isReply ? '发布回复' : '发表主题'}
+              submitLabel={isPublishing ? '正在发表' : isReply ? '发布回复' : isActivity ? '发布活动报名帖' : '发表主题'}
               uploadingAttachments={isUploadingAttachments}
             />
           </>
@@ -462,7 +514,7 @@ export function ThreadComposePage() {
           attachments={attachments}
           editorValue={editorValue}
           formatAttachmentMeta={(attachment) => formatPostEditorBytes(attachment.size)}
-          label={`${boardName} · ${isReply ? '回帖' : '发帖'}预览`}
+          label={`${boardName} · ${isReply ? '回帖' : isActivity ? '活动报名帖' : '发帖'}预览`}
           onClose={() => setPreviewOpen(false)}
           previewAuthor={{ avatar: editorViewer.avatar, name: editorViewer.name }}
           previewFloor={isReply ? 2 : 1}
@@ -507,6 +559,9 @@ function getComposeRequest() {
   if (!Number.isSafeInteger(bid) || bid <= 0) return null;
   return {
     bid,
+    kind: Number.isSafeInteger(tidValue) && tidValue > 0
+      ? 'thread' as const
+      : params.get('kind') === 'activity' ? 'activity' as const : 'thread' as const,
     tid: Number.isSafeInteger(tidValue) && tidValue > 0 ? tidValue : null,
   };
 }
@@ -516,9 +571,11 @@ function makeSnapshot(
   editor: RichTextEditorValue,
   signatureIndex: number,
   attachments: ComposeAttachment[],
+  activitySignup: ActivitySignupSettings | null,
 ) {
   return JSON.stringify({
     attachments: attachments.map((attachment) => attachment.id),
+    activitySignup,
     editor,
     signatureIndex,
     title,
@@ -543,6 +600,7 @@ function getDraftExcerpt(
 }
 
 async function publishThread({
+  activitySignup,
   attachments,
   bid,
   signatureIndex,
@@ -550,6 +608,7 @@ async function publishThread({
   tid,
   title,
 }: {
+  activitySignup: ActivitySignupSettings | null;
   attachments: string;
   bid: number;
   signatureIndex: number;
@@ -557,6 +616,17 @@ async function publishThread({
   tid: number | null;
   title: string;
 }) {
+  if (activitySignup) {
+    return publishActivityThread({
+      activitySignup,
+      attachments,
+      bid,
+      signatureIndex,
+      text,
+      title,
+    });
+  }
+
   const action = tid ? 'reply' : 'post';
   let response: Response;
   try {
@@ -607,5 +677,62 @@ async function publishThread({
     bid: Number.isSafeInteger(publishedBid) && publishedBid > 0 ? publishedBid : bid,
     pid: Number.isSafeInteger(publishedPid) && publishedPid > 0 ? publishedPid : null,
     tid: Number.isSafeInteger(publishedTid) && publishedTid > 0 ? publishedTid : tid,
+  };
+}
+
+async function publishActivityThread({
+  activitySignup,
+  attachments,
+  bid,
+  signatureIndex,
+  text,
+  title,
+}: {
+  activitySignup: ActivitySignupSettings;
+  attachments: string;
+  bid: number;
+  signatureIndex: number;
+  text: string;
+  title: string;
+}) {
+  let response: Response;
+  try {
+    response = await fetch(ACTIVITY_CREATE_API_URL, {
+      body: new URLSearchParams({
+        attachs: attachments,
+        bid: String(bid),
+        options: JSON.stringify(buildActivityCreateOptions(activitySignup.questions)),
+        sig: String(signatureIndex),
+        text,
+        title,
+      }),
+      credentials: 'include',
+      headers: {
+        Accept: 'application/json',
+        'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
+      },
+      method: 'POST',
+    });
+  } catch {
+    throw new ThreadApiError('暂时无法连接论坛服务，活动报名帖发表失败。');
+  }
+
+  let payload: { bid?: unknown; code?: unknown; message?: string; msg?: string; tid?: unknown };
+  try {
+    payload = await response.json() as typeof payload;
+  } catch {
+    throw new ThreadApiError('论坛服务返回了无法识别的数据。');
+  }
+
+  if (!response.ok || Number(payload.code) !== 0) {
+    throw new ThreadApiError(payload.msg?.trim() || payload.message?.trim() || '活动报名帖发表失败，请稍后重试。');
+  }
+
+  const publishedBid = Number(payload.bid);
+  const publishedTid = Number(payload.tid);
+  return {
+    bid: Number.isSafeInteger(publishedBid) && publishedBid > 0 ? publishedBid : bid,
+    pid: 1,
+    tid: Number.isSafeInteger(publishedTid) && publishedTid > 0 ? publishedTid : null,
   };
 }

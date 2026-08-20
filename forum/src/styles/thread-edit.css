@@ -78,6 +78,239 @@
     opacity: 0.45;
   }
 
+  .activity-compose-form .reply-editor-heading {
+    background: color-mix(in srgb, #efaa68 10%, var(--surface-soft));
+  }
+
+  .activity-signup-editor {
+    margin: 4px 16px 14px;
+    border: 1px solid color-mix(in srgb, #dc914d 40%, var(--line));
+    background: color-mix(in srgb, #f4bd82 9%, var(--surface-soft));
+  }
+
+  .activity-signup-time-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
+    padding: 14px;
+    border-bottom: 1px solid color-mix(in srgb, #dc914d 28%, var(--line));
+  }
+
+  .activity-signup-time-grid label,
+  .activity-signup-question-main > label,
+  .activity-signup-options,
+  .activity-signup-number-range {
+    color: var(--text-muted);
+    font-size: 0.67rem;
+    font-weight: 720;
+  }
+
+  .activity-signup-time-grid span,
+  .activity-signup-question-main label > span,
+  .activity-signup-options > span,
+  .activity-signup-number-range > span {
+    display: block;
+    margin-bottom: 7px;
+  }
+
+  .activity-signup-time-grid input,
+  .activity-signup-question-main input:not([type="checkbox"]),
+  .activity-signup-question-main select,
+  .activity-signup-options input,
+  .activity-signup-number-range input {
+    width: 100%;
+    height: 38px;
+    border: 1px solid var(--line);
+    border-radius: var(--control-radius);
+    padding: 0 10px;
+    background: var(--surface-raised);
+    color: var(--text-strong);
+    font-size: 0.74rem;
+    font-weight: 620;
+    outline: none;
+  }
+
+  .activity-signup-time-grid input:focus,
+  .activity-signup-question-main input:focus,
+  .activity-signup-question-main select:focus,
+  .activity-signup-options input:focus,
+  .activity-signup-number-range input:focus {
+    border-color: #d98b43;
+    box-shadow: 0 0 0 3px color-mix(in srgb, #d98b43 14%, transparent);
+  }
+
+  .activity-signup-fields-heading {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 12px 14px;
+  }
+
+  .activity-signup-fields-heading h3 {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    margin: 0;
+    color: color-mix(in srgb, #a35a27 78%, var(--text-strong));
+    font-size: 0.76rem;
+    font-weight: 780;
+  }
+
+  .activity-signup-fields-heading > button,
+  .activity-signup-options > div > button {
+    display: inline-flex;
+    height: 32px;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+    border: 1px solid color-mix(in srgb, #d98b43 42%, var(--line));
+    border-radius: var(--control-radius);
+    padding: 0 10px;
+    background: color-mix(in srgb, #f4bd82 26%, var(--surface-raised));
+    color: #9a511d;
+    font-size: 0.66rem;
+    font-weight: 750;
+  }
+
+  .activity-signup-question-list {
+    display: grid;
+    gap: 8px;
+    padding: 0 14px 14px;
+  }
+
+  .activity-signup-question {
+    display: grid;
+    grid-template-columns: 40px minmax(0, 1fr);
+    gap: 12px;
+    border: 1px solid var(--line);
+    padding: 12px;
+    background: color-mix(in srgb, var(--surface-raised) 94%, transparent);
+  }
+
+  .activity-signup-question-order {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 5px;
+    padding-right: 10px;
+    border-right: 1px solid var(--line);
+  }
+
+  .activity-signup-question-order > span {
+    margin-bottom: 1px;
+    color: #b36d32;
+    font-family: ui-monospace, "SFMono-Regular", Consolas, monospace;
+    font-size: 0.62rem;
+    font-weight: 800;
+  }
+
+  .activity-signup-question-order button,
+  .activity-signup-delete,
+  .activity-signup-options label button {
+    display: inline-flex;
+    width: 28px;
+    height: 27px;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid var(--line);
+    border-radius: var(--control-radius);
+    background: var(--surface-soft);
+    color: var(--text-faint);
+  }
+
+  .activity-signup-question-order button:disabled,
+  .activity-signup-delete:disabled,
+  .activity-signup-options label button:disabled {
+    cursor: not-allowed;
+    opacity: 0.35;
+  }
+
+  .activity-signup-question-main {
+    display: grid;
+    grid-template-columns: minmax(160px, 1fr) 118px 66px 34px;
+    align-items: end;
+    gap: 10px;
+  }
+
+  .activity-signup-required {
+    display: inline-flex;
+    height: 38px;
+    align-items: center;
+    gap: 7px;
+  }
+
+  .activity-signup-required input {
+    width: 15px;
+    height: 15px;
+    accent-color: #d98b43;
+  }
+
+  .activity-signup-delete {
+    width: 34px;
+    height: 38px;
+    color: var(--danger);
+  }
+
+  .activity-signup-options,
+  .activity-signup-number-range,
+  .activity-signup-question-hint {
+    grid-column: 2;
+    margin: 10px 0 0;
+  }
+
+  .activity-signup-options > div {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 7px;
+  }
+
+  .activity-signup-options label {
+    display: grid;
+    min-width: 145px;
+    flex: 1 1 180px;
+    grid-template-columns: minmax(0, 1fr) 28px;
+    gap: 5px;
+  }
+
+  .activity-signup-options input {
+    height: 32px;
+  }
+
+  .activity-signup-options label button {
+    height: 32px;
+    color: var(--danger);
+  }
+
+  .activity-signup-number-range {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: end;
+    gap: 8px;
+  }
+
+  .activity-signup-number-range > span {
+    width: 100%;
+  }
+
+  .activity-signup-number-range label {
+    display: grid;
+    grid-template-columns: auto 100px;
+    align-items: center;
+    gap: 7px;
+  }
+
+  .activity-signup-number-range input {
+    height: 32px;
+  }
+
+  .activity-signup-question-hint {
+    border-top: 1px dashed var(--line);
+    padding-top: 9px;
+    color: var(--text-faint);
+    font-size: 0.66rem;
+  }
+
   .thread-edit-request-state {
     padding: 34px;
     text-align: center;
@@ -138,6 +371,45 @@
 
     .thread-edit-heading-card {
       padding: 18px;
+    }
+
+    .activity-signup-editor {
+      margin-inline: 10px;
+    }
+
+    .activity-signup-time-grid {
+      grid-template-columns: 1fr;
+    }
+
+    .activity-signup-question {
+      display: block;
+    }
+
+    .activity-signup-question-order {
+      flex-direction: row;
+      justify-content: flex-start;
+      margin-bottom: 10px;
+      padding: 0 0 9px;
+      border-right: 0;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .activity-signup-question-main {
+      grid-template-columns: minmax(0, 1fr) 110px;
+    }
+
+    .activity-signup-required {
+      height: 32px;
+    }
+
+    .activity-signup-delete {
+      justify-self: end;
+    }
+
+    .activity-signup-options,
+    .activity-signup-number-range,
+    .activity-signup-question-hint {
+      margin-top: 12px;
     }
   }
 

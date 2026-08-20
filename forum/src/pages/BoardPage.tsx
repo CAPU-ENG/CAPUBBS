@@ -1,4 +1,4 @@
-import { LoaderCircle, LockKeyhole, PenLine, RefreshCw, Settings2, Sparkles } from 'lucide-react';
+import { CalendarPlus, LoaderCircle, LockKeyhole, PenLine, RefreshCw, Settings2, Sparkles } from 'lucide-react';
 import { AppBackground } from '../components/layout/AppBackground';
 import { Pagination } from '../components/layout/Pagination';
 import { TopBar } from '../components/layout/TopBar';
@@ -174,6 +174,12 @@ export function BoardPage({ boardId }: { boardId: number }) {
     && viewer
     && (viewer.rights >= 3 || data.board.moderators.includes(viewer.username)),
   );
+  const canCreateActivity = Boolean(
+    data
+    && data.board.id === 1
+    && authStatus === 'authenticated'
+    && (viewer?.rights ?? 0) >= 2,
+  );
 
   useEffect(() => {
     if (!canManage) setManagementMode(false);
@@ -297,6 +303,11 @@ export function BoardPage({ boardId }: { boardId: number }) {
                   >
                     <Settings2 size={15} />{managementMode ? '退出管理' : '管理版面'}
                   </button>
+                ) : null}
+                {canCreateActivity ? (
+                  <a className="board-activity-action" href={getThreadComposeHref(board.id, undefined, 'activity')}>
+                    <CalendarPlus size={15} />活动报名帖
+                  </a>
                 ) : null}
                 {authStatus === 'authenticated' ? (
                   <a className="board-primary-action" href={getThreadComposeHref(board.id)}>

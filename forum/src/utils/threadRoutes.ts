@@ -1,8 +1,9 @@
 const THREAD_PAGE_SIZE = 12;
 
-export function getThreadComposeHref(bid: number, tid?: number) {
+export function getThreadComposeHref(bid: number, tid?: number, kind: 'activity' | 'thread' = 'thread') {
   const params = new URLSearchParams({ bid: String(bid) });
   if (tid) params.set('tid', String(tid));
+  if (!tid && kind === 'activity') params.set('kind', 'activity');
   return `/post?${params.toString()}`;
 }
 

@@ -6,8 +6,12 @@ import {
 } from './clientDatabase';
 import type { RichTextEditorValue } from '../components/editor/RichTextEditor';
 import type { PostEditorAttachment } from '../components/thread/PostEditor';
+import type { ActivitySignupSettings } from './activitySignup';
+
+export type ThreadComposeDraftKind = 'activity' | 'thread';
 
 export type StoredThreadComposeDraft = {
+  activitySignup?: ActivitySignupSettings;
   attachments: PostEditorAttachment[];
   bid: number;
   board: string;
@@ -15,6 +19,7 @@ export type StoredThreadComposeDraft = {
   editor: RichTextEditorValue;
   excerpt: string;
   id: string;
+  kind?: ThreadComposeDraftKind;
   signatureIndex: number;
   title: string;
   updatedAt: string;
@@ -38,8 +43,11 @@ export async function readStoredThreadComposeDrafts(ownerKey: string | null | un
 export async function readStoredThreadComposeDraft(
   bid: number,
   ownerKey: string | null | undefined,
+  kind: ThreadComposeDraftKind = 'thread',
 ) {
-  return (await readStoredThreadComposeDrafts(ownerKey)).find((draft) => draft.bid === bid) ?? null;
+  return (await readStoredThreadComposeDrafts(ownerKey)).find((draft) => (
+    draft.bid === bid && (draft.kind ?? 'thread') === kind
+  )) ?? null;
 }
 
 export async function saveStoredThreadComposeDraft(
@@ -52,12 +60,14 @@ export async function saveStoredThreadComposeDraft(
   void requestPersistentClientStorage();
   const storedDraft: StoredThreadComposeDraft = {
     ...draft,
-    id: `thread-compose-${draft.bid}`,
+    id: `thread-compose-${draft.bid}-${draft.kind ?? 'thread'}`,
     updatedAt: new Date().toISOString(),
   };
   const drafts = [
     storedDraft,
-    ...(await readStoredThreadComposeDrafts(ownerKey)).filter((candidate) => candidate.bid !== draft.bid),
+    ...(await readStoredThreadComposeDrafts(ownerKey)).filter((candidate) => (
+      candidate.bid !== draft.bid || (candidate.kind ?? 'thread') !== (draft.kind ?? 'thread')
+    )),
   ];
 
   await writeClientDatabaseValue(databaseKey, drafts);
@@ -68,11 +78,14 @@ export async function saveStoredThreadComposeDraft(
 export async function deleteStoredThreadComposeDraft(
   bid: number,
   ownerKey: string | null | undefined,
+  kind: ThreadComposeDraftKind = 'thread',
 ) {
   const databaseKey = getDatabaseKey(ownerKey);
   if (!databaseKey) return;
 
-  const drafts = (await readStoredThreadComposeDrafts(ownerKey)).filter((draft) => draft.bid !== bid);
+  const drafts = (await readStoredThreadComposeDrafts(ownerKey)).filter((draft) => (
+    draft.bid !== bid || (draft.kind ?? 'thread') !== kind
+  ));
   if (drafts.length > 0) {
     await writeClientDatabaseValue(databaseKey, drafts);
   } else {
@@ -127,6 +140,7 @@ function isStoredDraft(value: unknown): value is StoredThreadComposeDraft {
   if (!value || typeof value !== 'object' || Array.isArray(value)) return false;
   const draft = value as Partial<StoredThreadComposeDraft>;
   return Array.isArray(draft.attachments)
+    && (draft.activitySignup === undefined || isActivitySignupSettings(draft.activitySignup))
     && Number.isSafeInteger(draft.bid)
     && Number(draft.bid) > 0
     && typeof draft.board === 'string'
@@ -134,9 +148,27 @@ function isStoredDraft(value: unknown): value is StoredThreadComposeDraft {
     && isEditorValue(draft.editor)
     && typeof draft.excerpt === 'string'
     && typeof draft.id === 'string'
+    && (draft.kind === undefined || draft.kind === 'activity' || draft.kind === 'thread')
     && Number.isSafeInteger(draft.signatureIndex)
     && typeof draft.title === 'string'
     && typeof draft.updatedAt === 'string';
+}
+
+function isActivitySignupSettings(value: unknown): value is ActivitySignupSettings {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) return false;
+  const settings = value as Partial<ActivitySignupSettings>;
+  return typeof settings.startsAt === 'string'
+    && typeof settings.endsAt === 'string'
+    && Array.isArray(settings.questions)
+    && settings.questions.every((question) => (
+      Boolean(question)
+      && typeof question === 'object'
+      && !Array.isArray(question)
+      && typeof question.id === 'string'
+      && typeof question.label === 'string'
+      && typeof question.required === 'boolean'
+      && typeof question.type === 'string'
+    ));
 }
 
 function isEditorValue(value: unknown): value is RichTextEditorValue {
