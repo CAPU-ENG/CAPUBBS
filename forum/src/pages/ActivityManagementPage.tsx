@@ -6,6 +6,7 @@ import {
   LoaderCircle,
   Save,
   ShieldAlert,
+  X,
 } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 import {
@@ -332,8 +333,16 @@ function SignupSummaryPanel({
   threadTitle: string;
   tid: number;
 }) {
-  const [selectedFloor, setSelectedFloor] = useState<number | null>(null);
-  const selectedRecord = records.find((record) => record.floor.floor === selectedFloor) ?? null;
+  const [expandedValue, setExpandedValue] = useState<{ label: string; value: string } | null>(null);
+
+  useEffect(() => {
+    if (!expandedValue) return;
+    const closeOnEscape = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') setExpandedValue(null);
+    };
+    window.addEventListener('keydown', closeOnEscape);
+    return () => window.removeEventListener('keydown', closeOnEscape);
+  }, [expandedValue]);
 
   return (
     <section className="activity-management-panel activity-summary-panel" aria-label="报名汇总">
@@ -358,46 +367,75 @@ function SignupSummaryPanel({
             <table>
               <thead>
                 <tr>
-                  <th>ID</th>
-                  <th>报名时间</th>
-                  <th>状态</th>
-                  {questions.slice(0, 5).map((question) => <th key={question.id}>{question.label}</th>)}
-                  <th>操作</th>
+                  <th className="activity-summary-id-column">ID</th>
+                  <th className="activity-summary-time-column">报名时间</th>
+                  <th className="activity-summary-status-column">状态</th>
+                  {questions.map((question) => <th key={question.id}>{question.label}</th>)}
                 </tr>
               </thead>
               <tbody>
                 {records.map((record) => (
-                  <tr className={selectedFloor === record.floor.floor ? 'activity-summary-row-selected' : ''} key={record.floor.id}>
-                    <td><strong>{record.floor.author.name}</strong></td>
+                  <tr key={record.floor.id}>
+                    <td className="activity-summary-id-column"><strong>{record.floor.author.name}</strong></td>
                     <td>{record.floor.publishedAt}</td>
                     <td><ActivityRecordStatus status={record.status} /></td>
-                    {questions.slice(0, 5).map((question) => (
-                      <td key={question.id}>{getActivityRecordValue(record, question)}</td>
-                    ))}
-                    <td><button onClick={() => setSelectedFloor(record.floor.floor)} type="button">查看</button></td>
+                    {questions.map((question) => {
+                      const value = getActivityRecordValue(record, question);
+                      const expandable = isExpandableSummaryValue(value);
+                      return (
+                        <td key={question.id}>
+                          {expandable ? (
+                            <button
+                              aria-label={`查看${question.label}完整内容`}
+                              className="activity-summary-expand-button"
+                              onClick={() => setExpandedValue({ label: question.label, value })}
+                              type="button"
+                            >
+                              <span>{value}</span>
+                            </button>
+                          ) : (
+                            <span className="activity-summary-cell-content">{value}</span>
+                          )}
+                        </td>
+                      );
+                    })}
                   </tr>
                 ))}
               </tbody>
             </table>
           </div>
 
-          {selectedRecord && (
-            <div className="activity-summary-detail">
-              <header>
-                <h3>{selectedRecord.floor.author.name} 的报名详情</h3>
-                <span>#{selectedRecord.floor.floor}</span>
-              </header>
-              <div>
-                {questions.map((question) => (
-                  <p key={question.id}><strong>{question.label}</strong><span>{getActivityRecordValue(selectedRecord, question)}</span></p>
-                ))}
-              </div>
+          {expandedValue && (
+            <div
+              className="activity-summary-value-overlay"
+              onClick={() => setExpandedValue(null)}
+              role="presentation"
+            >
+              <section
+                aria-labelledby="activity-summary-value-title"
+                aria-modal="true"
+                className="activity-summary-value-dialog"
+                onClick={(event) => event.stopPropagation()}
+                role="dialog"
+              >
+                <header>
+                  <h3 id="activity-summary-value-title">{expandedValue.label}</h3>
+                  <button autoFocus aria-label="关闭完整内容" onClick={() => setExpandedValue(null)} type="button">
+                    <X size={18} />
+                  </button>
+                </header>
+                <div>{expandedValue.value}</div>
+              </section>
             </div>
           )}
         </>
       )}
     </section>
   );
+}
+
+function isExpandableSummaryValue(value: string) {
+  return value !== '-' && (value.includes('\n') || value.length > 40);
 }
 
 function ActivityMetric({
