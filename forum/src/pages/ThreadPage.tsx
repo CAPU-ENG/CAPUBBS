@@ -63,7 +63,61 @@ export function ThreadPage() {
   useLayoutEffect(() => {
     if (!data) return;
     const hashFloor = getThreadFloorFromHash(window.location.hash);
-    if (hashFloor) getThreadFloorElement(hashFloor)?.scrollIntoView({ block: 'start' });
+    const targetElement = getThreadFloorElement(hashFloor);
+    if (!hashFloor || !targetElement) return;
+    const floorListElement = targetElement.closest('.thread-floor-list');
+    if (!floorListElement) return;
+    const anchoredTarget: HTMLElement = targetElement;
+    const observedFloorList: Element = floorListElement;
+
+    let frame = 0;
+    let observer: ResizeObserver | null = null;
+    let settleTimer = 0;
+    let maxTimer = 0;
+
+    function stopObserving() {
+      observer?.disconnect();
+      observer = null;
+      window.clearTimeout(settleTimer);
+      window.clearTimeout(maxTimer);
+    }
+
+    function stopWhenStable() {
+      const hasPendingImage = Array.from(observedFloorList.querySelectorAll('img'))
+        .some((image) => !image.complete);
+      if (hasPendingImage) {
+        settleTimer = window.setTimeout(stopWhenStable, 300);
+        return;
+      }
+      stopObserving();
+    }
+
+    function anchorTarget() {
+      frame = 0;
+      if (getThreadFloorFromHash(window.location.hash) !== hashFloor) {
+        stopObserving();
+        return;
+      }
+      anchoredTarget.scrollIntoView({ block: 'start' });
+    }
+
+    function scheduleAnchor() {
+      if (frame) window.cancelAnimationFrame(frame);
+      frame = window.requestAnimationFrame(anchorTarget);
+      window.clearTimeout(settleTimer);
+      settleTimer = window.setTimeout(stopWhenStable, 500);
+    }
+
+    anchorTarget();
+    observer = new ResizeObserver(scheduleAnchor);
+    observer.observe(observedFloorList);
+    settleTimer = window.setTimeout(stopWhenStable, 500);
+    maxTimer = window.setTimeout(stopObserving, 10_000);
+
+    return () => {
+      stopObserving();
+      if (frame) window.cancelAnimationFrame(frame);
+    };
   }, [data]);
 
   useEffect(() => {

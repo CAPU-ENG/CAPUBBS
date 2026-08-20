@@ -48,7 +48,6 @@
 
   html {
     min-width: 320px;
-    scroll-behavior: smooth;
     font-family: "Noto Sans CJK SC", "Source Han Sans SC", "PingFang SC", "Microsoft YaHei", sans-serif;
     background: var(--page);
   }
