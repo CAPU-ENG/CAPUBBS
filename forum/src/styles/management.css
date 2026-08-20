@@ -189,7 +189,7 @@
   .management-row-main p i {
     width: 2px;
     height: 2px;
-    border-radius: 2px;
+    border-radius: 50%;
     background: var(--line-strong);
   }
 
@@ -412,7 +412,7 @@
     align-items: center;
     justify-content: center;
     border: 1px solid var(--line);
-    border-radius: 50%;
+    border-radius: 2px;
     background: var(--surface-soft);
     font-size: 0.57rem;
   }
