@@ -12,8 +12,8 @@ import {
 import type { NestedReply, ThreadAuthor, ThreadFloorData } from '../../data/threadDemo';
 import { getPublicProfilePath } from '../../utils/userRoutes';
 import { ForumMarkup, type ForumMarkupImage } from './ForumMarkup';
-import { ThreadHtmlContent } from './ThreadHtmlContent';
 import { ThreadImageLightbox } from './ThreadImageLightbox';
+import { ThreadPostContent } from './ThreadPostContent';
 
 function AuthorCard({ author }: { author: ThreadAuthor }) {
   return (
@@ -248,35 +248,20 @@ export function ThreadFloor({
           </button>
         </header>
 
-        {floor.contentHtml ? (
-          <ThreadHtmlContent
-            className="thread-floor-body"
-            floor={floor.floor}
-            html={floor.contentHtml}
-            onImageOpen={openImagePreview}
-            variant="floor"
-          />
-        ) : (
-          <div className="thread-floor-body">
-            {floor.paragraphs.map((paragraph) => (
-              <p key={paragraph}>{paragraph}</p>
-            ))}
-          </div>
-        )}
-
-        {floor.signatureHtml ? (
-          <ThreadHtmlContent
-            className="thread-signature"
-            floor={floor.floor}
-            html={floor.signatureHtml}
-            onImageOpen={openImagePreview}
-            variant="signature"
-          />
-        ) : floor.signature ? (
-          <footer className="thread-signature">
-            <p>{floor.signature}</p>
-          </footer>
-        ) : null}
+        <ThreadPostContent
+          bodyFallback={(
+            <div className="thread-floor-body">
+              {floor.paragraphs.map((paragraph) => (
+                <p key={paragraph}>{paragraph}</p>
+              ))}
+            </div>
+          )}
+          bodyHtml={floor.contentHtml}
+          floor={floor.floor}
+          onImageOpen={openImagePreview}
+          signatureHtml={floor.signatureHtml}
+          signatureText={floor.signature}
+        />
 
         <div className="thread-floor-actions">
           {canReply && (

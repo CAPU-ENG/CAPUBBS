@@ -8,11 +8,11 @@ import {
   type RefObject,
 } from 'react';
 import {
-  getRichTextEditorPreviewDocument,
+  getRichTextEditorHtmlValue,
   RichTextEditor,
   type RichTextEditorValue,
 } from '../editor/RichTextEditor';
-import { ThreadHtmlContent } from './ThreadHtmlContent';
+import { ThreadPostContent } from './ThreadPostContent';
 
 export type PostEditorAttachment = {
   id: string;
@@ -270,23 +270,12 @@ export function PostEditorPreviewDialog({
                 <span className="thread-floor-index">#{previewFloor}</span>
               </header>
 
-              <div className="thread-floor-body reply-preview-floor-body">
-                <iframe
-                  onLoad={(event) => resizePreviewFrame(event.currentTarget)}
-                  sandbox="allow-same-origin"
-                  srcDoc={getRichTextEditorPreviewDocument(editorValue, { embedded: true })}
-                  title="正文预览"
-                />
-              </div>
-
-              {previewSignature && (
-                <ThreadHtmlContent
-                  className="thread-signature"
-                  floor={previewFloor}
-                  html={previewSignature}
-                  variant="signature"
-                />
-              )}
+              <ThreadPostContent
+                bodyClassName="thread-floor-body reply-preview-floor-body"
+                bodyHtml={getRichTextEditorHtmlValue(editorValue)}
+                floor={previewFloor}
+                signatureHtml={previewSignature}
+              />
 
               {attachments.length > 0 && (
                 <ul className="reply-preview-attachments" aria-label="附件预览">
@@ -404,18 +393,4 @@ function formatBytes(bytes: number) {
   if (bytes <= 0) return '大小未知';
   if (bytes >= 1024 * 1024) return `${(bytes / 1024 / 1024).toFixed(2)} MB`;
   return `${Math.max(1, Math.round(bytes / 1024))} KB`;
-}
-
-function resizePreviewFrame(frame: HTMLIFrameElement) {
-  const previewDocument = frame.contentDocument;
-  if (!previewDocument) return;
-
-  const updateHeight = () => {
-    frame.style.height = `${Math.max(120, previewDocument.documentElement.scrollHeight)}px`;
-  };
-
-  updateHeight();
-  previewDocument.querySelectorAll('img').forEach((image) => {
-    if (!image.complete) image.addEventListener('load', updateHeight, { once: true });
-  });
 }

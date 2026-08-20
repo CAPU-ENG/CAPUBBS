@@ -143,6 +143,7 @@ export async function fetchEditableThreadFloor({
   const post = rows.find((row) => positiveInteger(row.pid, 0) === pid)
     ?? asRow(payload.data);
   const viewer = rows.find((row) => Boolean(plainText(row.username))) ?? {};
+  const viewerName = plainText(viewer.username);
 
   if (
     positiveInteger(post.bid, 0) !== bid
@@ -152,14 +153,28 @@ export async function fetchEditableThreadFloor({
     throw new ThreadApiError('没有找到可编辑的帖子或楼层。');
   }
 
+  if (!viewerName) {
+    throw new ThreadApiError('无法读取编辑用户信息，请重新登录后再试。');
+  }
+
+  const viewerProfilePayload = await requestThreadApi(new URLSearchParams({
+    ask: 'user_profile',
+    username: viewerName,
+  }), signal, '签名档读取失败，请稍后重试。');
+  const viewerProfile = asRows(viewerProfilePayload.data)[0] ?? asRow(viewerProfilePayload.data);
+
   return {
     attachments: stringValue(post.attachs),
     author: plainText(post.author),
     bid,
     createdAt: stringValue(post.timestamp ?? post.posttime ?? post.createdAt),
     pid,
-    previewAvatar: normalizeAssetUrl(viewer.avatar) || normalizeAssetUrl(viewer.icon) || defaultAvatar,
-    previewSignatures: mapEditableViewerSignatures(viewer),
+    previewAvatar: normalizeAssetUrl(viewerProfile.avatar)
+      || normalizeAssetUrl(viewerProfile.icon)
+      || normalizeAssetUrl(viewer.avatar)
+      || normalizeAssetUrl(viewer.icon)
+      || defaultAvatar,
+    previewSignatures: mapEditableViewerSignatures(viewerProfile),
     signatureIndex: Math.min(3, nonNegativeInteger(post.sig)),
     text: stringValue(post.text) === '<br>' ? '' : stringValue(post.text),
     tid,
