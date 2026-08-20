@@ -486,8 +486,9 @@
   }
 
   .management-member-list {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(108px, 120px));
+    display: flex;
+    align-items: flex-start;
+    flex-wrap: wrap;
     gap: 6px;
     padding: 8px;
   }
@@ -554,16 +555,16 @@
   }
 
   .management-member-list > button {
-    display: flex;
-    width: 100%;
-    height: 48px;
+    display: inline-flex;
+    width: auto;
+    max-width: 100%;
+    min-height: 32px;
     min-width: 0;
     align-items: center;
-    justify-content: flex-start;
-    gap: 7px;
+    justify-content: center;
     border: 1px solid var(--line);
     border-radius: 2px;
-    padding: 7px;
+    padding: 6px 10px;
     background: var(--surface-soft);
     text-align: left;
     transition: 130ms ease;
@@ -582,23 +583,6 @@
     object-fit: cover;
   }
 
-  .management-member-list img {
-    width: 26px;
-    height: 26px;
-    flex: 0 0 auto;
-    border: 1px solid var(--line);
-    border-radius: 2px;
-    object-fit: cover;
-  }
-
-  .management-member-list > button > span {
-    display: grid;
-    min-width: 0;
-    align-content: center;
-    justify-items: start;
-    gap: 0;
-  }
-
   .management-member-list strong {
     max-width: 100%;
     overflow-wrap: anywhere;
@@ -608,7 +592,11 @@
   }
 
   .management-member-list > .management-empty {
-    grid-column: 1 / -1;
+    flex-basis: 100%;
+  }
+
+  .management-member-search-card {
+    scroll-margin-top: calc(var(--topbar-height) + 12px);
   }
 
   .management-member-confirmation {

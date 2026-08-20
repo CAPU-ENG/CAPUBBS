@@ -21,7 +21,7 @@ import {
   Volume2,
   VolumeX,
 } from 'lucide-react';
-import { useEffect, useMemo, useState, type FormEvent, type ReactNode } from 'react';
+import { useEffect, useMemo, useRef, useState, type FormEvent, type ReactNode } from 'react';
 import {
   fetchGlobalPins,
   fetchManagementBoardModerators,
@@ -384,6 +384,7 @@ function MoveThreadPanel() {
 }
 
 function MemberManagementPanel() {
+  const memberSearchRef = useRef<HTMLElement>(null);
   const [members, setMembers] = useState<ManagementMember[]>([]);
   const [membersStatus, setMembersStatus] = useState<'error' | 'loading' | 'ready'>('loading');
   const [mutes, setMutes] = useState<ManagementMute[]>([]);
@@ -464,6 +465,12 @@ function MemberManagementPanel() {
     void loadMember(query);
   }
 
+  function openMemberDetails(memberId: string) {
+    setQuery(memberId);
+    memberSearchRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    void loadMember(memberId);
+  }
+
   function togglePermissionGroup(rights: number) {
     setCollapsedRights((current) => {
       const next = new Set(current);
@@ -536,7 +543,11 @@ function MemberManagementPanel() {
 
   return (
     <div className="management-grid management-members-grid">
-      <section className="management-card management-action-card" aria-labelledby="member-search-title">
+      <section
+        className="management-card management-action-card management-member-search-card"
+        aria-labelledby="member-search-title"
+        ref={memberSearchRef}
+      >
         <header className="management-card-heading">
           <div><h2 id="member-search-title">查找会员</h2></div>
         </header>
@@ -639,12 +650,8 @@ function MemberManagementPanel() {
                     {!collapsed && (
                       <div className="management-member-list">
                         {group.members.map((member) => (
-                          <button key={member.id} onClick={() => {
-                            setQuery(member.id);
-                            void loadMember(member.id);
-                          }} type="button">
-                            <img alt="" src={member.avatar || defaultAvatar} />
-                            <span><strong>{member.id}</strong></span>
+                          <button key={member.id} onClick={() => openMemberDetails(member.id)} type="button">
+                            <strong>{member.id}</strong>
                           </button>
                         ))}
                       </div>
