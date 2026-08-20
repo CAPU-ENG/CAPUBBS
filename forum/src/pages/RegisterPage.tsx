@@ -244,7 +244,7 @@ export function RegisterPage() {
                         setUsernameState('idle');
                         usernameCheckRequestRef.current += 1;
                       }}
-                      placeholder="一个好的 ID 是一个美好的开始"
+                      placeholder="一个好的 ID 是美好的开始"
                       value={username}
                     />
                     <UsernameIndicator state={usernameState} />
