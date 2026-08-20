@@ -18,10 +18,12 @@ export type NestedReply = {
   publishedAt: string;
   content: string;
   contentHtml?: SafeForumHtml;
+  target?: string;
 };
 
 export type ThreadFloorData = {
   id: string;
+  fid: number;
   floor: number;
   author: ThreadAuthor;
   publishedAt: string;
@@ -101,6 +103,7 @@ export const demoThread = {
   floors: [
     {
       id: 'floor-1',
+      fid: 1,
       floor: 1,
       author: authors.aBei,
       publishedAt: '2026年08月20日 10时12分35秒',
@@ -122,6 +125,7 @@ export const demoThread = {
     },
     {
       id: 'floor-2',
+      fid: 2,
       floor: 2,
       author: authors.blueFrame,
       publishedAt: '2026年08月20日 12时06分11秒',
@@ -148,6 +152,7 @@ export const demoThread = {
     },
     {
       id: 'floor-3',
+      fid: 3,
       floor: 3,
       author: authors.repair,
       publishedAt: '2026年08月20日 13时38分44秒',
@@ -158,6 +163,7 @@ export const demoThread = {
     },
     {
       id: 'floor-4',
+      fid: 4,
       floor: 4,
       author: authors.whale,
       publishedAt: '2026年08月20日 14时11分09秒',
@@ -167,6 +173,7 @@ export const demoThread = {
     },
     {
       id: 'floor-5',
+      fid: 5,
       floor: 5,
       author: authors.poplar,
       publishedAt: '2026年08月20日 14时42分33秒',
@@ -178,6 +185,7 @@ export const demoThread = {
     },
     {
       id: 'floor-6',
+      fid: 6,
       floor: 6,
       author: authors.aBei,
       publishedAt: '2026年08月20日 15时03分27秒',
@@ -188,6 +196,7 @@ export const demoThread = {
     },
     {
       id: 'floor-7',
+      fid: 7,
       floor: 7,
       author: authors.blueFrame,
       publishedAt: '2026年08月20日 15时26分41秒',
@@ -198,6 +207,7 @@ export const demoThread = {
     },
     {
       id: 'floor-8',
+      fid: 8,
       floor: 8,
       author: authors.repair,
       publishedAt: '2026年08月20日 16时09分18秒',
@@ -208,6 +218,7 @@ export const demoThread = {
     },
     {
       id: 'floor-9',
+      fid: 9,
       floor: 9,
       author: authors.whale,
       publishedAt: '2026年08月20日 17时22分06秒',
@@ -217,6 +228,7 @@ export const demoThread = {
     },
     {
       id: 'floor-10',
+      fid: 10,
       floor: 10,
       author: authors.aBei,
       publishedAt: '2026年08月20日 18时04分39秒',

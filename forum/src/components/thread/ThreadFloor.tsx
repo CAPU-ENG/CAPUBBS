@@ -1,13 +1,15 @@
-import { useEffect, useRef, useState, type ClipboardEvent } from 'react';
+import { useEffect, useMemo, useRef, useState, type ClipboardEvent, type FormEvent } from 'react';
 import {
   Check,
   ExternalLink,
   Pencil,
   Quote,
   Reply,
+  Send,
   Trash2,
+  X,
 } from 'lucide-react';
-import type { ThreadAuthor, ThreadFloorData } from '../../data/threadDemo';
+import type { NestedReply, ThreadAuthor, ThreadFloorData } from '../../data/threadDemo';
 import { getPublicProfilePath } from '../../utils/userRoutes';
 import { ForumMarkup, type ForumMarkupImage } from './ForumMarkup';
 import { ThreadImageLightbox } from './ThreadImageLightbox';
@@ -82,20 +84,34 @@ function copyAsPlainText(event: ClipboardEvent<HTMLElement>) {
 }
 
 export function ThreadFloor({
+  canReply,
   floor,
   isMainPost,
   onQuote,
-  onReply,
+  onSubmitNestedReply,
+  viewer,
 }: {
+  canReply: boolean;
   floor: ThreadFloorData;
   isMainPost: boolean;
   onQuote: (floor: ThreadFloorData) => void;
-  onReply: (floor: ThreadFloorData, targetName?: string) => void;
+  onSubmitNestedReply: (floor: ThreadFloorData, targetName: string | null, content: string) => Promise<void>;
+  viewer: ThreadAuthor | null;
 }) {
   const [copyNoticeOpen, setCopyNoticeOpen] = useState(false);
+  const [localNestedReplies, setLocalNestedReplies] = useState<NestedReply[]>([]);
+  const [nestedReplyContent, setNestedReplyContent] = useState('');
+  const [nestedReplyError, setNestedReplyError] = useState('');
+  const [nestedReplyPending, setNestedReplyPending] = useState(false);
+  const [nestedReplyTarget, setNestedReplyTarget] = useState<string | null | undefined>(undefined);
   const [previewImage, setPreviewImage] = useState<ForumMarkupImage | null>(null);
   const copyNoticeTimerRef = useRef<number | null>(null);
+  const nestedReplyInputRef = useRef<HTMLTextAreaElement | null>(null);
   const previewTriggerRef = useRef<HTMLImageElement | null>(null);
+  const nestedReplies = useMemo(
+    () => [...(floor.nestedReplies ?? []), ...localNestedReplies],
+    [floor.nestedReplies, localNestedReplies],
+  );
 
   useEffect(() => {
     return () => {
@@ -121,6 +137,46 @@ export function ThreadFloor({
   function closeImagePreview() {
     setPreviewImage(null);
     window.requestAnimationFrame(() => previewTriggerRef.current?.focus());
+  }
+
+  function openNestedReplyComposer(targetName: string | null = null) {
+    setNestedReplyTarget(targetName);
+    setNestedReplyContent('');
+    setNestedReplyError('');
+    window.requestAnimationFrame(() => nestedReplyInputRef.current?.focus());
+  }
+
+  function closeNestedReplyComposer() {
+    setNestedReplyTarget(undefined);
+    setNestedReplyContent('');
+    setNestedReplyError('');
+  }
+
+  async function submitNestedReply(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    const content = nestedReplyContent.trim();
+    if (!content || !viewer || nestedReplyPending) return;
+
+    setNestedReplyPending(true);
+    setNestedReplyError('');
+    try {
+      await onSubmitNestedReply(floor, nestedReplyTarget ?? null, content);
+      setLocalNestedReplies((current) => [
+        ...current,
+        {
+          author: viewer,
+          content,
+          id: `local-${floor.id}-${Date.now()}`,
+          publishedAt: formatLocalTimestamp(new Date()),
+          target: nestedReplyTarget ?? undefined,
+        },
+      ]);
+      closeNestedReplyComposer();
+    } catch (error) {
+      setNestedReplyError(error instanceof Error ? error.message : '楼中楼回复发布失败，请稍后重试。');
+    } finally {
+      setNestedReplyPending(false);
+    }
   }
 
   return (
@@ -195,14 +251,18 @@ export function ThreadFloor({
         )}
 
         <div className="thread-floor-actions">
-          <button onClick={() => onQuote(floor)} type="button">
-            <Quote size={15} />
-            引用
-          </button>
-          <button onClick={() => onReply(floor)} type="button">
-            <Reply size={15} />
-            回复
-          </button>
+          {canReply && (
+            <>
+              <button onClick={() => onQuote(floor)} type="button">
+                <Quote size={15} />
+                引用
+              </button>
+              <button onClick={() => openNestedReplyComposer()} type="button">
+                <Reply size={15} />
+                回复
+              </button>
+            </>
+          )}
           {(floor.canEdit ?? floor.isOwn) && (
               <button type="button">
                 <Pencil size={15} />
@@ -217,18 +277,24 @@ export function ThreadFloor({
           )}
         </div>
 
-        {floor.nestedReplies && floor.nestedReplies.length > 0 && (
+        {nestedReplies.length > 0 && (
           <section
             className="nested-replies"
             aria-label={`${floor.floor} 楼的楼中楼回复`}
           >
-            {floor.nestedReplies.map((reply) => (
+            {nestedReplies.map((reply) => (
               <article key={reply.id}>
                 <img src={reply.author.avatar} alt="" />
                 <div>
                   <a className="nested-reply-author" href={getPublicProfilePath(reply.author.name)}>
                     {reply.author.name}
                   </a>
+                  {reply.target && (
+                    <span className="nested-reply-target">
+                      {' '}回复{' '}
+                      <a href={getPublicProfilePath(reply.target)}>{reply.target}</a>
+                    </span>
+                  )}
                   {reply.contentHtml ? (
                     <ForumMarkup
                       className="nested-reply-content"
@@ -241,17 +307,56 @@ export function ThreadFloor({
                   )}
                   <footer className="nested-reply-footer">
                     <time>{formatFloorTime(reply.publishedAt)}</time>
-                    <button
-                      onClick={() => onReply(floor, reply.author.name)}
-                      type="button"
-                    >
-                      回复
-                    </button>
+                    {canReply && (
+                      <button
+                        onClick={() => openNestedReplyComposer(reply.author.name)}
+                        type="button"
+                      >
+                        回复
+                      </button>
+                    )}
                   </footer>
                 </div>
               </article>
             ))}
           </section>
+        )}
+
+        {nestedReplyTarget !== undefined && canReply && (
+          <form className="nested-reply-composer" onSubmit={submitNestedReply}>
+            <textarea
+              aria-label={nestedReplyTarget ? `回复 @${nestedReplyTarget}` : `回复第 ${floor.floor} 楼`}
+              maxLength={500}
+              onChange={(event) => {
+                setNestedReplyContent(event.target.value);
+                setNestedReplyError('');
+              }}
+              placeholder={nestedReplyTarget ? `回复 @${nestedReplyTarget}` : '写一条楼中楼回复'}
+              ref={nestedReplyInputRef}
+              rows={2}
+              value={nestedReplyContent}
+            />
+            <div className="nested-reply-composer-actions">
+              <button
+                aria-label="取消楼中楼回复"
+                className="nested-reply-cancel"
+                disabled={nestedReplyPending}
+                onClick={closeNestedReplyComposer}
+                type="button"
+              >
+                <X size={15} />
+              </button>
+              <button
+                className="nested-reply-submit"
+                disabled={!nestedReplyContent.trim() || nestedReplyPending}
+                type="submit"
+              >
+                <Send size={14} />
+                {nestedReplyPending ? '发送中' : '发送'}
+              </button>
+            </div>
+            {nestedReplyError && <p className="nested-reply-error" role="alert">{nestedReplyError}</p>}
+          </form>
         )}
       </div>
 
@@ -266,4 +371,9 @@ export function ThreadFloor({
       )}
     </article>
   );
+}
+
+function formatLocalTimestamp(date: Date) {
+  const pad = (value: number) => String(value).padStart(2, '0');
+  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())} ${pad(date.getHours())}:${pad(date.getMinutes())}:${pad(date.getSeconds())}`;
 }

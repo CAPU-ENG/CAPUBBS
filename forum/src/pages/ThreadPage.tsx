@@ -5,6 +5,7 @@ import { ThreadFloor } from '../components/thread/ThreadFloor';
 import { FloorNodes, MobileFloorNode, ThreadPagination } from '../components/thread/ThreadNavigation';
 import { AppBackground } from '../components/layout/AppBackground';
 import { TopBar } from '../components/layout/TopBar';
+import { postNestedReply } from '../api/thread';
 import type { ThreadFloorData } from '../data/threadDemo';
 import { useScrollContextTitle } from '../hooks/useScrollContextTitle';
 import { useThreadData } from '../hooks/useThreadData';
@@ -99,16 +100,17 @@ export function ThreadPage() {
     window.requestAnimationFrame(() => editorRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }));
   }
 
-  function replyToFloor(floor: ThreadFloorData, targetName?: string) {
-    scrollToEditor({ author: targetName ?? floor.author.name, floor: floor.floor });
-  }
-
   function quoteFloor(floor: ThreadFloorData) {
     scrollToEditor({
       author: floor.author.name,
       floor: floor.floor,
       quote: (floor.quoteText || floor.paragraphs[0] || '').slice(0, 90),
     });
+  }
+
+  async function submitNestedReply(floor: ThreadFloorData, targetName: string | null, content: string) {
+    const text = targetName ? `回复 @${targetName}：${content}` : content;
+    await postNestedReply({ fid: floor.fid, text });
   }
 
   function toggleAuthorOnly() {
@@ -202,11 +204,13 @@ export function ThreadPage() {
           <section className="thread-floor-list" aria-label={`第 ${data.currentPage} 页楼层`}>
             {pageFloors.map((floor) => (
               <ThreadFloor
+                canReply={data.canReply && Boolean(data.viewer)}
                 floor={floor}
                 isMainPost={floor.floor === 1}
                 key={floor.id}
                 onQuote={quoteFloor}
-                onReply={replyToFloor}
+                onSubmitNestedReply={submitNestedReply}
+                viewer={data.viewer}
               />
             ))}
           </section>

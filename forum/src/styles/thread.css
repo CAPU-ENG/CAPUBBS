@@ -83,9 +83,7 @@
     border: 1px solid var(--line);
     border-radius: 2px;
     padding: 24px 26px 18px;
-    background:
-      linear-gradient(90deg, color-mix(in srgb, var(--brand-faint) 78%, transparent), transparent 54%),
-      var(--surface);
+    background: var(--surface);
     box-shadow: var(--shadow-card);
   }
 
@@ -615,12 +613,26 @@
     font-size: 0.7rem;
   }
 
+  .nested-reply-target {
+    color: var(--text-faint);
+    font-size: 0.7rem;
+  }
+
+  .nested-reply-target a {
+    color: var(--brand-strong);
+    font-weight: 720;
+  }
+
   .nested-replies p,
   .nested-reply-content {
     margin-top: 5px;
     color: var(--text-muted);
     font-size: 0.75rem;
     line-height: 1.55;
+  }
+
+  .nested-replies p {
+    white-space: pre-wrap;
   }
 
   .nested-reply-footer {
@@ -641,6 +653,81 @@
     color: var(--brand-strong);
     font-size: 0.64rem;
     font-weight: 720;
+  }
+
+  .nested-reply-composer {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 8px;
+    margin-top: 12px;
+    border: 1px solid var(--line);
+    border-radius: 2px;
+    padding: 9px;
+    background: var(--surface-soft);
+  }
+
+  .nested-reply-composer textarea {
+    min-height: 64px;
+    resize: vertical;
+    border: 1px solid var(--line-strong);
+    border-radius: var(--control-radius);
+    padding: 8px 10px;
+    background: var(--surface);
+    color: var(--text);
+    font-size: 0.75rem;
+    line-height: 1.55;
+    outline: none;
+  }
+
+  .nested-reply-composer textarea:focus {
+    border-color: var(--brand);
+    box-shadow: 0 0 0 2px color-mix(in srgb, var(--brand) 18%, transparent);
+  }
+
+  .nested-reply-composer-actions {
+    display: flex;
+    align-items: stretch;
+    gap: 6px;
+  }
+
+  .nested-reply-composer-actions > button {
+    display: inline-flex;
+    min-height: 38px;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+    border-radius: var(--control-radius);
+    font-size: 0.68rem;
+    font-weight: 720;
+  }
+
+  .nested-reply-cancel {
+    width: 34px;
+    color: var(--text-faint);
+  }
+
+  .nested-reply-cancel:hover {
+    background: var(--surface);
+    color: var(--text-strong);
+  }
+
+  .nested-reply-submit {
+    align-self: stretch;
+    padding: 0 12px;
+    background: var(--brand);
+    color: var(--brand-contrast);
+  }
+
+  .nested-reply-submit:disabled,
+  .nested-reply-cancel:disabled {
+    cursor: not-allowed;
+    opacity: 0.48;
+  }
+
+  .nested-reply-error {
+    grid-column: 1 / -1;
+    color: var(--danger);
+    font-size: 0.68rem;
   }
 
   .thread-signature {
@@ -1156,6 +1243,14 @@
 
     .nested-reply-footer {
       justify-content: space-between;
+    }
+
+    .nested-reply-composer {
+      grid-template-columns: minmax(0, 1fr);
+    }
+
+    .nested-reply-composer-actions {
+      justify-content: flex-end;
     }
 
     .thread-signature {

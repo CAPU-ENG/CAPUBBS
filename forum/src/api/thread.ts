@@ -95,6 +95,47 @@ export async function fetchThreadDetail({
   return mapThreadDetail(payload.data, { authorOnly, bid, page, tid });
 }
 
+export async function postNestedReply({
+  fid,
+  text,
+}: {
+  fid: number;
+  text: string;
+}) {
+  const body = new URLSearchParams({
+    ask: 'lzl',
+    fid: String(fid),
+    method: 'post',
+    text,
+  });
+
+  let response: Response;
+  try {
+    response = await fetch(THREAD_API_URL, {
+      body,
+      credentials: 'include',
+      headers: {
+        Accept: 'application/json',
+        'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
+      },
+      method: 'POST',
+    });
+  } catch {
+    throw new ThreadApiError('暂时无法连接论坛服务，请稍后重试。');
+  }
+
+  let payload: ApiEnvelope;
+  try {
+    payload = await response.json() as ApiEnvelope;
+  } catch {
+    throw new ThreadApiError('论坛服务返回了无法识别的数据。');
+  }
+
+  if (!response.ok || payload.code !== 0) {
+    throw new ThreadApiError(payload.message?.trim() || '楼中楼回复发布失败，请稍后重试。');
+  }
+}
+
 function mapThreadDetail(
   value: unknown,
   request: { authorOnly: boolean; bid: number; page: number; tid: number },
@@ -168,6 +209,7 @@ function mapFloor(row: ApiRow, viewerName: string): ThreadFloorData {
     canEdit,
     contentHtml,
     editedAt: timestampChanged(row.createdAt, row.updatedAt) ? stringValue(row.updatedAt) : undefined,
+    fid: positiveInteger(row.fid, 0),
     floor,
     id: `${bid}-${tid}-${floor}`,
     isOwn: Boolean(viewerName && authorName === viewerName),
@@ -182,14 +224,15 @@ function mapFloor(row: ApiRow, viewerName: string): ThreadFloorData {
 
 function mapNestedReply(row: ApiRow): NestedReply {
   const authorName = plainText(row.author) || '匿名用户';
-  const contentHtml = renderForumMarkup(stringValue(row.contentHtml) || stringValue(row.content));
+  const storedContent = stringValue(row.content);
+  const targetMatch = storedContent.match(/^回复 @(.+?)[：:]\s*([\s\S]*)$/);
 
   return {
     author: mapAuthor({ username: authorName, avatar: row.authorAvatar }, authorName),
-    content: forumMarkupToPlainText(contentHtml),
-    contentHtml,
+    content: targetMatch ? targetMatch[2] : storedContent,
     id: String(row.id ?? `${authorName}-${row.createdAt ?? ''}`),
     publishedAt: stringValue(row.createdAt),
+    target: targetMatch?.[1],
   };
 }
 
