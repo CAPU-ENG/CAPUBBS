@@ -785,7 +785,14 @@
   }
 
   iframe.thread-html-frame.thread-signature {
-    border-top: 1px dashed var(--line-strong);
+    background-image: repeating-linear-gradient(
+      to right,
+      var(--line-strong) 0 4px,
+      transparent 4px 8px
+    );
+    background-position: left top;
+    background-repeat: no-repeat;
+    background-size: calc(100% - var(--thread-html-frame-width-allowance, 0px)) 1px;
   }
 
   .thread-floor-main > iframe.thread-html-frame {
