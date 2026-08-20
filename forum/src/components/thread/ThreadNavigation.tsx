@@ -1,5 +1,6 @@
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { Pagination } from '../layout/Pagination';
+import { getThreadFloorElement } from '../../utils/threadRoutes';
 
 type PaginationProps = {
   boardId: number;
@@ -49,8 +50,8 @@ export function FloorNodes({
   floors: FloorNode[];
 }) {
   function navigateToFloor(floor: number) {
-    document.getElementById(`floor-${floor}`)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
     window.history.replaceState(null, '', `${window.location.pathname}${window.location.search}#${floor}`);
+    getThreadFloorElement(floor)?.scrollIntoView({ block: 'start' });
   }
 
   return (
@@ -97,7 +98,8 @@ export function MobileFloorNode({
   function navigate(offset: number) {
     const target = floors[Math.min(floors.length - 1, Math.max(0, currentIndex + offset))];
     if (!target) return;
-    document.getElementById(`floor-${target.floor}`)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    window.history.replaceState(null, '', `${window.location.pathname}${window.location.search}#${target.floor}`);
+    getThreadFloorElement(target.floor)?.scrollIntoView({ block: 'start' });
   }
 
   return (

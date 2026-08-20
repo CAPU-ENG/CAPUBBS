@@ -60,7 +60,7 @@ export function buildSignatureFloorMarker(reference: SignatureFloorReference) {
 
 export function buildSignatureFloorHref(reference: SignatureFloorReference) {
   const page = Math.max(1, Math.ceil(reference.pid / legacyThreadPageSize));
-  return `/?bid=${reference.bid}&tid=${reference.tid}&p=${page}#floor-${reference.pid}`;
+  return `/?bid=${reference.bid}&tid=${reference.tid}&p=${page}#${reference.pid}`;
 }
 
 export function findSignatureFloorMarkers(value: string): SignatureFloorMarker[] {

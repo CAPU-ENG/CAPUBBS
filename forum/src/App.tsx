@@ -16,6 +16,7 @@ import { ManagementPage } from './pages/ManagementPage';
 import { DataDisplayPage } from './pages/DataDisplayPage';
 import { FORUM_LOCATION_CHANGE_EVENT } from './utils/authRoutes';
 import { translateLegacyForumThreadHref } from './utils/legacyForumRoutes';
+import { getThreadFloorElement, getThreadFloorFromHash } from './utils/threadRoutes';
 import { getPublicProfileNameFromLocation, USER_CENTER_PATH } from './utils/userRoutes';
 
 export function App() {
@@ -57,12 +58,12 @@ function ForumRouter() {
         && url.search === window.location.search
         && url.hash !== window.location.hash
       ) {
-        const floor = url.hash.match(/^#(?:floor-)?(\d+)$/)?.[1];
+        const floor = getThreadFloorFromHash(url.hash);
         if (!floor) return;
 
         event.preventDefault();
         window.history.pushState(null, '', `${url.pathname}${url.search}#${floor}`);
-        document.getElementById(`floor-${floor}`)?.scrollIntoView({ block: 'start' });
+        getThreadFloorElement(floor)?.scrollIntoView({ block: 'start' });
         return;
       }
 

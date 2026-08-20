@@ -216,7 +216,7 @@ function normalizeThreadHref(value: string) {
     const page = toNumber(url.searchParams.get('p'));
     if (page > 1) params.set('p', String(page));
     const floor = toNumber(url.hash.replace(/^#/, ''));
-    return `/?${params.toString()}${floor ? `#floor-${floor}` : ''}`;
+    return `/?${params.toString()}${floor ? `#${floor}` : ''}`;
   } catch {
     return value;
   }

@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { Bookmark, BookmarkCheck, Eye, MessageCircle, RotateCw } from 'lucide-react';
 import { ReplyEditor, type QuoteRequest } from '../components/thread/ReplyEditor';
 import { ThreadFloor } from '../components/thread/ThreadFloor';
@@ -11,17 +11,26 @@ import type { NestedReply, ThreadFloorData } from '../data/threadDemo';
 import { useScrollContextTitle } from '../hooks/useScrollContextTitle';
 import { useThreadData } from '../hooks/useThreadData';
 import { getLoginPathWithReturnTo } from '../utils/authRoutes';
-import { getThreadEditHref } from '../utils/threadRoutes';
+import {
+  getThreadEditHref,
+  getThreadFloorElement,
+  getThreadFloorFromHash,
+  getThreadPageForFloor,
+} from '../utils/threadRoutes';
 
 function getThreadRequest() {
   const params = new URLSearchParams(window.location.search);
   const tid = positiveInteger(params.get('tid') ?? params.get('thread'));
   const requestedBid = positiveInteger(params.get('bid'));
+  const authorOnly = params.get('see_lz') === '1' || params.get('author') === '1';
+  const hashFloor = getThreadFloorFromHash(window.location.hash);
 
   return {
-    authorOnly: params.get('see_lz') === '1' || params.get('author') === '1',
+    authorOnly,
     bid: requestedBid || (tid === 102 ? 3 : 0),
-    page: positiveInteger(params.get('p') ?? params.get('page')) || 1,
+    page: !authorOnly && hashFloor
+      ? getThreadPageForFloor(hashFloor)
+      : positiveInteger(params.get('p') ?? params.get('page')) || 1,
     tid,
   };
 }
@@ -51,9 +60,15 @@ export function ThreadPage() {
     setBookmarkError(null);
   }, [data]);
 
+  useLayoutEffect(() => {
+    if (!data) return;
+    const hashFloor = getThreadFloorFromHash(window.location.hash);
+    if (hashFloor) getThreadFloorElement(hashFloor)?.scrollIntoView({ block: 'start' });
+  }, [data]);
+
   useEffect(() => {
     const floorElements = pageFloors
-      .map((floor) => document.getElementById(`floor-${floor.floor}`))
+      .map((floor) => getThreadFloorElement(floor.floor))
       .filter((floor): floor is HTMLElement => floor !== null);
     let frame = 0;
 
@@ -85,13 +100,6 @@ export function ThreadPage() {
     window.addEventListener('scroll', scheduleActiveFloorUpdate, { passive: true });
     window.addEventListener('resize', scheduleActiveFloorUpdate);
     scheduleActiveFloorUpdate();
-
-    const hashFloor = Number(window.location.hash.match(/^#(?:floor-)?(\d+)$/)?.[1]);
-    if (hashFloor) {
-      window.requestAnimationFrame(() => {
-        document.getElementById(`floor-${hashFloor}`)?.scrollIntoView({ block: 'start' });
-      });
-    }
 
     return () => {
       window.removeEventListener('scroll', scheduleActiveFloorUpdate);

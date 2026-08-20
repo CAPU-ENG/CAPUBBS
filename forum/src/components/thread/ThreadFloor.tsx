@@ -247,7 +247,7 @@ export function ThreadFloor({
   return (
     <article
       className="thread-floor"
-      id={`floor-${floor.floor}`}
+      id={String(floor.floor)}
       data-floor={floor.floor}
       onCopy={copyAsPlainText}
     >

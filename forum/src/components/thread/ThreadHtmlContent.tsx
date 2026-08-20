@@ -7,6 +7,7 @@ import {
 } from '../../utils/forumMarkup';
 import { FORUM_LOCATION_CHANGE_EVENT } from '../../utils/authRoutes';
 import { translateLegacyForumThreadHref } from '../../utils/legacyForumRoutes';
+import { getThreadFloorElement, getThreadFloorFromHash } from '../../utils/threadRoutes';
 import {
   findSignatureFloorMarkers,
   replaceLegacySignatureFloorScripts,
@@ -131,8 +132,9 @@ function ThreadSandboxedHtmlFrame({
         else {
           window.requestAnimationFrame(() => {
             const hashTarget = decodeURIComponent(targetUrl.hash.slice(1));
-            const floor = hashTarget.match(/^(?:floor-)?(\d+)$/)?.[1];
-            document.getElementById(floor ? `floor-${floor}` : hashTarget)?.scrollIntoView({ block: 'start' });
+            const floor = getThreadFloorFromHash(`#${hashTarget}`);
+            (floor ? getThreadFloorElement(floor) : document.getElementById(hashTarget))
+              ?.scrollIntoView({ block: 'start' });
           });
         }
         return;

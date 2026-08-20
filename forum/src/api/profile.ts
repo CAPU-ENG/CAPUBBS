@@ -341,7 +341,7 @@ function mapRecord(row: ApiRow, kind: 'bookmark' | 'post' | 'reply'): ProfileRec
 
   const floor = kind === 'reply' && pid > 0 ? pid : null;
   const page = floor ? Math.max(1, Math.ceil(floor / 12)) : 1;
-  const floorHash = floor ? `#floor-${floor}` : '';
+  const floorHash = floor ? `#${floor}` : '';
   return {
     author: stringValue(row.author),
     board: stringValue(row.board ?? row.boardname) || `版块 ${bid}`,

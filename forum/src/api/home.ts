@@ -4,7 +4,6 @@ import { normalizeLegacyAvatar } from '../utils/legacyAssets';
 const HOME_API_URL = import.meta.env.VITE_API_URL?.trim() || '/api/api.php';
 const HOME_CALENDAR_API_URL = import.meta.env.VITE_CALENDAR_API_URL?.trim()
   || '/assets/api/getCalendar.php';
-const THREAD_FLOORS_PER_PAGE = 12;
 const avatarCache = new Map<string, string>();
 const avatarRequests = new Map<string, Promise<string>>();
 
@@ -160,7 +159,6 @@ function mapThreadRow(row: ApiRow, linkToLatestFloor = false): HomeThread | null
   const author = plainText(row.replyer) || plainText(row.author) || '匿名用户';
   const replies = toNumber(row.reply);
   const targetFloor = replies + 1;
-  const targetPage = Math.max(1, Math.ceil(targetFloor / THREAD_FLOORS_PER_PAGE));
   const timestamp = toTimestamp(row.timestamp ?? row.postdate);
   const rawSummary = typeof row.text === 'string' ? row.text : '';
   const summary = excerptText(rawSummary) || (
@@ -175,7 +173,7 @@ function mapThreadRow(row: ApiRow, linkToLatestFloor = false): HomeThread | null
     avatar: '',
     bid,
     href: linkToLatestFloor
-      ? `/?bid=${bid}&tid=${tid}&p=${targetPage}#${targetFloor}`
+      ? `/?bid=${bid}&tid=${tid}#${targetFloor}`
       : `/?bid=${bid}&tid=${tid}&p=1`,
     id: `${bid}-${tid}`,
     isRecent: timestamp ? Date.now() - new Date(timestamp).getTime() < 24 * 60 * 60 * 1000 : false,
