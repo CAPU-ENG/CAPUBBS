@@ -3,9 +3,11 @@ import {
   fetchGlobalPinnedThreads,
   fetchHomeCalendar,
   fetchHomeFeed,
+  fetchHomeSignupActivities,
   hydrateHomeThreadAvatars,
   isAbortError,
   type HomeCalendarEvent,
+  type HomeSignupActivity,
   type HomeThread,
 } from '../api/home';
 
@@ -23,6 +25,12 @@ type CalendarState = {
   status: HomeDataStatus;
 };
 
+type SignupState = {
+  error: string;
+  items: HomeSignupActivity[];
+  status: HomeDataStatus;
+};
+
 const initialCollection: CollectionState = {
   error: '',
   items: [],
@@ -30,6 +38,12 @@ const initialCollection: CollectionState = {
 };
 
 const initialCalendar: CalendarState = {
+  error: '',
+  items: [],
+  status: 'loading',
+};
+
+const initialSignup: SignupState = {
   error: '',
   items: [],
   status: 'loading',
@@ -43,6 +57,7 @@ export function useHomeData() {
   const [feedLimit, setFeedLimit] = useState(HOME_FEED_BATCH_SIZE);
   const [pinned, setPinned] = useState<CollectionState>(initialCollection);
   const [calendar, setCalendar] = useState<CalendarState>(initialCalendar);
+  const [signup, setSignup] = useState<SignupState>(initialSignup);
   const [requestVersion, setRequestVersion] = useState(0);
 
   const retry = useCallback(() => setRequestVersion((version) => version + 1), []);
@@ -127,5 +142,25 @@ export function useHomeData() {
     return () => controller.abort();
   }, [requestVersion]);
 
-  return { calendar, feed, feedHasMore, loadMore, pinned, retry };
+  useEffect(() => {
+    const controller = new AbortController();
+    setSignup((current) => ({ ...current, error: '', status: 'loading' }));
+
+    void fetchHomeSignupActivities(5, controller.signal).then(
+      (items) => setSignup({ error: '', items, status: 'ready' }),
+      (error: unknown) => {
+        if (!isAbortError(error)) {
+          setSignup((current) => ({
+            ...current,
+            error: error instanceof Error ? error.message : '活动报名加载失败，请稍后重试。',
+            status: 'error',
+          }));
+        }
+      },
+    );
+
+    return () => controller.abort();
+  }, [requestVersion]);
+
+  return { calendar, feed, feedHasMore, loadMore, pinned, retry, signup };
 }

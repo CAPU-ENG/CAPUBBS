@@ -1,10 +1,9 @@
 import { useEffect, useId, useMemo, useRef, useState } from 'react';
 import { Bike, CalendarDays, ChevronLeft, ChevronRight, Clock3, Info, Pin, Settings } from 'lucide-react';
-import type { HomeCalendarEvent, HomeThread } from '../../api/home';
+import type { HomeCalendarEvent, HomeSignupActivity, HomeThread } from '../../api/home';
 import { useAuth } from '../../context/AuthContext';
 import type { HomeDataStatus } from '../../hooks/useHomeData';
 import { canManageCalendar } from '../../utils/calendarManagement';
-import { signupActivities } from './homeData';
 
 const HOME_CALENDAR_MIN_YEAR = 1995;
 const HOME_CALENDAR_MONTHS = Array.from({ length: 12 }, (_item, month) => ({
@@ -22,6 +21,17 @@ function formatCountdown(deadline: string, now: number) {
   const minutes = totalMinutes % 60;
 
   return `${days} 天 ${hours} 小时 ${minutes} 分钟`;
+}
+
+function formatSignupMoment(timestamp: string, prefix: string) {
+  return `${prefix} ${new Intl.DateTimeFormat('zh-CN', {
+    day: 'numeric',
+    hour: '2-digit',
+    hour12: false,
+    minute: '2-digit',
+    month: 'numeric',
+    timeZone: 'Asia/Shanghai',
+  }).format(new Date(timestamp))}`;
 }
 
 function dateKey(year: number, month: number, day: number) {
@@ -44,6 +54,7 @@ type DesktopHomeAsideProps = PinnedProps & {
   calendarError: string;
   calendarItems: HomeCalendarEvent[];
   calendarStatus: HomeDataStatus;
+  signupItems: HomeSignupActivity[];
 };
 
 function PinnedPanel({ items, readThreadIds }: PinnedProps) {
@@ -68,7 +79,13 @@ function PinnedPanel({ items, readThreadIds }: PinnedProps) {
   );
 }
 
-export function ActivitySignupList({ className = '' }: { className?: string }) {
+export function ActivitySignupList({
+  className = '',
+  items,
+}: {
+  className?: string;
+  items: HomeSignupActivity[];
+}) {
   const [now, setNow] = useState(() => Date.now());
 
   useEffect(() => {
@@ -78,34 +95,38 @@ export function ActivitySignupList({ className = '' }: { className?: string }) {
 
   return (
     <div className={`signup-list ${className}`}>
-      {signupActivities.map((activity) => (
-        <a className="signup-activity-card" href={`#signup-${activity.title}`} key={activity.title}>
-          <div className="signup-card-topline">
-            <span>{activity.date}</span>
-            <em>报名中</em>
-          </div>
-          <h3>{activity.title}</h3>
-          <div className="signup-card-footer">
-            <time className="signup-card-countdown" dateTime={activity.deadline}>
-              <Clock3 size={13} />
-              <strong>{formatCountdown(activity.deadline, now)}</strong>
-            </time>
-            <span className="signup-card-count">{activity.signupCount} 人报名</span>
-          </div>
-        </a>
-      ))}
+      {items.filter((activity) => new Date(activity.endsAt).getTime() > now).map((activity) => {
+        const upcoming = new Date(activity.startsAt).getTime() > now;
+        const countdownTarget = upcoming ? activity.startsAt : activity.endsAt;
+        return (
+          <a className="signup-activity-card" href={activity.href} key={activity.id}>
+            <div className="signup-card-topline">
+              <span>{formatSignupMoment(countdownTarget, upcoming ? '开始' : '截止')}</span>
+              <em>{upcoming ? '即将开始' : '报名中'}</em>
+            </div>
+            <h3>{activity.title}</h3>
+            <div className="signup-card-footer">
+              <time className="signup-card-countdown" dateTime={countdownTarget}>
+                <Clock3 size={13} />
+                <strong>{formatCountdown(countdownTarget, now)}</strong>
+              </time>
+              <span className="signup-card-count">{activity.signupCount} 人报名</span>
+            </div>
+          </a>
+        );
+      })}
     </div>
   );
 }
 
-function ActivitySignupPanel() {
+function ActivitySignupPanel({ items }: { items: HomeSignupActivity[] }) {
   return (
     <section className="aside-card" aria-labelledby="signup-title">
       <header className="aside-card-header">
         <span className="aside-card-icon"><Bike size={16} /></span>
         <h2 id="signup-title">活动报名</h2>
       </header>
-      <ActivitySignupList />
+      <ActivitySignupList items={items} />
     </section>
   );
 }
@@ -344,11 +365,12 @@ export function DesktopHomeAside({
   calendarStatus,
   items,
   readThreadIds,
+  signupItems,
 }: DesktopHomeAsideProps) {
   return (
     <aside className="home-aside">
       {items.length > 0 && <PinnedPanel items={items} readThreadIds={readThreadIds} />}
-      {signupActivities.length > 0 && <ActivitySignupPanel />}
+      {signupItems.length > 0 && <ActivitySignupPanel items={signupItems} />}
       <ActivityCalendar
         error={calendarError}
         items={calendarItems}

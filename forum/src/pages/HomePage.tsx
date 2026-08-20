@@ -9,7 +9,7 @@ import { useReadThreadIds } from '../hooks/useReadThreadIds';
 
 export function HomePage() {
   const { viewer } = useAuth();
-  const { calendar, feed, feedHasMore, loadMore, pinned, retry } = useHomeData();
+  const { calendar, feed, feedHasMore, loadMore, pinned, retry, signup } = useHomeData();
   const readThreadIds = useReadThreadIds(viewer?.username);
 
   return (
@@ -22,6 +22,7 @@ export function HomePage() {
         calendarStatus={calendar.status}
         pinnedItems={pinned.items}
         readThreadIds={readThreadIds}
+        signupItems={signup.items}
       />
 
       <main className="page-shell">
@@ -40,6 +41,7 @@ export function HomePage() {
             calendarStatus={calendar.status}
             items={pinned.items}
             readThreadIds={readThreadIds}
+            signupItems={signup.items}
           />
         </div>
       </main>

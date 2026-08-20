@@ -1,9 +1,8 @@
 import { useEffect, useRef, useState } from 'react';
 import { Bike, CalendarDays, ChevronDown, ChevronRight, Pin } from 'lucide-react';
-import type { HomeCalendarEvent, HomeThread } from '../../api/home';
+import type { HomeCalendarEvent, HomeSignupActivity, HomeThread } from '../../api/home';
 import type { HomeDataStatus } from '../../hooks/useHomeData';
 import { ActivityCalendar, ActivitySignupList } from './HomeAside';
-import { signupActivities } from './homeData';
 
 type ExpandedPanel = 'pinned' | 'signup' | 'calendar' | null;
 
@@ -13,6 +12,7 @@ type MobileActivityBarProps = {
   calendarStatus: HomeDataStatus;
   pinnedItems: HomeThread[];
   readThreadIds: ReadonlySet<string>;
+  signupItems: HomeSignupActivity[];
 };
 
 export function MobileActivityBar({
@@ -21,12 +21,13 @@ export function MobileActivityBar({
   calendarStatus,
   pinnedItems,
   readThreadIds,
+  signupItems,
 }: MobileActivityBarProps) {
   const [expandedPanel, setExpandedPanel] = useState<ExpandedPanel>(null);
   const [hideOffset, setHideOffset] = useState(0);
   const overviewRef = useRef<HTMLElement | null>(null);
   const hasPinnedThreads = pinnedItems.length > 0;
-  const hasSignupActivities = signupActivities.length > 0;
+  const hasSignupActivities = signupItems.length > 0;
   const tabCount = Number(hasPinnedThreads) + Number(hasSignupActivities) + 1;
 
   useEffect(() => {
@@ -140,7 +141,7 @@ export function MobileActivityBar({
 
       {hasSignupActivities && expandedPanel === 'signup' && (
         <div className="mobile-overview-panel" id="mobile-signup-panel">
-          <ActivitySignupList className="mobile-signup-list" />
+          <ActivitySignupList className="mobile-signup-list" items={signupItems} />
         </div>
       )}
 

@@ -40,6 +40,15 @@ export type HomeCalendarEvent = {
   url: string;
 };
 
+export type HomeSignupActivity = {
+  endsAt: string;
+  href: string;
+  id: string;
+  signupCount: number;
+  startsAt: string;
+  title: string;
+};
+
 export class HomeApiError extends Error {
   constructor(message: string) {
     super(message);
@@ -55,6 +64,13 @@ export async function fetchHomeFeed(limit = 15, signal?: AbortSignal) {
 export async function fetchGlobalPinnedThreads(signal?: AbortSignal) {
   const rows = await requestRows({ ask: 'global_top' }, signal);
   return rows.map((row) => mapThreadRow(row)).filter((thread): thread is HomeThread => thread !== null);
+}
+
+export async function fetchHomeSignupActivities(limit = 5, signal?: AbortSignal) {
+  const rows = await requestRows({ ask: 'activity_signup_list', limit }, signal);
+  return rows
+    .map(mapSignupActivityRow)
+    .filter((activity): activity is HomeSignupActivity => activity !== null);
 }
 
 export async function fetchHomeCalendar(signal?: AbortSignal) {
@@ -215,6 +231,26 @@ function mapCalendarRow(value: unknown, index: number): HomeCalendarEvent | null
     time,
     title,
     url: normalizeCalendarUrl(value.url),
+  };
+}
+
+function mapSignupActivityRow(row: ApiRow): HomeSignupActivity | null {
+  const activityId = toNumber(row.activity_id);
+  const bid = toNumber(row.bid);
+  const tid = toNumber(row.tid);
+  const title = plainText(row.name);
+  const startsAt = toTimestamp(row.starts_at);
+  const endsAt = toTimestamp(row.ends_at);
+
+  if (!activityId || !bid || !tid || !title || !startsAt || !endsAt) return null;
+
+  return {
+    endsAt,
+    href: `/?bid=${bid}&tid=${tid}&p=1`,
+    id: String(activityId),
+    signupCount: toNumber(row.signup_count),
+    startsAt,
+    title,
   };
 }
 
