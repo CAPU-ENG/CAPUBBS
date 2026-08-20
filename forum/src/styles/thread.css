@@ -202,6 +202,10 @@
     height: 46px;
   }
 
+  .thread-avatar-rail:hover {
+    z-index: 80;
+  }
+
   .thread-avatar-button {
     display: block;
     width: 44px;
@@ -221,7 +225,7 @@
 
   .author-hover-card {
     position: absolute;
-    z-index: 35;
+    z-index: 90;
     top: calc(100% + 8px);
     right: -10px;
     left: auto;
@@ -697,6 +701,20 @@
     object-fit: contain;
     transform-origin: center;
     will-change: transform;
+  }
+
+  .thread-image-lightbox-backdrop[data-can-pan="true"]
+    .thread-image-lightbox,
+  .thread-image-lightbox-backdrop[data-can-pan="true"]
+    .thread-image-lightbox > img {
+    cursor: grab;
+  }
+
+  .thread-image-lightbox-backdrop[data-dragging="true"]
+    .thread-image-lightbox,
+  .thread-image-lightbox-backdrop[data-dragging="true"]
+    .thread-image-lightbox > img {
+    cursor: grabbing;
   }
 
   .thread-image-lightbox > button {

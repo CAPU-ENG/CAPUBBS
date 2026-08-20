@@ -7,6 +7,16 @@ const MIN_IMAGE_SCALE = 1;
 const MAX_IMAGE_SCALE = 4;
 const IMAGE_SCALE_STEP = 0.25;
 
+type ImageOffset = { x: number; y: number };
+
+type DragState = {
+  pointerId: number;
+  startX: number;
+  startY: number;
+  originX: number;
+  originY: number;
+};
+
 function clampImageScale(scale: number) {
   return Math.min(MAX_IMAGE_SCALE, Math.max(MIN_IMAGE_SCALE, scale));
 }
@@ -27,10 +37,16 @@ export function ThreadImageLightbox({
   onClose: () => void;
 }) {
   const [scale, setScale] = useState(MIN_IMAGE_SCALE);
+  const [offset, setOffset] = useState<ImageOffset>({ x: 0, y: 0 });
+  const [isDragging, setIsDragging] = useState(false);
   const backdropRef = useRef<HTMLDivElement | null>(null);
   const dialogRef = useRef<HTMLElement | null>(null);
+  const imageRef = useRef<HTMLImageElement | null>(null);
   const closeButtonRef = useRef<HTMLButtonElement | null>(null);
   const scaleRef = useRef(MIN_IMAGE_SCALE);
+  const offsetRef = useRef<ImageOffset>({ x: 0, y: 0 });
+  const dragRef = useRef<DragState | null>(null);
+  const interactionMovedRef = useRef(false);
   const touchPointsRef = useRef(
     new Map<number, { x: number; y: number }>(),
   );
@@ -39,10 +55,46 @@ export function ThreadImageLightbox({
   const onCloseRef = useRef(onClose);
   onCloseRef.current = onClose;
 
+  function clampOffset(nextOffset: ImageOffset, nextScale = scaleRef.current) {
+    const backdrop = backdropRef.current;
+    const imageElement = imageRef.current;
+    if (!backdrop || !imageElement || nextScale <= MIN_IMAGE_SCALE) {
+      return { x: 0, y: 0 };
+    }
+
+    const maxX = Math.max(
+      0,
+      (imageElement.clientWidth * nextScale - backdrop.clientWidth) / 2,
+    );
+    const maxY = Math.max(
+      0,
+      (imageElement.clientHeight * nextScale - backdrop.clientHeight) / 2,
+    );
+
+    return {
+      x: Math.min(maxX, Math.max(-maxX, nextOffset.x)),
+      y: Math.min(maxY, Math.max(-maxY, nextOffset.y)),
+    };
+  }
+
+  function updateOffset(nextOffset: ImageOffset, nextScale = scaleRef.current) {
+    const clampedOffset = clampOffset(nextOffset, nextScale);
+    offsetRef.current = clampedOffset;
+    setOffset(clampedOffset);
+  }
+
   function updateScale(nextScale: number) {
     const clampedScale = Math.round(clampImageScale(nextScale) * 100) / 100;
     scaleRef.current = clampedScale;
     setScale(clampedScale);
+    updateOffset(offsetRef.current, clampedScale);
+  }
+
+  function resetImageView() {
+    scaleRef.current = MIN_IMAGE_SCALE;
+    offsetRef.current = { x: 0, y: 0 };
+    setScale(MIN_IMAGE_SCALE);
+    setOffset({ x: 0, y: 0 });
   }
 
   useEffect(() => {
@@ -76,7 +128,7 @@ export function ThreadImageLightbox({
       if (event.key === '0') {
         event.preventDefault();
         event.stopPropagation();
-        updateScale(MIN_IMAGE_SCALE);
+        resetImageView();
         return;
       }
 
@@ -137,7 +189,12 @@ export function ThreadImageLightbox({
       }
     }
 
+    function keepImageWithinViewport() {
+      updateOffset(offsetRef.current, scaleRef.current);
+    }
+
     document.addEventListener('keydown', handleKeyDown, { capture: true });
+    window.addEventListener('resize', keepImageWithinViewport);
     backdrop?.addEventListener('wheel', handleWheel, { passive: false });
     backdrop?.addEventListener('gesturestart', handleGestureStart, {
       passive: false,
@@ -151,6 +208,7 @@ export function ThreadImageLightbox({
 
     return () => {
       document.removeEventListener('keydown', handleKeyDown, { capture: true });
+      window.removeEventListener('resize', keepImageWithinViewport);
       backdrop?.removeEventListener('wheel', handleWheel);
       backdrop?.removeEventListener('gesturestart', handleGestureStart);
       backdrop?.removeEventListener('gesturechange', handleGestureChange);
@@ -163,63 +221,118 @@ export function ThreadImageLightbox({
     };
   }, []);
 
-  function handleTouchPointerDown(
-    event: React.PointerEvent<HTMLDivElement>,
-  ) {
-    if (event.pointerType !== 'touch') return;
+  function startDragging(pointerId: number, clientX: number, clientY: number) {
+    dragRef.current = {
+      pointerId,
+      startX: clientX,
+      startY: clientY,
+      originX: offsetRef.current.x,
+      originY: offsetRef.current.y,
+    };
+    setIsDragging(true);
+  }
+
+  function handlePointerDown(event: React.PointerEvent<HTMLDivElement>) {
     if (
       event.target instanceof Element &&
-      event.target.closest('.thread-image-lightbox-controls')
+      event.target.closest('button, .thread-image-lightbox-controls')
     ) {
       return;
     }
 
+    const isTouch = event.pointerType === 'touch';
+    const isPrimaryMouse = event.pointerType === 'mouse' && event.button === 0;
+    if (!isTouch && !isPrimaryMouse) return;
+
+    interactionMovedRef.current = false;
+
+    if (!isTouch && scaleRef.current <= MIN_IMAGE_SCALE) return;
+
     event.preventDefault();
     event.currentTarget.setPointerCapture(event.pointerId);
-    touchPointsRef.current.set(event.pointerId, {
-      x: event.clientX,
-      y: event.clientY,
-    });
 
-    if (touchPointsRef.current.size === 2) {
-      pinchDistanceRef.current = getPointerDistance(touchPointsRef.current);
+    if (isTouch) {
+      touchPointsRef.current.set(event.pointerId, {
+        x: event.clientX,
+        y: event.clientY,
+      });
+
+      if (touchPointsRef.current.size === 2) {
+        pinchDistanceRef.current = getPointerDistance(touchPointsRef.current);
+        dragRef.current = null;
+        setIsDragging(false);
+        return;
+      }
+    }
+
+    if (scaleRef.current > MIN_IMAGE_SCALE) {
+      startDragging(event.pointerId, event.clientX, event.clientY);
     }
   }
 
-  function handleTouchPointerMove(
-    event: React.PointerEvent<HTMLDivElement>,
-  ) {
-    if (!touchPointsRef.current.has(event.pointerId)) return;
+  function handlePointerMove(event: React.PointerEvent<HTMLDivElement>) {
+    const isTrackedTouch = touchPointsRef.current.has(event.pointerId);
+    const dragState = dragRef.current;
+    if (!isTrackedTouch && dragState?.pointerId !== event.pointerId) return;
 
     event.preventDefault();
     event.stopPropagation();
-    touchPointsRef.current.set(event.pointerId, {
-      x: event.clientX,
-      y: event.clientY,
-    });
 
-    if (touchPointsRef.current.size !== 2) return;
-    const nextDistance = getPointerDistance(touchPointsRef.current);
-    const previousDistance = pinchDistanceRef.current;
-    if (!nextDistance || !previousDistance) {
+    if (isTrackedTouch) {
+      touchPointsRef.current.set(event.pointerId, {
+        x: event.clientX,
+        y: event.clientY,
+      });
+    }
+
+    if (touchPointsRef.current.size === 2) {
+      const nextDistance = getPointerDistance(touchPointsRef.current);
+      const previousDistance = pinchDistanceRef.current;
+      if (!nextDistance || !previousDistance) {
+        pinchDistanceRef.current = nextDistance;
+        return;
+      }
+
+      if (Math.abs(nextDistance - previousDistance) > 1) {
+        interactionMovedRef.current = true;
+      }
+      updateScale(scaleRef.current * (nextDistance / previousDistance));
       pinchDistanceRef.current = nextDistance;
       return;
     }
 
-    updateScale(scaleRef.current * (nextDistance / previousDistance));
-    pinchDistanceRef.current = nextDistance;
+    if (!dragState || scaleRef.current <= MIN_IMAGE_SCALE) return;
+    const deltaX = event.clientX - dragState.startX;
+    const deltaY = event.clientY - dragState.startY;
+    if (Math.hypot(deltaX, deltaY) > 3) {
+      interactionMovedRef.current = true;
+    }
+    updateOffset({
+      x: dragState.originX + deltaX,
+      y: dragState.originY + deltaY,
+    });
   }
 
-  function handleTouchPointerEnd(
-    event: React.PointerEvent<HTMLDivElement>,
-  ) {
-    if (!touchPointsRef.current.has(event.pointerId)) return;
+  function handlePointerEnd(event: React.PointerEvent<HTMLDivElement>) {
+    const wasTrackedTouch = touchPointsRef.current.delete(event.pointerId);
+    const wasDragging = dragRef.current?.pointerId === event.pointerId;
+    if (!wasTrackedTouch && !wasDragging) return;
 
-    touchPointsRef.current.delete(event.pointerId);
     pinchDistanceRef.current =
       touchPointsRef.current.size === 2
         ? getPointerDistance(touchPointsRef.current)
         : null;
+
+    if (touchPointsRef.current.size === 1 && scaleRef.current > MIN_IMAGE_SCALE) {
+      const [remainingPointer] = touchPointsRef.current.entries();
+      if (remainingPointer) {
+        const [pointerId, point] = remainingPointer;
+        startDragging(pointerId, point.x, point.y);
+      }
+    } else {
+      dragRef.current = null;
+      setIsDragging(false);
+    }
 
     if (event.currentTarget.hasPointerCapture(event.pointerId)) {
       event.currentTarget.releasePointerCapture(event.pointerId);
@@ -231,13 +344,20 @@ export function ThreadImageLightbox({
   return createPortal(
     <div
       className="thread-image-lightbox-backdrop"
-      onMouseDown={(event) => {
-        if (event.target === event.currentTarget) onClose();
+      data-can-pan={scale > MIN_IMAGE_SCALE}
+      data-dragging={isDragging}
+      onClick={(event) => {
+        if (
+          event.target === event.currentTarget &&
+          !interactionMovedRef.current
+        ) {
+          onClose();
+        }
       }}
-      onPointerCancel={handleTouchPointerEnd}
-      onPointerDown={handleTouchPointerDown}
-      onPointerMove={handleTouchPointerMove}
-      onPointerUp={handleTouchPointerEnd}
+      onPointerCancel={handlePointerEnd}
+      onPointerDown={handlePointerDown}
+      onPointerMove={handlePointerMove}
+      onPointerUp={handlePointerEnd}
       ref={backdropRef}
       role="presentation"
     >
@@ -259,8 +379,12 @@ export function ThreadImageLightbox({
         <img
           alt={image.alt}
           draggable="false"
+          onLoad={() => updateOffset(offsetRef.current, scaleRef.current)}
+          ref={imageRef}
           src={image.src}
-          style={{ transform: `scale(${scale})` }}
+          style={{
+            transform: `translate3d(${offset.x}px, ${offset.y}px, 0) scale(${scale})`,
+          }}
         />
         {image.alt && <figcaption>{image.alt}</figcaption>}
         <div
@@ -292,7 +416,7 @@ export function ThreadImageLightbox({
           <button
             aria-label="恢复原始大小"
             disabled={scale === MIN_IMAGE_SCALE}
-            onClick={() => updateScale(MIN_IMAGE_SCALE)}
+            onClick={resetImageView}
             title="恢复原始大小（0）"
             type="button"
           >
