@@ -251,6 +251,181 @@ function jiekoufunc_activity_update($con, $token, $bid, $tid, $params) {
     );
 }
 
+function jiekoufunc_activity_signup_summary($con, $token, $bid, $tid, $params) {
+    if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+        return activity_handler_error('-1', '仅支持 POST');
+    }
+
+    $user = activity_handler_current_user($con, $token);
+    if (!$user) {
+        return activity_handler_error('-2', '请先登录');
+    }
+
+    $bid = intval($bid);
+    $tid = intval($tid);
+    $activity_result = mysqli_query($con, "select activity_id, leader_username
+        from season_threads_activity where bid=$bid and tid=$tid limit 1");
+    $activity = $activity_result ? mysqli_fetch_assoc($activity_result) : null;
+    if (!$activity) {
+        return activity_handler_error('3', '活动不存在');
+    }
+    if ($user['username'] !== $activity['leader_username'] && intval($user['rights']) < 3) {
+        return activity_handler_error('5', '仅活动楼主或权限值不低于 3 的用户可以查看报名汇总');
+    }
+
+    $page = max(1, intval(isset($params['page']) ? $params['page'] : 1));
+    $page_size = intval(isset($params['page_size']) ? $params['page_size'] : 50);
+    if ($page_size <= 0) $page_size = 50;
+    if ($page_size > 100) $page_size = 100;
+
+    if (!activity_handler_acquire_update_lock($con, $bid, $tid)) {
+        return activity_handler_error('8', '活动正在处理报名，请稍后重试');
+    }
+
+    try {
+        return activity_handler_signup_summary_locked(
+            $con,
+            intval($activity['activity_id']),
+            $page,
+            $page_size
+        );
+    } finally {
+        activity_handler_release_update_lock($con, $bid, $tid);
+    }
+}
+
+function activity_handler_signup_summary_locked($con, $activity_id, $page, $page_size) {
+    $activity_id = intval($activity_id);
+    $count_result = mysqli_query($con, "select
+            count(*) as total,
+            count(case when cancel=0 then 1 end) as effective,
+            count(case when cancel<>0 then 1 end) as canceled
+        from season_activity_join where activity_id=$activity_id");
+    $counts = $count_result ? mysqli_fetch_assoc($count_result) : null;
+    if (!$counts) {
+        return activity_handler_error('8', '报名汇总读取失败');
+    }
+
+    $total = intval($counts['total']);
+    $pages = max(1, intval(ceil($total / $page_size)));
+    $page = min(max(1, intval($page)), $pages);
+    $offset = ($page - 1) * $page_size;
+
+    $join_result = mysqli_query($con, "select
+            activity_join.join_id,
+            activity_join.username,
+            activity_join.cancel,
+            coalesce(posts.replytime, 0) as joined_at
+        from season_activity_join activity_join
+        left join posts on posts.fid=activity_join.post_fid
+        where activity_join.activity_id=$activity_id
+        order by activity_join.join_id asc
+        limit $offset, $page_size");
+    if (!$join_result) {
+        return activity_handler_error('8', '报名明细读取失败');
+    }
+
+    $records = array();
+    $record_indexes = array();
+    $join_ids = array();
+    while ($row = mysqli_fetch_assoc($join_result)) {
+        $join_id = intval($row['join_id']);
+        $record_indexes[$join_id] = count($records);
+        $join_ids[] = $join_id;
+        $records[] = array(
+            'record_id' => $join_id,
+            'username' => $row['username'],
+            'joined_at' => intval($row['joined_at']),
+            'status' => intval($row['cancel']) === 0 ? 'effective' : 'canceled',
+            'values' => array(),
+        );
+    }
+
+    if (!empty($join_ids)) {
+        $option_types = array();
+        $option_result = mysqli_query($con, "select id, type_id
+            from season_activity_option where activity_id=$activity_id and hiden=0");
+        if (!$option_result) {
+            return activity_handler_error('8', '报名字段读取失败');
+        }
+        while ($row = mysqli_fetch_assoc($option_result)) {
+            $option_types[intval($row['id'])] = intval($row['type_id']);
+        }
+
+        $case_names = array();
+        $case_result = mysqli_query($con, "select option_case.case_id, option_case.option_id, option_case.case_name
+            from season_option_case option_case
+            inner join season_activity_option activity_option on activity_option.id=option_case.option_id
+            where activity_option.activity_id=$activity_id and activity_option.hiden=0");
+        if (!$case_result) {
+            return activity_handler_error('8', '报名选项读取失败');
+        }
+        while ($row = mysqli_fetch_assoc($case_result)) {
+            $option_id = intval($row['option_id']);
+            if (!isset($case_names[$option_id])) $case_names[$option_id] = array();
+            $case_names[$option_id][intval($row['case_id'])] = $row['case_name'];
+        }
+
+        $join_id_list = implode(',', array_map('intval', $join_ids));
+        $value_result = mysqli_query($con, "select option_value.join_id, option_value.option_id, option_value.value
+            from season_join_option_value option_value
+            inner join season_activity_option activity_option on activity_option.id=option_value.option_id
+            where option_value.join_id in ($join_id_list)
+                and activity_option.activity_id=$activity_id
+                and activity_option.hiden=0
+            order by option_value.id asc");
+        if (!$value_result) {
+            return activity_handler_error('8', '报名答案读取失败');
+        }
+        while ($row = mysqli_fetch_assoc($value_result)) {
+            $join_id = intval($row['join_id']);
+            $option_id = intval($row['option_id']);
+            if (!isset($record_indexes[$join_id]) || !isset($option_types[$option_id])) continue;
+            $record_index = $record_indexes[$join_id];
+            $records[$record_index]['values'][strval($option_id)] = activity_handler_format_signup_value(
+                $option_types[$option_id],
+                strval($row['value']),
+                isset($case_names[$option_id]) ? $case_names[$option_id] : array()
+            );
+        }
+    }
+
+    return array(
+        array('code' => '0', 'msg' => 'success'),
+        array(
+            'totals' => array(
+                'total' => $total,
+                'effective' => intval($counts['effective']),
+                'canceled' => intval($counts['canceled']),
+            ),
+            'pagination' => array(
+                'page' => $page,
+                'page_size' => $page_size,
+                'pages' => $pages,
+            ),
+            'records' => $records,
+        ),
+    );
+}
+
+function activity_handler_format_signup_value($type_id, $value, $case_names) {
+    if (intval($type_id) === 1) {
+        $case_id = intval($value);
+        return isset($case_names[$case_id]) ? $case_names[$case_id] : $value;
+    }
+    if (intval($type_id) === 3) {
+        if (trim($value) === '') return array();
+        $values = array();
+        foreach (explode(',', $value) as $case_id_raw) {
+            $case_id = intval(trim($case_id_raw));
+            if ($case_id <= 0) continue;
+            $values[] = isset($case_names[$case_id]) ? $case_names[$case_id] : strval($case_id);
+        }
+        return $values;
+    }
+    return $value;
+}
+
 function jiekoufunc_activity_signup_list($con, $params) {
     $now = time();
     $limit = intval(isset($params['limit']) ? $params['limit'] : 10);

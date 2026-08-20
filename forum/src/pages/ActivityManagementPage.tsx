@@ -1,5 +1,7 @@
 import {
   ArrowLeft,
+  ChevronLeft,
+  ChevronRight,
   ClipboardList,
   Download,
   FileSpreadsheet,
@@ -10,9 +12,10 @@ import {
 } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 import {
-  fetchThreadDetail,
+  fetchActivitySignupSummary,
   isAbortError,
   updateActivityConfiguration,
+  type ActivitySignupSummary,
   type ThreadActivity,
   type ThreadActivityQuestion,
 } from '../api/thread';
@@ -24,7 +27,6 @@ import {
   ActivitySignupSchedule,
 } from '../components/thread/ActivitySignupEditor';
 import { useAuth } from '../context/AuthContext';
-import type { ThreadFloorData } from '../data/threadDemo';
 import { useThreadData } from '../hooks/useThreadData';
 import {
   createEditableActivitySettings,
@@ -32,7 +34,6 @@ import {
   createActivityQuestionCaseIds,
   createEditableActivityDateRange,
   getActivityRecordValue,
-  getActivitySignupRecords,
   reconcileActivityQuestionCaseIds,
   validateManagedActivityDateRange,
   type ActivityQuestionCaseIds,
@@ -57,7 +58,9 @@ export function ActivityManagementPage() {
     tid: request.tid,
   });
   const [activeTab, setActiveTab] = useState<ActivityManagementTab>(readTabFromLocation);
-  const [allFloors, setAllFloors] = useState<ThreadFloorData[]>([]);
+  const [signupSummary, setSignupSummary] = useState<ActivitySignupSummary | null>(null);
+  const [signupPage, setSignupPage] = useState(1);
+  const [signupRefreshKey, setSignupRefreshKey] = useState(0);
   const [signupLoadStatus, setSignupLoadStatus] = useState<'error' | 'loading' | 'ready'>('loading');
   const [managedActivity, setManagedActivity] = useState<ThreadActivity | null>(null);
   const [questionnaire, setQuestionnaire] = useState<ActivitySignupSettings | null>(null);
@@ -87,31 +90,22 @@ export function ActivityManagementPage() {
 
   useEffect(() => {
     if (!data || !data.activity || !isAuthorized) {
-      setAllFloors([]);
+      setSignupSummary(null);
       setSignupLoadStatus('loading');
       return;
     }
 
     const controller = new AbortController();
-    setAllFloors(data.floors);
-    if (data.pageCount <= 1) {
-      setSignupLoadStatus('ready');
-      return () => controller.abort();
-    }
-
     setSignupLoadStatus('loading');
-    void Promise.all(
-      Array.from({ length: data.pageCount - 1 }, (_, index) => fetchThreadDetail({
-        authorOnly: false,
-        bid: data.bid,
-        page: index + 2,
-        signal: controller.signal,
-        tid: data.tid,
-      })),
-    ).then(
-      (pages) => {
-        const floors = deduplicateFloors([data, ...pages].flatMap((page) => page.floors));
-        setAllFloors(floors);
+    void fetchActivitySignupSummary({
+      bid: data.bid,
+      page: signupPage,
+      signal: controller.signal,
+      tid: data.tid,
+    }).then(
+      (summary) => {
+        setSignupSummary(summary);
+        if (summary.page !== signupPage) setSignupPage(summary.page);
         setSignupLoadStatus('ready');
       },
       (loadError: unknown) => {
@@ -121,7 +115,7 @@ export function ActivityManagementPage() {
     );
 
     return () => controller.abort();
-  }, [data, isAuthorized]);
+  }, [data, isAuthorized, signupPage, signupRefreshKey]);
 
   function selectTab(tab: ActivityManagementTab) {
     setActiveTab(tab);
@@ -157,21 +151,8 @@ export function ActivityManagementPage() {
       setQuestionnaire(createEditableActivitySettings(updatedActivity));
       setActivityDateRange(createEditableActivityDateRange(updatedActivity));
       setQuestionCaseIds(createActivityQuestionCaseIds(updatedActivity.questions));
-      setSignupLoadStatus('loading');
-      try {
-        const pages = await Promise.all(
-          Array.from({ length: data.pageCount }, (_, index) => fetchThreadDetail({
-            authorOnly: false,
-            bid: data.bid,
-            page: index + 1,
-            tid: data.tid,
-          })),
-        );
-        setAllFloors(deduplicateFloors(pages.flatMap((page) => page.floors)));
-        setSignupLoadStatus('ready');
-      } catch {
-        setSignupLoadStatus('error');
-      }
+      setSignupPage(1);
+      setSignupRefreshKey((current) => current + 1);
       setQuestionnaireNotice({ error: false, text: '已保存' });
     } catch (saveError) {
       setQuestionnaireNotice({
@@ -186,10 +167,7 @@ export function ActivityManagementPage() {
   const threadHref = request.bid > 0 && request.tid > 0
     ? `/?${new URLSearchParams({ bid: String(request.bid), p: '1', tid: String(request.tid) }).toString()}#1`
     : '/';
-  const records = useMemo(
-    () => getActivitySignupRecords(allFloors, managedActivity?.questions ?? []),
-    [allFloors, managedActivity?.questions],
-  );
+  const records = signupSummary?.records ?? [];
 
   return (
     <div className="activity-management-page relative min-h-screen text-[var(--text)] transition-colors duration-200">
@@ -228,9 +206,9 @@ export function ActivityManagementPage() {
             </header>
 
             <div className="activity-management-metrics">
-              <ActivityMetric label="报名总数" value={records.length} />
-              <ActivityMetric label="有效报名" tone="success" value={records.filter((record) => record.status === '有效').length} />
-              <ActivityMetric label="取消报名" tone="warning" value={records.filter((record) => record.status === '已取消').length} />
+              <ActivityMetric label="报名总数" value={signupSummary?.totals.total ?? '-'} />
+              <ActivityMetric label="有效报名" tone="success" value={signupSummary?.totals.effective ?? '-'} />
+              <ActivityMetric label="取消报名" tone="warning" value={signupSummary?.totals.canceled ?? '-'} />
               <ActivityMetric label="报名截止" value={formatActivityTime(managedActivity.endsAt)} />
             </div>
 
@@ -269,7 +247,11 @@ export function ActivityManagementPage() {
                 />
               ) : activeTab === 'summary' ? (
                 <SignupSummaryPanel
+                  bid={data.bid}
                   loadStatus={signupLoadStatus}
+                  onPageChange={setSignupPage}
+                  page={signupSummary?.page ?? signupPage}
+                  pageCount={signupSummary?.pageCount ?? 1}
                   questions={managedActivity.questions}
                   records={records}
                   threadTitle={data.title}
@@ -321,19 +303,29 @@ function QuestionnairePanel({
 }
 
 function SignupSummaryPanel({
+  bid,
   loadStatus,
+  onPageChange,
+  page,
+  pageCount,
   questions,
   records,
   threadTitle,
   tid,
 }: {
+  bid: number;
   loadStatus: 'error' | 'loading' | 'ready';
+  onPageChange: (page: number) => void;
+  page: number;
+  pageCount: number;
   questions: ThreadActivityQuestion[];
   records: ActivitySignupRecord[];
   threadTitle: string;
   tid: number;
 }) {
   const [expandedValue, setExpandedValue] = useState<{ label: string; value: string } | null>(null);
+  const [exportError, setExportError] = useState('');
+  const [isExporting, setIsExporting] = useState(false);
 
   useEffect(() => {
     if (!expandedValue) return;
@@ -344,15 +336,37 @@ function SignupSummaryPanel({
     return () => window.removeEventListener('keydown', closeOnEscape);
   }, [expandedValue]);
 
+  async function exportSignupRecords() {
+    if (isExporting) return;
+    setExportError('');
+    setIsExporting(true);
+    try {
+      await downloadSignupCsv(bid, threadTitle, tid, questions);
+    } catch (error) {
+      setExportError(error instanceof Error ? error.message : '报名汇总导出失败，请稍后重试。');
+    } finally {
+      setIsExporting(false);
+    }
+  }
+
+  function changePage(nextPage: number) {
+    if (loadStatus === 'loading' || nextPage < 1 || nextPage > pageCount || nextPage === page) return;
+    setExpandedValue(null);
+    onPageChange(nextPage);
+  }
+
   return (
     <section className="activity-management-panel activity-summary-panel" aria-label="报名汇总">
       <header className="activity-management-panel-heading">
         <h2>报名信息</h2>
-        <button
-          disabled={loadStatus !== 'ready' || records.length === 0}
-          onClick={() => downloadSignupCsv(threadTitle, tid, questions, records)}
-          type="button"
-        ><Download size={15} />导出 CSV</button>
+        <div>
+          {exportError && <span className="activity-management-notice-error" role="alert">{exportError}</span>}
+          <button
+            disabled={loadStatus !== 'ready' || records.length === 0 || isExporting}
+            onClick={() => { void exportSignupRecords(); }}
+            type="button"
+          >{isExporting ? <LoaderCircle className="activity-management-spinner" size={15} /> : <Download size={15} />}{isExporting ? '导出中' : '导出 CSV'}</button>
+        </div>
       </header>
 
       {loadStatus === 'loading' ? (
@@ -375,9 +389,9 @@ function SignupSummaryPanel({
               </thead>
               <tbody>
                 {records.map((record) => (
-                  <tr key={record.floor.id}>
-                    <td className="activity-summary-id-column"><strong>{record.floor.author.name}</strong></td>
-                    <td className="activity-summary-time-column">{record.floor.publishedAt}</td>
+                  <tr key={record.id}>
+                    <td className="activity-summary-id-column"><strong>{record.username}</strong></td>
+                    <td className="activity-summary-time-column">{formatActivityRecordTime(record.joinedAt)}</td>
                     <td className="activity-summary-status-column"><ActivityRecordStatus status={record.status} /></td>
                     {questions.map((question) => {
                       const value = getActivityRecordValue(record, question);
@@ -404,6 +418,18 @@ function SignupSummaryPanel({
               </tbody>
             </table>
           </div>
+
+          {pageCount > 1 && (
+            <nav aria-label="报名明细分页" className="activity-summary-pagination">
+              <button disabled={page <= 1} onClick={() => changePage(page - 1)} type="button">
+                <ChevronLeft size={15} />上一页
+              </button>
+              <span>{page} / {pageCount}</span>
+              <button disabled={page >= pageCount} onClick={() => changePage(page + 1)} type="button">
+                下一页<ChevronRight size={15} />
+              </button>
+            </nav>
+          )}
 
           {expandedValue && (
             <div
@@ -480,17 +506,27 @@ function ActivityManagementState({
   );
 }
 
-function downloadSignupCsv(
+async function downloadSignupCsv(
+  bid: number,
   threadTitle: string,
   tid: number,
   questions: ThreadActivityQuestion[],
-  records: ActivitySignupRecord[],
 ) {
+  const records: ActivitySignupRecord[] = [];
+  let page = 1;
+  let pageCount = 1;
+  do {
+    const summary = await fetchActivitySignupSummary({ bid, page, pageSize: 100, tid });
+    records.push(...summary.records);
+    pageCount = summary.pageCount;
+    page += 1;
+  } while (page <= pageCount);
+
   const rows = [
     ['ID', '报名时间', '状态', ...questions.map((question) => question.label)],
     ...records.map((record) => [
-      record.floor.author.name,
-      record.floor.publishedAt,
+      record.username,
+      formatActivityRecordTime(record.joinedAt),
       record.status,
       ...questions.map((question) => getActivityRecordValue(record, question)),
     ]),
@@ -512,9 +548,15 @@ function safeFileName(value: string) {
   return value.replace(/[\\/:*?"<>|]/g, '-').trim();
 }
 
-function deduplicateFloors(floors: ThreadFloorData[]) {
-  return Array.from(new Map(floors.map((floor) => [floor.fid || floor.floor, floor])).values())
-    .sort((left, right) => left.floor - right.floor);
+function formatActivityRecordTime(timestamp: number) {
+  if (!timestamp) return '-';
+  return new Intl.DateTimeFormat('zh-CN', {
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
+    month: '2-digit',
+    year: 'numeric',
+  }).format(new Date(timestamp * 1000));
 }
 
 function formatActivityTime(timestamp: number) {

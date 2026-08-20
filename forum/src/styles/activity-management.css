@@ -301,6 +301,47 @@
     background: var(--brand-faint);
   }
 
+  .activity-summary-pagination {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 10px;
+    border-top: 1px solid var(--line);
+    padding: 12px 16px;
+  }
+
+  .activity-summary-pagination button {
+    display: inline-flex;
+    min-height: 32px;
+    align-items: center;
+    gap: 4px;
+    border: 1px solid var(--line);
+    border-radius: var(--control-radius);
+    padding: 0 10px;
+    background: var(--surface);
+    color: var(--text-muted);
+    font-size: 0.68rem;
+    font-weight: 730;
+  }
+
+  .activity-summary-pagination button:hover:not(:disabled) {
+    border-color: var(--brand);
+    color: var(--brand-strong);
+  }
+
+  .activity-summary-pagination button:disabled {
+    cursor: not-allowed;
+    opacity: 0.42;
+  }
+
+  .activity-summary-pagination span {
+    min-width: 58px;
+    color: var(--text-faint);
+    font-size: 0.68rem;
+    font-weight: 720;
+    text-align: center;
+  }
+
   .activity-summary-cell-content,
   .activity-summary-expand-button span {
     display: block;
@@ -347,13 +388,13 @@
     color: var(--brand-strong);
   }
 
-  .activity-record-status[data-status="异常"] {
+  .activity-record-status[data-status="已取消"] {
     border-color: color-mix(in srgb, #ba751f 38%, var(--line));
     background: color-mix(in srgb, #f3b55d 13%, var(--surface));
     color: #945913;
   }
 
-  .dark .activity-record-status[data-status="异常"] {
+  .dark .activity-record-status[data-status="已取消"] {
     color: #f0bf7e;
   }
 

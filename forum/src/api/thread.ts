@@ -118,6 +118,26 @@ export type PublishedThreadReply = {
 
 export type ActivitySignupValue = string | string[];
 
+export type ActivitySignupSummaryRecord = {
+  id: number;
+  joinedAt: number;
+  status: '有效' | '已取消';
+  username: string;
+  values: Record<string, ActivitySignupValue>;
+};
+
+export type ActivitySignupSummary = {
+  page: number;
+  pageCount: number;
+  pageSize: number;
+  records: ActivitySignupSummaryRecord[];
+  totals: {
+    canceled: number;
+    effective: number;
+    total: number;
+  };
+};
+
 export class ThreadApiError extends Error {
   constructor(message: string) {
     super(message);
@@ -467,6 +487,53 @@ export async function updateActivityConfiguration({
   const activity = mapThreadActivity(asRow(payload.data).activity);
   if (!activity) throw new ThreadApiError('活动已保存，但返回的数据不完整，请刷新页面。');
   return activity;
+}
+
+export async function fetchActivitySignupSummary({
+  bid,
+  page,
+  pageSize = 50,
+  signal,
+  tid,
+}: {
+  bid: number;
+  page: number;
+  pageSize?: number;
+  signal?: AbortSignal;
+  tid: number;
+}): Promise<ActivitySignupSummary> {
+  const payload = await requestThreadApi(new URLSearchParams({
+    ask: 'activity_signup_summary',
+    bid: String(bid),
+    page: String(page),
+    page_size: String(pageSize),
+    tid: String(tid),
+  }), signal, '报名汇总读取失败，请稍后重试。');
+  const data = asRow(payload.data);
+  const totals = asRow(data.totals);
+  const pagination = asRow(data.pagination);
+  const records = asRows(data.records).map((record): ActivitySignupSummaryRecord => ({
+    id: positiveInteger(record.record_id, 0),
+    joinedAt: nonNegativeInteger(record.joined_at),
+    status: stringValue(record.status) === 'canceled' ? '已取消' : '有效',
+    username: plainText(record.username),
+    values: Object.fromEntries(Object.entries(asRow(record.values)).map(([id, value]) => [
+      id,
+      Array.isArray(value) ? value.map(stringValue).filter(Boolean) : stringValue(value),
+    ])),
+  }));
+
+  return {
+    page: positiveInteger(pagination.page, page),
+    pageCount: positiveInteger(pagination.pages, 1),
+    pageSize: positiveInteger(pagination.page_size, pageSize),
+    records,
+    totals: {
+      canceled: nonNegativeInteger(totals.canceled),
+      effective: nonNegativeInteger(totals.effective),
+      total: nonNegativeInteger(totals.total),
+    },
+  };
 }
 
 async function requestThreadApi(body: URLSearchParams, signal: AbortSignal | undefined, fallbackMessage: string) {
