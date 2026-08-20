@@ -109,7 +109,9 @@ export function ActivitySignupList({
                 <Clock3 size={13} />
                 <strong>{formatCountdown(countdownTarget, now)}</strong>
               </time>
-              <span className="signup-card-count">{activity.signupCount} 人报名</span>
+              {!upcoming && (
+                <span className="signup-card-count">{activity.signupCount} 人报名</span>
+              )}
             </div>
           </a>
         );
