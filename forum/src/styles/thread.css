@@ -756,6 +756,10 @@
     overflow: hidden;
   }
 
+  iframe.thread-signature {
+    padding-top: 0;
+  }
+
   .thread-signature > p,
   .thread-signature > div {
     color: var(--text-faint);
@@ -780,8 +784,7 @@
     overflow: hidden;
   }
 
-  .thread-floor-main > iframe.thread-html-frame,
-  .thread-floor-main > footer > iframe.thread-html-frame {
+  .thread-floor-main > iframe.thread-html-frame {
     height: var(--thread-html-frame-height, auto);
   }
 

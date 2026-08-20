@@ -262,20 +262,19 @@ export function ThreadFloor({
           </div>
         )}
 
-        {(floor.signatureHtml || floor.signature) && (
+        {floor.signatureHtml ? (
+          <ThreadHtmlContent
+            className="thread-signature"
+            floor={floor.floor}
+            html={floor.signatureHtml}
+            onImageOpen={openImagePreview}
+            variant="signature"
+          />
+        ) : floor.signature ? (
           <footer className="thread-signature">
-            {floor.signatureHtml ? (
-              <ThreadHtmlContent
-                floor={floor.floor}
-                html={floor.signatureHtml}
-                onImageOpen={openImagePreview}
-                variant="signature"
-              />
-            ) : (
-              <p>{floor.signature}</p>
-            )}
+            <p>{floor.signature}</p>
           </footer>
-        )}
+        ) : null}
 
         <div className="thread-floor-actions">
           {canReply && (
