@@ -4,9 +4,8 @@
  * Import archived CAPUBBS thread JSON into the schema defined by capubbs.sql.
  *
  * The default mode is read-only validation. Pass --apply to write data.
- * Existing rows are never overwritten: identical rows are skipped, source
- * changes are reported as preserved differences, and only identity-key
- * collisions are treated as conflicts.
+ * Existing rows are preserved by default. Pass --update-existing to refresh
+ * non-identical rows while retaining strict identity-key conflict checks.
  */
 
 declare(strict_types=1);
@@ -47,6 +46,7 @@ function usage(): void
 
 选项：
   --apply                 执行数据库写入
+  --update-existing       更新身份键一致但内容有变化的已有记录（需配合 --apply）
   --archive-dir=PATH      主题归档目录（默认 tool/output）
   --report=PATH           导入报告路径（默认 <archive-dir>/import-report.json）
   --host=HOST             MySQL 主机（默认 localhost）
@@ -144,13 +144,19 @@ function nullableString(mixed $value): ?string
     return $value === null ? null : (string) $value;
 }
 
-function initializeReport(bool $apply, string $archiveDir, array $connectionMeta): array
+function initializeReport(
+    bool $apply,
+    bool $updateExisting,
+    string $archiveDir,
+    array $connectionMeta
+): array
 {
     $counts = [];
     foreach (array_keys(IMPORT_TABLE_COLUMNS) as $table) {
         $counts[$table] = [
             'scanned' => 0,
             'inserted' => 0,
+            'updated' => 0,
             'skipped' => 0,
             'preserved' => 0,
             'conflicts' => 0,
@@ -159,6 +165,7 @@ function initializeReport(bool $apply, string $archiveDir, array $connectionMeta
     return [
         'meta' => [
             'mode' => $apply ? 'apply' : 'dry-run',
+            'updateExisting' => $updateExisting,
             'status' => 'running',
             'startedAt' => nowIso(),
             'updatedAt' => nowIso(),
@@ -178,6 +185,7 @@ function initializeReport(bool $apply, string $archiveDir, array $connectionMeta
         'storageEngines' => [],
         'warnings' => [],
         'preservedDifferences' => [],
+        'updatedDifferences' => [],
         'conflicts' => [],
         'errors' => [],
     ];
@@ -249,11 +257,13 @@ final class DatabaseWriter
     private mysqli $database;
     private array $statements = [];
     private array $report;
+    private bool $updateExisting;
 
-    public function __construct(mysqli $database, array &$report)
+    public function __construct(mysqli $database, array &$report, bool $updateExisting)
     {
         $this->database = $database;
         $this->report =& $report;
+        $this->updateExisting = $updateExisting;
     }
 
     public function acquireLock(): void
@@ -301,6 +311,11 @@ final class DatabaseWriter
                 if ($this->rowsEquivalent($existing, $row)) {
                     $this->report['counts'][$table]['skipped']++;
                     return 'skipped';
+                }
+                if ($this->updateExisting) {
+                    $this->updateRow($table, $row, $where);
+                    $this->recordUpdatedDifference($table, $where, $row, $existing);
+                    return 'updated';
                 }
                 $this->recordPreservedDifference($table, $where, $row, $existing);
                 return 'preserved';
@@ -356,6 +371,31 @@ final class DatabaseWriter
         return $row ?: null;
     }
 
+    private function updateRow(string $table, array $row, array $where): void
+    {
+        $setColumns = array_keys($row);
+        $whereColumns = array_keys($where);
+        $cacheKey = 'update:' . $table . ':' . implode(',', $setColumns)
+            . ':' . implode(',', $whereColumns);
+        if (!isset($this->statements[$cacheKey])) {
+            $setSql = implode(', ', array_map(
+                static fn (string $column): string => "`{$column}` = ?",
+                $setColumns
+            ));
+            $whereSql = implode(' AND ', array_map(
+                static fn (string $column): string => "`{$column}` = ?",
+                $whereColumns
+            ));
+            $this->statements[$cacheKey] = $this->database->prepare(
+                "UPDATE `{$table}` SET {$setSql} WHERE {$whereSql} LIMIT 1"
+            );
+        }
+        $this->statements[$cacheKey]->execute([
+            ...array_values($row),
+            ...array_values($where),
+        ]);
+    }
+
     private function valuesEquivalent(mixed $stored, mixed $incoming): bool
     {
         if ($stored === null || $incoming === null) {
@@ -395,6 +435,20 @@ final class DatabaseWriter
     ): void {
         $this->report['counts'][$table]['preserved']++;
         $this->report['preservedDifferences'][] = [
+            'table' => $table,
+            'key' => $key,
+            'differences' => $this->rowDifferences($incoming, $existing),
+        ];
+    }
+
+    private function recordUpdatedDifference(
+        string $table,
+        array $key,
+        array $incoming,
+        array $existing
+    ): void {
+        $this->report['counts'][$table]['updated']++;
+        $this->report['updatedDifferences'][] = [
             'table' => $table,
             'key' => $key,
             'differences' => $this->rowDifferences($incoming, $existing),
@@ -752,7 +806,7 @@ function mergeAttachmentMaps(array &$target, array $source, array &$report): voi
 }
 
 $options = getopt('', [
-    'apply', 'archive-dir:', 'report:', 'host:', 'port:', 'socket:',
+    'apply', 'update-existing', 'archive-dir:', 'report:', 'host:', 'port:', 'socket:',
     'database:', 'user:', 'password-env:', 'help',
 ]);
 if (isset($options['help'])) {
@@ -761,6 +815,10 @@ if (isset($options['help'])) {
 }
 
 $apply = isset($options['apply']);
+$updateExisting = isset($options['update-existing']);
+if ($updateExisting && !$apply) {
+    abortImport('--update-existing 必须与 --apply 一起使用');
+}
 $archiveDir = realpath((string) ($options['archive-dir'] ?? (__DIR__ . '/output')));
 if ($archiveDir === false || !is_dir($archiveDir . '/boards')) {
     abortImport('找不到归档目录中的 boards/');
@@ -784,7 +842,7 @@ if ($config['port'] <= 0 || $config['port'] > 65535) {
     abortImport('MySQL 端口无效');
 }
 
-$report = initializeReport($apply, $archiveDir, [
+$report = initializeReport($apply, $updateExisting, $archiveDir, [
     'host' => $config['host'],
     'port' => $config['port'],
     'socket' => $config['socket'] !== '' ? $config['socket'] : null,
@@ -799,7 +857,7 @@ try {
     $database = connectDatabase($config);
     validateSchema($database, $report);
     if ($apply) {
-        $writer = new DatabaseWriter($database, $report);
+        $writer = new DatabaseWriter($database, $report, $updateExisting);
         $writer->acquireLock();
     }
 
@@ -972,12 +1030,13 @@ try {
         STDERR,
         sprintf(
             "%s完成：%d 个主题，%d 个楼层，%d 条楼中楼，%d 个附件；"
-            . "保留 %d 条已有差异，%d 个错误，%d 个身份冲突。\n报告：%s\n",
+            . "更新 %d 条，保留 %d 条已有差异，%d 个错误，%d 个身份冲突。\n报告：%s\n",
             $mode,
             $report['counts']['threads']['scanned'],
             $report['counts']['posts']['scanned'],
             $report['counts']['lzl']['scanned'],
             $report['counts']['attachments']['scanned'],
+            count($report['updatedDifferences']),
             count($report['preservedDifferences']),
             count($report['errors']),
             count($report['conflicts']),

@@ -4,9 +4,9 @@
  * Import archived CAPUBBS user profiles into capubbs.userinfo.
  *
  * The default mode is read-only validation. Pass --apply to write data.
- * Existing users are preserved without changing their password, session,
- * profile, or signatures. Profile changes are reported as preserved
- * differences; only username/userid identity collisions are conflicts.
+ * Existing users are preserved by default. Pass --update-existing to refresh
+ * profile fields and signatures without changing passwords or session fields.
+ * Only username/userid identity collisions are conflicts.
  */
 
 declare(strict_types=1);
@@ -57,6 +57,7 @@ function usage(): void
 
 选项：
   --apply                 执行数据库写入
+  --update-existing       更新已有用户的资料与签名（不修改密码和会话字段）
   --profiles-dir=PATH     用户 profile 目录（默认 tool/output/users/profiles）
   --usernames=PATH        用户名汇总文件（默认 tool/output/users/usernames.json）
   --report=PATH           导入报告（默认 tool/output/users/import-users-report.json）
@@ -186,11 +187,17 @@ function defaultUserPasswordHash(): string
     return strtoupper(md5('123456'));
 }
 
-function initializeReport(bool $apply, string $profilesDir, array $connectionMeta): array
+function initializeReport(
+    bool $apply,
+    bool $updateExisting,
+    string $profilesDir,
+    array $connectionMeta
+): array
 {
     return [
         'meta' => [
             'mode' => $apply ? 'apply' : 'dry-run',
+            'updateExisting' => $updateExisting,
             'status' => 'running',
             'startedAt' => nowIso(),
             'updatedAt' => nowIso(),
@@ -203,6 +210,7 @@ function initializeReport(bool $apply, string $profilesDir, array $connectionMet
             'profileFiles' => 0,
             'scanned' => 0,
             'inserted' => 0,
+            'updated' => 0,
             'skipped' => 0,
             'preserved' => 0,
             'conflicts' => 0,
@@ -210,10 +218,11 @@ function initializeReport(bool $apply, string $profilesDir, array $connectionMet
             'passwordsSet' => 0,
             'errors' => 0,
             'signaturesInserted' => 0,
+            'signaturesUpdated' => 0,
         ],
         'storageEngine' => null,
         'unavailableFields' => [
-            'password' => '仅新增用户设置为 123456 的大写 MD5；已有用户完全保留',
+            'password' => '仅新增用户设置为 123456 的大写 MD5；已有用户密码始终保留',
             'token' => 'API 不返回；写入 NULL',
             'tokentime' => 'API 不返回；写入 NULL',
             'lastpost' => 'API 不返回；写入 NULL',
@@ -225,6 +234,8 @@ function initializeReport(bool $apply, string $profilesDir, array $connectionMet
         'missingProfiles' => [],
         'preservedDifferences' => [],
         'preservedSignatureDifferences' => [],
+        'updatedDifferences' => [],
+        'updatedSignatureDifferences' => [],
         'conflicts' => [],
         'errors' => [],
     ];
@@ -384,11 +395,15 @@ final class UserWriter
     private mysqli_stmt $selectSignature;
     private mysqli_stmt $insert;
     private mysqli_stmt $insertSignature;
+    private mysqli_stmt $update;
+    private mysqli_stmt $updateSignature;
+    private bool $updateExisting;
 
-    public function __construct(mysqli $database, array &$report)
+    public function __construct(mysqli $database, array &$report, bool $updateExisting)
     {
         $this->database = $database;
         $this->report =& $report;
+        $this->updateExisting = $updateExisting;
         $this->selectByUsername = $database->prepare(
             'SELECT * FROM `userinfo` WHERE `username` = ? LIMIT 1'
         );
@@ -409,6 +424,21 @@ final class UserWriter
         );
         $this->insertSignature = $database->prepare(
             'INSERT INTO `user_sig` (`username`, `sig_num`, `sig`, `sig_type`) VALUES (?, ?, ?, ?)'
+        );
+        $updateColumns = array_values(array_filter(
+            PROFILE_COMPARE_COLUMNS,
+            static fn (string $column): bool => !in_array($column, ['username', 'userid'], true)
+        ));
+        $updateSql = implode(', ', array_map(
+            static fn (string $column): string => "`{$column}` = ?",
+            $updateColumns
+        ));
+        $this->update = $database->prepare(
+            "UPDATE `userinfo` SET {$updateSql} WHERE `username` = ? AND `userid` = ? LIMIT 1"
+        );
+        $this->updateSignature = $database->prepare(
+            'UPDATE `user_sig` SET `sig` = ?, `sig_type` = ? '
+            . 'WHERE `username` = ? AND `sig_num` = ? LIMIT 1'
         );
     }
 
@@ -446,11 +476,21 @@ final class UserWriter
                 $this->recordConflict($row, $byUserid, ['userid', 'username']);
                 return 'conflict';
             }
-            $this->insertMissingSignatures($row);
+            $this->syncSignatures($row);
             $differences = $this->profileDifferences($existing, $row);
             if ($differences === []) {
                 $this->report['counts']['skipped']++;
                 return 'skipped';
+            }
+            if ($this->updateExisting) {
+                $this->updateProfile($row);
+                $this->report['counts']['updated']++;
+                $this->report['updatedDifferences'][] = [
+                    'username' => $row['username'],
+                    'userid' => $row['userid'],
+                    'differingColumns' => $differences,
+                ];
+                return 'updated';
             }
             $this->report['counts']['preserved']++;
             $this->report['preservedDifferences'][] = [
@@ -466,13 +506,13 @@ final class UserWriter
             $values[] = $row[$column];
         }
         $this->insert->execute($values);
-        $this->insertMissingSignatures($row);
+        $this->syncSignatures($row);
         $this->report['counts']['inserted']++;
         $this->report['counts']['passwordsSet']++;
         return 'inserted';
     }
 
-    private function insertMissingSignatures(array $row): void
+    private function syncSignatures(array $row): void
     {
         foreach ($row['__signatures'] ?? [] as $signature) {
             $existing = $this->find($this->selectSignature, [
@@ -483,6 +523,20 @@ final class UserWriter
                 if ((string) $existing['sig'] !== (string) $signature['sig']
                     || (string) $existing['sig_type'] !== (string) $signature['sig_type']
                 ) {
+                    if ($this->updateExisting) {
+                        $this->updateSignature->execute([
+                            $signature['sig'],
+                            $signature['sig_type'],
+                            $signature['username'],
+                            $signature['sig_num'],
+                        ]);
+                        $this->report['counts']['signaturesUpdated']++;
+                        $this->report['updatedSignatureDifferences'][] = [
+                            'username' => $signature['username'],
+                            'sigNum' => $signature['sig_num'],
+                        ];
+                        continue;
+                    }
                     $this->report['preservedSignatureDifferences'][] = [
                         'username' => $signature['username'],
                         'sigNum' => $signature['sig_num'],
@@ -498,6 +552,20 @@ final class UserWriter
             ]);
             $this->report['counts']['signaturesInserted']++;
         }
+    }
+
+    private function updateProfile(array $row): void
+    {
+        $values = [];
+        foreach (PROFILE_COMPARE_COLUMNS as $column) {
+            if (in_array($column, ['username', 'userid'], true)) {
+                continue;
+            }
+            $values[] = $row[$column];
+        }
+        $values[] = $row['username'];
+        $values[] = $row['userid'];
+        $this->update->execute($values);
     }
 
     private function find(mysqli_stmt $statement, array $params): ?array
@@ -548,7 +616,7 @@ function discoveredUsernames(string $path): array
 }
 
 $options = getopt('', [
-    'apply', 'profiles-dir:', 'usernames:', 'report:', 'host:', 'port:',
+    'apply', 'update-existing', 'profiles-dir:', 'usernames:', 'report:', 'host:', 'port:',
     'socket:', 'database:', 'user:', 'password-env:', 'help',
 ]);
 if (isset($options['help'])) {
@@ -557,6 +625,10 @@ if (isset($options['help'])) {
 }
 
 $apply = isset($options['apply']);
+$updateExisting = isset($options['update-existing']);
+if ($updateExisting && !$apply) {
+    abortImport('--update-existing 必须与 --apply 一起使用');
+}
 $defaultUsersDir = __DIR__ . '/output/users';
 $profilesDir = realpath((string) ($options['profiles-dir'] ?? ($defaultUsersDir . '/profiles')));
 if ($profilesDir === false || !is_dir($profilesDir)) {
@@ -582,7 +654,7 @@ if ($config['port'] <= 0 || $config['port'] > 65535) {
     abortImport('MySQL 端口无效');
 }
 
-$report = initializeReport($apply, $profilesDir, [
+$report = initializeReport($apply, $updateExisting, $profilesDir, [
     'host' => $config['host'],
     'port' => $config['port'],
     'socket' => $config['socket'] !== '' ? $config['socket'] : null,
@@ -599,7 +671,7 @@ try {
     $database = connectDatabase($config);
     validateSchema($database, $report);
     if ($apply) {
-        $writer = new UserWriter($database, $report);
+        $writer = new UserWriter($database, $report, $updateExisting);
         $writer->acquireLock();
     }
 
@@ -646,12 +718,13 @@ try {
     fwrite(
         STDERR,
         sprintf(
-            "%s完成：扫描 %d 个用户，写入 %d，跳过 %d，保留差异 %d，"
+            "%s完成：扫描 %d 个用户，写入 %d，更新 %d，跳过 %d，保留差异 %d，"
             . "新增密码 %d，新增签名 %d，缺少 profile %d，"
             . "截断字段 %d，错误 %d，身份冲突 %d。\n报告：%s\n",
             $mode,
             $report['counts']['scanned'],
             $report['counts']['inserted'],
+            $report['counts']['updated'],
             $report['counts']['skipped'],
             $report['counts']['preserved'],
             $report['counts']['passwordsSet'],
