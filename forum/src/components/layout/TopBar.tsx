@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import {
   ChevronDown,
   LoaderCircle,
@@ -56,6 +56,8 @@ export function TopBar({
   const [boardDrawerCenter, setBoardDrawerCenter] = useState<number | null>(null);
   const closeTimer = useRef<number | null>(null);
   const boardTriggerRef = useRef<HTMLButtonElement | null>(null);
+  const mobileContextTitleRef = useRef<HTMLAnchorElement | null>(null);
+  const mobileContextTitleTextRef = useRef<HTMLSpanElement | null>(null);
   const profileMenuRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
@@ -77,6 +79,53 @@ export function TopBar({
   }, [boardsOpen, mobileSidebarOpen]);
 
   const contextTitleVisible = Boolean(showContextTitle && contextTitle);
+
+  useLayoutEffect(() => {
+    const titleContainer = mobileContextTitleRef.current;
+    const titleText = mobileContextTitleTextRef.current;
+    if (!contextTitle || !titleContainer || !titleText) return;
+    const titleContainerElement = titleContainer;
+    const titleTextElement = titleText;
+
+    let active = true;
+    let frame = 0;
+
+    function fitTitleToAvailableWidth() {
+      frame = 0;
+      titleTextElement.style.fontSize = '';
+      if (window.matchMedia('(min-width: 1024px)').matches) return;
+
+      const containerStyle = window.getComputedStyle(titleContainerElement);
+      const horizontalPadding = Number.parseFloat(containerStyle.paddingLeft)
+        + Number.parseFloat(containerStyle.paddingRight);
+      const availableWidth = titleContainerElement.clientWidth - horizontalPadding;
+      const requiredWidth = titleTextElement.scrollWidth;
+      if (!availableWidth || requiredWidth <= availableWidth) return;
+
+      const baseFontSize = Number.parseFloat(window.getComputedStyle(titleTextElement).fontSize);
+      if (!baseFontSize) return;
+      titleTextElement.style.fontSize = `${baseFontSize * (availableWidth / requiredWidth) * 0.98}px`;
+    }
+
+    function scheduleTitleFit() {
+      if (!active) return;
+      if (frame) window.cancelAnimationFrame(frame);
+      frame = window.requestAnimationFrame(fitTitleToAvailableWidth);
+    }
+
+    const resizeObserver = new ResizeObserver(scheduleTitleFit);
+    resizeObserver.observe(titleContainerElement);
+    scheduleTitleFit();
+    void document.fonts.ready.then(scheduleTitleFit);
+    document.fonts.addEventListener('loadingdone', scheduleTitleFit);
+
+    return () => {
+      active = false;
+      resizeObserver.disconnect();
+      document.fonts.removeEventListener('loadingdone', scheduleTitleFit);
+      if (frame) window.cancelAnimationFrame(frame);
+    };
+  }, [contextTitle]);
 
   useEffect(() => {
     if (!contextTitleVisible) return;
@@ -158,10 +207,11 @@ export function TopBar({
               aria-hidden={!contextTitleVisible}
               className="topbar-mobile-context-title"
               href={contextHref}
+              ref={mobileContextTitleRef}
               tabIndex={contextTitleVisible ? undefined : -1}
               title={contextTitle}
             >
-              <span>{contextTitle}</span>
+              <span ref={mobileContextTitleTextRef}>{contextTitle}</span>
             </a>
           )}
 

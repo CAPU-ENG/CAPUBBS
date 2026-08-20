@@ -536,8 +536,7 @@
     }
 
     .topbar-mobile-context-title > span {
-      overflow: hidden;
-      text-overflow: ellipsis;
+      flex-shrink: 0;
       white-space: nowrap;
     }
 
