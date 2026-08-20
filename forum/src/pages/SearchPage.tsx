@@ -96,7 +96,7 @@ export function SearchPage() {
                 autoFocus
                 maxLength={80}
                 onChange={(event) => setDraft((current) => ({ ...current, keyword: event.target.value }))}
-                placeholder="输入标题或正文关键词"
+                placeholder={draft.field === 'user' ? '输入用户名' : '输入标题或正文关键词'}
                 value={draft.keyword}
               />
               {draft.keyword ? (
@@ -126,13 +126,13 @@ export function SearchPage() {
             <SearchResultHeader applied={applied} count={results.length} status={status} />
 
             {!hasSearch ? (
-              <SearchStart history={history} onSearch={(keyword) => applySearch({ ...draft, keyword })} />
+              <SearchStart field={applied.field} history={history} onSearch={(keyword) => applySearch({ ...draft, keyword })} />
             ) : status === 'loading' ? (
               <SearchLoading />
             ) : status === 'error' ? (
               <SearchError error={error} onRetry={retry} />
             ) : visibleResults.length === 0 ? (
-              <SearchEmpty keyword={applied.keyword} />
+              <SearchEmpty field={applied.field} keyword={applied.keyword} />
             ) : (
               <div className="search-result-list">
                 {visibleResults.map((result) => (
@@ -161,7 +161,9 @@ export function SearchPage() {
             <div className="search-filter-card">
               <div className="search-filter-title"><SlidersHorizontal size={16} /><h2>筛选</h2></div>
               <SearchFilters draft={draft} onChange={setDraft} />
-              <button className="search-filter-apply" onClick={() => applySearch(draft)} type="button">应用筛选</button>
+              <button className="search-filter-apply" onClick={() => applySearch(draft)} type="button">
+                {draft.field === 'user' ? '应用搜索位置' : '应用筛选'}
+              </button>
             </div>
           </aside>
         </div>
@@ -239,41 +241,46 @@ function SearchFilters({
       <FilterGroup label="搜索位置">
         <SegmentedOption checked={draft.field === 'title'} label="主题标题" onChange={() => set('field', 'title')} />
         <SegmentedOption checked={draft.field === 'body'} label="帖子正文" onChange={() => set('field', 'body')} />
+        <SegmentedOption checked={draft.field === 'user'} label="用户" onChange={() => set('field', 'user')} />
       </FilterGroup>
 
-      <FilterGroup label="版面">
-        <select aria-label="选择版面" onChange={(event) => set('boardId', Number(event.target.value) || null)} value={draft.boardId ?? ''}>
-          <option value="">全部版面</option>
-          {boards.map((board) => <option key={board.id} value={board.id}>{board.label}</option>)}
-        </select>
-      </FilterGroup>
+      {draft.field !== 'user' ? (
+        <>
+          <FilterGroup label="版面">
+            <select aria-label="选择版面" onChange={(event) => set('boardId', Number(event.target.value) || null)} value={draft.boardId ?? ''}>
+              <option value="">全部版面</option>
+              {boards.map((board) => <option key={board.id} value={board.id}>{board.label}</option>)}
+            </select>
+          </FilterGroup>
 
-      <FilterGroup label="作者">
-        <label className="search-filter-input">
-          <UserRound size={14} />
-          <span className="sr-only">作者用户名</span>
-          <input
-            maxLength={40}
-            onChange={(event) => set('author', event.target.value)}
-            placeholder="不限作者"
-            value={draft.author}
-          />
-        </label>
-      </FilterGroup>
+          <FilterGroup label="作者">
+            <label className="search-filter-input">
+              <UserRound size={14} />
+              <span className="sr-only">作者用户名</span>
+              <input
+                maxLength={40}
+                onChange={(event) => set('author', event.target.value)}
+                placeholder="不限作者"
+                value={draft.author}
+              />
+            </label>
+          </FilterGroup>
 
-      <FilterGroup label="时间">
-        <div className="search-range-options">
-          <SegmentedOption checked={draft.range === 'year'} label="一年内" onChange={() => set('range', 'year')} />
-          <SegmentedOption checked={draft.range === 'all'} label="不限" onChange={() => set('range', 'all')} />
-          <SegmentedOption checked={draft.range === 'custom'} label="自定义" onChange={() => set('range', 'custom')} />
-        </div>
-        {draft.range === 'custom' ? (
-          <div className="search-date-grid">
-            <label><span>从</span><input onChange={(event) => set('startDate', event.target.value)} type="date" value={draft.startDate} /></label>
-            <label><span>至</span><input onChange={(event) => set('endDate', event.target.value)} type="date" value={draft.endDate} /></label>
-          </div>
-        ) : null}
-      </FilterGroup>
+          <FilterGroup label="时间">
+            <div className="search-range-options">
+              <SegmentedOption checked={draft.range === 'year'} label="一年内" onChange={() => set('range', 'year')} />
+              <SegmentedOption checked={draft.range === 'all'} label="不限" onChange={() => set('range', 'all')} />
+              <SegmentedOption checked={draft.range === 'custom'} label="自定义" onChange={() => set('range', 'custom')} />
+            </div>
+            {draft.range === 'custom' ? (
+              <div className="search-date-grid">
+                <label><span>从</span><input onChange={(event) => set('startDate', event.target.value)} type="date" value={draft.startDate} /></label>
+                <label><span>至</span><input onChange={(event) => set('endDate', event.target.value)} type="date" value={draft.endDate} /></label>
+              </div>
+            ) : null}
+          </FilterGroup>
+        </>
+      ) : null}
     </div>
   );
 }
@@ -308,8 +315,8 @@ function SearchResultHeader({
         <h2>{applied.keyword ? `“${applied.keyword}”` : '等待搜索'}</h2>
       </div>
       <div className="search-result-summary">
-        {board ? <span>{board}</span> : null}
-        {applied.author ? <span>{applied.author}</span> : null}
+        {applied.field !== 'user' && board ? <span>{board}</span> : null}
+        {applied.field !== 'user' && applied.author ? <span>{applied.author}</span> : null}
         <strong>{status === 'loading' ? '检索中' : status === 'ready' ? `${count} 条结果` : applied.keyword ? '—' : '输入关键词'}</strong>
       </div>
     </header>
@@ -325,6 +332,29 @@ function SearchResultRow({
   keyword: string;
   result: SearchResult;
 }) {
+  if (result.kind === 'user') {
+    const href = getPublicProfilePath(result.username);
+    return (
+      <article className="search-result-row search-user-result-row">
+        <a className="search-user-avatar" href={href}>
+          <img alt={`${result.username}的头像`} src={result.avatar} />
+        </a>
+        <div className="search-result-body">
+          <div className="search-result-meta">
+            <span>{'★'.repeat(result.star) || '用户'}</span>
+            {result.registeredAt ? <><span>·</span><time dateTime={result.registeredAt}>注册于 {formatUserDate(result.registeredAt)}</time></> : null}
+          </div>
+          <h3><a href={href}><HighlightedText keyword={keyword} text={result.username} /></a></h3>
+          {result.intro ? <p className="search-user-intro">{result.intro}</p> : null}
+          <div className="search-result-footer">
+            <span>{result.postCount} 主题</span>
+            <span>{result.replyCount} 回复</span>
+          </div>
+        </div>
+      </article>
+    );
+  }
+
   const board = boards.find((item) => item.id === result.bid);
   const floorPage = Math.max(1, Math.ceil(result.pid / THREAD_FLOORS_PER_PAGE));
   const href = field === 'body' && result.pid > 1
@@ -363,12 +393,20 @@ function HighlightedText({ keyword, text }: { keyword: string; text: string }) {
   ))}</>;
 }
 
-function SearchStart({ history, onSearch }: { history: string[]; onSearch: (keyword: string) => void }) {
+function SearchStart({
+  field,
+  history,
+  onSearch,
+}: {
+  field: SearchField;
+  history: string[];
+  onSearch: (keyword: string) => void;
+}) {
   return (
     <section className="search-state-card search-start-card">
       <div className="search-state-icon"><History size={20} /></div>
       <h3>{history.length ? '继续最近的搜索' : '从一个关键词开始'}</h3>
-      <p>{history.length ? '搜索记录只保存在当前浏览器。' : '可以搜索路线、装备、活动，或某一段旧日讨论。'}</p>
+      <p>{history.length ? '搜索记录只保存在当前浏览器。' : field === 'user' ? '输入用户名查找公开个人主页。' : '可以搜索路线、装备、活动，或某一段旧日讨论。'}</p>
       {history.length ? <div className="search-history-list">{history.map((term) => (
         <button key={term} onClick={() => onSearch(term)} type="button">{term}</button>
       ))}</div> : null}
@@ -396,12 +434,12 @@ function SearchError({ error, onRetry }: { error: string; onRetry: () => void })
   );
 }
 
-function SearchEmpty({ keyword }: { keyword: string }) {
+function SearchEmpty({ field, keyword }: { field: SearchField; keyword: string }) {
   return (
     <section className="search-state-card">
       <div className="search-state-icon"><CalendarDays size={20} /></div>
       <h3>没有找到“{keyword}”</h3>
-      <p>试试更短的关键词，或放宽版面和时间范围。</p>
+      <p>{field === 'user' ? '请检查用户名是否正确。' : '试试更短的关键词，或放宽版面和时间范围。'}</p>
     </section>
   );
 }
@@ -417,7 +455,7 @@ function readOptionsFromLocation(): SearchOptions {
     author: params.get('author')?.trim() ?? '',
     boardId: boards.some((board) => board.id === boardId) ? boardId : null,
     endDate,
-    field: params.get('field') === 'body' || params.get('type') === 'post' ? 'body' : 'title',
+    field: params.get('field') === 'user' ? 'user' : params.get('field') === 'body' || params.get('type') === 'post' ? 'body' : 'title',
     keyword: (params.get('q') ?? params.get('keyword') ?? '').trim(),
     range: rangeParam === 'all' || rangeParam === 'custom' ? rangeParam : startDate || endDate ? 'custom' : 'year',
     startDate,
@@ -444,12 +482,12 @@ function updateLocation(options: SearchOptions, page: number) {
 function searchHref(options: SearchOptions, page: number) {
   const params = new URLSearchParams();
   if (options.keyword) params.set('q', options.keyword);
-  if (options.field === 'body') params.set('field', 'body');
-  if (options.boardId) params.set('board', String(options.boardId));
-  if (options.author) params.set('author', options.author);
-  if (options.range !== 'year') params.set('range', options.range);
-  if (options.range === 'custom' && options.startDate) params.set('start', options.startDate);
-  if (options.range === 'custom' && options.endDate) params.set('end', options.endDate);
+  if (options.field !== 'title') params.set('field', options.field);
+  if (options.field !== 'user' && options.boardId) params.set('board', String(options.boardId));
+  if (options.field !== 'user' && options.author) params.set('author', options.author);
+  if (options.field !== 'user' && options.range !== 'year') params.set('range', options.range);
+  if (options.field !== 'user' && options.range === 'custom' && options.startDate) params.set('start', options.startDate);
+  if (options.field !== 'user' && options.range === 'custom' && options.endDate) params.set('end', options.endDate);
   if (page > 1) params.set('page', String(page));
   return `/search${params.size ? `?${params.toString()}` : ''}`;
 }
@@ -479,6 +517,12 @@ function normalizeDate(value: string | null) {
 
 function formatSearchTime(timestamp: string) {
   if (!timestamp) return '时间未知';
+  return new Intl.DateTimeFormat('zh-CN', { dateStyle: 'medium', timeZone: 'Asia/Shanghai' }).format(new Date(timestamp));
+}
+
+function formatUserDate(value: string) {
+  const timestamp = Date.parse(value);
+  if (!Number.isFinite(timestamp)) return value;
   return new Intl.DateTimeFormat('zh-CN', { dateStyle: 'medium', timeZone: 'Asia/Shanghai' }).format(new Date(timestamp));
 }
 

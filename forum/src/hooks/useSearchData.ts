@@ -1,4 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
+import defaultAvatar from '../assets/avatar/default-avatar.avif';
+import { normalizeLegacyAvatar } from '../utils/legacyAssets';
 
 const SEARCH_API_URL = import.meta.env.VITE_API_URL?.trim() || '/api/api.php';
 
@@ -10,7 +12,7 @@ type ApiEnvelope = {
 
 type ApiRow = Record<string, unknown>;
 
-export type SearchField = 'body' | 'title';
+export type SearchField = 'body' | 'title' | 'user';
 
 export type SearchRequest = {
   author: string;
@@ -22,15 +24,30 @@ export type SearchRequest = {
   startDate: string;
 };
 
-export type SearchResult = {
+export type ThreadSearchResult = {
   author: string;
   bid: number;
   id: string;
+  kind: 'thread';
   pid: number;
   tid: number;
   timestamp: string;
   title: string;
 };
+
+export type UserSearchResult = {
+  avatar: string;
+  id: string;
+  intro: string;
+  kind: 'user';
+  postCount: number;
+  registeredAt: string;
+  replyCount: number;
+  star: number;
+  username: string;
+};
+
+export type SearchResult = ThreadSearchResult | UserSearchResult;
 
 type SearchState = {
   error: string;
@@ -73,15 +90,17 @@ export function useSearchData(request: SearchRequest) {
 }
 
 async function fetchSearchResults(request: SearchRequest, signal: AbortSignal) {
-  const body = new URLSearchParams({
-    ask: 'search',
-    author: request.author.trim(),
-    bid: String(request.boardId ?? -1),
-    endtime: request.endDate,
-    keyword: request.keyword.trim(),
-    starttime: request.startDate,
-    type: request.field === 'body' ? 'post' : 'thread',
-  });
+  const body = request.field === 'user'
+    ? new URLSearchParams({ ask: 'user_profile', username: request.keyword.trim() })
+    : new URLSearchParams({
+        ask: 'search',
+        author: request.author.trim(),
+        bid: String(request.boardId ?? -1),
+        endtime: request.endDate,
+        keyword: request.keyword.trim(),
+        starttime: request.startDate,
+        type: request.field === 'body' ? 'post' : 'thread',
+      });
 
   let response: Response;
   try {
@@ -107,19 +126,27 @@ async function fetchSearchResults(request: SearchRequest, signal: AbortSignal) {
     throw new Error('论坛服务返回了无法识别的数据。');
   }
 
-  if (payload.code === 2006) return [];
+  if (payload.code === 2006 || (request.field === 'user' && (payload.code === 1003 || payload.code === 2000))) return [];
   if (!response.ok || payload.code !== 0) {
     throw new Error(payload.message?.trim() || '搜索失败，请稍后重试。');
   }
 
   const rows = Array.isArray(payload.data) ? payload.data : payload.data ? [payload.data] : [];
+  if (request.field === 'user') {
+    return rows
+      .filter(isApiRow)
+      .map(mapUserSearchResult)
+      .filter((result): result is UserSearchResult => result !== null);
+  }
+
+  const threadField = request.field;
   return rows
     .filter(isApiRow)
-    .map((row) => mapSearchResult(row, request.field))
-    .filter((result): result is SearchResult => result !== null);
+    .map((row) => mapSearchResult(row, threadField))
+    .filter((result): result is ThreadSearchResult => result !== null);
 }
 
-function mapSearchResult(row: ApiRow, field: SearchField): SearchResult | null {
+function mapSearchResult(row: ApiRow, field: Exclude<SearchField, 'user'>): ThreadSearchResult | null {
   const bid = positiveInteger(row.bid);
   const tid = positiveInteger(row.tid);
   const title = plainText(row.title);
@@ -136,6 +163,7 @@ function mapSearchResult(row: ApiRow, field: SearchField): SearchResult | null {
     author: plainText(row.author) || '匿名用户',
     bid,
     id: `${field}-${bid}-${tid}-${pid}`,
+    kind: 'thread',
     pid,
     tid,
     timestamp,
@@ -143,9 +171,31 @@ function mapSearchResult(row: ApiRow, field: SearchField): SearchResult | null {
   };
 }
 
+function mapUserSearchResult(row: ApiRow): UserSearchResult | null {
+  const username = plainText(row.username);
+  if (!username) return null;
+
+  return {
+    avatar: normalizeLegacyAvatar(row.icon) || defaultAvatar,
+    id: `user-${username}`,
+    intro: plainText(row.intro),
+    kind: 'user',
+    postCount: nonNegativeInteger(row.post),
+    registeredAt: plainText(row.regdate),
+    replyCount: nonNegativeInteger(row.reply),
+    star: Math.min(9, nonNegativeInteger(row.star)),
+    username,
+  };
+}
+
 function positiveInteger(value: unknown) {
   const number = Number(value);
   return Number.isFinite(number) && number > 0 ? Math.floor(number) : 0;
+}
+
+function nonNegativeInteger(value: unknown) {
+  const number = Number(value);
+  return Number.isFinite(number) && number >= 0 ? Math.floor(number) : 0;
 }
 
 function plainText(value: unknown) {
