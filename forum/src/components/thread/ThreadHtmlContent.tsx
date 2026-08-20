@@ -278,8 +278,8 @@ function buildFrameBridgeScript(frameId: string) {
         var host=url.hostname.toLowerCase();
         var trusted=url.origin===forumOrigin||host==='chexie.net'||host.endsWith('.chexie.net');
         var path=url.pathname.replace(/\\/{2,}/g,'/').replace(/\\/+$/,'')||'/';
-        var appPath=path.replace(/^\/(?:bbs-new|capubbs-new)(?=\/)/,'');
-        var legacyPath=appPath==='/thread.php'||appPath==='/bbs/content'||appPath==='/bbs/content/index.php'||appPath==='/cgi-bin/bbs.pl'||/^\/threads\/\d+-\d+$/.test(appPath);
+        var appPath=path.replace(/^\\/(?:bbs-new|capubbs-new)(?=\\/)/,'');
+        var legacyPath=appPath==='/thread.php'||appPath==='/bbs/content'||appPath==='/bbs/content/index.php'||appPath==='/cgi-bin/bbs.pl'||/^\\/threads\\/\\d+-\\d+$/.test(appPath);
         return trusted&&legacyPath?url.href:'';
       }catch(error){return '';}
     }
