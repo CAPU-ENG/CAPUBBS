@@ -330,6 +330,12 @@ function ReplyPreviewDialog({
   threadTitle: string;
 }) {
   useEffect(() => {
+    document.body.classList.add("reply-preview-open");
+
+    return () => document.body.classList.remove("reply-preview-open");
+  }, []);
+
+  useEffect(() => {
     function closeOnEscape(event: KeyboardEvent) {
       if (event.key === "Escape") onClose();
     }

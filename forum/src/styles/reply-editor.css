@@ -473,6 +473,10 @@
     backdrop-filter: blur(3px);
   }
 
+  body.reply-preview-open {
+    overflow: hidden;
+  }
+
   .reply-preview-dialog {
     display: grid;
     width: min(100%, 920px);
