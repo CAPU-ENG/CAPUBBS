@@ -15,6 +15,7 @@ type ApiRow = Record<string, unknown>;
 export type SessionViewer = {
   avatar: string;
   rights: number;
+  stars: number;
   unreadMessages: number;
   username: string;
 };
@@ -56,6 +57,7 @@ export async function fetchSessionViewer(signal?: AbortSignal): Promise<SessionV
     const fallbackViewer: SessionViewer = {
       avatar: '',
       rights: toNumber(identityRow?.rights),
+      stars: 0,
       unreadMessages: 0,
       username,
     };
@@ -227,6 +229,7 @@ function mapViewer(row: ApiRow): SessionViewer | null {
   return {
     avatar: normalizeLegacyAvatar(row.icon),
     rights: toNumber(row.rights),
+    stars: toNumber(row.star),
     unreadMessages: toNumber(row.newmsg),
     username,
   };

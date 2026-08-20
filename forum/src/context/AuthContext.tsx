@@ -131,6 +131,7 @@ function restoreCachedAuth(): AuthState {
       typeof viewer.username !== 'string'
       || typeof viewer.avatar !== 'string'
       || typeof viewer.rights !== 'number'
+      || typeof viewer.stars !== 'number'
       || typeof viewer.unreadMessages !== 'number'
     ) {
       clearCachedViewer();

@@ -226,6 +226,11 @@
     background: color-mix(in srgb, var(--brand-strong) 88%, black);
   }
 
+  .board-primary-action:disabled {
+    cursor: not-allowed;
+    opacity: 0.58;
+  }
+
   .board-data-state {
     display: flex;
     min-height: 280px;

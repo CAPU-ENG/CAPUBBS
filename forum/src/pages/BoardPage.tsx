@@ -180,6 +180,13 @@ export function BoardPage({ boardId }: { boardId: number }) {
     && authStatus === 'authenticated'
     && (viewer?.rights ?? 0) >= 2,
   );
+  const starRestricted = Boolean(
+    data
+    && authStatus === 'authenticated'
+    && viewer
+    && viewer.rights <= 1
+    && viewer.stars < data.board.requiredStars,
+  );
 
   useEffect(() => {
     if (!canManage) setManagementMode(false);
@@ -310,7 +317,16 @@ export function BoardPage({ boardId }: { boardId: number }) {
                     <CalendarPlus size={15} />发起活动
                   </a>
                 ) : null}
-                {authStatus === 'authenticated' ? (
+                {authStatus === 'authenticated' && starRestricted ? (
+                  <button
+                    className="board-primary-action"
+                    disabled
+                    title={`在本版发帖或回复至少需要 ${board.requiredStars} 星`}
+                    type="button"
+                  >
+                    <PenLine size={15} />至少 {board.requiredStars} 星
+                  </button>
+                ) : authStatus === 'authenticated' ? (
                   <a className="board-primary-action" href={getThreadComposeHref(board.id)}>
                     <PenLine size={15} />发表主题
                   </a>

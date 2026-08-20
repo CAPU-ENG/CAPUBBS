@@ -16,6 +16,7 @@ export type BoardInfo = {
   id: number;
   moderators: string[];
   name: string;
+  requiredStars: number;
   stats: {
     online: number | null;
     replies: number;
@@ -172,6 +173,7 @@ function mapBoardInfo(row: ApiRow | undefined, boardId: number): BoardInfo {
     id,
     moderators,
     name,
+    requiredStars: toNumber(row.need),
     stats: {
       online: null,
       replies: toNumber(row.replies),

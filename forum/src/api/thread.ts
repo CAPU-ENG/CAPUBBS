@@ -35,6 +35,7 @@ export type ThreadDetail = {
   locked: boolean;
   pageCount: number;
   replies: number;
+  requiredStars: number;
   tid: number;
   title: string;
   totalFloors: number;
@@ -723,6 +724,7 @@ function mapThreadDetail(
     locked: Boolean(thread.locked),
     pageCount: positiveInteger(floorsPage.pages, 1),
     replies: nonNegativeInteger(thread.replies),
+    requiredStars: nonNegativeInteger(viewerState.requiredStar),
     tid: positiveInteger(thread.tid, request.tid),
     title,
     totalFloors: positiveInteger(floorsPage.total, floors.length),

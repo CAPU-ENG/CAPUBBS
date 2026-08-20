@@ -93,7 +93,13 @@ export function ThreadComposePage() {
     && authStatus === 'authenticated'
     && (viewer?.rights ?? 0) >= 2,
   );
-  const boardName = isReply ? replyBoardName : board?.name ?? '';
+  const boardName = board?.name ?? (isReply ? replyBoardName : '');
+  const starRestricted = Boolean(
+    board
+    && viewer
+    && viewer.rights <= 1
+    && viewer.stars < board.requiredStars,
+  );
   const boardHref = request ? `/?bid=${request.bid}` : '/';
   const backHref = request?.tid
     ? `/?${new URLSearchParams({ bid: String(request.bid), p: '1', tid: String(request.tid) }).toString()}#reply-editor`
@@ -113,6 +119,7 @@ export function ThreadComposePage() {
     && boardName
     && (isReply || title.trim())
     && contentReady
+    && !starRestricted
     && (!isActivity || (
       canCreateActivity
       && validateActivityDateRange(activitySchedule)
@@ -123,7 +130,7 @@ export function ThreadComposePage() {
   );
 
   useEffect(() => {
-    if (!request || request.tid) return;
+    if (!request) return;
     const controller = new AbortController();
     setBoard(null);
     setLoadError('');
@@ -407,7 +414,7 @@ export function ThreadComposePage() {
     && !pageLoadError
     && (
       authPending
-      || (!isReply && !board)
+      || !board
       || (authStatus === 'authenticated' && (!draftLoadComplete || !editorViewer))
     ),
   );
@@ -451,6 +458,13 @@ export function ThreadComposePage() {
               ? '仅权限值不低于 2 的会员可以发起活动。'
               : '活动只能发布在车协工作区。'}
             title="当前无法发起活动"
+          />
+        ) : starRestricted && board ? (
+          <ComposeRequestState
+            backHref={backHref}
+            backLabel={isReply ? '返回帖子' : '返回版面'}
+            description={`在「${board.name}」发帖或回复至少需要 ${board.requiredStars} 星。`}
+            title="当前星级不足"
           />
         ) : boardName ? (
           <>

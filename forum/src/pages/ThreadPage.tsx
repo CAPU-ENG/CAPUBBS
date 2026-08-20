@@ -286,6 +286,12 @@ export function ThreadPage() {
     && viewer
     && (viewer.rights >= 3 || viewer.username === data.authorName),
   );
+  const starRestricted = Boolean(
+    data.viewer
+    && !data.locked
+    && (viewer?.rights ?? 0) <= 1
+    && data.viewer.stars < data.requiredStars,
+  );
 
   return (
     <div className="relative min-h-screen text-[var(--text)] transition-colors duration-200">
@@ -397,9 +403,9 @@ export function ThreadPage() {
           />
         ) : (
           <section className="thread-reply-unavailable">
-            <strong>{data.locked ? '本主题已锁定' : '登录后参与回复'}</strong>
-            <p>{data.locked ? '当前主题暂不接受新的楼层回复。' : '登录后即可使用完整编辑器、签名档与附件功能。'}</p>
-            {!data.locked && <a href={loginHref}>前往登录</a>}
+            <strong>{data.locked ? '本主题已锁定' : starRestricted ? `本版回复至少需要 ${data.requiredStars} 星` : '登录后参与回复'}</strong>
+            <p>{data.locked ? '当前主题暂不接受新的楼层回复。' : starRestricted ? `你当前为 ${data.viewer?.stars ?? 0} 星，暂时无法回复。` : '登录后即可使用完整编辑器、签名档与附件功能。'}</p>
+            {!data.locked && !starRestricted && <a href={loginHref}>前往登录</a>}
           </section>
         ))}
       </main>
