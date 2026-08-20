@@ -12,13 +12,22 @@ import {
 } from 'lucide-react';
 import type { NestedReply, ThreadAuthor, ThreadFloorData } from '../../data/threadDemo';
 import { getPublicProfilePath } from '../../utils/userRoutes';
-import { ForumMarkup, type ForumMarkupImage } from './ForumMarkup';
+import {
+  ForumMarkup,
+  type ForumMarkupImage,
+  type ForumMarkupImageOpenHandler,
+} from './ForumMarkup';
 import { ThreadImageLightbox } from './ThreadImageLightbox';
 import { ThreadPostContent } from './ThreadPostContent';
 
 type DeleteDialogTarget =
   | { kind: 'floor' }
   | { kind: 'nested'; reply: NestedReply };
+
+type PreviewImageState = {
+  imageIndex: number;
+  images: ForumMarkupImage[];
+};
 
 function AuthorCard({ author }: { author: ThreadAuthor }) {
   return (
@@ -122,11 +131,11 @@ export function ThreadFloor({
   const [nestedReplyError, setNestedReplyError] = useState('');
   const [nestedReplyPending, setNestedReplyPending] = useState(false);
   const [nestedReplyTarget, setNestedReplyTarget] = useState<string | null | undefined>(undefined);
-  const [previewImage, setPreviewImage] = useState<ForumMarkupImage | null>(null);
+  const [preview, setPreview] = useState<PreviewImageState | null>(null);
   const copyNoticeTimerRef = useRef<number | null>(null);
   const deleteTriggerRef = useRef<HTMLButtonElement | null>(null);
   const nestedReplyInputRef = useRef<HTMLTextAreaElement | null>(null);
-  const previewTriggerRef = useRef<HTMLImageElement | null>(null);
+  const previewTriggerRef = useRef<HTMLElement | null>(null);
   const nestedReplies = useMemo(
     () => [...(floor.nestedReplies ?? []), ...localNestedReplies]
       .filter((reply) => !deletedNestedReplyIds.includes(reply.id)),
@@ -149,13 +158,13 @@ export function ThreadFloor({
     copyNoticeTimerRef.current = window.setTimeout(() => setCopyNoticeOpen(false), 1800);
   }
 
-  function openImagePreview(image: ForumMarkupImage, trigger: HTMLImageElement) {
+  const openImagePreview: ForumMarkupImageOpenHandler = (images, imageIndex, trigger) => {
     previewTriggerRef.current = trigger;
-    setPreviewImage(image);
-  }
+    setPreview({ imageIndex, images });
+  };
 
   function closeImagePreview() {
-    setPreviewImage(null);
+    setPreview(null);
     window.requestAnimationFrame(() => previewTriggerRef.current?.focus());
   }
 
@@ -448,8 +457,12 @@ export function ThreadFloor({
           已复制楼层链接
         </div>
       )}
-      {previewImage && (
-        <ThreadImageLightbox image={previewImage} onClose={closeImagePreview} />
+      {preview && (
+        <ThreadImageLightbox
+          images={preview.images}
+          initialImageIndex={preview.imageIndex}
+          onClose={closeImagePreview}
+        />
       )}
       {deleteDialogTarget && (
         <DeleteReplyDialog

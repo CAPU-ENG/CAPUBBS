@@ -873,11 +873,10 @@
     cursor: grabbing;
   }
 
-  .thread-image-lightbox > button {
+  .thread-image-lightbox-close,
+  .thread-image-lightbox-nav {
     position: absolute;
     z-index: 1;
-    top: 10px;
-    right: 10px;
     display: inline-flex;
     width: 38px;
     height: 38px;
@@ -890,13 +889,40 @@
     transition: background 140ms ease;
   }
 
-  .thread-image-lightbox > button:hover {
+  .thread-image-lightbox-close {
+    top: 10px;
+    right: 10px;
+  }
+
+  .thread-image-lightbox-nav {
+    top: 50%;
+    width: 44px;
+    height: 52px;
+    transform: translateY(-50%);
+  }
+
+  .thread-image-lightbox-prev {
+    left: 10px;
+  }
+
+  .thread-image-lightbox-next {
+    right: 10px;
+  }
+
+  .thread-image-lightbox-close:hover,
+  .thread-image-lightbox-nav:hover:not(:disabled) {
     background: rgb(0 0 0 / 0.82);
   }
 
-  .thread-image-lightbox > button:focus-visible {
+  .thread-image-lightbox-close:focus-visible,
+  .thread-image-lightbox-nav:focus-visible {
     outline: 2px solid #fff;
     outline-offset: 2px;
+  }
+
+  .thread-image-lightbox-nav:disabled {
+    cursor: default;
+    opacity: 0.28;
   }
 
   .thread-image-lightbox > figcaption {
@@ -1603,8 +1629,21 @@
       max-height: calc(100vh - 32px);
     }
 
-    .thread-image-lightbox > button {
+    .thread-image-lightbox-close {
       top: 8px;
+      right: 8px;
+    }
+
+    .thread-image-lightbox-nav {
+      width: 40px;
+      height: 48px;
+    }
+
+    .thread-image-lightbox-prev {
+      left: 8px;
+    }
+
+    .thread-image-lightbox-next {
       right: 8px;
     }
 

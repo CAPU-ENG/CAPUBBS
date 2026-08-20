@@ -12,7 +12,11 @@ import {
   findSignatureFloorMarkers,
   replaceLegacySignatureFloorScripts,
 } from '../../utils/signatureFloorLink';
-import { ForumMarkup, type ForumMarkupImage } from './ForumMarkup';
+import {
+  ForumMarkup,
+  type ForumMarkupImage,
+  type ForumMarkupImageOpenHandler,
+} from './ForumMarkup';
 
 const MIN_SIGNATURE_FRAME_HEIGHT = 28;
 const MIN_FLOOR_FRAME_HEIGHT = 64;
@@ -33,6 +37,12 @@ type HtmlFrameMessage = {
   source: typeof HTML_FRAME_MESSAGE_SOURCE;
   type: 'navigate';
   url: string;
+} | {
+  frameId: string;
+  imageIndex: number;
+  images: ForumMarkupImage[];
+  source: typeof HTML_FRAME_MESSAGE_SOURCE;
+  type: 'image-open';
 };
 
 export function ThreadHtmlContent({
@@ -45,7 +55,7 @@ export function ThreadHtmlContent({
   className?: string;
   floor: number;
   html: string;
-  onImageOpen?: (image: ForumMarkupImage, trigger: HTMLImageElement) => void;
+  onImageOpen?: ForumMarkupImageOpenHandler;
   variant: ThreadHtmlVariant;
 }) {
   const signatureHtml = useMemo(
@@ -78,6 +88,7 @@ export function ThreadHtmlContent({
       className={className}
       floor={floor}
       html={isolatedHtml}
+      onImageOpen={onImageOpen}
       variant={variant}
     />
   );
@@ -87,26 +98,32 @@ function ThreadSandboxedHtmlFrame({
   className,
   floor,
   html,
+  onImageOpen,
   variant,
 }: {
   className: string;
   floor: number;
   html: string;
+  onImageOpen?: ForumMarkupImageOpenHandler;
   variant: ThreadHtmlVariant;
 }) {
   const iframeRef = useRef<HTMLIFrameElement>(null);
   const frameIdRef = useRef(`${variant}-${floor}-${Math.random().toString(36).slice(2)}`);
+  const onImageOpenRef = useRef(onImageOpen);
+  onImageOpenRef.current = onImageOpen;
   const minHeight = variant === 'signature' ? MIN_SIGNATURE_FRAME_HEIGHT : MIN_FLOOR_FRAME_HEIGHT;
+  const canOpenImages = Boolean(onImageOpen);
   const [frameHeight, setFrameHeight] = useState<number | null>(null);
   const isDarkTheme = useDarkTheme();
   const parentStyleText = useParentStyleText();
   const frameDocument = useMemo(() => buildHtmlFrameDocument({
+    canOpenImages,
     frameId: frameIdRef.current,
     html,
     isDarkTheme,
     parentStyleText,
     variant,
-  }), [html, isDarkTheme, parentStyleText, variant]);
+  }), [canOpenImages, html, isDarkTheme, parentStyleText, variant]);
   const frameSource = useMemo(
     () => `data:text/html;charset=utf-8,${encodeURIComponent(frameDocument)}`,
     [frameDocument],
@@ -137,6 +154,17 @@ function ThreadSandboxedHtmlFrame({
               ?.scrollIntoView({ block: 'start' });
           });
         }
+        return;
+      }
+
+      if (event.data.type === 'image-open') {
+        const frame = iframeRef.current;
+        if (!frame) return;
+        onImageOpenRef.current?.(
+          event.data.images,
+          event.data.imageIndex,
+          frame,
+        );
         return;
       }
 
@@ -209,12 +237,14 @@ function useSignaturePostReferences(html: string, enabled: boolean) {
 }
 
 function buildHtmlFrameDocument({
+  canOpenImages,
   frameId,
   html,
   isDarkTheme,
   parentStyleText,
   variant,
 }: {
+  canOpenImages: boolean;
   frameId: string;
   html: string;
   isDarkTheme: boolean;
@@ -247,17 +277,18 @@ function buildHtmlFrameDocument({
     html,body{margin:0;padding:0;min-width:0;min-height:0;overflow:hidden;background:transparent!important;color:${color};font-family:${fontFamily};font-size:${fontSize};line-height:1.6;overflow-wrap:anywhere;word-break:break-word}
     .capubbs-html-frame-root{display:flow-root;width:calc(100% - ${FRAME_WIDTH_ALLOWANCE}px);${signatureRootStyle}}.capubbs-html-frame-root iframe{display:inline-block;vertical-align:baseline}a{color:${linkColor}}img,video,canvas,svg{max-width:100%;height:auto}pre{max-width:100%;overflow:auto;white-space:pre-wrap}table{max-width:100%}
   </style>
-  <script>${buildFrameBridgeScript(frameId)}</script>
+  <script>${buildFrameBridgeScript(frameId, canOpenImages)}</script>
   <script src="/bbs/lib/jquery.min.js"></script>
 </head>
 <body><main class="capubbs-html-frame-root forum-markup forum-markup-${variant}">${deferUserScripts(html)}</main></body>
 </html>`;
 }
 
-function buildFrameBridgeScript(frameId: string) {
+function buildFrameBridgeScript(frameId: string, canOpenImages: boolean) {
   return `(function(){
     var frameId=${JSON.stringify(frameId)};
     var forumOrigin=${JSON.stringify(window.location.origin)};
+    var canOpenImages=${JSON.stringify(canOpenImages)};
     var minBottomGuard=${FRAME_BOTTOM_GUARD};
     var queued=false;
     function getContentHeight(){
@@ -313,17 +344,58 @@ function buildFrameBridgeScript(frameId: string) {
       event.preventDefault();
       window.parent.postMessage({source:'${HTML_FRAME_MESSAGE_SOURCE}',type:'navigate',frameId:frameId,url:url},'*');
     }
+    function getTargetImage(target){
+      var image=target&&target.closest?target.closest('img'):null;
+      return image&&image.tagName==='IMG'?image:null;
+    }
+    function openImage(image){
+      if(!canOpenImages||!image)return;
+      var imageElements=Array.prototype.slice.call(document.querySelectorAll('.capubbs-html-frame-root img'));
+      var imageIndex=imageElements.indexOf(image);
+      if(imageIndex<0)return;
+      var images=imageElements.map(function(candidate){
+        return {alt:(candidate.alt||'').trim(),src:candidate.currentSrc||candidate.src||''};
+      });
+      window.parent.postMessage({source:'${HTML_FRAME_MESSAGE_SOURCE}',type:'image-open',frameId:frameId,images:images,imageIndex:imageIndex},'*');
+    }
+    function handleImageClick(event){
+      if(event.defaultPrevented||event.button!==0||event.altKey||event.ctrlKey||event.metaKey||event.shiftKey)return;
+      var image=getTargetImage(event.target);
+      if(!image||!canOpenImages)return;
+      event.preventDefault();
+      openImage(image);
+    }
+    function handleImageKeyDown(event){
+      if(event.defaultPrevented||(event.key!=='Enter'&&event.key!==' '))return;
+      var image=getTargetImage(event.target);
+      if(!image||!canOpenImages)return;
+      event.preventDefault();
+      openImage(image);
+    }
+    function prepareImages(){
+      if(!canOpenImages)return;
+      Array.prototype.forEach.call(document.images,function(image){
+        var ariaLabel=image.alt&&image.alt.trim()?'查看大图：'+image.alt.trim():'查看大图';
+        if(image.getAttribute('role')!=='button')image.setAttribute('role','button');
+        if(image.getAttribute('tabindex')!=='0')image.setAttribute('tabindex','0');
+        if(image.getAttribute('aria-label')!==ariaLabel)image.setAttribute('aria-label',ariaLabel);
+        if(!image.title)image.title='点击查看大图';
+      });
+    }
     function init(){
       var contentRoot=document.querySelector('.capubbs-html-frame-root');
       if(window.ResizeObserver&&contentRoot)new ResizeObserver(queueHeight).observe(contentRoot);
-      if(window.MutationObserver&&contentRoot)new MutationObserver(queueHeight).observe(contentRoot,{attributes:true,characterData:true,childList:true,subtree:true});
+      if(window.MutationObserver&&contentRoot)new MutationObserver(function(){queueHeight();prepareImages();}).observe(contentRoot,{attributes:true,characterData:true,childList:true,subtree:true});
       Array.prototype.forEach.call(document.images,function(image){image.addEventListener('load',queueHeight);image.addEventListener('error',queueHeight);});
       window.addEventListener('load',queueHeight);
       document.addEventListener('transitionend',queueHeight);
       document.addEventListener('animationend',queueHeight);
+      document.addEventListener('click',handleImageClick);
+      document.addEventListener('keydown',handleImageKeyDown);
       document.addEventListener('click',handleLegacyThreadClick);
       if(document.fonts&&document.fonts.ready)document.fonts.ready.then(queueHeight);
       executeUserScripts();
+      prepareImages();
       queueHeight();
     }
     if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init,{once:true});else init();
@@ -410,6 +482,21 @@ function isHtmlFrameMessage(value: unknown): value is HtmlFrameMessage {
   const message = value as Partial<HtmlFrameMessage>;
   if (message.source !== HTML_FRAME_MESSAGE_SOURCE || typeof message.frameId !== 'string') return false;
   if (message.type === 'navigate') return typeof message.url === 'string';
+  if (message.type === 'image-open') {
+    return typeof message.imageIndex === 'number'
+      && Number.isSafeInteger(message.imageIndex)
+      && Array.isArray(message.images)
+      && message.images.length > 0
+      && message.imageIndex >= 0
+      && message.imageIndex < message.images.length
+      && message.images.every((image) => (
+        Boolean(image)
+        && typeof image === 'object'
+        && typeof image.alt === 'string'
+        && typeof image.src === 'string'
+        && image.src.length > 0
+      ));
+  }
   return message.type === 'resize'
     && typeof message.height === 'number'
     && Number.isFinite(message.height);

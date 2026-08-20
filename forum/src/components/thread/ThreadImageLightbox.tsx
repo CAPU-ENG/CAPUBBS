@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
-import { Minus, Plus, RotateCcw, X } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Minus, Plus, RotateCcw, X } from 'lucide-react';
 import type { ForumMarkupImage } from './ForumMarkup';
 
 const MIN_IMAGE_SCALE = 1;
@@ -30,12 +30,19 @@ function getPointerDistance(
 }
 
 export function ThreadImageLightbox({
-  image,
+  images,
+  initialImageIndex,
   onClose,
 }: {
-  image: ForumMarkupImage;
+  images: ForumMarkupImage[];
+  initialImageIndex: number;
   onClose: () => void;
 }) {
+  const normalizedInitialIndex = Math.min(
+    Math.max(0, initialImageIndex),
+    Math.max(0, images.length - 1),
+  );
+  const [currentImageIndex, setCurrentImageIndex] = useState(normalizedInitialIndex);
   const [scale, setScale] = useState(MIN_IMAGE_SCALE);
   const [offset, setOffset] = useState<ImageOffset>({ x: 0, y: 0 });
   const [isDragging, setIsDragging] = useState(false);
@@ -43,6 +50,7 @@ export function ThreadImageLightbox({
   const dialogRef = useRef<HTMLElement | null>(null);
   const imageRef = useRef<HTMLImageElement | null>(null);
   const closeButtonRef = useRef<HTMLButtonElement | null>(null);
+  const currentImageIndexRef = useRef(normalizedInitialIndex);
   const scaleRef = useRef(MIN_IMAGE_SCALE);
   const offsetRef = useRef<ImageOffset>({ x: 0, y: 0 });
   const dragRef = useRef<DragState | null>(null);
@@ -97,6 +105,15 @@ export function ThreadImageLightbox({
     setOffset({ x: 0, y: 0 });
   }
 
+  function showImage(imageIndex: number) {
+    const nextImageIndex = Math.min(Math.max(0, imageIndex), images.length - 1);
+    if (nextImageIndex === currentImageIndexRef.current) return;
+
+    currentImageIndexRef.current = nextImageIndex;
+    setCurrentImageIndex(nextImageIndex);
+    resetImageView();
+  }
+
   useEffect(() => {
     const previousOverflow = document.body.style.overflow;
     const previousActiveElement = document.activeElement;
@@ -108,6 +125,20 @@ export function ThreadImageLightbox({
       if (event.key === 'Escape') {
         event.preventDefault();
         onCloseRef.current();
+        return;
+      }
+
+      if (event.key === 'ArrowLeft') {
+        event.preventDefault();
+        event.stopPropagation();
+        showImage(currentImageIndexRef.current - 1);
+        return;
+      }
+
+      if (event.key === 'ArrowRight') {
+        event.preventDefault();
+        event.stopPropagation();
+        showImage(currentImageIndexRef.current + 1);
         return;
       }
 
@@ -220,6 +251,14 @@ export function ThreadImageLightbox({
       }
     };
   }, []);
+
+  useEffect(() => {
+    [images[currentImageIndex - 1], images[currentImageIndex + 1]].forEach((candidate) => {
+      if (!candidate) return;
+      const preloadImage = new Image();
+      preloadImage.src = candidate.src;
+    });
+  }, [currentImageIndex, images]);
 
   function startDragging(pointerId: number, clientX: number, clientY: number) {
     dragRef.current = {
@@ -340,6 +379,9 @@ export function ThreadImageLightbox({
   }
 
   const scalePercent = Math.round(scale * 100);
+  const image = images[currentImageIndex] ?? images[0];
+
+  if (!image) return null;
 
   return createPortal(
     <div
@@ -362,7 +404,9 @@ export function ThreadImageLightbox({
       role="presentation"
     >
       <figure
-        aria-label={image.alt ? `图片预览：${image.alt}` : '图片预览'}
+        aria-label={image.alt
+          ? `图片预览：${image.alt}（${currentImageIndex + 1}/${images.length}）`
+          : `图片预览（${currentImageIndex + 1}/${images.length}）`}
         aria-modal="true"
         className="thread-image-lightbox"
         ref={dialogRef}
@@ -370,12 +414,37 @@ export function ThreadImageLightbox({
       >
         <button
           aria-label="关闭图片预览"
+          className="thread-image-lightbox-close"
           onClick={onClose}
           ref={closeButtonRef}
           type="button"
         >
           <X size={20} />
         </button>
+        {images.length > 1 && (
+          <>
+            <button
+              aria-label="上一张图片"
+              className="thread-image-lightbox-nav thread-image-lightbox-prev"
+              disabled={currentImageIndex === 0}
+              onClick={() => showImage(currentImageIndex - 1)}
+              title="上一张（←）"
+              type="button"
+            >
+              <ChevronLeft size={28} />
+            </button>
+            <button
+              aria-label="下一张图片"
+              className="thread-image-lightbox-nav thread-image-lightbox-next"
+              disabled={currentImageIndex === images.length - 1}
+              onClick={() => showImage(currentImageIndex + 1)}
+              title="下一张（→）"
+              type="button"
+            >
+              <ChevronRight size={28} />
+            </button>
+          </>
+        )}
         <img
           alt={image.alt}
           draggable="false"

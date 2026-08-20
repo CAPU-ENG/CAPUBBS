@@ -3,6 +3,11 @@ import type { KeyboardEvent, MouseEvent } from 'react';
 
 type ForumMarkupVariant = 'floor' | 'nested' | 'signature';
 export type ForumMarkupImage = { alt: string; src: string };
+export type ForumMarkupImageOpenHandler = (
+  images: ForumMarkupImage[],
+  imageIndex: number,
+  trigger: HTMLElement,
+) => void;
 
 export function ForumMarkup({
   className = '',
@@ -12,28 +17,40 @@ export function ForumMarkup({
 }: {
   className?: string;
   html: SafeForumHtml;
-  onImageOpen?: (image: ForumMarkupImage, trigger: HTMLImageElement) => void;
+  onImageOpen?: ForumMarkupImageOpenHandler;
   variant: ForumMarkupVariant;
 }) {
   if (!html) return null;
 
-  function openImage(target: EventTarget | null) {
+  function openImage(target: EventTarget | null, container: HTMLDivElement) {
     if (!onImageOpen || !(target instanceof Element)) return;
     const image = target.closest('img');
     if (!(image instanceof HTMLImageElement)) return;
-    onImageOpen({ alt: image.alt.trim(), src: image.currentSrc || image.src }, image);
+
+    const imageElements = Array.from(container.querySelectorAll('img'));
+    const imageIndex = imageElements.indexOf(image);
+    if (imageIndex < 0) return;
+
+    onImageOpen(
+      imageElements.map((candidate) => ({
+        alt: candidate.alt.trim(),
+        src: candidate.currentSrc || candidate.src,
+      })),
+      imageIndex,
+      image,
+    );
   }
 
   function handleClick(event: MouseEvent<HTMLDivElement>) {
-    if (!(event.target instanceof HTMLImageElement)) return;
+    if (!onImageOpen || !(event.target instanceof HTMLImageElement)) return;
     event.preventDefault();
-    openImage(event.target);
+    openImage(event.target, event.currentTarget);
   }
 
   function handleKeyDown(event: KeyboardEvent<HTMLDivElement>) {
-    if (!(event.target instanceof HTMLImageElement) || !['Enter', ' '].includes(event.key)) return;
+    if (!onImageOpen || !(event.target instanceof HTMLImageElement) || !['Enter', ' '].includes(event.key)) return;
     event.preventDefault();
-    openImage(event.target);
+    openImage(event.target, event.currentTarget);
   }
 
   return (
