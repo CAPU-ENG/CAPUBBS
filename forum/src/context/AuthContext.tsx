@@ -22,6 +22,7 @@ type AuthContextValue = {
   register: (draft: RegisterDraft) => Promise<SessionViewer>;
   status: AuthStatus;
   updateViewerAvatar: (avatar: string) => void;
+  updateViewerUnreadMessages: (count: number) => void;
   viewer: SessionViewer | null;
 };
 
@@ -85,6 +86,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     });
   }, []);
 
+  const updateViewerUnreadMessages = useCallback((count: number) => {
+    setAuth((current) => {
+      if (!current.viewer) return current;
+      const viewer = { ...current.viewer, unreadMessages: Math.max(0, Math.floor(count)) };
+      cacheViewer(viewer);
+      return { ...current, viewer };
+    });
+  }, []);
+
   const value = useMemo(
     () => ({
       login,
@@ -92,9 +102,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       register,
       status: auth.status,
       updateViewerAvatar,
+      updateViewerUnreadMessages,
       viewer: auth.viewer,
     }),
-    [auth.status, auth.viewer, login, logout, register, updateViewerAvatar],
+    [auth.status, auth.viewer, login, logout, register, updateViewerAvatar, updateViewerUnreadMessages],
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

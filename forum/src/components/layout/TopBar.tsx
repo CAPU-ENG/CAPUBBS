@@ -1,6 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
 import {
-  Bell,
   ChevronDown,
   LoaderCircle,
   LogIn,
@@ -19,6 +18,7 @@ import { DesktopBoardDrawer, MobileBoardSidebar } from './BoardNavigation';
 import { useAuth } from '../../context/AuthContext';
 import { getLoginPathWithReturnTo } from '../../utils/authRoutes';
 import { USER_CENTER_PATH } from '../../utils/userRoutes';
+import { MessageCenter } from '../messages/MessageCenter';
 
 type Theme = 'light' | 'dark';
 
@@ -40,7 +40,7 @@ export function TopBar({
   minimal?: boolean;
   showContextTitle?: boolean;
 }) {
-  const { logout, status: authStatus, viewer } = useAuth();
+  const { logout, status: authStatus, updateViewerUnreadMessages, viewer } = useAuth();
   const authPending = authStatus === 'loading' || authStatus === 'restoring';
   const params = new URLSearchParams(window.location.search);
   const isHomePage = window.location.pathname === '/'
@@ -252,10 +252,15 @@ export function TopBar({
             </button>
 
             {authStatus === 'authenticated' && (
-              <a className="icon-button relative" href="/bbs/home?pos=message" aria-label="消息通知">
-                <Bell size={19} />
-                {Boolean(viewer?.unreadMessages) && <span className="notification-dot" aria-label="有未读消息" />}
-              </a>
+              <MessageCenter
+                initialUnreadCount={viewer?.unreadMessages ?? 0}
+                onBeforeOpen={() => {
+                  setBoardsOpen(false);
+                  setMobileSidebarOpen(false);
+                  setProfileOpen(false);
+                }}
+                onUnreadChange={updateViewerUnreadMessages}
+              />
             )}
 
             {authPending ? (

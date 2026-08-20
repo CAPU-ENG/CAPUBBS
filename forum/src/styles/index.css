@@ -1,5 +1,6 @@
 @import './base.css';
 @import './layout.css';
+@import './messages.css';
 @import './home.css';
 @import './thread.css';
 @import './reply-editor.css';

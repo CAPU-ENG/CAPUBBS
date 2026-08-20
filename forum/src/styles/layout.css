@@ -124,17 +124,6 @@
     outline-offset: 2px;
   }
 
-  .notification-dot {
-    position: absolute;
-    top: 8px;
-    right: 7px;
-    width: 7px;
-    height: 7px;
-    border: 2px solid var(--surface);
-    border-radius: 999px;
-    background: var(--danger);
-  }
-
   .profile-trigger {
     display: inline-flex;
     height: 42px;
