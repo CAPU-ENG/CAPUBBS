@@ -63,7 +63,7 @@ export function FloorNodes({
           <button
             aria-current={active ? 'location' : undefined}
             aria-describedby={tooltipId}
-            aria-label={`跳转到第 ${entry.floor} 楼，层主 ID ${entry.author}`}
+            aria-label={`跳转到第 ${entry.floor} 楼，作者 ${entry.author}`}
             className={`floor-node ${active ? 'floor-node-active' : ''}`}
             key={entry.floor}
             onClick={() => navigateToFloor(entry.floor)}
@@ -73,7 +73,6 @@ export function FloorNodes({
             {active && <strong>#{entry.floor}</strong>}
             <span className="floor-node-preview" id={tooltipId} role="tooltip">
               <span className="floor-node-preview-meta">
-                <span>层主 ID</span>
                 <strong>{entry.author}</strong>
                 <em>#{entry.floor}</em>
               </span>

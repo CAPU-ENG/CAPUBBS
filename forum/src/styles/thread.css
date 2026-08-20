@@ -1119,7 +1119,7 @@
   .floor-node-preview {
     position: absolute;
     top: 50%;
-    right: calc(100% + 12px);
+    left: calc(100% + 12px);
     display: flex;
     visibility: hidden;
     width: min(300px, calc(100vw - 180px));
@@ -1134,18 +1134,18 @@
     opacity: 0;
     pointer-events: none;
     text-align: left;
-    transform: translateY(-50%) translateX(5px);
+    transform: translateY(-50%) translateX(-5px);
     transition: opacity 140ms ease, transform 140ms ease, visibility 140ms ease;
   }
 
   .floor-node-preview::after {
     position: absolute;
     top: 50%;
-    right: -5px;
+    left: -5px;
     width: 9px;
     height: 9px;
-    border-top: 1px solid var(--line-strong);
-    border-right: 1px solid var(--line-strong);
+    border-bottom: 1px solid var(--line-strong);
+    border-left: 1px solid var(--line-strong);
     background: var(--surface-raised);
     content: '';
     transform: translateY(-50%) rotate(45deg);
@@ -1158,11 +1158,6 @@
     gap: 7px;
     font-size: 0.69rem;
     line-height: 1.3;
-  }
-
-  .floor-node-preview-meta > span {
-    flex: 0 0 auto;
-    color: var(--text-faint);
   }
 
   .floor-node-preview-meta > strong {
