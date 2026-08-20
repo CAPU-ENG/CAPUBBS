@@ -245,6 +245,23 @@ export async function updateThreadFloor({
   };
 }
 
+export async function deleteThreadFloor({
+  bid,
+  pid,
+  tid,
+}: {
+  bid: number;
+  pid: number;
+  tid: number;
+}) {
+  await requestThreadApi(new URLSearchParams({
+    ask: 'delete',
+    bid: String(bid),
+    pid: String(pid),
+    tid: String(tid),
+  }), undefined, '楼层删除失败，请稍后重试。');
+}
+
 export async function fetchThreadAttachmentInfo(id: string, signal?: AbortSignal): Promise<ThreadAttachmentInfo> {
   const payload = await requestThreadApi(new URLSearchParams({
     ask: 'attachinfo',

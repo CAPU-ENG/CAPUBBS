@@ -6,12 +6,12 @@ import { FloorNodes, MobileFloorNode, ThreadPagination } from '../components/thr
 import { AppBackground } from '../components/layout/AppBackground';
 import { TopBar } from '../components/layout/TopBar';
 import { setThreadBookmarked } from '../api/favorite';
-import { deleteNestedReply, postNestedReply } from '../api/thread';
+import { deleteNestedReply, deleteThreadFloor, postNestedReply } from '../api/thread';
 import type { NestedReply, ThreadFloorData } from '../data/threadDemo';
 import { useScrollContextTitle } from '../hooks/useScrollContextTitle';
 import { useThreadData } from '../hooks/useThreadData';
 import { getLoginPathWithReturnTo } from '../utils/authRoutes';
-import { getThreadEditHref } from '../utils/threadRoutes';
+import { getThreadEditHref, getThreadFloorHref } from '../utils/threadRoutes';
 
 function getThreadRequest() {
   const params = new URLSearchParams(window.location.search);
@@ -121,6 +121,23 @@ export function ThreadPage() {
   async function removeNestedReply(floor: ThreadFloorData, reply: NestedReply) {
     const text = reply.target ? `回复 @${reply.target}：${reply.content}` : reply.content;
     await deleteNestedReply({ fid: floor.fid, id: Number(reply.id), text });
+  }
+
+  async function removeFloor(floor: ThreadFloorData) {
+    if (!data) return;
+    await deleteThreadFloor({
+      bid: data.bid,
+      pid: floor.floor,
+      tid: data.tid,
+    });
+
+    if (floor.floor === 1 && data.replies === 0) {
+      window.location.href = data.boardHref;
+      return;
+    }
+
+    const targetFloor = Math.max(1, Math.min(floor.floor, data.replies));
+    window.location.href = getThreadFloorHref(data.bid, data.tid, targetFloor);
   }
 
   function toggleAuthorOnly() {
@@ -243,6 +260,7 @@ export function ThreadPage() {
                 floor={floor}
                 isMainPost={floor.floor === 1}
                 key={floor.id}
+                onDeleteFloor={removeFloor}
                 onDeleteNestedReply={removeNestedReply}
                 onQuote={quoteFloor}
                 onSubmitNestedReply={submitNestedReply}

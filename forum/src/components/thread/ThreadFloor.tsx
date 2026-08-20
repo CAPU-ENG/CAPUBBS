@@ -89,6 +89,7 @@ export function ThreadFloor({
   editHref,
   floor,
   isMainPost,
+  onDeleteFloor,
   onDeleteNestedReply,
   onQuote,
   onSubmitNestedReply,
@@ -98,6 +99,7 @@ export function ThreadFloor({
   editHref: string;
   floor: ThreadFloorData;
   isMainPost: boolean;
+  onDeleteFloor: (floor: ThreadFloorData) => Promise<void>;
   onDeleteNestedReply: (floor: ThreadFloorData, reply: NestedReply) => Promise<void>;
   onQuote: (floor: ThreadFloorData) => void;
   onSubmitNestedReply: (floor: ThreadFloorData, targetName: string | null, content: string) => Promise<number>;
@@ -105,6 +107,8 @@ export function ThreadFloor({
 }) {
   const [copyNoticeOpen, setCopyNoticeOpen] = useState(false);
   const [deletedNestedReplyIds, setDeletedNestedReplyIds] = useState<string[]>([]);
+  const [floorDeleteError, setFloorDeleteError] = useState('');
+  const [floorDeletePending, setFloorDeletePending] = useState(false);
   const [localNestedReplies, setLocalNestedReplies] = useState<NestedReply[]>([]);
   const [nestedReplyContent, setNestedReplyContent] = useState('');
   const [nestedReplyDeleteError, setNestedReplyDeleteError] = useState('');
@@ -206,6 +210,22 @@ export function ThreadFloor({
     }
   }
 
+  async function removeFloor() {
+    const confirmation = isMainPost
+      ? '确认删除主楼吗？如果主题还有回复，下一楼将顺位成为主楼；否则整个主题会被删除。'
+      : `确认删除第 ${floor.floor} 楼吗？后续楼层编号将顺次调整。`;
+    if (!window.confirm(confirmation) || floorDeletePending) return;
+
+    setFloorDeletePending(true);
+    setFloorDeleteError('');
+    try {
+      await onDeleteFloor(floor);
+    } catch (error) {
+      setFloorDeleteError(error instanceof Error ? error.message : '楼层删除失败，请稍后重试。');
+      setFloorDeletePending(false);
+    }
+  }
+
   return (
     <article
       className="thread-floor"
@@ -283,12 +303,22 @@ export function ThreadFloor({
               </a>
           )}
           {(floor.canDelete ?? floor.isOwn) && (
-              <button className="floor-action-danger" type="button">
+              <button
+                aria-busy={floorDeletePending}
+                className="floor-action-danger"
+                disabled={floorDeletePending}
+                onClick={() => void removeFloor()}
+                type="button"
+              >
                 <Trash2 size={15} />
-                删除
+                {floorDeletePending ? '删除中' : '删除'}
               </button>
           )}
         </div>
+
+        {floorDeleteError && (
+          <p className="thread-floor-delete-error" role="alert">{floorDeleteError}</p>
+        )}
 
         {nestedReplies.length > 0 && (
           <section

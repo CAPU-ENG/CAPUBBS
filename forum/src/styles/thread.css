@@ -1063,6 +1063,18 @@
     color: var(--danger);
   }
 
+  .thread-floor-actions > button:disabled {
+    cursor: wait;
+    opacity: 0.55;
+  }
+
+  .thread-floor-delete-error {
+    margin-top: 8px;
+    color: var(--danger);
+    font-size: 0.68rem;
+    text-align: right;
+  }
+
   .floor-node-rail {
     position: sticky;
     top: calc(var(--topbar-height) + 18px);
