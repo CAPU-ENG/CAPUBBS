@@ -1,6 +1,7 @@
 import {
   ArrowRight,
   BadgeCheck,
+  ChevronDown,
   CircleAlert,
   ExternalLink,
   FileInput,
@@ -387,8 +388,17 @@ function MemberManagementPanel() {
   const [isSearching, setIsSearching] = useState(false);
   const [pendingMemberId, setPendingMemberId] = useState<string | null>(null);
   const [pendingEmail, setPendingEmail] = useState<string | null>(null);
+  const [collapsedRights, setCollapsedRights] = useState<Set<number>>(() => new Set());
   const [notice, setNotice] = useState<{ kind: NoticeKind; text: string } | null>(null);
   const elevatedMembers = useMemo(() => members.filter((member) => member.rights > 0), [members]);
+  const permissionGroups = useMemo(() => {
+    const groups = new Map<number, ManagementMember[]>();
+    elevatedMembers.forEach((member) => {
+      groups.set(member.rights, [...(groups.get(member.rights) ?? []), member]);
+    });
+    return Array.from(groups, ([rights, groupedMembers]) => ({ members: groupedMembers, rights }))
+      .sort((left, right) => right.rights - left.rights);
+  }, [elevatedMembers]);
   const selectedMember = members.find((member) => member.id === selectedId) ?? null;
 
   useEffect(() => {
@@ -447,6 +457,15 @@ function MemberManagementPanel() {
   function searchMember(event: FormEvent) {
     event.preventDefault();
     void loadMember(query);
+  }
+
+  function togglePermissionGroup(rights: number) {
+    setCollapsedRights((current) => {
+      const next = new Set(current);
+      if (next.has(rights)) next.delete(rights);
+      else next.add(rights);
+      return next;
+    });
   }
 
   async function toggleLevelTwo(member: ManagementMember) {
@@ -591,23 +610,45 @@ function MemberManagementPanel() {
             <div><h2 id="elevated-members-title">当前权限会员</h2></div>
             <span>{elevatedMembers.length} 人</span>
           </header>
-          <div className="management-member-list">
-            {membersStatus === 'loading' ? (
-              <EmptyState icon={<LoaderCircle className="animate-spin" size={19} />}>正在加载权限会员。</EmptyState>
-            ) : membersStatus === 'error' ? (
-              <EmptyState icon={<CircleAlert size={19} />}>权限会员列表加载失败。</EmptyState>
-            ) : elevatedMembers.length === 0 ? (
-              <EmptyState icon={<Users size={19} />}>当前没有权限会员。</EmptyState>
-            ) : elevatedMembers.map((member) => (
-              <button key={member.id} onClick={() => {
-                setQuery(member.id);
-                void loadMember(member.id);
-              }} type="button">
-                <img alt="" src={member.avatar || defaultAvatar} />
-                <span><strong>{member.id}</strong><em data-rights={member.rights}>权限 {member.rights}</em></span>
-              </button>
-            ))}
-          </div>
+          {membersStatus === 'loading' ? (
+            <EmptyState icon={<LoaderCircle className="animate-spin" size={19} />}>正在加载权限会员。</EmptyState>
+          ) : membersStatus === 'error' ? (
+            <EmptyState icon={<CircleAlert size={19} />}>权限会员列表加载失败。</EmptyState>
+          ) : elevatedMembers.length === 0 ? (
+            <EmptyState icon={<Users size={19} />}>当前没有权限会员。</EmptyState>
+          ) : (
+            <div className="management-permission-groups">
+              {permissionGroups.map((group) => {
+                const collapsed = collapsedRights.has(group.rights);
+                return (
+                  <section className="management-permission-group" key={group.rights}>
+                    <button
+                      aria-expanded={!collapsed}
+                      className="management-permission-group-toggle"
+                      onClick={() => togglePermissionGroup(group.rights)}
+                      type="button"
+                    >
+                      <span><strong>权限 {group.rights}</strong><em>{group.members.length} 人</em></span>
+                      <ChevronDown className={collapsed ? 'is-collapsed' : ''} size={16} />
+                    </button>
+                    {!collapsed && (
+                      <div className="management-member-list">
+                        {group.members.map((member) => (
+                          <button key={member.id} onClick={() => {
+                            setQuery(member.id);
+                            void loadMember(member.id);
+                          }} type="button">
+                            <img alt="" src={member.avatar || defaultAvatar} />
+                            <span><strong>{member.id}</strong></span>
+                          </button>
+                        ))}
+                      </div>
+                    )}
+                  </section>
+                );
+              })}
+            </div>
+          )}
         </section>
 
         <section className="management-card management-list-card" aria-labelledby="muted-members-title">
@@ -789,7 +830,7 @@ function ModeratorManagementPanel() {
               void loadMember(member.id);
             }} type="button">
               <img alt="" src={member.avatar || defaultAvatar} />
-              <span><strong>{member.id}</strong><em data-rights={member.rights}>权限 {member.rights}</em></span>
+              <span><strong>{member.id}</strong></span>
             </button>
           ))}
         </div>

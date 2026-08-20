@@ -497,10 +497,66 @@
     gap: 14px;
   }
 
+  .management-permission-groups {
+    display: grid;
+  }
+
+  .management-permission-group + .management-permission-group {
+    border-top: 1px solid var(--line);
+  }
+
+  .management-permission-group-toggle {
+    display: flex;
+    width: 100%;
+    min-height: 42px;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 8px 14px;
+    color: var(--text-muted);
+    text-align: left;
+  }
+
+  .management-permission-group-toggle:hover {
+    background: var(--surface-soft);
+  }
+
+  .management-permission-group-toggle > span {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .management-permission-group-toggle strong {
+    color: var(--text-strong);
+    font-size: 0.68rem;
+    font-weight: 780;
+  }
+
+  .management-permission-group-toggle em {
+    color: var(--text-faint);
+    font-size: 0.56rem;
+    font-style: normal;
+    font-weight: 700;
+  }
+
+  .management-permission-group-toggle > svg {
+    color: var(--text-faint);
+    transition: transform 140ms ease;
+  }
+
+  .management-permission-group-toggle > svg.is-collapsed {
+    transform: rotate(-90deg);
+  }
+
+  .management-permission-group .management-member-list {
+    border-top: 1px solid var(--line);
+  }
+
   .management-member-list > button {
     display: flex;
     width: 100%;
-    height: 58px;
+    height: 48px;
     min-width: 0;
     align-items: center;
     justify-content: flex-start;
@@ -540,7 +596,7 @@
     min-width: 0;
     align-content: center;
     justify-items: start;
-    gap: 5px;
+    gap: 0;
   }
 
   .management-member-list strong {
@@ -551,25 +607,8 @@
     font-weight: 760;
   }
 
-  .management-member-list em {
-    border: 1px solid var(--line);
-    border-radius: 2px;
-    padding: 3px 5px;
-    background: var(--surface-soft);
-    color: var(--text-muted);
-    font-size: 0.56rem;
-    font-style: normal;
-    font-weight: 760;
-  }
-
   .management-member-list > .management-empty {
     grid-column: 1 / -1;
-  }
-
-  .management-member-list em[data-rights="2"] {
-    border-color: color-mix(in srgb, var(--brand) 28%, var(--line));
-    background: var(--brand-faint);
-    color: var(--brand-strong);
   }
 
   .management-member-confirmation {
