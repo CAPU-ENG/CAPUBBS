@@ -208,7 +208,12 @@ function MessageState({
   tone?: 'default' | 'error';
 }) {
   return (
-    <div className={`message-state message-state-${tone}`} role="status">
+    <div
+      className={tone === 'error'
+        ? 'message-state message-state-error'
+        : 'message-state message-state-default'}
+      role="status"
+    >
       {icon}<span>{text}</span>
       {actionLabel && <button type="button" onClick={onAction}>{actionLabel}</button>}
     </div>

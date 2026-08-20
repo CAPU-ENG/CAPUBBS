@@ -160,7 +160,12 @@ function MessageTimeline({
         const showDate = message.date !== lastDate;
         lastDate = message.date;
         return (
-          <div className={`direct-message-entry direct-message-entry-${message.author}`} key={message.id}>
+          <div
+            className={message.author === 'me'
+              ? 'direct-message-entry direct-message-entry-me'
+              : 'direct-message-entry direct-message-entry-them'}
+            key={message.id}
+          >
             {showDate && <div className="direct-message-date">{message.date}</div>}
             <span>{message.author === 'me' ? '你' : conversation.user}</span>
             <p>{message.text}</p>
@@ -181,7 +186,10 @@ function MessageTimelineState({
   text: string;
   tone?: 'default' | 'error';
 }) {
-  return <div className={`direct-message-state direct-message-state-${tone}`}>{icon}<span>{text}</span></div>;
+  const className = tone === 'error'
+    ? 'direct-message-state direct-message-state-error'
+    : 'direct-message-state direct-message-state-default';
+  return <div className={className}>{icon}<span>{text}</span></div>;
 }
 
 function getErrorMessage(error: unknown) {
