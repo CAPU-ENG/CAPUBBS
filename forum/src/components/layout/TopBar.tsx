@@ -8,7 +8,6 @@ import {
   Moon,
   Search,
   Settings,
-  ShieldCheck,
   Sun,
   UserRound,
 } from 'lucide-react';
@@ -215,7 +214,7 @@ export function TopBar({
                   className={`top-nav-link ${isManagePage ? 'top-nav-link-active' : ''}`}
                   tabIndex={contextTitleVisible ? -1 : undefined}
                 >
-                  <ShieldCheck size={15} />管理
+                  管理
                 </a>
               )}
               {pinnedBoards.map((board) => (
