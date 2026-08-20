@@ -500,6 +500,29 @@
     font-size: 0.76rem;
   }
 
+  .activity-signup-cancel-button {
+    display: inline-flex;
+    min-width: 104px;
+    height: 40px;
+    flex: 0 0 auto;
+    align-items: center;
+    justify-content: center;
+    gap: 7px;
+    border: 1px solid color-mix(in srgb, var(--danger) 42%, var(--line));
+    border-radius: var(--control-radius);
+    padding: 0 14px;
+    background: color-mix(in srgb, var(--danger) 8%, var(--surface));
+    color: var(--danger);
+    font-size: 0.76rem;
+    font-weight: 740;
+    transition: 140ms ease;
+  }
+
+  .activity-signup-cancel-button:hover {
+    border-color: var(--danger);
+    background: color-mix(in srgb, var(--danger) 14%, var(--surface));
+  }
+
   .activity-signup-spinner {
     width: 14px;
     height: 14px;

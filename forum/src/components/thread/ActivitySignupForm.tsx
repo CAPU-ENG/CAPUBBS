@@ -1,5 +1,5 @@
-import { Check, ClipboardList, Eye, LogIn, Send } from 'lucide-react';
-import { useState, type FormEvent } from 'react';
+import { Ban, Check, ClipboardList, Eye, LogIn, RotateCcw, Send, X } from 'lucide-react';
+import { useEffect, useState, type FormEvent } from 'react';
 import {
   publishActivitySignup,
   type ActivitySignupValue,
@@ -43,19 +43,21 @@ export function ActivitySignupForm({
   viewer,
 }: ActivitySignupFormProps) {
   const existingSignup = floors.find((floor) => floor.floor > 1 && floor.isOwn) ?? null;
+  const signupCanceled = Boolean(existingSignup && (
+    existingSignup.paragraphs.some((paragraph) => paragraph.includes('报名状态：已取消'))
+    || /<\s*(?:s|strike)\b/i.test(existingSignup.contentHtml ?? '')
+  ));
   const [values, setValues] = useState<Record<string, ActivitySignupValue>>(() =>
     createInitialValues(activity.questions, viewer?.name ?? '', existingSignup),
   );
   const [signatureIndex, setSignatureIndex] = useState(existingSignup?.signatureIndex ?? 0);
-  const [action, setAction] = useState<'join' | 'modify' | 'restore'>(() => {
-    if (!existingSignup) return 'join';
-    return existingSignup.paragraphs.some((paragraph) => paragraph.includes('报名状态：已取消')) ? 'restore' : 'modify';
-  });
+  const action = !existingSignup ? 'join' : signupCanceled ? 'restore' : 'modify';
   const [status, setStatus] = useState('');
   const [statusIsError, setStatusIsError] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [previewOpen, setPreviewOpen] = useState(false);
   const [previewedAt, setPreviewedAt] = useState('');
+  const [cancelDialogOpen, setCancelDialogOpen] = useState(false);
   const requiredFieldsComplete = activity.questions.every((question) =>
     !question.required || hasSignupValue(values[question.id]),
   );
@@ -86,14 +88,38 @@ export function ActivitySignupForm({
 
     setSubmitting(true);
     setStatusIsError(false);
-    setStatus(action === 'modify' ? '正在保存修改' : action === 'restore' ? '正在重新报名' : '正在提交报名');
+    setStatus(action === 'modify' ? '正在保存修改' : action === 'restore' ? '正在恢复报名' : '正在提交报名');
     try {
       await publishActivitySignup({ action, bid, signatureIndex, tid, title: threadTitle, values });
-      setStatus(action === 'modify' ? '报名已修改' : action === 'restore' ? '报名已恢复' : '报名已提交');
-      setAction('modify');
+      window.location.reload();
     } catch (error) {
       setStatusIsError(true);
       setStatus(error instanceof Error ? error.message : '报名提交失败，请稍后重试。');
+    } finally {
+      setSubmitting(false);
+    }
+  }
+
+  async function cancelSignup() {
+    if (!existingSignup || signupCanceled || submitting) return;
+
+    setSubmitting(true);
+    setStatusIsError(false);
+    setStatus('正在取消报名');
+    try {
+      await publishActivitySignup({
+        action: 'cancel',
+        bid,
+        signatureIndex,
+        tid,
+        title: threadTitle,
+        values,
+      });
+      window.location.reload();
+    } catch (error) {
+      setCancelDialogOpen(false);
+      setStatusIsError(true);
+      setStatus(error instanceof Error ? error.message : '取消报名失败，请稍后重试。');
     } finally {
       setSubmitting(false);
     }
@@ -160,9 +186,26 @@ export function ActivitySignupForm({
                   预览
                 </button>
                 <button className="activity-signup-submit-button" disabled={!canSubmit} type="submit">
-                  {submitting ? <span className="activity-signup-spinner" aria-hidden="true" /> : action === 'modify' ? <Check size={15} /> : <Send size={15} />}
-                  {submitting ? '提交中' : action === 'modify' ? '保存修改' : action === 'restore' ? '重新报名' : '提交报名'}
+                  {submitting
+                    ? <span className="activity-signup-spinner" aria-hidden="true" />
+                    : action === 'modify'
+                      ? <Check size={15} />
+                      : action === 'restore'
+                        ? <RotateCcw size={15} />
+                        : <Send size={15} />}
+                  {submitting ? '提交中' : action === 'modify' ? '保存修改' : action === 'restore' ? '恢复报名' : '提交报名'}
                 </button>
+                {existingSignup && !signupCanceled && (
+                  <button
+                    className="activity-signup-cancel-button"
+                    disabled={locked || submitting}
+                    onClick={() => setCancelDialogOpen(true)}
+                    type="button"
+                  >
+                    <Ban size={15} />
+                    取消报名
+                  </button>
+                )}
               </>
             ) : (
               <a href={loginHref}><LogIn size={15} />登录后报名</a>
@@ -187,7 +230,74 @@ export function ActivitySignupForm({
           title={`Re: ${threadTitle}`}
         />
       )}
+      {cancelDialogOpen && (
+        <ActivitySignupCancelDialog
+          isConfirming={submitting}
+          onCancel={() => {
+            if (!submitting) setCancelDialogOpen(false);
+          }}
+          onConfirm={() => { void cancelSignup(); }}
+        />
+      )}
     </section>
+  );
+}
+
+function ActivitySignupCancelDialog({
+  isConfirming,
+  onCancel,
+  onConfirm,
+}: {
+  isConfirming: boolean;
+  onCancel: () => void;
+  onConfirm: () => void;
+}) {
+  useEffect(() => {
+    document.body.classList.add('thread-delete-dialog-open');
+    return () => document.body.classList.remove('thread-delete-dialog-open');
+  }, []);
+
+  useEffect(() => {
+    function closeOnEscape(event: KeyboardEvent) {
+      if (event.key === 'Escape' && !isConfirming) onCancel();
+    }
+
+    document.addEventListener('keydown', closeOnEscape);
+    return () => document.removeEventListener('keydown', closeOnEscape);
+  }, [isConfirming, onCancel]);
+
+  return (
+    <div
+      className="thread-delete-dialog-backdrop"
+      onMouseDown={(event) => {
+        if (event.currentTarget === event.target && !isConfirming) onCancel();
+      }}
+      role="presentation"
+    >
+      <section
+        aria-describedby="activity-signup-cancel-description"
+        aria-labelledby="activity-signup-cancel-title"
+        aria-modal="true"
+        className="thread-delete-dialog"
+        role="dialog"
+      >
+        <header>
+          <span className="thread-delete-dialog-icon" aria-hidden="true"><Ban size={19} /></span>
+          <div><h2 id="activity-signup-cancel-title">确认取消报名？</h2></div>
+          <button aria-label="关闭取消报名确认" disabled={isConfirming} onClick={onCancel} type="button"><X size={18} /></button>
+        </header>
+        <div className="thread-delete-dialog-body">
+          <p id="activity-signup-cancel-description">取消后报名楼层会保留并标记为已取消，之后可以恢复报名。</p>
+        </div>
+        <footer>
+          <button autoFocus className="thread-delete-dialog-cancel" disabled={isConfirming} onClick={onCancel} type="button">返回</button>
+          <button className="thread-delete-dialog-confirm" disabled={isConfirming} onClick={onConfirm} type="button">
+            <Ban size={15} />
+            {isConfirming ? '处理中' : '确认取消报名'}
+          </button>
+        </footer>
+      </section>
+    </div>
   );
 }
 

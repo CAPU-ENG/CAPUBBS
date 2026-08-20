@@ -99,6 +99,7 @@ function copyAsPlainText(event: ClipboardEvent<HTMLElement>) {
 }
 
 export function ThreadFloor({
+  canQuote,
   canReply,
   editHref,
   floor,
@@ -109,6 +110,7 @@ export function ThreadFloor({
   onSubmitNestedReply,
   viewer,
 }: {
+  canQuote: boolean;
   canReply: boolean;
   editHref: string;
   floor: ThreadFloorData;
@@ -311,17 +313,17 @@ export function ThreadFloor({
         />
 
         <div className="thread-floor-actions">
+          {canQuote && (
+            <button onClick={() => onQuote(floor)} type="button">
+              <Quote size={15} />
+              引用
+            </button>
+          )}
           {canReply && (
-            <>
-              <button onClick={() => onQuote(floor)} type="button">
-                <Quote size={15} />
-                引用
-              </button>
-              <button onClick={() => openNestedReplyComposer()} type="button">
-                <Reply size={15} />
-                回复
-              </button>
-            </>
+            <button onClick={() => openNestedReplyComposer()} type="button">
+              <Reply size={15} />
+              回复
+            </button>
           )}
           {(floor.canEdit ?? floor.isOwn) && (
               <a href={editHref}>

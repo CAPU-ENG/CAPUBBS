@@ -402,7 +402,7 @@ export async function publishActivitySignup({
   title,
   values,
 }: {
-  action: 'join' | 'modify' | 'restore';
+  action: 'cancel' | 'join' | 'modify' | 'restore';
   bid: number;
   signatureIndex: number;
   tid: number;
@@ -426,7 +426,13 @@ export async function publishActivitySignup({
   await requestThreadApi(
     body,
     undefined,
-    action === 'modify' ? '报名修改失败，请稍后重试。' : action === 'restore' ? '重新报名失败，请稍后重试。' : '报名提交失败，请稍后重试。',
+    action === 'cancel'
+      ? '取消报名失败，请稍后重试。'
+      : action === 'modify'
+        ? '报名修改失败，请稍后重试。'
+        : action === 'restore'
+          ? '恢复报名失败，请稍后重试。'
+          : '报名提交失败，请稍后重试。',
   );
 }
 
