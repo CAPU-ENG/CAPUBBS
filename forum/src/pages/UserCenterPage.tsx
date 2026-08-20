@@ -18,15 +18,15 @@ import { ProfileWorkspace } from '../components/profile/ProfileWorkspace';
 import { useAuth } from '../context/AuthContext';
 import type { ProfileDetail } from '../data/profileDemo';
 import { useUserCenterProfile } from '../hooks/useProfileData';
-import { getPublicProfilePath } from '../utils/userRoutes';
+import { getPublicProfilePath, USER_CENTER_PATH } from '../utils/userRoutes';
 
 type OpenDialog = 'avatar' | 'email' | 'security' | null;
 type PageNotice = { message: string; tone: 'error' | 'success' } | null;
 
 export function UserCenterPage() {
-  const { logout, updateViewerAvatar } = useAuth();
-  const profileState = useUserCenterProfile();
-  const profile = profileState.data;
+  const { logout, status: authStatus, updateViewerAvatar } = useAuth();
+  const profileState = useUserCenterProfile(authStatus === 'authenticated');
+  const profile = authStatus === 'authenticated' ? profileState.data : null;
   const [isEditing, setIsEditing] = useState(false);
   const [isSavingProfile, setIsSavingProfile] = useState(false);
   const [draft, setDraft] = useState<ProfileDraft>(emptyDraft);
@@ -81,10 +81,13 @@ export function UserCenterPage() {
   }
 
   if (!profile) {
+    const authPending = authStatus === 'loading' || authStatus === 'restoring';
+    const loginRequired = authStatus === 'guest';
     return (
       <ProfileLoadPage
-        error={profileState.error}
-        loading={profileState.status === 'loading'}
+        error={loginRequired ? '登录后才能查看和修改个人资料。' : profileState.error}
+        loading={!loginRequired && (authPending || profileState.status === 'loading')}
+        loginHref={loginRequired ? `/login?returnTo=${encodeURIComponent(USER_CENTER_PATH)}` : undefined}
         onRetry={profileState.reload}
       />
     );
@@ -173,10 +176,12 @@ export function UserCenterPage() {
 
 function ProfileLoadPage({
   error,
+  loginHref,
   loading,
   onRetry,
 }: {
   error: string;
+  loginHref?: string;
   loading: boolean;
   onRetry: () => void;
 }) {
@@ -187,9 +192,10 @@ function ProfileLoadPage({
       <main className="profile-page-shell profile-not-found-wrap">
         <section className="profile-not-found" role={loading ? 'status' : 'alert'}>
           {loading ? <LoaderCircle className="profile-loading-icon" size={34} /> : null}
-          <h1>{loading ? '正在加载个人资料' : '个人资料加载失败'}</h1>
-          <p>{loading ? '正在连接论坛服务，请稍候。' : error}</p>
-          {!loading ? <button type="button" onClick={onRetry}><RefreshCw size={15} />重新加载</button> : null}
+          <h1>{loading ? '正在确认登录状态' : loginHref ? '请先登录' : '个人资料加载失败'}</h1>
+          <p>{loading ? '正在校验论坛会话，请稍候。' : error}</p>
+          {!loading && loginHref ? <a href={loginHref}>前往登录</a> : null}
+          {!loading && !loginHref ? <button type="button" onClick={onRetry}><RefreshCw size={15} />重新加载</button> : null}
         </section>
       </main>
     </div>

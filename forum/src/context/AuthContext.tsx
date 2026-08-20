@@ -42,7 +42,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       },
       (error: unknown) => {
         if (error instanceof DOMException && error.name === 'AbortError') return;
-        setAuth((current) => current.viewer ? current : { status: 'guest', viewer: null });
+        clearCachedViewer();
+        setAuth({ status: 'guest', viewer: null });
       },
     );
 

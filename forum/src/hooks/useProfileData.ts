@@ -25,12 +25,17 @@ const initialPublicProfileState: ProfileLoadState<LoadedPublicProfile> = {
   status: 'loading',
 };
 
-export function useUserCenterProfile() {
+export function useUserCenterProfile(enabled: boolean) {
   const [state, setState] = useState(initialUserCenterState);
   const [requestVersion, setRequestVersion] = useState(0);
   const reload = useCallback(() => setRequestVersion((version) => version + 1), []);
 
   useEffect(() => {
+    if (!enabled) {
+      setState(initialUserCenterState);
+      return;
+    }
+
     const controller = new AbortController();
     setState((current) => ({ ...current, error: '', status: 'loading' }));
     void fetchUserCenterProfile(controller.signal).then(
@@ -46,7 +51,7 @@ export function useUserCenterProfile() {
       },
     );
     return () => controller.abort();
-  }, [requestVersion]);
+  }, [enabled, requestVersion]);
 
   const replace = useCallback((data: ProfileViewData) => {
     setState({ data, error: '', status: 'ready' });

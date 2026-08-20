@@ -4,11 +4,9 @@ import {
   ChevronDown,
   LoaderCircle,
   LogIn,
-  LogOut,
   Menu,
   Moon,
   Search,
-  Settings,
   Sun,
   UserRound,
 } from 'lucide-react';
@@ -18,6 +16,7 @@ import logo2 from '../../assets/logo/logo2.webp';
 import { DesktopBoardDrawer, MobileBoardSidebar } from './BoardNavigation';
 import { useAuth } from '../../context/AuthContext';
 import { getLoginPathWithReturnTo } from '../../utils/authRoutes';
+import { USER_CENTER_PATH } from '../../utils/userRoutes';
 
 type Theme = 'light' | 'dark';
 
@@ -37,7 +36,8 @@ export function TopBar({
   contextTitle?: string;
   showContextTitle?: boolean;
 }) {
-  const { logout, status: authStatus, viewer } = useAuth();
+  const { status: authStatus, viewer } = useAuth();
+  const authPending = authStatus === 'loading' || authStatus === 'restoring';
   const params = new URLSearchParams(window.location.search);
   const isHomePage = window.location.pathname === '/'
     && !params.has('tid')
@@ -231,7 +231,7 @@ export function TopBar({
               </a>
             )}
 
-            {authStatus === 'loading' ? (
+            {authPending ? (
               <span className="auth-session-loading" aria-label="正在恢复登录状态">
                 <LoaderCircle className="animate-spin" size={17} />
               </span>
@@ -264,18 +264,7 @@ export function TopBar({
 
                 {profileOpen && (
                   <div className="profile-menu" role="menu">
-                    <a href="/user-center" role="menuitem"><UserRound size={16} />个人中心</a>
-                    <a href="/user-center#account-security" role="menuitem"><Settings size={16} />设置</a>
-                    <button
-                      type="button"
-                      role="menuitem"
-                      onClick={() => {
-                        setProfileOpen(false);
-                        void logout();
-                      }}
-                    >
-                      <LogOut size={16} />退出登录
-                    </button>
+                    <a href={USER_CENTER_PATH} role="menuitem"><UserRound size={16} />个人中心</a>
                   </div>
                 )}
               </div>

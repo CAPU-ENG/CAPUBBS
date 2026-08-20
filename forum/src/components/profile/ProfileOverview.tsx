@@ -1,6 +1,7 @@
 import { AtSign, Bike, Edit3, ExternalLink, Mail, MapPin, MessageCircle, ShieldCheck } from 'lucide-react';
 import type { ComponentType, SVGProps } from 'react';
 import type { ProfileDetailKey, ProfileViewData } from '../../data/profileDemo';
+import { USER_CENTER_PATH } from '../../utils/userRoutes';
 
 export type ProfileDraft = {
   hobby: string;
@@ -125,7 +126,7 @@ export function ProfileOverview({
               )}
             </>
           ) : isOwnPublicProfile ? (
-            <a className="profile-primary-action" href="/user-center">
+            <a className="profile-primary-action" href={USER_CENTER_PATH}>
               <ExternalLink size={16} />进入个人中心
             </a>
           ) : (

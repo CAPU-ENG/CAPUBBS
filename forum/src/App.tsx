@@ -7,7 +7,7 @@ import { ThreadPage } from './pages/ThreadPage';
 import { UserCenterPage } from './pages/UserCenterPage';
 import { LoginPage } from './pages/LoginPage';
 import { FORUM_LOCATION_CHANGE_EVENT } from './utils/authRoutes';
-import { getPublicProfileNameFromLocation } from './utils/userRoutes';
+import { getPublicProfileNameFromLocation, USER_CENTER_PATH } from './utils/userRoutes';
 
 export function App() {
   return (
@@ -66,7 +66,7 @@ function ForumRouter() {
   const pathname = normalizePathname(window.location.pathname);
   const params = new URLSearchParams(window.location.search);
   if (pathname === '/login') return <LoginPage />;
-  if (pathname === '/user-center') return <UserCenterPage />;
+  if (pathname === USER_CENTER_PATH) return <UserCenterPage />;
   if (pathname === '/users' || pathname.startsWith('/users/')) {
     return <PublicProfilePage profileName={getPublicProfileNameFromLocation(pathname, window.location.search)} />;
   }
@@ -81,7 +81,7 @@ function isForumAppPath(pathname: string) {
   const normalizedPath = normalizePathname(pathname);
   return normalizedPath === '/'
     || normalizedPath === '/login'
-    || normalizedPath === '/user-center'
+    || normalizedPath === USER_CENTER_PATH
     || normalizedPath === '/users'
     || normalizedPath.startsWith('/users/');
 }

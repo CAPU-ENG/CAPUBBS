@@ -1,4 +1,5 @@
 export const PUBLIC_PROFILE_PATH = '/users';
+export const USER_CENTER_PATH = '/home';
 
 export function getPublicProfilePath(userId: string | null | undefined) {
   const normalizedUserId = normalizeProfileName(userId);

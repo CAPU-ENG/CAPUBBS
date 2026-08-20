@@ -328,7 +328,9 @@ function mapRecord(row: ApiRow, kind: 'bookmark' | 'post' | 'reply'): ProfileRec
   const title = plainText(row.title);
   if (!bid || !tid || !title) return null;
 
-  const floorSuffix = kind === 'reply' && pid > 0 ? `&pid=${pid}#pid${pid}` : '';
+  const floor = kind === 'reply' && pid > 0 ? pid : null;
+  const page = floor ? Math.max(1, Math.ceil(floor / 12)) : 1;
+  const floorHash = floor ? `#floor-${floor}` : '';
   return {
     author: stringValue(row.author),
     board: stringValue(row.board ?? row.boardname) || `版块 ${bid}`,
@@ -338,7 +340,7 @@ function mapRecord(row: ApiRow, kind: 'bookmark' | 'post' | 'reply'): ProfileRec
         : row.timestamp ?? row.replytime ?? row.updatetime ?? row.postdate,
     ),
     excerpt: '',
-    href: `/bbs/content/?bid=${bid}&tid=${tid}${floorSuffix}`,
+    href: `/?bid=${bid}&tid=${tid}&p=${page}${floorHash}`,
     id: `${kind}-${bid}-${tid}-${pid || 0}`,
     title,
   };
