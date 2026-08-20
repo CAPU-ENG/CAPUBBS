@@ -9,9 +9,11 @@
   }
 
   .thread-edit-heading-card,
-  .thread-edit-source-card {
+  .thread-edit-source-card,
+  .thread-edit-form {
     width: 100%;
     max-width: var(--thread-main-column);
+    margin-inline: auto;
   }
 
   .thread-edit-heading-card,
@@ -104,10 +106,6 @@
     font-size: 0.83rem;
     text-overflow: ellipsis;
     white-space: nowrap;
-  }
-
-  .thread-edit-form {
-    width: 100%;
   }
 
   .thread-edit-title-field {
