@@ -60,7 +60,7 @@ export function DesktopBoardDrawer({ onNavigate }: { onNavigate: () => void }) {
       </div>
 
       <div className="board-drawer-section flex items-center border-t border-[var(--line)]">
-        <a className="supplement-link" href="/index/data.php" onClick={onNavigate}>
+        <a className="supplement-link" href="/data" onClick={onNavigate}>
           <BarChart3 size={15} /> 数据展示
         </a>
       </div>
@@ -109,7 +109,7 @@ export function MobileBoardSidebar({ open, onClose }: { open: boolean; onClose: 
         </div>
 
         <div className="mt-6 border-t border-[var(--line)] pt-5">
-          <a className="supplement-link" href="/index/data.php" onClick={onClose}>
+          <a className="supplement-link" href="/data" onClick={onClose}>
             <BarChart3 size={16} /> 数据展示
           </a>
         </div>
