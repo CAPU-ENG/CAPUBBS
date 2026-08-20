@@ -1,15 +1,15 @@
 @layer components {
   .thread-edit-page-shell {
+    --thread-main-column: 836px;
     position: relative;
-    z-index: 1;
+    z-index: 10;
     width: min(1080px, calc(100% - 32px));
     margin: 0 auto;
-    padding: 32px 0 72px;
+    padding: calc(var(--topbar-height) + 18px) 0 72px;
   }
 
   .thread-edit-heading-card,
   .thread-edit-source-card,
-  .thread-edit-form,
   .thread-edit-request-state {
     border: 1px solid var(--line);
     background: color-mix(in srgb, var(--surface) 96%, transparent);
@@ -18,10 +18,10 @@
 
   .thread-edit-heading-card {
     display: grid;
-    grid-template-columns: auto minmax(0, 1fr) auto;
-    align-items: start;
+    grid-template-columns: auto minmax(0, 1fr);
+    align-items: center;
     gap: 16px;
-    padding: 24px;
+    padding: 22px 24px;
   }
 
   .thread-edit-back {
@@ -48,9 +48,9 @@
 
   .thread-edit-heading-copy > span {
     display: block;
-    margin: 1px 0 7px;
+    margin-bottom: 6px;
     color: var(--brand);
-    font-size: 0.75rem;
+    font-size: 0.72rem;
     font-weight: 750;
     letter-spacing: 0.12em;
   }
@@ -59,28 +59,8 @@
     overflow-wrap: anywhere;
     margin: 0;
     color: var(--text-strong);
-    font-size: clamp(1.45rem, 2.5vw, 2rem);
+    font-size: clamp(1.4rem, 2.5vw, 1.9rem);
     line-height: 1.25;
-  }
-
-  .thread-edit-heading-copy p {
-    margin: 8px 0 0;
-    color: var(--text-muted);
-    font-size: 0.875rem;
-  }
-
-  .thread-edit-permission {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    margin-top: 2px;
-    padding: 7px 10px;
-    border: 1px solid color-mix(in srgb, var(--brand) 22%, var(--line));
-    background: var(--brand-faint);
-    color: var(--brand);
-    font-size: 0.75rem;
-    font-weight: 700;
-    white-space: nowrap;
   }
 
   .thread-edit-source-card {
@@ -121,68 +101,33 @@
   }
 
   .thread-edit-form {
-    margin-top: 20px;
-    padding: 24px;
-  }
-
-  .thread-edit-form-heading {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 16px;
-    padding-bottom: 18px;
-    border-bottom: 1px solid var(--line);
-  }
-
-  .thread-edit-form-heading > div {
-    display: flex;
-    align-items: center;
-    gap: 9px;
-    color: var(--brand);
-  }
-
-  .thread-edit-form-heading h2 {
-    margin: 0;
-    color: var(--text-strong);
-    font-size: 1rem;
-  }
-
-  .thread-edit-form-heading > span {
-    color: var(--text-faint);
-    font-size: 0.75rem;
-    font-weight: 650;
-  }
-
-  .thread-edit-title-field,
-  .thread-edit-editor-field {
-    display: block;
-    margin-top: 22px;
-  }
-
-  .thread-edit-title-field > span,
-  .thread-edit-editor-field > span,
-  .thread-edit-signatures legend {
-    display: block;
-    margin-bottom: 8px;
-    color: var(--text-muted);
-    font-size: 0.76rem;
-    font-weight: 750;
+    width: 100%;
   }
 
   .thread-edit-title-field {
     position: relative;
+    display: block;
+    margin: 2px 16px 10px;
+  }
+
+  .thread-edit-title-field > span {
+    display: block;
+    margin-bottom: 7px;
+    color: var(--text-muted);
+    font-size: 0.7rem;
+    font-weight: 720;
   }
 
   .thread-edit-title-field input {
     width: 100%;
-    height: 46px;
-    padding: 0 72px 0 13px;
-    border: 1px solid var(--line-strong);
+    height: 42px;
+    padding: 0 68px 0 12px;
+    border: 1px solid var(--line);
     border-radius: var(--control-radius);
     outline: 0;
-    background: var(--surface-raised);
+    background: var(--surface);
     color: var(--text-strong);
-    font-size: 1rem;
+    font-size: 0.88rem;
     font-weight: 650;
     transition: 150ms ease;
   }
@@ -194,145 +139,18 @@
 
   .thread-edit-title-field small {
     position: absolute;
-    right: 13px;
-    bottom: 14px;
+    right: 12px;
+    bottom: 12px;
     color: var(--text-faint);
-    font-size: 0.7rem;
+    font-size: 0.64rem;
   }
 
-  .thread-edit-editor-core {
-    overflow: hidden;
-    border: 1px solid var(--line-strong);
-    background: var(--surface-raised);
-  }
-
-  .thread-edit-editor-core > section {
-    border: 0;
-    box-shadow: none;
-  }
-
-  .thread-edit-editor-core .capubbs-rich-text-editor[data-auto-height="false"] {
-    height: clamp(390px, 56vh, 610px);
-    min-height: 390px;
-  }
-
-  .thread-edit-editor-core .capubbs-rich-text-editor[data-auto-height="false"] > [data-editor-mode] {
-    min-height: 0;
-    flex: 1;
-  }
-
-  .thread-edit-signatures {
-    margin: 22px 0 0;
-    padding: 0;
-    border: 0;
-  }
-
-  .thread-edit-signatures > div {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 8px;
-  }
-
-  .thread-edit-signatures label {
-    display: inline-flex;
-    min-height: 36px;
-    align-items: center;
-    gap: 7px;
-    padding: 0 11px;
-    border: 1px solid var(--line);
-    background: var(--surface-soft);
-    color: var(--text-muted);
-    cursor: pointer;
-    font-size: 0.78rem;
-    font-weight: 650;
-  }
-
-  .thread-edit-signatures label:has(input:checked) {
-    border-color: color-mix(in srgb, var(--brand) 50%, var(--line));
-    background: var(--brand-faint);
-    color: var(--brand);
-  }
-
-  .thread-edit-signatures input {
-    accent-color: var(--brand);
-  }
-
-  .thread-edit-attachments-note {
-    margin-top: 18px;
-    padding: 11px 13px;
-    border-left: 3px solid var(--brand);
-    background: var(--brand-faint);
-    color: var(--text-muted);
-    font-size: 0.78rem;
-    line-height: 1.6;
-  }
-
-  .thread-edit-form-footer {
-    display: flex;
-    align-items: center;
-    gap: 14px;
-    margin-top: 24px;
-    padding-top: 18px;
-    border-top: 1px solid var(--line);
-  }
-
-  .thread-edit-form-footer > p {
-    margin: 0;
-    color: var(--danger);
-    font-size: 0.78rem;
-    font-weight: 650;
-  }
-
-  .thread-edit-form-footer > div {
-    display: flex;
-    gap: 9px;
-    margin-left: auto;
-  }
-
-  .thread-edit-form-footer button,
-  .thread-edit-request-state a {
-    display: inline-flex;
-    min-height: 40px;
-    align-items: center;
-    justify-content: center;
-    gap: 7px;
-    padding: 0 15px;
-    border: 1px solid var(--line);
-    border-radius: var(--control-radius);
-    font-size: 0.8rem;
-    font-weight: 750;
-    transition: 150ms ease;
-  }
-
-  .thread-edit-discard {
-    background: transparent;
+  .thread-edit-form .reply-editor-status.thread-edit-error {
     color: var(--danger);
   }
 
-  .thread-edit-preview-button {
-    background: var(--surface-raised);
-    color: var(--text-muted);
-  }
-
-  .thread-edit-save-button {
-    border-color: var(--brand) !important;
-    background: var(--brand);
-    color: white;
-  }
-
-  .dark .thread-edit-save-button {
-    color: #0f1d15;
-  }
-
-  .thread-edit-form-footer button:hover:not(:disabled) {
-    border-color: var(--brand);
-  }
-
-  .thread-edit-save-button:hover:not(:disabled) {
-    background: var(--brand-strong);
-  }
-
-  .thread-edit-form-footer button:disabled {
+  .thread-edit-form .reply-editor-footer button:disabled,
+  .attachment-dialog .attachment-drop-button:disabled {
     cursor: not-allowed;
     opacity: 0.45;
   }
@@ -362,8 +180,17 @@
   }
 
   .thread-edit-request-state a {
+    display: inline-flex;
+    min-height: 40px;
+    align-items: center;
+    justify-content: center;
+    padding: 0 15px;
+    border: 1px solid var(--line);
+    border-radius: var(--control-radius);
     background: var(--surface-raised);
     color: var(--text-muted);
+    font-size: 0.8rem;
+    font-weight: 750;
   }
 
   .thread-edit-request-state .thread-edit-login-link {
@@ -458,18 +285,11 @@
   @media (max-width: 760px) {
     .thread-edit-page-shell {
       width: min(100% - 20px, 1080px);
-      padding-top: 18px;
+      padding-top: calc(var(--topbar-height) + 10px);
     }
 
     .thread-edit-heading-card {
-      grid-template-columns: auto minmax(0, 1fr);
       padding: 18px;
-    }
-
-    .thread-edit-permission {
-      grid-column: 2;
-      justify-self: start;
-      margin-top: 0;
     }
 
     .thread-edit-source-card {
@@ -487,41 +307,9 @@
     .thread-edit-source-card > div:nth-last-child(-n + 2) {
       border-bottom: 0;
     }
-
-    .thread-edit-form {
-      padding: 18px;
-    }
-
-    .thread-edit-editor-core .capubbs-rich-text-editor[data-auto-height="false"] {
-      height: 440px;
-      min-height: 440px;
-    }
-
-    .thread-edit-form-footer {
-      align-items: stretch;
-      flex-wrap: wrap;
-    }
-
-    .thread-edit-form-footer > p {
-      order: -1;
-      width: 100%;
-    }
-
-    .thread-edit-form-footer > div {
-      flex: 1;
-    }
-
-    .thread-edit-form-footer > div > button {
-      flex: 1;
-    }
   }
 
   @media (max-width: 500px) {
-    .thread-edit-heading-copy p,
-    .thread-edit-form-heading > span {
-      display: none;
-    }
-
     .thread-edit-source-card {
       grid-template-columns: 1fr;
     }
@@ -537,18 +325,8 @@
       border-bottom: 0;
     }
 
-    .thread-edit-signatures > div {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-    }
-
-    .thread-edit-form-footer > div {
-      width: 100%;
-      margin-left: 0;
-    }
-
-    .thread-edit-discard {
-      flex: 1;
+    .thread-edit-title-field {
+      margin-inline: 10px;
     }
 
     .thread-edit-preview-meta {

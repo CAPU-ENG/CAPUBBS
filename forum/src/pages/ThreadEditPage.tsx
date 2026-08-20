@@ -1,5 +1,5 @@
-import { ArrowLeft, Eye, FilePenLine, LoaderCircle, Save, ShieldCheck, X } from 'lucide-react';
-import { useEffect, useMemo, useState, type FormEvent } from 'react';
+import { ArrowLeft, Eye, LoaderCircle, Paperclip, Save, Trash2, UploadCloud, X } from 'lucide-react';
+import { useEffect, useMemo, useRef, useState, type ChangeEvent, type FormEvent } from 'react';
 import {
   getRichTextEditorHtmlValue,
   getRichTextEditorPreviewDocument,
@@ -10,10 +10,13 @@ import { AppBackground } from '../components/layout/AppBackground';
 import { TopBar } from '../components/layout/TopBar';
 import {
   fetchEditableThreadFloor,
+  fetchThreadAttachmentInfo,
   isAbortError,
   ThreadApiError,
+  uploadThreadAttachment,
   updateThreadFloor,
   type EditableThreadFloor,
+  type ThreadAttachmentInfo,
 } from '../api/thread';
 import { useAuth } from '../context/AuthContext';
 import { getLoginPathWithReturnTo } from '../utils/authRoutes';
@@ -40,6 +43,10 @@ export function ThreadEditPage() {
   const [title, setTitle] = useState('');
   const [editorValue, setEditorValue] = useState<RichTextEditorValue>({ content: '', mode: 'rich' });
   const [signatureIndex, setSignatureIndex] = useState(0);
+  const [attachments, setAttachments] = useState<ThreadAttachmentInfo[]>([]);
+  const [attachmentDialogOpen, setAttachmentDialogOpen] = useState(false);
+  const [attachmentStatus, setAttachmentStatus] = useState('');
+  const [isUploadingAttachments, setIsUploadingAttachments] = useState(false);
   const [loadError, setLoadError] = useState('');
   const [saveError, setSaveError] = useState('');
   const [isSaving, setIsSaving] = useState(false);
@@ -57,10 +64,25 @@ export function ThreadEditPage() {
 
     void fetchEditableThreadFloor({ ...request, signal: controller.signal }).then(
       (editableFloor) => {
+        const attachmentIds = getAttachmentIds(editableFloor.attachments);
         setFloor(editableFloor);
         setTitle(editableFloor.title);
         setEditorValue({ content: editableFloor.text, mode: 'rich' });
         setSignatureIndex(editableFloor.signatureIndex);
+        setAttachments(attachmentIds.map((id) => ({ id, name: `附件 #${id}`, size: 0 })));
+
+        void Promise.all(attachmentIds.map(async (id) => {
+          try {
+            return await fetchThreadAttachmentInfo(id, controller.signal);
+          } catch (error) {
+            if (isAbortError(error)) throw error;
+            return { id, name: `附件 #${id}`, size: 0 };
+          }
+        })).then((items) => setAttachments((current) => current.map((attachment) => (
+          items.find((item) => item.id === attachment.id) ?? attachment
+        ))), (error: unknown) => {
+          if (!isAbortError(error)) setAttachmentStatus('部分附件信息读取失败，保存时仍会保留关联。');
+        });
       },
       (error: unknown) => {
         if (isAbortError(error)) return;
@@ -78,13 +100,15 @@ export function ThreadEditPage() {
     || editorValue.content !== floor.text
     || editorValue.mode !== 'rich'
     || signatureIndex !== floor.signatureIndex
+    || attachments.map((attachment) => attachment.id).join(' ') !== getAttachmentIds(floor.attachments).join(' ')
   ));
   const contentReady = hasEditorContent(editorValue);
   const canSave = Boolean(
     floor
     && contentReady
     && (!isMainPost || title.trim())
-    && !isSaving,
+    && !isSaving
+    && !isUploadingAttachments,
   );
 
   useEffect(() => {
@@ -117,7 +141,7 @@ export function ThreadEditPage() {
     setSaveError('');
     try {
       const saved = await updateThreadFloor({
-        attachments: floor.attachments,
+        attachments: attachments.map((attachment) => attachment.id).join(' '),
         bid: floor.bid,
         pid: floor.pid,
         signatureIndex,
@@ -130,6 +154,34 @@ export function ThreadEditPage() {
       setSaveError(error instanceof ThreadApiError ? error.message : '保存修改失败，请稍后重试。');
       setIsSaving(false);
     }
+  }
+
+  async function addAttachments(files: File[]) {
+    if (files.length === 0) return;
+    const oversizedFile = files.find((file) => file.size > 100 * 1024 * 1024);
+    if (oversizedFile) {
+      setAttachmentStatus(`${oversizedFile.name} 超过 100MB，无法上传。`);
+      return;
+    }
+
+    setAttachmentStatus(files.length > 1 ? `正在上传 ${files.length} 个附件…` : `正在上传 ${files[0].name}…`);
+    setIsUploadingAttachments(true);
+    try {
+      const results = await Promise.allSettled(files.map(uploadThreadAttachment));
+      const uploaded = results.flatMap((result) => result.status === 'fulfilled' ? [result.value] : []);
+      const failed = results.filter((result) => result.status === 'rejected');
+      if (uploaded.length > 0) setAttachments((current) => [...current, ...uploaded]);
+      setAttachmentStatus(failed.length > 0
+        ? `已添加 ${uploaded.length} 个附件，${failed.length} 个上传失败。`
+        : `已添加 ${uploaded.length} 个附件`);
+    } finally {
+      setIsUploadingAttachments(false);
+    }
+  }
+
+  function removeAttachment(id: string) {
+    setAttachments((current) => current.filter((attachment) => attachment.id !== id));
+    setAttachmentStatus('附件已从当前楼层移除，保存后生效。');
   }
 
   return (
@@ -165,10 +217,6 @@ export function ThreadEditPage() {
               <div className="thread-edit-heading-copy">
                 <span>{isMainPost ? '编辑帖子' : '编辑楼层'}</span>
                 <h1 id="edit-page-title">{isMainPost ? title.trim() || floor.title : `Re: ${floor.title}`}</h1>
-                <p>{isMainPost ? '修改主楼标题与正文' : `正在修改 #${floor.pid} 楼的回复内容`}</p>
-              </div>
-              <div className="thread-edit-permission">
-                <ShieldCheck size={15} /> 已验证编辑权限
               </div>
             </header>
 
@@ -179,14 +227,11 @@ export function ThreadEditPage() {
               <div><span>{floor.updatedAt ? '最后编辑' : '发布时间'}</span><strong>{formatPostTime(floor.updatedAt || floor.createdAt)}</strong></div>
             </section>
 
-            <form className="thread-edit-form" onSubmit={saveEdit}>
-              <div className="thread-edit-form-heading">
-                <div>
-                  <FilePenLine size={18} />
-                  <h2>{isMainPost ? '帖子内容' : '楼层内容'}</h2>
-                </div>
-                <span>{isDirty ? '有尚未保存的修改' : '尚未修改'}</span>
-              </div>
+            <form className="reply-editor thread-edit-form" onSubmit={saveEdit}>
+              <header className="reply-editor-heading">
+                <h2>{isMainPost ? '编辑帖子' : '编辑楼层'}</h2>
+                <p>{isDirty ? '有尚未保存的修改' : `#${floor.pid} · ${floor.author}`}</p>
+              </header>
 
               {isMainPost && (
                 <label className="thread-edit-title-field">
@@ -205,61 +250,82 @@ export function ThreadEditPage() {
                 </label>
               )}
 
-              <div className="thread-edit-editor-field">
-                <span>{isMainPost ? '正文' : '回复内容'}</span>
-                <div className="thread-edit-editor-core">
-                  <RichTextEditor
-                    ariaLabel={isMainPost ? `编辑《${floor.title}》正文` : `编辑《${floor.title}》第 ${floor.pid} 楼`}
-                    onChange={(value) => {
-                      setEditorValue(value);
-                      setSaveError('');
-                    }}
-                    placeholder={isMainPost ? '修改帖子正文……' : '修改这一楼的回复内容……'}
-                    value={editorValue}
-                  />
-                </div>
+              <div className="reply-editor-core">
+                <RichTextEditor
+                  ariaLabel={isMainPost ? `编辑《${floor.title}》正文` : `编辑《${floor.title}》第 ${floor.pid} 楼`}
+                  onChange={(value) => {
+                    setEditorValue(value);
+                    setSaveError('');
+                  }}
+                  placeholder={isMainPost ? '修改帖子正文……' : '修改这一楼的回复内容……'}
+                  value={editorValue}
+                />
               </div>
 
-              <fieldset className="thread-edit-signatures">
-                <legend>选择签名档</legend>
-                <div>
-                  {signatureOptions.map((option) => (
-                    <label key={option.value}>
-                      <input
-                        checked={signatureIndex === option.value}
-                        name="thread-edit-signature"
-                        onChange={() => {
-                          setSignatureIndex(option.value);
-                          setSaveError('');
-                        }}
-                        type="radio"
-                        value={option.value}
-                      />
-                      {option.label}
-                    </label>
-                  ))}
-                </div>
-              </fieldset>
+              <div aria-label="选择签名档" className="reply-signature-options" role="radiogroup">
+                {signatureOptions.map((option) => (
+                  <label key={option.value}>
+                    <input
+                      checked={signatureIndex === option.value}
+                      name="thread-edit-signature"
+                      onChange={() => {
+                        setSignatureIndex(option.value);
+                        setSaveError('');
+                      }}
+                      type="radio"
+                      value={option.value}
+                    />
+                    {option.label}
+                  </label>
+                ))}
+              </div>
 
-              {floor.attachments && (
-                <aside className="thread-edit-attachments-note">
-                  当前楼层已有 {floor.attachments.split(/\s+/).filter(Boolean).length} 个附件，保存时会保留原附件关联。
-                </aside>
+              {attachments.length > 0 && (
+                <ul className="reply-attachments" aria-label="帖子附件">
+                  {attachments.map((attachment) => (
+                    <li key={attachment.id}>
+                      <Paperclip size={13} />
+                      <span>{attachment.name}</span>
+                      <small>{attachment.size > 0 ? formatBytes(attachment.size) : `#${attachment.id}`}</small>
+                      <button
+                        aria-label={`移除附件 ${attachment.name}`}
+                        onClick={() => removeAttachment(attachment.id)}
+                        type="button"
+                      >
+                        <X size={13} />
+                      </button>
+                    </li>
+                  ))}
+                </ul>
               )}
 
-              <footer className="thread-edit-form-footer">
-                <button className="thread-edit-discard" onClick={leaveEditor} type="button">放弃修改</button>
-                {saveError && <p role="alert">{saveError}</p>}
-                <div>
+              <footer className="reply-editor-footer">
+                <button
+                  className="reply-secondary-button"
+                  disabled={isUploadingAttachments}
+                  onClick={() => setAttachmentDialogOpen(true)}
+                  type="button"
+                >
+                  <Paperclip size={15} />
+                  <span className="reply-action-label-full">添加附件</span>
+                  <span className="reply-action-label-compact">附件</span>
+                  {attachments.length > 0 && <span className="reply-attachment-count">{attachments.length}</span>}
+                </button>
+                {(saveError || attachmentStatus) && (
+                  <span className={`reply-editor-status ${saveError ? 'thread-edit-error' : ''}`} role={saveError ? 'alert' : 'status'}>
+                    {saveError || attachmentStatus}
+                  </span>
+                )}
+                <div className="reply-editor-submit">
                   <button
-                    className="thread-edit-preview-button"
+                    className="reply-secondary-button"
                     disabled={!contentReady}
                     onClick={() => setPreviewOpen(true)}
                     type="button"
                   >
                     <Eye size={15} /> 预览
                   </button>
-                  <button className="thread-edit-save-button" disabled={!canSave} type="submit">
+                  <button className="reply-publish-button" disabled={!canSave} type="submit">
                     {isSaving ? <LoaderCircle className="thread-edit-spinner" size={15} /> : <Save size={15} />}
                     {isSaving ? '保存中' : '保存修改'}
                   </button>
@@ -276,6 +342,15 @@ export function ThreadEditPage() {
           floor={floor}
           title={isMainPost ? title.trim() || floor.title : `Re: ${floor.title}`}
           onClose={() => setPreviewOpen(false)}
+        />
+      )}
+      {attachmentDialogOpen && (
+        <ThreadEditAttachmentDialog
+          attachments={attachments}
+          onAdd={(files) => void addAttachments(files)}
+          onClose={() => setAttachmentDialogOpen(false)}
+          onRemove={removeAttachment}
+          uploading={isUploadingAttachments}
         />
       )}
     </div>
@@ -302,6 +377,78 @@ function EditRequestState({
         {loginHref && <a className="thread-edit-login-link" href={loginHref}>前往登录</a>}
       </div>
     </section>
+  );
+}
+
+function ThreadEditAttachmentDialog({
+  attachments,
+  onAdd,
+  onClose,
+  onRemove,
+  uploading,
+}: {
+  attachments: ThreadAttachmentInfo[];
+  onAdd: (files: File[]) => void;
+  onClose: () => void;
+  onRemove: (id: string) => void;
+  uploading: boolean;
+}) {
+  const inputRef = useRef<HTMLInputElement | null>(null);
+
+  function handleFileChange(event: ChangeEvent<HTMLInputElement>) {
+    onAdd(Array.from(event.currentTarget.files ?? []));
+    event.currentTarget.value = '';
+  }
+
+  return (
+    <div className="attachment-dialog-backdrop" onClick={onClose} role="presentation">
+      <section
+        aria-labelledby="thread-edit-attachment-dialog-title"
+        aria-modal="true"
+        className="attachment-dialog"
+        onClick={(event) => event.stopPropagation()}
+        role="dialog"
+      >
+        <header>
+          <span><UploadCloud size={17} /></span>
+          <h2 id="thread-edit-attachment-dialog-title">文件上传</h2>
+          <button aria-label="关闭文件上传" onClick={onClose} type="button"><X size={18} /></button>
+        </header>
+        <button
+          className="attachment-drop-button"
+          disabled={uploading}
+          onClick={() => inputRef.current?.click()}
+          type="button"
+        >
+          <UploadCloud size={22} />
+          <strong>{uploading ? '正在上传附件…' : '选择一个或多个文件'}</strong>
+          <span>文件会立即上传，并在保存修改后关联到当前楼层</span>
+        </button>
+        <input className="sr-only" disabled={uploading} multiple onChange={handleFileChange} ref={inputRef} type="file" />
+        {attachments.length > 0 && (
+          <ul>
+            {attachments.map((attachment) => (
+              <li key={attachment.id}>
+                <div>
+                  <strong>{attachment.name}</strong>
+                  <span>{attachment.size > 0 ? formatBytes(attachment.size) : `附件 #${attachment.id}`}</span>
+                </div>
+                <button
+                  aria-label={`移除附件 ${attachment.name}`}
+                  onClick={() => onRemove(attachment.id)}
+                  type="button"
+                >
+                  <Trash2 size={15} />
+                </button>
+              </li>
+            ))}
+          </ul>
+        )}
+        <footer>
+          <button className="reply-publish-button" onClick={onClose} type="button">完成</button>
+        </footer>
+      </section>
+    </div>
   );
 }
 
@@ -372,6 +519,10 @@ function positiveInteger(value: string | null) {
   return Number.isSafeInteger(number) && number > 0 ? number : 0;
 }
 
+function getAttachmentIds(value: string) {
+  return value.split(/\s+/).map((id) => id.trim()).filter(Boolean);
+}
+
 function hasEditorContent(value: RichTextEditorValue) {
   if (value.mode === 'markdown') return Boolean(value.content.trim());
   const container = document.createElement('div');
@@ -402,4 +553,9 @@ function resizePreviewFrame(frame: HTMLIFrameElement) {
   previewDocument.querySelectorAll('img').forEach((image) => {
     if (!image.complete) image.addEventListener('load', updateHeight, { once: true });
   });
+}
+
+function formatBytes(bytes: number) {
+  if (bytes >= 1024 * 1024) return `${(bytes / 1024 / 1024).toFixed(2)} MB`;
+  return `${Math.max(1, Math.round(bytes / 1024))} KB`;
 }

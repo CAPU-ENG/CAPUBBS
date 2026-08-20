@@ -54,6 +54,12 @@ export type EditableThreadFloor = {
   updatedAt: string;
 };
 
+export type ThreadAttachmentInfo = {
+  id: string;
+  name: string;
+  size: number;
+};
+
 export class ThreadApiError extends Error {
   constructor(message: string) {
     super(message);
@@ -190,6 +196,59 @@ export async function updateThreadFloor({
     bid: positiveInteger(row.bid, bid),
     pid: positiveInteger(row.pid, pid),
     tid: positiveInteger(row.tid, tid),
+  };
+}
+
+export async function fetchThreadAttachmentInfo(id: string, signal?: AbortSignal): Promise<ThreadAttachmentInfo> {
+  const payload = await requestThreadApi(new URLSearchParams({
+    ask: 'attachinfo',
+    id,
+  }), signal, '附件信息读取失败。');
+  const row = asRow(payload.data);
+
+  if (stringValue(row.exist).toUpperCase() !== 'YES') {
+    throw new ThreadApiError('附件不存在。');
+  }
+
+  return {
+    id: stringValue(row.id) || id,
+    name: plainText(row.name) || `附件 #${id}`,
+    size: nonNegativeInteger(row.size),
+  };
+}
+
+export async function uploadThreadAttachment(file: File): Promise<ThreadAttachmentInfo> {
+  const formData = new FormData();
+  formData.append('file', file);
+
+  let response: Response;
+  try {
+    response = await fetch('/bbs/attach/', {
+      body: formData,
+      credentials: 'include',
+      method: 'POST',
+    });
+  } catch {
+    throw new ThreadApiError('暂时无法上传附件，请稍后重试。');
+  }
+
+  let payload: ApiRow;
+  try {
+    payload = asRow(await response.json());
+  } catch {
+    throw new ThreadApiError('附件服务返回了无法识别的数据。');
+  }
+
+  const legacyCode = stringValue(payload.code);
+  const id = stringValue(payload.msg ?? payload.id);
+  if (!response.ok || legacyCode !== '0' || !id) {
+    throw new ThreadApiError(stringValue(payload.msg) || '附件上传失败，请稍后重试。');
+  }
+
+  return {
+    id,
+    name: file.name,
+    size: file.size,
   };
 }
 
