@@ -313,7 +313,7 @@ function mapProfile(
     emailVisible: truthyFlag(row.email_visible),
     id: username,
     intro: stringValue(row.intro),
-    rating: Math.max(0, Math.min(5, numberValue(row.star))),
+    rating: Math.max(0, Math.min(9, numberValue(row.star))),
     records,
     slug: username,
     stats: [

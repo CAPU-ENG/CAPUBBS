@@ -1,4 +1,4 @@
-import { CheckCircle2, LockKeyhole, Mail, MessageCircle, Send, X } from 'lucide-react';
+import { CheckCircle2, LockKeyhole, Mail, MessageCircle, Send, Star, X } from 'lucide-react';
 import { useEffect, useState, type ReactNode } from 'react';
 import { createPortal } from 'react-dom';
 
@@ -41,6 +41,55 @@ function DialogFrame({ children, icon, onClose, open, title }: DialogFrameProps)
       </section>
     </div>,
     document.body,
+  );
+}
+
+const starLevelRules = [
+  { rating: 1, range: '0–19' },
+  { rating: 2, range: '20–108' },
+  { rating: 3, range: '109–316' },
+  { rating: 4, range: '317–674' },
+  { rating: 5, range: '675–1277' },
+  { rating: 6, range: '1278–2302' },
+  { rating: 7, range: '2303–3549' },
+  { rating: 8, range: '3550–4884' },
+  { rating: 9, range: '4885 及以上' },
+];
+
+export function StarRulesDialog({
+  currentRating,
+  onClose,
+  open,
+}: {
+  currentRating: number;
+  onClose: () => void;
+  open: boolean;
+}) {
+  return (
+    <DialogFrame icon={<Star size={18} />} onClose={onClose} open={open} title="星级规则">
+      <div className="profile-dialog-body profile-star-rules">
+        <div className="profile-star-current">
+          <span>当前星级</span>
+          <strong>{'★'.repeat(currentRating)}<small>{currentRating} 星</small></strong>
+        </div>
+        <p>星级通常按普通版块的发帖数与回复数之和计算。</p>
+        <table>
+          <thead>
+            <tr><th scope="col">星级</th><th scope="col">发帖数 + 回复数</th></tr>
+          </thead>
+          <tbody>
+            {starLevelRules.map((rule) => (
+              <tr className={rule.rating === currentRating ? 'profile-star-rule-current' : undefined} key={rule.rating}>
+                <th scope="row">{'★'.repeat(rule.rating)}</th>
+                <td>{rule.range}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+        <p className="profile-dialog-copy">灌水版内容单独计入灌水数，不参与星级计算。少数账号可能由系统设置固定星级，此时不按上述区间自动变化。</p>
+      </div>
+      <DialogFooter confirmLabel="知道了" hideCancel onCancel={onClose} onConfirm={onClose} />
+    </DialogFrame>
   );
 }
 

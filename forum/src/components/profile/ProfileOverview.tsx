@@ -1,7 +1,8 @@
 import { AtSign, Bike, Edit3, ExternalLink, Mail, MapPin, MessageCircle, ShieldCheck } from 'lucide-react';
-import type { ComponentType, SVGProps } from 'react';
+import { useState, type ComponentType, type SVGProps } from 'react';
 import type { ProfileDetailKey, ProfileViewData } from '../../data/profileDemo';
 import { USER_CENTER_PATH } from '../../utils/userRoutes';
+import { StarRulesDialog } from './ProfileDialogs';
 
 export type ProfileDraft = {
   hobby: string;
@@ -53,6 +54,7 @@ export function ProfileOverview({
   profile,
 }: ProfileOverviewProps) {
   const privateMode = mode === 'private';
+  const [starRulesOpen, setStarRulesOpen] = useState(false);
   const visibleIntro = isEditing && draft ? draft.intro : profile.intro;
   const details = profile.details.map((detail) => {
     if (detail.key === 'email') {
@@ -89,9 +91,14 @@ export function ProfileOverview({
           <div className="profile-identity-copy">
             <div className="profile-name-line">
               <h1>{profile.id}</h1>
-              <span className="profile-rating" aria-label={`${profile.rating}星用户`}>
+              <button
+                aria-label={`${profile.rating}星用户，查看星级规则`}
+                className="profile-rating"
+                onClick={() => setStarRulesOpen(true)}
+                type="button"
+              >
                 {'★'.repeat(profile.rating)}
-              </span>
+              </button>
             </div>
 
             {isEditing && draft ? (
@@ -176,6 +183,12 @@ export function ProfileOverview({
           </section>
         ))}
       </div>
+
+      <StarRulesDialog
+        currentRating={profile.rating}
+        onClose={() => setStarRulesOpen(false)}
+        open={starRulesOpen}
+      />
     </div>
   );
 }

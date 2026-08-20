@@ -156,10 +156,29 @@
   }
 
   .profile-rating {
+    display: inline-flex;
+    align-items: center;
+    justify-self: start;
+    border-radius: 2px;
+    padding: 2px 0;
+    background: transparent;
     color: #b67a17;
     font-size: 0.84rem;
     letter-spacing: 0.1em;
+    line-height: 1;
     white-space: nowrap;
+    cursor: pointer;
+    transition: color 150ms ease, background 150ms ease, box-shadow 150ms ease;
+  }
+
+  .profile-rating:hover {
+    background: color-mix(in srgb, #b67a17 10%, transparent);
+    color: #945f0d;
+  }
+
+  .profile-rating:focus-visible {
+    outline: 2px solid #b67a17;
+    outline-offset: 3px;
   }
 
   .profile-intro {
@@ -931,6 +950,87 @@
     color: var(--text-faint);
     font-size: 0.72rem;
     line-height: 1.7;
+  }
+
+  .profile-star-rules {
+    gap: 12px;
+  }
+
+  .profile-star-rules > p:not(.profile-dialog-copy) {
+    margin: 0;
+    color: var(--text-muted);
+    font-size: 0.78rem;
+    line-height: 1.65;
+  }
+
+  .profile-star-current {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    border: 1px solid color-mix(in srgb, #b67a17 25%, var(--line));
+    padding: 11px 12px;
+    background: color-mix(in srgb, #b67a17 7%, var(--surface-raised));
+  }
+
+  .profile-star-current > span {
+    color: var(--text-muted);
+    font-size: 0.72rem;
+    font-weight: 700;
+  }
+
+  .profile-star-current > strong {
+    display: inline-flex;
+    align-items: center;
+    gap: 9px;
+    color: #b67a17;
+    font-size: 0.78rem;
+    letter-spacing: 0.08em;
+  }
+
+  .profile-star-current small {
+    color: var(--text-muted);
+    font-size: 0.68rem;
+    letter-spacing: 0;
+  }
+
+  .profile-star-rules table {
+    width: 100%;
+    border-collapse: collapse;
+    border: 1px solid var(--line);
+    font-size: 0.72rem;
+  }
+
+  .profile-star-rules th,
+  .profile-star-rules td {
+    border-bottom: 1px solid var(--line);
+    padding: 7px 10px;
+    text-align: left;
+  }
+
+  .profile-star-rules thead th {
+    background: var(--surface-soft);
+    color: var(--text-faint);
+    font-size: 0.66rem;
+    font-weight: 720;
+  }
+
+  .profile-star-rules tbody th {
+    width: 54%;
+    color: #b67a17;
+    font-weight: 650;
+    letter-spacing: 0.08em;
+  }
+
+  .profile-star-rules tbody td {
+    color: var(--text-muted);
+  }
+
+  .profile-star-rule-current th,
+  .profile-star-rule-current td {
+    background: color-mix(in srgb, #b67a17 8%, var(--surface-raised));
+    color: var(--text-strong);
+    font-weight: 760;
   }
 
   .profile-avatar-editor {
