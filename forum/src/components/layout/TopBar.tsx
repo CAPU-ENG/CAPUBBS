@@ -326,7 +326,9 @@ export function TopBar({
                       type="button"
                       onClick={() => {
                         setProfileOpen(false);
-                        void logout().catch(() => undefined);
+                        void logout()
+                          .catch(() => undefined)
+                          .then(() => window.location.reload());
                       }}
                     >
                       <LogOut size={16} />退出登录
