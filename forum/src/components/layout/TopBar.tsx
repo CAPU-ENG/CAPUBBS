@@ -59,6 +59,7 @@ export function TopBar({
   const mobileContextTitleRef = useRef<HTMLAnchorElement | null>(null);
   const mobileContextTitleTextRef = useRef<HTMLSpanElement | null>(null);
   const profileMenuRef = useRef<HTMLDivElement | null>(null);
+  const topBarRef = useRef<HTMLElement | null>(null);
 
   useEffect(() => {
     const onKeyDown = (event: KeyboardEvent) => {
@@ -83,9 +84,11 @@ export function TopBar({
   useLayoutEffect(() => {
     const titleContainer = mobileContextTitleRef.current;
     const titleText = mobileContextTitleTextRef.current;
-    if (!contextTitle || !titleContainer || !titleText) return;
+    const topBar = topBarRef.current;
+    if (!contextTitle || !titleContainer || !titleText || !topBar) return;
     const titleContainerElement = titleContainer;
     const titleTextElement = titleText;
+    const topBarElement = topBar;
 
     let active = true;
     let frame = 0;
@@ -93,6 +96,7 @@ export function TopBar({
     function fitTitleToAvailableWidth() {
       frame = 0;
       titleTextElement.style.fontSize = '';
+      topBarElement.style.removeProperty('--mobile-context-topbar-height');
       if (window.matchMedia('(min-width: 1024px)').matches) return;
 
       const containerStyle = window.getComputedStyle(titleContainerElement);
@@ -100,11 +104,22 @@ export function TopBar({
         + Number.parseFloat(containerStyle.paddingRight);
       const availableWidth = titleContainerElement.clientWidth - horizontalPadding;
       const requiredWidth = titleTextElement.scrollWidth;
-      if (!availableWidth || requiredWidth <= availableWidth) return;
+      if (!availableWidth) return;
 
       const baseFontSize = Number.parseFloat(window.getComputedStyle(titleTextElement).fontSize);
       if (!baseFontSize) return;
-      titleTextElement.style.fontSize = `${baseFontSize * (availableWidth / requiredWidth) * 0.98}px`;
+      const fittedFontSize = requiredWidth > availableWidth
+        ? baseFontSize * (availableWidth / requiredWidth) * 0.98
+        : baseFontSize;
+      if (fittedFontSize < baseFontSize) titleTextElement.style.fontSize = `${fittedFontSize}px`;
+
+      const defaultTopBarHeight = Number.parseFloat(
+        window.getComputedStyle(document.documentElement).getPropertyValue('--topbar-height'),
+      ) || 56;
+      topBarElement.style.setProperty(
+        '--mobile-context-topbar-height',
+        `${defaultTopBarHeight * (fittedFontSize / baseFontSize)}px`,
+      );
     }
 
     function scheduleTitleFit() {
@@ -124,6 +139,7 @@ export function TopBar({
       resizeObserver.disconnect();
       document.fonts.removeEventListener('loadingdone', scheduleTitleFit);
       if (frame) window.cancelAnimationFrame(frame);
+      topBarElement.style.removeProperty('--mobile-context-topbar-height');
     };
   }, [contextTitle]);
 
@@ -200,7 +216,11 @@ export function TopBar({
 
   return (
     <>
-      <header className="topbar">
+      <header
+        className="topbar"
+        data-context-title-visible={contextTitleVisible}
+        ref={topBarRef}
+      >
         <div className="topbar-shell" data-context-title-visible={contextTitleVisible}>
           {contextTitle && (
             <a

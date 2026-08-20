@@ -503,6 +503,14 @@
       padding: 0 12px;
     }
 
+    .topbar {
+      transition: height 220ms cubic-bezier(0.22, 1, 0.36, 1);
+    }
+
+    .topbar[data-context-title-visible="true"] {
+      height: var(--mobile-context-topbar-height, var(--topbar-height));
+    }
+
     .topbar-shell > :not(.topbar-mobile-context-title) {
       transition:
         opacity 170ms ease,
