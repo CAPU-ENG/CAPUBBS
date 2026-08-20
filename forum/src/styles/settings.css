@@ -52,14 +52,6 @@
     font-weight: 760;
   }
 
-  .settings-panel-heading p,
-  .settings-selection-heading p {
-    margin-top: 4px;
-    color: var(--text-faint);
-    font-size: 0.66rem;
-    line-height: 1.55;
-  }
-
   .settings-appearance-panel .settings-panel-heading {
     border-bottom: 0;
   }
@@ -112,20 +104,13 @@
   }
 
   .settings-checkbox-option > span:last-child {
-    display: grid;
-    gap: 4px;
+    display: block;
   }
 
   .settings-checkbox-option strong {
     color: var(--text-strong);
     font-size: 0.72rem;
     font-weight: 720;
-  }
-
-  .settings-checkbox-option small {
-    color: var(--text-faint);
-    font-size: 0.62rem;
-    line-height: 1.55;
   }
 
   .settings-count {
@@ -187,13 +172,6 @@
     color: var(--brand-strong);
   }
 
-  .settings-preview-links em {
-    margin-left: 8px;
-    color: var(--text-faint);
-    font-size: 0.62rem;
-    font-style: normal;
-  }
-
   .settings-selection {
     padding: 22px;
   }
@@ -230,9 +208,7 @@
   }
 
   .settings-pinned-board {
-    display: grid;
     min-width: 0;
-    gap: 2px;
   }
 
   .settings-pinned-board strong {
@@ -242,11 +218,6 @@
     font-weight: 720;
     text-overflow: ellipsis;
     white-space: nowrap;
-  }
-
-  .settings-pinned-board small {
-    color: var(--text-faint);
-    font-size: 0.58rem;
   }
 
   .settings-pinned-actions {
@@ -300,7 +271,6 @@
   }
 
   .settings-empty-selection strong { color: var(--text-muted); font-size: 0.72rem; }
-  .settings-empty-selection p { margin-top: 3px; font-size: 0.62rem; }
 
   .settings-board-picker {
     display: grid;

@@ -73,7 +73,6 @@ export function SettingsPage() {
               <span className="settings-panel-icon"><MonitorCog size={17} /></span>
               <div>
                 <h2 id="appearance-settings-title">外观</h2>
-                <p>控制论坛界面的昼夜显示方式。</p>
               </div>
             </div>
 
@@ -86,7 +85,6 @@ export function SettingsPage() {
               <span className="settings-checkbox-mark" aria-hidden="true"><Check size={14} /></span>
               <span>
                 <strong>自动跟随系统切换昼夜模式</strong>
-                <small>开启后，论坛会随设备的浅色或深色外观设置实时切换。</small>
               </span>
             </label>
 
@@ -106,7 +104,6 @@ export function SettingsPage() {
               <span className="settings-panel-icon"><Pin size={17} /></span>
               <div>
                 <h2 id="pinned-boards-title">常驻版块</h2>
-                <p>将常用版块固定在桌面端顶部导航中，点击即可直接进入。</p>
               </div>
               <strong className="settings-count" aria-label={`已选择 ${draftBoardIds.length} 个，最多 ${MAX_PINNED_BOARDS} 个`}>
                 {draftBoardIds.length}<span> / {MAX_PINNED_BOARDS}</span>
@@ -119,7 +116,6 @@ export function SettingsPage() {
                 <span>首页</span>
                 <span>版块</span>
                 {pinnedBoards.map((board) => <strong key={board.id}>{board.label}</strong>)}
-                {pinnedBoards.length === 0 ? <em>选择后显示在这里</em> : null}
               </div>
             </div>
 
@@ -127,7 +123,6 @@ export function SettingsPage() {
               <div className="settings-selection-heading">
                 <div>
                   <h3>已选择</h3>
-                  <p>版块会按照加入顺序显示在桌面端导航栏中。</p>
                 </div>
               </div>
 
@@ -138,7 +133,6 @@ export function SettingsPage() {
                       <span className="settings-order">{String(index + 1).padStart(2, '0')}</span>
                       <div className="settings-pinned-board">
                         <strong>{board.label}</strong>
-                        <small>版块 ID · {board.id}</small>
                       </div>
                       <div className="settings-pinned-actions">
                         <button
@@ -156,7 +150,7 @@ export function SettingsPage() {
               ) : (
                 <div className="settings-empty-selection">
                   <Pin size={19} />
-                  <div><strong>还没有常驻版块</strong><p>从下方选择最多三个常用版块。</p></div>
+                  <strong>还没有常驻版块</strong>
                 </div>
               )}
             </div>
