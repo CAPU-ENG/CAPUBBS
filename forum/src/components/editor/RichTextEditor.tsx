@@ -33,6 +33,8 @@ import {
   type PointerEvent,
   type ReactNode,
 } from 'react';
+import { renderForumMarkup } from '../../utils/forumMarkup';
+import { translateLegacyBbcode } from '../../utils/legacyBbcode';
 import { getPublicProfileAppPath } from '../../utils/userRoutes';
 import { PastedImageDialog } from './PastedImageDialog';
 import {
@@ -119,7 +121,9 @@ export function getRichTextEditorPreviewDocument(
   value: RichTextEditorValue,
   options: { embedded?: boolean } = {},
 ) {
-  const previewHtml = value.mode === 'markdown' ? renderMarkdownToHtml(value.content) : value.content;
+  const previewHtml = value.mode === 'markdown'
+    ? renderForumMarkup(renderMarkdownToHtml(value.content))
+    : value.content;
   return buildHtmlPreviewDocument(
     previewHtml,
     document.documentElement.classList.contains('dark'),
@@ -306,7 +310,7 @@ export function RichTextEditor({
     ? `${splitPaneChildClassName} flex flex-col border-b border-zinc-200/80 dark:border-white/10`
     : `${splitPaneChildClassName} flex flex-col border-r border-zinc-200/80 dark:border-white/10`;
   const markdownPreview = useMemo(
-    () => renderMarkdownToHtml(value.content),
+    () => renderForumMarkup(renderMarkdownToHtml(value.content)),
     [value.content],
   );
   const highlightedHtml = useMemo(() => highlightHtmlSource(value.content), [value.content]);
@@ -1713,6 +1717,7 @@ function convertEditorContent(content: string, from: RichTextEditorMode, to: Ric
 }
 
 function buildHtmlPreviewDocument(html: string, isDarkTheme: boolean, embedded = false) {
+  const renderedHtml = translateLegacyBbcode(html);
   const theme = isDarkTheme
     ? {
         background: '#171d19',
@@ -1906,7 +1911,7 @@ function buildHtmlPreviewDocument(html: string, isDarkTheme: boolean, embedded =
     }
   </style>
 `;
-  const trimmedHtml = html.trim();
+  const trimmedHtml = renderedHtml.trim();
 
   if (/<html[\s>]/i.test(trimmedHtml)) {
     if (/<head[\s>]/i.test(trimmedHtml)) {
@@ -1919,7 +1924,7 @@ function buildHtmlPreviewDocument(html: string, isDarkTheme: boolean, embedded =
   return `<!doctype html>
 <html>
 <head>${previewHead}</head>
-<body>${html}</body>
+<body>${renderedHtml}</body>
 </html>`;
 }
 
