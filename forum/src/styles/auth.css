@@ -20,7 +20,7 @@
 
   .auth-card-intro {
     display: flex;
-    align-items: flex-start;
+    align-items: center;
     gap: 12px;
     border-bottom: 1px solid var(--line);
     padding: 22px;
