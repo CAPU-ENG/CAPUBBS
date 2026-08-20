@@ -14,6 +14,7 @@ import {
   RichTextEditor,
   type RichTextEditorValue,
 } from "../editor/RichTextEditor";
+import { ThreadHtmlContent } from "./ThreadHtmlContent";
 
 export type QuoteRequest = {
   author: string;
@@ -403,7 +404,11 @@ function ReplyPreviewDialog({
 
               {previewSignature && (
                 <footer className="thread-signature">
-                  <p>{previewSignature}</p>
+                  <ThreadHtmlContent
+                    floor={previewFloor}
+                    html={previewSignature}
+                    variant="signature"
+                  />
                 </footer>
               )}
 

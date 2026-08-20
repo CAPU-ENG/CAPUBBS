@@ -423,10 +423,7 @@ function mapAuthor(row: ApiRow, fallbackName: string): ThreadAuthor {
 
 function mapViewerSignatures(value: unknown) {
   const signatures = asRow(value);
-  return ['1', '2', '3'].map((key) => forumMarkupToPlainText(renderForumMarkup(
-    stringValue(signatures[key]),
-    { normalizeLegacyLineBreaks: true },
-  )));
+  return ['1', '2', '3'].map((key) => renderSignatureHtml(stringValue(signatures[key]), ''));
 }
 
 function normalizeAssetUrl(value: unknown) {
