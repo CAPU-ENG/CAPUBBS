@@ -147,18 +147,20 @@ export function ActivitySignupEditor({
               onDrop={(event) => dropQuestion(event, question.id)}
             >
               <div className="activity-signup-question-summary">
-                <button
-                  aria-label={`拖动排序${question.label}`}
-                  className="activity-signup-drag-handle"
-                  draggable
-                  onDragEnd={() => {
-                    draggedIdRef.current = null;
-                    setDraggingId(null);
-                  }}
-                  onDragStart={(event) => startDragging(event, question.id)}
-                  type="button"
-                ><GripVertical size={16} /></button>
-                <span className="activity-signup-question-index">{String(index + 1).padStart(2, '0')}</span>
+                <div className="activity-signup-question-order-cell">
+                  <button
+                    aria-label={`拖动排序${question.label}`}
+                    className="activity-signup-drag-handle"
+                    draggable
+                    onDragEnd={() => {
+                      draggedIdRef.current = null;
+                      setDraggingId(null);
+                    }}
+                    onDragStart={(event) => startDragging(event, question.id)}
+                    type="button"
+                  ><GripVertical size={16} /></button>
+                  <span className="activity-signup-question-index">{String(index + 1).padStart(2, '0')}</span>
+                </div>
                 <button
                   aria-expanded={expanded}
                   className="activity-signup-question-toggle"
@@ -166,10 +168,12 @@ export function ActivitySignupEditor({
                   type="button"
                 >
                   <strong>{question.label.trim() || `字段 ${index + 1}`}</strong>
+                </button>
+                <div aria-label="字段标签" className="activity-signup-question-tags">
                   <span>{questionTypeLabel(question.type)}</span>
                   {question.required ? <em>必填</em> : null}
                   {locked ? <em className="activity-signup-locked"><LockKeyhole size={11} />锁定</em> : null}
-                </button>
+                </div>
                 {!locked ? (
                   <button
                     aria-label={`删除${question.label}`}

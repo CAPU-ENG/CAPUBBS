@@ -251,9 +251,17 @@
     display: grid;
     min-width: 0;
     min-height: 48px;
-    grid-template-columns: 34px 34px minmax(0, 1fr) 34px 34px;
+    grid-template-columns: 64px minmax(0, 1fr) minmax(180px, 34%) 34px 34px;
     align-items: center;
+    gap: 6px;
     padding: 0 8px;
+  }
+
+  .activity-signup-question-order-cell {
+    display: grid;
+    min-width: 0;
+    grid-template-columns: 30px minmax(0, 1fr);
+    align-items: center;
   }
 
   .activity-signup-drag-handle,
@@ -311,9 +319,9 @@
 
   .activity-signup-question-toggle {
     display: flex;
+    width: 100%;
     min-width: 0;
     align-items: center;
-    gap: 7px;
     border: 0;
     padding: 8px 6px;
     background: transparent;
@@ -330,8 +338,19 @@
     white-space: nowrap;
   }
 
-  .activity-signup-question-toggle > span,
-  .activity-signup-question-toggle em {
+  .activity-signup-question-tags {
+    display: flex;
+    min-width: 0;
+    align-items: center;
+    justify-content: flex-start;
+    gap: 6px;
+    overflow: hidden;
+    padding-inline: 6px;
+    text-align: left;
+  }
+
+  .activity-signup-question-tags > span,
+  .activity-signup-question-tags em {
     flex: 0 0 auto;
     border-radius: 999px;
     padding: 3px 7px;
@@ -343,12 +362,12 @@
     line-height: 1;
   }
 
-  .activity-signup-question-toggle em {
+  .activity-signup-question-tags em {
     background: var(--surface-soft);
     color: var(--brand-strong);
   }
 
-  .activity-signup-question-toggle .activity-signup-locked {
+  .activity-signup-question-tags .activity-signup-locked {
     display: inline-flex;
     align-items: center;
     gap: 3px;
@@ -555,20 +574,38 @@
     }
 
     .activity-signup-question-summary {
-      grid-template-columns: 30px minmax(0, 1fr) 32px 32px;
+      grid-template-columns: 48px minmax(0, 1fr) 32px 32px;
+      grid-template-rows: auto auto;
+      gap: 0 4px;
       padding-inline: 6px;
     }
 
-    .activity-signup-question-index {
-      display: none;
+    .activity-signup-question-order-cell {
+      grid-row: 1 / span 2;
+      grid-template-columns: 26px 22px;
     }
 
     .activity-signup-question-toggle {
-      gap: 5px;
+      grid-column: 2;
+      grid-row: 1;
+      padding-bottom: 3px;
     }
 
-    .activity-signup-question-toggle > span {
-      display: none;
+    .activity-signup-question-tags {
+      grid-column: 2;
+      grid-row: 2;
+      padding: 0 6px 8px;
+    }
+
+    .activity-signup-question-summary > .activity-signup-delete,
+    .activity-signup-question-summary > .activity-signup-delete-placeholder {
+      grid-column: 3;
+      grid-row: 1 / span 2;
+    }
+
+    .activity-signup-question-summary > .activity-signup-expand {
+      grid-column: 4;
+      grid-row: 1 / span 2;
     }
 
     .activity-signup-question-editor {
