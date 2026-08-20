@@ -72,7 +72,7 @@ export function ProfileOverview({
       <section className="profile-identity-card">
         <div className="profile-file-stamp" aria-hidden="true">
           <span>CAPU</span>
-          <small>RIDER FILE</small>
+          <small>RIDER PROFILE</small>
         </div>
 
         <div className="profile-identity-main">
@@ -87,7 +87,6 @@ export function ProfileOverview({
           )}
 
           <div className="profile-identity-copy">
-            {!privateMode ? <span className="eyebrow">公开骑行档案</span> : null}
             <div className="profile-name-line">
               <h1>{profile.id}</h1>
               <span className="profile-rating" aria-label={`${profile.rating}星用户`}>
