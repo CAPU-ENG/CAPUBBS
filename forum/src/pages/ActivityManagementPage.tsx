@@ -341,7 +341,36 @@ function SignupSummaryPanel({
     <section className="activity-management-panel activity-summary-panel" aria-label="报名汇总">
       <header className="activity-management-panel-heading">
         <h2>报名信息</h2>
-        <div>
+        <div className="activity-summary-controls">
+          {loadStatus === 'ready' && records.length > 0 && (
+            <>
+              <select
+                aria-label="报名状态筛选"
+                onChange={(event) => setRecordFilter(event.target.value as ActivitySignupFilter)}
+                value={recordFilter}
+              >
+                <option value="all">全部报名</option>
+                <option value="effective">只看有效报名</option>
+                <option value="canceled">只看已取消</option>
+              </select>
+              <select
+                aria-label="报名信息排序字段"
+                onChange={(event) => setSortBy(event.target.value as ActivitySignupSort)}
+                value={sortBy}
+              >
+                <option value="id">按 ID</option>
+                <option value="joinedAt">按报名时间</option>
+              </select>
+              <select
+                aria-label="报名信息排序方向"
+                onChange={(event) => setSortDirection(event.target.value as ActivitySignupSortDirection)}
+                value={sortDirection}
+              >
+                <option value="asc">升序</option>
+                <option value="desc">降序</option>
+              </select>
+            </>
+          )}
           <button
             disabled={loadStatus !== 'ready' || records.length === 0}
             onClick={() => downloadSignupCsv(
@@ -351,39 +380,9 @@ function SignupSummaryPanel({
               sortActivitySignupRecords(records, sortBy, sortDirection),
             )}
             type="button"
-          ><Download size={15} />导出 CSV</button>
+          ><Download size={15} />导出表格</button>
         </div>
       </header>
-
-      {loadStatus === 'ready' && records.length > 0 && (
-        <div className="activity-summary-controls">
-          <select
-            aria-label="报名状态筛选"
-            onChange={(event) => setRecordFilter(event.target.value as ActivitySignupFilter)}
-            value={recordFilter}
-          >
-            <option value="all">全部报名</option>
-            <option value="effective">只看有效报名</option>
-            <option value="canceled">只看已取消</option>
-          </select>
-          <select
-            aria-label="报名信息排序字段"
-            onChange={(event) => setSortBy(event.target.value as ActivitySignupSort)}
-            value={sortBy}
-          >
-            <option value="id">按 ID</option>
-            <option value="joinedAt">按报名时间</option>
-          </select>
-          <select
-            aria-label="报名信息排序方向"
-            onChange={(event) => setSortDirection(event.target.value as ActivitySignupSortDirection)}
-            value={sortDirection}
-          >
-            <option value="asc">升序</option>
-            <option value="desc">降序</option>
-          </select>
-        </div>
-      )}
 
       {loadStatus === 'loading' ? (
         <div className="activity-summary-state"><LoaderCircle className="activity-management-spinner" size={20} />正在汇总全部报名</div>

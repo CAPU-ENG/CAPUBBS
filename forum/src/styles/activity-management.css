@@ -251,9 +251,6 @@
     flex-wrap: wrap;
     justify-content: flex-end;
     gap: 8px;
-    border-bottom: 1px solid var(--line);
-    padding: 10px 16px;
-    background: var(--surface-soft);
   }
 
   .activity-summary-controls select {
