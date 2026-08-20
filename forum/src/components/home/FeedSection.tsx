@@ -1,5 +1,4 @@
-import { useEffect, useState } from 'react';
-import { ArrowDown, Eye, LoaderCircle, MessageCircle, RefreshCw } from 'lucide-react';
+import { Eye, LoaderCircle, MessageCircle, RefreshCw } from 'lucide-react';
 import defaultAvatar from '../../assets/avatar/default-avatar.avif';
 import type { HomeThread } from '../../api/home';
 import type { HomeDataStatus } from '../../hooks/useHomeData';
@@ -45,11 +44,6 @@ type FeedSectionProps = {
 };
 
 export function FeedSection({ error, items, onRetry, status }: FeedSectionProps) {
-  const [visibleCount, setVisibleCount] = useState(6);
-  const hasMore = visibleCount < items.length;
-
-  useEffect(() => setVisibleCount(6), [items]);
-
   return (
     <section className="feed-section" id="feed" aria-label="论坛帖子">
       {status === 'loading' && items.length === 0 ? (
@@ -66,14 +60,8 @@ export function FeedSection({ error, items, onRetry, status }: FeedSectionProps)
         <div className="home-data-state"><span>暂时还没有帖子。</span></div>
       ) : (
         <div className="divide-y divide-[var(--line)]">
-          {items.slice(0, visibleCount).map((item) => <FeedItem item={item} key={item.id} />)}
+          {items.map((item) => <FeedItem item={item} key={item.id} />)}
         </div>
-      )}
-
-      {hasMore && (
-        <button className="load-more" type="button" onClick={() => setVisibleCount(items.length)}>
-          加载更多帖子 <ArrowDown size={16} />
-        </button>
       )}
     </section>
   );
