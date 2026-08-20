@@ -11,14 +11,20 @@ function FeedItem({ compactMode, item }: { compactMode: boolean; item: HomeThrea
   if (compactMode) {
     return (
       <article className="feed-item feed-item-compact">
-        <a className="feed-item-compact-link" href={item.href}>
-          <h2>{item.title}</h2>
+        <div className="feed-item-compact-row">
+          <h2><a className="feed-item-compact-title" href={item.href}>{item.title}</a></h2>
           <span className="feed-item-compact-meta">
-            <span>{item.author}</span>
+            <a
+              aria-label={`查看 ${item.author} 的个人主页`}
+              className="feed-item-compact-author"
+              href={item.authorHref}
+            >
+              {item.author}
+            </a>
             <span aria-hidden="true">·</span>
             <time dateTime={item.timestamp}>{item.timeLabel}</time>
           </span>
-        </a>
+        </div>
       </article>
     );
   }
