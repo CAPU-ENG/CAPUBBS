@@ -1,7 +1,9 @@
 import { useEffect, useMemo, useState } from 'react';
-import { Bike, CalendarDays, ChevronLeft, ChevronRight, Clock3, Info, Pin } from 'lucide-react';
+import { Bike, CalendarDays, ChevronLeft, ChevronRight, Clock3, Info, Pin, Settings } from 'lucide-react';
 import type { HomeCalendarEvent, HomeThread } from '../../api/home';
+import { useAuth } from '../../context/AuthContext';
 import type { HomeDataStatus } from '../../hooks/useHomeData';
+import { canManageCalendar } from '../../utils/calendarManagement';
 import { signupActivities } from './homeData';
 
 function formatCountdown(deadline: string, now: number) {
@@ -102,6 +104,7 @@ function ActivitySignupPanel() {
 }
 
 export function ActivityCalendar({ compact = false, error, items, status }: CalendarProps) {
+  const { status: authStatus, viewer } = useAuth();
   const [today] = useState(() => new Date());
   const [monthCursor, setMonthCursor] = useState(() => ({
     year: today.getFullYear(),
@@ -158,6 +161,11 @@ export function ActivityCalendar({ compact = false, error, items, status }: Cale
         <header className="aside-card-header">
           <span className="aside-card-icon"><CalendarDays size={15} /></span>
           <h2 id="calendar-title">活动日历</h2>
+          {authStatus === 'authenticated' && canManageCalendar(viewer?.username) ? (
+            <a className="calendar-manage-link" href="/calendar-admin">
+              <Settings size={13} />管理
+            </a>
+          ) : null}
         </header>
       )}
 
