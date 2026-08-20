@@ -56,9 +56,17 @@ const TAB_ITEMS: Array<{ icon: typeof Pin; id: AdminTab; label: string }> = [
 
 export function ManagementPage() {
   const { status: authStatus, viewer } = useAuth();
-  const [activeTab, setActiveTab] = useState<AdminTab>('pins');
+  const [activeTab, setActiveTab] = useState<AdminTab>(readTabFromLocation);
   const authPending = authStatus === 'loading' || authStatus === 'restoring';
   const isAuthorized = authStatus === 'authenticated' && (viewer?.rights ?? 0) >= 3;
+
+  function selectTab(tab: AdminTab) {
+    if (tab === activeTab) return;
+    setActiveTab(tab);
+    const url = new URL(window.location.href);
+    url.searchParams.set('tab', tab);
+    window.history.replaceState(null, '', `${url.pathname}${url.search}`);
+  }
 
   return (
     <div className="management-page relative min-h-screen text-[var(--text)] transition-colors duration-200">
@@ -75,40 +83,30 @@ export function ManagementPage() {
             此页面仅对权限值大于或等于 3 的会员开放。
           </ManagementState>
         ) : (
-          <section className="management-panel" aria-label="论坛管理">
-            <div className="management-body">
-              <div aria-label="管理功能" className="management-tabs" role="tablist">
-                {TAB_ITEMS.map((tab) => {
-                  const Icon = tab.icon;
-                  const selected = activeTab === tab.id;
-                  return (
-                    <button
-                      aria-controls={`management-tabpanel-${tab.id}`}
-                      aria-selected={selected}
-                      className={selected ? 'management-tab-active' : ''}
-                      id={`management-tab-${tab.id}`}
-                      key={tab.id}
-                      onClick={() => setActiveTab(tab.id)}
-                      role="tab"
-                      type="button"
-                    >
-                      <span><Icon size={17} /></span>
-                      <span><strong>{tab.label}</strong></span>
-                    </button>
-                  );
-                })}
-              </div>
+          <section className="management-workspace" aria-label="论坛管理">
+            <nav aria-label="管理功能" className="management-tabs">
+              {TAB_ITEMS.map((tab) => {
+                const Icon = tab.icon;
+                const selected = activeTab === tab.id;
+                return (
+                  <button
+                    aria-pressed={selected}
+                    className={selected ? 'management-tab-active' : ''}
+                    key={tab.id}
+                    onClick={() => selectTab(tab.id)}
+                    type="button"
+                  >
+                    <Icon size={16} />
+                    {tab.label}
+                  </button>
+                );
+              })}
+            </nav>
 
-              <div
-                aria-labelledby={`management-tab-${activeTab}`}
-                className="management-tabpanel"
-                id={`management-tabpanel-${activeTab}`}
-                role="tabpanel"
-              >
-                {activeTab === 'pins' && <GlobalPinsPanel />}
-                {activeTab === 'move' && <MoveThreadPanel />}
-                {activeTab === 'members' && <MemberManagementPanel />}
-              </div>
+            <div className="management-tabpanel">
+              {activeTab === 'pins' && <GlobalPinsPanel />}
+              {activeTab === 'move' && <MoveThreadPanel />}
+              {activeTab === 'members' && <MemberManagementPanel />}
             </div>
           </section>
         )}
@@ -551,6 +549,11 @@ function threadKey(thread: ManagementThread) {
 
 function errorMessage(error: unknown, fallback: string) {
   return error instanceof Error && error.message.trim() ? error.message : fallback;
+}
+
+function readTabFromLocation(): AdminTab {
+  const requested = new URLSearchParams(window.location.search).get('tab');
+  return TAB_ITEMS.some((tab) => tab.id === requested) ? requested as AdminTab : 'pins';
 }
 
 function rightsLabel(rights: number) {
