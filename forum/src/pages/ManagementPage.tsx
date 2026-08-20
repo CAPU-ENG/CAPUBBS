@@ -896,7 +896,7 @@ function ModeratorManagementPanel() {
       <section className="management-card management-list-card" aria-labelledby="moderators-title">
         <header className="management-card-heading">
           <div><h2 id="moderators-title">当前版主</h2></div>
-          <span>{moderatorCount} 人次</span>
+          <span>{moderatorCount} 人</span>
         </header>
         {boardsStatus === 'loading' ? (
             <EmptyState icon={<LoaderCircle className="animate-spin" size={19} />}>正在加载版主。</EmptyState>
