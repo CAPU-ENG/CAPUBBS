@@ -478,7 +478,7 @@ function DeleteReplyDialog({
   const nestedReply = target.kind === 'nested' ? target.reply : null;
   const title = nestedReply ? '删除楼中楼回复' : isMainPost ? '删除主楼' : '删除回复';
   const description = nestedReply
-    ? '删除后，这条楼中楼回复将不再显示。'
+    ? ''
     : isMainPost
       ? '删除主楼后，下一楼将顺位成为主楼；如果没有其他回复，整个主题会被删除。'
       : '删除后，该楼内容将移入回收站，后续楼层编号会顺次调整。';
@@ -509,7 +509,7 @@ function DeleteReplyDialog({
       role="presentation"
     >
       <section
-        aria-describedby="thread-delete-dialog-description"
+        aria-describedby={description ? 'thread-delete-dialog-description' : undefined}
         aria-labelledby="thread-delete-dialog-title"
         aria-modal="true"
         className="thread-delete-dialog"
@@ -518,14 +518,13 @@ function DeleteReplyDialog({
         <header>
           <span className="thread-delete-dialog-icon" aria-hidden="true"><AlertTriangle size={19} /></span>
           <div>
-            <span>删除回复</span>
             <h2 id="thread-delete-dialog-title">{title}</h2>
           </div>
           <button aria-label="关闭删除确认" disabled={pending} onClick={onCancel} type="button"><X size={18} /></button>
         </header>
 
         <div className="thread-delete-dialog-body">
-          <p id="thread-delete-dialog-description">{description}</p>
+          {description && <p id="thread-delete-dialog-description">{description}</p>}
           <div className="thread-delete-dialog-target">
             <span>{author} · {location}</span>
             <p>{excerpt || '此回复没有可预览的文字内容。'}</p>

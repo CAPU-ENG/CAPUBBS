@@ -1120,17 +1120,8 @@
     min-width: 0;
   }
 
-  .thread-delete-dialog > header > div > span {
-    display: block;
-    margin-bottom: 2px;
-    color: var(--danger);
-    font-size: 0.61rem;
-    font-weight: 760;
-    letter-spacing: 0.04em;
-  }
-
   .thread-delete-dialog h2 {
-    color: var(--text-strong);
+    color: var(--danger);
     font-size: 0.92rem;
     font-weight: 760;
   }
@@ -1165,6 +1156,10 @@
     border-left: 3px solid color-mix(in srgb, var(--danger) 48%, var(--line));
     padding: 10px 12px;
     background: var(--surface-soft);
+  }
+
+  .thread-delete-dialog-target:first-child {
+    margin-top: 0;
   }
 
   .thread-delete-dialog-target > span {
