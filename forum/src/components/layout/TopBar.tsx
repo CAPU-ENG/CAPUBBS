@@ -8,6 +8,7 @@ import {
   Moon,
   Search,
   Settings,
+  ShieldCheck,
   Sun,
   UserRound,
 } from 'lucide-react';
@@ -43,6 +44,8 @@ export function TopBar({
     && !params.has('bid')
     && !params.has('board');
   const isSearchPage = window.location.pathname.replace(/\/+$/, '') === '/search';
+  const isManagePage = window.location.pathname.replace(/\/+$/, '') === '/manage';
+  const canManageForum = authStatus === 'authenticated' && (viewer?.rights ?? 0) >= 3;
   const currentBoardId = Number(params.get('bid') ?? params.get('board'));
   const pinnedBoards = usePinnedBoardIds()
     .map(getBoardById)
@@ -206,6 +209,15 @@ export function TopBar({
                   版块 <ChevronDown size={14} className={`transition-transform ${boardsOpen ? 'rotate-180' : ''}`} />
                 </button>
               </div>
+              {canManageForum && (
+                <a
+                  href="/manage"
+                  className={`top-nav-link ${isManagePage ? 'top-nav-link-active' : ''}`}
+                  tabIndex={contextTitleVisible ? -1 : undefined}
+                >
+                  <ShieldCheck size={15} />管理
+                </a>
+              )}
               {pinnedBoards.map((board) => (
                 <a
                   aria-current={currentBoardId === board.id ? 'page' : undefined}

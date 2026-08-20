@@ -12,6 +12,7 @@
 @import './search.css';
 @import './settings.css';
 @import './calendar-admin.css';
+@import './management.css';
 @import './utilities.css';
 
 @tailwind base;
