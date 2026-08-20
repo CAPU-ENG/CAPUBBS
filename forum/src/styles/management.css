@@ -501,13 +501,14 @@
     display: flex;
     aspect-ratio: 1;
     min-width: 0;
-    align-items: stretch;
-    justify-content: center;
+    align-items: center;
+    justify-content: flex-start;
+    gap: 8px;
     border: 1px solid var(--line);
     border-radius: 2px;
     padding: 10px;
     background: var(--surface-soft);
-    text-align: center;
+    text-align: left;
     transition: 130ms ease;
   }
 
@@ -524,11 +525,20 @@
     object-fit: cover;
   }
 
+  .management-member-list img {
+    width: 30px;
+    height: 30px;
+    flex: 0 0 auto;
+    border: 1px solid var(--line);
+    border-radius: 2px;
+    object-fit: cover;
+  }
+
   .management-member-list > button > span {
     display: grid;
     min-width: 0;
-    place-content: center;
-    justify-items: center;
+    align-content: center;
+    justify-items: start;
     gap: 8px;
   }
 
