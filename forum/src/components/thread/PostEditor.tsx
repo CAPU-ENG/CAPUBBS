@@ -64,6 +64,7 @@ export function PostEditorTitleField({
 }
 
 export function PostEditor({
+  afterEditor,
   ariaLabel,
   attachmentDialogDescription,
   attachmentLabel = '待上传附件',
@@ -96,6 +97,7 @@ export function PostEditor({
   submitLabel,
   uploadingAttachments = false,
 }: {
+  afterEditor?: ReactNode;
   ariaLabel: string;
   attachmentDialogDescription: string;
   attachmentLabel?: string;
@@ -154,6 +156,8 @@ export function PostEditor({
           value={editorValue}
         />
       </div>
+
+      {afterEditor}
 
       <div aria-label="选择签名档" className="reply-signature-options" role="radiogroup">
         {signatureOptions.map((option) => (

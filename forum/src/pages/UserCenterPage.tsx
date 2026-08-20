@@ -338,7 +338,7 @@ function mapThreadComposeDraftRecord(draft: StoredThreadComposeDraft) {
     excerpt: draft.excerpt,
     href: getThreadComposeHref(draft.bid, undefined, draft.kind === 'activity' ? 'activity' : 'thread'),
     id: draft.id,
-    status: draft.kind === 'activity' ? '活动报名帖草稿' : '发帖草稿',
+    status: draft.kind === 'activity' ? '活动草稿' : '发帖草稿',
     title: draft.title,
   };
 }

@@ -23,7 +23,7 @@ import {
   PostEditorPreviewDialog,
   PostEditorTitleField,
 } from '../components/thread/PostEditor';
-import { ActivitySignupEditor } from '../components/thread/ActivitySignupEditor';
+import { ActivitySignupEditor, ActivitySignupSchedule } from '../components/thread/ActivitySignupEditor';
 import { useAuth } from '../context/AuthContext';
 import { getLoginPathWithReturnTo } from '../utils/authRoutes';
 import {
@@ -340,7 +340,7 @@ export function ThreadComposePage() {
     }
 
     setIsPublishing(true);
-    setStatus(`正在发表${isReply ? '回复' : isActivity ? '活动报名帖' : '主题'}…`);
+    setStatus(`正在发表${isReply ? '回复' : isActivity ? '活动' : '主题'}…`);
     setStatusIsError(false);
     try {
       const published = await publishThread({
@@ -420,9 +420,9 @@ export function ThreadComposePage() {
           <ComposeRequestState
             backHref={backHref}
             description={request.bid === 1
-              ? '活动报名帖仅对权限值不低于 2 的会员开放。'
-              : '活动报名帖只能发布在车协工作区。'}
-            title="当前无法创建活动报名帖"
+              ? '仅权限值不低于 2 的会员可以发起活动。'
+              : '活动只能发布在车协工作区。'}
+            title="当前无法发起活动"
           />
         ) : boardName ? (
           <>
@@ -431,13 +431,22 @@ export function ThreadComposePage() {
                 <ArrowLeft size={19} />
               </button>
               <div className="thread-edit-heading-copy">
-                <span>{boardName} / {isReply ? '回帖草稿' : isActivity ? '活动报名帖' : '发帖'}</span>
-                <h1 id="compose-page-title">{isReply ? `编辑：${title}` : isActivity ? '创建活动报名帖' : '发表新主题'}</h1>
+                <span>{boardName} / {isReply ? '回帖草稿' : isActivity ? '发起活动' : '发帖'}</span>
+                <h1 id="compose-page-title">{isReply ? `编辑：${title}` : isActivity ? '发起活动' : '发表新主题'}</h1>
               </div>
             </header>
 
             <PostEditor
-              ariaLabel={isReply ? `编辑《${title}》的回帖草稿` : `在「${boardName}」发表${isActivity ? '活动报名帖' : '新主题'}`}
+              afterEditor={isActivity ? (
+                <ActivitySignupEditor
+                  onChange={(value) => {
+                    setActivitySignup(value);
+                    clearStatus();
+                  }}
+                  value={activitySignup}
+                />
+              ) : undefined}
+              ariaLabel={isReply ? `编辑《${title}》的回帖草稿` : `在「${boardName}」${isActivity ? '发起活动' : '发表新主题'}`}
               attachmentDialogDescription={`文件会立即上传，并在发表${isReply ? '回复' : '主题'}后关联到内容`}
               attachmentLabel={isReply ? '回帖附件' : '主题附件'}
               attachments={attachments}
@@ -454,7 +463,7 @@ export function ThreadComposePage() {
                     value={title}
                   />
                   {isActivity ? (
-                    <ActivitySignupEditor
+                    <ActivitySignupSchedule
                       onChange={(value) => {
                         setActivitySignup(value);
                         clearStatus();
@@ -467,7 +476,7 @@ export function ThreadComposePage() {
               className={`thread-edit-form ${isActivity ? 'activity-compose-form' : ''}`}
               editorValue={editorValue}
               formatAttachmentMeta={(attachment) => formatPostEditorBytes(attachment.size)}
-              heading={isReply ? '编辑回帖草稿' : isActivity ? '活动报名帖' : '新主题'}
+              heading={isReply ? '编辑回帖草稿' : isActivity ? '发起活动' : '新主题'}
               headingMeta={isReply ? `Re: ${title}` : title.trim() ? title.trim() : `发布到 ${boardName}`}
               name={isReply ? 'reply-draft-compose-signature' : 'thread-compose-signature'}
               onAddAttachments={(files) => void addAttachments(files)}
@@ -502,7 +511,7 @@ export function ThreadComposePage() {
               submitCompactLabel={isPublishing ? '发表中' : isReply ? '回复' : isActivity ? '发布活动' : '发表'}
               submitDisabled={!canPublish}
               submitIcon={isPublishing ? <LoaderCircle className="thread-edit-spinner" size={15} /> : <Send size={15} />}
-              submitLabel={isPublishing ? '正在发表' : isReply ? '发布回复' : isActivity ? '发布活动报名帖' : '发表主题'}
+              submitLabel={isPublishing ? '正在发表' : isReply ? '发布回复' : isActivity ? '发布活动' : '发表主题'}
               uploadingAttachments={isUploadingAttachments}
             />
           </>
@@ -514,7 +523,7 @@ export function ThreadComposePage() {
           attachments={attachments}
           editorValue={editorValue}
           formatAttachmentMeta={(attachment) => formatPostEditorBytes(attachment.size)}
-          label={`${boardName} · ${isReply ? '回帖' : isActivity ? '活动报名帖' : '发帖'}预览`}
+          label={`${boardName} · ${isReply ? '回帖' : isActivity ? '活动' : '发帖'}预览`}
           onClose={() => setPreviewOpen(false)}
           previewAuthor={{ avatar: editorViewer.avatar, name: editorViewer.name }}
           previewFloor={isReply ? 2 : 1}
@@ -714,7 +723,7 @@ async function publishActivityThread({
       method: 'POST',
     });
   } catch {
-    throw new ThreadApiError('暂时无法连接论坛服务，活动报名帖发表失败。');
+    throw new ThreadApiError('暂时无法连接论坛服务，活动发布失败。');
   }
 
   let payload: { bid?: unknown; code?: unknown; message?: string; msg?: string; tid?: unknown };
@@ -725,7 +734,7 @@ async function publishActivityThread({
   }
 
   if (!response.ok || Number(payload.code) !== 0) {
-    throw new ThreadApiError(payload.msg?.trim() || payload.message?.trim() || '活动报名帖发表失败，请稍后重试。');
+    throw new ThreadApiError(payload.msg?.trim() || payload.message?.trim() || '活动发布失败，请稍后重试。');
   }
 
   const publishedBid = Number(payload.bid);
