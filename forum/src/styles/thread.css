@@ -772,7 +772,8 @@
 
   .thread-html-frame {
     display: block;
-    width: 100%;
+    width: calc(100% + var(--thread-html-frame-width-allowance, 0px));
+    max-width: none;
     min-width: 0;
     border: 0;
     background: transparent;

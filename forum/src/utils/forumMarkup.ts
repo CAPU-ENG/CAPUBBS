@@ -51,13 +51,14 @@ const ISOLATED_HTML_ACTIVE_ATTRIBUTE_PATTERN = /\s(?:on[a-z][\w:-]*|srcdoc)\s*=/
 const ISOLATED_HTML_STYLE_ATTRIBUTE_PATTERN = /\sstyle\s*=/i;
 const ISOLATED_HTML_URL_PATTERN = /\b(?:href|action|formaction)\s*=\s*(?:"\s*(?:javascript|data):|'\s*(?:javascript|data):|(?:javascript|data):)/i;
 const ISOLATED_HTML_DOCUMENT_PATTERN = /<\s*(?:!doctype|html|head|body)\b/i;
+const DIRECT_RICH_TEXT_TAG_PATTERN = /<(?:a|abbr|b|blockquote|br|code|del|div|em|figcaption|figure|font|h[1-6]?|hr|i|img|kbd|li|mark|ol|p|pre|s|span|strong|sub|sup|table|tbody|td|th|thead|tr|u|ul)\b[^>]*>/gi;
 
 export function requiresIsolatedForumHtml(value: string) {
-  const contentWithoutImages = value.replace(/<img\b[^>]*>/gi, '');
+  const contentWithoutDirectRichTextTags = value.replace(DIRECT_RICH_TEXT_TAG_PATTERN, '');
 
   return ISOLATED_HTML_TAG_PATTERN.test(value)
     || ISOLATED_HTML_ACTIVE_ATTRIBUTE_PATTERN.test(value)
-    || ISOLATED_HTML_STYLE_ATTRIBUTE_PATTERN.test(contentWithoutImages)
+    || ISOLATED_HTML_STYLE_ATTRIBUTE_PATTERN.test(contentWithoutDirectRichTextTags)
     || ISOLATED_HTML_URL_PATTERN.test(value)
     || ISOLATED_HTML_DOCUMENT_PATTERN.test(value);
 }

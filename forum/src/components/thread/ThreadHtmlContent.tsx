@@ -8,6 +8,7 @@ const MIN_SIGNATURE_FRAME_HEIGHT = 28;
 const MIN_FLOOR_FRAME_HEIGHT = 64;
 const MAX_FRAME_HEIGHT = 50_000;
 const FRAME_BOTTOM_GUARD = 30;
+const FRAME_WIDTH_ALLOWANCE = 30;
 const HTML_FRAME_MESSAGE_SOURCE = 'capubbs-thread-html-frame';
 
 type ThreadHtmlVariant = 'floor' | 'signature';
@@ -115,8 +116,9 @@ function ThreadSandboxedHtmlFrame({
       sandbox="allow-scripts allow-same-origin"
       scrolling="no"
       src={frameSource}
-      style={frameHeight === null ? undefined : {
-        '--thread-html-frame-height': `${frameHeight}px`,
+      style={{
+        '--thread-html-frame-width-allowance': `${FRAME_WIDTH_ALLOWANCE}px`,
+        ...(frameHeight === null ? {} : { '--thread-html-frame-height': `${frameHeight}px` }),
       } as CSSProperties}
       title={variant === 'signature' ? `第 ${floor} 楼签名档` : `第 ${floor} 楼正文`}
     />
