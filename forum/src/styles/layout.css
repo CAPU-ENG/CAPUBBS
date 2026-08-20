@@ -185,6 +185,13 @@
     transform: scaleX(1);
   }
 
+  .top-nav-pinned-link {
+    max-width: 128px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
   .topbar-primary-slot {
     overflow: hidden;
   }

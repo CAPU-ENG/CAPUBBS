@@ -15,39 +15,19 @@ import {
 } from 'lucide-react';
 import logo1 from '../../assets/logo/logo1.webp';
 import logo2 from '../../assets/logo/logo2.webp';
+import { PRIMARY_BOARDS, SECONDARY_BOARDS } from '../../data/boards';
 
-type Board = {
-  id: number;
-  label: string;
-  icon: LucideIcon;
+const boardIcons: Record<number, LucideIcon> = {
+  1: Megaphone,
+  2: Footprints,
+  3: BookOpen,
+  4: Droplets,
+  5: Compass,
+  6: Globe2,
+  7: Wrench,
+  9: Trophy,
+  28: ServerCog,
 };
-
-type SecondaryBoard = Pick<Board, 'id' | 'label'>;
-
-const primaryBoards: Board[] = [
-  { id: 1, label: '车协工作区', icon: Megaphone },
-  { id: 2, label: '行者足音', icon: Footprints },
-  { id: 3, label: '车友宝典', icon: BookOpen },
-  { id: 4, label: '纯净水', icon: Droplets },
-  { id: 5, label: '考察与社会', icon: Compass },
-  { id: 6, label: '五湖四海', icon: Globe2 },
-  { id: 7, label: '一技之长', icon: Wrench },
-  { id: 9, label: '竞赛竞技', icon: Trophy },
-  { id: 28, label: '网站维护', icon: ServerCog },
-];
-
-// 参考 bbs-new 静态版面目录；主要版面之后的项目统一放在第二层。
-const otherBoards: SecondaryBoard[] = [
-  { id: 8, label: '历史笔记' },
-  { id: 10, label: '资料整理' },
-  { id: 11, label: '回收' },
-  { id: 12, label: '公告栏' },
-  { id: 13, label: '新闻发布' },
-  { id: 16, label: '剧组工作' },
-  { id: 20, label: '游记' },
-  { id: 30, label: '测试' },
-  { id: 31, label: '精品集合' },
-];
 
 function boardHref(id: number) {
   return `/?bid=${id}`;
@@ -58,19 +38,22 @@ export function DesktopBoardDrawer({ onNavigate }: { onNavigate: () => void }) {
     <section className="board-drawer" aria-label="版块导航">
       <div className="board-drawer-section">
         <div className="grid grid-cols-3 gap-2">
-          {primaryBoards.map(({ id, label, icon: Icon }) => (
-            <a className="board-tile group" href={boardHref(id)} key={id} onClick={onNavigate}>
-              <span className="board-tile-icon"><Icon size={15} /></span>
-              <strong>{label}</strong>
-              <ChevronRight className="board-tile-arrow" size={14} />
-            </a>
-          ))}
+          {PRIMARY_BOARDS.map(({ id, label }) => {
+            const Icon = boardIcons[id];
+            return (
+              <a className="board-tile group" href={boardHref(id)} key={id} onClick={onNavigate}>
+                <span className="board-tile-icon"><Icon size={15} /></span>
+                <strong>{label}</strong>
+                <ChevronRight className="board-tile-arrow" size={14} />
+              </a>
+            );
+          })}
         </div>
       </div>
 
       <div className="board-drawer-section border-t border-[var(--line)]">
         <div className="flex flex-wrap gap-2">
-          {otherBoards.map(({ id, label }) => (
+          {SECONDARY_BOARDS.map(({ id, label }) => (
             <a className="supplement-link" href={boardHref(id)} key={id} onClick={onNavigate}>{label}</a>
           ))}
         </div>
@@ -105,18 +88,21 @@ export function MobileBoardSidebar({ open, onClose }: { open: boolean; onClose: 
       <div className="mobile-sidebar-scroll">
         <div>
           <div className="grid grid-cols-2 gap-2">
-            {primaryBoards.map(({ id, label, icon: Icon }) => (
-              <a className="mobile-board-link" href={boardHref(id)} key={id} onClick={onClose}>
-                <Icon size={16} />
-                <span>{label}</span>
-              </a>
-            ))}
+            {PRIMARY_BOARDS.map(({ id, label }) => {
+              const Icon = boardIcons[id];
+              return (
+                <a className="mobile-board-link" href={boardHref(id)} key={id} onClick={onClose}>
+                  <Icon size={16} />
+                  <span>{label}</span>
+                </a>
+              );
+            })}
           </div>
         </div>
 
         <div className="mt-6 border-t border-[var(--line)] pt-5">
           <div className="flex flex-wrap gap-2">
-            {otherBoards.map(({ id, label }) => (
+            {SECONDARY_BOARDS.map(({ id, label }) => (
               <a className="supplement-link" href={boardHref(id)} key={id} onClick={onClose}>{label}</a>
             ))}
           </div>

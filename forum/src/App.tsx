@@ -8,6 +8,7 @@ import { UserCenterPage } from './pages/UserCenterPage';
 import { LoginPage } from './pages/LoginPage';
 import { RegisterPage } from './pages/RegisterPage';
 import { SearchPage } from './pages/SearchPage';
+import { SettingsPage } from './pages/SettingsPage';
 import { FORUM_LOCATION_CHANGE_EVENT } from './utils/authRoutes';
 import { translateLegacyForumThreadHref } from './utils/legacyForumRoutes';
 import { getPublicProfileNameFromLocation, USER_CENTER_PATH } from './utils/userRoutes';
@@ -81,6 +82,7 @@ function ForumRouter() {
   if (pathname === '/login') return <LoginPage />;
   if (pathname === '/register') return <RegisterPage />;
   if (pathname === '/search') return <SearchPage />;
+  if (pathname === '/settings') return <SettingsPage />;
   if (pathname === USER_CENTER_PATH) return <UserCenterPage />;
   if (pathname === '/users' || pathname.startsWith('/users/')) {
     return <PublicProfilePage profileName={getPublicProfileNameFromLocation(pathname, window.location.search)} />;
@@ -98,6 +100,7 @@ function isForumAppPath(pathname: string) {
     || normalizedPath === '/login'
     || normalizedPath === '/register'
     || normalizedPath === '/search'
+    || normalizedPath === '/settings'
     || normalizedPath === USER_CENTER_PATH
     || normalizedPath === '/users'
     || normalizedPath.startsWith('/users/');

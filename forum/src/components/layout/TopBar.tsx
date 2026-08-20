@@ -19,6 +19,8 @@ import { useAuth } from '../../context/AuthContext';
 import { getLoginPathWithReturnTo } from '../../utils/authRoutes';
 import { USER_CENTER_PATH } from '../../utils/userRoutes';
 import { MessageCenter } from '../messages/MessageCenter';
+import { getBoardById } from '../../data/boards';
+import { usePinnedBoardIds } from '../../hooks/usePinnedBoards';
 
 type Theme = 'light' | 'dark';
 
@@ -49,6 +51,11 @@ export function TopBar({
     && !params.has('bid')
     && !params.has('board');
   const isSearchPage = window.location.pathname.replace(/\/+$/, '') === '/search';
+  const isSettingsPage = window.location.pathname.replace(/\/+$/, '') === '/settings';
+  const currentBoardId = Number(params.get('bid') ?? params.get('board'));
+  const pinnedBoards = usePinnedBoardIds()
+    .map(getBoardById)
+    .filter((board) => board !== undefined);
   const [theme, setTheme] = useState<Theme>(initialTheme);
   const [boardsOpen, setBoardsOpen] = useState(false);
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
@@ -218,6 +225,18 @@ export function TopBar({
                   版块 <ChevronDown size={14} className={`transition-transform ${boardsOpen ? 'rotate-180' : ''}`} />
                 </button>
               </div>
+              {pinnedBoards.map((board) => (
+                <a
+                  aria-current={currentBoardId === board.id ? 'page' : undefined}
+                  className={`top-nav-link top-nav-pinned-link ${currentBoardId === board.id ? 'top-nav-link-active' : ''}`}
+                  href={`/?bid=${board.id}`}
+                  key={board.id}
+                  tabIndex={contextTitleVisible ? -1 : undefined}
+                  title={board.label}
+                >
+                  {board.label}
+                </a>
+              ))}
             </nav>
 
             {contextTitle && (
@@ -240,6 +259,14 @@ export function TopBar({
               aria-label="搜索"
             >
               <Search size={19} />
+            </a>
+
+            <a
+              className={`icon-button ${isSettingsPage ? 'icon-button-active' : ''}`}
+              href="/settings"
+              aria-label="设置"
+            >
+              <Settings size={18} />
             </a>
 
             <button
@@ -299,7 +326,7 @@ export function TopBar({
                     <a href={USER_CENTER_PATH} role="menuitem" onClick={() => setProfileOpen(false)}>
                       <UserRound size={16} />个人中心
                     </a>
-                    <a href={`${USER_CENTER_PATH}#account-security`} role="menuitem" onClick={() => setProfileOpen(false)}>
+                    <a href="/settings" role="menuitem" onClick={() => setProfileOpen(false)}>
                       <Settings size={16} />设置
                     </a>
                     <button

@@ -16,6 +16,7 @@ import { AppBackground } from '../components/layout/AppBackground';
 import { TopBar } from '../components/layout/TopBar';
 import { useSearchData, type SearchField, type SearchRequest, type SearchResult } from '../hooks/useSearchData';
 import { getPublicProfilePath } from '../utils/userRoutes';
+import { ALL_BOARDS } from '../data/boards';
 
 type SearchRange = 'all' | 'custom' | 'year';
 
@@ -33,26 +34,7 @@ const SEARCH_PAGE_SIZE = 15;
 const SEARCH_HISTORY_KEY = 'capubbs-search-history:v1';
 const THREAD_FLOORS_PER_PAGE = 12;
 
-const boards = [
-  { id: 1, label: '车协工作区' },
-  { id: 2, label: '行者足音' },
-  { id: 3, label: '车友宝典' },
-  { id: 4, label: '纯净水' },
-  { id: 5, label: '考察与社会' },
-  { id: 6, label: '五湖四海' },
-  { id: 7, label: '一技之长' },
-  { id: 8, label: '历史笔记' },
-  { id: 9, label: '竞赛竞技' },
-  { id: 10, label: '资料整理' },
-  { id: 11, label: '回收' },
-  { id: 12, label: '公告栏' },
-  { id: 13, label: '新闻发布' },
-  { id: 16, label: '剧组工作' },
-  { id: 20, label: '游记' },
-  { id: 28, label: '网站维护' },
-  { id: 30, label: '测试' },
-  { id: 31, label: '精品集合' },
-];
+const boards = ALL_BOARDS;
 
 export function SearchPage() {
   const initialOptions = useMemo(readOptionsFromLocation, []);

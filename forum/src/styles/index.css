@@ -9,6 +9,7 @@
 @import './profile.css';
 @import './auth.css';
 @import './search.css';
+@import './settings.css';
 @import './utilities.css';
 
 @tailwind base;
