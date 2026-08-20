@@ -17,6 +17,7 @@ import {
 import {
   readStoredReplyDraft,
   saveStoredReplyDraft,
+  type ReplyDraftSaveFailureReason,
   type StoredReplyAttachment,
 } from "../../utils/replyDraftStorage";
 import { ThreadHtmlContent } from "./ThreadHtmlContent";
@@ -140,7 +141,7 @@ export function ReplyEditor({
       return;
     }
 
-    const storedDraft = saveStoredReplyDraft(
+    const saveResult = saveStoredReplyDraft(
       {
         attachments: attachments.map(({ restored: _restored, ...attachment }) => attachment),
         bid,
@@ -156,13 +157,15 @@ export function ReplyEditor({
       ownerKey,
     );
 
-    if (!storedDraft) {
-      setStatus("草稿保存失败，请检查浏览器存储权限");
+    if (!saveResult.ok) {
+      setStatus(getReplyDraftSaveError(saveResult.reason));
       return;
     }
 
-    setSavedDraftId(storedDraft.id);
-    setStatus("已存入草稿箱");
+    setSavedDraftId(saveResult.draft.id);
+    setStatus(saveResult.discardedDraftCount > 0
+      ? `已存入草稿箱，并清理 ${saveResult.discardedDraftCount} 条最旧草稿`
+      : "已存入草稿箱");
   }
 
   function publishReply() {
@@ -602,6 +605,13 @@ function getReplyDraftExcerpt(value: RichTextEditorValue, attachments: ReplyAtta
   const normalizedExcerpt = excerpt.replace(/\s+/g, " ").trim();
   if (normalizedExcerpt) return normalizedExcerpt.slice(0, 120);
   return attachments.length > 0 ? "附件回复草稿" : "空白回复草稿";
+}
+
+function getReplyDraftSaveError(reason: ReplyDraftSaveFailureReason) {
+  if (reason === "missing-owner") return "无法确认登录用户，请刷新页面后重试";
+  if (reason === "quota") return "草稿内容过大或本机草稿空间已满";
+  if (reason === "unavailable") return "浏览器已禁用本站本地存储，请调整隐私设置后重试";
+  return "草稿保存失败，请稍后重试";
 }
 
 function escapeHtml(value: string) {

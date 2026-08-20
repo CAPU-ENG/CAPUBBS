@@ -27,6 +27,12 @@ export type StoredReplyDraft = {
   updatedAt: string;
 };
 
+export type ReplyDraftSaveFailureReason = 'missing-owner' | 'quota' | 'unavailable' | 'unknown';
+
+export type ReplyDraftSaveResult =
+  | { discardedDraftCount: number; draft: StoredReplyDraft; ok: true }
+  | { ok: false; reason: ReplyDraftSaveFailureReason };
+
 const REPLY_DRAFT_STORAGE_KEY_PREFIX = 'capubbs-reply-drafts:v1';
 const REPLY_DRAFT_CHANGE_EVENT = 'capubbs-reply-drafts-change';
 const MAX_STORED_REPLY_DRAFTS = 30;
@@ -58,28 +64,44 @@ export function readStoredReplyDraft(draftId: string | null, ownerKey: string | 
 export function saveStoredReplyDraft(
   draft: Omit<StoredReplyDraft, 'id' | 'updatedAt'> & { id?: string },
   ownerKey: string | null | undefined,
-) {
+): ReplyDraftSaveResult {
   const storageKey = getReplyDraftStorageKey(ownerKey);
-  if (!storageKey) return null;
+  if (!storageKey) return { ok: false, reason: 'missing-owner' };
 
   const updatedDraft: StoredReplyDraft = {
     ...draft,
     id: draft.id || createReplyDraftId(draft.bid, draft.tid),
     updatedAt: new Date().toISOString(),
   };
-  const nextDrafts = [
+  const candidateDrafts = [
     updatedDraft,
     ...readStoredReplyDrafts(ownerKey).filter((storedDraft) => storedDraft.id !== updatedDraft.id),
-  ].slice(0, MAX_STORED_REPLY_DRAFTS);
+  ];
+  const nextDrafts = candidateDrafts.slice(0, MAX_STORED_REPLY_DRAFTS);
+  let discardedDraftCount = candidateDrafts.length - nextDrafts.length;
 
-  try {
-    window.localStorage.setItem(storageKey, JSON.stringify(nextDrafts));
-  } catch {
-    return null;
+  while (nextDrafts.length > 0) {
+    try {
+      window.localStorage.setItem(storageKey, JSON.stringify(nextDrafts));
+    } catch (error) {
+      if (!isStorageQuotaError(error)) {
+        return { ok: false, reason: getStorageFailureReason(error) };
+      }
+
+      if (nextDrafts.length === 1) {
+        return { ok: false, reason: 'quota' };
+      }
+
+      nextDrafts.pop();
+      discardedDraftCount += 1;
+      continue;
+    }
+
+    notifyReplyDraftChange(storageKey);
+    return { discardedDraftCount, draft: updatedDraft, ok: true };
   }
 
-  window.dispatchEvent(new CustomEvent(REPLY_DRAFT_CHANGE_EVENT, { detail: { storageKey } }));
-  return updatedDraft;
+  return { ok: false, reason: 'unknown' };
 }
 
 export function subscribeStoredReplyDrafts(listener: () => void, ownerKey: string | null | undefined) {
@@ -157,4 +179,26 @@ function isObjectRecord(value: unknown): value is Record<string, unknown> {
 
 function isPositiveInteger(value: unknown) {
   return typeof value === 'number' && Number.isInteger(value) && value > 0;
+}
+
+function isStorageQuotaError(error: unknown) {
+  return error instanceof DOMException && (
+    error.name === 'QuotaExceededError'
+    || error.name === 'NS_ERROR_DOM_QUOTA_REACHED'
+    || error.code === 22
+    || error.code === 1014
+  );
+}
+
+function getStorageFailureReason(error: unknown): ReplyDraftSaveFailureReason {
+  if (error instanceof DOMException && error.name === 'SecurityError') return 'unavailable';
+  return 'unknown';
+}
+
+function notifyReplyDraftChange(storageKey: string) {
+  try {
+    window.dispatchEvent(new CustomEvent(REPLY_DRAFT_CHANGE_EVENT, { detail: { storageKey } }));
+  } catch {
+    // Cross-tab storage events still keep other pages in sync when custom events are unavailable.
+  }
 }
