@@ -209,81 +209,6 @@
     animation: thread-edit-spin 0.8s linear infinite;
   }
 
-  .thread-edit-preview-backdrop {
-    position: fixed;
-    z-index: 90;
-    inset: var(--topbar-height) 0 0;
-    display: grid;
-    overflow: auto;
-    place-items: start center;
-    padding: 32px 16px;
-    background: var(--overlay);
-  }
-
-  .thread-edit-preview-dialog {
-    width: min(900px, 100%);
-    max-height: calc(100vh - var(--topbar-height) - 64px);
-    overflow: auto;
-    border: 1px solid var(--line);
-    background: var(--surface-raised);
-    box-shadow: var(--shadow-float);
-  }
-
-  .thread-edit-preview-dialog > header {
-    display: flex;
-    align-items: start;
-    justify-content: space-between;
-    gap: 18px;
-    padding: 20px 22px;
-    border-bottom: 1px solid var(--line);
-  }
-
-  .thread-edit-preview-dialog > header span {
-    color: var(--brand);
-    font-size: 0.72rem;
-    font-weight: 750;
-    letter-spacing: 0.08em;
-  }
-
-  .thread-edit-preview-dialog > header h2 {
-    margin: 6px 0 0;
-    color: var(--text-strong);
-    font-size: 1.2rem;
-  }
-
-  .thread-edit-preview-dialog > header button {
-    display: inline-flex;
-    width: 36px;
-    height: 36px;
-    flex: 0 0 auto;
-    align-items: center;
-    justify-content: center;
-    border: 1px solid var(--line);
-    background: var(--surface-soft);
-    color: var(--text-muted);
-  }
-
-  .thread-edit-preview-meta {
-    display: flex;
-    justify-content: space-between;
-    gap: 16px;
-    padding: 13px 22px;
-    border-bottom: 1px solid var(--line);
-    color: var(--text-faint);
-    font-size: 0.75rem;
-  }
-
-  .thread-edit-preview-meta strong {
-    color: var(--text);
-  }
-
-  .thread-edit-preview-dialog > iframe {
-    display: block;
-    width: 100%;
-    min-height: 180px;
-    border: 0;
-  }
-
   @keyframes thread-edit-spin {
     to { transform: rotate(360deg); }
   }
@@ -335,13 +260,5 @@
       margin-inline: 10px;
     }
 
-    .thread-edit-preview-meta {
-      display: block;
-    }
-
-    .thread-edit-preview-meta span {
-      display: block;
-      margin-top: 4px;
-    }
   }
 }

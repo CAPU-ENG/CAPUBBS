@@ -1,17 +1,7 @@
-import {
-  Eye,
-  Paperclip,
-  Save,
-  Send,
-  Trash2,
-  UploadCloud,
-  X,
-} from "lucide-react";
-import { useEffect, useRef, useState, type ChangeEvent } from "react";
+import { Save, Send } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
 import {
   getRichTextEditorStorageValue,
-  getRichTextEditorPreviewDocument,
-  RichTextEditor,
   type RichTextEditorValue,
 } from "../editor/RichTextEditor";
 import {
@@ -20,7 +10,13 @@ import {
   type ReplyDraftSaveFailureReason,
   type StoredReplyAttachment,
 } from "../../utils/replyDraftStorage";
-import { ThreadHtmlContent } from "./ThreadHtmlContent";
+import {
+  formatPostEditorPreviewTimestamp,
+  hasPostEditorContent,
+  PostEditor,
+  PostEditorPreviewDialog,
+  type PostEditorPreviewAuthor,
+} from "./PostEditor";
 
 export type QuoteRequest = {
   author: string;
@@ -30,18 +26,6 @@ export type QuoteRequest = {
 };
 
 type ReplyAttachment = StoredReplyAttachment & { restored?: boolean };
-
-type ReplyPreviewAuthor = {
-  avatar: string;
-  name: string;
-};
-
-const signatureOptions = [
-  { label: "不使用签名档", value: 0 },
-  { label: "签名档 1", value: 1 },
-  { label: "签名档 2", value: 2 },
-  { label: "签名档 3", value: 3 },
-] as const;
 
 export function ReplyEditor({
   bid,
@@ -63,7 +47,7 @@ export function ReplyEditor({
   draftId: string | null;
   editorRef: React.RefObject<HTMLElement | null>;
   ownerKey: string;
-  previewAuthor: ReplyPreviewAuthor;
+  previewAuthor: PostEditorPreviewAuthor;
   previewFloor: number;
   previewSignatures: string[];
   quoteRequest: QuoteRequest | null;
@@ -76,7 +60,6 @@ export function ReplyEditor({
   });
   const [signatureIndex, setSignatureIndex] = useState(0);
   const [attachments, setAttachments] = useState<ReplyAttachment[]>([]);
-  const [attachmentDialogOpen, setAttachmentDialogOpen] = useState(false);
   const [previewOpen, setPreviewOpen] = useState(false);
   const [previewedAt, setPreviewedAt] = useState("");
   const [focusRequest, setFocusRequest] = useState(0);
@@ -85,15 +68,21 @@ export function ReplyEditor({
   const appliedQuoteRequestRef = useRef(0);
 
   useEffect(() => {
-    const storedDraft = readStoredReplyDraft(draftId, ownerKey);
-    if (!storedDraft || storedDraft.bid !== bid || storedDraft.tid !== tid) return;
+    let cancelled = false;
+    void readStoredReplyDraft(draftId, ownerKey).then((storedDraft) => {
+      if (cancelled || !storedDraft || storedDraft.bid !== bid || storedDraft.tid !== tid) return;
 
-    setEditorValue(storedDraft.editor);
-    setSignatureIndex(storedDraft.signatureIndex ?? 0);
-    setAttachments(storedDraft.attachments.map((attachment) => ({ ...attachment, restored: true })));
-    setSavedDraftId(storedDraft.id);
-    setStatus("草稿已恢复");
-    setFocusRequest((request) => request + 1);
+      setEditorValue(storedDraft.editor);
+      setSignatureIndex(storedDraft.signatureIndex ?? 0);
+      setAttachments(storedDraft.attachments.map((attachment) => ({ ...attachment, restored: true })));
+      setSavedDraftId(storedDraft.id);
+      setStatus("草稿已恢复");
+      setFocusRequest((request) => request + 1);
+    });
+
+    return () => {
+      cancelled = true;
+    };
   }, [bid, draftId, ownerKey, tid]);
 
   useEffect(() => {
@@ -129,19 +118,17 @@ export function ReplyEditor({
   }
 
   function removeAttachment(id: string) {
-    setAttachments((current) =>
-      current.filter((attachment) => attachment.id !== id),
-    );
+    setAttachments((current) => current.filter((attachment) => attachment.id !== id));
     setStatus("");
   }
 
-  function saveDraft() {
-    if (!hasEditorContent(editorValue) && attachments.length === 0) {
+  async function saveDraft() {
+    if (!hasPostEditorContent(editorValue) && attachments.length === 0) {
       setStatus("没有可保存的内容");
       return;
     }
 
-    const saveResult = saveStoredReplyDraft(
+    const saveResult = await saveStoredReplyDraft(
       {
         attachments: attachments.map(({ restored: _restored, ...attachment }) => attachment),
         bid,
@@ -169,7 +156,7 @@ export function ReplyEditor({
   }
 
   function publishReply() {
-    if (!hasEditorContent(editorValue)) {
+    if (!hasPostEditorContent(editorValue)) {
       setStatus("请先填写回复内容");
       setFocusRequest((request) => request + 1);
       return;
@@ -179,378 +166,68 @@ export function ReplyEditor({
   }
 
   function openPreview() {
-    if (!hasEditorContent(editorValue)) {
+    if (!hasPostEditorContent(editorValue)) {
       setStatus("请先填写回复内容");
       setFocusRequest((request) => request + 1);
       return;
     }
 
-    setPreviewedAt(formatPreviewTimestamp(new Date()));
+    setPreviewedAt(formatPostEditorPreviewTimestamp(new Date()));
     setPreviewOpen(true);
     setStatus("");
   }
 
   return (
-    <section
-      className="reply-editor"
-      id="reply-editor"
-      ref={editorRef}
-      aria-labelledby="reply-editor-title"
-    >
-      <header className="reply-editor-heading">
-        <h2 id="reply-editor-title">写回复</h2>
-        <p>Re: {threadTitle}</p>
-      </header>
-
-      <div className="reply-editor-core">
-        <RichTextEditor
-          ariaLabel={`回复主题：${threadTitle}`}
-          focusRequest={focusRequest}
-          onChange={updateEditorValue}
-          placeholder="写下你的回复……"
-          value={editorValue}
-        />
-      </div>
-
-      <div
-        aria-label="选择签名档"
-        className="reply-signature-options"
-        role="radiogroup"
-      >
-        {signatureOptions.map((option) => (
-          <label key={option.value}>
-            <input
-              checked={signatureIndex === option.value}
-              name="reply-signature"
-              onChange={() => {
-                setSignatureIndex(option.value);
-                setStatus("");
-              }}
-              type="radio"
-              value={option.value}
-            />
-            {option.label}
-          </label>
-        ))}
-      </div>
-
-      {attachments.length > 0 && (
-        <ul className="reply-attachments" aria-label="待上传附件">
-          {attachments.map((attachment) => (
-            <li key={attachment.id}>
-              <Paperclip size={13} />
-              <span>{attachment.name}</span>
-              <small>{formatBytes(attachment.size)}</small>
-              <button
-                aria-label={`移除附件 ${attachment.name}`}
-                onClick={() => removeAttachment(attachment.id)}
-                type="button"
-              >
-                <X size={13} />
-              </button>
-            </li>
-          ))}
-        </ul>
-      )}
-
-      <footer className="reply-editor-footer">
-        <button
-          className="reply-secondary-button"
-          onClick={() => setAttachmentDialogOpen(true)}
-          type="button"
-        >
-          <Paperclip size={15} />
-          <span className="reply-action-label-full">添加附件</span>
-          <span className="reply-action-label-compact">附件</span>
-          {attachments.length > 0 && (
-            <span className="reply-attachment-count">{attachments.length}</span>
-          )}
-        </button>
-        {status && (
-          <span className="reply-editor-status" role="status">
-            {status}
-          </span>
-        )}
-        <div className="reply-editor-submit">
-          <button
-            className="reply-secondary-button"
-            onClick={openPreview}
-            type="button"
-          >
-            <Eye size={15} />
-            预览
-          </button>
-          <button
-            className="reply-secondary-button"
-            onClick={saveDraft}
-            type="button"
-          >
+    <>
+      <PostEditor
+        ariaLabel={`回复主题：${threadTitle}`}
+        attachmentDialogDescription="文件会先加入当前回复，发布时一并上传"
+        attachments={attachments}
+        editorRef={editorRef}
+        editorValue={editorValue}
+        focusRequest={focusRequest}
+        heading="写回复"
+        headingMeta={`Re: ${threadTitle}`}
+        id="reply-editor"
+        name="reply-signature"
+        onAddAttachments={addAttachments}
+        onChange={updateEditorValue}
+        onPreview={openPreview}
+        onRemoveAttachment={removeAttachment}
+        onSignatureChange={(value) => {
+          setSignatureIndex(value);
+          setStatus("");
+        }}
+        onSubmit={publishReply}
+        placeholder="写下你的回复……"
+        previewDisabled={!hasPostEditorContent(editorValue)}
+        secondaryActions={(
+          <button className="reply-secondary-button" onClick={() => void saveDraft()} type="button">
             <Save size={15} />
             <span className="reply-action-label-full">存入草稿</span>
             <span className="reply-action-label-compact">草稿</span>
           </button>
-          <button
-            className="reply-publish-button"
-            onClick={publishReply}
-            type="button"
-          >
-            <Send size={15} />
-            <span className="reply-action-label-full">发布回复</span>
-            <span className="reply-action-label-compact">发布</span>
-          </button>
-        </div>
-      </footer>
-
-      {attachmentDialogOpen && (
-        <AttachmentDialog
-          attachments={attachments}
-          onAdd={addAttachments}
-          onClose={() => setAttachmentDialogOpen(false)}
-          onRemove={removeAttachment}
-        />
-      )}
+        )}
+        signatureIndex={signatureIndex}
+        status={status}
+        submitCompactLabel="发布"
+        submitIcon={<Send size={15} />}
+        submitLabel="发布回复"
+      />
       {previewOpen && (
-        <ReplyPreviewDialog
+        <PostEditorPreviewDialog
           attachments={attachments}
           editorValue={editorValue}
+          label="回复预览"
           onClose={() => setPreviewOpen(false)}
           previewAuthor={previewAuthor}
           previewFloor={previewFloor}
           previewSignature={signatureIndex > 0 ? previewSignatures[signatureIndex - 1] : undefined}
           previewedAt={previewedAt}
-          threadTitle={threadTitle}
+          title={`Re: ${threadTitle}`}
         />
       )}
-    </section>
-  );
-}
-
-function ReplyPreviewDialog({
-  attachments,
-  editorValue,
-  onClose,
-  previewAuthor,
-  previewFloor,
-  previewSignature,
-  previewedAt,
-  threadTitle,
-}: {
-  attachments: ReplyAttachment[];
-  editorValue: RichTextEditorValue;
-  onClose: () => void;
-  previewAuthor: ReplyPreviewAuthor;
-  previewFloor: number;
-  previewSignature?: string;
-  previewedAt: string;
-  threadTitle: string;
-}) {
-  useEffect(() => {
-    document.body.classList.add("reply-preview-open");
-
-    return () => document.body.classList.remove("reply-preview-open");
-  }, []);
-
-  useEffect(() => {
-    function closeOnEscape(event: KeyboardEvent) {
-      if (event.key === "Escape") onClose();
-    }
-
-    document.addEventListener("keydown", closeOnEscape);
-    return () => document.removeEventListener("keydown", closeOnEscape);
-  }, [onClose]);
-
-  function resizePreviewFrame(frame: HTMLIFrameElement) {
-    const previewDocument = frame.contentDocument;
-    if (!previewDocument) return;
-
-    const updateHeight = () => {
-      frame.style.height = `${Math.max(120, previewDocument.documentElement.scrollHeight)}px`;
-    };
-
-    updateHeight();
-    previewDocument.querySelectorAll("img").forEach((image) => {
-      if (!image.complete) image.addEventListener("load", updateHeight, { once: true });
-    });
-  }
-
-  return (
-    <div
-      className="reply-preview-backdrop"
-      onClick={onClose}
-      role="presentation"
-    >
-      <section
-        aria-labelledby="reply-preview-title"
-        aria-modal="true"
-        className="reply-preview-dialog"
-        onClick={(event) => event.stopPropagation()}
-        role="dialog"
-      >
-        <header>
-          <div>
-            <span>回复预览</span>
-            <h2 id="reply-preview-title">Re: {threadTitle}</h2>
-          </div>
-          <button aria-label="关闭回复预览" onClick={onClose} type="button">
-            <X size={18} />
-          </button>
-        </header>
-        <div className="reply-preview-stage">
-          <article className="thread-floor reply-preview-floor">
-            <div className="thread-avatar-rail reply-preview-avatar-rail">
-              <div className="thread-avatar-button">
-                <img src={previewAuthor.avatar} alt="" />
-              </div>
-            </div>
-
-            <div className="thread-floor-main">
-              <header className="thread-floor-header">
-                <div className="thread-floor-author">
-                  <strong>{previewAuthor.name}</strong>
-                </div>
-                <div className="thread-floor-time">
-                  <time>{previewedAt}</time>
-                </div>
-                <span className="thread-floor-index">#{previewFloor}</span>
-              </header>
-
-              <div className="thread-floor-body reply-preview-floor-body">
-                <iframe
-                  onLoad={(event) => resizePreviewFrame(event.currentTarget)}
-                  sandbox="allow-same-origin"
-                  srcDoc={getRichTextEditorPreviewDocument(editorValue, { embedded: true })}
-                  title="回复正文预览"
-                />
-              </div>
-
-              {previewSignature && (
-                <ThreadHtmlContent
-                  className="thread-signature"
-                  floor={previewFloor}
-                  html={previewSignature}
-                  variant="signature"
-                />
-              )}
-
-              {attachments.length > 0 && (
-                <ul className="reply-preview-attachments" aria-label="回复附件预览">
-                  {attachments.map((attachment) => (
-                    <li key={attachment.id}>
-                      <Paperclip size={13} />
-                      <span>{attachment.name}</span>
-                      <small>{formatBytes(attachment.size)}</small>
-                    </li>
-                  ))}
-                </ul>
-              )}
-            </div>
-          </article>
-        </div>
-        <footer>
-          <button
-            className="reply-secondary-button"
-            onClick={onClose}
-            type="button"
-          >
-            返回编辑
-          </button>
-        </footer>
-      </section>
-    </div>
-  );
-}
-
-function formatPreviewTimestamp(value: Date) {
-  const pad = (part: number) => String(part).padStart(2, "0");
-  return `${value.getFullYear()}-${pad(value.getMonth() + 1)}-${pad(value.getDate())} ${pad(value.getHours())}:${pad(value.getMinutes())}:${pad(value.getSeconds())}`;
-}
-
-function AttachmentDialog({
-  attachments,
-  onAdd,
-  onClose,
-  onRemove,
-}: {
-  attachments: ReplyAttachment[];
-  onAdd: (files: File[]) => void;
-  onClose: () => void;
-  onRemove: (id: string) => void;
-}) {
-  const inputRef = useRef<HTMLInputElement | null>(null);
-
-  function handleFileChange(event: ChangeEvent<HTMLInputElement>) {
-    onAdd(Array.from(event.currentTarget.files ?? []));
-    event.currentTarget.value = "";
-  }
-
-  return (
-    <div
-      className="attachment-dialog-backdrop"
-      onClick={onClose}
-      role="presentation"
-    >
-      <section
-        aria-labelledby="attachment-dialog-title"
-        aria-modal="true"
-        className="attachment-dialog"
-        onClick={(event) => event.stopPropagation()}
-        role="dialog"
-      >
-        <header>
-          <span>
-            <UploadCloud size={17} />
-          </span>
-          <h2 id="attachment-dialog-title">文件上传</h2>
-          <button aria-label="关闭文件上传" onClick={onClose} type="button">
-            <X size={18} />
-          </button>
-        </header>
-        <button
-          className="attachment-drop-button"
-          onClick={() => inputRef.current?.click()}
-          type="button"
-        >
-          <UploadCloud size={22} />
-          <strong>选择一个或多个文件</strong>
-          <span>文件会先加入当前回复，发布时一并上传</span>
-        </button>
-        <input
-          className="sr-only"
-          multiple
-          onChange={handleFileChange}
-          ref={inputRef}
-          type="file"
-        />
-        {attachments.length > 0 && (
-          <ul>
-            {attachments.map((attachment) => (
-              <li key={attachment.id}>
-                <div>
-                  <strong>{attachment.name}</strong>
-                  <span>{formatBytes(attachment.size)}</span>
-                </div>
-                <button
-                  aria-label={`移除附件 ${attachment.name}`}
-                  onClick={() => onRemove(attachment.id)}
-                  type="button"
-                >
-                  <Trash2 size={15} />
-                </button>
-              </li>
-            ))}
-          </ul>
-        )}
-        <footer>
-          <button
-            className="reply-publish-button"
-            onClick={onClose}
-            type="button"
-          >
-            完成
-          </button>
-        </footer>
-      </section>
-    </div>
+    </>
   );
 }
 
@@ -578,17 +255,6 @@ function appendQuote(
     ...current,
     content: `${current.content}${separator}${quoteMarkup}`,
   };
-}
-
-function hasEditorContent(value: RichTextEditorValue) {
-  if (value.mode !== "rich") return value.content.trim().length > 0;
-
-  const container = document.createElement("div");
-  container.innerHTML = value.content;
-  return (
-    (container.textContent ?? "").replace(/\u00a0/g, " ").trim().length > 0 ||
-    !!container.querySelector("img, hr")
-  );
 }
 
 function getReplyDraftExcerpt(value: RichTextEditorValue, attachments: ReplyAttachment[]) {
@@ -621,9 +287,4 @@ function escapeHtml(value: string) {
     .replaceAll(">", "&gt;")
     .replaceAll('"', "&quot;")
     .replaceAll("'", "&#039;");
-}
-
-function formatBytes(bytes: number) {
-  if (bytes >= 1024 * 1024) return `${(bytes / 1024 / 1024).toFixed(2)} MB`;
-  return `${Math.max(1, Math.round(bytes / 1024))} KB`;
 }
