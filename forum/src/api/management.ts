@@ -38,6 +38,12 @@ export type ManagementMute = {
   reason: string;
 };
 
+export type ManagementBoardModerators = {
+  boardId: number;
+  boardName: string;
+  moderators: string[];
+};
+
 export class ManagementApiError extends Error {
   code: number;
 
@@ -127,6 +133,33 @@ export async function setManagementMemberRights(username: string, rights: 0 | 1 
   const member = row ? mapManagementMember(row) : null;
   if (!member) throw new ManagementApiError('权限已更新，但接口没有返回会员资料。');
   return member;
+}
+
+export async function fetchManagementBoardModerators(signal?: AbortSignal) {
+  const payload = await requestManagementApi({ ask: 'bbsinfo', bid: 0 }, signal);
+  return asRows(payload.data)
+    .map(mapManagementBoardModerators)
+    .filter((board): board is ManagementBoardModerators => board !== null)
+    .sort((left, right) => left.boardId - right.boardId);
+}
+
+export async function setManagementBoardModerator(
+  boardId: number,
+  username: string,
+  action: 'add' | 'remove',
+) {
+  const normalizedUsername = username.trim();
+  if (!normalizedUsername) throw new ManagementApiError('请输入会员 ID。');
+  const payload = await requestManagementApi({
+    action,
+    ask: 'management_board_moderator',
+    bid: boardId,
+    username: normalizedUsername,
+  });
+  const row = asRows(payload.data)[0];
+  const board = row ? mapManagementBoardModerators(row) : null;
+  if (!board) throw new ManagementApiError('版主名单已更新，但接口没有返回版块资料。');
+  return board;
 }
 
 export async function fetchManagementMutes(signal?: AbortSignal) {
@@ -241,6 +274,17 @@ function mapManagementMember(row: ApiRow): ManagementMember | null {
     muted: booleanValue(row.muted),
     relatedIds: stringList(row.related_ids, id),
     rights: numberValue(row.rights),
+  };
+}
+
+function mapManagementBoardModerators(row: ApiRow): ManagementBoardModerators | null {
+  const boardId = positiveInteger(row.bid);
+  const boardName = textValue(row.bbstitle);
+  if (!boardId || !boardName) return null;
+  return {
+    boardId,
+    boardName,
+    moderators: Array.from(new Set([row.m1, row.m2, row.m3, row.m4].map(textValue).filter(Boolean))),
   };
 }
 

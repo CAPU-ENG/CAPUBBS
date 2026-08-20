@@ -15,6 +15,8 @@ import {
   ShieldAlert,
   ShieldCheck,
   UserCog,
+  UserMinus,
+  UserPlus,
   Users,
   Volume2,
   VolumeX,
@@ -22,14 +24,17 @@ import {
 import { useEffect, useMemo, useState, type FormEvent, type ReactNode } from 'react';
 import {
   fetchGlobalPins,
+  fetchManagementBoardModerators,
   fetchManagementElevatedMembers,
   fetchManagementMember,
   fetchManagementMutes,
   fetchManagementThread,
   moveManagementThread,
   setManagementEmailMute,
+  setManagementBoardModerator,
   setManagementMemberRights,
   toggleGlobalPin,
+  type ManagementBoardModerators,
   type ManagementMember,
   type ManagementMute,
   type ManagementThread,
@@ -688,75 +693,103 @@ function MemberManagementPanel() {
 }
 
 function ModeratorManagementPanel() {
-  const [members, setMembers] = useState<ManagementMember[]>([]);
-  const [membersStatus, setMembersStatus] = useState<'error' | 'loading' | 'ready'>('loading');
+  const [boards, setBoards] = useState<ManagementBoardModerators[]>([]);
+  const [boardsStatus, setBoardsStatus] = useState<'error' | 'loading' | 'ready'>('loading');
   const [query, setQuery] = useState('');
-  const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [selectedMember, setSelectedMember] = useState<ManagementMember | null>(null);
+  const [selectedBoardId, setSelectedBoardId] = useState('');
   const [isSearching, setIsSearching] = useState(false);
-  const [pendingMemberId, setPendingMemberId] = useState<string | null>(null);
+  const [pendingAction, setPendingAction] = useState<string | null>(null);
   const [notice, setNotice] = useState<{ kind: NoticeKind; text: string } | null>(null);
-  const moderators = useMemo(() => members.filter((member) => member.rights === 1), [members]);
-  const selectedMember = members.find((member) => member.id === selectedId) ?? null;
+  const moderatorCount = useMemo(
+    () => boards.reduce((count, board) => count + board.moderators.length, 0),
+    [boards],
+  );
 
   useEffect(() => {
     const controller = new AbortController();
-    void fetchManagementElevatedMembers(controller.signal).then(
+    void fetchManagementBoardModerators(controller.signal).then(
       (items) => {
-        setMembers(items);
-        setMembersStatus('ready');
+        setBoards(items);
+        setBoardsStatus('ready');
       },
       (error: unknown) => {
         if (error instanceof DOMException && error.name === 'AbortError') return;
-        setMembersStatus('error');
+        setBoardsStatus('error');
         setNotice({ kind: 'error', text: errorMessage(error, '版主列表加载失败，请稍后重试。') });
       },
     );
     return () => controller.abort();
   }, []);
 
-  async function loadMember(memberId: string) {
+  async function searchMember(event: FormEvent) {
+    event.preventDefault();
     if (isSearching) return;
     setIsSearching(true);
     setNotice(null);
     try {
-      const result = await fetchManagementMember(memberId);
-      setMembers((current) => upsertManagementMember(current, result));
-      setSelectedId(result.id);
+      const result = await fetchManagementMember(query);
+      setSelectedMember(result);
       setNotice({ kind: 'info', text: '已找到会员，请确认身份。' });
     } catch (error) {
-      setSelectedId(null);
+      setSelectedMember(null);
       setNotice({ kind: 'error', text: errorMessage(error, '会员查询失败，请稍后重试。') });
     } finally {
       setIsSearching(false);
     }
   }
 
-  function searchMember(event: FormEvent) {
-    event.preventDefault();
-    void loadMember(query);
+  function replaceBoard(updatedBoard: ManagementBoardModerators) {
+    setBoards((current) => current.map((board) => board.boardId === updatedBoard.boardId ? updatedBoard : board));
   }
 
-  async function toggleModeratorRights(member: ManagementMember) {
-    if ((member.rights !== 0 && member.rights !== 1) || pendingMemberId) return;
-    const nextRights = member.rights === 1 ? 0 : 1;
-    setPendingMemberId(member.id);
+  async function addModerator() {
+    const boardId = Number(selectedBoardId);
+    if (!selectedMember || !boardId || pendingAction) return;
+    const actionKey = `add-${boardId}-${selectedMember.id}`;
+    setPendingAction(actionKey);
     setNotice(null);
     try {
-      const updated = await setManagementMemberRights(member.id, nextRights);
-      setMembers((current) => upsertManagementMember(current, updated));
-      setSelectedId(updated.id);
-      setNotice({
-        kind: 'success',
-        text: nextRights === 1
-          ? `已赋予 ${member.id} 会员 1 级权限。`
-          : `已取消 ${member.id} 的会员 1 级权限。`,
-      });
+      const updatedBoard = await setManagementBoardModerator(boardId, selectedMember.id, 'add');
+      replaceBoard(updatedBoard);
+      try {
+        setSelectedMember(await fetchManagementMember(selectedMember.id));
+      } catch {
+        // 版主名单已更新，会员信息刷新失败不应覆盖成功结果。
+      }
+      setNotice({ kind: 'success', text: `已将 ${selectedMember.id} 添加为“${updatedBoard.boardName}”版主。` });
     } catch (error) {
-      setNotice({ kind: 'error', text: errorMessage(error, '版主权限更新失败，请稍后重试。') });
+      setNotice({ kind: 'error', text: errorMessage(error, '添加版主失败，请稍后重试。') });
     } finally {
-      setPendingMemberId(null);
+      setPendingAction(null);
     }
   }
+
+  async function removeModerator(board: ManagementBoardModerators, username: string) {
+    if (pendingAction) return;
+    const actionKey = `remove-${board.boardId}-${username}`;
+    setPendingAction(actionKey);
+    setNotice(null);
+    try {
+      const updatedBoard = await setManagementBoardModerator(board.boardId, username, 'remove');
+      replaceBoard(updatedBoard);
+      if (selectedMember?.id === username) {
+        try {
+          setSelectedMember(await fetchManagementMember(username));
+        } catch {
+          // 版主名单已更新，会员信息刷新失败不应覆盖成功结果。
+        }
+      }
+      setNotice({ kind: 'success', text: `已取消 ${username} 的“${board.boardName}”版主身份。` });
+    } catch (error) {
+      setNotice({ kind: 'error', text: errorMessage(error, '取消版主失败，请稍后重试。') });
+    } finally {
+      setPendingAction(null);
+    }
+  }
+
+  const selectedBoard = boards.find((board) => board.boardId === Number(selectedBoardId)) ?? null;
+  const alreadyModerator = Boolean(selectedMember && selectedBoard?.moderators.includes(selectedMember.id));
 
   return (
     <div className="management-grid management-members-grid">
@@ -771,7 +804,7 @@ function ModeratorManagementPanel() {
               id="moderator-member-id"
               onChange={(event) => {
                 setQuery(event.target.value);
-                setSelectedId(null);
+                setSelectedMember(null);
                 setNotice(null);
               }}
               placeholder="输入完整会员 ID"
@@ -791,21 +824,23 @@ function ModeratorManagementPanel() {
               <div><span>已确认会员身份</span><strong>{selectedMember.id}</strong>{selectedMember.joinedAt && <p>{selectedMember.joinedAt}</p>}</div>
               <BadgeCheck size={19} />
             </div>
-            <div className="management-permission-row">
-              <div><span>当前权限</span><strong>{rightsLabel(selectedMember.rights)}</strong></div>
-              {selectedMember.rights > 1 ? (
-                <button disabled type="button"><ShieldCheck size={15} />更高权限受保护</button>
-              ) : (
-                <button
-                  className={selectedMember.rights === 1 ? 'management-danger-button' : 'management-primary-button'}
-                  disabled={pendingMemberId !== null}
-                  onClick={() => void toggleModeratorRights(selectedMember)}
-                  type="button"
-                >
-                  {pendingMemberId === selectedMember.id ? <LoaderCircle className="animate-spin" size={15} /> : <Shield size={15} />}
-                  {selectedMember.rights === 1 ? '取消 1 级权限' : '赋予 1 级权限'}
-                </button>
-              )}
+            <div className="management-moderator-assignment">
+              <label>
+                <span>目标版块</span>
+                <select onChange={(event) => setSelectedBoardId(event.target.value)} value={selectedBoardId}>
+                  <option value="">请选择版块</option>
+                  {boards.map((board) => <option key={board.boardId} value={board.boardId}>{board.boardName}</option>)}
+                </select>
+              </label>
+              <button
+                className="management-primary-button"
+                disabled={!selectedBoard || alreadyModerator || pendingAction !== null}
+                onClick={() => void addModerator()}
+                type="button"
+              >
+                {pendingAction?.startsWith('add-') ? <LoaderCircle className="animate-spin" size={15} /> : <UserPlus size={15} />}
+                {alreadyModerator ? '已是本版版主' : '添加版主'}
+              </button>
             </div>
           </div>
         )}
@@ -815,25 +850,43 @@ function ModeratorManagementPanel() {
       <section className="management-card management-list-card" aria-labelledby="moderators-title">
         <header className="management-card-heading">
           <div><h2 id="moderators-title">当前版主</h2></div>
-          <span>{moderators.length} 人</span>
+          <span>{moderatorCount} 人次</span>
         </header>
-        <div className="management-member-list">
-          {membersStatus === 'loading' ? (
+        {boardsStatus === 'loading' ? (
             <EmptyState icon={<LoaderCircle className="animate-spin" size={19} />}>正在加载版主。</EmptyState>
-          ) : membersStatus === 'error' ? (
+          ) : boardsStatus === 'error' ? (
             <EmptyState icon={<CircleAlert size={19} />}>版主列表加载失败。</EmptyState>
-          ) : moderators.length === 0 ? (
-            <EmptyState icon={<Shield size={19} />}>当前没有权限为 1 的会员。</EmptyState>
-          ) : moderators.map((member) => (
-            <button key={member.id} onClick={() => {
-              setQuery(member.id);
-              void loadMember(member.id);
-            }} type="button">
-              <img alt="" src={member.avatar || defaultAvatar} />
-              <span><strong>{member.id}</strong></span>
-            </button>
-          ))}
-        </div>
+          ) : (
+            <div className="management-board-moderator-groups">
+              {boards.map((board) => (
+                <section key={board.boardId}>
+                  <header><h3>{board.boardName}</h3><span>{board.moderators.length} 人</span></header>
+                  {board.moderators.length === 0 ? (
+                    <p>暂无版主</p>
+                  ) : (
+                    <div>
+                      {board.moderators.map((moderator) => {
+                        const actionKey = `remove-${board.boardId}-${moderator}`;
+                        return (
+                          <article key={moderator}>
+                            <strong>{moderator}</strong>
+                            <button
+                              aria-label={`取消 ${moderator} 的${board.boardName}版主身份`}
+                              disabled={pendingAction !== null}
+                              onClick={() => void removeModerator(board, moderator)}
+                              type="button"
+                            >
+                              {pendingAction === actionKey ? <LoaderCircle className="animate-spin" size={14} /> : <UserMinus size={14} />}
+                            </button>
+                          </article>
+                        );
+                      })}
+                    </div>
+                  )}
+                </section>
+              ))}
+            </div>
+          )}
       </section>
     </div>
   );
@@ -918,6 +971,6 @@ function rightsLabel(rights: number) {
   if (rights >= 4) return `权限 ${rights} · 管理员`;
   if (rights === 3) return '权限 3 · 版面管理';
   if (rights === 2) return '权限 2 · 活动管理';
-  if (rights === 1) return '权限 1 · 版主';
+  if (rights === 1) return '权限 1';
   return '权限 0 · 普通会员';
 }

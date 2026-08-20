@@ -2387,7 +2387,7 @@ function jiekoufunc_management_elevated_members($con) {
 
 function jiekoufunc_management_rights_transition_allowed($current_rights, $target_rights) {
     $transition = strval(intval($current_rights)) . '>' . strval(intval($target_rights));
-    return in_array($transition, array('0>1', '1>0', '0>2', '2>0', '1>2'), true);
+    return in_array($transition, array('0>2', '2>0', '1>2'), true);
 }
 
 function jiekoufunc_management_member_rights($con, $params) {
@@ -2424,6 +2424,101 @@ function jiekoufunc_management_member_rights($con, $params) {
     }
 
     return jiekoufunc_management_member_lookup($con, array('username' => $username));
+}
+
+function jiekoufunc_management_board_moderator($con, $params) {
+    $bid = isset($params['bid']) ? intval($params['bid']) : 0;
+    $username = isset($params['username']) ? trim($params['username']) : '';
+    $action = isset($params['action']) ? trim($params['action']) : '';
+    if ($bid <= 0 || $username === '' || !in_array($action, array('add', 'remove'), true)) {
+        return jiekoufunc_report('14', '缺少有效的版块、会员 ID 或操作类型。');
+    }
+
+    $board = mysqli_fetch_assoc(mysqli_query($con,
+        "SELECT bid, bbstitle, m1, m2, m3, m4 FROM boardinfo WHERE bid=$bid LIMIT 1"));
+    if (!$board) {
+        return jiekoufunc_report('3', '版块不存在。');
+    }
+
+    $current_slots = array();
+    $moderators = array();
+    for ($i = 1; $i <= 4; $i++) {
+        $slot = isset($board['m' . $i]) ? trim(strval($board['m' . $i])) : '';
+        $current_slots[] = $slot;
+        if ($slot !== '' && !in_array($slot, $moderators, true)) {
+            $moderators[] = $slot;
+        }
+    }
+
+    $username_esc = mysqli_real_escape_string($con, $username);
+    if ($action === 'add') {
+        $member = mysqli_fetch_assoc(mysqli_query($con,
+            "SELECT rights FROM userinfo WHERE username='$username_esc' LIMIT 1"));
+        if (!$member) {
+            return jiekoufunc_report('3', '用户不存在。');
+        }
+        if (in_array($username, $moderators, true)) {
+            return jiekoufunc_report('14', '该会员已经是本版版主。');
+        }
+        if (count($moderators) >= 4) {
+            return jiekoufunc_report('14', '本版已有 4 名版主，无法继续添加。');
+        }
+
+        if (intval($member['rights']) === 0) {
+            mysqli_query($con,
+                "UPDATE userinfo SET rights=1 WHERE username='$username_esc' AND rights=0");
+            if (mysqli_affected_rows($con) !== 1) {
+                $latest = mysqli_fetch_assoc(mysqli_query($con,
+                    "SELECT rights FROM userinfo WHERE username='$username_esc' LIMIT 1"));
+                if (!$latest || intval($latest['rights']) === 0) {
+                    return jiekoufunc_report('8', '会员权限已发生变化，请刷新后重试。');
+                }
+            }
+        }
+        $moderators[] = $username;
+    } else {
+        if (!in_array($username, $moderators, true)) {
+            return jiekoufunc_report('14', '该会员不是本版版主。');
+        }
+        $moderators = array_values(array_filter($moderators, function ($moderator) use ($username) {
+            return $moderator !== $username;
+        }));
+    }
+
+    $next_slots = array_pad(array_slice($moderators, 0, 4), 4, '');
+    $set_parts = array();
+    $guard_parts = array('bid=' . $bid);
+    for ($i = 0; $i < 4; $i++) {
+        $column = 'm' . strval($i + 1);
+        $next_esc = mysqli_real_escape_string($con, $next_slots[$i]);
+        $current_esc = mysqli_real_escape_string($con, $current_slots[$i]);
+        $set_parts[] = "$column='$next_esc'";
+        $guard_parts[] = "COALESCE($column, '')='$current_esc'";
+    }
+    mysqli_query($con,
+        'UPDATE boardinfo SET ' . implode(', ', $set_parts) .
+        ' WHERE ' . implode(' AND ', $guard_parts));
+    if (mysqli_affected_rows($con) !== 1) {
+        return jiekoufunc_report('8', '版主名单已发生变化，请刷新后重试。');
+    }
+
+    if ($action === 'remove') {
+        $member = mysqli_fetch_assoc(mysqli_query($con,
+            "SELECT rights FROM userinfo WHERE username='$username_esc' LIMIT 1"));
+        if ($member && intval($member['rights']) === 1) {
+            $remaining = mysqli_fetch_assoc(mysqli_query($con,
+                "SELECT COUNT(*) AS count FROM boardinfo
+                 WHERE m1='$username_esc' OR m2='$username_esc' OR m3='$username_esc' OR m4='$username_esc'"));
+            if ($remaining && intval($remaining['count']) === 0) {
+                mysqli_query($con,
+                    "UPDATE userinfo SET rights=0 WHERE username='$username_esc' AND rights=1");
+            }
+        }
+    }
+
+    $updated = mysqli_fetch_assoc(mysqli_query($con,
+        "SELECT bid, bbstitle, m1, m2, m3, m4 FROM boardinfo WHERE bid=$bid LIMIT 1"));
+    return array(array('code' => '0', 'count' => '1'), $updated);
 }
 
 function jiekoufunc_toggleEmailVisible($con, $token, $params) {

@@ -95,6 +95,7 @@ function _dispatch_build_routes() {
         'management_member_lookup' => array('handler' => 'jiekoufunc_management_member_lookup', 'check_login' => true, 'require_rights' => 3),
         'management_elevated_members' => array('handler' => 'jiekoufunc_management_elevated_members', 'check_login' => true, 'require_rights' => 3),
         'management_member_rights' => array('handler' => 'jiekoufunc_management_member_rights', 'check_login' => true, 'require_rights' => 3),
+        'management_board_moderator' => array('handler' => 'jiekoufunc_management_board_moderator', 'check_login' => true, 'require_rights' => 3),
         'toggleEmailVisible' => array('handler' => null, 'check_login' => true,  'require_rights' => 0),
 
         // ================================================================
@@ -228,6 +229,8 @@ function jiekoufunc_dispatch($con, $params) {
                 return jiekoufunc_management_elevated_members($con);
             case 'jiekoufunc_management_member_rights':
                 return jiekoufunc_management_member_rights($con, $params);
+            case 'jiekoufunc_management_board_moderator':
+                return jiekoufunc_management_board_moderator($con, $params);
             case 'jiekoufunc_userexists':
                 return jiekoufunc_userexists($con, $params);
             case 'jiekoufunc_hot':
