@@ -1,4 +1,5 @@
 import { getPublicProfilePath } from './userRoutes';
+import { translateLegacyForumThreadHref } from './legacyForumRoutes';
 
 const PUBLIC_ASSET_ORIGIN = 'https://chexie.net';
 const BLOCKED_TAGS = new Set([
@@ -176,6 +177,8 @@ function normalizeForumLink(value: string, isMention: boolean) {
   const href = value.trim();
   if (!href) return '';
 
+  const legacyThreadHref = translateLegacyForumThreadHref(href);
+  if (legacyThreadHref) return legacyThreadHref;
   const legacyProfileName = getLegacyProfileName(href, isMention);
   if (legacyProfileName) return getPublicProfilePath(legacyProfileName);
   if (/^mailto:[^\s@]+@[^\s@]+$/i.test(href)) return href;

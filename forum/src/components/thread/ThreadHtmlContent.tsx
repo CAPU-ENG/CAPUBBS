@@ -1,6 +1,8 @@
 import { useEffect, useMemo, useRef, useState, type CSSProperties } from 'react';
 import { fetchSignatureReferencedFloorHtml } from '../../api/thread';
 import { renderForumMarkup, requiresIsolatedForumHtml } from '../../utils/forumMarkup';
+import { FORUM_LOCATION_CHANGE_EVENT } from '../../utils/authRoutes';
+import { translateLegacyForumThreadHref } from '../../utils/legacyForumRoutes';
 import { findSignatureFloorMarkers } from '../../utils/signatureFloorLink';
 import { ForumMarkup, type ForumMarkupImage } from './ForumMarkup';
 
@@ -18,6 +20,11 @@ type HtmlFrameMessage = {
   height: number;
   source: typeof HTML_FRAME_MESSAGE_SOURCE;
   type: 'resize';
+} | {
+  frameId: string;
+  source: typeof HTML_FRAME_MESSAGE_SOURCE;
+  type: 'navigate';
+  url: string;
 };
 
 export function ThreadHtmlContent({
@@ -97,6 +104,24 @@ function ThreadSandboxedHtmlFrame({
     function handleMessage(event: MessageEvent) {
       if (event.source !== iframeRef.current?.contentWindow || !isHtmlFrameMessage(event.data)) return;
       if (event.data.frameId !== frameIdRef.current) return;
+
+      if (event.data.type === 'navigate') {
+        const route = translateLegacyForumThreadHref(event.data.url, getLegacyContentBaseUrl());
+        if (!route) return;
+
+        window.history.pushState(null, '', route);
+        window.dispatchEvent(new Event(FORUM_LOCATION_CHANGE_EVENT));
+        const targetUrl = new URL(route, window.location.origin);
+        if (!targetUrl.hash) window.scrollTo({ left: 0, top: 0 });
+        else {
+          window.requestAnimationFrame(() => {
+            const hashTarget = decodeURIComponent(targetUrl.hash.slice(1));
+            const floor = hashTarget.match(/^(?:floor-)?(\d+)$/)?.[1];
+            document.getElementById(floor ? `floor-${floor}` : hashTarget)?.scrollIntoView({ block: 'start' });
+          });
+        }
+        return;
+      }
 
       setFrameHeight(Math.min(
         MAX_FRAME_HEIGHT,
@@ -209,6 +234,7 @@ function buildHtmlFrameDocument({
 function buildFrameBridgeScript(frameId: string) {
   return `(function(){
     var frameId=${JSON.stringify(frameId)};
+    var forumOrigin=${JSON.stringify(window.location.origin)};
     var minBottomGuard=${FRAME_BOTTOM_GUARD};
     var queued=false;
     function getContentHeight(){
@@ -242,6 +268,28 @@ function buildFrameBridgeScript(frameId: string) {
         script.parentNode.replaceChild(executable,script);
       });
     }
+    function getLegacyThreadUrl(target){
+      var anchor=target&&target.closest?target.closest('a'):null;
+      if(!anchor)return '';
+      var href=anchor.getAttribute('href');
+      if(!href)return '';
+      try{
+        var url=new URL(href,document.baseURI);
+        var host=url.hostname.toLowerCase();
+        var trusted=url.origin===forumOrigin||host==='chexie.net'||host.endsWith('.chexie.net');
+        var path=url.pathname.replace(/\\/{2,}/g,'/').replace(/\\/+$/,'')||'/';
+        var appPath=path.replace(/^\/(?:bbs-new|capubbs-new)(?=\/)/,'');
+        var legacyPath=appPath==='/thread.php'||appPath==='/bbs/content'||appPath==='/bbs/content/index.php'||appPath==='/cgi-bin/bbs.pl'||/^\/threads\/\d+-\d+$/.test(appPath);
+        return trusted&&legacyPath?url.href:'';
+      }catch(error){return '';}
+    }
+    function handleLegacyThreadClick(event){
+      if(event.defaultPrevented||event.button!==0||event.altKey||event.ctrlKey||event.metaKey||event.shiftKey)return;
+      var url=getLegacyThreadUrl(event.target);
+      if(!url)return;
+      event.preventDefault();
+      window.parent.postMessage({source:'${HTML_FRAME_MESSAGE_SOURCE}',type:'navigate',frameId:frameId,url:url},'*');
+    }
     function init(){
       var contentRoot=document.querySelector('.capubbs-html-frame-root');
       if(window.ResizeObserver&&contentRoot)new ResizeObserver(queueHeight).observe(contentRoot);
@@ -250,6 +298,7 @@ function buildFrameBridgeScript(frameId: string) {
       window.addEventListener('load',queueHeight);
       document.addEventListener('transitionend',queueHeight);
       document.addEventListener('animationend',queueHeight);
+      document.addEventListener('click',handleLegacyThreadClick);
       if(document.fonts&&document.fonts.ready)document.fonts.ready.then(queueHeight);
       executeUserScripts();
       queueHeight();
@@ -336,9 +385,9 @@ function escapeHtmlAttribute(value: string) {
 function isHtmlFrameMessage(value: unknown): value is HtmlFrameMessage {
   if (!value || typeof value !== 'object') return false;
   const message = value as Partial<HtmlFrameMessage>;
-  return message.source === HTML_FRAME_MESSAGE_SOURCE
-    && message.type === 'resize'
-    && typeof message.frameId === 'string'
+  if (message.source !== HTML_FRAME_MESSAGE_SOURCE || typeof message.frameId !== 'string') return false;
+  if (message.type === 'navigate') return typeof message.url === 'string';
+  return message.type === 'resize'
     && typeof message.height === 'number'
     && Number.isFinite(message.height);
 }
