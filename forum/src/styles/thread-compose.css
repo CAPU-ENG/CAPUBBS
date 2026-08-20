@@ -1,12 +1,4 @@
 @layer components {
-  .thread-compose-context-card > div:first-child {
-    background: color-mix(in srgb, var(--brand-faint) 70%, var(--surface));
-  }
-
-  .thread-compose-context-card > div:first-child strong {
-    color: var(--brand-strong);
-  }
-
   .thread-compose-title-field {
     margin-top: 4px;
   }
