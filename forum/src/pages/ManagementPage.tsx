@@ -202,39 +202,6 @@ function GlobalPinsPanel() {
 
   return (
     <div className="management-grid">
-      <section className="management-card management-list-card" aria-labelledby="global-pins-title">
-        <header className="management-card-heading">
-          <div><h2 id="global-pins-title">当前全局置顶</h2></div>
-          <span>{pins.length} 篇</span>
-        </header>
-        <div className="management-thread-list">
-          {pinsStatus === 'loading' ? (
-            <EmptyState icon={<LoaderCircle className="animate-spin" size={19} />}>正在加载全局置顶。</EmptyState>
-          ) : pinsStatus === 'error' ? (
-            <EmptyState icon={<CircleAlert size={19} />}>全局置顶列表加载失败。</EmptyState>
-          ) : pins.length === 0 ? (
-            <EmptyState icon={<PinOff size={19} />}>目前没有全局置顶帖。</EmptyState>
-          ) : pins.map((pin) => (
-            <article key={threadKey(pin)}>
-              <span className="management-row-icon"><Pin size={15} /></span>
-              <div className="management-row-main">
-                <a href={pin.url}>{pin.title}<ExternalLink size={12} /></a>
-                <p><span>{pin.board}</span><i />作者 {pin.author}</p>
-              </div>
-              <button
-                className="management-danger-button"
-                disabled={pendingThreadKey !== null}
-                onClick={() => void removePin(pin)}
-                type="button"
-              >
-                {pendingThreadKey === threadKey(pin) ? <LoaderCircle className="animate-spin" size={14} /> : <PinOff size={14} />}
-                取消置顶
-              </button>
-            </article>
-          ))}
-        </div>
-      </section>
-
       <section className="management-card management-action-card" aria-labelledby="add-global-pin-title">
         <header className="management-card-heading">
           <div><h2 id="add-global-pin-title">添加全局置顶</h2></div>
@@ -268,6 +235,39 @@ function GlobalPinsPanel() {
           />
         )}
         {notice && <ManagementNotice kind={notice.kind}>{notice.text}</ManagementNotice>}
+      </section>
+
+      <section className="management-card management-list-card" aria-labelledby="global-pins-title">
+        <header className="management-card-heading">
+          <div><h2 id="global-pins-title">当前全局置顶</h2></div>
+          <span>{pins.length} 篇</span>
+        </header>
+        <div className="management-thread-list">
+          {pinsStatus === 'loading' ? (
+            <EmptyState icon={<LoaderCircle className="animate-spin" size={19} />}>正在加载全局置顶。</EmptyState>
+          ) : pinsStatus === 'error' ? (
+            <EmptyState icon={<CircleAlert size={19} />}>全局置顶列表加载失败。</EmptyState>
+          ) : pins.length === 0 ? (
+            <EmptyState icon={<PinOff size={19} />}>目前没有全局置顶帖。</EmptyState>
+          ) : pins.map((pin) => (
+            <article key={threadKey(pin)}>
+              <span className="management-row-icon"><Pin size={15} /></span>
+              <div className="management-row-main">
+                <a href={pin.url}>{pin.title}<ExternalLink size={12} /></a>
+                <p><span>{pin.board}</span><i />作者 {pin.author}</p>
+              </div>
+              <button
+                className="management-danger-button"
+                disabled={pendingThreadKey !== null}
+                onClick={() => void removePin(pin)}
+                type="button"
+              >
+                {pendingThreadKey === threadKey(pin) ? <LoaderCircle className="animate-spin" size={14} /> : <PinOff size={14} />}
+                取消置顶
+              </button>
+            </article>
+          ))}
+        </div>
       </section>
     </div>
   );
@@ -418,26 +418,6 @@ function MemberManagementPanel() {
 
   return (
     <div className="management-grid management-members-grid">
-      <section className="management-card management-list-card" aria-labelledby="elevated-members-title">
-        <header className="management-card-heading">
-          <div><h2 id="elevated-members-title">当前高权限会员</h2></div>
-          <span>{elevatedMembers.length} 人</span>
-        </header>
-        <div className="management-member-list">
-          {elevatedMembers.map((member) => (
-            <button key={member.id} onClick={() => {
-              setQuery(member.id);
-              setSelectedId(member.id);
-              setNotice({ kind: 'info', text: '已选择会员，请在右侧确认权限。' });
-            }} type="button">
-              <img alt="" src={member.avatar} />
-              <span><strong>{member.id}</strong><small>{member.summary}</small></span>
-              <em data-rights={member.rights}>权限 {member.rights}</em>
-            </button>
-          ))}
-        </div>
-      </section>
-
       <section className="management-card management-action-card" aria-labelledby="member-search-title">
         <header className="management-card-heading">
           <div><h2 id="member-search-title">查找会员</h2></div>
@@ -484,6 +464,26 @@ function MemberManagementPanel() {
           </div>
         )}
         {notice && <ManagementNotice kind={notice.kind}>{notice.text}</ManagementNotice>}
+      </section>
+
+      <section className="management-card management-list-card" aria-labelledby="elevated-members-title">
+        <header className="management-card-heading">
+          <div><h2 id="elevated-members-title">当前高权限会员</h2></div>
+          <span>{elevatedMembers.length} 人</span>
+        </header>
+        <div className="management-member-list">
+          {elevatedMembers.map((member) => (
+            <button key={member.id} onClick={() => {
+              setQuery(member.id);
+              setSelectedId(member.id);
+              setNotice({ kind: 'info', text: '已选择会员，请在右侧确认权限。' });
+            }} type="button">
+              <img alt="" src={member.avatar} />
+              <span><strong>{member.id}</strong><small>{member.summary}</small></span>
+              <em data-rights={member.rights}>权限 {member.rights}</em>
+            </button>
+          ))}
+        </div>
       </section>
     </div>
   );

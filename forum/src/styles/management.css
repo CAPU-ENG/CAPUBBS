@@ -7,9 +7,10 @@
   .management-shell {
     position: relative;
     z-index: 1;
-    width: min(1120px, calc(100% - 40px));
+    width: 100%;
+    max-width: 1080px;
     margin: 0 auto;
-    padding: calc(var(--topbar-height) + 24px) 0 64px;
+    padding: calc(var(--topbar-height) + 24px) 14px 64px;
   }
 
   .management-state {
@@ -68,14 +69,13 @@
 
   .management-grid {
     display: grid;
-    grid-template-columns: minmax(0, 1.14fr) minmax(300px, 0.86fr);
+    grid-template-columns: minmax(0, 1fr);
     align-items: start;
     gap: 14px;
   }
 
   .management-single-column {
-    max-width: 760px;
-    margin: 0 auto;
+    width: 100%;
   }
 
   .management-card {
@@ -682,8 +682,7 @@
 
   @media (max-width: 640px) {
     .management-shell {
-      width: min(100% - 20px, 1120px);
-      padding: calc(var(--topbar-height) + 10px) 0 40px;
+      padding: calc(var(--topbar-height) + 10px) 10px 40px;
     }
 
     .management-tabs {
