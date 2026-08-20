@@ -196,6 +196,10 @@
     overflow: hidden;
   }
 
+  .topbar-mobile-context-title {
+    display: none;
+  }
+
   .topbar-primary-slot > * {
     min-width: 0;
     grid-area: 1 / 1;
@@ -495,7 +499,75 @@
     }
 
     .topbar-shell {
+      position: relative;
       padding: 0 12px;
+    }
+
+    .topbar-shell > :not(.topbar-mobile-context-title) {
+      transition:
+        opacity 170ms ease,
+        transform 220ms cubic-bezier(0.22, 1, 0.36, 1),
+        visibility 0s linear;
+    }
+
+    .topbar-mobile-context-title {
+      position: absolute;
+      inset: 0 12px;
+      display: flex;
+      min-width: 0;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+      padding: 0 8px;
+      color: var(--text-strong);
+      font-size: 0.9rem;
+      font-weight: 650;
+      line-height: 1.35;
+      opacity: 0;
+      pointer-events: none;
+      text-align: center;
+      visibility: hidden;
+      transform: translateY(14px);
+      transition:
+        color 160ms ease,
+        opacity 170ms ease,
+        transform 220ms cubic-bezier(0.22, 1, 0.36, 1),
+        visibility 0s linear 220ms;
+    }
+
+    .topbar-mobile-context-title > span {
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .topbar-mobile-context-title:focus-visible {
+      border-radius: var(--control-radius);
+      outline: 2px solid color-mix(in srgb, var(--brand) 65%, transparent);
+      outline-offset: -4px;
+    }
+
+    .topbar-shell[data-context-title-visible="true"] > :not(.topbar-mobile-context-title) {
+      opacity: 0;
+      pointer-events: none;
+      visibility: hidden;
+      transform: translateY(-14px);
+      transition:
+        opacity 170ms ease,
+        transform 220ms cubic-bezier(0.22, 1, 0.36, 1),
+        visibility 0s linear 220ms;
+    }
+
+    .topbar-shell[data-context-title-visible="true"] .topbar-mobile-context-title {
+      opacity: 1;
+      pointer-events: auto;
+      visibility: visible;
+      transform: translateY(0);
+      transition:
+        color 160ms ease,
+        opacity 170ms ease,
+        transform 220ms cubic-bezier(0.22, 1, 0.36, 1),
+        visibility 0s linear;
     }
 
     .brand-mark,

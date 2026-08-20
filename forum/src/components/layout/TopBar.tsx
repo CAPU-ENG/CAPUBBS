@@ -152,7 +152,19 @@ export function TopBar({
   return (
     <>
       <header className="topbar">
-        <div className="topbar-shell">
+        <div className="topbar-shell" data-context-title-visible={contextTitleVisible}>
+          {contextTitle && (
+            <a
+              aria-hidden={!contextTitleVisible}
+              className="topbar-mobile-context-title"
+              href={contextHref}
+              tabIndex={contextTitleVisible ? undefined : -1}
+              title={contextTitle}
+            >
+              <span>{contextTitle}</span>
+            </a>
+          )}
+
           <button
             className="icon-button lg:hidden"
             type="button"
