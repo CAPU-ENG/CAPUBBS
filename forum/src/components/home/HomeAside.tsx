@@ -30,6 +30,7 @@ function dateKey(year: number, month: number, day: number) {
 
 type PinnedProps = {
   items: HomeThread[];
+  readThreadIds: ReadonlySet<string>;
 };
 
 type CalendarProps = {
@@ -45,7 +46,7 @@ type DesktopHomeAsideProps = PinnedProps & {
   calendarStatus: HomeDataStatus;
 };
 
-function PinnedPanel({ items }: PinnedProps) {
+function PinnedPanel({ items, readThreadIds }: PinnedProps) {
   return (
     <section className="aside-card" aria-labelledby="pinned-title">
       <header className="aside-card-header">
@@ -56,7 +57,7 @@ function PinnedPanel({ items }: PinnedProps) {
         {items.map((thread) => (
           <li key={thread.id}>
             <a href={thread.href}>
-              {thread.isRecent && <span>新</span>}
+              {!readThreadIds.has(thread.id) && <span>新</span>}
               <strong>{thread.title}</strong>
               <ChevronRight size={14} />
             </a>
@@ -342,10 +343,11 @@ export function DesktopHomeAside({
   calendarItems,
   calendarStatus,
   items,
+  readThreadIds,
 }: DesktopHomeAsideProps) {
   return (
     <aside className="home-aside">
-      {items.length > 0 && <PinnedPanel items={items} />}
+      {items.length > 0 && <PinnedPanel items={items} readThreadIds={readThreadIds} />}
       {signupActivities.length > 0 && <ActivitySignupPanel />}
       <ActivityCalendar
         error={calendarError}

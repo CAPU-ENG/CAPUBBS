@@ -22,7 +22,6 @@ export type HomeThread = {
   bid: number;
   href: string;
   id: string;
-  isRecent: boolean;
   replies: number;
   summary: string;
   tid: number;
@@ -176,7 +175,6 @@ function mapThreadRow(row: ApiRow, linkToLatestFloor = false): HomeThread | null
       ? `/?bid=${bid}&tid=${tid}#${targetFloor}`
       : `/?bid=${bid}&tid=${tid}&p=1`,
     id: `${bid}-${tid}`,
-    isRecent: timestamp ? Date.now() - new Date(timestamp).getTime() < 24 * 60 * 60 * 1000 : false,
     replies,
     summary,
     tid,

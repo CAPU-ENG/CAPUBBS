@@ -7,6 +7,7 @@ import { AppBackground } from '../components/layout/AppBackground';
 import { TopBar } from '../components/layout/TopBar';
 import { setThreadBookmarked } from '../api/favorite';
 import { deleteNestedReply, deleteThreadFloor, postNestedReply } from '../api/thread';
+import { useAuth } from '../context/AuthContext';
 import type { NestedReply, ThreadFloorData } from '../data/threadDemo';
 import { useScrollContextTitle } from '../hooks/useScrollContextTitle';
 import { useThreadData } from '../hooks/useThreadData';
@@ -17,6 +18,7 @@ import {
   getThreadFloorFromHash,
   getThreadPageForFloor,
 } from '../utils/threadRoutes';
+import { markThreadRead } from '../utils/threadReadState';
 
 function getThreadRequest() {
   const params = new URLSearchParams(window.location.search);
@@ -41,6 +43,7 @@ function positiveInteger(value: string | null) {
 }
 
 export function ThreadPage() {
+  const { viewer } = useAuth();
   const request = getThreadRequest();
   const { data, error, retry, status } = useThreadData(request);
   const [quoteRequest, setQuoteRequest] = useState<QuoteRequest | null>(null);
@@ -59,6 +62,11 @@ export function ThreadPage() {
     setBookmarked(data.bookmarked);
     setBookmarkError(null);
   }, [data]);
+
+  useEffect(() => {
+    if (!data) return;
+    markThreadRead(`${data.bid}-${data.tid}`, viewer?.username);
+  }, [data, viewer?.username]);
 
   useLayoutEffect(() => {
     if (!data) return;

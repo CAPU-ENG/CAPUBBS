@@ -12,6 +12,7 @@ type MobileActivityBarProps = {
   calendarItems: HomeCalendarEvent[];
   calendarStatus: HomeDataStatus;
   pinnedItems: HomeThread[];
+  readThreadIds: ReadonlySet<string>;
 };
 
 export function MobileActivityBar({
@@ -19,6 +20,7 @@ export function MobileActivityBar({
   calendarItems,
   calendarStatus,
   pinnedItems,
+  readThreadIds,
 }: MobileActivityBarProps) {
   const [expandedPanel, setExpandedPanel] = useState<ExpandedPanel>(null);
   const [hideOffset, setHideOffset] = useState(0);
@@ -126,7 +128,7 @@ export function MobileActivityBar({
             {pinnedItems.map((thread) => (
               <li key={thread.id}>
                 <a href={thread.href}>
-                  {thread.isRecent && <span>新</span>}
+                  {!readThreadIds.has(thread.id) && <span>新</span>}
                   <strong>{thread.title}</strong>
                   <ChevronRight size={14} />
                 </a>
