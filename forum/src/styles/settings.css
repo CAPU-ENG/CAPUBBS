@@ -52,10 +52,6 @@
     font-weight: 760;
   }
 
-  .settings-appearance-panel .settings-panel-heading {
-    border-bottom: 0;
-  }
-
   .settings-appearance-panel {
     overflow: visible;
   }
@@ -63,7 +59,7 @@
   .settings-checkbox-list {
     display: grid;
     gap: 8px;
-    margin: 0 22px 18px 72px;
+    margin: 18px 22px 18px 72px;
   }
 
   .settings-checkbox-option {
@@ -256,19 +252,20 @@
 
   .settings-pinned-list {
     display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
     gap: 7px;
     margin-top: 13px;
   }
 
   .settings-pinned-list li {
     display: grid;
-    grid-template-columns: 32px minmax(0, 1fr) auto;
+    grid-template-columns: 24px minmax(0, 1fr) 32px;
     align-items: center;
-    gap: 10px;
-    min-height: 56px;
+    gap: 7px;
+    min-height: 48px;
     border: 1px solid var(--line);
     border-radius: var(--control-radius);
-    padding: 7px 8px 7px 12px;
+    padding: 7px 8px 7px 10px;
     background: var(--surface-raised);
   }
 
@@ -284,6 +281,7 @@
   }
 
   .settings-pinned-board strong {
+    display: block;
     overflow: hidden;
     color: var(--text-strong);
     font-size: 0.76rem;
@@ -318,11 +316,16 @@
   }
 
   .settings-pinned-actions .settings-remove-button {
-    min-width: 68px;
-    padding: 0 9px;
+    width: 32px;
+    min-width: 32px;
+    padding: 0;
     color: var(--danger);
     font-size: 0.64rem;
     font-weight: 680;
+  }
+
+  .settings-pinned-list .settings-remove-button span {
+    display: none;
   }
 
   .settings-pinned-actions .settings-remove-button:hover:not(:disabled) {
@@ -491,7 +494,7 @@
     }
 
     .settings-panel-heading { padding: 17px 15px; }
-    .settings-checkbox-list { margin: 0 15px 15px; }
+    .settings-checkbox-list { margin: 14px 15px 15px; }
     .settings-nav-preview { align-items: flex-start; flex-direction: column; gap: 3px; margin: 14px 15px 0; }
     .settings-preview-links { width: 100%; }
     .settings-selection,
