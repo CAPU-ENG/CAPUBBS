@@ -186,7 +186,7 @@ function buildHtmlFrameDocument({
   <meta http-equiv="Content-Security-Policy" content="${buildContentSecurityPolicy()}">
   <style>
     html,body{margin:0;padding:0;min-height:0;background:transparent!important;color:${color};font-family:ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;font-size:${fontSize};line-height:1.6;overflow-wrap:anywhere;word-break:break-word}
-    body{display:flow-root}a{color:${linkColor}}img,video,canvas,svg,iframe{max-width:100%;height:auto}pre{max-width:100%;overflow:auto;white-space:pre-wrap}table{max-width:100%}
+    body{display:flow-root}a{color:${linkColor}}img,video,canvas,svg{max-width:100%;height:auto}iframe{max-width:100%}pre{max-width:100%;overflow:auto;white-space:pre-wrap}table{max-width:100%}
   </style>
   <script>${buildFrameBridgeScript(frameId)}</script>
   <script src="/bbs/lib/jquery.min.js"></script>
