@@ -104,7 +104,9 @@ export function ThreadPage() {
       quote: (floor.quoteText || floor.paragraphs[0] || '').slice(0, 90),
       requestId: quoteRequestIdRef.current,
     });
-    window.requestAnimationFrame(() => editorRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }));
+    window.requestAnimationFrame(() => {
+      window.scrollTo({ behavior: 'smooth', top: document.documentElement.scrollHeight });
+    });
   }
 
   async function submitNestedReply(floor: ThreadFloorData, targetName: string | null, content: string) {
