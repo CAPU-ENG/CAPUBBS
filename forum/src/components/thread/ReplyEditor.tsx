@@ -1,15 +1,23 @@
-import { Save, Send } from "lucide-react";
+import { LoaderCircle, Save, Send } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import {
+  getRichTextEditorHtmlValue,
   getRichTextEditorStorageValue,
   type RichTextEditorValue,
 } from "../editor/RichTextEditor";
 import {
+  publishThreadReply,
+  uploadThreadAttachment,
+} from "../../api/thread";
+import {
+  deleteStoredReplyDraftForThread,
   saveStoredReplyDraft,
   type ReplyDraftSaveFailureReason,
   type StoredReplyAttachment,
 } from "../../utils/replyDraftStorage";
+import { getThreadFloorHref } from "../../utils/threadRoutes";
 import {
+  formatPostEditorBytes,
   formatPostEditorPreviewTimestamp,
   hasPostEditorContent,
   PostEditor,
@@ -61,7 +69,10 @@ export function ReplyEditor({
   const [previewedAt, setPreviewedAt] = useState("");
   const [focusRequest, setFocusRequest] = useState(0);
   const [status, setStatus] = useState("");
+  const [statusIsError, setStatusIsError] = useState(false);
+  const [isUploadingAttachments, setIsUploadingAttachments] = useState(false);
   const [isSavingDraft, setIsSavingDraft] = useState(false);
+  const [isPublishing, setIsPublishing] = useState(false);
   const [savedDraftId, setSavedDraftId] = useState<string | null>(null);
   const appliedQuoteRequestRef = useRef(0);
 
@@ -74,43 +85,64 @@ export function ReplyEditor({
     }
     setFocusRequest((request) => request + 1);
     setStatus("");
+    setStatusIsError(false);
   }, [quoteRequest]);
 
   function updateEditorValue(nextValue: RichTextEditorValue) {
     setEditorValue(nextValue);
     setStatus("");
+    setStatusIsError(false);
   }
 
-  function addAttachments(files: File[]) {
-    if (files.length === 0) return;
+  async function addAttachments(files: File[]) {
+    if (files.length === 0 || isUploadingAttachments) return;
+    const oversizedFile = files.find((file) => file.size > 100 * 1024 * 1024);
+    if (oversizedFile) {
+      setStatus(`${oversizedFile.name} 超过 100MB，无法上传。`);
+      setStatusIsError(true);
+      return;
+    }
 
-    setAttachments((current) => [
-      ...current,
-      ...files.map((file) => ({
-        id: `${file.name}-${file.size}-${file.lastModified}-${crypto.randomUUID?.() ?? Date.now()}`,
-        lastModified: file.lastModified,
-        name: file.name,
-        size: file.size,
-        type: file.type || "application/octet-stream",
-      })),
-    ]);
-    setStatus("");
+    setStatus(files.length > 1 ? `正在上传 ${files.length} 个附件…` : `正在上传 ${files[0].name}…`);
+    setStatusIsError(false);
+    setIsUploadingAttachments(true);
+    try {
+      const results = await Promise.allSettled(files.map(uploadThreadAttachment));
+      const uploaded = results.flatMap((result, index) => result.status === "fulfilled"
+        ? [{
+          ...result.value,
+          lastModified: files[index].lastModified,
+          type: files[index].type || "application/octet-stream",
+        }]
+        : []);
+      const failedCount = results.length - uploaded.length;
+      if (uploaded.length > 0) setAttachments((current) => [...current, ...uploaded]);
+      setStatus(failedCount > 0
+        ? `已添加 ${uploaded.length} 个附件，${failedCount} 个上传失败。`
+        : `已添加 ${uploaded.length} 个附件`);
+      setStatusIsError(failedCount > 0);
+    } finally {
+      setIsUploadingAttachments(false);
+    }
   }
 
   function removeAttachment(id: string) {
     setAttachments((current) => current.filter((attachment) => attachment.id !== id));
     setStatus("");
+    setStatusIsError(false);
   }
 
   async function saveDraft() {
     if (isSavingDraft) return;
     if (!hasPostEditorContent(editorValue) && attachments.length === 0) {
       setStatus("没有可保存的内容");
+      setStatusIsError(true);
       return;
     }
 
     setIsSavingDraft(true);
     setStatus("正在保存草稿…");
+    setStatusIsError(false);
 
     try {
       const saveResult = await saveStoredReplyDraft(
@@ -131,6 +163,7 @@ export function ReplyEditor({
 
       if (!saveResult.ok) {
         setStatus(getReplyDraftSaveError(saveResult.reason));
+        setStatusIsError(true);
         return;
       }
 
@@ -143,14 +176,48 @@ export function ReplyEditor({
     }
   }
 
-  function publishReply() {
+  async function publishReply() {
+    if (isPublishing || isUploadingAttachments) return;
     if (!hasPostEditorContent(editorValue)) {
       setStatus("请先填写回复内容");
+      setStatusIsError(true);
       setFocusRequest((request) => request + 1);
       return;
     }
 
-    setStatus("演示模式：回复内容已通过本地校验");
+    const html = getRichTextEditorHtmlValue(editorValue);
+    if (html.length > 100_000) {
+      setStatus("正文超过 10 万字符，请精简内容或检查是否粘贴了过大的图片。");
+      setStatusIsError(true);
+      return;
+    }
+
+    setIsPublishing(true);
+    setStatus("正在发布回复…");
+    setStatusIsError(false);
+    try {
+      const published = await publishThreadReply({
+        attachments: attachments.map((attachment) => attachment.id),
+        bid,
+        signatureIndex,
+        text: html,
+        tid,
+        title: threadTitle,
+      });
+      try {
+        await deleteStoredReplyDraftForThread(bid, tid, ownerKey);
+      } catch {
+        // The reply is already published; stale local draft cleanup must not invite a duplicate post.
+      }
+
+      window.location.href = published.pid > 0
+        ? getThreadFloorHref(published.bid, published.tid, published.pid)
+        : `/?${new URLSearchParams({ bid: String(published.bid), tid: String(published.tid) }).toString()}`;
+    } catch (error) {
+      setStatus(error instanceof Error ? error.message : "回复发布失败，请稍后重试。");
+      setStatusIsError(true);
+      setIsPublishing(false);
+    }
   }
 
   function openPreview() {
@@ -163,13 +230,14 @@ export function ReplyEditor({
     setPreviewedAt(formatPostEditorPreviewTimestamp(new Date()));
     setPreviewOpen(true);
     setStatus("");
+    setStatusIsError(false);
   }
 
   return (
     <>
       <PostEditor
         ariaLabel={`回复主题：${threadTitle}`}
-        attachmentDialogDescription="文件会先加入当前回复，发布时一并上传"
+        attachmentDialogDescription="文件会立即上传，并在发布回复后关联到内容"
         attachments={attachments}
         editorRef={editorRef}
         editorValue={editorValue}
@@ -178,29 +246,34 @@ export function ReplyEditor({
         headingMeta={`Re: ${threadTitle}`}
         id="reply-editor"
         name="reply-signature"
-        onAddAttachments={addAttachments}
+        formatAttachmentMeta={(attachment) => formatPostEditorBytes(attachment.size)}
+        onAddAttachments={(files) => void addAttachments(files)}
         onChange={updateEditorValue}
         onPreview={openPreview}
         onRemoveAttachment={removeAttachment}
         onSignatureChange={(value) => {
           setSignatureIndex(value);
           setStatus("");
+          setStatusIsError(false);
         }}
-        onSubmit={publishReply}
+        onSubmit={() => void publishReply()}
         placeholder="写下你的回复……"
         previewDisabled={!hasPostEditorContent(editorValue)}
         secondaryActions={(
-          <button className="reply-secondary-button" disabled={isSavingDraft} onClick={() => void saveDraft()} type="button">
-            <Save size={15} />
-            <span className="reply-action-label-full">存入草稿</span>
-            <span className="reply-action-label-compact">草稿</span>
+          <button className="reply-secondary-button" disabled={isSavingDraft || isPublishing} onClick={() => void saveDraft()} type="button">
+            {isSavingDraft ? <LoaderCircle className="thread-edit-spinner" size={15} /> : <Save size={15} />}
+            <span className="reply-action-label-full">{isSavingDraft ? "保存中" : "存入草稿"}</span>
+            <span className="reply-action-label-compact">{isSavingDraft ? "保存中" : "草稿"}</span>
           </button>
         )}
         signatureIndex={signatureIndex}
         status={status}
-        submitCompactLabel="发布"
-        submitIcon={<Send size={15} />}
-        submitLabel="发布回复"
+        statusIsError={statusIsError}
+        submitCompactLabel={isPublishing ? "发布中" : "发布"}
+        submitDisabled={isPublishing || isUploadingAttachments}
+        submitIcon={isPublishing ? <LoaderCircle className="thread-edit-spinner" size={15} /> : <Send size={15} />}
+        submitLabel={isPublishing ? "正在发布" : "发布回复"}
+        uploadingAttachments={isUploadingAttachments}
       />
       {previewOpen && (
         <PostEditorPreviewDialog

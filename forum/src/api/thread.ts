@@ -68,6 +68,12 @@ export type ThreadEditorViewer = {
   signatures: string[];
 };
 
+export type PublishedThreadReply = {
+  bid: number;
+  pid: number;
+  tid: number;
+};
+
 export class ThreadApiError extends Error {
   constructor(message: string) {
     super(message);
@@ -289,6 +295,42 @@ export async function uploadThreadAttachment(file: File): Promise<ThreadAttachme
     id,
     name: file.name,
     size: file.size,
+  };
+}
+
+export async function publishThreadReply({
+  attachments,
+  bid,
+  signatureIndex,
+  text,
+  tid,
+  title,
+}: {
+  attachments: string[];
+  bid: number;
+  signatureIndex: number;
+  text: string;
+  tid: number;
+  title: string;
+}): Promise<PublishedThreadReply> {
+  const payload = await requestThreadApi(new URLSearchParams({
+    ask: 'reply',
+    attachs: attachments.join(' '),
+    bid: String(bid),
+    sig: String(signatureIndex),
+    text,
+    tid: String(tid),
+    title: `Re: ${title}`,
+    type: 'web',
+  }), undefined, '回复发布失败，请稍后重试。');
+  const row = Array.isArray(payload.data)
+    ? payload.data.map(asRow).find((item) => Object.keys(item).length > 0) ?? {}
+    : asRow(payload.data);
+
+  return {
+    bid: positiveInteger(row.bid, bid),
+    pid: positiveInteger(row.pid ?? row.floor, 0),
+    tid: positiveInteger(row.tid, tid),
   };
 }
 
