@@ -11,22 +11,36 @@ import { useEffect, useMemo, useState } from 'react';
 import {
   fetchThreadDetail,
   isAbortError,
+  updateActivityConfiguration,
+  type ThreadActivity,
   type ThreadActivityQuestion,
 } from '../api/thread';
 import { AppBackground } from '../components/layout/AppBackground';
 import { TopBar } from '../components/layout/TopBar';
-import { ActivitySignupEditor, ActivitySignupSchedule } from '../components/thread/ActivitySignupEditor';
+import {
+  ActivityDateSchedule,
+  ActivitySignupEditor,
+  ActivitySignupSchedule,
+} from '../components/thread/ActivitySignupEditor';
 import { useAuth } from '../context/AuthContext';
 import type { ThreadFloorData } from '../data/threadDemo';
 import { useThreadData } from '../hooks/useThreadData';
 import {
   createEditableActivitySettings,
+  buildActivityUpdateOptions,
+  createActivityQuestionCaseIds,
+  createEditableActivityDateRange,
   getActivityRecordValue,
   getActivitySignupRecords,
+  reconcileActivityQuestionCaseIds,
+  validateManagedActivityDateRange,
+  type ActivityQuestionCaseIds,
   type ActivitySignupRecord,
 } from '../utils/activityManagement';
 import {
+  activitySignupDateTimeToUnixSeconds,
   validateActivitySignupSettings,
+  type ActivityDateRange,
   type ActivitySignupSettings,
 } from '../utils/activitySignup';
 
@@ -44,8 +58,12 @@ export function ActivityManagementPage() {
   const [activeTab, setActiveTab] = useState<ActivityManagementTab>(readTabFromLocation);
   const [allFloors, setAllFloors] = useState<ThreadFloorData[]>([]);
   const [signupLoadStatus, setSignupLoadStatus] = useState<'error' | 'loading' | 'ready'>('loading');
+  const [managedActivity, setManagedActivity] = useState<ThreadActivity | null>(null);
   const [questionnaire, setQuestionnaire] = useState<ActivitySignupSettings | null>(null);
+  const [activityDateRange, setActivityDateRange] = useState<ActivityDateRange>({ endsOn: '', startsOn: '' });
+  const [questionCaseIds, setQuestionCaseIds] = useState<ActivityQuestionCaseIds>({});
   const [questionnaireNotice, setQuestionnaireNotice] = useState<{ error: boolean; text: string } | null>(null);
+  const [isSavingQuestionnaire, setIsSavingQuestionnaire] = useState(false);
   const authPending = authStatus === 'loading' || authStatus === 'restoring';
   const isAuthorized = Boolean(
     data
@@ -55,10 +73,14 @@ export function ActivityManagementPage() {
 
   useEffect(() => {
     if (!data?.activity) {
+      setManagedActivity(null);
       setQuestionnaire(null);
       return;
     }
+    setManagedActivity(data.activity);
     setQuestionnaire(createEditableActivitySettings(data.activity));
+    setActivityDateRange(createEditableActivityDateRange(data.activity));
+    setQuestionCaseIds(createActivityQuestionCaseIds(data.activity.questions));
     setQuestionnaireNotice(null);
   }, [data?.activity]);
 
@@ -107,20 +129,65 @@ export function ActivityManagementPage() {
     window.history.replaceState(null, '', `${url.pathname}${url.search}`);
   }
 
-  function saveQuestionnaire() {
-    if (!questionnaire || !validateActivitySignupSettings(questionnaire)) {
+  async function saveQuestionnaire() {
+    if (!data || !questionnaire || !managedActivity || isSavingQuestionnaire) return;
+    if (!validateManagedActivityDateRange(activityDateRange)) {
+      setQuestionnaireNotice({ error: true, text: '请检查活动开始和结束日期。' });
+      return;
+    }
+    if (!validateActivitySignupSettings(questionnaire)) {
       setQuestionnaireNotice({ error: true, text: '请检查报名时间与问卷字段。' });
       return;
     }
-    setQuestionnaireNotice({ error: true, text: '问卷更新接口尚未接入，当前修改未提交。' });
+
+    setIsSavingQuestionnaire(true);
+    setQuestionnaireNotice({ error: false, text: '正在保存' });
+    try {
+      const updatedActivity = await updateActivityConfiguration({
+        activityEndsOn: activityDateRange.endsOn,
+        activityStartsOn: activityDateRange.startsOn,
+        bid: data.bid,
+        options: buildActivityUpdateOptions(questionnaire, questionCaseIds),
+        signupEndsAt: activitySignupDateTimeToUnixSeconds(questionnaire.endsAt),
+        signupStartsAt: activitySignupDateTimeToUnixSeconds(questionnaire.startsAt),
+        tid: data.tid,
+      });
+      setManagedActivity(updatedActivity);
+      setQuestionnaire(createEditableActivitySettings(updatedActivity));
+      setActivityDateRange(createEditableActivityDateRange(updatedActivity));
+      setQuestionCaseIds(createActivityQuestionCaseIds(updatedActivity.questions));
+      setSignupLoadStatus('loading');
+      try {
+        const pages = await Promise.all(
+          Array.from({ length: data.pageCount }, (_, index) => fetchThreadDetail({
+            authorOnly: false,
+            bid: data.bid,
+            page: index + 1,
+            tid: data.tid,
+          })),
+        );
+        setAllFloors(deduplicateFloors(pages.flatMap((page) => page.floors)));
+        setSignupLoadStatus('ready');
+      } catch {
+        setSignupLoadStatus('error');
+      }
+      setQuestionnaireNotice({ error: false, text: '已保存' });
+    } catch (saveError) {
+      setQuestionnaireNotice({
+        error: true,
+        text: saveError instanceof Error ? saveError.message : '活动保存失败，请稍后重试。',
+      });
+    } finally {
+      setIsSavingQuestionnaire(false);
+    }
   }
 
   const threadHref = request.bid > 0 && request.tid > 0
     ? `/?${new URLSearchParams({ bid: String(request.bid), p: '1', tid: String(request.tid) }).toString()}#1`
     : '/';
   const records = useMemo(
-    () => getActivitySignupRecords(allFloors, data?.activity?.questions ?? []),
-    [allFloors, data?.activity?.questions],
+    () => getActivitySignupRecords(allFloors, managedActivity?.questions ?? []),
+    [allFloors, managedActivity?.questions],
   );
 
   return (
@@ -141,6 +208,10 @@ export function ActivityManagementPage() {
           <ActivityManagementState action={<a href={threadHref}>返回原帖</a>} title="这不是活动帖">
             活动管理仅用于带报名问卷的活动帖。
           </ActivityManagementState>
+        ) : !managedActivity ? (
+          <ActivityManagementState icon={<LoaderCircle className="activity-management-spinner" size={22} />} title="正在准备活动管理">
+            正在读取活动日期与报名问卷。
+          </ActivityManagementState>
         ) : !isAuthorized ? (
           <ActivityManagementState action={<a href={threadHref}>返回原帖</a>} icon={<ShieldAlert size={22} />} title="无法进入活动管理">
             此页面仅对楼主本人或权限值大于等于 3 的用户开放。
@@ -152,14 +223,14 @@ export function ActivityManagementPage() {
               <div>
                 <h1 id="activity-management-title">活动管理：{data.title}</h1>
               </div>
-              <ActivityStatus status={data.activity.status} />
+              <ActivityStatus status={managedActivity.status} />
             </header>
 
             <div className="activity-management-metrics">
               <ActivityMetric label="报名总数" value={records.length} />
               <ActivityMetric label="有效报名" tone="success" value={records.filter((record) => record.status === '有效').length} />
               <ActivityMetric label="异常记录" tone="warning" value={records.filter((record) => record.status === '异常').length} />
-              <ActivityMetric label="报名截止" value={formatActivityTime(data.activity.endsAt)} />
+              <ActivityMetric label="报名截止" value={formatActivityTime(managedActivity.endsAt)} />
             </div>
 
             <nav aria-label="活动管理功能" className="activity-management-tabs">
@@ -180,18 +251,25 @@ export function ActivityManagementPage() {
             <div className="activity-management-tabpanel">
               {activeTab === 'questionnaire' && questionnaire ? (
                 <QuestionnairePanel
+                  activityDateRange={activityDateRange}
+                  isSaving={isSavingQuestionnaire}
                   notice={questionnaireNotice}
                   onChange={(value) => {
+                    setQuestionCaseIds((current) => reconcileActivityQuestionCaseIds(questionnaire, value, current));
                     setQuestionnaire(value);
                     setQuestionnaireNotice(null);
                   }}
-                  onSave={saveQuestionnaire}
+                  onActivityDateRangeChange={(value) => {
+                    setActivityDateRange(value);
+                    setQuestionnaireNotice(null);
+                  }}
+                  onSave={() => { void saveQuestionnaire(); }}
                   value={questionnaire}
                 />
               ) : activeTab === 'summary' ? (
                 <SignupSummaryPanel
                   loadStatus={signupLoadStatus}
-                  questions={data.activity.questions}
+                  questions={managedActivity.questions}
                   records={records}
                   threadTitle={data.title}
                   tid={data.tid}
@@ -206,12 +284,18 @@ export function ActivityManagementPage() {
 }
 
 function QuestionnairePanel({
+  activityDateRange,
+  isSaving,
   notice,
+  onActivityDateRangeChange,
   onChange,
   onSave,
   value,
 }: {
+  activityDateRange: ActivityDateRange;
+  isSaving: boolean;
   notice: { error: boolean; text: string } | null;
+  onActivityDateRangeChange: (value: ActivityDateRange) => void;
   onChange: (value: ActivitySignupSettings) => void;
   onSave: () => void;
   value: ActivitySignupSettings;
@@ -222,9 +306,13 @@ function QuestionnairePanel({
         <h2>报名问卷</h2>
         <div>
           {notice && <span className={notice.error ? 'activity-management-notice-error' : ''} role={notice.error ? 'alert' : 'status'}>{notice.text}</span>}
-          <button onClick={onSave} type="button"><Save size={15} />保存修改</button>
+          <button disabled={isSaving} onClick={onSave} type="button">
+            {isSaving ? <LoaderCircle className="activity-management-spinner" size={15} /> : <Save size={15} />}
+            {isSaving ? '保存中' : '保存修改'}
+          </button>
         </div>
       </header>
+      <ActivityDateSchedule onChange={onActivityDateRangeChange} value={activityDateRange} />
       <ActivitySignupSchedule onChange={onChange} value={value} />
       <ActivitySignupEditor onChange={onChange} value={value} />
     </section>

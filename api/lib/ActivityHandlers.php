@@ -112,6 +112,18 @@ function jiekoufunc_activity_signup($con, $token, $bid, $tid, $params) {
         return activity_handler_error('-2', '请先登录');
     }
 
+    if (!activity_handler_acquire_update_lock($con, $bid, $tid)) {
+        return activity_handler_error('8', '活动正在保存，请稍后重试');
+    }
+
+    try {
+        return activity_handler_signup_locked($con, $user, $bid, $tid, $params);
+    } finally {
+        activity_handler_release_update_lock($con, $bid, $tid);
+    }
+}
+
+function activity_handler_signup_locked($con, $user, $bid, $tid, $params) {
     $action = isset($params['action']) ? strval($params['action']) : '';
     if (!in_array($action, array('join', 'modify', 'cancel', 'restore'), true)) {
         return activity_handler_error('6', '不支持的报名操作');
@@ -166,6 +178,76 @@ function jiekoufunc_activity_signup($con, $token, $bid, $tid, $params) {
     return array(
         array('code' => '0', 'msg' => 'success'),
         array('action' => $action, 'activity_id' => intval($activity['activity_id'])),
+    );
+}
+
+function jiekoufunc_activity_update($con, $token, $bid, $tid, $params) {
+    if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+        return activity_handler_error('-1', '仅支持 POST');
+    }
+
+    $user = activity_handler_current_user($con, $token);
+    if (!$user) {
+        return activity_handler_error('-2', '请先登录');
+    }
+
+    $bid = intval($bid);
+    $tid = intval($tid);
+    $activity_result = mysqli_query($con, "select activity_id, leader_username
+        from season_threads_activity where bid=$bid and tid=$tid limit 1");
+    $activity = $activity_result ? mysqli_fetch_assoc($activity_result) : null;
+    if (!$activity) {
+        return activity_handler_error('3', '活动不存在');
+    }
+    if ($user['username'] !== $activity['leader_username'] && intval($user['rights']) < 3) {
+        return activity_handler_error('5', '仅活动楼主或权限值不低于 3 的用户可以修改活动');
+    }
+
+    $options_raw = isset($params['options']) ? $params['options'] : array();
+    $options = is_array($options_raw) ? $options_raw : json_decode(strval($options_raw), true);
+    if (!is_array($options) || count($options) === 0) {
+        return activity_handler_error('-44', '报名问卷至少需要一个字段');
+    }
+    $option_error = activity_handler_validate_options($options);
+    if ($option_error !== null) {
+        return activity_handler_error('-44', $option_error);
+    }
+
+    $window = activity_handler_parse_window($params, true, false);
+    if (!$window['valid']) {
+        return activity_handler_error('-44', $window['message']);
+    }
+    $schedule = activity_handler_parse_schedule($params, true, false);
+    if (!$schedule['valid']) {
+        return activity_handler_error('-44', $schedule['message']);
+    }
+
+    if (!activity_handler_acquire_update_lock($con, $bid, $tid)) {
+        return activity_handler_error('8', '活动正在处理报名，请稍后重试');
+    }
+
+    try {
+        updateActivityConfiguration(
+            $con,
+            intval($activity['activity_id']),
+            $window['starts_at'],
+            $window['ends_at'],
+            $schedule['starts_on'],
+            $schedule['ends_on'],
+            $options
+        );
+        $updated_activity = getActivity($bid, $tid);
+    } catch (ActivityUpdateValidationException $error) {
+        return activity_handler_error('-44', $error->getMessage());
+    } catch (Exception $error) {
+        return activity_handler_error('8', '活动保存失败，请稍后重试');
+    } finally {
+        activity_handler_release_update_lock($con, $bid, $tid);
+    }
+
+    return array(
+        array('code' => '0', 'msg' => 'success'),
+        array('activity' => $updated_activity),
     );
 }
 
@@ -268,7 +350,21 @@ function activity_handler_current_user($con, $token) {
     return $result ? mysqli_fetch_assoc($result) : null;
 }
 
-function activity_handler_parse_window($params, $required) {
+function activity_handler_acquire_update_lock($con, $bid, $tid) {
+    $lock_name = 'capubbs_activity_' . intval($bid) . '_' . intval($tid);
+    $lock_name = mysqli_real_escape_string($con, $lock_name);
+    $result = mysqli_query($con, "select get_lock('$lock_name', 10) as acquired");
+    $row = $result ? mysqli_fetch_assoc($result) : null;
+    return $row && intval($row['acquired']) === 1;
+}
+
+function activity_handler_release_update_lock($con, $bid, $tid) {
+    $lock_name = 'capubbs_activity_' . intval($bid) . '_' . intval($tid);
+    $lock_name = mysqli_real_escape_string($con, $lock_name);
+    mysqli_query($con, "select release_lock('$lock_name')");
+}
+
+function activity_handler_parse_window($params, $required, $require_future_end = true) {
     $has_starts_at = isset($params['signup_starts_at']) && $params['signup_starts_at'] !== '';
     $has_ends_at = isset($params['signup_ends_at']) && $params['signup_ends_at'] !== '';
     if (!$has_starts_at && !$has_ends_at && !$required) {
@@ -288,13 +384,13 @@ function activity_handler_parse_window($params, $required) {
     if ($starts_at <= 0 || $ends_at <= 0 || $starts_at >= $ends_at) {
         return array('valid' => false, 'message' => '报名截止时间必须晚于开始时间', 'starts_at' => null, 'ends_at' => null);
     }
-    if ($ends_at <= time()) {
+    if ($require_future_end && $ends_at <= time()) {
         return array('valid' => false, 'message' => '报名截止时间必须晚于当前时间', 'starts_at' => null, 'ends_at' => null);
     }
     return array('valid' => true, 'message' => '', 'starts_at' => $starts_at, 'ends_at' => $ends_at);
 }
 
-function activity_handler_parse_schedule($params, $required) {
+function activity_handler_parse_schedule($params, $required, $require_future_start = true) {
     $has_starts_on = isset($params['activity_starts_on']) && $params['activity_starts_on'] !== '';
     $has_ends_on = isset($params['activity_ends_on']) && $params['activity_ends_on'] !== '';
     if (!$has_starts_on && !$has_ends_on && !$required) {
@@ -320,7 +416,7 @@ function activity_handler_parse_schedule($params, $required) {
 
     $today = new DateTime('now', $timezone);
     $today_value = $today->format('Y-m-d');
-    if ($starts_on <= $today_value) {
+    if ($require_future_start && $starts_on <= $today_value) {
         return array('valid' => false, 'message' => '活动开始日期必须晚于今天', 'starts_on' => null, 'ends_on' => null);
     }
     if ($ends_on < $starts_on) {
@@ -331,9 +427,26 @@ function activity_handler_parse_schedule($params, $required) {
 }
 
 function activity_handler_validate_options($options) {
+    $option_ids = array();
+    $labels = array();
     foreach ($options as $option) {
         if (!is_array($option) || empty($option['option_name'])) {
             return '问题名称不能为空';
+        }
+        $option_name = trim(strval($option['option_name']));
+        if (mb_strlen($option_name, 'UTF-8') > 45) {
+            return '问题名称不能超过 45 个字符';
+        }
+        $label_key = mb_strtolower($option_name, 'UTF-8');
+        if (isset($labels[$label_key])) {
+            return '问题名称不能重复';
+        }
+        $labels[$label_key] = true;
+
+        $option_id = intval(isset($option['option_id']) ? $option['option_id'] : 0);
+        if ($option_id > 0) {
+            if (isset($option_ids[$option_id])) return '报名字段编号重复';
+            $option_ids[$option_id] = true;
         }
         $type_id = intval(isset($option['type_id']) ? $option['type_id'] : 0);
         if (!in_array($type_id, array(1, 3, 6), true)) {
@@ -342,8 +455,25 @@ function activity_handler_validate_options($options) {
         if ($type_id === 1 || $type_id === 3) {
             $cases = isset($option['cases']) && is_array($option['cases']) ? $option['cases'] : array();
             $valid_cases = 0;
+            $case_ids = array();
+            $case_names = array();
             foreach ($cases as $case) {
-                if (is_array($case) && !empty($case['case_name'])) $valid_cases++;
+                if (!is_array($case) || empty($case['case_name'])) continue;
+                $case_name = trim(strval($case['case_name']));
+                if (mb_strlen($case_name, 'UTF-8') > 45) {
+                    return '「' . $option_name . '」的选项不能超过 45 个字符';
+                }
+                $case_name_key = mb_strtolower($case_name, 'UTF-8');
+                if (isset($case_names[$case_name_key])) {
+                    return '「' . $option_name . '」的选项不能重复';
+                }
+                $case_names[$case_name_key] = true;
+                $case_id = intval(isset($case['case_id']) ? $case['case_id'] : 0);
+                if ($case_id > 0) {
+                    if (isset($case_ids[$case_id])) return '「' . $option_name . '」的选项编号重复';
+                    $case_ids[$case_id] = true;
+                }
+                $valid_cases++;
             }
             if ($valid_cases < 2) {
                 return '「' . $option['option_name'] . '」的选项数量不能少于 2 个';

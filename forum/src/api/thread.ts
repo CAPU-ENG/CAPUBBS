@@ -57,12 +57,29 @@ export type ThreadActivityQuestion = {
 };
 
 export type ThreadActivity = {
+  endsOn: string;
   endsAt: number;
   id: number;
   name: string;
   questions: ThreadActivityQuestion[];
+  startsOn: string;
   startsAt: number;
   status: 'closed' | 'not_started' | 'open' | null;
+};
+
+export type ActivityUpdateCase = {
+  case_id?: number;
+  case_name: string;
+  comment: string;
+};
+
+export type ActivityUpdateOption = {
+  cases?: ActivityUpdateCase[];
+  comment: string;
+  option_id?: number;
+  option_name: string;
+  required: 0 | 1;
+  type_id: 1 | 3 | 6;
 };
 
 export type EditableThreadFloor = {
@@ -413,6 +430,38 @@ export async function publishActivitySignup({
   );
 }
 
+export async function updateActivityConfiguration({
+  activityEndsOn,
+  activityStartsOn,
+  bid,
+  options,
+  signupEndsAt,
+  signupStartsAt,
+  tid,
+}: {
+  activityEndsOn: string;
+  activityStartsOn: string;
+  bid: number;
+  options: ActivityUpdateOption[];
+  signupEndsAt: number;
+  signupStartsAt: number;
+  tid: number;
+}) {
+  const payload = await requestThreadApi(new URLSearchParams({
+    activity_ends_on: activityEndsOn,
+    activity_starts_on: activityStartsOn,
+    ask: 'activity_update',
+    bid: String(bid),
+    options: JSON.stringify(options),
+    signup_ends_at: String(signupEndsAt),
+    signup_starts_at: String(signupStartsAt),
+    tid: String(tid),
+  }), undefined, '活动保存失败，请稍后重试。');
+  const activity = mapThreadActivity(asRow(payload.data).activity);
+  if (!activity) throw new ThreadApiError('活动已保存，但返回的数据不完整，请刷新页面。');
+  return activity;
+}
+
 async function requestThreadApi(body: URLSearchParams, signal: AbortSignal | undefined, fallbackMessage: string) {
   let response: Response;
   try {
@@ -682,6 +731,7 @@ function mapThreadActivity(value: unknown): ThreadActivity | null {
   if (!activity) return null;
 
   const signupWindow = asRow(activity.signup_window);
+  const schedule = asRow(activity.schedule);
   const statusValue = stringValue(signupWindow.status);
   const status = statusValue === 'open' || statusValue === 'closed' || statusValue === 'not_started'
     ? statusValue
@@ -710,10 +760,12 @@ function mapThreadActivity(value: unknown): ThreadActivity | null {
     .filter((question): question is ThreadActivityQuestion => question !== null);
 
   return {
+    endsOn: stringValue(schedule.ends_on),
     endsAt: nonNegativeInteger(signupWindow.ends_at),
     id: positiveInteger(activity.activity_id, 0),
     name: plainText(activity.name),
     questions,
+    startsOn: stringValue(schedule.starts_on),
     startsAt: nonNegativeInteger(signupWindow.starts_at),
     status,
   };

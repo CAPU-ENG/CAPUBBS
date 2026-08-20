@@ -69,7 +69,7 @@ function cancel_join_activity_by_content($bid, $tid, $username, $option_values, 
             $text = $text.$option_name."：";
             if ($option["hiden"] == 1) {
                 $text = $text."已隐藏";
-            } else if (!is_null($option_values[$option_id])) {
+            } else if (array_key_exists($option_id, $option_values) && $option_values[$option_id] !== '') {
                 $value = $option_values[$option_id];
 
                 switch ($option["type_id"]) {
@@ -100,7 +100,7 @@ function cancel_join_activity_by_content($bid, $tid, $username, $option_values, 
                         break;
                 }
             } else {
-                $text = $text."未知";
+                $text = $text."无";
             }
             $text = $text."</div>";
         }
@@ -177,7 +177,7 @@ function modify_join_activity_by_content($bid, $tid, $username, $option_values, 
         $option = $options[$option_idx];
         $option_id = $option["option_id"];
         $required = $option["required"];
-        if ($required == 1 && (is_null($option_values[$option_id]) || $option_values[$option_id] === "")) {
+        if ($required == 1 && (!array_key_exists($option_id, $option_values) || $option_values[$option_id] === "")) {
             return array("code"=> -1,"msg"=> "option(#".$option_id.") not found");
         }
     }
@@ -201,7 +201,7 @@ function modify_join_activity_by_content($bid, $tid, $username, $option_values, 
             $option = $options[$option_idx];
             $option_id = $option["option_id"];
             $required = $option["required"];
-            if (!is_null($option_values[$option_id])) {
+            if (array_key_exists($option_id, $option_values)) {
                 $value = $option_values[$option_id];
                 $value = mysqli_real_escape_string($con, $value);
                 // UPDATE `capubbs`.`season_join_option_value` SET `value` = '1123123' WHERE (`id` = '3');
@@ -209,6 +209,15 @@ function modify_join_activity_by_content($bid, $tid, $username, $option_values, 
                 $statement = "update season_join_option_value set value = '$value'
                     where (join_id = $join_id and option_id = $option_id)";
                 mysqli_query($con, $statement);
+                if (mysqli_affected_rows($con) === 0) {
+                    $existing_result = mysqli_query($con, "select id from season_join_option_value
+                        where join_id=$join_id and option_id=$option_id limit 1");
+                    if (!$existing_result || mysqli_num_rows($existing_result) === 0) {
+                        $statement = "insert into season_join_option_value (join_id, option_id, value)
+                            values ($join_id, $option_id, '$value')";
+                        mysqli_query($con, $statement);
+                    }
+                }
             }
         }
     }
@@ -226,7 +235,7 @@ function modify_join_activity_by_content($bid, $tid, $username, $option_values, 
             $text = $text.$option_name."：";
             if ($option["hiden"] == 1) {
                 $text = $text."已隐藏";
-            } else if (!is_null($option_values[$option_id])) {
+            } else if (array_key_exists($option_id, $option_values) && $option_values[$option_id] !== '') {
                 $value = $option_values[$option_id];
 
                 switch ($option["type_id"]) {
@@ -257,7 +266,7 @@ function modify_join_activity_by_content($bid, $tid, $username, $option_values, 
                         break;
                 }
             } else {
-                $text = $text."未知";
+                $text = $text."无";
             }
             $text = $text."</div>";
         }
@@ -358,7 +367,7 @@ function join_activity_by_content($bid, $tid, $username, $option_values, $title,
         $option = $options[$option_idx];
         $option_id = $option["option_id"];
         $required = $option["required"];
-        if ($required == 1 && (is_null($option_values[$option_id]) || $option_values[$option_id] === "")) {
+        if ($required == 1 && (!array_key_exists($option_id, $option_values) || $option_values[$option_id] === "")) {
             file_put_contents($filePath, "[2] $username $bid $tid\n", FILE_APPEND);
             return array("code"=> -1,"msg"=> "option(#".$option_id.") not found");
         }
@@ -381,7 +390,7 @@ function join_activity_by_content($bid, $tid, $username, $option_values, $title,
             $text = $text.$option_name."：";
             if ($option["hiden"] == 1) {
                 $text = $text."已隐藏";
-            } else if (!is_null($option_values[$option_id])) {
+            } else if (array_key_exists($option_id, $option_values) && $option_values[$option_id] !== '') {
                 $value = $option_values[$option_id];
 
                 switch ($option["type_id"]) {
@@ -412,7 +421,7 @@ function join_activity_by_content($bid, $tid, $username, $option_values, $title,
                         break;
                 }
             } else {
-                $text = $text."未知";
+                $text = $text."无";
             }
             $text = $text."</div>";
         }
@@ -491,7 +500,7 @@ function join_activity_by_content($bid, $tid, $username, $option_values, $title,
             $option = $options[$option_idx];
             $option_id = $option["option_id"];
             $required = $option["required"];
-            if (!is_null($option_values[$option_id])) {
+            if (array_key_exists($option_id, $option_values)) {
                 $value = $option_values[$option_id];
                 $value = mysqli_real_escape_string($con, $value);
 

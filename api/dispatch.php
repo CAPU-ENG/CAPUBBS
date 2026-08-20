@@ -81,6 +81,7 @@ function _dispatch_build_routes() {
         'favorite_check'   => array('handler' => 'jiekoufunc_favorite_check',   'check_login' => true, 'require_rights' => 0),
         'news'             => array('handler' => 'jiekoufunc_news',             'check_login' => false, 'require_rights' => 0),
         'activity_signup'  => array('handler' => 'jiekoufunc_activity_signup',  'check_login' => true, 'require_rights' => 0),
+        'activity_update'  => array('handler' => 'jiekoufunc_activity_update',  'check_login' => true, 'require_rights' => 0),
 
         // -- Email verification (login required) --
         'sendVerifyCode'   => array('handler' => null, 'check_login' => true,  'require_rights' => 0),
@@ -239,6 +240,8 @@ function jiekoufunc_dispatch($con, $params) {
                 return jiekoufunc_activity_create($con, $token, $bid, $ip, $params);
             case 'jiekoufunc_activity_signup':
                 return jiekoufunc_activity_signup($con, $token, $bid, $tid, $params);
+            case 'jiekoufunc_activity_update':
+                return jiekoufunc_activity_update($con, $token, $bid, $tid, $params);
             case 'jiekoufunc_activity_signup_list':
                 return jiekoufunc_activity_signup_list($con, $params);
             case 'jiekoufunc_userexists':
