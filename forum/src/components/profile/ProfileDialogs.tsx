@@ -6,13 +6,14 @@ export { AvatarDialog } from './AvatarEditorDialog';
 
 type DialogFrameProps = {
   children: ReactNode;
+  hideCloseButton?: boolean;
   icon: ReactNode;
   onClose: () => void;
   open: boolean;
   title: string;
 };
 
-function DialogFrame({ children, icon, onClose, open, title }: DialogFrameProps) {
+function DialogFrame({ children, hideCloseButton = false, icon, onClose, open, title }: DialogFrameProps) {
   useEffect(() => {
     if (!open) return;
     function onKeyDown(event: KeyboardEvent) {
@@ -28,14 +29,14 @@ function DialogFrame({ children, icon, onClose, open, title }: DialogFrameProps)
     <div className="profile-dialog-backdrop" role="presentation" onMouseDown={onClose}>
       <section
         aria-modal="true"
-        className="profile-dialog"
+        className={`profile-dialog ${hideCloseButton ? 'profile-dialog-no-close' : ''}`}
         role="dialog"
         onMouseDown={(event) => event.stopPropagation()}
       >
         <header>
           <span>{icon}</span>
           <h2>{title}</h2>
-          <button aria-label="关闭" type="button" onClick={onClose}><X size={18} /></button>
+          {!hideCloseButton ? <button aria-label="关闭" type="button" onClick={onClose}><X size={18} /></button> : null}
         </header>
         {children}
       </section>
@@ -66,7 +67,7 @@ export function StarRulesDialog({
   open: boolean;
 }) {
   return (
-    <DialogFrame icon={<Star size={18} />} onClose={onClose} open={open} title="星级规则">
+    <DialogFrame hideCloseButton icon={<Star size={18} />} onClose={onClose} open={open} title="星级规则">
       <div className="profile-dialog-body profile-star-rules">
         <div className="profile-star-current">
           <span>当前星级</span>
@@ -88,7 +89,6 @@ export function StarRulesDialog({
         </table>
         <p className="profile-dialog-copy">灌水版内容单独计入灌水数，不参与星级计算。</p>
       </div>
-      <DialogFooter confirmLabel="知道了" hideCancel onCancel={onClose} onConfirm={onClose} />
     </DialogFrame>
   );
 }

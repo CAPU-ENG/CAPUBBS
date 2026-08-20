@@ -909,6 +909,10 @@
     padding: 0 14px;
   }
 
+  .profile-dialog-no-close > header {
+    grid-template-columns: 34px minmax(0, 1fr);
+  }
+
   .profile-dialog > header > span {
     display: grid;
     width: 32px;
