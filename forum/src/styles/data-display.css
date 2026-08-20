@@ -291,7 +291,44 @@
     color: #2b0c0a;
   }
 
-  .punishment-control input[type="checkbox"],
+  .punishment-control input[type="checkbox"] {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+
+  .punishment-checkbox-mark {
+    display: inline-flex;
+    width: 18px;
+    height: 18px;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid var(--line-strong);
+    border-radius: 1px;
+    background: var(--surface-raised);
+    color: transparent;
+    transition: 140ms ease;
+  }
+
+  .punishment-control input:checked + .punishment-checkbox-mark {
+    border-color: var(--danger);
+    background: var(--danger);
+    color: #fff;
+  }
+
+  .dark .punishment-control input:checked + .punishment-checkbox-mark {
+    color: #2b0c0a;
+  }
+
+  .punishment-control input:focus-visible + .punishment-checkbox-mark {
+    outline: 2px solid var(--danger);
+    outline-offset: 2px;
+  }
+
   .punishment-checkbox-field input {
     width: 15px;
     height: 15px;

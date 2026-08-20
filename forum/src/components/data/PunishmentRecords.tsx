@@ -1,5 +1,6 @@
 import {
   AlertCircle,
+  Check,
   CheckCircle2,
   ChevronLeft,
   ChevronRight,
@@ -141,6 +142,7 @@ export function PunishmentRecords({
               onChange={(event) => setShowOnlyUnfinished(event.target.checked)}
               type="checkbox"
             />
+            <span className="punishment-checkbox-mark" aria-hidden="true"><Check size={14} /></span>
             只看未完成
           </label>
           <label className="punishment-control">
