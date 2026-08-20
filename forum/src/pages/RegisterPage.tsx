@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState, type ChangeEvent, type FormEvent } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties, type FormEvent } from 'react';
 import {
   ArrowRight,
   AtSign,
@@ -10,7 +10,6 @@ import {
   LoaderCircle,
   LockKeyhole,
   MapPin,
-  MessageCircle,
   RefreshCw,
   ShieldCheck,
   Upload,
@@ -18,9 +17,11 @@ import {
   UserRound,
 } from 'lucide-react';
 import defaultAvatar from '../assets/avatar/default-avatar.avif';
+import qqIcon from '../assets/icons/qq.svg';
 import { isUsernameAvailable, sendRegisterEmailCode } from '../api/auth';
 import { AppBackground } from '../components/layout/AppBackground';
 import { TopBar } from '../components/layout/TopBar';
+import { AvatarDialog } from '../components/profile/AvatarEditorDialog';
 import { useAuth } from '../context/AuthContext';
 import { getAuthPathWithReturnTo, getAuthReturnTo, replaceForumLocation } from '../utils/authRoutes';
 import { md5LegacyStringHex } from '../utils/md5';
@@ -39,14 +40,12 @@ const AVATAR_OPTIONS = [
   src: `https://chexie.net/bbsimg/icons/${encodeURIComponent(filename)}`,
 }));
 
-const MAX_AVATAR_FILE_SIZE = 2 * 1024 * 1024;
-
 type UsernameState = 'idle' | 'checking' | 'available' | 'taken' | 'invalid';
 type Notice = { message: string; tone: 'error' | 'success' } | null;
 
 export function RegisterPage() {
   const { register, status } = useAuth();
-  const avatarFileInputRef = useRef<HTMLInputElement | null>(null);
+  const usernameCheckRequestRef = useRef(0);
   const [username, setUsername] = useState('');
   const [usernameState, setUsernameState] = useState<UsernameState>('idle');
   const [email, setEmail] = useState('');
@@ -56,7 +55,7 @@ export function RegisterPage() {
   const [sex, setSex] = useState('0');
   const [icon, setIcon] = useState(AVATAR_OPTIONS[0].src);
   const [customAvatar, setCustomAvatar] = useState<{ icon: string; src: string } | null>(null);
-  const [uploadingAvatar, setUploadingAvatar] = useState(false);
+  const [avatarDialogOpen, setAvatarDialogOpen] = useState(false);
   const [captcha, setCaptcha] = useState('');
   const [captchaNonce, setCaptchaNonce] = useState(() => Date.now());
   const [qq, setQq] = useState('');
@@ -70,6 +69,7 @@ export function RegisterPage() {
   const returnTo = getAuthReturnTo(window.location.search);
   const captchaSrc = `/assets/api/securimage/securimage_show.php?sid=${captchaNonce}`;
   const passwordStrength = useMemo(() => getPasswordStrength(password), [password]);
+  const closeAvatarDialog = useCallback(() => setAvatarDialogOpen(false), []);
 
   useEffect(() => {
     if (status !== 'authenticated') return;
@@ -85,6 +85,7 @@ export function RegisterPage() {
 
   async function checkUsername() {
     const value = username.trim();
+    const requestId = ++usernameCheckRequestRef.current;
     if (!value || value.includes("'")) {
       setUsernameState('invalid');
       return;
@@ -92,8 +93,11 @@ export function RegisterPage() {
 
     setUsernameState('checking');
     try {
-      setUsernameState(await isUsernameAvailable(value) ? 'available' : 'taken');
+      const available = await isUsernameAvailable(value);
+      if (requestId !== usernameCheckRequestRef.current || username.trim() !== value) return;
+      setUsernameState(available ? 'available' : 'taken');
     } catch {
+      if (requestId !== usernameCheckRequestRef.current || username.trim() !== value) return;
       setUsernameState('invalid');
     }
   }
@@ -123,52 +127,39 @@ export function RegisterPage() {
     setCaptchaNonce(Date.now());
   }
 
-  async function uploadAvatar(event: ChangeEvent<HTMLInputElement>) {
-    const file = event.currentTarget.files?.[0];
-    event.currentTarget.value = '';
-    if (!file) return;
-    if (!file.type.startsWith('image/')) {
-      setNotice({ message: '请选择图片文件作为头像。', tone: 'error' });
-      return;
-    }
-    if (file.size > MAX_AVATAR_FILE_SIZE) {
-      setNotice({ message: '头像图片不能超过 2MB。', tone: 'error' });
+  async function uploadAvatar(avatarSrc: string) {
+    if (avatarSrc === defaultAvatar) {
+      setCustomAvatar({ icon: '', src: defaultAvatar });
+      setIcon('');
+      setNotice(null);
       return;
     }
 
+    const avatarResponse = await fetch(avatarSrc);
+    if (!avatarResponse.ok) throw new Error('无法读取裁切后的头像。');
+    const avatarBlob = await avatarResponse.blob();
     const body = new FormData();
-    body.set('file', file);
-    setUploadingAvatar(true);
+    body.set('file', new File([avatarBlob], 'avatar.png', { type: 'image/png' }));
     setNotice(null);
 
-    try {
-      const response = await fetch('/bbs/utils/icon_upload.php', {
-        body,
-        credentials: 'include',
-        method: 'POST',
-      });
-      const result: unknown = await response.json();
-      if (!response.ok || !isAvatarUploadResult(result) || result.code !== 0 || !result.url?.trim()) {
-        throw new Error(isAvatarUploadResult(result) && result.msg ? result.msg : '头像上传失败，请重试。');
-      }
-
-      const uploadedIcon = result.url.trim();
-      setCustomAvatar({ icon: uploadedIcon, src: getUploadedAvatarSrc(uploadedIcon) });
-      setIcon(uploadedIcon);
-      setNotice({ message: '头像上传成功。', tone: 'success' });
-    } catch (error) {
-      setNotice({ message: getErrorMessage(error, '头像上传失败，请重试。'), tone: 'error' });
-    } finally {
-      setUploadingAvatar(false);
+    const response = await fetch('/bbs/utils/icon_upload.php', {
+      body,
+      credentials: 'include',
+      method: 'POST',
+    });
+    const result: unknown = await response.json();
+    if (!response.ok || !isAvatarUploadResult(result) || result.code !== 0 || !result.url?.trim()) {
+      throw new Error(isAvatarUploadResult(result) && result.msg ? result.msg : '头像上传失败，请重试。');
     }
+
+    const uploadedIcon = result.url.trim();
+    setCustomAvatar({ icon: uploadedIcon, src: getUploadedAvatarSrc(uploadedIcon) });
+    setIcon(uploadedIcon);
+    setNotice({ message: '头像上传成功。', tone: 'success' });
   }
 
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    if (uploadingAvatar) {
-      setNotice({ message: '请等待头像上传完成。', tone: 'error' });
-      return;
-    }
     const normalizedUsername = username.trim();
     const normalizedEmail = email.trim();
     const normalizedCode = emailCode.trim();
@@ -235,7 +226,6 @@ export function RegisterPage() {
                   <span>01</span>
                   <div>
                     <h2 id="account-section-title">账号信息</h2>
-                    <p>你的论坛身份与登录凭据</p>
                   </div>
                 </div>
 
@@ -252,7 +242,9 @@ export function RegisterPage() {
                       onChange={(event) => {
                         setUsername(event.currentTarget.value);
                         setUsernameState('idle');
+                        usernameCheckRequestRef.current += 1;
                       }}
+                      placeholder="一个好的 ID 是一个美好的开始"
                       value={username}
                     />
                     <UsernameIndicator state={usernameState} />
@@ -360,7 +352,6 @@ export function RegisterPage() {
                   <span>02</span>
                   <div>
                     <h2 id="identity-section-title">论坛形象</h2>
-                    <p>选一个头像，准备出发</p>
                   </div>
                 </div>
 
@@ -411,13 +402,10 @@ export function RegisterPage() {
                       aria-label="上传自定义头像"
                       aria-pressed={customAvatar?.icon === icon}
                       className={`register-avatar-upload${customAvatar?.icon === icon ? ' active' : ''}`}
-                      disabled={uploadingAvatar}
-                      onClick={() => avatarFileInputRef.current?.click()}
+                      onClick={() => setAvatarDialogOpen(true)}
                       type="button"
                     >
-                      {uploadingAvatar ? (
-                        <LoaderCircle className="animate-spin" size={17} />
-                      ) : customAvatar ? (
+                      {customAvatar ? (
                         <img alt="自定义头像" src={customAvatar.src} />
                       ) : (
                         <Upload size={18} />
@@ -425,13 +413,6 @@ export function RegisterPage() {
                       {customAvatar?.icon === icon && <span><Check size={12} /></span>}
                     </button>
                   </div>
-                  <input
-                    ref={avatarFileInputRef}
-                    accept="image/png,image/jpeg,image/gif,image/webp"
-                    className="register-avatar-file-input"
-                    onChange={(event) => void uploadAvatar(event)}
-                    type="file"
-                  />
                 </fieldset>
 
                 <div className="register-field">
@@ -461,7 +442,11 @@ export function RegisterPage() {
                     <label className="register-field">
                       <span>QQ</span>
                       <div className="register-input-wrap">
-                        <MessageCircle size={16} />
+                        <span
+                          aria-hidden="true"
+                          className="register-qq-icon"
+                          style={{ '--register-qq-icon': `url(${qqIcon})` } as CSSProperties}
+                        />
                         <input inputMode="numeric" name="qq" onChange={(event) => setQq(event.currentTarget.value)} value={qq} />
                       </div>
                     </label>
@@ -499,7 +484,7 @@ export function RegisterPage() {
 
             <footer className="register-form-footer">
               <p>已有账号？<a href={getAuthPathWithReturnTo('/login', returnTo)}>直接登录</a></p>
-              <button className="register-submit" disabled={submitting || uploadingAvatar || status === 'loading'} type="submit">
+              <button className="register-submit" disabled={submitting || status === 'loading'} type="submit">
                 {submitting ? <LoaderCircle className="animate-spin" size={16} /> : <UserPlus size={16} />}
                 {submitting ? '正在注册…' : '创建账号'}
                 {!submitting && <ArrowRight size={15} />}
@@ -508,6 +493,12 @@ export function RegisterPage() {
           </form>
         </section>
       </main>
+      <AvatarDialog
+        avatarSrc={customAvatar?.src ?? defaultAvatar}
+        onClose={closeAvatarDialog}
+        onSave={uploadAvatar}
+        open={avatarDialogOpen}
+      />
     </div>
   );
 }
@@ -519,6 +510,7 @@ function UsernameIndicator({ state }: { state: UsernameState }) {
 }
 
 function getUsernameHint(state: UsernameState) {
+  if (state === 'checking') return '正在检查这个 ID…';
   if (state === 'available') return '这个 ID 可以使用';
   if (state === 'taken') return '这个 ID 已被注册';
   if (state === 'invalid') return 'ID 不能为空或包含英文单引号';

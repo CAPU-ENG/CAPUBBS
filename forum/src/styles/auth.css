@@ -292,12 +292,6 @@
     font-weight: 800;
   }
 
-  .register-section-title p {
-    margin-top: 1px;
-    color: var(--text-faint);
-    font-size: 0.66rem;
-  }
-
   .register-field {
     display: block;
     min-width: 0;
@@ -550,13 +544,13 @@
     color: var(--brand-strong);
   }
 
-  .register-avatar-grid .register-avatar-upload:disabled {
-    cursor: wait;
-    opacity: 0.65;
-  }
-
-  .register-avatar-file-input {
-    display: none;
+  .register-qq-icon {
+    width: 16px;
+    height: 16px;
+    flex-shrink: 0;
+    background: currentcolor;
+    -webkit-mask: var(--register-qq-icon) center / contain no-repeat;
+    mask: var(--register-qq-icon) center / contain no-repeat;
   }
 
   .register-captcha-row {
