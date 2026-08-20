@@ -171,14 +171,9 @@ export function ThreadPage() {
 
       <main className="thread-page-shell">
         <header className="thread-title-card">
-          <div className="thread-title-heading">
-            <h1 id="thread-title" ref={titleRef}>{data.title}</h1>
-            <a className="thread-board-card" href={data.boardHref}>
-              <span>版块</span>
-              <strong>{data.board}</strong>
-            </a>
-          </div>
+          <h1 id="thread-title" ref={titleRef}>{data.title}</h1>
           <div className="thread-title-meta">
+            <a className="thread-board-card" href={data.boardHref}>{data.board}</a>
             <span><MessageCircle size={15} />{data.replies} 条回复</span>
             <span><Eye size={16} />{data.views} 次浏览</span>
             <div className="thread-title-actions">

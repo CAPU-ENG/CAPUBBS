@@ -87,14 +87,6 @@
     box-shadow: var(--shadow-card);
   }
 
-  .thread-title-heading {
-    display: flex;
-    min-width: 0;
-    align-items: flex-start;
-    justify-content: space-between;
-    gap: 22px;
-  }
-
   .thread-title-card h1 {
     max-width: 850px;
     color: var(--text-strong);
@@ -108,40 +100,26 @@
   .thread-board-card {
     display: inline-flex;
     max-width: 180px;
-    min-height: 42px;
+    min-height: 30px;
     flex: 0 0 auto;
-    align-items: flex-start;
+    align-items: center;
     justify-content: center;
-    flex-direction: column;
-    gap: 2px;
     border: 1px solid color-mix(in srgb, var(--brand) 28%, var(--line));
     border-radius: 2px;
-    padding: 7px 11px;
+    padding: 0 10px;
     background: var(--brand-soft);
     color: var(--brand-strong);
+    font-size: 0.7rem;
+    font-weight: 760;
+    overflow: hidden;
+    text-overflow: ellipsis;
     transition: border-color 140ms ease, background 140ms ease;
+    white-space: nowrap;
   }
 
   .thread-board-card:hover {
     border-color: color-mix(in srgb, var(--brand) 55%, var(--line));
     background: color-mix(in srgb, var(--brand-soft) 72%, var(--surface));
-  }
-
-  .thread-board-card > span {
-    color: var(--text-faint);
-    font-size: 0.58rem;
-    font-weight: 650;
-    letter-spacing: 0.08em;
-  }
-
-  .thread-board-card > strong {
-    display: block;
-    max-width: 100%;
-    overflow: hidden;
-    font-size: 0.72rem;
-    font-weight: 760;
-    text-overflow: ellipsis;
-    white-space: nowrap;
   }
 
   .thread-title-meta {
@@ -988,17 +966,10 @@
       padding: 18px 16px 14px;
     }
 
-    .thread-title-heading {
-      align-items: stretch;
-      flex-direction: column-reverse;
-      gap: 10px;
-    }
-
     .thread-board-card {
       max-width: min(55vw, 180px);
-      min-height: 36px;
-      align-self: flex-end;
-      padding: 5px 9px;
+      min-height: 32px;
+      padding-inline: 9px;
     }
 
     .thread-title-card h1 {
