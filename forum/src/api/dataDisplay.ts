@@ -45,6 +45,15 @@ export type PunishmentRecord = {
   username: string;
 };
 
+export type PunishmentDraft = {
+  addition: boolean;
+  distance: string;
+  name: string;
+  reason: string;
+  startDate: string;
+  username: string;
+};
+
 export type DataDisplayResult = {
   checkinRankingRecords: CheckinRankingRecord[];
   checkinRecords: CheckinRecord[];
@@ -86,6 +95,26 @@ export async function fetchDataDisplayPanel(
   }
 
   return result;
+}
+
+export async function addPunishmentRecord(draft: PunishmentDraft) {
+  await requestPunishmentMutation('/api/bbs/punishment/add/', {
+    action: 'add',
+    addition: draft.addition ? '1' : '0',
+    distance: draft.distance,
+    name: draft.name,
+    reason: draft.reason,
+    start_date: draft.startDate,
+    username: draft.username,
+  });
+}
+
+export async function finishPunishmentRecord(recordId: string, endDate: string) {
+  await requestPunishmentMutation('/api/bbs/punishment/update/', {
+    action: 'finish',
+    end_date: endDate,
+    punishment_id: recordId,
+  });
 }
 
 async function requestRows(params: Record<string, string>, signal?: AbortSignal) {
@@ -146,6 +175,25 @@ async function requestPunishmentRecords(signal?: AbortSignal) {
     .map(mapPunishmentRecord)
     .filter((row): row is PunishmentRecord => row !== null)
     .sort((left, right) => compareDates(right.startDate, left.startDate));
+}
+
+async function requestPunishmentMutation(url: string, params: Record<string, string>) {
+  try {
+    // These legacy endpoints may return a server error after the database write
+    // because they try to serialize a mysqli boolean. Matching the established
+    // client behavior, a completed HTTP exchange is followed by a fresh read.
+    await fetch(url, {
+      body: new URLSearchParams(params),
+      credentials: 'include',
+      headers: {
+        Accept: 'application/json',
+        'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
+      },
+      method: 'POST',
+    });
+  } catch {
+    throw new DataDisplayApiError('暂时无法连接罚跑管理服务，请稍后重试。');
+  }
 }
 
 function mapOnlineUser(row: ApiRow): OnlineUser | null {

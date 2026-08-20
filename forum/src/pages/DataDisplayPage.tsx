@@ -15,8 +15,8 @@ import {
   type DataDisplayPanel,
   type DataDisplayResult,
   type OnlineUser,
-  type PunishmentRecord,
 } from '../api/dataDisplay';
+import { PunishmentRecords } from '../components/data/PunishmentRecords';
 import { AppBackground } from '../components/layout/AppBackground';
 import { TopBar } from '../components/layout/TopBar';
 
@@ -106,7 +106,10 @@ export function DataDisplayPage() {
         ) : activePanel === 'checkin-ranking' ? (
           <RankingTable records={state.data?.checkinRankingRecords ?? []} />
         ) : (
-          <PunishmentTable records={state.data?.punishmentRecords ?? []} />
+          <PunishmentRecords
+            onReload={() => setReloadToken((token) => token + 1)}
+            records={state.data?.punishmentRecords ?? []}
+          />
         )}
       </main>
     </div>
@@ -173,36 +176,6 @@ function RankingTable({ records }: { records: CheckinRankingRecord[] }) {
   );
 }
 
-function PunishmentTable({ records }: { records: PunishmentRecord[] }) {
-  return (
-    <DataTable count={`${records.length} 条`} icon={<AlertCircle size={17} />} title="罚跑记录" tone="danger">
-      <table className="data-table data-table-punishments">
-        <thead>
-          <tr>
-            <th>姓名</th><th>ID</th><th>原因</th><th>长度</th><th>职务加罚</th>
-            <th>开始时间</th><th>结束时间</th><th>完成情况</th>
-          </tr>
-        </thead>
-        <tbody>
-          {records.map((record) => (
-            <tr key={record.id}>
-              <td>{record.name || '—'}</td>
-              <td>{record.username ? <a href={record.href}>{record.username}</a> : '—'}</td>
-              <td>{record.reason || '—'}</td>
-              <td>{formatDistance(record.distance)}</td>
-              <td>{record.addition ? '是' : '否'}</td>
-              <td>{formatDate(record.startDate)}</td>
-              <td>{formatDate(record.endDate)}</td>
-              <td><StatusBadge complete={record.isComplete} /></td>
-            </tr>
-          ))}
-          {records.length === 0 && <EmptyRow columns={8}>暂无罚跑记录</EmptyRow>}
-        </tbody>
-      </table>
-    </DataTable>
-  );
-}
-
 function DataTable({
   children,
   count,
@@ -240,22 +213,8 @@ function RankNumber({ rank }: { rank: number }) {
   return <span className={rank <= 3 ? `data-rank data-rank-${rank}` : 'data-rank'}>#{rank}</span>;
 }
 
-function StatusBadge({ complete }: { complete: boolean }) {
-  return <span className={`data-status ${complete ? 'data-status-complete' : ''}`}>{complete ? '已完成' : '进行中'}</span>;
-}
-
 function readPanelFromLocation(): DataDisplayPanel {
   const panel = new URLSearchParams(window.location.search).get('panel');
   if (panel === 'checkins' || panel === 'checkin-ranking' || panel === 'punishments') return panel;
   return 'online';
-}
-
-function formatDate(value: string) {
-  if (!value || value === '0000-00-00') return '—';
-  return value.replaceAll('-', '.');
-}
-
-function formatDistance(value: string) {
-  if (!value) return '—';
-  return /公里|km/i.test(value) ? value : `${value} km`;
 }
