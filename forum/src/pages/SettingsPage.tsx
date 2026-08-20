@@ -74,7 +74,7 @@ export function SettingsPage() {
       <TopBar />
 
       <main className="settings-page-shell">
-        <section className="settings-panel" aria-labelledby="pinned-boards-title">
+        <section className="settings-panel settings-pinned-board-panel" aria-labelledby="pinned-boards-title">
           <div className="settings-panel-heading">
             <span className="settings-panel-icon"><Pin size={17} /></span>
             <div>
