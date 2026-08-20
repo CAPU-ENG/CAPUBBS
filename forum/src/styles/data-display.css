@@ -5,7 +5,7 @@
     width: 100%;
     max-width: 1080px;
     margin: 0 auto;
-    padding: var(--topbar-height) 14px 40px;
+    padding: calc(var(--topbar-height) + 24px) 14px 40px;
   }
 
   .data-display-tabs {
@@ -269,7 +269,7 @@
 
   @media (max-width: 640px) {
     .data-display-shell {
-      padding: var(--topbar-height) 10px 28px;
+      padding: calc(var(--topbar-height) + 10px) 10px 28px;
     }
 
     .data-display-tabs {
