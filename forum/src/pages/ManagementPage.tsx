@@ -54,6 +54,7 @@ const TAB_ITEMS: Array<{ icon: typeof Pin; id: AdminTab; label: string }> = [
   { icon: Users, id: 'members', label: '会员管理' },
   { icon: Shield, id: 'moderators', label: '版主管理' },
 ];
+const MEMBER_ID_COLLATOR = new Intl.Collator('zh-CN', { numeric: true, sensitivity: 'base' });
 
 export function ManagementPage() {
   const { status: authStatus, viewer } = useAuth();
@@ -402,7 +403,10 @@ function MemberManagementPanel() {
     elevatedMembers.forEach((member) => {
       groups.set(member.rights, [...(groups.get(member.rights) ?? []), member]);
     });
-    return Array.from(groups, ([rights, groupedMembers]) => ({ members: groupedMembers, rights }))
+    return Array.from(groups, ([rights, groupedMembers]) => ({
+      members: groupedMembers.sort((left, right) => MEMBER_ID_COLLATOR.compare(left.id, right.id)),
+      rights,
+    }))
       .sort((left, right) => right.rights - left.rights);
   }, [elevatedMembers]);
   const selectedMember = members.find((member) => member.id === selectedId) ?? null;
