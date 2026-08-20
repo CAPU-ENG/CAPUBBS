@@ -24,10 +24,12 @@ export function PublicProfilePage({ profileName }: { profileName: string | null 
     );
   }
 
-  const { isOwnProfile, profile } = loadedProfile;
+  const { canViewActivities, isOwnProfile, profile } = loadedProfile;
   const allowedTabs: ProfileTab[] = isOwnProfile
     ? ['posts', 'replies', 'activities', 'bookmarks']
-    : ['posts', 'replies', 'activities'];
+    : canViewActivities
+      ? ['posts', 'replies', 'activities']
+      : ['posts', 'replies'];
 
   return (
     <div className="profile-page min-h-screen text-[var(--text)]">

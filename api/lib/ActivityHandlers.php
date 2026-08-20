@@ -405,6 +405,57 @@ function activity_handler_format_signup_value($type_id, $value, $case_names) {
     return $value;
 }
 
+function jiekoufunc_activity_signup_history($con, $token, $params) {
+    $viewer = activity_handler_current_user($con, $token);
+    if (!$viewer) {
+        return activity_handler_error('-2', '请先登录');
+    }
+
+    $username = isset($params['username']) ? trim(strval($params['username'])) : '';
+    if ($username === '') {
+        return activity_handler_error('14', '缺少用户名');
+    }
+    $username_escaped = mysqli_real_escape_string($con, $username);
+
+    $statement = "select
+            activity_join.join_id,
+            activity_join.activity_id,
+            activity_join.cancel,
+            activity.bid,
+            activity.tid,
+            threads.title,
+            coalesce(boardinfo.bbstitle, boardinfo.name, '') as board,
+            coalesce(posts.pid, 0) as pid,
+            coalesce(posts.replytime, 0) as joined_at
+        from season_activity_join activity_join
+        inner join season_threads_activity activity on activity.activity_id=activity_join.activity_id
+        inner join threads on threads.bid=activity.bid and threads.tid=activity.tid
+        left join boardinfo on boardinfo.bid=activity.bid
+        left join posts on posts.fid=activity_join.post_fid
+        where activity_join.username='$username_escaped'
+        order by coalesce(posts.replytime, 0) desc, activity_join.join_id desc";
+    $result = mysqli_query($con, $statement);
+    if (!$result) {
+        return activity_handler_error('8', '报名历史读取失败');
+    }
+
+    $rows = array(array('code' => '0', 'msg' => 'success'));
+    while ($row = mysqli_fetch_assoc($result)) {
+        $rows[] = array(
+            'join_id' => intval($row['join_id']),
+            'activity_id' => intval($row['activity_id']),
+            'bid' => intval($row['bid']),
+            'tid' => intval($row['tid']),
+            'pid' => intval($row['pid']),
+            'title' => $row['title'],
+            'board' => $row['board'],
+            'joined_at' => intval($row['joined_at']),
+            'cancel' => intval($row['cancel']),
+        );
+    }
+    return $rows;
+}
+
 function jiekoufunc_activity_signup_list($con, $params) {
     $now = time();
     $limit = intval(isset($params['limit']) ? $params['limit'] : 10);

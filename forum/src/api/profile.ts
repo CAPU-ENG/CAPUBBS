@@ -31,6 +31,7 @@ type EditUserOverrides = {
 };
 
 export type LoadedPublicProfile = {
+  canViewActivities: boolean;
   isOwnProfile: boolean;
   profile: ProfileViewData;
 };
@@ -45,13 +46,15 @@ export class ProfileApiError extends Error {
 export async function fetchUserCenterProfile(signal?: AbortSignal) {
   const profileRow = await fetchCurrentUserRow(signal);
   const username = stringValue(profileRow.username);
-  const [postRows, replyRows, favoriteRows] = await Promise.all([
+  const [postRows, replyRows, activityRows, favoriteRows] = await Promise.all([
     requestRows({ ask: 'recentpost', limit: 'all', view: username }, signal),
     requestRows({ ask: 'recentreply', limit: 'all', view: username }, signal),
+    requestRows({ ask: 'activity_signup_history', username }, signal),
     requestRows({ ask: 'favorite_list', limit: 'all' }, signal),
   ]);
 
   return mapProfile(profileRow, {
+    activityRows,
     favoriteRows,
     includeSignatures: true,
     postRows,
@@ -71,16 +74,23 @@ export async function fetchPublicProfile(profileName: string, signal?: AbortSign
   if (!profileRow || !stringValue(profileRow.username)) throw new ProfileApiError('用户不存在。');
 
   const resolvedUsername = stringValue(profileRow.username);
-  const isOwnProfile = resolvedUsername === stringValue(viewerRows[0]?.username);
-  const [postRows, replyRows, favoriteRows] = await Promise.all([
+  const viewerUsername = stringValue(viewerRows[0]?.username);
+  const canViewActivities = Boolean(viewerUsername);
+  const isOwnProfile = resolvedUsername === viewerUsername;
+  const [postRows, replyRows, activityRows, favoriteRows] = await Promise.all([
     requestRows({ ask: 'recentpost', limit: 'all', view: resolvedUsername }, signal),
     requestRows({ ask: 'recentreply', limit: 'all', view: resolvedUsername }, signal),
+    canViewActivities
+      ? requestRows({ ask: 'activity_signup_history', username: resolvedUsername }, signal)
+      : Promise.resolve([]),
     isOwnProfile ? requestRows({ ask: 'favorite_list', limit: 'all' }, signal) : Promise.resolve([]),
   ]);
 
   return {
+    canViewActivities,
     isOwnProfile,
     profile: mapProfile(profileRow, {
+      activityRows,
       favoriteRows,
       includeSignatures: false,
       postRows,
@@ -264,11 +274,13 @@ async function requestData(params: Record<string, string | number>, signal?: Abo
 function mapProfile(
   row: ApiRow,
   {
+    activityRows,
     favoriteRows,
     includeSignatures,
     postRows,
     replyRows,
   }: {
+    activityRows: ApiRow[];
     favoriteRows: ApiRow[];
     includeSignatures: boolean;
     postRows: ApiRow[];
@@ -281,9 +293,10 @@ function mapProfile(
     .map((record) => mapRecord(record, 'reply'))
     .filter(isProfileRecord);
   const bookmarks = favoriteRows.map((record) => mapRecord(record, 'bookmark')).filter(isProfileRecord);
+  const activities = activityRows.map(mapActivityRecord).filter(isProfileRecord);
   const signatures = includeSignatures ? mapSignatures(row) : [];
   const records: ProfileRecordMap = {
-    activities: [],
+    activities,
     bookmarks,
     drafts: [],
     posts,
@@ -303,7 +316,7 @@ function mapProfile(
   return {
     avatarSrc: normalizeAvatar(row.icon),
     counts: {
-      activities: 0,
+      activities: activities.length,
       bookmarks: bookmarks.length,
       drafts: 0,
       posts: posts.length,
@@ -353,6 +366,25 @@ function mapRecord(row: ApiRow, kind: 'bookmark' | 'post' | 'reply'): ProfileRec
     excerpt: '',
     href: `/?bid=${bid}&tid=${tid}&p=${page}${floorHash}`,
     id: `${kind}-${bid}-${tid}-${pid || 0}`,
+    title,
+  };
+}
+
+function mapActivityRecord(row: ApiRow): ProfileRecord | null {
+  const bid = numberValue(row.bid);
+  const tid = numberValue(row.tid);
+  const pid = numberValue(row.pid);
+  const title = plainText(row.title);
+  if (!bid || !tid || !title) return null;
+
+  const page = pid > 0 ? Math.max(1, Math.ceil(pid / 12)) : 1;
+  return {
+    board: stringValue(row.board) || `版块 ${bid}`,
+    date: formatRecordDate(row.joined_at),
+    excerpt: '',
+    href: `/?bid=${bid}&tid=${tid}&p=${page}${pid > 0 ? `#${pid}` : ''}`,
+    id: `activity-${numberValue(row.join_id) || `${bid}-${tid}`}`,
+    status: numberValue(row.cancel) === 1 ? '已取消报名' : '已报名',
     title,
   };
 }

@@ -598,6 +598,23 @@
     font-size: 0.68rem;
   }
 
+  .profile-record-status {
+    flex: none;
+    border: 1px solid color-mix(in srgb, var(--brand) 24%, var(--line));
+    border-radius: var(--control-radius);
+    padding: 3px 7px;
+    background: var(--brand-faint);
+    color: var(--brand-strong);
+    font-size: 0.66rem;
+    font-weight: 680;
+  }
+
+  .profile-record-status[data-canceled="true"] {
+    border-color: var(--line);
+    background: var(--surface-raised);
+    color: var(--text-faint);
+  }
+
   .profile-record-actions {
     display: flex;
     align-items: center;
