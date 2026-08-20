@@ -14,7 +14,7 @@ function FeedItem({ compactMode, item }: { compactMode: boolean; item: HomeThrea
         <a className="feed-item-compact-link" href={item.href}>
           <h2>{item.title}</h2>
           <span className="feed-item-compact-meta">
-            <span>{item.id}</span>
+            <span>{item.author}</span>
             <span aria-hidden="true">·</span>
             <time dateTime={item.timestamp}>{item.timeLabel}</time>
           </span>

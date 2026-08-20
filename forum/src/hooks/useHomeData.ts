@@ -50,28 +50,35 @@ const initialSignup: SignupState = {
 };
 
 const HOME_FEED_BATCH_SIZE = 15;
+const COMPACT_HOME_FEED_BATCH_SIZE = 30;
 
 export function useHomeData(compactMode = false) {
   const [feed, setFeed] = useState<CollectionState>(initialCollection);
   const [feedHasMore, setFeedHasMore] = useState(true);
   const [feedLimit, setFeedLimit] = useState(HOME_FEED_BATCH_SIZE);
+  const [compactFeedLimit, setCompactFeedLimit] = useState(COMPACT_HOME_FEED_BATCH_SIZE);
   const [pinned, setPinned] = useState<CollectionState>(initialCollection);
   const [calendar, setCalendar] = useState<CalendarState>(initialCalendar);
   const [signup, setSignup] = useState<SignupState>(initialSignup);
   const [requestVersion, setRequestVersion] = useState(0);
+  const activeFeedLimit = compactMode ? compactFeedLimit : feedLimit;
 
   const retry = useCallback(() => setRequestVersion((version) => version + 1), []);
   const loadMore = useCallback(() => {
+    if (compactMode) {
+      setCompactFeedLimit((limit) => limit + COMPACT_HOME_FEED_BATCH_SIZE);
+      return;
+    }
     setFeedLimit((limit) => limit + HOME_FEED_BATCH_SIZE);
-  }, []);
+  }, [compactMode]);
 
   useEffect(() => {
     const controller = new AbortController();
     setFeed((current) => ({ ...current, error: '', status: 'loading' }));
 
-    void fetchHomeFeed(feedLimit, controller.signal, !compactMode).then(
+    void fetchHomeFeed(activeFeedLimit, controller.signal, !compactMode).then(
       async (items) => {
-        setFeedHasMore(items.length >= feedLimit);
+        setFeedHasMore(items.length >= activeFeedLimit);
         setFeed({ error: '', items, status: 'ready' });
         if (compactMode) return;
         try {
@@ -93,7 +100,7 @@ export function useHomeData(compactMode = false) {
     );
 
     return () => controller.abort();
-  }, [compactMode, feedLimit, requestVersion]);
+  }, [activeFeedLimit, compactMode, requestVersion]);
 
   useEffect(() => {
     const controller = new AbortController();
