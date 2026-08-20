@@ -5,6 +5,7 @@ import {
   ExternalLink,
   FileInput,
   LoaderCircle,
+  Mail,
   MapPin,
   Pin,
   PinOff,
@@ -13,13 +14,20 @@ import {
   ShieldCheck,
   UserCog,
   Users,
+  Volume2,
+  VolumeX,
 } from 'lucide-react';
 import { useEffect, useMemo, useState, type FormEvent, type ReactNode } from 'react';
 import {
   fetchGlobalPins,
+  fetchManagementMember,
+  fetchManagementMutes,
   fetchManagementThread,
   moveManagementThread,
+  setManagementEmailMute,
   toggleGlobalPin,
+  type ManagementMember,
+  type ManagementMute,
   type ManagementThread,
 } from '../api/management';
 import defaultAvatar from '../assets/avatar/default-avatar.avif';
@@ -31,21 +39,13 @@ import { ALL_BOARDS } from '../data/boards';
 type AdminTab = 'pins' | 'move' | 'members';
 type NoticeKind = 'error' | 'info' | 'success';
 
-type ManagedMember = {
-  avatar: string;
-  id: string;
-  joinedAt: string;
-  rights: number;
-  summary: string;
-};
-
-const INITIAL_MEMBERS: ManagedMember[] = [
-  { avatar: defaultAvatar, id: 'CAPU', joinedAt: '2005-09', rights: 5, summary: '论坛系统管理员' },
-  { avatar: defaultAvatar, id: '网站维护', joinedAt: '2012-03', rights: 4, summary: '新版论坛维护与内容协作' },
-  { avatar: defaultAvatar, id: '组织部', joinedAt: '2014-10', rights: 3, summary: '协会活动与日历维护' },
-  { avatar: defaultAvatar, id: '版务小组', joinedAt: '2018-06', rights: 2, summary: '日常版务协助' },
-  { avatar: defaultAvatar, id: '追风少年', joinedAt: '2022-09', rights: 1, summary: '活跃会员 · 行者足音' },
-  { avatar: defaultAvatar, id: '北纬三十度', joinedAt: '2023-04', rights: 1, summary: '活跃会员 · 车友宝典' },
+const INITIAL_MEMBERS: ManagementMember[] = [
+  { avatar: defaultAvatar, email: '', id: 'CAPU', joinedAt: '2005-09', muted: false, relatedIds: ['CAPU'], rights: 5, summary: '论坛系统管理员' },
+  { avatar: defaultAvatar, email: '', id: '网站维护', joinedAt: '2012-03', muted: false, relatedIds: ['网站维护'], rights: 4, summary: '新版论坛维护与内容协作' },
+  { avatar: defaultAvatar, email: '', id: '组织部', joinedAt: '2014-10', muted: false, relatedIds: ['组织部'], rights: 3, summary: '协会活动与日历维护' },
+  { avatar: defaultAvatar, email: '', id: '版务小组', joinedAt: '2018-06', muted: false, relatedIds: ['版务小组'], rights: 2, summary: '日常版务协助' },
+  { avatar: defaultAvatar, email: '', id: '追风少年', joinedAt: '2022-09', muted: false, relatedIds: ['追风少年'], rights: 1, summary: '活跃会员 · 行者足音' },
+  { avatar: defaultAvatar, email: '', id: '北纬三十度', joinedAt: '2023-04', muted: false, relatedIds: ['北纬三十度'], rights: 1, summary: '活跃会员 · 车友宝典' },
 ];
 
 const TAB_ITEMS: Array<{ icon: typeof Pin; id: AdminTab; label: string }> = [
@@ -383,34 +383,103 @@ function MoveThreadPanel() {
 
 function MemberManagementPanel() {
   const [members, setMembers] = useState(INITIAL_MEMBERS);
+  const [mutes, setMutes] = useState<ManagementMute[]>([]);
+  const [mutesStatus, setMutesStatus] = useState<'error' | 'loading' | 'ready'>('loading');
   const [query, setQuery] = useState('');
   const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [isSearching, setIsSearching] = useState(false);
+  const [pendingEmail, setPendingEmail] = useState<string | null>(null);
   const [notice, setNotice] = useState<{ kind: NoticeKind; text: string } | null>(null);
   const elevatedMembers = useMemo(() => members.filter((member) => member.rights > 1), [members]);
   const selectedMember = members.find((member) => member.id === selectedId) ?? null;
 
-  function searchMember(event: FormEvent) {
+  useEffect(() => {
+    const controller = new AbortController();
+    void fetchManagementMutes(controller.signal).then(
+      (items) => {
+        setMutes(items);
+        setMutesStatus('ready');
+      },
+      (error: unknown) => {
+        if (error instanceof DOMException && error.name === 'AbortError') return;
+        setMutesStatus('error');
+        setNotice({ kind: 'error', text: errorMessage(error, '禁言会员列表加载失败，请稍后重试。') });
+      },
+    );
+    return () => controller.abort();
+  }, []);
+
+  async function searchMember(event: FormEvent) {
     event.preventDefault();
-    const result = members.find((member) => member.id.toLocaleLowerCase() === query.trim().toLocaleLowerCase());
-    if (!result) {
+    if (isSearching) return;
+    setIsSearching(true);
+    setNotice(null);
+    try {
+      const result = await fetchManagementMember(query);
+      setMembers((current) => {
+        const existingIndex = current.findIndex((member) => member.id === result.id);
+        if (existingIndex < 0) return [...current, result];
+        return current.map((member, index) => index === existingIndex ? result : member);
+      });
+      setSelectedId(result.id);
+      setNotice({ kind: 'info', text: '已找到会员，请确认身份。' });
+    } catch (error) {
       setSelectedId(null);
-      setNotice({ kind: 'error', text: '没有找到这个会员 ID，请检查后重试。' });
-      return;
+      setNotice({ kind: 'error', text: errorMessage(error, '会员查询失败，请稍后重试。') });
+    } finally {
+      setIsSearching(false);
     }
-    setSelectedId(result.id);
-    setNotice({ kind: 'info', text: '已找到会员，请确认身份与当前权限。' });
   }
 
-  function toggleLevelTwo(member: ManagedMember) {
+  function toggleLevelTwo(member: ManagementMember) {
     if (member.rights > 2) return;
     const nextRights = member.rights === 2 ? 1 : 2;
     setMembers((current) => current.map((item) => item.id === member.id ? { ...item, rights: nextRights } : item));
     setNotice({
       kind: 'success',
       text: nextRights === 2
-        ? `模拟操作完成：已赋予 ${member.id} 会员 2 级权限。`
-        : `模拟操作完成：已取消 ${member.id} 的会员 2 级权限。`,
+        ? `已赋予 ${member.id} 会员 2 级权限。`
+        : `已取消 ${member.id} 的会员 2 级权限。`,
     });
+  }
+
+  async function toggleMemberMute(member: ManagementMember) {
+    if (!member.email || pendingEmail) return;
+    const nextMuted = !member.muted;
+    setPendingEmail(member.email);
+    setNotice(null);
+    try {
+      await setManagementEmailMute(member.email, nextMuted);
+      const refreshedMutes = await fetchManagementMutes();
+      setMutes(refreshedMutes);
+      setMutesStatus('ready');
+      setMembers((current) => current.map((item) => item.email === member.email ? { ...item, muted: nextMuted } : item));
+      setNotice({
+        kind: 'success',
+        text: nextMuted ? `已禁言 ${member.relatedIds.join('、')}。` : `已解除 ${member.relatedIds.join('、')} 的禁言。`,
+      });
+    } catch (error) {
+      setNotice({ kind: 'error', text: errorMessage(error, nextMuted ? '禁言失败，请稍后重试。' : '解除禁言失败，请稍后重试。') });
+    } finally {
+      setPendingEmail(null);
+    }
+  }
+
+  async function unmuteEntry(mute: ManagementMute) {
+    if (pendingEmail) return;
+    setPendingEmail(mute.email);
+    setNotice(null);
+    try {
+      await setManagementEmailMute(mute.email, false);
+      setMutes(await fetchManagementMutes());
+      setMutesStatus('ready');
+      setMembers((current) => current.map((member) => member.email === mute.email ? { ...member, muted: false } : member));
+      setNotice({ kind: 'success', text: `已解除 ${mute.ids.length > 0 ? mute.ids.join('、') : mute.email} 的禁言。` });
+    } catch (error) {
+      setNotice({ kind: 'error', text: errorMessage(error, '解除禁言失败，请稍后重试。') });
+    } finally {
+      setPendingEmail(null);
+    }
   }
 
   return (
@@ -433,16 +502,25 @@ function MemberManagementPanel() {
               type="search"
               value={query}
             />
-            <button type="submit"><Search size={15} />搜索会员</button>
+            <button disabled={isSearching} type="submit">
+              {isSearching ? <LoaderCircle className="animate-spin" size={15} /> : <Search size={15} />}搜索会员
+            </button>
           </div>
         </form>
 
         {selectedMember && (
           <div className="management-member-confirmation">
             <div className="management-member-identity">
-              <img alt="" src={selectedMember.avatar} />
-              <div><span>已确认会员身份</span><strong>{selectedMember.id}</strong><p>{selectedMember.summary} · 加入于 {selectedMember.joinedAt}</p></div>
+              <img alt="" src={selectedMember.avatar || defaultAvatar} />
+              <div><span>已确认会员身份</span><strong>{selectedMember.id}</strong><p>{selectedMember.summary || selectedMember.joinedAt}</p></div>
               <BadgeCheck size={19} />
+            </div>
+            <div className="management-member-email">
+              <Mail size={15} />
+              <div>
+                <strong>{selectedMember.email || '未绑定邮箱'}</strong>
+                <span>{selectedMember.relatedIds.map((id) => <em key={id}>{id}</em>)}</span>
+              </div>
             </div>
             <div className="management-permission-row">
               <div><span>当前权限</span><strong>{rightsLabel(selectedMember.rights)}</strong></div>
@@ -458,30 +536,78 @@ function MemberManagementPanel() {
                 </button>
               )}
             </div>
+            <div className="management-mute-row">
+              <div><span>禁言状态</span><strong>{selectedMember.muted ? '已禁言' : '未禁言'}</strong></div>
+              <button
+                className={selectedMember.muted ? 'management-primary-button' : 'management-danger-button'}
+                disabled={!selectedMember.email || pendingEmail !== null}
+                onClick={() => void toggleMemberMute(selectedMember)}
+                type="button"
+              >
+                {pendingEmail === selectedMember.email
+                  ? <LoaderCircle className="animate-spin" size={15} />
+                  : selectedMember.muted ? <Volume2 size={15} /> : <VolumeX size={15} />}
+                {selectedMember.muted ? '解除禁言' : '禁言会员'}
+              </button>
+            </div>
           </div>
         )}
         {notice && <ManagementNotice kind={notice.kind}>{notice.text}</ManagementNotice>}
       </section>
 
-      <section className="management-card management-list-card" aria-labelledby="elevated-members-title">
-        <header className="management-card-heading">
-          <div><h2 id="elevated-members-title">当前高权限会员</h2></div>
-          <span>{elevatedMembers.length} 人</span>
-        </header>
-        <div className="management-member-list">
-          {elevatedMembers.map((member) => (
-            <button key={member.id} onClick={() => {
-              setQuery(member.id);
-              setSelectedId(member.id);
-              setNotice({ kind: 'info', text: '已选择会员，请在右侧确认权限。' });
-            }} type="button">
-              <img alt="" src={member.avatar} />
-              <span><strong>{member.id}</strong><small>{member.summary}</small></span>
-              <em data-rights={member.rights}>权限 {member.rights}</em>
-            </button>
-          ))}
-        </div>
-      </section>
+      <div className="management-member-display">
+        <section className="management-card management-list-card" aria-labelledby="elevated-members-title">
+          <header className="management-card-heading">
+            <div><h2 id="elevated-members-title">当前高权限会员</h2></div>
+            <span>{elevatedMembers.length} 人</span>
+          </header>
+          <div className="management-member-list">
+            {elevatedMembers.map((member) => (
+              <button key={member.id} onClick={() => {
+                setQuery(member.id);
+                setSelectedId(member.id);
+                setNotice({ kind: 'info', text: '已选择会员。' });
+              }} type="button">
+                <img alt="" src={member.avatar || defaultAvatar} />
+                <span><strong>{member.id}</strong><small>{member.summary}</small></span>
+                <em data-rights={member.rights}>权限 {member.rights}</em>
+              </button>
+            ))}
+          </div>
+        </section>
+
+        <section className="management-card management-list-card" aria-labelledby="muted-members-title">
+          <header className="management-card-heading">
+            <div><h2 id="muted-members-title">当前禁言会员</h2></div>
+            <span>{mutes.length} 组</span>
+          </header>
+          <div className="management-mute-list">
+            {mutesStatus === 'loading' ? (
+              <EmptyState icon={<LoaderCircle className="animate-spin" size={19} />}>正在加载禁言会员。</EmptyState>
+            ) : mutesStatus === 'error' ? (
+              <EmptyState icon={<CircleAlert size={19} />}>禁言会员列表加载失败。</EmptyState>
+            ) : mutes.length === 0 ? (
+              <EmptyState icon={<Volume2 size={19} />}>当前没有禁言会员。</EmptyState>
+            ) : mutes.map((mute) => (
+              <article key={mute.email}>
+                <div>
+                  <strong>{mute.email}</strong>
+                  <span>{mute.ids.length > 0 ? mute.ids.map((id) => <em key={id}>{id}</em>) : <em>无关联 ID</em>}</span>
+                </div>
+                <button
+                  className="management-danger-button"
+                  disabled={pendingEmail !== null}
+                  onClick={() => void unmuteEntry(mute)}
+                  type="button"
+                >
+                  {pendingEmail === mute.email ? <LoaderCircle className="animate-spin" size={14} /> : <Volume2 size={14} />}
+                  解除禁言
+                </button>
+              </article>
+            ))}
+          </div>
+        </section>
+      </div>
     </div>
   );
 }

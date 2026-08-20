@@ -2301,7 +2301,13 @@ function jiekoufunc_listEmailMutes($con, $token) {
         return jiekoufunc_report('1', '会话超时，请重新登录。');
     }
 
-    $result = mysqli_query($con, "SELECT * FROM email_mutes WHERE active=1 ORDER BY created_at DESC");
+    $result = mysqli_query($con,
+        "SELECT email_mutes.*,
+            (SELECT GROUP_CONCAT(userinfo.username ORDER BY userinfo.username SEPARATOR '\n')
+             FROM userinfo WHERE userinfo.mail=email_mutes.email) AS usernames
+         FROM email_mutes
+         WHERE active=1
+         ORDER BY created_at DESC");
     $infos = array();
     while ($res = mysqli_fetch_array($result)) {
         $info = array();
@@ -2312,6 +2318,55 @@ function jiekoufunc_listEmailMutes($con, $token) {
         $infos[] = $info;
     }
     return $infos;
+}
+
+function jiekoufunc_management_member_lookup($con, $params) {
+    $username = isset($params['username']) ? trim($params['username']) : '';
+    if ($username === '') {
+        return jiekoufunc_report('14', '缺少会员 ID。');
+    }
+
+    $username_esc = mysqli_real_escape_string($con, $username);
+    $result = mysqli_query($con,
+        "SELECT username, icon, intro, regdate, rights, mail
+         FROM userinfo
+         WHERE username='$username_esc'
+         LIMIT 1");
+    $member = mysqli_fetch_assoc($result);
+    if (!$member) {
+        return jiekoufunc_report('3', '用户不存在。');
+    }
+
+    $member_mail = isset($member['mail']) ? trim(strval($member['mail'])) : '';
+    $related_ids = array($member['username']);
+    $muted = 0;
+    if ($member_mail !== '') {
+        $mail_esc = mysqli_real_escape_string($con, $member_mail);
+        $related_ids = array();
+        $related_result = mysqli_query($con,
+            "SELECT username FROM userinfo WHERE mail='$mail_esc' ORDER BY username");
+        while ($related = mysqli_fetch_assoc($related_result)) {
+            $related_ids[] = $related['username'];
+        }
+
+        $mute_result = mysqli_fetch_assoc(mysqli_query($con,
+            "SELECT COUNT(*) AS count FROM email_mutes WHERE email='$mail_esc' AND active=1"));
+        $muted = $mute_result && intval($mute_result['count']) > 0 ? 1 : 0;
+    }
+
+    return array(
+        array('code' => '0', 'count' => '1'),
+        array(
+            'username' => $member['username'],
+            'icon' => $member['icon'],
+            'intro' => $member['intro'],
+            'regdate' => $member['regdate'],
+            'rights' => $member['rights'],
+            'mail' => $member_mail,
+            'muted' => $muted,
+            'related_ids' => $related_ids,
+        ),
+    );
 }
 
 function jiekoufunc_toggleEmailVisible($con, $token, $params) {

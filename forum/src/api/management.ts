@@ -1,4 +1,5 @@
 import { getBoardById } from '../data/boards';
+import { normalizeLegacyAvatar } from '../utils/legacyAssets';
 
 const MANAGEMENT_API_URL = import.meta.env.VITE_API_URL?.trim() || '/api/api.php';
 
@@ -19,10 +20,32 @@ export type ManagementThread = {
   url: string;
 };
 
+export type ManagementMember = {
+  avatar: string;
+  email: string;
+  id: string;
+  joinedAt: string;
+  muted: boolean;
+  relatedIds: string[];
+  rights: number;
+  summary: string;
+};
+
+export type ManagementMute = {
+  createdAt: number;
+  email: string;
+  ids: string[];
+  mutedBy: string;
+  reason: string;
+};
+
 export class ManagementApiError extends Error {
-  constructor(message: string) {
+  code: number;
+
+  constructor(message: string, code = 0) {
     super(message);
     this.name = 'ManagementApiError';
+    this.code = code;
   }
 }
 
@@ -71,6 +94,64 @@ export async function moveManagementThread(thread: ManagementThread, targetBoard
   return { boardId, threadId, url: `/?bid=${boardId}&tid=${threadId}` };
 }
 
+export async function fetchManagementMember(username: string, signal?: AbortSignal) {
+  const normalizedUsername = username.trim();
+  if (!normalizedUsername) throw new ManagementApiError('请输入会员 ID。');
+
+  const payload = await requestManagementApi({
+    ask: 'management_member_lookup',
+    username: normalizedUsername,
+  }, signal);
+  const row = asRows(payload.data)[0];
+  if (!row) throw new ManagementApiError('没有找到这个会员 ID，请检查后重试。');
+
+  const id = textValue(row.username);
+  if (!id) throw new ManagementApiError('会员资料缺少有效 ID。');
+
+  return {
+    avatar: normalizeLegacyAvatar(row.icon),
+    email: textValue(row.mail),
+    id,
+    joinedAt: textValue(row.regdate),
+    muted: booleanValue(row.muted),
+    relatedIds: stringList(row.related_ids, id),
+    rights: numberValue(row.rights),
+    summary: textValue(row.intro),
+  } satisfies ManagementMember;
+}
+
+export async function fetchManagementMutes(signal?: AbortSignal) {
+  let payload: ApiEnvelope;
+  try {
+    payload = await requestManagementApi({ ask: 'listEmailMutes' }, signal);
+  } catch (error) {
+    if (error instanceof ManagementApiError && error.code === 2006) return [];
+    throw error;
+  }
+  return asRows(payload.data)
+    .map((row): ManagementMute | null => {
+      const email = textValue(row.email);
+      if (!email) return null;
+      return {
+        createdAt: numberValue(row.created_at),
+        email,
+        ids: stringList(row.usernames),
+        mutedBy: textValue(row.muted_by),
+        reason: textValue(row.reason),
+      };
+    })
+    .filter((mute): mute is ManagementMute => mute !== null);
+}
+
+export async function setManagementEmailMute(email: string, muted: boolean) {
+  const normalizedEmail = email.trim();
+  if (!normalizedEmail) throw new ManagementApiError('该会员没有可用于禁言的邮箱。');
+  await requestManagementApi({
+    ask: muted ? 'muteEmail' : 'unmuteEmail',
+    email: normalizedEmail,
+  });
+}
+
 async function requestManagementApi(
   params: Record<string, string | number>,
   signal?: AbortSignal,
@@ -103,7 +184,7 @@ async function requestManagementApi(
   }
 
   if (!response.ok || payload.code !== 0) {
-    throw new ManagementApiError(payload.message?.trim() || '管理操作失败，请稍后重试。');
+    throw new ManagementApiError(payload.message?.trim() || '管理操作失败，请稍后重试。', payload.code || response.status);
   }
 
   return payload;
@@ -143,6 +224,24 @@ function mapThread(row: ApiRow): ManagementThread | null {
 function positiveInteger(value: unknown) {
   const number = Number(value);
   return Number.isInteger(number) && number > 0 ? number : 0;
+}
+
+function numberValue(value: unknown) {
+  const number = Number(value);
+  return Number.isFinite(number) ? number : 0;
+}
+
+function booleanValue(value: unknown) {
+  return value === true || value === 1 || value === '1';
+}
+
+function stringList(value: unknown, fallback = '') {
+  const values = Array.isArray(value)
+    ? value.map(textValue)
+    : textValue(value).split(/\r?\n/).map((item) => item.trim());
+  const uniqueValues = Array.from(new Set(values.filter(Boolean)));
+  if (uniqueValues.length > 0) return uniqueValues;
+  return fallback ? [fallback] : [];
 }
 
 function textValue(value: unknown) {

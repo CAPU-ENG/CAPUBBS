@@ -92,6 +92,7 @@ function _dispatch_build_routes() {
         'muteEmail'        => array('handler' => null, 'check_login' => true,  'require_rights' => 1, 'check_board_mod' => true),
         'unmuteEmail'      => array('handler' => null, 'check_login' => true,  'require_rights' => 1, 'check_board_mod' => true),
         'listEmailMutes'   => array('handler' => null, 'check_login' => true,  'require_rights' => 1, 'check_board_mod' => true),
+        'management_member_lookup' => array('handler' => 'jiekoufunc_management_member_lookup', 'check_login' => true, 'require_rights' => 3),
         'toggleEmailVisible' => array('handler' => null, 'check_login' => true,  'require_rights' => 0),
 
         // ================================================================
@@ -219,6 +220,8 @@ function jiekoufunc_dispatch($con, $params) {
                 return jiekoufunc_getuser($con, $token);
             case 'jiekoufunc_user_profile':
                 return jiekoufunc_user_profile($con, $params);
+            case 'jiekoufunc_management_member_lookup':
+                return jiekoufunc_management_member_lookup($con, $params);
             case 'jiekoufunc_userexists':
                 return jiekoufunc_userexists($con, $params);
             case 'jiekoufunc_hot':
