@@ -1,5 +1,5 @@
 import { Check, CirclePlus, Pin, PinOff, Save } from 'lucide-react';
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { AppBackground } from '../components/layout/AppBackground';
 import { TopBar } from '../components/layout/TopBar';
 import { ALL_BOARDS, PRIMARY_BOARDS, SECONDARY_BOARDS, getBoardById } from '../data/boards';
@@ -9,6 +9,7 @@ import { MAX_PINNED_BOARDS, savePinnedBoardIds } from '../utils/localSettings';
 export function SettingsPage() {
   const pinnedBoardIds = usePinnedBoardIds();
   const [draftBoardIds, setDraftBoardIds] = useState(pinnedBoardIds);
+  const draftBoardIdsRef = useRef(pinnedBoardIds);
   const [feedback, setFeedback] = useState('调整完成后，点击“保存设置”应用到 Navbar。');
   const pinnedBoards = draftBoardIds
     .map(getBoardById)
@@ -18,29 +19,35 @@ export function SettingsPage() {
 
   function addBoard(boardId: number) {
     const board = getBoardById(boardId);
-    if (isFull) {
+    const currentBoardIds = draftBoardIdsRef.current;
+    if (currentBoardIds.length >= MAX_PINNED_BOARDS) {
       setFeedback(`最多只能常驻 ${MAX_PINNED_BOARDS} 个版块，请先移除一个。`);
       return;
     }
-    if (!board || draftBoardIds.includes(boardId)) return;
-    setDraftBoardIds((current) => [...current, boardId]);
+    if (!board || currentBoardIds.includes(boardId)) return;
+    updateDraftBoardIds([...currentBoardIds, boardId]);
     setFeedback(`已选择“${board.label}”，保存后会显示在 Navbar。`);
   }
 
   function removeBoard(boardId: number) {
     const board = getBoardById(boardId);
-    setDraftBoardIds((current) => current.filter((id) => id !== boardId));
+    updateDraftBoardIds(draftBoardIdsRef.current.filter((id) => id !== boardId));
     if (board) setFeedback(`已移除“${board.label}”，保存后生效。`);
   }
 
   function saveSettings() {
-    const savedBoardIds = savePinnedBoardIds(draftBoardIds);
-    setDraftBoardIds(savedBoardIds);
+    const result = savePinnedBoardIds(draftBoardIdsRef.current);
+    updateDraftBoardIds(result.boardIds);
     setFeedback(
-      sameBoardIds(savedBoardIds, draftBoardIds)
+      result.saved
         ? '设置已保存，Navbar 已更新。'
-        : '浏览器未能保存设置，请检查浏览器的本地存储权限。',
+        : '浏览器未能写入本地设置，请检查隐私模式或网站存储权限。',
     );
+  }
+
+  function updateDraftBoardIds(boardIds: number[]) {
+    draftBoardIdsRef.current = boardIds;
+    setDraftBoardIds(boardIds);
   }
 
   return (

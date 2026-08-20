@@ -20,16 +20,16 @@ export function readPinnedBoardIds() {
 
 export function savePinnedBoardIds(boardIds: number[]) {
   const normalized = normalizePinnedBoardIds(boardIds);
-  if (typeof window === 'undefined') return normalized;
+  if (typeof window === 'undefined') return { boardIds: normalized, saved: false };
 
   try {
     window.localStorage.setItem(PINNED_BOARDS_STORAGE_KEY, JSON.stringify(normalized));
   } catch {
-    return readPinnedBoardIds();
+    return { boardIds: readPinnedBoardIds(), saved: false };
   }
 
   window.dispatchEvent(new CustomEvent(PINNED_BOARDS_CHANGE_EVENT, { detail: normalized }));
-  return normalized;
+  return { boardIds: normalized, saved: true };
 }
 
 function normalizePinnedBoardIds(value: unknown) {
