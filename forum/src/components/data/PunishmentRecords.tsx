@@ -163,12 +163,11 @@ export function PunishmentRecords({
       )}
 
       <div className="data-table-scroll">
-        <table className={`data-table data-table-punishments ${managementActive ? 'data-table-punishments-managing' : ''}`}>
+        <table className="data-table data-table-punishments">
           <thead>
             <tr>
               <th>姓名</th><th>ID</th><th>原因</th><th>长度</th><th>职务加罚</th>
               <th>开始时间</th><th>结束时间</th><th>完成情况</th>
-              {canManage && managementActive && <th>操作</th>}
             </tr>
           </thead>
           <tbody>
@@ -183,12 +182,10 @@ export function PunishmentRecords({
                   <td>{record.addition ? '是' : '否'}</td>
                   <td>{formatDate(record.startDate)}</td>
                   <td>{formatDate(activePending?.date || record.endDate)}</td>
-                  <td><StatusBadge complete={record.isComplete} /></td>
-                  {canManage && managementActive && (
-                    <td>
+                  <td>
+                    {canManage && managementActive && !record.isComplete ? (
                       <FinishRecordAction
                         pending={activePending}
-                        record={record}
                         onCancel={() => setPendingFinish(null)}
                         onConfirm={() => void confirmFinish(record)}
                         onDateChange={(date) => setPendingFinish((current) => current ? { ...current, date, error: '' } : null)}
@@ -199,14 +196,16 @@ export function PunishmentRecords({
                           submitting: false,
                         })}
                       />
-                    </td>
-                  )}
+                    ) : (
+                      <StatusBadge complete={record.isComplete} />
+                    )}
+                  </td>
                 </tr>
               );
             })}
             {visibleRecords.length === 0 && (
               <tr>
-                <td className="data-table-empty" colSpan={canManage && managementActive ? 9 : 8}>暂无罚跑记录</td>
+                <td className="data-table-empty" colSpan={8}>暂无罚跑记录</td>
               </tr>
             )}
           </tbody>
@@ -246,17 +245,13 @@ function FinishRecordAction({
   onDateChange,
   onStart,
   pending,
-  record,
 }: {
   onCancel: () => void;
   onConfirm: () => void;
   onDateChange: (date: string) => void;
   onStart: () => void;
   pending: PendingFinish | null;
-  record: PunishmentRecord;
 }) {
-  if (record.isComplete) return <span className="punishment-no-action">—</span>;
-
   if (!pending) {
     return (
       <button className="punishment-finish-trigger" onClick={onStart} type="button">

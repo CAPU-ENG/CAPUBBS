@@ -356,14 +356,6 @@
     filter: brightness(0.93);
   }
 
-  .data-table-punishments-managing {
-    min-width: 1120px;
-  }
-
-  .punishment-no-action {
-    color: var(--text-faint);
-  }
-
   .punishment-finish-trigger {
     display: inline-flex;
     height: 31px;
