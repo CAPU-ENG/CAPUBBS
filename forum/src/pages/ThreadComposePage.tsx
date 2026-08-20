@@ -453,7 +453,7 @@ export function ThreadComposePage() {
               beforeEditor={!isReply ? (
                 <>
                   <PostEditorTitleField
-                    label={isActivity ? '' : '帖子标题'}
+                    label=""
                     onChange={(value) => {
                       setTitle(value);
                       clearStatus();

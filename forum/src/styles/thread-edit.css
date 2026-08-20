@@ -471,7 +471,6 @@
     z-index: 4;
     bottom: 0;
     background: var(--surface-soft);
-    box-shadow: 0 -8px 20px color-mix(in srgb, var(--text-strong) 5%, transparent);
   }
 
   .thread-edit-request-state {
