@@ -5,7 +5,6 @@ import {
   type RichTextEditorValue,
 } from "../editor/RichTextEditor";
 import {
-  readStoredReplyDraft,
   saveStoredReplyDraft,
   type ReplyDraftSaveFailureReason,
   type StoredReplyAttachment,
@@ -31,7 +30,6 @@ export function ReplyEditor({
   bid,
   board,
   boardHref,
-  draftId,
   editorRef,
   ownerKey,
   previewAuthor,
@@ -44,7 +42,6 @@ export function ReplyEditor({
   bid: number;
   board: string;
   boardHref: string;
-  draftId: string | null;
   editorRef: React.RefObject<HTMLElement | null>;
   ownerKey: string;
   previewAuthor: PostEditorPreviewAuthor;
@@ -67,24 +64,6 @@ export function ReplyEditor({
   const [isSavingDraft, setIsSavingDraft] = useState(false);
   const [savedDraftId, setSavedDraftId] = useState<string | null>(null);
   const appliedQuoteRequestRef = useRef(0);
-
-  useEffect(() => {
-    let cancelled = false;
-    void readStoredReplyDraft(draftId, ownerKey).then((storedDraft) => {
-      if (cancelled || !storedDraft || storedDraft.bid !== bid || storedDraft.tid !== tid) return;
-
-      setEditorValue(storedDraft.editor);
-      setSignatureIndex(storedDraft.signatureIndex ?? 0);
-      setAttachments(storedDraft.attachments.map((attachment) => ({ ...attachment, restored: true })));
-      setSavedDraftId(storedDraft.id);
-      setStatus("草稿已恢复");
-      setFocusRequest((request) => request + 1);
-    });
-
-    return () => {
-      cancelled = true;
-    };
-  }, [bid, draftId, ownerKey, tid]);
 
   useEffect(() => {
     if (!quoteRequest || appliedQuoteRequestRef.current === quoteRequest.requestId) return;

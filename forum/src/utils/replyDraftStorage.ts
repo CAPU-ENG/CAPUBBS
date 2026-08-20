@@ -1,4 +1,5 @@
 import {
+  deleteClientDatabaseValue,
   readClientDatabaseValue,
   requestPersistentClientStorage,
   writeClientDatabaseValue,
@@ -66,9 +67,12 @@ export async function readStoredReplyDrafts(ownerKey: string | null | undefined)
   }
 }
 
-export async function readStoredReplyDraft(draftId: string | null, ownerKey: string | null | undefined) {
-  if (!draftId) return null;
-  return (await readStoredReplyDrafts(ownerKey)).find((draft) => draft.id === draftId) ?? null;
+export async function readStoredReplyDraftForThread(
+  bid: number,
+  tid: number,
+  ownerKey: string | null | undefined,
+) {
+  return (await readStoredReplyDrafts(ownerKey)).find((draft) => draft.bid === bid && draft.tid === tid) ?? null;
 }
 
 export async function saveStoredReplyDraft(
@@ -87,7 +91,10 @@ export async function saveStoredReplyDraft(
   };
   const candidateDrafts = [
     updatedDraft,
-    ...(await readStoredReplyDrafts(ownerKey)).filter((storedDraft) => storedDraft.id !== updatedDraft.id),
+    ...(await readStoredReplyDrafts(ownerKey)).filter((storedDraft) => (
+      storedDraft.id !== updatedDraft.id
+      && (storedDraft.bid !== updatedDraft.bid || storedDraft.tid !== updatedDraft.tid)
+    )),
   ];
   const nextDrafts = candidateDrafts.slice(0, MAX_STORED_REPLY_DRAFTS);
   let discardedDraftCount = candidateDrafts.length - nextDrafts.length;
@@ -120,6 +127,28 @@ export async function saveStoredReplyDraft(
   }
 
   return { ok: false, reason: 'unknown' };
+}
+
+export async function deleteStoredReplyDraftForThread(
+  bid: number,
+  tid: number,
+  ownerKey: string | null | undefined,
+) {
+  const databaseKey = getReplyDraftDatabaseKey(ownerKey);
+  if (!databaseKey) return;
+
+  const nextDrafts = (await readStoredReplyDrafts(ownerKey))
+    .filter((draft) => draft.bid !== bid || draft.tid !== tid);
+
+  try {
+    if (nextDrafts.length > 0) await writeClientDatabaseValue(databaseKey, nextDrafts);
+    else await deleteClientDatabaseValue(databaseKey);
+    removeLegacyReplyDrafts(ownerKey);
+  } catch (error) {
+    if (!writeLegacyReplyDrafts(ownerKey, nextDrafts)) throw error;
+  }
+
+  notifyReplyDraftChange(ownerKey);
 }
 
 export function subscribeStoredReplyDrafts(listener: () => void, ownerKey: string | null | undefined) {
@@ -219,9 +248,16 @@ function isPositiveInteger(value: unknown) {
 
 function sanitizeStoredReplyDrafts(value: unknown) {
   if (!Array.isArray(value)) return [];
+  const seenThreads = new Set<string>();
   return value
     .filter(isStoredReplyDraft)
-    .sort((firstDraft, secondDraft) => secondDraft.updatedAt.localeCompare(firstDraft.updatedAt));
+    .sort((firstDraft, secondDraft) => secondDraft.updatedAt.localeCompare(firstDraft.updatedAt))
+    .filter((draft) => {
+      const threadKey = `${draft.bid}:${draft.tid}`;
+      if (seenThreads.has(threadKey)) return false;
+      seenThreads.add(threadKey);
+      return true;
+    });
 }
 
 function readLegacyReplyDrafts(ownerKey: string | null | undefined) {

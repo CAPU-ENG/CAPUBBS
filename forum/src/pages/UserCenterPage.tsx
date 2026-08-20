@@ -320,17 +320,11 @@ function emptyDraft(): ProfileDraft {
 }
 
 function mapReplyDraftRecord(draft: StoredReplyDraft) {
-  const params = new URLSearchParams({
-    bid: String(draft.bid),
-    draft: draft.id,
-    tid: String(draft.tid),
-  });
-
   return {
     board: draft.board,
     date: draft.updatedAt.slice(0, 10),
     excerpt: draft.excerpt || '附件回复草稿',
-    href: `/?${params.toString()}#reply-editor`,
+    href: getThreadComposeHref(draft.bid, draft.tid),
     id: draft.id,
     status: '回帖草稿',
     title: draft.threadTitle,
@@ -342,7 +336,7 @@ function mapThreadComposeDraftRecord(draft: StoredThreadComposeDraft) {
     board: draft.board,
     date: draft.updatedAt.slice(0, 10),
     excerpt: draft.excerpt,
-    href: `${getThreadComposeHref(draft.bid)}&draft=${encodeURIComponent(draft.id)}`,
+    href: getThreadComposeHref(draft.bid),
     id: draft.id,
     status: '发帖草稿',
     title: draft.title,

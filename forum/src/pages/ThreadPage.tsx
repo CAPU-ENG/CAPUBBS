@@ -264,7 +264,6 @@ export function ThreadPage() {
             bid={data.bid}
             board={data.board}
             boardHref={data.boardHref}
-            draftId={new URLSearchParams(window.location.search).get('draft')}
             editorRef={editorRef}
             ownerKey={data.viewer.name}
             previewAuthor={data.viewer}
