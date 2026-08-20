@@ -56,7 +56,7 @@
     z-index: 1;
     display: grid;
     min-height: 158px;
-    grid-template-columns: minmax(0, 1fr) 400px;
+    grid-template-columns: minmax(0, 1fr) 306px;
     align-items: center;
     gap: 30px;
     padding: 16px 28px 16px 210px;
@@ -106,11 +106,14 @@
   }
 
   .board-title-side {
+    display: grid;
+    justify-items: end;
     min-width: 0;
   }
 
   .board-stat-grid {
     display: grid;
+    width: min(306px, 100%);
     grid-template-columns: repeat(4, minmax(0, 1fr));
     border: 1px solid color-mix(in srgb, var(--line-strong) 82%, transparent);
     background: color-mix(in srgb, var(--surface-raised) 83%, transparent);
@@ -146,7 +149,8 @@
 
   .board-title-actions {
     display: flex;
-    flex-wrap: wrap;
+    width: max-content;
+    flex-wrap: nowrap;
     justify-content: flex-end;
     gap: 8px;
     margin-top: 10px;
@@ -167,6 +171,7 @@
     color: var(--text-muted);
     font-size: 0.7rem;
     font-weight: 720;
+    white-space: nowrap;
     transition: 140ms ease;
   }
 
@@ -523,7 +528,7 @@
     }
 
     .board-title-content {
-      grid-template-columns: minmax(0, 1fr) 380px;
+      grid-template-columns: minmax(0, 1fr) 292px;
       gap: 26px;
       padding: 16px 26px 16px 170px;
     }
@@ -592,7 +597,8 @@
     }
 
     .board-title-actions {
-      flex-wrap: wrap;
+      flex-wrap: nowrap;
+      gap: 5px;
       margin-top: 9px;
     }
 
@@ -600,8 +606,9 @@
     .board-secondary-action,
     .board-activity-action {
       height: 34px;
-      padding-inline: 10px;
-      font-size: 0.65rem;
+      gap: 4px;
+      padding-inline: 7px;
+      font-size: 0.61rem;
     }
 
     .board-thread-section {
