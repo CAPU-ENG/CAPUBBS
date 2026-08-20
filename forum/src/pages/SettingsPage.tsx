@@ -1,4 +1,4 @@
-import { Check, ChevronDown, CirclePlus, MonitorCog, Pin, PinOff, Save } from 'lucide-react';
+import { Check, ChevronDown, CirclePlus, MonitorCog, Pin, PinOff } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import { AppBackground } from '../components/layout/AppBackground';
 import { TopBar } from '../components/layout/TopBar';
@@ -12,18 +12,15 @@ export function SettingsPage() {
   const pinnedBoardIds = usePinnedBoardIds();
   const { followsSystem } = useTheme();
   const [draftBoardIds, setDraftBoardIds] = useState(pinnedBoardIds);
-  const [draftFollowsSystem, setDraftFollowsSystem] = useState(followsSystem);
   const draftBoardIdsRef = useRef(pinnedBoardIds);
   const previousPinnedBoardIdsRef = useRef(pinnedBoardIds);
-  const [isSaving, setIsSaving] = useState(false);
-  const [feedback, setFeedback] = useState('调整完成后，点击“保存设置”应用更改。');
+  const boardSaveQueueRef = useRef(Promise.resolve());
   const pinnedBoards = draftBoardIds
     .map(getBoardById)
     .filter((board) => board !== undefined);
   const secondaryBoardIds = new Set(SECONDARY_BOARDS.map((board) => board.id));
   const selectedSecondaryBoardCount = draftBoardIds.filter((boardId) => secondaryBoardIds.has(boardId)).length;
   const isFull = draftBoardIds.length >= MAX_PINNED_BOARDS;
-  const hasChanges = !sameBoardIds(draftBoardIds, pinnedBoardIds) || draftFollowsSystem !== followsSystem;
 
   useEffect(() => {
     const previousPinnedBoardIds = previousPinnedBoardIdsRef.current;
@@ -33,49 +30,27 @@ export function SettingsPage() {
     }
   }, [pinnedBoardIds]);
 
-  useEffect(() => {
-    setDraftFollowsSystem(followsSystem);
-  }, [followsSystem]);
-
   function addBoard(boardId: number) {
     const board = getBoardById(boardId);
     const currentBoardIds = draftBoardIdsRef.current;
-    if (currentBoardIds.length >= MAX_PINNED_BOARDS) {
-      setFeedback(`最多只能常驻 ${MAX_PINNED_BOARDS} 个版块，请先移除一个。`);
-      return;
-    }
+    if (currentBoardIds.length >= MAX_PINNED_BOARDS) return;
     if (!board || currentBoardIds.includes(boardId)) return;
-    updateDraftBoardIds([...currentBoardIds, boardId]);
-    setFeedback(`已选择“${board.label}”，保存后会显示在导航栏。`);
+    updateAndSaveBoardIds([...currentBoardIds, boardId]);
   }
 
   function removeBoard(boardId: number) {
-    const board = getBoardById(boardId);
-    updateDraftBoardIds(draftBoardIdsRef.current.filter((id) => id !== boardId));
-    if (board) setFeedback(`已移除“${board.label}”，保存后生效。`);
+    if (!getBoardById(boardId)) return;
+    updateAndSaveBoardIds(draftBoardIdsRef.current.filter((id) => id !== boardId));
   }
 
-  async function saveSettings() {
-    if (isSaving) return;
-    setIsSaving(true);
-    setFeedback('正在保存设置…');
-
-    try {
-      const boardsChanged = !sameBoardIds(draftBoardIdsRef.current, pinnedBoardIds);
-      const themeChanged = draftFollowsSystem !== followsSystem;
-      const result = boardsChanged
-        ? await savePinnedBoardIds(draftBoardIdsRef.current)
-        : { boardIds: pinnedBoardIds, saved: true };
-      const themeSaved = themeChanged ? saveThemeFollowsSystem(draftFollowsSystem) : true;
-      updateDraftBoardIds(result.boardIds);
-      setFeedback(
-        result.saved && themeSaved
-        ? '设置已保存并应用。'
-          : '浏览器未能写入本地设置，请检查隐私模式或网站存储权限。',
-      );
-    } finally {
-      setIsSaving(false);
-    }
+  function updateAndSaveBoardIds(boardIds: number[]) {
+    updateDraftBoardIds(boardIds);
+    boardSaveQueueRef.current = boardSaveQueueRef.current.then(async () => {
+      const result = await savePinnedBoardIds(boardIds);
+      if (!result.saved && sameBoardIds(draftBoardIdsRef.current, boardIds)) {
+        updateDraftBoardIds(result.boardIds);
+      }
+    });
   }
 
   function updateDraftBoardIds(boardIds: number[]) {
@@ -101,11 +76,8 @@ export function SettingsPage() {
 
             <label className="settings-checkbox-option">
               <input
-                checked={draftFollowsSystem}
-                onChange={(event) => {
-                  setDraftFollowsSystem(event.target.checked);
-                  setFeedback('外观偏好已调整，保存后生效。');
-                }}
+                checked={followsSystem}
+                onChange={(event) => saveThemeFollowsSystem(event.target.checked)}
                 type="checkbox"
               />
               <span className="settings-checkbox-mark" aria-hidden="true"><Check size={14} /></span>
@@ -204,13 +176,6 @@ export function SettingsPage() {
             </div>
           </section>
         </div>
-
-        <aside className="settings-save-action" aria-label="保存设置">
-          <span className="sr-only" aria-live="polite" role="status">{feedback}</span>
-          <button disabled={!hasChanges || isSaving} onClick={() => void saveSettings()} type="button">
-            <Save size={15} />{isSaving ? '保存中' : '保存设置'}
-          </button>
-        </aside>
       </main>
     </div>
   );
@@ -243,6 +208,7 @@ function BoardGroup({
             <button
               aria-pressed={selected}
               className={`${selected ? 'settings-board-option-selected' : ''} ${!selected && disabled ? 'settings-board-option-limit' : ''}`}
+              disabled={!selected && disabled}
               key={board.id}
               onClick={() => selected ? onRemove(board.id) : onAdd(board.id)}
               type="button"

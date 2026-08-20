@@ -7,11 +7,7 @@
   .settings-page-shell {
     position: relative;
     z-index: 1;
-    display: grid;
-    width: min(1074px, calc(100% - 40px));
-    grid-template-columns: minmax(0, 760px) 304px;
-    align-items: start;
-    gap: 10px;
+    width: min(760px, calc(100% - 40px));
     margin: 0 auto;
     padding: calc(var(--topbar-height) + 28px) 0 72px;
   }
@@ -394,8 +390,7 @@
   }
 
   .settings-board-grid button:focus-visible,
-  .settings-pinned-actions button:focus-visible,
-  .settings-save-action > button:focus-visible {
+  .settings-pinned-actions button:focus-visible {
     outline: 2px solid var(--brand);
     outline-offset: 2px;
   }
@@ -439,39 +434,8 @@
 
   .settings-board-grid .settings-board-option-selected > small { color: var(--brand-strong); }
 
-  .settings-save-action {
-    position: sticky;
-    top: calc(var(--topbar-height) + 28px);
-  }
-
-  .settings-save-action > button {
-    display: inline-flex;
-    min-height: 38px;
-    width: 100%;
-    align-items: center;
-    justify-content: center;
-    gap: 6px;
-    border: 1px solid var(--brand-strong);
-    border-radius: var(--control-radius);
-    padding: 0 13px;
-    background: var(--brand-strong);
-    color: var(--surface-raised);
-    font-size: 0.66rem;
-    font-weight: 740;
-    transition: 150ms ease;
-  }
-
-  .dark .settings-save-action > button { color: #0d1711; }
-  .settings-save-action > button:hover:not(:disabled) { transform: translateY(-1px); }
-  .settings-save-action > button:disabled { cursor: not-allowed; opacity: 0.4; }
-
   @media (max-width: 1023px) {
-    .settings-page-shell { display: block; }
     .settings-pinned-board-panel { display: none; }
-    .settings-save-action {
-      position: static;
-      margin-top: 14px;
-    }
   }
 
   @media (max-width: 720px) {
