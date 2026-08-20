@@ -1,29 +1,46 @@
-import { useEffect, useReducer } from 'react';
+import { lazy, Suspense, useEffect, useReducer } from 'react';
 import { AuthProvider } from './context/AuthContext';
 import { HomePage } from './pages/HomePage';
-import { BoardPage } from './pages/BoardPage';
-import { PublicProfilePage } from './pages/PublicProfilePage';
-import { ThreadPage } from './pages/ThreadPage';
-import { UserCenterPage } from './pages/UserCenterPage';
-import { LoginPage } from './pages/LoginPage';
-import { RegisterPage } from './pages/RegisterPage';
-import { SearchPage } from './pages/SearchPage';
-import { SettingsPage } from './pages/SettingsPage';
-import { ThreadEditPage } from './pages/ThreadEditPage';
-import { ThreadComposePage } from './pages/ThreadComposePage';
-import { CalendarAdminPage } from './pages/CalendarAdminPage';
-import { ManagementPage } from './pages/ManagementPage';
-import { DataDisplayPage } from './pages/DataDisplayPage';
-import { ActivityManagementPage } from './pages/ActivityManagementPage';
 import { FORUM_LOCATION_CHANGE_EVENT } from './utils/authRoutes';
 import { translateLegacyForumThreadHref } from './utils/legacyForumRoutes';
 import { getThreadFloorElement, getThreadFloorFromHash } from './utils/threadRoutes';
 import { getPublicProfileNameFromLocation, USER_CENTER_PATH } from './utils/userRoutes';
 
+const ActivityManagementPage = lazy(() => import('./pages/ActivityManagementPage')
+  .then((module) => ({ default: module.ActivityManagementPage })));
+const BoardPage = lazy(() => import('./pages/BoardPage')
+  .then((module) => ({ default: module.BoardPage })));
+const CalendarAdminPage = lazy(() => import('./pages/CalendarAdminPage')
+  .then((module) => ({ default: module.CalendarAdminPage })));
+const DataDisplayPage = lazy(() => import('./pages/DataDisplayPage')
+  .then((module) => ({ default: module.DataDisplayPage })));
+const LoginPage = lazy(() => import('./pages/LoginPage')
+  .then((module) => ({ default: module.LoginPage })));
+const ManagementPage = lazy(() => import('./pages/ManagementPage')
+  .then((module) => ({ default: module.ManagementPage })));
+const PublicProfilePage = lazy(() => import('./pages/PublicProfilePage')
+  .then((module) => ({ default: module.PublicProfilePage })));
+const RegisterPage = lazy(() => import('./pages/RegisterPage')
+  .then((module) => ({ default: module.RegisterPage })));
+const SearchPage = lazy(() => import('./pages/SearchPage')
+  .then((module) => ({ default: module.SearchPage })));
+const SettingsPage = lazy(() => import('./pages/SettingsPage')
+  .then((module) => ({ default: module.SettingsPage })));
+const ThreadComposePage = lazy(() => import('./pages/ThreadComposePage')
+  .then((module) => ({ default: module.ThreadComposePage })));
+const ThreadEditPage = lazy(() => import('./pages/ThreadEditPage')
+  .then((module) => ({ default: module.ThreadEditPage })));
+const ThreadPage = lazy(() => import('./pages/ThreadPage')
+  .then((module) => ({ default: module.ThreadPage })));
+const UserCenterPage = lazy(() => import('./pages/UserCenterPage')
+  .then((module) => ({ default: module.UserCenterPage })));
+
 export function App() {
   return (
     <AuthProvider>
-      <ForumRouter />
+      <Suspense fallback={null}>
+        <ForumRouter />
+      </Suspense>
     </AuthProvider>
   );
 }
