@@ -293,9 +293,11 @@ export function BoardPage({ boardId }: { boardId: number }) {
                     <Settings2 size={15} />{managementMode ? '退出管理' : '管理版面'}
                   </button>
                 ) : null}
-                <a className="board-primary-action" href={`/bbs/post/?bid=${board.id}`}>
-                  <PenLine size={15} />发表主题
-                </a>
+                {authStatus === 'authenticated' ? (
+                  <a className="board-primary-action" href={`/bbs/post/?bid=${board.id}`}>
+                    <PenLine size={15} />发表主题
+                  </a>
+                ) : null}
               </div>
             </div>
           </div>
