@@ -1,11 +1,4 @@
-import {
-  ArrowDown,
-  ArrowUp,
-  Check,
-  CirclePlus,
-  Pin,
-  PinOff,
-} from 'lucide-react';
+import { Check, CirclePlus, Pin, PinOff, Save } from 'lucide-react';
 import { useState } from 'react';
 import { AppBackground } from '../components/layout/AppBackground';
 import { TopBar } from '../components/layout/TopBar';
@@ -15,11 +8,13 @@ import { MAX_PINNED_BOARDS, savePinnedBoardIds } from '../utils/localSettings';
 
 export function SettingsPage() {
   const pinnedBoardIds = usePinnedBoardIds();
-  const [feedback, setFeedback] = useState('更改会立即保存到当前浏览器。');
-  const pinnedBoards = pinnedBoardIds
+  const [draftBoardIds, setDraftBoardIds] = useState(pinnedBoardIds);
+  const [feedback, setFeedback] = useState('调整完成后，点击“保存设置”应用到 Navbar。');
+  const pinnedBoards = draftBoardIds
     .map(getBoardById)
     .filter((board) => board !== undefined);
-  const isFull = pinnedBoardIds.length >= MAX_PINNED_BOARDS;
+  const isFull = draftBoardIds.length >= MAX_PINNED_BOARDS;
+  const hasChanges = !sameBoardIds(draftBoardIds, pinnedBoardIds);
 
   function addBoard(boardId: number) {
     const board = getBoardById(boardId);
@@ -27,25 +22,25 @@ export function SettingsPage() {
       setFeedback(`最多只能常驻 ${MAX_PINNED_BOARDS} 个版块，请先移除一个。`);
       return;
     }
-    if (!board || pinnedBoardIds.includes(boardId)) return;
-    savePinnedBoardIds([...pinnedBoardIds, boardId]);
-    setFeedback(`已将“${board.label}”添加到桌面端 Navbar。`);
+    if (!board || draftBoardIds.includes(boardId)) return;
+    setDraftBoardIds((current) => [...current, boardId]);
+    setFeedback(`已选择“${board.label}”，保存后会显示在 Navbar。`);
   }
 
   function removeBoard(boardId: number) {
     const board = getBoardById(boardId);
-    savePinnedBoardIds(pinnedBoardIds.filter((id) => id !== boardId));
-    if (board) setFeedback(`已取消常驻“${board.label}”。`);
+    setDraftBoardIds((current) => current.filter((id) => id !== boardId));
+    if (board) setFeedback(`已移除“${board.label}”，保存后生效。`);
   }
 
-  function moveBoard(index: number, offset: -1 | 1) {
-    const targetIndex = index + offset;
-    if (targetIndex < 0 || targetIndex >= pinnedBoardIds.length) return;
-
-    const next = [...pinnedBoardIds];
-    [next[index], next[targetIndex]] = [next[targetIndex], next[index]];
-    savePinnedBoardIds(next);
-    setFeedback('Navbar 中的常驻版块顺序已更新。');
+  function saveSettings() {
+    const savedBoardIds = savePinnedBoardIds(draftBoardIds);
+    setDraftBoardIds(savedBoardIds);
+    setFeedback(
+      sameBoardIds(savedBoardIds, draftBoardIds)
+        ? '设置已保存，Navbar 已更新。'
+        : '浏览器未能保存设置，请检查浏览器的本地存储权限。',
+    );
   }
 
   return (
@@ -61,8 +56,8 @@ export function SettingsPage() {
               <h2 id="pinned-boards-title">常驻版块</h2>
               <p>将常用版块固定在桌面端顶部导航中，点击即可直接进入。</p>
             </div>
-            <strong className="settings-count" aria-label={`已选择 ${pinnedBoardIds.length} 个，最多 ${MAX_PINNED_BOARDS} 个`}>
-              {pinnedBoardIds.length}<span> / {MAX_PINNED_BOARDS}</span>
+            <strong className="settings-count" aria-label={`已选择 ${draftBoardIds.length} 个，最多 ${MAX_PINNED_BOARDS} 个`}>
+              {draftBoardIds.length}<span> / {MAX_PINNED_BOARDS}</span>
             </strong>
           </div>
 
@@ -80,7 +75,7 @@ export function SettingsPage() {
             <div className="settings-selection-heading">
               <div>
                 <h3>已选择</h3>
-                <p>使用上下按钮调整它们在桌面端 Navbar 中的顺序。</p>
+                <p>版块会按照加入顺序显示在桌面端 Navbar 中。</p>
               </div>
             </div>
 
@@ -93,23 +88,7 @@ export function SettingsPage() {
                       <strong>{board.label}</strong>
                       <small>版块 ID · {board.id}</small>
                     </div>
-                    <div className="settings-order-actions">
-                      <button
-                        aria-label={`将${board.label}向前移动`}
-                        disabled={index === 0}
-                        onClick={() => moveBoard(index, -1)}
-                        type="button"
-                      >
-                        <ArrowUp size={15} />
-                      </button>
-                      <button
-                        aria-label={`将${board.label}向后移动`}
-                        disabled={index === pinnedBoards.length - 1}
-                        onClick={() => moveBoard(index, 1)}
-                        type="button"
-                      >
-                        <ArrowDown size={15} />
-                      </button>
+                    <div className="settings-pinned-actions">
                       <button
                         aria-label={`取消常驻${board.label}`}
                         className="settings-remove-button"
@@ -132,7 +111,7 @@ export function SettingsPage() {
 
           <div className="settings-board-picker">
             <BoardGroup
-              boardIds={pinnedBoardIds}
+              boardIds={draftBoardIds}
               disabled={isFull}
               label="主要版块"
               onAdd={addBoard}
@@ -140,7 +119,7 @@ export function SettingsPage() {
               boards={PRIMARY_BOARDS}
             />
             <BoardGroup
-              boardIds={pinnedBoardIds}
+              boardIds={draftBoardIds}
               disabled={isFull}
               label="其他版块"
               onAdd={addBoard}
@@ -149,8 +128,11 @@ export function SettingsPage() {
             />
           </div>
 
-          <footer aria-live="polite" className="settings-panel-footer" role="status">
-            <Check size={15} />{feedback}
+          <footer className="settings-panel-footer">
+            <p aria-live="polite" role="status"><Check size={15} />{feedback}</p>
+            <button disabled={!hasChanges} onClick={saveSettings} type="button">
+              <Save size={15} />保存设置
+            </button>
           </footer>
         </section>
       </main>
@@ -189,11 +171,15 @@ function BoardGroup({
             >
               <span>{selected ? <Check size={15} /> : <CirclePlus size={15} />}</span>
               <strong>{board.label}</strong>
-              <small>{selected ? '已常驻' : disabled ? '已达上限' : '添加'}</small>
+              <small>{selected ? '已选择' : disabled ? '已达上限' : '添加'}</small>
             </button>
           );
         })}
       </div>
     </fieldset>
   );
+}
+
+function sameBoardIds(left: number[], right: number[]) {
+  return left.length === right.length && left.every((boardId, index) => boardId === right[index]);
 }

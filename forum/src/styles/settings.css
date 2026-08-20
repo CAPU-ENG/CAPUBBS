@@ -177,13 +177,13 @@
     font-size: 0.58rem;
   }
 
-  .settings-order-actions {
+  .settings-pinned-actions {
     display: flex;
     align-items: center;
     gap: 4px;
   }
 
-  .settings-order-actions button {
+  .settings-pinned-actions button {
     display: inline-flex;
     min-width: 32px;
     height: 32px;
@@ -196,24 +196,21 @@
     transition: 140ms ease;
   }
 
-  .settings-order-actions button:hover:not(:disabled) {
+  .settings-pinned-actions button:hover:not(:disabled) {
     border-color: var(--brand);
     background: var(--brand-faint);
     color: var(--brand-strong);
   }
 
-  .settings-order-actions button:disabled { opacity: 0.28; }
-
-  .settings-order-actions .settings-remove-button {
+  .settings-pinned-actions .settings-remove-button {
     min-width: 68px;
-    margin-left: 4px;
     padding: 0 9px;
     color: var(--danger);
     font-size: 0.64rem;
     font-weight: 680;
   }
 
-  .settings-order-actions .settings-remove-button:hover:not(:disabled) {
+  .settings-pinned-actions .settings-remove-button:hover:not(:disabled) {
     border-color: color-mix(in srgb, var(--danger) 58%, var(--line));
     background: color-mix(in srgb, var(--danger) 7%, var(--surface));
     color: var(--danger);
@@ -274,7 +271,8 @@
   }
 
   .settings-board-grid button:focus-visible,
-  .settings-order-actions button:focus-visible {
+  .settings-pinned-actions button:focus-visible,
+  .settings-panel-footer > button:focus-visible {
     outline: 2px solid var(--brand);
     outline-offset: 2px;
   }
@@ -322,6 +320,7 @@
     display: flex;
     min-height: 48px;
     align-items: center;
+    justify-content: space-between;
     gap: 7px;
     border-top: 1px solid var(--line);
     padding: 10px 22px;
@@ -331,7 +330,35 @@
     line-height: 1.5;
   }
 
-  .settings-panel-footer svg { flex: 0 0 auto; color: var(--brand); }
+  .settings-panel-footer > p {
+    display: flex;
+    min-width: 0;
+    align-items: center;
+    gap: 7px;
+  }
+
+  .settings-panel-footer > p svg { flex: 0 0 auto; color: var(--brand); }
+
+  .settings-panel-footer > button {
+    display: inline-flex;
+    min-height: 34px;
+    flex: 0 0 auto;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    border: 1px solid var(--brand-strong);
+    border-radius: var(--control-radius);
+    padding: 0 13px;
+    background: var(--brand-strong);
+    color: var(--surface-raised);
+    font-size: 0.66rem;
+    font-weight: 740;
+    transition: 150ms ease;
+  }
+
+  .dark .settings-panel-footer > button { color: #0d1711; }
+  .settings-panel-footer > button:hover:not(:disabled) { transform: translateY(-1px); }
+  .settings-panel-footer > button:disabled { cursor: not-allowed; opacity: 0.4; }
 
   @media (max-width: 720px) {
     .settings-board-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
@@ -349,9 +376,10 @@
     .settings-selection,
     .settings-board-picker { padding: 18px 15px; }
     .settings-pinned-list li { grid-template-columns: 24px minmax(0, 1fr) auto; }
-    .settings-order-actions .settings-remove-button { min-width: 32px; margin-left: 1px; padding: 0; }
-    .settings-order-actions .settings-remove-button span { display: none; }
+    .settings-pinned-actions .settings-remove-button { min-width: 32px; padding: 0; }
+    .settings-pinned-actions .settings-remove-button span { display: none; }
     .settings-board-grid { grid-template-columns: 1fr; }
-    .settings-panel-footer { padding: 10px 15px; }
+    .settings-panel-footer { align-items: stretch; flex-direction: column; padding: 12px 15px; }
+    .settings-panel-footer > button { width: 100%; }
   }
 }
