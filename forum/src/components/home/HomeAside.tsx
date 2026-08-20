@@ -26,13 +26,11 @@ function formatCountdown(deadline: string, now: number) {
 function formatActivityDateRange(startsOn: string, endsOn: string) {
   const [startYear, startMonth, startDay] = startsOn.split('-').map(Number);
   const [, endMonth, endDay] = endsOn.split('-').map(Number);
-  const startLabel = `${startYear}年${startMonth}月${startDay}日`;
+  const startLabel = `${startMonth}月${startDay}日`;
   if (startsOn === endsOn) return startLabel;
   const endYear = Number(endsOn.slice(0, 4));
-  const endLabel = startYear === endYear
-    ? `${endMonth}月${endDay}日`
-    : `${endYear}年${endMonth}月${endDay}日`;
-  return `${startLabel} – ${endLabel}`;
+  if (startYear === endYear) return `${startLabel} – ${endMonth}月${endDay}日`;
+  return `${startYear}年${startLabel} – ${endYear}年${endMonth}月${endDay}日`;
 }
 
 function dateKey(year: number, month: number, day: number) {
