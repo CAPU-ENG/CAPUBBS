@@ -540,7 +540,7 @@ function MemberManagementPanel() {
           <div className="management-member-confirmation">
             <div className="management-member-identity">
               <img alt="" src={selectedMember.avatar || defaultAvatar} />
-              <div><span>已确认会员身份</span><strong>{selectedMember.id}</strong><p>{selectedMember.summary || selectedMember.joinedAt}</p></div>
+              <div><span>已确认会员身份</span><strong>{selectedMember.id}</strong>{selectedMember.joinedAt && <p>{selectedMember.joinedAt}</p>}</div>
               <BadgeCheck size={19} />
             </div>
             <div className="management-member-email">
@@ -747,7 +747,7 @@ function ModeratorManagementPanel() {
           <div className="management-member-confirmation">
             <div className="management-member-identity">
               <img alt="" src={selectedMember.avatar || defaultAvatar} />
-              <div><span>已确认会员身份</span><strong>{selectedMember.id}</strong><p>{selectedMember.summary || selectedMember.joinedAt}</p></div>
+              <div><span>已确认会员身份</span><strong>{selectedMember.id}</strong>{selectedMember.joinedAt && <p>{selectedMember.joinedAt}</p>}</div>
               <BadgeCheck size={19} />
             </div>
             <div className="management-permission-row">

@@ -2328,7 +2328,7 @@ function jiekoufunc_management_member_lookup($con, $params) {
 
     $username_esc = mysqli_real_escape_string($con, $username);
     $result = mysqli_query($con,
-        "SELECT username, icon, intro, regdate, rights, mail
+        "SELECT username, icon, regdate, rights, mail
          FROM userinfo
          WHERE username='$username_esc'
          LIMIT 1");
@@ -2359,7 +2359,6 @@ function jiekoufunc_management_member_lookup($con, $params) {
         array(
             'username' => $member['username'],
             'icon' => $member['icon'],
-            'intro' => $member['intro'],
             'regdate' => $member['regdate'],
             'rights' => $member['rights'],
             'mail' => $member_mail,
@@ -2371,7 +2370,7 @@ function jiekoufunc_management_member_lookup($con, $params) {
 
 function jiekoufunc_management_elevated_members($con) {
     $result = mysqli_query($con,
-        "SELECT username, icon, intro, regdate, rights, mail
+        "SELECT username, icon, regdate, rights, mail
          FROM userinfo
          WHERE rights>0
          ORDER BY rights DESC, username");

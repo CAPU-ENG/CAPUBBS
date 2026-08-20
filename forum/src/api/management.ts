@@ -28,7 +28,6 @@ export type ManagementMember = {
   muted: boolean;
   relatedIds: string[];
   rights: number;
-  summary: string;
 };
 
 export type ManagementMute = {
@@ -242,7 +241,6 @@ function mapManagementMember(row: ApiRow): ManagementMember | null {
     muted: booleanValue(row.muted),
     relatedIds: stringList(row.related_ids, id),
     rights: numberValue(row.rights),
-    summary: textValue(row.intro),
   };
 }
 
