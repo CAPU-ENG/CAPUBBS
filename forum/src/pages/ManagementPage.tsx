@@ -328,10 +328,7 @@ function MoveThreadPanel() {
 
   return (
     <div className="management-single-column">
-      <section className="management-card management-move-card" aria-labelledby="move-thread-title">
-        <header className="management-card-heading">
-          <div><h2 id="move-thread-title">帖子挪版</h2></div>
-        </header>
+      <section className="management-card management-move-card" aria-label="帖子挪版">
         <div className="management-move-flow" aria-hidden="true">
           <span className={candidate ? 'is-complete' : 'is-current'}><b>1</b>查询帖子</span>
           <ArrowRight size={15} />
