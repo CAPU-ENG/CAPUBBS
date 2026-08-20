@@ -32,7 +32,9 @@ function FeedItem({ compactMode, item }: { compactMode: boolean; item: HomeThrea
   return (
     <article className="feed-item">
       <a className="feed-item-content" href={item.href}>
-        <h2>{item.title}</h2>
+        <h2 className={/^[【（《]/.test(item.title) ? 'feed-item-title-hanging-punctuation' : undefined}>
+          {item.title}
+        </h2>
         <p>{item.summary}</p>
       </a>
       <div className="feed-item-meta">
