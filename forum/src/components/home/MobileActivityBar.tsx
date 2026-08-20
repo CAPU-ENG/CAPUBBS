@@ -1,16 +1,25 @@
 import { useEffect, useRef, useState } from 'react';
 import { Bike, CalendarDays, ChevronDown, ChevronRight, Pin } from 'lucide-react';
-import type { HomeThread } from '../../api/home';
+import type { HomeCalendarEvent, HomeThread } from '../../api/home';
+import type { HomeDataStatus } from '../../hooks/useHomeData';
 import { ActivityCalendar, ActivitySignupList } from './HomeAside';
 import { signupActivities } from './homeData';
 
 type ExpandedPanel = 'pinned' | 'signup' | 'calendar' | null;
 
 type MobileActivityBarProps = {
+  calendarError: string;
+  calendarItems: HomeCalendarEvent[];
+  calendarStatus: HomeDataStatus;
   pinnedItems: HomeThread[];
 };
 
-export function MobileActivityBar({ pinnedItems }: MobileActivityBarProps) {
+export function MobileActivityBar({
+  calendarError,
+  calendarItems,
+  calendarStatus,
+  pinnedItems,
+}: MobileActivityBarProps) {
   const [expandedPanel, setExpandedPanel] = useState<ExpandedPanel>(null);
   const [hideOffset, setHideOffset] = useState(0);
   const overviewRef = useRef<HTMLElement | null>(null);
@@ -135,7 +144,12 @@ export function MobileActivityBar({ pinnedItems }: MobileActivityBarProps) {
 
       {expandedPanel === 'calendar' && (
         <div className="mobile-overview-panel" id="mobile-calendar-panel">
-          <ActivityCalendar compact />
+          <ActivityCalendar
+            compact
+            error={calendarError}
+            items={calendarItems}
+            status={calendarStatus}
+          />
         </div>
       )}
     </section>

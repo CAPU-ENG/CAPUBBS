@@ -444,7 +444,8 @@
     background: var(--surface-soft);
   }
 
-  .calendar-agenda a {
+  .calendar-agenda a,
+  .calendar-agenda article {
     display: grid;
     grid-template-columns: 1fr auto;
     gap: 5px 10px;

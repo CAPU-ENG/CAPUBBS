@@ -1,7 +1,8 @@
 import { useEffect, useMemo, useState } from 'react';
-import { Bike, CalendarDays, ChevronLeft, ChevronRight, Clock3, MapPin, Pin } from 'lucide-react';
-import type { HomeThread } from '../../api/home';
-import { activities, signupActivities } from './homeData';
+import { Bike, CalendarDays, ChevronLeft, ChevronRight, Clock3, Info, Pin } from 'lucide-react';
+import type { HomeCalendarEvent, HomeThread } from '../../api/home';
+import type { HomeDataStatus } from '../../hooks/useHomeData';
+import { signupActivities } from './homeData';
 
 function formatCountdown(deadline: string, now: number) {
   const remaining = new Date(deadline).getTime() - now;
@@ -21,6 +22,19 @@ function dateKey(year: number, month: number, day: number) {
 
 type PinnedProps = {
   items: HomeThread[];
+};
+
+type CalendarProps = {
+  compact?: boolean;
+  error: string;
+  items: HomeCalendarEvent[];
+  status: HomeDataStatus;
+};
+
+type DesktopHomeAsideProps = PinnedProps & {
+  calendarError: string;
+  calendarItems: HomeCalendarEvent[];
+  calendarStatus: HomeDataStatus;
 };
 
 function PinnedPanel({ items }: PinnedProps) {
@@ -87,10 +101,17 @@ function ActivitySignupPanel() {
   );
 }
 
-export function ActivityCalendar({ compact = false }: { compact?: boolean }) {
-  const [monthCursor, setMonthCursor] = useState({ year: 2026, month: 7 });
-  const [selectedKey, setSelectedKey] = useState('2026-08-23');
+export function ActivityCalendar({ compact = false, error, items, status }: CalendarProps) {
+  const [today] = useState(() => new Date());
+  const [monthCursor, setMonthCursor] = useState(() => ({
+    year: today.getFullYear(),
+    month: today.getMonth(),
+  }));
+  const [selectedKey, setSelectedKey] = useState(() => (
+    dateKey(today.getFullYear(), today.getMonth(), today.getDate())
+  ));
   const { year, month } = monthCursor;
+  const todayKey = dateKey(today.getFullYear(), today.getMonth(), today.getDate());
 
   const cells = useMemo(() => {
     const firstWeekday = (new Date(year, month, 1).getDay() + 6) % 7;
@@ -109,7 +130,16 @@ export function ActivityCalendar({ compact = false }: { compact?: boolean }) {
     });
   }, [month, year]);
 
-  const selectedActivities = activities.filter((activity) => activity.date === selectedKey);
+  const activitiesByDate = useMemo(() => {
+    const groupedActivities = new Map<string, HomeCalendarEvent[]>();
+    items.forEach((activity) => {
+      const dateActivities = groupedActivities.get(activity.date) ?? [];
+      dateActivities.push(activity);
+      groupedActivities.set(activity.date, dateActivities);
+    });
+    return groupedActivities;
+  }, [items]);
+  const selectedActivities = activitiesByDate.get(selectedKey) ?? [];
 
   function moveMonth(delta: number) {
     const next = new Date(year, month + delta, 1);
@@ -144,9 +174,9 @@ export function ActivityCalendar({ compact = false }: { compact?: boolean }) {
         {cells.map(({ day, offset }, index) => {
           const cellDate = new Date(year, month + offset, day);
           const cellKey = dateKey(cellDate.getFullYear(), cellDate.getMonth(), cellDate.getDate());
-          const hasActivity = activities.some((activity) => activity.date === cellKey);
+          const hasActivity = activitiesByDate.has(cellKey);
           const selected = selectedKey === cellKey;
-          const isToday = cellKey === '2026-08-20';
+          const isToday = cellKey === todayKey;
 
           return (
             <button
@@ -167,13 +197,24 @@ export function ActivityCalendar({ compact = false }: { compact?: boolean }) {
       </div>
 
       <div className="calendar-agenda">
-        {selectedActivities.length > 0 ? selectedActivities.map((activity) => (
-          <a href={`#activity-${activity.date}`} key={`${activity.date}-${activity.title}`}>
-            <strong>{activity.title}</strong>
-            <span><Clock3 size={13} />{activity.time}</span>
-            <span><MapPin size={13} />{activity.place}</span>
-          </a>
-        )) : (
+        {status === 'loading' ? (
+          <p>活动加载中…</p>
+        ) : status === 'error' ? (
+          <p>{error}</p>
+        ) : selectedActivities.length > 0 ? selectedActivities.map((activity) => {
+          const content = (
+            <>
+              <strong>{activity.title}</strong>
+              <span><Clock3 size={13} />{activity.time}</span>
+              {activity.description && <span><Info size={13} />{activity.description}</span>}
+            </>
+          );
+          return activity.url ? (
+            <a href={activity.url} key={activity.id}>{content}</a>
+          ) : (
+            <article key={activity.id}>{content}</article>
+          );
+        }) : (
           <p>当天暂无活动</p>
         )}
       </div>
@@ -181,12 +222,21 @@ export function ActivityCalendar({ compact = false }: { compact?: boolean }) {
   );
 }
 
-export function DesktopHomeAside({ items }: PinnedProps) {
+export function DesktopHomeAside({
+  calendarError,
+  calendarItems,
+  calendarStatus,
+  items,
+}: DesktopHomeAsideProps) {
   return (
     <aside className="home-aside">
       {items.length > 0 && <PinnedPanel items={items} />}
       {signupActivities.length > 0 && <ActivitySignupPanel />}
-      <ActivityCalendar />
+      <ActivityCalendar
+        error={calendarError}
+        items={calendarItems}
+        status={calendarStatus}
+      />
     </aside>
   );
 }

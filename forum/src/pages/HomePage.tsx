@@ -6,13 +6,18 @@ import { TopBar } from '../components/layout/TopBar';
 import { useHomeData } from '../hooks/useHomeData';
 
 export function HomePage() {
-  const { feed, feedHasMore, loadMore, pinned, retry } = useHomeData();
+  const { calendar, feed, feedHasMore, loadMore, pinned, retry } = useHomeData();
 
   return (
     <div className="relative min-h-screen text-[var(--text)] transition-colors duration-200">
       <AppBackground />
       <TopBar />
-      <MobileActivityBar pinnedItems={pinned.items} />
+      <MobileActivityBar
+        calendarError={calendar.error}
+        calendarItems={calendar.items}
+        calendarStatus={calendar.status}
+        pinnedItems={pinned.items}
+      />
 
       <main className="page-shell">
         <FeedSection
@@ -25,6 +30,9 @@ export function HomePage() {
         />
         <div className="hidden lg:block">
           <DesktopHomeAside
+            calendarError={calendar.error}
+            calendarItems={calendar.items}
+            calendarStatus={calendar.status}
             items={pinned.items}
           />
         </div>

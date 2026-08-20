@@ -2,6 +2,8 @@ import { getPublicProfilePath } from '../utils/userRoutes';
 import { normalizeLegacyAvatar } from '../utils/legacyAssets';
 
 const HOME_API_URL = import.meta.env.VITE_API_URL?.trim() || '/api/api.php';
+const HOME_CALENDAR_API_URL = import.meta.env.VITE_CALENDAR_API_URL?.trim()
+  || '/assets/api/getCalendar.php';
 const THREAD_FLOORS_PER_PAGE = 12;
 const avatarCache = new Map<string, string>();
 const avatarRequests = new Map<string, Promise<string>>();
@@ -31,6 +33,15 @@ export type HomeThread = {
   views: number;
 };
 
+export type HomeCalendarEvent = {
+  date: string;
+  description: string;
+  id: string;
+  time: string;
+  title: string;
+  url: string;
+};
+
 export class HomeApiError extends Error {
   constructor(message: string) {
     super(message);
@@ -46,6 +57,36 @@ export async function fetchHomeFeed(limit = 15, signal?: AbortSignal) {
 export async function fetchGlobalPinnedThreads(signal?: AbortSignal) {
   const rows = await requestRows({ ask: 'global_top' }, signal);
   return rows.map((row) => mapThreadRow(row)).filter((thread): thread is HomeThread => thread !== null);
+}
+
+export async function fetchHomeCalendar(signal?: AbortSignal) {
+  let response: Response;
+  try {
+    response = await fetch(HOME_CALENDAR_API_URL, {
+      credentials: 'include',
+      headers: { Accept: 'application/json' },
+      signal,
+    });
+  } catch (error) {
+    if (isAbortError(error)) throw error;
+    throw new HomeApiError('暂时无法连接日历服务，请稍后重试。');
+  }
+
+  let payload: unknown;
+  try {
+    payload = await response.json();
+  } catch {
+    throw new HomeApiError('日历服务返回了无法识别的数据。');
+  }
+
+  if (!response.ok || !Array.isArray(payload)) {
+    throw new HomeApiError('日历数据加载失败，请稍后重试。');
+  }
+
+  return payload
+    .map(mapCalendarRow)
+    .filter((event): event is HomeCalendarEvent => event !== null)
+    .sort((left, right) => `${left.date} ${left.time}`.localeCompare(`${right.date} ${right.time}`));
 }
 
 export async function hydrateHomeThreadAvatars(threads: HomeThread[], signal?: AbortSignal) {
@@ -146,6 +187,53 @@ function mapThreadRow(row: ApiRow, linkToLatestFloor = false): HomeThread | null
     title,
     views: toNumber(row.click),
   };
+}
+
+function mapCalendarRow(value: unknown, index: number): HomeCalendarEvent | null {
+  if (!isApiRow(value)) return null;
+
+  const rawDate = typeof value.date === 'string' ? value.date.trim() : '';
+  const match = rawDate.match(
+    /^(\d{4})-(\d{2})-(\d{2})[ T](\d{2}):(\d{2})(?::\d{2})?$/,
+  );
+  if (!match) return null;
+
+  const [, year, month, day, hour, minute] = match;
+  const dateParts = [year, month, day, hour, minute].map(Number);
+  const [numericYear, numericMonth, numericDay, numericHour, numericMinute] = dateParts;
+  const calendarDate = new Date(numericYear, numericMonth - 1, numericDay);
+  const hasValidDate = calendarDate.getFullYear() === numericYear
+    && calendarDate.getMonth() === numericMonth - 1
+    && calendarDate.getDate() === numericDay;
+  if (!hasValidDate || numericHour > 23 || numericMinute > 59) return null;
+
+  const title = plainText(value.title);
+  if (!title) return null;
+
+  const date = `${year}-${month}-${day}`;
+  const time = `${hour}:${minute}`;
+  return {
+    date,
+    description: plainText(value.description),
+    id: `${date}-${time}-${title}-${index}`,
+    time,
+    title,
+    url: normalizeCalendarUrl(value.url),
+  };
+}
+
+function normalizeCalendarUrl(value: unknown) {
+  if (typeof value !== 'string' || !value.trim()) return '';
+
+  try {
+    const parsedUrl = new URL(value.trim(), window.location.origin);
+    if (parsedUrl.protocol !== 'http:' && parsedUrl.protocol !== 'https:') return '';
+    return parsedUrl.origin === window.location.origin
+      ? `${parsedUrl.pathname}${parsedUrl.search}${parsedUrl.hash}`
+      : parsedUrl.href;
+  } catch {
+    return '';
+  }
 }
 
 async function fetchUserAvatar(username: string) {
