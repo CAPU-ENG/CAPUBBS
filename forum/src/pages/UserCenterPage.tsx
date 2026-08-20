@@ -48,6 +48,22 @@ export function UserCenterPage() {
     return () => window.clearTimeout(timeout);
   }, [notice]);
 
+  useEffect(() => {
+    function openAccountSecurityFromHash() {
+      if (window.location.hash === '#account-security') setOpenDialog('security');
+    }
+
+    window.addEventListener('hashchange', openAccountSecurityFromHash);
+    return () => window.removeEventListener('hashchange', openAccountSecurityFromHash);
+  }, []);
+
+  function closeDialog() {
+    setOpenDialog(null);
+    if (window.location.hash === '#account-security') {
+      window.history.replaceState(null, '', `${window.location.pathname}${window.location.search}`);
+    }
+  }
+
   function updateDraft(key: keyof ProfileDraft, value: string) {
     setDraft((current) => ({ ...current, [key]: value }));
   }
@@ -132,7 +148,7 @@ export function UserCenterPage() {
 
       <AvatarDialog
         avatarSrc={profile.avatarSrc}
-        onClose={() => setOpenDialog(null)}
+        onClose={closeDialog}
         onSave={async (src) => {
           const updatedProfile = await updateProfileAvatar(src);
           profileState.replace(updatedProfile);
@@ -143,7 +159,7 @@ export function UserCenterPage() {
       />
       <EmailDialog
         email={email}
-        onClose={() => setOpenDialog(null)}
+        onClose={closeDialog}
         onNotify={(message, tone) => setNotice({ message, tone })}
         onSave={async (visible) => {
           await updateProfileEmailVisibility(visible);
@@ -158,7 +174,7 @@ export function UserCenterPage() {
         visible={profile.emailVisible}
       />
       <SecurityDialog
-        onClose={() => setOpenDialog(null)}
+        onClose={closeDialog}
         onNotify={(message, tone) => setNotice({ message, tone })}
         onSave={async (oldPassword, newPassword) => {
           await updateProfilePassword(oldPassword, newPassword);

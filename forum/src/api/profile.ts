@@ -144,10 +144,18 @@ export function isProfileAbortError(error: unknown) {
 }
 
 async function fetchCurrentUserRow(signal?: AbortSignal) {
-  const rows = await requestRows({ ask: 'currentUserInfo' }, signal);
-  const row = rows[0];
-  if (!row || !stringValue(row.username)) throw new ProfileApiError('请先登录后查看个人中心。');
-  return row;
+  const identityRows = await requestRows({ ask: 'getuser' }, signal);
+  const username = stringValue(identityRows[0]?.username);
+  if (!username) throw new ProfileApiError('请先登录后查看个人中心。');
+
+  // currentUserInfo can expose the profile's own `code` column as the first
+  // row, which the unified API wrapper may mistake for a legacy status code.
+  const profileRows = await requestRows({ ask: 'user_profile', username }, signal);
+  const profileRow = profileRows[0];
+  if (!profileRow || !stringValue(profileRow.username)) {
+    throw new ProfileApiError('个人资料加载失败，请稍后重试。');
+  }
+  return profileRow;
 }
 
 async function editUser(row: ApiRow, overrides: EditUserOverrides) {

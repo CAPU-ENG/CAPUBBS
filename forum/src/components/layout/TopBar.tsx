@@ -4,9 +4,11 @@ import {
   ChevronDown,
   LoaderCircle,
   LogIn,
+  LogOut,
   Menu,
   Moon,
   Search,
+  Settings,
   Sun,
   UserRound,
 } from 'lucide-react';
@@ -38,7 +40,7 @@ export function TopBar({
   minimal?: boolean;
   showContextTitle?: boolean;
 }) {
-  const { status: authStatus, viewer } = useAuth();
+  const { logout, status: authStatus, viewer } = useAuth();
   const authPending = authStatus === 'loading' || authStatus === 'restoring';
   const params = new URLSearchParams(window.location.search);
   const isHomePage = window.location.pathname === '/'
@@ -287,8 +289,24 @@ export function TopBar({
                 </button>
 
                 {profileOpen && (
-                  <div className="profile-menu" role="menu">
-                    <a href={USER_CENTER_PATH} role="menuitem"><UserRound size={16} />个人中心</a>
+                  <div aria-label="个人菜单" className="profile-menu" role="menu">
+                    <a href={USER_CENTER_PATH} role="menuitem" onClick={() => setProfileOpen(false)}>
+                      <UserRound size={16} />个人中心
+                    </a>
+                    <a href={`${USER_CENTER_PATH}#account-security`} role="menuitem" onClick={() => setProfileOpen(false)}>
+                      <Settings size={16} />设置
+                    </a>
+                    <button
+                      className="profile-menu-logout"
+                      role="menuitem"
+                      type="button"
+                      onClick={() => {
+                        setProfileOpen(false);
+                        void logout().catch(() => undefined);
+                      }}
+                    >
+                      <LogOut size={16} />退出登录
+                    </button>
                   </div>
                 )}
               </div>
