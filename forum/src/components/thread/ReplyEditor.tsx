@@ -15,10 +15,11 @@ import {
   type RichTextEditorValue,
 } from "../editor/RichTextEditor";
 
-export type ReplyTarget = {
+export type QuoteRequest = {
   author: string;
   floor: number;
   quote?: string;
+  requestId: number;
 };
 
 type ReplyAttachment = {
@@ -43,19 +44,17 @@ const signatureOptions = [
 
 export function ReplyEditor({
   editorRef,
-  onClearTarget,
   previewAuthor,
   previewFloor,
   previewSignatures,
-  target,
+  quoteRequest,
   threadTitle,
 }: {
   editorRef: React.RefObject<HTMLElement | null>;
-  onClearTarget: () => void;
   previewAuthor: ReplyPreviewAuthor;
   previewFloor: number;
   previewSignatures: string[];
-  target: ReplyTarget | null;
+  quoteRequest: QuoteRequest | null;
   threadTitle: string;
 }) {
   const [editorValue, setEditorValue] = useState<RichTextEditorValue>({
@@ -69,7 +68,7 @@ export function ReplyEditor({
   const [previewedAt, setPreviewedAt] = useState("");
   const [focusRequest, setFocusRequest] = useState(0);
   const [status, setStatus] = useState("");
-  const appliedTargetRef = useRef("");
+  const appliedQuoteRequestRef = useRef(0);
 
   useEffect(() => {
     const draft = window.localStorage.getItem(draftStorageKey);
@@ -99,21 +98,15 @@ export function ReplyEditor({
   }, []);
 
   useEffect(() => {
-    if (!target) {
-      appliedTargetRef.current = "";
-      return;
-    }
+    if (!quoteRequest || appliedQuoteRequestRef.current === quoteRequest.requestId) return;
+    appliedQuoteRequestRef.current = quoteRequest.requestId;
 
-    const targetKey = `${target.floor}:${target.author}:${target.quote ?? ""}`;
-    if (appliedTargetRef.current === targetKey) return;
-    appliedTargetRef.current = targetKey;
-
-    if (target.quote) {
-      setEditorValue((current) => appendQuote(current, target));
+    if (quoteRequest.quote) {
+      setEditorValue((current) => appendQuote(current, quoteRequest));
     }
     setFocusRequest((request) => request + 1);
     setStatus("");
-  }, [target]);
+  }, [quoteRequest]);
 
   function updateEditorValue(nextValue: RichTextEditorValue) {
     setEditorValue(nextValue);
@@ -192,22 +185,6 @@ export function ReplyEditor({
         <h2 id="reply-editor-title">写回复</h2>
         <p>Re: {threadTitle}</p>
       </header>
-
-      {target && (
-        <div className="reply-target">
-          <span>
-            回复 @{target.author} · #{target.floor}
-          </span>
-          {target.quote && <q>{target.quote}</q>}
-          <button
-            aria-label="取消回复目标"
-            onClick={onClearTarget}
-            type="button"
-          >
-            <X size={15} />
-          </button>
-        </div>
-      )}
 
       <div className="reply-editor-core">
         <RichTextEditor
@@ -554,7 +531,7 @@ function AttachmentDialog({
 
 function appendQuote(
   current: RichTextEditorValue,
-  target: ReplyTarget,
+  target: QuoteRequest,
 ): RichTextEditorValue {
   const quote = target.quote?.trim();
   if (!quote) return current;

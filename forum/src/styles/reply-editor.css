@@ -33,45 +33,6 @@
     white-space: nowrap;
   }
 
-  .reply-target {
-    position: relative;
-    margin: 0 16px 12px;
-    border-left: 2px solid var(--brand);
-    padding: 9px 38px 9px 11px;
-    background: var(--brand-faint);
-    color: var(--text-muted);
-    font-size: 0.7rem;
-  }
-
-  .reply-target > span,
-  .reply-target > q {
-    display: block;
-  }
-
-  .reply-target > span {
-    color: var(--brand-strong);
-    font-weight: 720;
-  }
-
-  .reply-target > q {
-    overflow: hidden;
-    margin-top: 4px;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-  }
-
-  .reply-target > button {
-    position: absolute;
-    top: 7px;
-    right: 8px;
-    display: inline-flex;
-    width: 28px;
-    height: 28px;
-    align-items: center;
-    justify-content: center;
-    color: var(--text-faint);
-  }
-
   .reply-editor-core {
     padding: 4px 16px 6px;
   }
@@ -659,10 +620,6 @@
       max-width: 55%;
     }
 
-    .reply-target {
-      margin: 0 10px 10px;
-    }
-
     .reply-editor-core {
       padding: 3px 10px 5px;
     }
@@ -784,4 +741,3 @@
   }
 
 }
-

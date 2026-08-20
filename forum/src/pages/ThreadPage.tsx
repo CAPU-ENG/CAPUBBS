@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { Bookmark, BookmarkCheck, Eye, MessageCircle, RotateCw } from 'lucide-react';
-import { ReplyEditor, type ReplyTarget } from '../components/thread/ReplyEditor';
+import { ReplyEditor, type QuoteRequest } from '../components/thread/ReplyEditor';
 import { ThreadFloor } from '../components/thread/ThreadFloor';
 import { FloorNodes, MobileFloorNode, ThreadPagination } from '../components/thread/ThreadNavigation';
 import { AppBackground } from '../components/layout/AppBackground';
@@ -32,7 +32,8 @@ function positiveInteger(value: string | null) {
 export function ThreadPage() {
   const request = getThreadRequest();
   const { data, error, retry, status } = useThreadData(request);
-  const [replyTarget, setReplyTarget] = useState<ReplyTarget | null>(null);
+  const [quoteRequest, setQuoteRequest] = useState<QuoteRequest | null>(null);
+  const quoteRequestIdRef = useRef(0);
   const [activeFloor, setActiveFloor] = useState(1);
   const [bookmarked, setBookmarked] = useState(false);
   const editorRef = useRef<HTMLElement | null>(null);
@@ -95,17 +96,15 @@ export function ThreadPage() {
     };
   }, [data?.currentPage, pageFloors]);
 
-  function scrollToEditor(target: ReplyTarget) {
-    setReplyTarget(target);
-    window.requestAnimationFrame(() => editorRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }));
-  }
-
   function quoteFloor(floor: ThreadFloorData) {
-    scrollToEditor({
+    quoteRequestIdRef.current += 1;
+    setQuoteRequest({
       author: floor.author.name,
       floor: floor.floor,
       quote: (floor.quoteText || floor.paragraphs[0] || '').slice(0, 90),
+      requestId: quoteRequestIdRef.current,
     });
+    window.requestAnimationFrame(() => editorRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }));
   }
 
   async function submitNestedReply(floor: ThreadFloorData, targetName: string | null, content: string) {
@@ -236,11 +235,10 @@ export function ThreadPage() {
         {data.canReply && data.viewer ? (
           <ReplyEditor
             editorRef={editorRef}
-            onClearTarget={() => setReplyTarget(null)}
             previewAuthor={data.viewer}
             previewFloor={data.replies + 2}
             previewSignatures={data.viewerSignatures}
-            target={replyTarget}
+            quoteRequest={quoteRequest}
             threadTitle={data.title}
           />
         ) : (
