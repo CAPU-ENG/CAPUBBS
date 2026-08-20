@@ -12,7 +12,7 @@ export function SettingsPage() {
   const draftBoardIdsRef = useRef(pinnedBoardIds);
   const previousPinnedBoardIdsRef = useRef(pinnedBoardIds);
   const [isSaving, setIsSaving] = useState(false);
-  const [feedback, setFeedback] = useState('调整完成后，点击“保存设置”应用到 Navbar。');
+  const [feedback, setFeedback] = useState('调整完成后，点击“保存设置”应用到导航栏。');
   const pinnedBoards = draftBoardIds
     .map(getBoardById)
     .filter((board) => board !== undefined);
@@ -36,7 +36,7 @@ export function SettingsPage() {
     }
     if (!board || currentBoardIds.includes(boardId)) return;
     updateDraftBoardIds([...currentBoardIds, boardId]);
-    setFeedback(`已选择“${board.label}”，保存后会显示在 Navbar。`);
+    setFeedback(`已选择“${board.label}”，保存后会显示在导航栏。`);
   }
 
   function removeBoard(boardId: number) {
@@ -55,7 +55,7 @@ export function SettingsPage() {
       updateDraftBoardIds(result.boardIds);
       setFeedback(
         result.saved
-          ? '设置已保存，Navbar 已更新。'
+        ? '设置已保存，导航栏已更新。'
           : '浏览器未能写入本地设置，请检查隐私模式或网站存储权限。',
       );
     } finally {
@@ -100,7 +100,7 @@ export function SettingsPage() {
             <div className="settings-selection-heading">
               <div>
                 <h3>已选择</h3>
-                <p>版块会按照加入顺序显示在桌面端 Navbar 中。</p>
+                <p>版块会按照加入顺序显示在桌面端导航栏中。</p>
               </div>
             </div>
 
