@@ -14,7 +14,14 @@ import {
   UserCog,
   Users,
 } from 'lucide-react';
-import { useMemo, useState, type FormEvent, type ReactNode } from 'react';
+import { useEffect, useMemo, useState, type FormEvent, type ReactNode } from 'react';
+import {
+  fetchGlobalPins,
+  fetchManagementThread,
+  moveManagementThread,
+  toggleGlobalPin,
+  type ManagementThread,
+} from '../api/management';
 import defaultAvatar from '../assets/avatar/default-avatar.avif';
 import { AppBackground } from '../components/layout/AppBackground';
 import { TopBar } from '../components/layout/TopBar';
@@ -24,57 +31,12 @@ import { ALL_BOARDS } from '../data/boards';
 type AdminTab = 'pins' | 'move' | 'members';
 type NoticeKind = 'error' | 'info' | 'success';
 
-type ThreadSummary = {
-  author: string;
-  board: string;
-  boardId: number;
-  id: number;
-  title: string;
-  url: string;
-};
-
-type GlobalPin = ThreadSummary & {
-};
-
 type ManagedMember = {
   avatar: string;
   id: string;
   joinedAt: string;
   rights: number;
   summary: string;
-};
-
-const INITIAL_PINS: GlobalPin[] = [
-  {
-    author: 'CAPU',
-    board: '公告栏',
-    boardId: 12,
-    id: 18426,
-    title: '论坛使用说明与新版功能反馈汇总',
-    url: '/?bid=12&tid=18426',
-  },
-  {
-    author: '组织部',
-    board: '车协工作区',
-    boardId: 1,
-    id: 18397,
-    title: '本学期车协活动日历及报名方式',
-    url: '/?bid=1&tid=18397',
-  },
-  {
-    author: '网站维护',
-    board: '网站维护',
-    boardId: 28,
-    id: 18352,
-    title: '新版论坛测试期间的已知问题',
-    url: '/?bid=28&tid=18352',
-  },
-];
-
-const MOCK_THREADS: Record<number, Omit<ThreadSummary, 'id' | 'url'>> = {
-  18431: { author: '追风少年', board: '行者足音', boardId: 2, title: '暑期环湖骑行记录与路线整理' },
-  18435: { author: '北纬三十度', board: '车友宝典', boardId: 3, title: '长途骑行装备清单：从轻量化开始' },
-  18440: { author: '山城车手', board: '竞赛竞技', boardId: 9, title: '九月公路车计时赛报名帖' },
 };
 
 const INITIAL_MEMBERS: ManagedMember[] = [
@@ -113,18 +75,7 @@ export function ManagementPage() {
             此页面仅对权限值大于或等于 3 的会员开放。
           </ManagementState>
         ) : (
-          <section className="management-panel" aria-labelledby="management-title">
-            <header className="management-heading">
-              <div className="management-heading-copy">
-                <span className="management-title-icon"><ShieldCheck size={20} /></span>
-                <div>
-                  <div className="management-title-line">
-                    <h1 id="management-title">论坛管理</h1>
-                  </div>
-                </div>
-              </div>
-            </header>
-
+          <section className="management-panel" aria-label="论坛管理">
             <div className="management-body">
               <div aria-label="管理功能" className="management-tabs" role="tablist">
                 {TAB_ITEMS.map((tab) => {
@@ -167,38 +118,88 @@ export function ManagementPage() {
 }
 
 function GlobalPinsPanel() {
-  const [pins, setPins] = useState(INITIAL_PINS);
+  const [pins, setPins] = useState<ManagementThread[]>([]);
+  const [pinsStatus, setPinsStatus] = useState<'error' | 'loading' | 'ready'>('loading');
   const [threadUrl, setThreadUrl] = useState('');
-  const [candidate, setCandidate] = useState<ThreadSummary | null>(null);
+  const [candidate, setCandidate] = useState<ManagementThread | null>(null);
+  const [isLookingUp, setIsLookingUp] = useState(false);
+  const [pendingThreadKey, setPendingThreadKey] = useState<string | null>(null);
   const [notice, setNotice] = useState<{ kind: NoticeKind; text: string } | null>(null);
 
-  function inspectThread(event: FormEvent) {
+  useEffect(() => {
+    const controller = new AbortController();
+    void fetchGlobalPins(controller.signal).then(
+      (items) => {
+        setPins(items);
+        setPinsStatus('ready');
+      },
+      (error: unknown) => {
+        if (error instanceof DOMException && error.name === 'AbortError') return;
+        setPinsStatus('error');
+        setNotice({ kind: 'error', text: errorMessage(error, '全局置顶列表加载失败，请稍后重试。') });
+      },
+    );
+    return () => controller.abort();
+  }, []);
+
+  async function inspectThread(event: FormEvent) {
     event.preventDefault();
-    const result = resolveMockThread(threadUrl);
-    if (!result) {
+    if (isLookingUp) return;
+    setIsLookingUp(true);
+    setNotice(null);
+    try {
+      const result = await fetchManagementThread(threadUrl);
+      setCandidate(result);
+      setNotice({ kind: 'info', text: '已找到帖子，请确认标题与作者后再置顶。' });
+    } catch (error) {
       setCandidate(null);
-      setNotice({ kind: 'error', text: '未识别到有效帖子链接，请检查链接中的帖子编号。' });
-      return;
+      setNotice({ kind: 'error', text: errorMessage(error, '帖子查询失败，请稍后重试。') });
+    } finally {
+      setIsLookingUp(false);
     }
-    setCandidate(result);
-    setNotice({ kind: 'info', text: '已找到帖子，请确认标题与作者后再置顶。' });
   }
 
-  function addPin() {
+  async function addPin() {
     if (!candidate) return;
-    if (pins.some((pin) => pin.id === candidate.id)) {
+    if (pinsStatus !== 'ready') {
+      setNotice({ kind: 'error', text: '全局置顶列表尚未加载完成，请稍后重试。' });
+      return;
+    }
+    if (pins.some((pin) => threadKey(pin) === threadKey(candidate))) {
       setNotice({ kind: 'error', text: '这个帖子已经在全局置顶列表中。' });
       return;
     }
-    setPins((current) => [candidate, ...current]);
-    setCandidate(null);
-    setThreadUrl('');
-    setNotice({ kind: 'success', text: '模拟操作完成：帖子已加入全局置顶。' });
+    setPendingThreadKey(threadKey(candidate));
+    setNotice(null);
+    try {
+      await toggleGlobalPin(candidate);
+      setPins(await fetchGlobalPins());
+      setCandidate(null);
+      setThreadUrl('');
+      setPinsStatus('ready');
+      setNotice({ kind: 'success', text: '帖子已加入全局置顶。' });
+    } catch (error) {
+      setNotice({ kind: 'error', text: errorMessage(error, '全局置顶失败，请稍后重试。') });
+    } finally {
+      setPendingThreadKey(null);
+    }
   }
 
-  function removePin(pin: GlobalPin) {
-    setPins((current) => current.filter((item) => item.id !== pin.id));
-    setNotice({ kind: 'success', text: `模拟操作完成：已取消“${pin.title}”的全局置顶。` });
+  async function removePin(pin: ManagementThread) {
+    const key = threadKey(pin);
+    if (pendingThreadKey) return;
+    setPendingThreadKey(key);
+    setNotice(null);
+    try {
+      await toggleGlobalPin(pin);
+      setPins(await fetchGlobalPins());
+      setPinsStatus('ready');
+      setNotice({ kind: 'success', text: `已取消“${pin.title}”的全局置顶。` });
+    } catch (error) {
+      setNotice({ kind: 'error', text: errorMessage(error, '取消全局置顶失败，请稍后重试。') });
+    } finally {
+      setPendingThreadKey(null);
+    }
   }
 
   return (
@@ -209,17 +210,27 @@ function GlobalPinsPanel() {
           <span>{pins.length} 篇</span>
         </header>
         <div className="management-thread-list">
-          {pins.length === 0 ? (
+          {pinsStatus === 'loading' ? (
+            <EmptyState icon={<LoaderCircle className="animate-spin" size={19} />}>正在加载全局置顶。</EmptyState>
+          ) : pinsStatus === 'error' ? (
+            <EmptyState icon={<CircleAlert size={19} />}>全局置顶列表加载失败。</EmptyState>
+          ) : pins.length === 0 ? (
             <EmptyState icon={<PinOff size={19} />}>目前没有全局置顶帖。</EmptyState>
           ) : pins.map((pin) => (
-            <article key={pin.id}>
+            <article key={threadKey(pin)}>
               <span className="management-row-icon"><Pin size={15} /></span>
               <div className="management-row-main">
                 <a href={pin.url}>{pin.title}<ExternalLink size={12} /></a>
                 <p><span>{pin.board}</span><i />作者 {pin.author}</p>
               </div>
-              <button className="management-danger-button" onClick={() => removePin(pin)} type="button">
-                <PinOff size={14} />取消置顶
+              <button
+                className="management-danger-button"
+                disabled={pendingThreadKey !== null}
+                onClick={() => void removePin(pin)}
+                type="button"
+              >
+                {pendingThreadKey === threadKey(pin) ? <LoaderCircle className="animate-spin" size={14} /> : <PinOff size={14} />}
+                取消置顶
               </button>
             </article>
           ))}
@@ -240,14 +251,24 @@ function GlobalPinsPanel() {
                 setCandidate(null);
                 setNotice(null);
               }}
-              placeholder="例如 /?bid=2&tid=18431"
+              placeholder="粘贴帖子链接"
               type="text"
               value={threadUrl}
             />
-            <button type="submit"><Search size={15} />查询帖子</button>
+            <button disabled={isLookingUp || pendingThreadKey !== null} type="submit">
+              {isLookingUp ? <LoaderCircle className="animate-spin" size={15} /> : <Search size={15} />}查询帖子
+            </button>
           </div>
         </form>
-        {candidate && <ThreadConfirmation actionLabel="确认全局置顶" onConfirm={addPin} thread={candidate} />}
+        {candidate && (
+          <ThreadConfirmation
+            actionLabel="确认全局置顶"
+            disabled={pinsStatus !== 'ready' || pendingThreadKey !== null}
+            onConfirm={() => void addPin()}
+            pending={pendingThreadKey === threadKey(candidate)}
+            thread={candidate}
+          />
+        )}
         {notice && <ManagementNotice kind={notice.kind}>{notice.text}</ManagementNotice>}
       </section>
     </div>
@@ -256,36 +277,55 @@ function GlobalPinsPanel() {
 
 function MoveThreadPanel() {
   const [threadUrl, setThreadUrl] = useState('');
-  const [candidate, setCandidate] = useState<ThreadSummary | null>(null);
+  const [candidate, setCandidate] = useState<ManagementThread | null>(null);
   const [targetBoardId, setTargetBoardId] = useState('');
+  const [isLookingUp, setIsLookingUp] = useState(false);
+  const [isMoving, setIsMoving] = useState(false);
   const [notice, setNotice] = useState<{ kind: NoticeKind; text: string } | null>(null);
 
-  function inspectThread(event: FormEvent) {
+  async function inspectThread(event: FormEvent) {
     event.preventDefault();
-    const result = resolveMockThread(threadUrl);
-    if (!result) {
+    if (isLookingUp || isMoving) return;
+    setIsLookingUp(true);
+    setNotice(null);
+    try {
+      const result = await fetchManagementThread(threadUrl);
+      setCandidate(result);
+      setTargetBoardId('');
+      setNotice({ kind: 'info', text: '已找到帖子，请核对信息并选择目标版块。' });
+    } catch (error) {
       setCandidate(null);
-      setNotice({ kind: 'error', text: '未识别到有效帖子链接，请检查链接中的帖子编号。' });
-      return;
+      setNotice({ kind: 'error', text: errorMessage(error, '帖子查询失败，请稍后重试。') });
+    } finally {
+      setIsLookingUp(false);
     }
-    setCandidate(result);
-    setTargetBoardId('');
-    setNotice({ kind: 'info', text: '已找到帖子，请核对信息并选择目标版块。' });
   }
 
-  function moveThread(event: FormEvent) {
+  async function moveThread(event: FormEvent) {
     event.preventDefault();
-    if (!candidate || !targetBoardId) return;
+    if (!candidate || !targetBoardId || isMoving) return;
     const targetBoard = ALL_BOARDS.find((board) => board.id === Number(targetBoardId));
     if (!targetBoard) return;
     if (targetBoard.id === candidate.boardId) {
       setNotice({ kind: 'error', text: '目标版块与当前版块相同，请重新选择。' });
       return;
     }
-    setNotice({ kind: 'success', text: `模拟操作完成：“${candidate.title}”将迁移至“${targetBoard.label}”。` });
-    setCandidate(null);
-    setThreadUrl('');
-    setTargetBoardId('');
+    setIsMoving(true);
+    setNotice(null);
+    try {
+      const result = await moveManagementThread(candidate, targetBoard.id);
+      setCandidate(null);
+      setThreadUrl('');
+      setTargetBoardId('');
+      setNotice({
+        kind: 'success',
+        text: `“${candidate.title}”已迁移至“${targetBoard.label}”（新帖子编号 #${result.threadId}）。`,
+      });
+    } catch (error) {
+      setNotice({ kind: 'error', text: errorMessage(error, '帖子迁移失败，请稍后重试。') });
+    } finally {
+      setIsMoving(false);
+    }
   }
 
   return (
@@ -313,7 +353,9 @@ function MoveThreadPanel() {
               type="text"
               value={threadUrl}
             />
-            <button type="submit"><Search size={15} />查询帖子</button>
+            <button disabled={isLookingUp || isMoving} type="submit">
+              {isLookingUp ? <LoaderCircle className="animate-spin" size={15} /> : <Search size={15} />}查询帖子
+            </button>
           </div>
         </form>
 
@@ -325,7 +367,7 @@ function MoveThreadPanel() {
               <ArrowRight size={18} />
               <label>
                 <span>目标版块</span>
-                <select onChange={(event) => setTargetBoardId(event.target.value)} required value={targetBoardId}>
+                <select disabled={isMoving} onChange={(event) => setTargetBoardId(event.target.value)} required value={targetBoardId}>
                   <option value="">请选择目标版块</option>
                   {ALL_BOARDS.filter((board) => board.id !== candidate.boardId).map((board) => (
                     <option key={board.id} value={board.id}>{board.label}</option>
@@ -333,8 +375,8 @@ function MoveThreadPanel() {
                 </select>
               </label>
             </div>
-            <button className="management-primary-button" disabled={!targetBoardId} type="submit">
-              <FileInput size={15} />确认迁移帖子
+            <button className="management-primary-button" disabled={!targetBoardId || isMoving} type="submit">
+              {isMoving ? <LoaderCircle className="animate-spin" size={15} /> : <FileInput size={15} />}确认迁移帖子
             </button>
           </form>
         )}
@@ -449,22 +491,24 @@ function MemberManagementPanel() {
   );
 }
 
-function ThreadConfirmation({ actionLabel, onConfirm, thread }: {
+function ThreadConfirmation({ actionLabel, disabled, onConfirm, pending, thread }: {
   actionLabel: string;
+  disabled: boolean;
   onConfirm: () => void;
-  thread: ThreadSummary;
+  pending: boolean;
+  thread: ManagementThread;
 }) {
   return (
     <div className="management-thread-confirmation">
       <ThreadIdentity thread={thread} />
-      <button className="management-primary-button" onClick={onConfirm} type="button">
-        <MapPin size={15} />{actionLabel}
+      <button className="management-primary-button" disabled={disabled} onClick={onConfirm} type="button">
+        {pending ? <LoaderCircle className="animate-spin" size={15} /> : <MapPin size={15} />}{actionLabel}
       </button>
     </div>
   );
 }
 
-function ThreadIdentity({ thread }: { thread: ThreadSummary }) {
+function ThreadIdentity({ thread }: { thread: ManagementThread }) {
   return (
     <div className="management-thread-identity">
       <span>请确认帖子信息</span>
@@ -501,24 +545,12 @@ function ManagementState({ children, icon, title }: { children: ReactNode; icon:
   );
 }
 
-function resolveMockThread(value: string): ThreadSummary | null {
-  const trimmed = value.trim();
-  if (!trimmed) return null;
+function threadKey(thread: ManagementThread) {
+  return `${thread.boardId}-${thread.id}`;
+}
 
-  try {
-    const url = new URL(trimmed, window.location.origin);
-    const pathThreadId = url.pathname.match(/\/(?:threads?|thread)\/(\d+)/i)?.[1];
-    const threadId = Number(url.searchParams.get('tid') ?? url.searchParams.get('thread') ?? pathThreadId);
-    const summary = MOCK_THREADS[threadId];
-    if (!Number.isInteger(threadId) || threadId <= 0 || !summary) return null;
-    return {
-      ...summary,
-      id: threadId,
-      url: `/?bid=${summary.boardId}&tid=${threadId}`,
-    };
-  } catch {
-    return null;
-  }
+function errorMessage(error: unknown, fallback: string) {
+  return error instanceof Error && error.message.trim() ? error.message : fallback;
 }
 
 function rightsLabel(rights: number) {

@@ -20,86 +20,6 @@
     box-shadow: var(--shadow-card);
   }
 
-  .management-heading {
-    display: flex;
-    min-height: 96px;
-    align-items: center;
-    justify-content: space-between;
-    gap: 24px;
-    border-bottom: 1px solid var(--line);
-    padding: 20px 26px;
-  }
-
-  .management-heading-copy {
-    display: flex;
-    min-width: 0;
-    align-items: center;
-    gap: 13px;
-  }
-
-  .management-title-icon {
-    display: inline-flex;
-    width: 42px;
-    height: 42px;
-    flex: 0 0 auto;
-    align-items: center;
-    justify-content: center;
-    border: 1px solid color-mix(in srgb, var(--brand) 24%, var(--line));
-    border-radius: var(--control-radius);
-    background: var(--brand-faint);
-    color: var(--brand-strong);
-  }
-
-  .management-title-line {
-    display: flex;
-    align-items: center;
-    gap: 9px;
-  }
-
-  .management-title-line h1 {
-    color: var(--text-strong);
-    font-family: "Noto Serif CJK SC", "Source Han Serif SC", "Songti SC", serif;
-    font-size: 1.42rem;
-    font-weight: 760;
-    letter-spacing: -0.025em;
-  }
-
-  .management-title-line em {
-    border: 1px solid color-mix(in srgb, var(--brand) 28%, var(--line));
-    border-radius: 2px;
-    padding: 3px 7px;
-    background: var(--brand-faint);
-    color: var(--brand-strong);
-    font-size: 0.6rem;
-    font-style: normal;
-    font-weight: 800;
-  }
-
-  .management-heading-copy p {
-    margin-top: 5px;
-    color: var(--text-faint);
-    font-size: 0.68rem;
-  }
-
-  .management-operator {
-    display: grid;
-    justify-items: end;
-    gap: 4px;
-  }
-
-  .management-operator span {
-    color: var(--text-faint);
-    font-size: 0.58rem;
-    font-weight: 700;
-    letter-spacing: 0.06em;
-  }
-
-  .management-operator strong {
-    color: var(--text-strong);
-    font-size: 0.75rem;
-    font-weight: 760;
-  }
-
   .management-body {
     display: grid;
     grid-template-columns: 220px minmax(0, 1fr);
@@ -151,14 +71,6 @@
     color: inherit;
     font-size: 0.72rem;
     font-weight: 760;
-  }
-
-  .management-tabs small {
-    overflow: hidden;
-    color: var(--text-faint);
-    font-size: 0.56rem;
-    text-overflow: ellipsis;
-    white-space: nowrap;
   }
 
   .management-tabs button:hover {
@@ -217,13 +129,6 @@
     color: var(--text-strong);
     font-size: 0.78rem;
     font-weight: 780;
-  }
-
-  .management-card-heading p {
-    margin-top: 4px;
-    color: var(--text-faint);
-    font-size: 0.61rem;
-    line-height: 1.5;
   }
 
   .management-card-heading > span {
@@ -360,6 +265,8 @@
   }
 
   .management-primary-button:disabled,
+  .management-danger-button:disabled,
+  .management-input-action button:disabled,
   .management-permission-row button:disabled {
     cursor: not-allowed;
     opacity: 0.52;
@@ -424,12 +331,6 @@
 
   .dark .management-input-action button {
     color: #101713;
-  }
-
-  .management-lookup-form > small {
-    color: var(--text-faint);
-    font-size: 0.56rem;
-    line-height: 1.45;
   }
 
   .management-thread-confirmation,
@@ -829,15 +730,6 @@
       padding: calc(var(--topbar-height) + 10px) 0 40px;
     }
 
-    .management-heading {
-      min-height: 84px;
-      padding: 17px;
-    }
-
-    .management-operator {
-      display: none;
-    }
-
     .management-tabs {
       gap: 3px;
       padding: 8px;
@@ -855,10 +747,6 @@
     .management-tabs button > span:first-child {
       width: 28px;
       height: 28px;
-    }
-
-    .management-tabs small {
-      display: none;
     }
 
     .management-tabpanel {
