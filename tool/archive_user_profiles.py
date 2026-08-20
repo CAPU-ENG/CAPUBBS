@@ -142,14 +142,21 @@ def is_profile_saved(path: Path, username: str) -> bool:
 
 
 def normalize_profile(data: Any, username: str) -> dict[str, Any]:
-    if isinstance(data, list) and len(data) == 1 and isinstance(data[0], dict):
-        data = data[0]
-    if not isinstance(data, dict):
+    if isinstance(data, dict):
+        candidates = [data]
+    elif isinstance(data, list) and data and all(isinstance(item, dict) for item in data):
+        candidates = data
+    else:
         raise ApiRequestError("user_profile 返回的数据结构不正确")
-    returned_username = str(data.get("username") or "")
-    if returned_username and returned_username != username:
-        raise ApiRequestError(f"user_profile 返回了其他用户: {returned_username!r}")
-    return data
+
+    matches = [
+        item for item in candidates if str(item.get("username") or "") == username
+    ]
+    if len(matches) == 1:
+        return matches[0]
+
+    returned = [str(item.get("username") or "") for item in candidates]
+    raise ApiRequestError(f"user_profile 无法唯一匹配 {username!r}：{returned!r}")
 
 
 def write_username_index(
