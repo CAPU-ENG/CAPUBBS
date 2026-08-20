@@ -76,8 +76,8 @@ export function DirectMessageDialog({
       >
         <header className="message-dialog-header direct-message-header">
           <div>
-            <h2>私信：{activeConversation.user}</h2>
             <p>选择对象后查看消息记录</p>
+            <h2>私信：{activeConversation.user}</h2>
           </div>
           <button className="message-close-button" type="button" aria-label="关闭私信" onClick={onClose}>
             <X size={17} />

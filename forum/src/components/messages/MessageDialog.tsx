@@ -66,10 +66,9 @@ export function MessageDialog({
         onMouseDown={(event) => event.stopPropagation()}
       >
         <header className="message-dialog-header">
-          <span className="message-dialog-title-icon"><MessageSquareText size={18} /></span>
           <div>
-            <h2>消息</h2>
             <p>回复和私信</p>
+            <h2>消息</h2>
           </div>
           <button className="message-close-button" type="button" aria-label="关闭消息" onClick={onClose}>
             <X size={17} />
