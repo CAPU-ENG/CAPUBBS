@@ -761,10 +761,10 @@
   }
 
   .thread-signature > p,
-  .thread-signature > div {
-    color: var(--text-faint);
-    font-family: inherit;
-    font-size: 0.86rem;
+  .forum-markup-signature {
+    color: #999;
+    font-family: monospace;
+    font-size: 14px;
     line-height: 1.6;
     overflow-wrap: anywhere;
   }

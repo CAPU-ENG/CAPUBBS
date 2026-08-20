@@ -205,11 +205,17 @@ function buildHtmlFrameDocument({
   variant: ThreadHtmlVariant;
 }) {
   const isSignature = variant === 'signature';
-  const color = isDarkTheme
-    ? (isSignature ? 'rgb(161 161 170)' : 'rgb(228 228 231)')
-    : (isSignature ? 'rgb(113 113 122)' : 'rgb(63 63 70)');
+  const color = isSignature
+    ? '#999999'
+    : (isDarkTheme ? 'rgb(228 228 231)' : 'rgb(63 63 70)');
   const linkColor = isDarkTheme ? 'rgb(125 211 252)' : 'rgb(3 105 161)';
-  const fontSize = isSignature ? '13.76px' : '14.72px';
+  const fontFamily = isSignature
+    ? 'monospace'
+    : "ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif";
+  const fontSize = isSignature ? '14px' : '14.72px';
+  const signatureRootStyle = isSignature
+    ? 'padding-top:10px;color:inherit;font-family:inherit;font-size:inherit;'
+    : '';
 
   return `<!doctype html>
 <html class="${isDarkTheme ? 'dark' : 'light'}" style="background:transparent;color-scheme:${isDarkTheme ? 'dark' : 'light'}">
@@ -221,8 +227,8 @@ function buildHtmlFrameDocument({
   <meta http-equiv="Content-Security-Policy" content="${buildContentSecurityPolicy()}">
   <style data-capubbs-parent-styles>${escapeStyleText(parentStyleText)}</style>
   <style>
-    html,body{margin:0;padding:0;min-width:0;min-height:0;overflow:hidden;background:transparent!important;color:${color};font-family:ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;font-size:${fontSize};line-height:1.6;overflow-wrap:anywhere;word-break:break-word}
-    .capubbs-html-frame-root{display:flow-root;width:calc(100% - ${FRAME_WIDTH_ALLOWANCE}px);${isSignature ? 'padding-top:10px;' : ''}}.capubbs-html-frame-root iframe{display:inline-block;vertical-align:baseline}a{color:${linkColor}}img,video,canvas,svg{max-width:100%;height:auto}pre{max-width:100%;overflow:auto;white-space:pre-wrap}table{max-width:100%}
+    html,body{margin:0;padding:0;min-width:0;min-height:0;overflow:hidden;background:transparent!important;color:${color};font-family:${fontFamily};font-size:${fontSize};line-height:1.6;overflow-wrap:anywhere;word-break:break-word}
+    .capubbs-html-frame-root{display:flow-root;width:calc(100% - ${FRAME_WIDTH_ALLOWANCE}px);${signatureRootStyle}}.capubbs-html-frame-root iframe{display:inline-block;vertical-align:baseline}a{color:${linkColor}}img,video,canvas,svg{max-width:100%;height:auto}pre{max-width:100%;overflow:auto;white-space:pre-wrap}table{max-width:100%}
   </style>
   <script>${buildFrameBridgeScript(frameId)}</script>
   <script src="/bbs/lib/jquery.min.js"></script>
