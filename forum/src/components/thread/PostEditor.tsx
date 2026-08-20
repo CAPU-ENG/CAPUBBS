@@ -32,6 +32,37 @@ const signatureOptions = [
   { label: '签名档 3', value: 3 },
 ] as const;
 
+export function PostEditorTitleField({
+  label = '帖子标题',
+  maxLength = 120,
+  onChange,
+  placeholder = '请输入帖子标题',
+  required = false,
+  value,
+}: {
+  label?: string;
+  maxLength?: number;
+  onChange: (value: string) => void;
+  placeholder?: string;
+  required?: boolean;
+  value: string;
+}) {
+  return (
+    <label className="post-editor-title-field">
+      <span>{label}</span>
+      <input
+        autoComplete="off"
+        maxLength={maxLength}
+        onChange={(event) => onChange(event.target.value)}
+        placeholder={placeholder}
+        required={required}
+        value={value}
+      />
+      <small>{value.trim().length} / {maxLength}</small>
+    </label>
+  );
+}
+
 export function PostEditor({
   ariaLabel,
   attachmentDialogDescription,

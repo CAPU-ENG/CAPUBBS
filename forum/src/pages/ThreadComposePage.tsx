@@ -1,8 +1,13 @@
 import { ArrowLeft, LoaderCircle, Save, Send } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
-import defaultAvatar from '../assets/avatar/default-avatar.avif';
 import { fetchBoardPage, isAbortError, type BoardInfo } from '../api/board';
-import { ThreadApiError, uploadThreadAttachment, type ThreadAttachmentInfo } from '../api/thread';
+import {
+  fetchThreadEditorViewer,
+  ThreadApiError,
+  uploadThreadAttachment,
+  type ThreadAttachmentInfo,
+  type ThreadEditorViewer,
+} from '../api/thread';
 import {
   getRichTextEditorHtmlValue,
   getRichTextEditorStorageValue,
@@ -16,6 +21,7 @@ import {
   hasPostEditorContent,
   PostEditor,
   PostEditorPreviewDialog,
+  PostEditorTitleField,
 } from '../components/thread/PostEditor';
 import { useAuth } from '../context/AuthContext';
 import { getLoginPathWithReturnTo } from '../utils/authRoutes';
@@ -41,6 +47,7 @@ export function ThreadComposePage() {
   const request = useMemo(getComposeRequest, [locationSearch]);
   const { status: authStatus, viewer } = useAuth();
   const [board, setBoard] = useState<BoardInfo | null>(null);
+  const [editorViewer, setEditorViewer] = useState<ThreadEditorViewer | null>(null);
   const [replyBoardName, setReplyBoardName] = useState('');
   const [title, setTitle] = useState('');
   const [editorValue, setEditorValue] = useState<RichTextEditorValue>({ content: '', mode: 'rich' });
@@ -49,6 +56,7 @@ export function ThreadComposePage() {
   const [status, setStatus] = useState('');
   const [statusIsError, setStatusIsError] = useState(false);
   const [loadError, setLoadError] = useState('');
+  const [viewerLoadError, setViewerLoadError] = useState('');
   const [isUploadingAttachments, setIsUploadingAttachments] = useState(false);
   const [isSavingDraft, setIsSavingDraft] = useState(false);
   const [isPublishing, setIsPublishing] = useState(false);
@@ -92,6 +100,26 @@ export function ThreadComposePage() {
     );
     return () => controller.abort();
   }, [request]);
+
+  useEffect(() => {
+    if (authStatus !== 'authenticated' || !ownerKey) {
+      setEditorViewer(null);
+      setViewerLoadError('');
+      return;
+    }
+
+    const controller = new AbortController();
+    setEditorViewer(null);
+    setViewerLoadError('');
+    void fetchThreadEditorViewer(ownerKey, controller.signal).then(
+      setEditorViewer,
+      (error: unknown) => {
+        if (isAbortError(error)) return;
+        setViewerLoadError(error instanceof Error ? error.message : '用户签名档读取失败，请稍后重试。');
+      },
+    );
+    return () => controller.abort();
+  }, [authStatus, ownerKey]);
 
   useEffect(() => {
     if (
@@ -314,13 +342,14 @@ export function ThreadComposePage() {
   }
 
   const authPending = authStatus === 'loading' || authStatus === 'restoring';
+  const pageLoadError = loadError || viewerLoadError;
   const pagePending = Boolean(
     request
-    && !loadError
+    && !pageLoadError
     && (
       authPending
       || (!isReply && !board)
-      || (authStatus === 'authenticated' && !draftLoadComplete)
+      || (authStatus === 'authenticated' && (!draftLoadComplete || !editorViewer))
     ),
   );
 
@@ -328,18 +357,18 @@ export function ThreadComposePage() {
     <div className="relative min-h-screen text-[var(--text)] transition-colors duration-200">
       <AppBackground />
       <TopBar contextHref="#compose-page-title" contextTitle={isReply ? title : boardName} />
-      <main className="thread-edit-page-shell thread-compose-page-shell">
+      <main className="thread-edit-page-shell">
         {!request ? (
           <ComposeRequestState
             backHref="/"
             description="当前地址缺少有效的版块编号。"
             title="无法确定编辑对象"
           />
-        ) : loadError ? (
+        ) : pageLoadError ? (
           <ComposeRequestState
             backHref={backHref}
             backLabel={isReply ? '返回帖子' : '返回版面'}
-            description={loadError}
+            description={pageLoadError}
             title="暂时无法进入编辑页"
           />
         ) : authStatus === 'guest' ? (
@@ -374,23 +403,16 @@ export function ThreadComposePage() {
               attachmentLabel={isReply ? '回帖附件' : '主题附件'}
               attachments={attachments}
               beforeEditor={!isReply ? (
-                <label className="thread-edit-title-field thread-compose-title-field">
-                  <input
-                    aria-label="主题标题（必填）"
-                    autoComplete="off"
-                    autoFocus
-                    maxLength={120}
-                    onChange={(event) => {
-                      setTitle(event.target.value);
-                      clearStatus();
-                    }}
-                    required
-                    value={title}
-                  />
-                  <small>{title.trim().length} / 120</small>
-                </label>
+                <PostEditorTitleField
+                  onChange={(value) => {
+                    setTitle(value);
+                    clearStatus();
+                  }}
+                  required
+                  value={title}
+                />
               ) : undefined}
-              className="thread-edit-form thread-compose-form"
+              className="thread-edit-form"
               editorValue={editorValue}
               formatAttachmentMeta={(attachment) => formatPostEditorBytes(attachment.size)}
               heading={isReply ? '编辑回帖草稿' : '新主题'}
@@ -435,15 +457,16 @@ export function ThreadComposePage() {
         ) : null}
       </main>
 
-      {previewOpen && boardName && (
+      {previewOpen && boardName && editorViewer && (
         <PostEditorPreviewDialog
           attachments={attachments}
           editorValue={editorValue}
           formatAttachmentMeta={(attachment) => formatPostEditorBytes(attachment.size)}
           label={`${boardName} · ${isReply ? '回帖' : '发帖'}预览`}
           onClose={() => setPreviewOpen(false)}
-          previewAuthor={{ avatar: viewer?.avatar || defaultAvatar, name: viewer?.username || '我' }}
+          previewAuthor={{ avatar: editorViewer.avatar, name: editorViewer.name }}
           previewFloor={isReply ? 2 : 1}
+          previewSignature={signatureIndex > 0 ? editorViewer.signatures[signatureIndex - 1] : undefined}
           previewedAt={previewedAt}
           title={isReply ? `Re: ${title}` : title.trim() || '未命名主题'}
         />

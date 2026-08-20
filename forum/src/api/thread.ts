@@ -62,6 +62,12 @@ export type ThreadAttachmentInfo = {
   size: number;
 };
 
+export type ThreadEditorViewer = {
+  avatar: string;
+  name: string;
+  signatures: string[];
+};
+
 export class ThreadApiError extends Error {
   constructor(message: string) {
     super(message);
@@ -157,11 +163,7 @@ export async function fetchEditableThreadFloor({
     throw new ThreadApiError('无法读取编辑用户信息，请重新登录后再试。');
   }
 
-  const viewerProfilePayload = await requestThreadApi(new URLSearchParams({
-    ask: 'user_profile',
-    username: viewerName,
-  }), signal, '签名档读取失败，请稍后重试。');
-  const viewerProfile = asRows(viewerProfilePayload.data)[0] ?? asRow(viewerProfilePayload.data);
+  const editorViewer = await fetchThreadEditorViewer(viewerName, signal);
 
   return {
     attachments: stringValue(post.attachs),
@@ -169,18 +171,35 @@ export async function fetchEditableThreadFloor({
     bid,
     createdAt: stringValue(post.timestamp ?? post.posttime ?? post.createdAt),
     pid,
-    previewAvatar: normalizeAssetUrl(viewerProfile.avatar)
-      || normalizeAssetUrl(viewerProfile.icon)
+    previewAvatar: editorViewer.avatar
       || normalizeAssetUrl(viewer.avatar)
       || normalizeAssetUrl(viewer.icon)
       || defaultAvatar,
-    previewSignatures: mapEditableViewerSignatures(viewerProfile),
+    previewSignatures: editorViewer.signatures,
     signatureIndex: Math.min(3, nonNegativeInteger(post.sig)),
     text: stringValue(post.text) === '<br>' ? '' : stringValue(post.text),
     tid,
     title: plainText(post.title),
     updatedAt: stringValue(post.updatetime ?? post.updatedAt),
   } satisfies EditableThreadFloor;
+}
+
+export async function fetchThreadEditorViewer(username: string, signal?: AbortSignal): Promise<ThreadEditorViewer> {
+  const normalizedUsername = username.trim();
+  if (!normalizedUsername) throw new ThreadApiError('无法读取编辑用户信息，请重新登录后再试。');
+
+  const payload = await requestThreadApi(new URLSearchParams({
+    ask: 'user_profile',
+    username: normalizedUsername,
+  }), signal, '签名档读取失败，请稍后重试。');
+  const profile = asRows(payload.data)[0] ?? asRow(payload.data);
+  const name = plainText(profile.username) || normalizedUsername;
+
+  return {
+    avatar: normalizeAssetUrl(profile.avatar) || normalizeAssetUrl(profile.icon) || defaultAvatar,
+    name,
+    signatures: mapEditableViewerSignatures(profile),
+  };
 }
 
 export async function updateThreadFloor({

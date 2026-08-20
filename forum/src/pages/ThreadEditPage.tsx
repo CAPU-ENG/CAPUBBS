@@ -11,6 +11,7 @@ import {
   hasPostEditorContent,
   PostEditor,
   PostEditorPreviewDialog,
+  PostEditorTitleField,
 } from '../components/thread/PostEditor';
 import {
   fetchEditableThreadFloor,
@@ -228,20 +229,13 @@ export function ThreadEditPage() {
               attachmentLabel="帖子附件"
               attachments={attachments}
               beforeEditor={isMainPost ? (
-                <label className="thread-edit-title-field">
-                  <span>帖子标题</span>
-                  <input
-                    autoComplete="off"
-                    maxLength={120}
-                    onChange={(event) => {
-                      setTitle(event.target.value);
-                      setSaveError('');
-                    }}
-                    placeholder="请输入帖子标题"
-                    value={title}
-                  />
-                  <small>{title.trim().length} / 120</small>
-                </label>
+                <PostEditorTitleField
+                  onChange={(value) => {
+                    setTitle(value);
+                    setSaveError('');
+                  }}
+                  value={title}
+                />
               ) : undefined}
               className="thread-edit-form"
               editorValue={editorValue}
