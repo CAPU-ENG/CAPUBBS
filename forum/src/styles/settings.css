@@ -7,12 +7,16 @@
   .settings-page-shell {
     position: relative;
     z-index: 1;
-    width: min(920px, calc(100% - 40px));
+    display: grid;
+    width: min(1120px, calc(100% - 40px));
+    grid-template-columns: minmax(0, 1fr) 260px;
+    align-items: start;
+    gap: 16px;
     margin: 0 auto;
     padding: calc(var(--topbar-height) + 28px) 0 72px;
   }
 
-  .settings-page-shell > * + * {
+  .settings-options-column > * + * {
     margin-top: 14px;
   }
 
@@ -344,7 +348,7 @@
 
   .settings-board-grid button:focus-visible,
   .settings-pinned-actions button:focus-visible,
-  .settings-panel-footer > button:focus-visible {
+  .settings-save-card > button:focus-visible {
     outline: 2px solid var(--brand);
     outline-offset: 2px;
   }
@@ -388,37 +392,55 @@
 
   .settings-board-grid .settings-board-option-selected > small { color: var(--brand-strong); }
 
-  .settings-panel-footer {
-    display: flex;
-    min-height: 48px;
+  .settings-save-card {
+    position: sticky;
+    top: calc(var(--topbar-height) + 28px);
+    display: grid;
+    gap: 18px;
+    padding: 20px;
+  }
+
+  .settings-save-card-heading {
+    display: grid;
+    grid-template-columns: 38px minmax(0, 1fr);
     align-items: center;
-    justify-content: space-between;
-    gap: 7px;
-    border-top: 1px solid var(--line);
-    padding: 10px 22px;
-    background: color-mix(in srgb, var(--brand-faint) 55%, var(--surface));
-    color: var(--text-muted);
-    font-size: 0.62rem;
+    gap: 11px;
+  }
+
+  .settings-save-card-heading h2 {
+    color: var(--text-strong);
+    font-size: 0.84rem;
+    font-weight: 760;
+  }
+
+  .settings-save-card-heading p {
+    margin-top: 4px;
+    color: var(--text-faint);
+    font-size: 0.61rem;
     line-height: 1.5;
   }
 
-  .settings-page-footer {
-    overflow: visible;
-  }
-
-  .settings-panel-footer > p {
-    display: flex;
-    min-width: 0;
-    align-items: center;
+  .settings-save-status {
+    display: grid;
+    grid-template-columns: 16px minmax(0, 1fr);
+    align-items: start;
     gap: 7px;
+    border-top: 1px solid var(--line);
+    padding-top: 16px;
+    color: var(--text-muted);
+    font-size: 0.62rem;
+    line-height: 1.55;
   }
 
-  .settings-panel-footer > p svg { flex: 0 0 auto; color: var(--brand); }
+  .settings-save-status svg {
+    margin-top: 1px;
+    color: var(--brand);
+  }
 
-  .settings-panel-footer > button {
+  .settings-save-card > button {
     display: inline-flex;
-    min-height: 34px;
-    flex: 0 0 auto;
+    min-height: 38px;
+    width: 100%;
     align-items: center;
     justify-content: center;
     gap: 6px;
@@ -432,12 +454,17 @@
     transition: 150ms ease;
   }
 
-  .dark .settings-panel-footer > button { color: #0d1711; }
-  .settings-panel-footer > button:hover:not(:disabled) { transform: translateY(-1px); }
-  .settings-panel-footer > button:disabled { cursor: not-allowed; opacity: 0.4; }
+  .dark .settings-save-card > button { color: #0d1711; }
+  .settings-save-card > button:hover:not(:disabled) { transform: translateY(-1px); }
+  .settings-save-card > button:disabled { cursor: not-allowed; opacity: 0.4; }
 
   @media (max-width: 1023px) {
+    .settings-page-shell { display: block; }
     .settings-pinned-board-panel { display: none; }
+    .settings-save-card {
+      position: static;
+      margin-top: 14px;
+    }
   }
 
   @media (max-width: 720px) {
@@ -460,7 +487,6 @@
     .settings-pinned-actions .settings-remove-button { min-width: 32px; padding: 0; }
     .settings-pinned-actions .settings-remove-button span { display: none; }
     .settings-board-grid { grid-template-columns: 1fr; }
-    .settings-panel-footer { align-items: stretch; flex-direction: column; padding: 12px 15px; }
-    .settings-panel-footer > button { width: 100%; }
+    .settings-save-card { padding: 17px 15px; }
   }
 }

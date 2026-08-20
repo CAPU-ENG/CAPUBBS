@@ -87,119 +87,130 @@ export function SettingsPage() {
       <TopBar />
 
       <main className="settings-page-shell">
-        <section className="settings-panel settings-appearance-panel" aria-labelledby="appearance-settings-title">
-          <div className="settings-panel-heading">
-            <span className="settings-panel-icon"><MonitorCog size={17} /></span>
-            <div>
-              <h2 id="appearance-settings-title">外观</h2>
-              <p>控制论坛界面的昼夜显示方式。</p>
-            </div>
-          </div>
-
-          <label className="settings-checkbox-option">
-            <input
-              checked={draftFollowsSystem}
-              onChange={(event) => {
-                setDraftFollowsSystem(event.target.checked);
-                setFeedback('外观偏好已调整，保存后生效。');
-              }}
-              type="checkbox"
-            />
-            <span className="settings-checkbox-mark" aria-hidden="true"><Check size={14} /></span>
-            <span>
-              <strong>自动跟随系统切换昼夜模式</strong>
-              <small>开启后，论坛会随设备的浅色或深色外观设置实时切换。</small>
-            </span>
-          </label>
-        </section>
-
-        <section className="settings-panel settings-pinned-board-panel" aria-labelledby="pinned-boards-title">
-          <div className="settings-panel-heading">
-            <span className="settings-panel-icon"><Pin size={17} /></span>
-            <div>
-              <h2 id="pinned-boards-title">常驻版块</h2>
-              <p>将常用版块固定在桌面端顶部导航中，点击即可直接进入。</p>
-            </div>
-            <strong className="settings-count" aria-label={`已选择 ${draftBoardIds.length} 个，最多 ${MAX_PINNED_BOARDS} 个`}>
-              {draftBoardIds.length}<span> / {MAX_PINNED_BOARDS}</span>
-            </strong>
-          </div>
-
-          <div className="settings-nav-preview" aria-label="顶部导航预览">
-            <span className="settings-preview-label">导航预览</span>
-            <div className="settings-preview-links">
-              <span>首页</span>
-              <span>版块</span>
-              {pinnedBoards.map((board) => <strong key={board.id}>{board.label}</strong>)}
-              {pinnedBoards.length === 0 ? <em>选择后显示在这里</em> : null}
-            </div>
-          </div>
-
-          <div className="settings-selection">
-            <div className="settings-selection-heading">
+        <div className="settings-options-column">
+          <section className="settings-panel settings-appearance-panel" aria-labelledby="appearance-settings-title">
+            <div className="settings-panel-heading">
+              <span className="settings-panel-icon"><MonitorCog size={17} /></span>
               <div>
-                <h3>已选择</h3>
-                <p>版块会按照加入顺序显示在桌面端导航栏中。</p>
+                <h2 id="appearance-settings-title">外观</h2>
+                <p>控制论坛界面的昼夜显示方式。</p>
               </div>
             </div>
 
-            {pinnedBoards.length > 0 ? (
-              <ol className="settings-pinned-list">
-                {pinnedBoards.map((board, index) => (
-                  <li key={board.id}>
-                    <span className="settings-order">{String(index + 1).padStart(2, '0')}</span>
-                    <div className="settings-pinned-board">
-                      <strong>{board.label}</strong>
-                      <small>版块 ID · {board.id}</small>
-                    </div>
-                    <div className="settings-pinned-actions">
-                      <button
-                        aria-label={`取消常驻${board.label}`}
-                        className="settings-remove-button"
-                        onClick={() => removeBoard(board.id)}
-                        type="button"
-                      >
-                        <PinOff size={15} /><span>移除</span>
-                      </button>
-                    </div>
-                  </li>
-                ))}
-              </ol>
-            ) : (
-              <div className="settings-empty-selection">
-                <Pin size={19} />
-                <div><strong>还没有常驻版块</strong><p>从下方选择最多三个常用版块。</p></div>
+            <label className="settings-checkbox-option">
+              <input
+                checked={draftFollowsSystem}
+                onChange={(event) => {
+                  setDraftFollowsSystem(event.target.checked);
+                  setFeedback('外观偏好已调整，保存后生效。');
+                }}
+                type="checkbox"
+              />
+              <span className="settings-checkbox-mark" aria-hidden="true"><Check size={14} /></span>
+              <span>
+                <strong>自动跟随系统切换昼夜模式</strong>
+                <small>开启后，论坛会随设备的浅色或深色外观设置实时切换。</small>
+              </span>
+            </label>
+          </section>
+
+          <section className="settings-panel settings-pinned-board-panel" aria-labelledby="pinned-boards-title">
+            <div className="settings-panel-heading">
+              <span className="settings-panel-icon"><Pin size={17} /></span>
+              <div>
+                <h2 id="pinned-boards-title">常驻版块</h2>
+                <p>将常用版块固定在桌面端顶部导航中，点击即可直接进入。</p>
               </div>
-            )}
+              <strong className="settings-count" aria-label={`已选择 ${draftBoardIds.length} 个，最多 ${MAX_PINNED_BOARDS} 个`}>
+                {draftBoardIds.length}<span> / {MAX_PINNED_BOARDS}</span>
+              </strong>
+            </div>
+
+            <div className="settings-nav-preview" aria-label="顶部导航预览">
+              <span className="settings-preview-label">导航预览</span>
+              <div className="settings-preview-links">
+                <span>首页</span>
+                <span>版块</span>
+                {pinnedBoards.map((board) => <strong key={board.id}>{board.label}</strong>)}
+                {pinnedBoards.length === 0 ? <em>选择后显示在这里</em> : null}
+              </div>
+            </div>
+
+            <div className="settings-selection">
+              <div className="settings-selection-heading">
+                <div>
+                  <h3>已选择</h3>
+                  <p>版块会按照加入顺序显示在桌面端导航栏中。</p>
+                </div>
+              </div>
+
+              {pinnedBoards.length > 0 ? (
+                <ol className="settings-pinned-list">
+                  {pinnedBoards.map((board, index) => (
+                    <li key={board.id}>
+                      <span className="settings-order">{String(index + 1).padStart(2, '0')}</span>
+                      <div className="settings-pinned-board">
+                        <strong>{board.label}</strong>
+                        <small>版块 ID · {board.id}</small>
+                      </div>
+                      <div className="settings-pinned-actions">
+                        <button
+                          aria-label={`取消常驻${board.label}`}
+                          className="settings-remove-button"
+                          onClick={() => removeBoard(board.id)}
+                          type="button"
+                        >
+                          <PinOff size={15} /><span>移除</span>
+                        </button>
+                      </div>
+                    </li>
+                  ))}
+                </ol>
+              ) : (
+                <div className="settings-empty-selection">
+                  <Pin size={19} />
+                  <div><strong>还没有常驻版块</strong><p>从下方选择最多三个常用版块。</p></div>
+                </div>
+              )}
+            </div>
+
+            <div className="settings-board-picker">
+              <BoardGroup
+                boardIds={draftBoardIds}
+                disabled={isFull}
+                label="主要版块"
+                onAdd={addBoard}
+                onRemove={removeBoard}
+                boards={PRIMARY_BOARDS}
+              />
+              <BoardGroup
+                boardIds={draftBoardIds}
+                disabled={isFull}
+                label="其他版块"
+                onAdd={addBoard}
+                onRemove={removeBoard}
+                boards={SECONDARY_BOARDS}
+              />
+            </div>
+          </section>
+        </div>
+
+        <aside className="settings-panel settings-save-card" aria-labelledby="save-settings-title">
+          <div className="settings-save-card-heading">
+            <span className="settings-panel-icon"><Save size={17} /></span>
+            <div>
+              <h2 id="save-settings-title">保存设置</h2>
+              <p>确认左侧调整后，在这里统一保存并应用。</p>
+            </div>
           </div>
-
-          <div className="settings-board-picker">
-            <BoardGroup
-              boardIds={draftBoardIds}
-              disabled={isFull}
-              label="主要版块"
-              onAdd={addBoard}
-              onRemove={removeBoard}
-              boards={PRIMARY_BOARDS}
-            />
-            <BoardGroup
-              boardIds={draftBoardIds}
-              disabled={isFull}
-              label="其他版块"
-              onAdd={addBoard}
-              onRemove={removeBoard}
-              boards={SECONDARY_BOARDS}
-            />
-          </div>
-
-        </section>
-
-        <footer className="settings-panel settings-panel-footer settings-page-footer">
-          <p aria-live="polite" role="status"><Check size={15} />{feedback}</p>
+          <p className="settings-save-status" aria-live="polite" role="status">
+            <Check size={15} />
+            <span>{feedback}</span>
+          </p>
           <button disabled={!hasChanges || isSaving} onClick={() => void saveSettings()} type="button">
             <Save size={15} />{isSaving ? '保存中' : '保存设置'}
           </button>
-        </footer>
+        </aside>
       </main>
     </div>
   );
