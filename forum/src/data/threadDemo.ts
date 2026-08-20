@@ -31,7 +31,7 @@ export type ThreadFloorData = {
   editedAt?: string;
   paragraphs: string[];
   signature?: string;
-  contentHtml?: SafeForumHtml;
+  contentHtml?: string;
   quoteText?: string;
   signatureHtml?: string;
   nestedReplies?: NestedReply[];

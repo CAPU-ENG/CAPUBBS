@@ -1,6 +1,11 @@
 import defaultAvatar from '../assets/avatar/default-avatar.avif';
 import type { NestedReply, ThreadAuthor, ThreadFloorData } from '../data/threadDemo';
-import { forumMarkupToPlainText, renderForumMarkup, translateLegacyForumMarkup } from '../utils/forumMarkup';
+import {
+  forumMarkupToPlainText,
+  renderForumMarkup,
+  requiresIsolatedForumHtml,
+  translateLegacyForumMarkup,
+} from '../utils/forumMarkup';
 import type { SignatureFloorReference } from '../utils/signatureFloorLink';
 
 const THREAD_API_URL = import.meta.env.VITE_API_URL?.trim() || '/api/api.php';
@@ -332,14 +337,15 @@ function mapFloor(row: ApiRow, viewerName: string): ThreadFloorData {
   const profile = nullableRow(row.authorProfile);
   const authorName = plainText(row.author) || '匿名用户';
   const rawText = stringValue(row.rawText);
-  const contentHtml = renderForumMarkup(stringValue(row.contentHtml) || rawText);
+  const contentHtml = renderPostHtml(rawText, stringValue(row.isHtml), stringValue(row.contentHtml));
+  const safeContentHtml = renderForumMarkup(contentHtml);
   const signatureIndex = positiveInteger(row.signatureIndex, 0);
   const rawSignatures = profile ? asRow(profile.signatures) : {};
   const rawSignature = signatureIndex > 0 ? stringValue(rawSignatures[String(signatureIndex)]) : '';
   const signatureHtml = renderSignatureHtml(rawSignature, stringValue(row.signatureHtml));
   const safeSignatureHtml = renderForumMarkup(signatureHtml, { normalizeLegacyLineBreaks: true });
   const quoteHtml = renderForumMarkup(stringValue(row.quoteHtml));
-  const quoteText = forumMarkupToPlainText(quoteHtml || contentHtml);
+  const quoteText = forumMarkupToPlainText(quoteHtml || safeContentHtml);
   const canEdit = Boolean(row.canEdit);
   const canDelete = Boolean(row.canDelete);
 
@@ -376,6 +382,14 @@ function renderSignatureHtml(rawSignature: string, translatedSignature: string) 
     .replace(/\r\n?|\n/g, '<br>')
     .replace(/ /g, '&nbsp;'))
     .trim();
+}
+
+function renderPostHtml(rawText: string, isHtml: string, translatedHtml: string) {
+  if (!rawText.trim()) return translatedHtml.trim();
+  if (isHtml.toUpperCase() === 'YES' && requiresIsolatedForumHtml(rawText)) {
+    return translateLegacyForumMarkup(rawText).trim();
+  }
+  return (translatedHtml || rawText).trim();
 }
 
 function mapNestedReply(row: ApiRow): NestedReply {

@@ -1,28 +1,128 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { fetchSignatureReferencedFloorHtml } from '../../api/thread';
+import { renderForumMarkup, requiresIsolatedForumHtml } from '../../utils/forumMarkup';
 import { findSignatureFloorMarkers } from '../../utils/signatureFloorLink';
+import { ForumMarkup, type ForumMarkupImage } from './ForumMarkup';
 
-const MIN_FRAME_HEIGHT = 28;
+const MIN_SIGNATURE_FRAME_HEIGHT = 28;
+const MIN_FLOOR_FRAME_HEIGHT = 64;
 const MAX_FRAME_HEIGHT = 50_000;
-const SIGNATURE_FRAME_MESSAGE_SOURCE = 'capubbs-signature-frame';
+const HTML_FRAME_MESSAGE_SOURCE = 'capubbs-thread-html-frame';
 
-type SignatureFrameMessage = {
+type ThreadHtmlVariant = 'floor' | 'signature';
+
+type HtmlFrameMessage = {
   frameId: string;
   height: number;
-  source: typeof SIGNATURE_FRAME_MESSAGE_SOURCE;
+  source: typeof HTML_FRAME_MESSAGE_SOURCE;
   type: 'resize';
 };
 
-export function ThreadSignatureFrame({ floor, html }: { floor: number; html: string }) {
+export function ThreadHtmlContent({
+  className = '',
+  floor,
+  html,
+  onImageOpen,
+  variant,
+}: {
+  className?: string;
+  floor: number;
+  html: string;
+  onImageOpen?: (image: ForumMarkupImage, trigger: HTMLImageElement) => void;
+  variant: ThreadHtmlVariant;
+}) {
+  const resolvedHtml = useSignaturePostReferences(html, variant === 'signature');
+  const directHtml = useMemo(
+    () => renderForumMarkup(resolvedHtml, { normalizeLegacyLineBreaks: variant === 'signature' }),
+    [resolvedHtml, variant],
+  );
+
+  if (!requiresIsolatedForumHtml(resolvedHtml)) {
+    return (
+      <ForumMarkup
+        className={className}
+        html={directHtml}
+        onImageOpen={onImageOpen}
+        variant={variant}
+      />
+    );
+  }
+
+  return (
+    <ThreadSandboxedHtmlFrame
+      className={className}
+      floor={floor}
+      html={resolvedHtml}
+      variant={variant}
+    />
+  );
+}
+
+function ThreadSandboxedHtmlFrame({
+  className,
+  floor,
+  html,
+  variant,
+}: {
+  className: string;
+  floor: number;
+  html: string;
+  variant: ThreadHtmlVariant;
+}) {
   const iframeRef = useRef<HTMLIFrameElement>(null);
-  const frameIdRef = useRef(`signature-${floor}-${Math.random().toString(36).slice(2)}`);
-  const [frameHeight, setFrameHeight] = useState(MIN_FRAME_HEIGHT);
-  const [resolvedHtml, setResolvedHtml] = useState(html);
+  const frameIdRef = useRef(`${variant}-${floor}-${Math.random().toString(36).slice(2)}`);
+  const minHeight = variant === 'signature' ? MIN_SIGNATURE_FRAME_HEIGHT : MIN_FLOOR_FRAME_HEIGHT;
+  const [frameHeight, setFrameHeight] = useState(minHeight);
   const isDarkTheme = useDarkTheme();
+  const frameDocument = useMemo(() => buildHtmlFrameDocument({
+    frameId: frameIdRef.current,
+    html,
+    isDarkTheme,
+    variant,
+  }), [html, isDarkTheme, variant]);
+  const frameSource = useMemo(
+    () => `data:text/html;charset=utf-8,${encodeURIComponent(frameDocument)}`,
+    [frameDocument],
+  );
+
+  useEffect(() => {
+    setFrameHeight(minHeight);
+  }, [frameSource, minHeight]);
+
+  useEffect(() => {
+    function handleMessage(event: MessageEvent) {
+      if (event.source !== iframeRef.current?.contentWindow || !isHtmlFrameMessage(event.data)) return;
+      if (event.data.frameId !== frameIdRef.current) return;
+
+      setFrameHeight(Math.min(
+        MAX_FRAME_HEIGHT,
+        Math.max(minHeight, Math.ceil(event.data.height)),
+      ));
+    }
+
+    window.addEventListener('message', handleMessage);
+    return () => window.removeEventListener('message', handleMessage);
+  }, [minHeight]);
+
+  return (
+    <iframe
+      ref={iframeRef}
+      className={`thread-html-frame thread-html-frame-${variant} ${className}`.trim()}
+      referrerPolicy="no-referrer"
+      sandbox="allow-scripts allow-same-origin"
+      src={frameSource}
+      style={{ height: frameHeight }}
+      title={variant === 'signature' ? `第 ${floor} 楼签名档` : `第 ${floor} 楼正文`}
+    />
+  );
+}
+
+function useSignaturePostReferences(html: string, enabled: boolean) {
+  const [resolvedHtml, setResolvedHtml] = useState(html);
 
   useEffect(() => {
     const controller = new AbortController();
-    const markers = findSignatureFloorMarkers(html);
+    const markers = enabled ? findSignatureFloorMarkers(html) : [];
 
     setResolvedHtml(html);
     if (markers.length === 0) return () => controller.abort();
@@ -53,61 +153,28 @@ export function ThreadSignatureFrame({ floor, html }: { floor: number; html: str
     }).catch(() => undefined);
 
     return () => controller.abort();
-  }, [html]);
+  }, [enabled, html]);
 
-  const frameDocument = useMemo(() => buildSignatureFrameDocument({
-    frameId: frameIdRef.current,
-    html: resolvedHtml,
-    isDarkTheme,
-  }), [isDarkTheme, resolvedHtml]);
-  const frameSource = useMemo(
-    () => `data:text/html;charset=utf-8,${encodeURIComponent(frameDocument)}`,
-    [frameDocument],
-  );
-
-  useEffect(() => {
-    setFrameHeight(MIN_FRAME_HEIGHT);
-  }, [frameSource]);
-
-  useEffect(() => {
-    function handleMessage(event: MessageEvent) {
-      if (event.source !== iframeRef.current?.contentWindow || !isSignatureFrameMessage(event.data)) return;
-      if (event.data.frameId !== frameIdRef.current) return;
-
-      setFrameHeight(Math.min(
-        MAX_FRAME_HEIGHT,
-        Math.max(MIN_FRAME_HEIGHT, Math.ceil(event.data.height)),
-      ));
-    }
-
-    window.addEventListener('message', handleMessage);
-    return () => window.removeEventListener('message', handleMessage);
-  }, []);
-
-  return (
-    <iframe
-      ref={iframeRef}
-      className="thread-signature-frame"
-      referrerPolicy="no-referrer"
-      sandbox="allow-scripts allow-same-origin"
-      src={frameSource}
-      style={{ height: frameHeight }}
-      title={`第 ${floor} 楼签名档`}
-    />
-  );
+  return resolvedHtml;
 }
 
-function buildSignatureFrameDocument({
+function buildHtmlFrameDocument({
   frameId,
   html,
   isDarkTheme,
+  variant,
 }: {
   frameId: string;
   html: string;
   isDarkTheme: boolean;
+  variant: ThreadHtmlVariant;
 }) {
-  const color = isDarkTheme ? 'rgb(161 161 170)' : 'rgb(113 113 122)';
+  const isSignature = variant === 'signature';
+  const color = isDarkTheme
+    ? (isSignature ? 'rgb(161 161 170)' : 'rgb(228 228 231)')
+    : (isSignature ? 'rgb(113 113 122)' : 'rgb(63 63 70)');
   const linkColor = isDarkTheme ? 'rgb(125 211 252)' : 'rgb(3 105 161)';
+  const fontSize = isSignature ? '13.76px' : '14.72px';
 
   return `<!doctype html>
 <html style="background:transparent;color-scheme:${isDarkTheme ? 'dark' : 'light'}">
@@ -118,8 +185,8 @@ function buildSignatureFrameDocument({
   <base href="${escapeHtmlAttribute(getLegacyContentBaseUrl())}">
   <meta http-equiv="Content-Security-Policy" content="${buildContentSecurityPolicy()}">
   <style>
-    html,body{margin:0;padding:0;min-height:0;background:transparent!important;color:${color};font-family:ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;font-size:13.76px;line-height:1.6;overflow-wrap:anywhere}
-    body{display:flow-root}a{color:${linkColor}}img,video,canvas,svg,iframe{max-width:100%;height:auto}pre{max-width:100%;overflow:auto;white-space:pre-wrap}table{max-width:100%}.signature-reference-error{opacity:.72}
+    html,body{margin:0;padding:0;min-height:0;background:transparent!important;color:${color};font-family:ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;font-size:${fontSize};line-height:1.6;overflow-wrap:anywhere;word-break:break-word}
+    body{display:flow-root}a{color:${linkColor}}img,video,canvas,svg,iframe{max-width:100%;height:auto}pre{max-width:100%;overflow:auto;white-space:pre-wrap}table{max-width:100%}
   </style>
   <script>${buildFrameBridgeScript(frameId)}</script>
   <script src="/bbs/lib/jquery.min.js"></script>
@@ -137,7 +204,7 @@ function buildFrameBridgeScript(frameId: string) {
       var body=document.body;
       var root=document.documentElement;
       var height=Math.max(body?body.scrollHeight:0,root?root.scrollHeight:0);
-      window.parent.postMessage({source:'${SIGNATURE_FRAME_MESSAGE_SOURCE}',type:'resize',frameId:frameId,height:height},'*');
+      window.parent.postMessage({source:'${HTML_FRAME_MESSAGE_SOURCE}',type:'resize',frameId:frameId,height:height},'*');
     }
     function queueHeight(){
       if(queued)return;
@@ -198,10 +265,10 @@ function escapeHtmlAttribute(value: string) {
   return value.replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 }
 
-function isSignatureFrameMessage(value: unknown): value is SignatureFrameMessage {
+function isHtmlFrameMessage(value: unknown): value is HtmlFrameMessage {
   if (!value || typeof value !== 'object') return false;
-  const message = value as Partial<SignatureFrameMessage>;
-  return message.source === SIGNATURE_FRAME_MESSAGE_SOURCE
+  const message = value as Partial<HtmlFrameMessage>;
+  return message.source === HTML_FRAME_MESSAGE_SOURCE
     && message.type === 'resize'
     && typeof message.frameId === 'string'
     && typeof message.height === 'number'

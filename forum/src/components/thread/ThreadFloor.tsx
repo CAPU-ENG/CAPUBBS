@@ -12,7 +12,7 @@ import {
 import type { NestedReply, ThreadAuthor, ThreadFloorData } from '../../data/threadDemo';
 import { getPublicProfilePath } from '../../utils/userRoutes';
 import { ForumMarkup, type ForumMarkupImage } from './ForumMarkup';
-import { ThreadSignatureFrame } from './ThreadSignatureFrame';
+import { ThreadHtmlContent } from './ThreadHtmlContent';
 import { ThreadImageLightbox } from './ThreadImageLightbox';
 
 function AuthorCard({ author }: { author: ThreadAuthor }) {
@@ -247,8 +247,9 @@ export function ThreadFloor({
         </header>
 
         {floor.contentHtml ? (
-          <ForumMarkup
+          <ThreadHtmlContent
             className="thread-floor-body"
+            floor={floor.floor}
             html={floor.contentHtml}
             onImageOpen={openImagePreview}
             variant="floor"
@@ -264,9 +265,11 @@ export function ThreadFloor({
         {(floor.signatureHtml || floor.signature) && (
           <footer className="thread-signature">
             {floor.signatureHtml ? (
-              <ThreadSignatureFrame
+              <ThreadHtmlContent
                 floor={floor.floor}
                 html={floor.signatureHtml}
+                onImageOpen={openImagePreview}
+                variant="signature"
               />
             ) : (
               <p>{floor.signature}</p>
