@@ -73,7 +73,7 @@ function get_canceled($username, $activity_id) {
 }
 
 
-function createActivity($username, $bid, $title, $text, $options, $sig, $attachs = '', $signup_starts_at = null, $signup_ends_at = null) {
+function createActivity($username, $bid, $title, $text, $options, $sig, $attachs = '', $signup_starts_at = null, $signup_ends_at = null, $activity_starts_on = null, $activity_ends_on = null) {
     $season_id = -1;
     $GLOBALS['validtime']=1800;
     $con = dbconnect_mysqli();
@@ -123,6 +123,14 @@ function createActivity($username, $bid, $title, $text, $options, $sig, $attachs
             $signup_ends_at = intval($signup_ends_at);
             $statement = "insert into season_activity_signup_window (activity_id, starts_at, ends_at)
                 values ($activity_id, $signup_starts_at, $signup_ends_at)";
+            activity_service_query_or_throw($con, $statement);
+        }
+
+        if ($activity_starts_on !== null && $activity_ends_on !== null) {
+            $activity_starts_on = mysqli_real_escape_string($con, $activity_starts_on);
+            $activity_ends_on = mysqli_real_escape_string($con, $activity_ends_on);
+            $statement = "insert into season_activity_schedule (activity_id, starts_on, ends_on)
+                values ($activity_id, '$activity_starts_on', '$activity_ends_on')";
             activity_service_query_or_throw($con, $statement);
         }
 
@@ -222,9 +230,11 @@ function getActivity($bid, $tid) {
     $bid = intval($bid);
     $tid = intval($tid);
     $statement = "select activity.activity_id, activity.bid, activity.tid, activity.season_id,
-            activity.name, activity.leader_username, signup_window.starts_at, signup_window.ends_at
+            activity.name, activity.leader_username, signup_window.starts_at, signup_window.ends_at,
+            schedule.starts_on as activity_starts_on, schedule.ends_on as activity_ends_on
         from season_threads_activity activity
         left join season_activity_signup_window signup_window on signup_window.activity_id=activity.activity_id
+        left join season_activity_schedule schedule on schedule.activity_id=activity.activity_id
         where activity.bid=$bid and activity.tid=$tid";
     $result_activity = mysqli_query($con, $statement);
 
@@ -242,6 +252,13 @@ function getActivity($bid, $tid) {
                 "starts_at" => $starts_at,
                 "ends_at" => $ends_at,
                 "status" => $now < $starts_at ? "not_started" : ($now >= $ends_at ? "closed" : "open"),
+            );
+        }
+        $schedule = null;
+        if ($row_activity["activity_starts_on"] !== null && $row_activity["activity_ends_on"] !== null) {
+            $schedule = array(
+                "starts_on" => $row_activity["activity_starts_on"],
+                "ends_on" => $row_activity["activity_ends_on"],
             );
         }
 
@@ -288,6 +305,7 @@ function getActivity($bid, $tid) {
             "name"=> $name,
             "leader_username"=> $leader_username,
             "signup_window"=> $signup_window,
+            "schedule"=> $schedule,
             "options"=>$options
         );
         return $activity;

@@ -56,6 +56,10 @@ function activity_handler_create($con, $token, $bid, $ip, $params, $allow_missin
     if (!$window['valid']) {
         return activity_handler_error('-44', $window['message']);
     }
+    $schedule = activity_handler_parse_schedule($params, !$allow_missing_window);
+    if (!$schedule['valid']) {
+        return activity_handler_error('-44', $schedule['message']);
+    }
 
     $control_error = activity_handler_check_post_control($con, $user, $bid);
     if ($control_error !== null) {
@@ -76,7 +80,9 @@ function activity_handler_create($con, $token, $bid, $ip, $params, $allow_missin
             $sig,
             $attachs,
             $window['starts_at'],
-            $window['ends_at']
+            $window['ends_at'],
+            $schedule['starts_on'],
+            $schedule['ends_on']
         );
     } catch (Exception $error) {
         return activity_handler_error('8', '活动创建失败，请稍后重试');
@@ -177,15 +183,19 @@ function jiekoufunc_activity_signup_list($con, $params) {
             activity.leader_username,
             signup_window.starts_at,
             signup_window.ends_at,
+            schedule.starts_on,
+            schedule.ends_on,
             count(case when activity_join.cancel=0 then 1 end) as signup_count
         from season_activity_signup_window signup_window
         inner join season_threads_activity activity on activity.activity_id=signup_window.activity_id
+        inner join season_activity_schedule schedule on schedule.activity_id=activity.activity_id
         inner join threads on threads.bid=activity.bid and threads.tid=activity.tid
         left join season_activity_join activity_join on activity_join.activity_id=activity.activity_id
         where signup_window.ends_at>$now and threads.locked=0
         group by activity.activity_id, activity.bid, activity.tid, activity.name,
-            activity.leader_username, signup_window.starts_at, signup_window.ends_at
-        order by signup_window.starts_at asc, signup_window.ends_at asc
+            activity.leader_username, signup_window.starts_at, signup_window.ends_at,
+            schedule.starts_on, schedule.ends_on
+        order by schedule.starts_on asc, signup_window.ends_at asc
         limit $limit";
     $result = mysqli_query($con, $statement);
     if (!$result) {
@@ -204,11 +214,26 @@ function jiekoufunc_activity_signup_list($con, $params) {
             'leader_username' => $row['leader_username'],
             'starts_at' => $starts_at,
             'ends_at' => $ends_at,
+            'activity_starts_on' => $row['starts_on'],
+            'activity_ends_on' => $row['ends_on'],
             'status' => activity_signup_window_status($starts_at, $ends_at, $now),
             'signup_count' => intval($row['signup_count']),
         );
     }
     return $rows;
+}
+
+function activity_schedule_for_activity($con, $activity_id) {
+    $activity_id = intval($activity_id);
+    if ($activity_id <= 0) return null;
+    $result = mysqli_query($con, "select starts_on, ends_on from season_activity_schedule where activity_id=$activity_id limit 1");
+    $row = $result ? mysqli_fetch_assoc($result) : null;
+    if (!$row) return null;
+
+    return array(
+        'starts_on' => $row['starts_on'],
+        'ends_on' => $row['ends_on'],
+    );
 }
 
 function activity_signup_window_for_activity($con, $activity_id) {
@@ -267,6 +292,42 @@ function activity_handler_parse_window($params, $required) {
         return array('valid' => false, 'message' => '报名截止时间必须晚于当前时间', 'starts_at' => null, 'ends_at' => null);
     }
     return array('valid' => true, 'message' => '', 'starts_at' => $starts_at, 'ends_at' => $ends_at);
+}
+
+function activity_handler_parse_schedule($params, $required) {
+    $has_starts_on = isset($params['activity_starts_on']) && $params['activity_starts_on'] !== '';
+    $has_ends_on = isset($params['activity_ends_on']) && $params['activity_ends_on'] !== '';
+    if (!$has_starts_on && !$has_ends_on && !$required) {
+        return array('valid' => true, 'message' => '', 'starts_on' => null, 'ends_on' => null);
+    }
+    if (!$has_starts_on || !$has_ends_on) {
+        return array('valid' => false, 'message' => '活动开始和结束日期必须同时填写', 'starts_on' => null, 'ends_on' => null);
+    }
+
+    $starts_on = strval($params['activity_starts_on']);
+    $ends_on = strval($params['activity_ends_on']);
+    $timezone = new DateTimeZone('Asia/Shanghai');
+    foreach (array($starts_on, $ends_on) as $date_value) {
+        if (!preg_match('/^\d{4}-\d{2}-\d{2}$/', $date_value)) {
+            return array('valid' => false, 'message' => '活动日期格式不正确', 'starts_on' => null, 'ends_on' => null);
+        }
+        $date = DateTime::createFromFormat('!Y-m-d', $date_value, $timezone);
+        $date_errors = DateTime::getLastErrors();
+        if (!$date || $date->format('Y-m-d') !== $date_value || (is_array($date_errors) && ($date_errors['warning_count'] > 0 || $date_errors['error_count'] > 0))) {
+            return array('valid' => false, 'message' => '活动日期格式不正确', 'starts_on' => null, 'ends_on' => null);
+        }
+    }
+
+    $today = new DateTime('now', $timezone);
+    $today_value = $today->format('Y-m-d');
+    if ($starts_on <= $today_value) {
+        return array('valid' => false, 'message' => '活动开始日期必须晚于今天', 'starts_on' => null, 'ends_on' => null);
+    }
+    if ($ends_on < $starts_on) {
+        return array('valid' => false, 'message' => '活动结束日期不能早于开始日期', 'starts_on' => null, 'ends_on' => null);
+    }
+
+    return array('valid' => true, 'message' => '', 'starts_on' => $starts_on, 'ends_on' => $ends_on);
 }
 
 function activity_handler_validate_options($options) {

@@ -23,15 +23,16 @@ function formatCountdown(deadline: string, now: number) {
   return `${days} 天 ${hours} 小时 ${minutes} 分钟`;
 }
 
-function formatSignupMoment(timestamp: string, prefix: string) {
-  return `${prefix} ${new Intl.DateTimeFormat('zh-CN', {
-    day: 'numeric',
-    hour: '2-digit',
-    hour12: false,
-    minute: '2-digit',
-    month: 'numeric',
-    timeZone: 'Asia/Shanghai',
-  }).format(new Date(timestamp))}`;
+function formatActivityDateRange(startsOn: string, endsOn: string) {
+  const [startYear, startMonth, startDay] = startsOn.split('-').map(Number);
+  const [, endMonth, endDay] = endsOn.split('-').map(Number);
+  const startLabel = `${startYear}年${startMonth}月${startDay}日`;
+  if (startsOn === endsOn) return startLabel;
+  const endYear = Number(endsOn.slice(0, 4));
+  const endLabel = startYear === endYear
+    ? `${endMonth}月${endDay}日`
+    : `${endYear}年${endMonth}月${endDay}日`;
+  return `${startLabel} – ${endLabel}`;
 }
 
 function dateKey(year: number, month: number, day: number) {
@@ -101,7 +102,7 @@ export function ActivitySignupList({
         return (
           <a className="signup-activity-card" href={activity.href} key={activity.id}>
             <div className="signup-card-topline">
-              <span>{formatSignupMoment(countdownTarget, upcoming ? '开始' : '截止')}</span>
+              <span>{formatActivityDateRange(activity.activityStartsOn, activity.activityEndsOn)}</span>
               <em>{upcoming ? '即将开始' : '报名中'}</em>
             </div>
             <h3>{activity.title}</h3>

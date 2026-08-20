@@ -13,13 +13,51 @@ import { useRef, useState, type ChangeEvent, type DragEvent } from 'react';
 import {
   activitySignupQuestionTypeOptions,
   createActivitySignupQuestion,
+  getMinimumActivityDate,
   getActivitySignupQuestionHint,
   isActivitySignupChoiceType,
   normalizeActivitySignupQuestion,
   type ActivitySignupQuestion,
   type ActivitySignupQuestionType,
   type ActivitySignupSettings,
+  type ActivityDateRange,
 } from '../../utils/activitySignup';
+
+export function ActivityDateSchedule({
+  onChange,
+  value,
+}: {
+  onChange: (value: ActivityDateRange) => void;
+  value: ActivityDateRange;
+}) {
+  const minimumDate = getMinimumActivityDate();
+  return (
+    <section className="activity-signup-schedule" aria-label="活动日期">
+      <h3><CalendarDays size={16} />活动日期</h3>
+      <div className="activity-signup-time-range">
+        <label>
+          <span>开始</span>
+          <input
+            min={minimumDate}
+            onChange={(event) => onChange({ ...value, startsOn: event.target.value })}
+            type="date"
+            value={value.startsOn}
+          />
+        </label>
+        <ArrowRight aria-hidden="true" size={16} />
+        <label>
+          <span>结束</span>
+          <input
+            min={value.startsOn || minimumDate}
+            onChange={(event) => onChange({ ...value, endsOn: event.target.value })}
+            type="date"
+            value={value.endsOn}
+          />
+        </label>
+      </div>
+    </section>
+  );
+}
 
 export function ActivitySignupSchedule({
   onChange,

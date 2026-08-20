@@ -470,6 +470,24 @@ CREATE TABLE `season_threads_activity` (
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
+-- Table structure for table `season_activity_schedule`
+--
+
+DROP TABLE IF EXISTS `season_activity_schedule`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `season_activity_schedule` (
+  `activity_id` int(11) NOT NULL,
+  `starts_on` date NOT NULL COMMENT '活动开始日期',
+  `ends_on` date NOT NULL COMMENT '活动结束日期',
+  PRIMARY KEY (`activity_id`),
+  KEY `activity_starts_on` (`starts_on`),
+  KEY `activity_ends_on` (`ends_on`),
+  CONSTRAINT `fk_activity_schedule_activity` FOREIGN KEY (`activity_id`) REFERENCES `season_threads_activity` (`activity_id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
 -- Table structure for table `season_activity_signup_window`
 --
 

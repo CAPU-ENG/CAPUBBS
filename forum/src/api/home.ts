@@ -41,6 +41,8 @@ export type HomeCalendarEvent = {
 };
 
 export type HomeSignupActivity = {
+  activityEndsOn: string;
+  activityStartsOn: string;
   endsAt: string;
   href: string;
   id: string;
@@ -241,10 +243,15 @@ function mapSignupActivityRow(row: ApiRow): HomeSignupActivity | null {
   const title = plainText(row.name);
   const startsAt = toTimestamp(row.starts_at);
   const endsAt = toTimestamp(row.ends_at);
+  const activityStartsOn = toDateOnly(row.activity_starts_on);
+  const activityEndsOn = toDateOnly(row.activity_ends_on);
 
-  if (!activityId || !bid || !tid || !title || !startsAt || !endsAt) return null;
+  if (!activityId || !bid || !tid || !title || !startsAt || !endsAt
+    || !activityStartsOn || !activityEndsOn) return null;
 
   return {
+    activityEndsOn,
+    activityStartsOn,
     endsAt,
     href: `/?bid=${bid}&tid=${tid}&p=1`,
     id: String(activityId),
@@ -252,6 +259,19 @@ function mapSignupActivityRow(row: ApiRow): HomeSignupActivity | null {
     startsAt,
     title,
   };
+}
+
+function toDateOnly(value: unknown) {
+  if (typeof value !== 'string') return '';
+  const match = value.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+  if (!match) return '';
+  const [, year, month, day] = match.map(Number);
+  const date = new Date(Date.UTC(year, month - 1, day));
+  return date.getUTCFullYear() === year
+    && date.getUTCMonth() === month - 1
+    && date.getUTCDate() === day
+    ? value
+    : '';
 }
 
 function normalizeCalendarUrl(value: unknown) {

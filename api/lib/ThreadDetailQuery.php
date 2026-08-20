@@ -468,6 +468,7 @@ function thread_detail_query_get_activity($con, $bid, $tid) {
         'name' => $activity_row['name'],
         'leader_username' => $activity_row['leader_username'],
         'signup_window' => activity_signup_window_for_activity($con, $activity_id),
+        'schedule' => activity_schedule_for_activity($con, $activity_id),
         'options' => $options,
     );
 }

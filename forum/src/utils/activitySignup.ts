@@ -25,6 +25,11 @@ export type ActivitySignupSettings = {
   startsAt: string;
 };
 
+export type ActivityDateRange = {
+  endsOn: string;
+  startsOn: string;
+};
+
 export type ActivityCreateOption = {
   cases?: Array<{ case_name: string; comment: string }>;
   comment: string;
@@ -78,6 +83,45 @@ export function createDefaultActivitySignupSettings(): ActivitySignupSettings {
     })),
     startsAt: '',
   };
+}
+
+export function createDefaultActivityDateRange(): ActivityDateRange {
+  return { endsOn: '', startsOn: '' };
+}
+
+export function getMinimumActivityDate() {
+  const todayParts = new Intl.DateTimeFormat('en-US', {
+    day: '2-digit',
+    month: '2-digit',
+    timeZone: 'Asia/Shanghai',
+    year: 'numeric',
+  }).formatToParts(new Date());
+  const values = Object.fromEntries(todayParts.map((part) => [part.type, part.value]));
+  const tomorrow = new Date(Date.UTC(
+    Number(values.year),
+    Number(values.month) - 1,
+    Number(values.day) + 1,
+  ));
+  return [
+    tomorrow.getUTCFullYear(),
+    String(tomorrow.getUTCMonth() + 1).padStart(2, '0'),
+    String(tomorrow.getUTCDate()).padStart(2, '0'),
+  ].join('-');
+}
+
+export function validateActivityDateRange(range: ActivityDateRange) {
+  if (!isValidDateOnly(range.startsOn) || !isValidDateOnly(range.endsOn)) return false;
+  return range.startsOn >= getMinimumActivityDate() && range.endsOn >= range.startsOn;
+}
+
+function isValidDateOnly(value: string) {
+  const match = value.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+  if (!match) return false;
+  const [, year, month, day] = match.map(Number);
+  const date = new Date(Date.UTC(year, month - 1, day));
+  return date.getUTCFullYear() === year
+    && date.getUTCMonth() === month - 1
+    && date.getUTCDate() === day;
 }
 
 export function createActivitySignupQuestion(index: number): ActivitySignupQuestion {

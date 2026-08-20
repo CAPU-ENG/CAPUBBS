@@ -23,7 +23,7 @@ import {
   PostEditorPreviewDialog,
   PostEditorTitleField,
 } from '../components/thread/PostEditor';
-import { ActivitySignupEditor, ActivitySignupSchedule } from '../components/thread/ActivitySignupEditor';
+import { ActivityDateSchedule, ActivitySignupEditor, ActivitySignupSchedule } from '../components/thread/ActivitySignupEditor';
 import { useAuth } from '../context/AuthContext';
 import { getLoginPathWithReturnTo } from '../utils/authRoutes';
 import {
@@ -41,8 +41,11 @@ import { getThreadFloorHref } from '../utils/threadRoutes';
 import {
   activitySignupDateTimeToUnixSeconds,
   buildActivityCreateOptions,
+  createDefaultActivityDateRange,
   createDefaultActivitySignupSettings,
+  validateActivityDateRange,
   validateActivitySignupSettings,
+  type ActivityDateRange,
   type ActivitySignupSettings,
 } from '../utils/activitySignup';
 
@@ -61,6 +64,7 @@ export function ThreadComposePage() {
   const [editorValue, setEditorValue] = useState<RichTextEditorValue>({ content: '', mode: 'rich' });
   const [signatureIndex, setSignatureIndex] = useState(0);
   const [attachments, setAttachments] = useState<ComposeAttachment[]>([]);
+  const [activitySchedule, setActivitySchedule] = useState<ActivityDateRange>(createDefaultActivityDateRange);
   const [activitySignup, setActivitySignup] = useState<ActivitySignupSettings>(createDefaultActivitySignupSettings);
   const [status, setStatus] = useState('');
   const [statusIsError, setStatusIsError] = useState(false);
@@ -73,7 +77,7 @@ export function ThreadComposePage() {
   const [previewedAt, setPreviewedAt] = useState('');
   const [draftLoadComplete, setDraftLoadComplete] = useState(false);
   const [storedReplyDraftId, setStoredReplyDraftId] = useState<string | null>(null);
-  const [savedSnapshot, setSavedSnapshot] = useState(() => makeSnapshot('', { content: '', mode: 'rich' }, 0, [], null));
+  const [savedSnapshot, setSavedSnapshot] = useState(() => makeSnapshot('', { content: '', mode: 'rich' }, 0, [], null, null));
 
   const ownerKey = viewer?.username ?? null;
   const isReply = Boolean(request?.tid);
@@ -89,7 +93,14 @@ export function ThreadComposePage() {
   const backHref = request?.tid
     ? `/?${new URLSearchParams({ bid: String(request.bid), p: '1', tid: String(request.tid) }).toString()}#reply-editor`
     : boardHref;
-  const currentSnapshot = makeSnapshot(title, editorValue, signatureIndex, attachments, isActivity ? activitySignup : null);
+  const currentSnapshot = makeSnapshot(
+    title,
+    editorValue,
+    signatureIndex,
+    attachments,
+    isActivity ? activitySchedule : null,
+    isActivity ? activitySignup : null,
+  );
   const isDirty = currentSnapshot !== savedSnapshot;
   const contentReady = hasPostEditorContent(editorValue);
   const canPublish = Boolean(
@@ -97,7 +108,11 @@ export function ThreadComposePage() {
     && boardName
     && (isReply || title.trim())
     && contentReady
-    && (!isActivity || (canCreateActivity && validateActivitySignupSettings(activitySignup)))
+    && (!isActivity || (
+      canCreateActivity
+      && validateActivityDateRange(activitySchedule)
+      && validateActivitySignupSettings(activitySignup)
+    ))
     && !isUploadingAttachments
     && !isPublishing,
   );
@@ -156,8 +171,9 @@ export function ThreadComposePage() {
     setAttachments([]);
     setReplyBoardName('');
     setStoredReplyDraftId(null);
+    setActivitySchedule(createDefaultActivityDateRange());
     setActivitySignup(createDefaultActivitySignupSettings());
-    setSavedSnapshot(makeSnapshot('', { content: '', mode: 'rich' }, 0, [], null));
+    setSavedSnapshot(makeSnapshot('', { content: '', mode: 'rich' }, 0, [], null, null));
 
     const loadDraft = async () => {
       if (request.tid) {
@@ -174,7 +190,7 @@ export function ThreadComposePage() {
         setSignatureIndex(draft.signatureIndex ?? 0);
         setAttachments(draft.attachments);
         setStoredReplyDraftId(draft.id);
-        setSavedSnapshot(makeSnapshot(draft.threadTitle, draft.editor, draft.signatureIndex ?? 0, draft.attachments, null));
+        setSavedSnapshot(makeSnapshot(draft.threadTitle, draft.editor, draft.signatureIndex ?? 0, draft.attachments, null, null));
         setStatus('已从本机恢复回帖草稿');
         setStatusIsError(false);
         setDraftLoadComplete(true);
@@ -191,12 +207,17 @@ export function ThreadComposePage() {
         const signupSettings = isActivity
           ? draft.activitySignup ?? createDefaultActivitySignupSettings()
           : createDefaultActivitySignupSettings();
+        const activityDateRange = isActivity
+          ? draft.activitySchedule ?? createDefaultActivityDateRange()
+          : createDefaultActivityDateRange();
+        setActivitySchedule(activityDateRange);
         setActivitySignup(signupSettings);
         setSavedSnapshot(makeSnapshot(
           draft.title,
           draft.editor,
           draft.signatureIndex,
           draft.attachments,
+          isActivity ? activityDateRange : null,
           isActivity ? signupSettings : null,
         ));
         setStatus('已恢复这个版块的发帖草稿');
@@ -301,6 +322,7 @@ export function ThreadComposePage() {
         setStoredReplyDraftId(result.draft.id);
       } else {
         await saveStoredThreadComposeDraft({
+          activitySchedule: isActivity ? activitySchedule : undefined,
           activitySignup: isActivity ? activitySignup : undefined,
           attachments,
           bid: request.bid,
@@ -344,6 +366,7 @@ export function ThreadComposePage() {
     setStatusIsError(false);
     try {
       const published = await publishThread({
+        activitySchedule: isActivity ? activitySchedule : null,
         activitySignup: isActivity ? activitySignup : null,
         attachments: attachments.map((attachment) => attachment.id).join(' '),
         bid: request.bid,
@@ -463,13 +486,22 @@ export function ThreadComposePage() {
                     value={title}
                   />
                   {isActivity ? (
-                    <ActivitySignupSchedule
-                      onChange={(value) => {
-                        setActivitySignup(value);
-                        clearStatus();
-                      }}
-                      value={activitySignup}
-                    />
+                    <>
+                      <ActivityDateSchedule
+                        onChange={(value) => {
+                          setActivitySchedule(value);
+                          clearStatus();
+                        }}
+                        value={activitySchedule}
+                      />
+                      <ActivitySignupSchedule
+                        onChange={(value) => {
+                          setActivitySignup(value);
+                          clearStatus();
+                        }}
+                        value={activitySignup}
+                      />
+                    </>
                   ) : null}
                 </>
               ) : undefined}
@@ -580,9 +612,11 @@ function makeSnapshot(
   editor: RichTextEditorValue,
   signatureIndex: number,
   attachments: ComposeAttachment[],
+  activitySchedule: ActivityDateRange | null,
   activitySignup: ActivitySignupSettings | null,
 ) {
   return JSON.stringify({
+    activitySchedule,
     attachments: attachments.map((attachment) => attachment.id),
     activitySignup,
     editor,
@@ -609,6 +643,7 @@ function getDraftExcerpt(
 }
 
 async function publishThread({
+  activitySchedule,
   activitySignup,
   attachments,
   bid,
@@ -617,6 +652,7 @@ async function publishThread({
   tid,
   title,
 }: {
+  activitySchedule: ActivityDateRange | null;
   activitySignup: ActivitySignupSettings | null;
   attachments: string;
   bid: number;
@@ -625,8 +661,9 @@ async function publishThread({
   tid: number | null;
   title: string;
 }) {
-  if (activitySignup) {
+  if (activitySchedule && activitySignup) {
     return publishActivityThread({
+      activitySchedule,
       activitySignup,
       attachments,
       bid,
@@ -690,6 +727,7 @@ async function publishThread({
 }
 
 async function publishActivityThread({
+  activitySchedule,
   activitySignup,
   attachments,
   bid,
@@ -697,6 +735,7 @@ async function publishActivityThread({
   text,
   title,
 }: {
+  activitySchedule: ActivityDateRange;
   activitySignup: ActivitySignupSettings;
   attachments: string;
   bid: number;
@@ -710,6 +749,8 @@ async function publishActivityThread({
       body: new URLSearchParams({
         ask: 'activity_create',
         attachs: attachments,
+        activity_ends_on: activitySchedule.endsOn,
+        activity_starts_on: activitySchedule.startsOn,
         bid: String(bid),
         options: JSON.stringify(buildActivityCreateOptions(activitySignup.questions)),
         sig: String(signatureIndex),

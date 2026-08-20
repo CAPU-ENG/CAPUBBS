@@ -6,11 +6,12 @@ import {
 } from './clientDatabase';
 import type { RichTextEditorValue } from '../components/editor/RichTextEditor';
 import type { PostEditorAttachment } from '../components/thread/PostEditor';
-import type { ActivitySignupSettings } from './activitySignup';
+import type { ActivityDateRange, ActivitySignupSettings } from './activitySignup';
 
 export type ThreadComposeDraftKind = 'activity' | 'thread';
 
 export type StoredThreadComposeDraft = {
+  activitySchedule?: ActivityDateRange;
   activitySignup?: ActivitySignupSettings;
   attachments: PostEditorAttachment[];
   bid: number;
@@ -140,6 +141,7 @@ function isStoredDraft(value: unknown): value is StoredThreadComposeDraft {
   if (!value || typeof value !== 'object' || Array.isArray(value)) return false;
   const draft = value as Partial<StoredThreadComposeDraft>;
   return Array.isArray(draft.attachments)
+    && (draft.activitySchedule === undefined || isActivityDateRange(draft.activitySchedule))
     && (draft.activitySignup === undefined || isActivitySignupSettings(draft.activitySignup))
     && Number.isSafeInteger(draft.bid)
     && Number(draft.bid) > 0
@@ -152,6 +154,12 @@ function isStoredDraft(value: unknown): value is StoredThreadComposeDraft {
     && Number.isSafeInteger(draft.signatureIndex)
     && typeof draft.title === 'string'
     && typeof draft.updatedAt === 'string';
+}
+
+function isActivityDateRange(value: unknown): value is ActivityDateRange {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) return false;
+  const schedule = value as Partial<ActivityDateRange>;
+  return typeof schedule.startsOn === 'string' && typeof schedule.endsOn === 'string';
 }
 
 function isActivitySignupSettings(value: unknown): value is ActivitySignupSettings {
