@@ -15,6 +15,7 @@ export type ThreadAuthor = {
 export type NestedReply = {
   id: string;
   author: ThreadAuthor;
+  canDelete?: boolean;
   publishedAt: string;
   content: string;
   contentHtml?: SafeForumHtml;

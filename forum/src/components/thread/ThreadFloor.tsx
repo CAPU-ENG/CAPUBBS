@@ -87,6 +87,7 @@ export function ThreadFloor({
   canReply,
   floor,
   isMainPost,
+  onDeleteNestedReply,
   onQuote,
   onSubmitNestedReply,
   viewer,
@@ -94,13 +95,17 @@ export function ThreadFloor({
   canReply: boolean;
   floor: ThreadFloorData;
   isMainPost: boolean;
+  onDeleteNestedReply: (floor: ThreadFloorData, reply: NestedReply) => Promise<void>;
   onQuote: (floor: ThreadFloorData) => void;
-  onSubmitNestedReply: (floor: ThreadFloorData, targetName: string | null, content: string) => Promise<void>;
+  onSubmitNestedReply: (floor: ThreadFloorData, targetName: string | null, content: string) => Promise<number>;
   viewer: ThreadAuthor | null;
 }) {
   const [copyNoticeOpen, setCopyNoticeOpen] = useState(false);
+  const [deletedNestedReplyIds, setDeletedNestedReplyIds] = useState<string[]>([]);
   const [localNestedReplies, setLocalNestedReplies] = useState<NestedReply[]>([]);
   const [nestedReplyContent, setNestedReplyContent] = useState('');
+  const [nestedReplyDeleteError, setNestedReplyDeleteError] = useState('');
+  const [nestedReplyDeletingId, setNestedReplyDeletingId] = useState<string | null>(null);
   const [nestedReplyError, setNestedReplyError] = useState('');
   const [nestedReplyPending, setNestedReplyPending] = useState(false);
   const [nestedReplyTarget, setNestedReplyTarget] = useState<string | null | undefined>(undefined);
@@ -109,8 +114,9 @@ export function ThreadFloor({
   const nestedReplyInputRef = useRef<HTMLTextAreaElement | null>(null);
   const previewTriggerRef = useRef<HTMLImageElement | null>(null);
   const nestedReplies = useMemo(
-    () => [...(floor.nestedReplies ?? []), ...localNestedReplies],
-    [floor.nestedReplies, localNestedReplies],
+    () => [...(floor.nestedReplies ?? []), ...localNestedReplies]
+      .filter((reply) => !deletedNestedReplyIds.includes(reply.id)),
+    [deletedNestedReplyIds, floor.nestedReplies, localNestedReplies],
   );
 
   useEffect(() => {
@@ -142,6 +148,7 @@ export function ThreadFloor({
   function openNestedReplyComposer(targetName: string | null = null) {
     setNestedReplyTarget(targetName);
     setNestedReplyContent('');
+    setNestedReplyDeleteError('');
     setNestedReplyError('');
     window.requestAnimationFrame(() => nestedReplyInputRef.current?.focus());
   }
@@ -160,13 +167,14 @@ export function ThreadFloor({
     setNestedReplyPending(true);
     setNestedReplyError('');
     try {
-      await onSubmitNestedReply(floor, nestedReplyTarget ?? null, content);
+      const savedReplyId = await onSubmitNestedReply(floor, nestedReplyTarget ?? null, content);
       setLocalNestedReplies((current) => [
         ...current,
         {
           author: viewer,
+          canDelete: true,
           content,
-          id: `local-${floor.id}-${Date.now()}`,
+          id: savedReplyId > 0 ? String(savedReplyId) : `local-${floor.id}-${Date.now()}`,
           publishedAt: formatLocalTimestamp(new Date()),
           target: nestedReplyTarget ?? undefined,
         },
@@ -176,6 +184,22 @@ export function ThreadFloor({
       setNestedReplyError(error instanceof Error ? error.message : '楼中楼回复发布失败，请稍后重试。');
     } finally {
       setNestedReplyPending(false);
+    }
+  }
+
+  async function removeNestedReply(reply: NestedReply) {
+    if (!window.confirm('确认删除这条楼中楼回复吗？')) return;
+
+    setNestedReplyDeletingId(reply.id);
+    setNestedReplyDeleteError('');
+    try {
+      await onDeleteNestedReply(floor, reply);
+      setDeletedNestedReplyIds((current) => [...current, reply.id]);
+      setLocalNestedReplies((current) => current.filter((item) => item.id !== reply.id));
+    } catch (error) {
+      setNestedReplyDeleteError(error instanceof Error ? error.message : '楼中楼删除失败，请稍后重试。');
+    } finally {
+      setNestedReplyDeletingId(null);
     }
   }
 
@@ -315,11 +339,25 @@ export function ThreadFloor({
                         回复
                       </button>
                     )}
+                    {reply.canDelete && (
+                      <button
+                        className="nested-reply-delete"
+                        disabled={nestedReplyDeletingId === reply.id}
+                        onClick={() => void removeNestedReply(reply)}
+                        type="button"
+                      >
+                        <Trash2 size={12} />
+                        {nestedReplyDeletingId === reply.id ? '删除中' : '删除'}
+                      </button>
+                    )}
                   </footer>
                 </div>
               </article>
             ))}
           </section>
+        )}
+        {nestedReplyDeleteError && (
+          <p className="nested-reply-delete-error" role="alert">{nestedReplyDeleteError}</p>
         )}
 
         {nestedReplyTarget !== undefined && canReply && (

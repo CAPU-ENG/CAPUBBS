@@ -134,6 +134,89 @@ export async function postNestedReply({
   if (!response.ok || payload.code !== 0) {
     throw new ThreadApiError(payload.message?.trim() || '楼中楼回复发布失败，请稍后重试。');
   }
+
+  return findNewestNestedReplyId(fid, text);
+}
+
+export async function deleteNestedReply({
+  fid,
+  id,
+  text,
+}: {
+  fid: number;
+  id: number;
+  text: string;
+}) {
+  const resolvedId = id > 0 ? id : await findNewestNestedReplyId(fid, text);
+  if (resolvedId <= 0) {
+    throw new ThreadApiError('暂时无法确认这条楼中楼的编号，请刷新页面后再删除。');
+  }
+
+  const body = new URLSearchParams({
+    ask: 'lzl',
+    fid: String(fid),
+    lzlid: String(resolvedId),
+    method: 'delete',
+  });
+
+  let response: Response;
+  try {
+    response = await fetch(THREAD_API_URL, {
+      body,
+      credentials: 'include',
+      headers: {
+        Accept: 'application/json',
+        'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
+      },
+      method: 'POST',
+    });
+  } catch {
+    throw new ThreadApiError('暂时无法连接论坛服务，请稍后重试。');
+  }
+
+  let payload: ApiEnvelope;
+  try {
+    payload = await response.json() as ApiEnvelope;
+  } catch {
+    throw new ThreadApiError('论坛服务返回了无法识别的数据。');
+  }
+
+  if (!response.ok || payload.code !== 0) {
+    throw new ThreadApiError(payload.message?.trim() || '楼中楼删除失败，请稍后重试。');
+  }
+}
+
+async function findNewestNestedReplyId(fid: number, text: string) {
+  const body = new URLSearchParams({
+    ask: 'lzl',
+    fid: String(fid),
+    method: 'ask',
+  });
+
+  try {
+    const response = await fetch(THREAD_API_URL, {
+      body,
+      credentials: 'include',
+      headers: {
+        Accept: 'application/json',
+        'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
+      },
+      method: 'POST',
+    });
+    const payload = await response.json() as ApiEnvelope;
+    if (!response.ok || payload.code !== 0) return 0;
+
+    const rows = Array.isArray(payload.data)
+      ? payload.data.map(asRow)
+      : [asRow(payload.data)];
+    return rows.reduce((newestId, row) => {
+      if (stringValue(row.text) !== text) return newestId;
+      return Math.max(newestId, nonNegativeInteger(row.id));
+    }, 0);
+  } catch {
+    // The reply has already been published. A failed ID lookup must not invite a duplicate retry.
+    return 0;
+  }
 }
 
 function mapThreadDetail(
@@ -229,6 +312,7 @@ function mapNestedReply(row: ApiRow): NestedReply {
 
   return {
     author: mapAuthor({ username: authorName, avatar: row.authorAvatar }, authorName),
+    canDelete: Boolean(row.canDelete),
     content: targetMatch ? targetMatch[2] : storedContent,
     id: String(row.id ?? `${authorName}-${row.createdAt ?? ''}`),
     publishedAt: stringValue(row.createdAt),

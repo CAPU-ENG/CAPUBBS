@@ -650,9 +650,28 @@
   }
 
   .nested-reply-footer button {
+    display: inline-flex;
+    align-items: center;
+    gap: 3px;
     color: var(--brand-strong);
     font-size: 0.64rem;
     font-weight: 720;
+  }
+
+  .nested-reply-footer .nested-reply-delete {
+    color: var(--danger);
+  }
+
+  .nested-reply-footer button:disabled {
+    cursor: not-allowed;
+    opacity: 0.48;
+  }
+
+  .nested-reply-delete-error {
+    margin-top: 8px;
+    color: var(--danger);
+    font-size: 0.68rem;
+    text-align: right;
   }
 
   .nested-reply-composer {

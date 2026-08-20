@@ -5,8 +5,8 @@ import { ThreadFloor } from '../components/thread/ThreadFloor';
 import { FloorNodes, MobileFloorNode, ThreadPagination } from '../components/thread/ThreadNavigation';
 import { AppBackground } from '../components/layout/AppBackground';
 import { TopBar } from '../components/layout/TopBar';
-import { postNestedReply } from '../api/thread';
-import type { ThreadFloorData } from '../data/threadDemo';
+import { deleteNestedReply, postNestedReply } from '../api/thread';
+import type { NestedReply, ThreadFloorData } from '../data/threadDemo';
 import { useScrollContextTitle } from '../hooks/useScrollContextTitle';
 import { useThreadData } from '../hooks/useThreadData';
 import { getLoginPathWithReturnTo } from '../utils/authRoutes';
@@ -110,7 +110,12 @@ export function ThreadPage() {
 
   async function submitNestedReply(floor: ThreadFloorData, targetName: string | null, content: string) {
     const text = targetName ? `回复 @${targetName}：${content}` : content;
-    await postNestedReply({ fid: floor.fid, text });
+    return postNestedReply({ fid: floor.fid, text });
+  }
+
+  async function removeNestedReply(floor: ThreadFloorData, reply: NestedReply) {
+    const text = reply.target ? `回复 @${reply.target}：${reply.content}` : reply.content;
+    await deleteNestedReply({ fid: floor.fid, id: Number(reply.id), text });
   }
 
   function toggleAuthorOnly() {
@@ -208,6 +213,7 @@ export function ThreadPage() {
                 floor={floor}
                 isMainPost={floor.floor === 1}
                 key={floor.id}
+                onDeleteNestedReply={removeNestedReply}
                 onQuote={quoteFloor}
                 onSubmitNestedReply={submitNestedReply}
                 viewer={data.viewer}
