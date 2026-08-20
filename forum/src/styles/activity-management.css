@@ -254,16 +254,12 @@
 
   .activity-summary-table-wrap table {
     width: max-content;
-    min-width: 100%;
     border-collapse: collapse;
     text-align: left;
   }
 
   .activity-summary-table-wrap th,
   .activity-summary-table-wrap td {
-    width: 136px;
-    min-width: 136px;
-    max-width: 136px;
     border-bottom: 1px solid var(--line);
     padding: 9px;
     color: var(--text-muted);
@@ -287,9 +283,6 @@
     position: sticky;
     left: 0;
     z-index: 1;
-    width: 108px;
-    min-width: 108px;
-    max-width: 108px;
     background: inherit;
     box-shadow: 1px 0 0 var(--line);
   }
@@ -297,18 +290,6 @@
   .activity-summary-table-wrap th.activity-summary-id-column {
     z-index: 2;
     background: var(--surface-soft);
-  }
-
-  .activity-summary-table-wrap .activity-summary-time-column {
-    width: 140px;
-    min-width: 140px;
-    max-width: 140px;
-  }
-
-  .activity-summary-table-wrap .activity-summary-status-column {
-    width: 76px;
-    min-width: 76px;
-    max-width: 76px;
   }
 
   .activity-summary-table-wrap td strong {
@@ -330,7 +311,8 @@
 
   .activity-summary-expand-button {
     display: block;
-    width: 100%;
+    width: max-content;
+    max-width: min(36ch, 40vw);
     border: 0;
     padding: 0;
     background: transparent;
