@@ -39,7 +39,7 @@ export function ThreadPagination({
   );
 }
 
-type FloorNode = { floor: number; author: string };
+type FloorNode = { floor: number; author: string; preview: string };
 
 export function FloorNodes({
   activeFloor,
@@ -58,18 +58,27 @@ export function FloorNodes({
       <div className="floor-node-line" aria-hidden="true" />
       {floors.map((entry) => {
         const active = entry.floor === activeFloor;
+        const tooltipId = `floor-node-preview-${entry.floor}`;
         return (
           <button
             aria-current={active ? 'location' : undefined}
-            aria-label={`跳转到第 ${entry.floor} 楼，作者 ${entry.author}`}
+            aria-describedby={tooltipId}
+            aria-label={`跳转到第 ${entry.floor} 楼，层主 ID ${entry.author}`}
             className={`floor-node ${active ? 'floor-node-active' : ''}`}
             key={entry.floor}
             onClick={() => navigateToFloor(entry.floor)}
-            title={`#${entry.floor} · ${entry.author}`}
             type="button"
           >
-            <span />
+            <span aria-hidden="true" className="floor-node-dot" />
             {active && <strong>#{entry.floor}</strong>}
+            <span className="floor-node-preview" id={tooltipId} role="tooltip">
+              <span className="floor-node-preview-meta">
+                <span>层主 ID</span>
+                <strong>{entry.author}</strong>
+                <em>#{entry.floor}</em>
+              </span>
+              <span className="floor-node-preview-content">{entry.preview}</span>
+            </span>
           </button>
         );
       })}

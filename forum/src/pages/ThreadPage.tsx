@@ -186,7 +186,11 @@ export function ThreadPage() {
     );
   }
 
-  const nodeFloors = pageFloors.map((floor) => ({ floor: floor.floor, author: floor.author.name }));
+  const nodeFloors = pageFloors.map((floor) => ({
+    author: floor.author.name,
+    floor: floor.floor,
+    preview: createFloorPreview(floor),
+  }));
   const loginHref = getLoginPathWithReturnTo();
 
   return (
@@ -285,4 +289,10 @@ export function ThreadPage() {
       {nodeFloors.length > 0 && <MobileFloorNode activeFloor={activeFloor} floors={nodeFloors} />}
     </div>
   );
+}
+
+function createFloorPreview(floor: ThreadFloorData) {
+  const content = (floor.quoteText || floor.paragraphs.join(' ')).replace(/\s+/g, ' ').trim();
+  if (!content) return '此楼层暂无可预览的内容。';
+  return content.length > 160 ? `${content.slice(0, 160).trimEnd()}…` : content;
 }
