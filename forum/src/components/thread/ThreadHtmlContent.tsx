@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState, type CSSProperties } from 'react';
 import { fetchSignatureReferencedFloorHtml } from '../../api/thread';
 import { renderForumMarkup, requiresIsolatedForumHtml } from '../../utils/forumMarkup';
 import { findSignatureFloorMarkers } from '../../utils/signatureFloorLink';
@@ -73,7 +73,7 @@ function ThreadSandboxedHtmlFrame({
   const iframeRef = useRef<HTMLIFrameElement>(null);
   const frameIdRef = useRef(`${variant}-${floor}-${Math.random().toString(36).slice(2)}`);
   const minHeight = variant === 'signature' ? MIN_SIGNATURE_FRAME_HEIGHT : MIN_FLOOR_FRAME_HEIGHT;
-  const [frameHeight, setFrameHeight] = useState(minHeight);
+  const [frameHeight, setFrameHeight] = useState<number | null>(null);
   const isDarkTheme = useDarkTheme();
   const frameDocument = useMemo(() => buildHtmlFrameDocument({
     frameId: frameIdRef.current,
@@ -87,8 +87,8 @@ function ThreadSandboxedHtmlFrame({
   );
 
   useEffect(() => {
-    setFrameHeight(minHeight);
-  }, [frameSource, minHeight]);
+    setFrameHeight(null);
+  }, [frameSource]);
 
   useEffect(() => {
     function handleMessage(event: MessageEvent) {
@@ -113,7 +113,9 @@ function ThreadSandboxedHtmlFrame({
       sandbox="allow-scripts allow-same-origin"
       scrolling="no"
       src={frameSource}
-      style={{ height: frameHeight }}
+      style={frameHeight === null ? undefined : {
+        '--thread-html-frame-height': `${frameHeight}px`,
+      } as CSSProperties}
       title={variant === 'signature' ? `第 ${floor} 楼签名档` : `第 ${floor} 楼正文`}
     />
   );
@@ -188,7 +190,7 @@ function buildHtmlFrameDocument({
   <meta http-equiv="Content-Security-Policy" content="${buildContentSecurityPolicy()}">
   <style>
     html,body{margin:0;padding:0;min-height:0;overflow:hidden;background:transparent!important;color:${color};font-family:ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;font-size:${fontSize};line-height:1.6;overflow-wrap:anywhere;word-break:break-word}
-    .capubbs-html-frame-root{display:flow-root}a{color:${linkColor}}img,video,canvas,svg{max-width:100%;height:auto}iframe{max-width:100%}pre{max-width:100%;overflow:auto;white-space:pre-wrap}table{max-width:100%}
+    .capubbs-html-frame-root{display:flow-root}a{color:${linkColor}}img,video,canvas,svg{max-width:100%;height:auto}pre{max-width:100%;overflow:auto;white-space:pre-wrap}table{max-width:100%}
   </style>
   <script>${buildFrameBridgeScript(frameId)}</script>
   <script src="/bbs/lib/jquery.min.js"></script>

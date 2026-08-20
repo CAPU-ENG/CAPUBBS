@@ -779,6 +779,19 @@
     overflow: hidden;
   }
 
+  .thread-floor-main > iframe.thread-html-frame,
+  .thread-floor-main > footer > iframe.thread-html-frame {
+    height: var(--thread-html-frame-height, auto);
+  }
+
+  .thread-html-frame-floor {
+    min-height: 64px;
+  }
+
+  .thread-html-frame-signature {
+    min-height: 28px;
+  }
+
   .thread-image-lightbox-backdrop {
     position: fixed;
     z-index: 220;
