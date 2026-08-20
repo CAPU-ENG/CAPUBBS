@@ -282,39 +282,40 @@ export function BoardPage({ boardId }: { boardId: number }) {
                 <div><dt>今日</dt><dd>{board.stats.today.toLocaleString()}</dd></div>
                 <div><dt>在线</dt><dd>{board.stats.online?.toLocaleString() ?? '—'}</dd></div>
               </dl>
-              <div className="board-title-actions">
+            </div>
+
+            <div className="board-title-actions">
+              <button
+                aria-pressed={digestOnly}
+                className={`board-secondary-action ${digestOnly ? 'board-digest-action-active' : ''}`}
+                onClick={toggleDigestOnly}
+                type="button"
+              >
+                <Sparkles size={15} />{digestOnly ? '取消筛选' : '只看精品'}
+              </button>
+              {canManage ? (
                 <button
-                  aria-pressed={digestOnly}
-                  className={`board-secondary-action ${digestOnly ? 'board-digest-action-active' : ''}`}
-                  onClick={toggleDigestOnly}
+                  aria-pressed={managementMode}
+                  className={`board-secondary-action ${managementMode ? 'board-management-action-active' : ''}`}
+                  onClick={() => {
+                    setManagementMode((current) => !current);
+                    setManagementFeedback(null);
+                  }}
                   type="button"
                 >
-                  <Sparkles size={15} />{digestOnly ? '取消筛选' : '只看精品'}
+                  <Settings2 size={15} />{managementMode ? '退出管理' : '管理版面'}
                 </button>
-                {canManage ? (
-                  <button
-                    aria-pressed={managementMode}
-                    className={`board-secondary-action ${managementMode ? 'board-management-action-active' : ''}`}
-                    onClick={() => {
-                      setManagementMode((current) => !current);
-                      setManagementFeedback(null);
-                    }}
-                    type="button"
-                  >
-                    <Settings2 size={15} />{managementMode ? '退出管理' : '管理版面'}
-                  </button>
-                ) : null}
-                {canCreateActivity ? (
-                  <a className="board-activity-action" href={getThreadComposeHref(board.id, undefined, 'activity')}>
-                    <CalendarPlus size={15} />活动报名帖
-                  </a>
-                ) : null}
-                {authStatus === 'authenticated' ? (
-                  <a className="board-primary-action" href={getThreadComposeHref(board.id)}>
-                    <PenLine size={15} />发表主题
-                  </a>
-                ) : null}
-              </div>
+              ) : null}
+              {canCreateActivity ? (
+                <a className="board-activity-action" href={getThreadComposeHref(board.id, undefined, 'activity')}>
+                  <CalendarPlus size={15} />发起活动
+                </a>
+              ) : null}
+              {authStatus === 'authenticated' ? (
+                <a className="board-primary-action" href={getThreadComposeHref(board.id)}>
+                  <PenLine size={15} />发表主题
+                </a>
+              ) : null}
             </div>
           </div>
         </header>

@@ -106,8 +106,6 @@
   }
 
   .board-title-side {
-    display: grid;
-    justify-items: end;
     min-width: 0;
   }
 
@@ -149,11 +147,12 @@
 
   .board-title-actions {
     display: flex;
+    grid-column: 1 / -1;
     width: max-content;
     flex-wrap: nowrap;
     justify-content: flex-end;
+    justify-self: end;
     gap: 8px;
-    margin-top: 10px;
   }
 
   .board-primary-action,
@@ -597,14 +596,18 @@
     }
 
     .board-title-actions {
+      width: 100%;
       flex-wrap: nowrap;
       gap: 5px;
       margin-top: 9px;
+      margin-left: auto;
     }
 
     .board-primary-action,
     .board-secondary-action,
     .board-activity-action {
+      min-width: 0;
+      flex: 1 1 0;
       height: 34px;
       gap: 4px;
       padding-inline: 7px;
