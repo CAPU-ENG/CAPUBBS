@@ -1,0 +1,482 @@
+@layer components {
+  .activity-management-shell {
+    position: relative;
+    z-index: 10;
+    width: min(1080px, calc(100% - 32px));
+    margin: 0 auto;
+    padding: calc(var(--topbar-height) + 18px) 0 72px;
+  }
+
+  .activity-management-workspace {
+    display: grid;
+    gap: 12px;
+  }
+
+  .activity-management-heading,
+  .activity-management-metrics,
+  .activity-management-tabs,
+  .activity-management-panel,
+  .activity-management-state {
+    border: 1px solid var(--line);
+    background: color-mix(in srgb, var(--surface) 96%, transparent);
+    box-shadow: var(--shadow-card);
+  }
+
+  .activity-management-heading {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 16px;
+    padding: 20px 22px;
+  }
+
+  .activity-management-back {
+    display: inline-flex;
+    width: 40px;
+    height: 40px;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid var(--line);
+    border-radius: var(--control-radius);
+    background: var(--surface-raised);
+    color: var(--text-muted);
+    transition: 140ms ease;
+  }
+
+  .activity-management-back:hover {
+    border-color: var(--brand);
+    color: var(--brand-strong);
+  }
+
+  .activity-management-heading > div {
+    min-width: 0;
+  }
+
+  .activity-management-heading h1 {
+    overflow-wrap: anywhere;
+    margin: 0;
+    color: var(--text-strong);
+    font-family: "Noto Serif CJK SC", "Source Han Serif SC", "Songti SC", serif;
+    font-size: clamp(1.35rem, 2.5vw, 1.85rem);
+    line-height: 1.3;
+  }
+
+  .activity-management-status {
+    display: inline-flex;
+    min-height: 30px;
+    align-items: center;
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    padding: 0 10px;
+    background: var(--surface-soft);
+    color: var(--text-muted);
+    font-size: 0.68rem;
+    font-weight: 760;
+    white-space: nowrap;
+  }
+
+  .activity-management-status[data-status="open"] {
+    border-color: color-mix(in srgb, var(--brand) 34%, var(--line));
+    background: var(--brand-soft);
+    color: var(--brand-strong);
+  }
+
+  .activity-management-status[data-status="closed"] {
+    border-color: color-mix(in srgb, var(--danger) 30%, var(--line));
+    color: var(--danger);
+  }
+
+  .activity-management-metrics {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 1px;
+    overflow: hidden;
+    background: var(--line);
+  }
+
+  .activity-management-metrics > div {
+    min-width: 0;
+    padding: 15px 18px;
+    background: var(--surface);
+  }
+
+  .activity-management-metrics span {
+    display: block;
+    color: var(--text-faint);
+    font-size: 0.66rem;
+    font-weight: 720;
+  }
+
+  .activity-management-metrics strong {
+    display: block;
+    overflow: hidden;
+    margin-top: 5px;
+    color: var(--text-strong);
+    font-size: 1.15rem;
+    font-weight: 780;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .activity-management-metrics [data-tone="success"] strong {
+    color: var(--brand-strong);
+  }
+
+  .activity-management-metrics [data-tone="warning"] strong {
+    color: #a86a1e;
+  }
+
+  .dark .activity-management-metrics [data-tone="warning"] strong {
+    color: #e5ae66;
+  }
+
+  .activity-management-tabs {
+    display: flex;
+    gap: 7px;
+    padding: 9px;
+  }
+
+  .activity-management-tabs button {
+    display: inline-flex;
+    min-height: 36px;
+    align-items: center;
+    justify-content: center;
+    gap: 7px;
+    border: 1px solid transparent;
+    border-radius: var(--control-radius);
+    padding: 0 14px;
+    color: var(--text-muted);
+    font-size: 0.74rem;
+    font-weight: 760;
+    transition: 140ms ease;
+  }
+
+  .activity-management-tabs button:hover {
+    background: var(--surface-soft);
+    color: var(--brand-strong);
+  }
+
+  .activity-management-tabs .activity-management-tab-active {
+    border-color: var(--brand);
+    background: var(--brand);
+    color: white;
+  }
+
+  .activity-management-panel {
+    overflow: hidden;
+  }
+
+  .activity-management-panel-heading {
+    display: flex;
+    min-height: 58px;
+    align-items: center;
+    justify-content: space-between;
+    gap: 14px;
+    border-bottom: 1px solid var(--line);
+    padding: 10px 16px;
+  }
+
+  .activity-management-panel-heading h2 {
+    margin: 0;
+    color: var(--text-strong);
+    font-size: 0.86rem;
+    font-weight: 780;
+  }
+
+  .activity-management-panel-heading > div {
+    display: flex;
+    align-items: center;
+    gap: 11px;
+  }
+
+  .activity-management-panel-heading span {
+    color: var(--brand-strong);
+    font-size: 0.68rem;
+    font-weight: 720;
+  }
+
+  .activity-management-panel-heading .activity-management-notice-error,
+  .activity-management-notice-error {
+    color: var(--danger);
+  }
+
+  .activity-management-panel-heading button,
+  .activity-summary-table-wrap td > button {
+    display: inline-flex;
+    min-height: 34px;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    border: 1px solid var(--line);
+    border-radius: var(--control-radius);
+    padding: 0 12px;
+    background: var(--surface-raised);
+    color: var(--brand-strong);
+    font-size: 0.7rem;
+    font-weight: 760;
+    transition: 140ms ease;
+  }
+
+  .activity-management-questionnaire .activity-management-panel-heading button {
+    border-color: var(--brand);
+    background: var(--brand);
+    color: white;
+  }
+
+  .activity-management-panel-heading button:hover,
+  .activity-summary-table-wrap td > button:hover {
+    border-color: var(--brand);
+  }
+
+  .activity-management-panel-heading button:disabled {
+    cursor: not-allowed;
+    opacity: 0.42;
+  }
+
+  .activity-management-questionnaire .activity-signup-schedule {
+    margin-top: 12px;
+  }
+
+  .activity-management-questionnaire .activity-signup-editor {
+    margin-bottom: 18px;
+  }
+
+  .activity-summary-table-wrap {
+    overflow-x: auto;
+  }
+
+  .activity-summary-table-wrap table {
+    width: 100%;
+    min-width: 920px;
+    border-collapse: collapse;
+    text-align: left;
+  }
+
+  .activity-summary-table-wrap th,
+  .activity-summary-table-wrap td {
+    border-bottom: 1px solid var(--line);
+    padding: 11px 13px;
+    color: var(--text-muted);
+    font-size: 0.71rem;
+    vertical-align: middle;
+    white-space: nowrap;
+  }
+
+  .activity-summary-table-wrap th {
+    background: var(--surface-soft);
+    color: var(--text-faint);
+    font-size: 0.65rem;
+    font-weight: 780;
+  }
+
+  .activity-summary-table-wrap td strong {
+    color: var(--brand-strong);
+    font-weight: 780;
+  }
+
+  .activity-summary-table-wrap tbody tr:hover,
+  .activity-summary-table-wrap .activity-summary-row-selected {
+    background: var(--brand-faint);
+  }
+
+  .activity-summary-table-wrap td > button {
+    min-height: 30px;
+    padding-inline: 9px;
+    font-size: 0.65rem;
+  }
+
+  .activity-record-status {
+    display: inline-flex;
+    min-height: 24px;
+    align-items: center;
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    padding: 0 8px;
+    background: var(--surface-soft);
+    color: var(--text-muted);
+    font-size: 0.62rem;
+    font-weight: 760;
+  }
+
+  .activity-record-status[data-status="有效"] {
+    border-color: color-mix(in srgb, var(--brand) 30%, var(--line));
+    background: var(--brand-soft);
+    color: var(--brand-strong);
+  }
+
+  .activity-record-status[data-status="异常"] {
+    border-color: color-mix(in srgb, #ba751f 38%, var(--line));
+    background: color-mix(in srgb, #f3b55d 13%, var(--surface));
+    color: #945913;
+  }
+
+  .dark .activity-record-status[data-status="异常"] {
+    color: #f0bf7e;
+  }
+
+  .activity-summary-detail {
+    padding: 16px;
+    background: var(--surface-soft);
+  }
+
+  .activity-summary-detail > header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+  }
+
+  .activity-summary-detail h3 {
+    margin: 0;
+    color: var(--text-strong);
+    font-size: 0.78rem;
+    font-weight: 780;
+  }
+
+  .activity-summary-detail header span {
+    color: var(--text-faint);
+    font-size: 0.67rem;
+    font-weight: 720;
+  }
+
+  .activity-summary-detail > div {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 7px;
+    margin-top: 12px;
+  }
+
+  .activity-summary-detail p {
+    display: grid;
+    grid-template-columns: minmax(90px, 0.4fr) minmax(0, 1fr);
+    gap: 10px;
+    margin: 0;
+    border: 1px solid var(--line);
+    padding: 9px 11px;
+    background: var(--surface);
+    font-size: 0.7rem;
+    line-height: 1.6;
+  }
+
+  .activity-summary-detail p strong {
+    color: var(--text-strong);
+  }
+
+  .activity-summary-detail p span {
+    color: var(--text-muted);
+    overflow-wrap: anywhere;
+  }
+
+  .activity-summary-state {
+    display: flex;
+    min-height: 180px;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    color: var(--text-muted);
+    font-size: 0.78rem;
+    font-weight: 700;
+  }
+
+  .activity-management-state {
+    max-width: var(--thread-main-column);
+    margin: 0 auto;
+    padding: 36px 28px;
+    text-align: center;
+  }
+
+  .activity-management-state > svg {
+    margin: 0 auto;
+    color: var(--brand);
+  }
+
+  .activity-management-state h1 {
+    margin: 12px 0 0;
+    color: var(--text-strong);
+    font-size: 1.2rem;
+  }
+
+  .activity-management-state p {
+    margin: 8px 0 0;
+    color: var(--text-muted);
+    font-size: 0.8rem;
+  }
+
+  .activity-management-state > div {
+    margin-top: 18px;
+  }
+
+  .activity-management-state a,
+  .activity-management-state button {
+    display: inline-flex;
+    min-height: 38px;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid var(--brand);
+    border-radius: var(--control-radius);
+    padding: 0 14px;
+    background: var(--brand);
+    color: white;
+    font-size: 0.72rem;
+    font-weight: 760;
+  }
+
+  .activity-management-spinner {
+    animation: activity-management-spin 0.8s linear infinite;
+  }
+
+  @keyframes activity-management-spin {
+    to { transform: rotate(360deg); }
+  }
+
+  @media (max-width: 720px) {
+    .activity-management-shell {
+      width: calc(100% - 18px);
+      padding-top: calc(var(--topbar-height) + 10px);
+    }
+
+    .activity-management-heading {
+      grid-template-columns: auto minmax(0, 1fr);
+      gap: 12px;
+      padding: 16px;
+    }
+
+    .activity-management-heading > .activity-management-status {
+      grid-column: 2;
+      justify-self: start;
+    }
+
+    .activity-management-metrics {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .activity-management-tabs button {
+      flex: 1;
+    }
+
+    .activity-management-panel-heading {
+      align-items: flex-start;
+      flex-direction: column;
+      padding-block: 12px;
+    }
+
+    .activity-management-panel-heading > div {
+      width: 100%;
+      align-items: flex-start;
+      flex-direction: column;
+    }
+
+    .activity-management-panel-heading button {
+      width: 100%;
+    }
+
+    .activity-summary-detail > div {
+      grid-template-columns: 1fr;
+    }
+
+    .activity-summary-detail p {
+      grid-template-columns: 1fr;
+      gap: 3px;
+    }
+  }
+}

@@ -1,5 +1,5 @@
 import { Fragment, useEffect, useLayoutEffect, useRef, useState } from 'react';
-import { Bookmark, BookmarkCheck, Eye, MessageCircle, RotateCw } from 'lucide-react';
+import { Bookmark, BookmarkCheck, Eye, MessageCircle, RotateCw, Settings } from 'lucide-react';
 import { ActivitySignupForm } from '../components/thread/ActivitySignupForm';
 import { ReplyEditor, type QuoteRequest } from '../components/thread/ReplyEditor';
 import { ThreadFloor } from '../components/thread/ThreadFloor';
@@ -14,6 +14,7 @@ import { useScrollContextTitle } from '../hooks/useScrollContextTitle';
 import { useThreadData } from '../hooks/useThreadData';
 import { getLoginPathWithReturnTo } from '../utils/authRoutes';
 import {
+  getActivityManagementHref,
   getThreadEditHref,
   getThreadFloorElement,
   getThreadFloorFromHash,
@@ -280,6 +281,11 @@ export function ThreadPage() {
     preview: createFloorPreview(floor),
   }));
   const loginHref = getLoginPathWithReturnTo();
+  const canManageActivity = Boolean(
+    data.isActivity
+    && viewer
+    && (viewer.rights >= 3 || viewer.username === data.authorName),
+  );
 
   return (
     <div className="relative min-h-screen text-[var(--text)] transition-colors duration-200">
@@ -292,7 +298,14 @@ export function ThreadPage() {
 
       <main className="thread-page-shell">
         <header className="thread-title-card">
-          <h1 id="thread-title" ref={titleRef}>{data.title}</h1>
+          <div className="thread-title-heading">
+            <h1 id="thread-title" ref={titleRef}>{data.title}</h1>
+            {canManageActivity && (
+              <a className="thread-activity-management-link" href={getActivityManagementHref(data.bid, data.tid)}>
+                <Settings size={15} />活动管理
+              </a>
+            )}
+          </div>
           <div className="thread-title-meta">
             <a className="thread-board-card" href={data.boardHref}>{data.board}</a>
             <span><MessageCircle size={15} />{data.replies} 条回复</span>

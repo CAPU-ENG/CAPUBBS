@@ -14,6 +14,7 @@ import { ThreadComposePage } from './pages/ThreadComposePage';
 import { CalendarAdminPage } from './pages/CalendarAdminPage';
 import { ManagementPage } from './pages/ManagementPage';
 import { DataDisplayPage } from './pages/DataDisplayPage';
+import { ActivityManagementPage } from './pages/ActivityManagementPage';
 import { FORUM_LOCATION_CHANGE_EVENT } from './utils/authRoutes';
 import { translateLegacyForumThreadHref } from './utils/legacyForumRoutes';
 import { getThreadFloorElement, getThreadFloorFromHash } from './utils/threadRoutes';
@@ -92,6 +93,7 @@ function ForumRouter() {
   if (pathname === '/calendar-admin') return <CalendarAdminPage />;
   if (pathname === '/manage') return <ManagementPage />;
   if (pathname === '/data') return <DataDisplayPage />;
+  if (pathname === '/activity-management') return <ActivityManagementPage />;
   if (isThreadComposePath(pathname)) return <ThreadComposePage />;
   if (isThreadEditPath(pathname)) return <ThreadEditPage />;
   if (pathname === USER_CENTER_PATH) return <UserCenterPage />;
@@ -115,6 +117,7 @@ function isForumAppPath(pathname: string) {
     || normalizedPath === '/calendar-admin'
     || normalizedPath === '/manage'
     || normalizedPath === '/data'
+    || normalizedPath === '/activity-management'
     || isThreadComposePath(normalizedPath)
     || isThreadEditPath(normalizedPath)
     || normalizedPath === USER_CENTER_PATH

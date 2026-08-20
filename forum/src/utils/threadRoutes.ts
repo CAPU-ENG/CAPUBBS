@@ -42,3 +42,11 @@ export function getThreadEditHref(bid: number, tid: number, pid: number) {
   });
   return `/editpid?${params.toString()}`;
 }
+
+export function getActivityManagementHref(bid: number, tid: number) {
+  const params = new URLSearchParams({
+    bid: String(bid),
+    tid: String(tid),
+  });
+  return `/activity-management?${params.toString()}`;
+}

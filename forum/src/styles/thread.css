@@ -96,6 +96,39 @@
     line-height: 1.38;
   }
 
+  .thread-title-heading {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 20px;
+  }
+
+  .thread-title-heading h1 {
+    min-width: 0;
+  }
+
+  .thread-activity-management-link {
+    display: inline-flex;
+    min-height: 36px;
+    flex: 0 0 auto;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    border: 1px solid color-mix(in srgb, var(--brand) 38%, var(--line));
+    border-radius: var(--control-radius);
+    padding: 0 13px;
+    background: var(--brand-soft);
+    color: var(--brand-strong);
+    font-size: 0.72rem;
+    font-weight: 760;
+    transition: 140ms ease;
+  }
+
+  .thread-activity-management-link:hover {
+    border-color: var(--brand);
+    background: color-mix(in srgb, var(--brand-soft) 70%, var(--surface));
+  }
+
   .thread-board-card {
     display: inline-flex;
     max-width: 180px;
@@ -1767,6 +1800,17 @@
     .thread-title-card h1 {
       font-size: 1.28rem;
       line-height: 1.45;
+    }
+
+    .thread-title-heading {
+      align-items: center;
+      gap: 12px;
+    }
+
+    .thread-activity-management-link {
+      min-height: 34px;
+      padding-inline: 10px;
+      white-space: nowrap;
     }
 
     .thread-title-meta {
