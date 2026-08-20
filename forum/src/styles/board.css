@@ -56,7 +56,7 @@
     z-index: 1;
     display: grid;
     min-height: 158px;
-    grid-template-columns: minmax(0, 1fr) 306px;
+    grid-template-columns: minmax(0, 1fr) max-content;
     align-items: center;
     gap: 30px;
     padding: 16px 28px 16px 210px;
@@ -106,6 +106,10 @@
   }
 
   .board-title-side {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    justify-content: center;
     min-width: 0;
   }
 
@@ -147,12 +151,11 @@
 
   .board-title-actions {
     display: flex;
-    grid-column: 1 / -1;
     width: max-content;
     flex-wrap: nowrap;
     justify-content: flex-end;
-    justify-self: end;
     gap: 8px;
+    margin-top: 10px;
   }
 
   .board-primary-action,
@@ -527,7 +530,7 @@
     }
 
     .board-title-content {
-      grid-template-columns: minmax(0, 1fr) 292px;
+      grid-template-columns: minmax(0, 1fr) max-content;
       gap: 26px;
       padding: 16px 26px 16px 170px;
     }
