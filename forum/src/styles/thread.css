@@ -784,6 +784,10 @@
     overflow: hidden;
   }
 
+  iframe.thread-html-frame.thread-signature {
+    border-top: 1px dashed var(--line-strong);
+  }
+
   .thread-floor-main > iframe.thread-html-frame {
     height: var(--thread-html-frame-height, auto);
   }

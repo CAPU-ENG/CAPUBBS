@@ -197,7 +197,7 @@ function buildHtmlFrameDocument({
   <style data-capubbs-parent-styles>${escapeStyleText(parentStyleText)}</style>
   <style>
     html,body{margin:0;padding:0;min-width:0;min-height:0;overflow:hidden;background:transparent!important;color:${color};font-family:ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;font-size:${fontSize};line-height:1.6;overflow-wrap:anywhere;word-break:break-word}
-    .capubbs-html-frame-root{display:flow-root;width:calc(100% - ${FRAME_WIDTH_ALLOWANCE}px);${isSignature ? 'padding-top:10px;' : ''}}a{color:${linkColor}}img,video,canvas,svg{max-width:100%;height:auto}pre{max-width:100%;overflow:auto;white-space:pre-wrap}table{max-width:100%}
+    .capubbs-html-frame-root{display:flow-root;width:calc(100% - ${FRAME_WIDTH_ALLOWANCE}px);${isSignature ? 'padding-top:10px;' : ''}}.capubbs-html-frame-root iframe{display:inline-block;vertical-align:baseline}a{color:${linkColor}}img,video,canvas,svg{max-width:100%;height:auto}pre{max-width:100%;overflow:auto;white-space:pre-wrap}table{max-width:100%}
   </style>
   <script>${buildFrameBridgeScript(frameId)}</script>
   <script src="/bbs/lib/jquery.min.js"></script>
