@@ -17,6 +17,7 @@
  */
 
 require_once __DIR__.'/jiekoufunc.php';
+require_once __DIR__.'/lib/ActivityHandlers.php';
 require_once __DIR__.'/lib/ThreadDetailQuery.php';
 
 function _dispatch_build_routes() {
@@ -48,6 +49,7 @@ function _dispatch_build_routes() {
         'calendar'        => array('handler' => 'jiekoufunc_calendar',        'check_login' => false, 'require_rights' => 0),
         'recent_threads'  => array('handler' => 'jiekoufunc_recent_threads',  'check_login' => false, 'require_rights' => 0),
         'hot_threads'     => array('handler' => 'jiekoufunc_hot_threads',     'check_login' => false, 'require_rights' => 0),
+        'activity_signup_list' => array('handler' => 'jiekoufunc_activity_signup_list', 'check_login' => false, 'require_rights' => 0),
 
         // Auth operations — handle login/session themselves
         'login'           => array('handler' => 'jiekoufunc_login',           'check_login' => false, 'require_rights' => 0),
@@ -78,6 +80,7 @@ function _dispatch_build_routes() {
         'favorite_count'   => array('handler' => 'jiekoufunc_favorite_count',   'check_login' => false, 'require_rights' => 0),
         'favorite_check'   => array('handler' => 'jiekoufunc_favorite_check',   'check_login' => true, 'require_rights' => 0),
         'news'             => array('handler' => 'jiekoufunc_news',             'check_login' => false, 'require_rights' => 0),
+        'activity_signup'  => array('handler' => 'jiekoufunc_activity_signup',  'check_login' => true, 'require_rights' => 0),
 
         // -- Email verification (login required) --
         'sendVerifyCode'   => array('handler' => null, 'check_login' => true,  'require_rights' => 0),
@@ -115,6 +118,7 @@ function _dispatch_build_routes() {
         // Admin only
         // ================================================================
         'move'                => array('handler' => 'jiekoufunc_move',                'check_login' => true, 'require_rights' => 2),
+        'activity_create'     => array('handler' => 'jiekoufunc_activity_create',     'check_login' => true, 'require_rights' => 2),
         'global_top_action'   => array('handler' => 'jiekoufunc_threads_action',      'check_login' => true, 'require_rights' => 2, 'check_board_mod' => true),
         'boardcast'           => array('handler' => 'jiekoufunc_boardcast',           'check_login' => true, 'require_rights' => 3),
         'admin_reset_password' => array('handler' => 'jiekoufunc_admin_reset_password', 'check_login' => true, 'require_rights' => 10),
@@ -231,6 +235,12 @@ function jiekoufunc_dispatch($con, $params) {
                 return jiekoufunc_management_member_rights($con, $params);
             case 'jiekoufunc_management_board_moderator':
                 return jiekoufunc_management_board_moderator($con, $params);
+            case 'jiekoufunc_activity_create':
+                return jiekoufunc_activity_create($con, $token, $bid, $ip, $params);
+            case 'jiekoufunc_activity_signup':
+                return jiekoufunc_activity_signup($con, $token, $bid, $tid, $params);
+            case 'jiekoufunc_activity_signup_list':
+                return jiekoufunc_activity_signup_list($con, $params);
             case 'jiekoufunc_userexists':
                 return jiekoufunc_userexists($con, $params);
             case 'jiekoufunc_hot':

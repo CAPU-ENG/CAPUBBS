@@ -73,10 +73,7 @@ function get_canceled($username, $activity_id) {
 }
 
 
-function createActivity($username, $bid, $title, $text, $options, $sig, $attachs = '') {
-
-    // $con,$token,$bid,$ip,$attachs
-
+function createActivity($username, $bid, $title, $text, $options, $sig, $attachs = '', $signup_starts_at = null, $signup_ends_at = null) {
     $season_id = -1;
     $GLOBALS['validtime']=1800;
     $con = dbconnect_mysqli();
@@ -84,73 +81,98 @@ function createActivity($username, $bid, $title, $text, $options, $sig, $attachs
 
     $ip = '*';
     $time = time();
-    $statement="select max(tid) from threads where bid=$bid";
-    $tid=intval(mysqli_fetch_row(mysqli_query($con, $statement))[0])+1;
-    if (mb_strlen($title,'utf-8')>=43)
-        $title=mb_substr($title,0,40,'utf-8')."...";
-    $type='web';
-    $posttime=date('Y-m-d');
-    $replytime=date('Y-m-d H:i:s');
-    $title=html_entity_decode($title);
-    $text=html_entity_decode($text);
-    $title=mysqli_real_escape_string($con, $title);
-    $text=mysqli_real_escape_string($con, $text);
-    $text=search_replace_exec_at_2($con,$text,$bid,$tid,1,$username,$title);
-    $statement="insert into threads values ($bid,$tid,'$title','$username',null,0,0,1,0,0,0,$time,'$posttime')";
-    mysqli_query($con, $statement);
-    $statement="insert into posts (bid,tid,pid,title,author,text,ishtml,attachs,replytime,updatetime,sig,ip,type,lzl) values ($bid,$tid,1,'$title','$username','$text','YES','$attachs',$time,$time,$sig,'$ip','$type',0)";
-    mysqli_query($con, $statement);
-    if ($bid!=4)
-        $statement="update userinfo set post=post+1, lastpost=$time, tokentime=$time where username='$username'";
-    else
-        $statement="update userinfo set water=water+1, lastpost=$time, tokentime=$time where username='$username'";
-    mysqli_query($con, $statement);
-    updatestar($con,$username);
+    $tid = null;
+    $user_count_updated = false;
+    $author_username = $username;
+    $username = mysqli_real_escape_string($con, $username);
 
-    // 修改season_threads_activity表：增加活动
-    // 拉练季节，对应bid、tid，拉练名称，队长名
-    {
-        $statement="insert into season_threads_activity (bid,tid,season_id,name,leader_username) 
-        values ($bid,$tid,$season_id,'$title','$username')";
-        mysqli_query($con, $statement);
+    mysqli_begin_transaction($con);
+    try {
+        $statement="select max(tid) from threads where bid=$bid";
+        $result = activity_service_query_or_throw($con, $statement);
+        $tid=intval(mysqli_fetch_row($result)[0])+1;
+        if (mb_strlen($title,'utf-8')>=43)
+            $title=mb_substr($title,0,40,'utf-8')."...";
+        $type='web';
+        $posttime=date('Y-m-d');
+        $title=html_entity_decode($title);
+        $text=html_entity_decode($text);
+        $title=mysqli_real_escape_string($con, $title);
+        $text=mysqli_real_escape_string($con, $text);
+        $text=search_replace_exec_at_2($con,$text,$bid,$tid,1,$author_username,$title);
+
+        $statement="insert into threads values ($bid,$tid,'$title','$username',null,0,0,1,0,0,0,$time,'$posttime')";
+        activity_service_query_or_throw($con, $statement);
+        $statement="insert into posts (bid,tid,pid,title,author,text,ishtml,attachs,replytime,updatetime,sig,ip,type,lzl) values ($bid,$tid,1,'$title','$username','$text','YES','$attachs',$time,$time,$sig,'$ip','$type',0)";
+        activity_service_query_or_throw($con, $statement);
+        if ($bid!=4)
+            $statement="update userinfo set post=post+1, lastpost=$time, tokentime=$time where username='$username'";
+        else
+            $statement="update userinfo set water=water+1, lastpost=$time, tokentime=$time where username='$username'";
+        activity_service_query_or_throw($con, $statement);
+        $user_count_updated = true;
+        updatestar($con,$author_username);
+
+        $statement="insert into season_threads_activity (bid,tid,season_id,name,leader_username)
+            values ($bid,$tid,$season_id,'$title','$username')";
+        activity_service_query_or_throw($con, $statement);
         $activity_id = mysqli_insert_id($con);
-    }
 
-
-    // 修改season_activity_option表：增加填表信息
-    // 活动id，【信息类型id，信息名，是否必选，注释】
-    foreach($options as $option)
-    {
-        $type_id = intval($option["type_id"]);
-        $option_name = mysqli_real_escape_string($con, $option["option_name"]);
-        $required = intval($option["required"]);
-        $comment = mysqli_real_escape_string($con, $option["comment"]);
-        if (isset($option['hiden'])) {
-            $hiden = $option['hiden'];
-        } else {
-            $hiden = 0;
+        if ($signup_starts_at !== null && $signup_ends_at !== null) {
+            $signup_starts_at = intval($signup_starts_at);
+            $signup_ends_at = intval($signup_ends_at);
+            $statement = "insert into season_activity_signup_window (activity_id, starts_at, ends_at)
+                values ($activity_id, $signup_starts_at, $signup_ends_at)";
+            activity_service_query_or_throw($con, $statement);
         }
-        $statement="insert into season_activity_option (activity_id, type_id, option_name, required, comment, hiden) 
-        values ($activity_id, $type_id, '$option_name', $required, '$comment', $hiden)";
-        mysqli_query($con, $statement);
-        $option_id = mysqli_insert_id($con);
 
-        // 修改season_option_case表：增加信息选项
-        // 活动id，选项名，注释
-        switch ($type_id) {
-            case 1: case 3: // 单项选择 / 多项选择
-                $cases = $option["cases"];
-                foreach ($cases as $case) {
+        foreach($options as $option) {
+            $type_id = intval($option["type_id"]);
+            $option_name = mysqli_real_escape_string($con, $option["option_name"]);
+            $required = intval($option["required"]);
+            $comment = mysqli_real_escape_string($con, isset($option["comment"]) ? $option["comment"] : '');
+            $hiden = isset($option['hiden']) ? intval($option['hiden']) : 0;
+            $statement="insert into season_activity_option (activity_id, type_id, option_name, required, comment, hiden)
+                values ($activity_id, $type_id, '$option_name', $required, '$comment', $hiden)";
+            activity_service_query_or_throw($con, $statement);
+            $option_id = mysqli_insert_id($con);
+
+            if ($type_id === 1 || $type_id === 3) {
+                foreach ($option["cases"] as $case) {
                     $case_name = mysqli_real_escape_string($con, $case["case_name"]);
-                    $comment = mysqli_real_escape_string($con, $case["comment"]);
-                    $statement= "insert into season_option_case (option_id, case_name, comment) 
-                    values ($option_id, '$case_name', '$comment')";
-                    mysqli_query($con, $statement);
+                    $case_comment = mysqli_real_escape_string($con, isset($case["comment"]) ? $case["comment"] : '');
+                    $statement= "insert into season_option_case (option_id, case_name, comment)
+                        values ($option_id, '$case_name', '$case_comment')";
+                    activity_service_query_or_throw($con, $statement);
                 }
-                break;
+            }
         }
+
+        mysqli_commit($con);
+        return array("activity_id" => $activity_id, "bid" => $bid, "tid" => $tid);
+    } catch (Exception $error) {
+        mysqli_rollback($con);
+        if ($tid !== null) {
+            mysqli_query($con, "delete from posts where bid=$bid and tid=$tid");
+            mysqli_query($con, "delete from threads where bid=$bid and tid=$tid");
+        }
+        if ($user_count_updated) {
+            if ($bid!=4)
+                mysqli_query($con, "update userinfo set post=greatest(post-1,0) where username='$username'");
+            else
+                mysqli_query($con, "update userinfo set water=greatest(water-1,0) where username='$username'");
+            updatestar($con,$author_username);
+        }
+        throw $error;
     }
-    return array("bid" => $bid, "tid" => $tid);
+}
+
+function activity_service_query_or_throw($con, $statement) {
+    $result = mysqli_query($con, $statement);
+    if ($result === false) {
+        throw new Exception(mysqli_error($con));
+    }
+    return $result;
 }
 
 function getUsernameOptionValue($username, $activity_id) {
@@ -199,9 +221,11 @@ function getActivity($bid, $tid) {
 
     $bid = intval($bid);
     $tid = intval($tid);
-    $statement = "select activity_id, bid, tid, season_id, name, leader_username 
-        from season_threads_activity 
-        where bid=$bid and tid=$tid";
+    $statement = "select activity.activity_id, activity.bid, activity.tid, activity.season_id,
+            activity.name, activity.leader_username, signup_window.starts_at, signup_window.ends_at
+        from season_threads_activity activity
+        left join season_activity_signup_window signup_window on signup_window.activity_id=activity.activity_id
+        where activity.bid=$bid and activity.tid=$tid";
     $result_activity = mysqli_query($con, $statement);
 
     if ($result_activity and $row_activity = mysqli_fetch_array($result_activity)) {
@@ -209,6 +233,17 @@ function getActivity($bid, $tid) {
         $season_id = $row_activity["season_id"];
         $name = $row_activity["name"];
         $leader_username = $row_activity["leader_username"];
+        $signup_window = null;
+        if ($row_activity["starts_at"] !== null && $row_activity["ends_at"] !== null) {
+            $starts_at = intval($row_activity["starts_at"]);
+            $ends_at = intval($row_activity["ends_at"]);
+            $now = time();
+            $signup_window = array(
+                "starts_at" => $starts_at,
+                "ends_at" => $ends_at,
+                "status" => $now < $starts_at ? "not_started" : ($now >= $ends_at ? "closed" : "open"),
+            );
+        }
 
         $options = array();
 
@@ -252,6 +287,7 @@ function getActivity($bid, $tid) {
             "season_id"=> $season_id,
             "name"=> $name,
             "leader_username"=> $leader_username,
+            "signup_window"=> $signup_window,
             "options"=>$options
         );
         return $activity;

@@ -1,0 +1,335 @@
+<?php
+/**
+ * Unified activity API handlers.
+ *
+ * New clients enter through /api/api.php + dispatch.php. Legacy endpoints
+ * translate their request/response shapes and call the same handlers.
+ */
+
+require_once __DIR__ . '/../../lib.php';
+require_once __DIR__ . '/../../bbs/content/utils/activityService.php';
+
+if (!defined('CAPUBBS_ACTIVITY_LIBRARY_MODE')) {
+    define('CAPUBBS_ACTIVITY_LIBRARY_MODE', true);
+}
+require_once __DIR__ . '/../../bbs/content/utils/postActivity.php';
+
+function jiekoufunc_activity_create($con, $token, $bid, $ip, $params) {
+    return activity_handler_create($con, $token, $bid, $ip, $params, false);
+}
+
+function activity_handler_create($con, $token, $bid, $ip, $params, $allow_missing_window) {
+    if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+        return activity_handler_error('-1', '仅支持 POST');
+    }
+
+    $user = activity_handler_current_user($con, $token);
+    if (!$user) {
+        return activity_handler_error('-2', '请先登录');
+    }
+    if (intval($user['rights']) < 2) {
+        return activity_handler_error('5', '权限不足！');
+    }
+    if (intval($bid) !== 1) {
+        return activity_handler_error('-44', '活动只能发布在车协工作区');
+    }
+
+    $title = isset($params['title']) ? trim(strval($params['title'])) : '';
+    $text = isset($params['text']) ? strval($params['text']) : '';
+    $sig = intval(isset($params['sig']) ? $params['sig'] : 0);
+    $attachs = isset($params['attachs']) ? trim(strval($params['attachs'])) : '';
+    if ($title === '' || trim($text) === '') {
+        return activity_handler_error('-44', '活动标题和正文不能为空');
+    }
+
+    $options_raw = isset($params['options']) ? $params['options'] : array();
+    $options = is_array($options_raw) ? $options_raw : json_decode(strval($options_raw), true);
+    if (!is_array($options)) {
+        return activity_handler_error('-44', '报名字段格式不正确');
+    }
+    $option_error = activity_handler_validate_options($options);
+    if ($option_error !== null) {
+        return activity_handler_error('-44', $option_error);
+    }
+
+    $window = activity_handler_parse_window($params, !$allow_missing_window);
+    if (!$window['valid']) {
+        return activity_handler_error('-44', $window['message']);
+    }
+
+    $control_error = activity_handler_check_post_control($con, $user, $bid);
+    if ($control_error !== null) {
+        return activity_handler_error('-44', $control_error);
+    }
+    $delay_error = activity_handler_check_post_delay($user);
+    if ($delay_error !== null) {
+        return activity_handler_error('2', $delay_error);
+    }
+
+    try {
+        $result = createActivity(
+            $user['username'],
+            intval($bid),
+            $title,
+            $text,
+            $options,
+            $sig,
+            $attachs,
+            $window['starts_at'],
+            $window['ends_at']
+        );
+    } catch (Exception $error) {
+        return activity_handler_error('8', '活动创建失败，请稍后重试');
+    }
+
+    if (!is_array($result) || empty($result['bid']) || empty($result['tid'])) {
+        return activity_handler_error('8', '活动创建失败，请稍后重试');
+    }
+
+    return array(
+        array('code' => '0', 'msg' => 'success'),
+        array(
+            'activity_id' => isset($result['activity_id']) ? intval($result['activity_id']) : null,
+            'bid' => intval($result['bid']),
+            'tid' => intval($result['tid']),
+        ),
+    );
+}
+
+function jiekoufunc_activity_signup($con, $token, $bid, $tid, $params) {
+    if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+        return activity_handler_error('-1', '仅支持 POST');
+    }
+
+    $user = activity_handler_current_user($con, $token);
+    if (!$user) {
+        return activity_handler_error('-2', '请先登录');
+    }
+
+    $action = isset($params['action']) ? strval($params['action']) : '';
+    if (!in_array($action, array('join', 'modify', 'cancel', 'restore'), true)) {
+        return activity_handler_error('6', '不支持的报名操作');
+    }
+
+    $activity = getActivity($bid, $tid);
+    if (!$activity) {
+        return activity_handler_error('3', '活动不存在');
+    }
+
+    $thread_result = mysqli_query($con, 'select locked from threads where bid=' . intval($bid) . ' and tid=' . intval($tid) . ' limit 1');
+    $thread = $thread_result ? mysqli_fetch_assoc($thread_result) : null;
+    if (!$thread) {
+        return activity_handler_error('3', '主题不存在');
+    }
+    if (intval($thread['locked']) === 1) {
+        return activity_handler_error('4', '主题已锁定');
+    }
+
+    if ($action !== 'cancel') {
+        $window = isset($activity['signup_window']) ? $activity['signup_window'] : null;
+        if ($window && isset($window['status']) && $window['status'] !== 'open') {
+            return activity_handler_error('-44', $window['status'] === 'not_started' ? '报名尚未开始' : '报名已截止');
+        }
+    }
+
+    $control_error = activity_handler_check_post_control($con, $user, $bid);
+    if ($control_error !== null) {
+        return activity_handler_error('-44', $control_error);
+    }
+
+    $option_values = isset($params['option_values']) && is_array($params['option_values'])
+        ? $params['option_values']
+        : array();
+    $title = isset($params['title']) ? strval($params['title']) : '';
+    $sig = isset($option_values['sign']) ? intval($option_values['sign']) : intval(isset($params['sig']) ? $params['sig'] : 0);
+    $username = $user['username'];
+
+    if ($action === 'join') {
+        $result = join_activity_by_content($bid, $tid, $username, $option_values, $title, $sig);
+    } elseif ($action === 'modify') {
+        $result = modify_join_activity_by_content($bid, $tid, $username, $option_values, $title, $sig);
+    } else {
+        $option_values = getUsernameOptionValue($username, intval($activity['activity_id']));
+        $result = cancel_join_activity_by_content($bid, $tid, $username, $option_values, $title, $action === 'cancel');
+    }
+
+    if (!is_array($result) || intval(isset($result['code']) ? $result['code'] : -1) !== 0) {
+        return activity_handler_error('-1', is_array($result) && !empty($result['msg']) ? $result['msg'] : '报名操作失败');
+    }
+
+    return array(
+        array('code' => '0', 'msg' => 'success'),
+        array('action' => $action, 'activity_id' => intval($activity['activity_id'])),
+    );
+}
+
+function jiekoufunc_activity_signup_list($con, $params) {
+    $now = time();
+    $limit = intval(isset($params['limit']) ? $params['limit'] : 10);
+    if ($limit <= 0) $limit = 10;
+    if ($limit > 50) $limit = 50;
+
+    $statement = "select
+            activity.activity_id,
+            activity.bid,
+            activity.tid,
+            activity.name,
+            activity.leader_username,
+            signup_window.starts_at,
+            signup_window.ends_at,
+            count(case when activity_join.cancel=0 then 1 end) as signup_count
+        from season_activity_signup_window signup_window
+        inner join season_threads_activity activity on activity.activity_id=signup_window.activity_id
+        inner join threads on threads.bid=activity.bid and threads.tid=activity.tid
+        left join season_activity_join activity_join on activity_join.activity_id=activity.activity_id
+        where signup_window.ends_at>$now and threads.locked=0
+        group by activity.activity_id, activity.bid, activity.tid, activity.name,
+            activity.leader_username, signup_window.starts_at, signup_window.ends_at
+        order by signup_window.starts_at asc, signup_window.ends_at asc
+        limit $limit";
+    $result = mysqli_query($con, $statement);
+    if (!$result) {
+        return activity_handler_error('8', '活动列表读取失败');
+    }
+
+    $rows = array(array('code' => '0', 'msg' => 'success'));
+    while ($row = mysqli_fetch_assoc($result)) {
+        $starts_at = intval($row['starts_at']);
+        $ends_at = intval($row['ends_at']);
+        $rows[] = array(
+            'activity_id' => intval($row['activity_id']),
+            'bid' => intval($row['bid']),
+            'tid' => intval($row['tid']),
+            'name' => $row['name'],
+            'leader_username' => $row['leader_username'],
+            'starts_at' => $starts_at,
+            'ends_at' => $ends_at,
+            'status' => activity_signup_window_status($starts_at, $ends_at, $now),
+            'signup_count' => intval($row['signup_count']),
+        );
+    }
+    return $rows;
+}
+
+function activity_signup_window_for_activity($con, $activity_id) {
+    $activity_id = intval($activity_id);
+    if ($activity_id <= 0) return null;
+    $result = mysqli_query($con, "select starts_at, ends_at from season_activity_signup_window where activity_id=$activity_id limit 1");
+    $row = $result ? mysqli_fetch_assoc($result) : null;
+    if (!$row) return null;
+
+    $starts_at = intval($row['starts_at']);
+    $ends_at = intval($row['ends_at']);
+    return array(
+        'starts_at' => $starts_at,
+        'ends_at' => $ends_at,
+        'status' => activity_signup_window_status($starts_at, $ends_at, time()),
+    );
+}
+
+function activity_signup_window_status($starts_at, $ends_at, $now) {
+    if ($now < $starts_at) return 'not_started';
+    if ($now >= $ends_at) return 'closed';
+    return 'open';
+}
+
+function activity_handler_current_user($con, $token) {
+    if (!$token) return null;
+    $token_escaped = mysqli_real_escape_string($con, $token);
+    $now = time();
+    $validtime = isset($GLOBALS['validtime']) ? intval($GLOBALS['validtime']) : 604800;
+    $result = mysqli_query($con, "select username, rights, star, lastpost, verified, post, reply, mail
+        from userinfo where token='$token_escaped' and $now<=tokentime+$validtime limit 1");
+    return $result ? mysqli_fetch_assoc($result) : null;
+}
+
+function activity_handler_parse_window($params, $required) {
+    $has_starts_at = isset($params['signup_starts_at']) && $params['signup_starts_at'] !== '';
+    $has_ends_at = isset($params['signup_ends_at']) && $params['signup_ends_at'] !== '';
+    if (!$has_starts_at && !$has_ends_at && !$required) {
+        return array('valid' => true, 'message' => '', 'starts_at' => null, 'ends_at' => null);
+    }
+    if (!$has_starts_at || !$has_ends_at) {
+        return array('valid' => false, 'message' => '报名开始和截止时间必须同时填写', 'starts_at' => null, 'ends_at' => null);
+    }
+
+    $starts_raw = strval($params['signup_starts_at']);
+    $ends_raw = strval($params['signup_ends_at']);
+    if (!ctype_digit($starts_raw) || !ctype_digit($ends_raw)) {
+        return array('valid' => false, 'message' => '报名时间格式不正确', 'starts_at' => null, 'ends_at' => null);
+    }
+    $starts_at = intval($starts_raw);
+    $ends_at = intval($ends_raw);
+    if ($starts_at <= 0 || $ends_at <= 0 || $starts_at >= $ends_at) {
+        return array('valid' => false, 'message' => '报名截止时间必须晚于开始时间', 'starts_at' => null, 'ends_at' => null);
+    }
+    if ($ends_at <= time()) {
+        return array('valid' => false, 'message' => '报名截止时间必须晚于当前时间', 'starts_at' => null, 'ends_at' => null);
+    }
+    return array('valid' => true, 'message' => '', 'starts_at' => $starts_at, 'ends_at' => $ends_at);
+}
+
+function activity_handler_validate_options($options) {
+    foreach ($options as $option) {
+        if (!is_array($option) || empty($option['option_name'])) {
+            return '问题名称不能为空';
+        }
+        $type_id = intval(isset($option['type_id']) ? $option['type_id'] : 0);
+        if (!in_array($type_id, array(1, 3, 6), true)) {
+            return '报名字段类型不正确';
+        }
+        if ($type_id === 1 || $type_id === 3) {
+            $cases = isset($option['cases']) && is_array($option['cases']) ? $option['cases'] : array();
+            $valid_cases = 0;
+            foreach ($cases as $case) {
+                if (is_array($case) && !empty($case['case_name'])) $valid_cases++;
+            }
+            if ($valid_cases < 2) {
+                return '「' . $option['option_name'] . '」的选项数量不能少于 2 个';
+            }
+        }
+    }
+    return null;
+}
+
+function activity_handler_check_post_control($con, $user, $bid) {
+    if (!defined('CAPUBBS_ENABLE_POST_CONTROL') || !CAPUBBS_ENABLE_POST_CONTROL) return null;
+    if (intval($user['verified']) === 0 && intval($user['post']) + intval($user['reply']) <= 20 && intval($bid) !== 28) {
+        return '您暂时不能发帖（邮箱未验证）。请先验证邮箱或联系管理员。';
+    }
+    if (defined('CAPUBBS_ENABLE_EMAIL_MUTE') && CAPUBBS_ENABLE_EMAIL_MUTE && !empty($user['mail'])) {
+        $mail = mysqli_real_escape_string($con, $user['mail']);
+        $result = mysqli_query($con, "select count(*) as count from email_mutes where email='$mail' and active=1");
+        $row = $result ? mysqli_fetch_assoc($result) : null;
+        if ($row && intval($row['count']) > 0) {
+            return '您暂时不能发帖（邮箱已被管理员禁言）。请先验证邮箱或联系管理员。';
+        }
+    }
+    return null;
+}
+
+function activity_handler_check_post_delay($user) {
+    $now = time();
+    $lastpost = intval($user['lastpost']);
+    $delta = intval($user['rights']) >= 1 || intval($user['star']) >= 3 ? 15 : 180;
+    if ($now - $lastpost >= 0 && $now - $lastpost <= $delta) {
+        return "两次发表的时间间隔不能少于{$delta}秒！";
+    }
+    return null;
+}
+
+function activity_handler_error($code, $message) {
+    return array(array('code' => strval($code), 'msg' => $message));
+}
+
+function activity_handler_legacy_response($result) {
+    $status = isset($result[0]) && is_array($result[0]) ? $result[0] : array('code' => '-1', 'msg' => 'error');
+    $payload = array(
+        'code' => intval(isset($status['code']) ? $status['code'] : -1),
+        'msg' => isset($status['msg']) ? $status['msg'] : '',
+    );
+    if ($payload['code'] === 0 && isset($result[1]) && is_array($result[1])) {
+        foreach ($result[1] as $key => $value) $payload[$key] = $value;
+    }
+    return $payload;
+}

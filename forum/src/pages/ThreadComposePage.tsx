@@ -39,6 +39,7 @@ import {
 } from '../utils/threadComposeDraftStorage';
 import { getThreadFloorHref } from '../utils/threadRoutes';
 import {
+  activitySignupDateTimeToUnixSeconds,
   buildActivityCreateOptions,
   createDefaultActivitySignupSettings,
   validateActivitySignupSettings,
@@ -46,7 +47,6 @@ import {
 } from '../utils/activitySignup';
 
 const THREAD_API_URL = import.meta.env.VITE_API_URL?.trim() || '/api/api.php';
-const ACTIVITY_CREATE_API_URL = '/api/bbs/activity/create/';
 
 type ComposeAttachment = ThreadAttachmentInfo & Pick<Partial<StoredReplyAttachment>, 'lastModified' | 'type'>;
 
@@ -706,12 +706,15 @@ async function publishActivityThread({
 }) {
   let response: Response;
   try {
-    response = await fetch(ACTIVITY_CREATE_API_URL, {
+    response = await fetch(THREAD_API_URL, {
       body: new URLSearchParams({
+        ask: 'activity_create',
         attachs: attachments,
         bid: String(bid),
         options: JSON.stringify(buildActivityCreateOptions(activitySignup.questions)),
         sig: String(signatureIndex),
+        signup_ends_at: String(activitySignupDateTimeToUnixSeconds(activitySignup.endsAt)),
+        signup_starts_at: String(activitySignupDateTimeToUnixSeconds(activitySignup.startsAt)),
         text,
         title,
       }),
@@ -726,7 +729,11 @@ async function publishActivityThread({
     throw new ThreadApiError('暂时无法连接论坛服务，活动发布失败。');
   }
 
-  let payload: { bid?: unknown; code?: unknown; message?: string; msg?: string; tid?: unknown };
+  let payload: {
+    code?: unknown;
+    data?: { bid?: unknown; tid?: unknown };
+    message?: string;
+  };
   try {
     payload = await response.json() as typeof payload;
   } catch {
@@ -734,11 +741,11 @@ async function publishActivityThread({
   }
 
   if (!response.ok || Number(payload.code) !== 0) {
-    throw new ThreadApiError(payload.msg?.trim() || payload.message?.trim() || '活动发布失败，请稍后重试。');
+    throw new ThreadApiError(payload.message?.trim() || '活动发布失败，请稍后重试。');
   }
 
-  const publishedBid = Number(payload.bid);
-  const publishedTid = Number(payload.tid);
+  const publishedBid = Number(payload.data?.bid);
+  const publishedTid = Number(payload.data?.tid);
   return {
     bid: Number.isSafeInteger(publishedBid) && publishedBid > 0 ? publishedBid : bid,
     pid: 1,

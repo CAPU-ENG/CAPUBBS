@@ -1,124 +1,26 @@
 <?php
-require_once "../../lib/mainfunc.php";
-require_once "activityService.php";
-require_once '../../../lib.php';
+require_once __DIR__ . "/../../lib/mainfunc.php";
+require_once __DIR__ . "/activityService.php";
+require_once __DIR__ . '/../../../lib.php';
 
-$GLOBALS['validtime']=1800;
-if ($_SERVER['REQUEST_METHOD'] != 'POST') {
-    echo json_encode(array("code"=> -1,"msg"=> "error"));
-    exit();
-}
+if (!defined('CAPUBBS_ACTIVITY_LIBRARY_MODE')) {
+    require_once __DIR__ . '/../../../api/jiekoufunc.php';
+    require_once __DIR__ . '/../../../api/lib/ActivityHandlers.php';
+    $GLOBALS['validtime']=1800;
 
-$con = dbconnect_mysqli();
-mysqli_select_db($con, "capubbs");
-
-if (!isset($_POST["data"]) || !is_array($_POST["data"])) {
-    echo json_encode(array("code"=> -1,"msg"=> "invalid request"));
-    exit();
-}
-
-$user = getuser();
-$username = $user['username'];
-$data = $_POST["data"];
-if (!isset($data["bid"], $data["tid"], $data["action"])) {
-    echo json_encode(array("code"=> -1,"msg"=> "missing parameters"));
-    exit();
-}
-$bid = $data["bid"];
-$tid = $data["tid"];
-$title = isset($data["title"]) ? $data["title"] : '';
-$action = $data["action"];
-$option_values = isset($data["option_values"]) ? $data["option_values"] : array();
-$sig = isset($option_values["sign"]) ? $option_values["sign"] : 0;
-
-
-$activity = getActivity($bid, $tid);
-$activity_id = $activity["activity_id"];
-if (empty($activity)) {
-    echo json_encode(array("code"=> -1,"msg"=> "activity not found"));
-    exit();
-}
-$statement="select locked,author,title from threads where bid=$bid && tid=$tid";
-$results=mysqli_query($con, $statement);
-if (mysqli_num_rows($results)==0) {
-    echo json_encode(array("code"=> -1,"msg"=> "主题不存在"));
-    exit;
-}
-$res=mysqli_fetch_array($results);
-$locked=intval($res[0]);
-$tidauthor=$res[1];
-$tidtitle=$res[2];
-
-if ($locked==1) {
-    echo json_encode(array("code"=> -1,"msg"=> "主题已锁定"));
-    exit;
-}
-
-// 邮箱验证禁言检查（与普通发帖对齐）
-if (CAPUBBS_ENABLE_POST_CONTROL) {
+    header('Content-Type: application/json; charset=utf-8');
+    $data = isset($_POST['data']) && is_array($_POST['data']) ? $_POST['data'] : array();
+    $params = $data;
+    $params['option_values'] = isset($data['option_values']) && is_array($data['option_values'])
+        ? $data['option_values']
+        : array();
     $con = dbconnect_mysqli();
-    mysqli_select_db($con, "capubbs");
-    $username_esc = mysqli_real_escape_string($con, $username);
-    $user_check = mysqli_fetch_array(mysqli_query($con,
-        "SELECT verified, post, reply, mail FROM userinfo WHERE username='$username_esc'"));
-    if ($user_check) {
-        if (intval($user_check['verified']) === 0) {
-            if ((intval($user_check['post']) + intval($user_check['reply'])) <= 20) {
-                if (intval($bid) !== 28) {
-                    echo json_encode(array("code"=> -1, "msg"=> "您暂时不能发帖（邮箱未验证）。请先验证邮箱或联系管理员。"));
-                    exit;
-                }
-            }
-        }
-        if (CAPUBBS_ENABLE_EMAIL_MUTE) {
-            $mail = $user_check['mail'];
-            if ($mail) {
-                $mail_esc = mysqli_real_escape_string($con, $mail);
-                $mute_check = mysqli_fetch_array(mysqli_query($con,
-                    "SELECT COUNT(*) as cnt FROM email_mutes WHERE email='$mail_esc' AND active=1"));
-                if ($mute_check && intval($mute_check['cnt']) > 0) {
-                    echo json_encode(array("code"=> -1, "msg"=> "您暂时不能发帖（邮箱已被管理员禁言）。请先验证邮箱或联系管理员。"));
-                    exit;
-                }
-            }
-        }
-    }
-}
-
-if ($action == "join") {
-    $ret = join_activity_by_content($bid, $tid, $username, $option_values, $title, $sig);
-    if (!$ret) {
-        echo json_encode(array("code"=> -1,"msg"=> "error"));
-    } else {
-        echo json_encode($ret);
-    }
-    exit();
-} else if ($action == "modify") {
-    $ret = modify_join_activity_by_content($bid, $tid, $username, $option_values, $title, $sig);
-    if (!$ret) {
-        echo json_encode(array("code"=> -1,"msg"=> "error"));
-    } else {
-        echo json_encode($ret);
-    }
-    exit();
-} else if ($action == "cancel") {
-    $option_values = getUsernameOptionValue($username, $activity_id);
-    $ret = cancel_join_activity_by_content($bid, $tid, $username, $option_values, $title, true);
-    if (!$ret) {
-        echo json_encode(array("code"=> -1,"msg"=> "error"));
-    } else {
-        echo json_encode($ret);
-    }
-    exit();
-} else if ($action == "restore") {
-    $option_values = getUsernameOptionValue($username, $activity_id);
-    $ret = cancel_join_activity_by_content($bid, $tid, $username, $option_values, $title, false);
-    if (!$ret) {
-        echo json_encode(array("code"=> -1,"msg"=> "error"));
-    } else {
-        echo json_encode($ret);
-    }
-    exit();
+    $token = isset($_COOKIE['token']) ? $_COOKIE['token'] : '';
+    $bid = intval(isset($data['bid']) ? $data['bid'] : 0);
+    $tid = intval(isset($data['tid']) ? $data['tid'] : 0);
+    $result = jiekoufunc_activity_signup($con, $token, $bid, $tid, $params);
+    echo json_encode(activity_handler_legacy_response($result), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+    exit;
 }
 
 function cancel_join_activity_by_content($bid, $tid, $username, $option_values, $title, $cancel) {

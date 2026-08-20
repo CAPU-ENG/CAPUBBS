@@ -467,6 +467,7 @@ function thread_detail_query_get_activity($con, $bid, $tid) {
         'season_id' => $activity_row['season_id'],
         'name' => $activity_row['name'],
         'leader_username' => $activity_row['leader_username'],
+        'signup_window' => activity_signup_window_for_activity($con, $activity_id),
         'options' => $options,
     );
 }
