@@ -479,7 +479,7 @@
 
   .reply-preview-dialog {
     display: grid;
-    width: min(100%, 920px);
+    width: min(100%, calc(var(--thread-main-column) + 34px));
     max-height: calc(100dvh - var(--topbar-height) - 32px);
     grid-template-rows: auto minmax(260px, 1fr) auto;
     overflow: hidden;
@@ -539,7 +539,8 @@
   }
 
   .reply-preview-floor {
-    width: 100%;
+    width: min(100%, var(--thread-main-column));
+    margin-inline: auto;
     scroll-margin-top: 0;
     box-shadow: none;
   }

@@ -2,6 +2,7 @@
   :root {
     color-scheme: light;
     --topbar-height: 64px;
+    --thread-main-column: 836px;
     --control-radius: 0.5px;
     --page: #f3f5f1;
     --surface: #fffefa;

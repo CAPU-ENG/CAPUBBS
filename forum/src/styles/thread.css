@@ -1,6 +1,5 @@
 @layer components {
   .thread-page-shell {
-    --thread-main-column: 836px;
     --thread-rail-column: 112px;
     --thread-column-gap: 24px;
     position: relative;

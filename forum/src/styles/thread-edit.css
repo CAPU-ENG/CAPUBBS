@@ -1,6 +1,5 @@
 @layer components {
   .thread-edit-page-shell {
-    --thread-main-column: 836px;
     position: relative;
     z-index: 10;
     width: min(1080px, calc(100% - 32px));
