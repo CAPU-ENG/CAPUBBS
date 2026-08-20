@@ -37,12 +37,26 @@
   }
 
   .feed-item h2 {
+    position: relative;
+    padding-left: 12px;
     color: var(--text-strong);
     font-size: 1.08rem;
     font-weight: 720;
     letter-spacing: -0.015em;
     line-height: 1.5;
     transition: color 160ms ease;
+  }
+
+  .feed-item h2::before {
+    position: absolute;
+    top: 0.75em;
+    left: 0;
+    width: 4px;
+    height: 4px;
+    border-radius: 50%;
+    background: var(--brand);
+    content: '';
+    transform: translateY(-50%);
   }
 
   .feed-item-content:hover h2 {
