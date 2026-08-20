@@ -363,13 +363,13 @@ function formatActivitySignupPreviewValue(
   value: ActivitySignupValue | undefined,
 ) {
   if (Array.isArray(value)) {
-    if (value.length === 0) return question.required ? '' : '无';
+    if (value.length === 0) return '';
     return value
       .map((optionId) => question.options.find((option) => option.id === optionId)?.label ?? optionId)
       .join('、');
   }
   const textValue = value?.trim() ?? '';
-  if (!textValue) return question.required ? '' : '无';
+  if (!textValue) return '';
   if (question.type === 'choice') {
     return question.options.find((option) => option.id === textValue)?.label ?? textValue;
   }
