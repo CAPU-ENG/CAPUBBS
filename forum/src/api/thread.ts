@@ -47,6 +47,8 @@ export type EditableThreadFloor = {
   bid: number;
   createdAt: string;
   pid: number;
+  previewAvatar: string;
+  previewSignatures: string[];
   signatureIndex: number;
   text: string;
   tid: number;
@@ -137,8 +139,10 @@ export async function fetchEditableThreadFloor({
     pid: String(pid),
     tid: String(tid),
   }), signal, '编辑内容读取失败，请稍后重试。');
-  const post = asRows(payload.data).find((row) => positiveInteger(row.pid, 0) === pid)
+  const rows = asRows(payload.data);
+  const post = rows.find((row) => positiveInteger(row.pid, 0) === pid)
     ?? asRow(payload.data);
+  const viewer = rows.find((row) => Boolean(plainText(row.username))) ?? {};
 
   if (
     positiveInteger(post.bid, 0) !== bid
@@ -154,6 +158,8 @@ export async function fetchEditableThreadFloor({
     bid,
     createdAt: stringValue(post.timestamp ?? post.posttime ?? post.createdAt),
     pid,
+    previewAvatar: normalizeAssetUrl(viewer.avatar) || normalizeAssetUrl(viewer.icon) || defaultAvatar,
+    previewSignatures: mapEditableViewerSignatures(viewer),
     signatureIndex: Math.min(3, nonNegativeInteger(post.sig)),
     text: stringValue(post.text) === '<br>' ? '' : stringValue(post.text),
     tid,
@@ -607,6 +613,13 @@ function mapAuthor(row: ApiRow, fallbackName: string): ThreadAuthor {
 function mapViewerSignatures(value: unknown) {
   const signatures = asRow(value);
   return ['1', '2', '3'].map((key) => renderSignatureHtml(stringValue(signatures[key]), ''));
+}
+
+function mapEditableViewerSignatures(viewer: ApiRow) {
+  const structuredSignatures = mapViewerSignatures(viewer.signatures);
+  if (structuredSignatures.some(Boolean)) return structuredSignatures;
+
+  return [1, 2, 3].map((index) => renderSignatureHtml(stringValue(viewer[`sig${index}`]), ''));
 }
 
 function normalizeAssetUrl(value: unknown) {
