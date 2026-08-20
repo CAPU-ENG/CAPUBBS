@@ -231,7 +231,7 @@ function normalizeForumAssetUrl(value: string | null) {
 }
 
 function translateLegacyBbcode(value: string) {
-  let html = value;
+  let html = closeUnclosedLegacyBbcode(value);
   const replacements: Array<[RegExp, (...matches: string[]) => string]> = [
     [/\[quote=([^\]]+)]([\s\S]*?)\[\/quote]/gi, (_match, author, content) => (
       `<blockquote class="forum-legacy-quote"><div class="forum-legacy-quote-content">`
@@ -255,7 +255,7 @@ function translateLegacyBbcode(value: string) {
     [/\[s]([\s\S]*?)\[\/s]/gi, (_match, content) => `<s>${content}</s>`],
   ];
 
-  for (let pass = 0; pass < 4; pass += 1) {
+  while (true) {
     const before = html;
     replacements.forEach(([pattern, replace]) => {
       html = html.replace(pattern, replace);
@@ -263,6 +263,57 @@ function translateLegacyBbcode(value: string) {
     if (html === before) break;
   }
   return html;
+}
+
+function closeUnclosedLegacyBbcode(value: string) {
+  const tokenPattern = /\[(\/?)(quote|url|img|at|color|font|size|b|i|u|s)(?:=([^\]\r\n]*))?]/gi;
+  const stack: string[] = [];
+  let balanced = '';
+  let cursor = 0;
+  let match: RegExpExecArray | null;
+
+  while ((match = tokenPattern.exec(value)) !== null) {
+    const [token, closingMarker, rawTag, argument] = match;
+    const tag = rawTag.toLowerCase();
+    balanced += value.slice(cursor, match.index);
+
+    if (closingMarker) {
+      let openIndex = -1;
+      if (argument === undefined) {
+        for (let index = stack.length - 1; index >= 0; index -= 1) {
+          if (stack[index] === tag) {
+            openIndex = index;
+            break;
+          }
+        }
+      }
+
+      if (openIndex < 0) {
+        balanced += token;
+      } else {
+        while (stack.length - 1 > openIndex) balanced += `[/${stack.pop()}]`;
+        stack.pop();
+        balanced += token;
+      }
+    } else if (isValidLegacyBbcodeOpening(tag, argument)) {
+      stack.push(tag);
+      balanced += token;
+    } else {
+      balanced += token;
+    }
+
+    cursor = tokenPattern.lastIndex;
+  }
+
+  balanced += value.slice(cursor);
+  while (stack.length > 0) balanced += `[/${stack.pop()}]`;
+  return balanced;
+}
+
+function isValidLegacyBbcodeOpening(tag: string, argument: string | undefined) {
+  if (tag === 'quote' || tag === 'url') return argument === undefined || argument.trim() !== '';
+  if (tag === 'color' || tag === 'font' || tag === 'size') return argument !== undefined && argument.trim() !== '';
+  return argument === undefined;
 }
 
 function escapeHtml(value: string) {
