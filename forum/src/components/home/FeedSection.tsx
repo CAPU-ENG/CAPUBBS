@@ -1,4 +1,4 @@
-import { Eye, LoaderCircle, MessageCircle, RefreshCw } from 'lucide-react';
+import { ArrowDown, Eye, LoaderCircle, MessageCircle, RefreshCw } from 'lucide-react';
 import defaultAvatar from '../../assets/avatar/default-avatar.avif';
 import type { HomeThread } from '../../api/home';
 import type { HomeDataStatus } from '../../hooks/useHomeData';
@@ -38,12 +38,17 @@ function FeedItem({ item }: { item: HomeThread }) {
 
 type FeedSectionProps = {
   error: string;
+  hasMore: boolean;
   items: HomeThread[];
+  onLoadMore: () => void;
   onRetry: () => void;
   status: HomeDataStatus;
 };
 
-export function FeedSection({ error, items, onRetry, status }: FeedSectionProps) {
+export function FeedSection({ error, hasMore, items, onLoadMore, onRetry, status }: FeedSectionProps) {
+  const loadingMore = status === 'loading' && items.length > 0;
+  const loadMoreFailed = status === 'error' && items.length > 0;
+
   return (
     <section className="feed-section" id="feed" aria-label="论坛帖子">
       {status === 'loading' && items.length === 0 ? (
@@ -62,6 +67,23 @@ export function FeedSection({ error, items, onRetry, status }: FeedSectionProps)
         <div className="divide-y divide-[var(--line)]">
           {items.map((item) => <FeedItem item={item} key={item.id} />)}
         </div>
+      )}
+
+      {items.length > 0 && hasMore && (
+        <button
+          className="load-more"
+          disabled={loadingMore}
+          onClick={loadMoreFailed ? onRetry : onLoadMore}
+          type="button"
+        >
+          {loadingMore ? (
+            <><LoaderCircle className="animate-spin" size={16} />正在加载…</>
+          ) : loadMoreFailed ? (
+            <><RefreshCw size={15} />加载失败，重试</>
+          ) : (
+            <>加载更多 <ArrowDown size={16} /></>
+          )}
+        </button>
       )}
     </section>
   );

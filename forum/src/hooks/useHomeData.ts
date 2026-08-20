@@ -21,20 +21,27 @@ const initialCollection: CollectionState = {
   status: 'loading',
 };
 
+const HOME_FEED_BATCH_SIZE = 15;
+
 export function useHomeData() {
   const [feed, setFeed] = useState<CollectionState>(initialCollection);
+  const [feedHasMore, setFeedHasMore] = useState(true);
+  const [feedLimit, setFeedLimit] = useState(HOME_FEED_BATCH_SIZE);
   const [pinned, setPinned] = useState<CollectionState>(initialCollection);
   const [requestVersion, setRequestVersion] = useState(0);
 
   const retry = useCallback(() => setRequestVersion((version) => version + 1), []);
+  const loadMore = useCallback(() => {
+    setFeedLimit((limit) => limit + HOME_FEED_BATCH_SIZE);
+  }, []);
 
   useEffect(() => {
     const controller = new AbortController();
     setFeed((current) => ({ ...current, error: '', status: 'loading' }));
-    setPinned((current) => ({ ...current, error: '', status: 'loading' }));
 
-    void fetchHomeFeed(controller.signal).then(
+    void fetchHomeFeed(feedLimit, controller.signal).then(
       async (items) => {
+        setFeedHasMore(items.length >= feedLimit);
         setFeed({ error: '', items, status: 'ready' });
         try {
           const hydratedItems = await hydrateHomeThreadAvatars(items, controller.signal);
@@ -53,6 +60,13 @@ export function useHomeData() {
         }
       },
     );
+
+    return () => controller.abort();
+  }, [feedLimit, requestVersion]);
+
+  useEffect(() => {
+    const controller = new AbortController();
+    setPinned((current) => ({ ...current, error: '', status: 'loading' }));
 
     void fetchGlobalPinnedThreads(controller.signal).then(
       async (items) => {
@@ -78,5 +92,5 @@ export function useHomeData() {
     return () => controller.abort();
   }, [requestVersion]);
 
-  return { feed, pinned, retry };
+  return { feed, feedHasMore, loadMore, pinned, retry };
 }

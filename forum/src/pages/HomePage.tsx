@@ -6,7 +6,7 @@ import { TopBar } from '../components/layout/TopBar';
 import { useHomeData } from '../hooks/useHomeData';
 
 export function HomePage() {
-  const { feed, pinned, retry } = useHomeData();
+  const { feed, feedHasMore, loadMore, pinned, retry } = useHomeData();
 
   return (
     <div className="relative min-h-screen text-[var(--text)] transition-colors duration-200">
@@ -17,7 +17,9 @@ export function HomePage() {
       <main className="page-shell">
         <FeedSection
           error={feed.error}
+          hasMore={feedHasMore}
           items={feed.items}
+          onLoadMore={loadMore}
           onRetry={retry}
           status={feed.status}
         />
