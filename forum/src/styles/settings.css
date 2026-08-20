@@ -56,17 +56,28 @@
     border-bottom: 0;
   }
 
+  .settings-appearance-panel {
+    overflow: visible;
+  }
+
+  .settings-checkbox-list {
+    display: grid;
+    gap: 8px;
+    margin: 0 22px 18px 72px;
+  }
+
   .settings-checkbox-option {
     display: grid;
     grid-template-columns: 18px minmax(0, 1fr);
     align-items: center;
     gap: 10px;
-    margin: 0 22px 8px 72px;
     cursor: pointer;
   }
 
-  .settings-appearance-panel .settings-checkbox-option:last-child {
-    margin-bottom: 18px;
+  .settings-checkbox-row {
+    display: flex;
+    align-items: center;
+    gap: 5px;
   }
 
   .settings-checkbox-option input {
@@ -118,6 +129,60 @@
     font-size: 0.72rem;
     font-weight: 720;
     line-height: 18px;
+  }
+
+  .settings-option-help {
+    position: relative;
+    display: inline-flex;
+    flex: 0 0 auto;
+  }
+
+  .settings-option-help > button {
+    display: inline-flex;
+    width: 18px;
+    height: 18px;
+    align-items: center;
+    justify-content: center;
+    color: var(--text-faint);
+    cursor: help;
+    transition: color 140ms ease;
+  }
+
+  .settings-option-help > button:hover,
+  .settings-option-help > button:focus-visible {
+    color: var(--brand-strong);
+  }
+
+  .settings-option-help > button:focus-visible {
+    border-radius: 50%;
+    outline: 2px solid var(--brand);
+    outline-offset: 1px;
+  }
+
+  .settings-option-help [role="tooltip"] {
+    position: absolute;
+    z-index: 5;
+    top: calc(100% + 7px);
+    left: 50%;
+    width: 230px;
+    border: 1px solid var(--line-strong);
+    border-radius: var(--control-radius);
+    padding: 9px 10px;
+    background: var(--surface-raised);
+    box-shadow: var(--shadow-card);
+    color: var(--text-muted);
+    font-size: 0.62rem;
+    line-height: 1.55;
+    opacity: 0;
+    pointer-events: none;
+    transform: translate(-50%, -2px);
+    transition: opacity 140ms ease, transform 140ms ease;
+  }
+
+  .settings-option-help:hover [role="tooltip"],
+  .settings-option-help:focus-within [role="tooltip"] {
+    opacity: 1;
+    transform: translate(-50%, 0);
   }
 
   .settings-count {
@@ -426,8 +491,7 @@
     }
 
     .settings-panel-heading { padding: 17px 15px; }
-    .settings-checkbox-option { margin: 0 15px 8px; }
-    .settings-appearance-panel .settings-checkbox-option:last-child { margin-bottom: 15px; }
+    .settings-checkbox-list { margin: 0 15px 15px; }
     .settings-nav-preview { align-items: flex-start; flex-direction: column; gap: 3px; margin: 14px 15px 0; }
     .settings-preview-links { width: 100%; }
     .settings-selection,

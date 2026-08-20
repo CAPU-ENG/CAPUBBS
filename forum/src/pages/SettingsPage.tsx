@@ -1,4 +1,4 @@
-import { Check, ChevronDown, CirclePlus, MonitorCog, Pin, PinOff } from 'lucide-react';
+import { Check, ChevronDown, CircleHelp, CirclePlus, MonitorCog, Pin, PinOff } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import { AppBackground } from '../components/layout/AppBackground';
 import { TopBar } from '../components/layout/TopBar';
@@ -76,27 +76,39 @@ export function SettingsPage() {
               </div>
             </div>
 
-            <label className="settings-checkbox-option">
-              <input
-                checked={followsSystem}
-                onChange={(event) => saveThemeFollowsSystem(event.target.checked)}
-                type="checkbox"
-              />
-              <span className="settings-checkbox-mark" aria-hidden="true"><Check size={14} /></span>
-              <span>
-                <strong>自动跟随系统切换昼夜模式</strong>
-              </span>
-            </label>
+            <div className="settings-checkbox-list">
+              <label className="settings-checkbox-option">
+                <input
+                  checked={followsSystem}
+                  onChange={(event) => saveThemeFollowsSystem(event.target.checked)}
+                  type="checkbox"
+                />
+                <span className="settings-checkbox-mark" aria-hidden="true"><Check size={14} /></span>
+                <span>
+                  <strong>自动跟随系统切换昼夜模式</strong>
+                </span>
+              </label>
 
-            <label className="settings-checkbox-option">
-              <input
-                checked={compactMode}
-                onChange={(event) => saveCompactMode(event.target.checked)}
-                type="checkbox"
-              />
-              <span className="settings-checkbox-mark" aria-hidden="true"><Check size={14} /></span>
-              <span><strong>紧凑模式</strong></span>
-            </label>
+              <div className="settings-checkbox-row">
+                <label className="settings-checkbox-option">
+                  <input
+                    checked={compactMode}
+                    onChange={(event) => saveCompactMode(event.target.checked)}
+                    type="checkbox"
+                  />
+                  <span className="settings-checkbox-mark" aria-hidden="true"><Check size={14} /></span>
+                  <span><strong>紧凑模式</strong></span>
+                </label>
+                <span className="settings-option-help">
+                  <button aria-describedby="compact-mode-help" aria-label="查看紧凑模式说明" type="button">
+                    <CircleHelp size={14} />
+                  </button>
+                  <span id="compact-mode-help" role="tooltip">
+                    首页主题列表会缩小行高，只保留标题、作者和时间，隐藏摘要、头像、回复数与浏览数。
+                  </span>
+                </span>
+              </div>
+            </div>
           </section>
 
           <section className="settings-panel settings-pinned-board-panel" aria-labelledby="pinned-boards-title">
