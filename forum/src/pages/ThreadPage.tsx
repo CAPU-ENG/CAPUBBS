@@ -5,6 +5,7 @@ import { ThreadFloor } from '../components/thread/ThreadFloor';
 import { FloorNodes, MobileFloorNode, ThreadPagination } from '../components/thread/ThreadNavigation';
 import { AppBackground } from '../components/layout/AppBackground';
 import { TopBar } from '../components/layout/TopBar';
+import { setThreadBookmarked } from '../api/favorite';
 import { deleteNestedReply, postNestedReply } from '../api/thread';
 import type { NestedReply, ThreadFloorData } from '../data/threadDemo';
 import { useScrollContextTitle } from '../hooks/useScrollContextTitle';
@@ -37,6 +38,8 @@ export function ThreadPage() {
   const quoteRequestIdRef = useRef(0);
   const [activeFloor, setActiveFloor] = useState(1);
   const [bookmarked, setBookmarked] = useState(false);
+  const [bookmarkPending, setBookmarkPending] = useState(false);
+  const [bookmarkError, setBookmarkError] = useState<string | null>(null);
   const editorRef = useRef<HTMLElement | null>(null);
   const titleRef = useRef<HTMLHeadingElement | null>(null);
   const showTitleInTopBar = useScrollContextTitle(titleRef);
@@ -44,8 +47,8 @@ export function ThreadPage() {
 
   useEffect(() => {
     if (!data) return;
-    const saved = window.localStorage.getItem(`capubbs-bookmark-${data.id}`);
-    setBookmarked(saved === null ? data.bookmarked : saved === '1');
+    setBookmarked(data.bookmarked);
+    setBookmarkError(null);
   }, [data]);
 
   useEffect(() => {
@@ -131,13 +134,30 @@ export function ThreadPage() {
     window.location.href = `/?${params.toString()}`;
   }
 
-  function toggleBookmark() {
-    if (!data) return;
-    setBookmarked((current) => {
-      const next = !current;
-      window.localStorage.setItem(`capubbs-bookmark-${data.id}`, next ? '1' : '0');
-      return next;
-    });
+  async function toggleBookmark() {
+    if (!data || bookmarkPending) return;
+    if (!data.viewer) {
+      window.location.href = getLoginPathWithReturnTo();
+      return;
+    }
+
+    const nextBookmarked = !bookmarked;
+    setBookmarkPending(true);
+    setBookmarkError(null);
+    try {
+      await setThreadBookmarked({
+        bid: data.bid,
+        bookmarked: nextBookmarked,
+        tid: data.tid,
+      });
+      setBookmarked(nextBookmarked);
+    } catch (bookmarkActionError) {
+      setBookmarkError(bookmarkActionError instanceof Error
+        ? bookmarkActionError.message
+        : nextBookmarked ? '收藏失败，请稍后重试。' : '取消收藏失败，请稍后重试。');
+    } finally {
+      setBookmarkPending(false);
+    }
   }
 
   if (!data) {
@@ -195,16 +215,19 @@ export function ThreadPage() {
                 {data.authorOnly ? '查看全部' : '只看楼主'}
               </button>
               <button
+                aria-busy={bookmarkPending}
                 aria-pressed={bookmarked}
                 className={bookmarked ? 'thread-title-action-active' : ''}
-                onClick={toggleBookmark}
+                disabled={bookmarkPending}
+                onClick={() => { void toggleBookmark(); }}
                 type="button"
               >
                 {bookmarked ? <BookmarkCheck size={14} /> : <Bookmark size={14} />}
-                {bookmarked ? '取消收藏' : '收藏'}
+                {bookmarkPending ? (bookmarked ? '取消中' : '收藏中') : bookmarked ? '取消收藏' : '收藏'}
               </button>
             </div>
           </div>
+          {bookmarkError && <p className="thread-bookmark-error" role="alert">{bookmarkError}</p>}
         </header>
 
         <div className="thread-content-layout">

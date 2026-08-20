@@ -166,6 +166,18 @@
     color: var(--brand-strong);
   }
 
+  .thread-title-actions > button:disabled {
+    cursor: wait;
+    opacity: 0.62;
+  }
+
+  .thread-bookmark-error {
+    margin: 10px 0 0;
+    color: var(--danger);
+    font-size: 0.72rem;
+    text-align: right;
+  }
+
   .thread-content-layout {
     display: grid;
     grid-template-columns: minmax(0, var(--thread-main-column)) var(--thread-rail-column);
