@@ -280,6 +280,7 @@
 
   .activity-summary-table-wrap table {
     width: max-content;
+    min-width: 100%;
     border-collapse: collapse;
     text-align: left;
   }
@@ -297,6 +298,11 @@
   .activity-summary-table-wrap th:not(:last-child),
   .activity-summary-table-wrap td:not(:last-child) {
     border-right: 1px solid var(--line);
+  }
+
+  .activity-summary-table-wrap th:last-child,
+  .activity-summary-table-wrap td:last-child {
+    width: 100%;
   }
 
   .activity-summary-table-wrap th {
