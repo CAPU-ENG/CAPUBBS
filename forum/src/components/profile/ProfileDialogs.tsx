@@ -284,7 +284,7 @@ export function SecurityDialog({
   }, [open]);
 
   return (
-    <DialogFrame icon={<LockKeyhole size={18} />} onClose={onClose} open={open} title="账号安全">
+    <DialogFrame icon={<LockKeyhole size={18} />} onClose={onClose} open={open} title="修改密码">
       <div className="profile-dialog-body profile-security-fields">
         <label className="profile-dialog-field"><span>当前密码</span><input type="password" value={currentPassword} onChange={(event) => setCurrentPassword(event.target.value)} /></label>
         <label className="profile-dialog-field"><span>新密码</span><input type="password" value={newPassword} onChange={(event) => setNewPassword(event.target.value)} /></label>

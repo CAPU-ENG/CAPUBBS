@@ -127,7 +127,7 @@ export function ProfileOverview({
                 <button className="profile-secondary-action" disabled={actionsDisabled} type="button" onClick={onCancelEdit}>取消</button>
               ) : (
                 <button className="profile-secondary-action" disabled={actionsDisabled} type="button" onClick={onOpenSecurity}>
-                  <ShieldCheck size={16} />账号安全
+                  <ShieldCheck size={16} />修改密码
                 </button>
               )}
             </>
