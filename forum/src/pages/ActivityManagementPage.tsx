@@ -327,6 +327,10 @@ function SignupSummaryPanel({
   const [exportError, setExportError] = useState('');
   const [isExporting, setIsExporting] = useState(false);
   const [isTableScrolled, setIsTableScrolled] = useState(false);
+  const displayedQuestions = useMemo(
+    () => questions.filter((question) => question.label.trim().toLocaleUpperCase() !== 'ID'),
+    [questions],
+  );
 
   useEffect(() => {
     if (!expandedValue) return;
@@ -388,7 +392,7 @@ function SignupSummaryPanel({
                   <th className="activity-summary-id-column">ID</th>
                   <th className="activity-summary-time-column">报名时间</th>
                   <th className="activity-summary-status-column">状态</th>
-                  {questions.map((question) => <th key={question.id}>{question.label}</th>)}
+                  {displayedQuestions.map((question) => <th key={question.id}>{question.label}</th>)}
                 </tr>
               </thead>
               <tbody>
@@ -397,7 +401,7 @@ function SignupSummaryPanel({
                     <td className="activity-summary-id-column"><strong>{record.username}</strong></td>
                     <td className="activity-summary-time-column">{formatActivityRecordTime(record.joinedAt)}</td>
                     <td className="activity-summary-status-column"><ActivityRecordStatus status={record.status} /></td>
-                    {questions.map((question) => {
+                    {displayedQuestions.map((question) => {
                       const value = getActivityRecordValue(record, question);
                       const expandable = isExpandableSummaryValue(value);
                       return (
