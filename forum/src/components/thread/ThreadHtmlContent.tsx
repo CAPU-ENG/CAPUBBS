@@ -7,6 +7,7 @@ import { ForumMarkup, type ForumMarkupImage } from './ForumMarkup';
 const MIN_SIGNATURE_FRAME_HEIGHT = 28;
 const MIN_FLOOR_FRAME_HEIGHT = 64;
 const MAX_FRAME_HEIGHT = 50_000;
+const FRAME_BOTTOM_GUARD = 8;
 const HTML_FRAME_MESSAGE_SOURCE = 'capubbs-thread-html-frame';
 
 type ThreadHtmlVariant = 'floor' | 'signature';
@@ -110,6 +111,7 @@ function ThreadSandboxedHtmlFrame({
       className={`thread-html-frame thread-html-frame-${variant} ${className}`.trim()}
       referrerPolicy="no-referrer"
       sandbox="allow-scripts allow-same-origin"
+      scrolling="no"
       src={frameSource}
       style={{ height: frameHeight }}
       title={variant === 'signature' ? `第 ${floor} 楼签名档` : `第 ${floor} 楼正文`}
@@ -185,25 +187,35 @@ function buildHtmlFrameDocument({
   <base href="${escapeHtmlAttribute(getLegacyContentBaseUrl())}">
   <meta http-equiv="Content-Security-Policy" content="${buildContentSecurityPolicy()}">
   <style>
-    html,body{margin:0;padding:0;min-height:0;background:transparent!important;color:${color};font-family:ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;font-size:${fontSize};line-height:1.6;overflow-wrap:anywhere;word-break:break-word}
-    body{display:flow-root}a{color:${linkColor}}img,video,canvas,svg{max-width:100%;height:auto}iframe{max-width:100%}pre{max-width:100%;overflow:auto;white-space:pre-wrap}table{max-width:100%}
+    html,body{margin:0;padding:0;min-height:0;overflow:hidden;background:transparent!important;color:${color};font-family:ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;font-size:${fontSize};line-height:1.6;overflow-wrap:anywhere;word-break:break-word}
+    .capubbs-html-frame-root{display:flow-root}a{color:${linkColor}}img,video,canvas,svg{max-width:100%;height:auto}iframe{max-width:100%}pre{max-width:100%;overflow:auto;white-space:pre-wrap}table{max-width:100%}
   </style>
   <script>${buildFrameBridgeScript(frameId)}</script>
   <script src="/bbs/lib/jquery.min.js"></script>
 </head>
-<body>${deferUserScripts(html)}</body>
+<body><main class="capubbs-html-frame-root">${deferUserScripts(html)}</main></body>
 </html>`;
 }
 
 function buildFrameBridgeScript(frameId: string) {
   return `(function(){
     var frameId=${JSON.stringify(frameId)};
+    var minBottomGuard=${FRAME_BOTTOM_GUARD};
     var queued=false;
+    function getContentHeight(){
+      var contentRoot=document.querySelector('.capubbs-html-frame-root');
+      if(!contentRoot)return 0;
+      var rect=contentRoot.getBoundingClientRect?contentRoot.getBoundingClientRect():null;
+      var measured=Math.max(contentRoot.scrollHeight||0,contentRoot.offsetHeight||0,rect?Math.ceil(rect.height):0);
+      if(!measured)return 0;
+      var style=window.getComputedStyle?window.getComputedStyle(contentRoot):null;
+      var fontSize=parseFloat(style&&style.fontSize?style.fontSize:'');
+      var guard=Math.max(minBottomGuard,Number.isFinite(fontSize)?Math.ceil(fontSize*0.5):0);
+      return measured+guard;
+    }
     function sendHeight(){
       queued=false;
-      var body=document.body;
-      var root=document.documentElement;
-      var height=Math.max(body?body.scrollHeight:0,root?root.scrollHeight:0);
+      var height=getContentHeight();
       window.parent.postMessage({source:'${HTML_FRAME_MESSAGE_SOURCE}',type:'resize',frameId:frameId,height:height},'*');
     }
     function queueHeight(){
@@ -222,8 +234,9 @@ function buildFrameBridgeScript(frameId: string) {
       });
     }
     function init(){
-      if(window.ResizeObserver)new ResizeObserver(queueHeight).observe(document.body);
-      if(window.MutationObserver)new MutationObserver(queueHeight).observe(document.body,{attributes:true,characterData:true,childList:true,subtree:true});
+      var contentRoot=document.querySelector('.capubbs-html-frame-root');
+      if(window.ResizeObserver&&contentRoot)new ResizeObserver(queueHeight).observe(contentRoot);
+      if(window.MutationObserver&&contentRoot)new MutationObserver(queueHeight).observe(contentRoot,{attributes:true,characterData:true,childList:true,subtree:true});
       Array.prototype.forEach.call(document.images,function(image){image.addEventListener('load',queueHeight);image.addEventListener('error',queueHeight);});
       window.addEventListener('load',queueHeight);
       document.addEventListener('transitionend',queueHeight);
