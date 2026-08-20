@@ -224,7 +224,7 @@
     min-height: 40px;
     align-items: center;
     gap: 7px;
-    border-radius: 7px;
+    border-radius: var(--control-radius);
     padding: 5px 6px;
     color: var(--text-muted);
     transition: 140ms ease;
