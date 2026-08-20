@@ -17,7 +17,6 @@ import {
   type OnlineUser,
   type PunishmentRecord,
 } from '../api/dataDisplay';
-import activityCover from '../assets/activity/activity.avif';
 import { AppBackground } from '../components/layout/AppBackground';
 import { TopBar } from '../components/layout/TopBar';
 
@@ -76,10 +75,6 @@ export function DataDisplayPage() {
       <TopBar contextHref="#data-display" contextTitle="数据展示" />
 
       <main className="data-display-shell" id="data-display">
-        <section aria-hidden="true" className="data-display-cover">
-          <img alt="" src={activityCover} />
-        </section>
-
         <nav aria-label="数据展示类型" className="data-display-tabs">
           {PANEL_ITEMS.map(({ icon: Icon, id, label }) => (
             <button

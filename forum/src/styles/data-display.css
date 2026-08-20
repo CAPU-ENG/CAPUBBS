@@ -8,28 +8,6 @@
     padding: 18px 14px 40px;
   }
 
-  .data-display-cover {
-    height: 154px;
-    overflow: hidden;
-    border: 1px solid var(--line);
-    border-radius: 2px;
-    background: var(--surface);
-    box-shadow: var(--shadow-card);
-  }
-
-  .data-display-cover img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    object-position: center 44%;
-    filter: saturate(0.84) contrast(0.96);
-  }
-
-  .dark .data-display-cover img {
-    opacity: 0.72;
-    filter: saturate(0.58) brightness(0.72);
-  }
-
   .data-display-tabs {
     display: flex;
     flex-wrap: wrap;
@@ -292,10 +270,6 @@
   @media (max-width: 640px) {
     .data-display-shell {
       padding: 12px 10px 28px;
-    }
-
-    .data-display-cover {
-      height: 112px;
     }
 
     .data-display-tabs {
