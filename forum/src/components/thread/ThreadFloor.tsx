@@ -1,7 +1,9 @@
 import { useEffect, useMemo, useRef, useState, type ClipboardEvent, type FormEvent } from 'react';
 import {
+  AlertTriangle,
   Check,
   ExternalLink,
+  LoaderCircle,
   Pencil,
   Quote,
   Reply,
@@ -14,6 +16,10 @@ import { getPublicProfilePath } from '../../utils/userRoutes';
 import { ForumMarkup, type ForumMarkupImage } from './ForumMarkup';
 import { ThreadImageLightbox } from './ThreadImageLightbox';
 import { ThreadPostContent } from './ThreadPostContent';
+
+type DeleteDialogTarget =
+  | { kind: 'floor' }
+  | { kind: 'nested'; reply: NestedReply };
 
 function AuthorCard({ author }: { author: ThreadAuthor }) {
   return (
@@ -106,6 +112,7 @@ export function ThreadFloor({
   viewer: ThreadAuthor | null;
 }) {
   const [copyNoticeOpen, setCopyNoticeOpen] = useState(false);
+  const [deleteDialogTarget, setDeleteDialogTarget] = useState<DeleteDialogTarget | null>(null);
   const [deletedNestedReplyIds, setDeletedNestedReplyIds] = useState<string[]>([]);
   const [floorDeleteError, setFloorDeleteError] = useState('');
   const [floorDeletePending, setFloorDeletePending] = useState(false);
@@ -118,6 +125,7 @@ export function ThreadFloor({
   const [nestedReplyTarget, setNestedReplyTarget] = useState<string | null | undefined>(undefined);
   const [previewImage, setPreviewImage] = useState<ForumMarkupImage | null>(null);
   const copyNoticeTimerRef = useRef<number | null>(null);
+  const deleteTriggerRef = useRef<HTMLButtonElement | null>(null);
   const nestedReplyInputRef = useRef<HTMLTextAreaElement | null>(null);
   const previewTriggerRef = useRef<HTMLImageElement | null>(null);
   const nestedReplies = useMemo(
@@ -195,14 +203,13 @@ export function ThreadFloor({
   }
 
   async function removeNestedReply(reply: NestedReply) {
-    if (!window.confirm('确认删除这条楼中楼回复吗？')) return;
-
     setNestedReplyDeletingId(reply.id);
     setNestedReplyDeleteError('');
     try {
       await onDeleteNestedReply(floor, reply);
       setDeletedNestedReplyIds((current) => [...current, reply.id]);
       setLocalNestedReplies((current) => current.filter((item) => item.id !== reply.id));
+      setDeleteDialogTarget(null);
     } catch (error) {
       setNestedReplyDeleteError(error instanceof Error ? error.message : '楼中楼删除失败，请稍后重试。');
     } finally {
@@ -211,10 +218,7 @@ export function ThreadFloor({
   }
 
   async function removeFloor() {
-    const confirmation = isMainPost
-      ? '确认删除主楼吗？如果主题还有回复，下一楼将顺位成为主楼；否则整个主题会被删除。'
-      : `确认删除第 ${floor.floor} 楼吗？后续楼层编号将顺次调整。`;
-    if (!window.confirm(confirmation) || floorDeletePending) return;
+    if (floorDeletePending) return;
 
     setFloorDeletePending(true);
     setFloorDeleteError('');
@@ -224,6 +228,14 @@ export function ThreadFloor({
       setFloorDeleteError(error instanceof Error ? error.message : '楼层删除失败，请稍后重试。');
       setFloorDeletePending(false);
     }
+  }
+
+  function closeDeleteDialog() {
+    if (floorDeletePending || nestedReplyDeletingId !== null) return;
+    setDeleteDialogTarget(null);
+    setFloorDeleteError('');
+    setNestedReplyDeleteError('');
+    window.requestAnimationFrame(() => deleteTriggerRef.current?.focus());
   }
 
   return (
@@ -307,7 +319,11 @@ export function ThreadFloor({
                 aria-busy={floorDeletePending}
                 className="floor-action-danger"
                 disabled={floorDeletePending}
-                onClick={() => void removeFloor()}
+                onClick={(event) => {
+                  deleteTriggerRef.current = event.currentTarget;
+                  setFloorDeleteError('');
+                  setDeleteDialogTarget({ kind: 'floor' });
+                }}
                 type="button"
               >
                 <Trash2 size={15} />
@@ -315,10 +331,6 @@ export function ThreadFloor({
               </button>
           )}
         </div>
-
-        {floorDeleteError && (
-          <p className="thread-floor-delete-error" role="alert">{floorDeleteError}</p>
-        )}
 
         {nestedReplies.length > 0 && (
           <section
@@ -362,7 +374,11 @@ export function ThreadFloor({
                       <button
                         className="nested-reply-delete"
                         disabled={nestedReplyDeletingId === reply.id}
-                        onClick={() => void removeNestedReply(reply)}
+                        onClick={(event) => {
+                          deleteTriggerRef.current = event.currentTarget;
+                          setNestedReplyDeleteError('');
+                          setDeleteDialogTarget({ kind: 'nested', reply });
+                        }}
                         type="button"
                       >
                         <Trash2 size={12} />
@@ -375,10 +391,6 @@ export function ThreadFloor({
             ))}
           </section>
         )}
-        {nestedReplyDeleteError && (
-          <p className="nested-reply-delete-error" role="alert">{nestedReplyDeleteError}</p>
-        )}
-
         {nestedReplyTarget !== undefined && canReply && (
           <form className="nested-reply-composer" onSubmit={submitNestedReply}>
             <textarea
@@ -426,8 +438,116 @@ export function ThreadFloor({
       {previewImage && (
         <ThreadImageLightbox image={previewImage} onClose={closeImagePreview} />
       )}
+      {deleteDialogTarget && (
+        <DeleteReplyDialog
+          error={deleteDialogTarget.kind === 'floor' ? floorDeleteError : nestedReplyDeleteError}
+          floor={floor}
+          isMainPost={isMainPost}
+          onCancel={closeDeleteDialog}
+          onConfirm={() => {
+            if (deleteDialogTarget.kind === 'floor') void removeFloor();
+            else void removeNestedReply(deleteDialogTarget.reply);
+          }}
+          pending={deleteDialogTarget.kind === 'floor'
+            ? floorDeletePending
+            : nestedReplyDeletingId === deleteDialogTarget.reply.id}
+          target={deleteDialogTarget}
+        />
+      )}
     </article>
   );
+}
+
+function DeleteReplyDialog({
+  error,
+  floor,
+  isMainPost,
+  onCancel,
+  onConfirm,
+  pending,
+  target,
+}: {
+  error: string;
+  floor: ThreadFloorData;
+  isMainPost: boolean;
+  onCancel: () => void;
+  onConfirm: () => void;
+  pending: boolean;
+  target: DeleteDialogTarget;
+}) {
+  const nestedReply = target.kind === 'nested' ? target.reply : null;
+  const title = nestedReply ? '删除楼中楼回复' : isMainPost ? '删除主楼' : '删除回复';
+  const description = nestedReply
+    ? '删除后，这条楼中楼回复将不再显示。'
+    : isMainPost
+      ? '删除主楼后，下一楼将顺位成为主楼；如果没有其他回复，整个主题会被删除。'
+      : '删除后，该楼内容将移入回收站，后续楼层编号会顺次调整。';
+  const author = nestedReply?.author.name ?? floor.author.name;
+  const location = nestedReply ? `#${floor.floor} · 楼中楼` : `#${floor.floor}`;
+  const excerpt = getDeleteReplyExcerpt(nestedReply?.content || floor.quoteText || floor.paragraphs[0] || '');
+
+  useEffect(() => {
+    document.body.classList.add('thread-delete-dialog-open');
+    return () => document.body.classList.remove('thread-delete-dialog-open');
+  }, []);
+
+  useEffect(() => {
+    function closeOnEscape(event: KeyboardEvent) {
+      if (event.key === 'Escape' && !pending) onCancel();
+    }
+
+    document.addEventListener('keydown', closeOnEscape);
+    return () => document.removeEventListener('keydown', closeOnEscape);
+  }, [onCancel, pending]);
+
+  return (
+    <div
+      className="thread-delete-dialog-backdrop"
+      onMouseDown={(event) => {
+        if (event.currentTarget === event.target && !pending) onCancel();
+      }}
+      role="presentation"
+    >
+      <section
+        aria-describedby="thread-delete-dialog-description"
+        aria-labelledby="thread-delete-dialog-title"
+        aria-modal="true"
+        className="thread-delete-dialog"
+        role="dialog"
+      >
+        <header>
+          <span className="thread-delete-dialog-icon" aria-hidden="true"><AlertTriangle size={19} /></span>
+          <div>
+            <span>删除回复</span>
+            <h2 id="thread-delete-dialog-title">{title}</h2>
+          </div>
+          <button aria-label="关闭删除确认" disabled={pending} onClick={onCancel} type="button"><X size={18} /></button>
+        </header>
+
+        <div className="thread-delete-dialog-body">
+          <p id="thread-delete-dialog-description">{description}</p>
+          <div className="thread-delete-dialog-target">
+            <span>{author} · {location}</span>
+            <p>{excerpt || '此回复没有可预览的文字内容。'}</p>
+          </div>
+          {error && <p className="thread-delete-dialog-error" role="alert">{error}</p>}
+        </div>
+
+        <footer>
+          <button autoFocus className="thread-delete-dialog-cancel" disabled={pending} onClick={onCancel} type="button">取消</button>
+          <button className="thread-delete-dialog-confirm" disabled={pending} onClick={onConfirm} type="button">
+            {pending ? <LoaderCircle className="thread-delete-dialog-spinner" size={15} /> : <Trash2 size={15} />}
+            {pending ? '正在删除' : '确认删除'}
+          </button>
+        </footer>
+      </section>
+    </div>
+  );
+}
+
+function getDeleteReplyExcerpt(value: string) {
+  const excerpt = value.replace(/\s+/g, ' ').trim();
+  return excerpt.length > 100 ? `${excerpt.slice(0, 100).trimEnd()}…` : excerpt;
 }
 
 function formatLocalTimestamp(date: Date) {

@@ -1068,11 +1068,172 @@
     opacity: 0.55;
   }
 
-  .thread-floor-delete-error {
-    margin-top: 8px;
+  body.thread-delete-dialog-open {
+    overflow: hidden;
+  }
+
+  .thread-delete-dialog-backdrop {
+    position: fixed;
+    z-index: 1100;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 18px;
+    background: rgb(10 18 13 / 0.68);
+    backdrop-filter: blur(3px);
+    animation: thread-delete-backdrop-in 140ms ease both;
+  }
+
+  .thread-delete-dialog {
+    width: min(100%, 430px);
+    overflow: hidden;
+    border: 1px solid var(--line-strong);
+    border-radius: 4px;
+    background: var(--surface-raised);
+    box-shadow: var(--shadow-float);
+    animation: local-panel-in 160ms ease both;
+  }
+
+  .thread-delete-dialog > header {
+    display: grid;
+    grid-template-columns: 38px minmax(0, 1fr) 32px;
+    align-items: center;
+    gap: 10px;
+    border-bottom: 1px solid var(--line);
+    padding: 14px 15px;
+  }
+
+  .thread-delete-dialog-icon {
+    display: inline-flex;
+    width: 38px;
+    height: 38px;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid color-mix(in srgb, var(--danger) 28%, var(--line));
+    border-radius: 50%;
+    background: color-mix(in srgb, var(--danger) 9%, var(--surface));
     color: var(--danger);
-    font-size: 0.68rem;
-    text-align: right;
+  }
+
+  .thread-delete-dialog > header > div {
+    min-width: 0;
+  }
+
+  .thread-delete-dialog > header > div > span {
+    display: block;
+    margin-bottom: 2px;
+    color: var(--danger);
+    font-size: 0.61rem;
+    font-weight: 760;
+    letter-spacing: 0.04em;
+  }
+
+  .thread-delete-dialog h2 {
+    color: var(--text-strong);
+    font-size: 0.92rem;
+    font-weight: 760;
+  }
+
+  .thread-delete-dialog > header > button {
+    display: inline-flex;
+    width: 32px;
+    height: 32px;
+    align-items: center;
+    justify-content: center;
+    border-radius: var(--control-radius);
+    color: var(--text-faint);
+  }
+
+  .thread-delete-dialog > header > button:hover {
+    background: var(--surface-soft);
+    color: var(--text);
+  }
+
+  .thread-delete-dialog-body {
+    padding: 18px 18px 16px;
+  }
+
+  .thread-delete-dialog-body > p:first-child {
+    color: var(--text-muted);
+    font-size: 0.76rem;
+    line-height: 1.7;
+  }
+
+  .thread-delete-dialog-target {
+    margin-top: 14px;
+    border-left: 3px solid color-mix(in srgb, var(--danger) 48%, var(--line));
+    padding: 10px 12px;
+    background: var(--surface-soft);
+  }
+
+  .thread-delete-dialog-target > span {
+    display: block;
+    margin-bottom: 5px;
+    color: var(--text-faint);
+    font-size: 0.65rem;
+    font-weight: 720;
+  }
+
+  .thread-delete-dialog-target > p {
+    display: -webkit-box;
+    overflow: hidden;
+    color: var(--text);
+    font-size: 0.74rem;
+    line-height: 1.6;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+  }
+
+  .thread-delete-dialog-error {
+    margin-top: 12px;
+    color: var(--danger);
+    font-size: 0.7rem;
+    line-height: 1.5;
+  }
+
+  .thread-delete-dialog > footer {
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+    border-top: 1px solid var(--line);
+    padding: 11px 14px;
+    background: var(--surface-soft);
+  }
+
+  .thread-delete-dialog > footer > button {
+    display: inline-flex;
+    min-width: 86px;
+    min-height: 36px;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    border: 1px solid var(--line-strong);
+    border-radius: var(--control-radius);
+    padding: 0 14px;
+    font-size: 0.72rem;
+    font-weight: 720;
+  }
+
+  .thread-delete-dialog > footer > .thread-delete-dialog-cancel {
+    background: var(--surface);
+    color: var(--text-muted);
+  }
+
+  .thread-delete-dialog > footer > .thread-delete-dialog-confirm {
+    border-color: color-mix(in srgb, var(--danger) 55%, var(--line));
+    background: var(--danger);
+    color: white;
+  }
+
+  .thread-delete-dialog > footer > button:disabled,
+  .thread-delete-dialog > header > button:disabled {
+    cursor: wait;
+    opacity: 0.55;
+  }
+
+  .thread-delete-dialog-spinner {
+    animation: thread-request-spin 720ms linear infinite;
   }
 
   .floor-node-rail {
@@ -1481,6 +1642,12 @@
   }
 
   @keyframes thread-image-backdrop-in {
+    from {
+      opacity: 0;
+    }
+  }
+
+  @keyframes thread-delete-backdrop-in {
     from {
       opacity: 0;
     }
