@@ -51,7 +51,7 @@ const initialSignup: SignupState = {
 
 const HOME_FEED_BATCH_SIZE = 15;
 
-export function useHomeData() {
+export function useHomeData(compactMode = false) {
   const [feed, setFeed] = useState<CollectionState>(initialCollection);
   const [feedHasMore, setFeedHasMore] = useState(true);
   const [feedLimit, setFeedLimit] = useState(HOME_FEED_BATCH_SIZE);
@@ -69,10 +69,11 @@ export function useHomeData() {
     const controller = new AbortController();
     setFeed((current) => ({ ...current, error: '', status: 'loading' }));
 
-    void fetchHomeFeed(feedLimit, controller.signal).then(
+    void fetchHomeFeed(feedLimit, controller.signal, !compactMode).then(
       async (items) => {
         setFeedHasMore(items.length >= feedLimit);
         setFeed({ error: '', items, status: 'ready' });
+        if (compactMode) return;
         try {
           const hydratedItems = await hydrateHomeThreadAvatars(items, controller.signal);
           setFeed({ error: '', items: hydratedItems, status: 'ready' });
@@ -92,7 +93,7 @@ export function useHomeData() {
     );
 
     return () => controller.abort();
-  }, [feedLimit, requestVersion]);
+  }, [compactMode, feedLimit, requestVersion]);
 
   useEffect(() => {
     const controller = new AbortController();

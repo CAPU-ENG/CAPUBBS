@@ -60,6 +60,49 @@
     -webkit-line-clamp: 2;
   }
 
+  .feed-item-compact {
+    padding: 12px 18px;
+  }
+
+  .feed-item-compact-link {
+    display: flex;
+    min-width: 0;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 3px 14px;
+    outline: none;
+  }
+
+  .feed-item-compact-link:focus-visible {
+    border-radius: 5px;
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--brand) 18%, transparent);
+  }
+
+  .feed-item-compact h2 {
+    max-width: 100%;
+    flex: 0 0 auto;
+    overflow-wrap: anywhere;
+    font-size: 0.86rem;
+    line-height: 1.55;
+  }
+
+  .feed-item-compact-link:hover h2 {
+    color: var(--brand-strong);
+  }
+
+  .feed-item-compact-meta {
+    display: inline-flex;
+    flex: 0 0 auto;
+    align-items: center;
+    gap: 5px;
+    margin-left: auto;
+    color: var(--text-faint);
+    font-size: 0.68rem;
+    font-variant-numeric: tabular-nums;
+    line-height: 1.55;
+    white-space: nowrap;
+  }
+
   .feed-item-meta {
     display: flex;
     min-width: 0;
@@ -734,6 +777,10 @@
 
     .feed-item {
       padding: 18px 17px;
+    }
+
+    .feed-item-compact {
+      padding: 11px 15px;
     }
 
     .feed-item h2 {

@@ -4,12 +4,14 @@ import { MobileActivityBar } from '../components/home/MobileActivityBar';
 import { AppBackground } from '../components/layout/AppBackground';
 import { TopBar } from '../components/layout/TopBar';
 import { useAuth } from '../context/AuthContext';
+import { useCompactMode } from '../hooks/useCompactMode';
 import { useHomeData } from '../hooks/useHomeData';
 import { useReadThreadIds } from '../hooks/useReadThreadIds';
 
 export function HomePage() {
   const { viewer } = useAuth();
-  const { calendar, feed, feedHasMore, loadMore, pinned, retry, signup } = useHomeData();
+  const compactMode = useCompactMode();
+  const { calendar, feed, feedHasMore, loadMore, pinned, retry, signup } = useHomeData(compactMode);
   const readThreadIds = useReadThreadIds(viewer?.username);
 
   return (
@@ -27,6 +29,7 @@ export function HomePage() {
 
       <main className="page-shell">
         <FeedSection
+          compactMode={compactMode}
           error={feed.error}
           hasMore={feedHasMore}
           items={feed.items}

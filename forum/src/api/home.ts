@@ -58,8 +58,8 @@ export class HomeApiError extends Error {
   }
 }
 
-export async function fetchHomeFeed(limit = 15, signal?: AbortSignal) {
-  const rows = await requestRows({ ask: 'hot', hotnum: limit, text: 'true' }, signal);
+export async function fetchHomeFeed(limit = 15, signal?: AbortSignal, includeText = true) {
+  const rows = await requestRows({ ask: 'hot', hotnum: limit, text: includeText ? '1' : '0' }, signal);
   return rows.map((row) => mapThreadRow(row, true)).filter((thread): thread is HomeThread => thread !== null);
 }
 

@@ -3,12 +3,15 @@ import { useEffect, useRef, useState } from 'react';
 import { AppBackground } from '../components/layout/AppBackground';
 import { TopBar } from '../components/layout/TopBar';
 import { ALL_BOARDS, PRIMARY_BOARDS, SECONDARY_BOARDS, getBoardById } from '../data/boards';
+import { useCompactMode } from '../hooks/useCompactMode';
 import { usePinnedBoardIds } from '../hooks/usePinnedBoards';
 import { useTheme } from '../hooks/useTheme';
+import { saveCompactMode } from '../utils/compactMode';
 import { MAX_PINNED_BOARDS, savePinnedBoardIds } from '../utils/localSettings';
 import { saveThemeFollowsSystem } from '../utils/theme';
 
 export function SettingsPage() {
+  const compactMode = useCompactMode();
   const pinnedBoardIds = usePinnedBoardIds();
   const { followsSystem } = useTheme();
   const [draftBoardIds, setDraftBoardIds] = useState(pinnedBoardIds);
@@ -85,6 +88,16 @@ export function SettingsPage() {
                 <strong>自动跟随系统切换昼夜模式</strong>
                 <small>开启后，论坛会随设备的浅色或深色外观设置实时切换。</small>
               </span>
+            </label>
+
+            <label className="settings-checkbox-option">
+              <input
+                checked={compactMode}
+                onChange={(event) => saveCompactMode(event.target.checked)}
+                type="checkbox"
+              />
+              <span className="settings-checkbox-mark" aria-hidden="true"><Check size={14} /></span>
+              <span><strong>紧凑模式</strong></span>
             </label>
           </section>
 

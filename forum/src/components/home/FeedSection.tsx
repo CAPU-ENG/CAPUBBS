@@ -3,9 +3,24 @@ import defaultAvatar from '../../assets/avatar/default-avatar.avif';
 import type { HomeThread } from '../../api/home';
 import type { HomeDataStatus } from '../../hooks/useHomeData';
 
-function FeedItem({ item }: { item: HomeThread }) {
+function FeedItem({ compactMode, item }: { compactMode: boolean; item: HomeThread }) {
   function useDefaultAvatar(event: React.SyntheticEvent<HTMLImageElement>) {
     if (event.currentTarget.src !== defaultAvatar) event.currentTarget.src = defaultAvatar;
+  }
+
+  if (compactMode) {
+    return (
+      <article className="feed-item feed-item-compact">
+        <a className="feed-item-compact-link" href={item.href}>
+          <h2>{item.title}</h2>
+          <span className="feed-item-compact-meta">
+            <span>{item.id}</span>
+            <span aria-hidden="true">·</span>
+            <time dateTime={item.timestamp}>{item.timeLabel}</time>
+          </span>
+        </a>
+      </article>
+    );
   }
 
   return (
@@ -37,6 +52,7 @@ function FeedItem({ item }: { item: HomeThread }) {
 }
 
 type FeedSectionProps = {
+  compactMode: boolean;
   error: string;
   hasMore: boolean;
   items: HomeThread[];
@@ -45,7 +61,7 @@ type FeedSectionProps = {
   status: HomeDataStatus;
 };
 
-export function FeedSection({ error, hasMore, items, onLoadMore, onRetry, status }: FeedSectionProps) {
+export function FeedSection({ compactMode, error, hasMore, items, onLoadMore, onRetry, status }: FeedSectionProps) {
   const loadingMore = status === 'loading' && items.length > 0;
   const loadMoreFailed = status === 'error' && items.length > 0;
 
@@ -65,7 +81,7 @@ export function FeedSection({ error, hasMore, items, onLoadMore, onRetry, status
         <div className="home-data-state"><span>暂时还没有帖子。</span></div>
       ) : (
         <div className="divide-y divide-[var(--line)]">
-          {items.map((item) => <FeedItem item={item} key={item.id} />)}
+          {items.map((item) => <FeedItem compactMode={compactMode} item={item} key={item.id} />)}
         </div>
       )}
 
