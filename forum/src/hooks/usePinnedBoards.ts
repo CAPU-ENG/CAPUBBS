@@ -1,24 +1,25 @@
 import { useEffect, useState } from 'react';
 import {
-  PINNED_BOARDS_CHANGE_EVENT,
-  PINNED_BOARDS_STORAGE_KEY,
   readPinnedBoardIds,
+  subscribePinnedBoardIds,
 } from '../utils/localSettings';
 
 export function usePinnedBoardIds() {
-  const [boardIds, setBoardIds] = useState(readPinnedBoardIds);
+  const [boardIds, setBoardIds] = useState<number[]>([]);
 
   useEffect(() => {
-    const refresh = () => setBoardIds(readPinnedBoardIds());
-    const handleStorage = (event: StorageEvent) => {
-      if (event.key === PINNED_BOARDS_STORAGE_KEY) refresh();
+    let active = true;
+    const refresh = () => {
+      void readPinnedBoardIds().then((storedBoardIds) => {
+        if (active) setBoardIds(storedBoardIds);
+      });
     };
 
-    window.addEventListener(PINNED_BOARDS_CHANGE_EVENT, refresh);
-    window.addEventListener('storage', handleStorage);
+    refresh();
+    const unsubscribe = subscribePinnedBoardIds(refresh);
     return () => {
-      window.removeEventListener(PINNED_BOARDS_CHANGE_EVENT, refresh);
-      window.removeEventListener('storage', handleStorage);
+      active = false;
+      unsubscribe();
     };
   }, []);
 

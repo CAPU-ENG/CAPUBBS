@@ -1,35 +1,71 @@
 import { ALL_BOARDS } from '../data/boards';
+import {
+  readClientDatabaseValue,
+  requestPersistentClientStorage,
+  writeClientDatabaseValue,
+} from './clientDatabase';
 
 export const MAX_PINNED_BOARDS = 3;
 export const PINNED_BOARDS_STORAGE_KEY = 'capubbs-pinned-boards:v1';
 export const PINNED_BOARDS_CHANGE_EVENT = 'capubbs-pinned-boards-change';
 
+const PINNED_BOARDS_DATABASE_KEY = 'settings:pinned-boards:v1';
+const PINNED_BOARDS_BROADCAST_CHANNEL = 'capubbs-pinned-boards';
 const availableBoardIds = new Set(ALL_BOARDS.map((board) => board.id));
 
-export function readPinnedBoardIds() {
-  if (typeof window === 'undefined') return [];
+export async function readPinnedBoardIds() {
+  const legacyBoardIds = readLegacyPinnedBoardIds();
 
   try {
-    const stored = window.localStorage.getItem(PINNED_BOARDS_STORAGE_KEY);
-    if (!stored) return [];
-    return normalizePinnedBoardIds(JSON.parse(stored));
+    const storedValue = await readClientDatabaseValue<unknown>(PINNED_BOARDS_DATABASE_KEY);
+    if (typeof storedValue !== 'undefined') return normalizePinnedBoardIds(storedValue);
+
+    if (legacyBoardIds.length > 0) {
+      await writeClientDatabaseValue(PINNED_BOARDS_DATABASE_KEY, legacyBoardIds);
+      removeLegacyPinnedBoardIds();
+    }
+    return legacyBoardIds;
   } catch {
-    return [];
+    return legacyBoardIds;
   }
 }
 
-export function savePinnedBoardIds(boardIds: number[]) {
+export async function savePinnedBoardIds(boardIds: number[]) {
   const normalized = normalizePinnedBoardIds(boardIds);
-  if (typeof window === 'undefined') return { boardIds: normalized, saved: false };
+  void requestPersistentClientStorage();
 
   try {
-    window.localStorage.setItem(PINNED_BOARDS_STORAGE_KEY, JSON.stringify(normalized));
+    await writeClientDatabaseValue(PINNED_BOARDS_DATABASE_KEY, normalized);
+    removeLegacyPinnedBoardIds();
   } catch {
-    return { boardIds: readPinnedBoardIds(), saved: false };
+    if (!writeLegacyPinnedBoardIds(normalized)) {
+      return { boardIds: await readPinnedBoardIds(), saved: false };
+    }
   }
 
-  window.dispatchEvent(new CustomEvent(PINNED_BOARDS_CHANGE_EVENT, { detail: normalized }));
+  notifyPinnedBoardIdsChange(normalized);
   return { boardIds: normalized, saved: true };
+}
+
+export function subscribePinnedBoardIds(listener: () => void) {
+  if (typeof window === 'undefined') return () => {};
+  const channel = createPinnedBoardsBroadcastChannel();
+
+  const handleStorage = (event: StorageEvent) => {
+    if (event.key === PINNED_BOARDS_STORAGE_KEY) listener();
+  };
+  const handleChange = () => listener();
+  const handleBroadcast = () => listener();
+
+  if (channel) channel.onmessage = handleBroadcast;
+  window.addEventListener(PINNED_BOARDS_CHANGE_EVENT, handleChange);
+  window.addEventListener('storage', handleStorage);
+
+  return () => {
+    channel?.close();
+    window.removeEventListener(PINNED_BOARDS_CHANGE_EVENT, handleChange);
+    window.removeEventListener('storage', handleStorage);
+  };
 }
 
 function normalizePinnedBoardIds(value: unknown) {
@@ -48,4 +84,59 @@ function normalizePinnedBoardIds(value: unknown) {
     }
   });
   return normalized;
+}
+
+function readLegacyPinnedBoardIds() {
+  if (typeof window === 'undefined') return [];
+
+  try {
+    const stored = window.localStorage.getItem(PINNED_BOARDS_STORAGE_KEY);
+    return stored ? normalizePinnedBoardIds(JSON.parse(stored) as unknown) : [];
+  } catch {
+    return [];
+  }
+}
+
+function writeLegacyPinnedBoardIds(boardIds: number[]) {
+  if (typeof window === 'undefined') return false;
+
+  try {
+    window.localStorage.setItem(PINNED_BOARDS_STORAGE_KEY, JSON.stringify(boardIds));
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+function removeLegacyPinnedBoardIds() {
+  if (typeof window === 'undefined') return;
+
+  try {
+    window.localStorage.removeItem(PINNED_BOARDS_STORAGE_KEY);
+  } catch {
+    // The IndexedDB copy is already durable; stale legacy data can be ignored.
+  }
+}
+
+function notifyPinnedBoardIdsChange(boardIds: number[]) {
+  try {
+    window.dispatchEvent(new CustomEvent(PINNED_BOARDS_CHANGE_EVENT, { detail: boardIds }));
+  } catch {
+    // BroadcastChannel keeps other tabs in sync when custom events are unavailable.
+  }
+
+  const channel = createPinnedBoardsBroadcastChannel();
+  if (channel) {
+    channel.postMessage(boardIds);
+    channel.close();
+  }
+}
+
+function createPinnedBoardsBroadcastChannel() {
+  if (typeof BroadcastChannel === 'undefined') return null;
+  try {
+    return new BroadcastChannel(PINNED_BOARDS_BROADCAST_CHANNEL);
+  } catch {
+    return null;
+  }
 }

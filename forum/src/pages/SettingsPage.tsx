@@ -1,5 +1,5 @@
 import { Check, CirclePlus, Pin, PinOff, Save } from 'lucide-react';
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { AppBackground } from '../components/layout/AppBackground';
 import { TopBar } from '../components/layout/TopBar';
 import { ALL_BOARDS, PRIMARY_BOARDS, SECONDARY_BOARDS, getBoardById } from '../data/boards';
@@ -10,12 +10,22 @@ export function SettingsPage() {
   const pinnedBoardIds = usePinnedBoardIds();
   const [draftBoardIds, setDraftBoardIds] = useState(pinnedBoardIds);
   const draftBoardIdsRef = useRef(pinnedBoardIds);
+  const previousPinnedBoardIdsRef = useRef(pinnedBoardIds);
+  const [isSaving, setIsSaving] = useState(false);
   const [feedback, setFeedback] = useState('调整完成后，点击“保存设置”应用到 Navbar。');
   const pinnedBoards = draftBoardIds
     .map(getBoardById)
     .filter((board) => board !== undefined);
   const isFull = draftBoardIds.length >= MAX_PINNED_BOARDS;
   const hasChanges = !sameBoardIds(draftBoardIds, pinnedBoardIds);
+
+  useEffect(() => {
+    const previousPinnedBoardIds = previousPinnedBoardIdsRef.current;
+    previousPinnedBoardIdsRef.current = pinnedBoardIds;
+    if (sameBoardIds(draftBoardIdsRef.current, previousPinnedBoardIds)) {
+      updateDraftBoardIds(pinnedBoardIds);
+    }
+  }, [pinnedBoardIds]);
 
   function addBoard(boardId: number) {
     const board = getBoardById(boardId);
@@ -35,14 +45,22 @@ export function SettingsPage() {
     if (board) setFeedback(`已移除“${board.label}”，保存后生效。`);
   }
 
-  function saveSettings() {
-    const result = savePinnedBoardIds(draftBoardIdsRef.current);
-    updateDraftBoardIds(result.boardIds);
-    setFeedback(
-      result.saved
-        ? '设置已保存，Navbar 已更新。'
-        : '浏览器未能写入本地设置，请检查隐私模式或网站存储权限。',
-    );
+  async function saveSettings() {
+    if (isSaving) return;
+    setIsSaving(true);
+    setFeedback('正在保存设置…');
+
+    try {
+      const result = await savePinnedBoardIds(draftBoardIdsRef.current);
+      updateDraftBoardIds(result.boardIds);
+      setFeedback(
+        result.saved
+          ? '设置已保存，Navbar 已更新。'
+          : '浏览器未能写入本地设置，请检查隐私模式或网站存储权限。',
+      );
+    } finally {
+      setIsSaving(false);
+    }
   }
 
   function updateDraftBoardIds(boardIds: number[]) {
@@ -137,8 +155,8 @@ export function SettingsPage() {
 
           <footer className="settings-panel-footer">
             <p aria-live="polite" role="status"><Check size={15} />{feedback}</p>
-            <button disabled={!hasChanges} onClick={saveSettings} type="button">
-              <Save size={15} />保存设置
+            <button disabled={!hasChanges || isSaving} onClick={() => void saveSettings()} type="button">
+              <Save size={15} />{isSaving ? '保存中' : '保存设置'}
             </button>
           </footer>
         </section>
