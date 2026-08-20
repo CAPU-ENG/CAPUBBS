@@ -47,6 +47,7 @@
 
   .feed-item:not(.feed-item-compact) h2 {
     font-family: "Noto Serif CJK SC", "Source Han Serif SC", "Songti SC", serif;
+    font-size: 1.18rem;
   }
 
   .feed-item-compact h2::before {
@@ -819,6 +820,10 @@
     .feed-item h2 {
       font-size: 1rem;
       line-height: 1.48;
+    }
+
+    .feed-item:not(.feed-item-compact) h2 {
+      font-size: 1.1rem;
     }
 
     .feed-item-content > p {
