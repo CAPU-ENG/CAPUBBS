@@ -9,39 +9,22 @@
   }
 
   .search-hero {
-    display: grid;
-    grid-template-columns: minmax(250px, 0.68fr) minmax(360px, 1fr);
-    align-items: end;
-    gap: 40px;
-    min-height: 184px;
+    display: flex;
+    min-height: 116px;
+    align-items: center;
+    justify-content: center;
     border: 1px solid var(--line);
     border-radius: 2px;
-    padding: 30px 34px;
+    padding: 24px 34px;
     background:
       linear-gradient(125deg, color-mix(in srgb, var(--brand-faint) 82%, var(--surface)) 0%, var(--surface) 54%),
       var(--surface);
     box-shadow: var(--shadow-card);
   }
 
-  .search-hero-copy h1 {
-    margin-top: 8px;
-    color: var(--text-strong);
-    font-family: "Noto Serif CJK SC", "Source Han Serif SC", "Songti SC", serif;
-    font-size: clamp(2rem, 4vw, 3rem);
-    font-weight: 760;
-    letter-spacing: -0.045em;
-    line-height: 1.08;
-  }
-
-  .search-hero-copy p {
-    margin-top: 10px;
-    color: var(--text-muted);
-    font-size: 0.78rem;
-    line-height: 1.7;
-  }
-
   .search-form {
     display: flex;
+    width: min(680px, 100%);
     align-items: stretch;
     gap: 8px;
   }
@@ -293,7 +276,6 @@
   .search-pagination-wrap button:disabled { pointer-events: none; opacity: 0.38; }
 
   @media (max-width: 860px) {
-    .search-hero { grid-template-columns: 1fr; gap: 24px; }
     .search-filter-aside { display: none; }
     .search-layout { grid-template-columns: minmax(0, 1fr); }
     .search-mobile-filters { display: block; }
@@ -304,8 +286,7 @@
 
   @media (max-width: 640px) {
     .search-page-shell { padding: calc(var(--topbar-height) + 10px) 10px 48px; }
-    .search-hero { min-height: 0; gap: 19px; padding: 22px 18px; }
-    .search-hero-copy h1 { font-size: 2rem; }
+    .search-hero { min-height: 94px; padding: 18px; }
     .search-form { gap: 6px; }
     .search-input-wrap input { height: 46px; padding-left: 39px; font-size: 0.8rem; }
     .search-submit { width: 46px; height: 46px; padding: 0; }

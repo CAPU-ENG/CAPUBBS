@@ -105,12 +105,6 @@ export function SearchPage() {
 
       <main className="search-page-shell">
         <header className="search-hero">
-          <div className="search-hero-copy">
-            <span className="eyebrow">SEARCH THE ARCHIVE</span>
-            <h1>搜索论坛</h1>
-            <p>在主题与楼层中，重新找到一次讨论。</p>
-          </div>
-
           <form className="search-form" onSubmit={handleSubmit} role="search">
             <label className="search-input-wrap">
               <Search aria-hidden="true" size={20} />
