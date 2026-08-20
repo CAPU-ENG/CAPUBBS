@@ -367,10 +367,48 @@
     color: var(--brand-strong);
   }
 
-  .calendar-month-nav strong {
-    text-align: center;
+  .calendar-month-nav button:disabled {
+    cursor: not-allowed;
+    opacity: 0.32;
+  }
+
+  .calendar-month-selectors {
+    display: flex;
+    min-width: 0;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+  }
+
+  .calendar-month-selectors select {
+    min-width: 0;
+    height: 30px;
+    border: 1px solid var(--line);
+    border-radius: var(--control-radius);
+    padding: 0 20px 0 6px;
+    background-color: var(--surface-raised);
     color: var(--text-strong);
-    font-size: 0.78rem;
+    font-size: 0.68rem;
+    font-weight: 700;
+    outline: none;
+    transition: 130ms ease;
+  }
+
+  .calendar-month-selectors select:first-child {
+    width: 88px;
+  }
+
+  .calendar-month-selectors select:last-child {
+    width: 66px;
+  }
+
+  .calendar-month-selectors select:hover {
+    border-color: var(--line-strong);
+  }
+
+  .calendar-month-selectors select:focus-visible {
+    border-color: var(--brand);
+    box-shadow: 0 0 0 2px color-mix(in srgb, var(--brand) 15%, transparent);
   }
 
   .calendar-grid {
@@ -403,6 +441,11 @@
   .calendar-grid button:hover {
     background: var(--surface-soft);
     color: var(--text-strong);
+  }
+
+  .calendar-grid button:disabled {
+    cursor: not-allowed;
+    opacity: 0.2;
   }
 
   .calendar-grid .calendar-day-muted {

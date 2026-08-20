@@ -28,11 +28,6 @@ type CalendarFormState = {
 type LoadStatus = 'error' | 'loading' | 'ready';
 
 const WEEKDAYS = ['一', '二', '三', '四', '五', '六', '日'];
-const CALENDAR_MIN_YEAR = 1995;
-const MONTH_OPTIONS = Array.from({ length: 12 }, (_item, month) => ({
-  label: `${month + 1} 月`,
-  value: month,
-}));
 
 export function CalendarAdminPage() {
   const { status: authStatus, viewer } = useAuth();
@@ -49,16 +44,6 @@ export function CalendarAdminPage() {
   const authPending = authStatus === 'loading' || authStatus === 'restoring';
   const isAuthorized = authStatus === 'authenticated' && canManageCalendar(viewer?.username);
   const selectedDateKey = formatDateKey(selectedDate);
-  const maxCalendarYear = today.getFullYear() + 1;
-  const yearOptions = useMemo(
-    () => Array.from(
-      { length: maxCalendarYear - CALENDAR_MIN_YEAR + 1 },
-      (_item, index) => maxCalendarYear - index,
-    ),
-    [maxCalendarYear],
-  );
-  const canMoveToPreviousMonth = !isSameMonth(visibleMonth, new Date(CALENDAR_MIN_YEAR, 0, 1));
-  const canMoveToNextMonth = !isSameMonth(visibleMonth, new Date(maxCalendarYear, 11, 1));
 
   useEffect(() => {
     if (!isAuthorized) return;
@@ -105,22 +90,7 @@ export function CalendarAdminPage() {
 
   function moveMonth(delta: number) {
     const nextMonth = new Date(visibleMonth.getFullYear(), visibleMonth.getMonth() + delta, 1);
-    if (!isCalendarDateInRange(nextMonth, maxCalendarYear)) return;
     selectDate(nextMonth);
-  }
-
-  function selectYear(event: ChangeEvent<HTMLSelectElement>) {
-    selectCalendarMonth(Number(event.target.value), visibleMonth.getMonth());
-  }
-
-  function selectMonth(event: ChangeEvent<HTMLSelectElement>) {
-    selectCalendarMonth(visibleMonth.getFullYear(), Number(event.target.value));
-  }
-
-  function selectCalendarMonth(year: number, month: number) {
-    const preferredDay = selectedDate.getDate();
-    const lastDay = new Date(year, month + 1, 0).getDate();
-    selectDate(new Date(year, month, Math.min(preferredDay, lastDay)));
   }
 
   function startCreate() {
@@ -152,9 +122,7 @@ export function CalendarAdminPage() {
     const time = formState.time.trim();
 
     if (!title) return showError('请填写活动标题。');
-    if (!isValidDateKey(date) || !isCalendarDateInRange(parseDateKey(date), maxCalendarYear)) {
-      return showError(`活动日期需在 ${CALENDAR_MIN_YEAR} 年至 ${maxCalendarYear} 年之间。`);
-    }
+    if (!isValidDateKey(date)) return showError('请选择有效日期。');
     if (!isValidTime(time)) return showError('请选择有效活动时间。');
 
     const previousEvent = editingId ? events.find((event) => event.id === editingId) ?? null : null;
@@ -225,11 +193,7 @@ export function CalendarAdminPage() {
       const value = event.target.value;
       setFormState((current) => ({ ...current, [field]: value }));
 
-      if (
-        field === 'date'
-        && isValidDateKey(value)
-        && isCalendarDateInRange(parseDateKey(value), maxCalendarYear)
-      ) {
+      if (field === 'date' && isValidDateKey(value)) {
         const date = parseDateKey(value);
         setSelectedDate(date);
         setVisibleMonth(startOfMonth(date));
@@ -279,16 +243,9 @@ export function CalendarAdminPage() {
               <div className="calendar-admin-overview">
                 <section className="calendar-admin-calendar" aria-label="选择活动日期">
                   <div className="calendar-admin-month-nav">
-                    <button aria-label="上个月" disabled={!canMoveToPreviousMonth} onClick={() => moveMonth(-1)} type="button"><ChevronLeft size={17} /></button>
-                    <div className="calendar-admin-month-selectors">
-                      <select aria-label="选择年份" onChange={selectYear} value={visibleMonth.getFullYear()}>
-                        {yearOptions.map((year) => <option key={year} value={year}>{year} 年</option>)}
-                      </select>
-                      <select aria-label="选择月份" onChange={selectMonth} value={visibleMonth.getMonth()}>
-                        {MONTH_OPTIONS.map((month) => <option key={month.value} value={month.value}>{month.label}</option>)}
-                      </select>
-                    </div>
-                    <button aria-label="下个月" disabled={!canMoveToNextMonth} onClick={() => moveMonth(1)} type="button"><ChevronRight size={17} /></button>
+                    <button aria-label="上个月" onClick={() => moveMonth(-1)} type="button"><ChevronLeft size={17} /></button>
+                    <strong>{visibleMonth.getFullYear()} 年 {visibleMonth.getMonth() + 1} 月</strong>
+                    <button aria-label="下个月" onClick={() => moveMonth(1)} type="button"><ChevronRight size={17} /></button>
                   </div>
 
                   <div className="calendar-admin-weekdays" aria-hidden="true">
@@ -301,15 +258,13 @@ export function CalendarAdminPage() {
                       const isSelected = key === selectedDateKey;
                       const isToday = key === formatDateKey(today);
                       const hasEvent = eventsByDate.has(key);
-                      const isSelectable = isCalendarDateInRange(date, maxCalendarYear);
                       return (
                         <button
                           aria-label={`${formatDateLabel(date)}${hasEvent ? '，有活动' : ''}`}
                           aria-pressed={isSelected}
                           className={`${!isCurrentMonth ? 'calendar-admin-day-muted' : ''} ${isSelected ? 'calendar-admin-day-selected' : ''} ${isToday ? 'calendar-admin-day-today' : ''}`}
-                          disabled={!isSelectable}
                           key={key}
-                          onClick={() => isSelectable && selectDate(date)}
+                          onClick={() => selectDate(date)}
                           type="button"
                         >
                           {date.getDate()}
@@ -363,13 +318,7 @@ export function CalendarAdminPage() {
                   <div className="calendar-admin-form-row">
                     <label>
                       <span>活动日期</span>
-                      <input
-                        max={`${maxCalendarYear}-12-31`}
-                        min={`${CALENDAR_MIN_YEAR}-01-01`}
-                        onChange={updateFormField('date')}
-                        type="date"
-                        value={formState.date}
-                      />
+                      <input onChange={updateFormField('date')} type="date" value={formState.date} />
                     </label>
                     <label>
                       <span>活动时间</span>
@@ -471,13 +420,4 @@ function isValidDateKey(value: string) {
 
 function isValidTime(value: string) {
   return /^([01]\d|2[0-3]):[0-5]\d$/.test(value);
-}
-
-function isCalendarDateInRange(date: Date, maxYear: number) {
-  const year = date.getFullYear();
-  return year >= CALENDAR_MIN_YEAR && year <= maxYear;
-}
-
-function isSameMonth(left: Date, right: Date) {
-  return left.getFullYear() === right.getFullYear() && left.getMonth() === right.getMonth();
 }

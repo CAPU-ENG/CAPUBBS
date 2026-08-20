@@ -1,10 +1,16 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState, type ChangeEvent } from 'react';
 import { Bike, CalendarDays, ChevronLeft, ChevronRight, Clock3, Info, Pin, Settings } from 'lucide-react';
 import type { HomeCalendarEvent, HomeThread } from '../../api/home';
 import { useAuth } from '../../context/AuthContext';
 import type { HomeDataStatus } from '../../hooks/useHomeData';
 import { canManageCalendar } from '../../utils/calendarManagement';
 import { signupActivities } from './homeData';
+
+const HOME_CALENDAR_MIN_YEAR = 1995;
+const HOME_CALENDAR_MONTHS = Array.from({ length: 12 }, (_item, month) => ({
+  label: `${month + 1} 月`,
+  value: month,
+}));
 
 function formatCountdown(deadline: string, now: number) {
   const remaining = new Date(deadline).getTime() - now;
@@ -115,6 +121,16 @@ export function ActivityCalendar({ compact = false, error, items, status }: Cale
   ));
   const { year, month } = monthCursor;
   const todayKey = dateKey(today.getFullYear(), today.getMonth(), today.getDate());
+  const maxYear = today.getFullYear() + 1;
+  const yearOptions = useMemo(
+    () => Array.from(
+      { length: maxYear - HOME_CALENDAR_MIN_YEAR + 1 },
+      (_item, index) => maxYear - index,
+    ),
+    [maxYear],
+  );
+  const canMoveToPreviousMonth = year > HOME_CALENDAR_MIN_YEAR || month > 0;
+  const canMoveToNextMonth = year < maxYear || month < 11;
 
   const cells = useMemo(() => {
     const firstWeekday = (new Date(year, month, 1).getDay() + 6) % 7;
@@ -146,8 +162,21 @@ export function ActivityCalendar({ compact = false, error, items, status }: Cale
 
   function moveMonth(delta: number) {
     const next = new Date(year, month + delta, 1);
-    setMonthCursor({ year: next.getFullYear(), month: next.getMonth() });
-    setSelectedKey(dateKey(next.getFullYear(), next.getMonth(), 1));
+    if (next.getFullYear() < HOME_CALENDAR_MIN_YEAR || next.getFullYear() > maxYear) return;
+    selectMonth(next.getFullYear(), next.getMonth());
+  }
+
+  function selectYear(event: ChangeEvent<HTMLSelectElement>) {
+    selectMonth(Number(event.target.value), month);
+  }
+
+  function selectMonthOption(event: ChangeEvent<HTMLSelectElement>) {
+    selectMonth(year, Number(event.target.value));
+  }
+
+  function selectMonth(nextYear: number, nextMonth: number) {
+    setMonthCursor({ year: nextYear, month: nextMonth });
+    setSelectedKey(dateKey(nextYear, nextMonth, 1));
   }
 
   return (
@@ -170,9 +199,18 @@ export function ActivityCalendar({ compact = false, error, items, status }: Cale
       )}
 
       <div className="calendar-month-nav">
-        <button type="button" aria-label="上个月" onClick={() => moveMonth(-1)}><ChevronLeft size={16} /></button>
-        <strong>{year} 年 {month + 1} 月</strong>
-        <button type="button" aria-label="下个月" onClick={() => moveMonth(1)}><ChevronRight size={16} /></button>
+        <button type="button" aria-label="上个月" disabled={!canMoveToPreviousMonth} onClick={() => moveMonth(-1)}><ChevronLeft size={16} /></button>
+        <div className="calendar-month-selectors">
+          <select aria-label="选择年份" onChange={selectYear} value={year}>
+            {yearOptions.map((optionYear) => <option key={optionYear} value={optionYear}>{optionYear} 年</option>)}
+          </select>
+          <select aria-label="选择月份" onChange={selectMonthOption} value={month}>
+            {HOME_CALENDAR_MONTHS.map((optionMonth) => (
+              <option key={optionMonth.value} value={optionMonth.value}>{optionMonth.label}</option>
+            ))}
+          </select>
+        </div>
+        <button type="button" aria-label="下个月" disabled={!canMoveToNextMonth} onClick={() => moveMonth(1)}><ChevronRight size={16} /></button>
       </div>
 
       <div className="calendar-grid calendar-weekdays" aria-hidden="true">
@@ -185,13 +223,17 @@ export function ActivityCalendar({ compact = false, error, items, status }: Cale
           const hasActivity = activitiesByDate.has(cellKey);
           const selected = selectedKey === cellKey;
           const isToday = cellKey === todayKey;
+          const isSelectable = cellDate.getFullYear() >= HOME_CALENDAR_MIN_YEAR
+            && cellDate.getFullYear() <= maxYear;
 
           return (
             <button
               type="button"
+              disabled={!isSelectable}
               className={`${offset !== 0 ? 'calendar-day-muted' : ''} ${selected ? 'calendar-day-selected' : ''} ${isToday ? 'calendar-day-today' : ''}`}
               aria-label={`${cellDate.getFullYear()} 年 ${cellDate.getMonth() + 1} 月 ${cellDate.getDate()} 日${hasActivity ? '，有活动' : ''}`}
               onClick={() => {
+                if (!isSelectable) return;
                 setSelectedKey(cellKey);
                 if (offset !== 0) setMonthCursor({ year: cellDate.getFullYear(), month: cellDate.getMonth() });
               }}

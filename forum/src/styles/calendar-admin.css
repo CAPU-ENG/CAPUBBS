@@ -203,48 +203,11 @@
     color: var(--brand-strong);
   }
 
-  .calendar-admin-month-nav button:disabled {
-    cursor: not-allowed;
-    opacity: 0.35;
-  }
-
-  .calendar-admin-month-selectors {
-    display: flex;
-    min-width: 0;
-    align-items: center;
-    justify-content: center;
-    gap: 6px;
-  }
-
-  .calendar-admin-month-selectors select {
-    min-width: 0;
-    height: 36px;
-    border: 1px solid var(--line);
-    border-radius: var(--control-radius);
-    padding: 0 26px 0 9px;
-    background-color: var(--surface-raised);
+  .calendar-admin-month-nav strong {
+    text-align: center;
     color: var(--text-strong);
-    font-size: 0.76rem;
+    font-size: 0.84rem;
     font-weight: 750;
-    outline: none;
-    transition: 140ms ease;
-  }
-
-  .calendar-admin-month-selectors select:first-child {
-    width: 104px;
-  }
-
-  .calendar-admin-month-selectors select:last-child {
-    width: 82px;
-  }
-
-  .calendar-admin-month-selectors select:hover {
-    border-color: var(--line-strong);
-  }
-
-  .calendar-admin-month-selectors select:focus-visible {
-    border-color: var(--brand);
-    box-shadow: 0 0 0 3px color-mix(in srgb, var(--brand) 13%, transparent);
   }
 
   .calendar-admin-weekdays,
@@ -285,11 +248,6 @@
   .calendar-admin-grid button:hover {
     border-color: color-mix(in srgb, var(--brand) 40%, var(--line));
     background: var(--brand-faint);
-  }
-
-  .calendar-admin-grid button:disabled {
-    cursor: not-allowed;
-    opacity: 0.25;
   }
 
   .calendar-admin-grid .calendar-admin-day-muted {
