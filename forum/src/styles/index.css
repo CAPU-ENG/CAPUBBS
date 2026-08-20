@@ -7,6 +7,7 @@
 @import './board.css';
 @import './profile.css';
 @import './auth.css';
+@import './search.css';
 @import './utilities.css';
 
 @tailwind base;

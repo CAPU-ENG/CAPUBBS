@@ -48,6 +48,7 @@ export function TopBar({
     && !params.has('thread')
     && !params.has('bid')
     && !params.has('board');
+  const isSearchPage = window.location.pathname.replace(/\/+$/, '') === '/search';
   const [theme, setTheme] = useState<Theme>(initialTheme);
   const [boardsOpen, setBoardsOpen] = useState(false);
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
@@ -234,8 +235,8 @@ export function TopBar({
 
           <div className="ml-auto flex items-center gap-1.5 sm:gap-2">
             <a
-              className="icon-button"
-              href="/bbs/search/"
+              className={`icon-button ${isSearchPage ? 'icon-button-active' : ''}`}
+              href="/search"
               aria-label="搜索"
             >
               <Search size={19} />
