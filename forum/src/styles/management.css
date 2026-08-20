@@ -82,7 +82,7 @@
     overflow: hidden;
     border: 1px solid var(--line);
     border-radius: 2px;
-    background: var(--surface-raised);
+    background: var(--surface);
   }
 
   .management-card-heading {
