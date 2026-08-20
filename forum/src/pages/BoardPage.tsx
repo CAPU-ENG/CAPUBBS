@@ -3,6 +3,7 @@ import { AppBackground } from '../components/layout/AppBackground';
 import { Pagination } from '../components/layout/Pagination';
 import { TopBar } from '../components/layout/TopBar';
 import { getBoardCoverImage } from '../data/boardCovers';
+import { SECONDARY_BOARDS } from '../data/boards';
 import {
   manageBoardThread,
   type BoardThreadAction,
@@ -166,6 +167,7 @@ export function BoardPage({ boardId }: { boardId: number }) {
   } | null>(null);
   const showTitleInTopBar = useScrollContextTitle(titleRef);
   const boardCover = getBoardCoverImage(boardId);
+  const isSecondaryBoard = SECONDARY_BOARDS.some((board) => board.id === boardId);
   const canManage = Boolean(
     data
     && authStatus === 'authenticated'
@@ -249,10 +251,12 @@ export function BoardPage({ boardId }: { boardId: number }) {
       />
 
       <main className="board-page-shell">
-        <header className="board-title-card">
-          <div aria-hidden="true" className="board-title-artwork">
-            <img alt="" src={boardCover} />
-          </div>
+        <header className={`board-title-card ${isSecondaryBoard ? 'board-title-card-secondary' : ''}`}>
+          {!isSecondaryBoard ? (
+            <div aria-hidden="true" className="board-title-artwork">
+              <img alt="" src={boardCover} />
+            </div>
+          ) : null}
           <div className="board-title-content">
             <div className="board-title-copy">
               <h1 id="board-title" ref={titleRef}>{board.name}</h1>

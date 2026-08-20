@@ -18,6 +18,12 @@
     box-shadow: var(--shadow-card);
   }
 
+  .board-title-card-secondary {
+    background:
+      linear-gradient(90deg, color-mix(in srgb, var(--brand-faint) 78%, transparent), transparent 54%),
+      var(--surface);
+  }
+
   .board-title-artwork {
     position: absolute;
     inset: 0 auto 0 0;
@@ -56,9 +62,17 @@
     padding: 16px 28px 16px 210px;
   }
 
+  .board-title-card-secondary .board-title-content {
+    padding-left: 28px;
+  }
+
   .board-title-copy {
     min-width: 0;
     padding-left: 24px;
+  }
+
+  .board-title-card-secondary .board-title-copy {
+    padding-left: 0;
   }
 
   .board-title-copy h1 {
@@ -494,6 +508,10 @@
       padding: 16px 26px 16px 170px;
     }
 
+    .board-title-card-secondary .board-title-content {
+      padding-left: 26px;
+    }
+
     .board-title-artwork {
       width: 235px;
     }
@@ -512,6 +530,10 @@
       display: block;
       min-height: 0;
       padding: 14px 12px 12px 100px;
+    }
+
+    .board-title-card-secondary .board-title-content {
+      padding-left: 12px;
     }
 
     .board-title-copy h1 {
