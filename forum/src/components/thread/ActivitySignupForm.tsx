@@ -1,4 +1,4 @@
-import { Check, ClipboardList, LogIn, Send } from 'lucide-react';
+import { Check, ClipboardList, Eye, LogIn, Send } from 'lucide-react';
 import { useState, type FormEvent } from 'react';
 import {
   publishActivitySignup,
@@ -7,6 +7,17 @@ import {
   type ThreadActivityQuestion,
 } from '../../api/thread';
 import type { ThreadAuthor, ThreadFloorData } from '../../data/threadDemo';
+import {
+  formatPostEditorPreviewTimestamp,
+  PostEditorPreviewDialog,
+} from './PostEditor';
+
+const signatureOptions = [
+  { label: '不使用签名档', value: 0 },
+  { label: '签名档 1', value: 1 },
+  { label: '签名档 2', value: 2 },
+  { label: '签名档 3', value: 3 },
+] as const;
 
 type ActivitySignupFormProps = {
   activity: ThreadActivity;
@@ -43,11 +54,19 @@ export function ActivitySignupForm({
   const [status, setStatus] = useState('');
   const [statusIsError, setStatusIsError] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const [previewOpen, setPreviewOpen] = useState(false);
+  const [previewedAt, setPreviewedAt] = useState('');
   const requiredFieldsComplete = activity.questions.every((question) =>
     !question.required || hasSignupValue(values[question.id]),
   );
   const signupUnavailable = locked || activity.status === 'closed' || activity.status === 'not_started';
   const canSubmit = Boolean(viewer) && requiredFieldsComplete && !signupUnavailable && !submitting;
+  const previewFloor = existingSignup?.floor ?? Math.max(1, ...floors.map((floor) => floor.floor)) + 1;
+
+  function openPreview() {
+    setPreviewedAt(formatPostEditorPreviewTimestamp(new Date()));
+    setPreviewOpen(true);
+  }
 
   function updateValue(questionId: string, value: ActivitySignupValue) {
     setValues((current) => ({ ...current, [questionId]: value }));
@@ -106,21 +125,21 @@ export function ActivitySignupForm({
 
         <footer className="activity-signup-footer">
           {viewer ? (
-            <label className="activity-signature-select">
-              <span>签名档</span>
-              <select
-                disabled={signupUnavailable || submitting}
-                onChange={(event) => setSignatureIndex(Number(event.currentTarget.value))}
-                value={signatureIndex}
-              >
-                <option value={0}>不使用签名档</option>
-                {signatures.map((signature, index) => (
-                  <option key={index + 1} value={index + 1}>
-                    签名档 {index + 1}{signature ? '' : '（空）'}
-                  </option>
-                ))}
-              </select>
-            </label>
+            <div aria-label="选择签名档" className="reply-signature-options activity-signature-options" role="radiogroup">
+              {signatureOptions.map((option) => (
+                <label key={option.value}>
+                  <input
+                    checked={signatureIndex === option.value}
+                    disabled={signupUnavailable || submitting}
+                    name="activity-signup-signature"
+                    onChange={() => setSignatureIndex(option.value)}
+                    type="radio"
+                    value={option.value}
+                  />
+                  {option.label}
+                </label>
+              ))}
+            </div>
           ) : <span />}
 
           <div className="activity-signup-actions">
@@ -130,16 +149,44 @@ export function ActivitySignupForm({
               </span>
             )}
             {viewer ? (
-              <button disabled={!canSubmit} type="submit">
-                {submitting ? <span className="activity-signup-spinner" aria-hidden="true" /> : action === 'modify' ? <Check size={15} /> : <Send size={15} />}
-                {submitting ? '提交中' : action === 'modify' ? '保存修改' : action === 'restore' ? '重新报名' : '提交报名'}
-              </button>
+              <>
+                <button
+                  className="reply-secondary-button activity-signup-preview-button"
+                  disabled={submitting}
+                  onClick={openPreview}
+                  type="button"
+                >
+                  <Eye size={15} />
+                  预览
+                </button>
+                <button className="activity-signup-submit-button" disabled={!canSubmit} type="submit">
+                  {submitting ? <span className="activity-signup-spinner" aria-hidden="true" /> : action === 'modify' ? <Check size={15} /> : <Send size={15} />}
+                  {submitting ? '提交中' : action === 'modify' ? '保存修改' : action === 'restore' ? '重新报名' : '提交报名'}
+                </button>
+              </>
             ) : (
               <a href={loginHref}><LogIn size={15} />登录后报名</a>
             )}
           </div>
         </footer>
       </form>
+
+      {previewOpen && viewer && (
+        <PostEditorPreviewDialog
+          attachments={[]}
+          editorValue={{
+            content: formatActivitySignupPreviewHtml(activity.questions, values),
+            mode: 'rich',
+          }}
+          label="报名预览"
+          onClose={() => setPreviewOpen(false)}
+          previewAuthor={{ avatar: viewer.avatar, name: viewer.name }}
+          previewFloor={previewFloor}
+          previewSignature={signatureIndex > 0 ? signatures[signatureIndex - 1] : undefined}
+          previewedAt={previewedAt}
+          title={`Re: ${threadTitle}`}
+        />
+      )}
     </section>
   );
 }
@@ -299,6 +346,43 @@ function getStoredQuestionValue(source: string, question: ThreadActivityQuestion
 
 function hasSignupValue(value: ActivitySignupValue | undefined) {
   return Array.isArray(value) ? value.length > 0 : Boolean(value?.trim());
+}
+
+function formatActivitySignupPreviewHtml(
+  questions: ThreadActivityQuestion[],
+  values: Record<string, ActivitySignupValue>,
+) {
+  return questions.map((question) => {
+    const value = formatActivitySignupPreviewValue(question, values[question.id]);
+    return `${escapeHtml(question.label)}：${escapeHtml(value)}`;
+  }).join('<br>');
+}
+
+function formatActivitySignupPreviewValue(
+  question: ThreadActivityQuestion,
+  value: ActivitySignupValue | undefined,
+) {
+  if (Array.isArray(value)) {
+    if (value.length === 0) return question.required ? '' : '无';
+    return value
+      .map((optionId) => question.options.find((option) => option.id === optionId)?.label ?? optionId)
+      .join('、');
+  }
+  const textValue = value?.trim() ?? '';
+  if (!textValue) return question.required ? '' : '无';
+  if (question.type === 'choice') {
+    return question.options.find((option) => option.id === textValue)?.label ?? textValue;
+  }
+  return textValue;
+}
+
+function escapeHtml(value: string) {
+  return value
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
 }
 
 function isWideQuestion(question: ThreadActivityQuestion) {

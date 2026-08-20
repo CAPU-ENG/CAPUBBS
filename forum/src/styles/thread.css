@@ -297,7 +297,7 @@
 
   .activity-signup-fields {
     display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-columns: repeat(3, minmax(0, 1fr));
     gap: 18px 20px;
     padding: 22px 0 24px;
   }
@@ -328,8 +328,7 @@
   }
 
   .activity-signup-field input,
-  .activity-signup-field textarea,
-  .activity-signature-select select {
+  .activity-signup-field textarea {
     width: 100%;
     border: 1px solid var(--line);
     border-radius: var(--control-radius);
@@ -341,8 +340,7 @@
     transition: border-color 140ms ease, box-shadow 140ms ease, background 140ms ease;
   }
 
-  .activity-signup-field input,
-  .activity-signature-select select {
+  .activity-signup-field input {
     height: 40px;
     padding: 0 11px;
   }
@@ -356,15 +354,13 @@
   }
 
   .activity-signup-field input:focus,
-  .activity-signup-field textarea:focus,
-  .activity-signature-select select:focus {
+  .activity-signup-field textarea:focus {
     border-color: color-mix(in srgb, var(--brand) 58%, var(--line));
     box-shadow: 0 0 0 3px color-mix(in srgb, var(--brand) 13%, transparent);
   }
 
   .activity-signup-field input:disabled,
-  .activity-signup-field textarea:disabled,
-  .activity-signature-select select:disabled {
+  .activity-signup-field textarea:disabled {
     cursor: not-allowed;
     opacity: 0.62;
   }
@@ -426,20 +422,17 @@
 
   .activity-signup-footer {
     display: flex;
-    align-items: end;
+    align-items: center;
     justify-content: space-between;
     gap: 18px;
     border-top: 1px solid var(--line);
     padding-top: 18px;
   }
 
-  .activity-signature-select {
-    display: grid;
-    width: min(260px, 100%);
-    gap: 7px;
-    color: var(--text-muted);
-    font-size: 0.7rem;
-    font-weight: 720;
+  .activity-signature-options.reply-signature-options {
+    min-width: 0;
+    margin: 0;
+    padding: 0;
   }
 
   .activity-signup-actions {
@@ -462,7 +455,7 @@
     color: var(--danger);
   }
 
-  .activity-signup-actions > button,
+  .activity-signup-actions > .activity-signup-submit-button,
   .activity-signup-actions > a {
     display: inline-flex;
     min-width: 112px;
@@ -482,13 +475,13 @@
     transition: 140ms ease;
   }
 
-  .activity-signup-actions > button:hover,
+  .activity-signup-actions > .activity-signup-submit-button:hover,
   .activity-signup-actions > a:hover {
     border-color: var(--brand-strong);
     background: var(--brand-strong);
   }
 
-  .activity-signup-actions > button:focus-visible,
+  .activity-signup-actions > .activity-signup-submit-button:focus-visible,
   .activity-signup-actions > a:focus-visible {
     outline: 2px solid var(--brand);
     outline-offset: 3px;
@@ -498,6 +491,14 @@
     cursor: not-allowed;
     opacity: 0.44;
     box-shadow: none;
+  }
+
+  .activity-signup-preview-button {
+    min-width: 78px;
+    height: 40px;
+    flex: 0 0 auto;
+    padding-inline: 14px;
+    font-size: 0.76rem;
   }
 
   .activity-signup-spinner {
@@ -1869,8 +1870,9 @@
       gap: 14px;
     }
 
-    .activity-signature-select {
+    .activity-signature-options.reply-signature-options {
       width: 100%;
+      margin: 0;
     }
 
     .activity-signup-actions {
