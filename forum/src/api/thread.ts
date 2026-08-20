@@ -1,6 +1,7 @@
 import defaultAvatar from '../assets/avatar/default-avatar.avif';
 import type { NestedReply, ThreadAuthor, ThreadFloorData } from '../data/threadDemo';
-import { forumMarkupToPlainText, renderForumMarkup } from '../utils/forumMarkup';
+import { forumMarkupToPlainText, renderForumMarkup, translateLegacyForumMarkup } from '../utils/forumMarkup';
+import type { SignatureFloorReference } from '../utils/signatureFloorLink';
 
 const THREAD_API_URL = import.meta.env.VITE_API_URL?.trim() || '/api/api.php';
 const PUBLIC_ASSET_ORIGIN = 'https://chexie.net';
@@ -93,6 +94,61 @@ export async function fetchThreadDetail({
   }
 
   return mapThreadDetail(payload.data, { authorOnly, bid, page, tid });
+}
+
+export async function fetchSignatureReferencedFloorHtml(
+  { bid, pid, tid }: SignatureFloorReference,
+  signal?: AbortSignal,
+) {
+  const body = new URLSearchParams({
+    bid: String(bid),
+    pid: String(pid),
+    tid: String(tid),
+  });
+
+  let response: Response;
+  try {
+    response = await fetch(THREAD_API_URL, {
+      body,
+      credentials: 'include',
+      headers: {
+        Accept: 'application/json',
+        'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
+      },
+      method: 'POST',
+      signal,
+    });
+  } catch (error) {
+    if (isAbortError(error)) throw error;
+    throw new ThreadApiError('签名档引用的楼层暂时无法读取。');
+  }
+
+  let payload: ApiEnvelope;
+  try {
+    payload = await response.json() as ApiEnvelope;
+  } catch {
+    throw new ThreadApiError('签名档引用的楼层返回了无法识别的数据。');
+  }
+
+  if (!response.ok || payload.code !== 0) {
+    throw new ThreadApiError(payload.message?.trim() || '签名档引用的楼层读取失败。');
+  }
+
+  const row = asRow(payload.data);
+  if (positiveInteger(row.bid, 0) !== bid
+    || positiveInteger(row.tid, 0) !== tid
+    || positiveInteger(row.pid, 0) !== pid) {
+    throw new ThreadApiError('签名档引用的楼层不存在。');
+  }
+
+  const rawText = stringValue(row.text);
+  const source = stringValue(row.ishtml).toUpperCase() === 'YES'
+    ? rawText
+    : decodeHtmlEntities(rawText)
+      .replace(/\r\n?|\n/g, '<br>')
+      .replace(/ /g, '&nbsp;');
+
+  return translateLegacyForumMarkup(source);
 }
 
 export async function postNestedReply({
@@ -277,10 +333,11 @@ function mapFloor(row: ApiRow, viewerName: string): ThreadFloorData {
   const authorName = plainText(row.author) || '匿名用户';
   const rawText = stringValue(row.rawText);
   const contentHtml = renderForumMarkup(stringValue(row.contentHtml) || rawText);
-  const signatureHtml = renderForumMarkup(
-    stringValue(row.signatureHtml),
-    { normalizeLegacyLineBreaks: true },
-  );
+  const signatureIndex = positiveInteger(row.signatureIndex, 0);
+  const rawSignatures = profile ? asRow(profile.signatures) : {};
+  const rawSignature = signatureIndex > 0 ? stringValue(rawSignatures[String(signatureIndex)]) : '';
+  const signatureHtml = renderSignatureHtml(rawSignature, stringValue(row.signatureHtml));
+  const safeSignatureHtml = renderForumMarkup(signatureHtml, { normalizeLegacyLineBreaks: true });
   const quoteHtml = renderForumMarkup(stringValue(row.quoteHtml));
   const quoteText = forumMarkupToPlainText(quoteHtml || contentHtml);
   const canEdit = Boolean(row.canEdit);
@@ -300,9 +357,25 @@ function mapFloor(row: ApiRow, viewerName: string): ThreadFloorData {
     paragraphs: [quoteText || '此楼层暂无可显示的正文。'],
     publishedAt: stringValue(row.createdAt),
     quoteText,
-    signature: forumMarkupToPlainText(signatureHtml),
+    signature: forumMarkupToPlainText(safeSignatureHtml),
     signatureHtml,
   };
+}
+
+function decodeHtmlEntities(value: string) {
+  const textarea = document.createElement('textarea');
+  textarea.innerHTML = value;
+  return textarea.value;
+}
+
+function renderSignatureHtml(rawSignature: string, translatedSignature: string) {
+  if (!rawSignature.trim()) return translatedSignature.trim();
+  if (/<\/?[a-z][\s\S]*?>/i.test(rawSignature)) return rawSignature.trim();
+
+  return translateLegacyForumMarkup(rawSignature
+    .replace(/\r\n?|\n/g, '<br>')
+    .replace(/ /g, '&nbsp;'))
+    .trim();
 }
 
 function mapNestedReply(row: ApiRow): NestedReply {

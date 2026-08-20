@@ -770,6 +770,15 @@
     max-width: 100%;
   }
 
+  .thread-signature-frame {
+    display: block;
+    width: 100%;
+    min-width: 0;
+    border: 0;
+    background: transparent;
+    overflow: hidden;
+  }
+
   .thread-image-lightbox-backdrop {
     position: fixed;
     z-index: 220;

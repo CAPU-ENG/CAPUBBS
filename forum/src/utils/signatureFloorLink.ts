@@ -4,15 +4,19 @@ export type SignatureFloorReference = {
   tid: number;
 };
 
-const signatureFloorMarkerPattern = /\[post\s+bid=(\d+)\s+tid=(\d+)\s+pid=(\d+)\]/i;
+export type SignatureFloorMarker = SignatureFloorReference & {
+  marker: string;
+};
+
+const signatureFloorMarkerPattern = /\[post(?:\s|&nbsp;|&#160;|\u00a0)+(.*?)\]/gi;
 const legacyThreadPageSize = 12;
 
 export function parseSignatureFloorLink(value: string): SignatureFloorReference | null {
   const input = value.trim();
-  const markerMatch = input.match(signatureFloorMarkerPattern);
+  const markerMatch = findSignatureFloorMarkers(input)[0];
 
   if (markerMatch) {
-    return createReference(markerMatch[1], markerMatch[2], markerMatch[3]);
+    return markerMatch;
   }
 
   if (!input) return null;
@@ -40,6 +44,26 @@ export function buildSignatureFloorMarker(reference: SignatureFloorReference) {
 export function buildSignatureFloorHref(reference: SignatureFloorReference) {
   const page = Math.max(1, Math.ceil(reference.pid / legacyThreadPageSize));
   return `/?bid=${reference.bid}&tid=${reference.tid}&p=${page}#floor-${reference.pid}`;
+}
+
+export function findSignatureFloorMarkers(value: string): SignatureFloorMarker[] {
+  const markers: SignatureFloorMarker[] = [];
+
+  for (const match of value.matchAll(signatureFloorMarkerPattern)) {
+    const attributes = match[1]
+      .replace(/(?:&nbsp;|&#160;|\u00a0)/gi, ' ');
+    const matches = Array.from(attributes.matchAll(/\b(bid|tid|pid)=(\d+)\b/gi));
+    if (matches.length !== 3) continue;
+
+    const values = new Map<string, string>();
+    matches.forEach((attribute) => values.set(attribute[1].toLowerCase(), attribute[2]));
+    if (values.size !== 3) continue;
+
+    const reference = createReference(values.get('bid'), values.get('tid'), values.get('pid'));
+    if (reference) markers.push({ ...reference, marker: match[0] });
+  }
+
+  return markers;
 }
 
 function getFloorFromHash(hash: string) {

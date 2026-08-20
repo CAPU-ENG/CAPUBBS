@@ -42,6 +42,10 @@ export function renderForumMarkup(
   return document.body.innerHTML as SafeForumHtml;
 }
 
+export function translateLegacyForumMarkup(value: string) {
+  return translateLegacyBbcode(value);
+}
+
 function normalizeLegacyLineBreaks(value: string) {
   const normalized = value.replace(/(?:<br\s*\/?>\s*){2,}/gi, (sequence) => {
     const breakCount = sequence.match(/<br\b/gi)?.length ?? 1;
