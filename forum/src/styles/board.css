@@ -115,7 +115,7 @@
 
   .board-stat-grid {
     display: grid;
-    width: min(306px, 100%);
+    width: 306px;
     grid-template-columns: repeat(4, minmax(0, 1fr));
     border: 1px solid color-mix(in srgb, var(--line-strong) 82%, transparent);
     background: color-mix(in srgb, var(--surface-raised) 83%, transparent);
@@ -592,6 +592,10 @@
 
     .board-stat-grid > div {
       padding: 6px 3px 5px;
+    }
+
+    .board-stat-grid {
+      width: 100%;
     }
 
     .board-stat-grid dt {
