@@ -39,6 +39,7 @@ export type ProfileViewData = {
   id: string;
   intro: string;
   rating: number;
+  starPostReplyCount: number;
   records: ProfileRecordMap;
   slug: string;
   stats: ProfileStat[];
@@ -111,7 +112,8 @@ export const currentProfile: ProfileViewData = {
   emailVisible: false,
   id: '蓝色车架',
   intro: '总有一天要把学校周边的路线都骑一遍。',
-  rating: 4,
+  rating: 3,
+  starPostReplyCount: 164,
   records: currentRecords,
   slug: 'blue-frame',
   stats: [
@@ -162,7 +164,8 @@ const xiaolinProfile: ProfileViewData = {
   emailVisible: false,
   id: '小林',
   intro: '喜欢把复杂路线整理成新人也能放心出发的说明。',
-  rating: 4,
+  rating: 3,
+  starPostReplyCount: 269,
   records: xiaolinRecords,
   slug: 'xiaolin',
   stats: [

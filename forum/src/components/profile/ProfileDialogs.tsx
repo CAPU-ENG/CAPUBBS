@@ -58,10 +58,12 @@ const starLevelRules = [
 ];
 
 export function StarRulesDialog({
+  currentPostReplyCount,
   currentRating,
   onClose,
   open,
 }: {
+  currentPostReplyCount: number;
   currentRating: number;
   onClose: () => void;
   open: boolean;
@@ -76,13 +78,14 @@ export function StarRulesDialog({
         <p>星级通常按普通版块的发帖数与回复数之和计算。</p>
         <table>
           <thead>
-            <tr><th scope="col">星级</th><th scope="col">发帖数 + 回复数</th></tr>
+            <tr><th scope="col">星级</th><th scope="col">发帖数 + 回复数</th><th scope="col">当前数据</th></tr>
           </thead>
           <tbody>
             {starLevelRules.map((rule) => (
               <tr className={rule.rating === currentRating ? 'profile-star-rule-current' : undefined} key={rule.rating}>
                 <th scope="row">{'★'.repeat(rule.rating)}</th>
                 <td>{rule.range}</td>
+                <td>{rule.rating === currentRating ? currentPostReplyCount : null}</td>
               </tr>
             ))}
           </tbody>

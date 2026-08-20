@@ -297,6 +297,8 @@ function mapProfile(
     { key: 'location', label: '地点', value: stringValue(row.place ?? row.location) },
   ];
   const username = stringValue(row.username);
+  const postCount = numberValue(row.post);
+  const replyCount = numberValue(row.reply);
 
   return {
     avatarSrc: normalizeAvatar(row.icon),
@@ -314,14 +316,15 @@ function mapProfile(
     id: username,
     intro: stringValue(row.intro),
     rating: Math.max(0, Math.min(9, numberValue(row.star))),
+    starPostReplyCount: postCount + replyCount,
     records,
     slug: username,
     stats: [
-      { label: '发帖数', value: numberValue(row.post) },
+      { label: '发帖数', value: postCount },
       { label: '签到数', value: numberValue(row.sign) },
       { label: '上次在线', value: formatProfileDate(row.lastdate) },
       { label: '权限值', value: numberValue(row.rights) },
-      { label: '回复数', value: numberValue(row.reply) },
+      { label: '回复数', value: replyCount },
       { label: '灌水数', value: numberValue(row.water) },
       { label: '注册时间', value: formatProfileDate(row.regdate) },
       { label: '精品数', value: numberValue(row.extr ?? row.digest ?? row.digests) },

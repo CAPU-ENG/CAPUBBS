@@ -185,6 +185,7 @@ export function ProfileOverview({
       </div>
 
       <StarRulesDialog
+        currentPostReplyCount={profile.starPostReplyCount}
         currentRating={profile.rating}
         onClose={() => setStarRulesOpen(false)}
         open={starRulesOpen}

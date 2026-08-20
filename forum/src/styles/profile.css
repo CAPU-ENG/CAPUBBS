@@ -1020,7 +1020,7 @@
   }
 
   .profile-star-rules tbody th {
-    width: 54%;
+    width: 44%;
     color: #b67a17;
     font-weight: 650;
     letter-spacing: 0.08em;
@@ -1028,6 +1028,17 @@
 
   .profile-star-rules tbody td {
     color: var(--text-muted);
+  }
+
+  .profile-star-rules th:last-child,
+  .profile-star-rules td:last-child {
+    width: 22%;
+    text-align: right;
+    white-space: nowrap;
+  }
+
+  .profile-star-rule-current td:last-child {
+    color: #b67a17;
   }
 
   .profile-star-rule-current th,
