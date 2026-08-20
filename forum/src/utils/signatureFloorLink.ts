@@ -111,14 +111,31 @@ function parseLegacySignatureFloorRequest(value: string): SignatureFloorReferenc
 
     if (!trustedHost || !legacyFloorPath) return null;
 
+    const page = parsePositiveInteger(url.searchParams.get('p') ?? url.searchParams.get('page')) ?? 1;
     return createReference(
       url.searchParams.get('bid'),
       url.searchParams.get('tid'),
-      url.searchParams.get('pid') ?? url.searchParams.get('floor') ?? getFloorFromHash(url.hash),
+      url.searchParams.get('pid')
+        ?? url.searchParams.get('floor')
+        ?? getLegacySignaturePidFromHash(url.hash, page),
     );
   } catch {
     return null;
   }
+}
+
+function getLegacySignaturePidFromHash(hash: string, page: number) {
+  const target = hash.replace(/^#/, '').trim();
+  const explicitPid = target.match(/^(?:pid|floor-)(\d+)\b/i)?.[1];
+  if (explicitPid) return explicitPid;
+
+  const pageFloorIndex = parseNonNegativeInteger(target.match(/^floor(\d+)\b/i)?.[1]);
+  if (pageFloorIndex !== null) {
+    return String(((page - 1) * legacyThreadPageSize) + pageFloorIndex + 1);
+  }
+
+  const legacyReplyFloor = parseNonNegativeInteger(target.match(/^(\d+)\b/)?.[1]);
+  return legacyReplyFloor === null ? null : String(legacyReplyFloor + 1);
 }
 
 function createReference(bidValue: string | null | undefined, tidValue: string | null | undefined, pidValue: string | null | undefined) {
@@ -132,6 +149,11 @@ function createReference(bidValue: string | null | undefined, tidValue: string |
 function parsePositiveInteger(value: string | null | undefined) {
   const number = Number.parseInt(value?.trim() ?? '', 10);
   return Number.isInteger(number) && number > 0 ? number : null;
+}
+
+function parseNonNegativeInteger(value: string | null | undefined) {
+  const number = Number.parseInt(value?.trim() ?? '', 10);
+  return Number.isInteger(number) && number >= 0 ? number : null;
 }
 
 function decodeBasicHtmlEntities(value: string) {
