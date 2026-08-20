@@ -1033,7 +1033,7 @@
   .profile-star-rules th:last-child,
   .profile-star-rules td:last-child {
     width: 22%;
-    text-align: right;
+    text-align: left;
     white-space: nowrap;
   }
 
