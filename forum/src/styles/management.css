@@ -412,7 +412,7 @@
     align-items: center;
     justify-content: center;
     border: 1px solid var(--line);
-    border-radius: 2px;
+    border-radius: var(--control-radius);
     background: var(--surface-soft);
     font-size: 0.57rem;
   }
