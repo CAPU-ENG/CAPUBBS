@@ -34,7 +34,6 @@ type ThreadSummary = {
 };
 
 type GlobalPin = ThreadSummary & {
-  pinnedAt: string;
 };
 
 type ManagedMember = {
@@ -51,7 +50,6 @@ const INITIAL_PINS: GlobalPin[] = [
     board: '公告栏',
     boardId: 12,
     id: 18426,
-    pinnedAt: '2026-08-18',
     title: '论坛使用说明与新版功能反馈汇总',
     url: '/?bid=12&tid=18426',
   },
@@ -60,7 +58,6 @@ const INITIAL_PINS: GlobalPin[] = [
     board: '车协工作区',
     boardId: 1,
     id: 18397,
-    pinnedAt: '2026-08-11',
     title: '本学期车协活动日历及报名方式',
     url: '/?bid=1&tid=18397',
   },
@@ -69,7 +66,6 @@ const INITIAL_PINS: GlobalPin[] = [
     board: '网站维护',
     boardId: 28,
     id: 18352,
-    pinnedAt: '2026-07-29',
     title: '新版论坛测试期间的已知问题',
     url: '/?bid=28&tid=18352',
   },
@@ -90,10 +86,10 @@ const INITIAL_MEMBERS: ManagedMember[] = [
   { avatar: defaultAvatar, id: '北纬三十度', joinedAt: '2023-04', rights: 1, summary: '活跃会员 · 车友宝典' },
 ];
 
-const TAB_ITEMS: Array<{ description: string; icon: typeof Pin; id: AdminTab; label: string }> = [
-  { description: '管理跨版块展示的帖子', icon: Pin, id: 'pins', label: '全局置顶' },
-  { description: '将帖子迁移至目标版块', icon: FileInput, id: 'move', label: '帖子挪版' },
-  { description: '查看与调整会员权限', icon: Users, id: 'members', label: '会员管理' },
+const TAB_ITEMS: Array<{ icon: typeof Pin; id: AdminTab; label: string }> = [
+  { icon: Pin, id: 'pins', label: '全局置顶' },
+  { icon: FileInput, id: 'move', label: '帖子挪版' },
+  { icon: Users, id: 'members', label: '会员管理' },
 ];
 
 export function ManagementPage() {
@@ -124,14 +120,8 @@ export function ManagementPage() {
                 <div>
                   <div className="management-title-line">
                     <h1 id="management-title">论坛管理</h1>
-                    <em>权限 {viewer?.rights}</em>
                   </div>
-                  <p>管理全局内容、帖子版块与会员权限</p>
                 </div>
-              </div>
-              <div className="management-operator">
-                <span>当前操作员</span>
-                <strong>{viewer?.username}</strong>
               </div>
             </header>
 
@@ -152,7 +142,7 @@ export function ManagementPage() {
                       type="button"
                     >
                       <span><Icon size={17} /></span>
-                      <span><strong>{tab.label}</strong><small>{tab.description}</small></span>
+                      <span><strong>{tab.label}</strong></span>
                     </button>
                   );
                 })}
@@ -200,7 +190,7 @@ function GlobalPinsPanel() {
       setNotice({ kind: 'error', text: '这个帖子已经在全局置顶列表中。' });
       return;
     }
-    setPins((current) => [{ ...candidate, pinnedAt: formatToday() }, ...current]);
+    setPins((current) => [candidate, ...current]);
     setCandidate(null);
     setThreadUrl('');
     setNotice({ kind: 'success', text: '模拟操作完成：帖子已加入全局置顶。' });
@@ -215,7 +205,7 @@ function GlobalPinsPanel() {
     <div className="management-grid">
       <section className="management-card management-list-card" aria-labelledby="global-pins-title">
         <header className="management-card-heading">
-          <div><h2 id="global-pins-title">当前全局置顶</h2><p>这些帖子会在所有版块的帖子列表顶部展示。</p></div>
+          <div><h2 id="global-pins-title">当前全局置顶</h2></div>
           <span>{pins.length} 篇</span>
         </header>
         <div className="management-thread-list">
@@ -226,7 +216,7 @@ function GlobalPinsPanel() {
               <span className="management-row-icon"><Pin size={15} /></span>
               <div className="management-row-main">
                 <a href={pin.url}>{pin.title}<ExternalLink size={12} /></a>
-                <p><span>{pin.board}</span><i />作者 {pin.author}<i />置顶于 {pin.pinnedAt}</p>
+                <p><span>{pin.board}</span><i />作者 {pin.author}</p>
               </div>
               <button className="management-danger-button" onClick={() => removePin(pin)} type="button">
                 <PinOff size={14} />取消置顶
@@ -238,7 +228,7 @@ function GlobalPinsPanel() {
 
       <section className="management-card management-action-card" aria-labelledby="add-global-pin-title">
         <header className="management-card-heading">
-          <div><h2 id="add-global-pin-title">添加全局置顶</h2><p>输入帖子链接，先核对帖子身份。</p></div>
+          <div><h2 id="add-global-pin-title">添加全局置顶</h2></div>
         </header>
         <form className="management-lookup-form" onSubmit={inspectThread}>
           <label htmlFor="global-pin-url">帖子链接</label>
@@ -256,7 +246,6 @@ function GlobalPinsPanel() {
             />
             <button type="submit"><Search size={15} />查询帖子</button>
           </div>
-          <small>演示帖子编号：18431、18435、18440</small>
         </form>
         {candidate && <ThreadConfirmation actionLabel="确认全局置顶" onConfirm={addPin} thread={candidate} />}
         {notice && <ManagementNotice kind={notice.kind}>{notice.text}</ManagementNotice>}
@@ -303,7 +292,7 @@ function MoveThreadPanel() {
     <div className="management-single-column">
       <section className="management-card management-move-card" aria-labelledby="move-thread-title">
         <header className="management-card-heading">
-          <div><h2 id="move-thread-title">帖子挪版</h2><p>每次仅迁移一个主题帖，楼内回复会随主题一同移动。</p></div>
+          <div><h2 id="move-thread-title">帖子挪版</h2></div>
         </header>
         <div className="management-move-flow" aria-hidden="true">
           <span className={candidate ? 'is-complete' : 'is-current'}><b>1</b>查询帖子</span>
@@ -326,7 +315,6 @@ function MoveThreadPanel() {
             />
             <button type="submit"><Search size={15} />查询帖子</button>
           </div>
-          <small>演示帖子编号：18431、18435、18440</small>
         </form>
 
         {candidate && (
@@ -392,7 +380,7 @@ function MemberManagementPanel() {
     <div className="management-grid management-members-grid">
       <section className="management-card management-list-card" aria-labelledby="elevated-members-title">
         <header className="management-card-heading">
-          <div><h2 id="elevated-members-title">当前高权限会员</h2><p>展示所有权限值大于 1 的会员。</p></div>
+          <div><h2 id="elevated-members-title">当前高权限会员</h2></div>
           <span>{elevatedMembers.length} 人</span>
         </header>
         <div className="management-member-list">
@@ -412,7 +400,7 @@ function MemberManagementPanel() {
 
       <section className="management-card management-action-card" aria-labelledby="member-search-title">
         <header className="management-card-heading">
-          <div><h2 id="member-search-title">查找会员</h2><p>按完整 ID 搜索并确认会员身份。</p></div>
+          <div><h2 id="member-search-title">查找会员</h2></div>
         </header>
         <form className="management-lookup-form" onSubmit={searchMember}>
           <label htmlFor="member-id">会员 ID</label>
@@ -430,7 +418,6 @@ function MemberManagementPanel() {
             />
             <button type="submit"><Search size={15} />搜索会员</button>
           </div>
-          <small>演示 ID：版务小组、追风少年、北纬三十度</small>
         </form>
 
         {selectedMember && (
@@ -539,12 +526,4 @@ function rightsLabel(rights: number) {
   if (rights === 3) return '权限 3 · 版面管理';
   if (rights === 2) return '权限 2 · 协作会员';
   return '权限 1 · 普通会员';
-}
-
-function formatToday() {
-  return new Intl.DateTimeFormat('zh-CN', {
-    day: '2-digit',
-    month: '2-digit',
-    year: 'numeric',
-  }).format(new Date()).replaceAll('/', '-');
 }
