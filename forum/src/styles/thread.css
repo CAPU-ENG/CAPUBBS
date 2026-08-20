@@ -83,7 +83,9 @@
     border: 1px solid var(--line);
     border-radius: 2px;
     padding: 24px 26px 18px;
-    background: var(--surface);
+    background:
+      linear-gradient(90deg, color-mix(in srgb, var(--brand-faint) 78%, transparent), transparent 54%),
+      var(--surface);
     box-shadow: var(--shadow-card);
   }
 
