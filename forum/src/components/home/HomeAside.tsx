@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState, type ChangeEvent } from 'react';
+import { useEffect, useId, useMemo, useRef, useState } from 'react';
 import { Bike, CalendarDays, ChevronLeft, ChevronRight, Clock3, Info, Pin, Settings } from 'lucide-react';
 import type { HomeCalendarEvent, HomeThread } from '../../api/home';
 import { useAuth } from '../../context/AuthContext';
@@ -111,6 +111,8 @@ function ActivitySignupPanel() {
 
 export function ActivityCalendar({ compact = false, error, items, status }: CalendarProps) {
   const { status: authStatus, viewer } = useAuth();
+  const periodPickerId = useId();
+  const periodPickerRef = useRef<HTMLDivElement | null>(null);
   const [today] = useState(() => new Date());
   const [monthCursor, setMonthCursor] = useState(() => ({
     year: today.getFullYear(),
@@ -119,6 +121,7 @@ export function ActivityCalendar({ compact = false, error, items, status }: Cale
   const [selectedKey, setSelectedKey] = useState(() => (
     dateKey(today.getFullYear(), today.getMonth(), today.getDate())
   ));
+  const [openPeriodPicker, setOpenPeriodPicker] = useState<'month' | 'year' | null>(null);
   const { year, month } = monthCursor;
   const todayKey = dateKey(today.getFullYear(), today.getMonth(), today.getDate());
   const maxYear = today.getFullYear() + 1;
@@ -131,6 +134,25 @@ export function ActivityCalendar({ compact = false, error, items, status }: Cale
   );
   const canMoveToPreviousMonth = year > HOME_CALENDAR_MIN_YEAR || month > 0;
   const canMoveToNextMonth = year < maxYear || month < 11;
+
+  useEffect(() => {
+    if (!openPeriodPicker) return;
+
+    function closePickerOnOutsidePress(event: PointerEvent) {
+      if (!periodPickerRef.current?.contains(event.target as Node)) setOpenPeriodPicker(null);
+    }
+
+    function closePickerOnEscape(event: KeyboardEvent) {
+      if (event.key === 'Escape') setOpenPeriodPicker(null);
+    }
+
+    document.addEventListener('pointerdown', closePickerOnOutsidePress);
+    window.addEventListener('keydown', closePickerOnEscape);
+    return () => {
+      document.removeEventListener('pointerdown', closePickerOnOutsidePress);
+      window.removeEventListener('keydown', closePickerOnEscape);
+    };
+  }, [openPeriodPicker]);
 
   const cells = useMemo(() => {
     const firstWeekday = (new Date(year, month, 1).getDay() + 6) % 7;
@@ -166,17 +188,10 @@ export function ActivityCalendar({ compact = false, error, items, status }: Cale
     selectMonth(next.getFullYear(), next.getMonth());
   }
 
-  function selectYear(event: ChangeEvent<HTMLSelectElement>) {
-    selectMonth(Number(event.target.value), month);
-  }
-
-  function selectMonthOption(event: ChangeEvent<HTMLSelectElement>) {
-    selectMonth(year, Number(event.target.value));
-  }
-
   function selectMonth(nextYear: number, nextMonth: number) {
     setMonthCursor({ year: nextYear, month: nextMonth });
     setSelectedKey(dateKey(nextYear, nextMonth, 1));
+    setOpenPeriodPicker(null);
   }
 
   return (
@@ -199,18 +214,68 @@ export function ActivityCalendar({ compact = false, error, items, status }: Cale
       )}
 
       <div className="calendar-month-nav">
-        <button type="button" aria-label="上个月" disabled={!canMoveToPreviousMonth} onClick={() => moveMonth(-1)}><ChevronLeft size={16} /></button>
-        <div className="calendar-month-selectors">
-          <select aria-label="选择年份" onChange={selectYear} value={year}>
-            {yearOptions.map((optionYear) => <option key={optionYear} value={optionYear}>{optionYear} 年</option>)}
-          </select>
-          <select aria-label="选择月份" onChange={selectMonthOption} value={month}>
-            {HOME_CALENDAR_MONTHS.map((optionMonth) => (
-              <option key={optionMonth.value} value={optionMonth.value}>{optionMonth.label}</option>
-            ))}
-          </select>
+        <button className="calendar-month-arrow" type="button" aria-label="上个月" disabled={!canMoveToPreviousMonth} onClick={() => moveMonth(-1)}><ChevronLeft size={16} /></button>
+        <div className="calendar-period-control" ref={periodPickerRef}>
+          <div className="calendar-period-title">
+            <button
+              aria-controls={`${periodPickerId}-year`}
+              aria-expanded={openPeriodPicker === 'year'}
+              aria-haspopup="listbox"
+              className="calendar-period-trigger"
+              onClick={() => setOpenPeriodPicker((current) => current === 'year' ? null : 'year')}
+              type="button"
+            >
+              {year}
+            </button>
+            <span>年</span>
+            <button
+              aria-controls={`${periodPickerId}-month`}
+              aria-expanded={openPeriodPicker === 'month'}
+              aria-haspopup="listbox"
+              className="calendar-period-trigger"
+              onClick={() => setOpenPeriodPicker((current) => current === 'month' ? null : 'month')}
+              type="button"
+            >
+              {month + 1}
+            </button>
+            <span>月</span>
+          </div>
+
+          {openPeriodPicker === 'year' ? (
+            <div aria-label="选择年份" className="calendar-period-popover calendar-year-picker" id={`${periodPickerId}-year`} role="listbox">
+              {yearOptions.map((optionYear) => (
+                <button
+                  aria-selected={optionYear === year}
+                  className={optionYear === year ? 'calendar-period-option-active' : ''}
+                  key={optionYear}
+                  onClick={() => selectMonth(optionYear, month)}
+                  role="option"
+                  type="button"
+                >
+                  {optionYear}
+                </button>
+              ))}
+            </div>
+          ) : null}
+
+          {openPeriodPicker === 'month' ? (
+            <div aria-label="选择月份" className="calendar-period-popover calendar-month-picker" id={`${periodPickerId}-month`} role="listbox">
+              {HOME_CALENDAR_MONTHS.map((optionMonth) => (
+                <button
+                  aria-selected={optionMonth.value === month}
+                  className={optionMonth.value === month ? 'calendar-period-option-active' : ''}
+                  key={optionMonth.value}
+                  onClick={() => selectMonth(year, optionMonth.value)}
+                  role="option"
+                  type="button"
+                >
+                  {optionMonth.value + 1} 月
+                </button>
+              ))}
+            </div>
+          ) : null}
         </div>
-        <button type="button" aria-label="下个月" disabled={!canMoveToNextMonth} onClick={() => moveMonth(1)}><ChevronRight size={16} /></button>
+        <button className="calendar-month-arrow" type="button" aria-label="下个月" disabled={!canMoveToNextMonth} onClick={() => moveMonth(1)}><ChevronRight size={16} /></button>
       </div>
 
       <div className="calendar-grid calendar-weekdays" aria-hidden="true">

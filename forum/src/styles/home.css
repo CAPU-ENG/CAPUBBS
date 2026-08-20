@@ -346,13 +346,14 @@
   }
 
   .calendar-month-nav {
+    position: relative;
     display: grid;
     grid-template-columns: 32px 1fr 32px;
     align-items: center;
     margin: 2px 14px 13px;
   }
 
-  .calendar-month-nav button {
+  .calendar-month-arrow {
     display: inline-flex;
     width: 32px;
     height: 32px;
@@ -362,53 +363,105 @@
     color: var(--text-muted);
   }
 
-  .calendar-month-nav button:hover {
+  .calendar-month-arrow:hover {
     background: var(--surface-soft);
     color: var(--brand-strong);
   }
 
-  .calendar-month-nav button:disabled {
+  .calendar-month-arrow:disabled {
     cursor: not-allowed;
     opacity: 0.32;
   }
 
-  .calendar-month-selectors {
-    display: flex;
+  .calendar-period-control {
+    position: relative;
     min-width: 0;
-    align-items: center;
-    justify-content: center;
-    gap: 4px;
   }
 
-  .calendar-month-selectors select {
-    min-width: 0;
-    height: 30px;
-    border: 1px solid var(--line);
-    border-radius: var(--control-radius);
-    padding: 0 20px 0 6px;
-    background-color: var(--surface-raised);
+  .calendar-period-title {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 3px;
     color: var(--text-strong);
-    font-size: 0.68rem;
+    font-size: 0.75rem;
     font-weight: 700;
-    outline: none;
+  }
+
+  .calendar-period-trigger {
+    min-width: 28px;
+    min-height: 28px;
+    border-radius: var(--control-radius);
+    padding: 0 5px;
+    color: var(--brand-strong);
+    font: inherit;
     transition: 130ms ease;
   }
 
-  .calendar-month-selectors select:first-child {
-    width: 88px;
+  .calendar-period-trigger:hover,
+  .calendar-period-trigger[aria-expanded="true"] {
+    background: var(--brand-soft);
   }
 
-  .calendar-month-selectors select:last-child {
-    width: 66px;
+  .calendar-period-trigger:focus-visible {
+    outline: 2px solid color-mix(in srgb, var(--brand) 55%, transparent);
+    outline-offset: 1px;
   }
 
-  .calendar-month-selectors select:hover {
-    border-color: var(--line-strong);
+  .calendar-period-popover {
+    position: absolute;
+    z-index: 20;
+    top: calc(100% + 6px);
+    left: 50%;
+    display: grid;
+    width: 224px;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 4px;
+    border: 1px solid var(--line-strong);
+    border-radius: 4px;
+    padding: 8px;
+    background: var(--surface-raised);
+    box-shadow: var(--shadow-float);
+    transform: translateX(-50%);
   }
 
-  .calendar-month-selectors select:focus-visible {
-    border-color: var(--brand);
-    box-shadow: 0 0 0 2px color-mix(in srgb, var(--brand) 15%, transparent);
+  .calendar-year-picker {
+    max-height: 204px;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+  }
+
+  .calendar-period-popover button {
+    min-height: 34px;
+    border: 1px solid transparent;
+    border-radius: var(--control-radius);
+    color: var(--text-muted);
+    font-size: 0.67rem;
+    font-weight: 680;
+    transition: 120ms ease;
+  }
+
+  .calendar-period-popover button:hover {
+    border-color: var(--line);
+    background: var(--surface-soft);
+    color: var(--text-strong);
+  }
+
+  .calendar-period-popover .calendar-period-option-active,
+  .calendar-period-popover .calendar-period-option-active:hover {
+    border-color: var(--brand-strong);
+    background: var(--brand-strong);
+    color: white;
+  }
+
+  .dark .calendar-period-popover .calendar-period-option-active,
+  .dark .calendar-period-popover .calendar-period-option-active:hover {
+    color: #101713;
+  }
+
+  .calendar-period-popover button:focus-visible {
+    outline: 2px solid color-mix(in srgb, var(--brand) 55%, transparent);
+    outline-offset: 1px;
   }
 
   .calendar-grid {
