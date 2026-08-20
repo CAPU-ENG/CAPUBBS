@@ -51,7 +51,6 @@ export function TopBar({
     && !params.has('bid')
     && !params.has('board');
   const isSearchPage = window.location.pathname.replace(/\/+$/, '') === '/search';
-  const isSettingsPage = window.location.pathname.replace(/\/+$/, '') === '/settings';
   const currentBoardId = Number(params.get('bid') ?? params.get('board'));
   const pinnedBoards = usePinnedBoardIds()
     .map(getBoardById)
@@ -259,14 +258,6 @@ export function TopBar({
               aria-label="搜索"
             >
               <Search size={19} />
-            </a>
-
-            <a
-              className={`icon-button ${isSettingsPage ? 'icon-button-active' : ''}`}
-              href="/settings"
-              aria-label="设置"
-            >
-              <Settings size={18} />
             </a>
 
             <button
