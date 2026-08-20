@@ -47,13 +47,17 @@ export function translateLegacyForumMarkup(value: string) {
 }
 
 const ISOLATED_HTML_TAG_PATTERN = /<\s*\/?\s*(?:script|style|link|meta|base|iframe|frame|frameset|object|embed|audio|video|canvas|svg|math|form|input|textarea|select|button|option)\b/i;
-const ISOLATED_HTML_ATTRIBUTE_PATTERN = /\s(?:on[a-z][\w:-]*|srcdoc|style)\s*=/i;
+const ISOLATED_HTML_ACTIVE_ATTRIBUTE_PATTERN = /\s(?:on[a-z][\w:-]*|srcdoc)\s*=/i;
+const ISOLATED_HTML_STYLE_ATTRIBUTE_PATTERN = /\sstyle\s*=/i;
 const ISOLATED_HTML_URL_PATTERN = /\b(?:href|action|formaction)\s*=\s*(?:"\s*(?:javascript|data):|'\s*(?:javascript|data):|(?:javascript|data):)/i;
 const ISOLATED_HTML_DOCUMENT_PATTERN = /<\s*(?:!doctype|html|head|body)\b/i;
 
 export function requiresIsolatedForumHtml(value: string) {
+  const contentWithoutImages = value.replace(/<img\b[^>]*>/gi, '');
+
   return ISOLATED_HTML_TAG_PATTERN.test(value)
-    || ISOLATED_HTML_ATTRIBUTE_PATTERN.test(value)
+    || ISOLATED_HTML_ACTIVE_ATTRIBUTE_PATTERN.test(value)
+    || ISOLATED_HTML_STYLE_ATTRIBUTE_PATTERN.test(contentWithoutImages)
     || ISOLATED_HTML_URL_PATTERN.test(value)
     || ISOLATED_HTML_DOCUMENT_PATTERN.test(value);
 }
