@@ -19,6 +19,11 @@ class NormalizeProfileTests(unittest.TestCase):
         with self.assertRaises(ApiRequestError):
             normalize_profile({"username": "Kody"}, "kody")
 
+    def test_accepts_unique_trailing_space_variant_used_by_legacy_account(self):
+        profile = normalize_profile({"username": "Blade runner "}, "Blade runner")
+
+        self.assertEqual(profile["username"], "Blade runner ")
+
 
 if __name__ == "__main__":
     unittest.main()

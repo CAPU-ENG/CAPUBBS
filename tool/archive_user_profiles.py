@@ -149,11 +149,17 @@ def normalize_profile(data: Any, username: str) -> dict[str, Any]:
     else:
         raise ApiRequestError("user_profile 返回的数据结构不正确")
 
-    matches = [
-        item for item in candidates if str(item.get("username") or "") == username
-    ]
-    if len(matches) == 1:
-        return matches[0]
+    match_groups = (
+        [item for item in candidates if str(item.get("username") or "") == username],
+        [
+            item
+            for item in candidates
+            if str(item.get("username") or "").strip() == username.strip()
+        ],
+    )
+    for matches in match_groups:
+        if len(matches) == 1:
+            return matches[0]
 
     returned = [str(item.get("username") or "") for item in candidates]
     raise ApiRequestError(f"user_profile 无法唯一匹配 {username!r}：{returned!r}")
