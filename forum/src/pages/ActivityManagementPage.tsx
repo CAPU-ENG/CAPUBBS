@@ -230,7 +230,7 @@ export function ActivityManagementPage() {
             <div className="activity-management-metrics">
               <ActivityMetric label="报名总数" value={records.length} />
               <ActivityMetric label="有效报名" tone="success" value={records.filter((record) => record.status === '有效').length} />
-              <ActivityMetric label="异常记录" tone="warning" value={records.filter((record) => record.status === '异常').length} />
+              <ActivityMetric label="取消报名" tone="warning" value={records.filter((record) => record.status === '已取消').length} />
               <ActivityMetric label="报名截止" value={formatActivityTime(managedActivity.endsAt)} />
             </div>
 
