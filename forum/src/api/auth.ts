@@ -31,9 +31,35 @@ class AuthApiError extends Error {
 
 export async function fetchSessionViewer(signal?: AbortSignal): Promise<SessionViewer | null> {
   try {
-    const data = await requestAuthApi({ ask: 'currentUserInfo' }, signal);
-    const row = asRows(data)[0];
-    return row ? mapViewer(row) : null;
+    // The unified JSON wrapper can mistake currentUserInfo's profile `code`
+    // column for a legacy status row, so verify the cookie through getuser.
+    const identityData = await requestAuthApi({ ask: 'getuser' }, signal);
+    const identityRow = asRows(identityData)[0];
+    const username = stringValue(identityRow?.username);
+
+    if (!username) return null;
+
+    const fallbackViewer: SessionViewer = {
+      avatar: '',
+      rights: toNumber(identityRow?.rights),
+      unreadMessages: 0,
+      username,
+    };
+
+    try {
+      const profileData = await requestAuthApi({ ask: 'user_profile', username }, signal);
+      const profileRow = asRows(profileData)[0];
+      if (!profileRow) return fallbackViewer;
+
+      return mapViewer({
+        ...profileRow,
+        rights: profileRow.rights ?? identityRow?.rights,
+        username,
+      }) ?? fallbackViewer;
+    } catch (error) {
+      if (error instanceof DOMException && error.name === 'AbortError') throw error;
+      return fallbackViewer;
+    }
   } catch (error) {
     if (error instanceof AuthApiError && (error.code === 1000 || error.code === 1001)) return null;
     throw error;
