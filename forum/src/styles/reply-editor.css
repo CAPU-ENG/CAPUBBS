@@ -40,7 +40,7 @@
   .reply-editor .reply-editor-core > section {
     border-color: var(--line);
     border-radius: 2px;
-    background: var(--surface-raised);
+    background: var(--surface);
     box-shadow: none;
   }
 
@@ -556,6 +556,7 @@
 
   .reply-preview-floor-body {
     overflow: hidden;
+    background: var(--surface);
   }
 
   .reply-preview-floor-body > iframe {
@@ -563,7 +564,7 @@
     width: 100%;
     min-height: 120px;
     border: 0;
-    background: transparent;
+    background: var(--surface);
   }
 
   .reply-preview-attachments {

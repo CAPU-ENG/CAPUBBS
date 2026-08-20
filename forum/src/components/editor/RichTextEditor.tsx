@@ -1710,7 +1710,7 @@ function convertEditorContent(content: string, from: RichTextEditorMode, to: Ric
 function buildHtmlPreviewDocument(html: string, isDarkTheme: boolean, embedded = false) {
   const theme = isDarkTheme
     ? {
-        background: 'rgb(24 24 27 / 0.9)',
+        background: '#171d19',
         blockquoteBorder: 'rgb(217 249 157 / 0.45)',
         blockquoteColor: 'rgb(255 255 255 / 0.74)',
         codeBackground: 'rgb(255 255 255 / 0.1)',
@@ -1725,7 +1725,7 @@ function buildHtmlPreviewDocument(html: string, isDarkTheme: boolean, embedded =
         tableBorder: 'rgb(255 255 255 / 0.14)',
       }
     : {
-        background: 'rgb(255 255 255 / 0.9)',
+        background: '#fffefa',
         blockquoteBorder: 'rgb(56 87 114 / 0.45)',
         blockquoteColor: '#875a41',
         codeBackground: 'rgb(228 228 231 / 0.8)',
