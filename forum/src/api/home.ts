@@ -2,6 +2,7 @@ import { getPublicProfilePath } from '../utils/userRoutes';
 import { normalizeLegacyAvatar } from '../utils/legacyAssets';
 
 const HOME_API_URL = import.meta.env.VITE_API_URL?.trim() || '/api/api.php';
+const THREAD_FLOORS_PER_PAGE = 12;
 const avatarCache = new Map<string, string>();
 const avatarRequests = new Map<string, Promise<string>>();
 
@@ -39,12 +40,12 @@ export class HomeApiError extends Error {
 
 export async function fetchHomeFeed(limit = 15, signal?: AbortSignal) {
   const rows = await requestRows({ ask: 'hot', hotnum: limit, text: 'true' }, signal);
-  return rows.map(mapThreadRow).filter((thread): thread is HomeThread => thread !== null);
+  return rows.map((row) => mapThreadRow(row, true)).filter((thread): thread is HomeThread => thread !== null);
 }
 
 export async function fetchGlobalPinnedThreads(signal?: AbortSignal) {
   const rows = await requestRows({ ask: 'global_top' }, signal);
-  return rows.map(mapThreadRow).filter((thread): thread is HomeThread => thread !== null);
+  return rows.map((row) => mapThreadRow(row)).filter((thread): thread is HomeThread => thread !== null);
 }
 
 export async function hydrateHomeThreadAvatars(threads: HomeThread[], signal?: AbortSignal) {
@@ -108,7 +109,7 @@ async function requestRows(params: Record<string, string | number>, signal?: Abo
   return rows.filter(isApiRow);
 }
 
-function mapThreadRow(row: ApiRow): HomeThread | null {
+function mapThreadRow(row: ApiRow, linkToLatestFloor = false): HomeThread | null {
   const bid = toNumber(row.bid);
   const tid = toNumber(row.tid);
   const title = plainText(row.title);
@@ -116,6 +117,9 @@ function mapThreadRow(row: ApiRow): HomeThread | null {
   if (bid <= 0 || tid <= 0 || !title) return null;
 
   const author = plainText(row.replyer) || plainText(row.author) || '匿名用户';
+  const replies = toNumber(row.reply);
+  const targetFloor = replies + 1;
+  const targetPage = Math.max(1, Math.ceil(targetFloor / THREAD_FLOORS_PER_PAGE));
   const timestamp = toTimestamp(row.timestamp ?? row.postdate);
   const rawSummary = typeof row.text === 'string' ? row.text : '';
   const summary = excerptText(rawSummary) || (
@@ -129,10 +133,12 @@ function mapThreadRow(row: ApiRow): HomeThread | null {
     authorHref: getPublicProfilePath(author),
     avatar: '',
     bid,
-    href: `/?bid=${bid}&tid=${tid}&p=1`,
+    href: linkToLatestFloor
+      ? `/?bid=${bid}&tid=${tid}&p=${targetPage}#${targetFloor}`
+      : `/?bid=${bid}&tid=${tid}&p=1`,
     id: `${bid}-${tid}`,
     isRecent: timestamp ? Date.now() - new Date(timestamp).getTime() < 24 * 60 * 60 * 1000 : false,
-    replies: toNumber(row.reply),
+    replies,
     summary,
     tid,
     timeLabel: formatRelativeTime(timestamp),
