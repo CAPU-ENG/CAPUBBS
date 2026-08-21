@@ -1,5 +1,4 @@
-import type { FormEvent } from 'react';
-import { ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight } from 'lucide-react';
+import { ChevronDown, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight } from 'lucide-react';
 
 type PaginationProps = {
   ariaLabel: string;
@@ -28,13 +27,6 @@ export function Pagination({
   const pages = visiblePages(currentPage, pageCount);
   const pagesAreCollapsed = pages.length < pageCount;
   const pageJumpVisible = showPageJump && pagesAreCollapsed;
-
-  function jumpToPage(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-    const requestedPage = Number(new FormData(event.currentTarget).get('page'));
-    if (!Number.isInteger(requestedPage) || requestedPage < 1 || requestedPage > pageCount) return;
-    window.location.assign(pageHref(requestedPage));
-  }
 
   return (
     <nav
@@ -98,20 +90,26 @@ export function Pagination({
       </div>
 
       {pageJumpVisible ? (
-        <form aria-label="跳转页码" className="thread-page-jump" onSubmit={jumpToPage}>
-          <input
-            aria-label={`输入页码，范围 1 至 ${pageCount}`}
-            inputMode="numeric"
-            max={pageCount}
-            min={1}
-            name="page"
-            placeholder={`页码/${pageCount}`}
-            required
-            step={1}
-            type="number"
-          />
-          <button type="submit">跳转</button>
-        </form>
+        <div aria-label="跳转页码" className="thread-page-jump">
+          <span>跳转到</span>
+          <details>
+            <summary>
+              页数
+              <ChevronDown aria-hidden="true" size={14} />
+            </summary>
+            <div aria-label={`选择页码，共 ${pageCount} 页`} className="thread-page-jump-menu">
+              {Array.from({ length: pageCount }, (_, index) => index + 1).map((page) => (
+                <a
+                  aria-current={page === currentPage ? 'page' : undefined}
+                  href={pageHref(page)}
+                  key={page}
+                >
+                  {page}
+                </a>
+              ))}
+            </div>
+          </details>
+        </div>
       ) : null}
     </nav>
   );

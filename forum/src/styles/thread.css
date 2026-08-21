@@ -88,41 +88,102 @@
   .thread-page-jump {
     display: flex;
     align-items: center;
-    gap: 4px;
+    justify-content: center;
+    gap: 6px;
     margin-left: 8px;
+    color: var(--text-faint);
+    font-size: 0.7rem;
+    font-weight: 680;
+    white-space: nowrap;
   }
 
-  .thread-page-jump input,
-  .thread-page-jump button {
+  .thread-page-jump details {
+    position: relative;
+  }
+
+  .thread-page-jump summary {
+    display: inline-flex;
+    min-width: 54px;
     height: 36px;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
     border: 1px solid var(--line);
     border-radius: var(--control-radius);
+    padding: 0 8px;
     background: var(--surface);
     color: var(--text-muted);
     font-size: 0.72rem;
     font-weight: 680;
-  }
-
-  .thread-page-jump input {
-    width: 76px;
-    padding: 0 8px;
-    outline: none;
-    transition: border-color 140ms ease, box-shadow 140ms ease;
-  }
-
-  .thread-page-jump button {
-    padding: 0 12px;
     cursor: pointer;
-    transition: 140ms ease;
+    list-style: none;
+    transition: border-color 140ms ease, background 140ms ease, color 140ms ease;
   }
 
-  .thread-page-jump input:focus {
-    border-color: var(--brand);
-    box-shadow: 0 0 0 3px color-mix(in srgb, var(--brand) 13%, transparent);
+  .thread-page-jump summary::-webkit-details-marker {
+    display: none;
   }
 
-  .thread-page-jump button:hover {
+  .thread-page-jump summary > svg {
+    transition: transform 140ms ease;
+  }
+
+  .thread-page-jump details[open] summary > svg {
+    transform: rotate(180deg);
+  }
+
+  .thread-page-jump summary:hover,
+  .thread-page-jump summary:focus-visible,
+  .thread-page-jump details[open] summary {
+    border-color: color-mix(in srgb, var(--brand) 48%, var(--line));
+    outline: none;
+    background: var(--brand-soft);
+    color: var(--brand-strong);
+  }
+
+  .thread-page-jump-menu {
+    position: absolute;
+    z-index: 30;
+    top: calc(100% + 8px);
+    right: 0;
+    display: grid;
+    width: 200px;
+    max-height: 244px;
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    gap: 4px;
+    overflow-y: auto;
+    border: 1px solid var(--line-strong);
+    border-radius: 3px;
+    padding: 8px;
+    background: var(--surface-raised);
+    box-shadow: var(--shadow-float);
+  }
+
+  .thread-page-jump-menu > a {
+    display: inline-flex;
+    min-width: 0;
+    height: 32px;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid transparent;
+    border-radius: var(--control-radius);
+    color: var(--text-muted);
+    font-size: 0.7rem;
+    font-weight: 700;
+    transition: 120ms ease;
+  }
+
+  .thread-page-jump-menu > a:hover,
+  .thread-page-jump-menu > a:focus-visible {
     border-color: var(--line-strong);
+    outline: none;
+    background: var(--surface-soft);
+    color: var(--brand-strong);
+  }
+
+  .thread-page-jump-menu > a[aria-current="page"] {
+    border-color: color-mix(in srgb, var(--brand) 45%, var(--line));
+    background: var(--brand-soft);
     color: var(--brand-strong);
   }
 
@@ -298,7 +359,7 @@
     width: 100%;
     border: 1px solid var(--line);
     border-radius: 2px;
-    padding: 12px 16px;
+    padding: 12px 0;
     background: var(--surface);
     box-shadow: var(--shadow-card);
   }
@@ -307,20 +368,13 @@
   .thread-bottom-pagination .thread-pagination {
     display: grid;
     width: 100%;
-    grid-template-columns: minmax(0, 1fr);
-  }
-
-  .thread-top-pagination .thread-pagination-with-jump,
-  .thread-bottom-pagination .thread-pagination-with-jump {
-    grid-template-columns: minmax(0, 1fr) auto;
-    gap: 16px;
+    grid-template-columns: minmax(0, 1fr) var(--thread-rail-column);
+    gap: var(--thread-column-gap);
   }
 
   .thread-top-pagination .thread-page-jump,
   .thread-bottom-pagination .thread-page-jump {
     margin-left: 0;
-    border-left: 1px solid var(--line);
-    padding-left: 16px;
   }
 
   .thread-top-pagination {
@@ -2168,14 +2222,14 @@
 
     .thread-top-pagination,
     .thread-bottom-pagination {
-      overflow-x: auto;
-      padding: 10px;
+      padding: 10px 0;
     }
 
-    .thread-top-pagination .thread-pagination,
-    .thread-bottom-pagination .thread-pagination {
-      width: max-content;
-      min-width: 100%;
+    .thread-top-pagination .thread-pagination-pages,
+    .thread-bottom-pagination .thread-pagination-pages {
+      justify-content: flex-start;
+      overflow-x: auto;
+      padding: 0 8px 4px;
     }
 
     .thread-bottom-pagination {
