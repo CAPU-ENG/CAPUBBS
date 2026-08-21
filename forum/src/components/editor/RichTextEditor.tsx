@@ -2073,7 +2073,7 @@ function convertEditorContent(content: string, from: RichTextEditorMode, to: Ric
   }
 
   if (to === 'rich') {
-    return from === 'markdown' ? renderMarkdownToHtml(content) : content;
+    return from === 'markdown' ? renderMarkdownToHtml(content) : compactHtmlForStorage(content);
   }
 
   if (to === 'markdown') {
