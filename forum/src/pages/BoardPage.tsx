@@ -58,16 +58,18 @@ function ExactTime({ label, value }: { label: string; value: string }) {
 }
 
 function PinnedStatus({ thread }: { thread: BoardThreadData }) {
-  if (!thread.status?.pinned) return null;
+  if (!thread.status?.top) return null;
 
   return <span className="board-status board-status-pinned">置顶</span>;
 }
 
 function TrailingThreadStatuses({ thread }: { thread: BoardThreadData }) {
-  if (!thread.status?.digest && !thread.status?.locked) return null;
+  const globallyPinned = thread.status?.pinned && !thread.status?.top;
+  if (!globallyPinned && !thread.status?.digest && !thread.status?.locked) return null;
 
   return (
     <span className="board-thread-statuses" aria-label="主题状态">
+      {globallyPinned ? <span className="board-status">全局置顶</span> : null}
       {thread.status?.digest ? <span className="board-status board-status-digest"><Sparkles size={11} />精品</span> : null}
       {thread.status?.locked ? <span className="board-status"><LockKeyhole size={11} />锁定</span> : null}
     </span>
