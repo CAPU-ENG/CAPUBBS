@@ -13,7 +13,7 @@ const BLOCKED_TAGS = new Set([
 const ALLOWED_TAGS = new Set([
   'A', 'ABBR', 'B', 'BLOCKQUOTE', 'BR', 'CODE', 'DEL', 'DIV', 'EM',
   'FIGCAPTION', 'FIGURE', 'FONT', 'H1', 'H2', 'H3', 'H4', 'H5', 'H6',
-  'HR', 'I', 'IMG', 'KBD', 'LI', 'MARK', 'OL', 'P', 'PRE', 'S', 'SPAN',
+  'HEADER', 'HR', 'I', 'IMG', 'KBD', 'LI', 'MARK', 'OL', 'P', 'PRE', 'S', 'SPAN',
   'STRONG', 'SUB', 'SUP', 'TABLE', 'TBODY', 'TD', 'TH', 'THEAD', 'TR',
   'U', 'UL',
 ]);
@@ -23,6 +23,16 @@ const ALLOWED_CLASSES = new Set([
   'capubbs-floor-quote-jump',
   'capubbs-floor-quote-meta',
   'capubbs-code-shell',
+  'capubbs-gallery',
+  'capubbs-gallery-caption',
+  'capubbs-gallery-count',
+  'capubbs-gallery-header',
+  'capubbs-gallery-nav',
+  'capubbs-gallery-nav-next',
+  'capubbs-gallery-nav-prev',
+  'capubbs-gallery-slide',
+  'capubbs-gallery-stage',
+  'capubbs-gallery-title',
   'forum-quote',
   'forum-legacy-quote',
   'forum-legacy-quote-content',
@@ -114,6 +124,19 @@ function normalizeLegacyClasses(element: Element) {
 
 function isAllowedAttribute(element: Element, name: string) {
   if (name === 'class' || name === 'title') return true;
+  const isGalleryElement = Boolean(element.closest('.capubbs-gallery'));
+  if (isGalleryElement && [
+    'aria-hidden',
+    'aria-label',
+    'contenteditable',
+    'data-capubbs-gallery-action',
+    'data-capubbs-gallery-active',
+    'data-capubbs-gallery-index',
+    'data-capubbs-gallery-slide',
+    'data-capubbs-gallery-total',
+    'role',
+    'tabindex',
+  ].includes(name)) return true;
   if (element.tagName === 'A') return ['href', 'target'].includes(name);
   if (element.tagName === 'IMG') return ['alt', 'height', 'loading', 'src', 'width'].includes(name);
   if (element.tagName === 'FONT') return ['color', 'face', 'size'].includes(name);

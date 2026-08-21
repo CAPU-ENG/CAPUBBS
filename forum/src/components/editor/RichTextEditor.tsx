@@ -6,6 +6,7 @@ import {
   AtSign,
   Bold,
   Eraser,
+  Images as GalleryIcon,
   Image as ImageIcon,
   IndentDecrease,
   IndentIncrease,
@@ -40,6 +41,7 @@ import { renderForumMarkup } from '../../utils/forumMarkup';
 import { translateLegacyBbcode } from '../../utils/legacyBbcode';
 import { getPublicProfileAppPath } from '../../utils/userRoutes';
 import { PastedImageDialog } from './PastedImageDialog';
+import { GalleryDialog, type GalleryDialogImage } from './GalleryDialog';
 import {
   defaultRichTextFont,
   defaultTextColor,
@@ -62,6 +64,11 @@ import {
   uploadEditorImage,
   validateEditorImageFile,
 } from './RichTextEditor.images';
+import {
+  buildEditorGalleryHtml,
+  getEditorGalleryAction,
+  moveEditorGallery,
+} from './RichTextEditor.gallery';
 import {
   applyInlineStyleToElement,
   focusRichTextEditorAtEnd,
@@ -313,6 +320,7 @@ export function RichTextEditor({
   const [fontSizeSelectValue, setFontSizeSelectValue] = useState('');
   const [headingSelectValue, setHeadingSelectValue] = useState('p');
   const [imageFileError, setImageFileError] = useState('');
+  const [isGalleryDialogOpen, setIsGalleryDialogOpen] = useState(false);
   const [isCheckingImageFile, setIsCheckingImageFile] = useState(false);
   const [pastedImage, setPastedImage] = useState<PastedImageState | null>(null);
   const [recentTextColors, setRecentTextColors] = useState(readRecentTextColors);
@@ -632,6 +640,23 @@ export function RichTextEditor({
   const handleRichEditorKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
     const editor = event.currentTarget;
     const selection = window.getSelection();
+    const galleryAction = getEditorGalleryAction(event.target);
+
+    if (galleryAction && ['Enter', ' '].includes(event.key) && event.target instanceof Element) {
+      event.preventDefault();
+      moveEditorGallery(event.target, galleryAction);
+      return;
+    }
+
+    if (
+      ['ArrowLeft', 'ArrowRight'].includes(event.key)
+      && event.target instanceof Element
+      && event.target.closest('.capubbs-gallery')
+    ) {
+      event.preventDefault();
+      moveEditorGallery(event.target, event.key === 'ArrowLeft' ? 'prev' : 'next');
+      return;
+    }
 
     if (
       event.key === 'Enter'
@@ -694,7 +719,20 @@ export function RichTextEditor({
   };
 
   const handleRichEditorClick = (event: MouseEvent<HTMLDivElement>) => {
+    const galleryAction = getEditorGalleryAction(event.target);
+    if (galleryAction) {
+      event.preventDefault();
+      moveEditorGallery(event.target as Element, galleryAction);
+      clearRichImageSelection();
+      return;
+    }
+
     if (event.target instanceof HTMLImageElement) {
+      if (event.target.closest('.capubbs-gallery')) {
+        clearRichImageSelection();
+        return;
+      }
+
       selectRichImage(event.target);
       return;
     }
@@ -804,6 +842,37 @@ export function RichTextEditor({
     if (image) {
       selectRichImage(image);
     }
+  };
+
+  const openGalleryDialog = () => {
+    saveSelection();
+    setActivePopover(null);
+    setIsColorPickerOpen(false);
+    setIsGalleryDialogOpen(true);
+  };
+
+  const uploadAndInsertGallery = async (title: string, images: GalleryDialogImage[]) => {
+    const uploadedImages = await Promise.all(images.map(async (image) => {
+      const pngFile = await createUploadablePngFileUnderLimit(image.file, maxInlineImageBytes);
+      const md5 = await getImageFileMd5Hex(pngFile);
+      const { url } = await uploadEditorImage(pngFile, md5);
+
+      return {
+        alt: getImageAltText(image.file),
+        caption: image.caption,
+        url,
+      };
+    }));
+    const galleryHtml = buildEditorGalleryHtml(title, uploadedImages);
+    const editorMode = currentValueRef.current.mode;
+
+    if (editorMode === 'markdown' || editorMode === 'html') {
+      insertSourceBlock(galleryHtml);
+    } else {
+      insertRichHtml(`${galleryHtml}<p><br></p>`);
+    }
+
+    setIsGalleryDialogOpen(false);
   };
 
   const openPastedImageDialog = (file: File, source: PastedImageState['source']) => {
@@ -1523,6 +1592,9 @@ export function RichTextEditor({
               <ToolbarButton label="插入图片" onMouseDown={handleToolbarMouseDown} onClick={() => openPopover('image')}>
                 <ImageIcon size={14} />
               </ToolbarButton>
+              <ToolbarButton label="插入图廊" onMouseDown={handleToolbarMouseDown} onClick={openGalleryDialog}>
+                <GalleryIcon size={14} />
+              </ToolbarButton>
               <ToolbarButton label="@ 用户" onMouseDown={handleToolbarMouseDown} onClick={() => openPopover('mention')}>
                 <AtSign size={14} />
               </ToolbarButton>
@@ -1908,6 +1980,12 @@ export function RichTextEditor({
       onCompress={compressPastedImage}
       onUpload={uploadAndInsertPastedImage}
     />
+    {isGalleryDialogOpen ? (
+      <GalleryDialog
+        onCancel={() => setIsGalleryDialogOpen(false)}
+        onInsert={uploadAndInsertGallery}
+      />
+    ) : null}
     </>
   );
 }

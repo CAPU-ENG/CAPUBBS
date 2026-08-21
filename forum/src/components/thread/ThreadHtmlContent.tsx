@@ -440,6 +440,47 @@ function buildFrameBridgeScript(frameId: string, canOpenImages: boolean) {
         if(!image.title)image.title='点击查看大图';
       });
     }
+    function moveGallery(target,direction){
+      var gallery=target&&target.closest?target.closest('.capubbs-gallery'):null;
+      if(!gallery)return false;
+      var slides=Array.prototype.slice.call(gallery.querySelectorAll('[data-capubbs-gallery-slide="true"]'));
+      if(slides.length<2)return false;
+      var activeIndex=slides.findIndex(function(slide){return slide.getAttribute('data-capubbs-gallery-active')==='true';});
+      var storedIndex=parseInt(gallery.getAttribute('data-capubbs-gallery-index')||'0',10);
+      var currentIndex=activeIndex>=0?activeIndex:(Number.isFinite(storedIndex)&&storedIndex>=0&&storedIndex<slides.length?storedIndex:0);
+      var nextIndex=(currentIndex+(direction==='next'?1:-1)+slides.length)%slides.length;
+      gallery.setAttribute('data-capubbs-gallery-index',String(nextIndex));
+      slides.forEach(function(slide,index){
+        var active=index===nextIndex;
+        slide.setAttribute('data-capubbs-gallery-active',active?'true':'false');
+        slide.setAttribute('aria-hidden',active?'false':'true');
+      });
+      queueHeight();
+      return true;
+    }
+    function handleGalleryClick(event){
+      if(event.defaultPrevented||event.button!==0)return;
+      var actionTarget=event.target&&event.target.closest?event.target.closest('[data-capubbs-gallery-action]'):null;
+      var action=actionTarget?actionTarget.getAttribute('data-capubbs-gallery-action'):'';
+      if(action!=='prev'&&action!=='next')return;
+      event.preventDefault();
+      event.stopPropagation();
+      moveGallery(actionTarget,action);
+    }
+    function handleGalleryKeyDown(event){
+      var actionTarget=event.target&&event.target.closest?event.target.closest('[data-capubbs-gallery-action]'):null;
+      var action=actionTarget?actionTarget.getAttribute('data-capubbs-gallery-action'):'';
+      if((event.key==='Enter'||event.key===' ')&&(action==='prev'||action==='next')){
+        event.preventDefault();
+        moveGallery(actionTarget,action);
+        return;
+      }
+      if(event.key!=='ArrowLeft'&&event.key!=='ArrowRight')return;
+      var gallery=event.target&&event.target.closest?event.target.closest('.capubbs-gallery'):null;
+      if(!gallery)return;
+      event.preventDefault();
+      moveGallery(gallery,event.key==='ArrowLeft'?'prev':'next');
+    }
     function init(){
       var contentRoot=document.querySelector('.capubbs-html-frame-root');
       if(window.ResizeObserver&&contentRoot)new ResizeObserver(queueHeight).observe(contentRoot);
@@ -448,6 +489,8 @@ function buildFrameBridgeScript(frameId: string, canOpenImages: boolean) {
       window.addEventListener('load',queueHeight);
       document.addEventListener('transitionend',queueHeight);
       document.addEventListener('animationend',queueHeight);
+      document.addEventListener('click',handleGalleryClick);
+      document.addEventListener('keydown',handleGalleryKeyDown);
       document.addEventListener('click',handleImageClick);
       document.addEventListener('keydown',handleImageKeyDown);
       document.addEventListener('click',handleForumNavigationClick);

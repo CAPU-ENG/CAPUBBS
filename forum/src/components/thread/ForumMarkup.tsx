@@ -1,5 +1,9 @@
 import type { SafeForumHtml } from '../../utils/forumMarkup';
 import type { KeyboardEvent, MouseEvent } from 'react';
+import {
+  getEditorGalleryAction,
+  moveEditorGallery,
+} from '../editor/RichTextEditor.gallery';
 
 type ForumMarkupVariant = 'floor' | 'nested' | 'signature';
 export type ForumMarkupImage = { alt: string; src: string };
@@ -42,12 +46,37 @@ export function ForumMarkup({
   }
 
   function handleClick(event: MouseEvent<HTMLDivElement>) {
+    const galleryAction = getEditorGalleryAction(event.target);
+    if (galleryAction && event.target instanceof Element) {
+      event.preventDefault();
+      event.stopPropagation();
+      moveEditorGallery(event.target, galleryAction);
+      return;
+    }
+
     if (!onImageOpen || !(event.target instanceof HTMLImageElement)) return;
     event.preventDefault();
     openImage(event.target, event.currentTarget);
   }
 
   function handleKeyDown(event: KeyboardEvent<HTMLDivElement>) {
+    const galleryAction = getEditorGalleryAction(event.target);
+    if (galleryAction && ['Enter', ' '].includes(event.key) && event.target instanceof Element) {
+      event.preventDefault();
+      moveEditorGallery(event.target, galleryAction);
+      return;
+    }
+
+    if (
+      ['ArrowLeft', 'ArrowRight'].includes(event.key)
+      && event.target instanceof Element
+      && event.target.closest('.capubbs-gallery')
+    ) {
+      event.preventDefault();
+      moveEditorGallery(event.target, event.key === 'ArrowLeft' ? 'prev' : 'next');
+      return;
+    }
+
     if (!onImageOpen || !(event.target instanceof HTMLImageElement) || !['Enter', ' '].includes(event.key)) return;
     event.preventDefault();
     openImage(event.target, event.currentTarget);
