@@ -784,5 +784,9 @@
     .board-pagination-footer .thread-pagination {
       justify-content: flex-start;
     }
+
+    .board-pagination-footer .thread-pagination:not(.thread-pagination-with-jump) {
+      justify-content: center;
+    }
   }
 }
