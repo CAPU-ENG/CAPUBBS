@@ -1,11 +1,13 @@
 @layer components {
   .page-shell {
+    --home-page-bottom-gap: 36px;
+
     position: relative;
     z-index: 10;
     width: 100%;
     max-width: 1080px;
     margin: 0 auto;
-    padding: 18px 14px 36px;
+    padding: 18px 14px var(--home-page-bottom-gap);
   }
 
   .feed-section {
@@ -798,7 +800,7 @@
       position: sticky;
       top: min(
         calc(var(--topbar-height) + 10px),
-        calc(100dvh - var(--home-aside-height, 100dvh) - 10px)
+        calc(100dvh - var(--home-aside-height, 100dvh) - var(--home-page-bottom-gap))
       );
     }
 
