@@ -5,6 +5,7 @@ import {
   useState,
   type ChangeEvent,
 } from 'react';
+import { createPortal } from 'react-dom';
 import { editorImageInputAccept, validateEditorImageFile } from './RichTextEditor.images';
 import type { EditorGalleryImage } from './RichTextEditor.gallery';
 
@@ -126,7 +127,7 @@ export function GalleryDialog({
     }
   }
 
-  return (
+  return createPortal(
     <div className="gallery-dialog-backdrop" onClick={isBusy ? undefined : onCancel} role="presentation">
       <section
         aria-labelledby="gallery-dialog-title"
@@ -214,6 +215,7 @@ export function GalleryDialog({
           </button>
         </footer>
       </section>
-    </div>
+    </div>,
+    document.body,
   );
 }

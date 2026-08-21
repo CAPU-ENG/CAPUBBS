@@ -3,6 +3,11 @@
     overflow: hidden;
   }
 
+  body.gallery-dialog-open .mobile-thread-controls {
+    pointer-events: none;
+    visibility: hidden;
+  }
+
   .gallery-dialog-backdrop {
     position: fixed;
     inset: 0;
@@ -467,16 +472,17 @@
 
   @media (max-width: 640px) {
     .gallery-dialog-backdrop {
-      align-items: end;
-      padding: 0;
+      place-items: center;
+      padding:
+        max(12px, env(safe-area-inset-top))
+        max(12px, env(safe-area-inset-right))
+        max(12px, env(safe-area-inset-bottom))
+        max(12px, env(safe-area-inset-left));
     }
 
     .gallery-dialog {
       width: 100%;
-      max-height: 92dvh;
-      border-right: 0;
-      border-bottom: 0;
-      border-left: 0;
+      max-height: calc(100dvh - 24px - env(safe-area-inset-top) - env(safe-area-inset-bottom));
     }
 
     .gallery-dialog-images > li {
