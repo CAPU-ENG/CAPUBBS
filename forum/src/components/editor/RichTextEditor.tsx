@@ -978,7 +978,11 @@ export function RichTextEditor({
       const selectedContent = range.extractContents();
       removeOverriddenRichInlineStyles(selectedContent, style);
       wrapper.appendChild(selectedContent);
+      mergeFullySelectedChildRichSpansIntoWrapper(wrapper);
       range.insertNode(wrapper);
+      normalizeRedundantRichSpans(editor);
+      removeOverriddenRichInlineStylesFromFullySelectedAncestors(wrapper, editor, style);
+      normalizeRedundantRichSpans(editor);
       nextRange.selectNodeContents(wrapper);
     }
 
@@ -2013,31 +2017,112 @@ function finalizeRichTypingStyles(html: string) {
 
 function removeOverriddenRichInlineStyles(content: DocumentFragment, style: RichInlineStyle) {
   content.querySelectorAll<HTMLElement>('*').forEach((element) => {
-    if (style.color) {
-      element.style.removeProperty('color');
-      element.removeAttribute('color');
-    }
-
-    if (style.fontFamily) {
-      element.style.removeProperty('font-family');
-      element.removeAttribute('face');
-    }
-
-    if (style.fontSize) {
-      element.style.removeProperty('font-size');
-      element.removeAttribute('size');
-    }
-
-    if (element.hasAttribute('style') && !element.getAttribute('style')?.trim()) {
-      element.removeAttribute('style');
-    }
+    removeOverriddenRichInlineStyleFromElement(element, style);
   });
 
+  normalizeRedundantRichSpans(content);
+}
+
+function removeOverriddenRichInlineStylesFromFullySelectedAncestors(
+  wrapper: HTMLSpanElement,
+  editor: HTMLElement,
+  style: RichInlineStyle,
+) {
+  let selectedNode: Node = wrapper;
+  let ancestor = wrapper.parentElement;
+
+  while (ancestor && ancestor !== editor && ancestor.tagName === 'SPAN') {
+    const childNodes = Array.from(ancestor.childNodes);
+    if (childNodes.length !== 1 || childNodes[0] !== selectedNode) break;
+
+    removeOverriddenRichInlineStyleFromElement(ancestor, style);
+    if (
+      ancestor instanceof HTMLSpanElement
+      && selectedNode instanceof HTMLSpanElement
+      && canMergeRichInlineStyleSpans(ancestor, selectedNode)
+    ) {
+      mergeRichInlineStyles(ancestor, selectedNode);
+      const parent = ancestor.parentElement;
+      ancestor.replaceWith(selectedNode);
+      ancestor = parent;
+    } else if (ancestor.attributes.length === 0) {
+      const parent = ancestor.parentElement;
+      ancestor.replaceWith(...Array.from(ancestor.childNodes));
+      ancestor = parent;
+    } else {
+      selectedNode = ancestor;
+      ancestor = ancestor.parentElement;
+    }
+  }
+}
+
+function mergeFullySelectedChildRichSpansIntoWrapper(wrapper: HTMLSpanElement) {
+  let child = wrapper.firstElementChild;
+
+  while (
+    wrapper.childNodes.length === 1
+    && child instanceof HTMLSpanElement
+    && canMergeRichInlineStyleSpans(child, wrapper)
+  ) {
+    mergeRichInlineStyles(child, wrapper);
+    child.replaceWith(...Array.from(child.childNodes));
+    child = wrapper.firstElementChild;
+  }
+}
+
+function canMergeRichInlineStyleSpans(source: HTMLSpanElement, target: HTMLSpanElement) {
+  const supportedProperties = new Set(['color', 'font-family', 'font-size']);
+  return source.attributes.length === 1
+    && source.hasAttribute('style')
+    && target.attributes.length === 1
+    && target.hasAttribute('style')
+    && Array.from(source.style).every((property) => supportedProperties.has(property))
+    && Array.from(target.style).every((property) => supportedProperties.has(property));
+}
+
+function mergeRichInlineStyles(source: HTMLSpanElement, target: HTMLSpanElement) {
+  Array.from(source.style).forEach((property) => {
+    if (!target.style.getPropertyValue(property)) {
+      target.style.setProperty(
+        property,
+        source.style.getPropertyValue(property),
+        source.style.getPropertyPriority(property),
+      );
+    }
+  });
+}
+
+function removeOverriddenRichInlineStyleFromElement(element: HTMLElement, style: RichInlineStyle) {
+  if (style.color) {
+    element.style.removeProperty('color');
+    element.removeAttribute('color');
+  }
+
+  if (style.fontFamily) {
+    element.style.removeProperty('font-family');
+    element.removeAttribute('face');
+  }
+
+  if (style.fontSize) {
+    element.style.removeProperty('font-size');
+    element.removeAttribute('size');
+  }
+
+  if (element.hasAttribute('style') && !element.getAttribute('style')?.trim()) {
+    element.removeAttribute('style');
+  }
+}
+
+function normalizeRedundantRichSpans(content: ParentNode) {
+  content.normalize();
   Array.from(content.querySelectorAll('span')).reverse().forEach((span) => {
-    if (span.attributes.length === 0) {
+    if (!(span.textContent ?? '').length && !span.querySelector('br, img, hr')) {
+      span.remove();
+    } else if (span.attributes.length === 0) {
       span.replaceWith(...Array.from(span.childNodes));
     }
   });
+  content.normalize();
 }
 
 function readRecentTextColors() {
