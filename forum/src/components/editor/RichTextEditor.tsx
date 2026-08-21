@@ -547,6 +547,41 @@ export function RichTextEditor({
     redoEditorChange();
   };
 
+  const handleRichEditorBeforeInput = (event: FormEvent<HTMLDivElement>) => {
+    const inputType = (event.nativeEvent as InputEvent).inputType;
+
+    if (inputType !== 'insertParagraph') {
+      return;
+    }
+
+    const editor = event.currentTarget;
+    const selection = window.getSelection();
+
+    if (!selection || selection.rangeCount === 0) {
+      return;
+    }
+
+    const range = selection.getRangeAt(0);
+
+    if (
+      !editor.contains(range.commonAncestorContainer)
+      || isSelectionInsideStructuredRichBlock(editor, range.commonAncestorContainer)
+    ) {
+      return;
+    }
+
+    event.preventDefault();
+    range.deleteContents();
+
+    const lineBreak = document.createElement('br');
+    range.insertNode(lineBreak);
+    range.setStartAfter(lineBreak);
+    range.collapse(true);
+    selection.removeAllRanges();
+    selection.addRange(range);
+    updateContent(editor.innerHTML);
+  };
+
   const clearRichImageSelection = () => {
     selectedRichImageRef.current = null;
     activeRichImageResizeRef.current = null;
@@ -1547,6 +1582,7 @@ export function RichTextEditor({
             updateContent(event.currentTarget.innerHTML);
             window.requestAnimationFrame(updateRichImageResizeHandle);
           }}
+          onBeforeInput={handleRichEditorBeforeInput}
           onBlur={(event) => updateContent(event.currentTarget.innerHTML)}
           onKeyDown={handleEditorKeyDown}
           onPaste={handleEditorPaste}
@@ -1728,6 +1764,20 @@ function convertEditorContent(content: string, from: RichTextEditorMode, to: Ric
 function isCrossGroupModeSwitchLocked(value: RichTextEditorValue, nextMode: RichTextEditorMode) {
   const switchesMarkdownGroup = (value.mode === 'markdown') !== (nextMode === 'markdown');
   return switchesMarkdownGroup && hasModeSwitchingContent(value);
+}
+
+function isSelectionInsideStructuredRichBlock(editor: HTMLElement, node: Node) {
+  let element = node instanceof Element ? node : node.parentElement;
+
+  while (element && element !== editor) {
+    if (/^(?:BLOCKQUOTE|H[1-6]|LI|PRE|T[DH])$/.test(element.tagName)) {
+      return true;
+    }
+
+    element = element.parentElement;
+  }
+
+  return false;
 }
 
 function hasModeSwitchingContent(value: RichTextEditorValue) {
