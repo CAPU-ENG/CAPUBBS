@@ -1,4 +1,4 @@
-import type { MouseEventHandler, ReactNode, SyntheticEvent } from 'react';
+import { useEffect, useRef, type MouseEventHandler, type ReactNode, type SyntheticEvent } from 'react';
 import { ChevronDown, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight } from 'lucide-react';
 
 type PaginationBaseProps = {
@@ -83,9 +83,21 @@ export function Pagination({
   pageHref,
   showPageJump = false,
 }: PaginationProps) {
+  const pageJumpDetailsRef = useRef<HTMLDetailsElement>(null);
   const pages = visiblePages(currentPage, pageCount);
   const pagesAreCollapsed = pages.length < pageCount;
   const pageJumpVisible = showPageJump && (alwaysShowPageJump || pagesAreCollapsed);
+
+  useEffect(() => {
+    function closePageJumpOnOutsidePointer(event: PointerEvent) {
+      const details = pageJumpDetailsRef.current;
+      if (!details?.open || details.contains(event.target as Node)) return;
+      details.removeAttribute('open');
+    }
+
+    document.addEventListener('pointerdown', closePageJumpOnOutsidePointer);
+    return () => document.removeEventListener('pointerdown', closePageJumpOnOutsidePointer);
+  }, []);
 
   function hrefFor(page: number, disabled = false) {
     return pageHref && !disabled ? pageHref(page) : undefined;
@@ -181,7 +193,7 @@ export function Pagination({
       {pageJumpVisible ? (
         <div aria-label="跳转页码" className="thread-page-jump">
           <span>跳转到</span>
-          <details onToggle={revealCurrentPage}>
+          <details onToggle={revealCurrentPage} ref={pageJumpDetailsRef}>
             <summary>
               {currentPage}
               <ChevronDown aria-hidden="true" size={14} />
