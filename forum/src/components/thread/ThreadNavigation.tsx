@@ -33,6 +33,7 @@ export function ThreadPagination({
 }: PaginationProps) {
   return (
     <Pagination
+      alwaysShowPageJump={showPageJump}
       ariaLabel="帖子分页"
       compact={compact}
       currentPage={currentPage}

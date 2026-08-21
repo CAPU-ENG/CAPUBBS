@@ -2,6 +2,7 @@ import type { MouseEventHandler, ReactNode, SyntheticEvent } from 'react';
 import { ChevronDown, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight } from 'lucide-react';
 
 type PaginationBaseProps = {
+  alwaysShowPageJump?: boolean;
   ariaLabel: string;
   compact?: boolean;
   currentPage: number;
@@ -73,6 +74,7 @@ function visiblePages(currentPage: number, pageCount: number) {
 }
 
 export function Pagination({
+  alwaysShowPageJump = false,
   ariaLabel,
   compact = false,
   currentPage,
@@ -83,7 +85,7 @@ export function Pagination({
 }: PaginationProps) {
   const pages = visiblePages(currentPage, pageCount);
   const pagesAreCollapsed = pages.length < pageCount;
-  const pageJumpVisible = showPageJump && pagesAreCollapsed;
+  const pageJumpVisible = showPageJump && (alwaysShowPageJump || pagesAreCollapsed);
 
   function hrefFor(page: number, disabled = false) {
     return pageHref && !disabled ? pageHref(page) : undefined;
