@@ -40,7 +40,6 @@ import { getPublicProfileAppPath } from '../../utils/userRoutes';
 import { PastedImageDialog } from './PastedImageDialog';
 import {
   defaultRichTextFont,
-  defaultRichTextFontSize,
   defaultTextColor,
   editorModeGroups,
   htmlVoidTags,
@@ -279,7 +278,7 @@ export function RichTextEditor({
   const [popoverTextValue, setPopoverTextValue] = useState('');
   const [popoverValue, setPopoverValue] = useState('');
   const [fontSelectValue, setFontSelectValue] = useState('');
-  const [fontSizeSelectValue, setFontSizeSelectValue] = useState(defaultRichTextFontSize);
+  const [fontSizeSelectValue, setFontSizeSelectValue] = useState('');
   const [pastedImage, setPastedImage] = useState<PastedImageState | null>(null);
   const [selectedTextColor, setSelectedTextColor] = useState(defaultTextColor);
   const [hexSourceValue, setHexSourceValue] = useState(defaultTextColor);
@@ -1310,7 +1309,7 @@ export function RichTextEditor({
                   className="h-6 w-12 border-0 bg-transparent px-0 text-[0.68rem] font-medium text-zinc-700 outline-none dark:text-zinc-200"
                   aria-label="字体"
                 >
-                  <option value="">默认</option>
+                  <option value="">字体</option>
                   {richTextFontOptions.map((fontOption) => (
                     <option key={fontOption.value} value={fontOption.value}>
                       {fontOption.label}
@@ -1328,6 +1327,7 @@ export function RichTextEditor({
                   className="h-6 w-[1.833rem] border-0 bg-transparent px-0 text-[0.68rem] font-medium text-zinc-700 outline-none dark:text-zinc-200"
                   aria-label="字号"
                 >
+                  <option value="">字号</option>
                   {richTextFontSizeOptions.map((fontSizeOption) => (
                     <option key={fontSizeOption.value} value={fontSizeOption.value}>
                       {fontSizeOption.label}
@@ -1354,7 +1354,7 @@ export function RichTextEditor({
                   className="h-6 w-[2.667rem] border-0 bg-transparent px-0 text-[0.68rem] font-medium text-zinc-700 outline-none dark:text-zinc-200"
                   aria-label="标题格式"
                 >
-                  <option value="">标题</option>
+                  <option value="">正文</option>
                   {richTextHeadingOptions.map((headingOption) => (
                     <option key={headingOption.value} value={headingOption.value}>
                       {headingOption.label}
@@ -1420,7 +1420,7 @@ export function RichTextEditor({
                   saveSelection();
                 }}
                 onClick={toggleColorPicker}
-                className={`relative inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-[var(--control-radius)] text-zinc-600 transition hover:bg-zinc-100 hover:text-zinc-950 dark:text-zinc-300 dark:hover:bg-white/10 dark:hover:text-white ${
+                className={`relative inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-[var(--control-radius)] text-zinc-600 transition hover:bg-zinc-100 hover:text-zinc-950 dark:text-zinc-300 dark:hover:bg-white/10 dark:hover:text-white ${
                   isColorPickerOpen ? 'bg-zinc-100 text-zinc-950 dark:bg-white/10 dark:text-white' : ''
                 }`}
                 aria-label="文字颜色"
@@ -1737,7 +1737,7 @@ function ToolbarButton({
       title={label}
       onMouseDown={onMouseDown}
       onClick={onClick}
-      className="flex h-7 w-7 shrink-0 items-center justify-center rounded-[var(--control-radius)] border border-transparent text-[#174f38] transition hover:border-zinc-200 hover:bg-zinc-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#174f38] dark:text-white dark:hover:border-white/10 dark:hover:bg-white/[0.1]"
+      className="flex h-6 w-6 shrink-0 items-center justify-center rounded-[var(--control-radius)] border border-transparent text-[#174f38] transition hover:border-zinc-200 hover:bg-zinc-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#174f38] dark:text-white dark:hover:border-white/10 dark:hover:bg-white/[0.1]"
     >
       {children}
     </button>
