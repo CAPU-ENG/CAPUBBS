@@ -2,6 +2,7 @@ import { lazy, Suspense, useEffect, useReducer } from 'react';
 import { AuthProvider } from './context/AuthContext';
 import { HomePage } from './pages/HomePage';
 import { FORUM_LOCATION_CHANGE_EVENT } from './utils/authRoutes';
+import { resolveForumAppRoute } from './utils/forumNavigation';
 import { translateLegacyForumThreadHref } from './utils/legacyForumRoutes';
 import { getThreadFloorElement, getThreadFloorFromHash } from './utils/threadRoutes';
 import { getPublicProfileNameFromLocation, USER_CENTER_PATH } from './utils/userRoutes';
@@ -103,8 +104,9 @@ function ForumRouter() {
       const legacyThreadHref = translateLegacyForumThreadHref(href, window.location.href);
       if (target.target && target.target !== '_self' && !legacyThreadHref) return;
 
-      const url = new URL(legacyThreadHref ?? href, window.location.href);
-      if (url.origin !== window.location.origin || !isForumAppPath(url.pathname)) return;
+      const route = resolveForumAppRoute(href, window.location.href);
+      if (!route) return;
+      const url = new URL(route, window.location.origin);
       if (
         url.pathname === window.location.pathname
         && url.search === window.location.search
@@ -176,24 +178,6 @@ function HomeRoute() {
   }, []);
 
   return <HomePage />;
-}
-
-function isForumAppPath(pathname: string) {
-  const normalizedPath = normalizePathname(pathname);
-  return normalizedPath === '/'
-    || normalizedPath === '/login'
-    || normalizedPath === '/register'
-    || normalizedPath === '/search'
-    || normalizedPath === '/settings'
-    || normalizedPath === '/calendar-admin'
-    || normalizedPath === '/manage'
-    || normalizedPath === '/data'
-    || normalizedPath === '/activity-management'
-    || isThreadComposePath(normalizedPath)
-    || isThreadEditPath(normalizedPath)
-    || normalizedPath === USER_CENTER_PATH
-    || normalizedPath === '/users'
-    || normalizedPath.startsWith('/users/');
 }
 
 function isThreadComposePath(pathname: string) {

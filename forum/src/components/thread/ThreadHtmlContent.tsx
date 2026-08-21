@@ -6,7 +6,13 @@ import {
   translateLegacyForumMarkup,
 } from '../../utils/forumMarkup';
 import { FORUM_LOCATION_CHANGE_EVENT } from '../../utils/authRoutes';
-import { translateLegacyForumThreadHref } from '../../utils/legacyForumRoutes';
+import {
+  FORUM_APP_EXACT_PATHS,
+  FORUM_APP_PATH_PREFIXES,
+  LEGACY_FORUM_EXACT_PATHS,
+  LEGACY_FORUM_PATH_PATTERNS,
+  resolveForumAppRoute,
+} from '../../utils/forumNavigation';
 import { getThreadFloorElement, getThreadFloorFromHash } from '../../utils/threadRoutes';
 import {
   findSignatureFloorMarkers,
@@ -145,7 +151,7 @@ function ThreadSandboxedHtmlFrame({
       if (event.data.frameId !== frameIdRef.current) return;
 
       if (event.data.type === 'navigate') {
-        const route = translateLegacyForumThreadHref(event.data.url, getLegacyContentBaseUrl());
+        const route = resolveForumAppRoute(event.data.url, getLegacyContentBaseUrl());
         if (!route) return;
 
         window.history.pushState(null, '', route);
@@ -298,6 +304,10 @@ function buildFrameBridgeScript(frameId: string, canOpenImages: boolean) {
     var frameId=${JSON.stringify(frameId)};
     var forumOrigin=${JSON.stringify(window.location.origin)};
     var canOpenImages=${JSON.stringify(canOpenImages)};
+    var forumAppExactPaths=${JSON.stringify(FORUM_APP_EXACT_PATHS)};
+    var forumAppPathPrefixes=${JSON.stringify(FORUM_APP_PATH_PREFIXES)};
+    var legacyForumExactPaths=${JSON.stringify(LEGACY_FORUM_EXACT_PATHS)};
+    var legacyForumPathPatterns=${JSON.stringify(LEGACY_FORUM_PATH_PATTERNS)}.map(function(pattern){return new RegExp(pattern);});
     var minBottomGuard=${FRAME_BOTTOM_GUARD};
     var queued=false;
     function getContentHeight(){
@@ -331,24 +341,25 @@ function buildFrameBridgeScript(frameId: string, canOpenImages: boolean) {
         script.parentNode.replaceChild(executable,script);
       });
     }
-    function getLegacyThreadUrl(target){
+    function getForumNavigationUrl(target){
       var anchor=target&&target.closest?target.closest('a'):null;
       if(!anchor)return '';
       var href=anchor.getAttribute('href');
-      if(!href)return '';
+      if(!href||href.charAt(0)==='#'||anchor.hasAttribute('download'))return '';
       try{
         var url=new URL(href,document.baseURI);
         var host=url.hostname.toLowerCase();
         var trusted=url.origin===forumOrigin||host==='chexie.net'||host.endsWith('.chexie.net');
         var path=url.pathname.replace(/\\/{2,}/g,'/').replace(/\\/+$/,'')||'/';
         var appPath=path.replace(/^\\/(?:bbs-new|capubbs-new)(?=\\/)/,'');
-        var legacyPath=appPath==='/thread.php'||appPath==='/bbs/content'||appPath==='/bbs/content/index.php'||appPath==='/cgi-bin/bbs.pl'||/^\\/threads\\/\\d+-\\d+$/.test(appPath);
-        return trusted&&legacyPath?url.href:'';
+        var appRoute=forumAppExactPaths.indexOf(appPath)>=0||forumAppPathPrefixes.some(function(prefix){return appPath.indexOf(prefix)===0;});
+        var legacyRoute=legacyForumExactPaths.indexOf(appPath)>=0||legacyForumPathPatterns.some(function(pattern){return pattern.test(appPath);});
+        return trusted&&(appRoute||legacyRoute)?url.href:'';
       }catch(error){return '';}
     }
-    function handleLegacyThreadClick(event){
+    function handleForumNavigationClick(event){
       if(event.defaultPrevented||event.button!==0||event.altKey||event.ctrlKey||event.metaKey||event.shiftKey)return;
-      var url=getLegacyThreadUrl(event.target);
+      var url=getForumNavigationUrl(event.target);
       if(!url)return;
       event.preventDefault();
       window.parent.postMessage({source:'${HTML_FRAME_MESSAGE_SOURCE}',type:'navigate',frameId:frameId,url:url},'*');
@@ -401,7 +412,7 @@ function buildFrameBridgeScript(frameId: string, canOpenImages: boolean) {
       document.addEventListener('animationend',queueHeight);
       document.addEventListener('click',handleImageClick);
       document.addEventListener('keydown',handleImageKeyDown);
-      document.addEventListener('click',handleLegacyThreadClick);
+      document.addEventListener('click',handleForumNavigationClick);
       if(document.fonts&&document.fonts.ready)document.fonts.ready.then(queueHeight);
       executeUserScripts();
       prepareImages();
