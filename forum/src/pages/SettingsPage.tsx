@@ -124,25 +124,45 @@ export function SettingsPage() {
             </div>
 
             <div className="settings-checkbox-list">
-              <label className="settings-checkbox-option">
-                <input
-                  checked={backToTopEnabled}
-                  onChange={(event) => saveBackToTopEnabled(event.target.checked)}
-                  type="checkbox"
-                />
-                <span className="settings-checkbox-mark" aria-hidden="true"><Check size={14} /></span>
-                <span><strong>回到顶部</strong></span>
-              </label>
+              <div className="settings-checkbox-row">
+                <label className="settings-checkbox-option">
+                  <input
+                    checked={backToTopEnabled}
+                    onChange={(event) => saveBackToTopEnabled(event.target.checked)}
+                    type="checkbox"
+                  />
+                  <span className="settings-checkbox-mark" aria-hidden="true"><Check size={14} /></span>
+                  <span><strong>回到顶部</strong></span>
+                </label>
+                <span className="settings-option-help">
+                  <button aria-describedby="back-to-top-help" aria-label="查看回到顶部说明" type="button">
+                    <CircleHelp size={14} />
+                  </button>
+                  <span id="back-to-top-help" role="tooltip">
+                    在帖子详情页右栏显示回到顶部按钮，点击后直接跳转到页面顶部。
+                  </span>
+                </span>
+              </div>
 
-              <label className="settings-checkbox-option">
-                <input
-                  checked={signatureToggleEnabled}
-                  onChange={(event) => saveSignatureToggleEnabled(event.target.checked)}
-                  type="checkbox"
-                />
-                <span className="settings-checkbox-mark" aria-hidden="true"><Check size={14} /></span>
-                <span><strong>屏蔽签名档</strong></span>
-              </label>
+              <div className="settings-checkbox-row">
+                <label className="settings-checkbox-option">
+                  <input
+                    checked={signatureToggleEnabled}
+                    onChange={(event) => saveSignatureToggleEnabled(event.target.checked)}
+                    type="checkbox"
+                  />
+                  <span className="settings-checkbox-mark" aria-hidden="true"><Check size={14} /></span>
+                  <span><strong>屏蔽签名档</strong></span>
+                </label>
+                <span className="settings-option-help">
+                  <button aria-describedby="signature-toggle-help" aria-label="查看屏蔽签名档说明" type="button">
+                    <CircleHelp size={14} />
+                  </button>
+                  <span id="signature-toggle-help" role="tooltip">
+                    在帖子详情页右栏显示签名档开关，屏蔽状态会在不同帖子间保留。
+                  </span>
+                </span>
+              </div>
             </div>
           </section>
 
