@@ -374,16 +374,85 @@ export function DesktopHomeAside({
     const aside = asideRef.current;
     if (!aside) return;
 
-    const updateAsideHeight = () => {
-      aside.style.setProperty('--home-aside-height', `${aside.getBoundingClientRect().height}px`);
+    const desktopMedia = window.matchMedia('(min-width: 1024px)');
+    let animationFrame = 0;
+    let lastScrollY = Math.max(window.scrollY, 0);
+    let stickyTop = 0;
+    let minStickyTop = 0;
+    let maxStickyTop = 0;
+
+    const clampStickyTop = (value: number) => Math.min(maxStickyTop, Math.max(minStickyTop, value));
+
+    const updateAsideBounds = (initialize = false) => {
+      const asideHeight = aside.getBoundingClientRect().height;
+      const rootStyle = window.getComputedStyle(document.documentElement);
+      const shell = aside.closest<HTMLElement>('.page-shell');
+      const shellStyle = shell ? window.getComputedStyle(shell) : null;
+      const topBarHeight = Number.parseFloat(rootStyle.getPropertyValue('--topbar-height')) || 64;
+      const bottomGap = Number.parseFloat(shellStyle?.getPropertyValue('--home-page-bottom-gap') ?? '') || 36;
+      const wasAtTop = stickyTop >= maxStickyTop - 1;
+      const wasAtBottom = stickyTop <= minStickyTop + 1;
+
+      maxStickyTop = topBarHeight + 10;
+      minStickyTop = Math.min(maxStickyTop, window.innerHeight - asideHeight - bottomGap);
+      aside.style.setProperty('--home-aside-height', `${asideHeight}px`);
+
+      if (initialize) {
+        stickyTop = clampStickyTop(aside.getBoundingClientRect().top);
+      } else if (wasAtBottom) {
+        stickyTop = minStickyTop;
+      } else if (wasAtTop) {
+        stickyTop = maxStickyTop;
+      } else {
+        stickyTop = clampStickyTop(stickyTop);
+      }
+
+      if (desktopMedia.matches) {
+        aside.style.setProperty('--home-aside-sticky-top', `${stickyTop}px`);
+      }
     };
 
-    updateAsideHeight();
-    if (typeof ResizeObserver === 'undefined') return;
+    const updateStickyPosition = () => {
+      animationFrame = 0;
+      const currentScrollY = Math.max(window.scrollY, 0);
+      const scrollDelta = currentScrollY - lastScrollY;
+      lastScrollY = currentScrollY;
 
-    const observer = new ResizeObserver(updateAsideHeight);
-    observer.observe(aside);
-    return () => observer.disconnect();
+      if (!desktopMedia.matches || scrollDelta === 0) return;
+      stickyTop = clampStickyTop(stickyTop - scrollDelta);
+      aside.style.setProperty('--home-aside-sticky-top', `${stickyTop}px`);
+    };
+
+    const scheduleStickyPositionUpdate = () => {
+      if (animationFrame) return;
+      animationFrame = window.requestAnimationFrame(updateStickyPosition);
+    };
+
+    const handleViewportChange = () => {
+      lastScrollY = Math.max(window.scrollY, 0);
+      if (desktopMedia.matches) {
+        updateAsideBounds(true);
+      } else {
+        aside.style.removeProperty('--home-aside-sticky-top');
+      }
+    };
+
+    updateAsideBounds(true);
+    window.addEventListener('scroll', scheduleStickyPositionUpdate, { passive: true });
+    window.addEventListener('resize', handleViewportChange);
+    desktopMedia.addEventListener('change', handleViewportChange);
+
+    const observer = typeof ResizeObserver === 'undefined' ? null : new ResizeObserver(() => updateAsideBounds());
+    observer?.observe(aside);
+    return () => {
+      if (animationFrame) window.cancelAnimationFrame(animationFrame);
+      observer?.disconnect();
+      window.removeEventListener('scroll', scheduleStickyPositionUpdate);
+      window.removeEventListener('resize', handleViewportChange);
+      desktopMedia.removeEventListener('change', handleViewportChange);
+      aside.style.removeProperty('--home-aside-sticky-top');
+      aside.style.removeProperty('--home-aside-height');
+    };
   }, []);
 
   return (
