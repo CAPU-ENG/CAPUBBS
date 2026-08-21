@@ -1,11 +1,10 @@
 #!/usr/bin/env python3
-"""Download archived users' avatars and keep every output within a size limit."""
+"""Download archived users' avatars using their original public filenames."""
 
 from __future__ import annotations
 
 import argparse
 import datetime as dt
-import hashlib
 import http.client
 import io
 import json
@@ -19,7 +18,7 @@ from pathlib import Path
 from typing import Any
 
 try:
-    from PIL import Image, ImageOps, UnidentifiedImageError
+    from PIL import Image, UnidentifiedImageError
 except ImportError:
     print(
         "错误：缺少 Pillow，请先运行 python3 -m pip install -r tool/requirements.txt",
@@ -29,8 +28,6 @@ except ImportError:
 
 
 DEFAULT_SITE_URL = "https://www.chexie.net"
-DEFAULT_MAX_BYTES = 500 * 1024
-DEFAULT_MAX_DIMENSION = 2048
 USER_AGENT = "CAPUBBS-avatar-archiver/1.0"
 
 
@@ -112,9 +109,26 @@ def encode_url(url: str) -> str:
     )
 
 
-def avatar_output_path(output_dir: Path, username: str) -> Path:
-    digest = hashlib.sha256(username.encode("utf-8")).hexdigest()
-    return output_dir / "files" / f"{digest}.webp"
+def avatar_output_path(output_dir: Path, source_url: str, site_url: str) -> Path:
+    parsed_source = urllib.parse.urlsplit(source_url)
+    parsed_site = urllib.parse.urlsplit(site_url)
+    decoded_path = urllib.parse.unquote(parsed_source.path)
+    path_parts = Path(decoded_path).parts
+
+    if parsed_source.netloc == parsed_site.netloc and len(path_parts) >= 3:
+        try:
+            bbsimg_index = path_parts.index("bbsimg")
+        except ValueError:
+            bbsimg_index = -1
+        if bbsimg_index >= 0 and bbsimg_index + 1 < len(path_parts):
+            relative_parts = path_parts[bbsimg_index + 1 :]
+            if all(part not in {"", ".", ".."} for part in relative_parts):
+                return output_dir.joinpath(*relative_parts)
+
+    filename = Path(decoded_path).name
+    if filename in {"", ".", ".."}:
+        raise AvatarError(f"头像地址中没有可用的原文件名：{source_url}")
+    return output_dir / "icons" / "user_archive" / "files" / filename
 
 
 def load_profiles(input_path: Path) -> dict[str, dict[str, Any]]:
@@ -174,112 +188,40 @@ def download_avatar(
     raise AvatarError(f"下载失败：{last_error}")
 
 
-def prepare_image(data: bytes, max_dimension: int) -> Image.Image:
+def inspect_image(data: bytes) -> dict[str, Any]:
     try:
         with Image.open(io.BytesIO(data)) as source:
-            source.seek(0)
-            image = ImageOps.exif_transpose(source).copy()
+            width, height = source.size
+            image_format = str(source.format or "").lower()
+            source.verify()
     except (Image.DecompressionBombError, OSError, UnidentifiedImageError) as exc:
         raise AvatarError(f"无法解析头像图片：{exc}") from exc
-
-    if image.mode in {"RGBA", "LA"} or (
-        image.mode == "P" and "transparency" in image.info
-    ):
-        image = image.convert("RGBA")
-    else:
-        image = image.convert("RGB")
-    image.thumbnail((max_dimension, max_dimension), Image.Resampling.LANCZOS)
-    return image
-
-
-def encode_webp(image: Image.Image, quality: int) -> bytes:
-    output = io.BytesIO()
-    try:
-        image.save(output, format="WEBP", quality=quality, method=6)
-    except (KeyError, OSError) as exc:
-        raise AvatarError(f"无法编码 WebP（请确认 Pillow 支持 WebP）：{exc}") from exc
-    return output.getvalue()
-
-
-def compress_avatar(
-    source_data: bytes,
-    max_bytes: int,
-    max_dimension: int,
-) -> tuple[bytes, dict[str, int]]:
-    image = prepare_image(source_data, max_dimension)
-    original_width, original_height = image.size
-
-    while True:
-        smallest = encode_webp(image, 1)
-        if len(smallest) <= max_bytes:
-            best_data = smallest
-            best_quality = 1
-            low, high = 2, 92
-            while low <= high:
-                quality = (low + high) // 2
-                candidate = encode_webp(image, quality)
-                if len(candidate) <= max_bytes:
-                    best_data = candidate
-                    best_quality = quality
-                    low = quality + 1
-                else:
-                    high = quality - 1
-            return best_data, {
-                "width": image.width,
-                "height": image.height,
-                "originalWidth": original_width,
-                "originalHeight": original_height,
-                "quality": best_quality,
-            }
-
-        if image.size == (1, 1):
-            raise AvatarError(f"图片无法压缩到 {max_bytes} 字节以内")
-        next_size = (
-            max(1, int(image.width * 0.8)),
-            max(1, int(image.height * 0.8)),
-        )
-        if next_size == image.size:
-            next_size = (max(1, image.width - 1), max(1, image.height - 1))
-        image = image.resize(next_size, Image.Resampling.LANCZOS)
+    return {"width": width, "height": height, "format": image_format}
 
 
 def reusable_avatar_info(
-    username: str,
     entry: Any,
     icon: str,
+    path: Path,
     output_dir: Path,
-    max_bytes: int,
+    max_download_bytes: int,
 ) -> dict[str, Any] | None:
     if isinstance(entry, dict) and entry.get("sourceIcon") != icon:
         return None
 
-    path = avatar_output_path(output_dir, username)
     try:
         size = path.stat().st_size
-        if not path.is_file() or size <= 0 or size > max_bytes:
+        if not path.is_file() or size <= 0 or size > max_download_bytes:
             return None
-        with Image.open(path) as image:
-            if image.format != "WEBP":
-                return None
-            width, height = image.size
-            image.verify()
-    except (OSError, UnidentifiedImageError):
+        image_info = inspect_image(path.read_bytes())
+    except (AvatarError, OSError, UnidentifiedImageError):
         return None
 
-    info: dict[str, Any] = {}
-    if isinstance(entry, dict):
-        for key in ("originalWidth", "originalHeight", "quality"):
-            if key in entry:
-                info[key] = entry[key]
-    info.update(
-        {
-            "avatarFile": str(path.relative_to(output_dir)),
-            "bytes": size,
-            "width": width,
-            "height": height,
-        }
-    )
-    return info
+    return {
+        "avatarFile": str(path.relative_to(output_dir)),
+        "bytes": size,
+        **image_info,
+    }
 
 
 def load_previous_users(manifest_path: Path) -> dict[str, Any]:
@@ -296,15 +238,13 @@ def archive_avatars(
     input_path: Path,
     output_dir: Path,
     site_url: str,
-    max_bytes: int,
-    max_dimension: int,
     max_download_bytes: int,
     timeout: float,
     retries: int,
     delay: float,
     force: bool,
 ) -> tuple[dict[str, int], list[dict[str, str]]]:
-    manifest_path = output_dir / "manifest.json"
+    manifest_path = output_dir / "icons" / "user_archive" / "manifest.json"
     previous_users = load_previous_users(manifest_path)
     users: dict[str, dict[str, Any]] = {}
     errors: list[dict[str, str]] = []
@@ -319,9 +259,7 @@ def archive_avatars(
             "finishedAt": None,
             "status": "running",
             "profileCount": len(profiles),
-            "maxBytes": max_bytes,
-            "maxDimension": max_dimension,
-            "outputFormat": "webp",
+            "outputFormat": "original",
             "savedThisRun": 0,
             "skippedThisRun": 0,
             "missingThisRun": 0,
@@ -360,15 +298,16 @@ def archive_avatars(
                 checkpoint()
                 continue
             entry["sourceUrl"] = source_url
+            output_path = avatar_output_path(output_dir, source_url, site_url)
 
             reusable_info = None
             if not force:
                 reusable_info = reusable_avatar_info(
-                    username,
                     previous_users.get(username),
                     icon,
+                    output_path,
                     output_dir,
-                    max_bytes,
+                    max_download_bytes,
                 )
             if reusable_info is not None:
                 entry.update(reusable_info)
@@ -383,26 +322,20 @@ def archive_avatars(
             source_data = download_avatar(
                 source_url, timeout, retries, max_download_bytes
             )
-            avatar_data, image_info = compress_avatar(
-                source_data, max_bytes, max_dimension
-            )
-            output_path = avatar_output_path(output_dir, username)
-            write_bytes_atomically(output_path, avatar_data)
-            if output_path.stat().st_size > max_bytes:
-                output_path.unlink(missing_ok=True)
-                raise AvatarError("写入后的头像超过大小限制")
+            image_info = inspect_image(source_data)
+            write_bytes_atomically(output_path, source_data)
 
             entry.update(
                 {
                     "avatarFile": str(output_path.relative_to(output_dir)),
-                    "bytes": len(avatar_data),
+                    "bytes": len(source_data),
                     **image_info,
                     "status": "saved",
                 }
             )
             counts["saved"] += 1
             print(
-                f"  已保存：{output_path}（{len(avatar_data)} 字节）",
+                f"  已保存：{output_path}（{len(source_data)} 字节）",
                 file=sys.stderr,
             )
         except Exception as exc:
@@ -428,12 +361,12 @@ def default_input_path() -> Path:
 
 
 def default_output_dir() -> Path:
-    return Path(__file__).resolve().parent.parent / "bbsimg" / "icons" / "user_archive"
+    return Path(__file__).resolve().parent.parent / "bbsimg"
 
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
-        description="下载用户归档中的头像，统一转换为不超过指定大小的 WebP。"
+        description="下载用户归档中的头像，按原始公开路径和文件名保存。"
     )
     parser.add_argument(
         "--input",
@@ -445,24 +378,12 @@ def parse_args() -> argparse.Namespace:
         "--output",
         type=Path,
         default=None,
-        help="头像输出目录（默认 bbsimg/icons/user_archive/）",
+        help="bbsimg 输出根目录（默认项目的 bbsimg/）",
     )
     parser.add_argument(
         "--site-url",
         default=None,
         help="用于补全相对头像路径的站点地址（默认从归档清单推断）",
-    )
-    parser.add_argument(
-        "--max-bytes",
-        type=int,
-        default=DEFAULT_MAX_BYTES,
-        help=f"单个输出文件的字节上限（默认 {DEFAULT_MAX_BYTES}，即 500 KiB）",
-    )
-    parser.add_argument(
-        "--max-dimension",
-        type=int,
-        default=DEFAULT_MAX_DIMENSION,
-        help=f"头像最长边像素上限（默认 {DEFAULT_MAX_DIMENSION}）",
     )
     parser.add_argument(
         "--max-download-bytes",
@@ -473,22 +394,20 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--timeout", type=float, default=30.0, help="单次请求超时秒数")
     parser.add_argument("--retries", type=int, default=3, help="网络错误重试次数")
     parser.add_argument("--delay", type=float, default=0.1, help="每次下载前等待秒数")
-    parser.add_argument("--force", action="store_true", help="重新下载已有且合规的头像")
+    parser.add_argument("--force", action="store_true", help="重新下载已有头像")
     return parser.parse_args()
 
 
 def main() -> int:
     args = parse_args()
     if (
-        args.max_bytes <= 0
-        or args.max_dimension <= 0
-        or args.max_download_bytes <= 0
+        args.max_download_bytes <= 0
         or args.timeout <= 0
         or args.retries < 0
         or args.delay < 0
     ):
         print(
-            "错误：大小、尺寸和 timeout 必须为正数，retries/delay 不能为负数",
+            "错误：下载上限和 timeout 必须为正数，retries/delay 不能为负数",
             file=sys.stderr,
         )
         return 2
@@ -507,8 +426,6 @@ def main() -> int:
         input_path=input_path,
         output_dir=output_dir,
         site_url=site_url,
-        max_bytes=args.max_bytes,
-        max_dimension=args.max_dimension,
         max_download_bytes=args.max_download_bytes,
         timeout=args.timeout,
         retries=args.retries,

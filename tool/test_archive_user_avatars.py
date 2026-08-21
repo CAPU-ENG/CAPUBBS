@@ -4,7 +4,6 @@ from __future__ import annotations
 
 import io
 import json
-import random
 import tempfile
 import unittest
 from pathlib import Path
@@ -51,21 +50,38 @@ class ResolveIconUrlTests(unittest.TestCase):
         )
 
 
-class CompressionTests(unittest.TestCase):
-    def test_compressed_output_obeys_hard_byte_limit(self) -> None:
-        random_bytes = random.Random(7).randbytes(600 * 600 * 3)
-        image = Image.frombytes("RGB", (600, 600), random_bytes)
-        source = io.BytesIO()
-        image.save(source, format="PNG")
+class OutputPathTests(unittest.TestCase):
+    def test_uses_original_public_path_and_filename(self) -> None:
+        output_dir = Path("/tmp/bbsimg")
+        site_url = "https://www.chexie.net"
 
-        result, info = avatars.compress_avatar(
-            source.getvalue(), max_bytes=20_000, max_dimension=2048
+        self.assertEqual(
+            avatars.avatar_output_path(
+                output_dir,
+                "https://www.chexie.net/bbsimg/icons/user_upload/a.png",
+                site_url,
+            ),
+            output_dir / "icons" / "user_upload" / "a.png",
+        )
+        self.assertEqual(
+            avatars.avatar_output_path(
+                output_dir,
+                "https://www.chexie.net/bbsimg/i/u235.gif",
+                site_url,
+            ),
+            output_dir / "i" / "u235.gif",
         )
 
-        self.assertLessEqual(len(result), 20_000)
-        self.assertLess(info["width"], 600)
-        with Image.open(io.BytesIO(result)) as compressed:
-            self.assertEqual(compressed.format, "WEBP")
+    def test_external_avatar_keeps_original_filename_in_archive(self) -> None:
+        output_dir = Path("/tmp/bbsimg")
+        self.assertEqual(
+            avatars.avatar_output_path(
+                output_dir,
+                "https://images.example.test/users/avatar.jpg",
+                "https://www.chexie.net",
+            ),
+            output_dir / "icons" / "user_archive" / "files" / "avatar.jpg",
+        )
 
 
 class ArchiveTests(unittest.TestCase):
@@ -80,8 +96,6 @@ class ArchiveTests(unittest.TestCase):
             input_path=input_path,
             output_dir=output_dir,
             site_url="https://example.test",
-            max_bytes=500 * 1024,
-            max_dimension=2048,
             max_download_bytes=1024 * 1024,
             timeout=1,
             retries=0,
@@ -110,12 +124,16 @@ class ArchiveTests(unittest.TestCase):
             )
             self.assertEqual(errors, [])
             manifest = json.loads(
-                (output_dir / "manifest.json").read_text(encoding="utf-8")
+                (output_dir / "icons" / "user_archive" / "manifest.json").read_text(
+                    encoding="utf-8"
+                )
             )
             alice = manifest["users"]["Alice"]
             avatar_path = output_dir / alice["avatarFile"]
             self.assertTrue(avatar_path.is_file())
-            self.assertLessEqual(avatar_path.stat().st_size, 500 * 1024)
+            self.assertEqual(avatar_path.name, "alice.png")
+            self.assertEqual(avatar_path.read_bytes(), png_bytes())
+            self.assertEqual(manifest["meta"]["outputFormat"], "original")
             self.assertEqual(manifest["users"]["No Avatar"]["status"], "missing")
 
     def test_one_avatar_error_does_not_stop_batch(self) -> None:
@@ -138,7 +156,9 @@ class ArchiveTests(unittest.TestCase):
             self.assertEqual(counts["errors"], 1)
             self.assertEqual(errors[0]["username"], "Broken")
             manifest = json.loads(
-                (output_dir / "manifest.json").read_text(encoding="utf-8")
+                (output_dir / "icons" / "user_archive" / "manifest.json").read_text(
+                    encoding="utf-8"
+                )
             )
             self.assertEqual(manifest["users"]["Broken"]["status"], "error")
             self.assertEqual(manifest["users"]["Working"]["status"], "saved")
@@ -149,10 +169,12 @@ class ArchiveTests(unittest.TestCase):
             root = Path(temporary_dir)
             input_path = root / "profiles_by_username.json"
             output_dir = root / "avatars"
-            existing_path = avatars.avatar_output_path(output_dir, "Alice")
+            source_url = "https://example.test/avatars/alice.png"
+            existing_path = avatars.avatar_output_path(
+                output_dir, source_url, "https://example.test"
+            )
             existing_path.parent.mkdir(parents=True)
-            image = Image.open(io.BytesIO(png_bytes()))
-            image.save(existing_path, format="WEBP")
+            existing_path.write_bytes(png_bytes())
 
             with mock.patch.object(avatars, "download_avatar") as download:
                 counts, errors = self.archive(profiles, input_path, output_dir)
@@ -161,7 +183,9 @@ class ArchiveTests(unittest.TestCase):
             self.assertEqual(counts["skipped"], 1)
             self.assertEqual(errors, [])
             manifest = json.loads(
-                (output_dir / "manifest.json").read_text(encoding="utf-8")
+                (output_dir / "icons" / "user_archive" / "manifest.json").read_text(
+                    encoding="utf-8"
+                )
             )
             self.assertEqual(manifest["users"]["Alice"]["status"], "skipped")
 
@@ -170,10 +194,7 @@ class DefaultPathTests(unittest.TestCase):
     def test_default_output_is_public_and_git_ignored(self) -> None:
         self.assertEqual(
             avatars.default_output_dir(),
-            Path(__file__).resolve().parent.parent
-            / "bbsimg"
-            / "icons"
-            / "user_archive",
+            Path(__file__).resolve().parent.parent / "bbsimg",
         )
 
 
