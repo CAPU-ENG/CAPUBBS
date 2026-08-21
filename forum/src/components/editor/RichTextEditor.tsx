@@ -100,6 +100,8 @@ type RichImageResizeHandle = {
 };
 
 const maxEditorHistoryEntries = 120;
+const maxRecentTextColors = 8;
+const recentTextColorsStorageKey = 'capubbs-rich-text-recent-colors:v1';
 const richImageResizeMinWidth = 48;
 
 export function getRichTextEditorStorageValue(value: RichTextEditorValue): RichTextEditorValue {
@@ -280,6 +282,7 @@ export function RichTextEditor({
   const [fontSelectValue, setFontSelectValue] = useState('');
   const [fontSizeSelectValue, setFontSizeSelectValue] = useState('');
   const [pastedImage, setPastedImage] = useState<PastedImageState | null>(null);
+  const [recentTextColors, setRecentTextColors] = useState(readRecentTextColors);
   const [selectedTextColor, setSelectedTextColor] = useState(defaultTextColor);
   const [hexSourceValue, setHexSourceValue] = useState(defaultTextColor);
   const [richImageResizeHandle, setRichImageResizeHandle] = useState<RichImageResizeHandle | null>(null);
@@ -376,6 +379,10 @@ export function RichTextEditor({
     undoStackRef.current = [];
     redoStackRef.current = [];
   }, [value.content, value.mode]);
+
+  useEffect(() => {
+    storeRecentTextColors(recentTextColors);
+  }, [recentTextColors]);
 
   useEffect(() => {
     if (isSourceMode || !editorRef.current || editorRef.current.innerHTML === value.content) {
@@ -961,6 +968,12 @@ export function RichTextEditor({
 
     setSelectedTextColor(normalizedColor);
     setHexSourceValue(normalizedColor);
+    setRecentTextColors((currentColors) => {
+      return [
+        normalizedColor,
+        ...currentColors.filter((recentColor) => recentColor !== normalizedColor),
+      ].slice(0, maxRecentTextColors);
+    });
     applyRichInlineStyle({ color: normalizedColor }, '文字');
   };
 
@@ -1299,14 +1312,14 @@ export function RichTextEditor({
 
               <ToolbarDivider />
 
-              <label className="flex h-7 items-center rounded-[var(--control-radius)] border border-zinc-200 bg-white px-1 dark:border-white/10 dark:bg-zinc-950">
+              <label className="flex h-6 items-center rounded-[var(--control-radius)] border border-zinc-200 bg-white px-1 dark:border-white/10 dark:bg-zinc-950">
                 <span className="sr-only">字体</span>
                 <select
                   value={fontSelectValue}
                   onMouseDown={saveSelection}
                   onFocus={saveSelection}
                   onChange={handleRichFontChange}
-                  className="h-6 w-12 border-0 bg-transparent px-0 text-[0.68rem] font-medium text-zinc-700 outline-none dark:text-zinc-200"
+                  className="h-5 w-16 border-0 bg-transparent px-0 text-[0.68rem] font-medium text-zinc-700 outline-none dark:text-zinc-200"
                   aria-label="字体"
                 >
                   <option value="">字体</option>
@@ -1317,14 +1330,14 @@ export function RichTextEditor({
                   ))}
                 </select>
               </label>
-              <label className="flex h-7 items-center rounded-[var(--control-radius)] border border-zinc-200 bg-white px-1 dark:border-white/10 dark:bg-zinc-950">
+              <label className="flex h-6 items-center rounded-[var(--control-radius)] border border-zinc-200 bg-white px-1 dark:border-white/10 dark:bg-zinc-950">
                 <span className="sr-only">字号</span>
                 <select
                   value={fontSizeSelectValue}
                   onMouseDown={saveSelection}
                   onFocus={saveSelection}
                   onChange={handleRichFontSizeChange}
-                  className="h-6 w-[1.833rem] border-0 bg-transparent px-0 text-[0.68rem] font-medium text-zinc-700 outline-none dark:text-zinc-200"
+                  className="h-5 w-12 border-0 bg-transparent px-0 text-[0.68rem] font-medium text-zinc-700 outline-none dark:text-zinc-200"
                   aria-label="字号"
                 >
                   <option value="">字号</option>
@@ -1344,14 +1357,14 @@ export function RichTextEditor({
               <ToolbarButton label="下标" onMouseDown={handleToolbarMouseDown} onClick={() => runRichCommand('subscript')}>
                 <Subscript size={14} />
               </ToolbarButton>
-              <label className="flex h-7 items-center rounded-[var(--control-radius)] border border-zinc-200 bg-white px-1 dark:border-white/10 dark:bg-zinc-950">
+              <label className="flex h-6 items-center rounded-[var(--control-radius)] border border-zinc-200 bg-white px-1 dark:border-white/10 dark:bg-zinc-950">
                 <span className="sr-only">标题格式</span>
                 <select
                   value=""
                   onMouseDown={saveSelection}
                   onFocus={saveSelection}
                   onChange={handleRichHeadingChange}
-                  className="h-6 w-[2.667rem] border-0 bg-transparent px-0 text-[0.68rem] font-medium text-zinc-700 outline-none dark:text-zinc-200"
+                  className="h-5 w-16 border-0 bg-transparent px-0 text-[0.68rem] font-medium text-zinc-700 outline-none dark:text-zinc-200"
                   aria-label="标题格式"
                 >
                   <option value="">正文</option>
@@ -1450,11 +1463,30 @@ export function RichTextEditor({
                   setSelectedTextColor(color);
                   setHexSourceValue(color);
                 }}
-                className="h-8 w-10 cursor-pointer border border-zinc-200 bg-white p-1 dark:border-white/10 dark:bg-zinc-950"
+                className="h-7 w-9 cursor-pointer border border-zinc-200 bg-white p-1 dark:border-white/10 dark:bg-zinc-950"
                 aria-label="选择文字颜色"
               />
             </label>
-            <label className="grid min-w-[10rem] flex-1 gap-1 text-[0.68rem] font-semibold text-zinc-500 dark:text-zinc-400">
+            {recentTextColors.length > 0 ? (
+              <div className="grid gap-1 text-[0.68rem] font-semibold text-zinc-500 dark:text-zinc-400">
+                <span>最近使用</span>
+                <div className="flex h-7 items-center gap-1">
+                  {recentTextColors.map((recentColor) => (
+                    <button
+                      key={recentColor}
+                      type="button"
+                      aria-label={`使用最近颜色 ${recentColor}`}
+                      title={recentColor}
+                      onMouseDown={handleToolbarMouseDown}
+                      onClick={() => applyRichTextColor(recentColor)}
+                      className="h-6 w-6 rounded-[var(--control-radius)] border border-zinc-300 shadow-sm transition hover:scale-105 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#174f38] dark:border-white/20"
+                      style={{ backgroundColor: recentColor }}
+                    />
+                  ))}
+                </div>
+              </div>
+            ) : null}
+            <label className="grid w-24 gap-1 text-[0.68rem] font-semibold text-zinc-500 dark:text-zinc-400">
               HEX 色值
               <input
                 value={hexSourceValue}
@@ -1463,7 +1495,7 @@ export function RichTextEditor({
                 pattern="#[0-9A-Fa-f]{6}"
                 placeholder="#174F38"
                 spellCheck={false}
-                className="h-8 border border-zinc-200 bg-white px-2 font-mono text-xs font-medium uppercase text-zinc-800 outline-none transition focus:border-emerald-700/60 focus:ring-2 focus:ring-emerald-700/10 dark:border-white/10 dark:bg-zinc-950 dark:text-zinc-100"
+                className="h-7 w-full border border-zinc-200 bg-white px-2 font-mono text-xs font-medium uppercase text-zinc-800 outline-none transition focus:border-emerald-700/60 focus:ring-2 focus:ring-emerald-700/10 dark:border-white/10 dark:bg-zinc-950 dark:text-zinc-100"
                 aria-label="六位十六进制颜色"
               />
             </label>
@@ -1472,7 +1504,7 @@ export function RichTextEditor({
               onMouseDown={handleToolbarMouseDown}
               onClick={applyHexSourceColor}
               disabled={!/^#[0-9A-F]{6}$/.test(hexSourceValue)}
-              className="h-8 rounded-[var(--control-radius)] bg-emerald-800 px-3 text-xs font-semibold text-white transition hover:bg-emerald-900 disabled:cursor-not-allowed disabled:opacity-40 dark:bg-emerald-600 dark:hover:bg-emerald-500"
+              className="h-7 rounded-[var(--control-radius)] bg-emerald-800 px-2.5 text-xs font-semibold text-white transition hover:bg-emerald-900 disabled:cursor-not-allowed disabled:opacity-40 dark:bg-emerald-600 dark:hover:bg-emerald-500"
             >
               应用
             </button>
@@ -1746,6 +1778,34 @@ function ToolbarButton({
 
 function ToolbarDivider() {
   return <span className="mx-px h-4 w-px shrink-0 bg-zinc-200 dark:bg-white/10" />;
+}
+
+function readRecentTextColors() {
+  if (typeof window === 'undefined') {
+    return [];
+  }
+
+  try {
+    const storedColors = JSON.parse(window.localStorage.getItem(recentTextColorsStorageKey) ?? '[]');
+    if (!Array.isArray(storedColors)) {
+      return [];
+    }
+
+    return storedColors
+      .map((color) => typeof color === 'string' ? normalizeCssColor(color) : null)
+      .filter((color): color is string => color !== null)
+      .slice(0, maxRecentTextColors);
+  } catch {
+    return [];
+  }
+}
+
+function storeRecentTextColors(colors: string[]) {
+  try {
+    window.localStorage.setItem(recentTextColorsStorageKey, JSON.stringify(colors));
+  } catch {
+    // The color still applies when persistent storage is unavailable.
+  }
 }
 
 function getPopoverConfig(popover: EditorPopover) {
