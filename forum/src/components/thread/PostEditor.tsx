@@ -25,6 +25,8 @@ export type PostEditorPreviewAuthor = {
   name: string;
 };
 
+export const AUTO_SAVE_STATUS = '自动保存至草稿箱';
+
 const signatureOptions = [
   { label: '不使用签名档', value: 0 },
   { label: '签名档 1', value: 1 },
@@ -132,6 +134,7 @@ export function PostEditor({
 }) {
   const [attachmentDialogOpen, setAttachmentDialogOpen] = useState(false);
   const headingId = id ? `${id}-title` : `${name}-editor-title`;
+  const statusIsAutoSave = status === AUTO_SAVE_STATUS;
 
   return (
     <section
@@ -206,7 +209,11 @@ export function PostEditor({
           {attachments.length > 0 && <span className="reply-attachment-count">{attachments.length}</span>}
         </button>
         {status && (
-          <span className={`reply-editor-status ${statusIsError ? 'thread-edit-error' : ''}`} role={statusIsError ? 'alert' : 'status'}>
+          <span
+            className={`reply-editor-status ${statusIsError ? 'thread-edit-error' : ''} ${statusIsAutoSave ? 'reply-editor-status-auto-save' : ''}`.trim()}
+            role={statusIsError ? 'alert' : 'status'}
+          >
+            {statusIsAutoSave && <span aria-hidden="true" className="reply-editor-auto-save-dot">·</span>}
             {status}
           </span>
         )}

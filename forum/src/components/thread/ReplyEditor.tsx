@@ -22,6 +22,7 @@ import {
   formatPostEditorBytes,
   formatPostEditorPreviewTimestamp,
   hasPostEditorContent,
+  AUTO_SAVE_STATUS,
   PostEditor,
   PostEditorPreviewDialog,
   type PostEditorPreviewAuthor,
@@ -177,7 +178,7 @@ export function ReplyEditor({
     }
 
     setIsSavingDraft(true);
-    setStatus(automatic ? "正在自动保存草稿…" : "正在保存草稿…");
+    if (!automatic) setStatus("正在保存草稿…");
     setStatusIsError(false);
 
     try {
@@ -205,9 +206,11 @@ export function ReplyEditor({
 
       setSavedDraftId(saveResult.draft.id);
       setSavedDraftSnapshot(currentDraftSnapshot);
-      setStatus(saveResult.discardedDraftCount > 0
-        ? `${automatic ? "已自动保存" : "已存入草稿箱"}，并清理 ${saveResult.discardedDraftCount} 条最旧草稿`
-        : automatic ? "草稿已自动保存" : "已存入草稿箱");
+      setStatus(automatic
+        ? AUTO_SAVE_STATUS
+        : saveResult.discardedDraftCount > 0
+          ? `已存入草稿箱，并清理 ${saveResult.discardedDraftCount} 条最旧草稿`
+          : "已存入草稿箱");
     } finally {
       setIsSavingDraft(false);
     }

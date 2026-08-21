@@ -19,6 +19,7 @@ import {
   formatPostEditorBytes,
   formatPostEditorPreviewTimestamp,
   hasPostEditorContent,
+  AUTO_SAVE_STATUS,
   PostEditor,
   PostEditorPreviewDialog,
   PostEditorTitleField,
@@ -349,7 +350,7 @@ export function ThreadComposePage() {
     }
 
     setIsSavingDraft(true);
-    setStatus(automatic ? '正在自动保存草稿…' : '正在保存草稿…');
+    if (!automatic) setStatus('正在保存草稿…');
     setStatusIsError(false);
     try {
       if (request.tid) {
@@ -389,7 +390,7 @@ export function ThreadComposePage() {
         }, ownerKey);
       }
       setSavedSnapshot(currentSnapshot);
-      setStatus(automatic ? '草稿已自动保存' : isReply ? '回帖草稿已保存' : '已存入草稿箱');
+      setStatus(automatic ? AUTO_SAVE_STATUS : isReply ? '回帖草稿已保存' : '已存入草稿箱');
     } catch {
       setStatus('草稿保存失败，请检查浏览器存储权限后重试。');
       setStatusIsError(true);

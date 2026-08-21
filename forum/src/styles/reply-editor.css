@@ -355,6 +355,39 @@
     font-weight: 680;
   }
 
+  .reply-editor-status-auto-save {
+    display: inline-flex;
+    align-items: center;
+    color: var(--text-faint);
+    font-weight: 620;
+  }
+
+  .reply-editor-auto-save-dot {
+    display: inline-block;
+    width: 0.62rem;
+    color: var(--brand);
+    font-size: 1rem;
+    line-height: 0;
+    text-align: center;
+    transform-origin: center;
+    animation: reply-auto-save-breathe 2s ease-in-out infinite;
+  }
+
+  @keyframes reply-auto-save-breathe {
+    0%,
+    100% {
+      opacity: 0.38;
+      text-shadow: 0 0 0 color-mix(in srgb, var(--brand) 0%, transparent);
+      transform: scale(0.82);
+    }
+
+    50% {
+      opacity: 1;
+      text-shadow: 0 0 5px color-mix(in srgb, var(--brand) 62%, transparent);
+      transform: scale(1.12);
+    }
+  }
+
   .reply-editor-submit {
     display: flex;
     gap: 7px;
