@@ -608,10 +608,8 @@ def compress_image(
 ) -> tuple[bytes, dict[str, Any]]:
     source_info = inspect_image(data)
     source_format = source_info["format"]
-    if len(data) <= max_bytes:
-        extension = FORMAT_EXTENSIONS.get(source_format)
-        if extension is None:
-            raise ArchiveError(f"不支持保存的图片格式：{source_format or 'unknown'}")
+    extension = FORMAT_EXTENSIONS.get(source_format)
+    if len(data) <= max_bytes and extension is not None:
         return data, {
             "sourceBytes": len(data),
             "bytes": len(data),

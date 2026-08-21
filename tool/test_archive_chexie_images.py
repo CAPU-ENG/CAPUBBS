@@ -101,6 +101,24 @@ class CompressionTests(unittest.TestCase):
         self.assertEqual(info["bytes"], len(output))
         self.assertEqual(archive.inspect_image(output)["format"], info["format"])
 
+    def test_small_unsupported_container_is_reencoded(self) -> None:
+        source = noisy_jpeg_bytes(32, 24)
+        inspect_image = archive.inspect_image
+
+        def inspect_with_mpo_source(data: bytes):
+            info = inspect_image(data)
+            return {**info, "format": "mpo"} if data is source else info
+
+        with mock.patch.object(
+            archive, "inspect_image", side_effect=inspect_with_mpo_source
+        ):
+            output, info = archive.compress_image(source)
+
+        self.assertLessEqual(len(output), archive.MAX_IMAGE_BYTES)
+        self.assertEqual(info["sourceFormat"], "mpo")
+        self.assertEqual(info["format"], "jpeg")
+        self.assertEqual(info["compression"], "reencoded")
+
 
 class ArchiveTests(unittest.TestCase):
     def test_archives_file_and_writes_strict_manifest(self) -> None:
