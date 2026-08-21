@@ -2308,8 +2308,8 @@
       display: inline-flex;
     }
 
-    .forum-pagination-card > .thread-pagination-with-jump {
-      gap: 2px;
+    .thread-pagination.thread-pagination-with-jump {
+      gap: 4px;
     }
 
     .forum-pagination-card .thread-page-jump {
