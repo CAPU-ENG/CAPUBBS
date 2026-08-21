@@ -1284,7 +1284,7 @@ export function RichTextEditor({
       <div className="bg-white/70 dark:bg-white/[0.04]">
         {!isSourceMode ? (
           <div className="capubbs-rich-toolbar overflow-x-auto border-b border-zinc-200/80 px-1.5 py-1 dark:border-white/10">
-            <div className="flex min-w-max flex-nowrap items-center gap-px">
+            <div className="flex min-w-max flex-nowrap items-center gap-[0.5px]">
               <ToolbarButton label="加粗" onMouseDown={handleToolbarMouseDown} onClick={() => runRichCommand('bold')}>
                 <Bold size={14} />
               </ToolbarButton>
@@ -1307,7 +1307,7 @@ export function RichTextEditor({
                   onMouseDown={saveSelection}
                   onFocus={saveSelection}
                   onChange={handleRichFontChange}
-                  className="h-6 w-[4.5rem] border-0 bg-transparent px-0 text-[0.68rem] font-medium text-zinc-700 outline-none dark:text-zinc-200"
+                  className="h-6 w-12 border-0 bg-transparent px-0 text-[0.68rem] font-medium text-zinc-700 outline-none dark:text-zinc-200"
                   aria-label="字体"
                 >
                   <option value="">默认</option>
@@ -1325,7 +1325,7 @@ export function RichTextEditor({
                   onMouseDown={saveSelection}
                   onFocus={saveSelection}
                   onChange={handleRichFontSizeChange}
-                  className="h-6 w-11 border-0 bg-transparent px-0 text-[0.68rem] font-medium text-zinc-700 outline-none dark:text-zinc-200"
+                  className="h-6 w-[1.833rem] border-0 bg-transparent px-0 text-[0.68rem] font-medium text-zinc-700 outline-none dark:text-zinc-200"
                   aria-label="字号"
                 >
                   {richTextFontSizeOptions.map((fontSizeOption) => (
@@ -1351,7 +1351,7 @@ export function RichTextEditor({
                   onMouseDown={saveSelection}
                   onFocus={saveSelection}
                   onChange={handleRichHeadingChange}
-                  className="h-6 w-16 border-0 bg-transparent px-0 text-[0.68rem] font-medium text-zinc-700 outline-none dark:text-zinc-200"
+                  className="h-6 w-[2.667rem] border-0 bg-transparent px-0 text-[0.68rem] font-medium text-zinc-700 outline-none dark:text-zinc-200"
                   aria-label="标题格式"
                 >
                   <option value="">标题</option>
@@ -1745,7 +1745,7 @@ function ToolbarButton({
 }
 
 function ToolbarDivider() {
-  return <span className="mx-0.5 h-4 w-px shrink-0 bg-zinc-200 dark:bg-white/10" />;
+  return <span className="mx-px h-4 w-px shrink-0 bg-zinc-200 dark:bg-white/10" />;
 }
 
 function getPopoverConfig(popover: EditorPopover) {
