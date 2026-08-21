@@ -389,7 +389,7 @@ export function DesktopHomeAside({
       const shell = aside.closest<HTMLElement>('.page-shell');
       const shellStyle = shell ? window.getComputedStyle(shell) : null;
       const topBarHeight = Number.parseFloat(rootStyle.getPropertyValue('--topbar-height')) || 64;
-      const bottomGap = Number.parseFloat(shellStyle?.getPropertyValue('--home-page-bottom-gap') ?? '') || 36;
+      const bottomGap = Number.parseFloat(shellStyle?.getPropertyValue('--home-page-bottom-gap') ?? '') || 10;
       const wasAtTop = stickyTop >= maxStickyTop - 1;
       const wasAtBottom = stickyTop <= minStickyTop + 1;
 

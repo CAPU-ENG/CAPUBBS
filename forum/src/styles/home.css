@@ -1,6 +1,6 @@
 @layer components {
   .page-shell {
-    --home-page-bottom-gap: 36px;
+    --home-page-bottom-gap: 10px;
 
     position: relative;
     z-index: 10;
