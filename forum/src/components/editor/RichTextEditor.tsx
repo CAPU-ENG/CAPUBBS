@@ -1899,14 +1899,41 @@ function readRichCommandStates(editor: HTMLElement): RichToggleCommandStates {
   const range = selection.getRangeAt(0);
   if (!editor.contains(range.commonAncestorContainer)) return createInactiveRichCommandStates();
 
-  return richToggleCommands.reduce((states, command) => {
+  const states = richToggleCommands.reduce((commandStates, command) => {
     try {
-      states[command] = document.queryCommandState(command);
+      commandStates[command] = document.queryCommandState(command);
     } catch {
-      states[command] = false;
+      commandStates[command] = false;
     }
-    return states;
+    return commandStates;
   }, createInactiveRichCommandStates());
+
+  const verticalAlign = findRichVerticalAlignAtCaret(range, editor);
+  if (verticalAlign) {
+    states.superscript = verticalAlign === 'super';
+    states.subscript = verticalAlign === 'sub';
+  }
+
+  return states;
+}
+
+function findRichVerticalAlignAtCaret(range: Range, editor: HTMLElement): 'super' | 'sub' | null {
+  let element = range.startContainer instanceof Element
+    ? range.startContainer
+    : range.startContainer.parentElement;
+
+  while (element && element !== editor) {
+    const tagName = element.tagName.toLowerCase();
+    const verticalAlign = element instanceof HTMLElement
+      ? element.style.verticalAlign.trim().toLowerCase()
+      : '';
+
+    if (tagName === 'sup' || verticalAlign === 'super') return 'super';
+    if (tagName === 'sub' || verticalAlign === 'sub') return 'sub';
+    element = element.parentElement;
+  }
+
+  return null;
 }
 
 function normalizeRichTypingStylesAfterInput(editor: HTMLElement) {
