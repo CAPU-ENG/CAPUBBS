@@ -1,6 +1,7 @@
 import { useSyncExternalStore } from 'react';
 import {
   readAssistiveBarEnabled,
+  readAutoSaveEnabled,
   readBackToTopEnabled,
   readSignaturesHidden,
   readSignatureToggleEnabled,
@@ -10,6 +11,10 @@ import {
 
 export function useAssistiveBarEnabled() {
   return useSyncExternalStore(subscribeAssistiveFeatures, readAssistiveBarEnabled, () => true);
+}
+
+export function useAutoSaveEnabled() {
+  return useSyncExternalStore(subscribeAssistiveFeatures, readAutoSaveEnabled, () => false);
 }
 
 export function useBackToTopEnabled() {

@@ -1,5 +1,5 @@
 import { ArrowLeft, LoaderCircle, Save, Send } from 'lucide-react';
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { fetchBoardPage, isAbortError, type BoardInfo } from '../api/board';
 import {
   fetchThreadEditorViewer,
@@ -30,6 +30,7 @@ import {
   ActivitySignupSchedule,
 } from '../components/thread/ActivitySignupEditor';
 import { useAuth } from '../context/AuthContext';
+import { useAutoSaveEnabled } from '../hooks/useAssistiveFeatures';
 import { getLoginPathWithReturnTo } from '../utils/authRoutes';
 import {
   deleteStoredReplyDraftForThread,
@@ -55,10 +56,12 @@ import {
 } from '../utils/activitySignup';
 
 const THREAD_API_URL = import.meta.env.VITE_API_URL?.trim() || '/api/api.php';
+const AUTO_SAVE_DELAY_MS = 1_200;
 
 type ComposeAttachment = ThreadAttachmentInfo & Pick<Partial<StoredReplyAttachment>, 'lastModified' | 'type'>;
 
 export function ThreadComposePage() {
+  const autoSaveEnabled = useAutoSaveEnabled();
   const locationSearch = window.location.search;
   const request = useMemo(getComposeRequest, [locationSearch]);
   const { status: authStatus, viewer } = useAuth();
@@ -83,6 +86,7 @@ export function ThreadComposePage() {
   const [draftLoadComplete, setDraftLoadComplete] = useState(false);
   const [storedReplyDraftId, setStoredReplyDraftId] = useState<string | null>(null);
   const [savedSnapshot, setSavedSnapshot] = useState(() => makeSnapshot('', { content: '', mode: 'rich' }, 0, [], null, null));
+  const lastAutoSaveAttemptRef = useRef<string | null>(null);
 
   const ownerKey = viewer?.username ?? null;
   const isReply = Boolean(request?.tid);
@@ -126,6 +130,7 @@ export function ThreadComposePage() {
       && validateActivitySignupSettings(activitySignup)
     ))
     && !isUploadingAttachments
+    && !isSavingDraft
     && !isPublishing,
   );
 
@@ -186,6 +191,7 @@ export function ThreadComposePage() {
     setActivitySchedule(createDefaultActivityDateRange());
     setActivitySignup(createDefaultActivitySignupSettings());
     setSavedSnapshot(makeSnapshot('', { content: '', mode: 'rich' }, 0, [], null, null));
+    lastAutoSaveAttemptRef.current = null;
 
     const loadDraft = async () => {
       if (request.tid) {
@@ -257,6 +263,40 @@ export function ThreadComposePage() {
     return () => window.removeEventListener('beforeunload', warnBeforeLeaving);
   }, [isDirty, isPublishing]);
 
+  useEffect(() => {
+    if (
+      !autoSaveEnabled
+      || !draftLoadComplete
+      || !request
+      || !boardName
+      || !ownerKey
+      || !isDirty
+      || currentSnapshot === lastAutoSaveAttemptRef.current
+      || isSavingDraft
+      || isPublishing
+      || isUploadingAttachments
+      || (!contentReady && attachments.length === 0 && (isReply || !title.trim()))
+    ) return;
+
+    const timer = window.setTimeout(() => { void saveDraft(true); }, AUTO_SAVE_DELAY_MS);
+    return () => window.clearTimeout(timer);
+  }, [
+    attachments.length,
+    autoSaveEnabled,
+    boardName,
+    contentReady,
+    currentSnapshot,
+    draftLoadComplete,
+    isDirty,
+    isPublishing,
+    isReply,
+    isSavingDraft,
+    isUploadingAttachments,
+    ownerKey,
+    request,
+    title,
+  ]);
+
   function clearStatus() {
     setStatus('');
     setStatusIsError(false);
@@ -299,8 +339,9 @@ export function ThreadComposePage() {
     clearStatus();
   }
 
-  async function saveDraft() {
+  async function saveDraft(automatic = false) {
     if (!request || !boardName || !ownerKey || isSavingDraft) return;
+    if (automatic) lastAutoSaveAttemptRef.current = currentSnapshot;
     if (!contentReady && attachments.length === 0 && (isReply || !title.trim())) {
       setStatus(`没有可保存的${isReply ? '回帖' : '发帖'}内容`);
       setStatusIsError(true);
@@ -308,7 +349,7 @@ export function ThreadComposePage() {
     }
 
     setIsSavingDraft(true);
-    setStatus('正在保存草稿…');
+    setStatus(automatic ? '正在自动保存草稿…' : '正在保存草稿…');
     setStatusIsError(false);
     try {
       if (request.tid) {
@@ -348,7 +389,7 @@ export function ThreadComposePage() {
         }, ownerKey);
       }
       setSavedSnapshot(currentSnapshot);
-      setStatus(isReply ? '回帖草稿已保存' : '已存入草稿箱');
+      setStatus(automatic ? '草稿已自动保存' : isReply ? '回帖草稿已保存' : '已存入草稿箱');
     } catch {
       setStatus('草稿保存失败，请检查浏览器存储权限后重试。');
       setStatusIsError(true);

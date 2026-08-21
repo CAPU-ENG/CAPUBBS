@@ -9,6 +9,7 @@ import {
   publishThreadReply,
   uploadThreadAttachment,
 } from "../../api/thread";
+import { useAutoSaveEnabled } from "../../hooks/useAssistiveFeatures";
 import {
   deleteStoredReplyDraftForThread,
   saveStoredReplyDraft,
@@ -33,6 +34,8 @@ export type QuoteRequest = {
 };
 
 type ReplyAttachment = StoredReplyAttachment & { restored?: boolean };
+
+const AUTO_SAVE_DELAY_MS = 1_200;
 
 export function ReplyEditor({
   bid,
@@ -59,6 +62,7 @@ export function ReplyEditor({
   tid: number;
   threadTitle: string;
 }) {
+  const autoSaveEnabled = useAutoSaveEnabled();
   const [editorValue, setEditorValue] = useState<RichTextEditorValue>({
     content: "",
     mode: "rich",
@@ -74,7 +78,14 @@ export function ReplyEditor({
   const [isSavingDraft, setIsSavingDraft] = useState(false);
   const [isPublishing, setIsPublishing] = useState(false);
   const [savedDraftId, setSavedDraftId] = useState<string | null>(null);
+  const [savedDraftSnapshot, setSavedDraftSnapshot] = useState(() => getReplyDraftSnapshot(
+    { content: "", mode: "rich" },
+    0,
+    [],
+  ));
   const appliedQuoteRequestRef = useRef(0);
+  const lastAutoSaveAttemptRef = useRef<string | null>(null);
+  const currentDraftSnapshot = getReplyDraftSnapshot(editorValue, signatureIndex, attachments);
 
   useEffect(() => {
     if (!quoteRequest || appliedQuoteRequestRef.current === quoteRequest.requestId) return;
@@ -87,6 +98,29 @@ export function ReplyEditor({
     setStatus("");
     setStatusIsError(false);
   }, [quoteRequest]);
+
+  useEffect(() => {
+    if (
+      !autoSaveEnabled
+      || currentDraftSnapshot === savedDraftSnapshot
+      || currentDraftSnapshot === lastAutoSaveAttemptRef.current
+      || isSavingDraft
+      || isPublishing
+      || isUploadingAttachments
+      || (!hasPostEditorContent(editorValue) && attachments.length === 0)
+    ) return;
+
+    const timer = window.setTimeout(() => { void saveDraft(true); }, AUTO_SAVE_DELAY_MS);
+    return () => window.clearTimeout(timer);
+  }, [
+    attachments.length,
+    autoSaveEnabled,
+    currentDraftSnapshot,
+    isPublishing,
+    isSavingDraft,
+    isUploadingAttachments,
+    savedDraftSnapshot,
+  ]);
 
   function updateEditorValue(nextValue: RichTextEditorValue) {
     setEditorValue(nextValue);
@@ -132,8 +166,9 @@ export function ReplyEditor({
     setStatusIsError(false);
   }
 
-  async function saveDraft() {
+  async function saveDraft(automatic = false) {
     if (isSavingDraft) return;
+    if (automatic) lastAutoSaveAttemptRef.current = currentDraftSnapshot;
     if (!hasPostEditorContent(editorValue) && attachments.length === 0) {
       setStatus("没有可保存的内容");
       setStatusIsError(true);
@@ -141,7 +176,7 @@ export function ReplyEditor({
     }
 
     setIsSavingDraft(true);
-    setStatus("正在保存草稿…");
+    setStatus(automatic ? "正在自动保存草稿…" : "正在保存草稿…");
     setStatusIsError(false);
 
     try {
@@ -168,16 +203,17 @@ export function ReplyEditor({
       }
 
       setSavedDraftId(saveResult.draft.id);
+      setSavedDraftSnapshot(currentDraftSnapshot);
       setStatus(saveResult.discardedDraftCount > 0
-        ? `已存入草稿箱，并清理 ${saveResult.discardedDraftCount} 条最旧草稿`
-        : "已存入草稿箱");
+        ? `${automatic ? "已自动保存" : "已存入草稿箱"}，并清理 ${saveResult.discardedDraftCount} 条最旧草稿`
+        : automatic ? "草稿已自动保存" : "已存入草稿箱");
     } finally {
       setIsSavingDraft(false);
     }
   }
 
   async function publishReply() {
-    if (isPublishing || isUploadingAttachments) return;
+    if (isPublishing || isSavingDraft || isUploadingAttachments) return;
     if (!hasPostEditorContent(editorValue)) {
       setStatus("请先填写回复内容");
       setStatusIsError(true);
@@ -270,7 +306,7 @@ export function ReplyEditor({
         status={status}
         statusIsError={statusIsError}
         submitCompactLabel={isPublishing ? "发布中" : "发布"}
-        submitDisabled={isPublishing || isUploadingAttachments}
+        submitDisabled={isPublishing || isSavingDraft || isUploadingAttachments}
         submitIcon={isPublishing ? <LoaderCircle className="thread-edit-spinner" size={15} /> : <Send size={15} />}
         submitLabel={isPublishing ? "正在发布" : "发布回复"}
         uploadingAttachments={isUploadingAttachments}
@@ -332,6 +368,18 @@ function getReplyDraftExcerpt(value: RichTextEditorValue, attachments: ReplyAtta
   const normalizedExcerpt = excerpt.replace(/\s+/g, " ").trim();
   if (normalizedExcerpt) return normalizedExcerpt.slice(0, 120);
   return attachments.length > 0 ? "附件回复草稿" : "空白回复草稿";
+}
+
+function getReplyDraftSnapshot(
+  editorValue: RichTextEditorValue,
+  signatureIndex: number,
+  attachments: ReplyAttachment[],
+) {
+  return JSON.stringify({
+    attachments: attachments.map(({ restored: _restored, ...attachment }) => attachment),
+    editor: getRichTextEditorStorageValue(editorValue),
+    signatureIndex,
+  });
 }
 
 function getReplyDraftSaveError(reason: ReplyDraftSaveFailureReason) {

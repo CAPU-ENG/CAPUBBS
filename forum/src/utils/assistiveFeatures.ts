@@ -1,5 +1,6 @@
 export const BACK_TO_TOP_ENABLED_STORAGE_KEY = 'capubbs-back-to-top-enabled';
 export const ASSISTIVE_BAR_ENABLED_STORAGE_KEY = 'capubbs-assistive-bar-enabled';
+export const AUTO_SAVE_ENABLED_STORAGE_KEY = 'capubbs-auto-save-enabled';
 export const SIGNATURE_TOGGLE_ENABLED_STORAGE_KEY = 'capubbs-signature-toggle-enabled';
 export const SIGNATURES_HIDDEN_STORAGE_KEY = 'capubbs-signatures-hidden';
 export const WATERFALL_FEED_ENABLED_STORAGE_KEY = 'capubbs-waterfall-feed-enabled';
@@ -45,6 +46,14 @@ export function saveAssistiveBarEnabled(enabled: boolean) {
   return saveBoolean(ASSISTIVE_BAR_ENABLED_STORAGE_KEY, enabled);
 }
 
+export function readAutoSaveEnabled() {
+  return readBoolean(AUTO_SAVE_ENABLED_STORAGE_KEY);
+}
+
+export function saveAutoSaveEnabled(enabled: boolean) {
+  return saveBoolean(AUTO_SAVE_ENABLED_STORAGE_KEY, enabled);
+}
+
 export function readSignatureToggleEnabled() {
   return readBoolean(SIGNATURE_TOGGLE_ENABLED_STORAGE_KEY);
 }
@@ -75,6 +84,7 @@ export function subscribeAssistiveFeatures(listener: () => void) {
   const handleStorage = (event: StorageEvent) => {
     if (
       event.key === ASSISTIVE_BAR_ENABLED_STORAGE_KEY
+      || event.key === AUTO_SAVE_ENABLED_STORAGE_KEY
       || event.key === BACK_TO_TOP_ENABLED_STORAGE_KEY
       || event.key === SIGNATURE_TOGGLE_ENABLED_STORAGE_KEY
       || event.key === SIGNATURES_HIDDEN_STORAGE_KEY

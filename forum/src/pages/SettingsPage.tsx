@@ -5,6 +5,7 @@ import { TopBar } from '../components/layout/TopBar';
 import { ALL_BOARDS, PRIMARY_BOARDS, SECONDARY_BOARDS, getBoardById } from '../data/boards';
 import {
   useAssistiveBarEnabled,
+  useAutoSaveEnabled,
   useBackToTopEnabled,
   useSignatureToggleEnabled,
   useWaterfallFeedEnabled,
@@ -14,6 +15,7 @@ import { usePinnedBoardIds } from '../hooks/usePinnedBoards';
 import { useTheme } from '../hooks/useTheme';
 import {
   saveAssistiveBarEnabled,
+  saveAutoSaveEnabled,
   saveBackToTopEnabled,
   saveSignatureToggleEnabled,
   saveWaterfallFeedEnabled,
@@ -24,6 +26,7 @@ import { saveThemeFollowsSystem } from '../utils/theme';
 
 export function SettingsPage() {
   const assistiveBarEnabled = useAssistiveBarEnabled();
+  const autoSaveEnabled = useAutoSaveEnabled();
   const backToTopEnabled = useBackToTopEnabled();
   const compactMode = useCompactMode();
   const pinnedBoardIds = usePinnedBoardIds();
@@ -161,6 +164,26 @@ export function SettingsPage() {
                     </button>
                     <span id="waterfall-feed-help" role="tooltip">
                       首页接近列表底部时自动加载更多帖子，无需点击“加载更多”。
+                    </span>
+                  </span>
+                </div>
+
+                <div className="settings-checkbox-row">
+                  <label className="settings-checkbox-option">
+                    <input
+                      checked={autoSaveEnabled}
+                      onChange={(event) => saveAutoSaveEnabled(event.target.checked)}
+                      type="checkbox"
+                    />
+                    <span className="settings-checkbox-mark" aria-hidden="true"><Check size={14} /></span>
+                    <span><strong>自动保存</strong></span>
+                  </label>
+                  <span className="settings-option-help">
+                    <button aria-describedby="auto-save-help" aria-label="查看自动保存说明" type="button">
+                      <CircleHelp size={14} />
+                    </button>
+                    <span id="auto-save-help" role="tooltip">
+                      编辑回复或发帖时自动存入草稿箱，发布成功后删除对应草稿。
                     </span>
                   </span>
                 </div>
