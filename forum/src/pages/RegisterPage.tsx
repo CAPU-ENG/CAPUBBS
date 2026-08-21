@@ -24,6 +24,7 @@ import { TopBar } from '../components/layout/TopBar';
 import { AvatarDialog } from '../components/profile/AvatarEditorDialog';
 import { useAuth } from '../context/AuthContext';
 import { getAuthPathWithReturnTo, getAuthReturnTo, replaceForumLocation } from '../utils/authRoutes';
+import { normalizeLegacyAvatar } from '../utils/legacyAssets';
 import { md5LegacyStringHex } from '../utils/md5';
 
 const PKU_EMAIL_PATTERN = /^\d{10}@(?:(?:.+\.)?pku\.edu\.cn|bjmu\.edu\.cn)$/i;
@@ -37,7 +38,7 @@ const AVATAR_OPTIONS = [
   ['piano.jpeg', '钢琴'],
 ].map(([filename, label]) => ({
   label,
-  src: `https://chexie.net/bbsimg/icons/${encodeURIComponent(filename)}`,
+  src: `/bbsimg/icons/${encodeURIComponent(filename)}`,
 }));
 
 type UsernameState = 'idle' | 'checking' | 'available' | 'taken' | 'invalid';
@@ -553,8 +554,7 @@ function isAvatarUploadResult(value: unknown): value is { code: number; msg?: st
 }
 
 function getUploadedAvatarSrc(icon: string) {
-  if (/^https?:\/\//i.test(icon) || icon.startsWith('/')) return icon;
-  return `/bbsimg/icons/${icon.replace(/^\.\//, '')}`;
+  return normalizeLegacyAvatar(icon);
 }
 
 function getErrorMessage(error: unknown, fallback: string) {

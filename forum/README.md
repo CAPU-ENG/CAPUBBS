@@ -20,4 +20,4 @@ For local API development, start PHP from the repository root before Vite:
 php -S localhost:8080
 ```
 
-Vite proxies `/api` and `/assets` to that server; legacy avatar paths use the public `chexie.net` asset origin. Set `CAPUBBS_PHP_ORIGIN` to use a different PHP origin, `VITE_API_URL` to override the browser forum API endpoint, or `VITE_CALENDAR_API_URL` to override the calendar endpoint.
+Vite proxies `/api`, `/assets`, `/bbs`, and `/bbsimg` to that server; avatar paths are always normalized to the local `/bbsimg` directory. Set `CAPUBBS_PHP_ORIGIN` to use a different PHP origin, `VITE_API_URL` to override the browser forum API endpoint, or `VITE_CALENDAR_API_URL` to override the calendar endpoint.

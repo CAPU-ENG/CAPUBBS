@@ -5,11 +5,11 @@ import type {
   ProfileRecordMap,
   ProfileViewData,
 } from '../data/profileDemo';
+import { normalizeLegacyAvatar } from '../utils/legacyAssets';
 import { md5LegacyStringHex } from '../utils/md5';
 
 const PROFILE_API_URL = import.meta.env.VITE_API_URL?.trim() || '/api/api.php';
 const AVATAR_UPLOAD_URL = import.meta.env.VITE_AVATAR_UPLOAD_URL?.trim() || '/bbs/utils/icon_upload.php';
-const PUBLIC_ASSET_ORIGIN = 'https://chexie.net';
 
 type ApiEnvelope = {
   code: number;
@@ -416,16 +416,7 @@ function normalizeSignatureType(value: unknown) {
 }
 
 function normalizeAvatar(value: unknown) {
-  const avatar = stringValue(value);
-  if (!avatar) return defaultAvatar;
-  if (/^(?:data:image\/|https?:\/\/)/i.test(avatar)) return avatar;
-  if (avatar.startsWith('//')) return `https:${avatar}`;
-  if (avatar.includes('user_upload_by_day/')) {
-    return avatar.startsWith('/bbsimg/') ? avatar : `/bbsimg/icons/${avatar.replace(/^\.?\//, '')}`;
-  }
-  if (avatar.startsWith('/')) return `${PUBLIC_ASSET_ORIGIN}${avatar}`;
-  if (/^\d+$/.test(avatar)) return `${PUBLIC_ASSET_ORIGIN}/bbsimg/i/${avatar}.gif`;
-  return `${PUBLIC_ASSET_ORIGIN}/bbsimg/icons/${avatar.replace(/^\.?\//, '')}`;
+  return normalizeLegacyAvatar(value) || defaultAvatar;
 }
 
 function formatRecordDate(value: unknown) {

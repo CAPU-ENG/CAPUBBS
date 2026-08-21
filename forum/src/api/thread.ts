@@ -6,10 +6,10 @@ import {
   requiresIsolatedForumHtml,
   translateLegacyForumMarkup,
 } from '../utils/forumMarkup';
+import { normalizeLegacyAvatar } from '../utils/legacyAssets';
 import type { SignatureFloorReference } from '../utils/signatureFloorLink';
 
 const THREAD_API_URL = import.meta.env.VITE_API_URL?.trim() || '/api/api.php';
-const PUBLIC_ASSET_ORIGIN = 'https://chexie.net';
 
 type ApiEnvelope = {
   code: number;
@@ -240,8 +240,8 @@ export async function fetchEditableThreadFloor({
     createdAt: stringValue(post.timestamp ?? post.posttime ?? post.createdAt),
     pid,
     previewAvatar: editorViewer.avatar
-      || normalizeAssetUrl(viewer.avatar)
-      || normalizeAssetUrl(viewer.icon)
+      || normalizeLegacyAvatar(viewer.avatar)
+      || normalizeLegacyAvatar(viewer.icon)
       || defaultAvatar,
     previewSignatures: editorViewer.signatures,
     signatureIndex: Math.min(3, nonNegativeInteger(post.sig)),
@@ -264,7 +264,7 @@ export async function fetchThreadEditorViewer(username: string, signal?: AbortSi
   const name = plainText(profile.username) || normalizedUsername;
 
   return {
-    avatar: normalizeAssetUrl(profile.avatar) || normalizeAssetUrl(profile.icon) || defaultAvatar,
+    avatar: normalizeLegacyAvatar(profile.avatar) || normalizeLegacyAvatar(profile.icon) || defaultAvatar,
     name,
     signatures: mapEditableViewerSignatures(profile),
   };
@@ -916,7 +916,7 @@ function mapNestedReply(row: ApiRow): NestedReply {
 function mapAuthor(row: ApiRow, fallbackName: string): ThreadAuthor {
   const stats = asRow(row.stats);
   return {
-    avatar: normalizeAssetUrl(row.avatar ?? row.icon) || defaultAvatar,
+    avatar: normalizeLegacyAvatar(row.avatar ?? row.icon) || defaultAvatar,
     checkins: nonNegativeInteger(stats.checkins),
     lastSeen: plainText(row.lastSeenAt) || '时间未知',
     name: plainText(row.username) || fallbackName || '匿名用户',
@@ -937,18 +937,6 @@ function mapEditableViewerSignatures(viewer: ApiRow) {
   if (structuredSignatures.some(Boolean)) return structuredSignatures;
 
   return [1, 2, 3].map((index) => renderSignatureHtml(stringValue(viewer[`sig${index}`]), ''));
-}
-
-function normalizeAssetUrl(value: unknown) {
-  if (typeof value !== 'string') return '';
-  const path = value.trim();
-  if (!path) return '';
-  if (/^data:image\/(?:avif|gif|jpeg|png|webp);/i.test(path)) return path;
-  if (/^https?:\/\//i.test(path)) return path;
-  if (path.startsWith('//')) return `https:${path}`;
-  if (path.startsWith('/')) return `${PUBLIC_ASSET_ORIGIN}${path}`;
-  if (/^\d+$/.test(path)) return `${PUBLIC_ASSET_ORIGIN}/bbsimg/i/${path}.gif`;
-  return `${PUBLIC_ASSET_ORIGIN}/${path.replace(/^\.?\//, '')}`;
 }
 
 function plainTextFromHtml(value: string) {
