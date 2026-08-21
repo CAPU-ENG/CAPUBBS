@@ -107,7 +107,7 @@ export function FeedSection({ autoLoadMore, compactMode, error, hasMore, items, 
       window.removeEventListener('resize', schedulePageBottomCheck);
       if (frame) window.cancelAnimationFrame(frame);
     };
-  }, [autoLoadMore, hasMore, loadMoreFailed, loadingMore, onLoadMore]);
+  }, [autoLoadMore, hasMore, items.length, loadMoreFailed, loadingMore, onLoadMore]);
 
   return (
     <section className="feed-section" id="feed" aria-label="论坛帖子">
