@@ -10,7 +10,12 @@ import { setThreadBookmarked } from '../api/favorite';
 import { deleteNestedReply, deleteThreadFloor, postNestedReply } from '../api/thread';
 import { useAuth } from '../context/AuthContext';
 import type { NestedReply, ThreadFloorData } from '../data/threadDemo';
-import { useBackToTopEnabled, useSignaturesHidden, useSignatureToggleEnabled } from '../hooks/useAssistiveFeatures';
+import {
+  useAssistiveBarEnabled,
+  useBackToTopEnabled,
+  useSignaturesHidden,
+  useSignatureToggleEnabled,
+} from '../hooks/useAssistiveFeatures';
 import { useScrollContextTitle } from '../hooks/useScrollContextTitle';
 import { useThreadData } from '../hooks/useThreadData';
 import { saveSignaturesHidden } from '../utils/assistiveFeatures';
@@ -49,6 +54,7 @@ function positiveInteger(value: string | null) {
 }
 
 export function ThreadPage() {
+  const assistiveBarEnabled = useAssistiveBarEnabled();
   const backToTopEnabled = useBackToTopEnabled();
   const { viewer } = useAuth();
   const request = getThreadRequest();
@@ -335,7 +341,7 @@ export function ThreadPage() {
         showContextTitle={showTitleInTopBar}
       />
 
-      <main className="thread-page-shell">
+      <main className={assistiveBarEnabled ? 'thread-page-shell' : 'thread-page-shell thread-page-shell-without-assistive-bar'}>
         <header className="thread-title-card">
           <div className="thread-title-heading">
             <h1 id="thread-title" ref={titleRef}>
@@ -405,7 +411,7 @@ export function ThreadPage() {
                   canReply={data.canReply && Boolean(data.viewer)}
                   editHref={getThreadEditHref(data.bid, data.tid, floor.floor)}
                   floor={floor}
-                  hideSignature={signatureToggleEnabled && signaturesHidden}
+                  hideSignature={assistiveBarEnabled && signatureToggleEnabled && signaturesHidden}
                   isActivityThread={data.isActivity}
                   isMainPost={floor.floor === 1}
                   onDeleteFloor={removeFloor}
@@ -430,30 +436,32 @@ export function ThreadPage() {
               </Fragment>
             ))}
           </section>
-          <div className="thread-side-rail">
-            <FloorNodes activeFloor={activeFloor} floors={nodeFloors} />
-            {(backToTopEnabled || signatureToggleEnabled) && (
-              <div className="thread-assistive-tools" aria-label="帖子辅助功能">
-                {backToTopEnabled && (
-                  <button onClick={scrollToPageTop} type="button">
-                    <ArrowUpToLine size={15} />
-                    回到顶部
-                  </button>
-                )}
-                {signatureToggleEnabled && (
-                  <button
-                    aria-pressed={signaturesHidden}
-                    className={signaturesHidden ? 'thread-assistive-tool-active' : ''}
-                    onClick={toggleSignatures}
-                    type="button"
-                  >
-                    {signaturesHidden ? <Eye size={15} /> : <EyeOff size={15} />}
-                    {signaturesHidden ? '显示签名档' : '屏蔽签名档'}
-                  </button>
-                )}
-              </div>
-            )}
-          </div>
+          {assistiveBarEnabled && (
+            <div className="thread-side-rail">
+              <FloorNodes activeFloor={activeFloor} floors={nodeFloors} />
+              {(backToTopEnabled || signatureToggleEnabled) && (
+                <div className="thread-assistive-tools" aria-label="帖子辅助功能">
+                  {backToTopEnabled && (
+                    <button onClick={scrollToPageTop} type="button">
+                      <ArrowUpToLine size={15} />
+                      回到顶部
+                    </button>
+                  )}
+                  {signatureToggleEnabled && (
+                    <button
+                      aria-pressed={signaturesHidden}
+                      className={signaturesHidden ? 'thread-assistive-tool-active' : ''}
+                      onClick={toggleSignatures}
+                      type="button"
+                    >
+                      {signaturesHidden ? <Eye size={15} /> : <EyeOff size={15} />}
+                      {signaturesHidden ? '显示签名档' : '屏蔽签名档'}
+                    </button>
+                  )}
+                </div>
+              )}
+            </div>
+          )}
         </div>
 
         <div className="thread-bottom-pagination">
@@ -490,7 +498,7 @@ export function ThreadPage() {
         ))}
       </main>
 
-      {nodeFloors.length > 0 && (
+      {assistiveBarEnabled && nodeFloors.length > 0 && (
         <div className="mobile-thread-controls" aria-label="移动端帖子工具" role="group">
           {backToTopEnabled && (
             <button

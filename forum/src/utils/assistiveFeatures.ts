@@ -1,16 +1,18 @@
 export const BACK_TO_TOP_ENABLED_STORAGE_KEY = 'capubbs-back-to-top-enabled';
+export const ASSISTIVE_BAR_ENABLED_STORAGE_KEY = 'capubbs-assistive-bar-enabled';
 export const SIGNATURE_TOGGLE_ENABLED_STORAGE_KEY = 'capubbs-signature-toggle-enabled';
 export const SIGNATURES_HIDDEN_STORAGE_KEY = 'capubbs-signatures-hidden';
 export const WATERFALL_FEED_ENABLED_STORAGE_KEY = 'capubbs-waterfall-feed-enabled';
 export const ASSISTIVE_FEATURES_CHANGE_EVENT = 'capubbs-assistive-features-change';
 
-function readBoolean(key: string) {
-  if (typeof window === 'undefined') return false;
+function readBoolean(key: string, defaultValue = false) {
+  if (typeof window === 'undefined') return defaultValue;
 
   try {
-    return window.localStorage.getItem(key) === 'true';
+    const value = window.localStorage.getItem(key);
+    return value === null ? defaultValue : value === 'true';
   } catch {
-    return false;
+    return defaultValue;
   }
 }
 
@@ -28,11 +30,19 @@ function saveBoolean(key: string, value: boolean) {
 }
 
 export function readBackToTopEnabled() {
-  return readBoolean(BACK_TO_TOP_ENABLED_STORAGE_KEY);
+  return readBoolean(BACK_TO_TOP_ENABLED_STORAGE_KEY, true);
 }
 
 export function saveBackToTopEnabled(enabled: boolean) {
   return saveBoolean(BACK_TO_TOP_ENABLED_STORAGE_KEY, enabled);
+}
+
+export function readAssistiveBarEnabled() {
+  return readBoolean(ASSISTIVE_BAR_ENABLED_STORAGE_KEY, true);
+}
+
+export function saveAssistiveBarEnabled(enabled: boolean) {
+  return saveBoolean(ASSISTIVE_BAR_ENABLED_STORAGE_KEY, enabled);
 }
 
 export function readSignatureToggleEnabled() {
@@ -64,7 +74,8 @@ export function subscribeAssistiveFeatures(listener: () => void) {
 
   const handleStorage = (event: StorageEvent) => {
     if (
-      event.key === BACK_TO_TOP_ENABLED_STORAGE_KEY
+      event.key === ASSISTIVE_BAR_ENABLED_STORAGE_KEY
+      || event.key === BACK_TO_TOP_ENABLED_STORAGE_KEY
       || event.key === SIGNATURE_TOGGLE_ENABLED_STORAGE_KEY
       || event.key === SIGNATURES_HIDDEN_STORAGE_KEY
       || event.key === WATERFALL_FEED_ENABLED_STORAGE_KEY

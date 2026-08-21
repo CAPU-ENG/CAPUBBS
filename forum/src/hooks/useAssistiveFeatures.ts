@@ -1,5 +1,6 @@
 import { useSyncExternalStore } from 'react';
 import {
+  readAssistiveBarEnabled,
   readBackToTopEnabled,
   readSignaturesHidden,
   readSignatureToggleEnabled,
@@ -7,8 +8,12 @@ import {
   subscribeAssistiveFeatures,
 } from '../utils/assistiveFeatures';
 
+export function useAssistiveBarEnabled() {
+  return useSyncExternalStore(subscribeAssistiveFeatures, readAssistiveBarEnabled, () => true);
+}
+
 export function useBackToTopEnabled() {
-  return useSyncExternalStore(subscribeAssistiveFeatures, readBackToTopEnabled, () => false);
+  return useSyncExternalStore(subscribeAssistiveFeatures, readBackToTopEnabled, () => true);
 }
 
 export function useSignatureToggleEnabled() {
