@@ -13,18 +13,15 @@ import csv
 import datetime as dt
 import hashlib
 import html
-import http.client
 import io
 import json
 import math
 import os
 import re
-import socket
 import sys
+import threading
 import time
-import urllib.error
 import urllib.parse
-import urllib.request
 from concurrent.futures import (
     Future,
     ProcessPoolExecutor,
@@ -36,9 +33,10 @@ from typing import Any, Iterable
 
 try:
     from PIL import Image, ImageSequence, UnidentifiedImageError
+    import requests
 except ImportError:
     print(
-        "错误：缺少 Pillow，请先运行 .venv/bin/python -m pip install -r tool/requirements.txt",
+        "错误：缺少 Pillow/Requests，请先运行 .venv/bin/python -m pip install -r tool/requirements.txt",
         file=sys.stderr,
     )
     raise SystemExit(2)
@@ -100,23 +98,7 @@ class ArchiveError(RuntimeError):
     """A recoverable error for one URL."""
 
 
-class SameDomainRedirectHandler(urllib.request.HTTPRedirectHandler):
-    """Prevent a chexie.net URL from redirecting the crawler out of scope."""
-
-    def redirect_request(
-        self,
-        request: urllib.request.Request,
-        file_pointer: Any,
-        code: int,
-        message: str,
-        headers: Any,
-        new_url: str,
-    ) -> urllib.request.Request | None:
-        if not is_chexie_host(urllib.parse.urlsplit(new_url).hostname):
-            raise ArchiveError(f"拒绝跳转到 chexie.net 之外：{new_url}")
-        return super().redirect_request(
-            request, file_pointer, code, message, headers, new_url
-        )
+_DOWNLOAD_STATE = threading.local()
 
 
 def now_iso() -> str:
@@ -471,48 +453,74 @@ def write_link_indexes(
 def download_image(
     url: str, timeout: float, retries: int, max_download_bytes: int, delay: float
 ) -> tuple[bytes, str, str]:
-    opener = urllib.request.build_opener(SameDomainRedirectHandler())
+    session = getattr(_DOWNLOAD_STATE, "session", None)
+    if session is None:
+        session = requests.Session()
+        session.headers.update(
+            {
+                "Accept": "image/avif,image/webp,image/apng,image/*,*/*;q=0.8",
+                "User-Agent": USER_AGENT,
+            }
+        )
+        _DOWNLOAD_STATE.session = session
+
     last_error: Exception | None = None
     for attempt in range(retries + 1):
         if delay:
             time.sleep(delay)
-        request = urllib.request.Request(
-            url,
-            headers={
-                "Accept": "image/avif,image/webp,image/apng,image/*,*/*;q=0.8",
-                "Connection": "close",
-                "User-Agent": USER_AGENT,
-            },
-        )
         try:
-            with opener.open(request, timeout=timeout) as response:
-                content_length = response.headers.get("Content-Length")
-                if content_length and int(content_length) > max_download_bytes:
-                    raise ArchiveError(f"源文件超过下载上限 {max_download_bytes} 字节")
-                data = response.read(max_download_bytes + 1)
-                if len(data) > max_download_bytes:
-                    raise ArchiveError(f"源文件超过下载上限 {max_download_bytes} 字节")
-                if not data:
-                    raise ArchiveError("服务器返回了空文件")
-                return (
-                    data,
-                    str(response.headers.get_content_type() or ""),
-                    response.geturl(),
-                )
-        except urllib.error.HTTPError as exc:
-            last_error = exc
-            if exc.code not in RETRYABLE_STATUS_CODES or attempt >= retries:
-                break
+            current_url = url
+            for redirect_count in range(11):
+                with session.get(
+                    current_url,
+                    timeout=timeout,
+                    stream=True,
+                    allow_redirects=False,
+                ) as response:
+                    if response.is_redirect or response.is_permanent_redirect:
+                        location = response.headers.get("Location", "")
+                        redirected_url = urllib.parse.urljoin(current_url, location)
+                        if not is_chexie_host(
+                            urllib.parse.urlsplit(redirected_url).hostname
+                        ):
+                            raise ArchiveError(
+                                f"拒绝跳转到 chexie.net 之外：{redirected_url}"
+                            )
+                        current_url = encode_url(redirected_url)
+                        continue
+
+                    if response.status_code in RETRYABLE_STATUS_CODES:
+                        raise requests.HTTPError(
+                            f"HTTP {response.status_code}: {response.reason}",
+                            response=response,
+                        )
+                    if response.status_code >= 400:
+                        raise ArchiveError(
+                            f"下载失败：HTTP {response.status_code}: {response.reason}"
+                        )
+
+                    content_length = response.headers.get("Content-Length")
+                    if content_length and int(content_length) > max_download_bytes:
+                        raise ArchiveError(
+                            f"源文件超过下载上限 {max_download_bytes} 字节"
+                        )
+                    data = bytearray()
+                    for chunk in response.iter_content(chunk_size=128 * 1024):
+                        data.extend(chunk)
+                        if len(data) > max_download_bytes:
+                            raise ArchiveError(
+                                f"源文件超过下载上限 {max_download_bytes} 字节"
+                            )
+                    if not data:
+                        raise ArchiveError("服务器返回了空文件")
+                    content_type = response.headers.get("Content-Type", "").split(
+                        ";", 1
+                    )[0]
+                    return bytes(data), content_type, current_url
+            raise ArchiveError("下载失败：重定向次数超过 10 次")
         except ArchiveError:
             raise
-        except (
-            http.client.HTTPException,
-            OSError,
-            socket.timeout,
-            TimeoutError,
-            urllib.error.URLError,
-            ValueError,
-        ) as exc:
+        except (OSError, TimeoutError, ValueError, requests.RequestException) as exc:
             last_error = exc
             if attempt >= retries:
                 break
