@@ -406,7 +406,7 @@
   @media (min-width: 641px) {
     .thread-page-shell-without-assistive-bar .thread-top-pagination .thread-page-jump,
     .thread-page-shell-without-assistive-bar .thread-bottom-pagination .thread-page-jump {
-      padding-right: 16px;
+      padding-right: 26px;
     }
   }
 
