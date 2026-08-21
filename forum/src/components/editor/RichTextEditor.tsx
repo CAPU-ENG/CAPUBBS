@@ -35,7 +35,7 @@ import {
   type ReactNode,
 } from 'react';
 import { renderForumMarkup } from '../../utils/forumMarkup';
-import { translateLegacyBbcode } from '../../utils/legacyBbcode';
+import { escapeLegacyBbcodeInHtmlText, translateLegacyBbcode } from '../../utils/legacyBbcode';
 import { getPublicProfileAppPath } from '../../utils/userRoutes';
 import { PastedImageDialog } from './PastedImageDialog';
 import {
@@ -110,12 +110,18 @@ export function getRichTextEditorStorageValue(value: RichTextEditorValue): RichT
 
   return {
     ...value,
-    content: compactHtmlForStorage(value.content),
+    content: compactHtmlForStorage(
+      value.mode === 'rich' ? escapeLegacyBbcodeInHtmlText(value.content) : value.content,
+    ),
   };
 }
 
 export function getRichTextEditorHtmlValue(value: RichTextEditorValue) {
-  const html = value.mode === 'markdown' ? renderMarkdownToHtml(value.content) : value.content;
+  const html = value.mode === 'markdown'
+    ? renderMarkdownToHtml(value.content)
+    : value.mode === 'rich'
+      ? escapeLegacyBbcodeInHtmlText(value.content)
+      : value.content;
   return compactHtmlForStorage(html);
 }
 
@@ -125,7 +131,9 @@ export function getRichTextEditorPreviewDocument(
 ) {
   const previewHtml = value.mode === 'markdown'
     ? renderForumMarkup(renderMarkdownToHtml(value.content))
-    : value.content;
+    : value.mode === 'rich'
+      ? escapeLegacyBbcodeInHtmlText(value.content)
+      : value.content;
   return buildHtmlPreviewDocument(
     previewHtml,
     document.documentElement.classList.contains('dark'),
@@ -1789,7 +1797,9 @@ function convertEditorContent(content: string, from: RichTextEditorMode, to: Ric
     return formatHtmlForSource(renderMarkdownToHtml(content));
   }
 
-  return formatHtmlForSource(content);
+  return formatHtmlForSource(
+    from === 'rich' ? escapeLegacyBbcodeInHtmlText(content) : content,
+  );
 }
 
 function isCrossGroupModeSwitchLocked(value: RichTextEditorValue, nextMode: RichTextEditorMode) {

@@ -2,6 +2,69 @@ import { getPublicProfilePath } from './userRoutes';
 
 type LegacyBbcodeReplacement = [RegExp, (...matches: string[]) => string];
 
+const legacyBbcodeTokenPattern = /\[(?:\/?(?:quote|url|img|at|color|font|size|b|i|u|s))(?:=[^\]\r\n]*)?]/gi;
+
+export function escapeLegacyBbcodeInHtmlText(value: string) {
+  let escaped = '';
+  let cursor = 0;
+
+  while (cursor < value.length) {
+    const tagStart = value.indexOf('<', cursor);
+    if (tagStart < 0) {
+      return escaped + escapeLegacyBbcodeTokens(value.slice(cursor));
+    }
+
+    escaped += escapeLegacyBbcodeTokens(value.slice(cursor, tagStart));
+
+    if (value.startsWith('<!--', tagStart)) {
+      const commentEnd = value.indexOf('-->', tagStart + 4);
+      if (commentEnd < 0) {
+        return escaped + value.slice(tagStart);
+      }
+
+      escaped += value.slice(tagStart, commentEnd + 3);
+      cursor = commentEnd + 3;
+      continue;
+    }
+
+    const tagEnd = findHtmlTagEnd(value, tagStart + 1);
+    if (tagEnd < 0) {
+      return escaped + escapeLegacyBbcodeTokens(value.slice(tagStart));
+    }
+
+    escaped += value.slice(tagStart, tagEnd + 1);
+    cursor = tagEnd + 1;
+  }
+
+  return escaped;
+}
+
+function escapeLegacyBbcodeTokens(value: string) {
+  return value.replace(
+    legacyBbcodeTokenPattern,
+    (token) => `&#91;${token.slice(1, -1)}&#93;`,
+  );
+}
+
+function findHtmlTagEnd(value: string, start: number) {
+  let quote = '';
+
+  for (let index = start; index < value.length; index += 1) {
+    const character = value[index];
+    if (quote) {
+      if (character === quote) quote = '';
+      continue;
+    }
+    if (character === '"' || character === "'") {
+      quote = character;
+      continue;
+    }
+    if (character === '>') return index;
+  }
+
+  return -1;
+}
+
 export function translateLegacyBbcode(value: string) {
   const replacements: LegacyBbcodeReplacement[] = [
     [/\[quote=([^\]]+)]([\s\S]*?)\[\/quote]/gi, (_match, author, content) => (

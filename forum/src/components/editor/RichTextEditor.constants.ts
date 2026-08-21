@@ -12,12 +12,12 @@ export const editorModeGroups: Array<Array<{ label: string; mode: RichTextEditor
 ];
 
 export const richTextFontOptions = [
-  { label: '黑体', value: "SimHei, 'Microsoft YaHei', 'PingFang SC', 'Noto Sans CJK SC', sans-serif" },
-  { label: '微软雅黑', value: "'Microsoft YaHei', 'PingFang SC', 'Noto Sans CJK SC', sans-serif" },
-  { label: '宋体', value: "SimSun, 'Songti SC', serif" },
-  { label: '楷体', value: "KaiTi, 'Kaiti SC', serif" },
-  { label: '仿宋', value: "FangSong, 'FangSong_GB2312', serif" },
-  { label: '等宽', value: "'SFMono-Regular', Consolas, 'Liberation Mono', monospace" },
+  { label: '黑体', value: 'SimHei' },
+  { label: '微软雅黑', value: "'Microsoft YaHei'" },
+  { label: '宋体', value: 'SimSun' },
+  { label: '楷体', value: 'KaiTi' },
+  { label: '仿宋', value: 'FangSong' },
+  { label: '等宽', value: 'monospace' },
 ];
 
 export const richTextFontSizeOptions = [
