@@ -18,6 +18,14 @@
     gap: 4px;
   }
 
+  .thread-pagination-pages {
+    display: flex;
+    min-width: 0;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+  }
+
   .thread-page-button,
   .thread-page-number {
     display: inline-flex;
@@ -166,6 +174,22 @@
     outline-offset: 4px;
   }
 
+  .thread-title-copy-icon {
+    display: inline-block;
+    margin-left: 9px;
+    color: var(--brand-strong);
+    opacity: 0;
+    vertical-align: -0.12em;
+    transform: translateX(-3px);
+    transition: opacity 140ms ease, transform 140ms ease;
+  }
+
+  .thread-title-copy-button:hover .thread-title-copy-icon,
+  .thread-title-copy-button:focus-visible .thread-title-copy-icon {
+    opacity: 1;
+    transform: translateX(0);
+  }
+
   .thread-activity-management-link {
     display: inline-flex;
     min-height: 36px;
@@ -271,9 +295,32 @@
 
   .thread-top-pagination,
   .thread-bottom-pagination {
-    display: flex;
-    justify-content: center;
-    max-width: var(--thread-main-column);
+    width: 100%;
+    border: 1px solid var(--line);
+    border-radius: 2px;
+    padding: 12px 16px;
+    background: var(--surface);
+    box-shadow: var(--shadow-card);
+  }
+
+  .thread-top-pagination .thread-pagination,
+  .thread-bottom-pagination .thread-pagination {
+    display: grid;
+    width: 100%;
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .thread-top-pagination .thread-pagination-with-jump,
+  .thread-bottom-pagination .thread-pagination-with-jump {
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 16px;
+  }
+
+  .thread-top-pagination .thread-page-jump,
+  .thread-bottom-pagination .thread-page-jump {
+    margin-left: 0;
+    border-left: 1px solid var(--line);
+    padding-left: 16px;
   }
 
   .thread-top-pagination {
@@ -2121,9 +2168,14 @@
 
     .thread-top-pagination,
     .thread-bottom-pagination {
-      justify-content: flex-start;
       overflow-x: auto;
-      padding-bottom: 4px;
+      padding: 10px;
+    }
+
+    .thread-top-pagination .thread-pagination,
+    .thread-bottom-pagination .thread-pagination {
+      width: max-content;
+      min-width: 100%;
     }
 
     .thread-bottom-pagination {
