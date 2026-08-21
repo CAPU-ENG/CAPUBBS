@@ -13,6 +13,7 @@ export type PastedImageState = {
   isUploading: boolean;
   originalFile: File;
   previewUrl: string;
+  source: 'file' | 'paste';
   workingFile: File;
 };
 

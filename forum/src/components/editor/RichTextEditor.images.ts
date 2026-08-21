@@ -1,6 +1,25 @@
 import { imageCompressionMaxEdge } from './RichTextEditor.constants';
 import { md5BytesHex } from '../../utils/md5';
 
+type EditorImageFormat = 'gif' | 'jpeg' | 'png' | 'webp';
+
+const editorImageFormatByExtension: Record<string, EditorImageFormat> = {
+  gif: 'gif',
+  jpeg: 'jpeg',
+  jpg: 'jpeg',
+  png: 'png',
+  webp: 'webp',
+};
+const editorImageFormatByMime: Record<string, EditorImageFormat> = {
+  'image/gif': 'gif',
+  'image/jpeg': 'jpeg',
+  'image/jpg': 'jpeg',
+  'image/png': 'png',
+  'image/webp': 'webp',
+};
+
+export const editorImageInputAccept = '.gif,.jpg,.jpeg,.png,.webp,image/gif,image/jpeg,image/png,image/webp';
+
 export function getClipboardImageFile(clipboardData: DataTransfer) {
   const file = Array.from(clipboardData.files).find((item) => item.type.startsWith('image/'));
 
@@ -22,7 +41,44 @@ export function formatBytes(bytes: number) {
 }
 
 export function getImageAltText(file: File) {
-  return file.name.replace(/\.[^.]+$/, '').trim() || '粘贴图片';
+  return file.name.replace(/\.[^.]+$/, '').trim() || '图片';
+}
+
+export async function validateEditorImageFile(file: File) {
+  const extension = file.name.match(/\.([^.]+)$/)?.[1]?.toLowerCase() ?? '';
+  const extensionFormat = editorImageFormatByExtension[extension];
+
+  if (!extensionFormat) {
+    throw new Error('仅支持 JPG、PNG、GIF、WebP 图片。');
+  }
+
+  const mime = file.type.trim().toLowerCase();
+  const mimeFormat = mime ? editorImageFormatByMime[mime] : undefined;
+  if (mime && !mimeFormat) {
+    throw new Error('仅支持 JPG、PNG、GIF、WebP 图片。');
+  }
+
+  const header = new Uint8Array(await file.slice(0, 12).arrayBuffer());
+  const headerFormat = detectEditorImageFormat(header);
+  if (!headerFormat || headerFormat !== extensionFormat || (mimeFormat && mimeFormat !== headerFormat)) {
+    throw new Error('文件内容与图片格式不匹配，请重新选择。');
+  }
+}
+
+function detectEditorImageFormat(bytes: Uint8Array): EditorImageFormat | null {
+  if (hasBytes(bytes, [0xff, 0xd8, 0xff])) return 'jpeg';
+  if (hasBytes(bytes, [0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a])) return 'png';
+  if (hasAscii(bytes, 0, 'GIF87a') || hasAscii(bytes, 0, 'GIF89a')) return 'gif';
+  if (hasAscii(bytes, 0, 'RIFF') && hasAscii(bytes, 8, 'WEBP')) return 'webp';
+  return null;
+}
+
+function hasBytes(bytes: Uint8Array, signature: number[]) {
+  return signature.every((byte, index) => bytes[index] === byte);
+}
+
+function hasAscii(bytes: Uint8Array, offset: number, signature: string) {
+  return Array.from(signature).every((character, index) => bytes[offset + index] === character.charCodeAt(0));
 }
 
 export async function createUploadablePngFileUnderLimit(file: File, maxBytes: number) {

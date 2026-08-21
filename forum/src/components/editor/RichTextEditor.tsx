@@ -55,10 +55,12 @@ import { useIsDarkTheme, useIsMobileViewport } from './RichTextEditor.hooks';
 import {
   compressImageFileUnderLimit,
   createUploadablePngFileUnderLimit,
+  editorImageInputAccept,
   getClipboardImageFile,
   getImageFileMd5Hex,
   getImageAltText,
   uploadEditorImage,
+  validateEditorImageFile,
 } from './RichTextEditor.images';
 import {
   applyInlineStyleToElement,
@@ -290,6 +292,7 @@ export function RichTextEditor({
   const sourceRef = useRef<HTMLTextAreaElement>(null);
   const sourceLineNumbersRef = useRef<HTMLDivElement>(null);
   const htmlHighlightRef = useRef<HTMLPreElement>(null);
+  const imageFileInputRef = useRef<HTMLInputElement>(null);
   const savedRangeRef = useRef<Range | null>(null);
   const sourceSelectionRef = useRef<{ end: number; start: number } | null>(null);
   const selectedRichImageRef = useRef<HTMLImageElement | null>(null);
@@ -309,6 +312,8 @@ export function RichTextEditor({
   const [fontSelectValue, setFontSelectValue] = useState('');
   const [fontSizeSelectValue, setFontSizeSelectValue] = useState('');
   const [headingSelectValue, setHeadingSelectValue] = useState('p');
+  const [imageFileError, setImageFileError] = useState('');
+  const [isCheckingImageFile, setIsCheckingImageFile] = useState(false);
   const [pastedImage, setPastedImage] = useState<PastedImageState | null>(null);
   const [recentTextColors, setRecentTextColors] = useState(readRecentTextColors);
   const [selectedTextColor, setSelectedTextColor] = useState(defaultTextColor);
@@ -801,12 +806,13 @@ export function RichTextEditor({
     }
   };
 
-  const openPastedImageDialog = (file: File) => {
+  const openPastedImageDialog = (file: File, source: PastedImageState['source']) => {
     setPastedImage({
       isCompressing: false,
       isUploading: false,
       originalFile: file,
       previewUrl: URL.createObjectURL(file),
+      source,
       workingFile: file,
     });
   };
@@ -826,7 +832,30 @@ export function RichTextEditor({
     saveSelection();
     setActivePopover(null);
     setIsColorPickerOpen(false);
-    openPastedImageDialog(imageFile);
+    openPastedImageDialog(imageFile, 'paste');
+  };
+
+  const handleLocalImageFileChange = async (event: ChangeEvent<HTMLInputElement>) => {
+    const input = event.currentTarget;
+    const file = input.files?.[0];
+    input.value = '';
+
+    if (!file) {
+      return;
+    }
+
+    setImageFileError('');
+    setIsCheckingImageFile(true);
+
+    try {
+      await validateEditorImageFile(file);
+      closePopover();
+      openPastedImageDialog(file, 'file');
+    } catch (error) {
+      setImageFileError(error instanceof Error ? error.message : '图片文件检查失败，请重新选择。');
+    } finally {
+      setIsCheckingImageFile(false);
+    }
   };
 
   const compressPastedImage = async () => {
@@ -1133,6 +1162,7 @@ export function RichTextEditor({
   const openPopover = (popover: Exclude<EditorPopover, null>) => {
     saveSelection();
     setIsColorPickerOpen(false);
+    setImageFileError('');
     setPopoverTextValue(popover === 'link' ? getCurrentSelectionText() : '');
     setPopoverValue('');
     setActivePopover(popover);
@@ -1140,6 +1170,7 @@ export function RichTextEditor({
 
   const closePopover = () => {
     setActivePopover(null);
+    setImageFileError('');
     setPopoverTextValue('');
     setPopoverValue('');
   };
@@ -1629,8 +1660,29 @@ export function RichTextEditor({
                 />
               </label>
             )}
+            {activePopover === 'image' ? (
+              <>
+                <input
+                  ref={imageFileInputRef}
+                  type="file"
+                  accept={editorImageInputAccept}
+                  onChange={handleLocalImageFileChange}
+                  className="sr-only"
+                  tabIndex={-1}
+                />
+                <button
+                  type="button"
+                  disabled={isCheckingImageFile}
+                  onClick={() => imageFileInputRef.current?.click()}
+                  className="h-9 rounded-[1px] border border-[#174f38] bg-white/70 px-3 text-sm font-bold text-[#174f38] transition hover:bg-emerald-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#174f38] disabled:cursor-wait disabled:opacity-50 dark:border-emerald-200 dark:bg-white/[0.06] dark:text-emerald-200 dark:hover:bg-emerald-200/10"
+                >
+                  {isCheckingImageFile ? '检查中...' : '上传图片'}
+                </button>
+              </>
+            ) : null}
             <button
               type="submit"
+              disabled={isCheckingImageFile}
               className="h-9 rounded-[1px] bg-[#174f38] px-3 text-sm font-bold text-white transition hover:bg-[#123d2c] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#174f38] dark:bg-emerald-200 dark:text-zinc-950 dark:hover:bg-emerald-100"
             >
               插入
@@ -1638,10 +1690,16 @@ export function RichTextEditor({
             <button
               type="button"
               onClick={closePopover}
+              disabled={isCheckingImageFile}
               className="h-9 rounded-[1px] border border-zinc-200 bg-white/70 px-3 text-sm font-semibold text-zinc-700 transition hover:bg-zinc-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#174f38] dark:border-white/10 dark:bg-white/[0.06] dark:text-white dark:hover:bg-white/[0.1]"
             >
               取消
             </button>
+            {activePopover === 'image' && imageFileError ? (
+              <p role="alert" className="basis-full text-xs font-semibold text-rose-700 dark:text-rose-200">
+                {imageFileError}
+              </p>
+            ) : null}
           </form>
         ) : null}
       </div>
@@ -1844,6 +1902,8 @@ export function RichTextEditor({
     </section>
     <PastedImageDialog
       image={pastedImage}
+      previewAlt={pastedImage?.source === 'file' ? '本地图片预览' : undefined}
+      title={pastedImage?.source === 'file' ? '插入本地图片' : undefined}
       onCancel={closePastedImageDialog}
       onCompress={compressPastedImage}
       onUpload={uploadAndInsertPastedImage}
