@@ -9,7 +9,8 @@
     "preview": "vite preview --host localhost",
     "typecheck": "tsc -b --pretty false",
     "verify:legacy-assets": "node --experimental-strip-types verify-legacy-assets.mjs",
-    "verify:legacy-routes": "node --experimental-strip-types verify-legacy-forum-routes.mjs"
+    "verify:legacy-routes": "node --experimental-strip-types verify-legacy-forum-routes.mjs",
+    "verify:legacy-signatures": "node --experimental-strip-types verify-legacy-signature-floor-links.mjs"
   },
   "dependencies": {
     "lucide-react": "^0.561.0",

@@ -11,12 +11,23 @@ export type SignatureFloorMarker = SignatureFloorReference & {
 const signatureFloorMarkerPattern = /\[post(?:\s|&nbsp;|&#160;|\u00a0)+(.*?)\]/gi;
 const legacySignatureScriptPattern = /<script\b[^>]*>([\s\S]*?)<\/script\s*>/gi;
 const legacySignatureGetPattern = /\$\s*\.\s*get\s*\(\s*(["'])(.*?)\1/gi;
+const legacySignatureFindFloorPattern = /\.\s*find\s*\(\s*(["'])#floor(\d+)\1\s*\)/i;
 const legacyThreadPageSize = 12;
 
 export function replaceLegacySignatureFloorScripts(value: string) {
   return value.replace(legacySignatureScriptPattern, (script, body: string) => {
-    const references = Array.from(body.matchAll(legacySignatureGetPattern))
-      .map((match) => parseLegacySignatureFloorRequest(match[2] ?? ''))
+    const requests = Array.from(body.matchAll(legacySignatureGetPattern));
+    const references = requests
+      .map((match, index) => {
+        const requestEnd = (match.index ?? 0) + match[0].length;
+        const nextRequestStart = requests[index + 1]?.index ?? body.length;
+        const requestBody = body.slice(requestEnd, nextRequestStart);
+        const pageFloorIndex = parseNonNegativeInteger(
+          requestBody.match(legacySignatureFindFloorPattern)?.[2],
+        );
+
+        return parseLegacySignatureFloorRequest(match[2] ?? '', pageFloorIndex);
+      })
       .filter((reference): reference is SignatureFloorReference => reference !== null);
 
     if (references.length === 0) return script;
@@ -87,7 +98,10 @@ function getFloorFromHash(hash: string) {
   return hash.match(/#?(?:floor-|pid)?(\d+)\b/i)?.[1] ?? null;
 }
 
-function parseLegacySignatureFloorRequest(value: string): SignatureFloorReference | null {
+function parseLegacySignatureFloorRequest(
+  value: string,
+  preferredPageFloorIndex: number | null = null,
+): SignatureFloorReference | null {
   const decoded = decodeBasicHtmlEntities(value).replace(/\\\//g, '/').trim();
   if (!decoded) return null;
 
@@ -112,10 +126,14 @@ function parseLegacySignatureFloorRequest(value: string): SignatureFloorReferenc
     if (!trustedHost || !legacyFloorPath) return null;
 
     const page = parsePositiveInteger(url.searchParams.get('p') ?? url.searchParams.get('page')) ?? 1;
+    const preferredPid = preferredPageFloorIndex === null
+      ? null
+      : String(((page - 1) * legacyThreadPageSize) + preferredPageFloorIndex + 1);
     return createReference(
       url.searchParams.get('bid'),
       url.searchParams.get('tid'),
-      url.searchParams.get('pid')
+      preferredPid
+        ?? url.searchParams.get('pid')
         ?? url.searchParams.get('floor')
         ?? getLegacySignaturePidFromHash(url.hash, page),
     );
