@@ -51,6 +51,18 @@
     font-size: 1.18rem;
   }
 
+  .feed-item-compact h2::before {
+    position: absolute;
+    top: 0.75em;
+    left: 0;
+    width: 4px;
+    height: 4px;
+    border-radius: 50%;
+    background: var(--brand);
+    content: '';
+    transform: translateY(-50%);
+  }
+
   .feed-item-content:hover h2 {
     color: var(--brand-strong);
   }
@@ -90,8 +102,10 @@
   }
 
   .feed-item-compact h2 {
+    position: relative;
     max-width: 100%;
     flex: 0 0 auto;
+    padding-left: 12px;
     overflow-wrap: anywhere;
     font-size: 0.86rem;
     line-height: 1.55;

@@ -679,7 +679,21 @@
     }
 
     .board-thread-title-line {
+      position: relative;
       display: block;
+      padding-left: 12px;
+    }
+
+    .board-thread-title-line::before {
+      position: absolute;
+      top: 0.75em;
+      left: 0;
+      width: 4px;
+      height: 4px;
+      border-radius: 50%;
+      background: var(--brand);
+      content: '';
+      transform: translateY(-50%);
     }
 
     .board-thread-title-line > a {
