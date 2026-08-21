@@ -138,7 +138,7 @@ export function Pagination({
       <div className="thread-pagination-pages">
         <PageControl
           aria-label="首页"
-          className="thread-page-button thread-page-button-edge"
+          className="thread-page-button"
           disabled={currentPage === 1}
           href={hrefFor(1, currentPage === 1)}
           onClick={clickFor(1)}
@@ -188,7 +188,7 @@ export function Pagination({
 
         <PageControl
           aria-label="尾页"
-          className="thread-page-button thread-page-button-edge"
+          className="thread-page-button"
           disabled={currentPage === pageCount}
           href={hrefFor(pageCount, currentPage === pageCount)}
           onClick={clickFor(pageCount)}
