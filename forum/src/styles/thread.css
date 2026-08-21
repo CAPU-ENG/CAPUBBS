@@ -2253,22 +2253,27 @@
     }
 
     .thread-top-pagination .thread-pagination,
-    .thread-bottom-pagination .thread-pagination {
-      grid-template-columns: minmax(0, 1fr) auto;
-      gap: 8px;
+    .thread-bottom-pagination .thread-pagination,
+    .forum-pagination-card > .thread-pagination {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 4px;
     }
 
     .thread-top-pagination .thread-pagination-pages,
-    .thread-bottom-pagination .thread-pagination-pages {
-      justify-content: flex-start;
+    .thread-bottom-pagination .thread-pagination-pages,
+    .forum-pagination-card .thread-pagination-pages {
+      justify-content: safe center;
       overflow-x: auto;
-      padding: 0 8px 4px;
+      padding: 0;
+      scrollbar-width: none;
     }
 
-    .forum-pagination-card .thread-pagination-pages {
-      justify-content: flex-start;
-      overflow-x: auto;
-      padding-bottom: 4px;
+    .thread-top-pagination .thread-pagination-pages::-webkit-scrollbar,
+    .thread-bottom-pagination .thread-pagination-pages::-webkit-scrollbar,
+    .forum-pagination-card .thread-pagination-pages::-webkit-scrollbar {
+      display: none;
     }
 
     .thread-pagination-pages {
@@ -2286,11 +2291,16 @@
     }
 
     .forum-pagination-card > .thread-pagination-with-jump {
-      gap: 8px;
+      gap: 4px;
     }
 
     .forum-pagination-card .thread-page-jump {
-      padding-left: 8px;
+      border-left: 0;
+      padding-left: 0;
+    }
+
+    .thread-page-jump {
+      flex: 0 0 auto;
     }
 
     .thread-bottom-pagination {
