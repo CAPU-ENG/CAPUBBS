@@ -52,6 +52,7 @@ if ($username!="") {
         echo("&nbsp;<a href='../favorite/'>我的收藏</a>");
     }
     echo("<br><a href='../logout?from=%2Fbbs%2Findex'>注销</a>");
+    echo("<br><a href='/' class='new-forum-link'>试试新论坛</a>");
     // if (intval($users['rights']) >= 1) {
     //     echo("<br><a href='../manage/' style='color:#337ab7;'>管理工具</a>");
     // }

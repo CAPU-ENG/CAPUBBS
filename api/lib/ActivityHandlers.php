@@ -302,9 +302,15 @@ function activity_handler_signup_summary_locked($con, $activity_id) {
             activity_join.join_id,
             activity_join.username,
             activity_join.cancel,
+            case when unfinished_punishment.username is null then 0 else 1 end as has_unfinished_punishment,
             coalesce(posts.replytime, 0) as joined_at
         from season_activity_join activity_join
         left join posts on posts.fid=activity_join.post_fid
+        left join (
+            select username from punishment
+            where is_end=0 and is_deleted=0
+            group by username
+        ) unfinished_punishment on unfinished_punishment.username=activity_join.username
         where activity_join.activity_id=$activity_id
         order by activity_join.join_id asc");
     if (!$join_result) {
@@ -320,6 +326,7 @@ function activity_handler_signup_summary_locked($con, $activity_id) {
             'record_id' => $join_id,
             'username' => $row['username'],
             'joined_at' => intval($row['joined_at']),
+            'has_unfinished_punishment' => intval($row['has_unfinished_punishment']) === 1,
             'status' => intval($row['cancel']) === 0 ? 'effective' : 'canceled',
             'values' => array(),
         );

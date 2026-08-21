@@ -27,6 +27,7 @@ function _dispatch_build_routes() {
         // ================================================================
         'bbsinfo'         => array('handler' => 'jiekoufunc_bbsinfo',         'check_login' => false, 'require_rights' => 0),
         'hot'             => array('handler' => 'jiekoufunc_hot',             'check_login' => false, 'require_rights' => 0),
+        'random_thread'   => array('handler' => 'jiekoufunc_random_thread',   'check_login' => false, 'require_rights' => 0),
         'global_top'      => array('handler' => 'jiekoufunc_global_top',      'check_login' => false, 'require_rights' => 0),
         'verifiedCount'   => array('handler' => 'jiekoufunc_verifiedCount',   'check_login' => false, 'require_rights' => 0),
         'tidinfo'         => array('handler' => 'jiekoufunc_tidinfo',         'check_login' => false, 'require_rights' => 0),
@@ -254,6 +255,8 @@ function jiekoufunc_dispatch($con, $params) {
                 return jiekoufunc_userexists($con, $params);
             case 'jiekoufunc_hot':
                 return jiekoufunc_hot($con, $token, $params);
+            case 'jiekoufunc_random_thread':
+                return jiekoufunc_random_thread($con, $token);
             case 'jiekoufunc_global_top':
                 return jiekoufunc_global_top($con, $token);
             case 'jiekoufunc_news':

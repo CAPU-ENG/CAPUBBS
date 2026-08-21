@@ -129,6 +129,9 @@ a{
 a:hover{
     text-decoration: underline;
 }
+a.new-forum-link{
+    text-decoration: underline;
+}
 span.hint{
     font-size: 14px
 }
