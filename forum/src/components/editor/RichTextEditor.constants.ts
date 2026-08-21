@@ -3,10 +3,12 @@ import type { RichTextEditorMode } from './RichTextEditor.types';
 export const maxInlineImageBytes = 2 * 1024 * 1024;
 export const imageCompressionMaxEdge = 2200;
 
-export const editorModes: Array<{ label: string; mode: RichTextEditorMode }> = [
-  { label: '富文本', mode: 'rich' },
-  { label: 'Markdown', mode: 'markdown' },
-  { label: 'HTML', mode: 'html' },
+export const editorModeGroups: Array<Array<{ label: string; mode: RichTextEditorMode }>> = [
+  [
+    { label: '富文本', mode: 'rich' },
+    { label: 'HTML', mode: 'html' },
+  ],
+  [{ label: 'Markdown', mode: 'markdown' }],
 ];
 
 export const richTextFontOptions = [

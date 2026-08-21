@@ -41,7 +41,7 @@ import {
   defaultRichTextFont,
   defaultRichTextFontSize,
   defaultTextColor,
-  editorModes,
+  editorModeGroups,
   htmlVoidTags,
   markdownFloorQuoteMetaPattern,
   maxInlineImageBytes,
@@ -279,6 +279,7 @@ export function RichTextEditor({
   const isMarkdownMode = value.mode === 'markdown';
   const isHtmlMode = value.mode === 'html';
   const isSourceMode = isMarkdownMode || isHtmlMode;
+  const hasEditorContent = hasModeSwitchingContent(value);
   const shouldShowSourceLineNumbers = isSourceMode && showSourceLineNumbers;
   const sourceLineCount = useMemo(() => Math.max(1, value.content.split('\n').length), [value.content]);
   const sourceLineNumbers = useMemo(
@@ -459,7 +460,7 @@ export function RichTextEditor({
   const updateMode = (nextMode: RichTextEditorMode) => {
     const currentValue = currentValueRef.current;
 
-    if (nextMode === currentValue.mode) {
+    if (nextMode === currentValue.mode || isCrossGroupModeSwitchLocked(currentValue, nextMode)) {
       return;
     }
 
@@ -1597,30 +1598,38 @@ export function RichTextEditor({
               显示行号
             </label>
           ) : null}
-          <div
-            aria-label="编辑模式"
-            className="capubbs-editor-mode-tabs inline-flex h-7 shrink-0 items-center rounded-[1px] border border-zinc-200 bg-white/60 p-0.5 text-[0.72rem] font-bold dark:border-white/10 dark:bg-white/[0.06]"
-            role="group"
-          >
-            {editorModes.map((modeOption) => {
-              const isActive = modeOption.mode === value.mode;
+          <div aria-label="编辑模式" className="inline-flex shrink-0 items-center gap-1" role="group">
+            {editorModeGroups.map((modeGroup) => (
+              <div
+                key={modeGroup.map((modeOption) => modeOption.mode).join('-')}
+                className="capubbs-editor-mode-tabs inline-flex h-7 items-center rounded-[1px] border border-zinc-200 bg-white/60 p-0.5 text-[0.72rem] font-bold dark:border-white/10 dark:bg-white/[0.06]"
+              >
+                {modeGroup.map((modeOption) => {
+                  const isActive = modeOption.mode === value.mode;
+                  const isLocked = hasEditorContent
+                    && (isMarkdownMode !== (modeOption.mode === 'markdown'));
 
-              return (
-                <button
-                  key={modeOption.mode}
-                  type="button"
-                  aria-pressed={isActive}
-                  onClick={() => updateMode(modeOption.mode)}
-                  className={`capubbs-editor-mode-tab h-6 rounded-[1px] px-2 transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#174f38] ${
-                    isActive
-                      ? 'bg-[#174f38] text-white shadow-sm dark:bg-emerald-200 dark:text-zinc-950'
-                      : 'text-zinc-600 hover:bg-zinc-100 hover:text-[#174f38] dark:text-zinc-300 dark:hover:bg-white/[0.08] dark:hover:text-white'
-                  }`}
-                >
-                  {modeOption.label}
-                </button>
-              );
-            })}
+                  return (
+                    <button
+                      key={modeOption.mode}
+                      type="button"
+                      aria-pressed={isActive}
+                      disabled={isLocked}
+                      onClick={() => updateMode(modeOption.mode)}
+                      className={`capubbs-editor-mode-tab h-6 rounded-[1px] px-2 transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#174f38] ${
+                        isActive
+                          ? 'bg-[#174f38] text-white shadow-sm dark:bg-emerald-200 dark:text-zinc-950'
+                          : isLocked
+                            ? 'cursor-not-allowed text-zinc-400 opacity-50 dark:text-zinc-500'
+                            : 'text-zinc-600 hover:bg-zinc-100 hover:text-[#174f38] dark:text-zinc-300 dark:hover:bg-white/[0.08] dark:hover:text-white'
+                      }`}
+                    >
+                      {modeOption.label}
+                    </button>
+                  );
+                })}
+              </div>
+            ))}
           </div>
         </div>
       </footer>
@@ -1714,6 +1723,24 @@ function convertEditorContent(content: string, from: RichTextEditorMode, to: Ric
   }
 
   return formatHtmlForSource(content);
+}
+
+function isCrossGroupModeSwitchLocked(value: RichTextEditorValue, nextMode: RichTextEditorMode) {
+  const switchesMarkdownGroup = (value.mode === 'markdown') !== (nextMode === 'markdown');
+  return switchesMarkdownGroup && hasModeSwitchingContent(value);
+}
+
+function hasModeSwitchingContent(value: RichTextEditorValue) {
+  if (value.mode !== 'rich') {
+    return value.content.trim().length > 0;
+  }
+
+  const container = document.createElement('div');
+  container.innerHTML = value.content;
+  return (
+    (container.textContent ?? '').replace(/\u00a0/g, ' ').trim().length > 0
+    || Boolean(container.querySelector('img, hr'))
+  );
 }
 
 function buildHtmlPreviewDocument(html: string, isDarkTheme: boolean, embedded = false) {
