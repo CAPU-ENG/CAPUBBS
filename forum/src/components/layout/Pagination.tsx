@@ -94,7 +94,7 @@ export function Pagination({
           <span>跳转到</span>
           <details>
             <summary>
-              页数
+              {currentPage}
               <ChevronDown aria-hidden="true" size={14} />
             </summary>
             <div aria-label={`选择页码，共 ${pageCount} 页`} className="thread-page-jump-menu">
