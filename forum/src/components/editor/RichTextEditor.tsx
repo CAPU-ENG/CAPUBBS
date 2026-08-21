@@ -61,9 +61,7 @@ import {
 import {
   applyInlineStyleToElement,
   focusRichTextEditorAtEnd,
-  getInheritedRichInlineStyle,
   normalizeCssColor,
-  richInlineStyleToString,
 } from './RichTextEditor.richText';
 import type {
   EditorPopover,
@@ -877,49 +875,46 @@ export function RichTextEditor({
     insertRichHtml(`<${tagName}${classAttribute}>${getRichSelectionHtml(fallback)}</${tagName}>`);
   };
 
-  const applyRichInlineStyle = (style: RichInlineStyle, fallback: string) => {
-    editorRef.current?.focus();
-    restoreRichSelection();
-
+  const applyRichInlineStyle = (style: RichInlineStyle) => {
+    const editor = editorRef.current;
     const selection = window.getSelection();
-    if (!selection || selection.rangeCount === 0 || !editorRef.current) {
-      insertRichHtml(`<span style="${escapeAttribute(richInlineStyleToString(style))}">${escapeHtml(fallback)}</span>`);
+
+    if (!editor || !selection) {
       savedRangeRef.current = null;
       return;
     }
 
-    const range = selection.getRangeAt(0);
-    if (!editorRef.current.contains(range.commonAncestorContainer)) {
-      insertRichHtml(`<span style="${escapeAttribute(richInlineStyleToString(style))}">${escapeHtml(fallback)}</span>`);
+    const currentRange = selection.rangeCount > 0 ? selection.getRangeAt(0) : null;
+    const range = currentRange
+      && !currentRange.collapsed
+      && editor.contains(currentRange.commonAncestorContainer)
+      ? currentRange.cloneRange()
+      : savedRangeRef.current?.cloneRange();
+
+    if (!range || range.collapsed || !editor.contains(range.commonAncestorContainer)) {
       savedRangeRef.current = null;
       return;
     }
+
+    editor.focus();
+    selection.removeAllRanges();
+    selection.addRange(range);
 
     const wrapper = document.createElement('span');
     applyInlineStyleToElement(wrapper, style);
 
     try {
-      if (range.collapsed) {
-        wrapper.textContent = fallback;
-        range.insertNode(wrapper);
-      } else {
-        range.surroundContents(wrapper);
-      }
-
-      selection.removeAllRanges();
-      const nextRange = document.createRange();
-      nextRange.selectNodeContents(wrapper);
-      selection.addRange(nextRange);
-      updateContent(editorRef.current.innerHTML);
+      range.surroundContents(wrapper);
     } catch {
-      const inheritedStyle = getInheritedRichInlineStyle(range);
-      const nextStyle = {
-        ...inheritedStyle,
-        ...style,
-      };
-      insertRichHtml(`<span style="${escapeAttribute(richInlineStyleToString(nextStyle))}">${getRichSelectionHtml(fallback)}</span>`);
+      wrapper.appendChild(range.extractContents());
+      range.insertNode(wrapper);
     }
 
+    selection.removeAllRanges();
+    const nextRange = document.createRange();
+    nextRange.selectNodeContents(wrapper);
+    selection.addRange(nextRange);
+    updateContent(editor.innerHTML);
     savedRangeRef.current = null;
   };
 
@@ -932,7 +927,7 @@ export function RichTextEditor({
       return;
     }
 
-    applyRichInlineStyle({ fontFamily: fontName }, '文字');
+    applyRichInlineStyle({ fontFamily: fontName });
   };
 
   const handleRichFontSizeChange = (event: ChangeEvent<HTMLSelectElement>) => {
@@ -943,7 +938,7 @@ export function RichTextEditor({
     }
 
     setFontSizeSelectValue(fontSize);
-    applyRichInlineStyle({ fontSize }, '文字');
+    applyRichInlineStyle({ fontSize });
   };
 
   const handleRichHeadingChange = (event: ChangeEvent<HTMLSelectElement>) => {
@@ -976,7 +971,7 @@ export function RichTextEditor({
         ...currentColors.filter((recentColor) => recentColor !== normalizedColor),
       ].slice(0, maxRecentTextColors);
     });
-    applyRichInlineStyle({ color: normalizedColor }, '文字');
+    applyRichInlineStyle({ color: normalizedColor });
   };
 
   const handleHexSourceChange = (nextValue: string) => {
@@ -1260,6 +1255,11 @@ export function RichTextEditor({
     event.preventDefault();
   };
 
+  const handleColorActionMouseDown = (event: MouseEvent<HTMLButtonElement>) => {
+    handleToolbarMouseDown(event);
+    saveSelection();
+  };
+
   const renderSourceLineNumbers = (variant: 'code' | 'markdown') => {
     if (!shouldShowSourceLineNumbers) {
       return null;
@@ -1478,7 +1478,7 @@ export function RichTextEditor({
                       type="button"
                       aria-label={`使用最近颜色 ${recentColor}`}
                       title={recentColor}
-                      onMouseDown={handleToolbarMouseDown}
+                      onMouseDown={handleColorActionMouseDown}
                       onClick={() => applyRichTextColor(recentColor)}
                       className="h-6 w-6 rounded-[var(--control-radius)] border border-zinc-300 shadow-sm transition hover:scale-105 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#174f38] dark:border-white/20"
                       style={{ backgroundColor: recentColor }}
@@ -1491,6 +1491,7 @@ export function RichTextEditor({
               HEX 色值
               <input
                 value={hexSourceValue}
+                onMouseDown={saveSelection}
                 onChange={(event) => handleHexSourceChange(event.target.value)}
                 maxLength={7}
                 pattern="#[0-9A-Fa-f]{6}"
@@ -1502,7 +1503,7 @@ export function RichTextEditor({
             </label>
             <button
               type="button"
-              onMouseDown={handleToolbarMouseDown}
+              onMouseDown={handleColorActionMouseDown}
               onClick={applyHexSourceColor}
               disabled={!/^#[0-9A-F]{6}$/.test(hexSourceValue)}
               className="h-7 rounded-[var(--control-radius)] bg-emerald-800 px-2.5 text-xs font-semibold text-white transition hover:bg-emerald-900 disabled:cursor-not-allowed disabled:opacity-40 dark:bg-emerald-600 dark:hover:bg-emerald-500"
