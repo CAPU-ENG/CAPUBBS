@@ -93,17 +93,25 @@ export function SettingsPage() {
             </div>
 
             <div className="settings-checkbox-list settings-checkbox-columns">
-              <label className="settings-checkbox-option">
-                <input
-                  checked={followsSystem}
-                  onChange={(event) => saveThemeFollowsSystem(event.target.checked)}
-                  type="checkbox"
-                />
-                <span className="settings-checkbox-mark" aria-hidden="true"><Check size={14} /></span>
-                <span>
-                  <strong>系统昼夜</strong>
+              <div className="settings-checkbox-row">
+                <label className="settings-checkbox-option">
+                  <input
+                    checked={followsSystem}
+                    onChange={(event) => saveThemeFollowsSystem(event.target.checked)}
+                    type="checkbox"
+                  />
+                  <span className="settings-checkbox-mark" aria-hidden="true"><Check size={14} /></span>
+                  <span><strong>系统昼夜</strong></span>
+                </label>
+                <span className="settings-option-help">
+                  <button aria-describedby="system-theme-help" aria-label="查看系统昼夜说明" type="button">
+                    <CircleHelp size={14} />
+                  </button>
+                  <span id="system-theme-help" role="tooltip">
+                    页面昼夜模式会自动跟随系统设置切换。
+                  </span>
                 </span>
-              </label>
+              </div>
 
               <div className="settings-checkbox-row">
                 <label className="settings-checkbox-option">
