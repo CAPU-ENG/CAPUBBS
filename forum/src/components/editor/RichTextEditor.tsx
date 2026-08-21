@@ -909,13 +909,10 @@ export function RichTextEditor({
 
     const wrapper = document.createElement('span');
     applyInlineStyleToElement(wrapper, style);
-
-    try {
-      range.surroundContents(wrapper);
-    } catch {
-      wrapper.appendChild(range.extractContents());
-      range.insertNode(wrapper);
-    }
+    const selectedContent = range.extractContents();
+    removeOverriddenRichInlineStyles(selectedContent, style);
+    wrapper.appendChild(selectedContent);
+    range.insertNode(wrapper);
 
     selection.removeAllRanges();
     const nextRange = document.createRange();
@@ -1808,6 +1805,29 @@ function ToolbarButton({
 
 function ToolbarDivider() {
   return <span className="mx-px h-4 w-px shrink-0 bg-zinc-200 dark:bg-white/10" />;
+}
+
+function removeOverriddenRichInlineStyles(content: DocumentFragment, style: RichInlineStyle) {
+  content.querySelectorAll<HTMLElement>('*').forEach((element) => {
+    if (style.color) {
+      element.style.removeProperty('color');
+      element.removeAttribute('color');
+    }
+
+    if (style.fontFamily) {
+      element.style.removeProperty('font-family');
+      element.removeAttribute('face');
+    }
+
+    if (style.fontSize) {
+      element.style.removeProperty('font-size');
+      element.removeAttribute('size');
+    }
+
+    if (element.hasAttribute('style') && !element.getAttribute('style')?.trim()) {
+      element.removeAttribute('style');
+    }
+  });
 }
 
 function readRecentTextColors() {
