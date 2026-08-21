@@ -92,7 +92,7 @@ export function SettingsPage() {
               </div>
             </div>
 
-            <div className="settings-checkbox-list">
+            <div className="settings-checkbox-list settings-checkbox-columns">
               <label className="settings-checkbox-option">
                 <input
                   checked={followsSystem}
@@ -101,7 +101,7 @@ export function SettingsPage() {
                 />
                 <span className="settings-checkbox-mark" aria-hidden="true"><Check size={14} /></span>
                 <span>
-                  <strong>自动跟随系统切换昼夜模式</strong>
+                  <strong>系统昼夜</strong>
                 </span>
               </label>
 
@@ -135,77 +135,81 @@ export function SettingsPage() {
               </div>
             </div>
 
-            <div className="settings-checkbox-list">
-              <label className="settings-checkbox-option">
-                <input
-                  checked={assistiveBarEnabled}
-                  onChange={(event) => saveAssistiveBarEnabled(event.target.checked)}
-                  type="checkbox"
-                />
-                <span className="settings-checkbox-mark" aria-hidden="true"><Check size={14} /></span>
-                <span><strong>开启辅助栏</strong></span>
-              </label>
-
-              <div className="settings-checkbox-row">
-                <label className={assistiveBarEnabled ? 'settings-checkbox-option' : 'settings-checkbox-option settings-checkbox-option-disabled'}>
-                  <input
-                    checked={backToTopEnabled}
-                    disabled={!assistiveBarEnabled}
-                    onChange={(event) => saveBackToTopEnabled(event.target.checked)}
-                    type="checkbox"
-                  />
-                  <span className="settings-checkbox-mark" aria-hidden="true"><Check size={14} /></span>
-                  <span><strong>回到顶部</strong></span>
-                </label>
-                <span className="settings-option-help">
-                  <button aria-describedby="back-to-top-help" aria-label="查看回到顶部说明" type="button">
-                    <CircleHelp size={14} />
-                  </button>
-                  <span id="back-to-top-help" role="tooltip">
-                    在帖子详情页右栏显示回到顶部按钮，点击后直接跳转到页面顶部。
+            <div className="settings-checkbox-list settings-checkbox-columns">
+              <div className="settings-checkbox-column">
+                <div className="settings-checkbox-row">
+                  <label className="settings-checkbox-option">
+                    <input
+                      checked={waterfallFeedEnabled}
+                      onChange={(event) => saveWaterfallFeedEnabled(event.target.checked)}
+                      type="checkbox"
+                    />
+                    <span className="settings-checkbox-mark" aria-hidden="true"><Check size={14} /></span>
+                    <span><strong>瀑布流</strong></span>
+                  </label>
+                  <span className="settings-option-help">
+                    <button aria-describedby="waterfall-feed-help" aria-label="查看瀑布流说明" type="button">
+                      <CircleHelp size={14} />
+                    </button>
+                    <span id="waterfall-feed-help" role="tooltip">
+                      首页接近列表底部时自动加载更多帖子，无需点击“加载更多”。
+                    </span>
                   </span>
-                </span>
+                </div>
               </div>
 
-              <div className="settings-checkbox-row">
-                <label className={assistiveBarEnabled ? 'settings-checkbox-option' : 'settings-checkbox-option settings-checkbox-option-disabled'}>
-                  <input
-                    checked={signatureToggleEnabled}
-                    disabled={!assistiveBarEnabled}
-                    onChange={(event) => saveSignatureToggleEnabled(event.target.checked)}
-                    type="checkbox"
-                  />
-                  <span className="settings-checkbox-mark" aria-hidden="true"><Check size={14} /></span>
-                  <span><strong>屏蔽签名档</strong></span>
-                </label>
-                <span className="settings-option-help">
-                  <button aria-describedby="signature-toggle-help" aria-label="查看屏蔽签名档说明" type="button">
-                    <CircleHelp size={14} />
-                  </button>
-                  <span id="signature-toggle-help" role="tooltip">
-                    在帖子详情页右栏显示签名档开关，屏蔽状态会在不同帖子间保留。
-                  </span>
-                </span>
-              </div>
-
-              <div className="settings-checkbox-row">
+              <div className="settings-checkbox-column">
                 <label className="settings-checkbox-option">
                   <input
-                    checked={waterfallFeedEnabled}
-                    onChange={(event) => saveWaterfallFeedEnabled(event.target.checked)}
+                    checked={assistiveBarEnabled}
+                    onChange={(event) => saveAssistiveBarEnabled(event.target.checked)}
                     type="checkbox"
                   />
                   <span className="settings-checkbox-mark" aria-hidden="true"><Check size={14} /></span>
-                  <span><strong>瀑布流</strong></span>
+                  <span><strong>开启辅助栏</strong></span>
                 </label>
-                <span className="settings-option-help">
-                  <button aria-describedby="waterfall-feed-help" aria-label="查看瀑布流说明" type="button">
-                    <CircleHelp size={14} />
-                  </button>
-                  <span id="waterfall-feed-help" role="tooltip">
-                    首页接近列表底部时自动加载更多帖子，无需点击“加载更多”。
+
+                <div className="settings-checkbox-row">
+                  <label className={assistiveBarEnabled ? 'settings-checkbox-option' : 'settings-checkbox-option settings-checkbox-option-disabled'}>
+                    <input
+                      checked={backToTopEnabled}
+                      disabled={!assistiveBarEnabled}
+                      onChange={(event) => saveBackToTopEnabled(event.target.checked)}
+                      type="checkbox"
+                    />
+                    <span className="settings-checkbox-mark" aria-hidden="true"><Check size={14} /></span>
+                    <span><strong>回到顶部</strong></span>
+                  </label>
+                  <span className="settings-option-help">
+                    <button aria-describedby="back-to-top-help" aria-label="查看回到顶部说明" type="button">
+                      <CircleHelp size={14} />
+                    </button>
+                    <span id="back-to-top-help" role="tooltip">
+                      在帖子详情页右栏显示回到顶部按钮，点击后直接跳转到页面顶部。
+                    </span>
                   </span>
-                </span>
+                </div>
+
+                <div className="settings-checkbox-row">
+                  <label className={assistiveBarEnabled ? 'settings-checkbox-option' : 'settings-checkbox-option settings-checkbox-option-disabled'}>
+                    <input
+                      checked={signatureToggleEnabled}
+                      disabled={!assistiveBarEnabled}
+                      onChange={(event) => saveSignatureToggleEnabled(event.target.checked)}
+                      type="checkbox"
+                    />
+                    <span className="settings-checkbox-mark" aria-hidden="true"><Check size={14} /></span>
+                    <span><strong>屏蔽签名档</strong></span>
+                  </label>
+                  <span className="settings-option-help">
+                    <button aria-describedby="signature-toggle-help" aria-label="查看屏蔽签名档说明" type="button">
+                      <CircleHelp size={14} />
+                    </button>
+                    <span id="signature-toggle-help" role="tooltip">
+                      在帖子详情页右栏显示签名档开关，屏蔽状态会在不同帖子间保留。
+                    </span>
+                  </span>
+                </div>
               </div>
             </div>
           </section>

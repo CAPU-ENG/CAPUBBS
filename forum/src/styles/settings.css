@@ -58,6 +58,17 @@
     margin: 18px 22px 18px 72px;
   }
 
+  .settings-checkbox-columns {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    column-gap: 28px;
+  }
+
+  .settings-checkbox-column {
+    display: grid;
+    align-content: start;
+    gap: 8px;
+  }
+
   .settings-checkbox-option {
     display: grid;
     grid-template-columns: 18px minmax(0, 1fr);
@@ -486,6 +497,10 @@
 
   @media (max-width: 720px) {
     .settings-board-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  }
+
+  @media (max-width: 640px) {
+    .settings-checkbox-columns { grid-template-columns: minmax(0, 1fr); }
   }
 
   @media (max-width: 540px) {
