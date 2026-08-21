@@ -31,6 +31,16 @@ export const richTextFontSizeOptions = [
   { label: '32', value: '32px' },
 ];
 
+export const richTextHeadingOptions = [
+  { label: '正文', value: 'p' },
+  { label: '标题 1', value: 'h1' },
+  { label: '标题 2', value: 'h2' },
+  { label: '标题 3', value: 'h3' },
+  { label: '标题 4', value: 'h4' },
+  { label: '标题 5', value: 'h5' },
+  { label: '标题 6', value: 'h6' },
+];
+
 export const defaultRichTextFont = richTextFontOptions[0].value;
 export const defaultRichTextFontSize = richTextFontSizeOptions[1].value;
 export const defaultTextColor = '#111827';

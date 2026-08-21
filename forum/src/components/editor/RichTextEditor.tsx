@@ -6,7 +6,6 @@ import {
   AtSign,
   Bold,
   Eraser,
-  Heading1,
   Image as ImageIcon,
   IndentDecrease,
   IndentIncrease,
@@ -49,6 +48,7 @@ import {
   maxInlineImageBytes,
   richTextFontOptions,
   richTextFontSizeOptions,
+  richTextHeadingOptions,
 } from './RichTextEditor.constants';
 import { useIsDarkTheme, useIsMobileViewport } from './RichTextEditor.hooks';
 import {
@@ -931,6 +931,20 @@ export function RichTextEditor({
     applyRichInlineStyle({ fontSize }, '文字');
   };
 
+  const handleRichHeadingChange = (event: ChangeEvent<HTMLSelectElement>) => {
+    const headingTag = event.target.value;
+
+    if (!richTextHeadingOptions.some((option) => option.value === headingTag)) {
+      return;
+    }
+
+    editorRef.current?.focus();
+    restoreRichSelection();
+    document.execCommand('formatBlock', false, headingTag);
+    updateContent(editorRef.current?.innerHTML ?? '');
+    savedRangeRef.current = null;
+  };
+
   const applyRichTextColor = (color: string) => {
     const normalizedColor = normalizeCssColor(color);
 
@@ -1285,7 +1299,7 @@ export function RichTextEditor({
                   onMouseDown={saveSelection}
                   onFocus={saveSelection}
                   onChange={handleRichFontChange}
-                  className="h-6 w-[5.25rem] border-0 bg-transparent px-0 text-[0.68rem] font-medium text-zinc-700 outline-none dark:text-zinc-200"
+                  className="h-6 w-[4.5rem] border-0 bg-transparent px-0 text-[0.68rem] font-medium text-zinc-700 outline-none dark:text-zinc-200"
                   aria-label="字体"
                 >
                   <option value="">默认</option>
@@ -1322,9 +1336,24 @@ export function RichTextEditor({
               <ToolbarButton label="下标" onMouseDown={handleToolbarMouseDown} onClick={() => runRichCommand('subscript')}>
                 <Subscript size={14} />
               </ToolbarButton>
-              <ToolbarButton label="标题" onMouseDown={handleToolbarMouseDown} onClick={() => wrapRichSelectionWithTag('h2', '标题')}>
-                <Heading1 size={14} />
-              </ToolbarButton>
+              <label className="flex h-7 items-center rounded-[var(--control-radius)] border border-zinc-200 bg-white px-1 dark:border-white/10 dark:bg-zinc-950">
+                <span className="sr-only">标题格式</span>
+                <select
+                  value=""
+                  onMouseDown={saveSelection}
+                  onFocus={saveSelection}
+                  onChange={handleRichHeadingChange}
+                  className="h-6 w-16 border-0 bg-transparent px-0 text-[0.68rem] font-medium text-zinc-700 outline-none dark:text-zinc-200"
+                  aria-label="标题格式"
+                >
+                  <option value="">标题</option>
+                  {richTextHeadingOptions.map((headingOption) => (
+                    <option key={headingOption.value} value={headingOption.value}>
+                      {headingOption.label}
+                    </option>
+                  ))}
+                </select>
+              </label>
               <ToolbarButton label="引用" onMouseDown={handleToolbarMouseDown} onClick={() => wrapRichSelectionWithTag('blockquote', '引用内容', 'forum-quote')}>
                 <MessageSquareQuote size={14} />
               </ToolbarButton>
