@@ -12,7 +12,7 @@ const BLOCKED_TAGS = new Set([
 ]);
 const ALLOWED_TAGS = new Set([
   'A', 'ABBR', 'B', 'BLOCKQUOTE', 'BR', 'CODE', 'DEL', 'DIV', 'EM',
-  'FIGCAPTION', 'FIGURE', 'FONT', 'H1', 'H2', 'H3', 'H4', 'H5', 'H6',
+  'FIGCAPTION', 'FIGURE', 'FONT', 'FOOTER', 'H1', 'H2', 'H3', 'H4', 'H5', 'H6',
   'HEADER', 'HR', 'I', 'IMG', 'KBD', 'LI', 'MARK', 'OL', 'P', 'PRE', 'S', 'SPAN',
   'STRONG', 'SUB', 'SUP', 'TABLE', 'TBODY', 'TD', 'TH', 'THEAD', 'TR',
   'U', 'UL',
@@ -25,7 +25,9 @@ const ALLOWED_CLASSES = new Set([
   'capubbs-code-shell',
   'capubbs-gallery',
   'capubbs-gallery-caption',
+  'capubbs-gallery-captions',
   'capubbs-gallery-count',
+  'capubbs-gallery-footer',
   'capubbs-gallery-header',
   'capubbs-gallery-nav',
   'capubbs-gallery-nav-next',
@@ -98,6 +100,11 @@ function sanitizeElement(element: Element) {
   }
 
   normalizeLegacyClasses(element);
+  if (element.getAttribute('data-capubbs-gallery-edit') === 'true') {
+    element.remove();
+    return;
+  }
+
   Array.from(element.attributes).forEach((attribute) => {
     if (!isAllowedAttribute(element, attribute.name.toLowerCase())) {
       element.removeAttribute(attribute.name);
@@ -131,6 +138,8 @@ function isAllowedAttribute(element: Element, name: string) {
     'contenteditable',
     'data-capubbs-gallery-action',
     'data-capubbs-gallery-active',
+    'data-capubbs-gallery-caption',
+    'data-capubbs-gallery-current',
     'data-capubbs-gallery-index',
     'data-capubbs-gallery-slide',
     'data-capubbs-gallery-total',

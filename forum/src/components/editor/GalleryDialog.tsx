@@ -6,25 +6,39 @@ import {
   type ChangeEvent,
 } from 'react';
 import { editorImageInputAccept, validateEditorImageFile } from './RichTextEditor.images';
+import type { EditorGalleryImage } from './RichTextEditor.gallery';
 
 export type GalleryDialogImage = {
+  alt: string;
   caption: string;
-  file: File;
+  file?: File;
   id: string;
   previewUrl: string;
+  url?: string;
 };
 
 export function GalleryDialog({
+  initialImages = [],
+  initialTitle = '',
   onCancel,
   onInsert,
 }: {
+  initialImages?: EditorGalleryImage[];
+  initialTitle?: string;
   onCancel: () => void;
   onInsert: (title: string, images: GalleryDialogImage[]) => Promise<void>;
 }) {
   const inputRef = useRef<HTMLInputElement>(null);
   const imagesRef = useRef<GalleryDialogImage[]>([]);
-  const [title, setTitle] = useState('');
-  const [images, setImages] = useState<GalleryDialogImage[]>([]);
+  const isEditing = initialImages.length > 0;
+  const [title, setTitle] = useState(initialTitle);
+  const [images, setImages] = useState<GalleryDialogImage[]>(() => (
+    initialImages.map((image, index) => ({
+      ...image,
+      id: `existing-${index}-${Math.random().toString(36).slice(2)}`,
+      previewUrl: image.url,
+    }))
+  ));
   const [error, setError] = useState('');
   const [isCheckingFiles, setIsCheckingFiles] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
@@ -46,7 +60,9 @@ export function GalleryDialog({
   }, [isBusy, onCancel]);
 
   useEffect(() => () => {
-    imagesRef.current.forEach((image) => URL.revokeObjectURL(image.previewUrl));
+    imagesRef.current.forEach((image) => {
+      if (image.file) URL.revokeObjectURL(image.previewUrl);
+    });
   }, []);
 
   async function addFiles(event: ChangeEvent<HTMLInputElement>) {
@@ -61,6 +77,7 @@ export function GalleryDialog({
       const results = await Promise.allSettled(files.map(async (file) => {
         await validateEditorImageFile(file);
         return {
+          alt: file.name.replace(/\.[^.]+$/, '').trim() || '图片',
           caption: '',
           file,
           id: `${Date.now()}-${Math.random().toString(36).slice(2)}`,
@@ -83,7 +100,7 @@ export function GalleryDialog({
   function removeImage(id: string) {
     setImages((current) => {
       const removed = current.find((image) => image.id === id);
-      if (removed) URL.revokeObjectURL(removed.previewUrl);
+      if (removed?.file) URL.revokeObjectURL(removed.previewUrl);
       return current.filter((image) => image.id !== id);
     });
   }
@@ -120,7 +137,7 @@ export function GalleryDialog({
       >
         <header>
           <span><Images size={18} /></span>
-          <h2 id="gallery-dialog-title">插入图廊</h2>
+          <h2 id="gallery-dialog-title">{isEditing ? '编辑图廊' : '插入图廊'}</h2>
           <button aria-label="关闭图廊编辑" disabled={isBusy} onClick={onCancel} type="button"><X size={18} /></button>
         </header>
 
@@ -193,7 +210,7 @@ export function GalleryDialog({
           <span>{images.length} 张</span>
           <button disabled={isUploading} onClick={onCancel} type="button">取消</button>
           <button disabled={images.length < 2 || isCheckingFiles || isUploading} onClick={insertGallery} type="button">
-            {isUploading ? '正在上传' : '上传并插入'}
+            {isUploading ? '正在保存' : isEditing ? '保存图廊' : '上传并插入'}
           </button>
         </footer>
       </section>

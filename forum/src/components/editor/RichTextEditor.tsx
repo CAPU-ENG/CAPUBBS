@@ -66,8 +66,12 @@ import {
 } from './RichTextEditor.images';
 import {
   buildEditorGalleryHtml,
+  ensureEditorGalleryEditControls,
   getEditorGalleryAction,
+  getEditorGalleryEditTarget,
   moveEditorGallery,
+  readEditorGallery,
+  stripEditorGalleryEditControls,
 } from './RichTextEditor.gallery';
 import {
   applyInlineStyleToElement,
@@ -320,7 +324,11 @@ export function RichTextEditor({
   const [fontSizeSelectValue, setFontSizeSelectValue] = useState('');
   const [headingSelectValue, setHeadingSelectValue] = useState('p');
   const [imageFileError, setImageFileError] = useState('');
-  const [isGalleryDialogOpen, setIsGalleryDialogOpen] = useState(false);
+  const [galleryDialogState, setGalleryDialogState] = useState<{
+    images: Array<{ alt: string; caption: string; url: string }>;
+    target: HTMLElement | null;
+    title: string;
+  } | null>(null);
   const [isCheckingImageFile, setIsCheckingImageFile] = useState(false);
   const [pastedImage, setPastedImage] = useState<PastedImageState | null>(null);
   const [recentTextColors, setRecentTextColors] = useState(readRecentTextColors);
@@ -430,13 +438,18 @@ export function RichTextEditor({
   }, [recentTextColors]);
 
   useEffect(() => {
-    if (isSourceMode || !editorRef.current || editorRef.current.innerHTML === value.content) {
+    const editor = editorRef.current;
+    if (isSourceMode || !editor) {
       return;
     }
 
-    editorRef.current.innerHTML = value.content;
-    selectedRichImageRef.current = null;
-    setRichImageResizeHandle(null);
+    if (editor.innerHTML !== value.content) {
+      editor.innerHTML = value.content;
+      selectedRichImageRef.current = null;
+      setRichImageResizeHandle(null);
+    }
+
+    ensureEditorGalleryEditControls(editor);
   }, [isSourceMode, value.content]);
 
   useEffect(() => {
@@ -640,7 +653,14 @@ export function RichTextEditor({
   const handleRichEditorKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
     const editor = event.currentTarget;
     const selection = window.getSelection();
+    const galleryToEdit = getEditorGalleryEditTarget(event.target);
     const galleryAction = getEditorGalleryAction(event.target);
+
+    if (galleryToEdit && ['Enter', ' '].includes(event.key)) {
+      event.preventDefault();
+      openEditorGalleryForEditing(galleryToEdit);
+      return;
+    }
 
     if (galleryAction && ['Enter', ' '].includes(event.key) && event.target instanceof Element) {
       event.preventDefault();
@@ -719,6 +739,14 @@ export function RichTextEditor({
   };
 
   const handleRichEditorClick = (event: MouseEvent<HTMLDivElement>) => {
+    const galleryToEdit = getEditorGalleryEditTarget(event.target);
+    if (galleryToEdit) {
+      event.preventDefault();
+      openEditorGalleryForEditing(galleryToEdit);
+      clearRichImageSelection();
+      return;
+    }
+
     const galleryAction = getEditorGalleryAction(event.target);
     if (galleryAction) {
       event.preventDefault();
@@ -848,31 +876,57 @@ export function RichTextEditor({
     saveSelection();
     setActivePopover(null);
     setIsColorPickerOpen(false);
-    setIsGalleryDialogOpen(true);
+    setGalleryDialogState({ images: [], target: null, title: '' });
+  };
+
+  const openEditorGalleryForEditing = (gallery: HTMLElement) => {
+    const snapshot = readEditorGallery(gallery);
+    if (snapshot.images.length === 0) return;
+
+    setActivePopover(null);
+    setIsColorPickerOpen(false);
+    setGalleryDialogState({ ...snapshot, target: gallery });
   };
 
   const uploadAndInsertGallery = async (title: string, images: GalleryDialogImage[]) => {
     const uploadedImages = await Promise.all(images.map(async (image) => {
+      if (!image.file && image.url) {
+        return {
+          alt: image.alt,
+          caption: image.caption,
+          url: image.url,
+        };
+      }
+
+      if (!image.file) {
+        throw new Error('图廊图片无效，请移除后重新添加。');
+      }
+
       const pngFile = await createUploadablePngFileUnderLimit(image.file, maxInlineImageBytes);
       const md5 = await getImageFileMd5Hex(pngFile);
       const { url } = await uploadEditorImage(pngFile, md5);
 
       return {
-        alt: getImageAltText(image.file),
+        alt: image.alt || getImageAltText(image.file),
         caption: image.caption,
         url,
       };
     }));
     const galleryHtml = buildEditorGalleryHtml(title, uploadedImages);
     const editorMode = currentValueRef.current.mode;
+    const editedGallery = galleryDialogState?.target;
 
-    if (editorMode === 'markdown' || editorMode === 'html') {
+    if (editedGallery && editorRef.current?.contains(editedGallery)) {
+      editedGallery.insertAdjacentHTML('afterend', galleryHtml);
+      editedGallery.remove();
+      updateContent(editorRef.current.innerHTML);
+    } else if (editorMode === 'markdown' || editorMode === 'html') {
       insertSourceBlock(galleryHtml);
     } else {
       insertRichHtml(`${galleryHtml}<p><br></p>`);
     }
 
-    setIsGalleryDialogOpen(false);
+    setGalleryDialogState(null);
   };
 
   const openPastedImageDialog = (file: File, source: PastedImageState['source']) => {
@@ -1980,9 +2034,11 @@ export function RichTextEditor({
       onCompress={compressPastedImage}
       onUpload={uploadAndInsertPastedImage}
     />
-    {isGalleryDialogOpen ? (
+    {galleryDialogState ? (
       <GalleryDialog
-        onCancel={() => setIsGalleryDialogOpen(false)}
+        initialImages={galleryDialogState.images}
+        initialTitle={galleryDialogState.title}
+        onCancel={() => setGalleryDialogState(null)}
         onInsert={uploadAndInsertGallery}
       />
     ) : null}
@@ -2368,7 +2424,7 @@ function convertEditorContent(content: string, from: RichTextEditorMode, to: Ric
 }
 
 function translateRichTextBbcode(content: string) {
-  return translateLegacyBbcode(finalizeRichTypingStyles(content));
+  return translateLegacyBbcode(finalizeRichTypingStyles(stripEditorGalleryEditControls(content)));
 }
 
 function isCrossGroupModeSwitchLocked(value: RichTextEditorValue, nextMode: RichTextEditorMode) {

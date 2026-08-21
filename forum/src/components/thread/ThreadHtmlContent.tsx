@@ -455,6 +455,16 @@ function buildFrameBridgeScript(frameId: string, canOpenImages: boolean) {
         slide.setAttribute('data-capubbs-gallery-active',active?'true':'false');
         slide.setAttribute('aria-hidden',active?'false':'true');
       });
+      Array.prototype.forEach.call(gallery.querySelectorAll('[data-capubbs-gallery-caption="true"]'),function(caption,index){
+        var active=index===nextIndex;
+        caption.setAttribute('data-capubbs-gallery-active',active?'true':'false');
+        caption.setAttribute('aria-hidden',active?'false':'true');
+      });
+      var count=gallery.querySelector('.capubbs-gallery-count');
+      if(count){
+        count.setAttribute('data-capubbs-gallery-current',String(nextIndex+1));
+        count.setAttribute('aria-label','第 '+(nextIndex+1)+' 张，共 '+slides.length+' 张图片');
+      }
       queueHeight();
       return true;
     }

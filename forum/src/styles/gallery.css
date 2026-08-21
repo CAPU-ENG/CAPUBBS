@@ -151,7 +151,7 @@
     height: 66px;
     overflow: hidden;
     border-radius: 2px;
-    background: #111916;
+    background: transparent;
   }
 
   .gallery-dialog-image-preview img {
@@ -229,8 +229,8 @@
     overflow: hidden;
     border: 1px solid var(--line, rgb(212 212 216));
     border-radius: 2px;
-    background: #101713;
-    color: #fff;
+    background: transparent;
+    color: var(--text, #3f3f46);
   }
 
   :is(.forum-markup, .capubbs-editor-prose) .capubbs-gallery:focus-visible {
@@ -239,51 +239,66 @@
   }
 
   :is(.forum-markup, .capubbs-editor-prose) .capubbs-gallery-header {
-    position: absolute;
-    z-index: 3;
-    top: 0;
-    right: 0;
-    left: 0;
     display: flex;
-    align-items: flex-start;
+    min-height: 44px;
+    align-items: center;
     justify-content: space-between;
     gap: 12px;
     margin: 0;
-    padding: 12px 14px 28px;
-    background: linear-gradient(to bottom, rgb(0 0 0 / 0.68), transparent);
-    pointer-events: none;
+    padding: 9px 12px;
+    border-bottom: 1px solid var(--line, rgb(212 212 216));
+    background: var(--surface-soft, rgb(250 250 250));
   }
 
   :is(.forum-markup, .capubbs-editor-prose) .capubbs-gallery-title {
+    min-width: 0;
     margin: 0;
-    color: #fff;
+    color: var(--text-strong, #18181b);
     font-size: 0.82rem;
     font-weight: 760;
     line-height: 1.4;
-    text-shadow: 0 1px 5px rgb(0 0 0 / 0.65);
   }
 
-  :is(.forum-markup, .capubbs-editor-prose) .capubbs-gallery-count {
+  .capubbs-editor-prose .capubbs-gallery-edit {
+    display: inline-grid;
+    min-width: 42px;
+    height: 28px;
     flex: none;
-    margin-left: auto;
-    border: 1px solid rgb(255 255 255 / 0.25);
-    border-radius: 999px;
-    padding: 3px 8px;
-    background: rgb(0 0 0 / 0.48);
-    color: #fff;
-    font-size: 0.67rem;
+    place-items: center;
+    border: 1px solid var(--line, rgb(212 212 216));
+    border-radius: var(--control-radius, 2px);
+    background: var(--surface, #fff);
+    color: var(--brand-strong, #174f38);
+    cursor: pointer;
+    font-size: 0.7rem;
     font-weight: 760;
-    line-height: 1.25;
   }
 
-  :is(.forum-markup, .capubbs-editor-prose) .capubbs-gallery-count::before {
-    content: attr(data-capubbs-gallery-total) " 张";
+  .capubbs-editor-prose .capubbs-gallery-edit::before {
+    content: "编辑";
   }
 
-  :is(.forum-markup, .capubbs-editor-prose) .capubbs-gallery-stage,
+  .capubbs-editor-prose .capubbs-gallery-edit:hover {
+    border-color: color-mix(in srgb, var(--brand, #174f38) 45%, var(--line, rgb(212 212 216)));
+    background: color-mix(in srgb, var(--brand, #174f38) 7%, var(--surface, #fff));
+  }
+
+  .capubbs-editor-prose .capubbs-gallery-edit:focus-visible {
+    outline: 2px solid var(--brand, #174f38);
+    outline-offset: 2px;
+  }
+
+  :is(.forum-markup, .capubbs-editor-prose) .capubbs-gallery-stage {
+    position: relative;
+    display: block;
+    margin: 0;
+    background: transparent;
+  }
+
   :is(.forum-markup, .capubbs-editor-prose) .capubbs-gallery-slide {
     display: block;
     margin: 0;
+    background: transparent;
   }
 
   :is(.forum-markup, .capubbs-editor-prose) .capubbs-gallery-slide[data-capubbs-gallery-active="false"] {
@@ -301,19 +316,45 @@
   }
 
   :is(.forum-markup, .capubbs-editor-prose) .capubbs-gallery-caption {
-    min-height: 42px;
+    display: block;
     margin: 0;
-    padding: 11px 52px;
-    background: #fff;
-    color: #3f3f46;
+    color: var(--text-muted, #52525b);
     font-size: 0.78rem;
     line-height: 1.55;
-    text-align: center;
   }
 
-  .dark :is(.forum-markup, .capubbs-editor-prose) .capubbs-gallery-caption {
-    background: #1c231f;
-    color: #e4e4e7;
+  :is(.forum-markup, .capubbs-editor-prose) .capubbs-gallery-caption[data-capubbs-gallery-active="false"] {
+    display: none;
+  }
+
+  :is(.forum-markup, .capubbs-editor-prose) .capubbs-gallery-footer {
+    display: grid;
+    min-height: 44px;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 12px;
+    margin: 0;
+    padding: 9px 12px;
+    border-top: 1px solid var(--line, rgb(212 212 216));
+    background: var(--surface-soft, rgb(250 250 250));
+  }
+
+  :is(.forum-markup, .capubbs-editor-prose) .capubbs-gallery-captions {
+    min-width: 0;
+    margin: 0;
+  }
+
+  :is(.forum-markup, .capubbs-editor-prose) .capubbs-gallery-count {
+    flex: none;
+    color: var(--text-faint, #71717a);
+    font-size: 0.72rem;
+    font-variant-numeric: tabular-nums;
+    font-weight: 760;
+    line-height: 1.25;
+  }
+
+  :is(.forum-markup, .capubbs-editor-prose) .capubbs-gallery-count[data-capubbs-gallery-current]::before {
+    content: attr(data-capubbs-gallery-current) "/" attr(data-capubbs-gallery-total);
   }
 
   :is(.forum-markup, .capubbs-editor-prose) .capubbs-gallery-nav {
@@ -389,10 +430,6 @@
     .gallery-dialog-image-preview {
       width: 72px;
       height: 58px;
-    }
-
-    :is(.forum-markup, .capubbs-editor-prose) .capubbs-gallery-caption {
-      padding-inline: 46px;
     }
 
     :is(.forum-markup, .capubbs-editor-prose) .capubbs-gallery-slide > img {
