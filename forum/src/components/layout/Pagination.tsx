@@ -1,3 +1,4 @@
+import type { FormEvent } from 'react';
 import { ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight } from 'lucide-react';
 
 type PaginationProps = {
@@ -6,6 +7,7 @@ type PaginationProps = {
   currentPage: number;
   pageCount: number;
   pageHref: (page: number) => string;
+  showPageJump?: boolean;
 };
 
 function visiblePages(currentPage: number, pageCount: number) {
@@ -22,8 +24,17 @@ export function Pagination({
   currentPage,
   pageCount,
   pageHref,
+  showPageJump = false,
 }: PaginationProps) {
   const pages = visiblePages(currentPage, pageCount);
+  const pagesAreCollapsed = pages.length < pageCount;
+
+  function jumpToPage(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    const requestedPage = Number(new FormData(event.currentTarget).get('page'));
+    if (!Number.isInteger(requestedPage) || requestedPage < 1 || requestedPage > pageCount) return;
+    window.location.assign(pageHref(requestedPage));
+  }
 
   return (
     <nav className={`thread-pagination ${compact ? 'thread-pagination-compact' : ''}`} aria-label={ariaLabel}>
@@ -82,6 +93,23 @@ export function Pagination({
       >
         <ChevronsRight size={15} />
       </a>
+
+      {showPageJump && pagesAreCollapsed ? (
+        <form aria-label="跳转页码" className="thread-page-jump" onSubmit={jumpToPage}>
+          <input
+            aria-label={`输入页码，范围 1 至 ${pageCount}`}
+            inputMode="numeric"
+            max={pageCount}
+            min={1}
+            name="page"
+            placeholder="页码"
+            required
+            step={1}
+            type="number"
+          />
+          <button type="submit">跳转</button>
+        </form>
+      ) : null}
     </nav>
   );
 }

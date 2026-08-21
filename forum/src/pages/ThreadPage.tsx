@@ -443,6 +443,7 @@ export function ThreadPage() {
             boardId={data.bid}
             currentPage={data.currentPage}
             pageCount={data.pageCount}
+            showPageJump
             threadId={data.tid}
           />
         </div>

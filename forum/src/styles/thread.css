@@ -77,6 +77,41 @@
     color: var(--text-faint);
   }
 
+  .thread-page-jump {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    margin-left: 8px;
+  }
+
+  .thread-page-jump input,
+  .thread-page-jump button {
+    height: 36px;
+    border: 1px solid var(--line);
+    border-radius: var(--control-radius);
+    background: var(--surface);
+    color: var(--text-muted);
+    font-size: 0.72rem;
+    font-weight: 680;
+  }
+
+  .thread-page-jump input {
+    width: 64px;
+    padding: 0 8px;
+  }
+
+  .thread-page-jump button {
+    padding: 0 12px;
+    cursor: pointer;
+    transition: 140ms ease;
+  }
+
+  .thread-page-jump input:focus,
+  .thread-page-jump button:hover {
+    border-color: var(--line-strong);
+    color: var(--brand-strong);
+  }
+
   .thread-title-card {
     width: 100%;
     border: 1px solid var(--line);

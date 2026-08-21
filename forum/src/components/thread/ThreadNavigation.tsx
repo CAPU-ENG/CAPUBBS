@@ -9,6 +9,7 @@ type PaginationProps = {
   threadId: number;
   authorOnly?: boolean;
   compact?: boolean;
+  showPageJump?: boolean;
 };
 
 function pageHref(boardId: number, threadId: number, page: number, authorOnly: boolean) {
@@ -27,6 +28,7 @@ export function ThreadPagination({
   compact = false,
   currentPage,
   pageCount,
+  showPageJump = false,
   threadId,
 }: PaginationProps) {
   return (
@@ -36,6 +38,7 @@ export function ThreadPagination({
       currentPage={currentPage}
       pageCount={pageCount}
       pageHref={(page) => pageHref(boardId, threadId, page, authorOnly)}
+      showPageJump={showPageJump}
     />
   );
 }
