@@ -281,6 +281,7 @@ export function RichTextEditor({
   const [popoverValue, setPopoverValue] = useState('');
   const [fontSelectValue, setFontSelectValue] = useState('');
   const [fontSizeSelectValue, setFontSizeSelectValue] = useState('');
+  const [headingSelectValue, setHeadingSelectValue] = useState('p');
   const [pastedImage, setPastedImage] = useState<PastedImageState | null>(null);
   const [recentTextColors, setRecentTextColors] = useState(readRecentTextColors);
   const [selectedTextColor, setSelectedTextColor] = useState(defaultTextColor);
@@ -952,6 +953,7 @@ export function RichTextEditor({
       return;
     }
 
+    setHeadingSelectValue(headingTag);
     editorRef.current?.focus();
     restoreRichSelection();
     document.execCommand('formatBlock', false, headingTag);
@@ -1360,14 +1362,13 @@ export function RichTextEditor({
               <label className="flex h-6 items-center rounded-[var(--control-radius)] border border-zinc-200 bg-white px-1 dark:border-white/10 dark:bg-zinc-950">
                 <span className="sr-only">标题格式</span>
                 <select
-                  value=""
+                  value={headingSelectValue}
                   onMouseDown={saveSelection}
                   onFocus={saveSelection}
                   onChange={handleRichHeadingChange}
                   className="h-5 w-16 border-0 bg-transparent px-0 text-[0.68rem] font-medium text-zinc-700 outline-none dark:text-zinc-200"
                   aria-label="标题格式"
                 >
-                  <option value="">正文</option>
                   {richTextHeadingOptions.map((headingOption) => (
                     <option key={headingOption.value} value={headingOption.value}>
                       {headingOption.label}
