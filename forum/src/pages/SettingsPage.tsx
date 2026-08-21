@@ -159,15 +159,25 @@ export function SettingsPage() {
               </div>
 
               <div className="settings-checkbox-column">
-                <label className="settings-checkbox-option">
-                  <input
-                    checked={assistiveBarEnabled}
-                    onChange={(event) => saveAssistiveBarEnabled(event.target.checked)}
-                    type="checkbox"
-                  />
-                  <span className="settings-checkbox-mark" aria-hidden="true"><Check size={14} /></span>
-                  <span><strong>开启辅助栏</strong></span>
-                </label>
+                <div className="settings-checkbox-row">
+                  <label className="settings-checkbox-option">
+                    <input
+                      checked={assistiveBarEnabled}
+                      onChange={(event) => saveAssistiveBarEnabled(event.target.checked)}
+                      type="checkbox"
+                    />
+                    <span className="settings-checkbox-mark" aria-hidden="true"><Check size={14} /></span>
+                    <span><strong>开启辅助栏</strong></span>
+                  </label>
+                  <span className="settings-option-help">
+                    <button aria-describedby="assistive-bar-help" aria-label="查看辅助栏说明" type="button">
+                      <CircleHelp size={14} />
+                    </button>
+                    <span id="assistive-bar-help" role="tooltip">
+                      在帖子详情页右侧显示楼层目录与辅助功能，关闭后页面仅保留主栏。
+                    </span>
+                  </span>
+                </div>
 
                 <div className="settings-checkbox-row">
                   <label className={assistiveBarEnabled ? 'settings-checkbox-option' : 'settings-checkbox-option settings-checkbox-option-disabled'}>
