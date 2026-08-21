@@ -10,6 +10,11 @@
     box-shadow: var(--shadow-card);
   }
 
+  .thread-page-shell > .reply-editor {
+    width: 100%;
+    max-width: 100%;
+  }
+
   .reply-editor-heading {
     display: flex;
     align-items: center;
