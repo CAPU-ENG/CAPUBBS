@@ -419,7 +419,6 @@ function SearchLoading() {
     <section className="search-state-card">
       <LoaderCircle className="animate-spin" size={22} />
       <h3>正在检索论坛档案</h3>
-      <p>较宽的时间范围可能需要多一点时间。</p>
     </section>
   );
 }

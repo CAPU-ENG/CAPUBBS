@@ -449,7 +449,6 @@ export function ThreadComposePage() {
           <section className="thread-edit-request-state" aria-live="polite">
             <LoaderCircle className="thread-edit-spinner" size={22} />
             <h1>正在准备编辑器</h1>
-            <p>系统正在读取版面信息和你的本地草稿。</p>
           </section>
         ) : isActivity && !canCreateActivity ? (
           <ComposeRequestState

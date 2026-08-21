@@ -173,9 +173,7 @@ export function ActivityManagementPage() {
 
       <main className="activity-management-shell">
         {authPending || status === 'loading' ? (
-          <ActivityManagementState icon={<LoaderCircle className="activity-management-spinner" size={22} />} title="正在读取活动">
-            正在确认活动信息与管理权限。
-          </ActivityManagementState>
+          <ActivityManagementState icon={<LoaderCircle className="activity-management-spinner" size={22} />} title="正在读取活动" />
         ) : status === 'error' || !data ? (
           <ActivityManagementState action={<button onClick={retry} type="button">重新加载</button>} title="活动暂时无法打开">
             {error || '没有找到对应的活动帖。'}
@@ -185,9 +183,7 @@ export function ActivityManagementPage() {
             活动管理仅用于带报名问卷的活动帖。
           </ActivityManagementState>
         ) : !managedActivity ? (
-          <ActivityManagementState icon={<LoaderCircle className="activity-management-spinner" size={22} />} title="正在准备活动管理">
-            正在读取活动日期与报名问卷。
-          </ActivityManagementState>
+          <ActivityManagementState icon={<LoaderCircle className="activity-management-spinner" size={22} />} title="正在准备活动管理" />
         ) : !isAuthorized ? (
           <ActivityManagementState action={<a href={threadHref}>返回原帖</a>} icon={<ShieldAlert size={22} />} title="无法进入活动管理">
             此页面仅对楼主本人或权限值大于等于 3 的用户开放。
@@ -500,7 +496,7 @@ function ActivityManagementState({
   title,
 }: {
   action?: React.ReactNode;
-  children: React.ReactNode;
+  children?: React.ReactNode;
   icon?: React.ReactNode;
   title: string;
 }) {
@@ -508,7 +504,7 @@ function ActivityManagementState({
     <section className="activity-management-state">
       {icon}
       <h1>{title}</h1>
-      <p>{children}</p>
+      {children ? <p>{children}</p> : null}
       {action && <div>{action}</div>}
     </section>
   );

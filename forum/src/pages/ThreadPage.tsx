@@ -286,7 +286,6 @@ export function ThreadPage() {
               <>
                 <span className="thread-request-spinner" aria-hidden="true" />
                 <h1>正在读取帖子</h1>
-                <p>楼层、作者资料与回复会一起载入。</p>
               </>
             ) : (
               <>

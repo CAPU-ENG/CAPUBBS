@@ -212,9 +212,7 @@ export function CalendarAdminPage() {
 
       <main className="calendar-admin-shell">
         {authPending ? (
-          <CalendarAdminState icon={<LoaderCircle className="animate-spin" size={22} />} title="正在确认管理权限">
-            正在读取当前会员身份，请稍候。
-          </CalendarAdminState>
+          <CalendarAdminState icon={<LoaderCircle className="animate-spin" size={22} />} title="正在确认管理权限" />
         ) : !isAuthorized ? (
           <CalendarAdminState icon={<ShieldAlert size={22} />} title="无法进入日历管理">
             此页面仅供 ID 为“组织部”的会员使用。
@@ -345,7 +343,7 @@ function CalendarAdminState({
   icon,
   title,
 }: {
-  children: string;
+  children?: string;
   icon: React.ReactNode;
   title: string;
 }) {
@@ -353,7 +351,7 @@ function CalendarAdminState({
     <section className="calendar-admin-state">
       <span>{icon}</span>
       <h1>{title}</h1>
-      <p>{children}</p>
+      {children ? <p>{children}</p> : null}
       <a href="/"><ArrowLeft size={15} />返回首页</a>
     </section>
   );

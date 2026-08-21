@@ -237,7 +237,6 @@ export function BoardPage({ boardId }: { boardId: number }) {
               <>
                 <LoaderCircle className="animate-spin" size={22} />
                 <h1>正在读取版面</h1>
-                <p>版面信息和最新回复正在载入。</p>
               </>
             ) : (
               <>

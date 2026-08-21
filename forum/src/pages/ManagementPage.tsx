@@ -77,9 +77,7 @@ export function ManagementPage() {
 
       <main className="management-shell">
         {authPending ? (
-          <ManagementState icon={<LoaderCircle className="animate-spin" size={22} />} title="正在确认管理权限">
-            正在读取当前会员身份，请稍候。
-          </ManagementState>
+          <ManagementState icon={<LoaderCircle className="animate-spin" size={22} />} title="正在确认管理权限" />
         ) : !isAuthorized ? (
           <ManagementState icon={<ShieldAlert size={22} />} title="无法进入论坛管理">
             此页面仅对权限值大于或等于 3 的会员开放。
@@ -980,12 +978,12 @@ function EmptyState({ children, icon }: { children: ReactNode; icon: ReactNode }
   return <div className="management-empty"><span>{icon}</span>{children}</div>;
 }
 
-function ManagementState({ children, icon, title }: { children: ReactNode; icon: ReactNode; title: string }) {
+function ManagementState({ children, icon, title }: { children?: ReactNode; icon: ReactNode; title: string }) {
   return (
     <section className="management-state">
       <span>{icon}</span>
       <h1>{title}</h1>
-      <p>{children}</p>
+      {children ? <p>{children}</p> : null}
       <a href="/">返回首页</a>
     </section>
   );

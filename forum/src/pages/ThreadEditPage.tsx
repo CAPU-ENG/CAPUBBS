@@ -202,7 +202,6 @@ export function ThreadEditPage() {
           <section className="thread-edit-request-state" aria-live="polite">
             <LoaderCircle className="thread-edit-spinner" size={22} />
             <h1>正在读取编辑内容</h1>
-            <p>系统正在确认楼层信息和编辑权限。</p>
           </section>
         ) : (
           <>

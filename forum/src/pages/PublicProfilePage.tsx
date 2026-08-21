@@ -79,7 +79,7 @@ function PublicProfileState({
         <section className="profile-not-found" role={loading ? 'status' : 'alert'}>
           {loading ? <LoaderCircle className="profile-loading-icon" size={34} /> : <UserRoundX size={34} />}
           <h1>{loading ? '正在加载个人主页' : '没有找到这位用户'}</h1>
-          <p>{loading ? '正在连接论坛服务，请稍候。' : error || '用户名可能已经变更，或者当前链接并不完整。'}</p>
+          {!loading ? <p>{error || '用户名可能已经变更，或者当前链接并不完整。'}</p> : null}
           {!loading ? <button type="button" onClick={onRetry}><RefreshCw size={15} />重新加载</button> : null}
         </section>
       </main>

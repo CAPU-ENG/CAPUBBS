@@ -297,7 +297,7 @@ function ProfileLoadPage({
         <section className="profile-not-found" role={loading ? 'status' : 'alert'}>
           {loading ? <LoaderCircle className="profile-loading-icon" size={34} /> : null}
           <h1>{loading ? '正在确认登录状态' : loginHref ? '请先登录' : '个人资料加载失败'}</h1>
-          <p>{loading ? '正在校验论坛会话，请稍候。' : error}</p>
+          {!loading ? <p>{error}</p> : null}
           {!loading && loginHref ? <a href={loginHref}>前往登录</a> : null}
           {!loading && !loginHref ? <button type="button" onClick={onRetry}><RefreshCw size={15} />重新加载</button> : null}
         </section>
