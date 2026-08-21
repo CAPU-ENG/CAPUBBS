@@ -650,8 +650,7 @@
 
     .board-thread-row {
       position: relative;
-      display: grid;
-      grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+      display: block;
       padding: 0 12px;
     }
 
@@ -667,15 +666,11 @@
     }
 
     .board-thread-title-cell {
-      grid-column: 1 / -1;
-      padding-top: 9px !important;
-      padding-right: 66px !important;
-      padding-bottom: 6px !important;
+      padding: 11px 6px !important;
     }
 
     .board-thread-title-line {
-      align-items: flex-start;
-      gap: 5px 7px;
+      display: block;
     }
 
     .board-thread-title-line > a {
@@ -689,49 +684,12 @@
       -webkit-line-clamp: 2;
     }
 
-    .board-thread-counts {
-      position: absolute;
-      top: 10px;
-      right: 15px;
-      padding: 0 !important;
-      width: 54px;
-      font-size: 0.56rem;
-      text-align: center;
-    }
-
     .board-thread-author-cell,
-    .board-thread-last-cell {
-      min-width: 0;
-      border-top: 1px solid color-mix(in srgb, var(--line) 75%, transparent) !important;
-    }
-
-    .board-thread-last-cell {
-      padding-left: 10px !important;
-    }
-
-    .board-thread-user {
-      font-size: 0.62rem;
-    }
-
-    .board-thread-time {
-      margin-top: 4px;
-      font-size: 0.5rem;
-    }
-
-    .board-thread-time-label {
-      display: block;
-      margin-bottom: 2px;
-      color: var(--text-faint);
-      font-family: "Noto Sans CJK SC", "Source Han Sans SC", "PingFang SC", sans-serif;
-      font-size: 0.52rem;
-    }
-
-    .board-thread-time time {
-      display: block;
-    }
-
-    .board-thread-time time > span {
-      display: block;
+    .board-thread-last-cell,
+    .board-thread-counts,
+    .board-thread-title-line > .board-status,
+    .board-thread-statuses {
+      display: none;
     }
 
     .board-thread-management-cell {
