@@ -1,5 +1,6 @@
 const LOCAL_AVATAR_ROOT = '/bbsimg';
 const LOCAL_ARCHIVED_AVATAR_ROOT = `${LOCAL_AVATAR_ROOT}/icons/user_archive/files`;
+const LOCAL_POST_IMAGE_ROOT = '/bbs/images';
 
 export function normalizeLegacyAvatar(value: unknown) {
   if (typeof value !== 'string') return '';
@@ -26,6 +27,43 @@ function localizeAbsoluteAvatar(value: string) {
 
     const filename = url.pathname.split('/').filter(Boolean).at(-1);
     return filename ? `${LOCAL_ARCHIVED_AVATAR_ROOT}/${filename}` : '';
+  } catch {
+    return '';
+  }
+}
+
+export function normalizeLegacyPostImage(value: unknown) {
+  if (typeof value !== 'string') return '';
+  const image = value.trim();
+
+  if (!image) return '';
+  if (/^data:image\/(?:avif|gif|jpeg|png|webp);/i.test(image)) return image;
+  if (/^(?:https?:)?\/\//i.test(image)) return localizeAbsolutePostImage(image);
+  if (image.startsWith('/')) return image;
+
+  const legacyImage = image.match(/^(?:(?:\.\.\/)+)?images\/([^\s]+)$/i);
+  if (legacyImage) return `${LOCAL_POST_IMAGE_ROOT}/${legacyImage[1]}`;
+  if (/^\d+$/.test(image)) return `${LOCAL_AVATAR_ROOT}/i/${image}.gif`;
+
+  try {
+    const url = new URL(image, 'http://local.invalid/bbs/content/');
+    if (url.origin !== 'http://local.invalid') return '';
+    return `${url.pathname}${url.search}${url.hash}`;
+  } catch {
+    return '';
+  }
+}
+
+function localizeAbsolutePostImage(value: string) {
+  const absoluteValue = value.startsWith('//') ? `https:${value}` : value;
+
+  try {
+    const url = new URL(absoluteValue);
+    if (url.hostname === 'chexie.net' || url.hostname.endsWith('.chexie.net')) {
+      return `${url.pathname}${url.search}${url.hash}`;
+    }
+
+    return absoluteValue;
   } catch {
     return '';
   }

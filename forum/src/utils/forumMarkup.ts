@@ -1,6 +1,7 @@
 import { getPublicProfilePath } from './userRoutes';
 import { translateLegacyForumThreadHref } from './legacyForumRoutes';
 import { translateLegacyBbcode } from './legacyBbcode';
+import { normalizeLegacyPostImage } from './legacyAssets';
 
 export { forumMarkupToPlainText } from './legacyBbcode';
 
@@ -134,7 +135,7 @@ function sanitizeAnchor(anchor: HTMLAnchorElement) {
 }
 
 function sanitizeImage(image: HTMLImageElement) {
-  const src = normalizeForumAssetUrl(image.getAttribute('src'));
+  const src = normalizeLegacyPostImage(image.getAttribute('src'));
   if (!src) {
     image.remove();
     return;
@@ -201,26 +202,6 @@ function getLegacyProfileName(href: string, isMention: boolean) {
       || resolved.searchParams.get('view')?.trim();
     if (legacyUser && /\/bbs\/(?:home|user)\/?$/i.test(resolved.pathname)) return legacyUser;
     return isMention ? resolved.searchParams.get('name')?.trim() ?? '' : '';
-  } catch {
-    return '';
-  }
-}
-
-function normalizeForumAssetUrl(value: string | null) {
-  if (!value) return '';
-  const path = value.trim();
-  if (!path) return '';
-  if (/^data:image\/(?:avif|gif|jpeg|png|webp);/i.test(path)) return path;
-  if (/^https?:\/\//i.test(path)) return path;
-  if (path.startsWith('//')) return `https:${path}`;
-  if (path.startsWith('/')) return `${PUBLIC_ASSET_ORIGIN}${path}`;
-
-  const legacyImage = path.match(/^(?:(?:\.\.\/)+)?images\/([^\s]+)$/i);
-  if (legacyImage) return `${PUBLIC_ASSET_ORIGIN}/bbs/images/${legacyImage[1]}`;
-  if (/^\d+$/.test(path)) return `${PUBLIC_ASSET_ORIGIN}/bbsimg/i/${path}.gif`;
-
-  try {
-    return new URL(path, `${PUBLIC_ASSET_ORIGIN}/bbs/content/`).href;
   } catch {
     return '';
   }
