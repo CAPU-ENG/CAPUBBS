@@ -31,11 +31,12 @@ deploy_dist_branch=new-dist
 
 1. 所有源码开发仍在 `new` 完成；`new-dist` 只保存发布内容。
 2. `new-dist` 中项目其他目录与 `new` 一致，只有 `forum/` 被替换成打包产物。
-3. `forum/` 根目录直接保存 `index.html`、`assets/`、`favicon.png` 等产物，不保留 `dist/` 中间层。
+3. `forum/` 根目录直接保存 `index.html`、`assets/`、`favicon.png` 等产物，不保留 `dist/` 中间层；同时保留 `forum/.gitignore`。
 4. `config.php`、数据库密码、数据库导出文件不得提交 Git。
 5. 全量数据库同步会覆盖目标数据库，只能用于新服务器、测试环境或明确批准的重建。已有线上数据时应改用迁移脚本。
 6. 执行任何删除、覆盖或数据库导入前，先确认目标路径、分支、数据库和备份。
 7. 没有域名时只配置 HTTP。可信 HTTPS 证书应在域名解析到服务器后单独配置。
+8. `forum/node_modules/`、`forum/.vite/` 和 TypeScript 构建缓存只需由 `.gitignore` 排除，打包切换分支时不得删除；尤其禁止对 `forum/` 使用 `git clean -fdx`。
 
 ## 3. 从 `new` 生成 `new-dist`
 
@@ -94,10 +95,14 @@ find "$release_tmp" -mindepth 1 -maxdepth 2 -print | sort
 ```bash
 git switch -c new-dist
 git rm -r -- forum
-git clean -fdx -- forum
+git restore --source=new --staged --worktree -- forum/.gitignore
 install -d forum
 cp -R "$release_tmp"/. forum/
-git add -f -- forum
+if [ -d forum/dist ]; then
+  find forum/dist -mindepth 1 -delete
+  rmdir forum/dist
+fi
+git add -- forum
 ```
 
 ### 3.4 更新已有 `new-dist`
@@ -109,25 +114,32 @@ git switch new-dist
 git status --short --branch
 git read-tree --reset -u new
 git rm -r -- forum
-git clean -fdx -- forum
+git restore --source=new --staged --worktree -- forum/.gitignore
 install -d forum
 cp -R "$release_tmp"/. forum/
-git add -f -- forum
+if [ -d forum/dist ]; then
+  find forum/dist -mindepth 1 -delete
+  rmdir forum/dist
+fi
+git add -- forum
 ```
 
 ### 3.5 校验发布树并提交
 
 ```bash
 test ! -d forum/dist
+test -f forum/.gitignore
 test -f forum/index.html
 test -d forum/assets
 test -f forum/favicon.png
-find forum -mindepth 1 -maxdepth 1 -print | sort
+git check-ignore -q forum/node_modules
+test -z "$(git ls-files forum/node_modules)"
+git ls-files forum | sort
 git diff --cached --check
 git status --short
 ```
 
-确认其他项目文件已正确同步，且 `forum/` 只有打包产物后提交：
+确认其他项目文件已正确同步，且 Git 发布树中的 `forum/` 只有 `.gitignore` 和打包产物后提交。工作区里的 `node_modules/`、`.vite/` 等忽略目录可以继续保留：
 
 ```bash
 git commit \
@@ -590,3 +602,4 @@ log/
 7. 仅使用公网 IP 时无法配置受浏览器信任的常规 HTTPS 证书。
 8. 样例 SMTP 配置不能发送验证码；普通浏览和已有账户登录不依赖 SMTP。
 9. Vite/esbuild 审计问题位于开发服务器依赖，不进入静态产物；源码分支仍应择机升级 Vite。
+10. 不要对 `forum/` 使用 `git clean -fdx` 或整目录删除；这会把已经正确忽略的 `node_modules/` 一并删除。发布时保留 `.gitignore`，只操作 Git 跟踪的源码和 `dist/` 产物。
