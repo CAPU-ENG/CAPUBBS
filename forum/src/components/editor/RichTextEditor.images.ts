@@ -25,23 +25,6 @@ export function getImageAltText(file: File) {
   return file.name.replace(/\.[^.]+$/, '').trim() || '粘贴图片';
 }
 
-export function readFileAsDataUrl(file: File) {
-  return new Promise<string>((resolve, reject) => {
-    const reader = new FileReader();
-
-    reader.addEventListener('load', () => {
-      if (typeof reader.result === 'string') {
-        resolve(reader.result);
-        return;
-      }
-
-      reject(new Error('图片读取失败。'));
-    });
-    reader.addEventListener('error', () => reject(new Error('图片读取失败。')));
-    reader.readAsDataURL(file);
-  });
-}
-
 export async function createUploadablePngFileUnderLimit(file: File, maxBytes: number) {
   if (file.type === 'image/png' && file.size <= maxBytes) {
     return ensurePngFileName(file);
@@ -78,16 +61,11 @@ export async function getImageFileMd5Hex(file: File) {
 }
 
 export async function uploadEditorImage(file: File, md5: string) {
-  const dataUrl = await readFileAsDataUrl(file);
-  const uploadUrl = getEditorImageUploadUrl();
+  const formData = new FormData();
+  formData.append('image', file);
+
   const response = await fetch(uploadUrl, {
-    body: JSON.stringify({
-      dataUrl,
-      md5,
-    }),
-    headers: {
-      'Content-Type': 'application/json',
-    },
+    body: formData,
     method: 'POST',
   });
 
@@ -97,20 +75,15 @@ export async function uploadEditorImage(file: File, md5: string) {
     throw new Error(getUploadError(payload));
   }
 
-  if (!isUploadResponse(payload)) {
+  const url = getUploadedImageUrl(payload);
+  if (!url) {
     throw new Error('图片上传成功但返回地址无效。');
   }
 
-  return payload;
+  return { md5, url };
 }
 
-function getEditorImageUploadUrl() {
-  if (import.meta.env.DEV) {
-    return '/bbs-new/api/editor-images';
-  }
-
-  throw new Error('编辑器图片上传接口尚未接入服务器现有 API，已记录在 bbs-new/apiNeed.md。');
-}
+const uploadUrl = import.meta.env.VITE_EDITOR_IMAGE_UPLOAD_URL?.trim() || '/bbs/content/test.php';
 
 export async function compressImageFileUnderLimit(file: File, maxBytes: number) {
   if (file.size <= maxBytes) {
@@ -284,14 +257,24 @@ function getImageBaseName(file: File) {
 }
 
 async function readUploadResponse(response: Response) {
-  try {
-    return (await response.json()) as unknown;
-  } catch {
+  const text = await response.text();
+
+  if (!text) {
     return null;
+  }
+
+  try {
+    return JSON.parse(text) as unknown;
+  } catch {
+    return text;
   }
 }
 
 function getUploadError(payload: unknown) {
+  if (typeof payload === 'string' && payload.trim()) {
+    return payload.trim();
+  }
+
   if (payload && typeof payload === 'object' && 'error' in payload && typeof payload.error === 'string') {
     return payload.error;
   }
@@ -299,13 +282,20 @@ function getUploadError(payload: unknown) {
   return '图片上传失败，请稍后重试。';
 }
 
-function isUploadResponse(payload: unknown): payload is { md5: string; url: string } {
-  return (
-    !!payload &&
-    typeof payload === 'object' &&
-    'md5' in payload &&
-    'url' in payload &&
-    typeof payload.md5 === 'string' &&
-    typeof payload.url === 'string'
-  );
+function getUploadedImageUrl(payload: unknown) {
+  if (!payload || typeof payload !== 'object' || !('upload' in payload)) {
+    return null;
+  }
+
+  const upload = payload.upload;
+  if (!upload || typeof upload !== 'object' || !('links' in upload)) {
+    return null;
+  }
+
+  const links = upload.links;
+  if (!links || typeof links !== 'object' || !('original' in links)) {
+    return null;
+  }
+
+  return typeof links.original === 'string' && links.original.trim() ? links.original : null;
 }
