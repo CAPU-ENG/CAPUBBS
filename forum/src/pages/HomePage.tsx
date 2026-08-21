@@ -4,6 +4,7 @@ import { MobileActivityBar } from '../components/home/MobileActivityBar';
 import { AppBackground } from '../components/layout/AppBackground';
 import { TopBar } from '../components/layout/TopBar';
 import { useAuth } from '../context/AuthContext';
+import { useWaterfallFeedEnabled } from '../hooks/useAssistiveFeatures';
 import { useCompactMode } from '../hooks/useCompactMode';
 import { useHomeData } from '../hooks/useHomeData';
 import { useReadThreadIds } from '../hooks/useReadThreadIds';
@@ -11,6 +12,7 @@ import { useReadThreadIds } from '../hooks/useReadThreadIds';
 export function HomePage() {
   const { viewer } = useAuth();
   const compactMode = useCompactMode();
+  const waterfallFeedEnabled = useWaterfallFeedEnabled();
   const { calendar, feed, feedHasMore, loadMore, pinned, retry, signup } = useHomeData(compactMode);
   const readThreadIds = useReadThreadIds(viewer?.username);
 
@@ -29,6 +31,7 @@ export function HomePage() {
 
       <main className="page-shell">
         <FeedSection
+          autoLoadMore={waterfallFeedEnabled}
           compactMode={compactMode}
           error={feed.error}
           hasMore={feedHasMore}

@@ -3,11 +3,11 @@ import { useEffect, useRef, useState } from 'react';
 import { AppBackground } from '../components/layout/AppBackground';
 import { TopBar } from '../components/layout/TopBar';
 import { ALL_BOARDS, PRIMARY_BOARDS, SECONDARY_BOARDS, getBoardById } from '../data/boards';
-import { useBackToTopEnabled, useSignatureToggleEnabled } from '../hooks/useAssistiveFeatures';
+import { useBackToTopEnabled, useSignatureToggleEnabled, useWaterfallFeedEnabled } from '../hooks/useAssistiveFeatures';
 import { useCompactMode } from '../hooks/useCompactMode';
 import { usePinnedBoardIds } from '../hooks/usePinnedBoards';
 import { useTheme } from '../hooks/useTheme';
-import { saveBackToTopEnabled, saveSignatureToggleEnabled } from '../utils/assistiveFeatures';
+import { saveBackToTopEnabled, saveSignatureToggleEnabled, saveWaterfallFeedEnabled } from '../utils/assistiveFeatures';
 import { saveCompactMode } from '../utils/compactMode';
 import { MAX_PINNED_BOARDS, savePinnedBoardIds } from '../utils/localSettings';
 import { saveThemeFollowsSystem } from '../utils/theme';
@@ -18,6 +18,7 @@ export function SettingsPage() {
   const pinnedBoardIds = usePinnedBoardIds();
   const { followsSystem } = useTheme();
   const signatureToggleEnabled = useSignatureToggleEnabled();
+  const waterfallFeedEnabled = useWaterfallFeedEnabled();
   const [draftBoardIds, setDraftBoardIds] = useState(pinnedBoardIds);
   const draftBoardIdsRef = useRef(pinnedBoardIds);
   const previousPinnedBoardIdsRef = useRef(pinnedBoardIds);
@@ -160,6 +161,26 @@ export function SettingsPage() {
                   </button>
                   <span id="signature-toggle-help" role="tooltip">
                     在帖子详情页右栏显示签名档开关，屏蔽状态会在不同帖子间保留。
+                  </span>
+                </span>
+              </div>
+
+              <div className="settings-checkbox-row">
+                <label className="settings-checkbox-option">
+                  <input
+                    checked={waterfallFeedEnabled}
+                    onChange={(event) => saveWaterfallFeedEnabled(event.target.checked)}
+                    type="checkbox"
+                  />
+                  <span className="settings-checkbox-mark" aria-hidden="true"><Check size={14} /></span>
+                  <span><strong>瀑布流</strong></span>
+                </label>
+                <span className="settings-option-help">
+                  <button aria-describedby="waterfall-feed-help" aria-label="查看瀑布流说明" type="button">
+                    <CircleHelp size={14} />
+                  </button>
+                  <span id="waterfall-feed-help" role="tooltip">
+                    首页接近列表底部时自动加载更多帖子，无需点击“加载更多”。
                   </span>
                 </span>
               </div>

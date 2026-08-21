@@ -1,4 +1,5 @@
 import { ArrowDown, Eye, LoaderCircle, MessageCircle, RefreshCw } from 'lucide-react';
+import { useEffect, useRef } from 'react';
 import defaultAvatar from '../../assets/avatar/default-avatar.avif';
 import type { HomeThread } from '../../api/home';
 import type { HomeDataStatus } from '../../hooks/useHomeData';
@@ -60,6 +61,7 @@ function FeedItem({ compactMode, item }: { compactMode: boolean; item: HomeThrea
 }
 
 type FeedSectionProps = {
+  autoLoadMore: boolean;
   compactMode: boolean;
   error: string;
   hasMore: boolean;
@@ -69,9 +71,25 @@ type FeedSectionProps = {
   status: HomeDataStatus;
 };
 
-export function FeedSection({ compactMode, error, hasMore, items, onLoadMore, onRetry, status }: FeedSectionProps) {
+export function FeedSection({ autoLoadMore, compactMode, error, hasMore, items, onLoadMore, onRetry, status }: FeedSectionProps) {
   const loadingMore = status === 'loading' && items.length > 0;
   const loadMoreFailed = status === 'error' && items.length > 0;
+  const loadMoreButtonRef = useRef<HTMLButtonElement>(null);
+
+  useEffect(() => {
+    const loadMoreButton = loadMoreButtonRef.current;
+    if (!autoLoadMore || !hasMore || loadingMore || loadMoreFailed || !loadMoreButton) return;
+
+    let triggered = false;
+    const observer = new IntersectionObserver((entries) => {
+      if (triggered || !entries.some((entry) => entry.isIntersecting)) return;
+      triggered = true;
+      onLoadMore();
+    }, { rootMargin: '0px 0px 160px' });
+
+    observer.observe(loadMoreButton);
+    return () => observer.disconnect();
+  }, [autoLoadMore, hasMore, loadMoreFailed, loadingMore, onLoadMore]);
 
   return (
     <section className="feed-section" id="feed" aria-label="论坛帖子">
@@ -98,6 +116,7 @@ export function FeedSection({ compactMode, error, hasMore, items, onLoadMore, on
           className="load-more"
           disabled={loadingMore}
           onClick={loadMoreFailed ? onRetry : onLoadMore}
+          ref={loadMoreButtonRef}
           type="button"
         >
           {loadingMore ? (

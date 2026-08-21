@@ -3,6 +3,7 @@ import {
   readBackToTopEnabled,
   readSignaturesHidden,
   readSignatureToggleEnabled,
+  readWaterfallFeedEnabled,
   subscribeAssistiveFeatures,
 } from '../utils/assistiveFeatures';
 
@@ -16,4 +17,8 @@ export function useSignatureToggleEnabled() {
 
 export function useSignaturesHidden() {
   return useSyncExternalStore(subscribeAssistiveFeatures, readSignaturesHidden, () => false);
+}
+
+export function useWaterfallFeedEnabled() {
+  return useSyncExternalStore(subscribeAssistiveFeatures, readWaterfallFeedEnabled, () => false);
 }
