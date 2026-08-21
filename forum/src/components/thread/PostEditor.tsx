@@ -9,6 +9,7 @@ import {
 } from 'react';
 import {
   getRichTextEditorHtmlValue,
+  hasRichTextEditorHtmlContent,
   RichTextEditor,
   type RichTextEditorValue,
 } from '../editor/RichTextEditor';
@@ -416,13 +417,7 @@ function PostEditorAttachmentDialog({
 
 export function hasPostEditorContent(value: RichTextEditorValue) {
   if (value.mode !== 'rich') return value.content.trim().length > 0;
-
-  const container = document.createElement('div');
-  container.innerHTML = value.content;
-  return (
-    (container.textContent ?? '').replace(/\u00a0/g, ' ').trim().length > 0
-    || Boolean(container.querySelector('img, hr'))
-  );
+  return hasRichTextEditorHtmlContent(value.content);
 }
 
 export function formatPostEditorPreviewTimestamp(value: Date) {

@@ -99,10 +99,24 @@ type RichImageResizeHandle = {
   top: number;
 };
 
+const richToggleCommands = [
+  'bold',
+  'italic',
+  'underline',
+  'strikeThrough',
+  'superscript',
+  'subscript',
+] as const;
+
+type RichToggleCommand = typeof richToggleCommands[number];
+type RichToggleCommandStates = Record<RichToggleCommand, boolean>;
+
 const maxEditorHistoryEntries = 120;
 const maxRecentTextColors = 8;
 const recentTextColorsStorageKey = 'capubbs-rich-text-recent-colors:v1';
 const richImageResizeMinWidth = 48;
+const richTypingStyleAttribute = 'data-capubbs-typing-style';
+const richTypingStyleMarker = '\u200B';
 
 export function getRichTextEditorStorageValue(value: RichTextEditorValue): RichTextEditorValue {
   if (value.mode === 'markdown') {
@@ -112,7 +126,9 @@ export function getRichTextEditorStorageValue(value: RichTextEditorValue): RichT
   return {
     ...value,
     content: compactHtmlForStorage(
-      value.mode === 'rich' ? escapeLegacyBbcodeInHtmlText(value.content) : value.content,
+      value.mode === 'rich'
+        ? escapeLegacyBbcodeInHtmlText(finalizeRichTypingStyles(value.content))
+        : value.content,
     ),
   };
 }
@@ -121,7 +137,7 @@ export function getRichTextEditorHtmlValue(value: RichTextEditorValue) {
   const html = value.mode === 'markdown'
     ? renderMarkdownToHtml(value.content)
     : value.mode === 'rich'
-      ? escapeLegacyBbcodeInHtmlText(value.content)
+      ? escapeLegacyBbcodeInHtmlText(finalizeRichTypingStyles(value.content))
       : value.content;
   return compactHtmlForStorage(html);
 }
@@ -133,12 +149,21 @@ export function getRichTextEditorPreviewDocument(
   const previewHtml = value.mode === 'markdown'
     ? renderForumMarkup(renderMarkdownToHtml(value.content))
     : value.mode === 'rich'
-      ? escapeLegacyBbcodeInHtmlText(value.content)
+      ? escapeLegacyBbcodeInHtmlText(finalizeRichTypingStyles(value.content))
       : value.content;
   return buildHtmlPreviewDocument(
     value.mode === 'markdown' ? previewHtml : compactHtmlForStorage(previewHtml),
     document.documentElement.classList.contains('dark'),
     options.embedded,
+  );
+}
+
+export function hasRichTextEditorHtmlContent(content: string) {
+  const container = document.createElement('div');
+  container.innerHTML = finalizeRichTypingStyles(content);
+  return (
+    (container.textContent ?? '').replace(/\u00a0/g, ' ').trim().length > 0
+    || Boolean(container.querySelector('img, hr'))
   );
 }
 
@@ -274,6 +299,7 @@ export function RichTextEditor({
   const redoStackRef = useRef<RichTextEditorValue[]>([]);
   const isApplyingHistoryRef = useRef(false);
   const [activePopover, setActivePopover] = useState<EditorPopover>(null);
+  const [activeRichCommands, setActiveRichCommands] = useState<RichToggleCommandStates>(createInactiveRichCommandStates);
   const [isAutoHeightEnabled, setIsAutoHeightEnabled] = useState(false);
   const [isHtmlPreviewOpen, setIsHtmlPreviewOpen] = useState(true);
   const [showSourceLineNumbers, setShowSourceLineNumbers] = useState(false);
@@ -408,6 +434,35 @@ export function RichTextEditor({
     selectedRichImageRef.current = null;
     activeRichImageResizeRef.current = null;
     setRichImageResizeHandle(null);
+  }, [isSourceMode]);
+
+  useEffect(() => {
+    if (isSourceMode) {
+      setActiveRichCommands(createInactiveRichCommandStates());
+      return undefined;
+    }
+
+    const syncCommandStates = () => {
+      const editor = editorRef.current;
+      setActiveRichCommands(editor ? readRichCommandStates(editor) : createInactiveRichCommandStates());
+    };
+    const handleFocusIn = (event: FocusEvent) => {
+      const editorShell = editorShellRef.current;
+      if (editorShell?.contains(event.target as Node)) {
+        syncCommandStates();
+      } else {
+        setActiveRichCommands(createInactiveRichCommandStates());
+      }
+    };
+
+    document.addEventListener('selectionchange', syncCommandStates);
+    document.addEventListener('focusin', handleFocusIn);
+    syncCommandStates();
+
+    return () => {
+      document.removeEventListener('selectionchange', syncCommandStates);
+      document.removeEventListener('focusin', handleFocusIn);
+    };
   }, [isSourceMode]);
 
   useEffect(() => {
@@ -709,9 +764,11 @@ export function RichTextEditor({
   };
 
   const runRichCommand = (command: string, commandValue?: string) => {
-    editorRef.current?.focus();
+    const editor = editorRef.current;
+    editor?.focus();
     document.execCommand(command, false, commandValue);
-    updateContent(editorRef.current?.innerHTML ?? '');
+    updateContent(editor?.innerHTML ?? '');
+    if (editor) setActiveRichCommands(readRichCommandStates(editor));
   };
 
   const insertRichHtml = (html: string) => {
@@ -893,12 +950,11 @@ export function RichTextEditor({
 
     const currentRange = selection.rangeCount > 0 ? selection.getRangeAt(0) : null;
     const range = currentRange
-      && !currentRange.collapsed
       && editor.contains(currentRange.commonAncestorContainer)
       ? currentRange.cloneRange()
       : savedRangeRef.current?.cloneRange();
 
-    if (!range || range.collapsed || !editor.contains(range.commonAncestorContainer)) {
+    if (!range || !editor.contains(range.commonAncestorContainer)) {
       savedRangeRef.current = null;
       return;
     }
@@ -909,14 +965,24 @@ export function RichTextEditor({
 
     const wrapper = document.createElement('span');
     applyInlineStyleToElement(wrapper, style);
-    const selectedContent = range.extractContents();
-    removeOverriddenRichInlineStyles(selectedContent, style);
-    wrapper.appendChild(selectedContent);
-    range.insertNode(wrapper);
+    const nextRange = document.createRange();
+
+    if (range.collapsed) {
+      wrapper.setAttribute(richTypingStyleAttribute, 'true');
+      const marker = document.createTextNode(richTypingStyleMarker);
+      wrapper.appendChild(marker);
+      range.insertNode(wrapper);
+      nextRange.setStart(marker, marker.length);
+      nextRange.collapse(true);
+    } else {
+      const selectedContent = range.extractContents();
+      removeOverriddenRichInlineStyles(selectedContent, style);
+      wrapper.appendChild(selectedContent);
+      range.insertNode(wrapper);
+      nextRange.selectNodeContents(wrapper);
+    }
 
     selection.removeAllRanges();
-    const nextRange = document.createRange();
-    nextRange.selectNodeContents(wrapper);
     selection.addRange(nextRange);
     updateContent(editor.innerHTML);
     savedRangeRef.current = null;
@@ -1303,16 +1369,16 @@ export function RichTextEditor({
         {!isSourceMode ? (
           <div className="capubbs-rich-toolbar overflow-x-auto border-b border-zinc-200/80 px-1.5 py-1 dark:border-white/10">
             <div className="flex min-w-max flex-nowrap items-center gap-[0.5px]">
-              <ToolbarButton label="加粗" onMouseDown={handleToolbarMouseDown} onClick={() => runRichCommand('bold')}>
+              <ToolbarButton active={activeRichCommands.bold} label="加粗" onMouseDown={handleToolbarMouseDown} onClick={() => runRichCommand('bold')}>
                 <Bold size={14} />
               </ToolbarButton>
-              <ToolbarButton label="斜体" onMouseDown={handleToolbarMouseDown} onClick={() => runRichCommand('italic')}>
+              <ToolbarButton active={activeRichCommands.italic} label="斜体" onMouseDown={handleToolbarMouseDown} onClick={() => runRichCommand('italic')}>
                 <Italic size={14} />
               </ToolbarButton>
-              <ToolbarButton label="下划线" onMouseDown={handleToolbarMouseDown} onClick={() => runRichCommand('underline')}>
+              <ToolbarButton active={activeRichCommands.underline} label="下划线" onMouseDown={handleToolbarMouseDown} onClick={() => runRichCommand('underline')}>
                 <Underline size={14} />
               </ToolbarButton>
-              <ToolbarButton label="删除线" onMouseDown={handleToolbarMouseDown} onClick={() => runRichCommand('strikeThrough')}>
+              <ToolbarButton active={activeRichCommands.strikeThrough} label="删除线" onMouseDown={handleToolbarMouseDown} onClick={() => runRichCommand('strikeThrough')}>
                 <Strikethrough size={14} />
               </ToolbarButton>
 
@@ -1357,10 +1423,10 @@ export function RichTextEditor({
 
               <ToolbarDivider />
 
-              <ToolbarButton label="上标" onMouseDown={handleToolbarMouseDown} onClick={() => runRichCommand('superscript')}>
+              <ToolbarButton active={activeRichCommands.superscript} label="上标" onMouseDown={handleToolbarMouseDown} onClick={() => runRichCommand('superscript')}>
                 <Superscript size={14} />
               </ToolbarButton>
-              <ToolbarButton label="下标" onMouseDown={handleToolbarMouseDown} onClick={() => runRichCommand('subscript')}>
+              <ToolbarButton active={activeRichCommands.subscript} label="下标" onMouseDown={handleToolbarMouseDown} onClick={() => runRichCommand('subscript')}>
                 <Subscript size={14} />
               </ToolbarButton>
               <label className="flex h-6 items-center rounded-[var(--control-radius)] border border-zinc-200 bg-white px-1 dark:border-white/10 dark:bg-zinc-950">
@@ -1678,6 +1744,7 @@ export function RichTextEditor({
           data-placeholder={placeholder}
           onClick={handleRichEditorClick}
           onInput={(event) => {
+            normalizeRichTypingStylesAfterInput(event.currentTarget);
             updateContent(event.currentTarget.innerHTML);
             window.requestAnimationFrame(updateRichImageResizeHandle);
           }}
@@ -1779,11 +1846,13 @@ export function RichTextEditor({
 }
 
 function ToolbarButton({
+  active,
   children,
   label,
   onClick,
   onMouseDown,
 }: {
+  active?: boolean;
   children: ReactNode;
   label: string;
   onClick: () => void;
@@ -1793,10 +1862,15 @@ function ToolbarButton({
     <button
       type="button"
       aria-label={label}
+      aria-pressed={typeof active === 'boolean' ? active : undefined}
       title={label}
       onMouseDown={onMouseDown}
       onClick={onClick}
-      className="flex h-6 w-6 shrink-0 items-center justify-center rounded-[var(--control-radius)] border border-transparent text-[#174f38] transition hover:border-zinc-200 hover:bg-zinc-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#174f38] dark:text-white dark:hover:border-white/10 dark:hover:bg-white/[0.1]"
+      className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-[var(--control-radius)] border text-[#174f38] transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#174f38] dark:text-white ${
+        active
+          ? 'border-[#174f38]/30 bg-[#174f38]/10 shadow-inner dark:border-emerald-200/30 dark:bg-emerald-200/15'
+          : 'border-transparent hover:border-zinc-200 hover:bg-zinc-100 dark:hover:border-white/10 dark:hover:bg-white/[0.1]'
+      }`}
     >
       {children}
     </button>
@@ -1805,6 +1879,109 @@ function ToolbarButton({
 
 function ToolbarDivider() {
   return <span className="mx-px h-4 w-px shrink-0 bg-zinc-200 dark:bg-white/10" />;
+}
+
+function createInactiveRichCommandStates(): RichToggleCommandStates {
+  return {
+    bold: false,
+    italic: false,
+    strikeThrough: false,
+    subscript: false,
+    superscript: false,
+    underline: false,
+  };
+}
+
+function readRichCommandStates(editor: HTMLElement): RichToggleCommandStates {
+  const selection = window.getSelection();
+  if (!selection || selection.rangeCount === 0) return createInactiveRichCommandStates();
+
+  const range = selection.getRangeAt(0);
+  if (!editor.contains(range.commonAncestorContainer)) return createInactiveRichCommandStates();
+
+  return richToggleCommands.reduce((states, command) => {
+    try {
+      states[command] = document.queryCommandState(command);
+    } catch {
+      states[command] = false;
+    }
+    return states;
+  }, createInactiveRichCommandStates());
+}
+
+function normalizeRichTypingStylesAfterInput(editor: HTMLElement) {
+  const typingSpans = Array.from(editor.querySelectorAll<HTMLElement>(`[${richTypingStyleAttribute}]`));
+  const completedSpans = typingSpans.filter((span) => (
+    (span.textContent ?? '').replaceAll(richTypingStyleMarker, '').length > 0
+    || Boolean(span.querySelector('br, img, hr'))
+  ));
+  if (completedSpans.length === 0) return;
+
+  const textNodes = new Set<Text>();
+  completedSpans.forEach((span) => {
+    const walker = document.createTreeWalker(span, NodeFilter.SHOW_TEXT);
+    let node = walker.nextNode();
+    while (node) {
+      if (node instanceof Text && node.data.includes(richTypingStyleMarker)) textNodes.add(node);
+      node = walker.nextNode();
+    }
+  });
+
+  const selection = window.getSelection();
+  const activeRange = selection?.rangeCount && editor.contains(selection.getRangeAt(0).commonAncestorContainer)
+    ? selection.getRangeAt(0).cloneRange()
+    : null;
+  const startOffset = activeRange?.startContainer instanceof Text
+    ? getOffsetWithoutTypingMarkers(activeRange.startContainer.data, activeRange.startOffset)
+    : null;
+  const endOffset = activeRange?.endContainer instanceof Text
+    ? getOffsetWithoutTypingMarkers(activeRange.endContainer.data, activeRange.endOffset)
+    : null;
+
+  textNodes.forEach((node) => {
+    node.data = node.data.replaceAll(richTypingStyleMarker, '');
+  });
+  completedSpans.forEach((span) => span.removeAttribute(richTypingStyleAttribute));
+
+  if (!selection || !activeRange) return;
+  try {
+    if (startOffset !== null) {
+      activeRange.setStart(activeRange.startContainer, Math.min(startOffset, activeRange.startContainer.textContent?.length ?? 0));
+    }
+    if (endOffset !== null) {
+      activeRange.setEnd(activeRange.endContainer, Math.min(endOffset, activeRange.endContainer.textContent?.length ?? 0));
+    }
+    selection.removeAllRanges();
+    selection.addRange(activeRange);
+  } catch {
+    // The browser already placed the caret safely after the input.
+  }
+}
+
+function getOffsetWithoutTypingMarkers(value: string, offset: number) {
+  return value.slice(0, offset).replaceAll(richTypingStyleMarker, '').length;
+}
+
+function finalizeRichTypingStyles(html: string) {
+  if (!html.includes(richTypingStyleMarker) && !html.includes(richTypingStyleAttribute)) return html;
+
+  const template = document.createElement('template');
+  template.innerHTML = html;
+  const typingSpans = Array.from(template.content.querySelectorAll<HTMLElement>(`[${richTypingStyleAttribute}]`));
+  const walker = document.createTreeWalker(template.content, NodeFilter.SHOW_TEXT);
+  let node = walker.nextNode();
+  while (node) {
+    if (node instanceof Text && node.data.includes(richTypingStyleMarker)) {
+      node.data = node.data.replaceAll(richTypingStyleMarker, '');
+    }
+    node = walker.nextNode();
+  }
+
+  typingSpans.forEach((span) => {
+    span.removeAttribute(richTypingStyleAttribute);
+    if (!(span.textContent ?? '').length && !span.querySelector('br, img, hr')) span.remove();
+  });
+  return template.innerHTML;
 }
 
 function removeOverriddenRichInlineStyles(content: DocumentFragment, style: RichInlineStyle) {
@@ -1908,7 +2085,9 @@ function convertEditorContent(content: string, from: RichTextEditorMode, to: Ric
   }
 
   return formatHtmlForSource(
-    from === 'rich' ? escapeLegacyBbcodeInHtmlText(content) : content,
+    from === 'rich'
+      ? escapeLegacyBbcodeInHtmlText(finalizeRichTypingStyles(content))
+      : content,
   );
 }
 
@@ -1935,13 +2114,7 @@ function hasModeSwitchingContent(value: RichTextEditorValue) {
   if (value.mode !== 'rich') {
     return value.content.trim().length > 0;
   }
-
-  const container = document.createElement('div');
-  container.innerHTML = value.content;
-  return (
-    (container.textContent ?? '').replace(/\u00a0/g, ' ').trim().length > 0
-    || Boolean(container.querySelector('img, hr'))
-  );
+  return hasRichTextEditorHtmlContent(value.content);
 }
 
 function buildHtmlPreviewDocument(html: string, isDarkTheme: boolean, embedded = false) {
@@ -2585,7 +2758,7 @@ function plainTextLength(content: string, mode: RichTextEditorMode) {
   }
 
   const container = document.createElement('div');
-  container.innerHTML = content;
+  container.innerHTML = finalizeRichTypingStyles(content);
   return (container.textContent ?? '').length;
 }
 
