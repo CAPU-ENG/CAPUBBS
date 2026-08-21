@@ -358,13 +358,11 @@ export function TopBar({
             )}
 
             <a
-              className="legacy-forum-link"
+              className="icon-button hidden lg:inline-flex"
               href="/bbs/index/"
               aria-label="切换回旧论坛"
-              title="切换回旧论坛"
             >
-              <History size={17} />
-              <span>旧论坛</span>
+              <History size={19} />
             </a>
 
             {authPending ? (
