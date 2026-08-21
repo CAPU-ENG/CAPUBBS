@@ -3,9 +3,11 @@ import {
   BookOpen,
   ChevronRight,
   Compass,
+  Dices,
   Droplets,
   Footprints,
   Globe2,
+  LoaderCircle,
   Megaphone,
   ServerCog,
   Trophy,
@@ -13,8 +15,10 @@ import {
   X,
   type LucideIcon,
 } from 'lucide-react';
+import { useState } from 'react';
 import logo1 from '../../assets/logo/logo1.webp';
 import logo2 from '../../assets/logo/logo2.webp';
+import { fetchRandomThread } from '../../api/randomThread';
 import { PRIMARY_BOARDS, SECONDARY_BOARDS } from '../../data/boards';
 
 const boardIcons: Record<number, LucideIcon> = {
@@ -31,6 +35,38 @@ const boardIcons: Record<number, LucideIcon> = {
 
 function boardHref(id: number) {
   return `/?bid=${id}`;
+}
+
+function RandomThreadButton({ onNavigate }: { onNavigate: () => void }) {
+  const [loading, setLoading] = useState(false);
+
+  async function navigateToRandomThread() {
+    if (loading) return;
+    setLoading(true);
+
+    try {
+      const { bid, tid } = await fetchRandomThread();
+      onNavigate();
+      window.location.assign(`/?bid=${bid}&tid=${tid}&p=1`);
+    } catch (error) {
+      window.alert(error instanceof Error ? error.message : '随机帖子加载失败，请稍后重试。');
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  return (
+    <button
+      aria-busy={loading}
+      className="supplement-link"
+      disabled={loading}
+      type="button"
+      onClick={() => void navigateToRandomThread()}
+    >
+      {loading ? <LoaderCircle className="animate-spin" size={15} /> : <Dices size={15} />}
+      试试手气
+    </button>
+  );
 }
 
 export function DesktopBoardDrawer({ onNavigate }: { onNavigate: () => void }) {
@@ -59,10 +95,11 @@ export function DesktopBoardDrawer({ onNavigate }: { onNavigate: () => void }) {
         </div>
       </div>
 
-      <div className="board-drawer-section flex items-center border-t border-[var(--line)]">
+      <div className="board-drawer-section flex items-center gap-2 border-t border-[var(--line)]">
         <a className="supplement-link" href="/data" onClick={onNavigate}>
           <BarChart3 size={15} /> 数据展示
         </a>
+        <RandomThreadButton onNavigate={onNavigate} />
       </div>
     </section>
   );
@@ -108,10 +145,11 @@ export function MobileBoardSidebar({ open, onClose }: { open: boolean; onClose: 
           </div>
         </div>
 
-        <div className="mt-6 border-t border-[var(--line)] pt-5">
+        <div className="mt-6 flex flex-wrap gap-2 border-t border-[var(--line)] pt-5">
           <a className="supplement-link" href="/data" onClick={onClose}>
             <BarChart3 size={16} /> 数据展示
           </a>
+          <RandomThreadButton onNavigate={onClose} />
         </div>
       </div>
     </aside>

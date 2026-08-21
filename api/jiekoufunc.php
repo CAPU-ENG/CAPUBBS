@@ -204,6 +204,50 @@ function jiekoufunc_hot($con, $token, $params) {
     return $infos;
 }
 
+function jiekoufunc_random_thread($con, $token) {
+    $viewer = jiekoufunc_token2user($con, $token);
+    $visibility_condition = $viewer ? '' : ' and threads.bid!=1';
+    $from_and_where = "
+        from threads
+        inner join boardinfo on boardinfo.bid=threads.bid
+        where boardinfo.hide=0$visibility_condition";
+
+    $count_result = mysqli_query($con, "select count(*) as total$from_and_where");
+    if ($count_result === false) {
+        return jiekoufunc_report('8', '随机帖子查询失败。');
+    }
+
+    $count_row = mysqli_fetch_assoc($count_result);
+    $thread_count = intval(isset($count_row['total']) ? $count_row['total'] : 0);
+    if ($thread_count <= 0) {
+        return jiekoufunc_report('3', '暂无可浏览的帖子。');
+    }
+
+    // 使用服务端毫秒时间戳作为种子；截取 7 位散列可兼容 32 位 PHP 整数。
+    $seed = sprintf('%.0f', floor(microtime(true) * 1000));
+    $random_value = hexdec(substr(hash('sha256', $seed), 0, 7));
+    $offset = intval($random_value % $thread_count);
+
+    $thread_result = mysqli_query($con, "
+        select threads.bid,threads.tid
+        $from_and_where
+        order by threads.bid,threads.tid
+        limit $offset,1");
+    if ($thread_result === false) {
+        return jiekoufunc_report('8', '随机帖子查询失败。');
+    }
+
+    $thread = mysqli_fetch_assoc($thread_result);
+    if (!$thread) {
+        return jiekoufunc_report('3', '暂无可浏览的帖子。');
+    }
+
+    return array(
+        array('code' => '0'),
+        array('bid' => intval($thread['bid']), 'tid' => intval($thread['tid']))
+    );
+}
+
 function jiekoufunc_global_top($con, $token) {
     $time = time();
     $infos = array();

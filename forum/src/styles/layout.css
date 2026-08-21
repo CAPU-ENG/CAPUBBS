@@ -381,7 +381,9 @@
     border: 1px solid var(--line);
     border-radius: 7px;
     padding: 0 11px;
+    background: transparent;
     color: var(--text-muted);
+    cursor: pointer;
     font-size: 0.78rem;
     font-weight: 650;
     transition: 150ms ease;
@@ -399,6 +401,11 @@
     border-color: var(--line-strong);
     background: var(--surface-soft);
     color: var(--brand-strong);
+  }
+
+  .supplement-link:disabled {
+    cursor: wait;
+    opacity: 0.65;
   }
 
   .profile-menu {
