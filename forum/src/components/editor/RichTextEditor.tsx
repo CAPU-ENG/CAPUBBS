@@ -547,39 +547,33 @@ export function RichTextEditor({
     redoEditorChange();
   };
 
-  const handleRichEditorBeforeInput = (event: FormEvent<HTMLDivElement>) => {
-    const inputType = (event.nativeEvent as InputEvent).inputType;
-
-    if (inputType !== 'insertParagraph') {
-      return;
-    }
-
+  const handleRichEditorKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
     const editor = event.currentTarget;
     const selection = window.getSelection();
 
-    if (!selection || selection.rangeCount === 0) {
-      return;
-    }
-
-    const range = selection.getRangeAt(0);
-
     if (
-      !editor.contains(range.commonAncestorContainer)
-      || isSelectionInsideStructuredRichBlock(editor, range.commonAncestorContainer)
+      event.key === 'Enter'
+      && !event.nativeEvent.isComposing
+      && !event.ctrlKey
+      && !event.metaKey
+      && !event.altKey
+      && selection
+      && selection.rangeCount > 0
     ) {
-      return;
+      const range = selection.getRangeAt(0);
+
+      if (
+        editor.contains(range.commonAncestorContainer)
+        && !isSelectionInsideStructuredRichBlock(editor, range.commonAncestorContainer)
+      ) {
+        event.preventDefault();
+        document.execCommand('insertLineBreak', false);
+        updateContent(editor.innerHTML);
+        return;
+      }
     }
 
-    event.preventDefault();
-    range.deleteContents();
-
-    const lineBreak = document.createElement('br');
-    range.insertNode(lineBreak);
-    range.setStartAfter(lineBreak);
-    range.collapse(true);
-    selection.removeAllRanges();
-    selection.addRange(range);
-    updateContent(editor.innerHTML);
+    handleEditorKeyDown(event);
   };
 
   const clearRichImageSelection = () => {
@@ -1582,9 +1576,8 @@ export function RichTextEditor({
             updateContent(event.currentTarget.innerHTML);
             window.requestAnimationFrame(updateRichImageResizeHandle);
           }}
-          onBeforeInput={handleRichEditorBeforeInput}
           onBlur={(event) => updateContent(event.currentTarget.innerHTML)}
-          onKeyDown={handleEditorKeyDown}
+          onKeyDown={handleRichEditorKeyDown}
           onPaste={handleEditorPaste}
           onScroll={updateRichImageResizeHandle}
           className={`capubbs-editor-prose capubbs-rich-editor-input px-3 py-3 text-sm leading-6 text-zinc-800 outline-none dark:text-zinc-100 ${isAutoHeightEnabled ? 'min-h-[50vh] overflow-visible' : 'h-[50vh] overflow-y-auto'}`}
