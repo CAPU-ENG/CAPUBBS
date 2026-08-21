@@ -17,7 +17,7 @@
   }
 
   .settings-panel {
-    overflow: hidden;
+    overflow: visible;
     border: 1px solid var(--line);
     border-radius: 2px;
     background: var(--surface);
@@ -50,10 +50,6 @@
     color: var(--text-strong);
     font-size: 0.9rem;
     font-weight: 760;
-  }
-
-  .settings-appearance-panel {
-    overflow: visible;
   }
 
   .settings-checkbox-list {

@@ -72,7 +72,7 @@ export function SettingsPage() {
 
       <main className="settings-page-shell">
         <div className="settings-options-column">
-          <section className="settings-panel settings-appearance-panel" aria-labelledby="appearance-settings-title">
+          <section className="settings-panel" aria-labelledby="appearance-settings-title">
             <div className="settings-panel-heading">
               <span className="settings-panel-icon"><MonitorCog size={17} /></span>
               <div>
