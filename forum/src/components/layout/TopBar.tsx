@@ -1,6 +1,7 @@
 import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import {
   ChevronDown,
+  History,
   LoaderCircle,
   LogIn,
   LogOut,
@@ -355,6 +356,16 @@ export function TopBar({
                 onUnreadChange={updateViewerUnreadMessages}
               />
             )}
+
+            <a
+              className="legacy-forum-link"
+              href="/bbs/index/"
+              aria-label="切换回旧论坛"
+              title="切换回旧论坛"
+            >
+              <History size={17} />
+              <span>旧论坛</span>
+            </a>
 
             {authPending ? (
               <span className="auth-session-loading" aria-label="正在恢复登录状态">
