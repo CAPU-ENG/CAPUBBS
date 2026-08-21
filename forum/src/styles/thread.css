@@ -98,6 +98,8 @@
   .thread-page-jump input {
     width: 64px;
     padding: 0 8px;
+    outline: none;
+    transition: border-color 140ms ease, box-shadow 140ms ease;
   }
 
   .thread-page-jump button {
@@ -106,7 +108,11 @@
     transition: 140ms ease;
   }
 
-  .thread-page-jump input:focus,
+  .thread-page-jump input:focus {
+    border-color: var(--brand);
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--brand) 13%, transparent);
+  }
+
   .thread-page-jump button:hover {
     border-color: var(--line-strong);
     color: var(--brand-strong);
