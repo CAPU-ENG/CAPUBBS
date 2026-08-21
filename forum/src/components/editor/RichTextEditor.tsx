@@ -6,6 +6,7 @@ import {
   AtSign,
   Bold,
   Eraser,
+  Eye,
   Image as ImageIcon,
   IndentDecrease,
   IndentIncrease,
@@ -20,6 +21,7 @@ import {
   Subscript,
   Superscript,
   Underline,
+  X,
 } from 'lucide-react';
 import {
   type ClipboardEvent,
@@ -273,6 +275,7 @@ export function RichTextEditor({
   const isApplyingHistoryRef = useRef(false);
   const [activePopover, setActivePopover] = useState<EditorPopover>(null);
   const [isAutoHeightEnabled, setIsAutoHeightEnabled] = useState(false);
+  const [isHtmlPreviewOpen, setIsHtmlPreviewOpen] = useState(true);
   const [showSourceLineNumbers, setShowSourceLineNumbers] = useState(false);
   const [isColorPickerOpen, setIsColorPickerOpen] = useState(false);
   const [popoverTextValue, setPopoverTextValue] = useState('');
@@ -318,9 +321,13 @@ export function RichTextEditor({
   const splitPaneDividerClassName = isMobileViewport
     ? 'border-t border-zinc-200/80 dark:border-white/10'
     : 'border-l border-zinc-200/80 dark:border-white/10';
-  const htmlSourcePaneClassName = isMobileViewport
-    ? `${splitPaneChildClassName} flex flex-col border-b border-zinc-200/80 dark:border-white/10`
-    : `${splitPaneChildClassName} flex flex-col border-r border-zinc-200/80 dark:border-white/10`;
+  const htmlSourcePaneClassName = `${splitPaneChildClassName} flex flex-col ${
+    isHtmlPreviewOpen
+      ? isMobileViewport
+        ? 'border-b border-zinc-200/80 dark:border-white/10'
+        : 'border-r border-zinc-200/80 dark:border-white/10'
+      : ''
+  }`;
   const markdownPreview = useMemo(
     () => renderForumMarkup(renderMarkdownToHtml(value.content)),
     [value.content],
@@ -1597,7 +1604,16 @@ export function RichTextEditor({
           <div className={htmlSourcePaneClassName}>
             <div className="flex h-9 items-center justify-between border-b border-zinc-200 bg-zinc-50 px-3 text-xs font-bold text-zinc-500 dark:border-white/10 dark:bg-slate-950 dark:text-slate-300">
               <span>HTML源码</span>
-              <span>{value.content.length} 字符</span>
+              {!isHtmlPreviewOpen ? (
+                <button
+                  type="button"
+                  onClick={() => setIsHtmlPreviewOpen(true)}
+                  className="inline-flex h-6 items-center gap-1 rounded-[1px] px-1.5 text-xs font-bold transition hover:bg-zinc-200/70 hover:text-zinc-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#174f38] dark:hover:bg-white/10 dark:hover:text-white"
+                >
+                  <Eye size={13} />
+                  预览
+                </button>
+              ) : null}
             </div>
             <div
               className={`capubbs-code-shell flex ${isAutoHeightEnabled ? 'min-h-[calc(50vh-2.25rem)]' : 'min-h-0 flex-1'}`}
@@ -1628,17 +1644,28 @@ export function RichTextEditor({
               </div>
             </div>
           </div>
-          <div className={`card-surface ${splitPaneChildClassName} flex flex-col`}>
-            <div className="flex h-9 items-center justify-between border-b border-zinc-200/80 px-3 text-xs font-bold text-zinc-500 dark:border-white/10 dark:text-zinc-300">
-              <span>HTML预览</span>
+          {isHtmlPreviewOpen ? (
+            <div className={`card-surface ${splitPaneChildClassName} flex flex-col`}>
+              <div className="flex h-9 items-center justify-between border-b border-zinc-200/80 px-3 text-xs font-bold text-zinc-500 dark:border-white/10 dark:text-zinc-300">
+                <span>HTML预览</span>
+                <button
+                  type="button"
+                  aria-label="关闭 HTML 预览"
+                  title="关闭 HTML 预览"
+                  onClick={() => setIsHtmlPreviewOpen(false)}
+                  className="inline-flex h-6 w-6 items-center justify-center rounded-[1px] transition hover:bg-zinc-100 hover:text-zinc-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#174f38] dark:hover:bg-white/10 dark:hover:text-white"
+                >
+                  <X size={14} />
+                </button>
+              </div>
+              <iframe
+                title="HTML预览"
+                sandbox=""
+                srcDoc={htmlPreviewDocument}
+                className="capubbs-html-preview-frame min-h-0 w-full flex-1 border-0"
+              />
             </div>
-            <iframe
-              title="HTML预览"
-              sandbox=""
-              srcDoc={htmlPreviewDocument}
-              className="capubbs-html-preview-frame min-h-0 w-full flex-1 border-0"
-            />
-          </div>
+          ) : null}
         </div>
       ) : (
         <div
