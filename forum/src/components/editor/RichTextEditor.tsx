@@ -37,7 +37,7 @@ import {
   type ReactNode,
 } from 'react';
 import { renderForumMarkup } from '../../utils/forumMarkup';
-import { escapeLegacyBbcodeInHtmlText, translateLegacyBbcode } from '../../utils/legacyBbcode';
+import { translateLegacyBbcode } from '../../utils/legacyBbcode';
 import { getPublicProfileAppPath } from '../../utils/userRoutes';
 import { PastedImageDialog } from './PastedImageDialog';
 import {
@@ -129,7 +129,7 @@ export function getRichTextEditorStorageValue(value: RichTextEditorValue): RichT
     ...value,
     content: compactHtmlForStorage(
       value.mode === 'rich'
-        ? escapeLegacyBbcodeInHtmlText(finalizeRichTypingStyles(value.content))
+        ? translateRichTextBbcode(value.content)
         : value.content,
     ),
   };
@@ -139,7 +139,7 @@ export function getRichTextEditorHtmlValue(value: RichTextEditorValue) {
   const html = value.mode === 'markdown'
     ? renderMarkdownToHtml(value.content)
     : value.mode === 'rich'
-      ? escapeLegacyBbcodeInHtmlText(finalizeRichTypingStyles(value.content))
+      ? translateRichTextBbcode(value.content)
       : value.content;
   return compactHtmlForStorage(html);
 }
@@ -151,7 +151,7 @@ export function getRichTextEditorPreviewDocument(
   const previewHtml = value.mode === 'markdown'
     ? renderForumMarkup(renderMarkdownToHtml(value.content))
     : value.mode === 'rich'
-      ? escapeLegacyBbcodeInHtmlText(finalizeRichTypingStyles(value.content))
+      ? translateRichTextBbcode(value.content)
       : value.content;
   return buildHtmlPreviewDocument(
     value.mode === 'markdown' ? previewHtml : compactHtmlForStorage(previewHtml),
@@ -2284,9 +2284,13 @@ function convertEditorContent(content: string, from: RichTextEditorMode, to: Ric
 
   return formatHtmlForSource(
     from === 'rich'
-      ? escapeLegacyBbcodeInHtmlText(finalizeRichTypingStyles(content))
+      ? translateRichTextBbcode(content)
       : content,
   );
+}
+
+function translateRichTextBbcode(content: string) {
+  return translateLegacyBbcode(finalizeRichTypingStyles(content));
 }
 
 function isCrossGroupModeSwitchLocked(value: RichTextEditorValue, nextMode: RichTextEditorMode) {
