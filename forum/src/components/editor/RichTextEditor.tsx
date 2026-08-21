@@ -136,7 +136,7 @@ export function getRichTextEditorPreviewDocument(
       ? escapeLegacyBbcodeInHtmlText(value.content)
       : value.content;
   return buildHtmlPreviewDocument(
-    previewHtml,
+    value.mode === 'markdown' ? previewHtml : compactHtmlForStorage(previewHtml),
     document.documentElement.classList.contains('dark'),
     options.embedded,
   );
@@ -334,7 +334,7 @@ export function RichTextEditor({
   );
   const highlightedHtml = useMemo(() => highlightHtmlSource(value.content), [value.content]);
   const htmlPreviewDocument = useMemo(
-    () => buildHtmlPreviewDocument(value.content, isDarkTheme),
+    () => buildHtmlPreviewDocument(compactHtmlForStorage(value.content), isDarkTheme),
     [isDarkTheme, value.content],
   );
 
@@ -2268,26 +2268,15 @@ function compactHtmlForStorage(html: string) {
     return '';
   }
 
-  const protectedBlocks: string[] = [];
-  const tokenizedHtml = html.replace(
-    /<(pre|code|textarea)\b[\s\S]*?<\/\1>/gi,
-    (block) => {
-      const token = `___CAPUBBS_HTML_BLOCK_${protectedBlocks.length}___`;
-      protectedBlocks.push(block);
-      return token;
-    },
+  const htmlWithSingleLineTags = html.replace(
+    /<[^>]*>/g,
+    (tag) => tag.replace(/[\t ]*[\r\n]+[\t ]*/g, ' '),
   );
 
-  const compactedHtml = tokenizedHtml
-    .replace(/>\s+</g, '><')
-    .replace(/\s{2,}/g, ' ')
-    .replace(/\n+/g, '')
+  return htmlWithSingleLineTags
+    .replace(/[\t ]*[\r\n]+[\t ]*/g, '')
+    .replace(/>[\t ]+</g, '><')
     .trim();
-
-  return protectedBlocks.reduce(
-    (content, block, index) => content.replace(`___CAPUBBS_HTML_BLOCK_${index}___`, block.trim()),
-    compactedHtml,
-  );
 }
 
 function renderMarkdownToHtml(markdown: string) {
