@@ -767,6 +767,9 @@ export function RichTextEditor({
     const editor = editorRef.current;
     editor?.focus();
     document.execCommand(command, false, commandValue);
+    if (editor && (command === 'indent' || command === 'outdent')) {
+      normalizeRichIndentation(editor);
+    }
     updateContent(editor?.innerHTML ?? '');
     if (editor) setActiveRichCommands(readRichCommandStates(editor));
   };
@@ -1883,6 +1886,23 @@ function ToolbarButton({
 
 function ToolbarDivider() {
   return <span className="mx-px h-4 w-px shrink-0 bg-zinc-200 dark:bg-white/10" />;
+}
+
+function normalizeRichIndentation(editor: HTMLElement) {
+  const indentationBlockquotes = editor.querySelectorAll<HTMLElement>(
+    'blockquote:not(.forum-quote):not(.forum-legacy-quote):not(.capubbs-floor-quote)',
+  );
+
+  indentationBlockquotes.forEach((blockquote) => {
+    blockquote.style.removeProperty('margin');
+    blockquote.style.removeProperty('margin-left');
+    blockquote.style.removeProperty('border');
+    blockquote.style.removeProperty('padding');
+
+    if (!blockquote.getAttribute('style')?.trim()) {
+      blockquote.removeAttribute('style');
+    }
+  });
 }
 
 function createInactiveRichCommandStates(): RichToggleCommandStates {
