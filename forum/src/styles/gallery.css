@@ -239,6 +239,7 @@
   }
 
   :is(.forum-markup, .capubbs-editor-prose) .capubbs-gallery-header {
+    position: relative;
     display: flex;
     min-height: 44px;
     align-items: center;
@@ -251,15 +252,29 @@
   }
 
   :is(.forum-markup, .capubbs-editor-prose) .capubbs-gallery-title {
+    width: 100%;
     min-width: 0;
     margin: 0;
     color: var(--text-strong, #18181b);
     font-size: 0.82rem;
     font-weight: 760;
     line-height: 1.4;
+    text-align: center;
+  }
+
+  .capubbs-editor-prose .capubbs-gallery {
+    overflow: visible;
+    margin-bottom: 1.25rem;
+  }
+
+  .capubbs-editor-prose .capubbs-gallery-title {
+    padding-inline: 48px;
   }
 
   .capubbs-editor-prose .capubbs-gallery-edit {
+    position: absolute;
+    top: 50%;
+    right: 8px;
     display: inline-grid;
     min-width: 42px;
     height: 28px;
@@ -272,6 +287,7 @@
     cursor: pointer;
     font-size: 0.7rem;
     font-weight: 760;
+    transform: translateY(-50%);
   }
 
   .capubbs-editor-prose .capubbs-gallery-edit::before {
@@ -308,7 +324,7 @@
   :is(.forum-markup, .capubbs-editor-prose) .capubbs-gallery-slide > img {
     display: block;
     width: 100%;
-    height: clamp(280px, 52vw, 560px);
+    height: var(--capubbs-gallery-image-height, clamp(280px, 52vw, 560px));
     max-width: none;
     margin: 0 auto;
     border-radius: 0;
@@ -321,6 +337,7 @@
     color: var(--text-muted, #52525b);
     font-size: 0.78rem;
     line-height: 1.55;
+    text-align: center;
   }
 
   :is(.forum-markup, .capubbs-editor-prose) .capubbs-gallery-caption[data-capubbs-gallery-active="false"] {
@@ -328,11 +345,11 @@
   }
 
   :is(.forum-markup, .capubbs-editor-prose) .capubbs-gallery-footer {
-    display: grid;
+    position: relative;
+    display: flex;
     min-height: 44px;
-    grid-template-columns: minmax(0, 1fr) auto;
     align-items: center;
-    gap: 12px;
+    justify-content: center;
     margin: 0;
     padding: 9px 12px;
     border-top: 1px solid var(--line, rgb(212 212 216));
@@ -340,17 +357,23 @@
   }
 
   :is(.forum-markup, .capubbs-editor-prose) .capubbs-gallery-captions {
+    width: 100%;
     min-width: 0;
     margin: 0;
+    padding-inline: 48px;
+    text-align: center;
   }
 
   :is(.forum-markup, .capubbs-editor-prose) .capubbs-gallery-count {
-    flex: none;
+    position: absolute;
+    top: 50%;
+    right: 12px;
     color: var(--text-faint, #71717a);
     font-size: 0.72rem;
     font-variant-numeric: tabular-nums;
     font-weight: 760;
     line-height: 1.25;
+    transform: translateY(-50%);
   }
 
   :is(.forum-markup, .capubbs-editor-prose) .capubbs-gallery-count[data-capubbs-gallery-current]::before {
@@ -407,6 +430,41 @@
     right: 10px;
   }
 
+  .capubbs-editor-prose .capubbs-gallery-resize {
+    position: absolute;
+    z-index: 6;
+    bottom: -9px;
+    left: 50%;
+    display: grid;
+    width: 64px;
+    height: 18px;
+    place-items: center;
+    transform: translateX(-50%);
+    border: 1px solid var(--line, rgb(212 212 216));
+    border-radius: 999px;
+    background: var(--surface, #fff);
+    box-shadow: 0 2px 6px rgb(0 0 0 / 0.12);
+    cursor: ns-resize;
+    touch-action: none;
+  }
+
+  .capubbs-editor-prose .capubbs-gallery-resize::before {
+    width: 24px;
+    height: 3px;
+    border-radius: 999px;
+    background: var(--text-faint, #71717a);
+    content: "";
+  }
+
+  .capubbs-editor-prose .capubbs-gallery-resize:hover {
+    border-color: color-mix(in srgb, var(--brand, #174f38) 45%, var(--line, rgb(212 212 216)));
+  }
+
+  .capubbs-editor-prose .capubbs-gallery-resize:focus-visible {
+    outline: 2px solid var(--brand, #174f38);
+    outline-offset: 2px;
+  }
+
   @media (max-width: 640px) {
     .gallery-dialog-backdrop {
       align-items: end;
@@ -433,7 +491,7 @@
     }
 
     :is(.forum-markup, .capubbs-editor-prose) .capubbs-gallery-slide > img {
-      height: min(72vw, 420px);
+      height: var(--capubbs-gallery-image-height, min(72vw, 420px));
     }
 
     :is(.forum-markup, .capubbs-editor-prose) .capubbs-gallery-nav {

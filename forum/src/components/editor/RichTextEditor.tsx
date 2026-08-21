@@ -69,6 +69,8 @@ import {
   ensureEditorGalleryEditControls,
   getEditorGalleryAction,
   getEditorGalleryEditTarget,
+  getEditorGalleryImageHeight,
+  getEditorGalleryResizeTarget,
   moveEditorGallery,
   readEditorGallery,
   stripEditorGalleryEditControls,
@@ -107,6 +109,16 @@ type ActiveRichImageResize = {
   startY: number;
 };
 
+type ActiveGalleryResize = {
+  gallery: HTMLElement;
+  maxHeight: number;
+  minHeight: number;
+  pointerId: number;
+  resizeControl: HTMLElement;
+  startHeight: number;
+  startY: number;
+};
+
 type RichImageResizeHandle = {
   left: number;
   top: number;
@@ -128,6 +140,8 @@ const maxEditorHistoryEntries = 120;
 const maxRecentTextColors = 8;
 const recentTextColorsStorageKey = 'capubbs-rich-text-recent-colors:v1';
 const richImageResizeMinWidth = 48;
+const galleryResizeMinHeight = 160;
+const galleryResizeMaxHeight = 1200;
 const richTypingStyleAttribute = 'data-capubbs-typing-style';
 const richTypingStyleMarker = '\u200B';
 
@@ -200,6 +214,14 @@ function pushEditorHistoryEntry(stack: RichTextEditorValue[], entry: RichTextEdi
 
 function clampImageDimension(value: number, min: number, max: number) {
   return Math.min(Math.max(value, min), max);
+}
+
+function applyGalleryImageHeight(gallery: HTMLElement, resizeControl: HTMLElement, height: number) {
+  const roundedHeight = Math.round(height);
+  gallery.style.setProperty('--capubbs-gallery-image-height', `${roundedHeight}px`);
+  resizeControl.setAttribute('aria-valuemax', String(galleryResizeMaxHeight));
+  resizeControl.setAttribute('aria-valuemin', String(galleryResizeMinHeight));
+  resizeControl.setAttribute('aria-valuenow', String(roundedHeight));
 }
 
 function applyImagePixelDimensions(image: HTMLImageElement, width: number, height: number) {
@@ -308,6 +330,7 @@ export function RichTextEditor({
   const sourceSelectionRef = useRef<{ end: number; start: number } | null>(null);
   const selectedRichImageRef = useRef<HTMLImageElement | null>(null);
   const activeRichImageResizeRef = useRef<ActiveRichImageResize | null>(null);
+  const activeGalleryResizeRef = useRef<ActiveGalleryResize | null>(null);
   const currentValueRef = useRef<RichTextEditorValue>(value);
   const undoStackRef = useRef<RichTextEditorValue[]>([]);
   const redoStackRef = useRef<RichTextEditorValue[]>([]);
@@ -655,6 +678,23 @@ export function RichTextEditor({
     const selection = window.getSelection();
     const galleryToEdit = getEditorGalleryEditTarget(event.target);
     const galleryAction = getEditorGalleryAction(event.target);
+    const galleryResize = getEditorGalleryResizeTarget(event.target);
+
+    if (galleryResize && ['ArrowDown', 'ArrowUp'].includes(event.key)) {
+      event.preventDefault();
+      const stage = galleryResize.gallery.querySelector<HTMLElement>('.capubbs-gallery-stage');
+      const currentHeight = getEditorGalleryImageHeight(galleryResize.gallery)
+        ?? stage?.getBoundingClientRect().height
+        ?? galleryResizeMinHeight;
+      const nextHeight = clampImageDimension(
+        currentHeight + (event.key === 'ArrowDown' ? 20 : -20),
+        galleryResizeMinHeight,
+        galleryResizeMaxHeight,
+      );
+      applyGalleryImageHeight(galleryResize.gallery, galleryResize.resizeControl, nextHeight);
+      updateContent(editor.innerHTML);
+      return;
+    }
 
     if (galleryToEdit && ['Enter', ' '].includes(event.key)) {
       event.preventDefault();
@@ -766,6 +806,54 @@ export function RichTextEditor({
     }
 
     clearRichImageSelection();
+  };
+
+  const handleGalleryResizePointerDown = (event: PointerEvent<HTMLDivElement>) => {
+    const target = getEditorGalleryResizeTarget(event.target);
+    if (!target) return;
+
+    event.preventDefault();
+    event.stopPropagation();
+    target.resizeControl.setPointerCapture(event.pointerId);
+    const stage = target.gallery.querySelector<HTMLElement>('.capubbs-gallery-stage');
+    const startHeight = getEditorGalleryImageHeight(target.gallery)
+      ?? stage?.getBoundingClientRect().height
+      ?? galleryResizeMinHeight;
+
+    activeGalleryResizeRef.current = {
+      ...target,
+      maxHeight: galleryResizeMaxHeight,
+      minHeight: galleryResizeMinHeight,
+      pointerId: event.pointerId,
+      startHeight,
+      startY: event.clientY,
+    };
+    applyGalleryImageHeight(target.gallery, target.resizeControl, startHeight);
+    clearRichImageSelection();
+  };
+
+  const handleGalleryResizePointerMove = (event: PointerEvent<HTMLDivElement>) => {
+    const resize = activeGalleryResizeRef.current;
+    if (!resize || resize.pointerId !== event.pointerId) return;
+
+    event.preventDefault();
+    const nextHeight = clampImageDimension(
+      resize.startHeight + event.clientY - resize.startY,
+      resize.minHeight,
+      resize.maxHeight,
+    );
+    applyGalleryImageHeight(resize.gallery, resize.resizeControl, nextHeight);
+  };
+
+  const finishGalleryResize = (event: PointerEvent<HTMLDivElement>) => {
+    const resize = activeGalleryResizeRef.current;
+    if (!resize || resize.pointerId !== event.pointerId) return;
+
+    if (resize.resizeControl.hasPointerCapture(event.pointerId)) {
+      resize.resizeControl.releasePointerCapture(event.pointerId);
+    }
+    activeGalleryResizeRef.current = null;
+    updateContent(editorRef.current?.innerHTML ?? '');
   };
 
   const handleRichImageResizePointerDown = (event: PointerEvent<HTMLButtonElement>) => {
@@ -912,9 +1000,13 @@ export function RichTextEditor({
         url,
       };
     }));
-    const galleryHtml = buildEditorGalleryHtml(title, uploadedImages);
-    const editorMode = currentValueRef.current.mode;
     const editedGallery = galleryDialogState?.target;
+    const galleryHtml = buildEditorGalleryHtml(
+      title,
+      uploadedImages,
+      editedGallery ? getEditorGalleryImageHeight(editedGallery) : undefined,
+    );
+    const editorMode = currentValueRef.current.mode;
 
     if (editedGallery && editorRef.current?.contains(editedGallery)) {
       editedGallery.insertAdjacentHTML('afterend', galleryHtml);
@@ -1942,6 +2034,10 @@ export function RichTextEditor({
           onBlur={(event) => updateContent(event.currentTarget.innerHTML)}
           onKeyDown={handleRichEditorKeyDown}
           onPaste={handleEditorPaste}
+          onPointerCancel={finishGalleryResize}
+          onPointerDown={handleGalleryResizePointerDown}
+          onPointerMove={handleGalleryResizePointerMove}
+          onPointerUp={finishGalleryResize}
           onScroll={updateRichImageResizeHandle}
           className={`capubbs-editor-prose capubbs-rich-editor-input px-3 py-3 text-sm leading-6 text-zinc-800 outline-none dark:text-zinc-100 ${isAutoHeightEnabled ? 'min-h-[50vh] overflow-visible' : 'h-[50vh] overflow-y-auto'}`}
           style={{ fontFamily: defaultRichTextFont }}

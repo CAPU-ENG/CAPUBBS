@@ -9,12 +9,15 @@ export type EditorGallerySnapshot = {
   title: string;
 };
 
-export function buildEditorGalleryHtml(title: string, images: EditorGalleryImage[]) {
+export function buildEditorGalleryHtml(title: string, images: EditorGalleryImage[], imageHeight?: number) {
   const normalizedTitle = title.trim();
   const galleryLabel = normalizedTitle ? `图廊：${normalizedTitle}` : '图廊';
+  const heightStyle = imageHeight && Number.isFinite(imageHeight)
+    ? ` style="--capubbs-gallery-image-height: ${Math.round(imageHeight)}px"`
+    : '';
 
   return [
-    `<figure class="capubbs-gallery" contenteditable="false" data-capubbs-gallery-index="0" role="region" tabindex="0" aria-label="${escapeGalleryAttribute(galleryLabel)}">`,
+    `<figure class="capubbs-gallery"${heightStyle} contenteditable="false" data-capubbs-gallery-index="0" role="region" tabindex="0" aria-label="${escapeGalleryAttribute(galleryLabel)}">`,
     '<header class="capubbs-gallery-header">',
     `<figcaption class="capubbs-gallery-title">${escapeGalleryHtml(normalizedTitle)}</figcaption>`,
     '</header>',
@@ -67,26 +70,48 @@ export function readEditorGallery(gallery: HTMLElement): EditorGallerySnapshot {
 
 export function ensureEditorGalleryEditControls(container: HTMLElement) {
   container.querySelectorAll<HTMLElement>('.capubbs-gallery').forEach((gallery) => {
-    if (gallery.querySelector('[data-capubbs-gallery-edit="true"]')) return;
     const header = gallery.querySelector<HTMLElement>('.capubbs-gallery-header');
-    if (!header) return;
+    if (header && !gallery.querySelector('[data-capubbs-gallery-edit="true"]')) {
+      const editControl = document.createElement('span');
+      editControl.className = 'capubbs-gallery-edit capubbs-gallery-editor-control';
+      editControl.dataset.capubbsGalleryEdit = 'true';
+      editControl.setAttribute('aria-label', '编辑图廊');
+      editControl.setAttribute('role', 'button');
+      editControl.setAttribute('tabindex', '0');
+      header.append(editControl);
+    }
 
-    const editControl = document.createElement('span');
-    editControl.className = 'capubbs-gallery-edit';
-    editControl.dataset.capubbsGalleryEdit = 'true';
-    editControl.setAttribute('aria-label', '编辑图廊');
-    editControl.setAttribute('role', 'button');
-    editControl.setAttribute('tabindex', '0');
-    header.append(editControl);
+    if (!gallery.querySelector('[data-capubbs-gallery-resize="true"]')) {
+      const resizeControl = document.createElement('span');
+      resizeControl.className = 'capubbs-gallery-resize capubbs-gallery-editor-control';
+      resizeControl.dataset.capubbsGalleryResize = 'true';
+      resizeControl.setAttribute('aria-label', '调整图廊高度');
+      resizeControl.setAttribute('aria-orientation', 'horizontal');
+      resizeControl.setAttribute('role', 'separator');
+      resizeControl.setAttribute('tabindex', '0');
+      gallery.append(resizeControl);
+    }
   });
 }
 
 export function stripEditorGalleryEditControls(html: string) {
-  if (!html.includes('capubbs-gallery-edit')) return html;
+  if (!html.includes('capubbs-gallery-editor-control') && !html.includes('capubbs-gallery-edit')) return html;
   const container = document.createElement('div');
   container.innerHTML = html;
-  container.querySelectorAll('.capubbs-gallery-edit').forEach((control) => control.remove());
+  container.querySelectorAll('.capubbs-gallery-editor-control, .capubbs-gallery-edit').forEach((control) => control.remove());
   return container.innerHTML;
+}
+
+export function getEditorGalleryImageHeight(gallery: HTMLElement) {
+  const value = Number.parseFloat(gallery.style.getPropertyValue('--capubbs-gallery-image-height'));
+  return Number.isFinite(value) && value > 0 ? value : undefined;
+}
+
+export function getEditorGalleryResizeTarget(target: EventTarget | null) {
+  if (!(target instanceof Element)) return null;
+  const resizeControl = target.closest<HTMLElement>('[data-capubbs-gallery-resize="true"]');
+  const gallery = resizeControl?.closest<HTMLElement>('.capubbs-gallery');
+  return resizeControl && gallery ? { gallery, resizeControl } : null;
 }
 
 export function moveEditorGallery(target: Element, direction: 'next' | 'prev') {

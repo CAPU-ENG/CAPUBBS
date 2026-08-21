@@ -100,7 +100,10 @@ function sanitizeElement(element: Element) {
   }
 
   normalizeLegacyClasses(element);
-  if (element.getAttribute('data-capubbs-gallery-edit') === 'true') {
+  if (
+    element.getAttribute('data-capubbs-gallery-edit') === 'true'
+    || element.getAttribute('data-capubbs-gallery-resize') === 'true'
+  ) {
     element.remove();
     return;
   }
@@ -111,6 +114,7 @@ function sanitizeElement(element: Element) {
     }
   });
 
+  if (element.classList.contains('capubbs-gallery')) sanitizeGalleryStyle(element as HTMLElement);
   if (element instanceof HTMLAnchorElement) sanitizeAnchor(element);
   if (element instanceof HTMLImageElement) sanitizeImage(element);
   if (element.tagName === 'FONT') sanitizeFont(element);
@@ -132,6 +136,7 @@ function normalizeLegacyClasses(element: Element) {
 function isAllowedAttribute(element: Element, name: string) {
   if (name === 'class' || name === 'title') return true;
   const isGalleryElement = Boolean(element.closest('.capubbs-gallery'));
+  if (name === 'style' && element.classList.contains('capubbs-gallery')) return true;
   if (isGalleryElement && [
     'aria-hidden',
     'aria-label',
@@ -151,6 +156,19 @@ function isAllowedAttribute(element: Element, name: string) {
   if (element.tagName === 'FONT') return ['color', 'face', 'size'].includes(name);
   if (['TD', 'TH'].includes(element.tagName)) return ['colspan', 'rowspan'].includes(name);
   return false;
+}
+
+function sanitizeGalleryStyle(gallery: HTMLElement) {
+  const rawStyle = gallery.getAttribute('style')?.trim() ?? '';
+  const heightMatch = rawStyle.match(/^--capubbs-gallery-image-height:\s*(\d+(?:\.\d+)?)px;?$/i);
+  const height = Number.parseFloat(heightMatch?.[1] ?? '');
+
+  if (!Number.isFinite(height) || height < 160 || height > 1200) {
+    gallery.removeAttribute('style');
+    return;
+  }
+
+  gallery.setAttribute('style', `--capubbs-gallery-image-height: ${Math.round(height)}px`);
 }
 
 function sanitizeAnchor(anchor: HTMLAnchorElement) {
