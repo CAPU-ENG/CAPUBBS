@@ -6,33 +6,67 @@ import { translateLegacyForumThreadHref } from './utils/legacyForumRoutes';
 import { getThreadFloorElement, getThreadFloorFromHash } from './utils/threadRoutes';
 import { getPublicProfileNameFromLocation, USER_CENTER_PATH } from './utils/userRoutes';
 
-const ActivityManagementPage = lazy(() => import('./pages/ActivityManagementPage')
+const loadActivityManagementPage = () => import('./pages/ActivityManagementPage');
+const loadBoardPage = () => import('./pages/BoardPage');
+const loadCalendarAdminPage = () => import('./pages/CalendarAdminPage');
+const loadDataDisplayPage = () => import('./pages/DataDisplayPage');
+const loadLoginPage = () => import('./pages/LoginPage');
+const loadManagementPage = () => import('./pages/ManagementPage');
+const loadPublicProfilePage = () => import('./pages/PublicProfilePage');
+const loadRegisterPage = () => import('./pages/RegisterPage');
+const loadSearchPage = () => import('./pages/SearchPage');
+const loadSettingsPage = () => import('./pages/SettingsPage');
+const loadThreadComposePage = () => import('./pages/ThreadComposePage');
+const loadThreadEditPage = () => import('./pages/ThreadEditPage');
+const loadThreadPage = () => import('./pages/ThreadPage');
+const loadUserCenterPage = () => import('./pages/UserCenterPage');
+
+const forumPageLoaders = [
+  loadActivityManagementPage,
+  loadBoardPage,
+  loadCalendarAdminPage,
+  loadDataDisplayPage,
+  loadLoginPage,
+  loadManagementPage,
+  loadPublicProfilePage,
+  loadRegisterPage,
+  loadSearchPage,
+  loadSettingsPage,
+  loadThreadComposePage,
+  loadThreadEditPage,
+  loadThreadPage,
+  loadUserCenterPage,
+] as const;
+
+let pagePreloadPromise: Promise<void> | undefined;
+
+const ActivityManagementPage = lazy(() => loadActivityManagementPage()
   .then((module) => ({ default: module.ActivityManagementPage })));
-const BoardPage = lazy(() => import('./pages/BoardPage')
+const BoardPage = lazy(() => loadBoardPage()
   .then((module) => ({ default: module.BoardPage })));
-const CalendarAdminPage = lazy(() => import('./pages/CalendarAdminPage')
+const CalendarAdminPage = lazy(() => loadCalendarAdminPage()
   .then((module) => ({ default: module.CalendarAdminPage })));
-const DataDisplayPage = lazy(() => import('./pages/DataDisplayPage')
+const DataDisplayPage = lazy(() => loadDataDisplayPage()
   .then((module) => ({ default: module.DataDisplayPage })));
-const LoginPage = lazy(() => import('./pages/LoginPage')
+const LoginPage = lazy(() => loadLoginPage()
   .then((module) => ({ default: module.LoginPage })));
-const ManagementPage = lazy(() => import('./pages/ManagementPage')
+const ManagementPage = lazy(() => loadManagementPage()
   .then((module) => ({ default: module.ManagementPage })));
-const PublicProfilePage = lazy(() => import('./pages/PublicProfilePage')
+const PublicProfilePage = lazy(() => loadPublicProfilePage()
   .then((module) => ({ default: module.PublicProfilePage })));
-const RegisterPage = lazy(() => import('./pages/RegisterPage')
+const RegisterPage = lazy(() => loadRegisterPage()
   .then((module) => ({ default: module.RegisterPage })));
-const SearchPage = lazy(() => import('./pages/SearchPage')
+const SearchPage = lazy(() => loadSearchPage()
   .then((module) => ({ default: module.SearchPage })));
-const SettingsPage = lazy(() => import('./pages/SettingsPage')
+const SettingsPage = lazy(() => loadSettingsPage()
   .then((module) => ({ default: module.SettingsPage })));
-const ThreadComposePage = lazy(() => import('./pages/ThreadComposePage')
+const ThreadComposePage = lazy(() => loadThreadComposePage()
   .then((module) => ({ default: module.ThreadComposePage })));
-const ThreadEditPage = lazy(() => import('./pages/ThreadEditPage')
+const ThreadEditPage = lazy(() => loadThreadEditPage()
   .then((module) => ({ default: module.ThreadEditPage })));
-const ThreadPage = lazy(() => import('./pages/ThreadPage')
+const ThreadPage = lazy(() => loadThreadPage()
   .then((module) => ({ default: module.ThreadPage })));
-const UserCenterPage = lazy(() => import('./pages/UserCenterPage')
+const UserCenterPage = lazy(() => loadUserCenterPage()
   .then((module) => ({ default: module.UserCenterPage })));
 
 export function App() {
@@ -121,6 +155,26 @@ function ForumRouter() {
   if (Number.isFinite(threadId) && threadId > 0) return <ThreadPage />;
   const boardId = Number(params.get('bid') ?? params.get('board'));
   if (Number.isInteger(boardId) && boardId > 0) return <BoardPage boardId={boardId} />;
+  return <HomeRoute />;
+}
+
+function HomeRoute() {
+  useEffect(() => {
+    const preloadPages = () => {
+      pagePreloadPromise ??= Promise.allSettled(
+        forumPageLoaders.map((loadPage) => loadPage()),
+      ).then(() => undefined);
+    };
+
+    if (document.readyState === 'complete') {
+      preloadPages();
+      return;
+    }
+
+    window.addEventListener('load', preloadPages, { once: true });
+    return () => window.removeEventListener('load', preloadPages);
+  }, []);
+
   return <HomePage />;
 }
 
