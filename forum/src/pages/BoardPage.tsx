@@ -135,6 +135,7 @@ function ThreadRow({
       </td>
       <td className="board-thread-author-cell">
         <a className="board-thread-user" href={getPublicProfilePath(thread.author)}>{thread.author}</a>
+        <span aria-hidden="true" className="board-thread-author-separator">·</span>
         <ExactTime label="发布时间" value={thread.createdAt} />
       </td>
       <td className="board-thread-last-cell">

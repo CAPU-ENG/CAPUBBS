@@ -448,6 +448,10 @@
     color: var(--brand-strong);
   }
 
+  .board-thread-author-separator {
+    display: none;
+  }
+
   .board-thread-time {
     display: block;
     margin-top: 3px;
@@ -649,16 +653,19 @@
     }
 
     .board-thread-row {
-      position: relative;
-      display: block;
-      padding: 0 12px;
+      display: flex;
+      min-width: 0;
+      flex-wrap: wrap;
+      align-items: baseline;
+      gap: 3px 14px;
+      padding: 11px 15px;
     }
 
     .board-thread-row td {
       display: block;
       height: auto;
       border-bottom: 0;
-      padding: 7px 6px 8px;
+      padding: 0;
     }
 
     .board-thread-row + .board-thread-row {
@@ -666,7 +673,9 @@
     }
 
     .board-thread-title-cell {
-      padding: 11px 6px !important;
+      min-width: 0;
+      flex: 1 1 180px;
+      padding: 0 !important;
     }
 
     .board-thread-title-line {
@@ -674,26 +683,62 @@
     }
 
     .board-thread-title-line > a {
-      display: -webkit-box;
-      overflow: hidden;
-      font-size: 0.77rem;
-      line-height: 1.52;
-      text-overflow: ellipsis;
+      display: inline;
+      font-size: 0.86rem;
+      line-height: 1.55;
+      overflow-wrap: anywhere;
       white-space: normal;
-      -webkit-box-orient: vertical;
-      -webkit-line-clamp: 2;
     }
 
-    .board-thread-author-cell,
-    .board-thread-last-cell,
-    .board-thread-counts,
+    .board-thread-row .board-thread-author-cell {
+      display: inline-flex;
+      min-width: 0;
+      flex: 0 0 auto;
+      align-items: center;
+      gap: 5px;
+      margin-left: auto;
+      padding: 0 !important;
+      color: var(--text-faint);
+      font-size: 0.68rem;
+      font-variant-numeric: tabular-nums;
+      line-height: 1.55;
+      white-space: nowrap;
+    }
+
+    .board-thread-row .board-thread-last-cell,
+    .board-thread-row .board-thread-counts,
     .board-thread-title-line > .board-status,
     .board-thread-statuses {
       display: none;
     }
 
+    .board-thread-author-cell .board-thread-user {
+      display: inline;
+      color: var(--text-muted);
+      font-size: inherit;
+      text-align: left;
+    }
+
+    .board-thread-author-separator {
+      display: inline;
+    }
+
+    .board-thread-author-cell .board-thread-time {
+      display: inline;
+      margin-top: 0;
+      font-family: inherit;
+      font-size: inherit;
+      line-height: inherit;
+    }
+
+    .board-thread-author-cell .board-thread-time time {
+      display: inline-flex;
+      justify-content: flex-start;
+      gap: 4px;
+    }
+
     .board-thread-management-cell {
-      grid-column: 1 / -1;
+      flex: 1 0 100%;
       border-top: 1px solid color-mix(in srgb, var(--line) 75%, transparent) !important;
       padding: 8px 6px 9px !important;
     }
