@@ -19,6 +19,7 @@ import { useAuth } from '../context/AuthContext';
 import type { ProfileDetail, ProfileRecordMap } from '../data/profileDemo';
 import { useUserCenterProfile } from '../hooks/useProfileData';
 import {
+  deleteStoredReplyDraftForThread,
   readStoredReplyDrafts,
   subscribeStoredReplyDrafts,
   type StoredReplyDraft,
@@ -29,6 +30,7 @@ import {
   writeCachedUserAvatarBlob,
 } from '../utils/userAvatarCache';
 import {
+  deleteStoredThreadComposeDraft,
   readStoredThreadComposeDrafts,
   subscribeStoredThreadComposeDrafts,
   type StoredThreadComposeDraft,
@@ -93,6 +95,23 @@ export function UserCenterPage() {
       unsubscribe();
     };
   }, [draftOwnerKey]);
+
+  async function deleteDraft(recordId: string) {
+    const replyDraft = replyDrafts.find((candidate) => candidate.id === recordId);
+    if (replyDraft) {
+      await deleteStoredReplyDraftForThread(replyDraft.bid, replyDraft.tid, draftOwnerKey);
+      return;
+    }
+
+    const threadDraft = threadComposeDrafts.find((candidate) => candidate.id === recordId);
+    if (threadDraft) {
+      await deleteStoredThreadComposeDraft(
+        threadDraft.bid,
+        draftOwnerKey,
+        threadDraft.kind === 'activity' ? 'activity' : 'thread',
+      );
+    }
+  }
 
   useEffect(() => {
     let active = true;
@@ -221,6 +240,7 @@ export function UserCenterPage() {
           allowedTabs={['posts', 'replies', 'activities', 'bookmarks', 'drafts', 'signatures']}
           asideLink={{ href: getPublicProfilePath(profile.id), label: '查看公开个人主页' }}
           initialRecords={workspaceRecords ?? profile.records}
+          onDeleteDraft={deleteDraft}
           onSaveSignatures={updateProfileSignatures}
           ownerLabel="我"
         />

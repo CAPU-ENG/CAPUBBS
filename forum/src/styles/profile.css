@@ -647,6 +647,22 @@
     color: var(--brand-strong);
   }
 
+  .profile-record-actions .profile-record-delete-button {
+    color: var(--danger);
+  }
+
+  .profile-record-actions .profile-record-delete-button:hover:not(:disabled) {
+    border-color: color-mix(in srgb, var(--danger) 42%, var(--line));
+    background: color-mix(in srgb, var(--danger) 9%, var(--surface-raised));
+    color: var(--danger);
+  }
+
+  .profile-record-actions :is(a, button):is([aria-disabled="true"], :disabled) {
+    cursor: wait;
+    opacity: 0.48;
+    pointer-events: none;
+  }
+
   .profile-signature-editor {
     display: grid;
     min-width: 0;

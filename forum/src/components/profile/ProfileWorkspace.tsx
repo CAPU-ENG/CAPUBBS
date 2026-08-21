@@ -10,6 +10,7 @@ import {
   Quote,
   RotateCcw,
   Search,
+  Trash2,
   X,
 } from 'lucide-react';
 import { useEffect, useMemo, useState, type FormEvent, type ReactNode } from 'react';
@@ -37,6 +38,7 @@ type ProfileWorkspaceProps = {
   allowedTabs: ProfileTab[];
   asideLink?: { href: string; label: string };
   initialRecords: ProfileRecordMap;
+  onDeleteDraft?: (recordId: string) => Promise<void>;
   ownerLabel: string;
   onSaveSignatures?: (records: ProfileRecord[]) => Promise<void>;
   readOnly?: boolean;
@@ -59,6 +61,7 @@ export function ProfileWorkspace({
   allowedTabs,
   asideLink,
   initialRecords,
+  onDeleteDraft,
   ownerLabel,
   onSaveSignatures,
   readOnly = false,
@@ -72,6 +75,7 @@ export function ProfileWorkspace({
   const [page, setPage] = useState(1);
   const [filtersOpen, setFiltersOpen] = useState(false);
   const [editingRecordId, setEditingRecordId] = useState<string | null>(null);
+  const [deletingRecordId, setDeletingRecordId] = useState<string | null>(null);
   const [notice, setNotice] = useState<WorkspaceNotice>(null);
   const [savingRecordId, setSavingRecordId] = useState<string | null>(null);
 
@@ -148,6 +152,27 @@ export function ProfileWorkspace({
     }
   }
 
+  async function deleteDraft(record: ProfileRecord) {
+    if (!window.confirm(`确认删除草稿“${record.title}”？`)) return;
+
+    try {
+      setDeletingRecordId(record.id);
+      await onDeleteDraft?.(record.id);
+      setRecords((current) => ({
+        ...current,
+        drafts: current.drafts.filter((candidate) => candidate.id !== record.id),
+      }));
+      setNotice({ message: '草稿已删除', tone: 'success' });
+    } catch (error) {
+      setNotice({
+        message: error instanceof Error ? error.message : '草稿删除失败，请稍后重试',
+        tone: 'error',
+      });
+    } finally {
+      setDeletingRecordId(null);
+    }
+  }
+
   const filterPanel = (
     <ProfileFilterPanel
       endDate={endDate}
@@ -207,11 +232,13 @@ export function ProfileWorkspace({
               {visibleRecords.map((record) => (
                 <ProfileRecordRow
                   activeTab={activeTab}
+                  deleting={deletingRecordId === record.id}
                   editing={editingRecordId === record.id}
                   key={record.id}
                   readOnly={readOnly}
                   record={record}
                   saving={savingRecordId === record.id}
+                  onDeleteDraft={() => { void deleteDraft(record); }}
                   onEdit={() => setEditingRecordId(record.id)}
                   onSaveSignature={(value) => saveSignature(record, value)}
                 />
@@ -292,7 +319,9 @@ function ProfileFilterPanel({
 
 function ProfileRecordRow({
   activeTab,
+  deleting,
   editing,
+  onDeleteDraft,
   onEdit,
   onSaveSignature,
   readOnly,
@@ -300,7 +329,9 @@ function ProfileRecordRow({
   saving,
 }: {
   activeTab: ProfileTab;
+  deleting: boolean;
   editing: boolean;
+  onDeleteDraft: () => void;
   onEdit: () => void;
   onSaveSignature: (value: RichTextEditorValue) => void;
   readOnly: boolean;
@@ -330,6 +361,25 @@ function ProfileRecordRow({
           </span>
         ) : null}
         {activeTab !== 'signatures' ? <time dateTime={record.date}>{formatDate(record.date)}</time> : null}
+        {!readOnly && activeTab === 'drafts' ? (
+          <div className="profile-record-actions profile-draft-actions">
+            <a
+              aria-disabled={deleting || undefined}
+              href={deleting ? undefined : record.href}
+              onClick={(event) => { if (deleting) event.preventDefault(); }}
+            >
+              <RotateCcw size={13} />恢复草稿
+            </a>
+            <button
+              className="profile-record-delete-button"
+              disabled={deleting}
+              onClick={onDeleteDraft}
+              type="button"
+            >
+              <Trash2 size={13} />{deleting ? '删除中' : '删除草稿'}
+            </button>
+          </div>
+        ) : null}
         {!readOnly && activeTab === 'signatures' ? (
           <div className="profile-record-actions">
             {editing ? (
