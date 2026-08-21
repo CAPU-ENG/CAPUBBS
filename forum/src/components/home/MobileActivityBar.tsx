@@ -27,6 +27,7 @@ export function MobileActivityBar({
   const [hideOffset, setHideOffset] = useState(0);
   const overviewRef = useRef<HTMLElement | null>(null);
   const hasPinnedThreads = pinnedItems.length > 0;
+  const hasUnreadPinnedThreads = pinnedItems.some((thread) => !readThreadIds.has(thread.id));
   const hasSignupActivities = signupItems.length > 0;
   const tabCount = Number(hasPinnedThreads) + Number(hasSignupActivities) + 1;
 
@@ -91,11 +92,15 @@ export function MobileActivityBar({
           <button
             className={expandedPanel === 'pinned' ? 'mobile-overview-tab-active' : ''}
             type="button"
+            aria-label={hasUnreadPinnedThreads ? '置顶，有新内容' : '置顶'}
             aria-expanded={expandedPanel === 'pinned'}
             aria-controls="mobile-pinned-panel"
             onClick={() => togglePanel('pinned')}
           >
-            <span><Pin size={15} />置顶</span>
+            <span>
+              <Pin size={15} />置顶
+              {hasUnreadPinnedThreads && <strong className="mobile-overview-tab-new">新</strong>}
+            </span>
             <ChevronDown size={15} className={expandedPanel === 'pinned' ? 'rotate-180' : ''} />
           </button>
         )}

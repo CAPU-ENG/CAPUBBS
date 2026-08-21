@@ -700,6 +700,16 @@
     gap: 6px;
   }
 
+  .mobile-overview-tab-new {
+    border-radius: var(--control-radius);
+    padding: 2px 4px;
+    background: color-mix(in srgb, var(--danger) 12%, transparent);
+    color: var(--danger);
+    font-size: 0.58rem;
+    font-weight: 800;
+    line-height: 1;
+  }
+
   .mobile-overview-tabs > button > svg {
     transition: transform 160ms ease;
   }
