@@ -515,9 +515,9 @@
   }
 
   .activity-signup-window span[data-status="open"] {
-    border-color: color-mix(in srgb, var(--success) 28%, var(--line));
-    background: color-mix(in srgb, var(--success) 10%, var(--surface));
-    color: var(--success);
+    border-color: color-mix(in srgb, var(--brand) 34%, var(--line));
+    background: var(--brand-soft);
+    color: var(--brand-strong);
   }
 
   .activity-signup-window span[data-status="closed"],
