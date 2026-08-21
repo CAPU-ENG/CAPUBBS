@@ -269,6 +269,17 @@
     text-align: right;
   }
 
+  .thread-top-pagination,
+  .thread-bottom-pagination {
+    display: flex;
+    justify-content: center;
+    max-width: var(--thread-main-column);
+  }
+
+  .thread-top-pagination {
+    margin-top: 14px;
+  }
+
   .thread-content-layout {
     display: grid;
     grid-template-columns: minmax(0, var(--thread-main-column)) var(--thread-rail-column);
@@ -1838,9 +1849,6 @@
   }
 
   .thread-bottom-pagination {
-    display: flex;
-    justify-content: center;
-    max-width: var(--thread-main-column);
     margin-top: 20px;
   }
 
@@ -1864,6 +1872,7 @@
       display: none;
     }
 
+    .thread-top-pagination,
     .thread-bottom-pagination,
     .reply-editor {
       max-width: 100%;
@@ -2110,11 +2119,15 @@
       font-size: 0.8rem;
     }
 
+    .thread-top-pagination,
     .thread-bottom-pagination {
       justify-content: flex-start;
       overflow-x: auto;
-      margin-top: 14px;
       padding-bottom: 4px;
+    }
+
+    .thread-bottom-pagination {
+      margin-top: 14px;
     }
 
     .thread-page-button,

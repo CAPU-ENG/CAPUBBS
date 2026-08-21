@@ -377,6 +377,16 @@ export function ThreadPage() {
           {bookmarkError && <p className="thread-bookmark-error" role="alert">{bookmarkError}</p>}
         </header>
 
+        <div className="thread-top-pagination">
+          <ThreadPagination
+            authorOnly={data.authorOnly}
+            boardId={data.bid}
+            currentPage={data.currentPage}
+            pageCount={data.pageCount}
+            threadId={data.tid}
+          />
+        </div>
+
         <div className="thread-content-layout">
           <section className="thread-floor-list" aria-label={`第 ${data.currentPage} 页楼层`}>
             {pageFloors.map((floor) => (
