@@ -379,12 +379,13 @@ export function BoardPage({ boardId }: { boardId: number }) {
             ) : null}
           </div>
 
-          <footer className="board-pagination-footer">
+          <footer className="board-pagination-footer forum-pagination-card">
             <Pagination
               ariaLabel="版面分页"
               currentPage={currentPage}
               pageCount={pageCount}
               pageHref={(page) => boardPageHref(boardId, page, digestOnly)}
+              showPageJump
             />
           </footer>
         </section>

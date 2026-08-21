@@ -1,8 +1,6 @@
 import {
   Bookmark,
   CalendarCheck2,
-  ChevronLeft,
-  ChevronRight,
   ExternalLink,
   FileText,
   Filter,
@@ -16,6 +14,7 @@ import {
 } from 'lucide-react';
 import { useEffect, useMemo, useState, type FormEvent, type ReactNode } from 'react';
 import { createPortal } from 'react-dom';
+import { Pagination } from '../layout/Pagination';
 import {
   profileTabs,
   type ProfileRecord,
@@ -466,10 +465,15 @@ function ProfilePagination({
   pageCount: number;
 }) {
   return (
-    <nav className="profile-pagination" aria-label="个人内容分页">
-      <button disabled={currentPage === 1} type="button" onClick={() => onPageChange(currentPage - 1)}><ChevronLeft size={15} />上一页</button>
-      <button disabled={currentPage === pageCount} type="button" onClick={() => onPageChange(currentPage + 1)}>下一页<ChevronRight size={15} /></button>
-    </nav>
+    <div className="profile-pagination forum-pagination-card">
+      <Pagination
+        ariaLabel="个人内容分页"
+        currentPage={currentPage}
+        onPageChange={onPageChange}
+        pageCount={pageCount}
+        showPageJump
+      />
+    </div>
   );
 }
 

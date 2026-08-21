@@ -743,37 +743,8 @@
   }
 
   .profile-pagination {
-    display: flex;
-    min-height: 56px;
-    align-items: center;
-    justify-content: center;
-    gap: 18px;
     border-top: 1px solid var(--line);
-    color: var(--text-faint);
-    font-size: 0.7rem;
-  }
-
-  .profile-pagination button {
-    display: inline-flex;
-    min-height: 30px;
-    align-items: center;
-    gap: 4px;
-    border: 1px solid var(--line);
-    border-radius: var(--control-radius);
-    padding: 0 8px;
-    color: var(--text-muted);
-    font-size: 0.68rem;
-    font-weight: 680;
-  }
-
-  .profile-pagination button:hover:not(:disabled) {
-    border-color: var(--brand);
-    color: var(--brand-strong);
-  }
-
-  .profile-pagination button:disabled {
-    cursor: not-allowed;
-    opacity: 0.35;
+    padding: 12px 16px;
   }
 
   .profile-workspace-aside {
@@ -1754,10 +1725,6 @@
     .profile-dialog-footer {
       position: sticky;
       bottom: 0;
-    }
-
-    .profile-pagination {
-      gap: 10px;
     }
 
     .profile-toast {

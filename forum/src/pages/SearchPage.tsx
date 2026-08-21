@@ -1,7 +1,5 @@
 import {
   CalendarDays,
-  ChevronLeft,
-  ChevronRight,
   FileSearch,
   History,
   LoaderCircle,
@@ -13,6 +11,7 @@ import {
 } from 'lucide-react';
 import { useMemo, useState, type FormEvent, type ReactNode } from 'react';
 import { AppBackground } from '../components/layout/AppBackground';
+import { Pagination } from '../components/layout/Pagination';
 import { TopBar } from '../components/layout/TopBar';
 import { useSearchData, type SearchField, type SearchRequest, type SearchResult } from '../hooks/useSearchData';
 import { getPublicProfilePath } from '../utils/userRoutes';
@@ -147,11 +146,13 @@ export function SearchPage() {
             )}
 
             {status === 'ready' && pageCount > 1 ? (
-              <div className="search-pagination-wrap">
-                <SearchPagination
+              <div className="search-pagination-wrap forum-pagination-card">
+                <Pagination
+                  ariaLabel="搜索结果分页"
                   currentPage={safePage}
-                  onChange={changePage}
+                  onPageChange={changePage}
                   pageCount={pageCount}
+                  showPageJump
                 />
               </div>
             ) : null}
@@ -169,59 +170,6 @@ export function SearchPage() {
         </div>
       </main>
     </div>
-  );
-}
-
-function SearchPagination({
-  currentPage,
-  onChange,
-  pageCount,
-}: {
-  currentPage: number;
-  onChange: (page: number) => void;
-  pageCount: number;
-}) {
-  const pages = visiblePages(currentPage, pageCount);
-
-  return (
-    <nav className="thread-pagination" aria-label="搜索结果分页">
-      <button
-        aria-label="上一页"
-        className="thread-page-button"
-        disabled={currentPage === 1}
-        onClick={() => onChange(currentPage - 1)}
-        type="button"
-      >
-        <ChevronLeft size={15} />
-      </button>
-
-      {pages.map((page, index) => {
-        const previous = pages[index - 1];
-        return (
-          <span className="contents" key={page}>
-            {previous && page - previous > 1 ? <span className="thread-page-gap">…</span> : null}
-            <button
-              aria-current={page === currentPage ? 'page' : undefined}
-              className="thread-page-number"
-              onClick={() => onChange(page)}
-              type="button"
-            >
-              {page}
-            </button>
-          </span>
-        );
-      })}
-
-      <button
-        aria-label="下一页"
-        className="thread-page-button"
-        disabled={currentPage === pageCount}
-        onClick={() => onChange(currentPage + 1)}
-        type="button"
-      >
-        <ChevronRight size={15} />
-      </button>
-    </nav>
   );
 }
 
@@ -459,14 +407,6 @@ function readOptionsFromLocation(): SearchOptions {
     range: rangeParam === 'all' || rangeParam === 'custom' ? rangeParam : startDate || endDate ? 'custom' : 'year',
     startDate,
   };
-}
-
-function visiblePages(currentPage: number, pageCount: number) {
-  if (pageCount <= 7) return Array.from({ length: pageCount }, (_, index) => index + 1);
-
-  return Array.from(new Set([1, currentPage - 1, currentPage, currentPage + 1, pageCount]))
-    .filter((page) => page > 0 && page <= pageCount)
-    .sort((left, right) => left - right);
 }
 
 function readPageFromLocation() {

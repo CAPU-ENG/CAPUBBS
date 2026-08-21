@@ -73,7 +73,8 @@
     color: var(--brand-strong);
   }
 
-  .thread-page-button[aria-disabled="true"] {
+  .thread-page-button[aria-disabled="true"],
+  .thread-page-button:disabled {
     opacity: 0.38;
     pointer-events: none;
   }
@@ -159,7 +160,7 @@
     box-shadow: var(--shadow-float);
   }
 
-  .thread-page-jump-menu > a {
+  .thread-page-jump-option {
     display: inline-flex;
     min-width: 0;
     height: 32px;
@@ -173,15 +174,15 @@
     transition: 120ms ease;
   }
 
-  .thread-page-jump-menu > a:hover,
-  .thread-page-jump-menu > a:focus-visible {
+  .thread-page-jump-option:hover,
+  .thread-page-jump-option:focus-visible {
     border-color: var(--line-strong);
     outline: none;
     background: var(--surface-soft);
     color: var(--brand-strong);
   }
 
-  .thread-page-jump-menu > a[aria-current="page"] {
+  .thread-page-jump-option[aria-current="page"] {
     border-color: color-mix(in srgb, var(--brand) 45%, var(--line));
     background: var(--brand-soft);
     color: var(--brand-strong);
@@ -375,6 +376,28 @@
   .thread-top-pagination .thread-page-jump,
   .thread-bottom-pagination .thread-page-jump {
     margin-left: 0;
+  }
+
+  .forum-pagination-card > .thread-pagination {
+    display: grid;
+    width: 100%;
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .forum-pagination-card > .thread-pagination-with-jump {
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 16px;
+  }
+
+  .forum-pagination-card .thread-page-jump {
+    margin-left: 0;
+    border-left: 1px solid var(--line);
+    padding-left: 16px;
+  }
+
+  .forum-pagination-card .thread-page-jump-menu {
+    top: auto;
+    bottom: calc(100% + 8px);
   }
 
   .thread-top-pagination {
@@ -2230,6 +2253,20 @@
       justify-content: flex-start;
       overflow-x: auto;
       padding: 0 8px 4px;
+    }
+
+    .forum-pagination-card .thread-pagination-pages {
+      justify-content: flex-start;
+      overflow-x: auto;
+      padding-bottom: 4px;
+    }
+
+    .forum-pagination-card > .thread-pagination-with-jump {
+      gap: 8px;
+    }
+
+    .forum-pagination-card .thread-page-jump {
+      padding-left: 8px;
     }
 
     .thread-bottom-pagination {

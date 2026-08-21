@@ -1,14 +1,69 @@
-import type { SyntheticEvent } from 'react';
+import type { MouseEventHandler, ReactNode, SyntheticEvent } from 'react';
 import { ChevronDown, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight } from 'lucide-react';
 
-type PaginationProps = {
+type PaginationBaseProps = {
   ariaLabel: string;
   compact?: boolean;
   currentPage: number;
   pageCount: number;
-  pageHref: (page: number) => string;
   showPageJump?: boolean;
 };
+
+type PaginationProps = PaginationBaseProps & (
+  | { onPageChange?: never; pageHref: (page: number) => string }
+  | { onPageChange: (page: number) => void; pageHref?: never }
+);
+
+type PageControlProps = {
+  ariaCurrent?: 'page';
+  ariaLabel?: string;
+  children: ReactNode;
+  className: string;
+  disabled?: boolean;
+  href?: string;
+  onClick?: MouseEventHandler<HTMLButtonElement>;
+  title?: string;
+};
+
+function PageControl({
+  ariaCurrent,
+  ariaLabel,
+  children,
+  className,
+  disabled = false,
+  href,
+  onClick,
+  title,
+}: PageControlProps) {
+  if (onClick) {
+    return (
+      <button
+        aria-current={ariaCurrent}
+        aria-label={ariaLabel}
+        className={className}
+        disabled={disabled}
+        onClick={onClick}
+        title={title}
+        type="button"
+      >
+        {children}
+      </button>
+    );
+  }
+
+  return (
+    <a
+      aria-current={ariaCurrent}
+      aria-disabled={disabled || undefined}
+      aria-label={ariaLabel}
+      className={className}
+      href={disabled ? undefined : href}
+      title={title}
+    >
+      {children}
+    </a>
+  );
+}
 
 function visiblePages(currentPage: number, pageCount: number) {
   if (pageCount <= 7) return Array.from({ length: pageCount }, (_, index) => index + 1);
@@ -21,6 +76,7 @@ export function Pagination({
   ariaLabel,
   compact = false,
   currentPage,
+  onPageChange,
   pageCount,
   pageHref,
   showPageJump = false,
@@ -28,6 +84,18 @@ export function Pagination({
   const pages = visiblePages(currentPage, pageCount);
   const pagesAreCollapsed = pages.length < pageCount;
   const pageJumpVisible = showPageJump && pagesAreCollapsed;
+
+  function hrefFor(page: number, disabled = false) {
+    return pageHref && !disabled ? pageHref(page) : undefined;
+  }
+
+  function clickFor(page: number, closeMenu = false): MouseEventHandler<HTMLButtonElement> | undefined {
+    if (!onPageChange) return undefined;
+    return (event) => {
+      onPageChange(page);
+      if (closeMenu) event.currentTarget.closest('details')?.removeAttribute('open');
+    };
+  }
 
   function revealCurrentPage(event: SyntheticEvent<HTMLDetailsElement>) {
     if (!event.currentTarget.open) return;
@@ -48,59 +116,64 @@ export function Pagination({
       aria-label={ariaLabel}
     >
       <div className="thread-pagination-pages">
-        <a
-          aria-disabled={currentPage === 1}
+        <PageControl
           aria-label="首页"
           className="thread-page-button"
-          href={currentPage === 1 ? undefined : pageHref(1)}
+          disabled={currentPage === 1}
+          href={hrefFor(1, currentPage === 1)}
+          onClick={clickFor(1)}
           title="首页"
         >
           <ChevronsLeft size={15} />
-        </a>
+        </PageControl>
 
-        <a
-          aria-disabled={currentPage === 1}
+        <PageControl
           aria-label="上一页"
           className="thread-page-button"
-          href={currentPage === 1 ? undefined : pageHref(currentPage - 1)}
+          disabled={currentPage === 1}
+          href={hrefFor(currentPage - 1, currentPage === 1)}
+          onClick={clickFor(currentPage - 1)}
           title="上一页"
         >
           <ChevronLeft size={15} />
-        </a>
+        </PageControl>
 
         {pages[0] > 1 ? <span className="thread-page-gap">…</span> : null}
         {pages.map((page) => (
           <span className="contents" key={page}>
-            <a
-              aria-current={page === currentPage ? 'page' : undefined}
+            <PageControl
+              ariaCurrent={page === currentPage ? 'page' : undefined}
               className="thread-page-number"
-              href={pageHref(page)}
+              href={hrefFor(page)}
+              onClick={clickFor(page)}
             >
               {page}
-            </a>
+            </PageControl>
           </span>
         ))}
         {pages[pages.length - 1] < pageCount ? <span className="thread-page-gap">…</span> : null}
 
-        <a
-          aria-disabled={currentPage === pageCount}
+        <PageControl
           aria-label="下一页"
           className="thread-page-button"
-          href={currentPage === pageCount ? undefined : pageHref(currentPage + 1)}
+          disabled={currentPage === pageCount}
+          href={hrefFor(currentPage + 1, currentPage === pageCount)}
+          onClick={clickFor(currentPage + 1)}
           title="下一页"
         >
           <ChevronRight size={15} />
-        </a>
+        </PageControl>
 
-        <a
-          aria-disabled={currentPage === pageCount}
+        <PageControl
           aria-label="尾页"
           className="thread-page-button"
-          href={currentPage === pageCount ? undefined : pageHref(pageCount)}
+          disabled={currentPage === pageCount}
+          href={hrefFor(pageCount, currentPage === pageCount)}
+          onClick={clickFor(pageCount)}
           title="尾页"
         >
           <ChevronsRight size={15} />
-        </a>
+        </PageControl>
       </div>
 
       {pageJumpVisible ? (
@@ -113,13 +186,15 @@ export function Pagination({
             </summary>
             <div aria-label={`选择页码，共 ${pageCount} 页`} className="thread-page-jump-menu">
               {Array.from({ length: pageCount }, (_, index) => index + 1).map((page) => (
-                <a
-                  aria-current={page === currentPage ? 'page' : undefined}
-                  href={pageHref(page)}
+                <PageControl
+                  ariaCurrent={page === currentPage ? 'page' : undefined}
+                  className="thread-page-jump-option"
+                  href={hrefFor(page)}
                   key={page}
+                  onClick={clickFor(page, true)}
                 >
                   {page}
-                </a>
+                </PageControl>
               ))}
             </div>
           </details>
