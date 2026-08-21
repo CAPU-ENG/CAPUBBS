@@ -6,6 +6,7 @@ import {
 } from './clientDatabase';
 
 export const MAX_PINNED_BOARDS = 3;
+export const DEFAULT_PINNED_BOARD_IDS = [1, 2];
 export const PINNED_BOARDS_STORAGE_KEY = 'capubbs-pinned-boards:v1';
 export const PINNED_BOARDS_CHANGE_EVENT = 'capubbs-pinned-boards-change';
 
@@ -20,13 +21,14 @@ export async function readPinnedBoardIds() {
     const storedValue = await readClientDatabaseValue<unknown>(PINNED_BOARDS_DATABASE_KEY);
     if (typeof storedValue !== 'undefined') return normalizePinnedBoardIds(storedValue);
 
-    if (legacyBoardIds.length > 0) {
+    if (typeof legacyBoardIds !== 'undefined') {
       await writeClientDatabaseValue(PINNED_BOARDS_DATABASE_KEY, legacyBoardIds);
       removeLegacyPinnedBoardIds();
+      return legacyBoardIds;
     }
-    return legacyBoardIds;
+    return DEFAULT_PINNED_BOARD_IDS;
   } catch {
-    return legacyBoardIds;
+    return legacyBoardIds ?? DEFAULT_PINNED_BOARD_IDS;
   }
 }
 
@@ -87,13 +89,13 @@ function normalizePinnedBoardIds(value: unknown) {
 }
 
 function readLegacyPinnedBoardIds() {
-  if (typeof window === 'undefined') return [];
+  if (typeof window === 'undefined') return undefined;
 
   try {
     const stored = window.localStorage.getItem(PINNED_BOARDS_STORAGE_KEY);
-    return stored ? normalizePinnedBoardIds(JSON.parse(stored) as unknown) : [];
+    return stored === null ? undefined : normalizePinnedBoardIds(JSON.parse(stored) as unknown);
   } catch {
-    return [];
+    return undefined;
   }
 }
 
