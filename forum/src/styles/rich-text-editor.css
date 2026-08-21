@@ -69,7 +69,7 @@
   .capubbs-editor-prose blockquote {
     border: 0;
     color: inherit;
-    margin: 0.75rem 0 0.75rem 2em;
+    margin: 0 0 0 2em;
     padding: 0;
   }
 
@@ -362,4 +362,3 @@
 }
 
 }
-

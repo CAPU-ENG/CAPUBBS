@@ -2421,7 +2421,7 @@ function buildHtmlPreviewDocument(html: string, isDarkTheme: boolean, embedded =
     blockquote {
       border: 0;
       color: inherit;
-      margin: 12px 0 12px 2em;
+      margin: 0 0 0 2em;
       padding: 0;
     }
 
