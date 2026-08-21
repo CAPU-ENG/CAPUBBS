@@ -710,6 +710,19 @@
     line-height: 1;
   }
 
+  .mobile-overview-tab-count {
+    min-width: 18px;
+    border-radius: var(--control-radius);
+    padding: 2px 5px;
+    background: var(--brand-soft);
+    color: var(--brand-strong);
+    font-size: 0.58rem;
+    font-variant-numeric: tabular-nums;
+    font-weight: 800;
+    line-height: 1;
+    text-align: center;
+  }
+
   .mobile-overview-tabs > button > svg {
     transition: transform 160ms ease;
   }

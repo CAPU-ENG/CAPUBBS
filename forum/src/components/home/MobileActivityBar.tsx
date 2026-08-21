@@ -108,11 +108,15 @@ export function MobileActivityBar({
           <button
             className={expandedPanel === 'signup' ? 'mobile-overview-tab-active' : ''}
             type="button"
+            aria-label={`报名，共 ${signupItems.length} 个项目`}
             aria-expanded={expandedPanel === 'signup'}
             aria-controls="mobile-signup-panel"
             onClick={() => togglePanel('signup')}
           >
-            <span><Bike size={15} />报名</span>
+            <span>
+              <Bike size={15} />报名
+              <strong className="mobile-overview-tab-count">{signupItems.length}</strong>
+            </span>
             <ChevronDown size={15} className={expandedPanel === 'signup' ? 'rotate-180' : ''} />
           </button>
         )}
