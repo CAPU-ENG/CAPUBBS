@@ -53,7 +53,7 @@ const tabIcons: Record<ProfileTab, ReactNode> = {
   signatures: <Quote size={15} />,
 };
 
-const PAGE_SIZE = 20;
+const PAGE_SIZE = 15;
 
 export function ProfileWorkspace({
   allowedTabs,
