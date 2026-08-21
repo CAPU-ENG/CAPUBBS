@@ -1,3 +1,4 @@
+import type { SyntheticEvent } from 'react';
 import { ChevronDown, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight } from 'lucide-react';
 
 type PaginationProps = {
@@ -27,6 +28,19 @@ export function Pagination({
   const pages = visiblePages(currentPage, pageCount);
   const pagesAreCollapsed = pages.length < pageCount;
   const pageJumpVisible = showPageJump && pagesAreCollapsed;
+
+  function revealCurrentPage(event: SyntheticEvent<HTMLDetailsElement>) {
+    if (!event.currentTarget.open) return;
+
+    const menu = event.currentTarget.querySelector<HTMLElement>('.thread-page-jump-menu');
+    const currentPageLink = menu?.querySelector<HTMLElement>('[aria-current="page"]');
+    if (!menu || !currentPageLink) return;
+
+    window.requestAnimationFrame(() => {
+      const menuPadding = Number.parseFloat(window.getComputedStyle(menu).paddingTop) || 0;
+      menu.scrollTop = currentPageLink.offsetTop - menuPadding;
+    });
+  }
 
   return (
     <nav
@@ -92,7 +106,7 @@ export function Pagination({
       {pageJumpVisible ? (
         <div aria-label="跳转页码" className="thread-page-jump">
           <span>跳转到</span>
-          <details>
+          <details onToggle={revealCurrentPage}>
             <summary>
               {currentPage}
               <ChevronDown aria-hidden="true" size={14} />
