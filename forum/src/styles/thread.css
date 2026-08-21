@@ -96,7 +96,7 @@
   }
 
   .thread-page-jump input {
-    width: 64px;
+    width: 76px;
     padding: 0 8px;
     outline: none;
     transition: border-color 140ms ease, box-shadow 140ms ease;

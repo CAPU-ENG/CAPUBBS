@@ -13,9 +13,8 @@ type PaginationProps = {
 function visiblePages(currentPage: number, pageCount: number) {
   if (pageCount <= 7) return Array.from({ length: pageCount }, (_, index) => index + 1);
 
-  return Array.from(new Set([1, currentPage - 1, currentPage, currentPage + 1, pageCount]))
-    .filter((page) => page > 0 && page <= pageCount)
-    .sort((left, right) => left - right);
+  const windowStart = Math.min(Math.max(currentPage - 3, 1), pageCount - 6);
+  return Array.from({ length: 7 }, (_, index) => windowStart + index);
 }
 
 export function Pagination({
@@ -58,21 +57,19 @@ export function Pagination({
         <ChevronLeft size={15} />
       </a>
 
-      {pages.map((page, index) => {
-        const previous = pages[index - 1];
-        return (
-          <span className="contents" key={page}>
-            {previous && page - previous > 1 ? <span className="thread-page-gap">…</span> : null}
-            <a
-              aria-current={page === currentPage ? 'page' : undefined}
-              className="thread-page-number"
-              href={pageHref(page)}
-            >
-              {page}
-            </a>
-          </span>
-        );
-      })}
+      {pages[0] > 1 ? <span className="thread-page-gap">…</span> : null}
+      {pages.map((page) => (
+        <span className="contents" key={page}>
+          <a
+            aria-current={page === currentPage ? 'page' : undefined}
+            className="thread-page-number"
+            href={pageHref(page)}
+          >
+            {page}
+          </a>
+        </span>
+      ))}
+      {pages[pages.length - 1] < pageCount ? <span className="thread-page-gap">…</span> : null}
 
       <a
         aria-disabled={currentPage === pageCount}
@@ -102,7 +99,7 @@ export function Pagination({
             max={pageCount}
             min={1}
             name="page"
-            placeholder="页码"
+            placeholder={`页码/${pageCount}`}
             required
             step={1}
             type="number"
