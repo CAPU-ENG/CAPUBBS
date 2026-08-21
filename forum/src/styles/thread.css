@@ -596,9 +596,9 @@
   .author-hover-card {
     position: absolute;
     z-index: 90;
-    top: calc(100% + 8px);
-    right: -10px;
-    left: auto;
+    top: 0;
+    right: auto;
+    left: calc(100% + 8px);
     display: none;
     width: 260px;
     border: 1px solid var(--line-strong);
@@ -606,16 +606,16 @@
     padding: 16px;
     background: var(--surface-raised);
     box-shadow: var(--shadow-float);
-    transform-origin: top right;
+    transform-origin: top left;
     animation: local-panel-in 150ms ease both;
   }
 
   .author-hover-card::before {
     position: absolute;
-    right: 0;
-    bottom: 100%;
-    width: 68px;
-    height: 10px;
+    top: 0;
+    right: 100%;
+    width: 9px;
+    height: 46px;
     content: "";
   }
 
@@ -1708,7 +1708,8 @@
   .floor-node-preview {
     position: absolute;
     top: 50%;
-    left: calc(100% + 12px);
+    right: calc(100% + 12px);
+    left: auto;
     display: flex;
     visibility: hidden;
     width: min(300px, calc(100vw - 180px));
@@ -1723,18 +1724,18 @@
     opacity: 0;
     pointer-events: none;
     text-align: left;
-    transform: translateY(-50%) translateX(-5px);
+    transform: translateY(-50%) translateX(5px);
     transition: opacity 140ms ease, transform 140ms ease, visibility 140ms ease;
   }
 
   .floor-node-preview::after {
     position: absolute;
     top: 50%;
-    left: -5px;
+    right: -5px;
     width: 9px;
     height: 9px;
     border-bottom: 1px solid var(--line-strong);
-    border-left: 1px solid var(--line-strong);
+    border-right: 1px solid var(--line-strong);
     background: var(--surface-raised);
     content: '';
     transform: translateY(-50%) rotate(45deg);
