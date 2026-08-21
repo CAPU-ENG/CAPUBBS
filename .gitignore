@@ -22,7 +22,27 @@ assets/images/*
 !assets/images/static
 
 scripts/
-tool/
+
+# Local planning, tooling, and AI-agent files.
+/docs/
+/todo/
+/todos/
+/tool/
+/.mypy_cache/
+/.planning/
+/.ruff_cache/
+/AGENTS.md
+/CLAUDE.md
+/GEMINI.md
+/.agents/
+/.claude/
+/.codex/
+/.cursor/
+/.gemini/
+/.openai/
+/.aider*
+/.cursorrules
+/.windsurfrules
 
 .well-known/
 
