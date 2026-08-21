@@ -407,7 +407,9 @@
     top: calc(100% + 10px);
     right: 0;
     width: max-content;
-    overflow: hidden;
+    max-height: calc(100dvh - var(--topbar-height) - 20px);
+    overflow-x: hidden;
+    overflow-y: auto;
     border: 1px solid var(--line);
     border-radius: 2px;
     padding: 4px;
