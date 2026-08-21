@@ -23,6 +23,7 @@ const ALLOWED_CLASSES = new Set([
   'capubbs-floor-quote-jump',
   'capubbs-floor-quote-meta',
   'capubbs-code-shell',
+  'forum-quote',
   'forum-legacy-quote',
   'forum-legacy-quote-content',
   'forum-link',

@@ -1057,8 +1057,17 @@
     text-decoration: none;
   }
 
-  .forum-markup .forum-legacy-quote,
   .forum-markup blockquote {
+    margin: 0.55em 0 0.55em 2em;
+    border: 0;
+    padding: 0;
+    background: transparent;
+    color: inherit;
+  }
+
+  .forum-markup blockquote.forum-quote,
+  .forum-markup .forum-legacy-quote,
+  .forum-markup blockquote.capubbs-floor-quote {
     margin: 0.8em 0;
     border-left: 3px solid color-mix(in srgb, var(--brand) 38%, var(--line));
     padding: 0.55em 0.75em;

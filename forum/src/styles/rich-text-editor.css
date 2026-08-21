@@ -67,13 +67,24 @@
   }
 
   .capubbs-editor-prose blockquote {
+    border: 0;
+    color: inherit;
+    margin: 0.75rem 0 0.75rem 2em;
+    padding: 0;
+  }
+
+  .capubbs-editor-prose blockquote.forum-quote,
+  .capubbs-editor-prose blockquote.forum-legacy-quote,
+  .capubbs-editor-prose blockquote.capubbs-floor-quote {
     border-left: 3px solid rgb(56 87 114 / 0.45);
     color: #875a41;
     margin: 0.75rem 0;
     padding: 0.15rem 0 0.15rem 0.85rem;
   }
 
-  .dark .capubbs-editor-prose blockquote {
+  .dark .capubbs-editor-prose blockquote.forum-quote,
+  .dark .capubbs-editor-prose blockquote.forum-legacy-quote,
+  .dark .capubbs-editor-prose blockquote.capubbs-floor-quote {
     border-left-color: rgb(217 249 157 / 0.45);
     color: rgb(255 255 255 / 0.74);
   }

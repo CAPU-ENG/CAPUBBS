@@ -347,7 +347,7 @@ function appendQuote(
     };
   }
 
-  const quoteMarkup = `<blockquote><p>${escapeHtml(quote)}</p><p>引用自 @${escapeHtml(target.author)} · #${target.floor}</p></blockquote><p><br></p>`;
+  const quoteMarkup = `<blockquote class="forum-quote"><p>${escapeHtml(quote)}</p><p>引用自 @${escapeHtml(target.author)} · #${target.floor}</p></blockquote><p><br></p>`;
   return {
     ...current,
     content: `${current.content}${separator}${quoteMarkup}`,

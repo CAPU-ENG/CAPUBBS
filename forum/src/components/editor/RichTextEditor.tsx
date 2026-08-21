@@ -855,8 +855,9 @@ export function RichTextEditor({
     return container.innerHTML || escapeHtml(selection.toString()) || fallback;
   };
 
-  const wrapRichSelectionWithTag = (tagName: string, fallback: string) => {
-    insertRichHtml(`<${tagName}>${getRichSelectionHtml(fallback)}</${tagName}>`);
+  const wrapRichSelectionWithTag = (tagName: string, fallback: string, className = '') => {
+    const classAttribute = className ? ` class="${escapeAttribute(className)}"` : '';
+    insertRichHtml(`<${tagName}${classAttribute}>${getRichSelectionHtml(fallback)}</${tagName}>`);
   };
 
   const applyRichInlineStyle = (style: RichInlineStyle, fallback: string) => {
@@ -1099,7 +1100,7 @@ export function RichTextEditor({
 
       if (isHtmlMode) {
         wrapSourceSelection(
-          `<blockquote data-user="${escapeAttribute(submittedValue)}">`,
+          `<blockquote class="forum-quote" data-user="${escapeAttribute(submittedValue)}">`,
           '</blockquote>',
           '引用内容',
         );
@@ -1322,7 +1323,7 @@ export function RichTextEditor({
               <ToolbarButton label="标题" onMouseDown={handleToolbarMouseDown} onClick={() => wrapRichSelectionWithTag('h2', '标题')}>
                 <Heading1 size={14} />
               </ToolbarButton>
-              <ToolbarButton label="引用" onMouseDown={handleToolbarMouseDown} onClick={() => wrapRichSelectionWithTag('blockquote', '引用内容')}>
+              <ToolbarButton label="引用" onMouseDown={handleToolbarMouseDown} onClick={() => wrapRichSelectionWithTag('blockquote', '引用内容', 'forum-quote')}>
                 <MessageSquareQuote size={14} />
               </ToolbarButton>
 
@@ -1890,6 +1891,15 @@ function buildHtmlPreviewDocument(html: string, isDarkTheme: boolean, embedded =
     }
 
     blockquote {
+      border: 0;
+      color: inherit;
+      margin: 12px 0 12px 2em;
+      padding: 0;
+    }
+
+    blockquote.forum-quote,
+    blockquote.forum-legacy-quote,
+    blockquote.capubbs-floor-quote {
       border-left: 3px solid var(--capubbs-preview-quote-border);
       color: var(--capubbs-preview-quote-text);
       margin: 12px 0;
@@ -2262,13 +2272,13 @@ function renderMarkdownQuoteBlock(quoteLines: string[]) {
   const metaLineIndex = findFloorQuoteMetaLineIndex(quoteLines);
 
   if (metaLineIndex === -1) {
-    return `<blockquote>${quoteLines.map((line) => `<p>${renderMarkdownInline(line)}</p>`).join('')}</blockquote>`;
+    return `<blockquote class="forum-quote">${quoteLines.map((line) => `<p>${renderMarkdownInline(line)}</p>`).join('')}</blockquote>`;
   }
 
   const metaMatch = quoteLines[metaLineIndex].match(markdownFloorQuoteMetaPattern);
 
   if (!metaMatch) {
-    return `<blockquote>${quoteLines.map((line) => `<p>${renderMarkdownInline(line)}</p>`).join('')}</blockquote>`;
+    return `<blockquote class="forum-quote">${quoteLines.map((line) => `<p>${renderMarkdownInline(line)}</p>`).join('')}</blockquote>`;
   }
 
   const quoteContent = quoteLines
