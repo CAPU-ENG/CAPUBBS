@@ -86,6 +86,10 @@
     color: var(--text-faint);
   }
 
+  .thread-page-gap-mobile {
+    display: none;
+  }
+
   .thread-page-jump {
     display: flex;
     align-items: center;
@@ -2245,7 +2249,13 @@
 
     .thread-top-pagination,
     .thread-bottom-pagination {
-      padding: 10px 0;
+      padding: 8px 0;
+    }
+
+    .thread-top-pagination .thread-pagination,
+    .thread-bottom-pagination .thread-pagination {
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 8px;
     }
 
     .thread-top-pagination .thread-pagination-pages,
@@ -2259,6 +2269,20 @@
       justify-content: flex-start;
       overflow-x: auto;
       padding-bottom: 4px;
+    }
+
+    .thread-pagination-pages {
+      gap: 3px;
+    }
+
+    .thread-page-button-edge,
+    .thread-page-mobile-hidden,
+    .thread-page-gap-desktop {
+      display: none !important;
+    }
+
+    .thread-page-gap-mobile {
+      display: inline-flex;
     }
 
     .forum-pagination-card > .thread-pagination-with-jump {
@@ -2275,12 +2299,42 @@
 
     .thread-page-button,
     .thread-page-number {
-      min-width: 38px;
-      height: 40px;
+      min-width: 28px;
+      height: 30px;
+      font-size: 0.64rem;
     }
 
     .thread-page-button {
-      padding: 0 9px;
+      width: 28px;
+      padding: 0;
+    }
+
+    .thread-page-button > svg {
+      width: 13px;
+      height: 13px;
+    }
+
+    .thread-page-gap {
+      width: 12px;
+      font-size: 0.64rem;
+    }
+
+    .thread-page-jump {
+      gap: 3px;
+      font-size: 0.6rem;
+    }
+
+    .thread-page-jump summary {
+      min-width: 38px;
+      height: 30px;
+      gap: 2px;
+      padding: 0 5px;
+      font-size: 0.64rem;
+    }
+
+    .thread-page-jump summary > svg {
+      width: 12px;
+      height: 12px;
     }
 
     .thread-image-lightbox-backdrop {

@@ -297,6 +297,7 @@
   }
 
   @media (max-width: 640px) {
+    .search-pagination-wrap { padding: 10px 8px; }
     .search-page-shell { padding: calc(var(--topbar-height) + 10px) 10px 48px; }
     .search-hero { min-height: 94px; padding: 18px; }
     .search-form { gap: 6px; }

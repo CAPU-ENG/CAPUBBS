@@ -1556,6 +1556,10 @@
   }
 
   @media (max-width: 680px) {
+    .profile-pagination {
+      padding: 10px 8px;
+    }
+
     .profile-page-shell {
       width: min(100% - 24px, 620px);
       padding-top: calc(var(--topbar-height) + 18px);

@@ -66,11 +66,15 @@ function PageControl({
   );
 }
 
-function visiblePages(currentPage: number, pageCount: number) {
-  if (pageCount <= 7) return Array.from({ length: pageCount }, (_, index) => index + 1);
+function visiblePages(currentPage: number, pageCount: number, windowSize: number) {
+  if (pageCount <= windowSize) return Array.from({ length: pageCount }, (_, index) => index + 1);
 
-  const windowStart = Math.min(Math.max(currentPage - 3, 1), pageCount - 6);
-  return Array.from({ length: 7 }, (_, index) => windowStart + index);
+  const pagesBeforeCurrent = Math.floor(windowSize / 2);
+  const windowStart = Math.min(
+    Math.max(currentPage - pagesBeforeCurrent, 1),
+    pageCount - windowSize + 1,
+  );
+  return Array.from({ length: windowSize }, (_, index) => windowStart + index);
 }
 
 export function Pagination({
@@ -84,7 +88,9 @@ export function Pagination({
   showPageJump = false,
 }: PaginationProps) {
   const pageJumpDetailsRef = useRef<HTMLDetailsElement>(null);
-  const pages = visiblePages(currentPage, pageCount);
+  const pages = visiblePages(currentPage, pageCount, 7);
+  const mobilePages = visiblePages(currentPage, pageCount, 5);
+  const mobilePageSet = new Set(mobilePages);
   const pagesAreCollapsed = pages.length < pageCount;
   const pageJumpVisible = showPageJump && (alwaysShowPageJump || pagesAreCollapsed);
 
@@ -132,7 +138,7 @@ export function Pagination({
       <div className="thread-pagination-pages">
         <PageControl
           aria-label="首页"
-          className="thread-page-button"
+          className="thread-page-button thread-page-button-edge"
           disabled={currentPage === 1}
           href={hrefFor(1, currentPage === 1)}
           onClick={clickFor(1)}
@@ -152,9 +158,10 @@ export function Pagination({
           <ChevronLeft size={15} />
         </PageControl>
 
-        {pages[0] > 1 ? <span className="thread-page-gap">…</span> : null}
+        {pages[0] > 1 ? <span className="thread-page-gap thread-page-gap-desktop">…</span> : null}
+        {mobilePages[0] > 1 ? <span className="thread-page-gap thread-page-gap-mobile">…</span> : null}
         {pages.map((page) => (
-          <span className="contents" key={page}>
+          <span className={`contents ${mobilePageSet.has(page) ? '' : 'thread-page-mobile-hidden'}`} key={page}>
             <PageControl
               ariaCurrent={page === currentPage ? 'page' : undefined}
               className="thread-page-number"
@@ -165,7 +172,8 @@ export function Pagination({
             </PageControl>
           </span>
         ))}
-        {pages[pages.length - 1] < pageCount ? <span className="thread-page-gap">…</span> : null}
+        {pages[pages.length - 1] < pageCount ? <span className="thread-page-gap thread-page-gap-desktop">…</span> : null}
+        {mobilePages[mobilePages.length - 1] < pageCount ? <span className="thread-page-gap thread-page-gap-mobile">…</span> : null}
 
         <PageControl
           aria-label="下一页"
@@ -180,7 +188,7 @@ export function Pagination({
 
         <PageControl
           aria-label="尾页"
-          className="thread-page-button"
+          className="thread-page-button thread-page-button-edge"
           disabled={currentPage === pageCount}
           href={hrefFor(pageCount, currentPage === pageCount)}
           onClick={clickFor(pageCount)}

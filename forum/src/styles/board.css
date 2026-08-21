@@ -756,7 +756,7 @@
     .board-pagination-footer {
       justify-content: flex-start;
       overflow-x: auto;
-      padding: 14px 12px 16px;
+      padding: 10px 8px;
     }
 
     .board-pagination-footer .thread-pagination {
