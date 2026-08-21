@@ -1614,12 +1614,19 @@
     color: white;
   }
 
-  .floor-node-rail {
+  .thread-side-rail {
     position: sticky;
     top: calc(var(--topbar-height) + 18px);
     display: flex;
-    min-height: 180px;
     align-self: start;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .floor-node-rail {
+    position: relative;
+    display: flex;
+    min-height: 180px;
     flex-direction: column;
     align-items: center;
     justify-content: space-around;
@@ -1628,6 +1635,37 @@
     padding: 16px 0;
     background: color-mix(in srgb, var(--surface) 92%, transparent);
     box-shadow: var(--shadow-card);
+  }
+
+  .thread-assistive-tools {
+    display: grid;
+    gap: 6px;
+  }
+
+  .thread-assistive-tools > button {
+    display: flex;
+    min-height: 36px;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    border: 1px solid var(--line);
+    border-radius: 2px;
+    padding: 7px 8px;
+    background: color-mix(in srgb, var(--surface) 92%, transparent);
+    box-shadow: var(--shadow-card);
+    color: var(--text-muted);
+    font-size: 0.68rem;
+    font-weight: 720;
+    line-height: 1.35;
+    transition: border-color 140ms ease, background 140ms ease, color 140ms ease;
+  }
+
+  .thread-assistive-tools > button:hover,
+  .thread-assistive-tools > button:focus-visible,
+  .thread-assistive-tools > .thread-assistive-tool-active {
+    border-color: color-mix(in srgb, var(--brand) 45%, var(--line));
+    background: var(--brand-soft);
+    color: var(--brand-strong);
   }
 
   .floor-node-line {
@@ -1780,7 +1818,7 @@
       grid-template-columns: minmax(0, 1fr);
     }
 
-    .floor-node-rail {
+    .thread-side-rail {
       display: none;
     }
 

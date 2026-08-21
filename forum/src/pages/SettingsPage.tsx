@@ -1,19 +1,23 @@
-import { Check, ChevronDown, CircleHelp, CirclePlus, MonitorCog, Pin, PinOff } from 'lucide-react';
+import { Accessibility, Check, ChevronDown, CircleHelp, CirclePlus, MonitorCog, Pin, PinOff } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import { AppBackground } from '../components/layout/AppBackground';
 import { TopBar } from '../components/layout/TopBar';
 import { ALL_BOARDS, PRIMARY_BOARDS, SECONDARY_BOARDS, getBoardById } from '../data/boards';
+import { useBackToTopEnabled, useSignatureToggleEnabled } from '../hooks/useAssistiveFeatures';
 import { useCompactMode } from '../hooks/useCompactMode';
 import { usePinnedBoardIds } from '../hooks/usePinnedBoards';
 import { useTheme } from '../hooks/useTheme';
+import { saveBackToTopEnabled, saveSignatureToggleEnabled } from '../utils/assistiveFeatures';
 import { saveCompactMode } from '../utils/compactMode';
 import { MAX_PINNED_BOARDS, savePinnedBoardIds } from '../utils/localSettings';
 import { saveThemeFollowsSystem } from '../utils/theme';
 
 export function SettingsPage() {
+  const backToTopEnabled = useBackToTopEnabled();
   const compactMode = useCompactMode();
   const pinnedBoardIds = usePinnedBoardIds();
   const { followsSystem } = useTheme();
+  const signatureToggleEnabled = useSignatureToggleEnabled();
   const [draftBoardIds, setDraftBoardIds] = useState(pinnedBoardIds);
   const draftBoardIdsRef = useRef(pinnedBoardIds);
   const previousPinnedBoardIdsRef = useRef(pinnedBoardIds);
@@ -108,6 +112,37 @@ export function SettingsPage() {
                   </span>
                 </span>
               </div>
+            </div>
+          </section>
+
+          <section className="settings-panel" aria-labelledby="assistive-settings-title">
+            <div className="settings-panel-heading">
+              <span className="settings-panel-icon"><Accessibility size={17} /></span>
+              <div>
+                <h2 id="assistive-settings-title">辅助</h2>
+              </div>
+            </div>
+
+            <div className="settings-checkbox-list">
+              <label className="settings-checkbox-option">
+                <input
+                  checked={backToTopEnabled}
+                  onChange={(event) => saveBackToTopEnabled(event.target.checked)}
+                  type="checkbox"
+                />
+                <span className="settings-checkbox-mark" aria-hidden="true"><Check size={14} /></span>
+                <span><strong>回到顶部</strong></span>
+              </label>
+
+              <label className="settings-checkbox-option">
+                <input
+                  checked={signatureToggleEnabled}
+                  onChange={(event) => saveSignatureToggleEnabled(event.target.checked)}
+                  type="checkbox"
+                />
+                <span className="settings-checkbox-mark" aria-hidden="true"><Check size={14} /></span>
+                <span><strong>屏蔽签名档</strong></span>
+              </label>
             </div>
           </section>
 

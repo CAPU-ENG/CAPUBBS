@@ -1,5 +1,5 @@
 import { Fragment, useEffect, useLayoutEffect, useRef, useState } from 'react';
-import { Bookmark, BookmarkCheck, Check, Eye, MessageCircle, RotateCw, Settings } from 'lucide-react';
+import { ArrowUpToLine, Bookmark, BookmarkCheck, Check, Eye, EyeOff, MessageCircle, RotateCw, Settings } from 'lucide-react';
 import { ActivitySignupForm } from '../components/thread/ActivitySignupForm';
 import { ReplyEditor, type QuoteRequest } from '../components/thread/ReplyEditor';
 import { ThreadFloor } from '../components/thread/ThreadFloor';
@@ -10,8 +10,10 @@ import { setThreadBookmarked } from '../api/favorite';
 import { deleteNestedReply, deleteThreadFloor, postNestedReply } from '../api/thread';
 import { useAuth } from '../context/AuthContext';
 import type { NestedReply, ThreadFloorData } from '../data/threadDemo';
+import { useBackToTopEnabled, useSignaturesHidden, useSignatureToggleEnabled } from '../hooks/useAssistiveFeatures';
 import { useScrollContextTitle } from '../hooks/useScrollContextTitle';
 import { useThreadData } from '../hooks/useThreadData';
+import { saveSignaturesHidden } from '../utils/assistiveFeatures';
 import { getLoginPathWithReturnTo } from '../utils/authRoutes';
 import { writeClipboardText } from '../utils/clipboard';
 import {
@@ -47,6 +49,7 @@ function positiveInteger(value: string | null) {
 }
 
 export function ThreadPage() {
+  const backToTopEnabled = useBackToTopEnabled();
   const { viewer } = useAuth();
   const request = getThreadRequest();
   const { data, error, retry, status } = useThreadData(request);
@@ -61,6 +64,8 @@ export function ThreadPage() {
   const editorRef = useRef<HTMLElement | null>(null);
   const titleRef = useRef<HTMLHeadingElement | null>(null);
   const showTitleInTopBar = useScrollContextTitle(titleRef);
+  const signaturesHidden = useSignaturesHidden();
+  const signatureToggleEnabled = useSignatureToggleEnabled();
   const pageFloors = data?.floors ?? [];
 
   useEffect(() => {
@@ -381,6 +386,7 @@ export function ThreadPage() {
                   canReply={data.canReply && Boolean(data.viewer)}
                   editHref={getThreadEditHref(data.bid, data.tid, floor.floor)}
                   floor={floor}
+                  hideSignature={signatureToggleEnabled && signaturesHidden}
                   isActivityThread={data.isActivity}
                   isMainPost={floor.floor === 1}
                   onDeleteFloor={removeFloor}
@@ -405,7 +411,30 @@ export function ThreadPage() {
               </Fragment>
             ))}
           </section>
-          <FloorNodes activeFloor={activeFloor} floors={nodeFloors} />
+          <div className="thread-side-rail">
+            <FloorNodes activeFloor={activeFloor} floors={nodeFloors} />
+            {(backToTopEnabled || signatureToggleEnabled) && (
+              <div className="thread-assistive-tools" aria-label="帖子辅助功能">
+                {backToTopEnabled && (
+                  <button onClick={() => window.scrollTo({ left: 0, top: 0 })} type="button">
+                    <ArrowUpToLine size={15} />
+                    回到顶部
+                  </button>
+                )}
+                {signatureToggleEnabled && (
+                  <button
+                    aria-pressed={signaturesHidden}
+                    className={signaturesHidden ? 'thread-assistive-tool-active' : ''}
+                    onClick={() => saveSignaturesHidden(!signaturesHidden)}
+                    type="button"
+                  >
+                    {signaturesHidden ? <Eye size={15} /> : <EyeOff size={15} />}
+                    {signaturesHidden ? '显示签名档' : '屏蔽签名档'}
+                  </button>
+                )}
+              </div>
+            )}
+          </div>
         </div>
 
         <div className="thread-bottom-pagination">

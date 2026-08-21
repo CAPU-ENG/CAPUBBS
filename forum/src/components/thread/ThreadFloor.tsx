@@ -81,6 +81,7 @@ export function ThreadFloor({
   floor,
   isActivityThread,
   isMainPost,
+  hideSignature,
   onDeleteFloor,
   onDeleteNestedReply,
   onQuote,
@@ -93,6 +94,7 @@ export function ThreadFloor({
   floor: ThreadFloorData;
   isActivityThread: boolean;
   isMainPost: boolean;
+  hideSignature: boolean;
   onDeleteFloor: (floor: ThreadFloorData) => Promise<void>;
   onDeleteNestedReply: (floor: ThreadFloorData, reply: NestedReply) => Promise<void>;
   onQuote: (floor: ThreadFloorData) => void;
@@ -292,8 +294,8 @@ export function ThreadFloor({
           floor={floor.floor}
           isActivitySignupCanceled={isActivitySignupCanceled}
           onImageOpen={openImagePreview}
-          signatureHtml={floor.signatureHtml}
-          signatureText={floor.signature}
+          signatureHtml={hideSignature ? undefined : floor.signatureHtml}
+          signatureText={hideSignature ? undefined : floor.signature}
         />
 
         <div className="thread-floor-actions">
