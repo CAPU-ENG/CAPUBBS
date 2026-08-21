@@ -1,5 +1,5 @@
 import { ArrowDown, Eye, LoaderCircle, MessageCircle, RefreshCw } from 'lucide-react';
-import { useEffect, useRef } from 'react';
+import { useEffect } from 'react';
 import defaultAvatar from '../../assets/avatar/default-avatar.avif';
 import type { HomeThread } from '../../api/home';
 import type { HomeDataStatus } from '../../hooks/useHomeData';
@@ -74,21 +74,39 @@ type FeedSectionProps = {
 export function FeedSection({ autoLoadMore, compactMode, error, hasMore, items, onLoadMore, onRetry, status }: FeedSectionProps) {
   const loadingMore = status === 'loading' && items.length > 0;
   const loadMoreFailed = status === 'error' && items.length > 0;
-  const loadMoreButtonRef = useRef<HTMLButtonElement>(null);
 
   useEffect(() => {
-    const loadMoreButton = loadMoreButtonRef.current;
-    if (!autoLoadMore || !hasMore || loadingMore || loadMoreFailed || !loadMoreButton) return;
+    if (!autoLoadMore || !hasMore || loadingMore || loadMoreFailed) return;
 
     let triggered = false;
-    const observer = new IntersectionObserver((entries) => {
-      if (triggered || !entries.some((entry) => entry.isIntersecting)) return;
+    let frame = 0;
+
+    function checkPageBottom() {
+      frame = 0;
+      if (triggered) return;
+
+      const viewportBottom = window.scrollY + window.innerHeight;
+      const pageBottom = Math.max(document.documentElement.scrollHeight, document.body.scrollHeight);
+      if (pageBottom - viewportBottom > 160) return;
+
       triggered = true;
       onLoadMore();
-    }, { rootMargin: '0px 0px 160px' });
+    }
 
-    observer.observe(loadMoreButton);
-    return () => observer.disconnect();
+    function schedulePageBottomCheck() {
+      if (frame || triggered) return;
+      frame = window.requestAnimationFrame(checkPageBottom);
+    }
+
+    window.addEventListener('scroll', schedulePageBottomCheck, { passive: true });
+    window.addEventListener('resize', schedulePageBottomCheck);
+    schedulePageBottomCheck();
+
+    return () => {
+      window.removeEventListener('scroll', schedulePageBottomCheck);
+      window.removeEventListener('resize', schedulePageBottomCheck);
+      if (frame) window.cancelAnimationFrame(frame);
+    };
   }, [autoLoadMore, hasMore, loadMoreFailed, loadingMore, onLoadMore]);
 
   return (
@@ -116,7 +134,6 @@ export function FeedSection({ autoLoadMore, compactMode, error, hasMore, items, 
           className="load-more"
           disabled={loadingMore}
           onClick={loadMoreFailed ? onRetry : onLoadMore}
-          ref={loadMoreButtonRef}
           type="button"
         >
           {loadingMore ? (
