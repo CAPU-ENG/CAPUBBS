@@ -10,6 +10,7 @@ import {
   uploadThreadAttachment,
 } from "../../api/thread";
 import { useAutoSaveEnabled } from "../../hooks/useAssistiveFeatures";
+import { waitForLocalDraftCleanup } from "../../utils/draftCleanup";
 import {
   deleteStoredReplyDraftForThread,
   saveStoredReplyDraft,
@@ -213,7 +214,7 @@ export function ReplyEditor({
   }
 
   async function publishReply() {
-    if (isPublishing || isSavingDraft || isUploadingAttachments) return;
+    if (isPublishing || isUploadingAttachments) return;
     if (!hasPostEditorContent(editorValue)) {
       setStatus("请先填写回复内容");
       setStatusIsError(true);
@@ -240,11 +241,7 @@ export function ReplyEditor({
         tid,
         title: threadTitle,
       });
-      try {
-        await deleteStoredReplyDraftForThread(bid, tid, ownerKey);
-      } catch {
-        // The reply is already published; stale local draft cleanup must not invite a duplicate post.
-      }
+      await waitForLocalDraftCleanup(deleteStoredReplyDraftForThread(bid, tid, ownerKey));
 
       window.location.href = published.pid > 0
         ? getThreadFloorHref(published.bid, published.tid, published.pid)
@@ -306,7 +303,7 @@ export function ReplyEditor({
         status={status}
         statusIsError={statusIsError}
         submitCompactLabel={isPublishing ? "发布中" : "发布"}
-        submitDisabled={isPublishing || isSavingDraft || isUploadingAttachments}
+        submitDisabled={isPublishing || isUploadingAttachments}
         submitIcon={isPublishing ? <LoaderCircle className="thread-edit-spinner" size={15} /> : <Send size={15} />}
         submitLabel={isPublishing ? "正在发布" : "发布回复"}
         uploadingAttachments={isUploadingAttachments}

@@ -32,6 +32,7 @@ import {
 import { useAuth } from '../context/AuthContext';
 import { useAutoSaveEnabled } from '../hooks/useAssistiveFeatures';
 import { getLoginPathWithReturnTo } from '../utils/authRoutes';
+import { waitForLocalDraftCleanup } from '../utils/draftCleanup';
 import {
   deleteStoredReplyDraftForThread,
   readStoredReplyDraftForThread,
@@ -130,7 +131,6 @@ export function ThreadComposePage() {
       && validateActivitySignupSettings(activitySignup)
     ))
     && !isUploadingAttachments
-    && !isSavingDraft
     && !isPublishing,
   );
 
@@ -429,12 +429,10 @@ export function ThreadComposePage() {
         title: title.trim(),
       });
       if (ownerKey) {
-        try {
-          if (request.tid) await deleteStoredReplyDraftForThread(request.bid, request.tid, ownerKey);
-          else await deleteStoredThreadComposeDraft(request.bid, ownerKey, isActivity ? 'activity' : 'thread');
-        } catch {
-          // The content is already published; stale local draft cleanup must not invite a duplicate post.
-        }
+        const cleanup = request.tid
+          ? deleteStoredReplyDraftForThread(request.bid, request.tid, ownerKey)
+          : deleteStoredThreadComposeDraft(request.bid, ownerKey, isActivity ? 'activity' : 'thread');
+        await waitForLocalDraftCleanup(cleanup);
       }
       window.location.href = published.tid && published.pid
         ? getThreadFloorHref(published.bid, published.tid, published.pid)
