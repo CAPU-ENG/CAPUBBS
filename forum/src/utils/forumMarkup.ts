@@ -1,7 +1,7 @@
 import { getPublicProfilePath } from './userRoutes';
 import { translateLegacyForumThreadHref } from './legacyForumRoutes';
 import { translateLegacyBbcode } from './legacyBbcode';
-import { normalizeLegacyPostImage } from './legacyAssets';
+import { localizeChexieImageRequests, normalizeLegacyPostImage } from './legacyAssets';
 
 export { forumMarkupToPlainText } from './legacyBbcode';
 
@@ -48,7 +48,7 @@ export function renderForumMarkup(
 }
 
 export function translateLegacyForumMarkup(value: string) {
-  return translateLegacyBbcode(value);
+  return localizeChexieImageRequests(translateLegacyBbcode(value));
 }
 
 const ISOLATED_HTML_TAG_PATTERN = /<\s*\/?\s*(?:script|style|link|meta|base|iframe|frame|frameset|object|embed|audio|video|canvas|svg|math|form|input|textarea|select|button|option)\b/i;

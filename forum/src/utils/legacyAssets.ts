@@ -1,6 +1,23 @@
 const LOCAL_AVATAR_ROOT = '/bbsimg';
 const LOCAL_ARCHIVED_AVATAR_ROOT = `${LOCAL_AVATAR_ROOT}/icons/user_archive/files`;
 const LOCAL_POST_IMAGE_ROOT = '/bbs/images';
+const CHEXIE_IMAGE_ELEMENT_PATTERN = /<(?:body|image|img|input|source|table|td|th|video)\b[^>]*>/gi;
+const INLINE_STYLE_ATTRIBUTE_PATTERN = /\bstyle\s*=\s*(?:"[^"]*"|'[^']*'|[^\s>]+)/gi;
+const STYLE_ELEMENT_PATTERN = /<style\b[^>]*>[\s\S]*?<\/style>/gi;
+const CHEXIE_ORIGIN_PATTERN = /(?:https?:)?\/\/(?:[a-z\d-]+\.)*chexie\.net(?=\/)/gi;
+
+export function localizeChexieImageRequests(value: string) {
+  if (!value || !/chexie\.net/i.test(value)) return value;
+
+  return value
+    .replace(CHEXIE_IMAGE_ELEMENT_PATTERN, localizeChexieOrigins)
+    .replace(INLINE_STYLE_ATTRIBUTE_PATTERN, localizeChexieOrigins)
+    .replace(STYLE_ELEMENT_PATTERN, localizeChexieOrigins);
+}
+
+function localizeChexieOrigins(value: string) {
+  return value.replace(CHEXIE_ORIGIN_PATTERN, '');
+}
 
 export function normalizeLegacyAvatar(value: unknown) {
   if (typeof value !== 'string') return '';
