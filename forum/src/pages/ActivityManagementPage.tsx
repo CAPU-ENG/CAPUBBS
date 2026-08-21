@@ -399,6 +399,7 @@ function SignupSummaryPanel({
                 <tr>
                   <th className="activity-summary-id-column">ID</th>
                   <th className="activity-summary-time-column">报名时间</th>
+                  <th>是否有未完成的罚跑</th>
                   <th className="activity-summary-status-column">状态</th>
                   {displayedQuestions.map((question) => <th key={question.id}>{question.label}</th>)}
                 </tr>
@@ -408,6 +409,7 @@ function SignupSummaryPanel({
                   <tr key={record.id}>
                     <td className="activity-summary-id-column"><strong>{record.username}</strong></td>
                     <td className="activity-summary-time-column">{formatActivityRecordTime(record.joinedAt)}</td>
+                    <td>{record.hasUnfinishedPunishment ? '是' : '否'}</td>
                     <td className="activity-summary-status-column"><ActivityRecordStatus status={record.status} /></td>
                     {displayedQuestions.map((question) => {
                       const value = getActivityRecordValue(record, question);
@@ -517,10 +519,11 @@ function downloadSignupCsv(
   records: ActivitySignupRecord[],
 ) {
   const rows = [
-    ['ID', '报名时间', '状态', ...questions.map((question) => question.label)],
+    ['ID', '报名时间', '是否有未完成的罚跑', '状态', ...questions.map((question) => question.label)],
     ...records.map((record) => [
       record.username,
       formatActivityRecordTime(record.joinedAt),
+      record.hasUnfinishedPunishment ? '是' : '否',
       record.status,
       ...questions.map((question) => getActivityRecordValue(record, question)),
     ]),

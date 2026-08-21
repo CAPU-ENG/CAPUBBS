@@ -119,6 +119,7 @@ export type PublishedThreadReply = {
 export type ActivitySignupValue = string | string[];
 
 export type ActivitySignupSummaryRecord = {
+  hasUnfinishedPunishment: boolean;
   id: number;
   joinedAt: number;
   status: '有效' | '已取消';
@@ -503,6 +504,7 @@ export async function fetchActivitySignupSummary({
   const data = asRow(payload.data);
   const totals = asRow(data.totals);
   const records = asRows(data.records).map((record): ActivitySignupSummaryRecord => ({
+    hasUnfinishedPunishment: nonNegativeInteger(record.has_unfinished_punishment) > 0,
     id: positiveInteger(record.record_id, 0),
     joinedAt: nonNegativeInteger(record.joined_at),
     status: stringValue(record.status) === 'canceled' ? '已取消' : '有效',
