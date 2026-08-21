@@ -8,6 +8,8 @@ import {
   Eraser,
   Heading1,
   Image as ImageIcon,
+  IndentDecrease,
+  IndentIncrease,
   Italic,
   Link2,
   List,
@@ -1346,6 +1348,12 @@ export function RichTextEditor({
               </ToolbarButton>
               <ToolbarButton label="有序列表" onMouseDown={handleToolbarMouseDown} onClick={() => runRichCommand('insertOrderedList')}>
                 <ListOrdered size={14} />
+              </ToolbarButton>
+              <ToolbarButton label="增加缩进" onMouseDown={handleToolbarMouseDown} onClick={() => runRichCommand('indent')}>
+                <IndentIncrease size={14} />
+              </ToolbarButton>
+              <ToolbarButton label="减少缩进" onMouseDown={handleToolbarMouseDown} onClick={() => runRichCommand('outdent')}>
+                <IndentDecrease size={14} />
               </ToolbarButton>
 
               <ToolbarDivider />
