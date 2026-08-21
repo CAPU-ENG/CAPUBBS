@@ -275,6 +275,14 @@ export function ThreadPage() {
     copyNoticeTimerRef.current = window.setTimeout(() => setCopyNoticeOpen(false), 1800);
   }
 
+  function scrollToPageTop() {
+    window.scrollTo({ left: 0, top: 0 });
+  }
+
+  function toggleSignatures() {
+    saveSignaturesHidden(!signaturesHidden);
+  }
+
   if (!data) {
     return (
       <div className="relative min-h-screen text-[var(--text)] transition-colors duration-200">
@@ -427,7 +435,7 @@ export function ThreadPage() {
             {(backToTopEnabled || signatureToggleEnabled) && (
               <div className="thread-assistive-tools" aria-label="帖子辅助功能">
                 {backToTopEnabled && (
-                  <button onClick={() => window.scrollTo({ left: 0, top: 0 })} type="button">
+                  <button onClick={scrollToPageTop} type="button">
                     <ArrowUpToLine size={15} />
                     回到顶部
                   </button>
@@ -436,7 +444,7 @@ export function ThreadPage() {
                   <button
                     aria-pressed={signaturesHidden}
                     className={signaturesHidden ? 'thread-assistive-tool-active' : ''}
-                    onClick={() => saveSignaturesHidden(!signaturesHidden)}
+                    onClick={toggleSignatures}
                     type="button"
                   >
                     {signaturesHidden ? <Eye size={15} /> : <EyeOff size={15} />}
@@ -482,7 +490,34 @@ export function ThreadPage() {
         ))}
       </main>
 
-      {nodeFloors.length > 0 && <MobileFloorNode activeFloor={activeFloor} floors={nodeFloors} />}
+      {nodeFloors.length > 0 && (
+        <div className="mobile-thread-controls" aria-label="移动端帖子工具" role="group">
+          {backToTopEnabled && (
+            <button
+              aria-label="回到顶部"
+              className="mobile-thread-assistive-tool"
+              onClick={scrollToPageTop}
+              title="回到顶部"
+              type="button"
+            >
+              <ArrowUpToLine size={15} />
+            </button>
+          )}
+          {signatureToggleEnabled && (
+            <button
+              aria-label={signaturesHidden ? '显示签名档' : '屏蔽签名档'}
+              aria-pressed={signaturesHidden}
+              className={`mobile-thread-assistive-tool ${signaturesHidden ? 'mobile-thread-assistive-tool-active' : ''}`}
+              onClick={toggleSignatures}
+              title={signaturesHidden ? '显示签名档' : '屏蔽签名档'}
+              type="button"
+            >
+              {signaturesHidden ? <Eye size={15} /> : <EyeOff size={15} />}
+            </button>
+          )}
+          <MobileFloorNode activeFloor={activeFloor} floors={nodeFloors} />
+        </div>
+      )}
       {copyNoticeOpen && (
         <div aria-live="polite" className="copy-floor-toast" role="status">
           <Check aria-hidden="true" size={15} />

@@ -1980,6 +1980,7 @@
     margin-top: 20px;
   }
 
+  .mobile-thread-controls,
   .mobile-floor-node {
     display: none;
   }
@@ -2006,7 +2007,7 @@
       max-width: 100%;
     }
 
-    .mobile-floor-node {
+    .mobile-thread-controls {
       position: fixed;
       z-index: 32;
       right: 12px;
@@ -2021,11 +2022,17 @@
       backdrop-filter: blur(14px);
     }
 
+    .mobile-floor-node {
+      display: flex;
+      align-items: center;
+    }
+
     .copy-floor-toast {
       right: 12px;
       bottom: 62px;
     }
 
+    .mobile-thread-assistive-tool,
     .mobile-floor-node > button {
       display: inline-flex;
       width: 32px;
@@ -2033,6 +2040,18 @@
       align-items: center;
       justify-content: center;
       color: var(--text-muted);
+      transition: background 140ms ease, color 140ms ease;
+    }
+
+    .mobile-thread-assistive-tool {
+      border-right: 1px solid var(--line);
+    }
+
+    .mobile-thread-assistive-tool:hover,
+    .mobile-thread-assistive-tool:focus-visible,
+    .mobile-thread-assistive-tool-active {
+      background: var(--brand-soft);
+      color: var(--brand-strong);
     }
 
     .mobile-floor-node > button:disabled {
