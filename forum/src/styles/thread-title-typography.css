@@ -1,0 +1,5 @@
+@layer components {
+  .thread-title-hanging-punctuation {
+    margin-left: -0.5em;
+  }
+}

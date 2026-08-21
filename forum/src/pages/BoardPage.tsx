@@ -14,6 +14,7 @@ import { useBoardData } from '../hooks/useBoardData';
 import { useScrollContextTitle } from '../hooks/useScrollContextTitle';
 import { getPublicProfilePath } from '../utils/userRoutes';
 import { getThreadComposeHref } from '../utils/threadRoutes';
+import { getThreadTitleClassName } from '../utils/threadTitleTypography';
 import { useEffect, useRef, useState } from 'react';
 
 function getRequestedPage() {
@@ -129,7 +130,7 @@ function ThreadRow({
       <td className="board-thread-title-cell">
         <div className="board-thread-title-line">
           <PinnedStatus thread={thread} />
-          <a href={threadHref(thread)}>{thread.title}</a>
+          <a className={getThreadTitleClassName(thread.title)} href={threadHref(thread)}>{thread.title}</a>
           <TrailingThreadStatuses thread={thread} />
         </div>
       </td>

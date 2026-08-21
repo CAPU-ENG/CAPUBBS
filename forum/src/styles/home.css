@@ -51,10 +51,6 @@
     font-size: 1.18rem;
   }
 
-  .feed-item-title-hanging-punctuation {
-    margin-left: -0.5em;
-  }
-
   .feed-item-compact h2::before {
     position: absolute;
     top: 0.75em;

@@ -3,6 +3,7 @@ import { useEffect } from 'react';
 import defaultAvatar from '../../assets/avatar/default-avatar.avif';
 import type { HomeThread } from '../../api/home';
 import type { HomeDataStatus } from '../../hooks/useHomeData';
+import { getThreadTitleClassName } from '../../utils/threadTitleTypography';
 
 function FeedItem({ compactMode, item }: { compactMode: boolean; item: HomeThread }) {
   function useDefaultAvatar(event: React.SyntheticEvent<HTMLImageElement>) {
@@ -13,7 +14,11 @@ function FeedItem({ compactMode, item }: { compactMode: boolean; item: HomeThrea
     return (
       <article className="feed-item feed-item-compact">
         <div className="feed-item-compact-row">
-          <h2><a className="feed-item-compact-title" href={item.href}>{item.title}</a></h2>
+          <h2>
+            <a className={getThreadTitleClassName(item.title, 'feed-item-compact-title')} href={item.href}>
+              {item.title}
+            </a>
+          </h2>
           <span className="feed-item-compact-meta">
             <a
               aria-label={`查看 ${item.author} 的个人主页`}
@@ -33,7 +38,7 @@ function FeedItem({ compactMode, item }: { compactMode: boolean; item: HomeThrea
   return (
     <article className="feed-item">
       <a className="feed-item-content" href={item.href}>
-        <h2 className={/^[【（《]/.test(item.title) ? 'feed-item-title-hanging-punctuation' : undefined}>
+        <h2 className={getThreadTitleClassName(item.title)}>
           {item.title}
         </h2>
         <p>{item.summary}</p>

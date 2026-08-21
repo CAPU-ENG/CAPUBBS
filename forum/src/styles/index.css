@@ -1,6 +1,7 @@
 @import './base.css';
 @import './layout.css';
 @import './messages.css';
+@import './thread-title-typography.css';
 @import './home.css';
 @import './thread.css';
 @import './thread-edit.css';
