@@ -40,6 +40,11 @@ type HtmlFrameMessage = {
   type: 'resize';
 } | {
   frameId: string;
+  offsetTop: number;
+  source: typeof HTML_FRAME_MESSAGE_SOURCE;
+  type: 'anchor';
+} | {
+  frameId: string;
   source: typeof HTML_FRAME_MESSAGE_SOURCE;
   type: 'navigate';
   url: string;
@@ -149,6 +154,19 @@ function ThreadSandboxedHtmlFrame({
     function handleMessage(event: MessageEvent) {
       if (event.source !== iframeRef.current?.contentWindow || !isHtmlFrameMessage(event.data)) return;
       if (event.data.frameId !== frameIdRef.current) return;
+
+      if (event.data.type === 'anchor') {
+        const frame = iframeRef.current;
+        if (!frame) return;
+        const rootStyle = window.getComputedStyle(document.documentElement);
+        const topbarHeight = Number.parseFloat(rootStyle.getPropertyValue('--topbar-height')) || 0;
+        const frameTop = window.scrollY + frame.getBoundingClientRect().top;
+        window.scrollTo({
+          left: 0,
+          top: Math.max(0, frameTop + event.data.offsetTop - topbarHeight - 16),
+        });
+        return;
+      }
 
       if (event.data.type === 'navigate') {
         const route = resolveForumAppRoute(event.data.url, getLegacyContentBaseUrl());
@@ -358,7 +376,27 @@ function buildFrameBridgeScript(frameId: string, canOpenImages: boolean) {
       }catch(error){return '';}
     }
     function handleForumNavigationClick(event){
-      if(event.defaultPrevented||event.button!==0||event.altKey||event.ctrlKey||event.metaKey||event.shiftKey)return;
+      if(event.defaultPrevented||event.button!==0)return;
+      var anchor=event.target&&event.target.closest?event.target.closest('a'):null;
+      var href=anchor&&anchor.getAttribute('href');
+      if(href&&href.charAt(0)==='#'){
+        event.preventDefault();
+        var rawId=href.slice(1);
+        if(!rawId)return;
+        var id=rawId;
+        try{id=decodeURIComponent(rawId);}catch(error){}
+        var target=document.getElementById(id);
+        if(!target){
+          var namedTargets=document.getElementsByName(id);
+          target=namedTargets&&namedTargets.length?namedTargets[0]:null;
+        }
+        if(!target)return;
+        var targetRect=target.getBoundingClientRect();
+        var offsetTop=Math.max(0,Math.round((window.scrollY||0)+targetRect.top));
+        window.parent.postMessage({source:'${HTML_FRAME_MESSAGE_SOURCE}',type:'anchor',frameId:frameId,offsetTop:offsetTop},'*');
+        return;
+      }
+      if(event.altKey||event.ctrlKey||event.metaKey||event.shiftKey)return;
       var url=getForumNavigationUrl(event.target);
       if(!url)return;
       event.preventDefault();
@@ -501,6 +539,11 @@ function isHtmlFrameMessage(value: unknown): value is HtmlFrameMessage {
   if (!value || typeof value !== 'object') return false;
   const message = value as Partial<HtmlFrameMessage>;
   if (message.source !== HTML_FRAME_MESSAGE_SOURCE || typeof message.frameId !== 'string') return false;
+  if (message.type === 'anchor') {
+    return typeof message.offsetTop === 'number'
+      && Number.isFinite(message.offsetTop)
+      && message.offsetTop >= 0;
+  }
   if (message.type === 'navigate') return typeof message.url === 'string';
   if (message.type === 'image-open') {
     return typeof message.imageIndex === 'number'
