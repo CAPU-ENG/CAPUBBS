@@ -1,5 +1,5 @@
 import { Fragment, useEffect, useLayoutEffect, useRef, useState } from 'react';
-import { ArrowUpToLine, Bookmark, BookmarkCheck, Check, Eye, EyeOff, MessageCircle, RotateCw, Settings } from 'lucide-react';
+import { ArrowUpToLine, Bookmark, BookmarkCheck, Check, Eye, EyeOff, Link2, MessageCircle, RotateCw, Settings } from 'lucide-react';
 import { ActivitySignupForm } from '../components/thread/ActivitySignupForm';
 import { ReplyEditor, type QuoteRequest } from '../components/thread/ReplyEditor';
 import { ThreadFloor } from '../components/thread/ThreadFloor';
@@ -340,6 +340,7 @@ export function ThreadPage() {
                 type="button"
               >
                 {data.title}
+                <Link2 aria-hidden="true" className="thread-title-copy-icon" size={18} />
               </button>
             </h1>
             {canManageActivity && (
