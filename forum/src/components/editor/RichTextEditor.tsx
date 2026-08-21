@@ -2005,6 +2005,12 @@ function removeOverriddenRichInlineStyles(content: DocumentFragment, style: Rich
       element.removeAttribute('style');
     }
   });
+
+  Array.from(content.querySelectorAll('span')).reverse().forEach((span) => {
+    if (span.attributes.length === 0) {
+      span.replaceWith(...Array.from(span.childNodes));
+    }
+  });
 }
 
 function readRecentTextColors() {
