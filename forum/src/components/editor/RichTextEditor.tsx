@@ -6,7 +6,6 @@ import {
   AtSign,
   Bold,
   Eraser,
-  Eye,
   Image as ImageIcon,
   IndentDecrease,
   IndentIncrease,
@@ -17,6 +16,7 @@ import {
   MessageSquareQuote,
   Minus,
   Palette,
+  PanelRightOpen,
   Strikethrough,
   Subscript,
   Superscript,
@@ -1607,11 +1607,12 @@ export function RichTextEditor({
               {!isHtmlPreviewOpen ? (
                 <button
                   type="button"
+                  aria-label="打开 HTML 预览"
+                  title="打开 HTML 预览"
                   onClick={() => setIsHtmlPreviewOpen(true)}
-                  className="inline-flex h-6 items-center gap-1 rounded-[1px] px-1.5 text-xs font-bold transition hover:bg-zinc-200/70 hover:text-zinc-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#174f38] dark:hover:bg-white/10 dark:hover:text-white"
+                  className="inline-flex h-6 w-6 items-center justify-center rounded-[1px] transition hover:bg-zinc-200/70 hover:text-zinc-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#174f38] dark:hover:bg-white/10 dark:hover:text-white"
                 >
-                  <Eye size={13} />
-                  预览
+                  <PanelRightOpen size={14} />
                 </button>
               ) : null}
             </div>
