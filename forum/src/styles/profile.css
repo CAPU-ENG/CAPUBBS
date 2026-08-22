@@ -92,7 +92,7 @@
     display: flex;
     min-width: 0;
     flex: 1;
-    align-items: center;
+    align-items: flex-start;
     gap: 22px;
   }
 
