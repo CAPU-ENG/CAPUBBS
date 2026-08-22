@@ -1079,9 +1079,12 @@ export function RichTextEditor({
         throw new Error('图廊图片无效，请移除后重新添加。');
       }
 
-      const uploadFile = await createUploadableImageFileUnderLimit(image.file, maxInlineImageBytes);
-      const md5 = await getImageFileMd5Hex(uploadFile);
-      const { url } = await uploadEditorImage(uploadFile, md5);
+      if (image.file.size > maxInlineImageBytes) {
+        throw new Error('图片仍在处理，请稍后再试。');
+      }
+
+      const md5 = await getImageFileMd5Hex(image.file);
+      const { url } = await uploadEditorImage(image.file, md5);
 
       uploadedImages.push({
         alt: image.alt || getImageAltText(image.file),

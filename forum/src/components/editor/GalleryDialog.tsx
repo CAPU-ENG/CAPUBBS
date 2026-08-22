@@ -6,7 +6,12 @@ import {
   type ChangeEvent,
 } from 'react';
 import { createPortal } from 'react-dom';
-import { editorImageInputAccept, validateEditorImageFile } from './RichTextEditor.images';
+import { maxInlineImageBytes } from './RichTextEditor.constants';
+import {
+  createUploadableImageFileUnderLimit,
+  editorImageInputAccept,
+  validateEditorImageFile,
+} from './RichTextEditor.images';
 import type { EditorGalleryImage } from './RichTextEditor.gallery';
 
 export type GalleryDialogImage = {
@@ -14,7 +19,9 @@ export type GalleryDialogImage = {
   caption: string;
   file?: File;
   id: string;
+  isCompressing?: boolean;
   previewUrl: string;
+  processingError?: string;
   url?: string;
 };
 
@@ -88,10 +95,32 @@ export function GalleryDialog({
       const accepted = results.flatMap((result) => result.status === 'fulfilled' ? [result.value] : []);
       const rejected = results.flatMap((result) => result.status === 'rejected' ? [result.reason] : []);
 
-      if (accepted.length > 0) setImages((current) => [...current, ...accepted]);
+      const pendingImages = accepted.map((image) => ({ ...image, isCompressing: true }));
+      if (pendingImages.length > 0) setImages((current) => [...current, ...pendingImages]);
       if (rejected.length > 0) {
         const firstError = rejected[0];
         setError(firstError instanceof Error ? firstError.message : '部分图片检查失败，请重新选择。');
+      }
+
+      for (const image of pendingImages) {
+        if (!image.file) continue;
+
+        try {
+          const compressedFile = await createUploadableImageFileUnderLimit(image.file, maxInlineImageBytes);
+          setImages((current) => current.map((currentImage) => (
+            currentImage.id === image.id
+              ? { ...currentImage, file: compressedFile, isCompressing: false, processingError: undefined }
+              : currentImage
+          )));
+        } catch (reason) {
+          const message = reason instanceof Error ? reason.message : '图片处理失败，请移除后重新选择。';
+          setImages((current) => current.map((currentImage) => (
+            currentImage.id === image.id
+              ? { ...currentImage, isCompressing: false, processingError: message }
+              : currentImage
+          )));
+          setError(message);
+        }
       }
     } finally {
       setIsCheckingFiles(false);
@@ -111,7 +140,7 @@ export function GalleryDialog({
   }
 
   async function insertGallery() {
-    if (images.length < 2 || isCheckingFiles || isUploading) {
+    if (images.length < 2 || isCheckingFiles || isUploading || images.some((image) => image.processingError)) {
       if (images.length < 2) setError('请至少选择两张图片。');
       return;
     }
@@ -146,7 +175,7 @@ export function GalleryDialog({
           <label className="gallery-dialog-title-field">
             <span>总标题（选填）</span>
             <input
-              disabled={isUploading}
+              disabled={isBusy}
               maxLength={80}
               onChange={(event) => setTitle(event.target.value)}
               placeholder="图廊标题"
@@ -161,7 +190,7 @@ export function GalleryDialog({
             type="button"
           >
             <UploadCloud size={18} />
-            {isCheckingFiles ? '正在检查图片' : images.length > 0 ? '继续添加图片' : '选择多张图片'}
+            {isCheckingFiles ? '正在处理图片' : images.length > 0 ? '继续添加图片' : '选择多张图片'}
           </button>
           <input
             ref={inputRef}
@@ -184,7 +213,7 @@ export function GalleryDialog({
                   <label>
                     <span>第 {index + 1} 张图注</span>
                     <input
-                      disabled={isUploading}
+                      disabled={isBusy}
                       maxLength={160}
                       onChange={(event) => updateCaption(image.id, event.target.value)}
                       placeholder="填写图注"
@@ -193,7 +222,7 @@ export function GalleryDialog({
                   </label>
                   <button
                     aria-label={`移除第 ${index + 1} 张图片`}
-                    disabled={isUploading}
+                    disabled={isBusy}
                     onClick={() => removeImage(image.id)}
                     type="button"
                   >
@@ -209,9 +238,9 @@ export function GalleryDialog({
 
         <footer>
           <span>{images.length} 张</span>
-          <button disabled={isUploading} onClick={onCancel} type="button">取消</button>
+          <button disabled={isBusy} onClick={onCancel} type="button">取消</button>
           <button disabled={images.length < 2 || isCheckingFiles || isUploading} onClick={insertGallery} type="button">
-            {isUploading ? '正在保存' : isEditing ? '保存图廊' : '上传并插入'}
+            {isUploading ? '正在上传' : isCheckingFiles ? '正在处理图片' : isEditing ? '保存图廊' : '上传并插入'}
           </button>
         </footer>
       </section>
