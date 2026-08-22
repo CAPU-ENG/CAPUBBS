@@ -39,7 +39,7 @@ import {
   type ManagementMute,
   type ManagementThread,
 } from '../api/management';
-import defaultAvatar from '../assets/avatar/default-avatar.avif';
+import defaultAvatar from '../assets/bg/bicycle.svg';
 import { AppBackground } from '../components/layout/AppBackground';
 import { TopBar } from '../components/layout/TopBar';
 import { useAuth } from '../context/AuthContext';

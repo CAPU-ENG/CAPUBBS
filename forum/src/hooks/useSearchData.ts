@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
-import defaultAvatar from '../assets/avatar/default-avatar.avif';
+import defaultAvatar from '../assets/bg/bicycle.svg';
 import { normalizeLegacyAvatar } from '../utils/legacyAssets';
 
 const SEARCH_API_URL = import.meta.env.VITE_API_URL?.trim() || '/api/api.php';

@@ -1,4 +1,4 @@
-import defaultAvatar from '../assets/avatar/default-avatar.avif';
+import defaultAvatar from '../assets/bg/bicycle.svg';
 import type { NestedReply, ThreadAuthor, ThreadFloorData } from '../data/threadDemo';
 import {
   forumMarkupToPlainText,

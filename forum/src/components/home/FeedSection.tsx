@@ -1,6 +1,6 @@
 import { ArrowDown, Eye, LoaderCircle, MessageCircle, RefreshCw } from 'lucide-react';
 import { useEffect } from 'react';
-import defaultAvatar from '../../assets/avatar/default-avatar.avif';
+import defaultAvatar from '../../assets/bg/bicycle.svg';
 import type { HomeThread } from '../../api/home';
 import type { HomeDataStatus } from '../../hooks/useHomeData';
 import { getThreadTitleClassName } from '../../utils/threadTitleTypography';

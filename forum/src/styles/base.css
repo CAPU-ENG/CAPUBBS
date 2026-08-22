@@ -92,4 +92,14 @@
   ::selection {
     background: color-mix(in srgb, var(--brand) 24%, transparent);
   }
+
+  /* The bicycle SVG is wide, so keep it fully visible in square avatar slots. */
+  img[src*="/bicycle"]:not(.profile-avatar-source) {
+    object-fit: contain !important;
+    padding: 8%;
+  }
+
+  .dark img[src*="/bicycle"] {
+    filter: brightness(0) invert(1);
+  }
 }

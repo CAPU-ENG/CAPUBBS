@@ -9,7 +9,7 @@ import {
   type PointerEvent,
 } from 'react';
 import { createPortal } from 'react-dom';
-import defaultAvatar from '../../assets/avatar/default-avatar.avif';
+import defaultAvatar from '../../assets/bg/bicycle.svg';
 
 type AvatarDialogProps = {
   avatarSrc: string;
