@@ -1329,13 +1329,24 @@
     background: var(--surface-raised);
   }
 
-  .management-member-card > strong {
+  .management-member-card > .management-member-id {
     min-width: 0;
     overflow: hidden;
     color: var(--text-strong);
     font-size: 0.67rem;
+    font-weight: 760;
     text-overflow: ellipsis;
     white-space: nowrap;
+  }
+
+  .management-member-card > .management-member-id:hover {
+    color: var(--brand-strong);
+  }
+
+  .management-member-card > .management-member-id:focus-visible {
+    border-radius: 2px;
+    outline: 2px solid color-mix(in srgb, var(--brand) 48%, transparent);
+    outline-offset: 2px;
   }
 
   .management-member-card > time {

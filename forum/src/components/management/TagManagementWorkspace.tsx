@@ -307,7 +307,7 @@ export function TagManagementWorkspace() {
               <div className="management-member-grid">
                 {sortedMembers.map((member) => (
                   <article className="management-member-card" key={member.username}>
-                    <strong>{member.username}</strong>
+                    <a className="management-member-id" href={member.href}>{member.username}</a>
                     <time>{formatTagAddedAt(member.addedAt)}</time>
                     <button aria-label={`从${activeTag?.name ?? '标签'}移除${member.username}`} className="management-member-remove" disabled={Boolean(pendingAction)} onClick={() => removeMember(member.username)} title="移除会员" type="button"><X size={15} /></button>
                   </article>
