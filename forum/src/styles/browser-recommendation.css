@@ -14,73 +14,64 @@
   width: min(292px, 100%);
   border: 1px solid var(--line);
   border-radius: 6px;
-  padding: 15px 17px 14px;
+  padding: 13px 15px 11px;
   background: var(--surface);
   text-align: left;
   pointer-events: auto;
 }
 
-.browser-recommendation-close {
-  position: absolute;
-  top: 7px;
-  right: 7px;
+.browser-recommendation-dialog p {
+  margin: 0;
+  color: var(--text-strong);
+  font-size: 0.78rem;
+  font-weight: 650;
+  line-height: 1.4;
+  text-align: center;
+  white-space: nowrap;
+}
+
+.browser-recommendation-actions {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  gap: 8px;
+  margin-top: 11px;
+}
+
+.browser-recommendation-actions button,
+.browser-recommendation-actions a {
   display: inline-flex;
-  width: 26px;
-  height: 26px;
+  min-height: 29px;
   align-items: center;
   justify-content: center;
   border-radius: var(--control-radius);
-  color: var(--text-faint);
+  padding: 0 10px;
+  border: 1px solid var(--line-strong);
+  background: var(--surface-soft);
+  color: var(--text-muted);
+  font-size: 0.72rem;
+  font-weight: 680;
 }
 
-.browser-recommendation-close:hover,
-.browser-recommendation-close:focus-visible {
+.browser-recommendation-actions button {
+  grid-column: 2;
+}
+
+.browser-recommendation-actions a {
+  grid-column: 3;
+  justify-self: end;
+  border: 1px solid var(--brand);
+  background: var(--brand);
+  color: #fff;
+}
+
+.browser-recommendation-actions button:hover,
+.browser-recommendation-actions button:focus-visible {
   color: var(--text-strong);
   background: var(--surface-soft);
 }
 
-.browser-recommendation-icon {
-  display: inline-flex;
-  width: 32px;
-  height: 32px;
-  align-items: center;
-  justify-content: center;
-  border-radius: 50%;
-  background: var(--brand-soft);
-  color: var(--brand);
-}
-
-.browser-recommendation-dialog h2 {
-  margin: 10px 0 5px;
-  color: var(--text-strong);
-  font-size: 0.88rem;
-  font-weight: 760;
-}
-
-.browser-recommendation-dialog p {
-  margin: 0;
-  color: var(--text-muted);
-  font-size: 0.74rem;
-  line-height: 1.5;
-}
-
-.browser-recommendation-download {
-  display: inline-flex;
-  min-height: 32px;
-  align-items: center;
-  justify-content: center;
-  gap: 7px;
-  margin-top: 12px;
-  border-radius: var(--control-radius);
-  padding: 0 13px;
-  background: var(--brand);
-  color: #fff;
-  font-size: 0.74rem;
-  font-weight: 720;
-}
-
-.browser-recommendation-download:hover,
-.browser-recommendation-download:focus-visible {
+.browser-recommendation-actions a:hover,
+.browser-recommendation-actions a:focus-visible {
   background: var(--brand-strong);
 }
 

@@ -1,4 +1,3 @@
-import { Download, X } from 'lucide-react';
 import { useEffect, useState } from 'react';
 
 const MOBILE_VIEWPORT_QUERY = '(max-width: 767px)';
@@ -38,27 +37,11 @@ export function BrowserRecommendationDialog() {
         className="browser-recommendation-dialog"
         role="dialog"
       >
-        <button
-          aria-label="关闭浏览器提示"
-          className="browser-recommendation-close"
-          onClick={dismiss}
-          type="button"
-        >
-          <X size={18} />
-        </button>
-        <div className="browser-recommendation-icon" aria-hidden="true">
-          <Download size={21} />
+        <p id="browser-recommendation-title">建议使用谷歌或火狐浏览器，以获得更好的体验</p>
+        <div className="browser-recommendation-actions">
+          <button onClick={dismiss} type="button">不再提示</button>
+          <a href="/archive-room?folder=%E5%B7%A5%E5%85%B7" onClick={dismiss}>下载</a>
         </div>
-        <h2 id="browser-recommendation-title">建议使用谷歌或火狐浏览器</h2>
-        <p>使用谷歌浏览器或火狐浏览器，获得更好的浏览体验。</p>
-        <a
-          className="browser-recommendation-download"
-          href="/archive-room?folder=%E5%B7%A5%E5%85%B7"
-          onClick={dismiss}
-        >
-          <Download size={16} />
-          前往下载
-        </a>
       </section>
     </div>
   );
