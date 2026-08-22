@@ -34,7 +34,7 @@ type PreviewImageState = {
   onImageChange?: ForumMarkupImageChangeHandler;
 };
 
-function AuthorCard({ author }: { author: ThreadAuthor }) {
+function AuthorCard({ author, id }: { author: ThreadAuthor; id: string }) {
   const tags = author.tags ?? getTagsForUser(author.name);
   const [tagsOverflow, setTagsOverflow] = useState(false);
   const cardRef = useRef<HTMLDivElement>(null);
@@ -74,7 +74,7 @@ function AuthorCard({ author }: { author: ThreadAuthor }) {
   }, [tagSignature, tags.length]);
 
   return (
-    <div ref={cardRef} className="author-hover-card" role="dialog" aria-label={`${author.name} 的用户摘要`}>
+    <div id={id} ref={cardRef} className="author-hover-card" role="dialog" aria-label={`${author.name} 的用户摘要`}>
       <div className="author-card-head">
         <img src={author.avatar} alt="" />
         <div className="author-card-head-copy">
@@ -169,6 +169,8 @@ export function ThreadFloor({
   const [nestedReplyPending, setNestedReplyPending] = useState(false);
   const [nestedReplyTarget, setNestedReplyTarget] = useState<string | null | undefined>(undefined);
   const [preview, setPreview] = useState<PreviewImageState | null>(null);
+  const [authorCardOpen, setAuthorCardOpen] = useState(false);
+  const avatarRailRef = useRef<HTMLDivElement | null>(null);
   const copyNoticeTimerRef = useRef<number | null>(null);
   const deleteTriggerRef = useRef<HTMLButtonElement | null>(null);
   const nestedReplyInputRef = useRef<HTMLTextAreaElement | null>(null);
@@ -188,6 +190,19 @@ export function ThreadFloor({
       if (copyNoticeTimerRef.current !== null) window.clearTimeout(copyNoticeTimerRef.current);
     };
   }, []);
+
+  useEffect(() => {
+    if (!authorCardOpen) return;
+
+    function closeAuthorCardOnOutsidePointer(event: PointerEvent) {
+      const avatarRail = avatarRailRef.current;
+      if (avatarRail?.contains(event.target as Node)) return;
+      setAuthorCardOpen(false);
+    }
+
+    document.addEventListener('pointerdown', closeAuthorCardOnOutsidePointer);
+    return () => document.removeEventListener('pointerdown', closeAuthorCardOnOutsidePointer);
+  }, [authorCardOpen]);
 
   async function copyFloorLink() {
     const link = `${window.location.origin}${window.location.pathname}${window.location.search}#${floor.floor}`;
@@ -302,11 +317,21 @@ export function ThreadFloor({
       data-floor={floor.floor}
       onCopy={copyAsPlainText}
     >
-      <div className="thread-avatar-rail">
-        <div className="thread-avatar-button">
+      <div
+        className={`thread-avatar-rail${authorCardOpen ? ' thread-avatar-rail-open' : ''}`}
+        ref={avatarRailRef}
+      >
+        <button
+          aria-controls={`author-card-${floor.floor}`}
+          aria-expanded={authorCardOpen}
+          aria-label={`查看${floor.author.name}的资料卡`}
+          className="thread-avatar-button"
+          onClick={() => setAuthorCardOpen((current) => !current)}
+          type="button"
+        >
           <img src={floor.author.avatar} alt="" />
-        </div>
-        <AuthorCard author={floor.author} />
+        </button>
+        <AuthorCard author={floor.author} id={`author-card-${floor.floor}`} />
       </div>
 
       <div className="thread-floor-main">
@@ -505,6 +530,7 @@ export function ThreadFloor({
         <ThreadImageLightbox
           images={preview.images}
           initialImageIndex={preview.imageIndex}
+          onImageChange={preview.onImageChange}
           onClose={closeImagePreview}
         />
       )}

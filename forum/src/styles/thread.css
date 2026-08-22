@@ -788,6 +788,10 @@
     z-index: 80;
   }
 
+  .thread-avatar-rail-open {
+    z-index: 80;
+  }
+
   .thread-avatar-button {
     display: block;
     width: 44px;
@@ -796,6 +800,16 @@
     border-radius: 2px;
     background: var(--surface-soft);
     box-shadow: 0 3px 10px rgb(20 32 24 / 0.08);
+  }
+
+  button.thread-avatar-button {
+    padding: 0;
+    cursor: pointer;
+  }
+
+  button.thread-avatar-button:focus-visible {
+    outline: 2px solid var(--brand);
+    outline-offset: 3px;
   }
 
   .thread-avatar-button img {
@@ -832,6 +846,10 @@
   }
 
   .thread-avatar-rail:hover .author-hover-card {
+    display: block;
+  }
+
+  .thread-avatar-rail.thread-avatar-rail-open .author-hover-card {
     display: block;
   }
 
@@ -2308,6 +2326,14 @@
       width: auto;
     }
 
+    .thread-avatar-rail:hover .author-hover-card {
+      display: none;
+    }
+
+    .thread-avatar-rail.thread-avatar-rail-open .author-hover-card {
+      display: block;
+    }
+
     .thread-floor-header {
       display: grid;
       min-height: 44px;
@@ -2510,6 +2536,10 @@
   @media (hover: none) {
     .thread-avatar-rail:hover .author-hover-card {
       display: none;
+    }
+
+    .thread-avatar-rail.thread-avatar-rail-open .author-hover-card {
+      display: block;
     }
 
   }
