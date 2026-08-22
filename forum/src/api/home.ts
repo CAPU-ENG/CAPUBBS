@@ -177,11 +177,14 @@ function mapThreadRow(row: ApiRow, linkToLatestFloor = false): HomeThread | null
   const replies = toNumber(row.reply);
   const targetFloor = replies + 1;
   const timestamp = toTimestamp(row.timestamp ?? row.postdate);
-  const rawSummary = typeof row.text === 'string' ? row.text : '';
-  const summary = excerptText(rawSummary) || (
-    bid === 1
-      ? '该版块的回复摘要仅对登录用户可见。'
-      : '暂无可显示的回复摘要。'
+  const rawSummary = typeof row.text === 'string' ? row.text : null;
+  const textSummary = rawSummary === null ? '' : excerptText(rawSummary);
+  const summary = textSummary || (
+    rawSummary !== null && rawSummary.trim()
+      ? '【非文字内容】'
+      : bid === 1
+        ? '该版块的回复摘要仅对登录用户可见。'
+        : '暂无可显示的回复摘要。'
   );
 
   return {
