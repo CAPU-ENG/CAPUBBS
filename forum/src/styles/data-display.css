@@ -872,6 +872,69 @@
     color: var(--brand-strong);
   }
 
+  .tag-summary-date-filter-bar {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 7px;
+    padding: 9px 18px;
+    border-bottom: 1px solid var(--line);
+    background: var(--surface-soft);
+  }
+
+  .tag-summary-date-filter-title,
+  .tag-summary-date-filter-bar label > span,
+  .tag-summary-date-filter-separator {
+    color: var(--text-faint);
+    font-size: 0.62rem;
+    font-weight: 700;
+  }
+
+  .tag-summary-date-filter-bar label {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+  }
+
+  .tag-summary-date-filter-bar input {
+    width: 132px;
+    height: 30px;
+    border: 1px solid var(--line);
+    border-radius: 2px;
+    padding: 0 7px;
+    background: var(--surface-raised);
+    color: var(--text);
+    font-size: 0.65rem;
+    outline: none;
+    transition: 140ms ease;
+  }
+
+  .tag-summary-date-filter-bar input:focus {
+    border-color: var(--brand);
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--brand) 14%, transparent);
+  }
+
+  .tag-summary-date-filter-clear {
+    display: inline-flex;
+    width: 28px;
+    height: 28px;
+    align-items: center;
+    justify-content: center;
+    border-radius: 2px;
+    color: var(--text-faint);
+  }
+
+  .tag-summary-date-filter-clear:hover,
+  .tag-summary-date-filter-clear:focus-visible {
+    background: var(--surface-raised);
+    color: var(--text-strong);
+  }
+
+  .tag-summary-date-filter-error {
+    color: var(--danger);
+    font-size: 0.62rem;
+  }
+
   .tag-summary-avatar-loading {
     margin-left: auto;
     color: var(--text-faint);
@@ -1029,6 +1092,20 @@
 
     .tag-summary-sort-bar {
       padding-inline: 14px;
+    }
+
+    .tag-summary-date-filter-bar {
+      align-items: stretch;
+      padding-inline: 14px;
+    }
+
+    .tag-summary-date-filter-bar label {
+      flex: 1 1 0;
+    }
+
+    .tag-summary-date-filter-bar input {
+      min-width: 0;
+      width: 100%;
     }
 
     .tag-summary-sort-bar button {

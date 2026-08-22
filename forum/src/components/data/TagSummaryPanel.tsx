@@ -1,4 +1,4 @@
-import { ArrowDownAZ, CircleHelp, Clock3, Search, Tags } from 'lucide-react';
+import { ArrowDownAZ, CircleHelp, Clock3, Search, Tags, X } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 import {
   fetchTagDefinitions,
@@ -27,12 +27,24 @@ export function TagSummaryPanel() {
   const [queryStatus, setQueryStatus] = useState<LoadStatus>('ready');
   const [queryError, setQueryError] = useState('');
   const [sortOrder, setSortOrder] = useState<SortOrder>('acquiredAt');
+  const [startDate, setStartDate] = useState('');
+  const [endDate, setEndDate] = useState('');
 
+  const dateRangeError = startDate && endDate && startDate > endDate ? '开始日期不能晚于结束日期' : '';
+  const filteredMembers = useMemo(
+    () => members.filter((member) => {
+      const acquiredDate = toDateInputValue(member.addedAt);
+      if (dateRangeError) return false;
+      if (!acquiredDate) return !startDate && !endDate;
+      return (!startDate || acquiredDate >= startDate) && (!endDate || acquiredDate <= endDate);
+    }),
+    [dateRangeError, endDate, members, startDate],
+  );
   const sortedMembers = useMemo(
-    () => [...members].sort((left, right) => sortOrder === 'id'
+    () => [...filteredMembers].sort((left, right) => sortOrder === 'id'
       ? MEMBER_ID_COLLATOR.compare(left.username, right.username)
       : right.addedAt - left.addedAt || MEMBER_ID_COLLATOR.compare(left.username, right.username)),
-    [members, sortOrder],
+    [filteredMembers, sortOrder],
   );
   const sortedDefinitions = useMemo(
     () => [...definitions].sort((left, right) => TAG_NAME_COLLATOR.compare(left.name, right.name) || MEMBER_ID_COLLATOR.compare(left.id, right.id)),
@@ -78,6 +90,8 @@ export function TagSummaryPanel() {
       setMembers(await fetchTagSummary(includedIds, excludedIds));
       setHasQueried(true);
       setSortOrder('acquiredAt');
+      setStartDate('');
+      setEndDate('');
       setQueryStatus('ready');
     } catch (error) {
       if (isAbortError(error)) return;
@@ -100,7 +114,7 @@ export function TagSummaryPanel() {
             <span>支持组合筛选查询</span>
           </span>
         </span>
-        {hasQueried && <span className="data-display-card-count">{members.length} 位会员</span>}
+        {hasQueried && <span className="data-display-card-count">{sortedMembers.length} 位会员</span>}
       </header>
       <div className="tag-summary-filter-area">
         <div className="tag-summary-filter-list">
@@ -130,6 +144,14 @@ export function TagSummaryPanel() {
           <div className="tag-summary-sort-bar">
             <button aria-pressed={sortOrder === 'acquiredAt'} className={sortOrder === 'acquiredAt' ? 'tag-summary-sort-active' : ''} onClick={() => setSortOrder('acquiredAt')} type="button"><Clock3 size={14} />获取时间</button>
             <button aria-pressed={sortOrder === 'id'} className={sortOrder === 'id' ? 'tag-summary-sort-active' : ''} onClick={() => setSortOrder('id')} type="button"><ArrowDownAZ size={14} />ID</button>
+          </div>
+          <div className="tag-summary-date-filter-bar">
+            <span className="tag-summary-date-filter-title">获取时间</span>
+            <label><span>从</span><input aria-label="获取时间开始日期" max={endDate || undefined} onChange={(event) => setStartDate(event.target.value)} type="date" value={startDate} /></label>
+            <span className="tag-summary-date-filter-separator">至</span>
+            <label><span>到</span><input aria-label="获取时间结束日期" min={startDate || undefined} onChange={(event) => setEndDate(event.target.value)} type="date" value={endDate} /></label>
+            {(startDate || endDate) && <button aria-label="清除获取时间筛选" className="tag-summary-date-filter-clear" onClick={() => { setStartDate(''); setEndDate(''); }} title="清除日期筛选" type="button"><X size={14} /></button>}
+            {dateRangeError && <span aria-live="polite" className="tag-summary-date-filter-error">{dateRangeError}</span>}
           </div>
           <div className="tag-summary-member-grid">
             {sortedMembers.map((member) => (
@@ -164,6 +186,16 @@ function formatDate(value: number) {
 
 function toIsoDate(value: number) {
   return value > 0 ? new Date(value * 1000).toISOString() : '';
+}
+
+function toDateInputValue(value: number) {
+  if (!value) return '';
+  const date = new Date(value * 1000);
+  if (Number.isNaN(date.getTime())) return '';
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
 }
 
 function errorMessage(error: unknown, fallback: string) {
