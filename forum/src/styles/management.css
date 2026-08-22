@@ -1193,6 +1193,21 @@
     gap: 10px;
   }
 
+  .management-tag-definition-button {
+    display: inline-flex;
+    align-items: center;
+    border: 1px solid transparent;
+    border-radius: 999px;
+    padding: 3px;
+    background: transparent;
+  }
+
+  .management-tag-definition-button:hover,
+  .management-tag-definition-button-selected {
+    border-color: color-mix(in srgb, var(--brand) 46%, var(--line));
+    background: var(--brand-faint);
+  }
+
   .management-tag-definition-card {
     display: flex;
     min-width: 180px;
@@ -1266,43 +1281,26 @@
   }
 
   .management-member-list {
-    max-height: 300px;
-    margin-top: 12px;
-  }
-
-  .management-member-filter-row {
-    display: grid;
-    grid-template-columns: 18px minmax(0, 1fr);
-    align-items: center;
-    gap: 5px;
-    min-height: 40px;
-    border-bottom: 1px solid var(--line);
-    padding: 3px 5px;
-  }
-
-  .management-member-filter-row > input {
-    accent-color: var(--brand-strong);
-  }
-
-  .management-member-filter-row > button {
     display: flex;
-    min-width: 0;
+    flex-wrap: wrap;
+    max-height: none;
+    margin-top: 12px;
+    gap: 8px;
+  }
+
+  .management-member-filter-tag {
+    display: inline-flex;
     align-items: center;
-    justify-content: space-between;
-    gap: 6px;
-    color: var(--text-muted);
-    text-align: left;
+    border: 1px solid transparent;
+    border-radius: 999px;
+    padding: 3px;
+    background: transparent;
   }
 
-  .management-member-filter-row > button:hover,
-  .management-member-filter-selected > button {
-    color: var(--brand-strong);
-  }
-
-  .management-member-filter-row small {
-    flex: 0 0 auto;
-    color: var(--text-faint);
-    font-size: 0.57rem;
+  .management-member-filter-tag:hover,
+  .management-member-filter-tag-selected {
+    border-color: color-mix(in srgb, var(--brand) 46%, var(--line));
+    background: var(--brand-faint);
   }
 
   .management-member-tag-editor {

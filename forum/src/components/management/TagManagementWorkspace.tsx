@@ -1,4 +1,4 @@
-import { Check, Pencil, Plus, Tags, Trash2, UserMinus, UserPlus, Users, X } from 'lucide-react';
+import { Check, Plus, Tags, Trash2, UserMinus, UserPlus, Users, X } from 'lucide-react';
 import { useEffect, useMemo, useState, type FormEvent, type ReactNode } from 'react';
 import {
   readTagDefinitions,
@@ -18,9 +18,9 @@ type NoticeKind = 'error' | 'info' | 'success';
 export function TagManagementWorkspace() {
   const [definitions, setDefinitions] = useState<TagDefinition[]>(readTagDefinitions);
   const [assignments, setAssignments] = useState<UserTagAssignments>(readUserTagAssignments);
-  const [selectedTagIds, setSelectedTagIds] = useState<string[]>(() => {
+  const [selectedTagId, setSelectedTagId] = useState(() => {
     const firstTag = readTagDefinitions()[0];
-    return firstTag ? [firstTag.id] : [];
+    return firstTag?.id ?? '';
   });
   const [editingId, setEditingId] = useState<string | null>(null);
   const [draftName, setDraftName] = useState('');
@@ -34,19 +34,16 @@ export function TagManagementWorkspace() {
     () => Object.keys(assignments).sort((left, right) => MEMBER_ID_COLLATOR.compare(left, right)),
     [assignments],
   );
-  const activeTagId = selectedTagIds[0] ?? definitions[0]?.id ?? '';
+  const activeTagId = selectedTagId || definitions[0]?.id || '';
   const activeTag = definitions.find((tag) => tag.id === activeTagId) ?? null;
   const editingTag = definitions.find((tag) => tag.id === editingId) ?? null;
   const filteredMemberIds = useMemo(
-    () => memberIds.filter((username) => selectedTagIds.length > 0 && selectedTagIds.every((tagId) => Boolean(assignments[username]?.[tagId]))),
-    [assignments, memberIds, selectedTagIds],
+    () => memberIds.filter((username) => Boolean(activeTagId && assignments[username]?.[activeTagId])),
+    [activeTagId, assignments, memberIds],
   );
 
   useEffect(() => {
-    setSelectedTagIds((current) => {
-      const valid = current.filter((id) => definitions.some((tag) => tag.id === id));
-      return valid.length > 0 ? valid : definitions[0] ? [definitions[0].id] : [];
-    });
+    setSelectedTagId((current) => definitions.some((tag) => tag.id === current) ? current : definitions[0]?.id ?? '');
   }, [definitions]);
 
   function startCreate() {
@@ -58,7 +55,7 @@ export function TagManagementWorkspace() {
 
   function startEdit(tag: TagDefinition) {
     setEditingId(tag.id);
-    setSelectedTagIds([tag.id]);
+    setSelectedTagId(tag.id);
     setDraftName(tag.name);
     setDraftColor(tag.color);
     setNotice(null);
@@ -82,9 +79,10 @@ export function TagManagementWorkspace() {
     }
 
     if (editingId === 'new') {
-      const next = [...definitions, { id: createTagId(name, definitions), name, color: draftColor }];
+      const id = createTagId(name, definitions);
+      const next = [...definitions, { id, name, color: draftColor }];
       setDefinitions(next);
-      setSelectedTagIds((current) => current.length > 0 ? current : [next[0].id]);
+      setSelectedTagId(id);
       writeTagDefinitions(next);
       setNotice({ kind: 'success', text: '标签已创建。' });
     } else if (editingTag) {
@@ -115,17 +113,7 @@ export function TagManagementWorkspace() {
   }
 
   function selectTag(tagId: string) {
-    setSelectedTagIds([tagId]);
-  }
-
-  function toggleTagFilter(tagId: string) {
-    setSelectedTagIds((current) => {
-      if (current.includes(tagId)) {
-        const next = current.filter((id) => id !== tagId);
-        return next.length > 0 ? next : [tagId];
-      }
-      return [...current, tagId];
-    });
+    setSelectedTagId(tagId);
   }
 
   function appendMember(event: FormEvent<HTMLFormElement>) {
@@ -185,21 +173,14 @@ export function TagManagementWorkspace() {
             <form className="management-tag-editor" onSubmit={saveTag}>
               <label><span>名称</span><input autoFocus maxLength={20} onChange={(event) => setDraftName(event.target.value)} value={draftName} /></label>
               <label><span>颜色</span><input aria-label="标签颜色" onChange={(event) => setDraftColor(event.target.value)} type="color" value={draftColor} /></label>
-              <div><button className="management-primary-button" type="submit">保存</button><button className="management-secondary-button" onClick={cancelEdit} type="button">取消</button></div>
+              <div><button className="management-primary-button" type="submit">保存</button><button className="management-secondary-button" onClick={cancelEdit} type="button">取消</button>{editingTag && <button className="management-danger-button" onClick={() => removeTag(editingTag)} type="button"><Trash2 size={14} />删除</button>}</div>
             </form>
           )}
           <div className="management-tag-definition-list">
             {definitions.map((tag) => (
-              <article className={`management-tag-definition-card ${editingId === tag.id ? 'management-tag-definition-card-selected' : ''}`} key={tag.id}>
-                <button className="management-tag-definition-select" onClick={() => startEdit(tag)} type="button">
-                  <TagBadge tag={tag} />
-                  <span>{Object.values(assignments).filter((tags) => Boolean(tags[tag.id])).length} 位会员</span>
-                </button>
-                <div>
-                  <button aria-label={`编辑${tag.name}`} className="management-icon-button" onClick={() => startEdit(tag)} title="编辑标签" type="button"><Pencil size={14} /></button>
-                  <button aria-label={`删除${tag.name}`} className="management-icon-button management-icon-danger" onClick={() => removeTag(tag)} title="删除标签" type="button"><Trash2 size={14} /></button>
-                </div>
-              </article>
+              <button className={`management-tag-definition-button ${editingId === tag.id ? 'management-tag-definition-button-selected' : ''}`} key={tag.id} onClick={() => startEdit(tag)} type="button">
+                <TagBadge tag={tag} />
+              </button>
             ))}
             {definitions.length === 0 && <EmptyState icon={<Tags size={18} />}>还没有标签。</EmptyState>}
           </div>
@@ -213,20 +194,17 @@ export function TagManagementWorkspace() {
         </header>
         <div className="management-member-tag-layout">
           <aside className="management-member-picker" aria-label="标签筛选">
-            <div className="management-member-filter-heading"><span>标签筛选</span><small>{selectedTagIds.length} 个已选</small></div>
+            <div className="management-member-filter-heading"><span>标签筛选</span><small>单选</small></div>
             <div className="management-member-list">
               {definitions.map((tag) => (
-                <div className={`management-member-filter-row ${selectedTagIds.includes(tag.id) ? 'management-member-filter-selected' : ''}`} key={tag.id}>
-                  <input aria-label={`筛选${tag.name}`} checked={selectedTagIds.includes(tag.id)} onChange={() => toggleTagFilter(tag.id)} type="checkbox" />
-                  <button onClick={() => selectTag(tag.id)} type="button"><TagBadge size="compact" tag={tag} /><small>{Object.values(assignments).filter((tags) => Boolean(tags[tag.id])).length}</small></button>
-                </div>
+                <button className={`management-member-filter-tag ${selectedTagId === tag.id ? 'management-member-filter-tag-selected' : ''}`} key={tag.id} onClick={() => selectTag(tag.id)} type="button"><TagBadge size="compact" tag={tag} /></button>
               ))}
               {definitions.length === 0 && <EmptyState icon={<Tags size={18} />}>还没有标签。</EmptyState>}
             </div>
           </aside>
           <div className="management-member-tag-editor">
             <div className="management-member-results-heading">
-              <div><strong>{selectedTagIds.map((id) => definitions.find((tag) => tag.id === id)?.name).filter(Boolean).join(' + ') || '会员列表'}</strong><span>{filteredMemberIds.length} 位会员</span></div>
+              <div><strong>{activeTag?.name ?? '会员列表'}</strong><span>{filteredMemberIds.length} 位会员</span></div>
               <span>显示标签添加时间</span>
             </div>
             {filteredMemberIds.length > 0 ? (
