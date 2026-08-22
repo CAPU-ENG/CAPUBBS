@@ -42,17 +42,28 @@ export function ArchiveRoomPage() {
   const [dialogBusy, setDialogBusy] = useState(false);
   const [folderOptions, setFolderOptions] = useState<FolderOption[]>([]);
   const [foldersLoading, setFoldersLoading] = useState(false);
+  const requestedFolderName = new URLSearchParams(window.location.search).get('folder')?.trim() ?? '';
+  const [resolvedRequestedFolder, setResolvedRequestedFolder] = useState(false);
 
   const loadListing = useCallback(async (nextParentKey: string | null, signal?: AbortSignal) => {
     setLoading(true); setError('');
     try {
       const listing = await fetchArchiveListing(nextParentKey, signal);
+      if (!nextParentKey && requestedFolderName && !resolvedRequestedFolder) {
+        const requestedFolder = listing.entries.find((entry) => entry.entryType === 'folder' && entry.name === requestedFolderName);
+        if (requestedFolder) {
+          setResolvedRequestedFolder(true);
+          setParentKey(requestedFolder.entryKey);
+          return;
+        }
+        setResolvedRequestedFolder(true);
+      }
       setEntries(listing.entries); setBreadcrumbs(listing.breadcrumbs); setServerCanManage(listing.canManage);
     } catch (requestError) {
       if (requestError instanceof DOMException && requestError.name === 'AbortError') return;
       setError(getErrorMessage(requestError)); setEntries([]);
     } finally { if (!signal?.aborted) setLoading(false); }
-  }, []);
+  }, [requestedFolderName, resolvedRequestedFolder]);
 
   useEffect(() => {
     if (!isAuthenticated) { setEntries([]); setServerCanManage(false); setLoading(false); return; }

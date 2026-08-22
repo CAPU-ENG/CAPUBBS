@@ -1,0 +1,91 @@
+.browser-recommendation-backdrop {
+  position: fixed;
+  z-index: 50;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  background: rgb(16 24 19 / 48%);
+}
+
+.browser-recommendation-dialog {
+  position: relative;
+  width: min(340px, 100%);
+  border: 1px solid var(--line);
+  border-radius: var(--control-radius);
+  padding: 28px 24px 24px;
+  background: var(--surface);
+  box-shadow: var(--shadow-float);
+  text-align: center;
+}
+
+.browser-recommendation-close {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  display: inline-flex;
+  width: 30px;
+  height: 30px;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--control-radius);
+  color: var(--text-faint);
+}
+
+.browser-recommendation-close:hover,
+.browser-recommendation-close:focus-visible {
+  color: var(--text-strong);
+  background: var(--surface-soft);
+}
+
+.browser-recommendation-icon {
+  display: inline-flex;
+  width: 46px;
+  height: 46px;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: var(--brand-soft);
+  color: var(--brand);
+}
+
+.browser-recommendation-dialog h2 {
+  margin: 18px 0 8px;
+  color: var(--text-strong);
+  font-size: 1.02rem;
+  font-weight: 760;
+}
+
+.browser-recommendation-dialog p {
+  margin: 0;
+  color: var(--text-muted);
+  font-size: 0.82rem;
+  line-height: 1.65;
+}
+
+.browser-recommendation-download {
+  display: inline-flex;
+  min-height: 38px;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  margin-top: 20px;
+  border-radius: var(--control-radius);
+  padding: 0 18px;
+  background: var(--brand);
+  color: #fff;
+  font-size: 0.8rem;
+  font-weight: 720;
+}
+
+.browser-recommendation-download:hover,
+.browser-recommendation-download:focus-visible {
+  background: var(--brand-strong);
+}
+
+@media (min-width: 768px) {
+  .browser-recommendation-backdrop {
+    display: none;
+  }
+}

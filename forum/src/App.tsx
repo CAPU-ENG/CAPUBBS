@@ -1,5 +1,6 @@
 import { lazy, Suspense, useEffect, useReducer } from 'react';
 import { AuthProvider } from './context/AuthContext';
+import { BrowserRecommendationDialog } from './components/browser/BrowserRecommendationDialog';
 import { HomePage } from './pages/HomePage';
 import { FORUM_LOCATION_CHANGE_EVENT } from './utils/authRoutes';
 import { resolveForumAppRoute } from './utils/forumNavigation';
@@ -77,6 +78,7 @@ const UserCenterPage = lazy(() => loadUserCenterPage()
 export function App() {
   return (
     <AuthProvider>
+      <BrowserRecommendationDialog />
       <Suspense fallback={null}>
         <ForumRouter />
       </Suspense>
