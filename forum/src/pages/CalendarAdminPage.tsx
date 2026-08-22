@@ -16,6 +16,7 @@ import { AppBackground } from '../components/layout/AppBackground';
 import { TopBar } from '../components/layout/TopBar';
 import { useAuth } from '../context/AuthContext';
 import { canManageCalendar, saveCalendarEventsForDate } from '../utils/calendarManagement';
+import { getLoginPathWithReturnTo, getRegisterPathWithReturnTo } from '../utils/authRoutes';
 
 type CalendarFormState = {
   date: string;
@@ -214,7 +215,7 @@ export function CalendarAdminPage() {
         {authPending ? (
           <CalendarAdminState icon={<LoaderCircle className="animate-spin" size={22} />} title="正在确认管理权限" />
         ) : !isAuthorized ? (
-          <CalendarAdminState icon={<ShieldAlert size={22} />} title="无法进入日历管理">
+          <CalendarAdminState authStatus={authStatus} icon={<ShieldAlert size={22} />} title="无法进入日历管理">
             此页面仅供 ID 为“组织部”的会员使用。
           </CalendarAdminState>
         ) : (
@@ -339,10 +340,12 @@ export function CalendarAdminPage() {
 }
 
 function CalendarAdminState({
+  authStatus,
   children,
   icon,
   title,
 }: {
+  authStatus?: string;
   children?: string;
   icon: React.ReactNode;
   title: string;
@@ -352,7 +355,11 @@ function CalendarAdminState({
       <span>{icon}</span>
       <h1>{title}</h1>
       {children ? <p>{children}</p> : null}
-      <a href="/"><ArrowLeft size={15} />返回首页</a>
+      <div className="calendar-admin-state-actions">
+        <a href="/"><ArrowLeft size={15} />返回首页</a>
+        {authStatus === 'guest' && <a href={getLoginPathWithReturnTo()}>前往登录</a>}
+        {authStatus === 'guest' && <a href={getRegisterPathWithReturnTo()}>注册账号</a>}
+      </div>
     </section>
   );
 }

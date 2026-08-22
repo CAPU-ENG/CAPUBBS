@@ -108,7 +108,8 @@
   }
 
   .auth-submit,
-  .topbar-login-link {
+  .topbar-login-link,
+  .topbar-register-link {
     display: inline-flex;
     align-items: center;
     justify-content: center;
@@ -126,7 +127,8 @@
   }
 
   .auth-submit:hover,
-  .topbar-login-link:hover {
+  .topbar-login-link:hover,
+  .topbar-register-link:hover {
     background: var(--brand);
   }
 
@@ -157,6 +159,15 @@
     font-size: 0.78rem;
   }
 
+  .topbar-register-link {
+    min-height: 36px;
+    border: 1px solid var(--brand);
+    padding: 0 12px;
+    background: var(--surface-raised);
+    color: var(--brand-strong);
+    font-size: 0.78rem;
+  }
+
   .auth-session-loading {
     display: inline-flex;
     width: 40px;
@@ -170,6 +181,12 @@
 @layer utilities {
   @media (max-width: 640px) {
     .topbar-login-link {
+      min-height: 34px;
+      padding: 0 9px;
+      font-size: 0.73rem;
+    }
+
+    .topbar-register-link {
       min-height: 34px;
       padding: 0 9px;
       font-size: 0.73rem;

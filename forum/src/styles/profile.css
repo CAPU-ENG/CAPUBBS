@@ -1520,6 +1520,19 @@
     font-weight: 720;
   }
 
+  .profile-auth-actions {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 8px;
+  }
+
+  .profile-auth-actions a + a {
+    border-color: var(--line-strong);
+    background: var(--surface-raised);
+    color: var(--brand-strong);
+  }
+
   .profile-loading-icon {
     animation: profile-loading-spin 0.9s linear infinite;
   }

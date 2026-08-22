@@ -960,6 +960,13 @@
     font-size: 0.7rem;
     font-weight: 720;
   }
+
+  .management-state-actions {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 8px;
+  }
 }
 
 @layer utilities {

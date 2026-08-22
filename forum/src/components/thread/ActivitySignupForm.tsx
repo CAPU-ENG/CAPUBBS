@@ -25,6 +25,7 @@ type ActivitySignupFormProps = {
   floors: ThreadFloorData[];
   locked: boolean;
   loginHref: string;
+  registerHref: string;
   signatures: string[];
   threadTitle: string;
   tid: number;
@@ -37,6 +38,7 @@ export function ActivitySignupForm({
   floors,
   locked,
   loginHref,
+  registerHref,
   signatures,
   threadTitle,
   tid,
@@ -208,7 +210,10 @@ export function ActivitySignupForm({
                 )}
               </>
             ) : (
-              <a href={loginHref}><LogIn size={15} />登录后报名</a>
+              <>
+                <a href={loginHref}><LogIn size={15} />登录后报名</a>
+                <a href={registerHref}>注册账号</a>
+              </>
             )}
           </div>
         </footer>

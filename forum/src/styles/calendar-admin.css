@@ -513,6 +513,13 @@
   .calendar-admin-state a {
     margin-top: 20px;
   }
+
+  .calendar-admin-state-actions {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 8px;
+  }
 }
 
 @layer utilities {

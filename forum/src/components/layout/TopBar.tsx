@@ -10,6 +10,7 @@ import {
   Search,
   Settings,
   Sun,
+  UserPlus,
   UserRound,
 } from 'lucide-react';
 import defaultAvatar from '../../assets/avatar/default-avatar.avif';
@@ -17,7 +18,7 @@ import logo1 from '../../assets/logo/logo1.webp';
 import logo2 from '../../assets/logo/logo2.webp';
 import { DesktopBoardDrawer, MobileBoardSidebar } from './BoardNavigation';
 import { useAuth } from '../../context/AuthContext';
-import { getLoginPathWithReturnTo } from '../../utils/authRoutes';
+import { getLoginPathWithReturnTo, getRegisterPathWithReturnTo } from '../../utils/authRoutes';
 import { USER_CENTER_PATH } from '../../utils/userRoutes';
 import { MessageCenter } from '../messages/MessageCenter';
 import { getBoardById } from '../../data/boards';
@@ -370,9 +371,14 @@ export function TopBar({
                 <LoaderCircle className="animate-spin" size={17} />
               </span>
             ) : authStatus === 'guest' ? (
-              <a className="topbar-login-link" href={getLoginPathWithReturnTo()}>
-                <LogIn size={15} />登录
-              </a>
+              <>
+                <a className="topbar-login-link" href={getLoginPathWithReturnTo()}>
+                  <LogIn size={15} />登录
+                </a>
+                <a className="topbar-register-link" href={getRegisterPathWithReturnTo()}>
+                  <UserPlus size={15} />注册
+                </a>
+              </>
             ) : (
               <div className="relative" ref={profileMenuRef}>
                 <button

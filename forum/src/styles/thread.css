@@ -1628,6 +1628,13 @@
     font-weight: 720;
   }
 
+  .thread-reply-auth-actions {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 8px;
+  }
+
   .thread-request-spinner {
     width: 22px;
     height: 22px;

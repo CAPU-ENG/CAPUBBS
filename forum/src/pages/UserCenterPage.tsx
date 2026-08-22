@@ -36,6 +36,7 @@ import {
   type StoredThreadComposeDraft,
 } from '../utils/threadComposeDraftStorage';
 import { getPublicProfilePath, USER_CENTER_PATH } from '../utils/userRoutes';
+import { getAuthPathWithReturnTo } from '../utils/authRoutes';
 import { getThreadComposeHref } from '../utils/threadRoutes';
 
 type OpenDialog = 'avatar' | 'email' | 'security' | null;
@@ -202,7 +203,8 @@ export function UserCenterPage() {
       <ProfileLoadPage
         error={loginRequired ? '登录后才能查看和修改个人资料。' : profileState.error}
         loading={!loginRequired && (authPending || profileState.status === 'loading')}
-        loginHref={loginRequired ? `/login?returnTo=${encodeURIComponent(USER_CENTER_PATH)}` : undefined}
+        loginHref={loginRequired ? getAuthPathWithReturnTo('/login', USER_CENTER_PATH) : undefined}
+        registerHref={loginRequired ? getAuthPathWithReturnTo('/register', USER_CENTER_PATH) : undefined}
         onRetry={profileState.reload}
       />
     );
@@ -302,11 +304,13 @@ function ProfileLoadPage({
   error,
   loginHref,
   loading,
+  registerHref,
   onRetry,
 }: {
   error: string;
   loginHref?: string;
   loading: boolean;
+  registerHref?: string;
   onRetry: () => void;
 }) {
   return (
@@ -318,7 +322,12 @@ function ProfileLoadPage({
           {loading ? <LoaderCircle className="profile-loading-icon" size={34} /> : null}
           <h1>{loading ? '正在确认登录状态' : loginHref ? '请先登录' : '个人资料加载失败'}</h1>
           {!loading ? <p>{error}</p> : null}
-          {!loading && loginHref ? <a href={loginHref}>前往登录</a> : null}
+          {!loading && loginHref ? (
+            <div className="profile-auth-actions">
+              <a href={loginHref}>前往登录</a>
+              {registerHref ? <a href={registerHref}>注册账号</a> : null}
+            </div>
+          ) : null}
           {!loading && !loginHref ? <button type="button" onClick={onRetry}><RefreshCw size={15} />重新加载</button> : null}
         </section>
       </main>

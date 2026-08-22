@@ -24,7 +24,7 @@ import {
   type ThreadAttachmentInfo,
 } from '../api/thread';
 import { useAuth } from '../context/AuthContext';
-import { getLoginPathWithReturnTo } from '../utils/authRoutes';
+import { getLoginPathWithReturnTo, getRegisterPathWithReturnTo } from '../utils/authRoutes';
 import { getThreadFloorHref } from '../utils/threadRoutes';
 
 type EditRequest = {
@@ -196,6 +196,7 @@ export function ThreadEditPage() {
             backHref={backHref}
             description={loadError}
             loginHref={authStatus === 'guest' ? getLoginPathWithReturnTo() : undefined}
+            registerHref={authStatus === 'guest' ? getRegisterPathWithReturnTo() : undefined}
             title="暂时无法进入编辑"
           />
         ) : !floor ? (
@@ -288,11 +289,13 @@ function EditRequestState({
   backHref,
   description,
   loginHref,
+  registerHref,
   title,
 }: {
   backHref: string;
   description: string;
   loginHref?: string;
+  registerHref?: string;
   title: string;
 }) {
   return (
@@ -302,6 +305,7 @@ function EditRequestState({
       <div>
         <a href={backHref}>返回帖子</a>
         {loginHref && <a className="thread-edit-login-link" href={loginHref}>前往登录</a>}
+        {registerHref && <a className="thread-edit-register-link" href={registerHref}>注册账号</a>}
       </div>
     </section>
   );

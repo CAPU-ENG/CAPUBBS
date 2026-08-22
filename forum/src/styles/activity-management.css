@@ -610,6 +610,13 @@
     margin-top: 18px;
   }
 
+  .activity-management-state-actions {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 8px;
+  }
+
   .activity-management-state a,
   .activity-management-state button {
     display: inline-flex;

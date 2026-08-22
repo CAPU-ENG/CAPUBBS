@@ -44,6 +44,7 @@ import { AppBackground } from '../components/layout/AppBackground';
 import { TopBar } from '../components/layout/TopBar';
 import { useAuth } from '../context/AuthContext';
 import { ALL_BOARDS, PRIMARY_BOARDS, SECONDARY_BOARDS } from '../data/boards';
+import { getLoginPathWithReturnTo, getRegisterPathWithReturnTo } from '../utils/authRoutes';
 
 type AdminTab = 'pins' | 'move' | 'members' | 'moderators';
 type NoticeKind = 'error' | 'info' | 'success';
@@ -79,7 +80,12 @@ export function ManagementPage() {
         {authPending ? (
           <ManagementState icon={<LoaderCircle className="animate-spin" size={22} />} title="正在确认管理权限" />
         ) : !isAuthorized ? (
-          <ManagementState icon={<ShieldAlert size={22} />} title="无法进入论坛管理">
+          <ManagementState
+            icon={<ShieldAlert size={22} />}
+            loginHref={authStatus === 'guest' ? getLoginPathWithReturnTo() : undefined}
+            registerHref={authStatus === 'guest' ? getRegisterPathWithReturnTo() : undefined}
+            title="无法进入论坛管理"
+          >
             此页面仅对权限值大于或等于 3 的会员开放。
           </ManagementState>
         ) : (
@@ -978,13 +984,23 @@ function EmptyState({ children, icon }: { children: ReactNode; icon: ReactNode }
   return <div className="management-empty"><span>{icon}</span>{children}</div>;
 }
 
-function ManagementState({ children, icon, title }: { children?: ReactNode; icon: ReactNode; title: string }) {
+function ManagementState({ children, icon, loginHref, registerHref, title }: {
+  children?: ReactNode;
+  icon: ReactNode;
+  loginHref?: string;
+  registerHref?: string;
+  title: string;
+}) {
   return (
     <section className="management-state">
       <span>{icon}</span>
       <h1>{title}</h1>
       {children ? <p>{children}</p> : null}
-      <a href="/">返回首页</a>
+      <div className="management-state-actions">
+        <a href="/">返回首页</a>
+        {loginHref && <a href={loginHref}>前往登录</a>}
+        {registerHref && <a href={registerHref}>注册账号</a>}
+      </div>
     </section>
   );
 }

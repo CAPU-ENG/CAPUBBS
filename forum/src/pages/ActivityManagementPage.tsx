@@ -28,6 +28,7 @@ import {
 } from '../components/thread/ActivitySignupEditor';
 import { useAuth } from '../context/AuthContext';
 import { useThreadData } from '../hooks/useThreadData';
+import { getLoginPathWithReturnTo, getRegisterPathWithReturnTo } from '../utils/authRoutes';
 import {
   createEditableActivitySettings,
   buildActivityUpdateOptions,
@@ -188,7 +189,17 @@ export function ActivityManagementPage() {
         ) : !managedActivity ? (
           <ActivityManagementState icon={<LoaderCircle className="activity-management-spinner" size={22} />} title="正在准备活动管理" />
         ) : !isAuthorized ? (
-          <ActivityManagementState action={<a href={threadHref}>返回原帖</a>} icon={<ShieldAlert size={22} />} title="无法进入活动管理">
+          <ActivityManagementState
+            action={(
+              <div className="activity-management-state-actions">
+                <a href={threadHref}>返回原帖</a>
+                {authStatus === 'guest' && <a href={getLoginPathWithReturnTo()}>前往登录</a>}
+                {authStatus === 'guest' && <a href={getRegisterPathWithReturnTo()}>注册账号</a>}
+              </div>
+            )}
+            icon={<ShieldAlert size={22} />}
+            title="无法进入活动管理"
+          >
             此页面仅对楼主本人或权限值大于等于 3 的用户开放。
           </ActivityManagementState>
         ) : (

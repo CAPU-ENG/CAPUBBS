@@ -32,7 +32,7 @@ import {
 } from '../components/thread/ActivitySignupEditor';
 import { useAuth } from '../context/AuthContext';
 import { useAutoSaveEnabled } from '../hooks/useAssistiveFeatures';
-import { getLoginPathWithReturnTo } from '../utils/authRoutes';
+import { getLoginPathWithReturnTo, getRegisterPathWithReturnTo } from '../utils/authRoutes';
 import { waitForLocalDraftCleanup } from '../utils/draftCleanup';
 import {
   deleteStoredReplyDraftForThread,
@@ -483,6 +483,7 @@ export function ThreadComposePage() {
             backLabel={isReply ? '返回帖子' : '返回版面'}
             description={`登录后才能${isReply ? '编辑回帖草稿' : '发表新主题'}，当前内容不会被提交。`}
             loginHref={getLoginPathWithReturnTo()}
+            registerHref={getRegisterPathWithReturnTo()}
             title={`登录后${isReply ? '编辑草稿' : '开始发帖'}`}
           />
         ) : pagePending ? (
@@ -634,12 +635,14 @@ function ComposeRequestState({
   backLabel = '返回版面',
   description,
   loginHref,
+  registerHref,
   title,
 }: {
   backHref: string;
   backLabel?: string;
   description: string;
   loginHref?: string;
+  registerHref?: string;
   title: string;
 }) {
   return (
@@ -649,6 +652,7 @@ function ComposeRequestState({
       <div>
         <a href={backHref}>{backLabel}</a>
         {loginHref && <a className="thread-edit-login-link" href={loginHref}>前往登录</a>}
+        {registerHref && <a className="thread-edit-register-link" href={registerHref}>注册账号</a>}
       </div>
     </section>
   );

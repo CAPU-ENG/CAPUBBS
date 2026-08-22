@@ -19,7 +19,7 @@ import {
 import { useScrollContextTitle } from '../hooks/useScrollContextTitle';
 import { useThreadData } from '../hooks/useThreadData';
 import { saveSignaturesHidden } from '../utils/assistiveFeatures';
-import { getLoginPathWithReturnTo } from '../utils/authRoutes';
+import { getLoginPathWithReturnTo, getRegisterPathWithReturnTo } from '../utils/authRoutes';
 import { writeClipboardText } from '../utils/clipboard';
 import {
   getActivityManagementHref,
@@ -280,6 +280,7 @@ export function ThreadPage() {
     preview: createFloorPreview(floor),
   }));
   const loginHref = getLoginPathWithReturnTo();
+  const registerHref = getRegisterPathWithReturnTo();
   const canManageActivity = Boolean(
     data.isActivity
     && viewer
@@ -387,6 +388,7 @@ export function ThreadPage() {
                     floors={pageFloors}
                     locked={data.locked}
                     loginHref={loginHref}
+                    registerHref={registerHref}
                     signatures={data.viewerSignatures}
                     threadTitle={data.title}
                     tid={data.tid}
@@ -453,7 +455,12 @@ export function ThreadPage() {
           <section className="thread-reply-unavailable">
             <strong>{data.locked ? '本主题已锁定' : starRestricted ? `本版回复至少需要 ${data.requiredStars} 星` : '登录后参与回复'}</strong>
             <p>{data.locked ? '当前主题暂不接受新的楼层回复。' : starRestricted ? `你当前为 ${data.viewer?.stars ?? 0} 星，暂时无法回复。` : '登录后即可使用完整编辑器、签名档与附件功能。'}</p>
-            {!data.locked && !starRestricted && <a href={loginHref}>前往登录</a>}
+            {!data.locked && !starRestricted && (
+              <div className="thread-reply-auth-actions">
+                <a href={loginHref}>前往登录</a>
+                <a href={registerHref}>注册账号</a>
+              </div>
+            )}
           </section>
         ))}
       </main>

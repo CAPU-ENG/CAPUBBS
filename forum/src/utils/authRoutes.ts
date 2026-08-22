@@ -6,6 +6,11 @@ export function getLoginPathWithReturnTo() {
   return returnTo === '/' ? '/login' : `/login?returnTo=${encodeURIComponent(returnTo)}`;
 }
 
+export function getRegisterPathWithReturnTo() {
+  const returnTo = getSafeReturnTo(`${window.location.pathname}${window.location.search}${window.location.hash}`);
+  return getAuthPathWithReturnTo('/register', returnTo);
+}
+
 export function getAuthPathWithReturnTo(path: '/login' | '/register', returnTo: string) {
   const safeReturnTo = getSafeReturnTo(returnTo);
   return safeReturnTo === '/' ? path : `${path}?returnTo=${encodeURIComponent(safeReturnTo)}`;
