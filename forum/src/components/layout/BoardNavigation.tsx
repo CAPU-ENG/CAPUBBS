@@ -1,4 +1,5 @@
 import {
+  Archive,
   BarChart3,
   BookOpen,
   ChevronRight,
@@ -96,6 +97,9 @@ export function DesktopBoardDrawer({ onNavigate }: { onNavigate: () => void }) {
       </div>
 
       <div className="board-drawer-section flex items-center gap-2 border-t border-[var(--line)]">
+        <a className="supplement-link" href="/archive-room" onClick={onNavigate}>
+          <Archive size={15} /> 档案室
+        </a>
         <a className="supplement-link" href="/data" onClick={onNavigate}>
           <BarChart3 size={15} /> 数据展示
         </a>
@@ -146,6 +150,9 @@ export function MobileBoardSidebar({ open, onClose }: { open: boolean; onClose: 
         </div>
 
         <div className="mt-6 flex flex-wrap gap-2 border-t border-[var(--line)] pt-5">
+          <a className="supplement-link" href="/archive-room" onClick={onClose}>
+            <Archive size={16} /> 档案室
+          </a>
           <a className="supplement-link" href="/data" onClick={onClose}>
             <BarChart3 size={16} /> 数据展示
           </a>

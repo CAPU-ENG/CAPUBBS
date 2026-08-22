@@ -8,6 +8,7 @@ import { getThreadFloorElement, getThreadFloorFromHash } from './utils/threadRou
 import { getPublicProfileNameFromLocation, USER_CENTER_PATH } from './utils/userRoutes';
 
 const loadActivityManagementPage = () => import('./pages/ActivityManagementPage');
+const loadArchiveRoomPage = () => import('./pages/ArchiveRoomPage');
 const loadBoardPage = () => import('./pages/BoardPage');
 const loadCalendarAdminPage = () => import('./pages/CalendarAdminPage');
 const loadDataDisplayPage = () => import('./pages/DataDisplayPage');
@@ -24,6 +25,7 @@ const loadUserCenterPage = () => import('./pages/UserCenterPage');
 
 const forumPageLoaders = [
   loadActivityManagementPage,
+  loadArchiveRoomPage,
   loadBoardPage,
   loadCalendarAdminPage,
   loadDataDisplayPage,
@@ -43,6 +45,8 @@ let pagePreloadPromise: Promise<void> | undefined;
 
 const ActivityManagementPage = lazy(() => loadActivityManagementPage()
   .then((module) => ({ default: module.ActivityManagementPage })));
+const ArchiveRoomPage = lazy(() => loadArchiveRoomPage()
+  .then((module) => ({ default: module.ArchiveRoomPage })));
 const BoardPage = lazy(() => loadBoardPage()
   .then((module) => ({ default: module.BoardPage })));
 const CalendarAdminPage = lazy(() => loadCalendarAdminPage()
@@ -147,6 +151,7 @@ function ForumRouter() {
   if (pathname === '/manage') return <ManagementPage />;
   if (pathname === '/data') return <DataDisplayPage />;
   if (pathname === '/activity-management') return <ActivityManagementPage />;
+  if (pathname === '/archive-room') return <ArchiveRoomPage />;
   if (isThreadComposePath(pathname)) return <ThreadComposePage />;
   if (isThreadEditPath(pathname)) return <ThreadEditPage />;
   if (pathname === USER_CENTER_PATH) return <UserCenterPage />;
