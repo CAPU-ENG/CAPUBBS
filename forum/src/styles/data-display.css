@@ -762,10 +762,16 @@
     color: var(--text-muted);
     font-size: 0.64rem;
     line-height: 1.5;
+    white-space: nowrap;
     opacity: 0;
     pointer-events: none;
     transform: translateY(-2px);
     transition: opacity 140ms ease, transform 140ms ease;
+  }
+
+  .tag-summary-help-tooltip {
+    display: grid;
+    gap: 3px;
   }
 
   .tag-summary-help:hover [role="tooltip"],

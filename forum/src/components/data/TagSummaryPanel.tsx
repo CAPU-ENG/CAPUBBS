@@ -98,7 +98,12 @@ export function TagSummaryPanel() {
         <h1>标签汇总</h1>
         <span className="tag-summary-help">
           <button aria-describedby="tag-summary-help-tooltip" aria-label="标签筛选说明" type="button"><CircleHelp size={15} /></button>
-          <span id="tag-summary-help-tooltip" role="tooltip">点选标签进行筛选，点两次排除，点三次复原，支持组合筛选查询</span>
+          <span className="tag-summary-help-tooltip" id="tag-summary-help-tooltip" role="tooltip">
+            <span>点击一次：筛选该标签</span>
+            <span>点击两次：排除该标签</span>
+            <span>点击三次：恢复默认</span>
+            <span>支持组合筛选查询</span>
+          </span>
         </span>
         {hasQueried && <span className="data-display-card-count">{members.length} 位会员</span>}
       </header>
