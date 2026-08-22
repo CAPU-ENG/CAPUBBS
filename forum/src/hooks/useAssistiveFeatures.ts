@@ -14,7 +14,7 @@ export function useAssistiveBarEnabled() {
 }
 
 export function useAutoSaveEnabled() {
-  return useSyncExternalStore(subscribeAssistiveFeatures, readAutoSaveEnabled, () => false);
+  return useSyncExternalStore(subscribeAssistiveFeatures, readAutoSaveEnabled, () => true);
 }
 
 export function useBackToTopEnabled() {

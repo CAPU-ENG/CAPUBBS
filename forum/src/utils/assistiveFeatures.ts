@@ -47,7 +47,7 @@ export function saveAssistiveBarEnabled(enabled: boolean) {
 }
 
 export function readAutoSaveEnabled() {
-  return readBoolean(AUTO_SAVE_ENABLED_STORAGE_KEY);
+  return readBoolean(AUTO_SAVE_ENABLED_STORAGE_KEY, true);
 }
 
 export function saveAutoSaveEnabled(enabled: boolean) {
