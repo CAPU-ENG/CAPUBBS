@@ -21,7 +21,7 @@ type DeleteTarget =
 export function TagManagementWorkspace() {
   const [definitions, setDefinitions] = useState<TagDefinition[]>(readTagDefinitions);
   const [assignments, setAssignments] = useState<UserTagAssignments>(readUserTagAssignments);
-  const [selectedTagId, setSelectedTagId] = useState(() => {
+  const [memberSelectedTagId, setMemberSelectedTagId] = useState(() => {
     const firstTag = readTagDefinitions()[0];
     return firstTag?.id ?? '';
   });
@@ -38,7 +38,7 @@ export function TagManagementWorkspace() {
     () => Object.keys(assignments).sort((left, right) => MEMBER_ID_COLLATOR.compare(left, right)),
     [assignments],
   );
-  const activeTagId = selectedTagId || definitions[0]?.id || '';
+  const activeTagId = memberSelectedTagId || definitions[0]?.id || '';
   const activeTag = definitions.find((tag) => tag.id === activeTagId) ?? null;
   const editingTag = definitions.find((tag) => tag.id === editingId) ?? null;
   const filteredMemberIds = useMemo(
@@ -47,7 +47,7 @@ export function TagManagementWorkspace() {
   );
 
   useEffect(() => {
-    setSelectedTagId((current) => definitions.some((tag) => tag.id === current) ? current : definitions[0]?.id ?? '');
+    setMemberSelectedTagId((current) => definitions.some((tag) => tag.id === current) ? current : definitions[0]?.id ?? '');
   }, [definitions]);
 
   function startCreate() {
@@ -58,8 +58,11 @@ export function TagManagementWorkspace() {
   }
 
   function startEdit(tag: TagDefinition) {
+    if (editingId === tag.id) {
+      cancelEdit();
+      return;
+    }
     setEditingId(tag.id);
-    setSelectedTagId(tag.id);
     setDraftName(tag.name);
     setDraftColor(tag.color);
     setNotice(null);
@@ -86,7 +89,6 @@ export function TagManagementWorkspace() {
       const id = createTagId(name, definitions);
       const next = [...definitions, { id, name, color: draftColor }];
       setDefinitions(next);
-      setSelectedTagId(id);
       writeTagDefinitions(next);
       setNotice({ kind: 'success', text: '标签已创建。' });
     } else if (editingTag) {
@@ -120,7 +122,7 @@ export function TagManagementWorkspace() {
   }
 
   function selectTag(tagId: string) {
-    setSelectedTagId(tagId);
+    setMemberSelectedTagId(tagId);
   }
 
   function appendMember(event: FormEvent<HTMLFormElement>) {
@@ -184,7 +186,7 @@ export function TagManagementWorkspace() {
     <div className="management-tags-workspace">
       <section className="management-card" aria-labelledby="tag-definitions-title">
         <header className="management-card-heading">
-          <div><h2 id="tag-definitions-title">标签管理</h2></div>
+          <div><h2 id="tag-definitions-title">已有标签</h2></div>
           <button className="management-primary-button" onClick={startCreate} type="button"><Plus size={15} />新建标签</button>
         </header>
         <div className="management-tag-editor-wrap">
@@ -197,8 +199,8 @@ export function TagManagementWorkspace() {
           )}
           <div className="management-tag-definition-list">
             {definitions.map((tag) => (
-              <button className={`management-tag-definition-button ${selectedTagId === tag.id ? 'management-tag-definition-button-selected' : ''}`} key={tag.id} onClick={() => startEdit(tag)} type="button">
-                <TagBadge selected={selectedTagId === tag.id} tag={tag} />
+              <button className={`management-tag-definition-button ${editingId === tag.id ? 'management-tag-definition-button-selected' : ''}`} key={tag.id} onClick={() => startEdit(tag)} type="button">
+                <TagBadge selected={editingId === tag.id} tag={tag} />
               </button>
             ))}
             {definitions.length === 0 && <EmptyState icon={<Tags size={18} />}>还没有标签。</EmptyState>}
@@ -208,14 +210,14 @@ export function TagManagementWorkspace() {
 
       <section className="management-card" aria-labelledby="member-tags-title">
         <header className="management-card-heading">
-          <div><h2 id="member-tags-title">会员管理</h2></div>
+          <div><h2 id="member-tags-title">已有标签会员</h2></div>
           <button className="management-primary-button" disabled={!activeTagId} onClick={() => setMemberDialogOpen(true)} type="button"><UserPlus size={15} />添加会员</button>
         </header>
         <div className="management-member-tag-layout">
           <aside className="management-member-picker" aria-label="标签">
             <div className="management-member-list">
               {definitions.map((tag) => (
-                <button className={`management-member-filter-tag ${selectedTagId === tag.id ? 'management-member-filter-tag-selected' : ''}`} key={tag.id} onClick={() => selectTag(tag.id)} type="button"><TagBadge selected={selectedTagId === tag.id} tag={tag} /></button>
+                <button className={`management-member-filter-tag ${memberSelectedTagId === tag.id ? 'management-member-filter-tag-selected' : ''}`} key={tag.id} onClick={() => selectTag(tag.id)} type="button"><TagBadge selected={memberSelectedTagId === tag.id} tag={tag} /></button>
               ))}
               {definitions.length === 0 && <EmptyState icon={<Tags size={18} />}>还没有标签。</EmptyState>}
             </div>
@@ -238,7 +240,7 @@ export function TagManagementWorkspace() {
       {notice && <ManagementNotice kind={notice.kind}>{notice.text}</ManagementNotice>}
       {deleteTarget && (
         <div className="management-dialog-backdrop" role="presentation">
-          <section aria-labelledby="confirm-tag-delete-title" aria-modal="true" className="management-dialog management-confirm-dialog" role="dialog">
+          <section aria-labelledby="confirm-tag-delete-title" aria-modal="true" className={`management-dialog management-confirm-dialog ${deleteTarget.kind === 'member' ? 'management-member-confirm-dialog' : ''}`} role="dialog">
             <header><div><h2 id="confirm-tag-delete-title">{deleteTarget.kind === 'tag' ? '删除标签' : '移除会员'}</h2></div><button aria-label="关闭" className="management-icon-button" onClick={() => setDeleteTarget(null)} type="button"><X size={16} /></button></header>
             <p className="management-dialog-copy">{deleteTarget.kind === 'tag' ? `确定删除“${deleteTarget.tag.name}”吗？已绑定会员的关系也会一并移除。` : `确定从“${activeTag?.name ?? '标签'}”中移除 ${deleteTarget.username} 吗？`}</p>
             <footer><button className="management-secondary-button" onClick={() => setDeleteTarget(null)} type="button">取消</button><button className="management-danger-button" onClick={confirmDelete} type="button"><Trash2 size={14} />确认删除</button></footer>

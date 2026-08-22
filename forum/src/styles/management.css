@@ -1427,6 +1427,15 @@
     line-height: 1.6;
   }
 
+  .management-member-confirm-dialog > header,
+  .management-member-confirm-dialog > footer {
+    border: 0;
+  }
+
+  .management-member-confirm-dialog .management-dialog-copy {
+    padding: 18px 20px 2px 30px;
+  }
+
   .management-empty-state {
     display: grid;
     min-height: 92px;
