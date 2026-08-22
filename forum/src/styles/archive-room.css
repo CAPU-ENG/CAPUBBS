@@ -465,6 +465,82 @@
     box-shadow: 0 18px 45px rgb(0 0 0 / 18%);
   }
 
+  .archive-room-delete-dialog {
+    width: min(420px, 100%);
+    overflow: hidden;
+    border: 1px solid var(--line);
+    border-radius: var(--control-radius);
+    background: var(--surface);
+    box-shadow: 0 18px 45px rgb(0 0 0 / 18%);
+  }
+
+  .archive-room-delete-header {
+    display: flex;
+    align-items: flex-start;
+    gap: 11px;
+    padding: 20px 18px 14px;
+  }
+
+  .archive-room-delete-header > div {
+    min-width: 0;
+    flex: 1;
+  }
+
+  .archive-room-delete-icon {
+    display: inline-flex;
+    width: 34px;
+    height: 34px;
+    flex-shrink: 0;
+    align-items: center;
+    justify-content: center;
+    border-radius: var(--control-radius);
+    background: color-mix(in srgb, #b95757 12%, var(--surface));
+    color: #b95757;
+  }
+
+  .dark .archive-room-delete-icon {
+    background: color-mix(in srgb, #b95757 22%, var(--surface));
+    color: #e9a3a3;
+  }
+
+  .archive-room-delete-header h2 {
+    margin-top: 1px;
+    color: var(--text-strong);
+    font-size: 0.96rem;
+    font-weight: 750;
+  }
+
+  .archive-room-delete-header p {
+    margin-top: 5px;
+    color: var(--text-muted);
+    font-size: 0.75rem;
+  }
+
+  .archive-room-delete-body {
+    display: grid;
+    gap: 18px;
+    padding: 0 18px 18px 63px;
+  }
+
+  .archive-room-delete-body > strong {
+    overflow: hidden;
+    color: var(--text-strong);
+    font-size: 0.8rem;
+    font-weight: 720;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .archive-room-delete-body .archive-room-dialog-actions {
+    padding-top: 0;
+  }
+
+  .archive-room-dialog-actions .archive-room-delete-confirm {
+    border-color: #b95757;
+    background: #b95757;
+    color: #fff;
+  }
+
   .archive-room-dialog > header {
     display: flex;
     align-items: center;
