@@ -59,6 +59,7 @@ import {
   createUploadablePngFileUnderLimit,
   editorImageInputAccept,
   getClipboardImageFile,
+  getImageFileDimensions,
   getImageFileMd5Hex,
   getImageAltText,
   uploadEditorImage,
@@ -239,12 +240,24 @@ function getEditorContentWidth(editor: HTMLElement) {
 }
 
 function applyImageIntrinsicDimensions(image: HTMLImageElement, maxWidth: number) {
-  if (image.naturalWidth <= 0 || image.naturalHeight <= 0) {
+  return applyImageDimensions(image, maxWidth, {
+    height: image.naturalHeight,
+    width: image.naturalWidth,
+  });
+}
+
+type ImagePixelDimensions = {
+  height: number;
+  width: number;
+};
+
+function applyImageDimensions(image: HTMLImageElement, maxWidth: number, dimensions: ImagePixelDimensions) {
+  if (dimensions.width <= 0 || dimensions.height <= 0) {
     return false;
   }
 
-  const width = Math.min(image.naturalWidth, Math.max(1, Math.round(maxWidth)));
-  const height = Math.max(1, Math.round(image.naturalHeight * width / image.naturalWidth));
+  const width = Math.min(dimensions.width, Math.max(1, Math.round(maxWidth)));
+  const height = Math.max(1, Math.round(dimensions.height * width / dimensions.width));
   applyImagePixelDimensions(image, width, height);
   return true;
 }
@@ -958,7 +971,7 @@ export function RichTextEditor({
     updateContent(editorRef.current?.innerHTML ?? '');
   };
 
-  const insertRichImage = (url: string, altText: string) => {
+  const insertRichImage = (url: string, altText: string, intrinsicDimensions?: ImagePixelDimensions) => {
     const marker = `capubbs-inserted-image-${Date.now()}-${Math.random().toString(36).slice(2)}`;
 
     editorRef.current?.focus();
@@ -975,6 +988,27 @@ export function RichTextEditor({
 
     if (image) {
       selectRichImage(image);
+
+      const applyDimensions = () => {
+        const editor = editorRef.current;
+        if (!editor || !editor.contains(image)) {
+          return false;
+        }
+
+        const applied = intrinsicDimensions
+          ? applyImageDimensions(image, getEditorContentWidth(editor), intrinsicDimensions)
+          : applyImageIntrinsicDimensions(image, getEditorContentWidth(editor));
+        if (applied) {
+          updateContent(editor.innerHTML);
+          updateRichImageResizeHandle();
+        }
+        return applied;
+      };
+
+      if (intrinsicDimensions) {
+        applyDimensions();
+        return Promise.resolve();
+      }
 
       return new Promise<void>((resolve) => {
         let settled = false;
@@ -996,10 +1030,7 @@ export function RichTextEditor({
             return;
           }
 
-          if (applyImageIntrinsicDimensions(image, getEditorContentWidth(editor))) {
-            updateContent(editor.innerHTML);
-            updateRichImageResizeHandle();
-          }
+          applyDimensions();
           finish();
         };
 
@@ -1193,16 +1224,21 @@ export function RichTextEditor({
 
     try {
       const pngFile = await createUploadablePngFileUnderLimit(pastedImage.workingFile, maxInlineImageBytes);
+      const intrinsicDimensions = await getImageFileDimensions(pngFile);
       const md5 = await getImageFileMd5Hex(pngFile);
       const { url } = await uploadEditorImage(pngFile, md5);
       const altText = getImageAltText(pastedImage.originalFile);
 
       if (isMarkdownMode) {
-        replaceSourceSelection(`![${escapeMarkdownLinkText(altText)}](${url})`);
+        replaceSourceSelection(
+          `![${escapeMarkdownLinkText(altText)}](${url}){width=${intrinsicDimensions.width}px height=${intrinsicDimensions.height}px}`,
+        );
       } else if (isHtmlMode) {
-        replaceSourceSelection(`<img src="${escapeAttribute(url)}" alt="${escapeAttribute(altText)}">`);
+        replaceSourceSelection(
+          `<img src="${escapeAttribute(url)}" alt="${escapeAttribute(altText)}" width="${intrinsicDimensions.width}" height="${intrinsicDimensions.height}">`,
+        );
       } else {
-        await insertRichImage(url, altText);
+        await insertRichImage(url, altText, intrinsicDimensions);
       }
 
       closePastedImageDialog();

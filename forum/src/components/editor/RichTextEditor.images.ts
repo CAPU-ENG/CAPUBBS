@@ -179,6 +179,19 @@ export async function compressImageFileUnderLimit(file: File, maxBytes: number) 
   throw new Error('无法在当前压缩参数下压到 2MB 以内。');
 }
 
+export async function getImageFileDimensions(file: File) {
+  const image = await loadImageSource(file);
+
+  try {
+    return {
+      height: image.height,
+      width: image.width,
+    };
+  } finally {
+    image.close?.();
+  }
+}
+
 async function loadImageSource(file: File): Promise<{
   close?: () => void;
   height: number;
