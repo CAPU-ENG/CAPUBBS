@@ -90,38 +90,6 @@
     gap: 8px;
   }
 
-  .archive-room-auth-actions a {
-    display: inline-flex;
-    min-height: 34px;
-    align-items: center;
-    gap: 6px;
-    border: 1px solid var(--line-strong);
-    border-radius: var(--control-radius);
-    padding: 0 13px;
-    color: var(--text-muted);
-    font-size: 0.76rem;
-    font-weight: 720;
-    transition: 150ms ease;
-  }
-
-  .archive-room-auth-actions a:hover {
-    border-color: var(--brand);
-    color: var(--brand-strong);
-    background: var(--brand-faint);
-  }
-
-  .archive-room-auth-actions .archive-room-auth-primary {
-    border-color: var(--brand);
-    background: var(--brand);
-    color: var(--on-brand);
-  }
-
-  .archive-room-auth-actions .archive-room-auth-primary:hover {
-    border-color: var(--brand-strong);
-    background: var(--brand-strong);
-    color: var(--on-brand);
-  }
-
   .archive-room-toolbar {
     display: flex;
     align-items: center;

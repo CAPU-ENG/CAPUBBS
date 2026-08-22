@@ -139,7 +139,7 @@ export function ArchiveRoomPage() {
 }
 
 function ArchiveAuthPrompt() {
-  return <div className="archive-room-auth-prompt" role="status"><ShieldCheck size={24} /><p>登录以下载浏览器或其他文件</p><div className="archive-room-auth-actions"><a className="archive-room-auth-primary" href={getLoginPathWithReturnTo()}><LogIn size={15} />登录</a><a className="archive-room-auth-secondary" href={getRegisterPathWithReturnTo()}><UserPlus size={15} />注册</a></div></div>;
+  return <div className="archive-room-auth-prompt" role="status"><ShieldCheck size={24} /><p>登录以下载浏览器或其他文件</p><div className="archive-room-auth-actions"><a className="topbar-login-link" href={getLoginPathWithReturnTo()}><LogIn size={15} />登录</a><a className="topbar-register-link" href={getRegisterPathWithReturnTo()}><UserPlus size={15} />注册</a></div></div>;
 }
 
 type EntryActions = { canManage: boolean; onDownload: (entry: ArchiveEntry) => void; onEnter: (entry: ArchiveEntry) => void; onMask: (entry: ArchiveEntry) => void; onMove: (entry: ArchiveEntry) => void; onRename: (entry: ArchiveEntry) => void };
