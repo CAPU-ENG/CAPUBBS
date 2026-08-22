@@ -6,34 +6,54 @@ export function translateLegacyBbcode(value: string) {
   const normalizedValue = normalizeUnclosedHeadings(value);
   if (!normalizedValue.includes('[')) return normalizedValue;
 
-  // Translate BBCode inside text nodes so an unclosed token cannot consume
-  // adjacent HTML elements (for example, wrapping the rest of a post in h2).
   // Parse as a fragment so leading <style>/<script> nodes stay in the
   // returned markup instead of being promoted to a temporary document head.
   const template = document.createElement('template');
   template.innerHTML = normalizedValue;
   const fragment = template.content;
-  const textNodes: Text[] = [];
-  const walker = document.createTreeWalker(fragment, NodeFilter.SHOW_TEXT);
-  let currentNode = walker.nextNode();
-  while (currentNode) {
-    const parentTag = currentNode.parentElement?.tagName;
-    if (parentTag !== 'SCRIPT' && parentTag !== 'STYLE' && parentTag !== 'TEXTAREA') {
-      textNodes.push(currentNode as Text);
-    }
-    currentNode = walker.nextNode();
-  }
 
-  textNodes.forEach((textNode) => {
-    const translated = translateLegacyBbcodeText(escapeHtml(textNode.nodeValue ?? ''));
-    if (translated === escapeHtml(textNode.nodeValue ?? '')) return;
-
-    const replacement = document.createElement('template');
-    replacement.innerHTML = translated;
-    textNode.replaceWith(replacement.content);
+  // BBCode may begin in one text node and end in another when HTML elements
+  // occur inside it. Replace real markup with sentinels, parse the remaining
+  // fragment as one stream, then restore the original markup. This keeps the
+  // BBCode stack alive across <p>, <span>, and similar element boundaries.
+  const protectedMarkup = new Map<string, string>();
+  let protectedIndex = 0;
+  Array.from(fragment.querySelectorAll('script, style, textarea')).forEach((element) => {
+    const token = createLegacyBbcodePlaceholder('protected', protectedIndex);
+    protectedIndex += 1;
+    protectedMarkup.set(token, element.outerHTML);
+    element.replaceWith(document.createTextNode(token));
   });
 
-  return template.innerHTML;
+  const elementMarkup = new Map<string, string>();
+  let elementIndex = 0;
+  const serialized = template.innerHTML.replace(
+    /<!--[\s\S]*?-->|<\/?[A-Za-z][^>]*>/g,
+    (tag) => {
+      const token = createLegacyBbcodePlaceholder('element', elementIndex);
+      elementIndex += 1;
+      elementMarkup.set(token, tag);
+      return token;
+    },
+  );
+
+  const translated = translateLegacyBbcodeText(serialized);
+  return restoreLegacyBbcodePlaceholders(
+    restoreLegacyBbcodePlaceholders(translated, elementMarkup),
+    protectedMarkup,
+  );
+}
+
+function createLegacyBbcodePlaceholder(kind: string, index: number) {
+  return `__CAPUBBS_${kind.toUpperCase()}_${index}__`;
+}
+
+function restoreLegacyBbcodePlaceholders(value: string, placeholders: Map<string, string>) {
+  let restored = value;
+  placeholders.forEach((replacement, token) => {
+    restored = restored.split(token).join(replacement);
+  });
+  return restored;
 }
 
 type HeadingToken = {
