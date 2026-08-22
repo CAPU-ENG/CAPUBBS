@@ -17,6 +17,9 @@ export default defineConfig({
       '/bbsimg': {
         target: process.env.CAPUBBS_PHP_ORIGIN || 'http://localhost:8080',
       },
+      '/config': {
+        target: process.env.CAPUBBS_PHP_ORIGIN || 'http://localhost:8080',
+      },
     },
   },
 });

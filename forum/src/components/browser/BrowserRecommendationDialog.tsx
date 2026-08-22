@@ -2,12 +2,12 @@ import { useEffect, useState } from 'react';
 
 const MOBILE_VIEWPORT_QUERY = '(max-width: 767px)';
 const DISMISSED_STORAGE_KEY = 'capubbs-browser-recommendation-dismissed';
-const BROWSER_DOWNLOAD_URL = import.meta.env.VITE_BROWSER_DOWNLOAD_URL?.trim()
-  || 'https://frostember.lanzoup.com/b00oe4ba4j';
+const FALLBACK_BROWSER_DOWNLOAD_URL = 'https://frostember.lanzoup.com/b00oe4ba4j';
 
 export function BrowserRecommendationDialog() {
   const [mobileViewport, setMobileViewport] = useState(false);
   const [open, setOpen] = useState(false);
+  const [browserDownloadUrl, setBrowserDownloadUrl] = useState(FALLBACK_BROWSER_DOWNLOAD_URL);
 
   useEffect(() => {
     const mediaQuery = window.matchMedia(MOBILE_VIEWPORT_QUERY);
@@ -20,6 +20,22 @@ export function BrowserRecommendationDialog() {
   useEffect(() => {
     if (mobileViewport && !isRecommendedBrowser() && !hasDismissedRecommendation()) setOpen(true);
   }, [mobileViewport]);
+
+  useEffect(() => {
+    let active = true;
+    fetch('/config/client.php', { credentials: 'same-origin' })
+      .then((response) => response.ok ? response.json() : null)
+      .then((config: unknown) => {
+        if (!active || !config || typeof config !== 'object' || !('browserDownloadUrl' in config)) return;
+        const url = config.browserDownloadUrl;
+        if (typeof url === 'string' && url.trim()) setBrowserDownloadUrl(url.trim());
+      })
+      .catch(() => undefined);
+
+    return () => {
+      active = false;
+    };
+  }, []);
 
   function dismiss() {
     setOpen(false);
@@ -42,7 +58,7 @@ export function BrowserRecommendationDialog() {
         <p id="browser-recommendation-title">建议使用谷歌或火狐浏览器，以获得更好的体验</p>
         <div className="browser-recommendation-actions">
           <button onClick={dismiss} type="button">不再提示</button>
-          <a href={BROWSER_DOWNLOAD_URL} onClick={dismiss}>前往下载</a>
+          <a href={browserDownloadUrl} onClick={dismiss}>前往下载</a>
         </div>
       </section>
     </div>

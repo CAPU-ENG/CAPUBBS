@@ -44,6 +44,9 @@ define('OSS_ADDRESS', 'https://example.oss-cn-beijing.aliyuncs.com');
 /** CDN 地址（留空则不启用 CDN 重写，如 https://cdn.chexie.net） */
 define('CAPUBBS_CDN_URL', '');
 
+/** 移动端浏览器推荐弹窗的下载链接。 */
+define('CAPUBBS_BROWSER_DOWNLOAD_URL', 'https://frostember.lanzoup.com/b00oe4ba4j');
+
 /** 档案室物理根目录：本地可使用 __DIR__ . '/pan'，生产环境应放在 Web 根目录之外。 */
 define('CAPUBBS_ARCHIVE_ROOT', __DIR__ . '/pan');
 

@@ -14,4 +14,4 @@ npm run preview
 npm run typecheck
 ```
 
-Vite proxies `/api`, `/assets`, `/bbs`, and `/bbsimg` to that server; avatar and post image paths are always normalized to the local `/bbsimg` and `/bbs/images` directories. Set `CAPUBBS_PHP_ORIGIN` to use a different PHP origin, `VITE_API_URL` to override the browser forum API endpoint, `VITE_CALENDAR_API_URL` to override the calendar endpoint, or `VITE_BROWSER_DOWNLOAD_URL` to override the browser recommendation download link. The browser recommendation currently defaults to `https://frostember.lanzoup.com/b00oe4ba4j`.
+Vite proxies `/api`, `/assets`, `/bbs`, `/bbsimg`, and `/config` to that server; avatar and post image paths are always normalized to the local `/bbsimg` and `/bbs/images` directories. Set `CAPUBBS_PHP_ORIGIN` to use a different PHP origin, `VITE_API_URL` to override the browser forum API endpoint, or `VITE_CALENDAR_API_URL` to override the calendar endpoint. Change `CAPUBBS_BROWSER_DOWNLOAD_URL` in the repository root `config.php` to update the browser recommendation download link.
