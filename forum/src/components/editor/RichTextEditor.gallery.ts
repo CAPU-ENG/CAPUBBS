@@ -9,6 +9,62 @@ export type EditorGallerySnapshot = {
   title: string;
 };
 
+const LEGACY_GALLERY_COMPAT_STYLE = `<style data-capubbs-gallery-compat="true">
+.capubbs-gallery{display:block;width:100%;margin:15px 0;border:1px solid #d4d4d8;background:#fff;color:#3f3f46;box-sizing:border-box;overflow:hidden;font-family:Arial,sans-serif}
+.capubbs-gallery-header{display:block;min-height:42px;padding:10px 12px;border-bottom:1px solid #e4e4e7;background:#fafafa;box-sizing:border-box}
+.capubbs-gallery-title{display:block;font-size:15px;font-weight:bold;line-height:22px;overflow-wrap:anywhere}
+.capubbs-gallery-stage{position:relative;display:block;height:420px;overflow:hidden;background:#f4f4f5}
+.capubbs-gallery-slide{display:none;width:100%;height:100%;margin:0;text-align:center;box-sizing:border-box}
+.capubbs-gallery-slide[data-capubbs-gallery-active="true"]{display:block}
+.capubbs-gallery-slide>img{display:block;width:auto;height:auto;max-width:100%;max-height:100%;margin:0 auto;object-fit:contain}
+.capubbs-gallery-nav{position:absolute;top:50%;z-index:2;display:block;width:42px;height:58px;margin-top:-29px;border:0;background:#000;color:#fff;cursor:pointer;opacity:.55;text-align:center;font:bold 30px/58px Arial,sans-serif}
+.capubbs-gallery-nav:hover{opacity:.82}
+.capubbs-gallery-nav-prev{left:8px}.capubbs-gallery-nav-next{right:8px}
+.capubbs-gallery-nav-prev:before{content:'<'} .capubbs-gallery-nav-next:before{content:'>'}
+.capubbs-gallery-footer{display:block;min-height:38px;padding:8px 12px;box-sizing:border-box;border-top:1px solid #e4e4e7;background:#fafafa;line-height:22px;font-size:13px}
+.capubbs-gallery-captions{display:inline}.capubbs-gallery-caption{display:none}.capubbs-gallery-caption[data-capubbs-gallery-active="true"]{display:inline}
+.capubbs-gallery-count{float:right;color:#71717a}.capubbs-gallery-count:before{content:attr(data-capubbs-gallery-current) '/' attr(data-capubbs-gallery-total)}
+@media (max-width:600px){.capubbs-gallery-stage{height:280px}.capubbs-gallery-nav{width:34px;height:48px;margin-top:-24px;font-size:24px;line-height:48px}}
+</style>`;
+
+const LEGACY_GALLERY_COMPAT_SCRIPT = `<script>(function(){
+var scripts=document.getElementsByTagName('script'),script=document.currentScript||scripts[scripts.length-1],gallery=script&&script.parentNode;
+while(gallery&&(!gallery.className||(' '+gallery.className+' ').indexOf(' capubbs-gallery ')<0)){gallery=gallery.parentNode;}
+if(!gallery||gallery.getAttribute('data-capubbs-gallery-compat-ready')==='true'){return;}
+gallery.setAttribute('data-capubbs-gallery-compat-ready','true');
+function slides(){return gallery.querySelectorAll('[data-capubbs-gallery-slide="true"]');}
+function move(direction){
+var items=slides(),current=-1,i,next;
+for(i=0;i<items.length;i++){if(items[i].getAttribute('data-capubbs-gallery-active')==='true'){current=i;break;}}
+if(items.length<2){return;}
+if(current<0){current=0;}
+next=(current+(direction==='next'?1:-1)+items.length)%items.length;
+for(i=0;i<items.length;i++){
+var active=i===next;
+items[i].setAttribute('data-capubbs-gallery-active',active?'true':'false');
+items[i].setAttribute('aria-hidden',active?'false':'true');
+}
+var captions=gallery.querySelectorAll('[data-capubbs-gallery-caption="true"]');
+for(i=0;i<captions.length;i++){captions[i].setAttribute('data-capubbs-gallery-active',i===next?'true':'false');captions[i].setAttribute('aria-hidden',i===next?'false':'true');}
+var count=gallery.querySelector('.capubbs-gallery-count');
+if(count){count.setAttribute('data-capubbs-gallery-current',String(next+1));}
+}
+gallery.onclick=function(event){
+event=event||window.event;var target=event.target||event.srcElement;
+while(target&&target!==gallery&&(!target.getAttribute||!target.getAttribute('data-capubbs-gallery-action'))){target=target.parentNode;}
+if(!target||target===gallery){return;}
+if(event.preventDefault){event.preventDefault();}else{event.returnValue=false;}
+move(target.getAttribute('data-capubbs-gallery-action'));
+};
+gallery.onkeydown=function(event){
+event=event||window.event;var key=event.key||event.keyCode;
+if(key==='ArrowLeft'||key===37||key==='ArrowRight'||key===39){
+if(event.preventDefault){event.preventDefault();}else{event.returnValue=false;}
+move(key==='ArrowLeft'||key===37?'prev':'next');
+}
+};
+})();</script>`;
+
 export function buildEditorGalleryHtml(title: string, images: EditorGalleryImage[], imageHeight?: number) {
   const normalizedTitle = title.trim();
   const galleryLabel = normalizedTitle ? `图廊：${normalizedTitle}` : '图廊';
@@ -38,6 +94,8 @@ export function buildEditorGalleryHtml(title: string, images: EditorGalleryImage
     '</div>',
     `<span class="capubbs-gallery-count" data-capubbs-gallery-current="1" data-capubbs-gallery-total="${images.length}" aria-label="第 1 张，共 ${images.length} 张图片"></span>`,
     '</footer>',
+    LEGACY_GALLERY_COMPAT_STYLE,
+    LEGACY_GALLERY_COMPAT_SCRIPT,
     '</figure>',
   ].join('');
 }
