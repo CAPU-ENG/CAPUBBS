@@ -18,7 +18,7 @@ export function BrowserRecommendationDialog() {
   }, []);
 
   useEffect(() => {
-    if (mobileViewport && !isRecommendedBrowser() && !hasDismissedRecommendation()) setOpen(true);
+    if (mobileViewport && !hasDismissedRecommendation()) setOpen(true);
   }, [mobileViewport]);
 
   useEffect(() => {
@@ -63,14 +63,6 @@ export function BrowserRecommendationDialog() {
       </section>
     </div>
   );
-}
-
-function isRecommendedBrowser() {
-  const userAgent = navigator.userAgent;
-  const isFirefox = /Firefox|FxiOS/i.test(userAgent);
-  const isChrome = /Chrome|CriOS|Chromium/i.test(userAgent);
-  const isOtherChromium = /Edg|EdgiOS|OPR|SamsungBrowser|YaBrowser/i.test(userAgent);
-  return isFirefox || (isChrome && !isOtherChromium);
 }
 
 function hasDismissedRecommendation() {
