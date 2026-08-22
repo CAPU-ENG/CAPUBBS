@@ -50,7 +50,7 @@
     width: 100%;
     min-width: 0;
     max-width: 100%;
-    overflow-x: hidden;
+    overflow-x: clip;
     overscroll-behavior-x: none;
     font-family: "Noto Sans CJK SC", "Source Han Sans SC", "PingFang SC", "Microsoft YaHei", sans-serif;
     background: var(--page);
@@ -67,7 +67,7 @@
     max-width: 100%;
     min-height: 100vh;
     margin: 0;
-    overflow-x: hidden;
+    overflow-x: clip;
     overscroll-behavior-x: none;
     background: var(--page);
     color: var(--text);
