@@ -1,5 +1,5 @@
-import { Check, Plus, Tags, Trash2, UserPlus, Users, X } from 'lucide-react';
-import { useEffect, useMemo, useState, type FormEvent, type ReactNode } from 'react';
+import { ArrowDownAZ, Check, Clock3, Plus, Tags, Trash2, UserPlus, Users, X } from 'lucide-react';
+import { useEffect, useMemo, useRef, useState, type FormEvent, type ReactNode } from 'react';
 import {
   addTagMembers,
   checkTagMember,
@@ -16,6 +16,7 @@ import type { TagDefinition } from '../../data/tags';
 import { TagBadge } from '../tags/TagBadge';
 
 const MEMBER_ID_COLLATOR = new Intl.Collator('zh-CN', { numeric: true, sensitivity: 'base' });
+const TAG_NAME_COLLATOR = new Intl.Collator('zh-CN', { sensitivity: 'base' });
 
 type Notice = { kind: 'error' | 'info' | 'success'; text: string } | null;
 type NoticeKind = 'error' | 'info' | 'success';
@@ -35,17 +36,27 @@ export function TagManagementWorkspace() {
   const [memberDialogOpen, setMemberDialogOpen] = useState(false);
   const [memberDraft, setMemberDraft] = useState('');
   const [pendingMembers, setPendingMembers] = useState<string[]>([]);
+  const [memberSortOrder, setMemberSortOrder] = useState<'acquiredAt' | 'id'>('acquiredAt');
   const [memberCheckLoading, setMemberCheckLoading] = useState(false);
   const [pendingAction, setPendingAction] = useState<string | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<DeleteTarget | null>(null);
+  const [deleteTagMembers, setDeleteTagMembers] = useState<TagMember[]>([]);
+  const [deleteTagMembersStatus, setDeleteTagMembersStatus] = useState<'error' | 'loading' | 'ready'>('ready');
+  const deleteTagMembersRequestId = useRef(0);
   const [notice, setNotice] = useState<Notice>(null);
 
-  const activeTagId = memberSelectedTagId || definitions[0]?.id || '';
+  const sortedDefinitions = useMemo(
+    () => [...definitions].sort((left, right) => TAG_NAME_COLLATOR.compare(left.name, right.name) || MEMBER_ID_COLLATOR.compare(left.id, right.id)),
+    [definitions],
+  );
+  const activeTagId = memberSelectedTagId || sortedDefinitions[0]?.id || '';
   const activeTag = definitions.find((tag) => tag.id === activeTagId) ?? null;
   const editingTag = definitions.find((tag) => tag.id === editingId) ?? null;
   const sortedMembers = useMemo(
-    () => [...members].sort((left, right) => MEMBER_ID_COLLATOR.compare(left.username, right.username)),
-    [members],
+    () => [...members].sort((left, right) => memberSortOrder === 'id'
+      ? MEMBER_ID_COLLATOR.compare(left.username, right.username)
+      : right.addedAt - left.addedAt || MEMBER_ID_COLLATOR.compare(left.username, right.username)),
+    [memberSortOrder, members],
   );
 
   useEffect(() => {
@@ -66,10 +77,10 @@ export function TagManagementWorkspace() {
   }, []);
 
   useEffect(() => {
-    setMemberSelectedTagId((current) => definitions.some((tag) => tag.id === current)
+    setMemberSelectedTagId((current) => sortedDefinitions.some((tag) => tag.id === current)
       ? current
-      : definitions[0]?.id ?? '');
-  }, [definitions]);
+      : sortedDefinitions[0]?.id ?? '');
+  }, [sortedDefinitions]);
 
   useEffect(() => {
     if (!activeTagId) {
@@ -151,6 +162,25 @@ export function TagManagementWorkspace() {
 
   function removeTag(tag: TagDefinition) {
     setDeleteTarget({ kind: 'tag', tag });
+    const requestId = ++deleteTagMembersRequestId.current;
+    if (tag.id === activeTagId && membersStatus === 'ready') {
+      setDeleteTagMembers(members);
+      setDeleteTagMembersStatus('ready');
+      return;
+    }
+    setDeleteTagMembers([]);
+    setDeleteTagMembersStatus('loading');
+    void fetchTagMembers(tag.id).then(
+      (items) => {
+        if (requestId !== deleteTagMembersRequestId.current) return;
+        setDeleteTagMembers(items);
+        setDeleteTagMembersStatus('ready');
+      },
+      (error: unknown) => {
+        if (requestId !== deleteTagMembersRequestId.current || isAbortError(error)) return;
+        setDeleteTagMembersStatus('error');
+      },
+    );
   }
 
   async function deleteTag(tag: TagDefinition) {
@@ -172,6 +202,12 @@ export function TagManagementWorkspace() {
 
   function selectTag(tagId: string) {
     setMemberSelectedTagId(tagId);
+    setMemberSortOrder('acquiredAt');
+  }
+
+  function closeDeleteDialog() {
+    ++deleteTagMembersRequestId.current;
+    setDeleteTarget(null);
   }
 
   async function appendMember(event: FormEvent<HTMLFormElement>) {
@@ -278,7 +314,7 @@ export function TagManagementWorkspace() {
             </form>
           )}
           <div className="management-tag-definition-list">
-            {definitions.map((tag) => (
+            {sortedDefinitions.map((tag) => (
               <button className={`management-tag-definition-button ${editingId === tag.id ? 'management-tag-definition-button-selected' : ''}`} disabled={Boolean(pendingAction)} key={tag.id} onClick={() => startEdit(tag)} type="button">
                 <TagBadge selected={editingId === tag.id} tag={tag} />
               </button>
@@ -296,24 +332,32 @@ export function TagManagementWorkspace() {
         <div className="management-member-tag-layout">
           <aside className="management-member-picker" aria-label="标签">
             <div className="management-member-list">
-              {definitions.map((tag) => (
+              {sortedDefinitions.map((tag) => (
                 <button className={`management-member-filter-tag ${memberSelectedTagId === tag.id ? 'management-member-filter-tag-selected' : ''}`} disabled={Boolean(pendingAction)} key={tag.id} onClick={() => selectTag(tag.id)} type="button"><TagBadge selected={memberSelectedTagId === tag.id} tag={tag} /></button>
               ))}
               {definitions.length === 0 && <EmptyState icon={<Tags size={18} />}>{definitionsStatus === 'loading' ? '正在加载标签' : '还没有标签'}</EmptyState>}
             </div>
           </aside>
           <div className="management-member-tag-editor">
-            {membersStatus === 'loading' ? <EmptyState icon={<Users size={18} />}>正在加载会员</EmptyState> : membersStatus === 'error' ? <EmptyState icon={<Users size={18} />}>会员加载失败</EmptyState> : sortedMembers.length > 0 ? (
-              <div className="management-member-grid">
-                {sortedMembers.map((member) => (
-                  <article className="management-member-card" key={member.username}>
-                    <a className="management-member-id" href={member.href}>{member.username}</a>
-                    <time>{formatTagAddedAt(member.addedAt)}</time>
-                    <button aria-label={`从${activeTag?.name ?? '标签'}移除${member.username}`} className="management-member-remove" disabled={Boolean(pendingAction)} onClick={() => removeMember(member.username)} title="移除会员" type="button"><X size={15} /></button>
-                  </article>
-                ))}
-              </div>
-            ) : <EmptyState icon={<Users size={18} />}>没有符合条件的会员</EmptyState>}
+            {membersStatus === 'loading' ? <EmptyState icon={<Users size={18} />}>正在加载会员</EmptyState> : membersStatus === 'error' ? <EmptyState icon={<Users size={18} />}>会员加载失败</EmptyState> : (
+              <>
+                <div className="tag-summary-sort-bar management-member-sort-bar">
+                  <button aria-pressed={memberSortOrder === 'acquiredAt'} className={memberSortOrder === 'acquiredAt' ? 'tag-summary-sort-active' : ''} onClick={() => setMemberSortOrder('acquiredAt')} type="button"><Clock3 size={14} />获取时间</button>
+                  <button aria-pressed={memberSortOrder === 'id'} className={memberSortOrder === 'id' ? 'tag-summary-sort-active' : ''} onClick={() => setMemberSortOrder('id')} type="button"><ArrowDownAZ size={14} />ID</button>
+                </div>
+                {sortedMembers.length > 0 ? (
+                  <div className="management-member-grid">
+                    {sortedMembers.map((member) => (
+                      <article className="management-member-card" key={member.username}>
+                        <a className="management-member-id" href={member.href}>{member.username}</a>
+                        <time>{formatTagAddedAt(member.addedAt)}</time>
+                        <button aria-label={`从${activeTag?.name ?? '标签'}移除${member.username}`} className="management-member-remove" disabled={Boolean(pendingAction)} onClick={() => removeMember(member.username)} title="移除会员" type="button"><X size={15} /></button>
+                      </article>
+                    ))}
+                  </div>
+                ) : <EmptyState icon={<Users size={18} />}>没有符合条件的会员</EmptyState>}
+              </>
+            )}
           </div>
         </div>
       </section>
@@ -321,9 +365,19 @@ export function TagManagementWorkspace() {
       {deleteTarget && (
         <div className="management-dialog-backdrop" role="presentation">
           <section aria-labelledby="confirm-tag-delete-title" aria-modal="true" className="management-dialog management-confirm-dialog" role="dialog">
-            <header><div><h2 id="confirm-tag-delete-title">{deleteTarget.kind === 'tag' ? '删除标签' : '移除会员'}</h2></div><button aria-label="关闭" className="management-icon-button" disabled={Boolean(pendingAction)} onClick={() => setDeleteTarget(null)} type="button"><X size={16} /></button></header>
+            <header><div><h2 id="confirm-tag-delete-title">{deleteTarget.kind === 'tag' ? '删除标签' : '移除会员'}</h2></div><button aria-label="关闭" className="management-icon-button" disabled={Boolean(pendingAction)} onClick={closeDeleteDialog} type="button"><X size={16} /></button></header>
             <p className="management-dialog-copy">{deleteTarget.kind === 'tag' ? `确定删除“${deleteTarget.tag.name}”吗？已绑定会员的关系也会一并移除` : `确定从“${activeTag?.name ?? '标签'}”中移除 ${deleteTarget.username} 吗？`}</p>
-            <footer><button className="management-secondary-button" disabled={Boolean(pendingAction)} onClick={() => setDeleteTarget(null)} type="button">取消</button><button className="management-danger-button" disabled={Boolean(pendingAction)} onClick={confirmDelete} type="button"><Trash2 size={14} />确认删除</button></footer>
+            {deleteTarget.kind === 'tag' && (
+              <div className="management-delete-tag-members">
+                <strong>标签会员</strong>
+                {deleteTagMembersStatus === 'loading' ? <span>正在加载会员</span> : deleteTagMembersStatus === 'error' ? <span>会员加载失败</span> : deleteTagMembers.length > 0 ? (
+                  <div className="management-delete-tag-member-list">
+                    {deleteTagMembers.map((member) => <a href={member.href} key={member.username}>{member.username}</a>)}
+                  </div>
+                ) : <span>暂无会员</span>}
+              </div>
+            )}
+            <footer><button className="management-secondary-button" disabled={Boolean(pendingAction)} onClick={closeDeleteDialog} type="button">取消</button><button className="management-danger-button" disabled={Boolean(pendingAction)} onClick={confirmDelete} type="button"><Trash2 size={14} />确认删除</button></footer>
           </section>
         </div>
       )}

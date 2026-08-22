@@ -1310,6 +1310,10 @@
     padding: 15px 16px;
   }
 
+  .management-member-sort-bar {
+    margin: -15px -16px 15px;
+  }
+
   .management-member-grid {
     display: grid;
     grid-template-columns: repeat(4, minmax(0, 1fr));
@@ -1443,6 +1447,41 @@
     color: var(--text-muted);
     font-size: 0.7rem;
     line-height: 1.6;
+  }
+
+  .management-delete-tag-members {
+    display: grid;
+    gap: 7px;
+    padding: 12px 30px 2px;
+  }
+
+  .management-delete-tag-members > strong {
+    color: var(--text-strong);
+    font-size: 0.64rem;
+    font-weight: 760;
+  }
+
+  .management-delete-tag-members > span {
+    color: var(--text-faint);
+    font-size: 0.62rem;
+  }
+
+  .management-delete-tag-member-list {
+    display: flex;
+    max-height: 150px;
+    flex-wrap: wrap;
+    gap: 4px 9px;
+    overflow: auto;
+  }
+
+  .management-delete-tag-member-list a {
+    color: var(--brand-strong);
+    font-size: 0.64rem;
+    font-weight: 700;
+  }
+
+  .management-delete-tag-member-list a:hover {
+    text-decoration: underline;
   }
 
   .management-confirm-dialog > header,

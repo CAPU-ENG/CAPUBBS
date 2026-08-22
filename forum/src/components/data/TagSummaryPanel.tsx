@@ -16,6 +16,7 @@ type LoadStatus = 'error' | 'loading' | 'ready';
 type TagSummaryMember = TagMember;
 
 const MEMBER_ID_COLLATOR = new Intl.Collator('zh-CN', { numeric: true, sensitivity: 'base' });
+const TAG_NAME_COLLATOR = new Intl.Collator('zh-CN', { sensitivity: 'base' });
 
 export function TagSummaryPanel() {
   const [definitions, setDefinitions] = useState<TagDefinition[]>([]);
@@ -32,6 +33,10 @@ export function TagSummaryPanel() {
       ? MEMBER_ID_COLLATOR.compare(left.username, right.username)
       : right.addedAt - left.addedAt || MEMBER_ID_COLLATOR.compare(left.username, right.username)),
     [members, sortOrder],
+  );
+  const sortedDefinitions = useMemo(
+    () => [...definitions].sort((left, right) => TAG_NAME_COLLATOR.compare(left.name, right.name) || MEMBER_ID_COLLATOR.compare(left.id, right.id)),
+    [definitions],
   );
 
   useEffect(() => {
@@ -65,8 +70,8 @@ export function TagSummaryPanel() {
 
   async function runQuery() {
     if (queryStatus === 'loading' || definitionsStatus !== 'ready') return;
-    const includedIds = definitions.filter((tag) => filters[tag.id] === 'include').map((tag) => tag.id);
-    const excludedIds = definitions.filter((tag) => filters[tag.id] === 'exclude').map((tag) => tag.id);
+    const includedIds = sortedDefinitions.filter((tag) => filters[tag.id] === 'include').map((tag) => tag.id);
+    const excludedIds = sortedDefinitions.filter((tag) => filters[tag.id] === 'exclude').map((tag) => tag.id);
     setQueryStatus('loading');
     setQueryError('');
     try {
@@ -99,7 +104,7 @@ export function TagSummaryPanel() {
       </header>
       <div className="tag-summary-filter-area">
         <div className="tag-summary-filter-list">
-          {definitions.map((tag) => {
+          {sortedDefinitions.map((tag) => {
             const state = filters[tag.id] ?? 'neutral';
             return (
               <button
