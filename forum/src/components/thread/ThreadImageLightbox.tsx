@@ -32,11 +32,13 @@ function getPointerDistance(
 export function ThreadImageLightbox({
   images,
   initialImageIndex,
+  onImageChange,
   onClose,
 }: {
   images: ForumMarkupImage[];
   initialImageIndex: number;
-  onClose: () => void;
+  onImageChange?: (imageIndex: number) => void;
+  onClose: (imageIndex: number) => void;
 }) {
   const normalizedInitialIndex = Math.min(
     Math.max(0, initialImageIndex),
@@ -60,7 +62,9 @@ export function ThreadImageLightbox({
   );
   const pinchDistanceRef = useRef<number | null>(null);
   const gestureStartScaleRef = useRef(MIN_IMAGE_SCALE);
+  const onImageChangeRef = useRef(onImageChange);
   const onCloseRef = useRef(onClose);
+  onImageChangeRef.current = onImageChange;
   onCloseRef.current = onClose;
 
   function clampOffset(nextOffset: ImageOffset, nextScale = scaleRef.current) {
@@ -112,6 +116,11 @@ export function ThreadImageLightbox({
     currentImageIndexRef.current = nextImageIndex;
     setCurrentImageIndex(nextImageIndex);
     resetImageView();
+    onImageChangeRef.current?.(nextImageIndex);
+  }
+
+  function closePreview() {
+    onCloseRef.current(currentImageIndexRef.current);
   }
 
   useEffect(() => {
@@ -124,7 +133,7 @@ export function ThreadImageLightbox({
     function handleKeyDown(event: KeyboardEvent) {
       if (event.key === 'Escape') {
         event.preventDefault();
-        onCloseRef.current();
+        closePreview();
         return;
       }
 
@@ -393,7 +402,7 @@ export function ThreadImageLightbox({
           event.target === event.currentTarget &&
           !interactionMovedRef.current
         ) {
-          onClose();
+          closePreview();
         }
       }}
       onPointerCancel={handlePointerEnd}
@@ -415,7 +424,7 @@ export function ThreadImageLightbox({
         <button
           aria-label="关闭图片预览"
           className="thread-image-lightbox-close"
-          onClick={onClose}
+          onClick={closePreview}
           ref={closeButtonRef}
           type="button"
         >

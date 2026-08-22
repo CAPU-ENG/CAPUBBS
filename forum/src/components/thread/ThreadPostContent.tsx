@@ -1,5 +1,8 @@
 import type { ReactNode } from 'react';
-import type { ForumMarkupImageOpenHandler } from './ForumMarkup';
+import type {
+  ForumMarkupImageChangeHandler,
+  ForumMarkupImageOpenHandler,
+} from './ForumMarkup';
 import { ThreadHtmlContent } from './ThreadHtmlContent';
 
 export function ThreadPostContent({
@@ -24,9 +27,14 @@ export function ThreadPostContent({
   signatureText?: string;
 }) {
   const openSignatureImage: ForumMarkupImageOpenHandler | undefined = onImageOpen
-    ? (images, imageIndex, trigger) => {
+    ? (images, imageIndex, trigger, onImageChange) => {
         const image = images[imageIndex];
-        if (image) onImageOpen([image], 0, trigger);
+        if (image) {
+          const syncSignatureImage: ForumMarkupImageChangeHandler | undefined = onImageChange
+            ? () => onImageChange(imageIndex)
+            : undefined;
+          onImageOpen([image], 0, trigger, syncSignatureImage);
+        }
       }
     : undefined;
 

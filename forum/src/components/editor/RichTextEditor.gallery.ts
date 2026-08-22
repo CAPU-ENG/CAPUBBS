@@ -39,6 +39,7 @@ for(i=0;i<items.length;i++){item=items.item(i);if(item.getAttribute('data-capubb
 if(items.length<2){return;}
 if(current<0){current=0;}
 next=(current+(direction==='next'?1:-1)+items.length)%items.length;
+gallery.setAttribute('data-capubbs-gallery-index',String(next));
 for(i=0;i<items.length;i++){
 var active=i===next;
 item=items.item(i);
@@ -48,7 +49,10 @@ item.setAttribute('aria-hidden',active?'false':'true');
 var captions=gallery.querySelectorAll('[data-capubbs-gallery-caption="true"]');
 for(i=0;i<captions.length;i++){item=captions.item(i);item.setAttribute('data-capubbs-gallery-active',i===next?'true':'false');item.setAttribute('aria-hidden',i===next?'false':'true');}
 var count=gallery.querySelector('.capubbs-gallery-count');
-if(count){count.setAttribute('data-capubbs-gallery-current',String(next+1));}
+if(count){
+count.setAttribute('data-capubbs-gallery-current',String(next+1));
+count.setAttribute('aria-label','第 '+(next+1)+' 张，共 '+items.length+' 张图片');
+}
 }
 gallery.onclick=function(event){
 event=event||window.event;var target=event.target||event.srcElement;
@@ -189,6 +193,18 @@ export function moveEditorGallery(target: Element, direction: 'next' | 'prev') {
       : 0;
   const offset = direction === 'next' ? 1 : -1;
   const nextIndex = (currentIndex + offset + slides.length) % slides.length;
+
+  return setEditorGalleryIndex(gallery, nextIndex);
+}
+
+export function setEditorGalleryIndex(gallery: HTMLElement, nextIndex: number) {
+  const slides = Array.from(gallery.querySelectorAll<HTMLElement>('[data-capubbs-gallery-slide="true"]'));
+  if (
+    slides.length < 2
+    || !Number.isSafeInteger(nextIndex)
+    || nextIndex < 0
+    || nextIndex >= slides.length
+  ) return false;
 
   gallery.dataset.capubbsGalleryIndex = String(nextIndex);
   slides.forEach((slide, index) => {

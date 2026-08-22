@@ -16,6 +16,7 @@ import { writeClipboardText } from '../../utils/clipboard';
 import { getPublicProfilePath } from '../../utils/userRoutes';
 import {
   ForumMarkup,
+  type ForumMarkupImageChangeHandler,
   type ForumMarkupImage,
   type ForumMarkupImageOpenHandler,
 } from './ForumMarkup';
@@ -30,6 +31,7 @@ type DeleteDialogTarget =
 type PreviewImageState = {
   imageIndex: number;
   images: ForumMarkupImage[];
+  onImageChange?: ForumMarkupImageChangeHandler;
 };
 
 function AuthorCard({ author }: { author: ThreadAuthor }) {
@@ -197,12 +199,13 @@ export function ThreadFloor({
     copyNoticeTimerRef.current = window.setTimeout(() => setCopyNoticeOpen(false), 1800);
   }
 
-  const openImagePreview: ForumMarkupImageOpenHandler = (images, imageIndex, trigger) => {
+  const openImagePreview: ForumMarkupImageOpenHandler = (images, imageIndex, trigger, onImageChange) => {
     previewTriggerRef.current = trigger;
-    setPreview({ imageIndex, images });
+    setPreview({ imageIndex, images, onImageChange });
   };
 
-  function closeImagePreview() {
+  function closeImagePreview(imageIndex: number) {
+    preview?.onImageChange?.(imageIndex);
     setPreview(null);
     window.requestAnimationFrame(() => previewTriggerRef.current?.focus());
   }

@@ -1,17 +1,31 @@
 import type { SafeForumHtml } from '../../utils/forumMarkup';
-import { useEffect, useRef, type KeyboardEvent, type MouseEvent } from 'react';
+import { useEffect, useMemo, useRef, type KeyboardEvent, type MouseEvent } from 'react';
 import {
   getEditorGalleryAction,
   moveEditorGallery,
+  setEditorGalleryIndex,
 } from '../editor/RichTextEditor.gallery';
 
 type ForumMarkupVariant = 'floor' | 'nested' | 'signature';
-export type ForumMarkupImage = { alt: string; src: string };
+export type ForumMarkupImage = {
+  alt: string;
+  galleryId?: number;
+  galleryIndex?: number;
+  src: string;
+};
+export type ForumMarkupImageChangeHandler = (imageIndex: number) => void;
 export type ForumMarkupImageOpenHandler = (
   images: ForumMarkupImage[],
   imageIndex: number,
   trigger: HTMLElement,
+  onImageChange?: ForumMarkupImageChangeHandler,
 ) => void;
+
+type GalleryImageLocation = {
+  gallery: HTMLElement;
+  galleryId: number;
+  galleryIndex: number;
+};
 
 export function ForumMarkup({
   className = '',
@@ -25,6 +39,7 @@ export function ForumMarkup({
   variant: ForumMarkupVariant;
 }) {
   const containerRef = useRef<HTMLDivElement>(null);
+  const dangerousHtml = useMemo(() => ({ __html: html }), [html]);
 
   useEffect(() => {
     const container = containerRef.current;
@@ -66,14 +81,25 @@ export function ForumMarkup({
     const imageIndex = imageElements.indexOf(image);
     if (imageIndex < 0) return;
 
-    onImageOpen(
-      imageElements.map((candidate) => ({
+    const imageLocations = imageElements.map((candidate) => getGalleryImageLocation(candidate, container));
+    const images = imageElements.map((candidate, candidateIndex) => {
+      const location = imageLocations[candidateIndex];
+      return {
         alt: candidate.alt.trim(),
         src: candidate.currentSrc || candidate.src,
-      })),
-      imageIndex,
-      image,
-    );
+        ...(location ? {
+          galleryId: location.galleryId,
+          galleryIndex: location.galleryIndex,
+        } : {}),
+      };
+    });
+    const onImageChange: ForumMarkupImageChangeHandler = (nextImageIndex) => {
+      const nextLocation = imageLocations[nextImageIndex];
+      if (!nextLocation) return;
+      setEditorGalleryIndex(nextLocation.gallery, nextLocation.galleryIndex);
+    };
+
+    onImageOpen(images, imageIndex, image, onImageChange);
   }
 
   function handleClick(event: MouseEvent<HTMLDivElement>) {
@@ -118,9 +144,27 @@ export function ForumMarkup({
       ref={containerRef}
       className={`forum-markup forum-markup-${variant} ${className}`.trim()}
       data-forum-markup={variant}
-      dangerouslySetInnerHTML={{ __html: html }}
+      dangerouslySetInnerHTML={dangerousHtml}
       onClick={handleClick}
       onKeyDown={handleKeyDown}
     />
   );
+}
+
+function getGalleryImageLocation(
+  image: HTMLImageElement,
+  container: HTMLDivElement,
+): GalleryImageLocation | null {
+  const gallery = image.closest<HTMLElement>('.capubbs-gallery');
+  if (!gallery || !container.contains(gallery)) return null;
+
+  const galleries = Array.from(container.querySelectorAll<HTMLElement>('.capubbs-gallery'));
+  const galleryId = galleries.indexOf(gallery);
+  const galleryImages = Array.from(
+    gallery.querySelectorAll<HTMLImageElement>('[data-capubbs-gallery-slide="true"] img'),
+  );
+  const galleryIndex = galleryImages.indexOf(image);
+  return galleryId >= 0 && galleryIndex >= 0
+    ? { gallery, galleryId, galleryIndex }
+    : null;
 }
