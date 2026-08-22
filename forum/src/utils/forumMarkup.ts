@@ -23,6 +23,11 @@ const ALIGNABLE_TAGS = new Set([
 ]);
 const ALLOWED_TEXT_ALIGNMENTS = new Set(['center', 'justify', 'left', 'right']);
 const VERTICAL_ALIGNABLE_TAGS = new Set(['TD', 'TH']);
+const INLINE_STYLE_TAGS = new Set(ALLOWED_TAGS);
+const INLINE_STYLE_PROPERTIES = [
+  'background-color', 'color', 'font-family', 'font-size', 'font-style', 'font-weight',
+  'line-height', 'text-align', 'text-decoration', 'text-indent', 'vertical-align', 'white-space',
+] as const;
 const LEGACY_DIMENSION_TAGS = new Set(['TABLE', 'TD', 'TH']);
 const LEGACY_COLOR_TAGS = new Set([
   'BLOCKQUOTE', 'DIV', 'H1', 'H2', 'H3', 'H4', 'H5', 'H6', 'LI', 'P', 'PRE',
@@ -129,6 +134,7 @@ function sanitizeElement(element: Element) {
   });
 
   if (element.classList.contains('capubbs-gallery')) sanitizeGalleryStyle(element as HTMLElement);
+  else if (element.hasAttribute('style')) sanitizeInlineStyle(element);
   sanitizeLegacyPresentationAttributes(element);
   if (element instanceof HTMLAnchorElement) sanitizeAnchor(element);
   if (element instanceof HTMLImageElement) sanitizeImage(element);
@@ -164,7 +170,7 @@ function isAllowedAttribute(element: Element, name: string) {
   if (name === 'clear') return element.tagName === 'BR';
   if (name === 'noshade' || name === 'size') return element.tagName === 'HR';
   const isGalleryElement = Boolean(element.closest('.capubbs-gallery'));
-  if (name === 'style' && element.classList.contains('capubbs-gallery')) return true;
+  if (name === 'style') return element.classList.contains('capubbs-gallery') || INLINE_STYLE_TAGS.has(element.tagName);
   if (isGalleryElement && [
     'aria-hidden',
     'aria-label',
@@ -245,6 +251,67 @@ function sanitizeClear(element: Element) {
   const clear = element.getAttribute('clear')?.trim().toLowerCase() ?? '';
   if (['all', 'left', 'none', 'right'].includes(clear)) element.setAttribute('clear', clear);
   else element.removeAttribute('clear');
+}
+
+function sanitizeInlineStyle(element: Element) {
+  const rawStyle = element.getAttribute('style')?.trim() ?? '';
+  if (!rawStyle) {
+    element.removeAttribute('style');
+    return;
+  }
+
+  const parsedStyle = document.createElement('span').style;
+  parsedStyle.cssText = rawStyle;
+  const declarations: string[] = [];
+
+  INLINE_STYLE_PROPERTIES.forEach((property) => {
+    const value = parsedStyle.getPropertyValue(property).trim();
+    if (value && isAllowedInlineStyleValue(element, property, value)) declarations.push(`${property}: ${value}`);
+  });
+
+  if (declarations.length > 0) element.setAttribute('style', declarations.join('; '));
+  else element.removeAttribute('style');
+}
+
+function isAllowedInlineStyleValue(
+  element: Element,
+  property: (typeof INLINE_STYLE_PROPERTIES)[number],
+  value: string,
+) {
+  if (value.length > 200 || /[{}<>]|!important|(?:url|expression|javascript)\s*\(/i.test(value)) return false;
+
+  switch (property) {
+    case 'background-color':
+    case 'color':
+      return isSafeCssColor(value);
+    case 'font-family':
+      return /^[^;{}<>]+$/.test(value);
+    case 'font-size':
+      return /^(?:xx-small|x-small|small|medium|large|x-large|xx-large|larger|smaller|-?(?:\d+(?:\.\d+)?)(?:px|pt|pc|em|rem|ex|ch|vw|vh|vmin|vmax|%)?)$/i.test(value);
+    case 'font-style':
+      return /^(?:normal|italic|oblique)$/i.test(value);
+    case 'font-weight':
+      return /^(?:normal|bold|bolder|lighter|[1-9]00)$/i.test(value);
+    case 'line-height':
+      return /^(?:normal|(?:\d+(?:\.\d+)?)(?:px|pt|pc|em|rem|ex|ch|vw|vh|vmin|vmax|%)?)$/i.test(value);
+    case 'text-align':
+      return ALIGNABLE_TAGS.has(element.tagName) && ALLOWED_TEXT_ALIGNMENTS.has(value.toLowerCase());
+    case 'text-decoration':
+      return /^(?:none|underline|overline|line-through)$/i.test(value);
+    case 'text-indent':
+      return /^-?(?:\d+(?:\.\d+)?)(?:px|pt|pc|em|rem|ex|ch|vw|vh|vmin|vmax|%)$/i.test(value);
+    case 'vertical-align':
+      return (VERTICAL_ALIGNABLE_TAGS.has(element.tagName) || element.tagName === 'IMG')
+        && /^(?:baseline|bottom|middle|sub|super|text-bottom|text-top|top)$/i.test(value);
+    case 'white-space':
+      return /^(?:normal|nowrap|pre|pre-line|pre-wrap|break-spaces)$/i.test(value);
+    default:
+      return false;
+  }
+}
+
+function isSafeCssColor(value: string) {
+  return /^(?:#[0-9a-f]{3,8}|(?:rgb|rgba|hsl|hsla)\([^)]{1,96}\)|[a-z]{1,32})$/i.test(value);
 }
 
 function sanitizeGalleryStyle(gallery: HTMLElement) {
