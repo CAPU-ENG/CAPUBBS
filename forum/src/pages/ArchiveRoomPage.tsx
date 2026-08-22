@@ -137,19 +137,23 @@ export function ArchiveRoomPage() {
               ))}
             </nav>
 
-            <div className="archive-room-actions">
+            <div className={`archive-room-actions ${canManage ? 'archive-room-actions-manage' : ''}`}>
               <label className="archive-room-search">
                 <Search size={15} />
                 <span className="sr-only">搜索档案</span>
                 <input onChange={(event) => setQuery(event.target.value)} placeholder="搜索当前目录" value={query} />
                 {query && <button aria-label="清空搜索" onClick={() => setQuery('')} type="button"><X size={14} /></button>}
               </label>
-              <button className="archive-room-action-button" disabled={!canManage} onClick={() => showUnavailable('上传')} title={canManage ? '上传文件' : '权限大于 2 才能上传'} type="button">
-                <Upload size={15} /> <span>上传</span>
-              </button>
-              <button className="archive-room-action-button" disabled={!canManage} onClick={() => showUnavailable('新建文件夹')} title={canManage ? '新建文件夹' : '权限大于 2 才能新建文件夹'} type="button">
-                <FolderPlus size={15} /> <span>新建文件夹</span>
-              </button>
+              {canManage && (
+                <>
+                  <button className="archive-room-action-button" onClick={() => showUnavailable('上传')} type="button">
+                    <Upload size={15} /> <span>上传</span>
+                  </button>
+                  <button className="archive-room-action-button" onClick={() => showUnavailable('新建文件夹')} type="button">
+                    <FolderPlus size={15} /> <span>新建文件夹</span>
+                  </button>
+                </>
+              )}
             </div>
           </div>
 
