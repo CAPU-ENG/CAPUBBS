@@ -21,6 +21,12 @@
     white-space: nowrap;
   }
 
+  .user-tag-selected {
+    border-color: var(--user-tag-color);
+    background: var(--user-tag-color);
+    color: var(--user-tag-selected-text, #fff);
+  }
+
   .user-tag-compact {
     padding: 2px 6px;
     font-size: 0.56rem;

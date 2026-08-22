@@ -1190,21 +1190,31 @@
   .management-tag-definition-list {
     display: flex;
     flex-wrap: wrap;
+    align-items: center;
     gap: 3px;
   }
 
-  .management-tag-definition-button {
+  .management-tag-definition-button,
+  .management-member-list > .management-member-filter-tag {
     display: inline-flex;
+    width: auto;
+    max-width: none;
+    min-height: 0;
     align-items: center;
     border: 0;
-    border-radius: 999px;
-    padding: 2px;
+    border-radius: 0;
+    padding: 0;
     background: transparent;
   }
 
-  .management-tag-definition-button:hover,
-  .management-tag-definition-button-selected {
-    background: var(--brand-faint);
+  .management-tag-definition-button:focus-visible,
+  .management-member-list > .management-member-filter-tag:focus-visible {
+    outline: 2px solid color-mix(in srgb, var(--brand) 48%, transparent);
+    outline-offset: 2px;
+  }
+
+  .management-member-picker .management-member-list {
+    padding: 0;
   }
 
   .management-tag-definition-card {
@@ -1281,24 +1291,11 @@
 
   .management-member-list {
     display: flex;
+    align-items: center;
     flex-wrap: wrap;
     max-height: none;
-    margin-top: 12px;
+    margin-top: 0;
     gap: 3px;
-  }
-
-  .management-member-filter-tag {
-    display: inline-flex;
-    align-items: center;
-    border: 0;
-    border-radius: 999px;
-    padding: 2px;
-    background: transparent;
-  }
-
-  .management-member-filter-tag:hover,
-  .management-member-filter-tag-selected {
-    background: var(--brand-faint);
   }
 
   .management-member-tag-editor {
@@ -1418,6 +1415,18 @@
     border-bottom: 0;
   }
 
+  .management-confirm-dialog {
+    width: min(100%, 420px);
+  }
+
+  .management-dialog-copy {
+    margin: 0;
+    padding: 18px 16px 2px;
+    color: var(--text-muted);
+    font-size: 0.7rem;
+    line-height: 1.6;
+  }
+
   .management-empty-state {
     display: grid;
     min-height: 92px;
@@ -1520,80 +1529,6 @@
     border-radius: var(--control-radius) 0 0 var(--control-radius);
   }
 
-  .management-pending-members {
-    display: grid;
-    gap: 7px;
-    min-height: 130px;
-    margin: 0 16px 16px;
-    border: 1px dashed var(--line-strong);
-    padding: 10px;
-  }
-
-  .management-pending-member {
-    display: flex;
-    min-height: 34px;
-    align-items: center;
-    justify-content: space-between;
-    border: 1px solid var(--line);
-    border-radius: var(--control-radius);
-    padding: 0 8px 0 10px;
-    background: var(--surface-soft);
-    color: var(--text-strong);
-    font-size: 0.68rem;
-  }
-
-  .management-pending-member button {
-    display: inline-flex;
-    width: 26px;
-    height: 26px;
-    align-items: center;
-    justify-content: center;
-    color: var(--text-faint);
-  }
-
-  .management-pending-member button:hover {
-    color: var(--danger);
-  }
-
-  .management-dialog > footer {
-    justify-content: flex-end;
-    border-top: 1px solid var(--line);
-    border-bottom: 0;
-  }
-
-  .management-empty-state {
-    display: grid;
-    min-height: 92px;
-    place-items: center;
-    gap: 7px;
-    padding: 18px;
-    color: var(--text-faint);
-    font-size: 0.62rem;
-    text-align: center;
-  }
-
-  .management-empty-state > span {
-    display: inline-flex;
-    color: var(--brand-strong);
-  }
-
-  .management-notice {
-    border: 1px solid var(--line);
-    border-radius: var(--control-radius);
-    padding: 10px 12px;
-    font-size: 0.64rem;
-  }
-
-  .management-notice-error {
-    color: var(--danger);
-    background: color-mix(in srgb, var(--danger) 7%, var(--surface));
-  }
-
-  .management-notice-info,
-  .management-notice-success {
-    color: var(--brand-strong);
-    background: var(--brand-faint);
-  }
 }
 
 @layer utilities {
@@ -1721,46 +1656,5 @@
     .management-tag-definition-card {
       min-width: 100%;
     }
-  }
-}
-
-@layer utilities {
-  .management-pending-members {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    gap: 3px;
-    min-height: 54px;
-    margin: 0 16px 16px;
-    border: 0;
-    padding: 0;
-  }
-
-  .management-pending-member {
-    display: inline-flex;
-    min-height: 26px;
-    align-items: center;
-    gap: 4px;
-    border: 0;
-    border-radius: 999px;
-    padding: 2px 5px 2px 8px;
-    background: var(--surface-soft);
-    color: var(--text-strong);
-    font-size: 0.64rem;
-  }
-
-  .management-pending-member button {
-    display: inline-flex;
-    width: 20px;
-    height: 20px;
-    align-items: center;
-    justify-content: center;
-    color: var(--danger);
-  }
-
-  .management-pending-members > .management-empty-state {
-    width: 100%;
-    min-height: 54px;
-    padding: 8px;
   }
 }
