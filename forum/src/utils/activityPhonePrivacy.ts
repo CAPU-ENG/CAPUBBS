@@ -3,6 +3,7 @@ import type { ThreadFloorData } from '../data/threadDemo';
 const PHONE_LABEL_PATTERN = /电话|手机|联系电话|mobile|phone|tel/i;
 const MASKED_PHONE_VALUE = '***********';
 const PHONE_VALUE_PATTERN = '(?:1\\d{10}|0\\d{2,3}[ -]?\\d{7,8})';
+const PHONE_FIELD_HTML_VALUE_PATTERN = '[^<\\r\\n]*';
 
 type ActivityPhoneQuestion = {
   id: string;
@@ -15,6 +16,13 @@ export function isActivityPhoneQuestion(question: ActivityPhoneQuestion) {
 
 export function maskActivitySignupSummary(value: string) {
   const phonePattern = `(?:${PHONE_LABEL_PATTERN.source})`;
+  if (/<(?:div|p|li)\b/i.test(value)) {
+    return value.replace(
+      new RegExp(`(${phonePattern}\\s*[：:]\\s*)${PHONE_FIELD_HTML_VALUE_PATTERN}(?=</(?:div|p|li)>|$)`, 'giu'),
+      `$1${MASKED_PHONE_VALUE}`,
+    );
+  }
+
   return value.replace(
     new RegExp(`(${phonePattern}\\s*[：:]\\s*)${PHONE_VALUE_PATTERN}`, 'giu'),
     `$1${MASKED_PHONE_VALUE}`,
