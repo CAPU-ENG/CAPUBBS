@@ -866,6 +866,12 @@
     font-weight: 680;
   }
 
+  .author-hover-card > .user-tag-list {
+    margin-top: 12px;
+    border-block: 1px solid var(--line);
+    padding: 8px 0;
+  }
+
   .author-hover-card dl {
     display: grid;
     grid-template-columns: repeat(3, 1fr);

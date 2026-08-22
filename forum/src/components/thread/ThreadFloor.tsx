@@ -47,9 +47,9 @@ function AuthorCard({ author }: { author: ThreadAuthor }) {
               {author.role}
             </span>
           )}
-          <TagList size="compact" tags={tags} />
         </div>
       </div>
+      <TagList size="compact" tags={tags} />
       <dl>
         <div><dt>主题</dt><dd>{author.topics}</dd></div>
         <div><dt>回复</dt><dd>{author.replies}</dd></div>
