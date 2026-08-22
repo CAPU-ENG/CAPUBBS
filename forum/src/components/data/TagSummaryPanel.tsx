@@ -58,6 +58,7 @@ export function TagSummaryPanel() {
     () => sortedDefinitions.filter((tag) => filters[tag.id] === 'exclude').map((tag) => tag.id),
     [filters, sortedDefinitions],
   );
+  const queryNeedsTag = definitionsStatus === 'ready' && queryStatus !== 'loading' && includedTagIds.length === 0;
 
   useEffect(() => {
     const controller = new AbortController();
@@ -118,6 +119,7 @@ export function TagSummaryPanel() {
             <span>点击两次：排除该标签</span>
             <span>点击三次：恢复默认</span>
             <span>支持组合筛选查询</span>
+            <span>请至少选中一个标签</span>
           </span>
         </span>
         {hasQueried && <span className="data-display-card-count">{sortedMembers.length} 位会员</span>}
@@ -142,7 +144,10 @@ export function TagSummaryPanel() {
           })}
           {definitions.length === 0 && <span className="tag-summary-empty">{definitionsStatus === 'loading' ? '正在加载标签' : definitionsStatus === 'error' ? '标签加载失败' : '暂无标签'}</span>}
         </div>
-        <button className="tag-summary-query-button" disabled={definitionsStatus !== 'ready' || queryStatus === 'loading' || includedTagIds.length === 0} onClick={runQuery} type="button"><Search size={15} />{queryStatus === 'loading' ? '查询中' : '开始查询'}</button>
+        <span className="tag-summary-query-wrap">
+          <button aria-describedby={queryNeedsTag ? 'tag-summary-query-tooltip' : undefined} className="tag-summary-query-button" disabled={definitionsStatus !== 'ready' || queryStatus === 'loading' || includedTagIds.length === 0} onClick={runQuery} type="button"><Search size={15} />{queryStatus === 'loading' ? '查询中' : '开始查询'}</button>
+          {queryNeedsTag && <span className="tag-summary-query-tooltip" id="tag-summary-query-tooltip" role="tooltip">请至少选中一个标签</span>}
+        </span>
       </div>
       {queryStatus === 'error' && <p className="tag-summary-empty">{queryError}</p>}
       {hasQueried && queryStatus !== 'error' && (
