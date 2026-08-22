@@ -1,4 +1,4 @@
-import { Fragment, useEffect, useLayoutEffect, useRef, useState } from 'react';
+import { Fragment, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { ArrowUpToLine, Bookmark, BookmarkCheck, Check, Eye, EyeOff, Link2, MessageCircle, RotateCw, Settings } from 'lucide-react';
 import { ActivitySignupForm } from '../components/thread/ActivitySignupForm';
 import { ReplyEditor, type QuoteRequest } from '../components/thread/ReplyEditor';
@@ -30,6 +30,7 @@ import {
   getThreadPageForFloor,
 } from '../utils/threadRoutes';
 import { markThreadRead } from '../utils/threadReadState';
+import { isActivityPhoneQuestion, maskActivitySignupFloor } from '../utils/activityPhonePrivacy';
 
 function getThreadRequest() {
   const params = new URLSearchParams(window.location.search);
@@ -72,7 +73,20 @@ export function ThreadPage() {
   const showTitleInTopBar = useScrollContextTitle(titleRef);
   const signaturesHidden = useSignaturesHidden();
   const signatureToggleEnabled = useSignatureToggleEnabled();
-  const pageFloors = data?.floors ?? [];
+  const pageFloors = useMemo(() => {
+    if (!data?.activity) return data?.floors ?? [];
+
+    const phoneFieldLabels = data.activity.questions
+      .filter(isActivityPhoneQuestion)
+      .map((question) => question.label);
+    const fieldLabels = [...data.activity.questions.map((question) => question.label), '报名状态'];
+    if (phoneFieldLabels.length === 0) return data.floors;
+
+    return data.floors.map((floor) => {
+      const canViewPhone = floor.isOwn || viewer?.username === data.authorName;
+      return canViewPhone ? floor : maskActivitySignupFloor(floor, phoneFieldLabels, fieldLabels);
+    });
+  }, [data, viewer?.username]);
 
   useEffect(() => {
     if (!data) return;
