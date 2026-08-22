@@ -345,13 +345,7 @@ export function ThreadFloor({
             aria-label={`${floor.floor} 楼的楼中楼回复`}
           >
             {nestedReplies.map((reply) => (
-              <article
-                data-nested-reply-author={reply.author.name}
-                data-nested-reply-floor={floor.floor}
-                data-nested-reply-time={reply.publishedAt}
-                id={`nested-reply-${floor.floor}-${reply.id}`}
-                key={reply.id}
-              >
+              <article key={reply.id}>
                 <img src={reply.author.avatar} alt="" />
                 <div>
                   <a className="nested-reply-author" href={getPublicProfilePath(reply.author.name)}>

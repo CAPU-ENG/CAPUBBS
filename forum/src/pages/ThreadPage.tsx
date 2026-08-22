@@ -26,8 +26,6 @@ import {
   getThreadEditHref,
   getThreadFloorElement,
   getThreadFloorFromHash,
-  getThreadNestedReplyElement,
-  getThreadNestedReplyTargetFromHash,
   getThreadHref,
   getThreadPageForFloor,
 } from '../utils/threadRoutes';
@@ -40,7 +38,6 @@ function getThreadRequest() {
   const requestedBid = positiveInteger(params.get('bid'));
   const authorOnly = params.get('see_lz') === '1' || params.get('author') === '1';
   const hashFloor = getThreadFloorFromHash(window.location.hash);
-  const nestedReplyTarget = getThreadNestedReplyTargetFromHash(window.location.hash);
 
   return {
     authorOnly,
@@ -49,7 +46,6 @@ function getThreadRequest() {
       ? getThreadPageForFloor(hashFloor)
       : positiveInteger(params.get('p') ?? params.get('page')) || 1,
     tid,
-    nestedReplyTarget,
   };
 }
 
@@ -111,14 +107,6 @@ export function ThreadPage() {
 
   useLayoutEffect(() => {
     if (!data) return;
-    const nestedReplyTarget = request.nestedReplyTarget;
-    if (nestedReplyTarget) {
-      const nestedReply = getThreadNestedReplyElement(nestedReplyTarget);
-      if (nestedReply) {
-        nestedReply.scrollIntoView({ block: 'start' });
-        return;
-      }
-    }
     const hashFloor = getThreadFloorFromHash(window.location.hash);
     if (hashFloor) getThreadFloorElement(hashFloor)?.scrollIntoView({ block: 'start' });
   }, [data]);
