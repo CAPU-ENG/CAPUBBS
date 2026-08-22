@@ -19,9 +19,18 @@ const ALLOWED_TAGS = new Set([
 ]);
 const ALIGNABLE_TAGS = new Set([
   'BLOCKQUOTE', 'DIV', 'H1', 'H2', 'H3', 'H4', 'H5', 'H6', 'LI', 'P', 'PRE',
-  'TABLE', 'TD', 'TH',
+  'TABLE', 'TD', 'TH', 'IMG',
 ]);
 const ALLOWED_TEXT_ALIGNMENTS = new Set(['center', 'justify', 'left', 'right']);
+const VERTICAL_ALIGNABLE_TAGS = new Set(['TD', 'TH']);
+const LEGACY_DIMENSION_TAGS = new Set(['TABLE', 'TD', 'TH']);
+const LEGACY_COLOR_TAGS = new Set([
+  'BLOCKQUOTE', 'DIV', 'H1', 'H2', 'H3', 'H4', 'H5', 'H6', 'LI', 'P', 'PRE',
+  'TABLE', 'TD', 'TH',
+]);
+const TEXT_DIRECTION_TAGS = new Set([
+  'BLOCKQUOTE', 'DIV', 'H1', 'H2', 'H3', 'H4', 'H5', 'H6', 'LI', 'P', 'PRE',
+]);
 const ALLOWED_CLASSES = new Set([
   'capubbs-floor-quote',
   'capubbs-floor-quote-content',
@@ -120,7 +129,7 @@ function sanitizeElement(element: Element) {
   });
 
   if (element.classList.contains('capubbs-gallery')) sanitizeGalleryStyle(element as HTMLElement);
-  if (element.hasAttribute('align')) sanitizeTextAlignment(element);
+  sanitizeLegacyPresentationAttributes(element);
   if (element instanceof HTMLAnchorElement) sanitizeAnchor(element);
   if (element instanceof HTMLImageElement) sanitizeImage(element);
   if (element.tagName === 'FONT') sanitizeFont(element);
@@ -142,6 +151,18 @@ function normalizeLegacyClasses(element: Element) {
 function isAllowedAttribute(element: Element, name: string) {
   if (name === 'class' || name === 'title') return true;
   if (name === 'align') return ALIGNABLE_TAGS.has(element.tagName);
+  if (name === 'valign') return VERTICAL_ALIGNABLE_TAGS.has(element.tagName);
+  if (name === 'width' || name === 'height') {
+    return element.tagName === 'IMG' || LEGACY_DIMENSION_TAGS.has(element.tagName);
+  }
+  if (name === 'bgcolor') return LEGACY_COLOR_TAGS.has(element.tagName);
+  if (name === 'border') return element.tagName === 'TABLE' || element.tagName === 'IMG';
+  if (name === 'cellpadding' || name === 'cellspacing') return element.tagName === 'TABLE';
+  if (name === 'nowrap') return VERTICAL_ALIGNABLE_TAGS.has(element.tagName);
+  if (name === 'dir') return TEXT_DIRECTION_TAGS.has(element.tagName);
+  if (name === 'hspace' || name === 'vspace') return element.tagName === 'IMG';
+  if (name === 'clear') return element.tagName === 'BR';
+  if (name === 'noshade' || name === 'size') return element.tagName === 'HR';
   const isGalleryElement = Boolean(element.closest('.capubbs-gallery'));
   if (name === 'style' && element.classList.contains('capubbs-gallery')) return true;
   if (isGalleryElement && [
@@ -165,10 +186,65 @@ function isAllowedAttribute(element: Element, name: string) {
   return false;
 }
 
+function sanitizeLegacyPresentationAttributes(element: Element) {
+  if (element.hasAttribute('align')) sanitizeTextAlignment(element);
+  if (element.hasAttribute('valign')) sanitizeVerticalAlignment(element);
+  if (element.tagName !== 'IMG' && element.hasAttribute('width')) sanitizeLegacyDimension(element, 'width');
+  if (element.tagName !== 'IMG' && element.hasAttribute('height')) sanitizeLegacyDimension(element, 'height');
+  if (element.hasAttribute('bgcolor')) sanitizeLegacyColor(element);
+  if (element.hasAttribute('border')) sanitizeLegacyInteger(element, 'border', 20);
+  if (element.hasAttribute('cellpadding')) sanitizeLegacyInteger(element, 'cellpadding', 100);
+  if (element.hasAttribute('cellspacing')) sanitizeLegacyInteger(element, 'cellspacing', 100);
+  if (element.hasAttribute('nowrap')) element.setAttribute('nowrap', '');
+  if (element.hasAttribute('dir')) sanitizeTextDirection(element);
+  if (element.hasAttribute('hspace')) sanitizeLegacyInteger(element, 'hspace', 100);
+  if (element.hasAttribute('vspace')) sanitizeLegacyInteger(element, 'vspace', 100);
+  if (element.hasAttribute('clear')) sanitizeClear(element);
+  if (element.hasAttribute('noshade')) element.setAttribute('noshade', '');
+  if (element.hasAttribute('size')) sanitizeLegacyInteger(element, 'size', 100);
+}
+
 function sanitizeTextAlignment(element: Element) {
   const alignment = element.getAttribute('align')?.trim().toLowerCase() ?? '';
   if (ALLOWED_TEXT_ALIGNMENTS.has(alignment)) element.setAttribute('align', alignment);
   else element.removeAttribute('align');
+}
+
+function sanitizeVerticalAlignment(element: Element) {
+  const alignment = element.getAttribute('valign')?.trim().toLowerCase() ?? '';
+  if (['baseline', 'bottom', 'middle', 'top'].includes(alignment)) element.setAttribute('valign', alignment);
+  else element.removeAttribute('valign');
+}
+
+function sanitizeLegacyDimension(element: Element, attribute: 'height' | 'width') {
+  const value = element.getAttribute(attribute)?.trim() ?? '';
+  if (/^(?:\d{1,4}(?:\.\d+)?%?|auto)$/i.test(value)) element.setAttribute(attribute, value.toLowerCase());
+  else element.removeAttribute(attribute);
+}
+
+function sanitizeLegacyColor(element: Element) {
+  const color = element.getAttribute('bgcolor')?.trim() ?? '';
+  if (/^(?:#[0-9a-f]{3,8}|[a-z]{1,32})$/i.test(color)) element.setAttribute('bgcolor', color);
+  else element.removeAttribute('bgcolor');
+}
+
+function sanitizeLegacyInteger(element: Element, attribute: string, maximum: number) {
+  const rawValue = element.getAttribute(attribute)?.trim() ?? '';
+  const value = Number.parseInt(rawValue, 10);
+  if (/^\d+$/.test(rawValue) && Number.isInteger(value) && value <= maximum) element.setAttribute(attribute, String(value));
+  else element.removeAttribute(attribute);
+}
+
+function sanitizeTextDirection(element: Element) {
+  const direction = element.getAttribute('dir')?.trim().toLowerCase() ?? '';
+  if (['auto', 'ltr', 'rtl'].includes(direction)) element.setAttribute('dir', direction);
+  else element.removeAttribute('dir');
+}
+
+function sanitizeClear(element: Element) {
+  const clear = element.getAttribute('clear')?.trim().toLowerCase() ?? '';
+  if (['all', 'left', 'none', 'right'].includes(clear)) element.setAttribute('clear', clear);
+  else element.removeAttribute('clear');
 }
 
 function sanitizeGalleryStyle(gallery: HTMLElement) {
