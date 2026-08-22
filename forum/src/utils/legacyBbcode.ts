@@ -3,6 +3,36 @@ import { getPublicProfilePath } from './userRoutes';
 type LegacyBbcodeReplacement = [RegExp, (...matches: string[]) => string];
 
 export function translateLegacyBbcode(value: string) {
+  if (!value.includes('[')) return value;
+
+  // Translate BBCode inside text nodes so an unclosed token cannot consume
+  // adjacent HTML elements (for example, wrapping the rest of a post in h2).
+  const parser = new DOMParser();
+  const document = parser.parseFromString(value, 'text/html');
+  const textNodes: Text[] = [];
+  const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT);
+  let currentNode = walker.nextNode();
+  while (currentNode) {
+    const parentTag = currentNode.parentElement?.tagName;
+    if (parentTag !== 'SCRIPT' && parentTag !== 'STYLE' && parentTag !== 'TEXTAREA') {
+      textNodes.push(currentNode as Text);
+    }
+    currentNode = walker.nextNode();
+  }
+
+  textNodes.forEach((textNode) => {
+    const translated = translateLegacyBbcodeText(escapeHtml(textNode.nodeValue ?? ''));
+    if (translated === escapeHtml(textNode.nodeValue ?? '')) return;
+
+    const template = document.createElement('template');
+    template.innerHTML = translated;
+    textNode.replaceWith(template.content);
+  });
+
+  return document.body.innerHTML;
+}
+
+function translateLegacyBbcodeText(value: string) {
   const replacements: LegacyBbcodeReplacement[] = [
     [/\[quote=([^\]]+)]([\s\S]*?)\[\/quote]/gi, (_match, author, content) => (
       `<blockquote class="forum-legacy-quote"><div class="forum-legacy-quote-content">`
