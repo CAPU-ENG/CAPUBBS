@@ -2,15 +2,30 @@ import { getPublicProfilePath } from './userRoutes';
 
 type LegacyBbcodeReplacement = [RegExp, (...matches: string[]) => string];
 
+const LEGACY_FONT_FALLBACKS: Record<string, string> = {
+  '仿宋': 'FangSong',
+  '黑体': 'SimHei',
+  '楷体': 'Kaiti',
+  '宋体': 'SimSun',
+  '幼圆': 'YouYuan',
+};
+
 export function translateLegacyBbcode(value: string) {
   const normalizedValue = normalizeUnclosedHeadings(value);
-  if (!normalizedValue.includes('[')) return normalizedValue;
+  if (!normalizedValue.includes('[') && !/<font\b[^>]*\bface\s*=/i.test(normalizedValue)) {
+    return normalizedValue;
+  }
 
   // Parse as a fragment so leading <style>/<script> nodes stay in the
   // returned markup instead of being promoted to a temporary document head.
   const template = document.createElement('template');
   template.innerHTML = normalizedValue;
   const fragment = template.content;
+
+  fragment.querySelectorAll('font[face]').forEach((element) => {
+    const face = element.getAttribute('face');
+    if (face) element.setAttribute('face', normalizeLegacyFontFace(face));
+  });
 
   // BBCode may begin in one text node and end in another when HTML elements
   // occur inside it. Replace real markup with sentinels, parse the remaining
@@ -160,7 +175,7 @@ function translateLegacyBbcodeText(value: string) {
       return `<a class="forum-mention" href="${escapeHtmlAttribute(getPublicProfilePath(plainName))}">@${escapeHtml(plainName)}</a>`;
     }],
     [/\[color=([^\]]+)]([\s\S]*?)\[\/color]/gi, (_match, color, content) => `<font color="${escapeHtmlAttribute(color)}">${content}</font>`],
-    [/\[font=([^\]]+)]([\s\S]*?)\[\/font]/gi, (_match, face, content) => `<font face="${escapeHtmlAttribute(face)}">${content}</font>`],
+    [/\[font=([^\]]+)]([\s\S]*?)\[\/font]/gi, (_match, face, content) => `<font face="${escapeHtmlAttribute(normalizeLegacyFontFace(face))}">${content}</font>`],
     [/\[size=([^\]]+)]([\s\S]*?)\[\/size]/gi, (_match, size, content) => `<font size="${escapeHtmlAttribute(size)}">${content}</font>`],
     [/\[b]([\s\S]*?)\[\/b]/gi, (_match, content) => `<strong>${content}</strong>`],
     [/\[i]([\s\S]*?)\[\/i]/gi, (_match, content) => `<em>${content}</em>`],
@@ -189,6 +204,30 @@ export function forumMarkupToPlainText(value: string) {
   const parser = new DOMParser();
   const document = parser.parseFromString(value, 'text/html');
   return (document.body.textContent ?? '').replace(/\s+/g, ' ').trim();
+}
+
+function normalizeLegacyFontFace(value: string) {
+  const names = value
+    .split(',')
+    .map((name) => name.trim())
+    .filter(Boolean);
+  const existingNames = new Set(names.map((name) => stripFontNameQuotes(name).toLocaleLowerCase()));
+  const normalizedNames: string[] = [];
+
+  names.forEach((name) => {
+    normalizedNames.push(name);
+    const fallback = LEGACY_FONT_FALLBACKS[stripFontNameQuotes(name)];
+    if (fallback && !existingNames.has(fallback.toLocaleLowerCase())) {
+      normalizedNames.push(fallback);
+      existingNames.add(fallback.toLocaleLowerCase());
+    }
+  });
+
+  return normalizedNames.join(', ');
+}
+
+function stripFontNameQuotes(value: string) {
+  return value.replace(/^(['"])(.*)\1$/, '$2').trim();
 }
 
 function closeUnclosedLegacyBbcode(value: string) {
