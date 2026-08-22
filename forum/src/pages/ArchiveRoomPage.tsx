@@ -11,7 +11,6 @@ import {
   Folder,
   FolderPlus,
   Grid2X2,
-  HardDrive,
   List,
   MoreHorizontal,
   Search,
@@ -110,13 +109,8 @@ export function ArchiveRoomPage() {
             <div className="archive-room-title-wrap">
               <span className="archive-room-title-icon"><Archive size={20} /></span>
               <div>
-                <div className="archive-room-kicker">PAN / ARCHIVE</div>
                 <h1 id="archive-room-heading">档案室</h1>
               </div>
-            </div>
-            <div className="archive-room-capacity" aria-label="档案室容量">
-              <HardDrive size={16} />
-              <span><strong>1.34 TB</strong> 可用</span>
             </div>
           </header>
 
@@ -186,10 +180,6 @@ export function ArchiveRoomPage() {
           )}
         </section>
 
-        <footer className="archive-room-footer">
-          <span><ShieldCheck size={14} /> 文件由档案室统一管理</span>
-          <span>当前用户：{viewer?.username ?? '未登录'}</span>
-        </footer>
       </main>
     </div>
   );
