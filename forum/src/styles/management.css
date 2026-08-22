@@ -1181,10 +1181,337 @@
   }
 }
 
+@layer components {
+  .management-tags-workspace {
+    display: grid;
+    gap: 14px;
+  }
+
+  .management-tag-definition-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+
+  .management-tag-definition-card {
+    display: flex;
+    min-width: 180px;
+    flex: 1 1 180px;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    border: 1px solid var(--line);
+    border-radius: var(--control-radius);
+    padding: 10px;
+    background: var(--surface-raised);
+    transition: border-color 140ms ease, background 140ms ease;
+  }
+
+  .management-tag-definition-card:hover,
+  .management-tag-definition-card-selected {
+    border-color: color-mix(in srgb, var(--brand) 45%, var(--line));
+    background: var(--brand-faint);
+  }
+
+  .management-tag-definition-select {
+    display: grid;
+    min-width: 0;
+    justify-items: start;
+    gap: 8px;
+    text-align: left;
+  }
+
+  .management-tag-definition-select > span {
+    color: var(--text-faint);
+    font-size: 0.58rem;
+  }
+
+  .management-tag-definition-card > div {
+    display: flex;
+    flex: 0 0 auto;
+    gap: 4px;
+  }
+
+  .management-member-tag-layout {
+    display: grid;
+    grid-template-columns: 226px minmax(0, 1fr);
+    min-height: 340px;
+  }
+
+  .management-member-picker {
+    border-right: 1px solid var(--line);
+    padding: 15px 13px;
+  }
+
+  .management-member-filter-heading,
+  .management-member-results-heading {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 12px;
+  }
+
+  .management-member-filter-heading > span,
+  .management-member-results-heading strong {
+    color: var(--text-strong);
+    font-size: 0.72rem;
+    font-weight: 780;
+  }
+
+  .management-member-filter-heading small,
+  .management-member-results-heading span,
+  .management-member-results-heading > span {
+    color: var(--text-faint);
+    font-size: 0.58rem;
+  }
+
+  .management-member-list {
+    max-height: 300px;
+    margin-top: 12px;
+  }
+
+  .management-member-filter-row {
+    display: grid;
+    grid-template-columns: 18px minmax(0, 1fr);
+    align-items: center;
+    gap: 5px;
+    min-height: 40px;
+    border-bottom: 1px solid var(--line);
+    padding: 3px 5px;
+  }
+
+  .management-member-filter-row > input {
+    accent-color: var(--brand-strong);
+  }
+
+  .management-member-filter-row > button {
+    display: flex;
+    min-width: 0;
+    align-items: center;
+    justify-content: space-between;
+    gap: 6px;
+    color: var(--text-muted);
+    text-align: left;
+  }
+
+  .management-member-filter-row > button:hover,
+  .management-member-filter-selected > button {
+    color: var(--brand-strong);
+  }
+
+  .management-member-filter-row small {
+    flex: 0 0 auto;
+    color: var(--text-faint);
+    font-size: 0.57rem;
+  }
+
+  .management-member-tag-editor {
+    min-width: 0;
+    padding: 15px 16px;
+  }
+
+  .management-member-results-heading {
+    border-bottom: 1px solid var(--line);
+    padding-bottom: 12px;
+  }
+
+  .management-member-results-heading > div {
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+  }
+
+  .management-member-grid {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 9px;
+    margin-top: 13px;
+  }
+
+  .management-member-card {
+    display: grid;
+    min-width: 0;
+    min-height: 112px;
+    align-content: space-between;
+    gap: 14px;
+    border: 1px solid var(--line);
+    border-radius: var(--control-radius);
+    padding: 11px;
+    background: var(--surface-raised);
+  }
+
+  .management-member-card > div {
+    display: grid;
+    gap: 7px;
+    min-width: 0;
+  }
+
+  .management-member-card strong {
+    overflow: hidden;
+    color: var(--text-strong);
+    font-size: 0.7rem;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .management-member-card span {
+    color: var(--text-faint);
+    font-size: 0.58rem;
+  }
+
+  .management-member-card .management-danger-button {
+    justify-self: start;
+    min-height: 28px;
+    padding-inline: 8px;
+  }
+
+  .management-dialog-backdrop {
+    position: fixed;
+    z-index: 100;
+    inset: 0;
+    display: grid;
+    place-items: center;
+    padding: 18px;
+    background: rgb(11 20 15 / 0.48);
+  }
+
+  .management-dialog {
+    width: min(100%, 520px);
+    max-height: min(640px, calc(100vh - 36px));
+    overflow: auto;
+    border: 1px solid var(--line-strong);
+    border-radius: 2px;
+    background: var(--surface-raised);
+    box-shadow: var(--shadow-float);
+  }
+
+  .management-dialog > header,
+  .management-dialog > footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    border-bottom: 1px solid var(--line);
+    padding: 14px 16px;
+  }
+
+  .management-dialog > header > div {
+    display: grid;
+    gap: 4px;
+  }
+
+  .management-dialog > header span {
+    color: var(--brand-strong);
+    font-size: 0.58rem;
+    font-weight: 760;
+  }
+
+  .management-dialog > header h2 {
+    color: var(--text-strong);
+    font-size: 0.82rem;
+    font-weight: 780;
+  }
+
+  .management-dialog-form {
+    display: grid;
+    gap: 8px;
+    padding: 15px 16px 8px;
+  }
+
+  .management-dialog-form > label {
+    color: var(--text-muted);
+    font-size: 0.62rem;
+    font-weight: 750;
+  }
+
+  .management-dialog-form .management-input-action input {
+    border-radius: var(--control-radius) 0 0 var(--control-radius);
+  }
+
+  .management-pending-members {
+    display: grid;
+    gap: 7px;
+    min-height: 130px;
+    margin: 0 16px 16px;
+    border: 1px dashed var(--line-strong);
+    padding: 10px;
+  }
+
+  .management-pending-member {
+    display: flex;
+    min-height: 34px;
+    align-items: center;
+    justify-content: space-between;
+    border: 1px solid var(--line);
+    border-radius: var(--control-radius);
+    padding: 0 8px 0 10px;
+    background: var(--surface-soft);
+    color: var(--text-strong);
+    font-size: 0.68rem;
+  }
+
+  .management-pending-member button {
+    display: inline-flex;
+    width: 26px;
+    height: 26px;
+    align-items: center;
+    justify-content: center;
+    color: var(--text-faint);
+  }
+
+  .management-pending-member button:hover {
+    color: var(--danger);
+  }
+
+  .management-dialog > footer {
+    justify-content: flex-end;
+    border-top: 1px solid var(--line);
+    border-bottom: 0;
+  }
+
+  .management-empty-state {
+    display: grid;
+    min-height: 92px;
+    place-items: center;
+    gap: 7px;
+    padding: 18px;
+    color: var(--text-faint);
+    font-size: 0.62rem;
+    text-align: center;
+  }
+
+  .management-empty-state > span {
+    display: inline-flex;
+    color: var(--brand-strong);
+  }
+
+  .management-notice {
+    border: 1px solid var(--line);
+    border-radius: var(--control-radius);
+    padding: 10px 12px;
+    font-size: 0.64rem;
+  }
+
+  .management-notice-error {
+    color: var(--danger);
+    background: color-mix(in srgb, var(--danger) 7%, var(--surface));
+  }
+
+  .management-notice-info,
+  .management-notice-success {
+    color: var(--brand-strong);
+    background: var(--brand-faint);
+  }
+}
+
 @layer utilities {
   @media (max-width: 940px) {
     .management-grid {
       grid-template-columns: 1fr;
+    }
+
+    .management-member-grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
     }
   }
 
@@ -1289,6 +1616,18 @@
     .management-member-picker {
       border-right: 0;
       border-bottom: 1px solid var(--line);
+    }
+
+    .management-member-tag-layout {
+      grid-template-columns: 1fr;
+    }
+
+    .management-member-grid {
+      grid-template-columns: 1fr;
+    }
+
+    .management-tag-definition-card {
+      min-width: 100%;
     }
   }
 }

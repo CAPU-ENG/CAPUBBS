@@ -1,4 +1,5 @@
 export type UserTag = {
+  addedAt?: string;
   id: string;
   name: string;
   color: string;
@@ -7,6 +8,8 @@ export type UserTag = {
 export type TagDefinition = UserTag & {
   description?: string;
 };
+
+export type UserTagAssignments = Record<string, Record<string, string>>;
 
 const TAG_DEFINITIONS_KEY = 'capubbs-tag-definitions';
 const USER_TAGS_KEY = 'capubbs-user-tags';
@@ -18,12 +21,12 @@ export const defaultTagDefinitions: TagDefinition[] = [
   { id: 'newcomer', name: '新晋会员', color: '#69747c' },
 ];
 
-const defaultUserTagIds: Record<string, string[]> = {
-  阿北: ['rider', 'organizer'],
-  蓝色车架: ['rider', 'contributor'],
-  小白杨: ['newcomer'],
-  南门修车铺: ['contributor'],
-  小林: ['rider', 'newcomer'],
+const defaultUserTagAssignments: UserTagAssignments = {
+  阿北: { rider: '2026-08-18T09:20:00+08:00', organizer: '2026-08-19T14:05:00+08:00' },
+  蓝色车架: { rider: '2026-08-10T11:30:00+08:00', contributor: '2026-08-15T16:40:00+08:00' },
+  小白杨: { newcomer: '2026-08-20T08:15:00+08:00' },
+  南门修车铺: { contributor: '2026-07-28T19:10:00+08:00' },
+  小林: { rider: '2026-08-12T10:05:00+08:00', newcomer: '2026-08-12T10:05:00+08:00' },
 };
 
 export function readTagDefinitions(): TagDefinition[] {
@@ -46,23 +49,33 @@ export function writeTagDefinitions(definitions: TagDefinition[]) {
   }
 }
 
-export function readUserTagIds(): Record<string, string[]> {
-  if (typeof window === 'undefined') return defaultUserTagIds;
+export function readUserTagAssignments(): UserTagAssignments {
+  if (typeof window === 'undefined') return defaultUserTagAssignments;
   try {
     const parsed = JSON.parse(window.localStorage.getItem(USER_TAGS_KEY) ?? 'null');
-    if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) return defaultUserTagIds;
-    return Object.fromEntries(
-      Object.entries(parsed).map(([username, ids]) => [
-        username,
-        Array.isArray(ids) ? ids.filter((id): id is string => typeof id === 'string') : [],
-      ]),
-    );
+    if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) return defaultUserTagAssignments;
+    const assignments: UserTagAssignments = {};
+    Object.entries(parsed).forEach(([username, value]) => {
+      if (Array.isArray(value)) {
+        assignments[username] = Object.fromEntries(
+          value.filter((id): id is string => typeof id === 'string').map((id) => [id, new Date().toISOString()]),
+        );
+        return;
+      }
+      if (!value || typeof value !== 'object' || Array.isArray(value)) return;
+      assignments[username] = Object.fromEntries(
+        Object.entries(value)
+          .filter((entry): entry is [string, string | number] => typeof entry[1] === 'string' || typeof entry[1] === 'number')
+          .map(([id, addedAt]) => [id, String(addedAt)]),
+      );
+    });
+    return Object.keys(assignments).length > 0 ? assignments : defaultUserTagAssignments;
   } catch {
-    return defaultUserTagIds;
+    return defaultUserTagAssignments;
   }
 }
 
-export function writeUserTagIds(assignments: Record<string, string[]>) {
+export function writeUserTagAssignments(assignments: UserTagAssignments) {
   try {
     window.localStorage.setItem(USER_TAGS_KEY, JSON.stringify(assignments));
   } catch {
@@ -71,10 +84,13 @@ export function writeUserTagIds(assignments: Record<string, string[]>) {
 }
 
 export function getTagsForUser(username: string, definitions = readTagDefinitions()): UserTag[] {
-  const ids = readUserTagIds()[username] ?? [];
-  return ids
-    .map((id) => definitions.find((definition) => definition.id === id))
-    .filter((tag): tag is TagDefinition => Boolean(tag));
+  const assignments = readUserTagAssignments()[username] ?? {};
+  return Object.entries(assignments)
+    .map(([id, addedAt]) => {
+      const definition = definitions.find((tag) => tag.id === id);
+      return definition ? { ...definition, addedAt } : null;
+    })
+    .filter((tag): tag is TagDefinition & { addedAt: string } => Boolean(tag));
 }
 
 function isTagDefinition(value: unknown): value is TagDefinition {
