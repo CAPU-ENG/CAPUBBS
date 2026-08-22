@@ -65,29 +65,61 @@
     font-weight: 780;
   }
 
-  .archive-room-auth-banner {
+  .archive-room-auth-prompt {
     display: flex;
+    min-height: 220px;
+    flex-direction: column;
     align-items: center;
-    gap: 9px;
-    padding: 11px 24px;
-    border-bottom: 1px solid color-mix(in srgb, var(--brand) 20%, var(--line));
-    background: var(--brand-faint);
-    color: var(--text-muted);
-    font-size: 0.79rem;
+    justify-content: center;
+    gap: 14px;
+    border-top: 1px solid var(--line);
+    padding: 32px 24px;
+    color: var(--brand-strong);
+    text-align: center;
   }
 
-  .archive-room-auth-banner svg {
-    color: var(--brand-strong);
-  }
-
-  .archive-room-auth-banner a {
-    margin-left: auto;
-    color: var(--brand-strong);
+  .archive-room-auth-prompt p {
+    margin: 0;
+    color: var(--text-strong);
+    font-size: 0.9rem;
     font-weight: 720;
   }
 
-  .archive-room-auth-banner a:hover {
-    text-decoration: underline;
+  .archive-room-auth-actions {
+    display: flex;
+    gap: 8px;
+  }
+
+  .archive-room-auth-actions a {
+    display: inline-flex;
+    min-height: 34px;
+    align-items: center;
+    gap: 6px;
+    border: 1px solid var(--line-strong);
+    border-radius: var(--control-radius);
+    padding: 0 13px;
+    color: var(--text-muted);
+    font-size: 0.76rem;
+    font-weight: 720;
+    transition: 150ms ease;
+  }
+
+  .archive-room-auth-actions a:hover {
+    border-color: var(--brand);
+    color: var(--brand-strong);
+    background: var(--brand-faint);
+  }
+
+  .archive-room-auth-actions .archive-room-auth-primary {
+    border-color: var(--brand);
+    background: var(--brand);
+    color: var(--on-brand);
+  }
+
+  .archive-room-auth-actions .archive-room-auth-primary:hover {
+    border-color: var(--brand-strong);
+    background: var(--brand-strong);
+    color: var(--on-brand);
   }
 
   .archive-room-toolbar {
@@ -759,6 +791,11 @@
   @media (max-width: 640px) {
     .archive-room-shell {
       padding: calc(var(--topbar-height) + 10px) 10px 28px;
+    }
+
+    .archive-room-auth-prompt {
+      min-height: 200px;
+      padding: 28px 16px;
     }
   }
 }
