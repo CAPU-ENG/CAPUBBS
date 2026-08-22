@@ -14,13 +14,4 @@ npm run preview
 npm run typecheck
 ```
 
-For local API development, start PHP from the repository root before Vite:
-
-```bash
-php -c php.ini -S localhost:8080
-```
-
-The repository `php.ini` raises the upload limits for the archive room to
-`500M` per file and `520M` per request. Restart PHP after changing this file.
-
 Vite proxies `/api`, `/assets`, `/bbs`, and `/bbsimg` to that server; avatar and post image paths are always normalized to the local `/bbsimg` and `/bbs/images` directories. Set `CAPUBBS_PHP_ORIGIN` to use a different PHP origin, `VITE_API_URL` to override the browser forum API endpoint, or `VITE_CALENDAR_API_URL` to override the calendar endpoint.
