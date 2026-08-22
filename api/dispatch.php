@@ -18,6 +18,7 @@
 
 require_once __DIR__.'/jiekoufunc.php';
 require_once __DIR__.'/lib/ActivityHandlers.php';
+require_once __DIR__.'/lib/TagHandlers.php';
 require_once __DIR__.'/lib/ThreadDetailQuery.php';
 
 function _dispatch_build_routes() {
@@ -42,6 +43,9 @@ function _dispatch_build_routes() {
         'sign_user'       => array('handler' => 'jiekoufunc_sign_user',       'check_login' => false, 'require_rights' => 0),
         'getuser'         => array('handler' => 'jiekoufunc_getuser',         'check_login' => false, 'require_rights' => 0),
         'user_profile'    => array('handler' => 'jiekoufunc_user_profile',    'check_login' => false, 'require_rights' => 0),
+        'tag_list'        => array('handler' => 'jiekoufunc_tag_list',        'check_login' => false, 'require_rights' => 0),
+        'tag_user_tags'   => array('handler' => 'jiekoufunc_tag_user_tags',   'check_login' => false, 'require_rights' => 0),
+        'tag_summary'     => array('handler' => 'jiekoufunc_tag_summary',     'check_login' => false, 'require_rights' => 0),
         'userexists'      => array('handler' => 'jiekoufunc_userexists',      'check_login' => false, 'require_rights' => 0),
         'rights'          => array('handler' => 'jiekoufunc_rights',          'check_login' => false, 'require_rights' => 0),
         'recentpost'      => array('handler' => 'jiekoufunc_recentpost',      'check_login' => false, 'require_rights' => 0),
@@ -103,6 +107,13 @@ function _dispatch_build_routes() {
         'management_elevated_members' => array('handler' => 'jiekoufunc_management_elevated_members', 'check_login' => true, 'require_rights' => 3),
         'management_member_rights' => array('handler' => 'jiekoufunc_management_member_rights', 'check_login' => true, 'require_rights' => 3),
         'management_board_moderator' => array('handler' => 'jiekoufunc_management_board_moderator', 'check_login' => true, 'require_rights' => 3),
+        'management_tag_create' => array('handler' => 'jiekoufunc_management_tag_create', 'check_login' => true, 'require_rights' => 3),
+        'management_tag_update' => array('handler' => 'jiekoufunc_management_tag_update', 'check_login' => true, 'require_rights' => 3),
+        'management_tag_delete' => array('handler' => 'jiekoufunc_management_tag_delete', 'check_login' => true, 'require_rights' => 3),
+        'management_tag_members' => array('handler' => 'jiekoufunc_management_tag_members', 'check_login' => true, 'require_rights' => 3),
+        'management_tag_member_check' => array('handler' => 'jiekoufunc_management_tag_member_check', 'check_login' => true, 'require_rights' => 3),
+        'management_tag_members_add' => array('handler' => 'jiekoufunc_management_tag_members_add', 'check_login' => true, 'require_rights' => 3),
+        'management_tag_member_remove' => array('handler' => 'jiekoufunc_management_tag_member_remove', 'check_login' => true, 'require_rights' => 3),
         'toggleEmailVisible' => array('handler' => null, 'check_login' => true,  'require_rights' => 0),
 
         // ================================================================
@@ -231,6 +242,12 @@ function jiekoufunc_dispatch($con, $params) {
                 return jiekoufunc_getuser($con, $token);
             case 'jiekoufunc_user_profile':
                 return jiekoufunc_user_profile($con, $params);
+            case 'jiekoufunc_tag_list':
+                return jiekoufunc_tag_list($con, $params);
+            case 'jiekoufunc_tag_user_tags':
+                return jiekoufunc_tag_user_tags($con, $params);
+            case 'jiekoufunc_tag_summary':
+                return jiekoufunc_tag_summary($con, $params);
             case 'jiekoufunc_management_member_lookup':
                 return jiekoufunc_management_member_lookup($con, $params);
             case 'jiekoufunc_management_elevated_members':
@@ -239,6 +256,20 @@ function jiekoufunc_dispatch($con, $params) {
                 return jiekoufunc_management_member_rights($con, $params);
             case 'jiekoufunc_management_board_moderator':
                 return jiekoufunc_management_board_moderator($con, $params);
+            case 'jiekoufunc_management_tag_create':
+                return jiekoufunc_management_tag_create($con, $token, $params);
+            case 'jiekoufunc_management_tag_update':
+                return jiekoufunc_management_tag_update($con, $token, $params);
+            case 'jiekoufunc_management_tag_delete':
+                return jiekoufunc_management_tag_delete($con, $token, $params);
+            case 'jiekoufunc_management_tag_members':
+                return jiekoufunc_management_tag_members($con, $params);
+            case 'jiekoufunc_management_tag_member_check':
+                return jiekoufunc_management_tag_member_check($con, $params);
+            case 'jiekoufunc_management_tag_members_add':
+                return jiekoufunc_management_tag_members_add($con, $token, $params);
+            case 'jiekoufunc_management_tag_member_remove':
+                return jiekoufunc_management_tag_member_remove($con, $params);
             case 'jiekoufunc_activity_create':
                 return jiekoufunc_activity_create($con, $token, $bid, $ip, $params);
             case 'jiekoufunc_activity_signup':
@@ -292,7 +323,7 @@ function jiekoufunc_dispatch($con, $params) {
             case 'jiekoufunc_admin_reset_password':
                 return jiekoufunc_admin_reset_password($con, $token, $params);
             case 'jiekoufunc_currentUserInfo':
-                return jiekoufunc_currentUserInfo($con, $token);
+                return jiekoufunc_currentUserInfo($con, $token, $params);
             case 'jiekoufunc_searchByKeyword':
                 return jiekoufunc_searchByKeyword($con, $keyword, $token, $type, $bid, $params);
             case 'jiekoufunc_edituser':
@@ -409,7 +440,8 @@ function jiekoufunc_dispatch($con, $params) {
             $viewer_user = jiekoufunc_token2user($con, $token);
             if ($viewer_user) $viewer = $viewer_user['username'];
         }
-        return jiekoufunc_view_user_array($con, $view, $viewer);
+        $include_tags = isset($params['tag']) ? intval($params['tag']) : 0;
+        return jiekoufunc_view_user_array($con, $view, $viewer, $include_tags);
     }
 
     // === Dispatch by $bid (no $ask, default board/thread rendering) ===

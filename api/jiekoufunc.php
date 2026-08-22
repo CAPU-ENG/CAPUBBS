@@ -140,7 +140,8 @@ function jiekoufunc_user_profile($con, $params) {
         }
     }
 
-    $rows = jiekoufunc_view_user_array($con, $username, $viewer);
+    $include_tags = isset($params['tag']) ? intval($params['tag']) : 0;
+    $rows = jiekoufunc_view_user_array($con, $username, $viewer, $include_tags);
     if (count($rows) === 0) {
         return jiekoufunc_report('3', '用户不存在。');
     }
@@ -595,12 +596,13 @@ function jiekoufunc_editpreview($con, $token, $bid, $tid, $pid) {
     return $infos;
 }
 
-function jiekoufunc_currentUserInfo($con, $token) {
+function jiekoufunc_currentUserInfo($con, $token, $params = array()) {
     $user = jiekoufunc_token2user($con, $token);
     if (!$user) {
         return array(array());
     }
-    return jiekoufunc_view_user_array($con, $user['username'], $user['username']);
+    $include_tags = isset($params['tag']) ? intval($params['tag']) : 0;
+    return jiekoufunc_view_user_array($con, $user['username'], $user['username'], $include_tags);
 }
 
 function jiekoufunc_msg($con, $token, $type, $params) {

@@ -20,10 +20,11 @@ function jiekoufunc_thread_detail($con, $bid, $tid, $params, $token, $ip) {
 
     $page = thread_detail_query_int_param($params, 'page', thread_detail_query_int_param($params, 'p', 1));
     $author_only = thread_detail_query_bool_param($params, 'authorOnly') || thread_detail_query_bool_param($params, 'see_lz');
+    $include_tags = thread_detail_query_bool_param($params, 'tag');
     $render = thread_detail_query_render_param($params);
 
     $current_username = thread_detail_query_current_username($con, $token);
-    $viewer = thread_detail_query_get_viewer($con, $current_username);
+    $viewer = thread_detail_query_get_viewer($con, $current_username, $include_tags);
 
     $thread_row = thread_detail_query_get_thread($con, $bid, $tid);
     if ($thread_row === false) {
@@ -75,7 +76,7 @@ function jiekoufunc_thread_detail($con, $bid, $tid, $params, $token, $ip) {
     $attachment_ids = thread_detail_query_collect_attachment_ids($all_post_rows);
     $attachments_by_id = thread_detail_query_get_attachments_by_id($con, $attachment_ids);
     $authors = thread_detail_query_collect_authors($all_post_rows, $lzl_by_fid);
-    $profiles_by_username = thread_detail_query_get_profiles_by_username($con, $authors);
+    $profiles_by_username = thread_detail_query_get_profiles_by_username($con, $authors, $include_tags);
     $rights = thread_detail_query_get_board_rights($board_row, $viewer);
     $favorite_count = thread_detail_query_get_favorite_count($con, $bid, $tid);
     $bookmarked = $current_username ? thread_detail_query_is_favorite($con, $current_username, $bid, $tid) : false;
@@ -114,6 +115,7 @@ function jiekoufunc_thread_detail($con, $bid, $tid, $params, $token, $ip) {
             'page' => $page,
             'render' => $render,
             'authorOnly' => $author_only,
+            'tag' => $include_tags ? 1 : 0,
         ),
         'board' => thread_detail_query_pack_board($board_row),
         'thread' => thread_detail_query_pack_thread($thread_row, $board_row, $favorite_count, $activity),
@@ -198,7 +200,7 @@ function thread_detail_query_get_board($con, $bid) {
     return thread_detail_query_fetch_one($con, "select * from boardinfo where bid=$bid limit 1");
 }
 
-function thread_detail_query_get_viewer($con, $username) {
+function thread_detail_query_get_viewer($con, $username, $include_tags = false) {
     if (!$username) {
         return null;
     }
@@ -206,6 +208,12 @@ function thread_detail_query_get_viewer($con, $username) {
     $row = thread_detail_query_fetch_one($con, "select * from userinfo where username='$username_escaped' limit 1");
     if (!$row || $row === false) {
         return null;
+    }
+    if ($include_tags) {
+        $tags_by_username = jiekoufunc_query_user_tags($con, array($row['username']));
+        $row['_tags'] = isset($tags_by_username[$row['username']])
+            ? $tags_by_username[$row['username']]
+            : array();
     }
     return thread_detail_query_pack_profile($row, true);
 }
@@ -348,7 +356,7 @@ function thread_detail_query_collect_authors($post_rows, $lzl_by_fid) {
     return array_values($authors);
 }
 
-function thread_detail_query_get_profiles_by_username($con, $usernames) {
+function thread_detail_query_get_profiles_by_username($con, $usernames, $include_tags = false) {
     if (count($usernames) === 0) {
         return array();
     }
@@ -363,6 +371,15 @@ function thread_detail_query_get_profiles_by_username($con, $usernames) {
     $profiles = array();
     foreach ($rows as $row) {
         $profiles[$row['username']] = $row;
+    }
+    if ($include_tags && !empty($profiles)) {
+        $tags_by_username = jiekoufunc_query_user_tags($con, array_keys($profiles));
+        foreach ($profiles as $username => &$profile) {
+            $profile['_tags'] = isset($tags_by_username[$username])
+                ? $tags_by_username[$username]
+                : array();
+        }
+        unset($profile);
     }
     return $profiles;
 }
@@ -678,6 +695,9 @@ function thread_detail_query_pack_profile($row, $include_viewer_fields) {
             '3' => thread_detail_query_string(isset($row['sig3']) ? $row['sig3'] : ''),
         ),
     );
+    if (array_key_exists('_tags', $row)) {
+        $profile['tags'] = is_array($row['_tags']) ? $row['_tags'] : array();
+    }
     if ($include_viewer_fields) {
         $profile['unreadMessages'] = intval(isset($row['newmsg']) ? $row['newmsg'] : 0);
     }
