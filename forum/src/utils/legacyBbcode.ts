@@ -3,12 +3,13 @@ import { getPublicProfilePath } from './userRoutes';
 type LegacyBbcodeReplacement = [RegExp, (...matches: string[]) => string];
 
 export function translateLegacyBbcode(value: string) {
-  if (!value.includes('[')) return value;
+  const normalizedValue = normalizeUnclosedHeadings(value);
+  if (!normalizedValue.includes('[')) return normalizedValue;
 
   // Translate BBCode inside text nodes so an unclosed token cannot consume
   // adjacent HTML elements (for example, wrapping the rest of a post in h2).
   const parser = new DOMParser();
-  const document = parser.parseFromString(value, 'text/html');
+  const document = parser.parseFromString(normalizedValue, 'text/html');
   const textNodes: Text[] = [];
   const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT);
   let currentNode = walker.nextNode();
@@ -30,6 +31,94 @@ export function translateLegacyBbcode(value: string) {
   });
 
   return document.body.innerHTML;
+}
+
+type HeadingToken = {
+  end: number;
+  name: string;
+  paired: boolean;
+  start: number;
+  closing: boolean;
+};
+
+function normalizeUnclosedHeadings(value: string) {
+  const tokenPattern = /<\s*(\/?)\s*h([1-6])\b[^>]*>/gi;
+  const tokens: HeadingToken[] = [];
+  let match: RegExpExecArray | null;
+
+  while ((match = tokenPattern.exec(value)) !== null) {
+    if (isInsideProtectedMarkup(value, match.index)) continue;
+    tokens.push({
+      closing: Boolean(match[1]),
+      end: tokenPattern.lastIndex,
+      name: `h${match[2]}`,
+      paired: false,
+      start: match.index,
+    });
+  }
+
+  const openStack: number[] = [];
+  tokens.forEach((token, index) => {
+    if (!token.closing) {
+      openStack.push(index);
+      return;
+    }
+
+    for (let stackIndex = openStack.length - 1; stackIndex >= 0; stackIndex -= 1) {
+      const openIndex = openStack[stackIndex];
+      if (tokens[openIndex].name !== token.name) continue;
+      tokens[openIndex].paired = true;
+      token.paired = true;
+      openStack.splice(stackIndex, 1);
+      break;
+    }
+  });
+
+  const insertions = tokens
+    .filter((token) => !token.closing && !token.paired)
+    .map((token) => ({
+      position: findHeadingLineBreak(value, token.end),
+      start: token.start,
+      text: `</${token.name}>`,
+    }));
+  if (insertions.length === 0) return value;
+
+  const groupedInsertions = new Map<number, typeof insertions>();
+  insertions.forEach((insertion) => {
+    const group = groupedInsertions.get(insertion.position) ?? [];
+    group.push(insertion);
+    groupedInsertions.set(insertion.position, group);
+  });
+
+  let normalized = value;
+  Array.from(groupedInsertions.entries())
+    .sort(([left], [right]) => right - left)
+    .forEach(([position, group]) => {
+      const suffix = group
+        .sort((left, right) => right.start - left.start)
+        .map((insertion) => insertion.text)
+        .join('');
+      normalized = `${normalized.slice(0, position)}${suffix}${normalized.slice(position)}`;
+    });
+  return normalized;
+}
+
+function findHeadingLineBreak(value: string, start: number) {
+  const match = value.slice(start).search(/(?:\r\n?|\n|<br\b[^>]*>)/i);
+  return match < 0 ? value.length : start + match;
+}
+
+function isInsideProtectedMarkup(value: string, position: number) {
+  const before = value.slice(0, position);
+  const openingComment = before.lastIndexOf('<!--');
+  const closingComment = before.lastIndexOf('-->');
+  if (openingComment > closingComment) return true;
+
+  const openingScript = before.lastIndexOf('<script');
+  const closingScript = before.lastIndexOf('</script');
+  const openingStyle = before.lastIndexOf('<style');
+  const closingStyle = before.lastIndexOf('</style');
+  return openingScript > closingScript || openingStyle > closingStyle;
 }
 
 function translateLegacyBbcodeText(value: string) {
