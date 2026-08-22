@@ -2,6 +2,8 @@ import { useEffect, useState } from 'react';
 
 const MOBILE_VIEWPORT_QUERY = '(max-width: 767px)';
 const DISMISSED_STORAGE_KEY = 'capubbs-browser-recommendation-dismissed';
+const BROWSER_DOWNLOAD_URL = import.meta.env.VITE_BROWSER_DOWNLOAD_URL?.trim()
+  || 'https://frostember.lanzoup.com/b00oe4ba4j';
 
 export function BrowserRecommendationDialog() {
   const [mobileViewport, setMobileViewport] = useState(false);
@@ -40,7 +42,7 @@ export function BrowserRecommendationDialog() {
         <p id="browser-recommendation-title">建议使用谷歌或火狐浏览器，以获得更好的体验</p>
         <div className="browser-recommendation-actions">
           <button onClick={dismiss} type="button">不再提示</button>
-          <a href="/archive-room?folder=%E5%B7%A5%E5%85%B7" onClick={dismiss}>前往下载</a>
+          <a href={BROWSER_DOWNLOAD_URL} onClick={dismiss}>前往下载</a>
         </div>
       </section>
     </div>
