@@ -47,7 +47,11 @@
   }
 
   html {
-    min-width: 320px;
+    width: 100%;
+    min-width: 0;
+    max-width: 100%;
+    overflow-x: hidden;
+    overscroll-behavior-x: none;
     font-family: "Noto Sans CJK SC", "Source Han Sans SC", "PingFang SC", "Microsoft YaHei", sans-serif;
     background: var(--page);
     scrollbar-width: none;
@@ -58,12 +62,23 @@
   }
 
   body {
-    min-width: 320px;
+    width: 100%;
+    min-width: 0;
+    max-width: 100%;
     min-height: 100vh;
     margin: 0;
+    overflow-x: hidden;
+    overscroll-behavior-x: none;
     background: var(--page);
     color: var(--text);
     text-rendering: optimizeLegibility;
+  }
+
+  #root {
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+    overflow-x: clip;
   }
 
   body.layer-open {
