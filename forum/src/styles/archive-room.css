@@ -283,7 +283,7 @@
 
   .archive-room-list {
     width: 100%;
-    min-width: 720px;
+    min-width: 780px;
     border-collapse: collapse;
     color: var(--text-muted);
     font-size: 0.78rem;
@@ -630,6 +630,12 @@
     padding: 0 10px 3px 16px;
     color: var(--text-faint);
     font-size: 0.68rem;
+  }
+
+  .archive-room-grid-downloads {
+    margin-left: auto;
+    color: var(--text-faint);
+    white-space: nowrap;
   }
 
   @media (max-width: 900px) {

@@ -15,6 +15,7 @@ export type ArchiveEntry = {
   uploader: string;
   createdAt: number;
   updatedAt: number;
+  downloadCount: number;
   items?: number;
 };
 
@@ -159,6 +160,7 @@ function mapEntry(value: unknown): ArchiveEntry | null {
   return {
     byteSize: number(row.byte_size),
     createdAt: number(row.created_at),
+    downloadCount: number(row.download_count),
     entryKey,
     entryType,
     items: row.items === undefined ? undefined : number(row.items),

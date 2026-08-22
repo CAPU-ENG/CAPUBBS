@@ -65,7 +65,10 @@ class ArchiveService
             ? 'parent_key IS NULL'
             : "parent_key=" . $this->sql($parent['entry_key']);
         $result = $this->query(
-            "SELECT * FROM archive_entries WHERE {$where} "
+            "SELECT archive_entries.*, "
+            . "(SELECT COUNT(*) FROM archive_downloads ad "
+            . "WHERE ad.entry_key=archive_entries.entry_key AND ad.status='completed') AS download_count "
+            . "FROM archive_entries WHERE {$where} "
             . "AND masked_at IS NULL AND purged_at IS NULL "
             . "ORDER BY (entry_type='folder') DESC, name ASC"
         );
@@ -463,6 +466,7 @@ class ArchiveService
             'uploader' => $row['uploader_username'],
             'created_at' => intval($row['created_at']),
             'updated_at' => intval($row['updated_at']),
+            'download_count' => intval(isset($row['download_count']) ? $row['download_count'] : 0),
         );
     }
 
