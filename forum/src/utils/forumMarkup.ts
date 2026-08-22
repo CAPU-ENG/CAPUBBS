@@ -17,6 +17,11 @@ const ALLOWED_TAGS = new Set([
   'STRONG', 'SUB', 'SUP', 'TABLE', 'TBODY', 'TD', 'TH', 'THEAD', 'TR',
   'U', 'UL',
 ]);
+const ALIGNABLE_TAGS = new Set([
+  'BLOCKQUOTE', 'DIV', 'H1', 'H2', 'H3', 'H4', 'H5', 'H6', 'LI', 'P', 'PRE',
+  'TABLE', 'TD', 'TH',
+]);
+const ALLOWED_TEXT_ALIGNMENTS = new Set(['center', 'justify', 'left', 'right']);
 const ALLOWED_CLASSES = new Set([
   'capubbs-floor-quote',
   'capubbs-floor-quote-content',
@@ -115,6 +120,7 @@ function sanitizeElement(element: Element) {
   });
 
   if (element.classList.contains('capubbs-gallery')) sanitizeGalleryStyle(element as HTMLElement);
+  if (element.hasAttribute('align')) sanitizeTextAlignment(element);
   if (element instanceof HTMLAnchorElement) sanitizeAnchor(element);
   if (element instanceof HTMLImageElement) sanitizeImage(element);
   if (element.tagName === 'FONT') sanitizeFont(element);
@@ -135,6 +141,7 @@ function normalizeLegacyClasses(element: Element) {
 
 function isAllowedAttribute(element: Element, name: string) {
   if (name === 'class' || name === 'title') return true;
+  if (name === 'align') return ALIGNABLE_TAGS.has(element.tagName);
   const isGalleryElement = Boolean(element.closest('.capubbs-gallery'));
   if (name === 'style' && element.classList.contains('capubbs-gallery')) return true;
   if (isGalleryElement && [
@@ -156,6 +163,12 @@ function isAllowedAttribute(element: Element, name: string) {
   if (element.tagName === 'FONT') return ['color', 'face', 'size'].includes(name);
   if (['TD', 'TH'].includes(element.tagName)) return ['colspan', 'rowspan'].includes(name);
   return false;
+}
+
+function sanitizeTextAlignment(element: Element) {
+  const alignment = element.getAttribute('align')?.trim().toLowerCase() ?? '';
+  if (ALLOWED_TEXT_ALIGNMENTS.has(alignment)) element.setAttribute('align', alignment);
+  else element.removeAttribute('align');
 }
 
 function sanitizeGalleryStyle(gallery: HTMLElement) {
