@@ -240,7 +240,7 @@ export function TagManagementWorkspace() {
       {notice && <ManagementNotice kind={notice.kind}>{notice.text}</ManagementNotice>}
       {deleteTarget && (
         <div className="management-dialog-backdrop" role="presentation">
-          <section aria-labelledby="confirm-tag-delete-title" aria-modal="true" className={`management-dialog management-confirm-dialog ${deleteTarget.kind === 'member' ? 'management-member-confirm-dialog' : ''}`} role="dialog">
+          <section aria-labelledby="confirm-tag-delete-title" aria-modal="true" className="management-dialog management-confirm-dialog" role="dialog">
             <header><div><h2 id="confirm-tag-delete-title">{deleteTarget.kind === 'tag' ? '删除标签' : '移除会员'}</h2></div><button aria-label="关闭" className="management-icon-button" onClick={() => setDeleteTarget(null)} type="button"><X size={16} /></button></header>
             <p className="management-dialog-copy">{deleteTarget.kind === 'tag' ? `确定删除“${deleteTarget.tag.name}”吗？已绑定会员的关系也会一并移除。` : `确定从“${activeTag?.name ?? '标签'}”中移除 ${deleteTarget.username} 吗？`}</p>
             <footer><button className="management-secondary-button" onClick={() => setDeleteTarget(null)} type="button">取消</button><button className="management-danger-button" onClick={confirmDelete} type="button"><Trash2 size={14} />确认删除</button></footer>
