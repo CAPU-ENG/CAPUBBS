@@ -1427,8 +1427,8 @@
     line-height: 1.6;
   }
 
-  .management-member-confirm-dialog > header,
-  .management-member-confirm-dialog > footer {
+  .management-confirm-dialog > header,
+  .management-confirm-dialog > footer {
     border: 0;
   }
 
