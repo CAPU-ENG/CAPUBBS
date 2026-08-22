@@ -1,8 +1,10 @@
 import { AtSign, Bike, Edit3, ExternalLink, Mail, MapPin, MessageCircle, ShieldCheck } from 'lucide-react';
 import { useState, type ComponentType, type SVGProps } from 'react';
 import type { ProfileDetailKey, ProfileViewData } from '../../data/profileDemo';
+import { getTagsForUser } from '../../data/tags';
 import { USER_CENTER_PATH } from '../../utils/userRoutes';
 import { StarRulesDialog } from './ProfileDialogs';
+import { TagList } from '../tags/TagBadge';
 
 export type ProfileDraft = {
   hobby: string;
@@ -56,6 +58,7 @@ export function ProfileOverview({
   const privateMode = mode === 'private';
   const [starRulesOpen, setStarRulesOpen] = useState(false);
   const visibleIntro = isEditing && draft ? draft.intro : profile.intro;
+  const tags = profile.tags ?? getTagsForUser(profile.id);
   const details = profile.details.map((detail) => {
     if (detail.key === 'email') {
       if (privateMode || isOwnPublicProfile) return detail;
@@ -114,6 +117,7 @@ export function ProfileOverview({
             ) : (
               <p className="profile-intro">{visibleIntro || '暂未填写个人简介。'}</p>
             )}
+            <TagList tags={tags} />
           </div>
         </div>
 

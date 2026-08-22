@@ -11,6 +11,7 @@ import {
   X,
 } from 'lucide-react';
 import type { NestedReply, ThreadAuthor, ThreadFloorData } from '../../data/threadDemo';
+import { getTagsForUser } from '../../data/tags';
 import { writeClipboardText } from '../../utils/clipboard';
 import { getPublicProfilePath } from '../../utils/userRoutes';
 import {
@@ -20,6 +21,7 @@ import {
 } from './ForumMarkup';
 import { ThreadImageLightbox } from './ThreadImageLightbox';
 import { ThreadPostContent } from './ThreadPostContent';
+import { TagList } from '../tags/TagBadge';
 
 type DeleteDialogTarget =
   | { kind: 'floor' }
@@ -31,6 +33,7 @@ type PreviewImageState = {
 };
 
 function AuthorCard({ author }: { author: ThreadAuthor }) {
+  const tags = author.tags ?? getTagsForUser(author.name);
   return (
     <div className="author-hover-card" role="dialog" aria-label={`${author.name} 的用户摘要`}>
       <div className="author-card-head">
@@ -44,6 +47,7 @@ function AuthorCard({ author }: { author: ThreadAuthor }) {
               {author.role}
             </span>
           )}
+          <TagList size="compact" tags={tags} />
         </div>
       </div>
       <dl>

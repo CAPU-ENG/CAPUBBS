@@ -1,4 +1,5 @@
 import defaultAvatar from '../assets/bg/bicycle.svg';
+import type { UserTag } from './tags';
 
 export type ProfileTab = 'posts' | 'replies' | 'activities' | 'bookmarks' | 'drafts' | 'signatures';
 
@@ -43,6 +44,7 @@ export type ProfileViewData = {
   records: ProfileRecordMap;
   slug: string;
   stats: ProfileStat[];
+  tags?: UserTag[];
 };
 
 export const profileTabs: Array<{ key: ProfileTab; label: string }> = [
@@ -126,6 +128,10 @@ export const currentProfile: ProfileViewData = {
     { label: '注册时间', value: '2015.09.17' },
     { label: '精品数', value: 3 },
   ],
+  tags: [
+    { id: 'rider', name: '骑行达人', color: '#287a52' },
+    { id: 'contributor', name: '技术贡献', color: '#3569a8' },
+  ],
 };
 
 const xiaolinRecords: ProfileRecordMap = {
@@ -178,6 +184,7 @@ const xiaolinProfile: ProfileViewData = {
     { label: '签到', value: 87 },
     { label: '灌水', value: 26 },
   ],
+  tags: [{ id: 'newcomer', name: '新晋会员', color: '#69747c' }],
 };
 
 export const publicProfiles = [currentProfile, xiaolinProfile];

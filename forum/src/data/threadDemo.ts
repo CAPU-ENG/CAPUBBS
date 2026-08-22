@@ -1,5 +1,6 @@
 import defaultAvatar from '../assets/bg/bicycle.svg';
 import type { SafeForumHtml } from '../utils/forumMarkup';
+import type { UserTag } from './tags';
 
 export type ThreadAuthor = {
   name: string;
@@ -10,6 +11,7 @@ export type ThreadAuthor = {
   checkins: number;
   lastSeen: string;
   avatar: string;
+  tags?: UserTag[];
 };
 
 export type NestedReply = {

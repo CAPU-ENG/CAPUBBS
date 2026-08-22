@@ -8,8 +8,10 @@ import {
   LoaderCircle,
   Mail,
   MapPin,
+  Pencil,
   Pin,
   PinOff,
+  Plus,
   Search,
   Shield,
   ShieldAlert,
@@ -20,6 +22,8 @@ import {
   Users,
   Volume2,
   VolumeX,
+  Tags,
+  Trash2,
 } from 'lucide-react';
 import { useEffect, useMemo, useRef, useState, type FormEvent, type ReactNode } from 'react';
 import {
@@ -45,8 +49,16 @@ import { TopBar } from '../components/layout/TopBar';
 import { useAuth } from '../context/AuthContext';
 import { ALL_BOARDS, PRIMARY_BOARDS, SECONDARY_BOARDS } from '../data/boards';
 import { getLoginPathWithReturnTo, getRegisterPathWithReturnTo } from '../utils/authRoutes';
+import {
+  readTagDefinitions,
+  readUserTagIds,
+  writeTagDefinitions,
+  writeUserTagIds,
+  type TagDefinition,
+} from '../data/tags';
+import { TagBadge } from '../components/tags/TagBadge';
 
-type AdminTab = 'pins' | 'move' | 'members' | 'moderators';
+type AdminTab = 'pins' | 'move' | 'members' | 'moderators' | 'tags';
 type NoticeKind = 'error' | 'info' | 'success';
 
 const TAB_ITEMS: Array<{ icon: typeof Pin; id: AdminTab; label: string }> = [
@@ -54,6 +66,7 @@ const TAB_ITEMS: Array<{ icon: typeof Pin; id: AdminTab; label: string }> = [
   { icon: FileInput, id: 'move', label: '帖子挪版' },
   { icon: Users, id: 'members', label: '会员管理' },
   { icon: Shield, id: 'moderators', label: '版主管理' },
+  { icon: Tags, id: 'tags', label: '标签管理' },
 ];
 const MEMBER_ID_COLLATOR = new Intl.Collator('zh-CN', { numeric: true, sensitivity: 'base' });
 
@@ -114,6 +127,7 @@ export function ManagementPage() {
               {activeTab === 'move' && <MoveThreadPanel />}
               {activeTab === 'members' && <MemberManagementPanel />}
               {activeTab === 'moderators' && <ModeratorManagementPanel />}
+              {activeTab === 'tags' && <TagManagementPanel />}
             </div>
           </section>
         )}
@@ -386,6 +400,194 @@ function MoveThreadPanel() {
       </section>
     </div>
   );
+}
+
+function TagManagementPanel() {
+  const [definitions, setDefinitions] = useState<TagDefinition[]>(readTagDefinitions);
+  const [assignments, setAssignments] = useState<Record<string, string[]>>(readUserTagIds);
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [draftName, setDraftName] = useState('');
+  const [draftColor, setDraftColor] = useState('#287a52');
+  const [memberQuery, setMemberQuery] = useState('');
+  const [selectedMember, setSelectedMember] = useState('');
+  const [notice, setNotice] = useState<{ kind: NoticeKind; text: string } | null>(null);
+
+  const memberIds = useMemo(
+    () => Object.keys(assignments).sort((left, right) => MEMBER_ID_COLLATOR.compare(left, right)),
+    [assignments],
+  );
+  const filteredMemberIds = useMemo(() => {
+    const normalized = memberQuery.trim().toLocaleLowerCase();
+    return normalized
+      ? memberIds.filter((id) => id.toLocaleLowerCase().includes(normalized))
+      : memberIds;
+  }, [memberIds, memberQuery]);
+  const selectedTagIds = selectedMember ? assignments[selectedMember] ?? [] : [];
+  const editingTag = definitions.find((tag) => tag.id === editingId) ?? null;
+
+  function startCreate() {
+    setEditingId('new');
+    setDraftName('');
+    setDraftColor('#287a52');
+    setNotice(null);
+  }
+
+  function startEdit(tag: TagDefinition) {
+    setEditingId(tag.id);
+    setDraftName(tag.name);
+    setDraftColor(tag.color);
+    setNotice(null);
+  }
+
+  function cancelEdit() {
+    setEditingId(null);
+    setDraftName('');
+  }
+
+  function saveTag(event: FormEvent) {
+    event.preventDefault();
+    const name = draftName.trim();
+    if (!name) {
+      setNotice({ kind: 'error', text: '请输入标签名称。' });
+      return;
+    }
+    if (definitions.some((tag) => tag.name === name && tag.id !== editingId)) {
+      setNotice({ kind: 'error', text: '已经存在同名标签。' });
+      return;
+    }
+
+    if (editingId === 'new') {
+      const id = createTagId(name, definitions);
+      const next = [...definitions, { id, name, color: draftColor }];
+      setDefinitions(next);
+      writeTagDefinitions(next);
+      setNotice({ kind: 'success', text: '标签已创建。' });
+    } else if (editingTag) {
+      const next = definitions.map((tag) => tag.id === editingTag.id ? { ...tag, name, color: draftColor } : tag);
+      setDefinitions(next);
+      writeTagDefinitions(next);
+      setNotice({ kind: 'success', text: '标签已更新。' });
+    }
+    cancelEdit();
+  }
+
+  function removeTag(tag: TagDefinition) {
+    if (!window.confirm(`确定删除“${tag.name}”标签吗？已绑定会员的标签也会被移除。`)) return;
+    const nextDefinitions = definitions.filter((item) => item.id !== tag.id);
+    const nextAssignments = Object.fromEntries(
+      Object.entries(assignments).map(([username, ids]) => [username, ids.filter((id) => id !== tag.id)]),
+    );
+    setDefinitions(nextDefinitions);
+    setAssignments(nextAssignments);
+    writeTagDefinitions(nextDefinitions);
+    writeUserTagIds(nextAssignments);
+    if (editingId === tag.id) cancelEdit();
+    setNotice({ kind: 'success', text: '标签已删除。' });
+  }
+
+  function toggleMemberTag(tagId: string) {
+    if (!selectedMember) return;
+    const current = assignments[selectedMember] ?? [];
+    const ids = current.includes(tagId) ? current.filter((id) => id !== tagId) : [...current, tagId];
+    const next = { ...assignments, [selectedMember]: ids };
+    setAssignments(next);
+    writeUserTagIds(next);
+  }
+
+  function selectMember(username: string) {
+    setSelectedMember(username);
+    setNotice(null);
+  }
+
+  function addMember() {
+    const username = memberQuery.trim();
+    if (!username) return;
+    if (!assignments[username]) {
+      const next = { ...assignments, [username]: [] };
+      setAssignments(next);
+      writeUserTagIds(next);
+    }
+    setSelectedMember(username);
+    setMemberQuery('');
+    setNotice({ kind: 'info', text: `已载入会员“${username}”。` });
+  }
+
+  return (
+    <div className="management-grid management-tags-grid">
+      <section className="management-card" aria-labelledby="tag-definitions-title">
+        <header className="management-card-heading">
+          <div><h2 id="tag-definitions-title">标签定义</h2></div>
+          <button className="management-primary-button" onClick={startCreate} type="button"><Plus size={15} />新建标签</button>
+        </header>
+        <div className="management-tag-editor-wrap">
+          {editingId && (
+            <form className="management-tag-editor" onSubmit={saveTag}>
+              <label><span>名称</span><input autoFocus maxLength={20} onChange={(event) => setDraftName(event.target.value)} value={draftName} /></label>
+              <label><span>颜色</span><input aria-label="标签颜色" onChange={(event) => setDraftColor(event.target.value)} type="color" value={draftColor} /></label>
+              <div><button className="management-primary-button" type="submit">保存</button><button className="management-secondary-button" onClick={cancelEdit} type="button">取消</button></div>
+            </form>
+          )}
+          <div className="management-tag-definition-list">
+            {definitions.map((tag) => (
+              <div className="management-tag-definition-row" key={tag.id}>
+                <TagBadge tag={tag} />
+                <code>{tag.id}</code>
+                <div>
+                  <button aria-label={`编辑${tag.name}`} className="management-icon-button" onClick={() => startEdit(tag)} title="编辑标签" type="button"><Pencil size={14} /></button>
+                  <button aria-label={`删除${tag.name}`} className="management-icon-button management-icon-danger" onClick={() => removeTag(tag)} title="删除标签" type="button"><Trash2 size={14} /></button>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <section className="management-card" aria-labelledby="member-tags-title">
+        <header className="management-card-heading">
+          <div><h2 id="member-tags-title">会员标签</h2></div>
+          <span>{memberIds.length} 位会员</span>
+        </header>
+        <div className="management-member-tag-layout">
+          <div className="management-member-picker">
+            <label htmlFor="tag-member-search">查找会员</label>
+            <div className="management-input-action"><Search size={15} /><input id="tag-member-search" onChange={(event) => setMemberQuery(event.target.value)} placeholder="输入会员 ID" value={memberQuery} /></div>
+            <div className="management-member-list">
+              {filteredMemberIds.map((username) => (
+                <button aria-pressed={selectedMember === username} className={selectedMember === username ? 'management-member-selected' : ''} key={username} onClick={() => selectMember(username)} type="button">
+                  <span>{username}</span><small>{(assignments[username] ?? []).length}</small>
+                </button>
+              ))}
+              {memberQuery.trim() && !memberIds.includes(memberQuery.trim()) && (
+                <button className="management-member-add" onClick={addMember} type="button"><UserPlus size={14} />编辑“{memberQuery.trim()}”</button>
+              )}
+              {filteredMemberIds.length === 0 && <EmptyState icon={<Users size={18} />}>没有找到会员。</EmptyState>}
+            </div>
+          </div>
+          <div className="management-member-tag-editor">
+            {selectedMember ? (
+              <>
+                <div className="management-selected-member"><strong>{selectedMember}</strong><span>{selectedTagIds.length} 个标签</span></div>
+                <div className="management-tag-checkboxes">
+                  {definitions.map((tag) => (
+                    <label key={tag.id}><input checked={selectedTagIds.includes(tag.id)} onChange={() => toggleMemberTag(tag.id)} type="checkbox" /><TagBadge tag={tag} /></label>
+                  ))}
+                </div>
+              </>
+            ) : <EmptyState icon={<Tags size={18} />}>选择会员后编辑对应标签。</EmptyState>}
+          </div>
+        </div>
+      </section>
+      {notice && <ManagementNotice kind={notice.kind}>{notice.text}</ManagementNotice>}
+    </div>
+  );
+}
+
+function createTagId(name: string, definitions: TagDefinition[]) {
+  const base = name.toLocaleLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') || `tag-${Date.now()}`;
+  let id = base;
+  let index = 2;
+  while (definitions.some((tag) => tag.id === id)) id = `${base}-${index++}`;
+  return id;
 }
 
 function MemberManagementPanel() {

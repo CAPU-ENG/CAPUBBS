@@ -1,0 +1,36 @@
+@layer components {
+  .user-tag-list {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 5px;
+  }
+
+  .user-tag {
+    display: inline-flex;
+    align-items: center;
+    max-width: 100%;
+    border: 1px solid color-mix(in srgb, var(--user-tag-color) 32%, var(--line));
+    border-radius: 999px;
+    padding: 3px 7px;
+    background: color-mix(in srgb, var(--user-tag-color) 10%, var(--surface-raised));
+    color: color-mix(in srgb, var(--user-tag-color) 86%, var(--text-strong));
+    font-size: 0.62rem;
+    font-weight: 760;
+    line-height: 1.1;
+    white-space: nowrap;
+  }
+
+  .user-tag-compact {
+    padding: 2px 6px;
+    font-size: 0.56rem;
+  }
+
+  .profile-identity-copy > .user-tag-list {
+    margin-top: 9px;
+  }
+
+  .author-card-head .user-tag-list {
+    margin-top: 7px;
+  }
+}
