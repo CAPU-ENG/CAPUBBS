@@ -499,10 +499,6 @@
     .settings-board-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   }
 
-  @media (max-width: 640px) {
-    .settings-checkbox-columns { grid-template-columns: minmax(0, 1fr); }
-  }
-
   @media (max-width: 540px) {
     .settings-page-shell {
       width: calc(100% - 20px);
