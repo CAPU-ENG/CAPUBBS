@@ -719,6 +719,61 @@
     flex-wrap: wrap;
   }
 
+  .tag-summary-help {
+    position: relative;
+    display: inline-flex;
+    flex: 0 0 auto;
+  }
+
+  .tag-summary-help > button {
+    display: inline-flex;
+    width: 18px;
+    height: 18px;
+    align-items: center;
+    justify-content: center;
+    color: var(--text-faint);
+    cursor: help;
+    transition: color 140ms ease;
+  }
+
+  .tag-summary-help > button:hover,
+  .tag-summary-help > button:focus-visible {
+    color: var(--brand-strong);
+  }
+
+  .tag-summary-help > button:focus-visible {
+    border-radius: 50%;
+    outline: 2px solid var(--brand);
+    outline-offset: 1px;
+  }
+
+  .tag-summary-help [role="tooltip"] {
+    position: absolute;
+    z-index: 20;
+    top: calc(100% + 7px);
+    left: 0;
+    width: max-content;
+    max-width: min(300px, 72vw);
+    border: 1px solid var(--line-strong);
+    border-radius: var(--control-radius);
+    padding: 8px 10px;
+    background: var(--surface-raised);
+    box-shadow: var(--shadow-float);
+    color: var(--text-muted);
+    font-size: 0.64rem;
+    line-height: 1.5;
+    opacity: 0;
+    pointer-events: none;
+    transform: translateY(-2px);
+    transition: opacity 140ms ease, transform 140ms ease;
+  }
+
+  .tag-summary-help:hover [role="tooltip"],
+  .tag-summary-help:focus-within [role="tooltip"] {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
   .tag-summary-filter-area {
     display: flex;
     align-items: center;

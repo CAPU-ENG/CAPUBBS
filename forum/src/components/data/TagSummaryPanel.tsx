@@ -1,4 +1,4 @@
-import { ArrowDownAZ, Clock3, LoaderCircle, Search, Tags } from 'lucide-react';
+import { ArrowDownAZ, CircleHelp, Clock3, LoaderCircle, Search, Tags } from 'lucide-react';
 import { useMemo, useRef, useState } from 'react';
 import defaultAvatar from '../../assets/bg/bicycle.svg';
 import { fetchPublicProfile } from '../../api/profile';
@@ -96,6 +96,10 @@ export function TagSummaryPanel() {
       <header className="data-display-card-header tag-summary-card-header">
         <span className="data-display-card-icon"><Tags size={17} /></span>
         <h1>标签汇总</h1>
+        <span className="tag-summary-help">
+          <button aria-describedby="tag-summary-help-tooltip" aria-label="标签筛选说明" type="button"><CircleHelp size={15} /></button>
+          <span id="tag-summary-help-tooltip" role="tooltip">点选标签进行筛选，点两次排除，点三次复原，支持组合筛选查询</span>
+        </span>
         {hasQueried && <span className="data-display-card-count">{members.length} 位会员</span>}
       </header>
       <div className="tag-summary-filter-area">
