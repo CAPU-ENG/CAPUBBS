@@ -44,6 +44,12 @@ define('OSS_ADDRESS', 'https://example.oss-cn-beijing.aliyuncs.com');
 /** CDN 地址（留空则不启用 CDN 重写，如 https://cdn.chexie.net） */
 define('CAPUBBS_CDN_URL', '');
 
+/** 档案室物理根目录：本地可使用 __DIR__ . '/pan'，生产环境应放在 Web 根目录之外。 */
+define('CAPUBBS_ARCHIVE_ROOT', __DIR__ . '/pan');
+
+/** 档案项 ID 哈希密钥：生产环境请替换为独立随机值。 */
+define('CAPUBBS_ARCHIVE_ID_SECRET', 'replace-with-a-random-archive-id-secret');
+
 // ========== 邮箱认证体系功能开关 ==========
 
 // 邮箱验证功能总开关（前后端）。关闭后不强制PKU邮箱、不显示验证UI、sendVerifyCode/verifyEmail API 拒绝服务
