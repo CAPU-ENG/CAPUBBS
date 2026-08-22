@@ -4,6 +4,7 @@ import {
   renderForumMarkup,
   requiresIsolatedForumHtml,
   translateLegacyForumMarkup,
+  type SafeForumHtml,
 } from '../../utils/forumMarkup';
 import { FORUM_LOCATION_CHANGE_EVENT } from '../../utils/authRoutes';
 import {
@@ -76,16 +77,17 @@ export function ThreadHtmlContent({
     [html, variant],
   );
   const resolvedHtml = useSignaturePostReferences(signatureHtml, variant === 'signature');
-  const directHtml = useMemo(
-    () => renderForumMarkup(resolvedHtml, { normalizeLegacyLineBreaks: variant === 'signature' }),
-    [resolvedHtml, variant],
+  const shouldIsolate = requiresIsolatedForumHtml(resolvedHtml);
+  const directHtml = useMemo<SafeForumHtml | null>(
+    () => shouldIsolate ? null : renderForumMarkup(resolvedHtml, { normalizeLegacyLineBreaks: variant === 'signature' }),
+    [resolvedHtml, shouldIsolate, variant],
   );
   const isolatedHtml = useMemo(
     () => translateLegacyForumMarkup(resolvedHtml),
     [resolvedHtml],
   );
 
-  if (!requiresIsolatedForumHtml(resolvedHtml)) {
+  if (!shouldIsolate && directHtml !== null) {
     return (
       <ForumMarkup
         className={className}
@@ -308,7 +310,7 @@ function buildHtmlFrameDocument({
   <style data-capubbs-parent-styles>${escapeStyleText(parentStyleText)}</style>
   <style>
     html,body{margin:0;padding:0;min-width:0;min-height:0;overflow:hidden;background:transparent!important;color:${color};font-family:${fontFamily};font-size:${fontSize};line-height:1.6;overflow-wrap:anywhere;word-break:break-word}
-    .capubbs-html-frame-root{display:flow-root;width:calc(100% - ${FRAME_WIDTH_ALLOWANCE}px);${signatureRootStyle}}.capubbs-html-frame-root iframe{display:inline-block;vertical-align:baseline}a{color:${linkColor}}img,video,canvas,svg{max-width:100%;height:auto}pre{max-width:100%;overflow:auto;white-space:pre-wrap}table{max-width:100%}
+    .capubbs-html-frame-root{display:flow-root;width:calc(100% - ${FRAME_WIDTH_ALLOWANCE}px);${signatureRootStyle}}.capubbs-html-frame-root iframe{display:inline-block;vertical-align:baseline}a{color:${linkColor}}img,video,canvas,svg{max-width:100%;height:auto}.forum-markup img[data-capubbs-image-width][data-capubbs-image-height]{background:linear-gradient(105deg,transparent 20%,rgba(255,255,255,.42) 45%,transparent 70%);background-color:rgba(128,128,128,.16);background-size:220% 100%;animation:capubbs-image-loading 1.2s ease-in-out infinite}@keyframes capubbs-image-loading{from{background-position:120% 0}to{background-position:-80% 0}}@media(prefers-reduced-motion:reduce){.forum-markup img[data-capubbs-image-width][data-capubbs-image-height]{animation:none}}pre{max-width:100%;overflow:auto;white-space:pre-wrap}table{max-width:100%}
   </style>
   <script>${buildFrameBridgeScript(frameId, canOpenImages)}</script>
   <script src="/bbs/lib/jquery.min.js"></script>
@@ -430,9 +432,37 @@ function buildFrameBridgeScript(frameId: string, canOpenImages: boolean) {
       event.preventDefault();
       openImage(image);
     }
+    function markImageLoaded(image){
+      if(image.getAttribute('data-capubbs-image-loaded')!=='true')image.setAttribute('data-capubbs-image-loaded','true');
+      queueHeight();
+    }
+    function observeImageLoad(image){
+      if(image.complete){
+        markImageLoaded(image);
+        return;
+      }
+      if(image.getAttribute('data-capubbs-image-load-observed')==='true')return;
+      image.setAttribute('data-capubbs-image-load-observed','true');
+      image.addEventListener('load',function(){markImageLoaded(image)},{once:true});
+      image.addEventListener('error',function(){markImageLoaded(image)},{once:true});
+    }
     function prepareImages(){
-      if(!canOpenImages)return;
       Array.prototype.forEach.call(document.images,function(image){
+        observeImageLoad(image);
+        var width=parseFloat(image.getAttribute('width')||'');
+        var height=parseFloat(image.getAttribute('height')||'');
+        if(Number.isFinite(width)&&width>0&&Number.isFinite(height)&&height>0){
+          width=Math.round(width);
+          height=Math.round(height);
+          if(image.getAttribute('data-capubbs-image-width')!==String(width))image.setAttribute('data-capubbs-image-width',String(width));
+          if(image.getAttribute('data-capubbs-image-height')!==String(height))image.setAttribute('data-capubbs-image-height',String(height));
+          var boundedWidth='min('+width+'px, 100%)';
+          var aspectRatio=width+' / '+height;
+          if(image.style.width!==boundedWidth)image.style.width=boundedWidth;
+          if(image.style.height!=='auto')image.style.height='auto';
+          if(image.style.aspectRatio!==aspectRatio)image.style.aspectRatio=aspectRatio;
+        }
+        if(!canOpenImages)return;
         var ariaLabel=image.alt&&image.alt.trim()?'查看大图：'+image.alt.trim():'查看大图';
         if(image.getAttribute('role')!=='button')image.setAttribute('role','button');
         if(image.getAttribute('tabindex')!=='0')image.setAttribute('tabindex','0');
@@ -495,7 +525,6 @@ function buildFrameBridgeScript(frameId: string, canOpenImages: boolean) {
       var contentRoot=document.querySelector('.capubbs-html-frame-root');
       if(window.ResizeObserver&&contentRoot)new ResizeObserver(queueHeight).observe(contentRoot);
       if(window.MutationObserver&&contentRoot)new MutationObserver(function(){queueHeight();prepareImages();}).observe(contentRoot,{attributes:true,characterData:true,childList:true,subtree:true});
-      Array.prototype.forEach.call(document.images,function(image){image.addEventListener('load',queueHeight);image.addEventListener('error',queueHeight);});
       window.addEventListener('load',queueHeight);
       document.addEventListener('transitionend',queueHeight);
       document.addEventListener('animationend',queueHeight);

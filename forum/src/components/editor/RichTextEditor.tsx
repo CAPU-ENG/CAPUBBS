@@ -231,6 +231,24 @@ function applyImagePixelDimensions(image: HTMLImageElement, width: number, heigh
   image.setAttribute('height', String(height));
 }
 
+function getEditorContentWidth(editor: HTMLElement) {
+  const computedStyle = window.getComputedStyle(editor);
+  const horizontalPadding = (Number.parseFloat(computedStyle.paddingLeft) || 0)
+    + (Number.parseFloat(computedStyle.paddingRight) || 0);
+  return Math.max(1, editor.clientWidth - horizontalPadding);
+}
+
+function applyImageIntrinsicDimensions(image: HTMLImageElement, maxWidth: number) {
+  if (image.naturalWidth <= 0 || image.naturalHeight <= 0) {
+    return false;
+  }
+
+  const width = Math.min(image.naturalWidth, Math.max(1, Math.round(maxWidth)));
+  const height = Math.max(1, Math.round(image.naturalHeight * width / image.naturalWidth));
+  applyImagePixelDimensions(image, width, height);
+  return true;
+}
+
 type ImageDimensions = {
   height?: string;
   width?: string;
@@ -957,7 +975,44 @@ export function RichTextEditor({
 
     if (image) {
       selectRichImage(image);
+
+      return new Promise<void>((resolve) => {
+        let settled = false;
+        let timeoutId: number | undefined;
+        let applyIntrinsicDimensions: () => void;
+        const handleImageError = () => finish();
+        const finish = () => {
+          if (settled) return;
+          settled = true;
+          if (typeof timeoutId !== 'undefined') window.clearTimeout(timeoutId);
+          image.removeEventListener('load', applyIntrinsicDimensions);
+          image.removeEventListener('error', handleImageError);
+          resolve();
+        };
+        applyIntrinsicDimensions = () => {
+          const editor = editorRef.current;
+          if (!editor || !editor.contains(image)) {
+            finish();
+            return;
+          }
+
+          if (applyImageIntrinsicDimensions(image, getEditorContentWidth(editor))) {
+            updateContent(editor.innerHTML);
+            updateRichImageResizeHandle();
+          }
+          finish();
+        };
+
+        image.addEventListener('load', applyIntrinsicDimensions, { once: true });
+        image.addEventListener('error', handleImageError, { once: true });
+        timeoutId = window.setTimeout(finish, 5000);
+        if (image.complete) {
+          window.requestAnimationFrame(applyIntrinsicDimensions);
+        }
+      });
     }
+
+    return Promise.resolve();
   };
 
   const openGalleryDialog = () => {
@@ -1147,7 +1202,7 @@ export function RichTextEditor({
       } else if (isHtmlMode) {
         replaceSourceSelection(`<img src="${escapeAttribute(url)}" alt="${escapeAttribute(altText)}">`);
       } else {
-        insertRichImage(url, altText);
+        await insertRichImage(url, altText);
       }
 
       closePastedImageDialog();

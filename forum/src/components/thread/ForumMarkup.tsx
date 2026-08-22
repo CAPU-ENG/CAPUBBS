@@ -1,5 +1,5 @@
 import type { SafeForumHtml } from '../../utils/forumMarkup';
-import type { KeyboardEvent, MouseEvent } from 'react';
+import { useEffect, useRef, type KeyboardEvent, type MouseEvent } from 'react';
 import {
   getEditorGalleryAction,
   moveEditorGallery,
@@ -24,6 +24,37 @@ export function ForumMarkup({
   onImageOpen?: ForumMarkupImageOpenHandler;
   variant: ForumMarkupVariant;
 }) {
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const container = containerRef.current;
+    if (!container) return undefined;
+
+    const images = Array.from(container.querySelectorAll('img'));
+    const markLoaded = (image: HTMLImageElement) => {
+      image.dataset.capubbsImageLoaded = 'true';
+    };
+    const listeners = images.map((image) => {
+      if (image.complete) {
+        markLoaded(image);
+        return null;
+      }
+
+      const handleLoad = () => markLoaded(image);
+      image.addEventListener('load', handleLoad, { once: true });
+      image.addEventListener('error', handleLoad, { once: true });
+      return { handleLoad, image };
+    });
+
+    return () => {
+      listeners.forEach((listener) => {
+        if (!listener) return;
+        listener.image.removeEventListener('load', listener.handleLoad);
+        listener.image.removeEventListener('error', listener.handleLoad);
+      });
+    };
+  }, [html]);
+
   if (!html) return null;
 
   function openImage(target: EventTarget | null, container: HTMLDivElement) {
@@ -84,6 +115,7 @@ export function ForumMarkup({
 
   return (
     <div
+      ref={containerRef}
       className={`forum-markup forum-markup-${variant} ${className}`.trim()}
       data-forum-markup={variant}
       dangerouslySetInnerHTML={{ __html: html }}

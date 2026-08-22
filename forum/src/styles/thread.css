@@ -1159,6 +1159,19 @@
     vertical-align: middle;
   }
 
+  .forum-markup img[data-capubbs-image-width][data-capubbs-image-height]:not([data-capubbs-image-loaded="true"]) {
+    background-color: color-mix(in srgb, var(--surface-soft) 82%, var(--line));
+    background-image: linear-gradient(105deg, transparent 20%, color-mix(in srgb, var(--surface-raised) 70%, transparent) 45%, transparent 70%);
+    background-size: 220% 100%;
+    animation: capubbs-image-loading 1.2s ease-in-out infinite;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .forum-markup img[data-capubbs-image-width][data-capubbs-image-height]:not([data-capubbs-image-loaded="true"]) {
+      animation: none;
+    }
+  }
+
   .forum-markup img[role="button"] {
     cursor: zoom-in;
   }

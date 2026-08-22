@@ -145,6 +145,36 @@ function sanitizeImage(image: HTMLImageElement) {
   image.setAttribute('tabindex', '0');
   image.setAttribute('aria-label', image.alt.trim() ? `查看大图：${image.alt.trim()}` : '查看大图');
   if (!image.title) image.setAttribute('title', '点击查看大图');
+
+  applyImageLayoutDimensions(image);
+}
+
+function applyImageLayoutDimensions(image: HTMLImageElement) {
+  const width = readPixelImageDimension(image, 'width');
+  const height = readPixelImageDimension(image, 'height');
+
+  if (!width || !height) {
+    return;
+  }
+
+  image.setAttribute('width', String(width));
+  image.setAttribute('height', String(height));
+  image.dataset.capubbsImageWidth = String(width);
+  image.dataset.capubbsImageHeight = String(height);
+  image.style.setProperty('width', `min(${width}px, 100%)`);
+  image.style.setProperty('height', 'auto');
+  image.style.setProperty('aspect-ratio', `${width} / ${height}`);
+}
+
+function readPixelImageDimension(image: HTMLImageElement, property: 'height' | 'width') {
+  const rawValue = image.style.getPropertyValue(property).trim() || image.getAttribute(property)?.trim() || '';
+  const match = rawValue.match(/^(\d+(?:\.\d+)?)(?:px)?$/i);
+  if (!match) {
+    return 0;
+  }
+
+  const value = Number(match[1]);
+  return Number.isFinite(value) && value > 0 ? Math.round(value) : 0;
 }
 
 function getLegacyProfileName(href: string, isMention: boolean) {
