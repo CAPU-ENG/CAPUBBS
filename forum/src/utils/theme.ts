@@ -79,12 +79,12 @@ export function subscribeThemePreference(listener: () => void) {
 }
 
 function readThemeFollowsSystem() {
-  if (typeof window === 'undefined') return false;
+  if (typeof window === 'undefined') return true;
 
   try {
-    return window.localStorage.getItem(THEME_FOLLOWS_SYSTEM_STORAGE_KEY) === 'true';
+    return window.localStorage.getItem(THEME_FOLLOWS_SYSTEM_STORAGE_KEY) !== 'false';
   } catch {
-    return false;
+    return true;
   }
 }
 
