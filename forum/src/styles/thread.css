@@ -855,6 +855,7 @@
   }
 
   .author-card-name-line {
+    position: relative;
     display: flex;
     align-items: center;
     flex-wrap: wrap;
@@ -867,9 +868,17 @@
     font-size: 0.92rem;
   }
 
-  .author-card-name-line > .user-tag-list {
+  .author-card-tag-slot {
     flex: 0 0 auto;
     max-width: 100%;
+  }
+
+  .author-card-name-line[data-tags-overflow="true"] .author-card-tag-slot {
+    position: absolute;
+    top: 0;
+    left: 0;
+    visibility: hidden;
+    pointer-events: none;
   }
 
   .author-card-status {
@@ -878,6 +887,27 @@
     color: var(--brand);
     font-size: 0.65rem;
     font-weight: 680;
+  }
+
+  .author-card-tags-row {
+    margin-top: 12px;
+    border-top: 1px solid var(--line);
+    padding-top: 8px;
+  }
+
+  .author-card-tag-width-measure {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: max-content;
+    visibility: hidden;
+    pointer-events: none;
+  }
+
+  .author-card-tag-width-measure > .user-tag-list {
+    width: max-content;
+    max-width: none;
+    flex-wrap: nowrap;
   }
 
   .author-hover-card dl {

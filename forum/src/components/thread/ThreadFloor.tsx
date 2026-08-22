@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState, type ClipboardEvent, type FormEvent } from 'react';
+import { useEffect, useLayoutEffect, useMemo, useRef, useState, type ClipboardEvent, type FormEvent } from 'react';
 import {
   AlertTriangle,
   Check,
@@ -34,14 +34,53 @@ type PreviewImageState = {
 
 function AuthorCard({ author }: { author: ThreadAuthor }) {
   const tags = author.tags ?? getTagsForUser(author.name);
+  const [tagsOverflow, setTagsOverflow] = useState(false);
+  const cardRef = useRef<HTMLDivElement>(null);
+  const nameLineRef = useRef<HTMLDivElement>(null);
+  const nameRef = useRef<HTMLElement>(null);
+  const tagMeasureRef = useRef<HTMLDivElement>(null);
+  const tagSignature = tags.map((tag) => `${tag.id}:${tag.name}`).join('|');
+
+  useLayoutEffect(() => {
+    if (tags.length === 0) {
+      setTagsOverflow(false);
+      return;
+    }
+
+    const measureTags = () => {
+      const card = cardRef.current;
+      const nameLine = nameLineRef.current;
+      const name = nameRef.current;
+      const fullTagList = tagMeasureRef.current;
+      if (!card || !nameLine || !name || !fullTagList || card.offsetWidth === 0) return;
+
+      const nameWidth = name.getBoundingClientRect().width;
+      const fullTagWidth = fullTagList.getBoundingClientRect().width;
+      const columnGap = Number.parseFloat(getComputedStyle(nameLine).columnGap) || 0;
+      const availableWidth = nameLine.clientWidth - nameWidth - columnGap;
+      const nextOverflow = fullTagWidth > availableWidth + 1;
+      setTagsOverflow((current) => current === nextOverflow ? current : nextOverflow);
+    };
+
+    measureTags();
+    const observer = new ResizeObserver(measureTags);
+    [cardRef.current, nameLineRef.current, tagMeasureRef.current].forEach((element) => {
+      if (element) observer.observe(element);
+    });
+
+    return () => observer.disconnect();
+  }, [tagSignature, tags.length]);
+
   return (
-    <div className="author-hover-card" role="dialog" aria-label={`${author.name} 的用户摘要`}>
+    <div ref={cardRef} className="author-hover-card" role="dialog" aria-label={`${author.name} 的用户摘要`}>
       <div className="author-card-head">
         <img src={author.avatar} alt="" />
         <div className="author-card-head-copy">
-          <div className="author-card-name-line">
-            <strong>{author.name}</strong>
-            <TagList size="compact" tags={tags} />
+          <div ref={nameLineRef} className="author-card-name-line" data-tags-overflow={tagsOverflow ? 'true' : undefined}>
+            <strong ref={nameRef}>{author.name}</strong>
+            <div className="author-card-tag-slot">
+              <TagList size="compact" tags={tags} />
+            </div>
           </div>
           {(author.stars > 0 || author.role) && (
             <span className="author-card-status">
@@ -51,6 +90,14 @@ function AuthorCard({ author }: { author: ThreadAuthor }) {
             </span>
           )}
         </div>
+      </div>
+      {tagsOverflow ? (
+        <div className="author-card-tags-row">
+          <TagList size="compact" tags={tags} />
+        </div>
+      ) : null}
+      <div ref={tagMeasureRef} className="author-card-tag-width-measure" aria-hidden="true">
+        <TagList size="compact" tags={tags} />
       </div>
       <dl>
         <div><dt>主题</dt><dd>{author.topics}</dd></div>
