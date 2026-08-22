@@ -1,5 +1,6 @@
 import defaultAvatar from '../assets/bg/bicycle.svg';
 import type { NestedReply, ThreadAuthor, ThreadFloorData } from '../data/threadDemo';
+import type { UserTag } from '../data/tags';
 import {
   forumMarkupToPlainText,
   renderForumMarkup,
@@ -160,6 +161,7 @@ export async function fetchThreadDetail({
     ask: 'thread_detail',
     authorOnly: authorOnly ? '1' : '0',
     bid: String(bid),
+    tag: '1',
     page: String(page),
     render: 'both',
     tid: String(tid),
@@ -923,8 +925,27 @@ function mapAuthor(row: ApiRow, fallbackName: string): ThreadAuthor {
     replies: nonNegativeInteger(stats.replies),
     role: '',
     stars: nonNegativeInteger(row.star),
+    tags: Array.isArray(row.tags) ? mapThreadTags(row.tags) : undefined,
     topics: nonNegativeInteger(stats.posts),
   };
+}
+
+function mapThreadTags(value: unknown): UserTag[] {
+  return asRows(value)
+    .map((row): UserTag | null => {
+      const id = stringValue(row.id);
+      const name = plainText(row.name);
+      if (!id || !name) return null;
+
+      const addedAt = timestampToIso(row.added_at);
+      return {
+        addedAt: addedAt || undefined,
+        color: stringValue(row.color) || '#69747c',
+        id,
+        name,
+      };
+    })
+    .filter((tag): tag is UserTag => tag !== null);
 }
 
 function mapViewerSignatures(value: unknown) {
@@ -955,6 +976,16 @@ function timestampChanged(createdAt: unknown, updatedAt: unknown) {
   const created = stringValue(createdAt);
   const updated = stringValue(updatedAt);
   return Boolean(updated && updated !== created);
+}
+
+function timestampToIso(value: unknown) {
+  const numeric = Number(value);
+  if (Number.isFinite(numeric) && numeric > 0) {
+    return new Date(numeric > 10_000_000_000 ? numeric : numeric * 1000).toISOString();
+  }
+  if (typeof value !== 'string' || !value.trim()) return '';
+  const date = new Date(value);
+  return Number.isNaN(date.getTime()) ? '' : date.toISOString();
 }
 
 function stringValue(value: unknown) {

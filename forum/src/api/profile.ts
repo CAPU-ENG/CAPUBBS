@@ -5,6 +5,7 @@ import type {
   ProfileRecordMap,
   ProfileViewData,
 } from '../data/profileDemo';
+import type { UserTag } from '../data/tags';
 import { normalizeLegacyAvatar } from '../utils/legacyAssets';
 import { md5LegacyStringHex } from '../utils/md5';
 
@@ -67,7 +68,7 @@ export async function fetchPublicProfile(profileName: string, signal?: AbortSign
   if (!username) throw new ProfileApiError('用户不存在。');
 
   const [profileRows, viewerRows] = await Promise.all([
-    requestRows({ ask: 'user_profile', username }, signal),
+    requestRows({ ask: 'user_profile', tag: 1, username }, signal),
     requestRows({ ask: 'getuser' }, signal),
   ]);
   const profileRow = profileRows[0];
@@ -161,7 +162,7 @@ async function fetchCurrentUserRow(signal?: AbortSignal) {
 
   // currentUserInfo can expose the profile's own `code` column as the first
   // row, which the unified API wrapper may mistake for a legacy status code.
-  const profileRows = await requestRows({ ask: 'user_profile', username }, signal);
+  const profileRows = await requestRows({ ask: 'user_profile', tag: 1, username }, signal);
   const profileRow = profileRows[0];
   if (!profileRow || !stringValue(profileRow.username)) {
     throw new ProfileApiError('个人资料加载失败，请稍后重试。');
@@ -343,7 +344,29 @@ function mapProfile(
       { label: '注册时间', value: formatProfileDate(row.regdate) },
       { label: '精品数', value: numberValue(row.extr ?? row.digest ?? row.digests) },
     ],
+    tags: Array.isArray(row.tags) ? mapProfileTags(row.tags) : undefined,
   };
+}
+
+function mapProfileTags(value: unknown): UserTag[] {
+  if (!Array.isArray(value)) return [];
+
+  return value
+    .map((item): UserTag | null => {
+      if (!isApiRow(item)) return null;
+      const id = stringValue(item.id);
+      const name = plainText(item.name);
+      if (!id || !name) return null;
+
+      const addedAt = timestampToIso(item.added_at);
+      return {
+        addedAt: addedAt || undefined,
+        color: stringValue(item.color) || '#69747c',
+        id,
+        name,
+      };
+    })
+    .filter((tag): tag is UserTag => tag !== null);
 }
 
 function mapRecord(row: ApiRow, kind: 'bookmark' | 'post' | 'reply'): ProfileRecord | null {
@@ -435,6 +458,11 @@ function formatProfileDate(value: unknown) {
   const month = String(date.getMonth() + 1).padStart(2, '0');
   const day = String(date.getDate()).padStart(2, '0');
   return `${date.getFullYear()}.${month}.${day}`;
+}
+
+function timestampToIso(value: unknown) {
+  const date = dateValue(value);
+  return date ? date.toISOString() : '';
 }
 
 function dateValue(value: unknown) {
