@@ -1190,21 +1190,20 @@
   .management-tag-definition-list {
     display: flex;
     flex-wrap: wrap;
-    gap: 10px;
+    gap: 3px;
   }
 
   .management-tag-definition-button {
     display: inline-flex;
     align-items: center;
-    border: 1px solid transparent;
+    border: 0;
     border-radius: 999px;
-    padding: 3px;
+    padding: 2px;
     background: transparent;
   }
 
   .management-tag-definition-button:hover,
   .management-tag-definition-button-selected {
-    border-color: color-mix(in srgb, var(--brand) 46%, var(--line));
     background: var(--brand-faint);
   }
 
@@ -1285,21 +1284,20 @@
     flex-wrap: wrap;
     max-height: none;
     margin-top: 12px;
-    gap: 8px;
+    gap: 3px;
   }
 
   .management-member-filter-tag {
     display: inline-flex;
     align-items: center;
-    border: 1px solid transparent;
+    border: 0;
     border-radius: 999px;
-    padding: 3px;
+    padding: 2px;
     background: transparent;
   }
 
   .management-member-filter-tag:hover,
   .management-member-filter-tag-selected {
-    border-color: color-mix(in srgb, var(--brand) 46%, var(--line));
     background: var(--brand-faint);
   }
 
@@ -1308,48 +1306,56 @@
     padding: 15px 16px;
   }
 
-  .management-member-results-heading {
-    border-bottom: 1px solid var(--line);
-    padding-bottom: 12px;
-  }
-
-  .management-member-results-heading > div {
-    display: flex;
-    align-items: baseline;
-    gap: 8px;
-  }
-
   .management-member-grid {
     display: grid;
     grid-template-columns: repeat(4, minmax(0, 1fr));
-    gap: 9px;
-    margin-top: 13px;
+    gap: 5px;
   }
 
   .management-member-card {
-    display: grid;
+    position: relative;
+    display: flex;
     min-width: 0;
-    min-height: 112px;
-    align-content: space-between;
-    gap: 14px;
+    min-height: 42px;
+    align-items: center;
+    gap: 7px;
     border: 1px solid var(--line);
     border-radius: var(--control-radius);
-    padding: 11px;
+    padding: 6px 30px 6px 8px;
     background: var(--surface-raised);
   }
 
-  .management-member-card > div {
-    display: grid;
-    gap: 7px;
+  .management-member-card > strong {
     min-width: 0;
-  }
-
-  .management-member-card strong {
     overflow: hidden;
     color: var(--text-strong);
-    font-size: 0.7rem;
+    font-size: 0.67rem;
     text-overflow: ellipsis;
     white-space: nowrap;
+  }
+
+  .management-member-card > time {
+    margin-left: auto;
+    color: var(--text-faint);
+    font-size: 0.57rem;
+    white-space: nowrap;
+  }
+
+  .management-member-remove {
+    position: absolute;
+    top: 50%;
+    right: 6px;
+    display: inline-flex;
+    width: 22px;
+    height: 22px;
+    align-items: center;
+    justify-content: center;
+    color: var(--danger);
+    transform: translateY(-50%);
+  }
+
+  .management-member-remove:hover {
+    color: color-mix(in srgb, var(--danger) 75%, var(--text-strong));
   }
 
   .management-member-card span {
@@ -1361,6 +1367,94 @@
     justify-self: start;
     min-height: 28px;
     padding-inline: 8px;
+  }
+
+  .management-pending-members {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 3px;
+    min-height: 54px;
+    margin: 0 16px 16px;
+    border: 0;
+    padding: 0;
+  }
+
+  .management-pending-member {
+    display: inline-flex;
+    min-height: 26px;
+    align-items: center;
+    gap: 4px;
+    border: 0;
+    border-radius: 999px;
+    padding: 2px 5px 2px 8px;
+    background: var(--surface-soft);
+    color: var(--text-strong);
+    font-size: 0.64rem;
+  }
+
+  .management-pending-member button {
+    display: inline-flex;
+    width: 20px;
+    height: 20px;
+    align-items: center;
+    justify-content: center;
+    color: var(--danger);
+  }
+
+  .management-pending-member button:hover {
+    color: color-mix(in srgb, var(--danger) 75%, var(--text-strong));
+  }
+
+  .management-pending-members > .management-empty-state {
+    width: 100%;
+    min-height: 54px;
+    padding: 8px;
+  }
+
+  .management-dialog > footer {
+    justify-content: flex-end;
+    border-top: 1px solid var(--line);
+    border-bottom: 0;
+  }
+
+  .management-empty-state {
+    display: grid;
+    min-height: 92px;
+    place-items: center;
+    gap: 7px;
+    padding: 18px;
+    color: var(--text-faint);
+    font-size: 0.62rem;
+    text-align: center;
+  }
+
+  .management-empty-state > span {
+    display: inline-flex;
+    color: var(--brand-strong);
+  }
+
+  .management-notice {
+    border: 1px solid var(--line);
+    border-radius: var(--control-radius);
+    padding: 10px 12px;
+    font-size: 0.64rem;
+  }
+
+  .management-notice-error {
+    color: var(--danger);
+    background: color-mix(in srgb, var(--danger) 7%, var(--surface));
+  }
+
+  .management-notice-info,
+  .management-notice-success {
+    color: var(--brand-strong);
+    background: var(--brand-faint);
+  }
+
+  /* Keep the compact member cards readable on narrow management panes. */
+  .management-member-card > div {
+    min-width: 0;
   }
 
   .management-dialog-backdrop {
@@ -1627,5 +1721,46 @@
     .management-tag-definition-card {
       min-width: 100%;
     }
+  }
+}
+
+@layer utilities {
+  .management-pending-members {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 3px;
+    min-height: 54px;
+    margin: 0 16px 16px;
+    border: 0;
+    padding: 0;
+  }
+
+  .management-pending-member {
+    display: inline-flex;
+    min-height: 26px;
+    align-items: center;
+    gap: 4px;
+    border: 0;
+    border-radius: 999px;
+    padding: 2px 5px 2px 8px;
+    background: var(--surface-soft);
+    color: var(--text-strong);
+    font-size: 0.64rem;
+  }
+
+  .management-pending-member button {
+    display: inline-flex;
+    width: 20px;
+    height: 20px;
+    align-items: center;
+    justify-content: center;
+    color: var(--danger);
+  }
+
+  .management-pending-members > .management-empty-state {
+    width: 100%;
+    min-height: 54px;
+    padding: 8px;
   }
 }

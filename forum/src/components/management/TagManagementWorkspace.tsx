@@ -1,4 +1,4 @@
-import { Check, Plus, Tags, Trash2, UserMinus, UserPlus, Users, X } from 'lucide-react';
+import { Check, Plus, Tags, Trash2, UserPlus, Users, X } from 'lucide-react';
 import { useEffect, useMemo, useState, type FormEvent, type ReactNode } from 'react';
 import {
   readTagDefinitions,
@@ -154,6 +154,7 @@ export function TagManagementWorkspace() {
 
   function removeMember(username: string) {
     if (!activeTagId) return;
+    if (!window.confirm(`确定从“${activeTag?.name ?? '标签'}”中移除 ${username} 吗？`)) return;
     const next = { ...assignments, [username]: { ...(assignments[username] ?? {}) } };
     delete next[username][activeTagId];
     setAssignments(next);
@@ -193,8 +194,7 @@ export function TagManagementWorkspace() {
           <button className="management-primary-button" disabled={!activeTagId} onClick={() => setMemberDialogOpen(true)} type="button"><UserPlus size={15} />添加会员</button>
         </header>
         <div className="management-member-tag-layout">
-          <aside className="management-member-picker" aria-label="标签筛选">
-            <div className="management-member-filter-heading"><span>标签筛选</span><small>单选</small></div>
+          <aside className="management-member-picker" aria-label="标签">
             <div className="management-member-list">
               {definitions.map((tag) => (
                 <button className={`management-member-filter-tag ${selectedTagId === tag.id ? 'management-member-filter-tag-selected' : ''}`} key={tag.id} onClick={() => selectTag(tag.id)} type="button"><TagBadge size="compact" tag={tag} /></button>
@@ -203,16 +203,13 @@ export function TagManagementWorkspace() {
             </div>
           </aside>
           <div className="management-member-tag-editor">
-            <div className="management-member-results-heading">
-              <div><strong>{activeTag?.name ?? '会员列表'}</strong><span>{filteredMemberIds.length} 位会员</span></div>
-              <span>显示标签添加时间</span>
-            </div>
             {filteredMemberIds.length > 0 ? (
               <div className="management-member-grid">
                 {filteredMemberIds.map((username) => (
                   <article className="management-member-card" key={username}>
-                    <div><strong>{username}</strong><span>{activeTagId ? formatTagAddedAt(assignments[username]?.[activeTagId]) : '未记录时间'}</span></div>
-                    <button className="management-danger-button" onClick={() => removeMember(username)} type="button"><UserMinus size={14} />移除</button>
+                    <strong>{username}</strong>
+                    <time>{activeTagId ? formatTagAddedAt(assignments[username]?.[activeTagId]) : '未记录时间'}</time>
+                    <button aria-label={`从${activeTag?.name ?? '标签'}移除${username}`} className="management-member-remove" onClick={() => removeMember(username)} title="移除会员" type="button"><X size={15} /></button>
                   </article>
                 ))}
               </div>
