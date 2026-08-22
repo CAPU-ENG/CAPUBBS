@@ -6,9 +6,10 @@
   .archive-room-shell {
     position: relative;
     z-index: 1;
-    width: min(1120px, calc(100% - 40px));
+    width: 100%;
+    max-width: 1080px;
     margin: 0 auto;
-    padding: calc(var(--topbar-height) + 28px) 0 34px;
+    padding: calc(var(--topbar-height) + 24px) 14px 40px;
   }
 
   .archive-room-panel {
@@ -697,11 +698,6 @@
   }
 
   @media (max-width: 720px) {
-    .archive-room-shell {
-      width: min(100% - 24px, 600px);
-      padding-top: calc(var(--topbar-height) + 16px);
-    }
-
     .archive-room-heading {
       align-items: flex-start;
       flex-direction: column;
@@ -757,6 +753,12 @@
   @media (max-width: 420px) {
     .archive-room-grid {
       grid-template-columns: 1fr;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .archive-room-shell {
+      padding: calc(var(--topbar-height) + 10px) 10px 28px;
     }
   }
 }
