@@ -81,35 +81,15 @@ function hasAscii(bytes: Uint8Array, offset: number, signature: string) {
   return Array.from(signature).every((character, index) => bytes[offset + index] === character.charCodeAt(0));
 }
 
-export async function createUploadablePngFileUnderLimit(file: File, maxBytes: number) {
-  if (file.type === 'image/png' && file.size <= maxBytes) {
-    return ensurePngFileName(file);
+export async function createUploadableImageFileUnderLimit(file: File, maxBytes: number) {
+  // The upload endpoint accepts the browser-supported image formats. Avoid
+  // decoding and re-encoding already small images, which can block the main
+  // thread for several seconds on high-resolution JPEG/WebP files.
+  if (file.size <= maxBytes) {
+    return file;
   }
 
-  const image = await loadImageSource(file);
-  let scale = Math.min(1, imageCompressionMaxEdge / Math.max(image.width, image.height));
-  let smallestBlob: Blob | null = null;
-
-  try {
-    for (let scalePass = 0; scalePass < 14; scalePass += 1) {
-      const width = Math.max(1, Math.round(image.width * scale));
-      const height = Math.max(1, Math.round(image.height * scale));
-      const blob = await renderImageToPngBlob(image.source, width, height);
-
-      smallestBlob = !smallestBlob || blob.size < smallestBlob.size ? blob : smallestBlob;
-
-      if (blob.size <= maxBytes) {
-        return blobToPngFile(blob, file);
-      }
-
-      const shrinkRatio = Math.sqrt(maxBytes / blob.size) * 0.92;
-      scale *= Math.max(0.2, Math.min(0.82, shrinkRatio));
-    }
-  } finally {
-    image.close?.();
-  }
-
-  throw new Error('无法在当前压缩参数下生成 2MB 以内的 PNG 图片。');
+  return compressImageFileUnderLimit(file, maxBytes);
 }
 
 export async function getImageFileMd5Hex(file: File) {
@@ -119,11 +99,25 @@ export async function getImageFileMd5Hex(file: File) {
 export async function uploadEditorImage(file: File, md5: string) {
   const formData = new FormData();
   formData.append('image', file);
+  const controller = new AbortController();
+  const timeoutId = window.setTimeout(() => controller.abort(), 60_000);
 
-  const response = await fetch(uploadUrl, {
-    body: formData,
-    method: 'POST',
-  });
+  let response: Response;
+  try {
+    response = await fetch(uploadUrl, {
+      body: formData,
+      credentials: 'include',
+      method: 'POST',
+      signal: controller.signal,
+    });
+  } catch (error) {
+    if (error instanceof DOMException && error.name === 'AbortError') {
+      throw new Error('图片上传超时，请检查网络后重试。');
+    }
+    throw new Error('图片上传失败，请检查网络后重试。');
+  } finally {
+    window.clearTimeout(timeoutId);
+  }
 
   const payload = await readUploadResponse(response);
 
@@ -270,30 +264,6 @@ function renderImageToJpegBlob(source: CanvasImageSource, width: number, height:
   });
 }
 
-function renderImageToPngBlob(source: CanvasImageSource, width: number, height: number) {
-  const canvas = document.createElement('canvas');
-  canvas.width = width;
-  canvas.height = height;
-
-  const context = canvas.getContext('2d');
-  if (!context) {
-    throw new Error('当前浏览器不支持 Canvas 图片处理。');
-  }
-
-  context.drawImage(source, 0, 0, width, height);
-
-  return new Promise<Blob>((resolve, reject) => {
-    canvas.toBlob((blob) => {
-      if (blob) {
-        resolve(blob);
-        return;
-      }
-
-      reject(new Error('PNG 图片生成失败。'));
-    }, 'image/png');
-  });
-}
-
 function blobToImageFile(blob: Blob, originalFile: File) {
   const baseName = originalFile.name.replace(/\.[^.]+$/, '') || 'pasted-image';
 
@@ -301,28 +271,6 @@ function blobToImageFile(blob: Blob, originalFile: File) {
     lastModified: Date.now(),
     type: 'image/jpeg',
   });
-}
-
-function ensurePngFileName(file: File) {
-  if (/\.png$/i.test(file.name)) {
-    return file;
-  }
-
-  return new File([file], `${getImageBaseName(file)}.png`, {
-    lastModified: file.lastModified,
-    type: 'image/png',
-  });
-}
-
-function blobToPngFile(blob: Blob, originalFile: File) {
-  return new File([blob], `${getImageBaseName(originalFile)}.png`, {
-    lastModified: Date.now(),
-    type: 'image/png',
-  });
-}
-
-function getImageBaseName(file: File) {
-  return file.name.replace(/\.[^.]+$/, '') || 'pasted-image';
 }
 
 async function readUploadResponse(response: Response) {

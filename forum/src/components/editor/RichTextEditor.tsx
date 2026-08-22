@@ -56,7 +56,7 @@ import {
 import { useIsDarkTheme, useIsMobileViewport } from './RichTextEditor.hooks';
 import {
   compressImageFileUnderLimit,
-  createUploadablePngFileUnderLimit,
+  createUploadableImageFileUnderLimit,
   editorImageInputAccept,
   getClipboardImageFile,
   getImageFileDimensions,
@@ -76,6 +76,7 @@ import {
   readEditorGallery,
   stripEditorGalleryEditControls,
 } from './RichTextEditor.gallery';
+import type { EditorGalleryImage } from './RichTextEditor.gallery';
 import {
   applyInlineStyleToElement,
   focusRichTextEditorAtEnd,
@@ -1063,29 +1064,31 @@ export function RichTextEditor({
   };
 
   const uploadAndInsertGallery = async (title: string, images: GalleryDialogImage[]) => {
-    const uploadedImages = await Promise.all(images.map(async (image) => {
+    const uploadedImages: EditorGalleryImage[] = [];
+    for (const image of images) {
       if (!image.file && image.url) {
-        return {
+        uploadedImages.push({
           alt: image.alt,
           caption: image.caption,
           url: image.url,
-        };
+        });
+        continue;
       }
 
       if (!image.file) {
         throw new Error('图廊图片无效，请移除后重新添加。');
       }
 
-      const pngFile = await createUploadablePngFileUnderLimit(image.file, maxInlineImageBytes);
-      const md5 = await getImageFileMd5Hex(pngFile);
-      const { url } = await uploadEditorImage(pngFile, md5);
+      const uploadFile = await createUploadableImageFileUnderLimit(image.file, maxInlineImageBytes);
+      const md5 = await getImageFileMd5Hex(uploadFile);
+      const { url } = await uploadEditorImage(uploadFile, md5);
 
-      return {
+      uploadedImages.push({
         alt: image.alt || getImageAltText(image.file),
         caption: image.caption,
         url,
-      };
-    }));
+      });
+    }
     const editedGallery = galleryDialogState?.target;
     const galleryHtml = buildEditorGalleryHtml(
       title,
@@ -1223,10 +1226,10 @@ export function RichTextEditor({
     );
 
     try {
-      const pngFile = await createUploadablePngFileUnderLimit(pastedImage.workingFile, maxInlineImageBytes);
-      const intrinsicDimensions = await getImageFileDimensions(pngFile);
-      const md5 = await getImageFileMd5Hex(pngFile);
-      const { url } = await uploadEditorImage(pngFile, md5);
+      const uploadFile = await createUploadableImageFileUnderLimit(pastedImage.workingFile, maxInlineImageBytes);
+      const intrinsicDimensions = await getImageFileDimensions(uploadFile);
+      const md5 = await getImageFileMd5Hex(uploadFile);
+      const { url } = await uploadEditorImage(uploadFile, md5);
       const altText = getImageAltText(pastedImage.originalFile);
 
       if (isMarkdownMode) {
