@@ -26,6 +26,7 @@ class ArchiveService
     private $rights;
     private $root;
     private $idSecret;
+    private $maxBytes;
 
     public function __construct($con, $userid, $username, $rights)
     {
@@ -48,6 +49,12 @@ class ArchiveService
             : '';
         if ($this->idSecret === '') {
             $this->fail(ApiError::SERVICE_UNAVAILABLE, '档案室 ID 密钥尚未配置。');
+        }
+        $this->maxBytes = defined('CAPUBBS_ARCHIVE_MAX_BYTES')
+            ? intval(CAPUBBS_ARCHIVE_MAX_BYTES)
+            : 500 * 1024 * 1024;
+        if ($this->maxBytes <= 0) {
+            $this->fail(ApiError::SERVICE_UNAVAILABLE, '档案室上传大小限制配置不合法。');
         }
     }
 
@@ -121,10 +128,21 @@ class ArchiveService
     {
         $this->requireManager();
         if (!is_array($file) || !isset($file['error'], $file['tmp_name'])) {
+            $contentLength = isset($_SERVER['CONTENT_LENGTH']) ? intval($_SERVER['CONTENT_LENGTH']) : 0;
+            if ($contentLength > $this->maxBytes + 1024 * 1024) {
+                $this->fail(ApiError::FILE_TOO_LARGE, $this->tooLargeMessage());
+            }
             $this->fail(ApiError::MISSING_FIELD, '未收到上传文件。');
+        }
+        if (in_array(intval($file['error']), array(UPLOAD_ERR_INI_SIZE, UPLOAD_ERR_FORM_SIZE), true)) {
+            $this->fail(ApiError::FILE_TOO_LARGE, $this->tooLargeMessage());
         }
         if (intval($file['error']) !== UPLOAD_ERR_OK || !is_uploaded_file($file['tmp_name'])) {
             $this->fail(ApiError::UPLOAD_FAILED, '上传文件未通过校验。');
+        }
+        $uploadedSize = isset($file['size']) ? intval($file['size']) : 0;
+        if ($uploadedSize > $this->maxBytes) {
+            $this->fail(ApiError::FILE_TOO_LARGE, $this->tooLargeMessage());
         }
 
         $parent = $this->getParent($parentKey);
@@ -147,6 +165,9 @@ class ArchiveService
         $size = @filesize($file['tmp_name']);
         if ($size === false) {
             $this->fail(ApiError::UPLOAD_FAILED, '无法读取上传文件大小。');
+        }
+        if ($size > $this->maxBytes) {
+            $this->fail(ApiError::FILE_TOO_LARGE, $this->tooLargeMessage());
         }
         $mimeType = $this->detectMimeType($file['tmp_name']);
         $now = $this->nowMicros();
@@ -550,6 +571,11 @@ class ArchiveService
             }
         }
         return 'application/octet-stream';
+    }
+
+    private function tooLargeMessage()
+    {
+        return '文件超过 500 MB，请压缩或拆分后再上传。';
     }
 
     private function requireManager()
