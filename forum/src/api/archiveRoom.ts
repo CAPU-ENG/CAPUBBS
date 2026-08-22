@@ -56,11 +56,13 @@ export async function uploadArchiveFile({
   file,
   name,
   parentKey,
+  onProgress,
   signal,
 }: {
   file: File;
   name: string;
   parentKey: string | null;
+  onProgress?: (progress: number) => void;
   signal?: AbortSignal;
 }) {
   const form = new FormData();
@@ -68,7 +70,7 @@ export async function uploadArchiveFile({
   form.set('name', name);
   if (parentKey) form.set('parent_key', parentKey);
   form.set('file', file, file.name);
-  const payload = await requestArchiveForm<ArchiveEntry>(form, signal);
+  const payload = await requestArchiveForm<ArchiveEntry>(form, signal, onProgress);
   return mapEntry(payload.data);
 }
 
@@ -105,8 +107,59 @@ async function requestArchiveApi<T>(params: Record<string, string>, signal?: Abo
   return requestEnvelope<T>(body, 'application/x-www-form-urlencoded; charset=UTF-8', signal);
 }
 
-async function requestArchiveForm<T>(form: FormData, signal?: AbortSignal) {
-  return requestEnvelope<T>(form, undefined, signal);
+async function requestArchiveForm<T>(form: FormData, signal?: AbortSignal, onProgress?: (progress: number) => void) {
+  return requestUploadEnvelope<T>(form, signal, onProgress);
+}
+
+function requestUploadEnvelope<T>(body: FormData, signal?: AbortSignal, onProgress?: (progress: number) => void) {
+  return new Promise<ApiEnvelope<T>>((resolve, reject) => {
+    const xhr = new XMLHttpRequest();
+    let settled = false;
+    const cleanup = () => signal?.removeEventListener('abort', abortRequest);
+    const settle = (callback: () => void) => {
+      if (settled) return;
+      settled = true;
+      cleanup();
+      callback();
+    };
+    const abortRequest = () => {
+      xhr.abort();
+      settle(() => reject(new DOMException('The operation was aborted.', 'AbortError')));
+    };
+
+    if (signal?.aborted) {
+      abortRequest();
+      return;
+    }
+
+    xhr.open('POST', ARCHIVE_API_URL);
+    xhr.withCredentials = true;
+    xhr.setRequestHeader('Accept', 'application/json');
+    xhr.upload.addEventListener('progress', (event) => {
+      if (!event.lengthComputable) return;
+      onProgress?.(Math.min(100, Math.max(0, Math.round((event.loaded / event.total) * 100))));
+    });
+    xhr.onerror = () => settle(() => reject(new ArchiveApiError('暂时无法连接档案室服务，请稍后重试。')));
+    xhr.onabort = () => settle(() => reject(new DOMException('The operation was aborted.', 'AbortError')));
+    xhr.onload = () => {
+      settle(() => {
+        let payload: ApiEnvelope<T>;
+        try {
+          payload = JSON.parse(xhr.responseText) as ApiEnvelope<T>;
+        } catch {
+          reject(new ArchiveApiError('档案室服务返回了无法识别的数据。', xhr.status || 4000));
+          return;
+        }
+        if (xhr.status < 200 || xhr.status >= 300 || payload.code !== 0) {
+          reject(new ArchiveApiError(payload.message?.trim() || '档案室操作失败，请稍后重试。', payload.code || xhr.status));
+          return;
+        }
+        resolve(payload);
+      });
+    };
+    signal?.addEventListener('abort', abortRequest, { once: true });
+    xhr.send(body);
+  });
 }
 
 async function requestEnvelope<T>(body: BodyInit, contentType: string | undefined, signal?: AbortSignal) {
