@@ -1,5 +1,6 @@
 import { getPublicProfilePath } from '../utils/userRoutes';
 import { normalizeLegacyAvatar } from '../utils/legacyAssets';
+import { maskActivitySignupSummary } from '../utils/activityPhonePrivacy';
 
 const HOME_API_URL = import.meta.env.VITE_API_URL?.trim() || '/api/api.php';
 const HOME_CALENDAR_API_URL = import.meta.env.VITE_CALENDAR_API_URL?.trim()
@@ -178,7 +179,7 @@ function mapThreadRow(row: ApiRow, linkToLatestFloor = false): HomeThread | null
   const targetFloor = replies + 1;
   const timestamp = toTimestamp(row.timestamp ?? row.postdate);
   const rawSummary = typeof row.text === 'string' ? row.text : null;
-  const textSummary = rawSummary === null ? '' : excerptText(rawSummary);
+  const textSummary = rawSummary === null ? '' : excerptText(maskActivitySignupSummary(rawSummary));
   const summary = textSummary || (
     rawSummary !== null && rawSummary.trim()
       ? '【非文字内容】'

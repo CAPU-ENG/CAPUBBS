@@ -2,6 +2,7 @@ import type { ThreadFloorData } from '../data/threadDemo';
 
 const PHONE_LABEL_PATTERN = /电话|手机|联系电话|mobile|phone|tel/i;
 const MASKED_PHONE_VALUE = '***********';
+const PHONE_VALUE_PATTERN = '(?:1\\d{10}|0\\d{2,3}[ -]?\\d{7,8})';
 
 type ActivityPhoneQuestion = {
   id: string;
@@ -10,6 +11,14 @@ type ActivityPhoneQuestion = {
 
 export function isActivityPhoneQuestion(question: ActivityPhoneQuestion) {
   return PHONE_LABEL_PATTERN.test(question.label) || PHONE_LABEL_PATTERN.test(question.id);
+}
+
+export function maskActivitySignupSummary(value: string) {
+  const phonePattern = `(?:${PHONE_LABEL_PATTERN.source})`;
+  return value.replace(
+    new RegExp(`(${phonePattern}\\s*[：:]\\s*)${PHONE_VALUE_PATTERN}`, 'giu'),
+    `$1${MASKED_PHONE_VALUE}`,
+  );
 }
 
 export function maskActivitySignupFloor(
