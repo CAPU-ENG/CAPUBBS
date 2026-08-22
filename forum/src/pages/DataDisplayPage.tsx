@@ -3,6 +3,7 @@ import {
   CalendarCheck2,
   LoaderCircle,
   RefreshCw,
+  Tags,
   Trophy,
   Users,
   type LucideIcon,
@@ -17,6 +18,7 @@ import {
   type OnlineUser,
 } from '../api/dataDisplay';
 import { PunishmentRecords } from '../components/data/PunishmentRecords';
+import { TagSummaryPanel } from '../components/data/TagSummaryPanel';
 import { AppBackground } from '../components/layout/AppBackground';
 import { TopBar } from '../components/layout/TopBar';
 
@@ -26,25 +28,33 @@ type LoadState = {
   status: 'error' | 'loading' | 'ready';
 };
 
+type DisplayPanel = DataDisplayPanel | 'tags';
+
 const PANEL_ITEMS: Array<{
   icon: LucideIcon;
-  id: DataDisplayPanel;
+  id: DisplayPanel;
   label: string;
 }> = [
   { icon: Users, id: 'online', label: '当前在线' },
   { icon: CalendarCheck2, id: 'checkins', label: '今日签到' },
   { icon: Trophy, id: 'checkin-ranking', label: '签到排行' },
+  { icon: Tags, id: 'tags', label: '标签汇总' },
   { icon: AlertCircle, id: 'punishments', label: '罚跑记录' },
-];
+] satisfies Array<{ icon: LucideIcon; id: DisplayPanel; label: string }>;
 
 export function DataDisplayPage() {
-  const [activePanel, setActivePanel] = useState<DataDisplayPanel>(readPanelFromLocation);
+  const [activePanel, setActivePanel] = useState<DisplayPanel>(readPanelFromLocation);
   const [reloadToken, setReloadToken] = useState(0);
   const [state, setState] = useState<LoadState>({ data: null, error: '', status: 'loading' });
 
   useEffect(() => {
     const controller = new AbortController();
     setState({ data: null, error: '', status: 'loading' });
+
+    if (activePanel === 'tags') {
+      setState({ data: null, error: '', status: 'ready' });
+      return () => controller.abort();
+    }
 
     void fetchDataDisplayPanel(activePanel, controller.signal).then(
       (data) => setState({ data, error: '', status: 'ready' }),
@@ -61,7 +71,7 @@ export function DataDisplayPage() {
     return () => controller.abort();
   }, [activePanel, reloadToken]);
 
-  function selectPanel(panel: DataDisplayPanel) {
+  function selectPanel(panel: DisplayPanel) {
     if (panel === activePanel) return;
     setActivePanel(panel);
     const url = new URL(window.location.href);
@@ -99,6 +109,8 @@ export function DataDisplayPage() {
               <RefreshCw size={15} /> 重试
             </button>
           </DataState>
+        ) : activePanel === 'tags' ? (
+          <TagSummaryPanel />
         ) : activePanel === 'online' ? (
           <OnlineTable records={state.data?.onlineUsers ?? []} />
         ) : activePanel === 'checkins' ? (
@@ -213,8 +225,8 @@ function RankNumber({ rank }: { rank: number }) {
   return <span className={rank <= 3 ? `data-rank data-rank-${rank}` : 'data-rank'}>#{rank}</span>;
 }
 
-function readPanelFromLocation(): DataDisplayPanel {
+function readPanelFromLocation(): DisplayPanel {
   const panel = new URLSearchParams(window.location.search).get('panel');
-  if (panel === 'checkins' || panel === 'checkin-ranking' || panel === 'punishments') return panel;
+  if (panel === 'checkins' || panel === 'checkin-ranking' || panel === 'punishments' || panel === 'tags') return panel;
   return 'online';
 }

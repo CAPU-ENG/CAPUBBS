@@ -715,6 +715,183 @@
     font-weight: 700;
   }
 
+  .tag-summary-card-header {
+    flex-wrap: wrap;
+  }
+
+  .tag-summary-filter-area {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    padding: 14px 18px;
+    border-bottom: 1px solid var(--line);
+  }
+
+  .tag-summary-filter-list {
+    display: flex;
+    flex: 1 1 auto;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 3px;
+  }
+
+  .tag-summary-filter {
+    display: inline-flex;
+    align-items: center;
+    padding: 0;
+    border: 0;
+    border-radius: 0;
+    background: transparent;
+  }
+
+  .tag-summary-filter:focus-visible {
+    outline: 2px solid color-mix(in srgb, var(--brand) 45%, transparent);
+    outline-offset: 2px;
+  }
+
+  .tag-summary-filter[data-filter-state="exclude"] .user-tag {
+    border-color: color-mix(in srgb, var(--danger) 62%, var(--line));
+    background: color-mix(in srgb, var(--danger) 9%, var(--surface-raised));
+    color: var(--danger);
+    text-decoration: line-through;
+  }
+
+  .tag-summary-query-button {
+    display: inline-flex;
+    min-height: 34px;
+    flex: 0 0 auto;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    padding: 0 12px;
+    border: 1px solid var(--brand-strong);
+    border-radius: 2px;
+    background: var(--brand-strong);
+    color: var(--surface-raised);
+    font-size: 0.7rem;
+    font-weight: 740;
+  }
+
+  .dark .tag-summary-query-button {
+    color: #101713;
+  }
+
+  .tag-summary-query-button:hover {
+    filter: brightness(1.08);
+  }
+
+  .tag-summary-sort-bar {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 10px 18px;
+    border-bottom: 1px solid var(--line);
+    background: var(--surface-soft);
+  }
+
+  .tag-summary-sort-bar button {
+    display: inline-flex;
+    min-height: 30px;
+    align-items: center;
+    gap: 5px;
+    padding: 0 9px;
+    border: 1px solid var(--line);
+    border-radius: 2px;
+    background: var(--surface-raised);
+    color: var(--text-muted);
+    font-size: 0.68rem;
+    font-weight: 700;
+  }
+
+  .tag-summary-sort-bar button:hover,
+  .tag-summary-sort-bar .tag-summary-sort-active {
+    border-color: var(--brand);
+    background: var(--brand-faint);
+    color: var(--brand-strong);
+  }
+
+  .tag-summary-avatar-loading {
+    margin-left: auto;
+    color: var(--text-faint);
+  }
+
+  .tag-summary-member-grid {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 8px;
+    padding: 14px 18px 18px;
+  }
+
+  .tag-summary-member-card {
+    display: grid;
+    min-width: 0;
+    min-height: 60px;
+    grid-template-columns: 42px minmax(0, 1fr);
+    align-items: center;
+    gap: 10px;
+    border: 1px solid var(--line);
+    border-radius: 2px;
+    padding: 8px;
+    background: var(--surface-raised);
+  }
+
+  .tag-summary-member-card:hover {
+    border-color: var(--line-strong);
+    background: var(--surface-soft);
+  }
+
+  .tag-summary-member-avatar {
+    display: block;
+    width: 42px;
+    height: 42px;
+    overflow: hidden;
+    border: 1px solid var(--line);
+    border-radius: 50%;
+    background: var(--brand-faint);
+  }
+
+  .tag-summary-member-avatar img {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .tag-summary-member-card > div {
+    display: grid;
+    min-width: 0;
+    gap: 4px;
+  }
+
+  .tag-summary-member-id {
+    overflow: hidden;
+    color: var(--text-strong);
+    font-size: 0.74rem;
+    font-weight: 740;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .tag-summary-member-id:hover {
+    color: var(--brand-strong);
+  }
+
+  .tag-summary-member-card time {
+    color: var(--text-faint);
+    font-size: 0.62rem;
+    white-space: nowrap;
+  }
+
+  .tag-summary-empty {
+    grid-column: 1 / -1;
+    margin: 0;
+    padding: 28px 18px;
+    color: var(--text-faint);
+    font-size: 0.75rem;
+    text-align: center;
+  }
+
   @media (max-width: 640px) {
     .data-display-shell {
       padding: calc(var(--topbar-height) + 10px) 10px 28px;
@@ -772,6 +949,30 @@
 
     .data-display-state > div {
       flex-direction: column;
+    }
+
+    .tag-summary-filter-area {
+      align-items: stretch;
+      flex-direction: column;
+      padding: 12px 14px;
+    }
+
+    .tag-summary-query-button {
+      width: 100%;
+    }
+
+    .tag-summary-sort-bar {
+      padding-inline: 14px;
+    }
+
+    .tag-summary-sort-bar button {
+      flex: 1 1 0;
+      justify-content: center;
+    }
+
+    .tag-summary-member-grid {
+      grid-template-columns: 1fr;
+      padding: 12px 14px 14px;
     }
 
     .punishment-form-row-two,
