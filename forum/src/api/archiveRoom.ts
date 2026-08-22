@@ -62,7 +62,7 @@ export async function uploadArchiveFile({
   file: File;
   name: string;
   parentKey: string | null;
-  onProgress?: (progress: number) => void;
+  onProgress?: (progress: number, loaded: number, total: number) => void;
   signal?: AbortSignal;
 }) {
   const form = new FormData();
@@ -107,11 +107,11 @@ async function requestArchiveApi<T>(params: Record<string, string>, signal?: Abo
   return requestEnvelope<T>(body, 'application/x-www-form-urlencoded; charset=UTF-8', signal);
 }
 
-async function requestArchiveForm<T>(form: FormData, signal?: AbortSignal, onProgress?: (progress: number) => void) {
+async function requestArchiveForm<T>(form: FormData, signal?: AbortSignal, onProgress?: (progress: number, loaded: number, total: number) => void) {
   return requestUploadEnvelope<T>(form, signal, onProgress);
 }
 
-function requestUploadEnvelope<T>(body: FormData, signal?: AbortSignal, onProgress?: (progress: number) => void) {
+function requestUploadEnvelope<T>(body: FormData, signal?: AbortSignal, onProgress?: (progress: number, loaded: number, total: number) => void) {
   return new Promise<ApiEnvelope<T>>((resolve, reject) => {
     const xhr = new XMLHttpRequest();
     let settled = false;
@@ -137,7 +137,7 @@ function requestUploadEnvelope<T>(body: FormData, signal?: AbortSignal, onProgre
     xhr.setRequestHeader('Accept', 'application/json');
     xhr.upload.addEventListener('progress', (event) => {
       if (!event.lengthComputable) return;
-      onProgress?.(Math.min(100, Math.max(0, Math.round((event.loaded / event.total) * 100))));
+      onProgress?.(Math.min(100, Math.max(0, Math.round((event.loaded / event.total) * 100))), event.loaded, event.total);
     });
     xhr.onerror = () => settle(() => reject(new ArchiveApiError('暂时无法连接档案室服务，请稍后重试。')));
     xhr.onabort = () => settle(() => reject(new DOMException('The operation was aborted.', 'AbortError')));
