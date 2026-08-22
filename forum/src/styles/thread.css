@@ -1638,7 +1638,7 @@
   }
 
   .thread-reply-unavailable {
-    max-width: var(--thread-main-column);
+    max-width: 100%;
     min-height: 150px;
     margin-top: 18px;
   }
