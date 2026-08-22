@@ -362,6 +362,8 @@ export function TopBar({
               className="icon-button hidden lg:inline-flex"
               href="/bbs/index/"
               aria-label="切换回旧论坛"
+              target="_blank"
+              rel="noreferrer"
             >
               <History size={19} />
             </a>
