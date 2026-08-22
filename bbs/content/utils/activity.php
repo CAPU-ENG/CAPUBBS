@@ -197,7 +197,7 @@ $is_leader = ($currentuser == $activity["leader_username"] || $currentuser == "�
                         ?>
                         <div style='justify-content: center; align-items: center; border: 1px solid black; padding: 10px 10px 10px 10px;'>
                             <div style="text-align: center;">
-                                <font size="6px">请<a href="../login?from=<?php echo $nowurl; ?>">登录</a>后参与，或<a href="../register">注册</a></font>
+                                <font size="6px">请登录后参与</font>
                             </div>
                         </div>
                         <?php

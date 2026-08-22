@@ -6,7 +6,6 @@ include("../../lib/mainfunc.php");
 $users = getuser();
 $username = $users['username'];
 $rights = intval($users['rights']);
-$nowurl = urlencode($_SERVER["PHP_SELF"] . "?" . (isset($_SERVER["QUERY_STRING"]) ? $_SERVER["QUERY_STRING"] : ""));
 
 // 版主及以上可访问
 $can_access = ($username != '' && $rights >= 5);
@@ -115,7 +114,7 @@ if ($can_access) {
 
 <?php if (!$can_access): ?>
     <?php if ($username == ""): ?>
-        <div class="no-access">请先<a href="../../login?from=<?php echo $nowurl; ?>">登录</a> 或者 <a href="../../register">注册</a>。</div>
+        <div class="no-access">请先<a href="../../index/">登录</a>。</div>
     <?php else: ?>
         <div class="no-access">权限不足：仅限版主或管理员访问此页面。</div>
     <?php endif; ?>
