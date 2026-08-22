@@ -243,7 +243,10 @@ export function UserCenterPage() {
           asideLink={{ href: getPublicProfilePath(profile.id), label: '查看公开个人主页' }}
           initialRecords={workspaceRecords ?? profile.records}
           onDeleteDraft={deleteDraft}
-          onSaveSignatures={updateProfileSignatures}
+          onSaveSignatures={async (signatures) => {
+            const updatedProfile = await updateProfileSignatures(signatures);
+            profileState.replace(updatedProfile);
+          }}
           ownerLabel="我"
         />
       </main>

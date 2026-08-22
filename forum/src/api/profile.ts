@@ -108,6 +108,7 @@ export async function updateProfileDetails(details: EditUserOverrides['details']
 export async function updateProfileSignatures(signatures: ProfileRecord[]) {
   const row = await fetchCurrentUserRow();
   await editUser(row, { signatures });
+  return fetchUserCenterProfile();
 }
 
 export async function updateProfileAvatar(avatarSrc: string) {
