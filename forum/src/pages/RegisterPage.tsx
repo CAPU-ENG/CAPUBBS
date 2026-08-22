@@ -495,10 +495,11 @@ export function RegisterPage() {
         </section>
       </main>
       <AvatarDialog
-        avatarSrc={customAvatar?.src ?? defaultAvatar}
+        avatarSrc={customAvatar?.src ?? ''}
         onClose={closeAvatarDialog}
         onSave={uploadAvatar}
         open={avatarDialogOpen}
+        showDefaultOption={false}
       />
     </div>
   );

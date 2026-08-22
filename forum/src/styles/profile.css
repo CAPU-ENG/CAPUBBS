@@ -1090,6 +1090,22 @@
     transform-origin: top left;
   }
 
+  .profile-avatar-empty-state,
+  .profile-avatar-empty-result {
+    display: grid;
+    align-items: center;
+    justify-items: center;
+    color: var(--text-faint);
+    font-size: 0.72rem;
+    font-weight: 700;
+    gap: 8px;
+  }
+
+  .profile-avatar-empty-state {
+    position: absolute;
+    inset: 0;
+  }
+
   .profile-avatar-source,
   .profile-avatar-crop-image img {
     position: absolute;
@@ -1208,6 +1224,12 @@
     aspect-ratio: 1;
     border: 1px solid var(--line);
     object-fit: cover;
+  }
+
+  .profile-avatar-empty-result {
+    aspect-ratio: 1;
+    border: 1px solid var(--line);
+    background: var(--surface);
   }
 
   .profile-avatar-editor-aside > button {

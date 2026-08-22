@@ -16,6 +16,7 @@ type AvatarDialogProps = {
   onClose: () => void;
   onSave: (src: string) => Promise<void> | void;
   open: boolean;
+  showDefaultOption?: boolean;
 };
 
 type DisplayMetrics = {
@@ -52,7 +53,7 @@ const MIN_CROP_SIZE = 64;
 const KEYBOARD_MOVE_STEP = 4;
 const corners: ResizeCorner[] = ['nw', 'ne', 'sw', 'se'];
 
-export function AvatarDialog({ avatarSrc, onClose, onSave, open }: AvatarDialogProps) {
+export function AvatarDialog({ avatarSrc, onClose, onSave, open, showDefaultOption = true }: AvatarDialogProps) {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const dragStateRef = useRef<DragState | null>(null);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
@@ -86,7 +87,7 @@ export function AvatarDialog({ avatarSrc, onClose, onSave, open }: AvatarDialogP
     setPreviewSrc(avatarSrc);
     setFileName('');
     setStatus('');
-    setIsDefaultSelected(avatarSrc === defaultAvatar);
+    setIsDefaultSelected(showDefaultOption && avatarSrc === defaultAvatar);
     setIsSaving(false);
     setCropSize(WORKSPACE_SIZE);
     setCropX(0);
@@ -100,7 +101,7 @@ export function AvatarDialog({ avatarSrc, onClose, onSave, open }: AvatarDialogP
 
     document.addEventListener('keydown', handleKeyDown);
     return () => document.removeEventListener('keydown', handleKeyDown);
-  }, [avatarSrc, onClose, open]);
+  }, [avatarSrc, onClose, open, showDefaultOption]);
 
   useEffect(() => {
     if (!open) return;
@@ -124,7 +125,10 @@ export function AvatarDialog({ avatarSrc, onClose, onSave, open }: AvatarDialogP
   }, [open]);
 
   useEffect(() => {
-    if (!open) return;
+    if (!open || !sourceSrc) {
+      if (open) setImageSize(null);
+      return;
+    }
     let cancelled = false;
     const image = new Image();
 
@@ -145,7 +149,7 @@ export function AvatarDialog({ avatarSrc, onClose, onSave, open }: AvatarDialogP
   }, [open, sourceSrc]);
 
   useEffect(() => {
-    if (!open || !displayMetrics) return;
+    if (!open || !sourceSrc || !displayMetrics) return;
     let cancelled = false;
     const image = new Image();
 
@@ -316,34 +320,33 @@ export function AvatarDialog({ avatarSrc, onClose, onSave, open }: AvatarDialogP
             <div ref={workspaceViewportRef} className="profile-avatar-workspace">
               <div className="profile-avatar-workspace-canvas" style={{ height: WORKSPACE_SIZE, transform: `scale(${workspaceScale})`, width: WORKSPACE_SIZE }}>
                 {displayMetrics ? (
-                  <img
-                    className="profile-avatar-source"
-                    src={sourceSrc}
-                    alt=""
-                    draggable={false}
-                    style={{
-                      height: displayMetrics.height,
-                      left: displayMetrics.offsetX,
-                      top: displayMetrics.offsetY,
-                      width: displayMetrics.width,
-                    }}
-                  />
-                ) : null}
-                <div className="profile-avatar-crop-shade" />
-                <div
-                  className="profile-avatar-crop-box"
-                  role="group"
-                  tabIndex={0}
-                  aria-label="头像裁剪框"
-                  onKeyDown={moveCropWithKeyboard}
-                  onPointerCancel={endDrag}
-                  onPointerDown={(event) => beginDrag(event, 'move')}
-                  onPointerMove={moveDrag}
-                  onPointerUp={endDrag}
-                  style={{ height: safeCropSize, left: safeCropX, top: safeCropY, width: safeCropSize }}
-                >
-                  <div className="profile-avatar-crop-image">
-                    {displayMetrics ? (
+                  <>
+                    <img
+                      className="profile-avatar-source"
+                      src={sourceSrc}
+                      alt=""
+                      draggable={false}
+                      style={{
+                        height: displayMetrics.height,
+                        left: displayMetrics.offsetX,
+                        top: displayMetrics.offsetY,
+                        width: displayMetrics.width,
+                      }}
+                    />
+                    <div className="profile-avatar-crop-shade" />
+                    <div
+                      className="profile-avatar-crop-box"
+                      role="group"
+                      tabIndex={0}
+                      aria-label="头像裁剪框"
+                      onKeyDown={moveCropWithKeyboard}
+                      onPointerCancel={endDrag}
+                      onPointerDown={(event) => beginDrag(event, 'move')}
+                      onPointerMove={moveDrag}
+                      onPointerUp={endDrag}
+                      style={{ height: safeCropSize, left: safeCropX, top: safeCropY, width: safeCropSize }}
+                    >
+                      <div className="profile-avatar-crop-image">
                       <img
                         src={sourceSrc}
                         alt=""
@@ -355,39 +358,47 @@ export function AvatarDialog({ avatarSrc, onClose, onSave, open }: AvatarDialogP
                           width: displayMetrics.width,
                         }}
                       />
-                    ) : null}
-                    <i /><i /><i /><i />
+                        <i /><i /><i /><i />
+                      </div>
+                      {corners.map((corner) => (
+                        <span
+                          aria-hidden="true"
+                          data-corner={corner}
+                          key={corner}
+                          onPointerCancel={endDrag}
+                          onPointerDown={(event) => beginDrag(event, 'resize', corner)}
+                          onPointerMove={moveDrag}
+                          onPointerUp={endDrag}
+                        />
+                      ))}
+                    </div>
+                  </>
+                ) : (
+                  <div className="profile-avatar-empty-state">
+                    <ImagePlus size={28} />
+                    <span>请先上传图片</span>
                   </div>
-                  {corners.map((corner) => (
-                    <span
-                      aria-hidden="true"
-                      data-corner={corner}
-                      key={corner}
-                      onPointerCancel={endDrag}
-                      onPointerDown={(event) => beginDrag(event, 'resize', corner)}
-                      onPointerMove={moveDrag}
-                      onPointerUp={endDrag}
-                    />
-                  ))}
-                </div>
+                )}
               </div>
             </div>
             <canvas ref={canvasRef} hidden />
           </div>
 
           <aside className="profile-avatar-editor-aside">
-            <div className="profile-avatar-result"><img src={previewSrc} alt="头像裁切预览" /></div>
+            <div className="profile-avatar-result">
+              {previewSrc ? <img src={previewSrc} alt="头像裁切预览" /> : <div className="profile-avatar-empty-result"><ImagePlus size={22} /><span>上传后预览</span></div>}
+            </div>
             <input ref={fileInputRef} hidden type="file" accept="image/*" onChange={handleUpload} />
             <button type="button" disabled={isSaving} onClick={() => fileInputRef.current?.click()}><Upload size={15} />上传图片</button>
-            <button type="button" disabled={isSaving} onClick={useDefaultAvatar}><ImagePlus size={15} />默认头像</button>
-            <button type="button" disabled={isSaving} onClick={resetCrop}><RotateCcw size={15} />重置裁切</button>
-            <p role="status">{status || fileName || '拖动裁剪框调整位置，拖动四角改变大小。'}</p>
+            {showDefaultOption && <button type="button" disabled={isSaving} onClick={useDefaultAvatar}><ImagePlus size={15} />默认头像</button>}
+            <button type="button" disabled={isSaving || !sourceSrc} onClick={resetCrop}><RotateCcw size={15} />重置裁切</button>
+            <p role="status">{status || fileName || (sourceSrc ? '拖动裁剪框调整位置，拖动四角改变大小。' : '请先上传图片')}</p>
           </aside>
         </div>
 
         <footer className="profile-dialog-footer">
           <button className="profile-dialog-cancel" type="button" disabled={isSaving} onClick={onClose}>取消</button>
-          <button className="profile-dialog-confirm" type="button" disabled={isSaving} onClick={saveAvatar}>
+          <button className="profile-dialog-confirm" type="button" disabled={isSaving || !sourceSrc} onClick={saveAvatar}>
             <Check size={14} />{isSaving ? '保存中' : '保存头像'}
           </button>
         </footer>
