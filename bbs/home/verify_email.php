@@ -11,8 +11,9 @@ if (!CAPUBBS_ENABLE_EMAIL_VERIFY) {
 
 $userinfo = mainfunc(array("ask" => "currentUserInfo"));
 if (count($userinfo) == 0) {
+    $nowurl = urlencode($_SERVER["PHP_SELF"] . "?" . (isset($_SERVER["QUERY_STRING"]) ? $_SERVER["QUERY_STRING"] : ""));
     echo '<html><head><meta charset="utf-8"><link rel="stylesheet" href="../lib/general.css"></head><body>';
-    echo '<p style="text-align:center;color:#999;margin-top:100px;">请先登录。</p>';
+    echo '<p style="text-align:center;color:#999;margin-top:100px;">请先<a href="../login?from=' . $nowurl . '">登录</a> 或者 <a href="../register">注册</a>。</p>';
     echo '</body></html>';
     exit;
 }

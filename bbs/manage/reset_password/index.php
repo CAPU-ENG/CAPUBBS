@@ -59,7 +59,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
     }
 }
 
-$nowurl = urlencode($_SERVER["PHP_SELF"] . "?" . $_SERVER["QUERY_STRING"]);
+$nowurl = urlencode($_SERVER["PHP_SELF"] . "?" . (isset($_SERVER["QUERY_STRING"]) ? $_SERVER["QUERY_STRING"] : ""));
 ?>
 <!DOCTYPE html>
 <html>
@@ -230,7 +230,7 @@ if ($admin_username != "") {
     echo("<br><a href='/bbs/logout?from=$nowurl'>注销</a>");
     echo("</div>");
 } else {
-    echo("<span class='guest'>欢迎您，游客！<a href='/bbs/login?from=$nowurl'>登录</a></span>");
+    echo("<span class='guest'>欢迎您，游客！<a href='/bbs/login?from=$nowurl'>登录</a> 或者 <a href='/bbs/register'>注册</a></span>");
 }
 ?>
 </div>
