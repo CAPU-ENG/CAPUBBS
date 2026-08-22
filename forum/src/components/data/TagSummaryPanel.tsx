@@ -50,6 +50,14 @@ export function TagSummaryPanel() {
     () => [...definitions].sort((left, right) => TAG_NAME_COLLATOR.compare(left.name, right.name) || MEMBER_ID_COLLATOR.compare(left.id, right.id)),
     [definitions],
   );
+  const includedTagIds = useMemo(
+    () => sortedDefinitions.filter((tag) => filters[tag.id] === 'include').map((tag) => tag.id),
+    [filters, sortedDefinitions],
+  );
+  const excludedTagIds = useMemo(
+    () => sortedDefinitions.filter((tag) => filters[tag.id] === 'exclude').map((tag) => tag.id),
+    [filters, sortedDefinitions],
+  );
 
   useEffect(() => {
     const controller = new AbortController();
@@ -81,13 +89,11 @@ export function TagSummaryPanel() {
   }
 
   async function runQuery() {
-    if (queryStatus === 'loading' || definitionsStatus !== 'ready') return;
-    const includedIds = sortedDefinitions.filter((tag) => filters[tag.id] === 'include').map((tag) => tag.id);
-    const excludedIds = sortedDefinitions.filter((tag) => filters[tag.id] === 'exclude').map((tag) => tag.id);
+    if (queryStatus === 'loading' || definitionsStatus !== 'ready' || includedTagIds.length === 0) return;
     setQueryStatus('loading');
     setQueryError('');
     try {
-      setMembers(await fetchTagSummary(includedIds, excludedIds));
+      setMembers(await fetchTagSummary(includedTagIds, excludedTagIds));
       setHasQueried(true);
       setSortOrder('acquiredAt');
       setStartDate('');
@@ -136,7 +142,7 @@ export function TagSummaryPanel() {
           })}
           {definitions.length === 0 && <span className="tag-summary-empty">{definitionsStatus === 'loading' ? '正在加载标签' : definitionsStatus === 'error' ? '标签加载失败' : '暂无标签'}</span>}
         </div>
-        <button className="tag-summary-query-button" disabled={definitionsStatus !== 'ready' || queryStatus === 'loading'} onClick={runQuery} type="button"><Search size={15} />{queryStatus === 'loading' ? '查询中' : '开始查询'}</button>
+        <button className="tag-summary-query-button" disabled={definitionsStatus !== 'ready' || queryStatus === 'loading' || includedTagIds.length === 0} onClick={runQuery} type="button"><Search size={15} />{queryStatus === 'loading' ? '查询中' : '开始查询'}</button>
       </div>
       {queryStatus === 'error' && <p className="tag-summary-empty">{queryError}</p>}
       {hasQueried && queryStatus !== 'error' && (
