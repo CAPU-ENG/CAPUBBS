@@ -1438,8 +1438,10 @@
   .thread-image-lightbox {
     position: relative;
     display: flex;
+    box-sizing: border-box;
+    width: min(94vw, 1440px);
     max-width: min(94vw, 1440px);
-    max-height: 92vh;
+    max-height: calc(100vh - 56px);
     align-items: center;
     justify-content: center;
     flex-direction: column;
@@ -1452,7 +1454,7 @@
     width: auto;
     max-width: 100%;
     height: auto;
-    max-height: 86vh;
+    max-height: min(86vh, calc(100vh - 156px));
     border-radius: 2px;
     box-shadow: 0 18px 70px rgb(0 0 0 / 0.48);
     object-fit: contain;
@@ -1540,12 +1542,12 @@
   }
 
   .thread-image-lightbox-controls {
-    position: fixed;
+    position: relative;
     z-index: 3;
-    bottom: 20px;
-    left: 50%;
     display: inline-flex;
+    flex: 0 0 auto;
     min-height: 40px;
+    margin-top: 0;
     align-items: center;
     gap: 4px;
     padding: 4px;
@@ -1554,7 +1556,6 @@
     background: rgb(0 0 0 / 0.7);
     box-shadow: 0 8px 28px rgb(0 0 0 / 0.28);
     color: #fff;
-    transform: translateX(-50%);
   }
 
   .thread-image-lightbox-controls > button {
@@ -2436,7 +2437,7 @@
     }
 
     .thread-image-lightbox > img {
-      max-height: calc(100vh - 32px);
+      max-height: calc(100vh - 132px);
     }
 
     .thread-image-lightbox-close {
@@ -2458,7 +2459,7 @@
     }
 
     .thread-image-lightbox-controls {
-      bottom: 12px;
+      margin-top: 0;
     }
 
   }
