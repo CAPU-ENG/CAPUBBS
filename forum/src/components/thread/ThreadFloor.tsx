@@ -38,10 +38,13 @@ function AuthorCard({ author }: { author: ThreadAuthor }) {
     <div className="author-hover-card" role="dialog" aria-label={`${author.name} 的用户摘要`}>
       <div className="author-card-head">
         <img src={author.avatar} alt="" />
-        <div>
-          <strong>{author.name}</strong>
+        <div className="author-card-head-copy">
+          <div className="author-card-name-line">
+            <strong>{author.name}</strong>
+            <TagList size="compact" tags={tags} />
+          </div>
           {(author.stars > 0 || author.role) && (
-            <span>
+            <span className="author-card-status">
               {'★'.repeat(author.stars)}
               {author.stars > 0 && author.role ? ' · ' : ''}
               {author.role}
@@ -49,7 +52,6 @@ function AuthorCard({ author }: { author: ThreadAuthor }) {
           )}
         </div>
       </div>
-      <TagList size="compact" tags={tags} />
       <dl>
         <div><dt>主题</dt><dd>{author.topics}</dd></div>
         <div><dt>回复</dt><dd>{author.replies}</dd></div>

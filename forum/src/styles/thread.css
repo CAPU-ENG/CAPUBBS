@@ -837,7 +837,7 @@
 
   .author-card-head {
     display: flex;
-    align-items: center;
+    align-items: flex-start;
     gap: 12px;
   }
 
@@ -849,9 +849,17 @@
     object-fit: cover;
   }
 
-  .author-card-head strong,
-  .author-card-head span {
-    display: block;
+  .author-card-head-copy {
+    min-width: 0;
+    flex: 1;
+  }
+
+  .author-card-name-line {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 4px 8px;
+    min-width: 0;
   }
 
   .author-card-head strong {
@@ -859,17 +867,17 @@
     font-size: 0.92rem;
   }
 
-  .author-card-head span {
+  .author-card-name-line > .user-tag-list {
+    flex: 0 0 auto;
+    max-width: 100%;
+  }
+
+  .author-card-status {
+    display: block;
     margin-top: 3px;
     color: var(--brand);
     font-size: 0.65rem;
     font-weight: 680;
-  }
-
-  .author-hover-card > .user-tag-list {
-    margin-top: 12px;
-    border-block: 1px solid var(--line);
-    padding: 8px 0;
   }
 
   .author-hover-card dl {
