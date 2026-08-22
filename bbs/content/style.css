@@ -146,6 +146,134 @@ a.message{
 .sigblock img {
     max-width:100%;
 }
+
+/* 新论坛图廊的旧论坛兼容样式。图廊内容中的 <style> 可能会被富文本编辑器丢弃，
+   因此这里保留一份全局规则，确保历史帖子也能折叠图片并使用内置切换脚本。 */
+.textblock .capubbs-gallery {
+    display: block;
+    width: 100%;
+    margin: 15px 0;
+    border: 1px solid #d4d4d8;
+    background: #fff;
+    color: #3f3f46;
+    box-sizing: border-box;
+    overflow: hidden;
+    font-family: Arial, sans-serif;
+}
+.textblock .capubbs-gallery-header {
+    display: block;
+    min-height: 42px;
+    padding: 10px 12px;
+    border-bottom: 1px solid #e4e4e7;
+    background: #fafafa;
+    box-sizing: border-box;
+}
+.textblock .capubbs-gallery-title {
+    display: block;
+    font-size: 15px;
+    font-weight: bold;
+    line-height: 22px;
+    overflow-wrap: anywhere;
+}
+.textblock .capubbs-gallery-stage {
+    position: relative;
+    display: block;
+    height: 420px;
+    overflow: hidden;
+    background: #f4f4f5;
+}
+.textblock .capubbs-gallery-slide {
+    display: block;
+    width: 100%;
+    height: 100%;
+    margin: 0;
+    text-align: center;
+    box-sizing: border-box;
+}
+.textblock .capubbs-gallery-slide[data-capubbs-gallery-active="false"] {
+    display: none !important;
+}
+.textblock .capubbs-gallery-slide[data-capubbs-gallery-active="true"] {
+    display: block;
+}
+.textblock .capubbs-gallery-slide > img {
+    display: block;
+    width: auto;
+    height: auto;
+    max-width: 100%;
+    max-height: 100%;
+    margin: 0 auto;
+    object-fit: contain;
+}
+.textblock .capubbs-gallery-nav {
+    position: absolute;
+    top: 50%;
+    z-index: 2;
+    display: block;
+    width: 42px;
+    height: 58px;
+    margin-top: -29px;
+    border: 0;
+    background: #000;
+    color: #fff;
+    cursor: pointer;
+    opacity: .55;
+    text-align: center;
+    font: bold 30px/58px Arial, sans-serif;
+}
+.textblock .capubbs-gallery-nav:hover {
+    opacity: .82;
+}
+.textblock .capubbs-gallery-nav-prev {
+    left: 8px;
+}
+.textblock .capubbs-gallery-nav-next {
+    right: 8px;
+}
+.textblock .capubbs-gallery-nav-prev:before {
+    content: '<';
+}
+.textblock .capubbs-gallery-nav-next:before {
+    content: '>';
+}
+.textblock .capubbs-gallery-footer {
+    display: block;
+    min-height: 38px;
+    padding: 8px 12px;
+    border-top: 1px solid #e4e4e7;
+    background: #fafafa;
+    box-sizing: border-box;
+    line-height: 22px;
+    font-size: 13px;
+}
+.textblock .capubbs-gallery-captions {
+    display: inline;
+}
+.textblock .capubbs-gallery-caption {
+    display: none;
+}
+.textblock .capubbs-gallery-caption[data-capubbs-gallery-active="true"] {
+    display: inline;
+}
+.textblock .capubbs-gallery-count {
+    float: right;
+    color: #71717a;
+}
+.textblock .capubbs-gallery-count:before {
+    content: attr(data-capubbs-gallery-current) '/' attr(data-capubbs-gallery-total);
+}
+@media (max-width: 600px) {
+    .textblock .capubbs-gallery-stage {
+        height: 280px;
+    }
+    .textblock .capubbs-gallery-nav {
+        width: 34px;
+        height: 48px;
+        margin-top: -24px;
+        font-size: 24px;
+        line-height: 48px;
+    }
+}
 /* creates triangle */ 
 .bubble:after {
     content:"";
