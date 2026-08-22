@@ -209,6 +209,11 @@ export function TagManagementWorkspace() {
     setPendingMembers([]);
   }
 
+  function openMemberDialog() {
+    setNotice(null);
+    setMemberDialogOpen(true);
+  }
+
   async function confirmMembers() {
     if (!activeTagId || pendingMembers.length === 0) {
       setNotice({ kind: 'error', text: '请先输入至少一个会员 ID' });
@@ -286,7 +291,7 @@ export function TagManagementWorkspace() {
       <section className="management-card" aria-labelledby="member-tags-title">
         <header className="management-card-heading">
           <div><h2 id="member-tags-title">已有标签会员</h2></div>
-          <button className="management-primary-button" disabled={!activeTagId || Boolean(pendingAction)} onClick={() => setMemberDialogOpen(true)} type="button"><UserPlus size={15} />添加会员</button>
+          <button className="management-primary-button" disabled={!activeTagId || Boolean(pendingAction)} onClick={openMemberDialog} type="button"><UserPlus size={15} />添加会员</button>
         </header>
         <div className="management-member-tag-layout">
           <aside className="management-member-picker" aria-label="标签">
@@ -312,7 +317,7 @@ export function TagManagementWorkspace() {
           </div>
         </div>
       </section>
-      {notice && <ManagementNotice kind={notice.kind}>{notice.text}</ManagementNotice>}
+      {notice && !memberDialogOpen && <ManagementNotice kind={notice.kind}>{notice.text}</ManagementNotice>}
       {deleteTarget && (
         <div className="management-dialog-backdrop" role="presentation">
           <section aria-labelledby="confirm-tag-delete-title" aria-modal="true" className="management-dialog management-confirm-dialog" role="dialog">
@@ -330,6 +335,7 @@ export function TagManagementWorkspace() {
               <label htmlFor="tag-member-input">会员 ID</label>
               <div className="management-input-action"><input autoFocus disabled={memberCheckLoading || Boolean(pendingAction)} id="tag-member-input" onChange={(event) => setMemberDraft(event.target.value)} placeholder="输入后按回车" value={memberDraft} /><button disabled={memberCheckLoading || Boolean(pendingAction)} type="submit"><Plus size={15} />{memberCheckLoading ? '查询中' : '加入列表'}</button></div>
             </form>
+            {notice && <ManagementNotice kind={notice.kind}>{notice.text}</ManagementNotice>}
             <div className="management-pending-members">
               {pendingMembers.map((username) => <div className="management-pending-member" key={username}><span>{username}</span><button aria-label={`移除${username}`} disabled={Boolean(pendingAction)} onClick={() => setPendingMembers((current) => current.filter((item) => item !== username))} type="button"><X size={13} /></button></div>)}
               {pendingMembers.length === 0 && <EmptyState icon={<UserPlus size={18} />}>输入会员 ID 后按回车</EmptyState>}
