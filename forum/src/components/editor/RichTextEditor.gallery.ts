@@ -34,18 +34,19 @@ if(!gallery||gallery.getAttribute('data-capubbs-gallery-compat-ready')==='true')
 gallery.setAttribute('data-capubbs-gallery-compat-ready','true');
 function slides(){return gallery.querySelectorAll('[data-capubbs-gallery-slide="true"]');}
 function move(direction){
-var items=slides(),current=-1,i,next;
-for(i=0;i<items.length;i++){if(items[i].getAttribute('data-capubbs-gallery-active')==='true'){current=i;break;}}
+var items=slides(),current=-1,i,next,item;
+for(i=0;i<items.length;i++){item=items.item(i);if(item.getAttribute('data-capubbs-gallery-active')==='true'){current=i;break;}}
 if(items.length<2){return;}
 if(current<0){current=0;}
 next=(current+(direction==='next'?1:-1)+items.length)%items.length;
 for(i=0;i<items.length;i++){
 var active=i===next;
-items[i].setAttribute('data-capubbs-gallery-active',active?'true':'false');
-items[i].setAttribute('aria-hidden',active?'false':'true');
+item=items.item(i);
+item.setAttribute('data-capubbs-gallery-active',active?'true':'false');
+item.setAttribute('aria-hidden',active?'false':'true');
 }
 var captions=gallery.querySelectorAll('[data-capubbs-gallery-caption="true"]');
-for(i=0;i<captions.length;i++){captions[i].setAttribute('data-capubbs-gallery-active',i===next?'true':'false');captions[i].setAttribute('aria-hidden',i===next?'false':'true');}
+for(i=0;i<captions.length;i++){item=captions.item(i);item.setAttribute('data-capubbs-gallery-active',i===next?'true':'false');item.setAttribute('aria-hidden',i===next?'false':'true');}
 var count=gallery.querySelector('.capubbs-gallery-count');
 if(count){count.setAttribute('data-capubbs-gallery-current',String(next+1));}
 }
