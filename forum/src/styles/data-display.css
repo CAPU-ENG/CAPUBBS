@@ -716,11 +716,18 @@
   }
 
   .tag-summary-card-header {
+    position: relative;
+    z-index: 2;
     flex-wrap: wrap;
+  }
+
+  .tag-summary-card {
+    overflow: visible;
   }
 
   .tag-summary-help {
     position: relative;
+    z-index: 3;
     display: inline-flex;
     flex: 0 0 auto;
   }
@@ -749,7 +756,7 @@
 
   .tag-summary-help [role="tooltip"] {
     position: absolute;
-    z-index: 20;
+    z-index: 100;
     top: calc(100% + 7px);
     left: 0;
     width: max-content;
