@@ -23,7 +23,7 @@
 .browser-recommendation-dialog p {
   margin: 0;
   color: var(--text-strong);
-  font-size: 0.78rem;
+  font-size: 0.72rem;
   font-weight: 650;
   line-height: 1.4;
   text-align: center;
@@ -31,8 +31,9 @@
 }
 
 .browser-recommendation-actions {
-  display: grid;
-  grid-template-columns: 1fr auto 1fr;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
   gap: 8px;
   margin-top: 11px;
 }
@@ -52,13 +53,7 @@
   font-weight: 680;
 }
 
-.browser-recommendation-actions button {
-  grid-column: 2;
-}
-
 .browser-recommendation-actions a {
-  grid-column: 3;
-  justify-self: end;
   border: 1px solid var(--brand);
   background: var(--brand);
   color: #fff;

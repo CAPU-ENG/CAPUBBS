@@ -40,7 +40,7 @@ export function BrowserRecommendationDialog() {
         <p id="browser-recommendation-title">建议使用谷歌或火狐浏览器，以获得更好的体验</p>
         <div className="browser-recommendation-actions">
           <button onClick={dismiss} type="button">不再提示</button>
-          <a href="/archive-room?folder=%E5%B7%A5%E5%85%B7" onClick={dismiss}>下载</a>
+          <a href="/archive-room?folder=%E5%B7%A5%E5%85%B7" onClick={dismiss}>前往下载</a>
         </div>
       </section>
     </div>
