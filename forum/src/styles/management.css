@@ -1601,6 +1601,56 @@
     border-radius: var(--control-radius) 0 0 var(--control-radius);
   }
 
+  .management-mobile-warning-backdrop {
+    position: fixed;
+    z-index: 110;
+    inset: 0;
+    display: grid;
+    place-items: center;
+    padding: 18px;
+    background: rgb(11 20 15 / 0.48);
+  }
+
+  .management-mobile-warning {
+    position: relative;
+    width: min(100%, 360px);
+    border: 1px solid var(--line-strong);
+    border-radius: 2px;
+    padding: 24px 48px 24px 24px;
+    background: var(--surface-raised);
+    box-shadow: var(--shadow-float);
+  }
+
+  .management-mobile-warning h2 {
+    margin: 0;
+    color: var(--text-strong);
+    font-size: 0.82rem;
+    font-weight: 760;
+    line-height: 1.65;
+    text-align: center;
+  }
+
+  .management-mobile-warning > button {
+    position: absolute;
+    top: 9px;
+    right: 9px;
+    display: inline-flex;
+    width: 30px;
+    height: 30px;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid transparent;
+    border-radius: var(--control-radius);
+    color: var(--text-faint);
+  }
+
+  .management-mobile-warning > button:hover,
+  .management-mobile-warning > button:focus-visible {
+    border-color: var(--line);
+    background: var(--surface-soft);
+    color: var(--text-strong);
+  }
+
 }
 
 @layer utilities {

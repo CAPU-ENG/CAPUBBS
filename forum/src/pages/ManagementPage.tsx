@@ -21,6 +21,7 @@ import {
   Volume2,
   VolumeX,
   Tags,
+  X,
 } from 'lucide-react';
 import { useEffect, useMemo, useRef, useState, type FormEvent, type ReactNode } from 'react';
 import {
@@ -92,36 +93,89 @@ export function ManagementPage() {
             此页面仅对权限值大于或等于 3 的会员开放。
           </ManagementState>
         ) : (
-          <section className="management-workspace" aria-label="论坛管理">
-            <nav aria-label="管理功能" className="management-tabs">
-              {TAB_ITEMS.map((tab) => {
-                const Icon = tab.icon;
-                const selected = activeTab === tab.id;
-                return (
-                  <button
-                    aria-pressed={selected}
-                    className={selected ? 'management-tab-active' : ''}
-                    key={tab.id}
-                    onClick={() => selectTab(tab.id)}
-                    type="button"
-                  >
-                    <Icon size={16} />
-                    {tab.label}
-                  </button>
-                );
-              })}
-            </nav>
+          <>
+            <MobileManagementWarning />
+            <section className="management-workspace" aria-label="论坛管理">
+              <nav aria-label="管理功能" className="management-tabs">
+                {TAB_ITEMS.map((tab) => {
+                  const Icon = tab.icon;
+                  const selected = activeTab === tab.id;
+                  return (
+                    <button
+                      aria-pressed={selected}
+                      className={selected ? 'management-tab-active' : ''}
+                      key={tab.id}
+                      onClick={() => selectTab(tab.id)}
+                      type="button"
+                    >
+                      <Icon size={16} />
+                      {tab.label}
+                    </button>
+                  );
+                })}
+              </nav>
 
-            <div className="management-tabpanel">
-              {activeTab === 'pins' && <GlobalPinsPanel />}
-              {activeTab === 'move' && <MoveThreadPanel />}
-              {activeTab === 'members' && <MemberManagementPanel />}
-              {activeTab === 'moderators' && <ModeratorManagementPanel />}
-              {activeTab === 'tags' && <TagManagementWorkspace />}
-            </div>
-          </section>
+              <div className="management-tabpanel">
+                {activeTab === 'pins' && <GlobalPinsPanel />}
+                {activeTab === 'move' && <MoveThreadPanel />}
+                {activeTab === 'members' && <MemberManagementPanel />}
+                {activeTab === 'moderators' && <ModeratorManagementPanel />}
+                {activeTab === 'tags' && <TagManagementWorkspace />}
+              </div>
+            </section>
+          </>
         )}
       </main>
+    </div>
+  );
+}
+
+function MobileManagementWarning() {
+  const [mobileViewport, setMobileViewport] = useState(false);
+  const [open, setOpen] = useState(true);
+
+  useEffect(() => {
+    const mediaQuery = window.matchMedia('(max-width: 767px)');
+    const updateViewport = () => setMobileViewport(mediaQuery.matches);
+    updateViewport();
+    mediaQuery.addEventListener('change', updateViewport);
+    return () => mediaQuery.removeEventListener('change', updateViewport);
+  }, []);
+
+  useEffect(() => {
+    if (mobileViewport) setOpen(true);
+  }, [mobileViewport]);
+
+  useEffect(() => {
+    if (!mobileViewport || !open) return undefined;
+    const closeWithEscape = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') setOpen(false);
+    };
+    document.addEventListener('keydown', closeWithEscape);
+    return () => document.removeEventListener('keydown', closeWithEscape);
+  }, [mobileViewport, open]);
+
+  if (!mobileViewport || !open) return null;
+
+  return (
+    <div
+      className="management-mobile-warning-backdrop"
+      onMouseDown={(event) => {
+        if (event.currentTarget === event.target) setOpen(false);
+      }}
+      role="presentation"
+    >
+      <section
+        aria-labelledby="management-mobile-warning-title"
+        aria-modal="true"
+        className="management-mobile-warning"
+        role="dialog"
+      >
+        <h2 id="management-mobile-warning-title">建议在桌面端进行精确管理操作，避免误触</h2>
+        <button aria-label="关闭提示" onClick={() => setOpen(false)} type="button">
+          <X size={17} />
+        </button>
+      </section>
     </div>
   );
 }
