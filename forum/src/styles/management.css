@@ -104,6 +104,13 @@
     background: var(--surface-soft);
     color: var(--text-strong);
     font-size: 0.68rem;
+    outline: none;
+    transition: 150ms ease;
+  }
+
+  .management-tag-editor input:not([type="color"]):focus {
+    border-color: var(--brand);
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--brand) 16%, transparent);
   }
 
   .management-tag-editor input[type="color"] {
