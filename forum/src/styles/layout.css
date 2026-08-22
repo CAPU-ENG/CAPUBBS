@@ -94,7 +94,8 @@
     width: 82px;
   }
 
-  .dark .brand-wordmark {
+  .dark .brand-wordmark,
+  .dark .mobile-sidebar-wordmark {
     filter: invert(1) brightness(1.8);
   }
 

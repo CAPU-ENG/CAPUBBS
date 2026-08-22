@@ -119,7 +119,7 @@ export function MobileBoardSidebar({ open, onClose }: { open: boolean; onClose: 
       <div className="flex h-16 items-center border-b border-[var(--line)] px-4">
         <a className="flex min-w-0 items-center gap-0.5" href="/" onClick={onClose}>
           <img src={logo1} alt="" className="h-7 w-auto" />
-          <img src={logo2} alt="车协论坛" className="h-7 w-[76px] object-cover object-center" />
+          <img src={logo2} alt="车协论坛" className="mobile-sidebar-wordmark h-7 w-[76px] object-cover object-center" />
         </a>
         <button className="icon-button ml-auto" type="button" aria-label="关闭左侧栏" onClick={onClose}>
           <X size={19} />
