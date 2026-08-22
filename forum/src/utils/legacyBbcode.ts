@@ -8,10 +8,13 @@ export function translateLegacyBbcode(value: string) {
 
   // Translate BBCode inside text nodes so an unclosed token cannot consume
   // adjacent HTML elements (for example, wrapping the rest of a post in h2).
-  const parser = new DOMParser();
-  const document = parser.parseFromString(normalizedValue, 'text/html');
+  // Parse as a fragment so leading <style>/<script> nodes stay in the
+  // returned markup instead of being promoted to a temporary document head.
+  const template = document.createElement('template');
+  template.innerHTML = normalizedValue;
+  const fragment = template.content;
   const textNodes: Text[] = [];
-  const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT);
+  const walker = document.createTreeWalker(fragment, NodeFilter.SHOW_TEXT);
   let currentNode = walker.nextNode();
   while (currentNode) {
     const parentTag = currentNode.parentElement?.tagName;
@@ -25,12 +28,12 @@ export function translateLegacyBbcode(value: string) {
     const translated = translateLegacyBbcodeText(escapeHtml(textNode.nodeValue ?? ''));
     if (translated === escapeHtml(textNode.nodeValue ?? '')) return;
 
-    const template = document.createElement('template');
-    template.innerHTML = translated;
-    textNode.replaceWith(template.content);
+    const replacement = document.createElement('template');
+    replacement.innerHTML = translated;
+    textNode.replaceWith(replacement.content);
   });
 
-  return document.body.innerHTML;
+  return template.innerHTML;
 }
 
 type HeadingToken = {
