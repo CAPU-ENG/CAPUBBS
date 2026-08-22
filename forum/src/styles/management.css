@@ -1452,6 +1452,12 @@
     color: var(--brand-strong);
   }
 
+  .management-tag-definition-list > .management-empty-state,
+  .management-member-list > .management-empty-state {
+    width: 100%;
+    flex: 1 1 100%;
+  }
+
   .management-notice {
     border: 1px solid var(--line);
     border-radius: var(--control-radius);

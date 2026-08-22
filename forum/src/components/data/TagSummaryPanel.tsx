@@ -77,7 +77,7 @@ export function TagSummaryPanel() {
     } catch (error) {
       if (isAbortError(error)) return;
       setQueryStatus('error');
-      setQueryError(errorMessage(error, '标签汇总查询失败，请稍后重试。'));
+      setQueryError(errorMessage(error, '标签汇总查询失败，请稍后重试'));
     }
   }
 
@@ -115,7 +115,7 @@ export function TagSummaryPanel() {
               </button>
             );
           })}
-          {definitions.length === 0 && <span className="tag-summary-empty">{definitionsStatus === 'loading' ? '正在加载标签。' : definitionsStatus === 'error' ? '标签加载失败。' : '暂无标签。'}</span>}
+          {definitions.length === 0 && <span className="tag-summary-empty">{definitionsStatus === 'loading' ? '正在加载标签' : definitionsStatus === 'error' ? '标签加载失败' : '暂无标签'}</span>}
         </div>
         <button className="tag-summary-query-button" disabled={definitionsStatus !== 'ready' || queryStatus === 'loading'} onClick={runQuery} type="button"><Search size={15} />{queryStatus === 'loading' ? '查询中' : '开始查询'}</button>
       </div>
@@ -162,7 +162,8 @@ function toIsoDate(value: number) {
 }
 
 function errorMessage(error: unknown, fallback: string) {
-  return error instanceof TagsApiError ? error.message : error instanceof Error ? error.message : fallback;
+  const message = error instanceof TagsApiError ? error.message : error instanceof Error ? error.message : fallback;
+  return message.replace(/[。.]$/, '');
 }
 
 function isAbortError(error: unknown) {

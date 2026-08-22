@@ -953,6 +953,11 @@
     text-align: center;
   }
 
+  .tag-summary-filter-list > .tag-summary-empty {
+    flex: 1 1 100%;
+    width: 100%;
+  }
+
   @media (max-width: 640px) {
     .data-display-shell {
       padding: calc(var(--topbar-height) + 10px) 10px 28px;
