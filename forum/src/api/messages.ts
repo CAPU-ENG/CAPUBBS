@@ -134,7 +134,12 @@ function mapSystemMessage(row: ApiRow, index: number, page: number): ForumMessag
     context: subject,
     excerpt: getSystemMessageExcerpt(type, sender, subject),
     group: formattedTime.date || '更早',
-    href: normalizeThreadHref(stringValue(row.url)),
+    href: normalizeThreadHref(
+      stringValue(row.url),
+      sender,
+      stringValue(row.time),
+      type === 'reply' || type === 'replylzl' || type === 'replylzlreply',
+    ),
     id: `system-${type || 'message'}-${stringValue(row.time) || 'unknown'}-${page}-${index}`,
     sender,
     time: formattedTime.time,
@@ -203,7 +208,7 @@ function getSystemMessageExcerpt(type: string, sender: string, subject: string) 
   }
 }
 
-function normalizeThreadHref(value: string) {
+function normalizeThreadHref(value: string, sender: string, timestamp: string, canTargetNestedReply: boolean) {
   if (!value) return '#';
 
   try {
@@ -216,7 +221,13 @@ function normalizeThreadHref(value: string) {
     const page = toNumber(url.searchParams.get('p'));
     if (page > 1) params.set('p', String(page));
     const floor = toNumber(url.hash.replace(/^#/, ''));
-    return `/?${params.toString()}${floor ? `#${floor}` : ''}`;
+    if (!floor) return `/?${params.toString()}`;
+
+    const normalizedTimestamp = toNumber(timestamp);
+    const nestedReplyHash = canTargetNestedReply && normalizedTimestamp && sender
+      ? `#lzl-${floor}-${encodeURIComponent(sender)}-${normalizedTimestamp}`
+      : '';
+    return `/?${params.toString()}${nestedReplyHash || `#${floor}`}`;
   } catch {
     return value;
   }

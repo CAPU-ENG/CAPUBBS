@@ -4,7 +4,12 @@ import { HomePage } from './pages/HomePage';
 import { FORUM_LOCATION_CHANGE_EVENT } from './utils/authRoutes';
 import { resolveForumAppRoute } from './utils/forumNavigation';
 import { translateLegacyForumThreadHref } from './utils/legacyForumRoutes';
-import { getThreadFloorElement, getThreadFloorFromHash } from './utils/threadRoutes';
+import {
+  getThreadFloorElement,
+  getThreadFloorFromHash,
+  getThreadNestedReplyElement,
+  getThreadNestedReplyTargetFromHash,
+} from './utils/threadRoutes';
 import { getPublicProfileNameFromLocation, USER_CENTER_PATH } from './utils/userRoutes';
 
 const loadActivityManagementPage = () => import('./pages/ActivityManagementPage');
@@ -116,8 +121,14 @@ function ForumRouter() {
         if (!floor) return;
 
         event.preventDefault();
-        window.history.pushState(null, '', `${url.pathname}${url.search}#${floor}`);
-        getThreadFloorElement(floor)?.scrollIntoView({ block: 'start' });
+        window.history.pushState(null, '', `${url.pathname}${url.search}${url.hash}`);
+        const nestedReplyTarget = getThreadNestedReplyTargetFromHash(url.hash);
+        if (nestedReplyTarget) {
+          const nestedReply = getThreadNestedReplyElement(nestedReplyTarget);
+          (nestedReply ?? getThreadFloorElement(floor))?.scrollIntoView({ block: 'start' });
+        } else {
+          getThreadFloorElement(floor)?.scrollIntoView({ block: 'start' });
+        }
         return;
       }
 
