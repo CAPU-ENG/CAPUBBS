@@ -550,10 +550,17 @@
     padding: 16px;
     background: rgb(10 18 13 / 0.72);
     backdrop-filter: blur(3px);
+    overscroll-behavior: none;
   }
 
+  html:has(body.reply-preview-open),
   body.reply-preview-open {
     overflow: hidden;
+    overscroll-behavior: none;
+  }
+
+  body:has(.topbar[data-auto-hidden="true"]) .reply-preview-backdrop {
+    inset-block-start: 0;
   }
 
   .reply-preview-dialog {
@@ -615,6 +622,11 @@
     overflow: auto;
     padding: 16px;
     background: var(--surface-soft);
+    overscroll-behavior: none;
+  }
+
+  body:has(.topbar[data-auto-hidden="true"]) .reply-preview-dialog {
+    max-height: calc(100dvh - 32px);
   }
 
   .reply-preview-floor {
@@ -836,6 +848,10 @@
 
     .reply-preview-dialog {
       max-height: calc(100dvh - var(--topbar-height) - 16px);
+    }
+
+    body:has(.topbar[data-auto-hidden="true"]) .reply-preview-dialog {
+      max-height: calc(100dvh - 16px);
     }
 
     .reply-preview-stage {
