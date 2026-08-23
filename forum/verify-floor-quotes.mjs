@@ -1,6 +1,11 @@
 import assert from 'node:assert/strict';
+import { execFileSync } from 'node:child_process';
 import { readFileSync } from 'node:fs';
-import { appendFloorQuote } from './src/utils/floorQuote.ts';
+import { fileURLToPath } from 'node:url';
+import {
+  appendFloorQuote,
+  buildLegacyFloorQuoteStorage,
+} from './src/utils/floorQuote.ts';
 
 const target = {
   author: 'A [B] & C',
@@ -23,6 +28,37 @@ assert.match(rich.content, /<a class="capubbs-floor-quote-jump" href="\/\?bid=4&
 const empty = { content: '<p>原文</p>', mode: 'rich' };
 assert.equal(appendFloorQuote(empty, { ...target, quote: '   ' }), empty);
 
+const legacyStorage = buildLegacyFloorQuoteStorage({
+  author: 'A]B',
+  floor: 13,
+  href: target.floorHref,
+  text: '引用正文[/quote]\n第二段',
+});
+assert.match(legacyStorage, /^\[quote=AB]引用正文\[\/ quote]\n第二段\[\/quote]/);
+assert.match(legacyStorage, /<!--capubbs:quote \{"href":"\/\?bid=4&tid=19989&p=2#13","floor":13}-->$/);
+
+const legacyMainfuncPath = fileURLToPath(new URL('../bbs/lib/mainfunc.php', import.meta.url));
+const encodedStorage = Buffer.from(legacyStorage).toString('base64');
+const legacyRenderedHtml = execFileSync('php', [
+  '-r',
+  `require ${JSON.stringify(legacyMainfuncPath)}; echo translate(base64_decode('${encodedStorage}'), true);`,
+], { encoding: 'utf8' });
+assert.match(legacyRenderedHtml, /<div class='quotel'><div class='quoter'>引用自/);
+assert.match(legacyRenderedHtml, /引用正文\[\/ quote]\s*第二段/);
+
+for (const sourcePath of [
+  './src/components/thread/ReplyEditor.tsx',
+  './src/pages/ThreadComposePage.tsx',
+  './src/pages/ThreadEditPage.tsx',
+]) {
+  const source = readFileSync(new URL(sourcePath, import.meta.url), 'utf8');
+  assert.match(
+    source,
+    /normalizeFloorQuotesForLegacyStorage\(getRichTextEditorHtmlValue\(editorValue\)\)/,
+    `${sourcePath} must publish legacy-compatible floor quotes`,
+  );
+}
+
 for (const stylesheet of [
   './src/styles/thread.css',
   './src/styles/thread-html-frame.css',
@@ -35,4 +71,4 @@ for (const stylesheet of [
   );
 }
 
-console.log('floor quote verification passed (9 assertions)');
+console.log('floor quote verification passed (16 assertions)');

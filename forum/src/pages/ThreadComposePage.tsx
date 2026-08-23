@@ -34,6 +34,7 @@ import { useAuth } from '../context/AuthContext';
 import { useAutoSaveEnabled } from '../hooks/useAssistiveFeatures';
 import { getLoginPathWithReturnTo, getRegisterPathWithReturnTo } from '../utils/authRoutes';
 import { waitForLocalDraftCleanup } from '../utils/draftCleanup';
+import { normalizeFloorQuotesForLegacyStorage } from '../utils/floorQuote';
 import {
   deleteStoredReplyDraftForThread,
   readStoredReplyDraftForThread,
@@ -408,7 +409,7 @@ export function ThreadComposePage() {
 
   async function publish() {
     if (!request || !canPublish) return;
-    const html = getRichTextEditorHtmlValue(editorValue);
+    const html = normalizeFloorQuotesForLegacyStorage(getRichTextEditorHtmlValue(editorValue));
     if (html.length > 100_000) {
       setStatus('正文超过 10 万字符，请精简内容或检查是否粘贴了过大的图片。');
       setStatusIsError(true);

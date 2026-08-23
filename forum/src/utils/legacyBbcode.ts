@@ -1,4 +1,5 @@
 import { getPublicProfilePath } from './userRoutes';
+import { restoreLegacyFloorQuoteLinks } from './floorQuote';
 
 type LegacyBbcodeReplacement = [RegExp, (...matches: string[]) => string];
 
@@ -12,7 +13,11 @@ const LEGACY_FONT_FALLBACKS: Record<string, string> = {
 
 export function translateLegacyBbcode(value: string) {
   const normalizedValue = normalizeUnclosedHeadings(value);
-  if (!normalizedValue.includes('[') && !/<font\b[^>]*\bface\s*=/i.test(normalizedValue)) {
+  if (
+    !normalizedValue.includes('[')
+    && !normalizedValue.includes('capubbs:quote ')
+    && !/<font\b[^>]*\bface\s*=/i.test(normalizedValue)
+  ) {
     return normalizedValue;
   }
 
@@ -53,10 +58,11 @@ export function translateLegacyBbcode(value: string) {
   );
 
   const translated = translateLegacyBbcodeText(serialized);
-  return restoreLegacyBbcodePlaceholders(
+  const restored = restoreLegacyBbcodePlaceholders(
     restoreLegacyBbcodePlaceholders(translated, elementMarkup),
     protectedMarkup,
   );
+  return restoreLegacyFloorQuoteLinks(restored);
 }
 
 function createLegacyBbcodePlaceholder(kind: string, index: number) {

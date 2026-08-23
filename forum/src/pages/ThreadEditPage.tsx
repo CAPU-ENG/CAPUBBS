@@ -25,6 +25,7 @@ import {
 } from '../api/thread';
 import { useAuth } from '../context/AuthContext';
 import { getLoginPathWithReturnTo, getRegisterPathWithReturnTo } from '../utils/authRoutes';
+import { normalizeFloorQuotesForLegacyStorage } from '../utils/floorQuote';
 import { getThreadFloorHref } from '../utils/threadRoutes';
 
 type EditRequest = {
@@ -127,7 +128,7 @@ export function ThreadEditPage() {
   async function saveEdit() {
     if (!floor || !canSave) return;
 
-    const html = getRichTextEditorHtmlValue(editorValue);
+    const html = normalizeFloorQuotesForLegacyStorage(getRichTextEditorHtmlValue(editorValue));
     if (html.length > 100_000) {
       setSaveError('正文超过 10 万字符，请精简内容或检查是否粘贴了过大的图片。');
       return;
