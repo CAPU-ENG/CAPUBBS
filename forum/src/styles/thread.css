@@ -463,7 +463,9 @@
     }
 
     .thread-page-shell-without-assistive-bar .thread-top-pagination .thread-page-jump,
-    .thread-page-shell-without-assistive-bar .thread-bottom-pagination .thread-page-jump {
+    .thread-page-shell-without-assistive-bar .thread-bottom-pagination .thread-page-jump,
+    .thread-page-shell-author-profile.thread-page-shell-with-assistive-bar .thread-top-pagination .thread-page-jump,
+    .thread-page-shell-author-profile.thread-page-shell-with-assistive-bar .thread-bottom-pagination .thread-page-jump {
       padding-right: 26px;
     }
   }
