@@ -433,7 +433,8 @@
     .thread-page-shell-avatar-static.thread-page-shell-without-assistive-bar .thread-floor {
       grid-template-columns: minmax(0, 1fr);
       gap: 0;
-      padding-inline: 30px;
+      padding-right: 30px;
+      padding-left: 36px;
     }
 
     .thread-page-shell-avatar-static.thread-page-shell-without-assistive-bar .thread-floor-header {
