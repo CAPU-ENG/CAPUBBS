@@ -21,6 +21,7 @@ export type ProfileRecord = {
   board: string;
   contentMode?: 'html' | 'markdown' | 'rich';
   date: string;
+  draftHref?: string;
   excerpt: string;
   href: string;
   id: string;

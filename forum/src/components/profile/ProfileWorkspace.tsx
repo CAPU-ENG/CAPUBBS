@@ -365,7 +365,7 @@ function ProfileRecordRow({
           <div className="profile-record-actions profile-draft-actions">
             <a
               aria-disabled={deleting || undefined}
-              href={deleting ? undefined : record.href}
+              href={deleting ? undefined : record.draftHref ?? record.href}
               onClick={(event) => { if (deleting) event.preventDefault(); }}
             >
               <RotateCcw size={13} />恢复草稿

@@ -38,7 +38,7 @@ import {
 } from '../utils/threadComposeDraftStorage';
 import { getPublicProfilePath, USER_CENTER_PATH } from '../utils/userRoutes';
 import { getAuthPathWithReturnTo } from '../utils/authRoutes';
-import { getThreadComposeHref } from '../utils/threadRoutes';
+import { getThreadComposeHref, getThreadHref } from '../utils/threadRoutes';
 
 type OpenDialog = 'avatar' | 'email' | 'security' | null;
 type PageNotice = { message: string; tone: 'error' | 'success' } | null;
@@ -378,8 +378,9 @@ function mapReplyDraftRecord(draft: StoredReplyDraft) {
   return {
     board: draft.board,
     date: draft.updatedAt.slice(0, 10),
+    draftHref: getThreadComposeHref(draft.bid, draft.tid),
     excerpt: draft.excerpt || '附件回复草稿',
-    href: getThreadComposeHref(draft.bid, draft.tid),
+    href: getThreadHref(draft.bid, draft.tid),
     id: draft.id,
     status: '回帖草稿',
     title: draft.threadTitle,
