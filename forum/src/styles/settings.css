@@ -54,26 +54,20 @@
 
   .settings-checkbox-list {
     display: grid;
-    gap: 8px;
-    margin: 18px 22px 18px 72px;
+    gap: 7px;
+    margin: 18px 22px;
   }
 
   .settings-checkbox-columns {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    column-gap: 28px;
-  }
-
-  .settings-checkbox-column {
-    display: grid;
-    align-content: start;
-    gap: 8px;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
   }
 
   .settings-checkbox-option {
     display: grid;
-    grid-template-columns: 18px minmax(0, 1fr);
+    min-width: 0;
+    grid-template-columns: 28px minmax(0, 1fr) 18px;
     align-items: center;
-    gap: 10px;
+    gap: 7px;
     cursor: pointer;
   }
 
@@ -83,9 +77,31 @@
   }
 
   .settings-checkbox-row {
-    display: flex;
+    display: grid;
+    min-width: 0;
+    min-height: 48px;
+    grid-template-columns: minmax(0, 1fr) 18px;
     align-items: center;
     gap: 5px;
+    border: 1px solid var(--line);
+    border-radius: var(--control-radius);
+    padding: 6px 8px 6px 9px;
+    background: var(--surface-raised);
+    transition: border-color 140ms ease, background 140ms ease;
+  }
+
+  .settings-checkbox-row:hover {
+    border-color: color-mix(in srgb, var(--brand) 46%, var(--line));
+    background: var(--brand-faint);
+  }
+
+  .settings-checkbox-row-selected {
+    border-color: color-mix(in srgb, var(--brand) 48%, var(--line));
+    background: var(--brand-faint);
+  }
+
+  .settings-checkbox-row > .settings-checkbox-option:only-child {
+    grid-column: 1 / -1;
   }
 
   .settings-checkbox-option input {
@@ -98,12 +114,25 @@
     white-space: nowrap;
   }
 
+  .settings-option-logo,
   .settings-checkbox-mark {
     display: inline-flex;
-    width: 18px;
-    height: 18px;
     align-items: center;
     justify-content: center;
+  }
+
+  .settings-option-logo {
+    width: 28px;
+    height: 28px;
+    border-radius: var(--control-radius);
+    background: var(--surface-soft);
+    color: var(--text-faint);
+    transition: background 140ms ease, color 140ms ease;
+  }
+
+  .settings-checkbox-mark {
+    width: 18px;
+    height: 18px;
     border: 1px solid var(--line-strong);
     border-radius: 1px;
     background: var(--surface-raised);
@@ -111,37 +140,47 @@
     transition: 140ms ease;
   }
 
-  .settings-checkbox-option input:checked + .settings-checkbox-mark {
+  .settings-checkbox-option input:checked ~ .settings-option-logo {
+    background: var(--brand-soft);
+    color: var(--brand-strong);
+  }
+
+  .settings-checkbox-option input:checked ~ .settings-checkbox-mark {
     border-color: var(--brand-strong);
     background: var(--brand-strong);
     color: var(--surface-raised);
   }
 
-  .dark .settings-checkbox-option input:checked + .settings-checkbox-mark {
+  .dark .settings-checkbox-option input:checked ~ .settings-checkbox-mark {
     color: #0d1711;
   }
 
-  .settings-checkbox-option input:focus-visible + .settings-checkbox-mark {
+  .settings-checkbox-option input:focus-visible ~ .settings-checkbox-mark {
     outline: 2px solid var(--brand);
     outline-offset: 2px;
   }
 
-  .settings-checkbox-option > span:last-child {
+  .settings-option-label {
     display: flex;
+    min-width: 0;
     min-height: 18px;
     align-items: center;
+    text-align: left;
   }
 
   .settings-checkbox-option strong {
+    overflow: hidden;
     color: var(--text-strong);
-    font-size: 0.72rem;
-    font-weight: 720;
+    font-size: 0.7rem;
+    font-weight: 680;
     line-height: 18px;
+    text-overflow: ellipsis;
+    white-space: nowrap;
   }
 
   .settings-font-size-control {
     border-top: 1px solid var(--line);
-    padding: 18px 22px 22px 72px;
+    padding: 18px 22px 22px;
   }
 
   .settings-font-size-heading span {
@@ -578,6 +617,7 @@
   }
 
   @media (max-width: 720px) {
+    .settings-checkbox-columns,
     .settings-board-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   }
 
@@ -597,6 +637,7 @@
     .settings-pinned-list li { grid-template-columns: 24px minmax(0, 1fr) auto; }
     .settings-pinned-actions .settings-remove-button { min-width: 32px; padding: 0; }
     .settings-pinned-actions .settings-remove-button span { display: none; }
+    .settings-checkbox-columns,
     .settings-board-grid { grid-template-columns: 1fr; }
   }
 }

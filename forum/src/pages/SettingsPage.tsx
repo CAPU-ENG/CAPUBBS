@@ -1,5 +1,23 @@
-import { Accessibility, Check, ChevronDown, CircleHelp, CirclePlus, MonitorCog, Pin, PinOff, Quote } from 'lucide-react';
-import { useEffect, useRef, useState } from 'react';
+import {
+  Accessibility,
+  ArrowUpToLine,
+  Check,
+  ChevronDown,
+  CircleHelp,
+  CirclePlus,
+  ListEnd,
+  MonitorCog,
+  PanelRight,
+  Pin,
+  PinOff,
+  Quote,
+  Rows3,
+  Save,
+  Signature,
+  SunMoon,
+  UserRoundX,
+} from 'lucide-react';
+import { useEffect, useRef, useState, type ReactNode } from 'react';
 import { AppBackground } from '../components/layout/AppBackground';
 import { TopBar } from '../components/layout/TopBar';
 import { ALL_BOARDS, PRIMARY_BOARDS, SECONDARY_BOARDS, getBoardById } from '../data/boards';
@@ -105,57 +123,28 @@ export function SettingsPage() {
             </div>
 
             <div className="settings-checkbox-list settings-checkbox-columns">
-              <div className="settings-checkbox-row">
-                <label className="settings-checkbox-option">
-                  <input
-                    checked={followsSystem}
-                    onChange={(event) => saveThemeFollowsSystem(event.target.checked)}
-                    type="checkbox"
-                  />
-                  <span className="settings-checkbox-mark" aria-hidden="true"><Check size={14} /></span>
-                  <span><strong>系统昼夜</strong></span>
-                </label>
-                <span className="settings-option-help">
-                  <button aria-describedby="system-theme-help" aria-label="查看系统昼夜说明" type="button">
-                    <CircleHelp size={14} />
-                  </button>
-                  <span id="system-theme-help" role="tooltip">
-                    页面昼夜模式会自动跟随系统设置切换。
-                  </span>
-                </span>
-              </div>
-
-              <div className="settings-checkbox-row">
-                <label className="settings-checkbox-option">
-                  <input
-                    checked={compactMode}
-                    onChange={(event) => saveCompactMode(event.target.checked)}
-                    type="checkbox"
-                  />
-                  <span className="settings-checkbox-mark" aria-hidden="true"><Check size={14} /></span>
-                  <span><strong>紧凑模式</strong></span>
-                </label>
-                <span className="settings-option-help">
-                  <button aria-describedby="compact-mode-help" aria-label="查看紧凑模式说明" type="button">
-                    <CircleHelp size={14} />
-                  </button>
-                  <span id="compact-mode-help" role="tooltip">
-                    首页主题列表会缩小行高，只保留标题、作者和时间，隐藏摘要、头像、回复数与浏览数。
-                  </span>
-                </span>
-              </div>
-
-              <div className="settings-checkbox-row">
-                <label className="settings-checkbox-option">
-                  <input
-                    checked={avatarFollowDisabled}
-                    onChange={(event) => saveAvatarFollowDisabled(event.target.checked)}
-                    type="checkbox"
-                  />
-                  <span className="settings-checkbox-mark" aria-hidden="true"><Check size={14} /></span>
-                  <span><strong>取消头像跟随</strong></span>
-                </label>
-              </div>
+              <SettingsCheckbox
+                checked={followsSystem}
+                help="页面昼夜模式会自动跟随系统设置切换。"
+                helpId="system-theme-help"
+                icon={<SunMoon size={15} />}
+                label="系统昼夜"
+                onChange={saveThemeFollowsSystem}
+              />
+              <SettingsCheckbox
+                checked={compactMode}
+                help="首页主题列表会缩小行高，只保留标题、作者和时间，隐藏摘要、头像、回复数与浏览数。"
+                helpId="compact-mode-help"
+                icon={<Rows3 size={15} />}
+                label="紧凑模式"
+                onChange={saveCompactMode}
+              />
+              <SettingsCheckbox
+                checked={avatarFollowDisabled}
+                icon={<UserRoundX size={15} />}
+                label="取消头像跟随"
+                onChange={saveAvatarFollowDisabled}
+              />
             </div>
 
             <div className="settings-font-size-control">
@@ -197,111 +186,48 @@ export function SettingsPage() {
             </div>
 
             <div className="settings-checkbox-list settings-checkbox-columns">
-              <div className="settings-checkbox-column">
-                <div className="settings-checkbox-row">
-                  <label className="settings-checkbox-option">
-                    <input
-                      checked={waterfallFeedEnabled}
-                      onChange={(event) => saveWaterfallFeedEnabled(event.target.checked)}
-                      type="checkbox"
-                    />
-                    <span className="settings-checkbox-mark" aria-hidden="true"><Check size={14} /></span>
-                    <span><strong>瀑布流</strong></span>
-                  </label>
-                  <span className="settings-option-help">
-                    <button aria-describedby="waterfall-feed-help" aria-label="查看瀑布流说明" type="button">
-                      <CircleHelp size={14} />
-                    </button>
-                    <span id="waterfall-feed-help" role="tooltip">
-                      首页接近列表底部时自动加载更多帖子，无需点击“加载更多”。
-                    </span>
-                  </span>
-                </div>
-
-                <div className="settings-checkbox-row">
-                  <label className="settings-checkbox-option">
-                    <input
-                      checked={autoSaveEnabled}
-                      onChange={(event) => saveAutoSaveEnabled(event.target.checked)}
-                      type="checkbox"
-                    />
-                    <span className="settings-checkbox-mark" aria-hidden="true"><Check size={14} /></span>
-                    <span><strong>自动保存</strong></span>
-                  </label>
-                  <span className="settings-option-help">
-                    <button aria-describedby="auto-save-help" aria-label="查看自动保存说明" type="button">
-                      <CircleHelp size={14} />
-                    </button>
-                    <span id="auto-save-help" role="tooltip">
-                      编辑回复或发帖时自动存入草稿箱，发布成功后删除对应草稿。
-                    </span>
-                  </span>
-                </div>
-              </div>
-
-              <div className="settings-checkbox-column">
-                <div className="settings-checkbox-row">
-                  <label className="settings-checkbox-option">
-                    <input
-                      checked={assistiveBarEnabled}
-                      onChange={(event) => saveAssistiveBarEnabled(event.target.checked)}
-                      type="checkbox"
-                    />
-                    <span className="settings-checkbox-mark" aria-hidden="true"><Check size={14} /></span>
-                    <span><strong>开启辅助栏</strong></span>
-                  </label>
-                  <span className="settings-option-help">
-                    <button aria-describedby="assistive-bar-help" aria-label="查看辅助栏说明" type="button">
-                      <CircleHelp size={14} />
-                    </button>
-                    <span id="assistive-bar-help" role="tooltip">
-                      在帖子详情页右侧显示楼层目录与辅助功能，关闭后页面仅保留主栏。
-                    </span>
-                  </span>
-                </div>
-
-                <div className="settings-checkbox-row">
-                  <label className={assistiveBarEnabled ? 'settings-checkbox-option' : 'settings-checkbox-option settings-checkbox-option-disabled'}>
-                    <input
-                      checked={backToTopEnabled}
-                      disabled={!assistiveBarEnabled}
-                      onChange={(event) => saveBackToTopEnabled(event.target.checked)}
-                      type="checkbox"
-                    />
-                    <span className="settings-checkbox-mark" aria-hidden="true"><Check size={14} /></span>
-                    <span><strong>回到顶部</strong></span>
-                  </label>
-                  <span className="settings-option-help">
-                    <button aria-describedby="back-to-top-help" aria-label="查看回到顶部说明" type="button">
-                      <CircleHelp size={14} />
-                    </button>
-                    <span id="back-to-top-help" role="tooltip">
-                      在帖子详情页右栏显示回到顶部按钮，点击后直接跳转到页面顶部。
-                    </span>
-                  </span>
-                </div>
-
-                <div className="settings-checkbox-row">
-                  <label className={assistiveBarEnabled ? 'settings-checkbox-option' : 'settings-checkbox-option settings-checkbox-option-disabled'}>
-                    <input
-                      checked={signatureToggleEnabled}
-                      disabled={!assistiveBarEnabled}
-                      onChange={(event) => saveSignatureToggleEnabled(event.target.checked)}
-                      type="checkbox"
-                    />
-                    <span className="settings-checkbox-mark" aria-hidden="true"><Check size={14} /></span>
-                    <span><strong>屏蔽签名档</strong></span>
-                  </label>
-                  <span className="settings-option-help">
-                    <button aria-describedby="signature-toggle-help" aria-label="查看屏蔽签名档说明" type="button">
-                      <CircleHelp size={14} />
-                    </button>
-                    <span id="signature-toggle-help" role="tooltip">
-                      在帖子详情页右栏显示签名档开关，屏蔽状态会在不同帖子间保留。
-                    </span>
-                  </span>
-                </div>
-              </div>
+              <SettingsCheckbox
+                checked={waterfallFeedEnabled}
+                help="首页接近列表底部时自动加载更多帖子，无需点击“加载更多”。"
+                helpId="waterfall-feed-help"
+                icon={<ListEnd size={15} />}
+                label="瀑布流"
+                onChange={saveWaterfallFeedEnabled}
+              />
+              <SettingsCheckbox
+                checked={autoSaveEnabled}
+                help="编辑回复或发帖时自动存入草稿箱，发布成功后删除对应草稿。"
+                helpId="auto-save-help"
+                icon={<Save size={15} />}
+                label="自动保存"
+                onChange={saveAutoSaveEnabled}
+              />
+              <SettingsCheckbox
+                checked={assistiveBarEnabled}
+                help="在帖子详情页右侧显示楼层目录与辅助功能，关闭后页面仅保留主栏。"
+                helpId="assistive-bar-help"
+                icon={<PanelRight size={15} />}
+                label="开启辅助栏"
+                onChange={saveAssistiveBarEnabled}
+              />
+              <SettingsCheckbox
+                checked={backToTopEnabled}
+                disabled={!assistiveBarEnabled}
+                help="在帖子详情页右栏显示回到顶部按钮，点击后直接跳转到页面顶部。"
+                helpId="back-to-top-help"
+                icon={<ArrowUpToLine size={15} />}
+                label="回到顶部"
+                onChange={saveBackToTopEnabled}
+              />
+              <SettingsCheckbox
+                checked={signatureToggleEnabled}
+                disabled={!assistiveBarEnabled}
+                help="在帖子详情页右栏显示签名档开关，屏蔽状态会在不同帖子间保留。"
+                helpId="signature-toggle-help"
+                icon={<Signature size={15} />}
+                label="屏蔽签名档"
+                onChange={saveSignatureToggleEnabled}
+              />
             </div>
           </section>
 
@@ -390,6 +316,49 @@ export function SettingsPage() {
           </section>
         </div>
       </main>
+    </div>
+  );
+}
+
+function SettingsCheckbox({
+  checked,
+  disabled = false,
+  help,
+  helpId,
+  icon,
+  label,
+  onChange,
+}: {
+  checked: boolean;
+  disabled?: boolean;
+  help?: string;
+  helpId?: string;
+  icon: ReactNode;
+  label: string;
+  onChange: (checked: boolean) => unknown;
+}) {
+  return (
+    <div className={checked ? 'settings-checkbox-row settings-checkbox-row-selected' : 'settings-checkbox-row'}>
+      <label className={disabled ? 'settings-checkbox-option settings-checkbox-option-disabled' : 'settings-checkbox-option'}>
+        <input
+          aria-describedby={help ? helpId : undefined}
+          checked={checked}
+          disabled={disabled}
+          onChange={(event) => onChange(event.target.checked)}
+          type="checkbox"
+        />
+        <span className="settings-option-logo" aria-hidden="true">{icon}</span>
+        <span className="settings-option-label"><strong>{label}</strong></span>
+        <span className="settings-checkbox-mark" aria-hidden="true"><Check size={14} /></span>
+      </label>
+      {help && helpId && (
+        <span className="settings-option-help">
+          <button aria-describedby={helpId} aria-label={`查看${label}说明`} type="button">
+            <CircleHelp size={14} />
+          </button>
+          <span id={helpId} role="tooltip">{help}</span>
+        </span>
+      )}
     </div>
   );
 }
