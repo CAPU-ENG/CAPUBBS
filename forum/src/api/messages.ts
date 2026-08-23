@@ -4,6 +4,7 @@ import type {
   ForumMessage,
   MessageSummary,
 } from '../types/messages';
+import { USER_CENTER_PATH } from '../utils/userRoutes';
 
 const MESSAGE_API_URL = import.meta.env.VITE_API_URL?.trim() || '/api/api.php';
 const SYSTEM_PAGE_SIZE = 10;
@@ -127,20 +128,27 @@ function mapSystemMessage(row: ApiRow, index: number, page: number): ForumMessag
   const sender = stringValue(row.username) || '系统';
   const type = stringValue(row.type);
   const subject = decodeHtml(stringValue(row.title));
+  const tagName = parseTagGrant(subject);
   const formattedTime = formatTimestamp(row.time);
 
   return {
     category: 'replies',
-    context: subject,
+    context: tagName ? undefined : subject,
     excerpt: getSystemMessageExcerpt(type, sender, subject),
     group: formattedTime.date || '更早',
-    href: normalizeThreadHref(stringValue(row.url)),
+    href: tagName ? USER_CENTER_PATH : normalizeThreadHref(stringValue(row.url)),
     id: `system-${type || 'message'}-${stringValue(row.time) || 'unknown'}-${page}-${index}`,
     sender,
+    systemEvent: tagName ? { kind: 'tag-granted', tagName } : undefined,
     time: formattedTime.time,
-    title: getSystemMessageAction(type),
+    title: tagName ? '为你添加了标签' : getSystemMessageAction(type),
     unread: stringValue(row.hasread) === '0',
   };
+}
+
+function parseTagGrant(subject: string) {
+  const match = subject.match(/^为你添加了“(.+)”标签，可前往个人中心查看。$/u);
+  return match?.[1]?.trim() || null;
 }
 
 function mapChatMessage(row: ApiRow, conversationId: string, index: number): DirectChatMessage {

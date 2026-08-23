@@ -260,6 +260,24 @@
     white-space: nowrap;
   }
 
+  .message-card header strong.message-card-tag-grant {
+    overflow: visible;
+    line-height: 1.5;
+    text-overflow: clip;
+    white-space: normal;
+  }
+
+  .message-card-tag-grant a {
+    color: inherit;
+    text-decoration: underline;
+    text-decoration-color: color-mix(in srgb, currentColor 45%, transparent);
+    text-underline-offset: 2px;
+  }
+
+  .message-card-tag-grant a:hover {
+    text-decoration-color: currentColor;
+  }
+
   .message-card time {
     flex: 0 0 auto;
     color: var(--text-faint);

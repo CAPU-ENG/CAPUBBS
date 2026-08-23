@@ -385,7 +385,8 @@ function jiekoufunc_management_tag_members_add($con, $token, $params) {
     if ($tag_id <= 0) {
         return jiekoufunc_report('14', '缺少有效的标签 ID。');
     }
-    if (!jiekoufunc_tag_find($con, $tag_id)) {
+    $tag = jiekoufunc_tag_find($con, $tag_id);
+    if (!$tag) {
         return jiekoufunc_report('3', '标签不存在。');
     }
 
@@ -454,6 +455,7 @@ function jiekoufunc_management_tag_members_add($con, $token, $params) {
     if (!empty($insertable)) {
         mysqli_begin_transaction($con);
         $operator_escaped = mysqli_real_escape_string($con, $operator);
+        $notification = '为你添加了“' . $tag['name'] . '”标签，可前往个人中心查看。';
         $now = time();
         foreach ($insertable as $username) {
             $username_escaped = mysqli_real_escape_string($con, $username);
@@ -465,6 +467,10 @@ function jiekoufunc_management_tag_members_add($con, $token, $params) {
                 return jiekoufunc_report('8', '批量添加标签会员失败。');
             }
             if (mysqli_affected_rows($con) === 1) {
+                if (!jiekoufunc_insertmsg($con, 'system', $username, $notification, 0, 0, 0, $operator, $tag['name'])) {
+                    mysqli_rollback($con);
+                    return jiekoufunc_report('8', '发送标签通知失败，未完成本次添加。');
+                }
                 $results[jiekoufunc_tag_username_key($username)] = array(
                     'username' => $username,
                     'status' => 'added',

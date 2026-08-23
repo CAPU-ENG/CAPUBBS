@@ -10,6 +10,7 @@ import {
 import { useMemo, useState, type ReactNode } from 'react';
 import { createPortal } from 'react-dom';
 import type { ForumMessage, MessageCategory, MessageSummary } from '../../types/messages';
+import { getPublicProfilePath, USER_CENTER_PATH } from '../../utils/userRoutes';
 
 const MESSAGE_TABS: Array<{ icon: ReactNode; key: MessageCategory; label: string }> = [
   { icon: <MessageCircleReply size={16} />, key: 'replies', label: '回复' },
@@ -163,13 +164,24 @@ function MessageCard({
   onOpenConversation: (conversationId: string) => void;
 }) {
   const isDirect = message.category === 'direct';
+  const tagGrant = message.systemEvent?.kind === 'tag-granted' ? message.systemEvent : null;
+  const markRead = () => onMarkMessageRead(message.id);
 
   return (
     <article className={`message-card ${message.unread ? 'message-card-unread' : ''}`}>
       <span className="message-card-dot" />
       <div>
         <header>
-          <strong>{isDirect ? message.title : `${message.sender} ${message.title}`}</strong>
+          {tagGrant ? (
+            <strong className="message-card-tag-grant">
+              <a href={getPublicProfilePath(message.sender)} onClick={markRead}>{message.sender}</a>
+              {' 为你添加了“'}{tagGrant.tagName}{'”标签，可前往'}
+              <a href={USER_CENTER_PATH} onClick={markRead}>个人中心</a>
+              查看。
+            </strong>
+          ) : (
+            <strong>{isDirect ? message.title : `${message.sender} ${message.title}`}</strong>
+          )}
           <time>{message.time}</time>
         </header>
         {message.context && (
@@ -185,7 +197,7 @@ function MessageCard({
               打开对话
             </button>
           ) : (
-            <a href={message.href} onClick={() => onMarkMessageRead(message.id)}>打开</a>
+            <a href={message.href} onClick={markRead}>打开</a>
           )}
         </div>
       </div>

@@ -1,5 +1,10 @@
 export type MessageCategory = 'replies' | 'direct';
 
+export type ForumSystemEvent = {
+  kind: 'tag-granted';
+  tagName: string;
+};
+
 export type ForumMessage = {
   category: MessageCategory;
   context?: string;
@@ -9,6 +14,7 @@ export type ForumMessage = {
   href: string;
   id: string;
   sender: string;
+  systemEvent?: ForumSystemEvent;
   time: string;
   title: string;
   unread: boolean;
