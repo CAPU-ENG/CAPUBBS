@@ -904,8 +904,8 @@
 
   .thread-author-profile-avatar {
     display: block;
-    width: 76px;
-    height: 76px;
+    width: 120px;
+    height: 120px;
     flex: 0 0 auto;
     border: 1px solid var(--line);
     border-radius: 2px;
@@ -942,17 +942,6 @@
     font-size: 16px;
     font-weight: 760;
     overflow-wrap: anywhere;
-  }
-
-  .thread-author-profile-identity > em {
-    border: 1px solid color-mix(in srgb, var(--brand) 34%, var(--line));
-    border-radius: var(--control-radius);
-    padding: 2px 5px;
-    background: var(--brand-soft);
-    color: var(--brand-strong);
-    font-size: 0.56rem;
-    font-style: normal;
-    font-weight: 720;
   }
 
   .thread-author-profile-status {
@@ -1211,22 +1200,6 @@
     color: var(--text-strong);
     font-size: 16px;
     font-weight: 760;
-  }
-
-  .thread-floor-author > em {
-    border: 1px solid var(--line);
-    border-radius: var(--control-radius);
-    padding: 2px 5px;
-    color: var(--text-faint);
-    font-size: 0.56rem;
-    font-style: normal;
-    font-weight: 720;
-  }
-
-  .thread-floor-author > em {
-    border-color: color-mix(in srgb, var(--brand) 34%, var(--line));
-    background: var(--brand-soft);
-    color: var(--brand-strong);
   }
 
   .thread-floor-time {

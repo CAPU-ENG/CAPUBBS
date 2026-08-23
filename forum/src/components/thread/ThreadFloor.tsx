@@ -114,7 +114,7 @@ function AuthorCard({ author, id }: { author: ThreadAuthor; id: string }) {
   );
 }
 
-function AuthorProfile({ author, isMainPost }: { author: ThreadAuthor; isMainPost: boolean }) {
+function AuthorProfile({ author }: { author: ThreadAuthor }) {
   const tags = author.tags ?? getTagsForUser(author.name);
   const profileHref = getPublicProfilePath(author.name);
 
@@ -125,7 +125,6 @@ function AuthorProfile({ author, isMainPost }: { author: ThreadAuthor; isMainPos
       </a>
       <div className="thread-author-profile-identity">
         <a href={profileHref}>{author.name}</a>
-        {isMainPost && <em>楼主</em>}
       </div>
       {(author.stars > 0 || author.role) && (
         <div className="thread-author-profile-status">
@@ -376,7 +375,7 @@ export function ThreadFloor({
       onCopy={copyAsPlainText}
     >
       {showAuthorProfile
-        ? <AuthorProfile author={floor.author} isMainPost={isMainPost} />
+        ? <AuthorProfile author={floor.author} />
         : !inlineAvatar && avatarRail}
 
       <div className="thread-floor-main">
@@ -386,7 +385,6 @@ export function ThreadFloor({
             <a href={getPublicProfilePath(floor.author.name)}>
               {floor.author.name}
             </a>
-            {isMainPost && <em>楼主</em>}
           </div>
           <div className="thread-floor-time">
             <time>{formatFloorTime(floor.publishedAt)}</time>
