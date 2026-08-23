@@ -160,6 +160,8 @@ export function SettingsPage() {
               />
               <SettingsCheckbox
                 checked={authorProfileEnabled}
+                help="在帖子详情页左侧展示发帖者的头像、标签和数据。"
+                helpId="author-profile-help"
                 icon={<ContactRound size={15} />}
                 label="资料卡展示"
                 onChange={(enabled) => {
