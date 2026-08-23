@@ -130,13 +130,13 @@ function copyAsPlainText(event: ClipboardEvent<HTMLElement>) {
 }
 
 export function ThreadFloor({
-  avatarFollowDisabled,
   canQuote,
   canReply,
   editHref,
   floor,
   isActivityThread,
   isMainPost,
+  inlineAvatar,
   hideSignature,
   onDeleteFloor,
   onDeleteNestedReply,
@@ -144,13 +144,13 @@ export function ThreadFloor({
   onSubmitNestedReply,
   viewer,
 }: {
-  avatarFollowDisabled: boolean;
   canQuote: boolean;
   canReply: boolean;
   editHref: string;
   floor: ThreadFloorData;
   isActivityThread: boolean;
   isMainPost: boolean;
+  inlineAvatar: boolean;
   hideSignature: boolean;
   onDeleteFloor: (floor: ThreadFloorData) => Promise<void>;
   onDeleteNestedReply: (floor: ThreadFloorData, reply: NestedReply) => Promise<void>;
@@ -338,11 +338,11 @@ export function ThreadFloor({
       data-floor={floor.floor}
       onCopy={copyAsPlainText}
     >
-      {!avatarFollowDisabled && avatarRail}
+      {!inlineAvatar && avatarRail}
 
       <div className="thread-floor-main">
         <header className="thread-floor-header">
-          {avatarFollowDisabled && avatarRail}
+          {inlineAvatar && avatarRail}
           <div className="thread-floor-author">
             <a href={getPublicProfilePath(floor.author.name)}>
               {floor.author.name}

@@ -2,7 +2,7 @@
   .thread-page-shell {
     --thread-rail-column: 112px;
     --thread-column-gap: 24px;
-    --thread-inline-avatar-main-reduction: 66px;
+    --thread-inline-avatar-main-reduction: 50px;
     --thread-page-main-column: var(--thread-main-column);
     position: relative;
     z-index: 10;
@@ -412,24 +412,32 @@
   }
 
   @media (min-width: 641px) {
-    .thread-avatar-follow-disabled .thread-page-shell {
+    .thread-page-shell-avatar-static.thread-page-shell-with-assistive-bar {
+      --thread-rail-column: 88px;
+    }
+
+    .thread-page-shell-avatar-static .thread-floor-list .thread-avatar-rail {
+      position: relative;
+      top: auto;
+    }
+
+    .thread-page-shell-avatar-sticky.thread-page-shell-without-assistive-bar .thread-floor {
+      padding-right: 30px;
+    }
+
+    .thread-page-shell-avatar-static.thread-page-shell-without-assistive-bar {
       --thread-page-main-column: calc(var(--thread-main-column) - var(--thread-inline-avatar-main-reduction));
       width: calc(100% - var(--thread-inline-avatar-main-reduction));
     }
 
-    .thread-avatar-follow-disabled .thread-floor {
+    .thread-page-shell-avatar-static.thread-page-shell-without-assistive-bar .thread-floor {
       grid-template-columns: minmax(0, 1fr);
       gap: 0;
-      padding-inline: 22px;
+      padding-inline: 30px;
     }
 
-    .thread-avatar-follow-disabled .thread-floor-header {
+    .thread-page-shell-avatar-static.thread-page-shell-without-assistive-bar .thread-floor-header {
       grid-template-columns: 44px auto minmax(0, 1fr) auto;
-    }
-
-    .thread-avatar-follow-disabled .thread-floor-header > .thread-avatar-rail {
-      position: relative;
-      top: auto;
     }
 
     .thread-page-shell-without-assistive-bar .thread-top-pagination .thread-page-jump,
@@ -807,7 +815,7 @@
   .thread-avatar-rail {
     position: sticky;
     z-index: 12;
-    top: var(--thread-avatar-sticky-top, var(--topbar-height));
+    top: calc(var(--thread-avatar-sticky-top, var(--topbar-height)) + 18px);
     align-self: start;
     height: 46px;
   }

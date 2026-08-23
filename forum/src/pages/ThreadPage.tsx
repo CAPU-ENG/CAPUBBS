@@ -78,6 +78,12 @@ export function ThreadPage() {
   const threadTopBar = useThreadTopBar(titleRef, topBarAutoHideEnabled);
   const signaturesHidden = useSignaturesHidden();
   const signatureToggleEnabled = useSignatureToggleEnabled();
+  const inlineFloorAvatar = avatarFollowDisabled && !assistiveBarEnabled;
+  const threadPageShellClassName = [
+    'thread-page-shell',
+    avatarFollowDisabled ? 'thread-page-shell-avatar-static' : 'thread-page-shell-avatar-sticky',
+    assistiveBarEnabled ? 'thread-page-shell-with-assistive-bar' : 'thread-page-shell-without-assistive-bar',
+  ].filter(Boolean).join(' ');
   const syncAvatarStickyTop = useCallback((topBarBottom: number) => {
     pageRef.current?.style.setProperty('--thread-avatar-sticky-top', `${topBarBottom}px`);
   }, []);
@@ -262,7 +268,7 @@ export function ThreadPage() {
       <div className={`relative min-h-screen text-[var(--text)] transition-colors duration-200${avatarFollowDisabled ? ' thread-avatar-follow-disabled' : ''}`} ref={pageRef}>
         <AppBackground />
         <TopBar />
-        <main className="thread-page-shell">
+        <main className={threadPageShellClassName}>
           <section className="thread-request-state" aria-live="polite">
             {status === 'loading' ? (
               <>
@@ -313,7 +319,7 @@ export function ThreadPage() {
         showContextTitle={threadTopBar.showContextTitle}
       />
 
-      <main className={assistiveBarEnabled ? 'thread-page-shell' : 'thread-page-shell thread-page-shell-without-assistive-bar'}>
+      <main className={threadPageShellClassName}>
         <header className="thread-title-card">
           <div className="thread-title-heading">
             <h1 id="thread-title" ref={titleRef}>
@@ -379,7 +385,6 @@ export function ThreadPage() {
             {pageFloors.map((floor) => (
               <Fragment key={floor.id}>
                 <ThreadFloor
-                  avatarFollowDisabled={avatarFollowDisabled}
                   canQuote={!data.isActivity && data.canReply && Boolean(data.viewer)}
                   canReply={data.canReply && Boolean(data.viewer)}
                   editHref={getThreadEditHref(data.bid, data.tid, floor.floor)}
@@ -387,6 +392,7 @@ export function ThreadPage() {
                   hideSignature={assistiveBarEnabled && signatureToggleEnabled && signaturesHidden}
                   isActivityThread={data.isActivity}
                   isMainPost={floor.floor === 1}
+                  inlineAvatar={inlineFloorAvatar}
                   onDeleteFloor={removeFloor}
                   onDeleteNestedReply={removeNestedReply}
                   onQuote={quoteFloor}
