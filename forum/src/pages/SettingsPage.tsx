@@ -3,7 +3,6 @@ import {
   ArrowUpToLine,
   Check,
   ChevronDown,
-  CircleHelp,
   CirclePlus,
   ListEnd,
   MonitorCog,
@@ -129,7 +128,7 @@ export function SettingsPage() {
             <div className="settings-checkbox-list settings-checkbox-columns">
               <SettingsCheckbox
                 checked={followsSystem}
-                help="页面昼夜模式会自动跟随系统设置切换。"
+                help="跟随系统设置自动切换日间或夜间模式。"
                 helpId="system-theme-help"
                 icon={<SunMoon size={15} />}
                 label="系统昼夜"
@@ -137,7 +136,7 @@ export function SettingsPage() {
               />
               <SettingsCheckbox
                 checked={compactMode}
-                help="首页主题列表会缩小行高，只保留标题、作者和时间，隐藏摘要、头像、回复数与浏览数。"
+                help="缩小首页主题行高，仅保留标题、作者和时间。"
                 helpId="compact-mode-help"
                 icon={<Rows3 size={15} />}
                 label="紧凑模式"
@@ -198,7 +197,7 @@ export function SettingsPage() {
             <div className="settings-checkbox-list settings-checkbox-columns">
               <SettingsCheckbox
                 checked={waterfallFeedEnabled}
-                help="首页接近列表底部时自动加载更多帖子，无需点击“加载更多”。"
+                help="首页接近列表底部时自动加载更多帖子。"
                 helpId="waterfall-feed-help"
                 icon={<ListEnd size={15} />}
                 label="瀑布流"
@@ -206,7 +205,7 @@ export function SettingsPage() {
               />
               <SettingsCheckbox
                 checked={autoSaveEnabled}
-                help="编辑回复或发帖时自动存入草稿箱，发布成功后删除对应草稿。"
+                help="编辑回复或发帖时自动保存草稿，发布后自动清除。"
                 helpId="auto-save-help"
                 icon={<Save size={15} />}
                 label="自动保存"
@@ -214,7 +213,7 @@ export function SettingsPage() {
               />
               <SettingsCheckbox
                 checked={assistiveBarEnabled}
-                help="在帖子详情页右侧显示楼层目录与辅助功能，关闭后页面仅保留主栏。"
+                help="在帖子详情页右侧显示楼层目录和辅助功能。"
                 helpId="assistive-bar-help"
                 icon={<PanelRight size={15} />}
                 label="开启辅助栏"
@@ -223,7 +222,7 @@ export function SettingsPage() {
               <SettingsCheckbox
                 checked={backToTopEnabled}
                 disabled={!assistiveBarEnabled}
-                help="在帖子详情页右栏显示回到顶部按钮，点击后直接跳转到页面顶部。"
+                help="在帖子详情页右栏显示回到顶部按钮。"
                 helpId="back-to-top-help"
                 icon={<ArrowUpToLine size={15} />}
                 label="回到顶部"
@@ -232,7 +231,7 @@ export function SettingsPage() {
               <SettingsCheckbox
                 checked={signatureToggleEnabled}
                 disabled={!assistiveBarEnabled}
-                help="在帖子详情页右栏显示签名档开关，屏蔽状态会在不同帖子间保留。"
+                help="在帖子详情页右栏提供可跨帖子保留的签名档开关。"
                 helpId="signature-toggle-help"
                 icon={<Signature size={15} />}
                 label="屏蔽签名档"
@@ -358,17 +357,12 @@ function SettingsCheckbox({
           type="checkbox"
         />
         <span className="settings-option-logo" aria-hidden="true">{icon}</span>
-        <span className="settings-option-label"><strong>{label}</strong></span>
+        <span className="settings-option-label">
+          <strong>{label}</strong>
+          {help && helpId && <small id={helpId}>{help}</small>}
+        </span>
         <span className="settings-checkbox-mark" aria-hidden="true"><Check size={14} /></span>
       </label>
-      {help && helpId && (
-        <span className="settings-option-help">
-          <button aria-describedby={helpId} aria-label={`查看${label}说明`} type="button">
-            <CircleHelp size={14} />
-          </button>
-          <span id={helpId} role="tooltip">{help}</span>
-        </span>
-      )}
     </div>
   );
 }

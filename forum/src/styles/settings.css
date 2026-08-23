@@ -79,13 +79,12 @@
   .settings-checkbox-row {
     display: grid;
     min-width: 0;
-    min-height: 48px;
-    grid-template-columns: minmax(0, 1fr) 18px;
+    min-height: 64px;
+    grid-template-columns: minmax(0, 1fr);
     align-items: center;
-    gap: 5px;
     border: 1px solid var(--line);
     border-radius: var(--control-radius);
-    padding: 6px 8px 6px 9px;
+    padding: 8px 9px;
     background: var(--surface-raised);
     transition: border-color 140ms ease, background 140ms ease;
   }
@@ -98,10 +97,6 @@
   .settings-checkbox-row-selected {
     border-color: color-mix(in srgb, var(--brand) 48%, var(--line));
     background: var(--brand-faint);
-  }
-
-  .settings-checkbox-row > .settings-checkbox-option:only-child {
-    grid-column: 1 / -1;
   }
 
   .settings-checkbox-option input {
@@ -161,10 +156,11 @@
   }
 
   .settings-option-label {
-    display: flex;
+    display: grid;
     min-width: 0;
     min-height: 18px;
-    align-items: center;
+    align-content: center;
+    gap: 2px;
     text-align: left;
   }
 
@@ -176,6 +172,13 @@
     line-height: 18px;
     text-overflow: ellipsis;
     white-space: nowrap;
+  }
+
+  .settings-option-label small {
+    color: var(--text-faint);
+    font-size: 0.58rem;
+    line-height: 1.45;
+    overflow-wrap: anywhere;
   }
 
   .settings-font-size-control {
@@ -258,60 +261,6 @@
     line-height: 1.6;
     overflow-wrap: anywhere;
     word-break: break-word;
-  }
-
-  .settings-option-help {
-    position: relative;
-    display: inline-flex;
-    flex: 0 0 auto;
-  }
-
-  .settings-option-help > button {
-    display: inline-flex;
-    width: 18px;
-    height: 18px;
-    align-items: center;
-    justify-content: center;
-    color: var(--text-faint);
-    cursor: help;
-    transition: color 140ms ease;
-  }
-
-  .settings-option-help > button:hover,
-  .settings-option-help > button:focus-visible {
-    color: var(--brand-strong);
-  }
-
-  .settings-option-help > button:focus-visible {
-    border-radius: 50%;
-    outline: 2px solid var(--brand);
-    outline-offset: 1px;
-  }
-
-  .settings-option-help [role="tooltip"] {
-    position: absolute;
-    z-index: 5;
-    top: calc(100% + 7px);
-    left: 50%;
-    width: 230px;
-    border: 1px solid var(--line-strong);
-    border-radius: var(--control-radius);
-    padding: 9px 10px;
-    background: var(--surface-raised);
-    box-shadow: var(--shadow-card);
-    color: var(--text-muted);
-    font-size: 0.62rem;
-    line-height: 1.55;
-    opacity: 0;
-    pointer-events: none;
-    transform: translate(-50%, -2px);
-    transition: opacity 140ms ease, transform 140ms ease;
-  }
-
-  .settings-option-help:hover [role="tooltip"],
-  .settings-option-help:focus-within [role="tooltip"] {
-    opacity: 1;
-    transform: translate(-50%, 0);
   }
 
   .settings-count {
