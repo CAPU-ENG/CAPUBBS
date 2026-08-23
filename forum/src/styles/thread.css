@@ -846,6 +846,10 @@
     .thread-floor-with-author-profile .thread-floor-author {
       display: none;
     }
+
+    .thread-floor-with-author-profile .thread-floor-content {
+      min-height: 256px;
+    }
   }
 
   .thread-avatar-rail {
@@ -1656,7 +1660,8 @@
     background-size: calc(100% - var(--thread-html-frame-width-allowance, 0px)) 1px;
   }
 
-  .thread-floor-main > iframe.thread-html-frame {
+  .thread-floor-main > iframe.thread-html-frame,
+  .thread-floor-content > iframe.thread-html-frame {
     height: var(--thread-html-frame-height, auto);
   }
 

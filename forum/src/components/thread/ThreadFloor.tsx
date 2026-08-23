@@ -366,6 +366,24 @@ export function ThreadFloor({
       <AuthorCard author={floor.author} id={`author-card-${floor.floor}`} />
     </div>
   );
+  const postContent = (
+    <ThreadPostContent
+      bodyFallback={(
+        <div className={bodyClassName}>
+          {floor.paragraphs.map((paragraph) => (
+            <p key={paragraph}>{paragraph}</p>
+          ))}
+        </div>
+      )}
+      bodyClassName={bodyClassName}
+      bodyHtml={floor.contentHtml}
+      floor={floor.floor}
+      isActivitySignupCanceled={isActivitySignupCanceled}
+      onImageOpen={openImagePreview}
+      signatureHtml={hideSignature ? undefined : floor.signatureHtml}
+      signatureText={hideSignature ? undefined : floor.signature}
+    />
+  );
 
   return (
     <article
@@ -406,22 +424,9 @@ export function ThreadFloor({
           </button>
         </header>
 
-        <ThreadPostContent
-          bodyFallback={(
-            <div className={bodyClassName}>
-              {floor.paragraphs.map((paragraph) => (
-                <p key={paragraph}>{paragraph}</p>
-              ))}
-            </div>
-          )}
-          bodyClassName={bodyClassName}
-          bodyHtml={floor.contentHtml}
-          floor={floor.floor}
-          isActivitySignupCanceled={isActivitySignupCanceled}
-          onImageOpen={openImagePreview}
-          signatureHtml={hideSignature ? undefined : floor.signatureHtml}
-          signatureText={hideSignature ? undefined : floor.signature}
-        />
+        {showAuthorProfile
+          ? <div className="thread-floor-content">{postContent}</div>
+          : postContent}
 
         <div className="thread-floor-actions">
           {canQuote && (
