@@ -19,6 +19,18 @@ if (!defined('TAG_API_MAX_PAGE_SIZE')) {
     define('TAG_API_MAX_PAGE_SIZE', 100);
 }
 
+if (!defined('TAG_API_MAX_EXPRESSION_LENGTH')) {
+    define('TAG_API_MAX_EXPRESSION_LENGTH', 8192);
+}
+
+if (!defined('TAG_API_MAX_EXPRESSION_NODES')) {
+    define('TAG_API_MAX_EXPRESSION_NODES', 64);
+}
+
+if (!defined('TAG_API_MAX_EXPRESSION_DEPTH')) {
+    define('TAG_API_MAX_EXPRESSION_DEPTH', 6);
+}
+
 function jiekoufunc_tag_list($con, $params = array()) {
     $statement = "
         SELECT
@@ -104,13 +116,33 @@ function jiekoufunc_tag_user_tags($con, $params) {
 }
 
 function jiekoufunc_tag_summary($con, $params) {
-    $invalid_ids = false;
-    $include_ids = jiekoufunc_tag_parse_ids(isset($params['include_tag_ids']) ? $params['include_tag_ids'] : array(), $invalid_ids);
-    $exclude_ids = jiekoufunc_tag_parse_ids(isset($params['exclude_tag_ids']) ? $params['exclude_tag_ids'] : array(), $invalid_ids);
-    if ($invalid_ids) {
-        return jiekoufunc_report('14', '标签筛选 ID 无效。');
+    $expression = null;
+    $expression_ids = array();
+    $include_ids = array();
+    $exclude_ids = array();
+
+    if (array_key_exists('tag_expression', $params)) {
+        $expression_error = '';
+        $expression = jiekoufunc_tag_parse_expression(
+            $params['tag_expression'],
+            $expression_ids,
+            $expression_error
+        );
+        if ($expression === false) {
+            return jiekoufunc_report('14', $expression_error);
+        }
+    } else {
+        $invalid_ids = false;
+        $include_ids = jiekoufunc_tag_parse_ids(isset($params['include_tag_ids']) ? $params['include_tag_ids'] : array(), $invalid_ids);
+        $exclude_ids = jiekoufunc_tag_parse_ids(isset($params['exclude_tag_ids']) ? $params['exclude_tag_ids'] : array(), $invalid_ids);
+        if ($invalid_ids) {
+            return jiekoufunc_report('14', '标签筛选 ID 无效。');
+        }
     }
-    $requested_ids = array_values(array_unique(array_merge($include_ids, $exclude_ids)));
+
+    $requested_ids = $expression !== null
+        ? $expression_ids
+        : array_values(array_unique(array_merge($include_ids, $exclude_ids)));
     if (!empty($requested_ids)) {
         $existing_ids = jiekoufunc_tag_existing_ids($con, $requested_ids);
         if ($existing_ids === false) {
@@ -122,7 +154,11 @@ function jiekoufunc_tag_summary($con, $params) {
     }
 
     $where = array();
-    if (!empty($exclude_ids)) {
+    $added_expression = 'MAX(m.added_at)';
+    $having = '';
+    if ($expression !== null) {
+        $where[] = jiekoufunc_tag_expression_sql($expression, 'm.username');
+    } elseif (!empty($exclude_ids)) {
         $exclude_clause = jiekoufunc_tag_id_list($exclude_ids);
         $where[] = "NOT EXISTS (
             SELECT 1 FROM user_tag_members AS excluded_members
@@ -131,9 +167,7 @@ function jiekoufunc_tag_summary($con, $params) {
         )";
     }
 
-    $added_expression = 'MAX(m.added_at)';
-    $having = '';
-    if (!empty($include_ids)) {
+    if ($expression === null && !empty($include_ids)) {
         $include_clause = jiekoufunc_tag_id_list($include_ids);
         $added_expression = "MAX(CASE WHEN m.tag_id IN ($include_clause) THEN m.added_at ELSE 0 END)";
         $having = " HAVING COUNT(DISTINCT CASE WHEN m.tag_id IN ($include_clause) THEN m.tag_id END)=" . count($include_ids);
@@ -603,6 +637,158 @@ function jiekoufunc_tag_id_list($ids) {
         }
     }
     return implode(',', $values);
+}
+
+function jiekoufunc_tag_parse_expression($value, &$tag_ids, &$error) {
+    $tag_ids = array();
+    $error = '';
+    if (!is_string($value)) {
+        $error = '标签表达式格式无效。';
+        return false;
+    }
+
+    $json = trim($value);
+    if ($json === '' || strlen($json) > TAG_API_MAX_EXPRESSION_LENGTH) {
+        $error = $json === '' ? '标签表达式不能为空。' : '标签表达式过长。';
+        return false;
+    }
+
+    $decoded = json_decode($json, true);
+    if (!is_array($decoded) || json_last_error() !== JSON_ERROR_NONE) {
+        $error = '标签表达式格式无效。';
+        return false;
+    }
+
+    $state = array('nodes' => 0);
+    $expression = jiekoufunc_tag_normalize_expression_node($decoded, 0, $state, $tag_ids, $error);
+    if ($expression === false) {
+        return false;
+    }
+    $tag_ids = array_values(array_unique($tag_ids));
+    sort($tag_ids, SORT_NUMERIC);
+    return $expression;
+}
+
+function jiekoufunc_tag_normalize_expression_node($node, $depth, &$state, &$tag_ids, &$error) {
+    if (!is_array($node) || !isset($node['type']) || !is_string($node['type'])) {
+        $error = '标签表达式节点格式无效。';
+        return false;
+    }
+    $state['nodes']++;
+    if ($state['nodes'] > TAG_API_MAX_EXPRESSION_NODES) {
+        $error = '标签表达式条件过多。';
+        return false;
+    }
+    if ($depth > TAG_API_MAX_EXPRESSION_DEPTH) {
+        $error = '标签表达式括号嵌套过深。';
+        return false;
+    }
+
+    $not = false;
+    if (array_key_exists('not', $node)) {
+        if (!is_bool($node['not'])) {
+            $error = '标签表达式 NOT 值无效。';
+            return false;
+        }
+        $not = $node['not'];
+    }
+
+    if ($node['type'] === 'tag') {
+        if (!jiekoufunc_tag_expression_keys_valid($node, array('type', 'tag_id', 'not'))
+            || !array_key_exists('tag_id', $node)) {
+            $error = '标签表达式标签节点格式无效。';
+            return false;
+        }
+        $tag_id_value = $node['tag_id'];
+        if ((is_int($tag_id_value) && $tag_id_value > 0)
+            || (is_string($tag_id_value) && preg_match('/^\d+$/', $tag_id_value))) {
+            $tag_id = intval($tag_id_value);
+        } else {
+            $tag_id = 0;
+        }
+        if ($tag_id <= 0) {
+            $error = '标签表达式标签 ID 无效。';
+            return false;
+        }
+        $tag_ids[] = $tag_id;
+        return array(
+            'type' => 'tag',
+            'tag_id' => $tag_id,
+            'not' => $not,
+        );
+    }
+
+    if ($node['type'] !== 'group'
+        || !jiekoufunc_tag_expression_keys_valid($node, array('type', 'operator', 'not', 'children'))
+        || !isset($node['operator'])
+        || ($node['operator'] !== 'and' && $node['operator'] !== 'or')
+        || !isset($node['children'])
+        || !is_array($node['children'])
+        || empty($node['children'])
+        || !jiekoufunc_tag_expression_is_list($node['children'])) {
+        $error = '标签表达式分组格式无效。';
+        return false;
+    }
+
+    $children = array();
+    foreach ($node['children'] as $child) {
+        $normalized_child = jiekoufunc_tag_normalize_expression_node(
+            $child,
+            $depth + 1,
+            $state,
+            $tag_ids,
+            $error
+        );
+        if ($normalized_child === false) {
+            return false;
+        }
+        $children[] = $normalized_child;
+    }
+    return array(
+        'type' => 'group',
+        'operator' => $node['operator'],
+        'not' => $not,
+        'children' => $children,
+    );
+}
+
+function jiekoufunc_tag_expression_keys_valid($node, $allowed_keys) {
+    foreach (array_keys($node) as $key) {
+        if (!in_array($key, $allowed_keys, true)) {
+            return false;
+        }
+    }
+    return true;
+}
+
+function jiekoufunc_tag_expression_is_list($value) {
+    $expected = 0;
+    foreach (array_keys($value) as $key) {
+        if ($key !== $expected) {
+            return false;
+        }
+        $expected++;
+    }
+    return true;
+}
+
+function jiekoufunc_tag_expression_sql($node, $username_expression) {
+    if ($node['type'] === 'tag') {
+        $tag_id = intval($node['tag_id']);
+        $sql = "EXISTS (
+            SELECT 1 FROM user_tag_members AS expression_members
+            WHERE expression_members.username=$username_expression
+              AND expression_members.tag_id=$tag_id
+        )";
+    } else {
+        $clauses = array();
+        foreach ($node['children'] as $child) {
+            $clauses[] = jiekoufunc_tag_expression_sql($child, $username_expression);
+        }
+        $joiner = $node['operator'] === 'or' ? ' OR ' : ' AND ';
+        $sql = '(' . implode($joiner, $clauses) . ')';
+    }
+    return !empty($node['not']) ? 'NOT (' . $sql . ')' : $sql;
 }
 
 function jiekoufunc_tag_param_id($params) {

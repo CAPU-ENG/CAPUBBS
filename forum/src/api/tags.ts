@@ -1,5 +1,6 @@
 import defaultAvatar from '../assets/bg/bicycle.svg';
 import type { TagDefinition } from '../data/tags';
+import type { TagExpressionPayload } from '../utils/tagExpression';
 import { normalizeLegacyAvatar } from '../utils/legacyAssets';
 import { getPublicProfilePath } from '../utils/userRoutes';
 
@@ -149,6 +150,19 @@ export async function fetchTagSummary(
     ask: 'tag_summary',
     exclude_tag_ids: excludeTagIds.join(','),
     include_tag_ids: includeTagIds.join(','),
+  }, signal);
+  return itemsFrom(data)
+    .map(mapTagMember)
+    .filter((member): member is TagMember => member !== null);
+}
+
+export async function fetchAdvancedTagSummary(
+  expression: TagExpressionPayload,
+  signal?: AbortSignal,
+): Promise<TagSummaryMember[]> {
+  const data = await requestTagApi({
+    ask: 'tag_summary',
+    tag_expression: JSON.stringify(expression),
   }, signal);
   return itemsFrom(data)
     .map(mapTagMember)

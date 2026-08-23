@@ -1,17 +1,26 @@
 import { ArrowDownAZ, CircleHelp, Clock3, Search, Tags, X } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 import {
+  fetchAdvancedTagSummary,
   fetchTagDefinitions,
   fetchTagSummary,
   TagsApiError,
   type TagMember,
 } from '../../api/tags';
 import type { TagDefinition } from '../../data/tags';
+import {
+  createTagExpressionFromFilters,
+  createTagExpressionGroup,
+  toTagExpressionPayload,
+  validateTagExpression,
+} from '../../utils/tagExpression';
+import { TagExpressionBuilder } from './TagExpressionBuilder';
 import { TagBadge } from '../tags/TagBadge';
 
 type FilterState = 'exclude' | 'include' | 'neutral';
 type SortOrder = 'acquiredAt' | 'id';
 type LoadStatus = 'error' | 'loading' | 'ready';
+type QueryMode = 'advanced' | 'basic';
 
 type TagSummaryMember = TagMember;
 
@@ -21,7 +30,9 @@ const TAG_NAME_COLLATOR = new Intl.Collator('zh-CN', { sensitivity: 'base' });
 export function TagSummaryPanel() {
   const [definitions, setDefinitions] = useState<TagDefinition[]>([]);
   const [definitionsStatus, setDefinitionsStatus] = useState<LoadStatus>('loading');
+  const [queryMode, setQueryMode] = useState<QueryMode>('basic');
   const [filters, setFilters] = useState<Record<string, FilterState>>({});
+  const [expression, setExpression] = useState(createTagExpressionGroup);
   const [members, setMembers] = useState<TagSummaryMember[]>([]);
   const [hasQueried, setHasQueried] = useState(false);
   const [queryStatus, setQueryStatus] = useState<LoadStatus>('ready');
@@ -58,7 +69,14 @@ export function TagSummaryPanel() {
     () => sortedDefinitions.filter((tag) => filters[tag.id] === 'exclude').map((tag) => tag.id),
     [filters, sortedDefinitions],
   );
-  const queryNeedsTag = definitionsStatus === 'ready' && queryStatus !== 'loading' && includedTagIds.length === 0;
+  const expressionError = useMemo(
+    () => validateTagExpression(expression, definitions),
+    [definitions, expression],
+  );
+  const queryValidationError = queryMode === 'advanced'
+    ? expressionError
+    : includedTagIds.length === 0 ? '请至少选中一个标签' : '';
+  const queryNeedsTag = definitionsStatus === 'ready' && queryStatus !== 'loading' && Boolean(queryValidationError);
 
   useEffect(() => {
     const controller = new AbortController();
@@ -89,12 +107,28 @@ export function TagSummaryPanel() {
     });
   }
 
+  function selectQueryMode(mode: QueryMode) {
+    if (mode === queryMode) return;
+    if (mode === 'advanced' && expression.children.length === 0) {
+      setExpression(createTagExpressionFromFilters(includedTagIds, excludedTagIds));
+    }
+    setQueryMode(mode);
+    setMembers([]);
+    setHasQueried(false);
+    setQueryError('');
+    setQueryStatus('ready');
+    setStartDate('');
+    setEndDate('');
+  }
+
   async function runQuery() {
-    if (queryStatus === 'loading' || definitionsStatus !== 'ready' || includedTagIds.length === 0) return;
+    if (queryStatus === 'loading' || definitionsStatus !== 'ready' || queryValidationError) return;
     setQueryStatus('loading');
     setQueryError('');
     try {
-      setMembers(await fetchTagSummary(includedTagIds, excludedTagIds));
+      setMembers(queryMode === 'advanced'
+        ? await fetchAdvancedTagSummary(toTagExpressionPayload(expression))
+        : await fetchTagSummary(includedTagIds, excludedTagIds));
       setHasQueried(true);
       setSortOrder('acquiredAt');
       setStartDate('');
@@ -112,43 +146,68 @@ export function TagSummaryPanel() {
       <header className="data-display-card-header tag-summary-card-header">
         <span className="data-display-card-icon"><Tags size={17} /></span>
         <h1>标签汇总</h1>
-        <span className="tag-summary-help">
-          <button aria-describedby="tag-summary-help-tooltip" aria-label="标签筛选说明" type="button"><CircleHelp size={15} /></button>
-          <span className="tag-summary-help-tooltip" id="tag-summary-help-tooltip" role="tooltip">
-            <span>点击一次：筛选该标签</span>
-            <span>点击两次：排除该标签</span>
-            <span>点击三次：恢复默认</span>
-            <span>支持组合筛选查询</span>
-            <span>请至少选中一个标签</span>
+        {queryMode === 'basic' && (
+          <span className="tag-summary-help">
+            <button aria-describedby="tag-summary-help-tooltip" aria-label="标签筛选说明" type="button"><CircleHelp size={15} /></button>
+            <span className="tag-summary-help-tooltip" id="tag-summary-help-tooltip" role="tooltip">
+              <span>点击一次：筛选该标签</span>
+              <span>点击两次：排除该标签</span>
+              <span>点击三次：恢复默认</span>
+              <span>支持组合筛选查询</span>
+              <span>请至少选中一个标签</span>
+            </span>
           </span>
-        </span>
+        )}
+        <div aria-label="标签查询模式" className="tag-summary-mode-switch" role="group">
+          <button aria-pressed={queryMode === 'basic'} className={queryMode === 'basic' ? 'is-active' : ''} disabled={definitionsStatus !== 'ready' || queryStatus === 'loading'} onClick={() => selectQueryMode('basic')} type="button">普通筛选</button>
+          <button aria-pressed={queryMode === 'advanced'} className={queryMode === 'advanced' ? 'is-active' : ''} disabled={definitionsStatus !== 'ready' || queryStatus === 'loading'} onClick={() => selectQueryMode('advanced')} type="button">高级搜索</button>
+        </div>
         {hasQueried && <span className="data-display-card-count">{sortedMembers.length} 位会员</span>}
       </header>
-      <div className="tag-summary-filter-area">
-        <div className="tag-summary-filter-list">
-          {sortedDefinitions.map((tag) => {
-            const state = filters[tag.id] ?? 'neutral';
-            return (
-              <button
-                aria-label={`${tag.name}${state === 'include' ? '已选中' : state === 'exclude' ? '已排除' : '未筛选'}`}
-                className="tag-summary-filter"
-                data-filter-state={state}
-                disabled={definitionsStatus !== 'ready'}
-                key={tag.id}
-                onClick={() => cycleFilter(tag.id)}
-                type="button"
-              >
-                <TagBadge selected={state === 'include'} tag={tag} />
-              </button>
-            );
-          })}
-          {definitions.length === 0 && <span className="tag-summary-empty">{definitionsStatus === 'loading' ? '正在加载标签' : definitionsStatus === 'error' ? '标签加载失败' : '暂无标签'}</span>}
+      {queryMode === 'basic' ? (
+        <div className="tag-summary-filter-area">
+          <div className="tag-summary-filter-list">
+            {sortedDefinitions.map((tag) => {
+              const state = filters[tag.id] ?? 'neutral';
+              return (
+                <button
+                  aria-label={`${tag.name}${state === 'include' ? '已选中' : state === 'exclude' ? '已排除' : '未筛选'}`}
+                  className="tag-summary-filter"
+                  data-filter-state={state}
+                  disabled={definitionsStatus !== 'ready'}
+                  key={tag.id}
+                  onClick={() => cycleFilter(tag.id)}
+                  type="button"
+                >
+                  <TagBadge selected={state === 'include'} tag={tag} />
+                </button>
+              );
+            })}
+            {definitions.length === 0 && <span className="tag-summary-empty">{definitionsStatus === 'loading' ? '正在加载标签' : definitionsStatus === 'error' ? '标签加载失败' : '暂无标签'}</span>}
+          </div>
+          <QueryButton
+            disabled={definitionsStatus !== 'ready' || queryStatus === 'loading' || Boolean(queryValidationError)}
+            loading={queryStatus === 'loading'}
+            onClick={runQuery}
+            tooltip={queryNeedsTag ? queryValidationError : ''}
+          />
         </div>
-        <span className="tag-summary-query-wrap">
-          <button aria-describedby={queryNeedsTag ? 'tag-summary-query-tooltip' : undefined} className="tag-summary-query-button" disabled={definitionsStatus !== 'ready' || queryStatus === 'loading' || includedTagIds.length === 0} onClick={runQuery} type="button"><Search size={15} />{queryStatus === 'loading' ? '查询中' : '开始查询'}</button>
-          {queryNeedsTag && <span className="tag-summary-query-tooltip" id="tag-summary-query-tooltip" role="tooltip">请至少选中一个标签</span>}
-        </span>
-      </div>
+      ) : (
+        <div className="tag-summary-advanced-area">
+          <TagExpressionBuilder
+            definitions={sortedDefinitions}
+            disabled={definitionsStatus !== 'ready' || queryStatus === 'loading'}
+            expression={expression}
+            onChange={setExpression}
+          />
+          <QueryButton
+            disabled={definitionsStatus !== 'ready' || queryStatus === 'loading' || Boolean(queryValidationError)}
+            loading={queryStatus === 'loading'}
+            onClick={runQuery}
+            tooltip={queryNeedsTag ? queryValidationError : ''}
+          />
+        </div>
+      )}
       {queryStatus === 'error' && <p className="tag-summary-empty">{queryError}</p>}
       {hasQueried && queryStatus !== 'error' && (
         <>
@@ -181,6 +240,33 @@ export function TagSummaryPanel() {
         </>
       )}
     </section>
+  );
+}
+
+function QueryButton({
+  disabled,
+  loading,
+  onClick,
+  tooltip,
+}: {
+  disabled: boolean;
+  loading: boolean;
+  onClick: () => void;
+  tooltip: string;
+}) {
+  return (
+    <span className="tag-summary-query-wrap">
+      <button
+        aria-describedby={tooltip ? 'tag-summary-query-tooltip' : undefined}
+        className="tag-summary-query-button"
+        disabled={disabled}
+        onClick={onClick}
+        type="button"
+      >
+        <Search size={15} />{loading ? '查询中' : '开始查询'}
+      </button>
+      {tooltip && <span className="tag-summary-query-tooltip" id="tag-summary-query-tooltip" role="tooltip">{tooltip}</span>}
+    </span>
   );
 }
 
