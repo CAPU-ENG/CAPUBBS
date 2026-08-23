@@ -2,7 +2,7 @@
   .thread-page-shell {
     --thread-rail-column: 112px;
     --thread-column-gap: 24px;
-    --thread-avatar-column-offset: 72px;
+    --thread-inline-avatar-main-reduction: 66px;
     --thread-page-main-column: var(--thread-main-column);
     position: relative;
     z-index: 10;
@@ -413,13 +413,14 @@
 
   @media (min-width: 641px) {
     .thread-avatar-follow-disabled .thread-page-shell {
-      --thread-page-main-column: calc(var(--thread-main-column) - var(--thread-avatar-column-offset));
-      width: calc(100% - var(--thread-avatar-column-offset));
+      --thread-page-main-column: calc(var(--thread-main-column) - var(--thread-inline-avatar-main-reduction));
+      width: calc(100% - var(--thread-inline-avatar-main-reduction));
     }
 
     .thread-avatar-follow-disabled .thread-floor {
       grid-template-columns: minmax(0, 1fr);
       gap: 0;
+      padding-inline: 22px;
     }
 
     .thread-avatar-follow-disabled .thread-floor-header {
