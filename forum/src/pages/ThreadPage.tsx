@@ -374,6 +374,7 @@ export function ThreadPage() {
             {pageFloors.map((floor) => (
               <Fragment key={floor.id}>
                 <ThreadFloor
+                  avatarFollowDisabled={avatarFollowDisabled}
                   canQuote={!data.isActivity && data.canReply && Boolean(data.viewer)}
                   canReply={data.canReply && Boolean(data.viewer)}
                   editHref={getThreadEditHref(data.bid, data.tid, floor.floor)}

@@ -645,7 +645,7 @@
 
   .reply-preview-floor .thread-floor-author > strong {
     color: var(--text-strong);
-    font-size: 0.86rem;
+    font-size: 16px;
     font-weight: 760;
   }
 

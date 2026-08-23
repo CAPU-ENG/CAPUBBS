@@ -2,16 +2,18 @@
   .thread-page-shell {
     --thread-rail-column: 112px;
     --thread-column-gap: 24px;
+    --thread-avatar-column-offset: 72px;
+    --thread-page-main-column: var(--thread-main-column);
     position: relative;
     z-index: 10;
     width: 100%;
-    max-width: calc(var(--thread-main-column) + var(--thread-rail-column) + var(--thread-column-gap) + 32px);
+    max-width: calc(var(--thread-page-main-column) + var(--thread-rail-column) + var(--thread-column-gap) + 32px);
     margin: 0 auto;
     padding: calc(var(--topbar-height) + 18px) 16px 20px;
   }
 
   .thread-page-shell-without-assistive-bar {
-    max-width: calc(var(--thread-main-column) + 32px);
+    max-width: calc(var(--thread-page-main-column) + 32px);
   }
 
   .thread-pagination {
@@ -410,7 +412,21 @@
   }
 
   @media (min-width: 641px) {
-    .thread-avatar-follow-disabled .thread-floor-list .thread-avatar-rail {
+    .thread-avatar-follow-disabled .thread-page-shell {
+      --thread-page-main-column: calc(var(--thread-main-column) - var(--thread-avatar-column-offset));
+      width: calc(100% - var(--thread-avatar-column-offset));
+    }
+
+    .thread-avatar-follow-disabled .thread-floor {
+      grid-template-columns: minmax(0, 1fr);
+      gap: 0;
+    }
+
+    .thread-avatar-follow-disabled .thread-floor-header {
+      grid-template-columns: 44px auto minmax(0, 1fr) auto;
+    }
+
+    .thread-avatar-follow-disabled .thread-floor-header > .thread-avatar-rail {
       position: relative;
       top: auto;
     }
@@ -449,13 +465,13 @@
 
   .thread-content-layout {
     display: grid;
-    grid-template-columns: minmax(0, var(--thread-main-column)) var(--thread-rail-column);
+    grid-template-columns: minmax(0, var(--thread-page-main-column)) var(--thread-rail-column);
     gap: var(--thread-column-gap);
     margin-top: 14px;
   }
 
   .thread-page-shell-without-assistive-bar .thread-content-layout {
-    grid-template-columns: minmax(0, var(--thread-main-column));
+    grid-template-columns: minmax(0, var(--thread-page-main-column));
   }
 
   .thread-floor-list {
@@ -1006,7 +1022,7 @@
 
   .thread-floor-author a {
     color: var(--text-strong);
-    font-size: 0.86rem;
+    font-size: 16px;
     font-weight: 760;
   }
 

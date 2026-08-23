@@ -130,6 +130,7 @@ function copyAsPlainText(event: ClipboardEvent<HTMLElement>) {
 }
 
 export function ThreadFloor({
+  avatarFollowDisabled,
   canQuote,
   canReply,
   editHref,
@@ -143,6 +144,7 @@ export function ThreadFloor({
   onSubmitNestedReply,
   viewer,
 }: {
+  avatarFollowDisabled: boolean;
   canQuote: boolean;
   canReply: boolean;
   editHref: string;
@@ -310,6 +312,25 @@ export function ThreadFloor({
     else void removeNestedReply(target.reply);
   }
 
+  const avatarRail = (
+    <div
+      className={`thread-avatar-rail${authorCardOpen ? ' thread-avatar-rail-open' : ''}`}
+      ref={avatarRailRef}
+    >
+      <button
+        aria-controls={`author-card-${floor.floor}`}
+        aria-expanded={authorCardOpen}
+        aria-label={`查看${floor.author.name}的资料卡`}
+        className="thread-avatar-button"
+        onClick={() => setAuthorCardOpen((current) => !current)}
+        type="button"
+      >
+        <img src={floor.author.avatar} alt="" />
+      </button>
+      <AuthorCard author={floor.author} id={`author-card-${floor.floor}`} />
+    </div>
+  );
+
   return (
     <article
       className="thread-floor"
@@ -317,25 +338,11 @@ export function ThreadFloor({
       data-floor={floor.floor}
       onCopy={copyAsPlainText}
     >
-      <div
-        className={`thread-avatar-rail${authorCardOpen ? ' thread-avatar-rail-open' : ''}`}
-        ref={avatarRailRef}
-      >
-        <button
-          aria-controls={`author-card-${floor.floor}`}
-          aria-expanded={authorCardOpen}
-          aria-label={`查看${floor.author.name}的资料卡`}
-          className="thread-avatar-button"
-          onClick={() => setAuthorCardOpen((current) => !current)}
-          type="button"
-        >
-          <img src={floor.author.avatar} alt="" />
-        </button>
-        <AuthorCard author={floor.author} id={`author-card-${floor.floor}`} />
-      </div>
+      {!avatarFollowDisabled && avatarRail}
 
       <div className="thread-floor-main">
         <header className="thread-floor-header">
+          {avatarFollowDisabled && avatarRail}
           <div className="thread-floor-author">
             <a href={getPublicProfilePath(floor.author.name)}>
               {floor.author.name}
