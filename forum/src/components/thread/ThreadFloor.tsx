@@ -392,7 +392,7 @@ export function ThreadFloor({
               回复
             </button>
           )}
-          {(!isActivityThread || isMainPost) && (floor.canEdit ?? floor.isOwn) && (
+          {(!isActivityThread || isMainPost) && floor.isOwn && (
             <a href={editHref}>
               <Pencil size={15} />
               编辑
