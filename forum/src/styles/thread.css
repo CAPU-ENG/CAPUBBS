@@ -410,18 +410,24 @@
   }
 
   .thread-page-shell-without-assistive-bar .thread-top-pagination .thread-pagination,
-  .thread-page-shell-without-assistive-bar .thread-bottom-pagination .thread-pagination {
+  .thread-page-shell-without-assistive-bar .thread-bottom-pagination .thread-pagination,
+  .thread-page-shell-author-profile.thread-page-shell-with-assistive-bar .thread-top-pagination .thread-pagination,
+  .thread-page-shell-author-profile.thread-page-shell-with-assistive-bar .thread-bottom-pagination .thread-pagination {
     grid-template-columns: var(--thread-rail-column) minmax(0, 1fr) var(--thread-rail-column);
     gap: 0;
   }
 
   .thread-page-shell-without-assistive-bar .thread-top-pagination .thread-pagination-pages,
-  .thread-page-shell-without-assistive-bar .thread-bottom-pagination .thread-pagination-pages {
+  .thread-page-shell-without-assistive-bar .thread-bottom-pagination .thread-pagination-pages,
+  .thread-page-shell-author-profile.thread-page-shell-with-assistive-bar .thread-top-pagination .thread-pagination-pages,
+  .thread-page-shell-author-profile.thread-page-shell-with-assistive-bar .thread-bottom-pagination .thread-pagination-pages {
     grid-column: 2;
   }
 
   .thread-page-shell-without-assistive-bar .thread-top-pagination .thread-page-jump,
-  .thread-page-shell-without-assistive-bar .thread-bottom-pagination .thread-page-jump {
+  .thread-page-shell-without-assistive-bar .thread-bottom-pagination .thread-page-jump,
+  .thread-page-shell-author-profile.thread-page-shell-with-assistive-bar .thread-top-pagination .thread-page-jump,
+  .thread-page-shell-author-profile.thread-page-shell-with-assistive-bar .thread-bottom-pagination .thread-page-jump {
     grid-column: 3;
     justify-self: end;
   }
