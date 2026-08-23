@@ -4,6 +4,7 @@ import {
   Check,
   ChevronDown,
   CirclePlus,
+  ContactRound,
   ListEnd,
   MonitorCog,
   PanelRight,
@@ -28,6 +29,7 @@ import {
   useSignatureToggleEnabled,
   useWaterfallFeedEnabled,
 } from '../hooks/useAssistiveFeatures';
+import { useAuthorProfileEnabled } from '../hooks/useAuthorProfile';
 import { useAvatarFollowEnabled } from '../hooks/useAvatarFollow';
 import { useCompactMode } from '../hooks/useCompactMode';
 import { useForumContentFontSize } from '../hooks/useForumContentFontSize';
@@ -41,6 +43,7 @@ import {
   saveSignatureToggleEnabled,
   saveWaterfallFeedEnabled,
 } from '../utils/assistiveFeatures';
+import { saveAuthorProfileEnabled } from '../utils/authorProfile';
 import { saveAvatarFollowEnabled } from '../utils/avatarFollow';
 import { saveCompactMode } from '../utils/compactMode';
 import {
@@ -54,6 +57,7 @@ import { saveTopBarAutoHideEnabled } from '../utils/topBarAutoHide';
 export function SettingsPage() {
   const assistiveBarEnabled = useAssistiveBarEnabled();
   const autoSaveEnabled = useAutoSaveEnabled();
+  const authorProfileEnabled = useAuthorProfileEnabled();
   const avatarFollowEnabled = useAvatarFollowEnabled();
   const backToTopEnabled = useBackToTopEnabled();
   const compactMode = useCompactMode();
@@ -73,6 +77,10 @@ export function SettingsPage() {
   const secondaryBoardIds = new Set(SECONDARY_BOARDS.map((board) => board.id));
   const selectedSecondaryBoardCount = draftBoardIds.filter((boardId) => secondaryBoardIds.has(boardId)).length;
   const isFull = draftBoardIds.length >= MAX_PINNED_BOARDS;
+
+  useEffect(() => {
+    if (authorProfileEnabled && avatarFollowEnabled) saveAvatarFollowEnabled(false);
+  }, [authorProfileEnabled, avatarFollowEnabled]);
 
   useEffect(() => {
     const previousPinnedBoardIds = previousPinnedBoardIdsRef.current;
@@ -151,7 +159,17 @@ export function SettingsPage() {
                 onChange={saveTopBarAutoHideEnabled}
               />
               <SettingsCheckbox
-                checked={avatarFollowEnabled}
+                checked={authorProfileEnabled}
+                icon={<ContactRound size={15} />}
+                label="资料卡展示"
+                onChange={(enabled) => {
+                  saveAuthorProfileEnabled(enabled);
+                  if (enabled) saveAvatarFollowEnabled(false);
+                }}
+              />
+              <SettingsCheckbox
+                checked={!authorProfileEnabled && avatarFollowEnabled}
+                disabled={authorProfileEnabled}
                 help="滚动楼层时让发帖者头像保持可见。"
                 helpId="avatar-follow-help"
                 icon={<UserRound size={15} />}

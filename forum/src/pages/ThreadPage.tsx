@@ -16,6 +16,7 @@ import {
   useSignaturesHidden,
   useSignatureToggleEnabled,
 } from '../hooks/useAssistiveFeatures';
+import { useAuthorProfileEnabled } from '../hooks/useAuthorProfile';
 import { useAvatarFollowDisabled } from '../hooks/useAvatarFollow';
 import { useThreadTopBar } from '../hooks/useThreadTopBar';
 import { useThreadData } from '../hooks/useThreadData';
@@ -58,7 +59,9 @@ function positiveInteger(value: string | null) {
 
 export function ThreadPage() {
   const assistiveBarEnabled = useAssistiveBarEnabled();
-  const avatarFollowDisabled = useAvatarFollowDisabled();
+  const authorProfileEnabled = useAuthorProfileEnabled();
+  const avatarFollowPreferenceDisabled = useAvatarFollowDisabled();
+  const avatarFollowDisabled = authorProfileEnabled || avatarFollowPreferenceDisabled;
   const backToTopEnabled = useBackToTopEnabled();
   const topBarAutoHideEnabled = useTopBarAutoHideEnabled();
   const { viewer } = useAuth();
@@ -78,9 +81,10 @@ export function ThreadPage() {
   const threadTopBar = useThreadTopBar(titleRef, topBarAutoHideEnabled);
   const signaturesHidden = useSignaturesHidden();
   const signatureToggleEnabled = useSignatureToggleEnabled();
-  const inlineFloorAvatar = avatarFollowDisabled && !assistiveBarEnabled;
+  const inlineFloorAvatar = !authorProfileEnabled && avatarFollowDisabled && !assistiveBarEnabled;
   const threadPageShellClassName = [
     'thread-page-shell',
+    authorProfileEnabled ? 'thread-page-shell-author-profile' : 'thread-page-shell-compact-author',
     avatarFollowDisabled ? 'thread-page-shell-avatar-static' : 'thread-page-shell-avatar-sticky',
     assistiveBarEnabled ? 'thread-page-shell-with-assistive-bar' : 'thread-page-shell-without-assistive-bar',
   ].filter(Boolean).join(' ');
@@ -392,6 +396,7 @@ export function ThreadPage() {
                   isActivityThread={data.isActivity}
                   isMainPost={floor.floor === 1}
                   inlineAvatar={inlineFloorAvatar}
+                  showAuthorProfile={authorProfileEnabled}
                   onDeleteFloor={removeFloor}
                   onDeleteNestedReply={removeNestedReply}
                   onQuote={quoteFloor}

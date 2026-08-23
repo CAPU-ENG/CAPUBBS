@@ -114,6 +114,41 @@ function AuthorCard({ author, id }: { author: ThreadAuthor; id: string }) {
   );
 }
 
+function AuthorProfile({ author, isMainPost }: { author: ThreadAuthor; isMainPost: boolean }) {
+  const tags = author.tags ?? getTagsForUser(author.name);
+  const profileHref = getPublicProfilePath(author.name);
+
+  return (
+    <aside className="thread-author-profile" aria-label={`${author.name} 的资料`}>
+      <a aria-label={`查看${author.name}的个人主页`} className="thread-author-profile-avatar" href={profileHref}>
+        <img src={author.avatar} alt="" />
+      </a>
+      <div className="thread-author-profile-identity">
+        <a href={profileHref}>{author.name}</a>
+        {isMainPost && <em>楼主</em>}
+      </div>
+      {(author.stars > 0 || author.role) && (
+        <div className="thread-author-profile-status">
+          {author.stars > 0 && (
+            <span aria-label={`${author.stars} 星`}>{'★'.repeat(author.stars)}</span>
+          )}
+          {author.role && <strong>{author.role}</strong>}
+        </div>
+      )}
+      <TagList size="compact" tags={tags} />
+      <dl className="thread-author-profile-stats">
+        <div><dt>主题</dt><dd>{author.topics}</dd></div>
+        <div><dt>回复</dt><dd>{author.replies}</dd></div>
+        <div><dt>签到</dt><dd>{author.checkins}</dd></div>
+      </dl>
+      <p className="thread-author-profile-last-seen">
+        <span>最近在线</span>
+        <strong>{author.lastSeen}</strong>
+      </p>
+    </aside>
+  );
+}
+
 function formatFloorTime(value: string) {
   return value.replace(
     /^(\d{4})年(\d{2})月(\d{2})日\s+(\d{2})时(\d{2})分(\d{2})秒$/,
@@ -137,6 +172,7 @@ export function ThreadFloor({
   isActivityThread,
   isMainPost,
   inlineAvatar,
+  showAuthorProfile,
   hideSignature,
   onDeleteFloor,
   onDeleteNestedReply,
@@ -151,6 +187,7 @@ export function ThreadFloor({
   isActivityThread: boolean;
   isMainPost: boolean;
   inlineAvatar: boolean;
+  showAuthorProfile: boolean;
   hideSignature: boolean;
   onDeleteFloor: (floor: ThreadFloorData) => Promise<void>;
   onDeleteNestedReply: (floor: ThreadFloorData, reply: NestedReply) => Promise<void>;
@@ -333,16 +370,18 @@ export function ThreadFloor({
 
   return (
     <article
-      className="thread-floor"
+      className={`thread-floor${showAuthorProfile ? ' thread-floor-with-author-profile' : ''}`}
       id={String(floor.floor)}
       data-floor={floor.floor}
       onCopy={copyAsPlainText}
     >
-      {!inlineAvatar && avatarRail}
+      {showAuthorProfile
+        ? <AuthorProfile author={floor.author} isMainPost={isMainPost} />
+        : !inlineAvatar && avatarRail}
 
       <div className="thread-floor-main">
         <header className="thread-floor-header">
-          {inlineAvatar && avatarRail}
+          {!showAuthorProfile && inlineAvatar && avatarRail}
           <div className="thread-floor-author">
             <a href={getPublicProfilePath(floor.author.name)}>
               {floor.author.name}
