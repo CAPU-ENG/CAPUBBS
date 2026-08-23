@@ -7,7 +7,7 @@
   }
 
   .user-tag-list .user-tag {
-    border-radius: var(--control-radius);
+    border-radius: var(--small-card-radius);
     padding: 2px 6px;
   }
 
@@ -16,7 +16,7 @@
     align-items: center;
     max-width: 100%;
     border: 1px solid color-mix(in srgb, var(--user-tag-color) 32%, var(--line));
-    border-radius: 999px;
+    border-radius: var(--small-card-radius);
     padding: 3px 7px;
     background: color-mix(in srgb, var(--user-tag-color) 10%, var(--surface-raised));
     color: color-mix(in srgb, var(--user-tag-color) 86%, var(--text-strong));
@@ -40,7 +40,7 @@
   .user-tag-micro {
     min-width: 0;
     overflow: hidden;
-    border-radius: 2px;
+    border-radius: var(--small-card-radius);
     padding: 1px 3px;
     font-size: 8px;
     text-overflow: ellipsis;

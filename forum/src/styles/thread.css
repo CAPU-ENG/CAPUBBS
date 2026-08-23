@@ -216,7 +216,7 @@
   .thread-title-card {
     width: 100%;
     border: 1px solid var(--line);
-    border-radius: 2px;
+    border-radius: var(--card-radius);
     padding: 24px 26px 18px;
     background: var(--surface);
     box-shadow: var(--shadow-card);
@@ -834,7 +834,7 @@
     gap: 14px;
     scroll-margin-top: calc(var(--topbar-height) + 16px);
     border: 1px solid var(--line);
-    border-radius: 2px;
+    border-radius: var(--card-radius);
     padding: 20px 22px 18px 16px;
     background: var(--surface);
     box-shadow: var(--shadow-card);
@@ -1049,7 +1049,7 @@
     display: none;
     width: 260px;
     border: 1px solid var(--line-strong);
-    border-radius: 2px;
+    border-radius: var(--card-radius);
     padding: 16px;
     background: var(--surface-raised);
     box-shadow: var(--shadow-float);

@@ -3,7 +3,9 @@
     color-scheme: light;
     --topbar-height: 64px;
     --thread-main-column: 836px;
-    --control-radius: 0.5px;
+    --card-radius: 2px;
+    --small-card-radius: 0.5px;
+    --control-radius: var(--small-card-radius);
     --ui-font-size-xs: 0.75rem;
     --ui-font-size-sm: 0.8125rem;
     --ui-font-size-md: 0.875rem;
