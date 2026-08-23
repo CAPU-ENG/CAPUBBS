@@ -13,10 +13,11 @@ import {
 import { AppBackground } from '../components/layout/AppBackground';
 import { TopBar } from '../components/layout/TopBar';
 import { AvatarDialog, EmailDialog, SecurityDialog } from '../components/profile/ProfileDialogs';
-import { ProfileOverview, type ProfileDraft } from '../components/profile/ProfileOverview';
+import { ProfileOverview, type ProfileDraft, type ProfileTextDraftKey } from '../components/profile/ProfileOverview';
 import { ProfileWorkspace } from '../components/profile/ProfileWorkspace';
 import { useAuth } from '../context/AuthContext';
 import type { ProfileDetail, ProfileRecordMap } from '../data/profileDemo';
+import type { UserTag } from '../data/tags';
 import { useUserCenterProfile } from '../hooks/useProfileData';
 import {
   deleteStoredReplyDraftForThread,
@@ -55,6 +56,7 @@ export function UserCenterPage() {
   const [cachedAvatarSrc, setCachedAvatarSrc] = useState<string | null>(null);
   const [openDialog, setOpenDialog] = useState<OpenDialog>(() => window.location.hash === '#account-security' ? 'security' : null);
   const [notice, setNotice] = useState<PageNotice>(null);
+  const [tagHintVisible, setTagHintVisible] = useState(false);
   const email = useMemo(
     () => profile?.details.find((detail) => detail.key === 'email')?.value ?? '',
     [profile?.details],
@@ -73,7 +75,7 @@ export function UserCenterPage() {
 
   useEffect(() => {
     if (!profile || isEditing) return;
-    setDraft(createDraft(profile.details, profile.intro));
+    setDraft(createDraft(profile.details, profile.intro, profile.tags));
   }, [isEditing, profile]);
 
   useEffect(() => {
@@ -164,15 +166,26 @@ export function UserCenterPage() {
     }
   }
 
-  function updateDraft(key: keyof ProfileDraft, value: string) {
+  function updateDraft(key: ProfileTextDraftKey, value: string) {
     setDraft((current) => ({ ...current, [key]: value }));
+  }
+
+  function toggleDisplayTag(tagId: string) {
+    setDraft((current) => {
+      if (current.displayTagIds.includes(tagId)) {
+        return { ...current, displayTagIds: current.displayTagIds.filter((id) => id !== tagId) };
+      }
+      if (current.displayTagIds.length >= 2) return current;
+      return { ...current, displayTagIds: [...current.displayTagIds, tagId] };
+    });
   }
 
   async function toggleEdit() {
     if (!profile || isSavingProfile) return;
     if (!isEditing) {
-      setDraft(createDraft(profile.details, profile.intro));
+      setDraft(createDraft(profile.details, profile.intro, profile.tags));
       setNotice(null);
+      setTagHintVisible(Boolean(profile.tags?.length));
       setIsEditing(true);
       return;
     }
@@ -182,6 +195,7 @@ export function UserCenterPage() {
       const updatedProfile = await updateProfileDetails(draft);
       profileState.replace(updatedProfile);
       setIsEditing(false);
+      setTagHintVisible(false);
       setNotice({ message: '资料保存成功', tone: 'success' });
     } catch (error) {
       setNotice({ message: getPageError(error, '资料保存失败'), tone: 'error' });
@@ -192,8 +206,9 @@ export function UserCenterPage() {
 
   function cancelEdit() {
     if (!profile || isSavingProfile) return;
-    setDraft(createDraft(profile.details, profile.intro));
+    setDraft(createDraft(profile.details, profile.intro, profile.tags));
     setIsEditing(false);
+    setTagHintVisible(false);
   }
 
   if (!profile) {
@@ -229,6 +244,9 @@ export function UserCenterPage() {
           onEditToggle={() => { void toggleEdit(); }}
           onOpenEmail={() => setOpenDialog('email')}
           onOpenSecurity={() => setOpenDialog('security')}
+          onTagHintClose={() => setTagHintVisible(false)}
+          onTagToggle={toggleDisplayTag}
+          tagHintVisible={tagHintVisible}
         />
 
         {notice ? createPortal(
@@ -338,8 +356,13 @@ function ProfileLoadPage({
   );
 }
 
-function createDraft(details: ProfileDetail[], intro: string): ProfileDraft {
+function createDraft(details: ProfileDetail[], intro: string, tags: UserTag[] | undefined): ProfileDraft {
   return {
+    displayTagIds: [...(tags ?? [])]
+      .filter((tag) => tag.displayOrder === 1 || tag.displayOrder === 2)
+      .sort((left, right) => left.displayOrder! - right.displayOrder!)
+      .slice(0, 2)
+      .map((tag) => tag.id),
     hobby: details.find((detail) => detail.key === 'hobby')?.value ?? '',
     intro,
     location: details.find((detail) => detail.key === 'location')?.value ?? '',
@@ -348,7 +371,7 @@ function createDraft(details: ProfileDetail[], intro: string): ProfileDraft {
 }
 
 function emptyDraft(): ProfileDraft {
-  return { hobby: '', intro: '', location: '', qq: '' };
+  return { displayTagIds: [], hobby: '', intro: '', location: '', qq: '' };
 }
 
 function mapReplyDraftRecord(draft: StoredReplyDraft) {

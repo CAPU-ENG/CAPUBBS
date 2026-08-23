@@ -1,17 +1,20 @@
-import { AtSign, Bike, Edit3, ExternalLink, Mail, MapPin, MessageCircle, ShieldCheck } from 'lucide-react';
+import { AtSign, Bike, Edit3, ExternalLink, Info, Mail, MapPin, MessageCircle, ShieldCheck, X } from 'lucide-react';
 import { useState, type ComponentType, type SVGProps } from 'react';
 import type { ProfileDetailKey, ProfileViewData } from '../../data/profileDemo';
-import { getTagsForUser } from '../../data/tags';
+import { getDisplayedTags, getTagsForUser } from '../../data/tags';
 import { USER_CENTER_PATH } from '../../utils/userRoutes';
 import { StarRulesDialog } from './ProfileDialogs';
 import { TagList } from '../tags/TagBadge';
 
 export type ProfileDraft = {
+  displayTagIds: string[];
   hobby: string;
   intro: string;
   location: string;
   qq: string;
 };
+
+export type ProfileTextDraftKey = Exclude<keyof ProfileDraft, 'displayTagIds'>;
 
 type ProfileOverviewProps = {
   actionsDisabled?: boolean;
@@ -23,12 +26,15 @@ type ProfileOverviewProps = {
   mode: 'private' | 'public';
   onAvatarClick?: () => void;
   onCancelEdit?: () => void;
-  onDraftChange?: (key: keyof ProfileDraft, value: string) => void;
+  onDraftChange?: (key: ProfileTextDraftKey, value: string) => void;
   onEditToggle?: () => void;
   onOpenEmail?: () => void;
   onOpenSecurity?: () => void;
   onPrivateMessage?: () => void;
+  onTagHintClose?: () => void;
+  onTagToggle?: (tagId: string) => void;
   profile: ProfileViewData;
+  tagHintVisible?: boolean;
 };
 
 const detailIcons: Record<ProfileDetailKey, ComponentType<SVGProps<SVGSVGElement>>> = {
@@ -53,12 +59,18 @@ export function ProfileOverview({
   onOpenEmail,
   onOpenSecurity,
   onPrivateMessage,
+  onTagHintClose,
+  onTagToggle,
   profile,
+  tagHintVisible = false,
 }: ProfileOverviewProps) {
   const privateMode = mode === 'private';
   const [starRulesOpen, setStarRulesOpen] = useState(false);
   const visibleIntro = isEditing && draft ? draft.intro : profile.intro;
   const tags = profile.tags ?? getTagsForUser(profile.id);
+  const selectedTagIds = isEditing && draft
+    ? draft.displayTagIds
+    : getDisplayedTags(tags).map((tag) => tag.id);
   const details = profile.details.map((detail) => {
     if (detail.key === 'email') {
       if (privateMode || isOwnPublicProfile) return detail;
@@ -66,7 +78,7 @@ export function ProfileOverview({
     }
 
     if (isEditing && draft && detail.key in draft) {
-      return { ...detail, value: draft[detail.key as keyof ProfileDraft] };
+      return { ...detail, value: draft[detail.key as ProfileTextDraftKey] };
     }
 
     return detail;
@@ -117,7 +129,26 @@ export function ProfileOverview({
             ) : (
               <p className="profile-intro">{visibleIntro || '暂未填写个人简介。'}</p>
             )}
-            <TagList tags={tags} />
+            {isEditing && draft ? (
+              <div aria-label="会员标签" className="profile-tag-selector">
+                {tags.map((tag) => {
+                  const selected = selectedTagIds.includes(tag.id);
+                  return (
+                    <button
+                      aria-pressed={selected}
+                      disabled={actionsDisabled || (!selected && selectedTagIds.length >= 2)}
+                      key={tag.id}
+                      onClick={() => onTagToggle?.(tag.id)}
+                      type="button"
+                    >
+                      <TagList selectedTagIds={selected ? [tag.id] : []} tags={[tag]} />
+                    </button>
+                  );
+                })}
+              </div>
+            ) : (
+              <TagList selectedTagIds={selectedTagIds} tags={tags} />
+            )}
           </div>
         </div>
 
@@ -147,6 +178,14 @@ export function ProfileOverview({
         </div>
       </section>
 
+      {privateMode && isEditing && tags.length > 0 && tagHintVisible ? (
+        <div className="profile-tag-hint" role="status">
+          <Info aria-hidden="true" size={15} />
+          <span>可以点选标签选择展示，最多两个</span>
+          <button aria-label="关闭标签选择提示" onClick={onTagHintClose} type="button"><X size={15} /></button>
+        </div>
+      ) : null}
+
       <div className="profile-detail-grid">
         {details.map((detail) => {
           const Icon = detailIcons[detail.key];
@@ -167,7 +206,7 @@ export function ProfileOverview({
                 <input
                   aria-label={detail.label}
                   value={detail.value}
-                  onChange={(event) => onDraftChange?.(detail.key as keyof ProfileDraft, event.target.value)}
+                  onChange={(event) => onDraftChange?.(detail.key as ProfileTextDraftKey, event.target.value)}
                 />
               ) : (
                 <div className={`profile-data-value ${detail.value === '未公开' ? 'profile-data-private' : ''}`}>

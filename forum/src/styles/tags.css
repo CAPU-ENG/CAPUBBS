@@ -37,8 +37,40 @@
     font-size: var(--ui-font-size-xs);
   }
 
+  .user-tag-micro {
+    min-width: 0;
+    overflow: hidden;
+    padding: 1px 4px;
+    font-size: 9px;
+    text-overflow: ellipsis;
+  }
+
   .user-tag-list .user-tag-compact {
     padding: 2px 5px;
+  }
+
+  .user-displayed-tag-list {
+    display: flex;
+    min-width: 0;
+    max-width: 100%;
+    align-items: center;
+    flex-wrap: nowrap;
+    gap: 3px;
+    overflow: hidden;
+  }
+
+  .user-displayed-tag-list > .user-tag {
+    min-width: 0;
+    flex: 0 1 auto;
+  }
+
+  .user-tag-overflow {
+    flex: 0 0 auto;
+    color: var(--text-faint);
+    font-size: 9px;
+    font-weight: 760;
+    line-height: 1.1;
+    white-space: nowrap;
   }
 
   .profile-identity-copy > .user-tag-list {

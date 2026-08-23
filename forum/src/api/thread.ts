@@ -938,9 +938,11 @@ function mapThreadTags(value: unknown): UserTag[] {
       if (!id || !name) return null;
 
       const addedAt = timestampToIso(row.added_at);
+      const displayOrder = nonNegativeInteger(row.display_order);
       return {
         addedAt: addedAt || undefined,
         color: stringValue(row.color) || '#69747c',
+        displayOrder: displayOrder === 1 || displayOrder === 2 ? displayOrder : undefined,
         id,
         name,
       };

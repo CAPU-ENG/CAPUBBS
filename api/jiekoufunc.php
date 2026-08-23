@@ -1051,6 +1051,41 @@ function jiekoufunc_edituser($con, $token, $ip, $params) {
     }
     $username = $a['username'];
     $username_esc = mysqli_real_escape_string($con, $username);
+    $display_tag_ids = null;
+    if (array_key_exists('display_tag_ids', $params)) {
+        if (is_array($params['display_tag_ids'])) {
+            return jiekoufunc_report('14', '佩戴标签参数格式错误。');
+        }
+        $display_tag_ids = array();
+        $raw_display_tag_ids = trim(strval($params['display_tag_ids']));
+        if ($raw_display_tag_ids !== '') {
+            $parts = preg_split('/[,\s]+/', $raw_display_tag_ids, -1, PREG_SPLIT_NO_EMPTY);
+            foreach ($parts as $part) {
+                if (!preg_match('/^\d+$/', $part) || intval($part) <= 0) {
+                    return jiekoufunc_report('14', '佩戴标签参数格式错误。');
+                }
+                $tag_id = intval($part);
+                if (!in_array($tag_id, $display_tag_ids, true)) {
+                    $display_tag_ids[] = $tag_id;
+                }
+            }
+        }
+        if (count($display_tag_ids) > 2) {
+            return jiekoufunc_report('14', '最多只能佩戴两个标签。');
+        }
+        $display_table_check = mysqli_query($con, "SELECT 1 FROM user_tag_displays LIMIT 1");
+        if (!$display_table_check) {
+            return jiekoufunc_report('8', '佩戴标签功能尚未完成数据库初始化。');
+        }
+        if (!empty($display_tag_ids)) {
+            $owned_result = mysqli_query($con,
+                "SELECT tag_id FROM user_tag_members
+                 WHERE username='$username_esc' AND tag_id IN (" . implode(',', $display_tag_ids) . ")");
+            if (!$owned_result || mysqli_num_rows($owned_result) !== count($display_tag_ids)) {
+                return jiekoufunc_report('14', '只能佩戴自己拥有的标签。');
+            }
+        }
+    }
     $sig1 = isset($params['sig1']) ? mysqli_real_escape_string($con, sanitize_xml($params['sig1'])) : '';
     $sig2 = isset($params['sig2']) ? mysqli_real_escape_string($con, sanitize_xml($params['sig2'])) : '';
     $sig3 = isset($params['sig3']) ? mysqli_real_escape_string($con, sanitize_xml($params['sig3'])) : '';
@@ -1084,6 +1119,23 @@ function jiekoufunc_edituser($con, $token, $ip, $params) {
     $upsert_err = upsert_user_sigs($con, $username_esc, $sig_vals, $sig_type_vals);
     if ($upsert_err !== null) {
         return array(array('code' => '1', 'error' => '保存签名档失败: ' . $upsert_err));
+    }
+    if ($display_tag_ids !== null) {
+        mysqli_begin_transaction($con);
+        if (!mysqli_query($con, "DELETE FROM user_tag_displays WHERE username='$username_esc'")) {
+            mysqli_rollback($con);
+            return jiekoufunc_report('8', '保存佩戴标签失败。');
+        }
+        foreach ($display_tag_ids as $index => $tag_id) {
+            $display_order = $index + 1;
+            if (!mysqli_query($con,
+                "INSERT INTO user_tag_displays (username, tag_id, display_order)
+                 VALUES ('$username_esc', $tag_id, $display_order)")) {
+                mysqli_rollback($con);
+                return jiekoufunc_report('8', '保存佩戴标签失败。');
+            }
+        }
+        mysqli_commit($con);
     }
     return array(array('code' => '0', 'username' => $username));
 }

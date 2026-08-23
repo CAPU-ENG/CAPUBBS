@@ -22,6 +22,7 @@ type ApiRow = Record<string, unknown>;
 
 type EditUserOverrides = {
   details?: {
+    displayTagIds: string[];
     hobby: string;
     intro: string;
     location: string;
@@ -184,7 +185,7 @@ async function editUser(row: ApiRow, overrides: EditUserOverrides) {
     normalizeSignatureType(row.sig3_type),
   ];
 
-  await requestData({
+  const params: Record<string, string | number> = {
     ask: 'edituser',
     hobby: details?.hobby ?? stringValue(row.hobby),
     icon: overrides.icon ?? stringValue(row.icon),
@@ -199,7 +200,9 @@ async function editUser(row: ApiRow, overrides: EditUserOverrides) {
     sig2_type: signatureTypes[1] ?? 'null',
     sig3: signatureValues[2] ?? '',
     sig3_type: signatureTypes[2] ?? 'null',
-  });
+  };
+  if (details) params.display_tag_ids = details.displayTagIds.join(',');
+  await requestData(params);
 }
 
 async function uploadAvatarDataUrl(dataUrl: string) {
@@ -359,9 +362,11 @@ function mapProfileTags(value: unknown): UserTag[] {
       if (!id || !name) return null;
 
       const addedAt = timestampToIso(item.added_at);
+      const displayOrder = numberValue(item.display_order);
       return {
         addedAt: addedAt || undefined,
         color: stringValue(item.color) || '#69747c',
+        displayOrder: displayOrder === 1 || displayOrder === 2 ? displayOrder : undefined,
         id,
         name,
       };

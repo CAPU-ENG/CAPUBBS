@@ -11,7 +11,7 @@ import {
   X,
 } from 'lucide-react';
 import type { NestedReply, ThreadAuthor, ThreadFloorData } from '../../data/threadDemo';
-import { getTagsForUser } from '../../data/tags';
+import { getDisplayedTags, getTagsForUser } from '../../data/tags';
 import { writeClipboardText } from '../../utils/clipboard';
 import { getPublicProfilePath } from '../../utils/userRoutes';
 import {
@@ -22,7 +22,7 @@ import {
 } from './ForumMarkup';
 import { ThreadImageLightbox } from './ThreadImageLightbox';
 import { ThreadPostContent } from './ThreadPostContent';
-import { TagList } from '../tags/TagBadge';
+import { DisplayedTagList, TagList } from '../tags/TagBadge';
 
 type DeleteDialogTarget =
   | { kind: 'floor' }
@@ -116,6 +116,8 @@ function AuthorCard({ author, id }: { author: ThreadAuthor; id: string }) {
 
 function AuthorProfile({ author }: { author: ThreadAuthor }) {
   const tags = author.tags ?? getTagsForUser(author.name);
+  const displayedTags = getDisplayedTags(tags);
+  const overflowCount = displayedTags.length > 0 ? Math.max(0, tags.length - displayedTags.length) : 0;
   const profileHref = getPublicProfilePath(author.name);
 
   return (
@@ -134,7 +136,7 @@ function AuthorProfile({ author }: { author: ThreadAuthor }) {
           {author.role && <strong>{author.role}</strong>}
         </div>
       )}
-      <TagList size="compact" tags={tags} />
+      <DisplayedTagList overflowCount={overflowCount} tags={displayedTags} />
       <dl className="thread-author-profile-stats">
         <div><dt>主题</dt><dd>{author.topics}</dd></div>
         <div><dt>回复</dt><dd>{author.replies}</dd></div>
@@ -222,6 +224,8 @@ export function ThreadFloor({
     && !isMainPost
     && /<\s*(?:s|strike)\b/i.test(floor.contentHtml ?? '');
   const bodyClassName = `thread-floor-body${isActivitySignupCanceled ? ' capubbs-activity-signup-canceled' : ''}`;
+  const floorAuthorTags = floor.author.tags ?? getTagsForUser(floor.author.name);
+  const floorAuthorDisplayedTags = getDisplayedTags(floorAuthorTags);
 
   useEffect(() => {
     return () => {
@@ -403,6 +407,7 @@ export function ThreadFloor({
             <a href={getPublicProfilePath(floor.author.name)}>
               {floor.author.name}
             </a>
+            <DisplayedTagList tags={floorAuthorDisplayedTags} />
           </div>
           <div className="thread-floor-time">
             <time>{formatFloorTime(floor.publishedAt)}</time>

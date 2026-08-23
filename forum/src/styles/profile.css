@@ -188,6 +188,61 @@
     line-height: 1.75;
   }
 
+  .profile-tag-selector {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 5px;
+    margin-top: 9px;
+  }
+
+  .profile-tag-selector button {
+    display: inline-flex;
+    min-width: 0;
+  }
+
+  .profile-tag-selector button:focus-visible {
+    outline: 2px solid var(--brand);
+    outline-offset: 2px;
+  }
+
+  .profile-tag-selector button:disabled {
+    cursor: not-allowed;
+    opacity: 0.42;
+  }
+
+  .profile-tag-hint {
+    display: grid;
+    min-height: 38px;
+    grid-template-columns: auto minmax(0, 1fr) 30px;
+    align-items: center;
+    gap: 8px;
+    border: 1px solid color-mix(in srgb, var(--brand) 28%, var(--line));
+    padding: 3px 5px 3px 11px;
+    background: var(--brand-faint);
+    color: var(--brand-strong);
+    font-size: var(--ui-font-size-lg);
+    font-weight: 680;
+  }
+
+  .profile-tag-hint > button {
+    display: grid;
+    width: 30px;
+    height: 30px;
+    place-items: center;
+    color: var(--text-faint);
+  }
+
+  .profile-tag-hint > button:hover {
+    background: color-mix(in srgb, var(--brand) 10%, transparent);
+    color: var(--brand-strong);
+  }
+
+  .profile-tag-hint > button:focus-visible {
+    outline: 2px solid var(--brand);
+    outline-offset: 1px;
+  }
+
   .profile-intro-editor {
     display: grid;
     gap: 6px;

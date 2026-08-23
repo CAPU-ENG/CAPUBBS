@@ -1,5 +1,6 @@
 export type UserTag = {
   addedAt?: string;
+  displayOrder?: number;
   id: string;
   name: string;
   color: string;
@@ -91,6 +92,13 @@ export function getTagsForUser(username: string, definitions = readTagDefinition
       return definition ? { ...definition, addedAt } : null;
     })
     .filter((tag): tag is TagDefinition & { addedAt: string } => Boolean(tag));
+}
+
+export function getDisplayedTags(tags: UserTag[]): UserTag[] {
+  return tags
+    .filter((tag) => tag.displayOrder === 1 || tag.displayOrder === 2)
+    .sort((left, right) => left.displayOrder! - right.displayOrder!)
+    .slice(0, 2);
 }
 
 function isTagDefinition(value: unknown): value is TagDefinition {
