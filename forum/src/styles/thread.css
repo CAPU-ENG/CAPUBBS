@@ -412,8 +412,8 @@
   }
 
   @media (min-width: 641px) {
-    .thread-page-shell-avatar-static.thread-page-shell-with-assistive-bar {
-      --thread-rail-column: 88px;
+    .thread-page-shell-avatar-static.thread-page-shell-with-assistive-bar .thread-floor {
+      padding-right: 40px;
     }
 
     .thread-page-shell-avatar-static .thread-floor-list .thread-avatar-rail {
