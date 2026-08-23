@@ -16,6 +16,7 @@ import {
   useSignaturesHidden,
   useSignatureToggleEnabled,
 } from '../hooks/useAssistiveFeatures';
+import { useAvatarFollowDisabled } from '../hooks/useAvatarFollow';
 import { useScrollContextTitle } from '../hooks/useScrollContextTitle';
 import { useThreadData } from '../hooks/useThreadData';
 import { saveSignaturesHidden } from '../utils/assistiveFeatures';
@@ -56,6 +57,7 @@ function positiveInteger(value: string | null) {
 
 export function ThreadPage() {
   const assistiveBarEnabled = useAssistiveBarEnabled();
+  const avatarFollowDisabled = useAvatarFollowDisabled();
   const backToTopEnabled = useBackToTopEnabled();
   const { viewer } = useAuth();
   const request = getThreadRequest();
@@ -251,7 +253,7 @@ export function ThreadPage() {
 
   if (!data) {
     return (
-      <div className="relative min-h-screen text-[var(--text)] transition-colors duration-200">
+      <div className={`relative min-h-screen text-[var(--text)] transition-colors duration-200${avatarFollowDisabled ? ' thread-avatar-follow-disabled' : ''}`}>
         <AppBackground />
         <TopBar />
         <main className="thread-page-shell">
@@ -294,7 +296,7 @@ export function ThreadPage() {
   );
 
   return (
-    <div className="relative min-h-screen text-[var(--text)] transition-colors duration-200">
+    <div className={`relative min-h-screen text-[var(--text)] transition-colors duration-200${avatarFollowDisabled ? ' thread-avatar-follow-disabled' : ''}`}>
       <AppBackground />
       <TopBar
         contextHref="#thread-title"

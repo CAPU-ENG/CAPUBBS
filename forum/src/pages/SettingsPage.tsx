@@ -10,6 +10,7 @@ import {
   useSignatureToggleEnabled,
   useWaterfallFeedEnabled,
 } from '../hooks/useAssistiveFeatures';
+import { useAvatarFollowDisabled } from '../hooks/useAvatarFollow';
 import { useCompactMode } from '../hooks/useCompactMode';
 import { useForumContentFontSize } from '../hooks/useForumContentFontSize';
 import { usePinnedBoardIds } from '../hooks/usePinnedBoards';
@@ -21,6 +22,7 @@ import {
   saveSignatureToggleEnabled,
   saveWaterfallFeedEnabled,
 } from '../utils/assistiveFeatures';
+import { saveAvatarFollowDisabled } from '../utils/avatarFollow';
 import { saveCompactMode } from '../utils/compactMode';
 import {
   FORUM_CONTENT_FONT_SIZE_OPTIONS,
@@ -32,6 +34,7 @@ import { saveThemeFollowsSystem } from '../utils/theme';
 export function SettingsPage() {
   const assistiveBarEnabled = useAssistiveBarEnabled();
   const autoSaveEnabled = useAutoSaveEnabled();
+  const avatarFollowDisabled = useAvatarFollowDisabled();
   const backToTopEnabled = useBackToTopEnabled();
   const compactMode = useCompactMode();
   const forumContentFontSize = useForumContentFontSize();
@@ -140,6 +143,18 @@ export function SettingsPage() {
                     首页主题列表会缩小行高，只保留标题、作者和时间，隐藏摘要、头像、回复数与浏览数。
                   </span>
                 </span>
+              </div>
+
+              <div className="settings-checkbox-row">
+                <label className="settings-checkbox-option">
+                  <input
+                    checked={avatarFollowDisabled}
+                    onChange={(event) => saveAvatarFollowDisabled(event.target.checked)}
+                    type="checkbox"
+                  />
+                  <span className="settings-checkbox-mark" aria-hidden="true"><Check size={14} /></span>
+                  <span><strong>取消头像跟随</strong></span>
+                </label>
               </div>
             </div>
 

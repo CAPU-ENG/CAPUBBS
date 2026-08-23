@@ -404,6 +404,11 @@
   }
 
   @media (min-width: 641px) {
+    .thread-avatar-follow-disabled .thread-floor-list .thread-avatar-rail {
+      position: relative;
+      top: auto;
+    }
+
     .thread-page-shell-without-assistive-bar .thread-top-pagination .thread-page-jump,
     .thread-page-shell-without-assistive-bar .thread-bottom-pagination .thread-page-jump {
       padding-right: 26px;
