@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict';
+import { readFileSync } from 'node:fs';
 import { appendFloorQuote } from './src/utils/floorQuote.ts';
 
 const target = {
@@ -22,4 +23,16 @@ assert.match(rich.content, /<a class="capubbs-floor-quote-jump" href="\/\?bid=4&
 const empty = { content: '<p>原文</p>', mode: 'rich' };
 assert.equal(appendFloorQuote(empty, { ...target, quote: '   ' }), empty);
 
-console.log('floor quote verification passed (7 assertions)');
+for (const stylesheet of [
+  './src/styles/thread.css',
+  './src/styles/thread-html-frame.css',
+]) {
+  const css = readFileSync(new URL(stylesheet, import.meta.url), 'utf8');
+  assert.match(
+    css,
+    /\.forum-markup \.capubbs-floor-quote-jump\s*\{[^}]*margin-left:\s*0\.75em;/,
+    `${stylesheet} must separate the author ID and floor jump link`,
+  );
+}
+
+console.log('floor quote verification passed (9 assertions)');

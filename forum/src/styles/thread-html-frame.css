@@ -150,6 +150,10 @@ table {
   color: var(--text-muted);
 }
 
+.forum-markup .capubbs-floor-quote-jump {
+  margin-left: 0.75em;
+}
+
 .forum-markup .forum-legacy-quote-content {
   margin: 0;
 }
