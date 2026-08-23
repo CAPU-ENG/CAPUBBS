@@ -490,6 +490,7 @@ function jiekoufunc_management_tag_members_add($con, $token, $params) {
         mysqli_begin_transaction($con);
         $operator_escaped = mysqli_real_escape_string($con, $operator);
         $notification = '为你添加了“' . $tag['name'] . '”标签，可前往个人中心查看。';
+        $added_usernames = array();
         $now = time();
         foreach ($insertable as $username) {
             $username_escaped = mysqli_real_escape_string($con, $username);
@@ -501,10 +502,7 @@ function jiekoufunc_management_tag_members_add($con, $token, $params) {
                 return jiekoufunc_report('8', '批量添加标签会员失败。');
             }
             if (mysqli_affected_rows($con) === 1) {
-                if (!jiekoufunc_insertmsg($con, 'system', $username, $notification, 0, 0, 0, $operator, $tag['name'])) {
-                    mysqli_rollback($con);
-                    return jiekoufunc_report('8', '发送标签通知失败，未完成本次添加。');
-                }
+                $added_usernames[] = $username;
                 $results[jiekoufunc_tag_username_key($username)] = array(
                     'username' => $username,
                     'status' => 'added',
@@ -522,6 +520,34 @@ function jiekoufunc_management_tag_members_add($con, $token, $params) {
             }
         }
         mysqli_commit($con);
+
+        $notification_failures = 0;
+        foreach ($added_usernames as $username) {
+            try {
+                $notification_sent = jiekoufunc_insertmsg(
+                    $con,
+                    'system',
+                    $username,
+                    $notification,
+                    0,
+                    0,
+                    0,
+                    $operator,
+                    $tag['name']
+                );
+            } catch (mysqli_sql_exception $error) {
+                $notification_sent = false;
+            }
+            if (!$notification_sent) {
+                $notification_failures++;
+            }
+        }
+        if ($notification_failures > 0) {
+            return jiekoufunc_report(
+                '8',
+                "标签已添加，但有{$notification_failures}位会员的系统通知发送失败。"
+            );
+        }
     }
 
     $ordered_results = array();
