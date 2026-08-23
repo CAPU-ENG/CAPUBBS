@@ -607,16 +607,104 @@
     box-shadow: 0 0 0 2px color-mix(in srgb, var(--brand) 13%, transparent);
   }
 
-  .archive-room-file-picker input {
-    height: auto;
-    padding: 8px;
+  .archive-room-dialog-body .archive-room-upload-picker {
+    display: flex;
+    min-height: 72px;
+    align-items: center;
+    gap: 11px;
+    border: 1px solid var(--line-strong);
+    border-radius: var(--control-radius);
+    padding: 10px 11px;
+    cursor: pointer;
+    background: var(--surface-soft);
   }
 
-  .archive-room-file-picker span {
+  .archive-room-dialog-body .archive-room-upload-picker:hover,
+  .archive-room-dialog-body .archive-room-upload-picker:focus-within {
+    border-color: var(--brand);
+    background: var(--brand-faint);
+  }
+
+  .archive-room-upload-picker input {
+    position: absolute;
+    width: 1px;
+    height: 1px;
     overflow: hidden;
-    color: var(--text-faint);
+    clip: rect(0 0 0 0);
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+
+  .archive-room-upload-picker-icon {
+    display: inline-flex;
+    width: 38px;
+    height: 38px;
+    flex-shrink: 0;
+    align-items: center;
+    justify-content: center;
+    border-radius: var(--control-radius);
+    color: var(--brand-strong);
+    background: var(--brand-faint);
+  }
+
+  .archive-room-upload-picker-main {
+    display: grid;
+    min-width: 0;
+    flex: 1;
+    gap: 4px;
+  }
+
+  .archive-room-upload-picker-main strong,
+  .archive-room-upload-picker-main small {
+    overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
+  }
+
+  .archive-room-upload-picker-main strong {
+    color: var(--text-strong);
+    font-size: 0.8rem;
+    font-weight: 720;
+  }
+
+  .archive-room-upload-picker-main small {
+    color: var(--text-faint);
+    font-size: 0.7rem;
+  }
+
+  .archive-room-upload-picker-command {
+    flex-shrink: 0;
+    color: var(--brand-strong);
+    font-size: 0.72rem;
+    font-weight: 720;
+  }
+
+  .archive-room-dialog-body .archive-room-link-input {
+    display: flex;
+    height: 36px;
+    align-items: center;
+    gap: 8px;
+    border: 1px solid var(--line-strong);
+    border-radius: var(--control-radius);
+    padding: 0 10px;
+    color: var(--text-faint);
+    background: var(--surface-soft);
+  }
+
+  .archive-room-dialog-body .archive-room-link-input:focus-within {
+    border-color: var(--brand);
+    color: var(--brand-strong);
+    box-shadow: 0 0 0 2px color-mix(in srgb, var(--brand) 13%, transparent);
+  }
+
+  .archive-room-dialog-body .archive-room-link-input input {
+    height: 34px;
+    min-width: 0;
+    flex: 1;
+    border: 0;
+    padding: 0;
+    background: transparent;
+    box-shadow: none;
   }
 
   .archive-room-upload-progress {
@@ -631,6 +719,13 @@
     justify-content: space-between;
     color: var(--text-muted);
     font-size: 0.76rem;
+  }
+
+  .archive-room-upload-progress-label > span:first-child {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
   }
 
   .archive-room-upload-progress-label strong {

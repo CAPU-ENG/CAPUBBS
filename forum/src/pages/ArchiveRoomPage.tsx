@@ -1,7 +1,7 @@
 import {
   AlertTriangle, Archive, ArrowDownAZ, ChevronRight, Download, ExternalLink, FileArchive, FileAudio2, FileImage, FileText,
   FileUp, FileVideo2, Folder, FolderInput, FolderPlus, FolderUp, Grid2X2, List, LoaderCircle, LogIn, MessageSquarePlus,
-  Pencil, Search, ShieldCheck, Trash2, UserPlus, UserRound, X,
+  Link2, Pencil, Search, ShieldCheck, Trash2, UserPlus, UserRound, X,
   type LucideIcon,
 } from 'lucide-react';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
@@ -43,6 +43,7 @@ export function ArchiveRoomPage() {
   const [dialogName, setDialogName] = useState('');
   const [dialogFile, setDialogFile] = useState<File | null>(null);
   const [dialogFiles, setDialogFiles] = useState<File[]>([]);
+  const [dialogSkippedFiles, setDialogSkippedFiles] = useState(0);
   const [dialogUrl, setDialogUrl] = useState('');
   const [dialogBusy, setDialogBusy] = useState(false);
   const [maskTarget, setMaskTarget] = useState<ArchiveEntry | null>(null);
@@ -95,7 +96,7 @@ export function ArchiveRoomPage() {
   function enterFolder(entry: ArchiveEntry) { if (entry.entryType === 'folder') { setQuery(''); setParentKey(entry.entryKey); } }
   function goToBreadcrumb(item: ArchiveBreadcrumb) { setQuery(''); setParentKey(item.entryKey); }
   async function reload() { await loadListing(parentKey); }
-  function openDialog(nextDialog: DialogState) { setDialog(nextDialog); setDialogName(nextDialog?.entry?.name ?? ''); setDialogFile(null); setDialogFiles([]); setDialogUrl(''); setUploadProgress(null); setUploadSpeed(null); uploadStartedAt.current = null; setError(''); }
+  function openDialog(nextDialog: DialogState) { setDialog(nextDialog); setDialogName(nextDialog?.entry?.name ?? ''); setDialogFile(null); setDialogFiles([]); setDialogSkippedFiles(0); setDialogUrl(''); setUploadProgress(null); setUploadSpeed(null); uploadStartedAt.current = null; setError(''); }
 
   function openEntry(entry: ArchiveEntry) {
     if (entry.entryType === 'folder') { enterFolder(entry); return; }
@@ -107,9 +108,21 @@ export function ArchiveRoomPage() {
     window.location.href = archiveDownloadUrl(entry.entryKey);
   }
 
+  function selectFile(file: File | null) {
+    if (file && isDsStoreFile(file)) {
+      setDialogFile(null);
+      setError('不能上传 .DS_Store 文件。');
+      return;
+    }
+    setDialogFile(file);
+    setError('');
+    if (file && !dialogName) setDialogName(file.name);
+  }
+
   function selectFolderFiles(files: File[]) {
     const uploadableFiles = files.filter((file) => !isDsStoreFile(file));
     setDialogFiles(uploadableFiles);
+    setDialogSkippedFiles(files.length - uploadableFiles.length);
     setError(uploadableFiles.length === 0 ? '所选文件夹中没有可上传的文件。' : '');
   }
 
@@ -197,7 +210,7 @@ export function ArchiveRoomPage() {
     return <div className="archive-room-page relative min-h-screen text-[var(--text)] transition-colors duration-200"><AppBackground /><TopBar contextHref="#archive-room-title" contextTitle="档案室" /><main className="archive-room-shell" id="archive-room-title"><section className="archive-room-panel" aria-labelledby="archive-room-heading"><header className="archive-room-heading"><div className="archive-room-title-wrap"><span className="archive-room-title-icon"><Archive size={20} /></span><h1 id="archive-room-heading">档案室</h1></div></header><ArchiveAuthPrompt /></section></main></div>;
   }
 
-  return <div className="archive-room-page relative min-h-screen text-[var(--text)] transition-colors duration-200"><AppBackground /><TopBar contextHref="#archive-room-title" contextTitle="档案室" /><main className="archive-room-shell" id="archive-room-title"><section className="archive-room-panel" aria-labelledby="archive-room-heading"><header className="archive-room-heading"><div className="archive-room-title-wrap"><span className="archive-room-title-icon"><Archive size={20} /></span><h1 id="archive-room-heading">档案室</h1></div></header><div className="archive-room-toolbar"><nav className="archive-room-breadcrumb" aria-label="档案室路径">{breadcrumbs.map((item, index) => <span className="archive-room-breadcrumb-segment" key={`${item.entryKey ?? 'root'}-${index}`}>{index > 0 && <ChevronRight size={14} />}<button className={index === breadcrumbs.length - 1 ? 'is-current' : ''} onClick={() => goToBreadcrumb(item)} type="button">{index === 0 && <Archive size={15} />}{item.name}</button></span>)}</nav><div className={`archive-room-actions ${canManage ? 'archive-room-actions-manage' : ''}`}><label className="archive-room-search"><Search size={15} /><span className="sr-only">搜索档案</span><input onChange={(event) => setQuery(event.target.value)} placeholder="搜索当前目录" value={query} />{query && <button aria-label="清空搜索" onClick={() => setQuery('')} type="button"><X size={14} /></button>}</label>{canManage && <><button aria-label="上传文件" className="archive-room-action-button" onClick={() => openDialog({ type: 'upload' })} title="上传文件" type="button"><FileUp size={15} /><span>上传文件</span></button><button aria-label="上传文件夹" className="archive-room-action-button" onClick={() => openDialog({ type: 'upload-folder' })} title="上传文件夹" type="button"><FolderUp size={15} /><span>上传文件夹</span></button><button aria-label="添加帖子" className="archive-room-action-button" onClick={() => openDialog({ type: 'create-post' })} title="添加帖子" type="button"><MessageSquarePlus size={15} /><span>添加帖子</span></button><button aria-label="新建文件夹" className="archive-room-action-button" onClick={() => openDialog({ type: 'mkdir' })} title="新建文件夹" type="button"><FolderPlus size={15} /><span>新建文件夹</span></button></>}</div></div><div className="archive-room-subtoolbar"><span className="archive-room-count">{visibleEntries.length} 个项目</span><div className="archive-room-subtools"><label className="archive-room-sort"><ArrowDownAZ size={14} /><span className="sr-only">排序方式</span><select onChange={(event) => setSortBy(event.target.value as 'name' | 'updatedAt')} value={sortBy}><option value="name">按名称</option><option value="updatedAt">按更新时间</option></select></label><div className="archive-room-view-switch" aria-label="视图模式" role="group"><button aria-label="列表视图" aria-pressed={viewMode === 'list'} className={viewMode === 'list' ? 'is-active' : ''} onClick={() => setViewMode('list')} type="button"><List size={16} /></button><button aria-label="网格视图" aria-pressed={viewMode === 'grid'} className={viewMode === 'grid' ? 'is-active' : ''} onClick={() => setViewMode('grid')} type="button"><Grid2X2 size={16} /></button></div></div></div>{notice && <div className="archive-room-notice" role="status">{notice}</div>}{error && <div className="archive-room-error" role="alert">{error}</div>}{authStatus === 'guest' ? <ArchiveAuthPrompt /> : !isAuthenticated || loading ? <div className="archive-room-state"><LoaderCircle className="animate-spin" size={20} />正在读取</div> : viewMode === 'list' ? <ArchiveList entries={visibleEntries} canManage={canManage} onMask={maskEntry} onMove={openMoveDialog} onOpen={openEntry} onRename={(entry) => openDialog({ type: 'rename', entry })} /> : <ArchiveGrid entries={visibleEntries} canManage={canManage} onMask={maskEntry} onMove={openMoveDialog} onOpen={openEntry} onRename={(entry) => openDialog({ type: 'rename', entry })} />}</section></main>{dialog && <ArchiveDialog busy={dialogBusy} dialog={dialog} file={dialogFile} files={dialogFiles} folderOptions={folderOptions} foldersLoading={foldersLoading} name={dialogName} url={dialogUrl} uploadProgress={uploadProgress} uploadSpeed={uploadSpeed} onChangeFile={setDialogFile} onChangeFiles={selectFolderFiles} onChangeName={setDialogName} onChangeUrl={setDialogUrl} onClose={() => setDialog(null)} onSubmit={() => void submitDialog()} />}{maskTarget && <ArchiveDeleteDialog busy={maskBusy} entry={maskTarget} onCancel={() => setMaskTarget(null)} onConfirm={() => void confirmMask()} />}</div>;
+  return <div className="archive-room-page relative min-h-screen text-[var(--text)] transition-colors duration-200"><AppBackground /><TopBar contextHref="#archive-room-title" contextTitle="档案室" /><main className="archive-room-shell" id="archive-room-title"><section className="archive-room-panel" aria-labelledby="archive-room-heading"><header className="archive-room-heading"><div className="archive-room-title-wrap"><span className="archive-room-title-icon"><Archive size={20} /></span><h1 id="archive-room-heading">档案室</h1></div></header><div className="archive-room-toolbar"><nav className="archive-room-breadcrumb" aria-label="档案室路径">{breadcrumbs.map((item, index) => <span className="archive-room-breadcrumb-segment" key={`${item.entryKey ?? 'root'}-${index}`}>{index > 0 && <ChevronRight size={14} />}<button className={index === breadcrumbs.length - 1 ? 'is-current' : ''} onClick={() => goToBreadcrumb(item)} type="button">{index === 0 && <Archive size={15} />}{item.name}</button></span>)}</nav><div className={`archive-room-actions ${canManage ? 'archive-room-actions-manage' : ''}`}><label className="archive-room-search"><Search size={15} /><span className="sr-only">搜索档案</span><input onChange={(event) => setQuery(event.target.value)} placeholder="搜索当前目录" value={query} />{query && <button aria-label="清空搜索" onClick={() => setQuery('')} type="button"><X size={14} /></button>}</label>{canManage && <><button aria-label="上传文件" className="archive-room-action-button" onClick={() => openDialog({ type: 'upload' })} title="上传文件" type="button"><FileUp size={15} /><span>上传文件</span></button><button aria-label="上传文件夹" className="archive-room-action-button" onClick={() => openDialog({ type: 'upload-folder' })} title="上传文件夹" type="button"><FolderUp size={15} /><span>上传文件夹</span></button><button aria-label="添加帖子" className="archive-room-action-button" onClick={() => openDialog({ type: 'create-post' })} title="添加帖子" type="button"><MessageSquarePlus size={15} /><span>添加帖子</span></button><button aria-label="新建文件夹" className="archive-room-action-button" onClick={() => openDialog({ type: 'mkdir' })} title="新建文件夹" type="button"><FolderPlus size={15} /><span>新建文件夹</span></button></>}</div></div><div className="archive-room-subtoolbar"><span className="archive-room-count">{visibleEntries.length} 个项目</span><div className="archive-room-subtools"><label className="archive-room-sort"><ArrowDownAZ size={14} /><span className="sr-only">排序方式</span><select onChange={(event) => setSortBy(event.target.value as 'name' | 'updatedAt')} value={sortBy}><option value="name">按名称</option><option value="updatedAt">按更新时间</option></select></label><div className="archive-room-view-switch" aria-label="视图模式" role="group"><button aria-label="列表视图" aria-pressed={viewMode === 'list'} className={viewMode === 'list' ? 'is-active' : ''} onClick={() => setViewMode('list')} type="button"><List size={16} /></button><button aria-label="网格视图" aria-pressed={viewMode === 'grid'} className={viewMode === 'grid' ? 'is-active' : ''} onClick={() => setViewMode('grid')} type="button"><Grid2X2 size={16} /></button></div></div></div>{notice && <div className="archive-room-notice" role="status">{notice}</div>}{error && <div className="archive-room-error" role="alert">{error}</div>}{authStatus === 'guest' ? <ArchiveAuthPrompt /> : !isAuthenticated || loading ? <div className="archive-room-state"><LoaderCircle className="animate-spin" size={20} />正在读取</div> : viewMode === 'list' ? <ArchiveList entries={visibleEntries} canManage={canManage} onMask={maskEntry} onMove={openMoveDialog} onOpen={openEntry} onRename={(entry) => openDialog({ type: 'rename', entry })} /> : <ArchiveGrid entries={visibleEntries} canManage={canManage} onMask={maskEntry} onMove={openMoveDialog} onOpen={openEntry} onRename={(entry) => openDialog({ type: 'rename', entry })} />}</section></main>{dialog && <ArchiveDialog busy={dialogBusy} dialog={dialog} file={dialogFile} files={dialogFiles} folderOptions={folderOptions} foldersLoading={foldersLoading} name={dialogName} skippedFiles={dialogSkippedFiles} url={dialogUrl} uploadProgress={uploadProgress} uploadSpeed={uploadSpeed} onChangeFile={selectFile} onChangeFiles={selectFolderFiles} onChangeName={setDialogName} onChangeUrl={setDialogUrl} onClose={() => setDialog(null)} onSubmit={() => void submitDialog()} />}{maskTarget && <ArchiveDeleteDialog busy={maskBusy} entry={maskTarget} onCancel={() => setMaskTarget(null)} onConfirm={() => void confirmMask()} />}</div>;
 }
 
 function ArchiveAuthPrompt() {
@@ -211,12 +224,58 @@ function ArchiveListRow({ canManage, entry, onMask, onMove, onOpen, onRename }: 
 function ArchiveOpenButton({ entry, onOpen }: { entry: ArchiveEntry; onOpen: (entry: ArchiveEntry) => void }) { const isFolder = entry.entryType === 'folder'; const isPost = entry.entryType === 'post'; const label = isFolder ? `打开 ${entry.name}` : isPost ? `打开帖子 ${entry.name}` : `下载 ${entry.name}`; const title = isFolder ? '打开文件夹' : isPost ? '打开帖子' : '下载'; const Icon = isFolder ? ChevronRight : isPost ? ExternalLink : Download; return <button aria-label={label} className="archive-room-icon-action" onClick={() => onOpen(entry)} title={title} type="button"><Icon size={isFolder ? 16 : 15} /></button>; }
 function ArchiveGrid({ entries, ...actions }: EntryActions & { entries: ArchiveEntry[] }) { return <div className="archive-room-grid">{entries.map((entry) => { const { icon: Icon, tone } = KIND_META[getArchiveKind(entry)]; return <article className={`archive-room-grid-item ${entry.entryType === 'folder' ? 'is-folder' : ''}`} key={entry.entryKey}><button className="archive-room-grid-main" onClick={() => actions.onOpen(entry)} type="button"><span className={`archive-room-grid-icon ${tone}`}><Icon size={28} /></span><strong>{entry.name}</strong><span>{formatEntryDetail(entry)}</span></button><div className="archive-room-grid-meta"><span>{entry.uploader || '—'}</span>{entry.entryType === 'file' && <span className="archive-room-grid-downloads">下载 {entry.downloadCount}</span>}{actions.canManage && <span className="archive-room-grid-actions"><button aria-label={`重命名 ${entry.name}`} className="archive-room-icon-action" onClick={() => actions.onRename(entry)} title="重命名" type="button"><Pencil size={14} /></button><button aria-label={`迁移 ${entry.name}`} className="archive-room-icon-action" onClick={() => actions.onMove(entry)} title="迁移" type="button"><FolderInput size={14} /></button><button aria-label={`删除 ${entry.name}`} className="archive-room-icon-action" onClick={() => actions.onMask(entry)} title="删除" type="button"><Trash2 size={14} /></button></span>}</div></article>; })}{entries.length === 0 && <div className="archive-room-empty archive-room-empty-grid">当前目录没有项目</div>}</div>; }
 
-function ArchiveDialog({ busy, dialog, file, files, folderOptions, foldersLoading, name, onChangeFile, onChangeFiles, onChangeName, onChangeUrl, onClose, onSubmit, uploadProgress, uploadSpeed, url }: { busy: boolean; dialog: Exclude<DialogState, null>; file: File | null; files: File[]; folderOptions: FolderOption[]; foldersLoading: boolean; name: string; onChangeFile: (file: File | null) => void; onChangeFiles: (files: File[]) => void; onChangeName: (name: string) => void; onChangeUrl: (url: string) => void; onClose: () => void; onSubmit: () => void; uploadProgress: number | null; uploadSpeed: number | null; url: string }) {
+type ArchiveDialogProps = {
+  busy: boolean;
+  dialog: Exclude<DialogState, null>;
+  file: File | null;
+  files: File[];
+  folderOptions: FolderOption[];
+  foldersLoading: boolean;
+  name: string;
+  skippedFiles: number;
+  uploadProgress: number | null;
+  uploadSpeed: number | null;
+  url: string;
+  onChangeFile: (file: File | null) => void;
+  onChangeFiles: (files: File[]) => void;
+  onChangeName: (name: string) => void;
+  onChangeUrl: (url: string) => void;
+  onClose: () => void;
+  onSubmit: () => void;
+};
+
+function ArchiveDialog({ busy, dialog, file, files, folderOptions, foldersLoading, name, onChangeFile, onChangeFiles, onChangeName, onChangeUrl, onClose, onSubmit, skippedFiles, uploadProgress, uploadSpeed, url }: ArchiveDialogProps) {
   const title = dialog.type === 'upload' ? '上传文件' : dialog.type === 'upload-folder' ? '上传文件夹' : dialog.type === 'create-post' ? '添加帖子' : dialog.type === 'mkdir' ? '新建文件夹' : dialog.type === 'rename' ? '重命名' : '迁移';
   const isUploading = (dialog.type === 'upload' || dialog.type === 'upload-folder') && busy;
   const folderName = files[0]?.webkitRelativePath.split('/').filter(Boolean)[0] ?? '';
-  const confirmDisabled = busy || (dialog.type === 'upload' && !file) || (dialog.type === 'upload-folder' && files.length === 0) || (dialog.type === 'create-post' && !url.trim());
-  return <div className="archive-room-dialog-backdrop" onMouseDown={busy ? undefined : onClose} role="presentation"><section aria-labelledby="archive-room-dialog-title" aria-modal="true" className="archive-room-dialog" onMouseDown={(event) => event.stopPropagation()} role="dialog"><header><h2 id="archive-room-dialog-title">{title}</h2><button aria-label="关闭" className="archive-room-dialog-close" disabled={busy} onClick={onClose} type="button"><X size={17} /></button></header><div className="archive-room-dialog-body">{dialog.type === 'upload' && <label className="archive-room-file-picker">文件<input disabled={busy} onChange={(event) => { const selected = event.target.files?.[0] ?? null; onChangeFile(selected); if (selected && !name) onChangeName(selected.name); }} type="file" />{file && <span>{file.name}</span>}</label>}{dialog.type === 'upload-folder' && <label className="archive-room-file-picker">文件夹<input disabled={busy} multiple onChange={(event) => onChangeFiles(Array.from(event.target.files ?? []))} ref={(input) => { if (input) input.webkitdirectory = true; }} type="file" />{files.length > 0 && <span>{folderName} · {files.length} 个文件</span>}</label>}{dialog.type === 'move' ? <label>目标文件夹<select disabled={foldersLoading || busy} onChange={(event) => onChangeName(event.target.value)} value={name}>{foldersLoading ? <option value="">读取文件夹</option> : folderOptions.map((option) => <option key={option.entryKey ?? 'root'} value={option.label}>{option.label}</option>)}</select></label> : dialog.type !== 'upload-folder' && <label>{dialog.type === 'upload' ? '文件名' : '名称'}<input autoFocus disabled={busy} maxLength={255} onChange={(event) => onChangeName(event.target.value)} value={name} /></label>}{dialog.type === 'create-post' && <label>帖子链接<input disabled={busy} inputMode="url" maxLength={2048} onChange={(event) => onChangeUrl(event.target.value)} value={url} /></label>}{isUploading && <div className="archive-room-upload-progress" role="status"><div className="archive-room-upload-progress-label"><span>上传中</span><span className="archive-room-upload-speed">{formatTransferRate(uploadSpeed)}</span><strong>{uploadProgress ?? 0}%</strong></div><progress aria-label="上传进度" max={100} value={uploadProgress ?? 0} /></div>}<div className="archive-room-dialog-actions"><button disabled={busy} onClick={onClose} type="button">取消</button><button disabled={confirmDisabled} onClick={onSubmit} type="button">{busy && <LoaderCircle className="animate-spin" size={15} />}{isUploading ? '上传中' : '确认'}</button></div></div></section></div>;
+  const folderBytes = files.reduce((total, selectedFile) => total + selectedFile.size, 0);
+  const needsName = dialog.type !== 'move' && dialog.type !== 'upload-folder';
+  const confirmDisabled = busy || (needsName && !name.trim()) || (dialog.type === 'upload' && !file) || (dialog.type === 'upload-folder' && files.length === 0) || (dialog.type === 'create-post' && !url.trim());
+  const uploadName = dialog.type === 'upload-folder' ? folderName : file?.name ?? '';
+
+  return <div className="archive-room-dialog-backdrop" onMouseDown={busy ? undefined : onClose} role="presentation">
+    <section aria-labelledby="archive-room-dialog-title" aria-modal="true" className="archive-room-dialog" onMouseDown={(event) => event.stopPropagation()} role="dialog">
+      <header><h2 id="archive-room-dialog-title">{title}</h2><button aria-label="关闭" className="archive-room-dialog-close" disabled={busy} onClick={onClose} type="button"><X size={17} /></button></header>
+      <div className="archive-room-dialog-body">
+        {dialog.type === 'upload' && <label className="archive-room-upload-picker">
+          <input disabled={busy} onChange={(event) => onChangeFile(event.target.files?.[0] ?? null)} type="file" />
+          <span className="archive-room-upload-picker-icon"><FileUp size={20} /></span>
+          <span className="archive-room-upload-picker-main"><strong>{file?.name ?? '选择文件'}</strong>{file && <small>{formatBytes(file.size)}</small>}</span>
+          <span className="archive-room-upload-picker-command">{file ? '重新选择' : '选择'}</span>
+        </label>}
+        {dialog.type === 'upload-folder' && <label className="archive-room-upload-picker">
+          <input disabled={busy} multiple onChange={(event) => onChangeFiles(Array.from(event.target.files ?? []))} ref={(input) => { if (input) input.webkitdirectory = true; }} type="file" />
+          <span className="archive-room-upload-picker-icon"><FolderUp size={20} /></span>
+          <span className="archive-room-upload-picker-main"><strong>{folderName || '选择文件夹'}</strong>{files.length > 0 && <small>{files.length} 个文件 · {formatBytes(folderBytes)}{skippedFiles > 0 ? ` · 已排除 ${skippedFiles} 个 .DS_Store` : ''}</small>}</span>
+          <span className="archive-room-upload-picker-command">{files.length > 0 ? '重新选择' : '选择'}</span>
+        </label>}
+        {dialog.type === 'move' ? <label>目标文件夹<select disabled={foldersLoading || busy} onChange={(event) => onChangeName(event.target.value)} value={name}>{foldersLoading ? <option value="">读取文件夹</option> : folderOptions.map((option) => <option key={option.entryKey ?? 'root'} value={option.label}>{option.label}</option>)}</select></label> : dialog.type !== 'upload-folder' && <label>{dialog.type === 'upload' ? '文件名' : dialog.type === 'create-post' ? '帖子名称' : '名称'}<input autoFocus disabled={busy} maxLength={255} onChange={(event) => onChangeName(event.target.value)} value={name} /></label>}
+        {dialog.type === 'create-post' && <label>帖子链接<span className="archive-room-link-input"><Link2 size={15} /><input disabled={busy} inputMode="url" maxLength={2048} onChange={(event) => onChangeUrl(event.target.value)} value={url} /></span></label>}
+        {isUploading && <div className="archive-room-upload-progress" role="status"><div className="archive-room-upload-progress-label"><span title={uploadName}>{uploadName}</span><span className="archive-room-upload-speed">{formatTransferRate(uploadSpeed)}</span><strong>{uploadProgress ?? 0}%</strong></div><progress aria-label="上传进度" max={100} value={uploadProgress ?? 0} /></div>}
+        <div className="archive-room-dialog-actions"><button disabled={busy} onClick={onClose} type="button">取消</button><button disabled={confirmDisabled} onClick={onSubmit} type="button">{busy && <LoaderCircle className="animate-spin" size={15} />}{isUploading ? '上传中' : '确认'}</button></div>
+      </div>
+    </section>
+  </div>;
 }
 
 function ArchiveDeleteDialog({ busy, entry, onCancel, onConfirm }: { busy: boolean; entry: ArchiveEntry; onCancel: () => void; onConfirm: () => void }) {
