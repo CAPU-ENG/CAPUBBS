@@ -1,4 +1,4 @@
-import { Fragment, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
+import { Fragment, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { ArrowUpToLine, Bookmark, BookmarkCheck, Check, Eye, EyeOff, Link2, MessageCircle, RotateCw, Settings } from 'lucide-react';
 import { ActivitySignupForm } from '../components/thread/ActivitySignupForm';
 import { ReplyEditor, type QuoteRequest } from '../components/thread/ReplyEditor';
@@ -73,10 +73,14 @@ export function ThreadPage() {
   const [copyNoticeOpen, setCopyNoticeOpen] = useState(false);
   const copyNoticeTimerRef = useRef<number | null>(null);
   const editorRef = useRef<HTMLElement | null>(null);
+  const pageRef = useRef<HTMLDivElement | null>(null);
   const titleRef = useRef<HTMLHeadingElement | null>(null);
   const threadTopBar = useThreadTopBar(titleRef, topBarAutoHideEnabled);
   const signaturesHidden = useSignaturesHidden();
   const signatureToggleEnabled = useSignatureToggleEnabled();
+  const syncAvatarStickyTop = useCallback((topBarBottom: number) => {
+    pageRef.current?.style.setProperty('--thread-avatar-sticky-top', `${topBarBottom}px`);
+  }, []);
   const pageFloors = useMemo(() => {
     if (!data?.activity) return data?.floors ?? [];
 
@@ -255,7 +259,7 @@ export function ThreadPage() {
 
   if (!data) {
     return (
-      <div className={`relative min-h-screen text-[var(--text)] transition-colors duration-200${avatarFollowDisabled ? ' thread-avatar-follow-disabled' : ''}`}>
+      <div className={`relative min-h-screen text-[var(--text)] transition-colors duration-200${avatarFollowDisabled ? ' thread-avatar-follow-disabled' : ''}`} ref={pageRef}>
         <AppBackground />
         <TopBar />
         <main className="thread-page-shell">
@@ -298,13 +302,14 @@ export function ThreadPage() {
   );
 
   return (
-    <div className={`relative min-h-screen text-[var(--text)] transition-colors duration-200${avatarFollowDisabled ? ' thread-avatar-follow-disabled' : ''}`}>
+    <div className={`relative min-h-screen text-[var(--text)] transition-colors duration-200${avatarFollowDisabled ? ' thread-avatar-follow-disabled' : ''}`} ref={pageRef}>
       <AppBackground />
       <TopBar
         autoHidden={threadTopBar.hidden}
         centerContextTitle={!topBarAutoHideEnabled}
         contextHref="#thread-title"
         contextTitle={data.title}
+        onBottomChange={syncAvatarStickyTop}
         showContextTitle={threadTopBar.showContextTitle}
       />
 

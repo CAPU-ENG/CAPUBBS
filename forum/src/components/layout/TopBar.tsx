@@ -31,6 +31,7 @@ export function TopBar({
   contextHref = '#page-title',
   contextTitle,
   minimal = false,
+  onBottomChange,
   showContextTitle = false,
 }: {
   autoHidden?: boolean;
@@ -38,6 +39,7 @@ export function TopBar({
   contextHref?: string;
   contextTitle?: string;
   minimal?: boolean;
+  onBottomChange?: (bottom: number) => void;
   showContextTitle?: boolean;
 }) {
   const { logout, status: authStatus, updateViewerUnreadMessages, viewer } = useAuth();
@@ -153,6 +155,55 @@ export function TopBar({
     if (!contextTitleVisible) return;
     setBoardsOpen(false);
   }, [contextTitleVisible]);
+
+  useLayoutEffect(() => {
+    const topBar = topBarRef.current;
+    if (!topBar || !onBottomChange) return;
+    const topBarElement = topBar;
+    const activeTransitions = new Set<string>();
+    let frame = 0;
+
+    function syncBottom() {
+      onBottomChange?.(Math.max(0, topBarElement.getBoundingClientRect().bottom));
+    }
+
+    function trackTransition() {
+      frame = 0;
+      syncBottom();
+      if (activeTransitions.size > 0) frame = window.requestAnimationFrame(trackTransition);
+    }
+
+    function handleTransitionRun(event: TransitionEvent) {
+      if (event.target !== topBarElement) return;
+      activeTransitions.add(event.propertyName);
+      if (!frame) frame = window.requestAnimationFrame(trackTransition);
+    }
+
+    function handleTransitionEnd(event: TransitionEvent) {
+      if (event.target !== topBarElement) return;
+      activeTransitions.delete(event.propertyName);
+      if (activeTransitions.size === 0 && frame) {
+        window.cancelAnimationFrame(frame);
+        frame = 0;
+      }
+      syncBottom();
+    }
+
+    const resizeObserver = new ResizeObserver(syncBottom);
+    resizeObserver.observe(topBarElement);
+    topBarElement.addEventListener('transitionrun', handleTransitionRun);
+    topBarElement.addEventListener('transitionend', handleTransitionEnd);
+    topBarElement.addEventListener('transitioncancel', handleTransitionEnd);
+    syncBottom();
+
+    return () => {
+      resizeObserver.disconnect();
+      topBarElement.removeEventListener('transitionrun', handleTransitionRun);
+      topBarElement.removeEventListener('transitionend', handleTransitionEnd);
+      topBarElement.removeEventListener('transitioncancel', handleTransitionEnd);
+      if (frame) window.cancelAnimationFrame(frame);
+    };
+  }, [autoHidden, boardsOpen, mobileSidebarOpen, onBottomChange]);
 
   useEffect(() => {
     if (!boardsOpen) return;

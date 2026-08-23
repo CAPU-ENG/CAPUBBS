@@ -807,7 +807,7 @@
   .thread-avatar-rail {
     position: sticky;
     z-index: 12;
-    top: calc(var(--topbar-height) + 18px);
+    top: var(--thread-avatar-sticky-top, var(--topbar-height));
     align-self: start;
     height: 46px;
   }
