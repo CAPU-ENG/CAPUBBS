@@ -8,9 +8,10 @@ type ApiEnvelope<T> = {
 
 export type ArchiveEntry = {
   entryKey: string;
-  entryType: 'file' | 'folder';
+  entryType: 'file' | 'folder' | 'post';
   name: string;
   mimeType: string | null;
+  targetUrl: string | null;
   byteSize: number;
   uploader: string;
   createdAt: number;
@@ -78,6 +79,16 @@ export async function createArchiveFolder(name: string, parentKey: string | null
   const payload = await requestArchiveApi<ArchiveEntry>({
     ask: 'mkdir',
     name,
+    ...(parentKey ? { parent_key: parentKey } : {}),
+  });
+  return mapEntry(payload.data);
+}
+
+export async function createArchivePost(name: string, targetUrl: string, parentKey: string | null) {
+  const payload = await requestArchiveApi<ArchiveEntry>({
+    ask: 'create_post',
+    name,
+    target_url: targetUrl,
     ...(parentKey ? { parent_key: parentKey } : {}),
   });
   return mapEntry(payload.data);
@@ -208,7 +219,7 @@ function mapListing(value: unknown): ArchiveListing {
 function mapEntry(value: unknown): ArchiveEntry | null {
   const row = asRecord(value);
   const entryKey = text(row.entry_key);
-  const entryType = row.entry_type === 'folder' || row.entry_type === 'file' ? row.entry_type : null;
+  const entryType = row.entry_type === 'folder' || row.entry_type === 'file' || row.entry_type === 'post' ? row.entry_type : null;
   if (!entryKey || !entryType) return null;
   return {
     byteSize: number(row.byte_size),
@@ -219,6 +230,7 @@ function mapEntry(value: unknown): ArchiveEntry | null {
     items: row.items === undefined ? undefined : number(row.items),
     mimeType: text(row.mime_type) || null,
     name: text(row.name),
+    targetUrl: text(row.target_url) || null,
     updatedAt: number(row.updated_at),
     uploader: text(row.uploader),
   };

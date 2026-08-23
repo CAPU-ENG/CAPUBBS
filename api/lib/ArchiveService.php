@@ -200,6 +200,33 @@ class ArchiveService
         return $this->publicEntry($this->getEntry($entryKey));
     }
 
+    public function createPost($parentKey, $name, $targetUrl)
+    {
+        $this->requireManager();
+        $parent = $this->getParent($parentKey);
+        $name = $this->normalizeName($name);
+        $targetUrl = $this->normalizePostUrl($targetUrl);
+        $this->ensureAvailableName($parent, $name);
+
+        $now = $this->nowMicros();
+        $entryKey = $this->uniqueKey($now . ':' . $this->randomHex(16));
+        $this->insertEntry(array(
+            'entry_key' => $entryKey,
+            'parent_key' => $parent ? $parent['entry_key'] : null,
+            'entry_type' => 'post',
+            'name' => $name,
+            'relative_path' => null,
+            'mime_type' => null,
+            'byte_size' => 0,
+            'content_hash' => null,
+            'target_url' => $targetUrl,
+            'created_at' => $now,
+            'updated_at' => $now,
+        ));
+
+        return $this->publicEntry($this->getEntry($entryKey));
+    }
+
     public function renameEntry($entryKey, $name)
     {
         $this->requireManager();
@@ -211,6 +238,14 @@ class ArchiveService
         }
         $parent = $this->getParent($entry['parent_key']);
         $this->ensureAvailableName($parent, $name, $entry['entry_key']);
+        if ($entry['entry_type'] === 'post') {
+            $now = $this->nowMicros();
+            $this->query(
+                "UPDATE archive_entries SET name={$this->sql($name)}, updated_at={$now} "
+                . "WHERE entry_key={$this->sql($entry['entry_key'])}"
+            );
+            return $this->publicEntry($this->getEntry($entry['entry_key']));
+        }
         $oldRelative = $entry['relative_path'];
         $newRelative = $this->joinPath($parent ? $parent['relative_path'] : '', $name);
         $oldAbsolute = $this->safePath($oldRelative, true);
@@ -239,6 +274,17 @@ class ArchiveService
             return $this->publicEntry($entry);
         }
         $this->ensureAvailableName($targetParent, $entry['name'], $entry['entry_key']);
+        if ($entry['entry_type'] === 'post') {
+            $now = $this->nowMicros();
+            $parentUpdate = $targetKey === null
+                ? 'parent_key=NULL'
+                : "parent_key={$this->sql($targetKey)}";
+            $this->query(
+                "UPDATE archive_entries SET {$parentUpdate}, updated_at={$now} "
+                . "WHERE entry_key={$this->sql($entry['entry_key'])}"
+            );
+            return $this->publicEntry($this->getEntry($entry['entry_key']));
+        }
         $oldRelative = $entry['relative_path'];
         $newRelative = $this->joinPath($targetParent ? $targetParent['relative_path'] : '', $entry['name']);
         $oldAbsolute = $this->safePath($oldRelative, true);
@@ -268,7 +314,7 @@ class ArchiveService
         $entry = $this->getEntry($entryKey);
         $this->ensureActive($entry);
         if ($entry['entry_type'] !== 'file') {
-            $this->fail(ApiError::VALIDATION_ERROR, '文件夹不能直接下载。');
+            $this->fail(ApiError::VALIDATION_ERROR, '只有文件可以下载。');
         }
         $absolutePath = $this->safePath($entry['relative_path'], true);
         if (!is_file($absolutePath) || !is_readable($absolutePath)) {
@@ -363,7 +409,7 @@ class ArchiveService
         $prefix = $this->sql($oldRelative . '/');
         $result = $this->query(
             "SELECT entry_key,relative_path FROM archive_entries WHERE relative_path={$escaped} "
-            . "OR LEFT(relative_path,LENGTH({$prefix}))={$prefix}"
+            . "OR (relative_path IS NOT NULL AND LEFT(relative_path,LENGTH({$prefix}))={$prefix})"
         );
         $rows = array();
         while ($row = mysqli_fetch_assoc($result)) $rows[] = $row;
@@ -437,16 +483,17 @@ class ArchiveService
 
     private function insertEntry($entry)
     {
-        $columns = array('entry_key','parent_key','entry_type','name','relative_path','mime_type','byte_size','content_hash','created_at','updated_at','uploader_userid','uploader_username');
+        $columns = array('entry_key','parent_key','entry_type','name','relative_path','mime_type','byte_size','content_hash','target_url','created_at','updated_at','uploader_userid','uploader_username');
         $values = array(
             $this->sql($entry['entry_key']),
             $entry['parent_key'] === null ? 'NULL' : $this->sql($entry['parent_key']),
             $this->sql($entry['entry_type']),
             $this->sql($entry['name']),
-            $this->sql($entry['relative_path']),
+            $entry['relative_path'] === null ? 'NULL' : $this->sql($entry['relative_path']),
             $entry['mime_type'] === null ? 'NULL' : $this->sql($entry['mime_type']),
             intval($entry['byte_size']),
             $entry['content_hash'] === null ? 'NULL' : $this->sql($entry['content_hash']),
+            isset($entry['target_url']) && $entry['target_url'] !== null ? $this->sql($entry['target_url']) : 'NULL',
             intval($entry['created_at']),
             intval($entry['updated_at']),
             $this->userid,
@@ -462,6 +509,7 @@ class ArchiveService
             'entry_type' => $row['entry_type'],
             'name' => $row['name'],
             'mime_type' => $row['mime_type'],
+            'target_url' => isset($row['target_url']) ? $row['target_url'] : null,
             'byte_size' => intval($row['byte_size']),
             'uploader' => $row['uploader_username'],
             'created_at' => intval($row['created_at']),
@@ -530,6 +578,28 @@ class ArchiveService
             $this->fail(ApiError::INVALID_CHARACTERS, '文件名不合法。');
         }
         return $name;
+    }
+
+    private function normalizePostUrl($url)
+    {
+        $url = trim(strval($url));
+        if ($url === '' || strlen($url) > 2048 || preg_match('/[\x00-\x1F\x7F]/', $url)) {
+            $this->fail(ApiError::VALIDATION_ERROR, '帖子链接不合法。');
+        }
+        if ($url[0] === '/') {
+            if (substr($url, 0, 2) === '//' || strpos($url, '\\') !== false) {
+                $this->fail(ApiError::VALIDATION_ERROR, '帖子链接不合法。');
+            }
+            return $url;
+        }
+
+        $parts = parse_url($url);
+        $scheme = is_array($parts) && isset($parts['scheme']) ? strtolower($parts['scheme']) : '';
+        if (!is_array($parts) || !isset($parts['host']) || !in_array($scheme, array('http', 'https'), true)
+            || isset($parts['user']) || isset($parts['pass'])) {
+            $this->fail(ApiError::VALIDATION_ERROR, '帖子链接必须是站内地址或 HTTP(S) 地址。');
+        }
+        return $url;
     }
 
     private function joinPath($parent, $name)

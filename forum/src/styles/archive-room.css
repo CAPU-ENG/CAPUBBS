@@ -368,6 +368,8 @@
   .archive-room-grid-icon.archive-room-file-video { color: #8067ad; background: #eee8f8; }
   .archive-room-file-audio,
   .archive-room-grid-icon.archive-room-file-audio { color: #387e78; background: #e2f1ef; }
+  .archive-room-file-post,
+  .archive-room-grid-icon.archive-room-file-post { color: #457557; background: #e6f1e9; }
   .archive-room-file-archive,
   .archive-room-grid-icon.archive-room-file-archive { color: #b35f3a; background: #f8e9e0; }
 
@@ -381,6 +383,8 @@
   .dark .archive-room-grid-icon.archive-room-file-video { color: #c2a9ed; background: #302544; }
   .dark .archive-room-file-audio,
   .dark .archive-room-grid-icon.archive-room-file-audio { color: #8dd2ca; background: #1d3937; }
+  .dark .archive-room-file-post,
+  .dark .archive-room-grid-icon.archive-room-file-post { color: #a6d3b1; background: #20362a; }
   .dark .archive-room-file-archive,
   .dark .archive-room-grid-icon.archive-room-file-archive { color: #ecae8d; background: #40271e; }
 
@@ -794,7 +798,7 @@
     }
 
     .archive-room-actions-manage {
-      grid-template-columns: minmax(0, 1fr) auto auto;
+      grid-template-columns: minmax(0, 1fr) repeat(4, auto);
     }
 
     .archive-room-search {

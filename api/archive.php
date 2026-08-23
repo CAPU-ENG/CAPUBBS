@@ -63,6 +63,13 @@ try {
                 archive_param('name', '')
             ))->send();
             break;
+        case 'create_post':
+            ApiResponse::success($service->createPost(
+                archive_param('parent_key', null),
+                archive_param('name', ''),
+                archive_param('target_url', '')
+            ))->send();
+            break;
         case 'rename':
             ApiResponse::success($service->renameEntry(
                 archive_param('entry_key', ''),
