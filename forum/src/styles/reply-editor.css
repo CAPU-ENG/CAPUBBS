@@ -543,7 +543,7 @@
   .reply-preview-backdrop {
     position: fixed;
     z-index: 1000;
-    inset: var(--topbar-height) 0 0;
+    inset: 0;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -557,10 +557,6 @@
   body.reply-preview-open {
     overflow: hidden;
     overscroll-behavior: none;
-  }
-
-  body:has(.topbar[data-auto-hidden="true"]) .reply-preview-backdrop {
-    inset-block-start: 0;
   }
 
   .reply-preview-dialog {
