@@ -447,6 +447,7 @@
   }
 
   .profile-workspace {
+    min-width: 0;
     margin-top: 18px;
     animation: profile-rise 280ms 110ms cubic-bezier(.2,.8,.2,1) both;
   }
@@ -533,6 +534,8 @@
 
   .profile-content-layout {
     display: grid;
+    width: 100%;
+    min-width: 0;
     grid-template-columns: minmax(0, 1fr) 288px;
     align-items: start;
     gap: 16px;
@@ -569,6 +572,7 @@
 
   .profile-record-line {
     display: flex;
+    min-width: 0;
     min-height: 52px;
     align-items: center;
     gap: 16px;
@@ -765,7 +769,16 @@
 
   .profile-workspace-aside {
     display: grid;
+    min-width: 0;
     gap: 12px;
+  }
+
+  .profile-desktop-filter,
+  .profile-filter-panel,
+  .profile-filter-panel label,
+  .profile-date-fields,
+  .profile-date-fields input {
+    min-width: 0;
   }
 
   .profile-filter-panel,
@@ -819,6 +832,7 @@
   }
 
   .profile-filter-panel input {
+    width: 100%;
     height: 34px;
     padding: 0 9px;
     color-scheme: inherit;
