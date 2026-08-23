@@ -7,8 +7,11 @@ type ApiEnvelope = {
   message?: string;
 };
 
-export function canManageCalendar(username: string | null | undefined) {
-  return username?.trim() === '组织部';
+export function canManageCalendar(
+  username: string | null | undefined,
+  rights: number | null | undefined,
+) {
+  return username?.trim() === '组织部' || (rights ?? 0) >= 3;
 }
 
 export async function saveCalendarEventsForDate(

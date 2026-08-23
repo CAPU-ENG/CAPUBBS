@@ -42,7 +42,8 @@ export function CalendarAdminPage() {
   const [isSaving, setIsSaving] = useState(false);
   const [formState, setFormState] = useState<CalendarFormState>(() => emptyForm(today));
   const authPending = authStatus === 'loading' || authStatus === 'restoring';
-  const isAuthorized = authStatus === 'authenticated' && canManageCalendar(viewer?.username);
+  const isAuthorized = authStatus === 'authenticated'
+    && canManageCalendar(viewer?.username, viewer?.rights);
   const selectedDateKey = formatDateKey(selectedDate);
 
   useEffect(() => {
@@ -216,7 +217,7 @@ export function CalendarAdminPage() {
           <CalendarAdminState icon={<LoaderCircle className="animate-spin" size={22} />} title="正在确认管理权限" />
         ) : !isAuthorized ? (
           <CalendarAdminState authStatus={authStatus} icon={<ShieldAlert size={22} />} title="无法进入日历管理">
-            此页面仅供 ID 为“组织部”的会员使用。
+            此页面仅供 ID 为“组织部”或权限值不低于 3 的会员使用。
           </CalendarAdminState>
         ) : (
           <section className="calendar-admin-panel" aria-labelledby="calendar-admin-title">
@@ -225,7 +226,7 @@ export function CalendarAdminPage() {
                 <div className="calendar-admin-title-line">
                   <span className="calendar-admin-title-icon"><CalendarDays size={19} /></span>
                   <h1 id="calendar-admin-title">日历管理</h1>
-                  <em>组织部</em>
+                  <em>管理权限</em>
                 </div>
               </div>
               <div className="calendar-admin-heading-actions">

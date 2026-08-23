@@ -228,7 +228,7 @@ export function ActivityCalendar({ compact = false, error, items, status }: Cale
         <header className="aside-card-header">
           <span className="aside-card-icon"><CalendarDays size={15} /></span>
           <h2 id="calendar-title">活动日历</h2>
-          {authStatus === 'authenticated' && canManageCalendar(viewer?.username) ? (
+          {authStatus === 'authenticated' && canManageCalendar(viewer?.username, viewer?.rights) ? (
             <a className="calendar-manage-link" href="/calendar-admin">
               <Settings size={13} />管理
             </a>
