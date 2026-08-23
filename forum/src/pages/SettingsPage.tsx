@@ -18,7 +18,7 @@ import {
   SunMoon,
   UserRound,
 } from 'lucide-react';
-import { useEffect, useRef, useState, type ReactNode } from 'react';
+import { useEffect, useId, useRef, useState, type ReactNode } from 'react';
 import { AppBackground } from '../components/layout/AppBackground';
 import { TopBar } from '../components/layout/TopBar';
 import { ALL_BOARDS, PRIMARY_BOARDS, SECONDARY_BOARDS, getBoardById } from '../data/boards';
@@ -170,6 +170,7 @@ export function SettingsPage() {
               <SettingsCheckbox
                 checked={!authorProfileEnabled && avatarFollowEnabled}
                 disabled={authorProfileEnabled}
+                disabledReason="请先关闭资料卡展示"
                 help="滚动楼层时让发帖者头像保持可见。"
                 helpId="avatar-follow-help"
                 icon={<UserRound size={15} />}
@@ -244,6 +245,7 @@ export function SettingsPage() {
               <SettingsCheckbox
                 checked={backToTopEnabled}
                 disabled={!assistiveBarEnabled}
+                disabledReason="请先开启辅助栏"
                 help="在帖子详情页右栏显示回到顶部按钮。"
                 helpId="back-to-top-help"
                 icon={<ArrowUpToLine size={15} />}
@@ -253,6 +255,7 @@ export function SettingsPage() {
               <SettingsCheckbox
                 checked={signatureToggleEnabled}
                 disabled={!assistiveBarEnabled}
+                disabledReason="请先开启辅助栏"
                 help="在帖子详情页右栏提供可跨帖子保留的签名档开关。"
                 helpId="signature-toggle-help"
                 icon={<Signature size={15} />}
@@ -354,6 +357,7 @@ export function SettingsPage() {
 function SettingsCheckbox({
   checked,
   disabled = false,
+  disabledReason,
   help,
   helpId,
   icon,
@@ -362,17 +366,31 @@ function SettingsCheckbox({
 }: {
   checked: boolean;
   disabled?: boolean;
+  disabledReason?: string;
   help?: string;
   helpId?: string;
   icon: ReactNode;
   label: string;
   onChange: (checked: boolean) => unknown;
 }) {
+  const disabledReasonId = useId();
+  const descriptionIds = [
+    help && helpId ? helpId : '',
+    disabled && disabledReason ? disabledReasonId : '',
+  ].filter(Boolean).join(' ') || undefined;
+  const rowClassName = checked
+    ? 'settings-checkbox-row settings-checkbox-row-selected'
+    : 'settings-checkbox-row';
+
   return (
-    <div className={checked ? 'settings-checkbox-row settings-checkbox-row-selected' : 'settings-checkbox-row'}>
-      <label className={disabled ? 'settings-checkbox-option settings-checkbox-option-disabled' : 'settings-checkbox-option'}>
+    <div className={rowClassName}>
+      <label
+        aria-disabled={disabled || undefined}
+        className={disabled ? 'settings-checkbox-option settings-checkbox-option-disabled' : 'settings-checkbox-option'}
+        tabIndex={disabled && disabledReason ? 0 : undefined}
+      >
         <input
-          aria-describedby={help ? helpId : undefined}
+          aria-describedby={descriptionIds}
           checked={checked}
           disabled={disabled}
           onChange={(event) => onChange(event.target.checked)}
@@ -384,6 +402,11 @@ function SettingsCheckbox({
           {help && helpId && <small id={helpId}>{help}</small>}
         </span>
         <span className="settings-checkbox-mark" aria-hidden="true"><Check size={14} /></span>
+        {disabled && disabledReason && (
+          <span className="settings-checkbox-disabled-reason" id={disabledReasonId} role="tooltip">
+            {disabledReason}
+          </span>
+        )}
       </label>
     </div>
   );

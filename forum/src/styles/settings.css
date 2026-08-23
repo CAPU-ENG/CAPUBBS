@@ -63,6 +63,7 @@
   }
 
   .settings-checkbox-option {
+    position: relative;
     display: grid;
     min-width: 0;
     grid-template-columns: 28px minmax(0, 1fr) 18px;
@@ -73,7 +74,47 @@
 
   .settings-checkbox-option-disabled {
     cursor: not-allowed;
+  }
+
+  .settings-checkbox-option-disabled > :not(.settings-checkbox-disabled-reason) {
     opacity: 0.45;
+  }
+
+  .settings-checkbox-disabled-reason {
+    position: absolute;
+    z-index: 30;
+    bottom: calc(100% + 9px);
+    left: 50%;
+    visibility: hidden;
+    width: max-content;
+    max-width: min(220px, calc(100vw - 32px));
+    border: 1px solid var(--line-strong);
+    border-radius: 2px;
+    padding: 7px 9px;
+    background: var(--surface-raised);
+    box-shadow: var(--shadow-float);
+    color: var(--text-muted);
+    font-size: 0.62rem;
+    font-weight: 680;
+    line-height: 1.4;
+    opacity: 0;
+    pointer-events: none;
+    text-align: center;
+    transform: translate(-50%, 4px);
+    transition: opacity 140ms ease, transform 140ms ease, visibility 140ms ease;
+    white-space: normal;
+  }
+
+  .settings-checkbox-option-disabled:hover .settings-checkbox-disabled-reason,
+  .settings-checkbox-option-disabled:focus-visible .settings-checkbox-disabled-reason {
+    visibility: visible;
+    opacity: 1;
+    transform: translate(-50%, 0);
+  }
+
+  .settings-checkbox-option-disabled:focus-visible {
+    outline: 2px solid var(--brand);
+    outline-offset: 3px;
   }
 
   .settings-checkbox-row {
