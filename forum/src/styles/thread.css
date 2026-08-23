@@ -228,13 +228,19 @@
 
   .thread-title-copy-button {
     display: block;
+    width: 100%;
+    max-width: 100%;
+    overflow: visible;
     border: 0;
     padding: 0;
     background: transparent;
     color: inherit;
     font: inherit;
     letter-spacing: inherit;
+    overflow-wrap: anywhere;
     text-align: left;
+    text-overflow: clip;
+    white-space: normal;
     cursor: pointer;
   }
 
