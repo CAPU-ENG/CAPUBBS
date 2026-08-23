@@ -2606,7 +2606,7 @@
     .thread-floor-header {
       display: grid;
       min-height: 44px;
-      grid-template-columns: auto minmax(0, 1fr) auto;
+      grid-template-columns: minmax(0, 1fr) max-content auto;
       gap: 7px;
       padding-bottom: 10px;
       padding-left: 44px;
@@ -2618,15 +2618,14 @@
     }
 
     .thread-floor-time {
+      display: grid;
       justify-content: flex-start;
-      gap: 4px;
-      overflow-x: auto;
-      font-size: var(--ui-font-size-xs);
-      line-height: 1.45;
-      scrollbar-width: none;
+      gap: 0;
+      font-size: 0.625rem;
+      line-height: 1.35;
     }
 
-    .thread-floor-time::-webkit-scrollbar {
+    .thread-floor-time > span {
       display: none;
     }
 
