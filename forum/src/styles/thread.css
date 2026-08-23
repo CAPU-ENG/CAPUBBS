@@ -412,7 +412,7 @@
   }
 
   @media (min-width: 641px) {
-    .thread-page-shell-avatar-static.thread-page-shell-with-assistive-bar .thread-floor {
+    .thread-page-shell-with-assistive-bar .thread-floor {
       padding-right: 40px;
     }
 
