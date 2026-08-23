@@ -481,7 +481,9 @@ export function ThreadPage() {
         ) : (
           <section className="thread-reply-unavailable">
             <strong>{data.locked ? '本主题已锁定' : starRestricted ? `本版回复至少需要 ${data.requiredStars} 星` : '登录后参与回复'}</strong>
-            <p>{data.locked ? '当前主题暂不接受新的楼层回复。' : starRestricted ? `你当前为 ${data.viewer?.stars ?? 0} 星，暂时无法回复。` : '登录后即可使用完整编辑器、签名档与附件功能。'}</p>
+            {(data.locked || starRestricted) && (
+              <p>{data.locked ? '当前主题暂不接受新的楼层回复。' : `你当前为 ${data.viewer?.stars ?? 0} 星，暂时无法回复。`}</p>
+            )}
             {!data.locked && !starRestricted && (
               <div className="thread-reply-auth-actions">
                 <a href={loginHref}>前往登录</a>
