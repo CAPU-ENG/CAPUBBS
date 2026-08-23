@@ -603,7 +603,8 @@
   .settings-board-grid .settings-board-option-selected > small { color: var(--brand-strong); }
 
   @media (max-width: 1023px) {
-    .settings-pinned-board-panel { display: none; }
+    .settings-pinned-board-panel,
+    .settings-checkbox-row-desktop-only { display: none; }
   }
 
   @media (max-width: 720px) {

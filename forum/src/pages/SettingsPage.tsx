@@ -160,6 +160,7 @@ export function SettingsPage() {
               />
               <SettingsCheckbox
                 checked={authorProfileEnabled}
+                desktopOnly
                 help="在帖子详情页左侧展示发帖者的头像、标签和数据。"
                 helpId="author-profile-help"
                 icon={<ContactRound size={15} />}
@@ -358,6 +359,7 @@ export function SettingsPage() {
 
 function SettingsCheckbox({
   checked,
+  desktopOnly = false,
   disabled = false,
   disabledReason,
   help,
@@ -367,6 +369,7 @@ function SettingsCheckbox({
   onChange,
 }: {
   checked: boolean;
+  desktopOnly?: boolean;
   disabled?: boolean;
   disabledReason?: string;
   help?: string;
@@ -380,9 +383,11 @@ function SettingsCheckbox({
     help && helpId ? helpId : '',
     disabled && disabledReason ? disabledReasonId : '',
   ].filter(Boolean).join(' ') || undefined;
-  const rowClassName = checked
-    ? 'settings-checkbox-row settings-checkbox-row-selected'
-    : 'settings-checkbox-row';
+  const rowClassName = [
+    'settings-checkbox-row',
+    checked ? 'settings-checkbox-row-selected' : '',
+    desktopOnly ? 'settings-checkbox-row-desktop-only' : '',
+  ].filter(Boolean).join(' ');
 
   return (
     <div className={rowClassName}>
