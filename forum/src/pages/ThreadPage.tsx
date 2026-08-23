@@ -312,7 +312,6 @@ export function ThreadPage() {
       <AppBackground />
       <TopBar
         autoHidden={threadTopBar.hidden}
-        centerContextTitle={!topBarAutoHideEnabled}
         contextHref="#thread-title"
         contextTitle={data.title}
         onBottomChange={syncAvatarStickyTop}

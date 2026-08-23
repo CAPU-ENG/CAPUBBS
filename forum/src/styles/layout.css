@@ -265,12 +265,6 @@
     color: var(--brand-strong);
   }
 
-  .topbar[data-context-title-centered="true"] .topbar-context-title {
-    justify-content: center;
-    margin-right: 0;
-    text-align: center;
-  }
-
   .topbar-primary-slot[data-context-title-visible="true"] .topbar-primary-nav {
     opacity: 0;
     pointer-events: none;

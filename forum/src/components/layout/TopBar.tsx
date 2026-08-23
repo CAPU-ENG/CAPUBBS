@@ -27,7 +27,6 @@ import { useTheme } from '../../hooks/useTheme';
 
 export function TopBar({
   autoHidden = false,
-  centerContextTitle = false,
   contextHref = '#page-title',
   contextTitle,
   minimal = false,
@@ -35,7 +34,6 @@ export function TopBar({
   showContextTitle = false,
 }: {
   autoHidden?: boolean;
-  centerContextTitle?: boolean;
   contextHref?: string;
   contextTitle?: string;
   minimal?: boolean;
@@ -276,7 +274,6 @@ export function TopBar({
       <header
         className="topbar"
         data-auto-hidden={autoHidden && !anyOverlayOpen}
-        data-context-title-centered={centerContextTitle}
         data-context-title-visible={contextTitleVisible}
         ref={topBarRef}
       >
