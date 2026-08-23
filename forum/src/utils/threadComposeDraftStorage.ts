@@ -80,13 +80,15 @@ export async function deleteStoredThreadComposeDraft(
   bid: number,
   ownerKey: string | null | undefined,
   kind: ThreadComposeDraftKind = 'thread',
+  updatedBefore?: string,
 ) {
   const databaseKey = getDatabaseKey(ownerKey);
   if (!databaseKey) return;
 
-  const drafts = (await readStoredThreadComposeDrafts(ownerKey)).filter((draft) => (
-    draft.bid !== bid || (draft.kind ?? 'thread') !== kind
-  ));
+  const drafts = (await readStoredThreadComposeDrafts(ownerKey)).filter((draft) => {
+    const matchesDraft = draft.bid === bid && (draft.kind ?? 'thread') === kind;
+    return !matchesDraft || Boolean(updatedBefore && draft.updatedAt > updatedBefore);
+  });
   if (drafts.length > 0) {
     await writeClientDatabaseValue(databaseKey, drafts);
   } else {

@@ -1,9 +1,10 @@
 import { lazy, Suspense, useEffect, useReducer } from 'react';
-import { AuthProvider } from './context/AuthContext';
+import { AuthProvider, useAuth } from './context/AuthContext';
 import { BrowserRecommendationDialog } from './components/browser/BrowserRecommendationDialog';
 import { useForumContentFontSize } from './hooks/useForumContentFontSize';
 import { HomePage } from './pages/HomePage';
 import { FORUM_LOCATION_CHANGE_EVENT } from './utils/authRoutes';
+import { consumeQueuedLocalDraftCleanups } from './utils/draftCleanup';
 import { applyForumContentFontSize } from './utils/forumFontSize';
 import { resolveForumAppRoute } from './utils/forumNavigation';
 import { translateLegacyForumThreadHref } from './utils/legacyForumRoutes';
@@ -86,12 +87,25 @@ export function App() {
 
   return (
     <AuthProvider>
+      <PendingDraftCleanup />
       <BrowserRecommendationDialog />
       <Suspense fallback={null}>
         <ForumRouter />
       </Suspense>
     </AuthProvider>
   );
+}
+
+function PendingDraftCleanup() {
+  const { status, viewer } = useAuth();
+  const ownerKey = viewer?.username ?? '';
+
+  useEffect(() => {
+    if (status !== 'authenticated' || !ownerKey) return;
+    void consumeQueuedLocalDraftCleanups(ownerKey);
+  }, [ownerKey, status]);
+
+  return null;
 }
 
 function ForumRouter() {

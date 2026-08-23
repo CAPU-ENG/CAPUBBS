@@ -133,12 +133,15 @@ export async function deleteStoredReplyDraftForThread(
   bid: number,
   tid: number,
   ownerKey: string | null | undefined,
+  updatedBefore?: string,
 ) {
   const databaseKey = getReplyDraftDatabaseKey(ownerKey);
   if (!databaseKey) return;
 
-  const nextDrafts = (await readStoredReplyDrafts(ownerKey))
-    .filter((draft) => draft.bid !== bid || draft.tid !== tid);
+  const nextDrafts = (await readStoredReplyDrafts(ownerKey)).filter((draft) => {
+    const matchesDraft = draft.bid === bid && draft.tid === tid;
+    return !matchesDraft || Boolean(updatedBefore && draft.updatedAt > updatedBefore);
+  });
 
   try {
     if (nextDrafts.length > 0) await writeClientDatabaseValue(databaseKey, nextDrafts);

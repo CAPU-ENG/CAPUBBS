@@ -33,16 +33,14 @@ import {
 import { useAuth } from '../context/AuthContext';
 import { useAutoSaveEnabled } from '../hooks/useAssistiveFeatures';
 import { getLoginPathWithReturnTo, getRegisterPathWithReturnTo } from '../utils/authRoutes';
-import { waitForLocalDraftCleanup } from '../utils/draftCleanup';
+import { queueLocalDraftCleanup } from '../utils/draftCleanup';
 import { normalizeFloorQuotesForLegacyStorage } from '../utils/floorQuote';
 import {
-  deleteStoredReplyDraftForThread,
   readStoredReplyDraftForThread,
   saveStoredReplyDraft,
   type StoredReplyAttachment,
 } from '../utils/replyDraftStorage';
 import {
-  deleteStoredThreadComposeDraft,
   readStoredThreadComposeDraft,
   saveStoredThreadComposeDraft,
 } from '../utils/threadComposeDraftStorage';
@@ -431,10 +429,14 @@ export function ThreadComposePage() {
         title: title.trim(),
       });
       if (ownerKey) {
-        const cleanup = request.tid
-          ? deleteStoredReplyDraftForThread(request.bid, request.tid, ownerKey)
-          : deleteStoredThreadComposeDraft(request.bid, ownerKey, isActivity ? 'activity' : 'thread');
-        await waitForLocalDraftCleanup(cleanup);
+        queueLocalDraftCleanup(request.tid
+          ? { bid: request.bid, ownerKey, tid: request.tid, type: 'reply' }
+          : {
+            bid: request.bid,
+            draftKind: isActivity ? 'activity' : 'thread',
+            ownerKey,
+            type: 'thread-compose',
+          });
       }
       window.location.href = published.tid && published.pid
         ? getThreadFloorHref(published.bid, published.tid, published.pid)

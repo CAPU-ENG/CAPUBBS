@@ -10,13 +10,12 @@ import {
   uploadThreadAttachment,
 } from "../../api/thread";
 import { useAutoSaveEnabled } from "../../hooks/useAssistiveFeatures";
-import { waitForLocalDraftCleanup } from "../../utils/draftCleanup";
+import { queueLocalDraftCleanup } from "../../utils/draftCleanup";
 import {
   appendFloorQuote,
   normalizeFloorQuotesForLegacyStorage,
 } from "../../utils/floorQuote";
 import {
-  deleteStoredReplyDraftForThread,
   saveStoredReplyDraft,
   type ReplyDraftSaveFailureReason,
   type StoredReplyAttachment,
@@ -250,7 +249,7 @@ export function ReplyEditor({
         tid,
         title: threadTitle,
       });
-      await waitForLocalDraftCleanup(deleteStoredReplyDraftForThread(bid, tid, ownerKey));
+      queueLocalDraftCleanup({ bid, ownerKey, tid, type: "reply" });
 
       window.location.href = published.pid > 0
         ? getThreadFloorHref(published.bid, published.tid, published.pid)
