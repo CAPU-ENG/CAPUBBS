@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState, type CSSProperties } from 'react';
+import { useEffect, useLayoutEffect, useMemo, useRef, useState, type CSSProperties } from 'react';
 import { fetchSignatureReferencedFloorHtml } from '../../api/thread';
 import {
   renderForumMarkup,
@@ -20,6 +20,7 @@ import {
   findSignatureFloorMarkers,
   replaceLegacySignatureFloorScripts,
 } from '../../utils/signatureFloorLink';
+import frameStylesheetUrl from '../../styles/thread-html-frame.css?url&no-inline';
 import {
   ForumMarkup,
   type ForumMarkupImageChangeHandler,
@@ -33,6 +34,7 @@ const MAX_FRAME_HEIGHT = 50_000;
 const FRAME_BOTTOM_GUARD = 30;
 const FRAME_WIDTH_ALLOWANCE = 30;
 const HTML_FRAME_MESSAGE_SOURCE = 'capubbs-thread-html-frame';
+const HTML_FRAME_STYLESHEET_URL = new URL(frameStylesheetUrl, window.location.origin).href;
 
 type ThreadHtmlVariant = 'floor' | 'signature';
 
@@ -135,7 +137,6 @@ function ThreadSandboxedHtmlFrame({
   const canOpenImages = Boolean(onImageOpen);
   const [frameHeight, setFrameHeight] = useState<number | null>(null);
   const isDarkTheme = useDarkTheme();
-  const parentStyleText = useParentStyleText();
   const forumContentFontSize = useForumContentFontSize();
   const frameFontSize = variant === 'signature' ? 14 : forumContentFontSize;
   const frameDocument = useMemo(() => buildHtmlFrameDocument({
@@ -145,9 +146,8 @@ function ThreadSandboxedHtmlFrame({
     isActivitySignupCanceled,
     isDarkTheme,
     fontSize: frameFontSize,
-    parentStyleText,
     variant,
-  }), [canOpenImages, frameFontSize, html, isActivitySignupCanceled, isDarkTheme, parentStyleText, variant]);
+  }), [canOpenImages, frameFontSize, html, isActivitySignupCanceled, isDarkTheme, variant]);
   const frameSource = useMemo(
     () => `data:text/html;charset=utf-8,${encodeURIComponent(frameDocument)}`,
     [frameDocument],
@@ -157,7 +157,7 @@ function ThreadSandboxedHtmlFrame({
     setFrameHeight(null);
   }, [frameSource]);
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     function handleMessage(event: MessageEvent) {
       if (event.source !== iframeRef.current?.contentWindow || !isHtmlFrameMessage(event.data)) return;
       if (event.data.frameId !== frameIdRef.current) return;
@@ -296,7 +296,6 @@ function buildHtmlFrameDocument({
   html,
   isActivitySignupCanceled,
   isDarkTheme,
-  parentStyleText,
   variant,
 }: {
   canOpenImages: boolean;
@@ -305,14 +304,12 @@ function buildHtmlFrameDocument({
   html: string;
   isActivitySignupCanceled: boolean;
   isDarkTheme: boolean;
-  parentStyleText: string;
   variant: ThreadHtmlVariant;
 }) {
   const isSignature = variant === 'signature';
   const color = isSignature
     ? '#999999'
     : (isDarkTheme ? 'rgb(228 228 231)' : 'rgb(63 63 70)');
-  const linkColor = isDarkTheme ? 'rgb(125 211 252)' : 'rgb(3 105 161)';
   const fontFamily = isSignature
     ? 'monospace'
     : "ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif";
@@ -329,10 +326,10 @@ function buildHtmlFrameDocument({
   <meta name="referrer" content="no-referrer">
   <base href="${escapeHtmlAttribute(getLegacyContentBaseUrl())}">
   <meta http-equiv="Content-Security-Policy" content="${buildContentSecurityPolicy()}">
-  <style data-capubbs-parent-styles>${escapeStyleText(parentStyleText)}</style>
+  <link rel="stylesheet" href="${escapeHtmlAttribute(HTML_FRAME_STYLESHEET_URL)}">
   <style>
     html,body{margin:0;padding:0;min-width:0;min-height:0;overflow:hidden;background:transparent!important;color:${color};font-family:${fontFamily};font-size:${fontSize}px;line-height:1.6;overflow-wrap:anywhere;word-break:break-word}
-    .capubbs-html-frame-root{display:flow-root;width:calc(100% - ${FRAME_WIDTH_ALLOWANCE}px);${signatureRootStyle}}.capubbs-html-frame-root iframe{display:inline-block;vertical-align:baseline}a{color:${linkColor}}img,video,canvas,svg{max-width:100%;height:auto}.forum-markup img[data-capubbs-image-width][data-capubbs-image-height]{background:linear-gradient(105deg,transparent 20%,rgba(255,255,255,.42) 45%,transparent 70%);background-color:rgba(128,128,128,.16);background-size:220% 100%;animation:capubbs-image-loading 1.2s ease-in-out infinite}@keyframes capubbs-image-loading{from{background-position:120% 0}to{background-position:-80% 0}}@media(prefers-reduced-motion:reduce){.forum-markup img[data-capubbs-image-width][data-capubbs-image-height]{animation:none}}pre{max-width:100%;overflow:auto;white-space:pre-wrap}table{max-width:100%}
+    .capubbs-html-frame-root{display:flow-root;width:calc(100% - ${FRAME_WIDTH_ALLOWANCE}px);${signatureRootStyle}}.capubbs-html-frame-root iframe{display:inline-block;vertical-align:baseline}
   </style>
   <script>${buildFrameBridgeScript(frameId, canOpenImages)}</script>
   <script src="/bbs/lib/jquery.min.js"></script>
@@ -371,7 +368,7 @@ function buildFrameBridgeScript(frameId: string, canOpenImages: boolean) {
     function queueHeight(){
       if(queued)return;
       queued=true;
-      window.requestAnimationFrame(sendHeight);
+      window.setTimeout(sendHeight,0);
     }
     function executeUserScripts(){
       Array.prototype.slice.call(document.querySelectorAll('script[type="text/capubbs-user-script"]')).forEach(function(script){
@@ -630,50 +627,6 @@ function buildContentSecurityPolicy() {
 
 function getLegacyContentBaseUrl() {
   return new URL('/bbs/content/', window.location.origin).href;
-}
-
-function getParentStyleText() {
-  return Array.from(document.styleSheets)
-    .map((styleSheet) => {
-      try {
-        return Array.from(styleSheet.cssRules)
-          .map((rule) => rule.cssText)
-          .join('\n');
-      } catch {
-        const ownerNode = styleSheet.ownerNode;
-        return ownerNode instanceof HTMLStyleElement ? ownerNode.textContent ?? '' : '';
-      }
-    })
-    .filter(Boolean)
-    .join('\n');
-}
-
-function useParentStyleText() {
-  const [styleText, setStyleText] = useState(getParentStyleText);
-
-  useEffect(() => {
-    const update = () => {
-      const nextStyleText = getParentStyleText();
-      setStyleText((currentStyleText) => currentStyleText === nextStyleText ? currentStyleText : nextStyleText);
-    };
-    const observer = new MutationObserver(update);
-
-    observer.observe(document.head, {
-      attributes: true,
-      childList: true,
-      characterData: true,
-      subtree: true,
-    });
-    update();
-
-    return () => observer.disconnect();
-  }, []);
-
-  return styleText;
-}
-
-function escapeStyleText(value: string) {
-  return value.replace(/<\/style/gi, '<\\/style');
 }
 
 function escapeHtmlAttribute(value: string) {
