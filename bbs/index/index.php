@@ -58,7 +58,7 @@ if ($username!="") {
     // }
     echo("</div>");
 }else{
-    echo("<span class='guest'>欢迎您，游客！<a href='../login?from=%2Fbbs%2Findex'>登录</a> 或者 <a href='../register'>注册</a></span>");
+    echo("<span class='guest'>欢迎您，游客！<a href='../login?from=%2Fbbs%2Findex'>登录</a> 或者 <a href='../register'>注册</a><br><a href='/' class='new-forum-link'>试试新论坛</a></span>");
 }
 ?>
 
