@@ -1,4 +1,4 @@
-import { Accessibility, Check, ChevronDown, CircleHelp, CirclePlus, MonitorCog, Pin, PinOff } from 'lucide-react';
+import { Accessibility, Check, ChevronDown, CircleHelp, CirclePlus, MonitorCog, Pin, PinOff, Quote } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import { AppBackground } from '../components/layout/AppBackground';
 import { TopBar } from '../components/layout/TopBar';
@@ -160,30 +160,31 @@ export function SettingsPage() {
 
             <div className="settings-font-size-control">
               <div className="settings-font-size-heading">
-                <label htmlFor="forum-content-font-size">默认字体大小</label>
-                <output htmlFor="forum-content-font-size">{forumContentFontSize}px</output>
+                <span id="forum-content-font-size-label">默认字体大小</span>
               </div>
-              <input
-                aria-valuetext={`${forumContentFontSize}px`}
-                id="forum-content-font-size"
-                max={FORUM_CONTENT_FONT_SIZE_OPTIONS.at(-1)}
-                min={FORUM_CONTENT_FONT_SIZE_OPTIONS[0]}
-                onChange={(event) => saveForumContentFontSize(Number(event.target.value))}
-                step={1}
-                type="range"
-                value={forumContentFontSize}
-              />
-              <div className="settings-font-size-ticks" aria-hidden="true">
+              <div
+                aria-labelledby="forum-content-font-size-label"
+                className="settings-font-size-options"
+                role="group"
+              >
                 {FORUM_CONTENT_FONT_SIZE_OPTIONS.map((fontSize) => (
-                  <span key={fontSize}>{fontSize}px</span>
+                  <button
+                    aria-pressed={fontSize === forumContentFontSize}
+                    className={fontSize === forumContentFontSize ? 'settings-font-size-option-active' : ''}
+                    key={fontSize}
+                    onClick={() => saveForumContentFontSize(fontSize)}
+                    type="button"
+                  >
+                    {fontSize}px
+                  </button>
                 ))}
               </div>
-              <p
-                className="settings-font-size-preview"
-                style={{ fontSize: `${forumContentFontSize}px` }}
-              >
-                协会创办之初就成功举行了1996年的以“庆红军长征胜利60周年”为主题的暑期社会考察活动，之后的几年里，陆续举办了1997的庆香港回归探炎黄血脉自行车考察 、1998年的丝绸之路文化之旅自行车考察、1999年的迎澳门回归环保自行车考察......早期的暑期远征多以骑行+实践的模式进行，暑期队员在途径的地域开展社会考察、支教、宣讲等活动，最后回到学校将所见所闻所想编写为实践报告册。可以说，协会的前辈们在骑车的过程中将社会考察放到了十分重要的位置。 --毛球
-              </p>
+              <div className="settings-font-size-preview">
+                <span aria-hidden="true"><Quote size={18} /></span>
+                <p style={{ fontSize: `${forumContentFontSize}px` }}>
+                  协会创办之初就成功举行了1996年的以“庆红军长征胜利60周年”为主题的暑期社会考察活动，之后的几年里，陆续举办了1997的庆香港回归探炎黄血脉自行车考察 、1998年的丝绸之路文化之旅自行车考察、1999年的迎澳门回归环保自行车考察......早期的暑期远征多以骑行+实践的模式进行，暑期队员在途径的地域开展社会考察、支教、宣讲等活动，最后回到学校将所见所闻所想编写为实践报告册。可以说，协会的前辈们在骑车的过程中将社会考察放到了十分重要的位置。 --毛球
+                </p>
+              </div>
             </div>
           </section>
 
