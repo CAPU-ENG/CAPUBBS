@@ -20,7 +20,7 @@
     padding: 3px 7px;
     background: color-mix(in srgb, var(--user-tag-color) 10%, var(--surface-raised));
     color: color-mix(in srgb, var(--user-tag-color) 86%, var(--text-strong));
-    font-size: 0.62rem;
+    font-size: var(--ui-font-size-sm);
     font-weight: 760;
     line-height: 1.1;
     white-space: nowrap;
@@ -34,7 +34,7 @@
 
   .user-tag-compact {
     padding: 2px 6px;
-    font-size: 0.56rem;
+    font-size: var(--ui-font-size-xs);
   }
 
   .user-tag-list .user-tag-compact {

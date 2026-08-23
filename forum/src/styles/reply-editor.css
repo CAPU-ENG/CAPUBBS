@@ -26,14 +26,14 @@
   .reply-editor-heading h2 {
     color: var(--text-strong);
     font-family: "Noto Serif CJK SC", "Source Han Serif SC", "Songti SC", serif;
-    font-size: 1rem;
+    font-size: var(--ui-font-size-xl);
   }
 
   .reply-editor-heading > p {
     max-width: 58%;
     overflow: hidden;
     color: var(--text-faint);
-    font-size: 0.66rem;
+    font-size: var(--ui-font-size-sm);
     text-overflow: ellipsis;
     white-space: nowrap;
   }
@@ -48,7 +48,7 @@
     display: block;
     margin-bottom: 7px;
     color: var(--text-muted);
-    font-size: 0.7rem;
+    font-size: var(--ui-font-size-md);
     font-weight: 720;
   }
 
@@ -61,7 +61,7 @@
     outline: 0;
     background: var(--surface);
     color: var(--text-strong);
-    font-size: 0.88rem;
+    font-size: var(--ui-font-size-xl);
     font-weight: 650;
     transition: 150ms ease;
   }
@@ -76,7 +76,7 @@
     right: 12px;
     bottom: 12px;
     color: var(--text-faint);
-    font-size: 0.64rem;
+    font-size: var(--ui-font-size-sm);
   }
 
   .reply-editor-core {
@@ -124,7 +124,7 @@
     align-items: center;
     gap: 6px;
     color: var(--text-muted);
-    font-size: 0.68rem;
+    font-size: var(--ui-font-size-md);
     font-weight: 680;
     cursor: pointer;
   }
@@ -151,7 +151,7 @@
     min-height: 38px;
     padding: 0 10px;
     color: var(--text-faint);
-    font-size: 0.67rem;
+    font-size: var(--ui-font-size-md);
     font-weight: 700;
   }
 
@@ -193,7 +193,7 @@
     min-width: 82px;
     padding: 0 7px;
     background: var(--surface);
-    font-size: 0.68rem;
+    font-size: var(--ui-font-size-md);
   }
 
   .editor-toolbar > button {
@@ -264,7 +264,7 @@
     border-radius: var(--control-radius);
     padding: 4px 7px;
     color: var(--text-muted);
-    font-size: 0.62rem;
+    font-size: var(--ui-font-size-sm);
   }
 
   .reply-attachments li > span {
@@ -301,7 +301,7 @@
     align-items: center;
     gap: 7px;
     color: var(--text-faint);
-    font-size: 0.65rem;
+    font-size: var(--ui-font-size-sm);
     font-weight: 700;
   }
 
@@ -312,7 +312,7 @@
     padding: 0 8px;
     background: var(--surface);
     color: var(--text-muted);
-    font-size: 0.68rem;
+    font-size: var(--ui-font-size-md);
   }
 
   .reply-secondary-button,
@@ -324,7 +324,7 @@
     gap: 6px;
     border-radius: var(--control-radius);
     padding: 0 10px;
-    font-size: 0.67rem;
+    font-size: var(--ui-font-size-md);
     font-weight: 720;
   }
 
@@ -351,7 +351,7 @@
 
   .reply-editor-status {
     color: var(--brand-strong);
-    font-size: 0.64rem;
+    font-size: var(--ui-font-size-sm);
     font-weight: 680;
   }
 
@@ -366,7 +366,7 @@
     display: inline-block;
     width: 0.62rem;
     color: var(--brand);
-    font-size: 1rem;
+    font-size: var(--ui-font-size-xl);
     line-height: 0;
     text-align: center;
     transform-origin: center;
@@ -407,7 +407,7 @@
     border-radius: 999px;
     background: var(--brand-strong);
     color: var(--surface);
-    font-size: 0.58rem;
+    font-size: var(--ui-font-size-xs);
   }
 
   .attachment-dialog-backdrop {
@@ -457,7 +457,7 @@
 
   .attachment-dialog > header h2 {
     color: var(--text-strong);
-    font-size: 0.88rem;
+    font-size: var(--ui-font-size-xl);
     font-weight: 760;
   }
 
@@ -480,12 +480,12 @@
   }
 
   .attachment-drop-button strong {
-    font-size: 0.75rem;
+    font-size: var(--ui-font-size-lg);
   }
 
   .attachment-drop-button span {
     color: var(--text-faint);
-    font-size: 0.62rem;
+    font-size: var(--ui-font-size-sm);
   }
 
   .attachment-dialog > ul {
@@ -513,14 +513,14 @@
   .attachment-dialog > ul strong {
     overflow: hidden;
     color: var(--text-muted);
-    font-size: 0.68rem;
+    font-size: var(--ui-font-size-md);
     text-overflow: ellipsis;
     white-space: nowrap;
   }
 
   .attachment-dialog > ul span {
     color: var(--text-faint);
-    font-size: 0.58rem;
+    font-size: var(--ui-font-size-xs);
   }
 
   .attachment-dialog > ul button {
@@ -585,7 +585,7 @@
 
   .reply-preview-dialog > header span {
     color: var(--brand-strong);
-    font-size: 0.62rem;
+    font-size: var(--ui-font-size-sm);
     font-weight: 760;
   }
 
@@ -593,7 +593,7 @@
     overflow: hidden;
     margin-top: 2px;
     color: var(--text-strong);
-    font-size: 0.88rem;
+    font-size: var(--ui-font-size-xl);
     font-weight: 740;
     text-overflow: ellipsis;
     white-space: nowrap;
@@ -680,7 +680,7 @@
     align-items: center;
     gap: 7px;
     color: var(--text-muted);
-    font-size: 0.68rem;
+    font-size: var(--ui-font-size-md);
   }
 
   .reply-preview-attachments span {
@@ -745,7 +745,7 @@
     .reply-signature-options > label {
       flex-shrink: 0;
       gap: 4px;
-      font-size: 0.6rem;
+      font-size: var(--ui-font-size-sm);
       white-space: nowrap;
     }
 
@@ -803,7 +803,7 @@
       min-height: 30px;
       gap: 3px;
       padding-inline: 6px;
-      font-size: 0.6rem;
+      font-size: var(--ui-font-size-sm);
       white-space: nowrap;
     }
 
@@ -827,7 +827,7 @@
     .reply-attachment-count {
       min-width: 16px;
       height: 16px;
-      font-size: 0.52rem;
+      font-size: var(--ui-font-size-xs);
     }
 
     .reply-preview-backdrop {

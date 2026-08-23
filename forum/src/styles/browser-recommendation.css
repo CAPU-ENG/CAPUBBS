@@ -23,7 +23,7 @@
 .browser-recommendation-dialog p {
   margin: 0;
   color: var(--text-strong);
-  font-size: 0.72rem;
+  font-size: var(--ui-font-size-md);
   font-weight: 650;
   line-height: 1.4;
   text-align: center;
@@ -49,7 +49,7 @@
   border: 1px solid var(--line-strong);
   background: var(--surface-soft);
   color: var(--text-muted);
-  font-size: 0.72rem;
+  font-size: var(--ui-font-size-md);
   font-weight: 680;
 }
 

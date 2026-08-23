@@ -37,7 +37,7 @@
     padding: 0 13px;
     background: color-mix(in srgb, var(--surface) 92%, transparent);
     color: var(--text-muted);
-    font-size: 0.82rem;
+    font-size: var(--ui-font-size-lg);
     font-weight: 720;
     transition: border-color 150ms ease, background 150ms ease, color 150ms ease;
   }
@@ -91,7 +91,7 @@
     display: grid;
     gap: 6px;
     color: var(--text-muted);
-    font-size: 0.62rem;
+    font-size: var(--ui-font-size-sm);
     font-weight: 750;
   }
 
@@ -103,7 +103,7 @@
     padding: 0 9px;
     background: var(--surface-soft);
     color: var(--text-strong);
-    font-size: 0.68rem;
+    font-size: var(--ui-font-size-md);
     outline: none;
     transition: 150ms ease;
   }
@@ -139,7 +139,7 @@
     padding: 0 10px;
     background: var(--surface-raised);
     color: var(--text-muted);
-    font-size: 0.63rem;
+    font-size: var(--ui-font-size-sm);
     font-weight: 740;
   }
 
@@ -182,7 +182,7 @@
 
   .management-tag-definition-row code {
     color: var(--text-faint);
-    font-size: 0.58rem;
+    font-size: var(--ui-font-size-xs);
   }
 
   .management-tag-definition-row > div {
@@ -233,7 +233,7 @@
     border-bottom: 1px solid var(--line);
     padding: 0 7px;
     color: var(--text-muted);
-    font-size: 0.67rem;
+    font-size: var(--ui-font-size-md);
     text-align: left;
   }
 
@@ -252,7 +252,7 @@
   .management-member-list small,
   .management-selected-member span {
     color: var(--text-faint);
-    font-size: 0.57rem;
+    font-size: var(--ui-font-size-xs);
   }
 
   .management-selected-member {
@@ -265,7 +265,7 @@
 
   .management-selected-member strong {
     color: var(--text-strong);
-    font-size: 0.86rem;
+    font-size: var(--ui-font-size-xl);
   }
 
   .management-tag-checkboxes {
@@ -279,7 +279,7 @@
     align-items: center;
     gap: 8px;
     color: var(--text-muted);
-    font-size: 0.67rem;
+    font-size: var(--ui-font-size-md);
   }
 
   .management-tag-checkboxes input {
@@ -316,7 +316,7 @@
 
   .management-card-heading h2 {
     color: var(--text-strong);
-    font-size: 0.78rem;
+    font-size: var(--ui-font-size-lg);
     font-weight: 780;
   }
 
@@ -327,7 +327,7 @@
     padding: 4px 7px;
     background: var(--surface-soft);
     color: var(--brand-strong);
-    font-size: 0.61rem;
+    font-size: var(--ui-font-size-sm);
     font-weight: 760;
   }
 
@@ -373,7 +373,7 @@
     max-width: 100%;
     overflow: hidden;
     color: var(--text-strong);
-    font-size: 0.72rem;
+    font-size: var(--ui-font-size-md);
     font-weight: 740;
     text-overflow: ellipsis;
     white-space: nowrap;
@@ -397,7 +397,7 @@
     gap: 6px;
     margin-top: 7px;
     color: var(--text-faint);
-    font-size: 0.57rem;
+    font-size: var(--ui-font-size-xs);
   }
 
   .management-row-main p span {
@@ -426,7 +426,7 @@
     padding: 0 10px;
     background: var(--surface-raised);
     color: var(--text-muted);
-    font-size: 0.63rem;
+    font-size: var(--ui-font-size-sm);
     font-weight: 740;
     transition: 140ms ease;
   }
@@ -472,7 +472,7 @@
   .management-lookup-form > label,
   .management-board-transfer span {
     color: var(--text-muted);
-    font-size: 0.62rem;
+    font-size: var(--ui-font-size-sm);
     font-weight: 750;
   }
 
@@ -490,7 +490,7 @@
     padding: 0 11px;
     background: var(--surface-soft);
     color: var(--text-strong);
-    font-size: 0.69rem;
+    font-size: var(--ui-font-size-md);
     outline: none;
   }
 
@@ -516,7 +516,7 @@
     padding: 0 11px;
     background: var(--brand-strong);
     color: var(--surface-raised);
-    font-size: 0.63rem;
+    font-size: var(--ui-font-size-sm);
     font-weight: 750;
   }
 
@@ -543,7 +543,7 @@
     display: block;
     margin-bottom: 7px;
     color: var(--brand-strong);
-    font-size: 0.58rem;
+    font-size: var(--ui-font-size-xs);
     font-weight: 800;
   }
 
@@ -557,7 +557,7 @@
   .management-thread-identity dl div {
     display: flex;
     gap: 5px;
-    font-size: 0.59rem;
+    font-size: var(--ui-font-size-xs);
   }
 
   .management-thread-identity dt {
@@ -579,7 +579,7 @@
     padding: 9px 10px;
     background: var(--surface-soft);
     color: var(--text-muted);
-    font-size: 0.61rem;
+    font-size: var(--ui-font-size-sm);
     line-height: 1.45;
   }
 
@@ -605,7 +605,7 @@
     justify-content: center;
     gap: 7px;
     color: var(--text-faint);
-    font-size: 0.66rem;
+    font-size: var(--ui-font-size-sm);
   }
 
   .management-move-flow {
@@ -622,7 +622,7 @@
     display: inline-flex;
     align-items: center;
     gap: 6px;
-    font-size: 0.62rem;
+    font-size: var(--ui-font-size-sm);
     font-weight: 700;
   }
 
@@ -635,7 +635,7 @@
     border: 1px solid var(--line);
     border-radius: var(--control-radius);
     background: var(--surface-soft);
-    font-size: 0.57rem;
+    font-size: var(--ui-font-size-xs);
   }
 
   .management-move-flow .is-current,
@@ -691,7 +691,7 @@
     padding: 0 11px;
     background: var(--surface-soft);
     color: var(--text-strong);
-    font-size: 0.69rem;
+    font-size: var(--ui-font-size-md);
     font-weight: 700;
   }
 
@@ -749,13 +749,13 @@
 
   .management-permission-group-toggle strong {
     color: var(--text-strong);
-    font-size: 0.68rem;
+    font-size: var(--ui-font-size-md);
     font-weight: 780;
   }
 
   .management-permission-group-toggle em {
     color: var(--text-faint);
-    font-size: 0.56rem;
+    font-size: var(--ui-font-size-xs);
     font-style: normal;
     font-weight: 700;
   }
@@ -806,7 +806,7 @@
     max-width: 100%;
     overflow-wrap: anywhere;
     color: var(--text-strong);
-    font-size: 0.67rem;
+    font-size: var(--ui-font-size-md);
     font-weight: 760;
   }
 
@@ -842,20 +842,20 @@
 
   .management-member-identity span {
     color: var(--brand-strong);
-    font-size: 0.56rem;
+    font-size: var(--ui-font-size-xs);
     font-weight: 780;
   }
 
   .management-member-identity strong {
     color: var(--text-strong);
-    font-size: 0.76rem;
+    font-size: var(--ui-font-size-lg);
     font-weight: 780;
   }
 
   .management-member-identity p {
     overflow: hidden;
     color: var(--text-faint);
-    font-size: 0.57rem;
+    font-size: var(--ui-font-size-xs);
     text-overflow: ellipsis;
     white-space: nowrap;
   }
@@ -888,7 +888,7 @@
   .management-mute-list strong {
     overflow-wrap: anywhere;
     color: var(--text-strong);
-    font-size: 0.65rem;
+    font-size: var(--ui-font-size-sm);
   }
 
   .management-member-email span,
@@ -905,7 +905,7 @@
     padding: 3px 5px;
     background: var(--surface-soft);
     color: var(--text-muted);
-    font-size: 0.55rem;
+    font-size: var(--ui-font-size-xs);
     font-style: normal;
     font-weight: 700;
   }
@@ -929,13 +929,13 @@
   .management-permission-row span,
   .management-mute-row span {
     color: var(--text-faint);
-    font-size: 0.56rem;
+    font-size: var(--ui-font-size-xs);
   }
 
   .management-permission-row strong,
   .management-mute-row strong {
     color: var(--text-strong);
-    font-size: 0.65rem;
+    font-size: var(--ui-font-size-sm);
   }
 
   .management-mute-list {
@@ -979,7 +979,7 @@
 
   .management-moderator-assignment label > span {
     color: var(--text-faint);
-    font-size: 0.56rem;
+    font-size: var(--ui-font-size-xs);
     font-weight: 750;
   }
 
@@ -991,7 +991,7 @@
     padding: 0 9px;
     background: var(--surface-soft);
     color: var(--text-strong);
-    font-size: 0.64rem;
+    font-size: var(--ui-font-size-sm);
   }
 
   .management-board-moderator-groups {
@@ -1023,14 +1023,14 @@
 
   .management-board-moderator-row h3 {
     color: var(--text-strong);
-    font-size: 0.68rem;
+    font-size: var(--ui-font-size-md);
     font-weight: 780;
   }
 
   .management-board-moderator-row header > span,
   .management-board-moderator-row > p {
     color: var(--text-faint);
-    font-size: 0.56rem;
+    font-size: var(--ui-font-size-xs);
   }
 
   .management-board-moderator-row > p {
@@ -1064,7 +1064,7 @@
     min-width: 0;
     overflow: hidden;
     color: var(--text-strong);
-    font-size: 0.64rem;
+    font-size: var(--ui-font-size-sm);
     font-weight: 740;
     text-overflow: ellipsis;
     white-space: nowrap;
@@ -1104,7 +1104,7 @@
     padding: 8px 12px;
     background: var(--surface-soft);
     color: var(--text-muted);
-    font-size: 0.64rem;
+    font-size: var(--ui-font-size-sm);
     font-weight: 750;
   }
 
@@ -1114,7 +1114,7 @@
 
   .management-secondary-moderators > summary small {
     color: var(--text-faint);
-    font-size: 0.56rem;
+    font-size: var(--ui-font-size-xs);
     font-weight: 650;
   }
 
@@ -1156,14 +1156,14 @@
     margin-top: 16px;
     color: var(--text-strong);
     font-family: "Noto Serif CJK SC", "Source Han Serif SC", "Songti SC", serif;
-    font-size: 1.18rem;
+    font-size: var(--ui-font-size-title);
     font-weight: 750;
   }
 
   .management-state p {
     margin-top: 7px;
     color: var(--text-muted);
-    font-size: 0.75rem;
+    font-size: var(--ui-font-size-lg);
   }
 
   .management-state a {
@@ -1176,7 +1176,7 @@
     padding: 0 12px;
     background: var(--surface-raised);
     color: var(--text-muted);
-    font-size: 0.7rem;
+    font-size: var(--ui-font-size-md);
     font-weight: 720;
   }
 
@@ -1254,7 +1254,7 @@
 
   .management-tag-definition-select > span {
     color: var(--text-faint);
-    font-size: 0.58rem;
+    font-size: var(--ui-font-size-xs);
   }
 
   .management-tag-definition-card > div {
@@ -1285,7 +1285,7 @@
   .management-member-filter-heading > span,
   .management-member-results-heading strong {
     color: var(--text-strong);
-    font-size: 0.72rem;
+    font-size: var(--ui-font-size-md);
     font-weight: 780;
   }
 
@@ -1293,7 +1293,7 @@
   .management-member-results-heading span,
   .management-member-results-heading > span {
     color: var(--text-faint);
-    font-size: 0.58rem;
+    font-size: var(--ui-font-size-xs);
   }
 
   .management-member-list {
@@ -1337,7 +1337,7 @@
     min-width: 0;
     overflow: hidden;
     color: var(--text-strong);
-    font-size: 0.67rem;
+    font-size: var(--ui-font-size-md);
     font-weight: 760;
     text-overflow: ellipsis;
     white-space: nowrap;
@@ -1356,7 +1356,7 @@
   .management-member-card > time {
     margin-left: auto;
     color: var(--text-faint);
-    font-size: 0.57rem;
+    font-size: var(--ui-font-size-xs);
     white-space: nowrap;
   }
 
@@ -1379,7 +1379,7 @@
 
   .management-member-card span {
     color: var(--text-faint);
-    font-size: 0.58rem;
+    font-size: var(--ui-font-size-xs);
   }
 
   .management-member-card .management-danger-button {
@@ -1409,7 +1409,7 @@
     padding: 2px 5px 2px 8px;
     background: var(--surface-soft);
     color: var(--text-strong);
-    font-size: 0.64rem;
+    font-size: var(--ui-font-size-sm);
   }
 
   .management-pending-member button {
@@ -1445,7 +1445,7 @@
     margin: 0;
     padding: 18px 16px 2px;
     color: var(--text-muted);
-    font-size: 0.7rem;
+    font-size: var(--ui-font-size-md);
     line-height: 1.6;
   }
 
@@ -1457,13 +1457,13 @@
 
   .management-delete-tag-members > strong {
     color: var(--text-strong);
-    font-size: 0.64rem;
+    font-size: var(--ui-font-size-sm);
     font-weight: 760;
   }
 
   .management-delete-tag-members > span {
     color: var(--text-faint);
-    font-size: 0.62rem;
+    font-size: var(--ui-font-size-sm);
   }
 
   .management-delete-tag-member-list {
@@ -1476,7 +1476,7 @@
 
   .management-delete-tag-member-list a {
     color: var(--brand-strong);
-    font-size: 0.64rem;
+    font-size: var(--ui-font-size-sm);
     font-weight: 700;
   }
 
@@ -1500,7 +1500,7 @@
     gap: 7px;
     padding: 18px;
     color: var(--text-faint);
-    font-size: 0.62rem;
+    font-size: var(--ui-font-size-sm);
     text-align: center;
   }
 
@@ -1519,7 +1519,7 @@
     border: 1px solid var(--line);
     border-radius: var(--control-radius);
     padding: 10px 12px;
-    font-size: 0.64rem;
+    font-size: var(--ui-font-size-sm);
   }
 
   .management-notice-error {
@@ -1575,13 +1575,13 @@
 
   .management-dialog > header span {
     color: var(--brand-strong);
-    font-size: 0.58rem;
+    font-size: var(--ui-font-size-xs);
     font-weight: 760;
   }
 
   .management-dialog > header h2 {
     color: var(--text-strong);
-    font-size: 0.82rem;
+    font-size: var(--ui-font-size-lg);
     font-weight: 780;
   }
 
@@ -1593,7 +1593,7 @@
 
   .management-dialog-form > label {
     color: var(--text-muted);
-    font-size: 0.62rem;
+    font-size: var(--ui-font-size-sm);
     font-weight: 750;
   }
 
@@ -1624,7 +1624,7 @@
   .management-mobile-warning h2 {
     margin: 0;
     color: var(--text-strong);
-    font-size: 0.82rem;
+    font-size: var(--ui-font-size-lg);
     font-weight: 760;
     line-height: 1.65;
     text-align: center;

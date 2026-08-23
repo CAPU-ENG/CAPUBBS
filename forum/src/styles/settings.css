@@ -48,7 +48,7 @@
   .settings-panel-heading h2,
   .settings-selection-heading h3 {
     color: var(--text-strong);
-    font-size: 0.9rem;
+    font-size: var(--ui-font-size-xl);
     font-weight: 760;
   }
 
@@ -94,7 +94,7 @@
     background: var(--surface-raised);
     box-shadow: var(--shadow-float);
     color: var(--text-muted);
-    font-size: 0.62rem;
+    font-size: var(--ui-font-size-sm);
     font-weight: 680;
     line-height: 1.4;
     opacity: 0;
@@ -208,7 +208,7 @@
   .settings-checkbox-option strong {
     overflow: hidden;
     color: var(--text-strong);
-    font-size: 0.7rem;
+    font-size: var(--ui-font-size-md);
     font-weight: 680;
     line-height: 18px;
     text-overflow: ellipsis;
@@ -217,7 +217,7 @@
 
   .settings-option-label small {
     color: var(--text-faint);
-    font-size: 0.58rem;
+    font-size: var(--ui-font-size-xs);
     line-height: 1.45;
     overflow-wrap: anywhere;
   }
@@ -229,7 +229,7 @@
 
   .settings-font-size-heading span {
     color: var(--text-strong);
-    font-size: 0.72rem;
+    font-size: var(--ui-font-size-md);
     font-weight: 720;
   }
 
@@ -246,7 +246,7 @@
     border-radius: var(--control-radius);
     background: var(--surface-raised);
     color: var(--text-muted);
-    font-size: 0.68rem;
+    font-size: var(--ui-font-size-md);
     font-variant-numeric: tabular-nums;
     font-weight: 700;
     transition: border-color 140ms ease, background 140ms ease, color 140ms ease;
@@ -306,13 +306,13 @@
 
   .settings-count {
     color: var(--brand-strong);
-    font-size: 1.15rem;
+    font-size: var(--ui-font-size-title);
     font-variant-numeric: tabular-nums;
   }
 
   .settings-count span {
     color: var(--text-faint);
-    font-size: 0.7rem;
+    font-size: var(--ui-font-size-md);
     font-weight: 650;
   }
 
@@ -331,7 +331,7 @@
   .settings-preview-label {
     flex: 0 0 auto;
     color: var(--text-faint);
-    font-size: 0.59rem;
+    font-size: var(--ui-font-size-xs);
     font-weight: 750;
     letter-spacing: 0.08em;
   }
@@ -354,7 +354,7 @@
     border-bottom: 2px solid transparent;
     padding: 8px 10px 6px;
     color: var(--text-muted);
-    font-size: 0.69rem;
+    font-size: var(--ui-font-size-md);
     font-weight: 680;
   }
 
@@ -395,7 +395,7 @@
   .settings-order {
     color: color-mix(in srgb, var(--brand) 68%, var(--text-faint));
     font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
-    font-size: 0.68rem;
+    font-size: var(--ui-font-size-md);
     font-weight: 750;
   }
 
@@ -407,7 +407,7 @@
     display: block;
     overflow: hidden;
     color: var(--text-strong);
-    font-size: 0.76rem;
+    font-size: var(--ui-font-size-lg);
     font-weight: 720;
     text-overflow: ellipsis;
     white-space: nowrap;
@@ -443,7 +443,7 @@
     min-width: 32px;
     padding: 0;
     color: var(--danger);
-    font-size: 0.64rem;
+    font-size: var(--ui-font-size-sm);
     font-weight: 680;
   }
 
@@ -468,7 +468,7 @@
     color: var(--text-faint);
   }
 
-  .settings-empty-selection strong { color: var(--text-muted); font-size: 0.72rem; }
+  .settings-empty-selection strong { color: var(--text-muted); font-size: var(--ui-font-size-md); }
 
   .settings-board-picker {
     display: grid;
@@ -480,7 +480,7 @@
   .settings-board-group legend {
     margin-bottom: 10px;
     color: var(--text-faint);
-    font-size: 0.62rem;
+    font-size: var(--ui-font-size-sm);
     font-weight: 770;
     letter-spacing: 0.08em;
   }
@@ -510,14 +510,14 @@
   }
 
   .settings-board-disclosure summary strong {
-    font-size: 0.62rem;
+    font-size: var(--ui-font-size-sm);
     font-weight: 770;
     letter-spacing: 0.08em;
   }
 
   .settings-board-disclosure summary small {
     color: var(--text-faint);
-    font-size: 0.58rem;
+    font-size: var(--ui-font-size-xs);
   }
 
   .settings-board-disclosure summary svg {
@@ -579,7 +579,7 @@
   .settings-board-grid button > strong {
     overflow: hidden;
     color: var(--text-strong);
-    font-size: 0.7rem;
+    font-size: var(--ui-font-size-md);
     font-weight: 680;
     text-overflow: ellipsis;
     white-space: nowrap;
@@ -587,7 +587,7 @@
 
   .settings-board-grid button > small {
     color: var(--text-faint);
-    font-size: 0.56rem;
+    font-size: var(--ui-font-size-xs);
   }
 
   .settings-board-grid .settings-board-option-selected {

@@ -1,7 +1,7 @@
 @layer components {
   .eyebrow {
     color: var(--brand);
-    font-size: 0.67rem;
+    font-size: var(--ui-font-size-md);
     font-weight: 800;
     letter-spacing: 0.17em;
     line-height: 1.2;
@@ -167,7 +167,7 @@
     gap: 5px;
     padding: 0 18px;
     color: var(--text-muted);
-    font-size: 0.9rem;
+    font-size: var(--ui-font-size-xl);
     font-weight: 650;
     transition: color 160ms ease;
   }
@@ -240,7 +240,7 @@
     padding: 0 18px;
     color: var(--text-muted);
     font: inherit;
-    font-size: 0.9rem;
+    font-size: var(--ui-font-size-xl);
     font-weight: 650;
     line-height: 1.35;
     opacity: 0;
@@ -367,7 +367,7 @@
     text-overflow: ellipsis;
     white-space: nowrap;
     color: var(--text-strong);
-    font-size: 0.78rem;
+    font-size: var(--ui-font-size-lg);
     font-weight: 700;
   }
 
@@ -395,7 +395,7 @@
     background: transparent;
     color: var(--text-muted);
     cursor: pointer;
-    font-size: 0.78rem;
+    font-size: var(--ui-font-size-lg);
     font-weight: 650;
     transition: 150ms ease;
   }
@@ -405,7 +405,7 @@
     gap: 6px;
     border-radius: var(--control-radius);
     padding: 0 9px;
-    font-size: 0.74rem;
+    font-size: var(--ui-font-size-lg);
   }
 
   .supplement-link:hover {
@@ -446,7 +446,7 @@
     border-radius: var(--control-radius);
     padding: 0 8px;
     color: var(--text-muted);
-    font-size: 0.8rem;
+    font-size: var(--ui-font-size-lg);
     font-weight: 600;
     white-space: nowrap;
     transition: 140ms ease;
@@ -501,7 +501,7 @@
     padding: 0 10px;
     background: var(--surface);
     color: var(--text-muted);
-    font-size: 0.76rem;
+    font-size: var(--ui-font-size-lg);
     font-weight: 650;
   }
 
@@ -551,7 +551,7 @@
       overflow: hidden;
       padding: 0 20px;
       color: var(--text-strong);
-      font-size: 0.9rem;
+      font-size: var(--ui-font-size-xl);
       font-weight: 650;
       line-height: 1.35;
       opacity: 0;

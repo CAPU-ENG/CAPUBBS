@@ -1690,7 +1690,7 @@ export function RichTextEditor({
     const className =
       variant === 'code'
         ? 'capubbs-source-code-line-numbers'
-        : 'px-2 py-3 text-right font-mono text-[0.72rem] leading-6';
+        : 'px-2 py-3 text-right font-mono text-[length:var(--ui-font-size-md)] leading-6';
 
     return (
       <div
@@ -1743,7 +1743,7 @@ export function RichTextEditor({
                   onMouseDown={saveSelection}
                   onFocus={saveSelection}
                   onChange={handleRichFontChange}
-                  className="h-5 w-16 border-0 bg-transparent px-0 text-[0.68rem] font-medium text-zinc-700 outline-none dark:text-zinc-200"
+                  className="h-5 w-16 border-0 bg-transparent px-0 text-[length:var(--ui-font-size-md)] font-medium text-zinc-700 outline-none dark:text-zinc-200"
                   aria-label="字体"
                 >
                   <option value="">字体</option>
@@ -1761,7 +1761,7 @@ export function RichTextEditor({
                   onMouseDown={saveSelection}
                   onFocus={saveSelection}
                   onChange={handleRichFontSizeChange}
-                  className="h-5 w-12 border-0 bg-transparent px-0 text-[0.68rem] font-medium text-zinc-700 outline-none dark:text-zinc-200"
+                  className="h-5 w-12 border-0 bg-transparent px-0 text-[length:var(--ui-font-size-md)] font-medium text-zinc-700 outline-none dark:text-zinc-200"
                   aria-label="字号"
                 >
                   <option value="">字号</option>
@@ -1788,7 +1788,7 @@ export function RichTextEditor({
                   onMouseDown={saveSelection}
                   onFocus={saveSelection}
                   onChange={handleRichHeadingChange}
-                  className="h-5 w-16 border-0 bg-transparent px-0 text-[0.68rem] font-medium text-zinc-700 outline-none dark:text-zinc-200"
+                  className="h-5 w-16 border-0 bg-transparent px-0 text-[length:var(--ui-font-size-md)] font-medium text-zinc-700 outline-none dark:text-zinc-200"
                   aria-label="标题格式"
                 >
                   {richTextHeadingOptions.map((headingOption) => (
@@ -1878,7 +1878,7 @@ export function RichTextEditor({
 
         {isColorPickerOpen && !isSourceMode ? (
           <div className="capubbs-editor-color-panel flex flex-wrap items-end gap-2 border-b border-zinc-200/80 px-2 py-2 dark:border-white/10">
-            <label className="grid gap-1 text-[0.68rem] font-semibold text-zinc-500 dark:text-zinc-400">
+            <label className="grid gap-1 text-[length:var(--ui-font-size-md)] font-semibold text-zinc-500 dark:text-zinc-400">
               取色
               <input
                 type="color"
@@ -1894,7 +1894,7 @@ export function RichTextEditor({
               />
             </label>
             {recentTextColors.length > 0 ? (
-              <div className="grid gap-1 text-[0.68rem] font-semibold text-zinc-500 dark:text-zinc-400">
+              <div className="grid gap-1 text-[length:var(--ui-font-size-md)] font-semibold text-zinc-500 dark:text-zinc-400">
                 <span>最近使用</span>
                 <div className="flex h-7 items-center gap-1">
                   {recentTextColors.map((recentColor) => (
@@ -1912,7 +1912,7 @@ export function RichTextEditor({
                 </div>
               </div>
             ) : null}
-            <label className="grid w-24 gap-1 text-[0.68rem] font-semibold text-zinc-500 dark:text-zinc-400">
+            <label className="grid w-24 gap-1 text-[length:var(--ui-font-size-md)] font-semibold text-zinc-500 dark:text-zinc-400">
               HEX 色值
               <input
                 value={hexSourceValue}
@@ -1922,7 +1922,7 @@ export function RichTextEditor({
                 pattern="#[0-9A-Fa-f]{6}"
                 placeholder="#174F38"
                 spellCheck={false}
-                className="h-7 w-full border border-zinc-200 bg-white px-2 font-mono text-xs font-medium uppercase text-zinc-800 outline-none transition focus:border-emerald-700/60 focus:ring-2 focus:ring-emerald-700/10 dark:border-white/10 dark:bg-zinc-950 dark:text-zinc-100"
+                className="h-7 w-full border border-zinc-200 bg-white px-2 font-mono text-[length:var(--ui-font-size-md)] font-medium uppercase text-zinc-800 outline-none transition focus:border-emerald-700/60 focus:ring-2 focus:ring-emerald-700/10 dark:border-white/10 dark:bg-zinc-950 dark:text-zinc-100"
                 aria-label="六位十六进制颜色"
               />
             </label>
@@ -1931,7 +1931,7 @@ export function RichTextEditor({
               onMouseDown={handleColorActionMouseDown}
               onClick={applyHexSourceColor}
               disabled={!/^#[0-9A-F]{6}$/.test(hexSourceValue)}
-              className="h-7 rounded-[var(--control-radius)] bg-emerald-800 px-2.5 text-xs font-semibold text-white transition hover:bg-emerald-900 disabled:cursor-not-allowed disabled:opacity-40 dark:bg-emerald-600 dark:hover:bg-emerald-500"
+              className="h-7 rounded-[var(--control-radius)] bg-emerald-800 px-2.5 text-[length:var(--ui-font-size-md)] font-semibold text-white transition hover:bg-emerald-900 disabled:cursor-not-allowed disabled:opacity-40 dark:bg-emerald-600 dark:hover:bg-emerald-500"
             >
               应用
             </button>
@@ -1952,7 +1952,7 @@ export function RichTextEditor({
                     value={popoverTextValue}
                     onChange={(event) => setPopoverTextValue(event.target.value)}
                     placeholder="链接文本"
-                    className="h-9 w-full rounded-[1px] border border-zinc-200 bg-white/80 px-3 text-sm font-semibold text-zinc-800 outline-none transition placeholder:text-zinc-400 focus:border-[#174f38] focus:ring-2 focus:ring-[#174f38] dark:border-white/10 dark:bg-white/[0.06] dark:text-white dark:placeholder:text-zinc-500"
+                    className="h-9 w-full rounded-[1px] border border-zinc-200 bg-white/80 px-3 text-[length:var(--ui-font-size-lg)] font-semibold text-zinc-800 outline-none transition placeholder:text-zinc-400 focus:border-[#174f38] focus:ring-2 focus:ring-[#174f38] dark:border-white/10 dark:bg-white/[0.06] dark:text-white dark:placeholder:text-zinc-500"
                   />
                 </label>
                 <label className="min-w-[12rem] flex-[1.4]">
@@ -1961,7 +1961,7 @@ export function RichTextEditor({
                     value={popoverValue}
                     onChange={(event) => setPopoverValue(event.target.value)}
                     placeholder="链接地址"
-                    className="h-9 w-full rounded-[1px] border border-zinc-200 bg-white/80 px-3 text-sm font-semibold text-zinc-800 outline-none transition placeholder:text-zinc-400 focus:border-[#174f38] focus:ring-2 focus:ring-[#174f38] dark:border-white/10 dark:bg-white/[0.06] dark:text-white dark:placeholder:text-zinc-500"
+                    className="h-9 w-full rounded-[1px] border border-zinc-200 bg-white/80 px-3 text-[length:var(--ui-font-size-lg)] font-semibold text-zinc-800 outline-none transition placeholder:text-zinc-400 focus:border-[#174f38] focus:ring-2 focus:ring-[#174f38] dark:border-white/10 dark:bg-white/[0.06] dark:text-white dark:placeholder:text-zinc-500"
                   />
                 </label>
               </>
@@ -1973,7 +1973,7 @@ export function RichTextEditor({
                   value={popoverValue}
                   onChange={(event) => setPopoverValue(event.target.value)}
                   placeholder={popoverConfig.placeholder}
-                  className="h-9 w-full rounded-[1px] border border-zinc-200 bg-white/80 px-3 text-sm font-semibold text-zinc-800 outline-none transition placeholder:text-zinc-400 focus:border-[#174f38] focus:ring-2 focus:ring-[#174f38] dark:border-white/10 dark:bg-white/[0.06] dark:text-white dark:placeholder:text-zinc-500"
+                  className="h-9 w-full rounded-[1px] border border-zinc-200 bg-white/80 px-3 text-[length:var(--ui-font-size-lg)] font-semibold text-zinc-800 outline-none transition placeholder:text-zinc-400 focus:border-[#174f38] focus:ring-2 focus:ring-[#174f38] dark:border-white/10 dark:bg-white/[0.06] dark:text-white dark:placeholder:text-zinc-500"
                 />
               </label>
             )}
@@ -1991,7 +1991,7 @@ export function RichTextEditor({
                   type="button"
                   disabled={isCheckingImageFile}
                   onClick={() => imageFileInputRef.current?.click()}
-                  className="h-9 rounded-[1px] border border-[#174f38] bg-white/70 px-3 text-sm font-bold text-[#174f38] transition hover:bg-emerald-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#174f38] disabled:cursor-wait disabled:opacity-50 dark:border-emerald-200 dark:bg-white/[0.06] dark:text-emerald-200 dark:hover:bg-emerald-200/10"
+                  className="h-9 rounded-[1px] border border-[#174f38] bg-white/70 px-3 text-[length:var(--ui-font-size-md)] font-bold text-[#174f38] transition hover:bg-emerald-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#174f38] disabled:cursor-wait disabled:opacity-50 dark:border-emerald-200 dark:bg-white/[0.06] dark:text-emerald-200 dark:hover:bg-emerald-200/10"
                 >
                   {isCheckingImageFile ? '检查中...' : '上传图片'}
                 </button>
@@ -2000,7 +2000,7 @@ export function RichTextEditor({
             <button
               type="submit"
               disabled={isCheckingImageFile}
-              className="h-9 rounded-[1px] bg-[#174f38] px-3 text-sm font-bold text-white transition hover:bg-[#123d2c] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#174f38] dark:bg-emerald-200 dark:text-zinc-950 dark:hover:bg-emerald-100"
+              className="h-9 rounded-[1px] bg-[#174f38] px-3 text-[length:var(--ui-font-size-md)] font-bold text-white transition hover:bg-[#123d2c] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#174f38] dark:bg-emerald-200 dark:text-zinc-950 dark:hover:bg-emerald-100"
             >
               插入
             </button>
@@ -2008,12 +2008,12 @@ export function RichTextEditor({
               type="button"
               onClick={closePopover}
               disabled={isCheckingImageFile}
-              className="h-9 rounded-[1px] border border-zinc-200 bg-white/70 px-3 text-sm font-semibold text-zinc-700 transition hover:bg-zinc-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#174f38] dark:border-white/10 dark:bg-white/[0.06] dark:text-white dark:hover:bg-white/[0.1]"
+              className="h-9 rounded-[1px] border border-zinc-200 bg-white/70 px-3 text-[length:var(--ui-font-size-md)] font-semibold text-zinc-700 transition hover:bg-zinc-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#174f38] dark:border-white/10 dark:bg-white/[0.06] dark:text-white dark:hover:bg-white/[0.1]"
             >
               取消
             </button>
             {activePopover === 'image' && imageFileError ? (
-              <p role="alert" className="basis-full text-xs font-semibold text-rose-700 dark:text-rose-200">
+              <p role="alert" className="basis-full text-[length:var(--ui-font-size-sm)] font-semibold text-rose-700 dark:text-rose-200">
                 {imageFileError}
               </p>
             ) : null}
@@ -2047,7 +2047,7 @@ export function RichTextEditor({
       ) : isHtmlMode ? (
         <div key="html-editor-pane" className={splitPaneClassName} data-editor-mode="html">
           <div className={htmlSourcePaneClassName}>
-            <div className="flex h-9 items-center justify-between border-b border-zinc-200 bg-zinc-50 px-3 text-xs font-bold text-zinc-500 dark:border-white/10 dark:bg-slate-950 dark:text-slate-300">
+            <div className="flex h-9 items-center justify-between border-b border-zinc-200 bg-zinc-50 px-3 text-[length:var(--ui-font-size-sm)] font-bold text-zinc-500 dark:border-white/10 dark:bg-slate-950 dark:text-slate-300">
               <span>HTML源码</span>
               {!isHtmlPreviewOpen ? (
                 <button
@@ -2092,7 +2092,7 @@ export function RichTextEditor({
           </div>
           {isHtmlPreviewOpen ? (
             <div className={`card-surface ${splitPaneChildClassName} flex flex-col`}>
-              <div className="flex h-9 items-center justify-between border-b border-zinc-200/80 px-3 text-xs font-bold text-zinc-500 dark:border-white/10 dark:text-zinc-300">
+              <div className="flex h-9 items-center justify-between border-b border-zinc-200/80 px-3 text-[length:var(--ui-font-size-sm)] font-bold text-zinc-500 dark:border-white/10 dark:text-zinc-300">
                 <span>HTML预览</span>
                 <button
                   type="button"
@@ -2162,10 +2162,10 @@ export function RichTextEditor({
         </button>
       ) : null}
 
-      <footer className="capubbs-editor-statusbar flex flex-wrap items-center justify-between gap-2 border-t border-zinc-200/80 px-3 py-2 text-xs font-semibold text-zinc-500 dark:border-white/10 dark:text-zinc-400">
+      <footer className="capubbs-editor-statusbar flex flex-wrap items-center justify-between gap-2 border-t border-zinc-200/80 px-3 py-2 text-[length:var(--ui-font-size-sm)] font-semibold text-zinc-500 dark:border-white/10 dark:text-zinc-400">
         <span>{plainTextLength(value.content, value.mode)} 字</span>
         <div className="capubbs-editor-statusbar-controls flex flex-wrap items-center gap-3">
-          <label className="capubbs-editor-toggle inline-flex h-7 items-center gap-1.5 rounded-[1px] border border-zinc-200 bg-white/60 px-2 text-[0.72rem] font-bold text-zinc-600 dark:border-white/10 dark:bg-white/[0.06] dark:text-zinc-300">
+          <label className="capubbs-editor-toggle inline-flex h-7 items-center gap-1.5 rounded-[1px] border border-zinc-200 bg-white/60 px-2 text-[length:var(--ui-font-size-md)] font-bold text-zinc-600 dark:border-white/10 dark:bg-white/[0.06] dark:text-zinc-300">
             <input
               type="checkbox"
               checked={isAutoHeightEnabled}
@@ -2175,7 +2175,7 @@ export function RichTextEditor({
             自适应高度
           </label>
           {isSourceMode ? (
-            <label className="capubbs-editor-toggle inline-flex h-7 items-center gap-1.5 rounded-[1px] border border-zinc-200 bg-white/60 px-2 text-[0.72rem] font-bold text-zinc-600 dark:border-white/10 dark:bg-white/[0.06] dark:text-zinc-300">
+            <label className="capubbs-editor-toggle inline-flex h-7 items-center gap-1.5 rounded-[1px] border border-zinc-200 bg-white/60 px-2 text-[length:var(--ui-font-size-md)] font-bold text-zinc-600 dark:border-white/10 dark:bg-white/[0.06] dark:text-zinc-300">
               <input
                 type="checkbox"
                 checked={showSourceLineNumbers}
@@ -2189,7 +2189,7 @@ export function RichTextEditor({
             {editorModeGroups.map((modeGroup) => (
               <div
                 key={modeGroup.map((modeOption) => modeOption.mode).join('-')}
-                className="capubbs-editor-mode-tabs inline-flex h-7 items-center rounded-[1px] border border-zinc-200 bg-white/60 p-0.5 text-[0.72rem] font-bold dark:border-white/10 dark:bg-white/[0.06]"
+                className="capubbs-editor-mode-tabs inline-flex h-7 items-center rounded-[1px] border border-zinc-200 bg-white/60 p-0.5 text-[length:var(--ui-font-size-md)] font-bold dark:border-white/10 dark:bg-white/[0.06]"
               >
                 {modeGroup.map((modeOption) => {
                   const isActive = modeOption.mode === value.mode;

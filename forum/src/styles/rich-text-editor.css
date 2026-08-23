@@ -323,7 +323,7 @@
       flex-wrap: nowrap !important;
       gap: 4px !important;
       padding: 5px 6px !important;
-      font-size: 0.6rem !important;
+      font-size: var(--ui-font-size-sm) !important;
     }
 
     .capubbs-editor-statusbar > span {
@@ -344,7 +344,7 @@
       flex-shrink: 0;
       gap: 3px !important;
       padding-inline: 5px !important;
-      font-size: 0.58rem !important;
+      font-size: var(--ui-font-size-xs) !important;
       white-space: nowrap;
     }
 
@@ -355,7 +355,7 @@
 
     .capubbs-editor-mode-tabs {
       height: 24px !important;
-      font-size: 0.58rem !important;
+      font-size: var(--ui-font-size-xs) !important;
     }
 
     .capubbs-editor-mode-tab {

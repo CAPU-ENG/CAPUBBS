@@ -54,8 +54,8 @@ export function PastedImageDialog({
             <ImageIcon size={17} />
           </span>
           <div className="min-w-0">
-            <h2 id="pasted-image-dialog-title" className="text-base font-semibold">{title}</h2>
-            <p className="mt-0.5 text-xs font-medium text-zinc-500 dark:text-zinc-400">
+            <h2 id="pasted-image-dialog-title" className="text-[length:var(--ui-font-size-xl)] font-semibold">{title}</h2>
+            <p className="mt-0.5 text-[length:var(--ui-font-size-sm)] font-medium text-zinc-500 dark:text-zinc-400">
               图片体积：{formatBytes(image.workingFile.size)}
               {image.workingFile.size !== image.originalFile.size ? `，原图 ${formatBytes(image.originalFile.size)}` : ''}
             </p>
@@ -68,14 +68,14 @@ export function PastedImageDialog({
           </div>
 
           {isTooLarge ? (
-            <div className="rounded-[2px] border border-amber-200 bg-amber-50 px-3 py-3 text-sm text-amber-900 dark:border-amber-100/15 dark:bg-amber-300/10 dark:text-amber-100">
+            <div className="rounded-[2px] border border-amber-200 bg-amber-50 px-3 py-3 text-[length:var(--ui-font-size-lg)] text-amber-900 dark:border-amber-100/15 dark:bg-amber-300/10 dark:text-amber-100">
               <div className="flex flex-wrap items-center justify-between gap-3">
                 <span className="font-semibold">{tooLargeMessage}</span>
                 <button
                   type="button"
                   disabled={isBusy}
                   onClick={onCompress}
-                  className="inline-flex h-9 items-center rounded-[1px] bg-[#174f38] px-3 text-xs font-bold text-white transition hover:bg-[#123d2c] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#174f38] disabled:cursor-wait disabled:opacity-60 dark:bg-emerald-200 dark:text-zinc-950 dark:hover:bg-emerald-100"
+                  className="inline-flex h-9 items-center rounded-[1px] bg-[#174f38] px-3 text-[length:var(--ui-font-size-md)] font-bold text-white transition hover:bg-[#123d2c] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#174f38] disabled:cursor-wait disabled:opacity-60 dark:bg-emerald-200 dark:text-zinc-950 dark:hover:bg-emerald-100"
                 >
                   {image.isCompressing ? compressingLabel : compressLabel}
                 </button>
@@ -84,7 +84,7 @@ export function PastedImageDialog({
           ) : null}
 
           {image.error ? (
-            <p className="rounded-[2px] border border-rose-200 bg-rose-50 px-3 py-2 text-xs font-semibold text-rose-700 dark:border-rose-100/20 dark:bg-rose-300/10 dark:text-rose-100">
+            <p className="rounded-[2px] border border-rose-200 bg-rose-50 px-3 py-2 text-[length:var(--ui-font-size-sm)] font-semibold text-rose-700 dark:border-rose-100/20 dark:bg-rose-300/10 dark:text-rose-100">
               {image.error}
             </p>
           ) : null}
@@ -95,7 +95,7 @@ export function PastedImageDialog({
             type="button"
             onClick={onUpload}
             disabled={isTooLarge || isBusy}
-            className="inline-flex h-9 items-center rounded-[1px] bg-[#174f38] px-3 text-sm font-bold text-white transition hover:bg-[#123d2c] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#174f38] disabled:cursor-not-allowed disabled:opacity-45 dark:bg-emerald-200 dark:text-zinc-950 dark:hover:bg-emerald-100"
+            className="inline-flex h-9 items-center rounded-[1px] bg-[#174f38] px-3 text-[length:var(--ui-font-size-md)] font-bold text-white transition hover:bg-[#123d2c] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#174f38] disabled:cursor-not-allowed disabled:opacity-45 dark:bg-emerald-200 dark:text-zinc-950 dark:hover:bg-emerald-100"
           >
             {image.isUploading ? uploadingLabel : uploadLabel}
           </button>
@@ -103,7 +103,7 @@ export function PastedImageDialog({
             type="button"
             onClick={onCancel}
             disabled={image.isUploading}
-            className="inline-flex h-9 items-center rounded-[1px] border border-zinc-200 bg-white px-3 text-sm font-semibold text-zinc-700 transition hover:bg-zinc-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#174f38] dark:border-white/10 dark:bg-zinc-900 dark:text-zinc-200 dark:hover:bg-zinc-800"
+            className="inline-flex h-9 items-center rounded-[1px] border border-zinc-200 bg-white px-3 text-[length:var(--ui-font-size-md)] font-semibold text-zinc-700 transition hover:bg-zinc-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#174f38] dark:border-white/10 dark:bg-zinc-900 dark:text-zinc-200 dark:hover:bg-zinc-800"
           >
             取消
           </button>

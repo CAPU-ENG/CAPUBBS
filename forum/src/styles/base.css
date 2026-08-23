@@ -4,6 +4,14 @@
     --topbar-height: 64px;
     --thread-main-column: 836px;
     --control-radius: 0.5px;
+    --ui-font-size-xs: 0.75rem;
+    --ui-font-size-sm: 0.8125rem;
+    --ui-font-size-md: 0.875rem;
+    --ui-font-size-lg: 0.9375rem;
+    --ui-font-size-xl: 1rem;
+    --ui-font-size-title: 1.25rem;
+    --ui-font-size-page-title: 2rem;
+    --ui-font-size-feature-title: 2.5rem;
     --page: #f3f5f1;
     --surface: #fffefa;
     --surface-raised: #ffffff;
@@ -85,7 +93,9 @@
   }
 
   button,
-  input {
+  input,
+  select,
+  textarea {
     font: inherit;
   }
 
