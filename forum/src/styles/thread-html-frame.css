@@ -28,6 +28,10 @@
   --danger: #ef8178;
 }
 
+::selection {
+  background: color-mix(in srgb, var(--brand) 24%, transparent);
+}
+
 *,
 ::before,
 ::after {
