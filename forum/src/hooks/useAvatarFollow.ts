@@ -1,6 +1,14 @@
 import { useSyncExternalStore } from 'react';
-import { readAvatarFollowDisabled, subscribeAvatarFollow } from '../utils/avatarFollow';
+import {
+  readAvatarFollowDisabled,
+  readAvatarFollowEnabled,
+  subscribeAvatarFollow,
+} from '../utils/avatarFollow';
+
+export function useAvatarFollowEnabled() {
+  return useSyncExternalStore(subscribeAvatarFollow, readAvatarFollowEnabled, () => false);
+}
 
 export function useAvatarFollowDisabled() {
-  return useSyncExternalStore(subscribeAvatarFollow, readAvatarFollowDisabled, () => false);
+  return useSyncExternalStore(subscribeAvatarFollow, readAvatarFollowDisabled, () => true);
 }

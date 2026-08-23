@@ -15,7 +15,7 @@ import {
   Save,
   Signature,
   SunMoon,
-  UserRoundX,
+  UserRound,
 } from 'lucide-react';
 import { useEffect, useRef, useState, type ReactNode } from 'react';
 import { AppBackground } from '../components/layout/AppBackground';
@@ -28,7 +28,7 @@ import {
   useSignatureToggleEnabled,
   useWaterfallFeedEnabled,
 } from '../hooks/useAssistiveFeatures';
-import { useAvatarFollowDisabled } from '../hooks/useAvatarFollow';
+import { useAvatarFollowEnabled } from '../hooks/useAvatarFollow';
 import { useCompactMode } from '../hooks/useCompactMode';
 import { useForumContentFontSize } from '../hooks/useForumContentFontSize';
 import { usePinnedBoardIds } from '../hooks/usePinnedBoards';
@@ -41,7 +41,7 @@ import {
   saveSignatureToggleEnabled,
   saveWaterfallFeedEnabled,
 } from '../utils/assistiveFeatures';
-import { saveAvatarFollowDisabled } from '../utils/avatarFollow';
+import { saveAvatarFollowEnabled } from '../utils/avatarFollow';
 import { saveCompactMode } from '../utils/compactMode';
 import {
   FORUM_CONTENT_FONT_SIZE_OPTIONS,
@@ -54,7 +54,7 @@ import { saveTopBarAutoHideEnabled } from '../utils/topBarAutoHide';
 export function SettingsPage() {
   const assistiveBarEnabled = useAssistiveBarEnabled();
   const autoSaveEnabled = useAutoSaveEnabled();
-  const avatarFollowDisabled = useAvatarFollowDisabled();
+  const avatarFollowEnabled = useAvatarFollowEnabled();
   const backToTopEnabled = useBackToTopEnabled();
   const compactMode = useCompactMode();
   const forumContentFontSize = useForumContentFontSize();
@@ -144,15 +144,19 @@ export function SettingsPage() {
               />
               <SettingsCheckbox
                 checked={topBarAutoHideEnabled}
+                help="帖子详情页向下滚动时隐藏导航栏，向上滚动时重新显示。"
+                helpId="top-bar-auto-hide-help"
                 icon={<PanelTopClose size={15} />}
                 label="导航栏自动隐藏"
                 onChange={saveTopBarAutoHideEnabled}
               />
               <SettingsCheckbox
-                checked={avatarFollowDisabled}
-                icon={<UserRoundX size={15} />}
-                label="取消头像跟随"
-                onChange={saveAvatarFollowDisabled}
+                checked={avatarFollowEnabled}
+                help="滚动楼层时让发帖者头像保持可见。"
+                helpId="avatar-follow-help"
+                icon={<UserRound size={15} />}
+                label="头像跟随"
+                onChange={saveAvatarFollowEnabled}
               />
             </div>
 

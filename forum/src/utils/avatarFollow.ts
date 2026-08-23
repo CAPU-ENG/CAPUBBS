@@ -2,13 +2,18 @@ export const AVATAR_FOLLOW_DISABLED_STORAGE_KEY = 'capubbs-avatar-follow-disable
 export const AVATAR_FOLLOW_CHANGE_EVENT = 'capubbs-avatar-follow-change';
 
 export function readAvatarFollowDisabled() {
-  if (typeof window === 'undefined') return false;
+  if (typeof window === 'undefined') return true;
 
   try {
-    return window.localStorage.getItem(AVATAR_FOLLOW_DISABLED_STORAGE_KEY) === 'true';
+    const value = window.localStorage.getItem(AVATAR_FOLLOW_DISABLED_STORAGE_KEY);
+    return value === null ? true : value === 'true';
   } catch {
-    return false;
+    return true;
   }
+}
+
+export function readAvatarFollowEnabled() {
+  return !readAvatarFollowDisabled();
 }
 
 export function saveAvatarFollowDisabled(disabled: boolean) {
@@ -22,6 +27,10 @@ export function saveAvatarFollowDisabled(disabled: boolean) {
 
   window.dispatchEvent(new Event(AVATAR_FOLLOW_CHANGE_EVENT));
   return true;
+}
+
+export function saveAvatarFollowEnabled(enabled: boolean) {
+  return saveAvatarFollowDisabled(!enabled);
 }
 
 export function subscribeAvatarFollow(listener: () => void) {
