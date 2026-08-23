@@ -1075,7 +1075,7 @@
     max-width: none;
     padding: 18px 0 8px;
     color: var(--text);
-    font-size: 0.92rem;
+    font-size: 15px;
     line-height: 1.6;
     overflow-wrap: anywhere;
     word-break: break-word;
@@ -1200,13 +1200,13 @@
     color: inherit;
   }
 
-  .forum-markup font[size="1"] { font-size: 0.72em; }
-  .forum-markup font[size="2"] { font-size: 0.86em; }
-  .forum-markup font[size="3"] { font-size: 1em; }
-  .forum-markup font[size="4"] { font-size: 1.12em; }
-  .forum-markup font[size="5"] { font-size: 1.24em; }
-  .forum-markup font[size="6"] { font-size: 1.38em; }
-  .forum-markup font[size="7"] { font-size: 1.55em; }
+  .forum-markup font[size="1"] { font-size: 11px; }
+  .forum-markup font[size="2"] { font-size: 13px; }
+  .forum-markup font[size="3"] { font-size: 15px; }
+  .forum-markup font[size="4"] { font-size: 17px; }
+  .forum-markup font[size="5"] { font-size: 19px; }
+  .forum-markup font[size="6"] { font-size: 21px; }
+  .forum-markup font[size="7"] { font-size: 23px; }
 
   .forum-markup hr {
     margin: 0.9em 0;
@@ -2363,7 +2363,7 @@
 
     .thread-floor-body {
       padding-top: 14px;
-      font-size: 0.86rem;
+      font-size: 15px;
       line-height: 1.6;
     }
 

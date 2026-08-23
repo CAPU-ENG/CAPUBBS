@@ -6,6 +6,7 @@ import {
   translateLegacyForumMarkup,
   type SafeForumHtml,
 } from '../../utils/forumMarkup';
+import { FORUM_DEFAULT_FONT_SIZE } from '../../utils/forumFontSize';
 import { FORUM_LOCATION_CHANGE_EVENT } from '../../utils/authRoutes';
 import {
   FORUM_APP_EXACT_PATHS,
@@ -310,7 +311,7 @@ function buildHtmlFrameDocument({
   const fontFamily = isSignature
     ? 'monospace'
     : "ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif";
-  const fontSize = isSignature ? '14px' : '14.72px';
+  const fontSize = isSignature ? '14px' : FORUM_DEFAULT_FONT_SIZE;
   const signatureRootStyle = isSignature
     ? 'padding-top:10px;color:inherit;font-family:inherit;font-size:inherit;'
     : '';

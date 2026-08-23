@@ -2,6 +2,10 @@ import { getPublicProfilePath } from './userRoutes';
 import { translateLegacyForumThreadHref } from './legacyForumRoutes';
 import { translateLegacyBbcode } from './legacyBbcode';
 import { localizeChexieImageRequests, normalizeLegacyPostImage } from './legacyAssets';
+import {
+  normalizeForumFontSizeElements,
+  normalizeForumFontSizeMarkup,
+} from './forumFontSize';
 
 export { forumMarkupToPlainText } from './legacyBbcode';
 
@@ -31,12 +35,15 @@ export function renderForumMarkup(
   const document = parser.parseFromString(translateLegacyBbcode(source), 'text/html');
   const elements = Array.from(document.body.querySelectorAll('*'));
 
+  normalizeForumFontSizeElements(document.body);
   elements.forEach((element) => sanitizeElement(element));
   return document.body.innerHTML as SafeForumHtml;
 }
 
 export function translateLegacyForumMarkup(value: string) {
-  return localizeChexieImageRequests(translateLegacyBbcode(value));
+  return normalizeForumFontSizeMarkup(
+    localizeChexieImageRequests(translateLegacyBbcode(value)),
+  );
 }
 
 const ISOLATED_HTML_TAG_PATTERN = /<\s*\/?\s*(?:script|style|link|meta|base|iframe|frame|frameset|object|embed|audio|video|canvas|svg|math|form|input|textarea|select|button|option)\b/i;

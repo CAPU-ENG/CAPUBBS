@@ -37,6 +37,7 @@ import {
   type PointerEvent,
   type ReactNode,
 } from 'react';
+import { FORUM_DEFAULT_FONT_SIZE } from '../../utils/forumFontSize';
 import { renderForumMarkup } from '../../utils/forumMarkup';
 import { translateLegacyBbcode } from '../../utils/legacyBbcode';
 import { getPublicProfileAppPath } from '../../utils/userRoutes';
@@ -44,6 +45,7 @@ import { PastedImageDialog } from './PastedImageDialog';
 import { GalleryDialog, type GalleryDialogImage } from './GalleryDialog';
 import {
   defaultRichTextFont,
+  defaultRichTextFontSize,
   defaultTextColor,
   editorModeGroups,
   htmlVoidTags,
@@ -376,7 +378,7 @@ export function RichTextEditor({
   const [popoverTextValue, setPopoverTextValue] = useState('');
   const [popoverValue, setPopoverValue] = useState('');
   const [fontSelectValue, setFontSelectValue] = useState('');
-  const [fontSizeSelectValue, setFontSizeSelectValue] = useState('');
+  const [fontSizeSelectValue, setFontSizeSelectValue] = useState(defaultRichTextFontSize);
   const [headingSelectValue, setHeadingSelectValue] = useState('p');
   const [imageFileError, setImageFileError] = useState('');
   const [galleryDialogState, setGalleryDialogState] = useState<{
@@ -2136,8 +2138,8 @@ export function RichTextEditor({
           onPointerMove={handleGalleryResizePointerMove}
           onPointerUp={finishGalleryResize}
           onScroll={updateRichImageResizeHandle}
-          className={`capubbs-editor-prose capubbs-rich-editor-input px-3 py-3 text-sm leading-6 text-zinc-800 outline-none dark:text-zinc-100 ${isAutoHeightEnabled ? 'min-h-[50vh] overflow-visible' : 'h-[50vh] overflow-y-auto'}`}
-          style={{ fontFamily: defaultRichTextFont }}
+          className={`capubbs-editor-prose capubbs-rich-editor-input px-3 py-3 leading-6 text-zinc-800 outline-none dark:text-zinc-100 ${isAutoHeightEnabled ? 'min-h-[50vh] overflow-visible' : 'h-[50vh] overflow-y-auto'}`}
+          style={{ fontFamily: defaultRichTextFont, fontSize: defaultRichTextFontSize }}
         />
       )}
 
@@ -2709,17 +2711,11 @@ function buildHtmlPreviewDocument(html: string, isDarkTheme: boolean, embedded =
     body {
       background: var(--capubbs-preview-bg);
       color: var(--capubbs-preview-text);
-      font-size: 14px;
+      font-size: ${FORUM_DEFAULT_FONT_SIZE};
       line-height: 1.7;
       margin: 0;
       padding: ${embedded ? '0' : '16px'};
       word-break: break-word;
-    }
-
-    @media (min-width: 640px) {
-      body {
-        font-size: 15px;
-      }
     }
 
     body > :first-child {

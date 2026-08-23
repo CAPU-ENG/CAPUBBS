@@ -1,4 +1,5 @@
 import type { RichTextEditorMode } from './RichTextEditor.types';
+import { FORUM_DEFAULT_FONT_SIZE } from '../../utils/forumFontSize';
 
 export const maxInlineImageBytes = 2 * 1024 * 1024;
 export const imageCompressionMaxEdge = 2200;
@@ -24,6 +25,7 @@ export const richTextFontOptions = [
 export const richTextFontSizeOptions = [
   { label: '12', value: '12px' },
   { label: '14', value: '14px' },
+  { label: '15', value: FORUM_DEFAULT_FONT_SIZE },
   { label: '16', value: '16px' },
   { label: '18', value: '18px' },
   { label: '20', value: '20px' },
@@ -43,7 +45,7 @@ export const richTextHeadingOptions = [
 ];
 
 export const defaultRichTextFont = richTextFontOptions[0].value;
-export const defaultRichTextFontSize = richTextFontSizeOptions[1].value;
+export const defaultRichTextFontSize = FORUM_DEFAULT_FONT_SIZE;
 export const defaultTextColor = '#111827';
 export const mobileViewportQuery = '(max-width: 767px)';
 
