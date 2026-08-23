@@ -13,6 +13,7 @@ import {
   archiveDownloadUrl, createArchiveFolder, createArchivePost, fetchArchiveListing, maskArchiveEntry, moveArchiveEntry,
   renameArchiveEntry, uploadArchiveFile, type ArchiveBreadcrumb, type ArchiveEntry,
 } from '../api/archiveRoom';
+import { fetchManagementThread } from '../api/management';
 
 type ArchiveKind = 'archive' | 'audio' | 'document' | 'folder' | 'image' | 'post' | 'video';
 type DialogState = { type: 'upload' | 'upload-folder' | 'create-post' | 'mkdir' | 'rename' | 'move'; entry?: ArchiveEntry } | null;
@@ -46,11 +47,14 @@ export function ArchiveRoomPage() {
   const [dialogSkippedFiles, setDialogSkippedFiles] = useState(0);
   const [dialogUrl, setDialogUrl] = useState('');
   const [dialogBusy, setDialogBusy] = useState(false);
+  const [dialogNameEdited, setDialogNameEdited] = useState(false);
+  const [dialogTitleLoading, setDialogTitleLoading] = useState(false);
   const [maskTarget, setMaskTarget] = useState<ArchiveEntry | null>(null);
   const [maskBusy, setMaskBusy] = useState(false);
   const [uploadProgress, setUploadProgress] = useState<number | null>(null);
   const [uploadSpeed, setUploadSpeed] = useState<number | null>(null);
   const uploadStartedAt = useRef<number | null>(null);
+  const titleLookupController = useRef<AbortController | null>(null);
   const [folderOptions, setFolderOptions] = useState<FolderOption[]>([]);
   const [foldersLoading, setFoldersLoading] = useState(false);
   const requestedFolderName = new URLSearchParams(window.location.search).get('folder')?.trim() ?? '';
@@ -82,6 +86,27 @@ export function ArchiveRoomPage() {
     return () => controller.abort();
   }, [isAuthenticated, loadListing, parentKey]);
 
+  useEffect(() => {
+    setDialogTitleLoading(false);
+    if (dialog?.type !== 'create-post' || dialogNameEdited || !dialogUrl.trim()) return;
+
+    const controller = new AbortController();
+    titleLookupController.current = controller;
+    const timeout = window.setTimeout(() => {
+      setDialogTitleLoading(true);
+      void fetchManagementThread(dialogUrl, controller.signal).then(
+        (thread) => { if (!controller.signal.aborted) setDialogName(thread.title); },
+        () => undefined,
+      ).finally(() => { if (!controller.signal.aborted) setDialogTitleLoading(false); });
+    }, 400);
+
+    return () => {
+      window.clearTimeout(timeout);
+      controller.abort();
+      if (titleLookupController.current === controller) titleLookupController.current = null;
+    };
+  }, [dialog?.type, dialogNameEdited, dialogUrl]);
+
   const visibleEntries = useMemo(() => {
     const normalizedQuery = query.trim().toLocaleLowerCase();
     return entries.filter((entry) => !normalizedQuery || entry.name.toLocaleLowerCase().includes(normalizedQuery)).sort((left, right) => {
@@ -96,7 +121,23 @@ export function ArchiveRoomPage() {
   function enterFolder(entry: ArchiveEntry) { if (entry.entryType === 'folder') { setQuery(''); setParentKey(entry.entryKey); } }
   function goToBreadcrumb(item: ArchiveBreadcrumb) { setQuery(''); setParentKey(item.entryKey); }
   async function reload() { await loadListing(parentKey); }
-  function openDialog(nextDialog: DialogState) { setDialog(nextDialog); setDialogName(nextDialog?.entry?.name ?? ''); setDialogFile(null); setDialogFiles([]); setDialogSkippedFiles(0); setDialogUrl(''); setUploadProgress(null); setUploadSpeed(null); uploadStartedAt.current = null; setError(''); }
+  function openDialog(nextDialog: DialogState) { setDialog(nextDialog); setDialogName(nextDialog?.entry?.name ?? ''); setDialogNameEdited(false); setDialogFile(null); setDialogFiles([]); setDialogSkippedFiles(0); setDialogUrl(''); setDialogTitleLoading(false); setUploadProgress(null); setUploadSpeed(null); uploadStartedAt.current = null; setError(''); }
+
+  function changeDialogName(name: string) {
+    setDialogName(name);
+    if (dialog?.type === 'create-post') {
+      titleLookupController.current?.abort();
+      setDialogNameEdited(true);
+      setDialogTitleLoading(false);
+    }
+  }
+
+  function changeDialogUrl(url: string) {
+    titleLookupController.current?.abort();
+    setDialogTitleLoading(false);
+    setDialogUrl(url);
+    if (!dialogNameEdited) setDialogName('');
+  }
 
   function openEntry(entry: ArchiveEntry) {
     if (entry.entryType === 'folder') { enterFolder(entry); return; }
@@ -131,9 +172,11 @@ export function ArchiveRoomPage() {
     const name = dialogName.trim();
     if (dialog.type === 'upload' && (!name || !dialogFile)) { setError('请选择文件并填写文件名。'); return; }
     if (dialog.type === 'upload-folder' && dialogFiles.length === 0) { setError('请选择要上传的文件夹。'); return; }
-    if (dialog.type === 'create-post' && (!name || !dialogUrl.trim())) { setError('请输入名称和帖子链接。'); return; }
-    if (dialog.type !== 'move' && dialog.type !== 'upload-folder' && !name) { setError('请输入名称。'); return; }
+    if (dialog.type === 'create-post' && !dialogUrl.trim()) { setError('请输入帖子链接。'); return; }
+    if (dialog.type !== 'move' && dialog.type !== 'upload-folder' && dialog.type !== 'create-post' && !name) { setError('请输入名称。'); return; }
     const isUpload = dialog.type === 'upload' || dialog.type === 'upload-folder';
+    titleLookupController.current?.abort();
+    setDialogTitleLoading(false);
     setDialogBusy(true); setUploadProgress(isUpload ? 0 : null); setUploadSpeed(null); uploadStartedAt.current = isUpload ? performance.now() : null; setError('');
     try {
       if (dialog.type === 'upload' && dialogFile) {
@@ -158,7 +201,18 @@ export function ArchiveRoomPage() {
         });
         setNotice(`已上传文件夹“${result.rootName}”（${result.fileCount} 个文件）。`);
       }
-      else if (dialog.type === 'create-post') { await createArchivePost(name, dialogUrl.trim(), parentKey); setNotice(`已添加帖子“${name}”。`); }
+      else if (dialog.type === 'create-post') {
+        let postName = name;
+        if (!postName) {
+          try {
+            postName = (await fetchManagementThread(dialogUrl)).title.trim();
+          } catch {
+            throw new Error('未能从链接提取帖子标题，请检查链接或填写帖子名称。');
+          }
+        }
+        await createArchivePost(postName, dialogUrl.trim(), parentKey);
+        setNotice(`已添加帖子“${postName}”。`);
+      }
       else if (dialog.type === 'mkdir') { await createArchiveFolder(name, parentKey); setNotice(`已新建文件夹“${name}”。`); }
       else if (dialog.type === 'rename' && dialog.entry) { await renameArchiveEntry(dialog.entry.entryKey, name); setNotice(`已重命名为“${name}”。`); }
       else if (dialog.type === 'move' && dialog.entry) { const target = folderOptions.find((item) => item.label === name)?.entryKey ?? null; await moveArchiveEntry(dialog.entry.entryKey, target); setNotice(`已迁移“${dialog.entry.name}”。`); }
@@ -210,7 +264,7 @@ export function ArchiveRoomPage() {
     return <div className="archive-room-page relative min-h-screen text-[var(--text)] transition-colors duration-200"><AppBackground /><TopBar contextHref="#archive-room-title" contextTitle="档案室" /><main className="archive-room-shell" id="archive-room-title"><section className="archive-room-panel" aria-labelledby="archive-room-heading"><header className="archive-room-heading"><div className="archive-room-title-wrap"><span className="archive-room-title-icon"><Archive size={20} /></span><h1 id="archive-room-heading">档案室</h1></div></header><ArchiveAuthPrompt /></section></main></div>;
   }
 
-  return <div className="archive-room-page relative min-h-screen text-[var(--text)] transition-colors duration-200"><AppBackground /><TopBar contextHref="#archive-room-title" contextTitle="档案室" /><main className="archive-room-shell" id="archive-room-title"><section className="archive-room-panel" aria-labelledby="archive-room-heading"><header className="archive-room-heading"><div className="archive-room-title-wrap"><span className="archive-room-title-icon"><Archive size={20} /></span><h1 id="archive-room-heading">档案室</h1></div></header><div className="archive-room-toolbar"><nav className="archive-room-breadcrumb" aria-label="档案室路径">{breadcrumbs.map((item, index) => <span className="archive-room-breadcrumb-segment" key={`${item.entryKey ?? 'root'}-${index}`}>{index > 0 && <ChevronRight size={14} />}<button className={index === breadcrumbs.length - 1 ? 'is-current' : ''} onClick={() => goToBreadcrumb(item)} type="button">{index === 0 && <Archive size={15} />}{item.name}</button></span>)}</nav><div className={`archive-room-actions ${canManage ? 'archive-room-actions-manage' : ''}`}><label className="archive-room-search"><Search size={15} /><span className="sr-only">搜索档案</span><input onChange={(event) => setQuery(event.target.value)} placeholder="搜索当前目录" value={query} />{query && <button aria-label="清空搜索" onClick={() => setQuery('')} type="button"><X size={14} /></button>}</label>{canManage && <><button aria-label="上传文件" className="archive-room-action-button" onClick={() => openDialog({ type: 'upload' })} title="上传文件" type="button"><FileUp size={15} /><span>上传文件</span></button><button aria-label="上传文件夹" className="archive-room-action-button" onClick={() => openDialog({ type: 'upload-folder' })} title="上传文件夹" type="button"><FolderUp size={15} /><span>上传文件夹</span></button><button aria-label="添加帖子" className="archive-room-action-button" onClick={() => openDialog({ type: 'create-post' })} title="添加帖子" type="button"><MessageSquarePlus size={15} /><span>添加帖子</span></button><button aria-label="新建文件夹" className="archive-room-action-button" onClick={() => openDialog({ type: 'mkdir' })} title="新建文件夹" type="button"><FolderPlus size={15} /><span>新建文件夹</span></button></>}</div></div><div className="archive-room-subtoolbar"><span className="archive-room-count">{visibleEntries.length} 个项目</span><div className="archive-room-subtools"><label className="archive-room-sort"><ArrowDownAZ size={14} /><span className="sr-only">排序方式</span><select onChange={(event) => setSortBy(event.target.value as 'name' | 'updatedAt')} value={sortBy}><option value="name">按名称</option><option value="updatedAt">按更新时间</option></select></label><div className="archive-room-view-switch" aria-label="视图模式" role="group"><button aria-label="列表视图" aria-pressed={viewMode === 'list'} className={viewMode === 'list' ? 'is-active' : ''} onClick={() => setViewMode('list')} type="button"><List size={16} /></button><button aria-label="网格视图" aria-pressed={viewMode === 'grid'} className={viewMode === 'grid' ? 'is-active' : ''} onClick={() => setViewMode('grid')} type="button"><Grid2X2 size={16} /></button></div></div></div>{notice && <div className="archive-room-notice" role="status">{notice}</div>}{error && <div className="archive-room-error" role="alert">{error}</div>}{authStatus === 'guest' ? <ArchiveAuthPrompt /> : !isAuthenticated || loading ? <div className="archive-room-state"><LoaderCircle className="animate-spin" size={20} />正在读取</div> : viewMode === 'list' ? <ArchiveList entries={visibleEntries} canManage={canManage} onMask={maskEntry} onMove={openMoveDialog} onOpen={openEntry} onRename={(entry) => openDialog({ type: 'rename', entry })} /> : <ArchiveGrid entries={visibleEntries} canManage={canManage} onMask={maskEntry} onMove={openMoveDialog} onOpen={openEntry} onRename={(entry) => openDialog({ type: 'rename', entry })} />}</section></main>{dialog && <ArchiveDialog busy={dialogBusy} dialog={dialog} file={dialogFile} files={dialogFiles} folderOptions={folderOptions} foldersLoading={foldersLoading} name={dialogName} skippedFiles={dialogSkippedFiles} url={dialogUrl} uploadProgress={uploadProgress} uploadSpeed={uploadSpeed} onChangeFile={selectFile} onChangeFiles={selectFolderFiles} onChangeName={setDialogName} onChangeUrl={setDialogUrl} onClose={() => setDialog(null)} onSubmit={() => void submitDialog()} />}{maskTarget && <ArchiveDeleteDialog busy={maskBusy} entry={maskTarget} onCancel={() => setMaskTarget(null)} onConfirm={() => void confirmMask()} />}</div>;
+  return <div className="archive-room-page relative min-h-screen text-[var(--text)] transition-colors duration-200"><AppBackground /><TopBar contextHref="#archive-room-title" contextTitle="档案室" /><main className="archive-room-shell" id="archive-room-title"><section className="archive-room-panel" aria-labelledby="archive-room-heading"><header className="archive-room-heading"><div className="archive-room-title-wrap"><span className="archive-room-title-icon"><Archive size={20} /></span><h1 id="archive-room-heading">档案室</h1></div></header><div className="archive-room-toolbar"><nav className="archive-room-breadcrumb" aria-label="档案室路径">{breadcrumbs.map((item, index) => <span className="archive-room-breadcrumb-segment" key={`${item.entryKey ?? 'root'}-${index}`}>{index > 0 && <ChevronRight size={14} />}<button className={index === breadcrumbs.length - 1 ? 'is-current' : ''} onClick={() => goToBreadcrumb(item)} type="button">{index === 0 && <Archive size={15} />}{item.name}</button></span>)}</nav><div className={`archive-room-actions ${canManage ? 'archive-room-actions-manage' : ''}`}><label className="archive-room-search"><Search size={15} /><span className="sr-only">搜索档案</span><input onChange={(event) => setQuery(event.target.value)} placeholder="搜索当前目录" value={query} />{query && <button aria-label="清空搜索" onClick={() => setQuery('')} type="button"><X size={14} /></button>}</label>{canManage && <><button aria-label="上传文件" className="archive-room-action-button" onClick={() => openDialog({ type: 'upload' })} title="上传文件" type="button"><FileUp size={15} /><span>上传文件</span></button><button aria-label="上传文件夹" className="archive-room-action-button" onClick={() => openDialog({ type: 'upload-folder' })} title="上传文件夹" type="button"><FolderUp size={15} /><span>上传文件夹</span></button><button aria-label="添加帖子" className="archive-room-action-button" onClick={() => openDialog({ type: 'create-post' })} title="添加帖子" type="button"><MessageSquarePlus size={15} /><span>添加帖子</span></button><button aria-label="新建文件夹" className="archive-room-action-button" onClick={() => openDialog({ type: 'mkdir' })} title="新建文件夹" type="button"><FolderPlus size={15} /><span>新建文件夹</span></button></>}</div></div><div className="archive-room-subtoolbar"><span className="archive-room-count">{visibleEntries.length} 个项目</span><div className="archive-room-subtools"><label className="archive-room-sort"><ArrowDownAZ size={14} /><span className="sr-only">排序方式</span><select onChange={(event) => setSortBy(event.target.value as 'name' | 'updatedAt')} value={sortBy}><option value="name">按名称</option><option value="updatedAt">按更新时间</option></select></label><div className="archive-room-view-switch" aria-label="视图模式" role="group"><button aria-label="列表视图" aria-pressed={viewMode === 'list'} className={viewMode === 'list' ? 'is-active' : ''} onClick={() => setViewMode('list')} type="button"><List size={16} /></button><button aria-label="网格视图" aria-pressed={viewMode === 'grid'} className={viewMode === 'grid' ? 'is-active' : ''} onClick={() => setViewMode('grid')} type="button"><Grid2X2 size={16} /></button></div></div></div>{notice && <div className="archive-room-notice" role="status">{notice}</div>}{error && <div className="archive-room-error" role="alert">{error}</div>}{authStatus === 'guest' ? <ArchiveAuthPrompt /> : !isAuthenticated || loading ? <div className="archive-room-state"><LoaderCircle className="animate-spin" size={20} />正在读取</div> : viewMode === 'list' ? <ArchiveList entries={visibleEntries} canManage={canManage} onMask={maskEntry} onMove={openMoveDialog} onOpen={openEntry} onRename={(entry) => openDialog({ type: 'rename', entry })} /> : <ArchiveGrid entries={visibleEntries} canManage={canManage} onMask={maskEntry} onMove={openMoveDialog} onOpen={openEntry} onRename={(entry) => openDialog({ type: 'rename', entry })} />}</section></main>{dialog && <ArchiveDialog busy={dialogBusy} dialog={dialog} file={dialogFile} files={dialogFiles} folderOptions={folderOptions} foldersLoading={foldersLoading} name={dialogName} skippedFiles={dialogSkippedFiles} titleLoading={dialogTitleLoading} url={dialogUrl} uploadProgress={uploadProgress} uploadSpeed={uploadSpeed} onChangeFile={selectFile} onChangeFiles={selectFolderFiles} onChangeName={changeDialogName} onChangeUrl={changeDialogUrl} onClose={() => setDialog(null)} onSubmit={() => void submitDialog()} />}{maskTarget && <ArchiveDeleteDialog busy={maskBusy} entry={maskTarget} onCancel={() => setMaskTarget(null)} onConfirm={() => void confirmMask()} />}</div>;
 }
 
 function ArchiveAuthPrompt() {
@@ -233,6 +287,7 @@ type ArchiveDialogProps = {
   foldersLoading: boolean;
   name: string;
   skippedFiles: number;
+  titleLoading: boolean;
   uploadProgress: number | null;
   uploadSpeed: number | null;
   url: string;
@@ -244,13 +299,13 @@ type ArchiveDialogProps = {
   onSubmit: () => void;
 };
 
-function ArchiveDialog({ busy, dialog, file, files, folderOptions, foldersLoading, name, onChangeFile, onChangeFiles, onChangeName, onChangeUrl, onClose, onSubmit, skippedFiles, uploadProgress, uploadSpeed, url }: ArchiveDialogProps) {
+function ArchiveDialog({ busy, dialog, file, files, folderOptions, foldersLoading, name, onChangeFile, onChangeFiles, onChangeName, onChangeUrl, onClose, onSubmit, skippedFiles, titleLoading, uploadProgress, uploadSpeed, url }: ArchiveDialogProps) {
   const title = dialog.type === 'upload' ? '上传文件' : dialog.type === 'upload-folder' ? '上传文件夹' : dialog.type === 'create-post' ? '添加帖子' : dialog.type === 'mkdir' ? '新建文件夹' : dialog.type === 'rename' ? '重命名' : '迁移';
   const isUploading = (dialog.type === 'upload' || dialog.type === 'upload-folder') && busy;
   const folderName = files[0]?.webkitRelativePath.split('/').filter(Boolean)[0] ?? '';
   const folderBytes = files.reduce((total, selectedFile) => total + selectedFile.size, 0);
-  const needsName = dialog.type !== 'move' && dialog.type !== 'upload-folder';
-  const confirmDisabled = busy || (needsName && !name.trim()) || (dialog.type === 'upload' && !file) || (dialog.type === 'upload-folder' && files.length === 0) || (dialog.type === 'create-post' && !url.trim());
+  const needsName = dialog.type !== 'move' && dialog.type !== 'upload-folder' && dialog.type !== 'create-post';
+  const confirmDisabled = busy || titleLoading || (needsName && !name.trim()) || (dialog.type === 'upload' && !file) || (dialog.type === 'upload-folder' && files.length === 0) || (dialog.type === 'create-post' && !url.trim());
   const uploadName = dialog.type === 'upload-folder' ? folderName : file?.name ?? '';
 
   return <div className="archive-room-dialog-backdrop" onMouseDown={busy ? undefined : onClose} role="presentation">
@@ -269,8 +324,8 @@ function ArchiveDialog({ busy, dialog, file, files, folderOptions, foldersLoadin
           <span className="archive-room-upload-picker-main"><strong>{folderName || '选择文件夹'}</strong>{files.length > 0 && <small>{files.length} 个文件 · {formatBytes(folderBytes)}{skippedFiles > 0 ? ` · 已排除 ${skippedFiles} 个 .DS_Store` : ''}</small>}</span>
           <span className="archive-room-upload-picker-command">{files.length > 0 ? '重新选择' : '选择'}</span>
         </label>}
-        {dialog.type === 'move' ? <label>目标文件夹<select disabled={foldersLoading || busy} onChange={(event) => onChangeName(event.target.value)} value={name}>{foldersLoading ? <option value="">读取文件夹</option> : folderOptions.map((option) => <option key={option.entryKey ?? 'root'} value={option.label}>{option.label}</option>)}</select></label> : dialog.type !== 'upload-folder' && <label>{dialog.type === 'upload' ? '文件名' : dialog.type === 'create-post' ? '帖子名称' : '名称'}<input autoFocus disabled={busy} maxLength={255} onChange={(event) => onChangeName(event.target.value)} value={name} /></label>}
-        {dialog.type === 'create-post' && <label>帖子链接<span className="archive-room-link-input"><Link2 size={15} /><input disabled={busy} inputMode="url" maxLength={2048} onChange={(event) => onChangeUrl(event.target.value)} value={url} /></span></label>}
+        {dialog.type === 'create-post' && <label>帖子链接<span className="archive-room-link-input">{titleLoading ? <LoaderCircle aria-label="正在提取帖子标题" className="animate-spin" size={15} /> : <Link2 size={15} />}<input autoFocus disabled={busy} inputMode="url" maxLength={2048} onChange={(event) => onChangeUrl(event.target.value)} value={url} /></span></label>}
+        {dialog.type === 'move' ? <label>目标文件夹<select disabled={foldersLoading || busy} onChange={(event) => onChangeName(event.target.value)} value={name}>{foldersLoading ? <option value="">读取文件夹</option> : folderOptions.map((option) => <option key={option.entryKey ?? 'root'} value={option.label}>{option.label}</option>)}</select></label> : dialog.type !== 'upload-folder' && <label>{dialog.type === 'upload' ? '文件名' : dialog.type === 'create-post' ? '帖子名称（选填）' : '名称'}<input autoFocus={dialog.type !== 'create-post'} disabled={busy} maxLength={255} onChange={(event) => onChangeName(event.target.value)} value={name} /></label>}
         {isUploading && <div className="archive-room-upload-progress" role="status"><div className="archive-room-upload-progress-label"><span title={uploadName}>{uploadName}</span><span className="archive-room-upload-speed">{formatTransferRate(uploadSpeed)}</span><strong>{uploadProgress ?? 0}%</strong></div><progress aria-label="上传进度" max={100} value={uploadProgress ?? 0} /></div>}
         <div className="archive-room-dialog-actions"><button disabled={busy} onClick={onClose} type="button">取消</button><button disabled={confirmDisabled} onClick={onSubmit} type="button">{busy && <LoaderCircle className="animate-spin" size={15} />}{isUploading ? '上传中' : '确认'}</button></div>
       </div>
