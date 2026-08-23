@@ -211,11 +211,7 @@ export function ReplyEditor({
 
       setSavedDraftId(saveResult.draft.id);
       setSavedDraftSnapshot(currentDraftSnapshot);
-      setStatus(automatic
-        ? AUTO_SAVE_STATUS
-        : saveResult.discardedDraftCount > 0
-          ? `已存入草稿箱，并清理 ${saveResult.discardedDraftCount} 条最旧草稿`
-          : "已存入草稿箱");
+      setStatus(automatic ? AUTO_SAVE_STATUS : "已存入草稿箱，可前往个人中心-草稿箱查看");
     } finally {
       setIsSavingDraft(false);
     }

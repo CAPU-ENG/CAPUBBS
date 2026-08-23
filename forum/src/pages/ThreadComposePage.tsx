@@ -389,7 +389,7 @@ export function ThreadComposePage() {
         }, ownerKey);
       }
       setSavedSnapshot(currentSnapshot);
-      setStatus(automatic ? AUTO_SAVE_STATUS : isReply ? '回帖草稿已保存' : '已存入草稿箱');
+      setStatus(automatic ? AUTO_SAVE_STATUS : '已存入草稿箱，可前往个人中心-草稿箱查看');
     } catch {
       setStatus('草稿保存失败，请检查浏览器存储权限后重试。');
       setStatusIsError(true);
