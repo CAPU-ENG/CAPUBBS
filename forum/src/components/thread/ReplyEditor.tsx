@@ -11,6 +11,7 @@ import {
 } from "../../api/thread";
 import { useAutoSaveEnabled } from "../../hooks/useAssistiveFeatures";
 import { waitForLocalDraftCleanup } from "../../utils/draftCleanup";
+import { appendFloorQuote } from "../../utils/floorQuote";
 import {
   deleteStoredReplyDraftForThread,
   saveStoredReplyDraft,
@@ -30,7 +31,9 @@ import {
 
 export type QuoteRequest = {
   author: string;
+  authorHref: string;
   floor: number;
+  floorHref: string;
   quote?: string;
   requestId: number;
 };
@@ -94,7 +97,7 @@ export function ReplyEditor({
     appliedQuoteRequestRef.current = quoteRequest.requestId;
 
     if (quoteRequest.quote) {
-      setEditorValue((current) => appendQuote(current, quoteRequest));
+      setEditorValue((current) => appendFloorQuote(current, quoteRequest));
     }
     setFocusRequest((request) => request + 1);
     setStatus("");
@@ -328,32 +331,6 @@ export function ReplyEditor({
   );
 }
 
-function appendQuote(
-  current: RichTextEditorValue,
-  target: QuoteRequest,
-): RichTextEditorValue {
-  const quote = target.quote?.trim();
-  if (!quote) return current;
-
-  const separator = current.content.trim()
-    ? current.mode === "rich"
-      ? "<p><br></p>"
-      : "\n\n"
-    : "";
-  if (current.mode === "markdown") {
-    return {
-      ...current,
-      content: `${current.content}${separator}> ${quote}\n>\n> 引用自 @${target.author} · #${target.floor}\n\n`,
-    };
-  }
-
-  const quoteMarkup = `<blockquote class="forum-quote"><p>${escapeHtml(quote)}</p><p>引用自 @${escapeHtml(target.author)} · #${target.floor}</p></blockquote><p><br></p>`;
-  return {
-    ...current,
-    content: `${current.content}${separator}${quoteMarkup}`,
-  };
-}
-
 function getReplyDraftExcerpt(value: RichTextEditorValue, attachments: ReplyAttachment[]) {
   let excerpt = value.content;
 
@@ -387,13 +364,4 @@ function getReplyDraftSaveError(reason: ReplyDraftSaveFailureReason) {
   if (reason === "quota") return "草稿内容过大或本机草稿空间已满";
   if (reason === "unavailable") return "浏览器已禁用本站本地存储，请调整隐私设置后重试";
   return "草稿保存失败，请稍后重试";
-}
-
-function escapeHtml(value: string) {
-  return value
-    .replaceAll("&", "&amp;")
-    .replaceAll("<", "&lt;")
-    .replaceAll(">", "&gt;")
-    .replaceAll('"', "&quot;")
-    .replaceAll("'", "&#039;");
 }

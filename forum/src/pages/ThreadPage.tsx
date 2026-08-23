@@ -29,11 +29,13 @@ import {
   getThreadEditHref,
   getThreadFloorElement,
   getThreadFloorFromHash,
+  getThreadFloorHref,
   getThreadHref,
   getThreadPageForFloor,
 } from '../utils/threadRoutes';
 import { markThreadRead } from '../utils/threadReadState';
 import { isActivityPhoneQuestion, maskActivitySignupFloor } from '../utils/activityPhonePrivacy';
+import { getPublicProfilePath } from '../utils/userRoutes';
 
 function getThreadRequest() {
   const params = new URLSearchParams(window.location.search);
@@ -172,10 +174,13 @@ export function ThreadPage() {
   }, [data?.currentPage, pageFloors]);
 
   function quoteFloor(floor: ThreadFloorData) {
+    if (!data) return;
     quoteRequestIdRef.current += 1;
     setQuoteRequest({
       author: floor.author.name,
+      authorHref: getPublicProfilePath(floor.author.name),
       floor: floor.floor,
+      floorHref: getThreadFloorHref(data.bid, data.tid, floor.floor),
       quote: (floor.quoteText || floor.paragraphs[0] || '').slice(0, 90),
       requestId: quoteRequestIdRef.current,
     });
