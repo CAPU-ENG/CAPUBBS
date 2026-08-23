@@ -32,3 +32,15 @@ CREATE TABLE IF NOT EXISTS `user_tag_members` (
     FOREIGN KEY (`tag_id`) REFERENCES `user_tags` (`id`)
     ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS `user_tag_displays` (
+  `username` varchar(30) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `tag_id` bigint(20) unsigned NOT NULL,
+  `display_order` tinyint(3) unsigned NOT NULL,
+  PRIMARY KEY (`username`, `tag_id`),
+  UNIQUE KEY `uq_user_tag_displays_order` (`username`, `display_order`),
+  KEY `idx_user_tag_displays_membership` (`tag_id`, `username`),
+  CONSTRAINT `fk_user_tag_displays_membership`
+    FOREIGN KEY (`tag_id`, `username`) REFERENCES `user_tag_members` (`tag_id`, `username`)
+    ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;

@@ -214,14 +214,25 @@ function jiekoufunc_query_user_tags($con, $usernames) {
         $escaped[] = "'" . mysqli_real_escape_string($con, $username) . "'";
     }
     $statement = "
-        SELECT m.username, t.id, t.name, t.color, m.added_at
+        SELECT m.username, t.id, t.name, t.color, m.added_at, d.display_order
         FROM user_tag_members AS m
         INNER JOIN user_tags AS t ON t.id=m.tag_id
+        LEFT JOIN user_tag_displays AS d
+            ON d.tag_id=m.tag_id AND d.username=m.username
         WHERE m.username IN (" . implode(',', $escaped) . ")
         ORDER BY m.username ASC, m.added_at DESC, t.id ASC";
     $result = mysqli_query($con, $statement);
     if (!$result) {
-        return $requested;
+        $fallback_statement = "
+            SELECT m.username, t.id, t.name, t.color, m.added_at, NULL AS display_order
+            FROM user_tag_members AS m
+            INNER JOIN user_tags AS t ON t.id=m.tag_id
+            WHERE m.username IN (" . implode(',', $escaped) . ")
+            ORDER BY m.username ASC, m.added_at DESC, t.id ASC";
+        $result = mysqli_query($con, $fallback_statement);
+        if (!$result) {
+            return $requested;
+        }
     }
 
     foreach ($requested as $username => $unused) {
@@ -237,6 +248,7 @@ function jiekoufunc_query_user_tags($con, $usernames) {
             'name' => strval($row['name']),
             'color' => strtoupper(strval($row['color'])),
             'added_at' => intval($row['added_at']),
+            'display_order' => $row['display_order'] === null ? null : intval($row['display_order']),
         );
     }
     return $requested;
