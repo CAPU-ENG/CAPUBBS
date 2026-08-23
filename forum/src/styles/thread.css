@@ -2,8 +2,9 @@
   .thread-page-shell {
     --thread-rail-column: 112px;
     --thread-column-gap: 24px;
-    --thread-inline-avatar-main-reduction: 50px;
-    --thread-page-main-column: var(--thread-main-column);
+    --thread-floor-body-width: 710px;
+    --thread-inline-avatar-main-reduction: 62px;
+    --thread-page-main-column: calc(var(--thread-floor-body-width) + 58px + 14px + 16px + 40px + 2px);
     position: relative;
     z-index: 10;
     width: 100%;
@@ -426,7 +427,7 @@
     }
 
     .thread-page-shell-avatar-static.thread-page-shell-without-assistive-bar {
-      --thread-page-main-column: calc(var(--thread-main-column) - var(--thread-inline-avatar-main-reduction));
+      --thread-page-main-column: calc(var(--thread-floor-body-width) + 36px + 30px + 2px);
       width: calc(100% - var(--thread-inline-avatar-main-reduction));
     }
 
