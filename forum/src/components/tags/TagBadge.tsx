@@ -3,11 +3,17 @@ import type { CSSProperties } from 'react';
 
 type TagSize = 'compact' | 'micro' | 'normal';
 
+const tagSizeClassNames: Record<TagSize, string> = {
+  compact: 'user-tag-compact',
+  micro: 'user-tag-micro',
+  normal: 'user-tag-normal',
+};
+
 export function TagBadge({ selected = false, tag, size = 'normal' }: { selected?: boolean; tag: UserTag; size?: TagSize }) {
   const selectedTextColor = getTagContrastColor(tag.color);
   return (
     <span
-      className={`user-tag user-tag-${size}${selected ? ' user-tag-selected' : ''}`}
+      className={`user-tag ${tagSizeClassNames[size]}${selected ? ' user-tag-selected' : ''}`}
       style={{ '--user-tag-color': tag.color, '--user-tag-selected-text': selectedTextColor } as CSSProperties}
       title={tag.name}
     >
