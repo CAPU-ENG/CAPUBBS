@@ -8,6 +8,7 @@ import {
   ListEnd,
   MonitorCog,
   PanelRight,
+  PanelTopClose,
   Pin,
   PinOff,
   Quote,
@@ -33,6 +34,7 @@ import { useCompactMode } from '../hooks/useCompactMode';
 import { useForumContentFontSize } from '../hooks/useForumContentFontSize';
 import { usePinnedBoardIds } from '../hooks/usePinnedBoards';
 import { useTheme } from '../hooks/useTheme';
+import { useTopBarAutoHideEnabled } from '../hooks/useTopBarAutoHide';
 import {
   saveAssistiveBarEnabled,
   saveAutoSaveEnabled,
@@ -48,6 +50,7 @@ import {
 } from '../utils/forumFontSize';
 import { MAX_PINNED_BOARDS, savePinnedBoardIds } from '../utils/localSettings';
 import { saveThemeFollowsSystem } from '../utils/theme';
+import { saveTopBarAutoHideEnabled } from '../utils/topBarAutoHide';
 
 export function SettingsPage() {
   const assistiveBarEnabled = useAssistiveBarEnabled();
@@ -59,6 +62,7 @@ export function SettingsPage() {
   const pinnedBoardIds = usePinnedBoardIds();
   const { followsSystem } = useTheme();
   const signatureToggleEnabled = useSignatureToggleEnabled();
+  const topBarAutoHideEnabled = useTopBarAutoHideEnabled();
   const waterfallFeedEnabled = useWaterfallFeedEnabled();
   const [draftBoardIds, setDraftBoardIds] = useState(pinnedBoardIds);
   const draftBoardIdsRef = useRef(pinnedBoardIds);
@@ -138,6 +142,12 @@ export function SettingsPage() {
                 icon={<Rows3 size={15} />}
                 label="紧凑模式"
                 onChange={saveCompactMode}
+              />
+              <SettingsCheckbox
+                checked={topBarAutoHideEnabled}
+                icon={<PanelTopClose size={15} />}
+                label="导航栏自动隐藏"
+                onChange={saveTopBarAutoHideEnabled}
               />
               <SettingsCheckbox
                 checked={avatarFollowDisabled}

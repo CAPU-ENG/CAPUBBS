@@ -23,6 +23,15 @@
     border-bottom: 1px solid var(--line);
     background: color-mix(in srgb, var(--surface) 93%, transparent);
     backdrop-filter: blur(18px) saturate(130%);
+    transition: transform 220ms cubic-bezier(0.22, 1, 0.36, 1);
+  }
+
+  .topbar[data-auto-hidden="true"] {
+    transform: translateY(-100%);
+  }
+
+  .topbar[data-auto-hidden="true"]:focus-within {
+    transform: translateY(0);
   }
 
   .app-background {
@@ -254,6 +263,12 @@
 
   .topbar-context-title:hover {
     color: var(--brand-strong);
+  }
+
+  .topbar[data-context-title-centered="true"] .topbar-context-title {
+    justify-content: center;
+    margin-right: 0;
+    text-align: center;
   }
 
   .topbar-primary-slot[data-context-title-visible="true"] .topbar-primary-nav {
@@ -515,7 +530,9 @@
     }
 
     .topbar {
-      transition: height 220ms cubic-bezier(0.22, 1, 0.36, 1);
+      transition:
+        height 220ms cubic-bezier(0.22, 1, 0.36, 1),
+        transform 220ms cubic-bezier(0.22, 1, 0.36, 1);
     }
 
     .topbar[data-context-title-visible="true"] {

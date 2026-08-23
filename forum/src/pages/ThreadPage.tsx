@@ -17,8 +17,9 @@ import {
   useSignatureToggleEnabled,
 } from '../hooks/useAssistiveFeatures';
 import { useAvatarFollowDisabled } from '../hooks/useAvatarFollow';
-import { useScrollContextTitle } from '../hooks/useScrollContextTitle';
+import { useThreadTopBar } from '../hooks/useThreadTopBar';
 import { useThreadData } from '../hooks/useThreadData';
+import { useTopBarAutoHideEnabled } from '../hooks/useTopBarAutoHide';
 import { saveSignaturesHidden } from '../utils/assistiveFeatures';
 import { getLoginPathWithReturnTo, getRegisterPathWithReturnTo } from '../utils/authRoutes';
 import { writeClipboardText } from '../utils/clipboard';
@@ -59,6 +60,7 @@ export function ThreadPage() {
   const assistiveBarEnabled = useAssistiveBarEnabled();
   const avatarFollowDisabled = useAvatarFollowDisabled();
   const backToTopEnabled = useBackToTopEnabled();
+  const topBarAutoHideEnabled = useTopBarAutoHideEnabled();
   const { viewer } = useAuth();
   const request = getThreadRequest();
   const { data, error, retry, status } = useThreadData(request);
@@ -72,7 +74,7 @@ export function ThreadPage() {
   const copyNoticeTimerRef = useRef<number | null>(null);
   const editorRef = useRef<HTMLElement | null>(null);
   const titleRef = useRef<HTMLHeadingElement | null>(null);
-  const showTitleInTopBar = useScrollContextTitle(titleRef);
+  const threadTopBar = useThreadTopBar(titleRef, topBarAutoHideEnabled);
   const signaturesHidden = useSignaturesHidden();
   const signatureToggleEnabled = useSignatureToggleEnabled();
   const pageFloors = useMemo(() => {
@@ -299,9 +301,11 @@ export function ThreadPage() {
     <div className={`relative min-h-screen text-[var(--text)] transition-colors duration-200${avatarFollowDisabled ? ' thread-avatar-follow-disabled' : ''}`}>
       <AppBackground />
       <TopBar
+        autoHidden={threadTopBar.hidden}
+        centerContextTitle={!topBarAutoHideEnabled}
         contextHref="#thread-title"
         contextTitle={data.title}
-        showContextTitle={showTitleInTopBar}
+        showContextTitle={threadTopBar.showContextTitle}
       />
 
       <main className={assistiveBarEnabled ? 'thread-page-shell' : 'thread-page-shell thread-page-shell-without-assistive-bar'}>
