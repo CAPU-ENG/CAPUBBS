@@ -139,6 +139,101 @@
     line-height: 18px;
   }
 
+  .settings-font-size-control {
+    border-top: 1px solid var(--line);
+    padding: 18px 22px 22px 72px;
+  }
+
+  .settings-font-size-heading {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+  }
+
+  .settings-font-size-heading label {
+    color: var(--text-strong);
+    font-size: 0.72rem;
+    font-weight: 720;
+  }
+
+  .settings-font-size-heading output {
+    color: var(--brand-strong);
+    font-size: 0.72rem;
+    font-variant-numeric: tabular-nums;
+    font-weight: 750;
+  }
+
+  .settings-font-size-control input[type="range"] {
+    width: 100%;
+    height: 24px;
+    margin-top: 10px;
+    appearance: none;
+    background: transparent;
+    cursor: pointer;
+  }
+
+  .settings-font-size-control input[type="range"]::-webkit-slider-runnable-track {
+    height: 4px;
+    border-radius: 2px;
+    background: var(--line-strong);
+  }
+
+  .settings-font-size-control input[type="range"]::-webkit-slider-thumb {
+    width: 16px;
+    height: 16px;
+    margin-top: -6px;
+    appearance: none;
+    border: 2px solid var(--surface-raised);
+    border-radius: 50%;
+    background: var(--brand-strong);
+    box-shadow: 0 0 0 1px var(--brand-strong);
+  }
+
+  .settings-font-size-control input[type="range"]::-moz-range-track {
+    height: 4px;
+    border-radius: 2px;
+    background: var(--line-strong);
+  }
+
+  .settings-font-size-control input[type="range"]::-moz-range-thumb {
+    width: 12px;
+    height: 12px;
+    border: 2px solid var(--surface-raised);
+    border-radius: 50%;
+    background: var(--brand-strong);
+    box-shadow: 0 0 0 1px var(--brand-strong);
+  }
+
+  .settings-font-size-control input[type="range"]:focus-visible {
+    border-radius: var(--control-radius);
+    outline: 2px solid var(--brand);
+    outline-offset: 2px;
+  }
+
+  .settings-font-size-ticks {
+    display: grid;
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    margin-top: 1px;
+    color: var(--text-faint);
+    font-size: 0.58rem;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .settings-font-size-ticks span { text-align: center; }
+  .settings-font-size-ticks span:first-child { text-align: left; }
+  .settings-font-size-ticks span:last-child { text-align: right; }
+
+  .settings-font-size-preview {
+    margin-top: 16px;
+    border-top: 1px solid var(--line);
+    padding-top: 16px;
+    color: var(--text);
+    line-height: 1.6;
+    overflow-wrap: anywhere;
+    word-break: break-word;
+  }
+
   .settings-option-help {
     position: relative;
     display: inline-flex;
@@ -507,6 +602,7 @@
 
     .settings-panel-heading { padding: 17px 15px; }
     .settings-checkbox-list { margin: 14px 15px 15px; }
+    .settings-font-size-control { padding: 16px 15px 18px; }
     .settings-nav-preview { align-items: flex-start; flex-direction: column; gap: 3px; margin: 14px 15px 0; }
     .settings-preview-links { width: 100%; }
     .settings-selection,

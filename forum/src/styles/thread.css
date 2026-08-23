@@ -1075,7 +1075,7 @@
     max-width: none;
     padding: 18px 0 8px;
     color: var(--text);
-    font-size: 15px;
+    font-size: var(--forum-content-font-size, 15px);
     line-height: 1.6;
     overflow-wrap: anywhere;
     word-break: break-word;
@@ -2363,7 +2363,7 @@
 
     .thread-floor-body {
       padding-top: 14px;
-      font-size: 15px;
+      font-size: var(--forum-content-font-size, 15px);
       line-height: 1.6;
     }
 

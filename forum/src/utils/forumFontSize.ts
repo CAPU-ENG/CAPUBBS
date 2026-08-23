@@ -1,4 +1,63 @@
-export const FORUM_DEFAULT_FONT_SIZE = '15px';
+export const FORUM_CONTENT_FONT_SIZE_STORAGE_KEY = 'capubbs-forum-content-font-size';
+export const FORUM_CONTENT_FONT_SIZE_CHANGE_EVENT = 'capubbs-forum-content-font-size-change';
+export const FORUM_CONTENT_FONT_SIZE_OPTIONS = [13, 14, 15, 16, 17] as const;
+export type ForumContentFontSize = (typeof FORUM_CONTENT_FONT_SIZE_OPTIONS)[number];
+export const FORUM_DEFAULT_FONT_SIZE_PIXELS: ForumContentFontSize = 15;
+export const FORUM_DEFAULT_FONT_SIZE = `${FORUM_DEFAULT_FONT_SIZE_PIXELS}px`;
+
+export function readForumContentFontSize(): ForumContentFontSize {
+  if (typeof window === 'undefined') return FORUM_DEFAULT_FONT_SIZE_PIXELS;
+
+  try {
+    return normalizeForumContentFontSize(window.localStorage.getItem(FORUM_CONTENT_FONT_SIZE_STORAGE_KEY));
+  } catch {
+    return FORUM_DEFAULT_FONT_SIZE_PIXELS;
+  }
+}
+
+export function applyForumContentFontSize(fontSize: ForumContentFontSize) {
+  if (typeof document === 'undefined') return;
+  document.documentElement.style.setProperty('--forum-content-font-size', `${fontSize}px`);
+}
+
+export function saveForumContentFontSize(fontSize: number) {
+  if (typeof window === 'undefined' || !isForumContentFontSize(fontSize)) return false;
+
+  try {
+    window.localStorage.setItem(FORUM_CONTENT_FONT_SIZE_STORAGE_KEY, String(fontSize));
+  } catch {
+    return false;
+  }
+
+  applyForumContentFontSize(fontSize);
+  window.dispatchEvent(new Event(FORUM_CONTENT_FONT_SIZE_CHANGE_EVENT));
+  return true;
+}
+
+export function subscribeForumContentFontSize(listener: () => void) {
+  if (typeof window === 'undefined') return () => {};
+
+  const handleStorage = (event: StorageEvent) => {
+    if (event.key === FORUM_CONTENT_FONT_SIZE_STORAGE_KEY) listener();
+  };
+
+  window.addEventListener(FORUM_CONTENT_FONT_SIZE_CHANGE_EVENT, listener);
+  window.addEventListener('storage', handleStorage);
+
+  return () => {
+    window.removeEventListener(FORUM_CONTENT_FONT_SIZE_CHANGE_EVENT, listener);
+    window.removeEventListener('storage', handleStorage);
+  };
+}
+
+export function normalizeForumContentFontSize(value: string | null): ForumContentFontSize {
+  const fontSize = Number(value);
+  return isForumContentFontSize(fontSize) ? fontSize : FORUM_DEFAULT_FONT_SIZE_PIXELS;
+}
+
+function isForumContentFontSize(value: number): value is ForumContentFontSize {
+  return FORUM_CONTENT_FONT_SIZE_OPTIONS.some((fontSize) => fontSize === value);
+}
 
 const LEGACY_FONT_SIZE_PIXELS = [11, 13, 15, 17, 19, 21, 23] as const;
 

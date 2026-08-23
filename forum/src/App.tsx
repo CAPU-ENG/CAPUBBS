@@ -1,8 +1,10 @@
 import { lazy, Suspense, useEffect, useReducer } from 'react';
 import { AuthProvider } from './context/AuthContext';
 import { BrowserRecommendationDialog } from './components/browser/BrowserRecommendationDialog';
+import { useForumContentFontSize } from './hooks/useForumContentFontSize';
 import { HomePage } from './pages/HomePage';
 import { FORUM_LOCATION_CHANGE_EVENT } from './utils/authRoutes';
+import { applyForumContentFontSize } from './utils/forumFontSize';
 import { resolveForumAppRoute } from './utils/forumNavigation';
 import { translateLegacyForumThreadHref } from './utils/legacyForumRoutes';
 import { getThreadFloorElement, getThreadFloorFromHash } from './utils/threadRoutes';
@@ -76,6 +78,12 @@ const UserCenterPage = lazy(() => loadUserCenterPage()
   .then((module) => ({ default: module.UserCenterPage })));
 
 export function App() {
+  const forumContentFontSize = useForumContentFontSize();
+
+  useEffect(() => {
+    applyForumContentFontSize(forumContentFontSize);
+  }, [forumContentFontSize]);
+
   return (
     <AuthProvider>
       <BrowserRecommendationDialog />

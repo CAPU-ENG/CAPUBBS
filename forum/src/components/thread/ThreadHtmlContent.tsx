@@ -6,7 +6,7 @@ import {
   translateLegacyForumMarkup,
   type SafeForumHtml,
 } from '../../utils/forumMarkup';
-import { FORUM_DEFAULT_FONT_SIZE } from '../../utils/forumFontSize';
+import { useForumContentFontSize } from '../../hooks/useForumContentFontSize';
 import { FORUM_LOCATION_CHANGE_EVENT } from '../../utils/authRoutes';
 import {
   FORUM_APP_EXACT_PATHS,
@@ -136,15 +136,18 @@ function ThreadSandboxedHtmlFrame({
   const [frameHeight, setFrameHeight] = useState<number | null>(null);
   const isDarkTheme = useDarkTheme();
   const parentStyleText = useParentStyleText();
+  const forumContentFontSize = useForumContentFontSize();
+  const frameFontSize = variant === 'signature' ? 14 : forumContentFontSize;
   const frameDocument = useMemo(() => buildHtmlFrameDocument({
     canOpenImages,
     frameId: frameIdRef.current,
     html,
     isActivitySignupCanceled,
     isDarkTheme,
+    fontSize: frameFontSize,
     parentStyleText,
     variant,
-  }), [canOpenImages, html, isActivitySignupCanceled, isDarkTheme, parentStyleText, variant]);
+  }), [canOpenImages, frameFontSize, html, isActivitySignupCanceled, isDarkTheme, parentStyleText, variant]);
   const frameSource = useMemo(
     () => `data:text/html;charset=utf-8,${encodeURIComponent(frameDocument)}`,
     [frameDocument],
@@ -289,6 +292,7 @@ function useSignaturePostReferences(html: string, enabled: boolean) {
 function buildHtmlFrameDocument({
   canOpenImages,
   frameId,
+  fontSize,
   html,
   isActivitySignupCanceled,
   isDarkTheme,
@@ -297,6 +301,7 @@ function buildHtmlFrameDocument({
 }: {
   canOpenImages: boolean;
   frameId: string;
+  fontSize: number;
   html: string;
   isActivitySignupCanceled: boolean;
   isDarkTheme: boolean;
@@ -311,7 +316,6 @@ function buildHtmlFrameDocument({
   const fontFamily = isSignature
     ? 'monospace'
     : "ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif";
-  const fontSize = isSignature ? '14px' : FORUM_DEFAULT_FONT_SIZE;
   const signatureRootStyle = isSignature
     ? 'padding-top:10px;color:inherit;font-family:inherit;font-size:inherit;'
     : '';
@@ -327,7 +331,7 @@ function buildHtmlFrameDocument({
   <meta http-equiv="Content-Security-Policy" content="${buildContentSecurityPolicy()}">
   <style data-capubbs-parent-styles>${escapeStyleText(parentStyleText)}</style>
   <style>
-    html,body{margin:0;padding:0;min-width:0;min-height:0;overflow:hidden;background:transparent!important;color:${color};font-family:${fontFamily};font-size:${fontSize};line-height:1.6;overflow-wrap:anywhere;word-break:break-word}
+    html,body{margin:0;padding:0;min-width:0;min-height:0;overflow:hidden;background:transparent!important;color:${color};font-family:${fontFamily};font-size:${fontSize}px;line-height:1.6;overflow-wrap:anywhere;word-break:break-word}
     .capubbs-html-frame-root{display:flow-root;width:calc(100% - ${FRAME_WIDTH_ALLOWANCE}px);${signatureRootStyle}}.capubbs-html-frame-root iframe{display:inline-block;vertical-align:baseline}a{color:${linkColor}}img,video,canvas,svg{max-width:100%;height:auto}.forum-markup img[data-capubbs-image-width][data-capubbs-image-height]{background:linear-gradient(105deg,transparent 20%,rgba(255,255,255,.42) 45%,transparent 70%);background-color:rgba(128,128,128,.16);background-size:220% 100%;animation:capubbs-image-loading 1.2s ease-in-out infinite}@keyframes capubbs-image-loading{from{background-position:120% 0}to{background-position:-80% 0}}@media(prefers-reduced-motion:reduce){.forum-markup img[data-capubbs-image-width][data-capubbs-image-height]{animation:none}}pre{max-width:100%;overflow:auto;white-space:pre-wrap}table{max-width:100%}
   </style>
   <script>${buildFrameBridgeScript(frameId, canOpenImages)}</script>
