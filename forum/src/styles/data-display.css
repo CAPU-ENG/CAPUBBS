@@ -855,88 +855,93 @@
   .tag-expression-builder {
     display: grid;
     min-width: 0;
+    gap: 12px;
+  }
+
+  .tag-expression-palette,
+  .tag-expression-composer {
+    display: grid;
+    min-width: 0;
+    gap: 7px;
+  }
+
+  .tag-expression-palette-header,
+  .tag-expression-composer-header {
+    display: flex;
+    min-width: 0;
+    align-items: center;
+    justify-content: space-between;
     gap: 10px;
   }
 
-  .tag-expression-group {
-    min-width: 0;
-    padding: 9px 0 0 12px;
-    border-left: 2px solid color-mix(in srgb, var(--brand) 34%, var(--line));
-  }
-
-  .tag-expression-group-root {
-    padding: 0;
-    border-left: 0;
-  }
-
-  .tag-expression-group-header,
-  .tag-expression-tag,
-  .tag-expression-actions,
-  .tag-expression-preview {
-    display: flex;
-    align-items: center;
-  }
-
-  .tag-expression-group-header {
-    min-height: 32px;
-    gap: 6px;
-  }
-
-  .tag-expression-group-label {
-    min-width: 52px;
+  .tag-expression-palette-label {
     color: var(--text-faint);
     font-size: var(--ui-font-size-sm);
     font-weight: 720;
   }
 
-  .tag-expression-operator {
-    display: inline-grid;
-    grid-template-columns: repeat(2, minmax(46px, 1fr));
-    overflow: hidden;
-    min-height: 28px;
+  .tag-expression-universe-hint {
+    color: var(--text-faint);
+    font-size: var(--ui-font-size-sm);
+  }
+
+  .tag-expression-tag-palette,
+  .tag-expression-operator-palette,
+  .tag-expression-token-list,
+  .tag-expression-composer-actions {
+    display: flex;
+    align-items: center;
+  }
+
+  .tag-expression-tag-palette,
+  .tag-expression-token-list {
+    flex-wrap: wrap;
+    gap: 4px;
+  }
+
+  .tag-expression-tag-palette button {
+    display: inline-flex;
+    padding: 0;
+    border: 0;
+    background: transparent;
+  }
+
+  .tag-expression-tag-palette button:focus-visible {
+    outline: 2px solid color-mix(in srgb, var(--brand) 45%, transparent);
+    outline-offset: 2px;
+  }
+
+  .tag-expression-operator-palette {
+    gap: 6px;
+  }
+
+  .tag-expression-operator-palette button {
+    min-width: 42px;
+    min-height: 30px;
+    padding: 0 9px;
     border: 1px solid var(--line);
     border-radius: var(--control-radius);
     background: var(--surface-raised);
-  }
-
-  .tag-expression-operator button,
-  .tag-expression-not,
-  .tag-expression-actions button {
     color: var(--text-muted);
     font-size: var(--ui-font-size-sm);
-    font-weight: 740;
+    font-weight: 760;
   }
 
-  .tag-expression-operator button + button {
-    border-left: 1px solid var(--line);
-  }
-
-  .tag-expression-operator button:hover:not(:disabled),
-  .tag-expression-not:hover:not(:disabled),
-  .tag-expression-actions button:hover:not(:disabled) {
+  .tag-expression-operator-palette button:hover:not(:disabled) {
+    border-color: var(--line-strong);
     color: var(--text-strong);
   }
 
-  .tag-expression-operator .is-active {
-    background: var(--brand-faint);
-    color: var(--brand-strong);
+  .tag-expression-composer {
+    padding-top: 10px;
+    border-top: 1px solid var(--line);
   }
 
-  .tag-expression-not {
-    min-height: 28px;
-    padding: 0 8px;
-    border: 1px solid var(--line);
-    border-radius: var(--control-radius);
-    background: var(--surface-raised);
+  .tag-expression-composer-actions {
+    gap: 3px;
   }
 
-  .tag-expression-not.is-active {
-    border-color: color-mix(in srgb, var(--danger) 54%, var(--line));
-    background: color-mix(in srgb, var(--danger) 9%, var(--surface-raised));
-    color: var(--danger);
-  }
-
-  .tag-expression-remove {
+  .tag-expression-composer-actions button {
     display: inline-flex;
     width: 28px;
     height: 28px;
@@ -946,93 +951,55 @@
     color: var(--text-faint);
   }
 
-  .tag-expression-remove:hover:not(:disabled),
-  .tag-expression-remove:focus-visible {
-    background: color-mix(in srgb, var(--danger) 8%, transparent);
+  .tag-expression-composer-actions button:hover:not(:disabled),
+  .tag-expression-composer-actions button:focus-visible {
+    background: var(--surface-hover);
+    color: var(--text-strong);
+  }
+
+  .tag-expression-token-list {
+    min-height: 40px;
+    padding: 7px 9px;
+    border: 1px solid var(--line);
+    border-radius: var(--control-radius);
+    background: var(--surface-raised);
+  }
+
+  .tag-expression-tag-token {
+    display: inline-flex;
+    align-items: center;
+  }
+
+  .tag-expression-token {
+    display: inline-flex;
+    min-width: 28px;
+    min-height: 24px;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid var(--line);
+    border-radius: var(--control-radius);
+    padding: 0 6px;
+    background: var(--surface-hover);
+    color: var(--text-strong);
+    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+    font-size: var(--ui-font-size-sm);
+    font-weight: 760;
+  }
+
+  .tag-expression-token-not,
+  .tag-expression-token-missing {
+    border-color: color-mix(in srgb, var(--danger) 45%, var(--line));
     color: var(--danger);
   }
 
-  .tag-expression-children {
-    display: grid;
-    min-width: 0;
-    gap: 7px;
-    padding-top: 7px;
-  }
-
-  .tag-expression-tag {
-    min-width: 0;
-    gap: 6px;
-  }
-
-  .tag-expression-tag select {
-    width: min(280px, 100%);
-    height: 32px;
-    min-width: 0;
-    border: 1px solid var(--line);
-    border-radius: var(--control-radius);
-    padding: 0 28px 0 9px;
-    background: var(--surface-raised);
-    color: var(--text-strong);
-    font-size: var(--ui-font-size-md);
-    font-weight: 650;
-  }
-
-  .tag-expression-tag select:focus {
-    border-color: var(--brand);
-    outline: 2px solid color-mix(in srgb, var(--brand) 15%, transparent);
-  }
-
   .tag-expression-empty {
-    min-height: 32px;
     color: var(--text-faint);
     font-size: var(--ui-font-size-md);
-    line-height: 32px;
   }
 
-  .tag-expression-actions {
-    gap: 6px;
-    padding-top: 8px;
-  }
-
-  .tag-expression-actions button {
-    display: inline-flex;
-    min-height: 28px;
-    align-items: center;
-    gap: 5px;
-    padding: 0 8px;
-    border: 1px solid var(--line);
-    border-radius: var(--control-radius);
-    background: var(--surface-raised);
-  }
-
-  .tag-expression-actions button:disabled,
-  .tag-expression-group button:disabled,
-  .tag-expression-tag select:disabled {
+  .tag-expression-builder button:disabled {
     cursor: not-allowed;
-    opacity: 0.5;
-  }
-
-  .tag-expression-preview {
-    min-width: 0;
-    gap: 8px;
-    padding-top: 9px;
-    border-top: 1px solid var(--line);
-  }
-
-  .tag-expression-preview > span {
-    flex: 0 0 auto;
-    color: var(--text-faint);
-    font-size: var(--ui-font-size-sm);
-    font-weight: 720;
-  }
-
-  .tag-expression-preview code {
-    min-width: 0;
-    overflow-wrap: anywhere;
-    color: var(--text-strong);
-    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
-    font-size: var(--ui-font-size-md);
-    line-height: 1.55;
+    opacity: 0.42;
   }
 
   .tag-summary-filter-list {
@@ -1403,25 +1370,8 @@
       padding: 12px 14px;
     }
 
-    .tag-expression-group {
-      padding-left: 9px;
-    }
-
-    .tag-expression-group-root {
-      padding-left: 0;
-    }
-
-    .tag-expression-group-header {
+    .tag-expression-operator-palette {
       flex-wrap: wrap;
-    }
-
-    .tag-expression-group-label {
-      flex: 1 1 auto;
-    }
-
-    .tag-expression-tag select {
-      flex: 1 1 auto;
-      width: auto;
     }
 
     .tag-summary-query-button {

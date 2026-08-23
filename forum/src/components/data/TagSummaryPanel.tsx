@@ -10,9 +10,11 @@ import {
 import type { TagDefinition } from '../../data/tags';
 import {
   createTagExpressionFromFilters,
-  createTagExpressionGroup,
+  parseTagExpressionTokens,
+  tagExpressionToTokens,
   toTagExpressionPayload,
   validateTagExpression,
+  type TagExpressionToken,
 } from '../../utils/tagExpression';
 import { TagExpressionBuilder } from './TagExpressionBuilder';
 import { TagBadge } from '../tags/TagBadge';
@@ -32,7 +34,7 @@ export function TagSummaryPanel() {
   const [definitionsStatus, setDefinitionsStatus] = useState<LoadStatus>('loading');
   const [queryMode, setQueryMode] = useState<QueryMode>('basic');
   const [filters, setFilters] = useState<Record<string, FilterState>>({});
-  const [expression, setExpression] = useState(createTagExpressionGroup);
+  const [expressionTokens, setExpressionTokens] = useState<TagExpressionToken[]>([]);
   const [members, setMembers] = useState<TagSummaryMember[]>([]);
   const [hasQueried, setHasQueried] = useState(false);
   const [queryStatus, setQueryStatus] = useState<LoadStatus>('ready');
@@ -69,10 +71,13 @@ export function TagSummaryPanel() {
     () => sortedDefinitions.filter((tag) => filters[tag.id] === 'exclude').map((tag) => tag.id),
     [filters, sortedDefinitions],
   );
-  const expressionError = useMemo(
-    () => validateTagExpression(expression, definitions),
-    [definitions, expression],
+  const parsedExpression = useMemo(
+    () => parseTagExpressionTokens(expressionTokens),
+    [expressionTokens],
   );
+  const expressionError = parsedExpression.error || (parsedExpression.expression
+    ? validateTagExpression(parsedExpression.expression, definitions)
+    : '请至少添加一个标签条件');
   const queryValidationError = queryMode === 'advanced'
     ? expressionError
     : includedTagIds.length === 0 ? '请至少选中一个标签' : '';
@@ -109,8 +114,8 @@ export function TagSummaryPanel() {
 
   function selectQueryMode(mode: QueryMode) {
     if (mode === queryMode) return;
-    if (mode === 'advanced' && expression.children.length === 0) {
-      setExpression(createTagExpressionFromFilters(includedTagIds, excludedTagIds));
+    if (mode === 'advanced' && expressionTokens.length === 0) {
+      setExpressionTokens(tagExpressionToTokens(createTagExpressionFromFilters(includedTagIds, excludedTagIds)));
     }
     setQueryMode(mode);
     setMembers([]);
@@ -126,8 +131,8 @@ export function TagSummaryPanel() {
     setQueryStatus('loading');
     setQueryError('');
     try {
-      setMembers(queryMode === 'advanced'
-        ? await fetchAdvancedTagSummary(toTagExpressionPayload(expression))
+      setMembers(queryMode === 'advanced' && parsedExpression.expression
+        ? await fetchAdvancedTagSummary(toTagExpressionPayload(parsedExpression.expression))
         : await fetchTagSummary(includedTagIds, excludedTagIds));
       setHasQueried(true);
       setSortOrder('acquiredAt');
@@ -197,8 +202,8 @@ export function TagSummaryPanel() {
           <TagExpressionBuilder
             definitions={sortedDefinitions}
             disabled={definitionsStatus !== 'ready' || queryStatus === 'loading'}
-            expression={expression}
-            onChange={setExpression}
+            onChange={setExpressionTokens}
+            tokens={expressionTokens}
           />
           <QueryButton
             disabled={definitionsStatus !== 'ready' || queryStatus === 'loading' || Boolean(queryValidationError)}
