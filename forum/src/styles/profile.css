@@ -56,8 +56,8 @@
     aspect-ratio: 3 / 2;
     object-fit: cover;
     object-position: left top;
-    -webkit-mask-image: linear-gradient(135deg, #000 0%, #000 10%, rgb(0 0 0 / 0.7) 18%, transparent 34%);
-    mask-image: linear-gradient(135deg, #000 0%, #000 10%, rgb(0 0 0 / 0.7) 18%, transparent 34%);
+    -webkit-mask-image: linear-gradient(135deg, rgb(0 0 0 / 0.8) 0%, rgb(0 0 0 / 0.8) 10%, rgb(0 0 0 / 0.7) 18%, transparent 34%);
+    mask-image: linear-gradient(135deg, rgb(0 0 0 / 0.8) 0%, rgb(0 0 0 / 0.8) 10%, rgb(0 0 0 / 0.7) 18%, transparent 34%);
   }
 
   .profile-identity-card::before {
