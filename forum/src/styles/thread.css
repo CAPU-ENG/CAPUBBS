@@ -840,6 +840,43 @@
     box-shadow: var(--shadow-card);
   }
 
+  .thread-floor-decoration {
+    position: absolute;
+    z-index: 0;
+    inset: 0;
+    overflow: hidden;
+    border-radius: inherit;
+    pointer-events: none;
+  }
+
+  .thread-floor-decoration > img {
+    position: absolute;
+    top: 0;
+    width: min(340px, 44%);
+    aspect-ratio: 3 / 2;
+    object-fit: cover;
+    opacity: 0.38;
+  }
+
+  .thread-floor-decoration-top-left > img {
+    left: 0;
+    object-position: left top;
+    -webkit-mask-image: radial-gradient(ellipse 100% 100% at left top, #000 0%, #000 24%, rgb(0 0 0 / 0.76) 44%, transparent 76%);
+    mask-image: radial-gradient(ellipse 100% 100% at left top, #000 0%, #000 24%, rgb(0 0 0 / 0.76) 44%, transparent 76%);
+  }
+
+  .thread-floor-decoration-top-right > img {
+    right: 0;
+    object-position: right top;
+    -webkit-mask-image: radial-gradient(ellipse 100% 100% at right top, #000 0%, #000 24%, rgb(0 0 0 / 0.76) 44%, transparent 76%);
+    mask-image: radial-gradient(ellipse 100% 100% at right top, #000 0%, #000 24%, rgb(0 0 0 / 0.76) 44%, transparent 76%);
+  }
+
+  .thread-floor > :not(.thread-floor-decoration) {
+    position: relative;
+    z-index: 1;
+  }
+
   @media (min-width: 1024px) {
     .thread-page-shell-author-profile .thread-floor {
       grid-template-columns: var(--thread-author-profile-column) minmax(0, 1fr);
@@ -2558,6 +2595,12 @@
       display: block;
       scroll-margin-top: calc(var(--topbar-height) + 9px);
       padding: 15px 14px 14px;
+    }
+
+    .thread-floor-decoration > img {
+      width: min(190px, 58%);
+      aspect-ratio: 3 / 2;
+      opacity: 0.3;
     }
 
     .thread-author-profile {

@@ -9,6 +9,7 @@ import { TopBar } from '../components/layout/TopBar';
 import { setThreadBookmarked } from '../api/favorite';
 import { deleteNestedReply, deleteThreadFloor, postNestedReply } from '../api/thread';
 import { useAuth } from '../context/AuthContext';
+import { getBoardCoverImage } from '../data/boardCovers';
 import type { NestedReply, ThreadFloorData } from '../data/threadDemo';
 import {
   useAssistiveBarEnabled,
@@ -68,6 +69,7 @@ export function ThreadPage() {
   const topBarAutoHideEnabled = useTopBarAutoHideEnabled();
   const { viewer } = useAuth();
   const request = getThreadRequest();
+  const floorDecorationDemoEnabled = new URLSearchParams(window.location.search).get('floorDecorationDemo') === '1';
   const { data, error, retry, status } = useThreadData(request);
   const [quoteRequest, setQuoteRequest] = useState<QuoteRequest | null>(null);
   const quoteRequestIdRef = useRef(0);
@@ -395,6 +397,10 @@ export function ThreadPage() {
                 <ThreadFloor
                   canQuote={!data.isActivity && data.canReply && Boolean(data.viewer)}
                   canReply={data.canReply && Boolean(data.viewer)}
+                  decoration={floorDecorationDemoEnabled ? {
+                    imageSrc: getBoardCoverImage(data.bid),
+                    placement: floor.floor % 2 === 0 ? 'top-left' : 'top-right',
+                  } : undefined}
                   editHref={getThreadEditHref(data.bid, data.tid, floor.floor)}
                   floor={floor}
                   hideSignature={assistiveBarEnabled && signatureToggleEnabled && signaturesHidden}
