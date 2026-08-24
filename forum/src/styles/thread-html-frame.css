@@ -82,6 +82,10 @@ object {
   vertical-align: middle;
 }
 
+.capubbs-html-frame-root iframe {
+  background-color: transparent !important;
+}
+
 img,
 video {
   max-width: 100%;
