@@ -1277,7 +1277,7 @@
     justify-content: flex-end;
     gap: 5px;
     color: var(--text-faint);
-    font-size: var(--ui-font-size-sm);
+    font-size: 0.5625rem;
     font-variant-numeric: tabular-nums;
     white-space: nowrap;
   }
@@ -2669,7 +2669,6 @@
       grid-column: 1 / -1;
       justify-content: flex-end;
       gap: 4px;
-      font-size: 0.5625rem;
       line-height: 1.35;
     }
 
