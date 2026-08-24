@@ -6,7 +6,7 @@ import { ThreadFloor } from '../components/thread/ThreadFloor';
 import { FloorNodes, MobileFloorNode, ThreadPagination } from '../components/thread/ThreadNavigation';
 import { AppBackground } from '../components/layout/AppBackground';
 import { TopBar } from '../components/layout/TopBar';
-import floorDecorationDemoImage from '../assets/activity/activity.avif';
+import floorDecorationDemoImage from '../assets/thread/floor-decoration-demo.jpg';
 import { setThreadBookmarked } from '../api/favorite';
 import { deleteNestedReply, deleteThreadFloor, postNestedReply } from '../api/thread';
 import { useAuth } from '../context/AuthContext';
@@ -399,7 +399,7 @@ export function ThreadPage() {
                   canReply={data.canReply && Boolean(data.viewer)}
                   decoration={floorDecorationDemoEnabled ? {
                     imageSrc: floorDecorationDemoImage,
-                    placement: 'top-right',
+                    placement: 'top-left',
                   } : undefined}
                   editHref={getThreadEditHref(data.bid, data.tid, floor.floor)}
                   floor={floor}
