@@ -15,9 +15,9 @@ import { TopBar } from '../components/layout/TopBar';
 import { AvatarDialog, EmailDialog, SecurityDialog } from '../components/profile/ProfileDialogs';
 import { ProfileOverview, type ProfileDraft, type ProfileTextDraftKey } from '../components/profile/ProfileOverview';
 import { ProfileWorkspace } from '../components/profile/ProfileWorkspace';
+import { ProfilePersonalizationDialog } from '../components/profile/ProfilePersonalizationDialog';
 import { useAuth } from '../context/AuthContext';
 import type { ProfileDetail, ProfileRecordMap } from '../data/profileDemo';
-import type { UserTag } from '../data/tags';
 import { useUserCenterProfile } from '../hooks/useProfileData';
 import {
   deleteStoredReplyDraftForThread,
@@ -40,7 +40,7 @@ import { getPublicProfilePath, USER_CENTER_PATH } from '../utils/userRoutes';
 import { getAuthPathWithReturnTo } from '../utils/authRoutes';
 import { getThreadComposeHref, getThreadHref } from '../utils/threadRoutes';
 
-type OpenDialog = 'avatar' | 'email' | 'security' | null;
+type OpenDialog = 'avatar' | 'email' | 'personalization' | 'security' | null;
 type PageNotice = { message: string; tone: 'error' | 'success' } | null;
 
 export function UserCenterPage() {
@@ -56,7 +56,6 @@ export function UserCenterPage() {
   const [cachedAvatarSrc, setCachedAvatarSrc] = useState<string | null>(null);
   const [openDialog, setOpenDialog] = useState<OpenDialog>(() => window.location.hash === '#account-security' ? 'security' : null);
   const [notice, setNotice] = useState<PageNotice>(null);
-  const [tagHintVisible, setTagHintVisible] = useState(false);
   const email = useMemo(
     () => profile?.details.find((detail) => detail.key === 'email')?.value ?? '',
     [profile?.details],
@@ -75,7 +74,7 @@ export function UserCenterPage() {
 
   useEffect(() => {
     if (!profile || isEditing) return;
-    setDraft(createDraft(profile.details, profile.intro, profile.tags));
+    setDraft(createDraft(profile.details, profile.intro));
   }, [isEditing, profile]);
 
   useEffect(() => {
@@ -170,22 +169,11 @@ export function UserCenterPage() {
     setDraft((current) => ({ ...current, [key]: value }));
   }
 
-  function toggleDisplayTag(tagId: string) {
-    setDraft((current) => {
-      if (current.displayTagIds.includes(tagId)) {
-        return { ...current, displayTagIds: current.displayTagIds.filter((id) => id !== tagId) };
-      }
-      if (current.displayTagIds.length >= 2) return current;
-      return { ...current, displayTagIds: [...current.displayTagIds, tagId] };
-    });
-  }
-
   async function toggleEdit() {
     if (!profile || isSavingProfile) return;
     if (!isEditing) {
-      setDraft(createDraft(profile.details, profile.intro, profile.tags));
+      setDraft(createDraft(profile.details, profile.intro));
       setNotice(null);
-      setTagHintVisible(Boolean(profile.tags?.length));
       setIsEditing(true);
       return;
     }
@@ -195,7 +183,6 @@ export function UserCenterPage() {
       const updatedProfile = await updateProfileDetails(draft);
       profileState.replace(updatedProfile);
       setIsEditing(false);
-      setTagHintVisible(false);
       setNotice({ message: '资料保存成功', tone: 'success' });
     } catch (error) {
       setNotice({ message: getPageError(error, '资料保存失败'), tone: 'error' });
@@ -206,9 +193,8 @@ export function UserCenterPage() {
 
   function cancelEdit() {
     if (!profile || isSavingProfile) return;
-    setDraft(createDraft(profile.details, profile.intro, profile.tags));
+    setDraft(createDraft(profile.details, profile.intro));
     setIsEditing(false);
-    setTagHintVisible(false);
   }
 
   if (!profile) {
@@ -243,10 +229,8 @@ export function UserCenterPage() {
           onDraftChange={updateDraft}
           onEditToggle={() => { void toggleEdit(); }}
           onOpenEmail={() => setOpenDialog('email')}
+          onOpenPersonalization={() => setOpenDialog('personalization')}
           onOpenSecurity={() => setOpenDialog('security')}
-          onTagHintClose={() => setTagHintVisible(false)}
-          onTagToggle={toggleDisplayTag}
-          tagHintVisible={tagHintVisible}
         />
 
         {notice ? createPortal(
@@ -304,6 +288,15 @@ export function UserCenterPage() {
         verified={profile.emailVerified}
         visible={profile.emailVisible}
       />
+      <ProfilePersonalizationDialog
+        onClose={closeDialog}
+        onSave={(updatedProfile) => {
+          profileState.replace(updatedProfile);
+          setNotice({ message: '个性化设置已保存', tone: 'success' });
+        }}
+        open={openDialog === 'personalization'}
+        profile={profile}
+      />
       <SecurityDialog
         onClose={closeDialog}
         onNotify={(message, tone) => setNotice({ message, tone })}
@@ -356,13 +349,8 @@ function ProfileLoadPage({
   );
 }
 
-function createDraft(details: ProfileDetail[], intro: string, tags: UserTag[] | undefined): ProfileDraft {
+function createDraft(details: ProfileDetail[], intro: string): ProfileDraft {
   return {
-    displayTagIds: [...(tags ?? [])]
-      .filter((tag) => tag.displayOrder === 1 || tag.displayOrder === 2)
-      .sort((left, right) => left.displayOrder! - right.displayOrder!)
-      .slice(0, 2)
-      .map((tag) => tag.id),
     hobby: details.find((detail) => detail.key === 'hobby')?.value ?? '',
     intro,
     location: details.find((detail) => detail.key === 'location')?.value ?? '',
@@ -371,7 +359,7 @@ function createDraft(details: ProfileDetail[], intro: string, tags: UserTag[] | 
 }
 
 function emptyDraft(): ProfileDraft {
-  return { displayTagIds: [], hobby: '', intro: '', location: '', qq: '' };
+  return { hobby: '', intro: '', location: '', qq: '' };
 }
 
 function mapReplyDraftRecord(draft: StoredReplyDraft) {

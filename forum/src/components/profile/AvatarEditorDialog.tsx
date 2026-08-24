@@ -13,6 +13,7 @@ import defaultAvatar from '../../assets/bg/bicycle.svg';
 
 type AvatarDialogProps = {
   avatarSrc: string;
+  mode?: 'avatar' | 'decoration';
   onClose: () => void;
   onSave: (src: string) => Promise<void> | void;
   open: boolean;
@@ -53,7 +54,7 @@ const MIN_CROP_SIZE = 64;
 const KEYBOARD_MOVE_STEP = 4;
 const corners: ResizeCorner[] = ['nw', 'ne', 'sw', 'se'];
 
-export function AvatarDialog({ avatarSrc, onClose, onSave, open, showDefaultOption = true }: AvatarDialogProps) {
+export function AvatarDialog({ avatarSrc, mode = 'avatar', onClose, onSave, open, showDefaultOption = true }: AvatarDialogProps) {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const dragStateRef = useRef<DragState | null>(null);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
@@ -79,6 +80,7 @@ export function AvatarDialog({ avatarSrc, onClose, onSave, open, showDefaultOpti
   const positionBounds = getCropPositionBounds(cropBounds, safeCropSize);
   const safeCropX = clamp(cropX, positionBounds.minX, positionBounds.maxX);
   const safeCropY = clamp(cropY, positionBounds.minY, positionBounds.maxY);
+  const isDecoration = mode === 'decoration';
 
   useEffect(() => {
     if (!open) return;
@@ -295,11 +297,11 @@ export function AvatarDialog({ avatarSrc, onClose, onSave, open, showDefaultOpti
 
     try {
       setIsSaving(true);
-      setStatus('正在保存头像');
+      setStatus(isDecoration ? '正在处理装饰图片' : '正在保存头像');
       await onSave(nextAvatar);
       onClose();
     } catch (error) {
-      setStatus(error instanceof Error ? error.message : '头像保存失败，请重试');
+      setStatus(error instanceof Error ? error.message : isDecoration ? '装饰图片处理失败，请重试' : '头像保存失败，请重试');
     } finally {
       setIsSaving(false);
     }
@@ -307,11 +309,11 @@ export function AvatarDialog({ avatarSrc, onClose, onSave, open, showDefaultOpti
 
   return createPortal(
     <div className="profile-dialog-backdrop" role="presentation">
-      <button className="profile-dialog-dismiss" type="button" aria-label="关闭头像编辑窗口" onClick={isSaving ? undefined : onClose} />
+      <button className="profile-dialog-dismiss" type="button" aria-label={isDecoration ? '关闭装饰图片裁剪窗口' : '关闭头像编辑窗口'} onClick={isSaving ? undefined : onClose} />
       <section className="profile-dialog profile-avatar-editor" role="dialog" aria-modal="true" aria-labelledby="avatar-editor-title">
         <header>
           <span><Scissors size={18} /></span>
-          <h2 id="avatar-editor-title">加工头像</h2>
+          <h2 id="avatar-editor-title">{isDecoration ? '裁剪装饰图片' : '加工头像'}</h2>
           <button aria-label="关闭" disabled={isSaving} type="button" onClick={onClose}><X size={18} /></button>
         </header>
 
@@ -386,7 +388,7 @@ export function AvatarDialog({ avatarSrc, onClose, onSave, open, showDefaultOpti
 
           <aside className="profile-avatar-editor-aside">
             <div className="profile-avatar-result">
-              {previewSrc ? <img src={previewSrc} alt="头像裁切预览" /> : <div className="profile-avatar-empty-result"><ImagePlus size={22} /><span>上传后预览</span></div>}
+              {previewSrc ? <img src={previewSrc} alt={isDecoration ? '装饰图片裁切预览' : '头像裁切预览'} /> : <div className="profile-avatar-empty-result"><ImagePlus size={22} /><span>上传后预览</span></div>}
             </div>
             <input ref={fileInputRef} hidden type="file" accept="image/*" onChange={handleUpload} />
             <button type="button" disabled={isSaving} onClick={() => fileInputRef.current?.click()}><Upload size={15} />上传图片</button>
@@ -399,7 +401,7 @@ export function AvatarDialog({ avatarSrc, onClose, onSave, open, showDefaultOpti
         <footer className="profile-dialog-footer">
           <button className="profile-dialog-cancel" type="button" disabled={isSaving} onClick={onClose}>取消</button>
           <button className="profile-dialog-confirm" type="button" disabled={isSaving || !sourceSrc} onClick={saveAvatar}>
-            <Check size={14} />{isSaving ? '保存中' : '保存头像'}
+            <Check size={14} />{isSaving ? '处理中' : isDecoration ? '使用裁剪结果' : '保存头像'}
           </button>
         </footer>
       </section>

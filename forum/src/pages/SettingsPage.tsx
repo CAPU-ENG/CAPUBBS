@@ -5,6 +5,7 @@ import {
   ChevronDown,
   CirclePlus,
   ContactRound,
+  ImageIcon,
   ListEnd,
   MonitorCog,
   PanelRight,
@@ -26,6 +27,7 @@ import {
   useAssistiveBarEnabled,
   useAutoSaveEnabled,
   useBackToTopEnabled,
+  useFloorDecorationEnabled,
   useSignatureToggleEnabled,
   useWaterfallFeedEnabled,
 } from '../hooks/useAssistiveFeatures';
@@ -40,6 +42,7 @@ import {
   saveAssistiveBarEnabled,
   saveAutoSaveEnabled,
   saveBackToTopEnabled,
+  saveFloorDecorationEnabled,
   saveSignatureToggleEnabled,
   saveWaterfallFeedEnabled,
 } from '../utils/assistiveFeatures';
@@ -62,6 +65,7 @@ export function SettingsPage() {
   const backToTopEnabled = useBackToTopEnabled();
   const compactMode = useCompactMode();
   const forumContentFontSize = useForumContentFontSize();
+  const floorDecorationEnabled = useFloorDecorationEnabled();
   const pinnedBoardIds = usePinnedBoardIds();
   const { followsSystem } = useTheme();
   const signatureToggleEnabled = useSignatureToggleEnabled();
@@ -236,6 +240,12 @@ export function SettingsPage() {
                 icon={<Save size={15} />}
                 label="自动保存"
                 onChange={saveAutoSaveEnabled}
+              />
+              <SettingsCheckbox
+                checked={floorDecorationEnabled}
+                icon={<ImageIcon size={15} />}
+                label="展示楼层装饰"
+                onChange={saveFloorDecorationEnabled}
               />
               <SettingsCheckbox
                 checked={assistiveBarEnabled}

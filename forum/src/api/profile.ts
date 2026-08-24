@@ -6,6 +6,7 @@ import type {
   ProfileViewData,
 } from '../data/profileDemo';
 import type { UserTag } from '../data/tags';
+import type { FloorDecorationPaths, FloorDecorationVariant } from '../data/floorDecoration';
 import { normalizeLegacyAvatar } from '../utils/legacyAssets';
 import { md5LegacyStringHex } from '../utils/md5';
 
@@ -22,12 +23,12 @@ type ApiRow = Record<string, unknown>;
 
 type EditUserOverrides = {
   details?: {
-    displayTagIds: string[];
     hobby: string;
     intro: string;
     location: string;
     qq: string;
   };
+  displayTagIds?: string[];
   icon?: string;
   signatures?: ProfileRecord[];
 };
@@ -105,6 +106,26 @@ export async function updateProfileDetails(details: EditUserOverrides['details']
   const row = await fetchCurrentUserRow();
   await editUser(row, { details });
   return fetchUserCenterProfile();
+}
+
+export async function updateProfileDisplayTags(displayTagIds: string[]) {
+  const row = await fetchCurrentUserRow();
+  await editUser(row, { displayTagIds });
+  return fetchUserCenterProfile();
+}
+
+export async function uploadProfileFloorDecoration(file: File, variant: FloorDecorationVariant) {
+  const body = new FormData();
+  body.set('ask', 'floor_decoration_upload');
+  body.set('variant', variant);
+  body.set('file', file);
+  const data = await requestMultipartData(body);
+  return mapFloorDecoration(isApiRow(data) ? data.floorDecoration : null);
+}
+
+export async function deleteProfileFloorDecoration(variant: FloorDecorationVariant) {
+  const data = await requestData({ ask: 'floor_decoration_delete', variant });
+  return mapFloorDecoration(isApiRow(data) ? data.floorDecoration : null);
 }
 
 export async function updateProfileSignatures(signatures: ProfileRecord[]) {
@@ -201,8 +222,34 @@ async function editUser(row: ApiRow, overrides: EditUserOverrides) {
     sig3: signatureValues[2] ?? '',
     sig3_type: signatureTypes[2] ?? 'null',
   };
-  if (details) params.display_tag_ids = details.displayTagIds.join(',');
+  if (overrides.displayTagIds) params.display_tag_ids = overrides.displayTagIds.join(',');
   await requestData(params);
+}
+
+async function requestMultipartData(body: FormData, signal?: AbortSignal) {
+  let response: Response;
+  try {
+    response = await fetch(PROFILE_API_URL, {
+      body,
+      credentials: 'include',
+      method: 'POST',
+      signal,
+    });
+  } catch (error) {
+    if (isProfileAbortError(error)) throw error;
+    throw new ProfileApiError('暂时无法连接论坛服务，请稍后重试。');
+  }
+
+  let payload: ApiEnvelope;
+  try {
+    payload = await response.json() as ApiEnvelope;
+  } catch {
+    throw new ProfileApiError('论坛服务返回了无法识别的数据。');
+  }
+  if (!response.ok || payload.code !== 0) {
+    throw new ProfileApiError(payload.message?.trim() || '装饰图片上传失败。');
+  }
+  return payload.data;
 }
 
 async function uploadAvatarDataUrl(dataUrl: string) {
@@ -331,6 +378,7 @@ function mapProfile(
     details,
     emailVerified: truthyFlag(row.verified),
     emailVisible: truthyFlag(row.email_visible),
+    floorDecoration: mapFloorDecoration(row.floorDecoration),
     id: username,
     intro: stringValue(row.intro),
     rating: Math.max(0, Math.min(9, numberValue(row.star))),
@@ -348,6 +396,14 @@ function mapProfile(
       { label: '精品数', value: numberValue(row.extr ?? row.digest ?? row.digests) },
     ],
     tags: Array.isArray(row.tags) ? mapProfileTags(row.tags) : undefined,
+  };
+}
+
+function mapFloorDecoration(value: unknown): FloorDecorationPaths {
+  const decoration = isApiRow(value) ? value : {};
+  return {
+    darkImagePath: stringValue(decoration.darkImagePath) || null,
+    lightImagePath: stringValue(decoration.lightImagePath) || null,
   };
 }
 

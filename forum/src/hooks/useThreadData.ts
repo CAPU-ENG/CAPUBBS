@@ -10,11 +10,13 @@ export type ThreadDataStatus = 'error' | 'loading' | 'ready';
 export function useThreadData({
   authorOnly,
   bid,
+  decoration,
   page,
   tid,
 }: {
   authorOnly: boolean;
   bid: number;
+  decoration: boolean;
   page: number;
   tid: number;
 }) {
@@ -36,7 +38,7 @@ export function useThreadData({
       return () => controller.abort();
     }
 
-    void fetchThreadDetail({ authorOnly, bid, page, signal: controller.signal, tid }).then(
+    void fetchThreadDetail({ authorOnly, bid, decoration, page, signal: controller.signal, tid }).then(
       (detail) => {
         setData(detail);
         setStatus('ready');
@@ -49,7 +51,7 @@ export function useThreadData({
     );
 
     return () => controller.abort();
-  }, [authorOnly, bid, page, requestVersion, tid]);
+  }, [authorOnly, bid, decoration, page, requestVersion, tid]);
 
   return { data, error, retry, status };
 }

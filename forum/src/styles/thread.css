@@ -852,23 +852,13 @@
   .thread-floor-decoration > img {
     position: absolute;
     top: 0;
+    left: 0;
     width: min(340px, 44%);
     aspect-ratio: 3 / 2;
     object-fit: cover;
-  }
-
-  .thread-floor-decoration-top-left > img {
-    left: 0;
     object-position: left top;
     -webkit-mask-image: linear-gradient(135deg, #000 0%, #000 10%, rgb(0 0 0 / 0.7) 18%, transparent 34%);
     mask-image: linear-gradient(135deg, #000 0%, #000 10%, rgb(0 0 0 / 0.7) 18%, transparent 34%);
-  }
-
-  .thread-floor-decoration-top-right > img {
-    right: 0;
-    object-position: right top;
-    -webkit-mask-image: linear-gradient(225deg, #000 0%, #000 10%, rgb(0 0 0 / 0.7) 18%, transparent 34%);
-    mask-image: linear-gradient(225deg, #000 0%, #000 10%, rgb(0 0 0 / 0.7) 18%, transparent 34%);
   }
 
   .thread-floor-main {

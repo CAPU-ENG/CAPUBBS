@@ -6,7 +6,6 @@ import { ThreadFloor } from '../components/thread/ThreadFloor';
 import { FloorNodes, MobileFloorNode, ThreadPagination } from '../components/thread/ThreadNavigation';
 import { AppBackground } from '../components/layout/AppBackground';
 import { TopBar } from '../components/layout/TopBar';
-import floorDecorationDemoImage from '../assets/thread/floor-decoration-demo.jpg';
 import { setThreadBookmarked } from '../api/favorite';
 import { deleteNestedReply, deleteThreadFloor, postNestedReply } from '../api/thread';
 import { useAuth } from '../context/AuthContext';
@@ -14,6 +13,7 @@ import type { NestedReply, ThreadFloorData } from '../data/threadDemo';
 import {
   useAssistiveBarEnabled,
   useBackToTopEnabled,
+  useFloorDecorationEnabled,
   useSignaturesHidden,
   useSignatureToggleEnabled,
 } from '../hooks/useAssistiveFeatures';
@@ -21,6 +21,7 @@ import { useAuthorProfileEnabled } from '../hooks/useAuthorProfile';
 import { useAvatarFollowDisabled } from '../hooks/useAvatarFollow';
 import { useThreadTopBar } from '../hooks/useThreadTopBar';
 import { useThreadData } from '../hooks/useThreadData';
+import { useTheme } from '../hooks/useTheme';
 import { useTopBarAutoHideEnabled } from '../hooks/useTopBarAutoHide';
 import { saveSignaturesHidden } from '../utils/assistiveFeatures';
 import { getLoginPathWithReturnTo, getRegisterPathWithReturnTo } from '../utils/authRoutes';
@@ -37,6 +38,7 @@ import {
 import { markThreadRead } from '../utils/threadReadState';
 import { isActivityPhoneQuestion, maskActivitySignupFloor } from '../utils/activityPhonePrivacy';
 import { getPublicProfilePath } from '../utils/userRoutes';
+import { getFloorDecorationPath } from '../data/floorDecoration';
 
 function getThreadRequest() {
   const params = new URLSearchParams(window.location.search);
@@ -66,11 +68,12 @@ export function ThreadPage() {
   const avatarFollowPreferenceDisabled = useAvatarFollowDisabled();
   const avatarFollowDisabled = authorProfileEnabled || avatarFollowPreferenceDisabled;
   const backToTopEnabled = useBackToTopEnabled();
+  const floorDecorationEnabled = useFloorDecorationEnabled();
   const topBarAutoHideEnabled = useTopBarAutoHideEnabled();
   const { viewer } = useAuth();
+  const { theme } = useTheme();
   const request = getThreadRequest();
-  const floorDecorationDemoEnabled = new URLSearchParams(window.location.search).get('floorDecorationDemo') === '1';
-  const { data, error, retry, status } = useThreadData(request);
+  const { data, error, retry, status } = useThreadData({ ...request, decoration: floorDecorationEnabled });
   const [quoteRequest, setQuoteRequest] = useState<QuoteRequest | null>(null);
   const quoteRequestIdRef = useRef(0);
   const [activeFloor, setActiveFloor] = useState(1);
@@ -397,10 +400,7 @@ export function ThreadPage() {
                 <ThreadFloor
                   canQuote={!data.isActivity && data.canReply && Boolean(data.viewer)}
                   canReply={data.canReply && Boolean(data.viewer)}
-                  decoration={floorDecorationDemoEnabled ? {
-                    imageSrc: floorDecorationDemoImage,
-                    placement: 'top-left',
-                  } : undefined}
+                  decorationImageSrc={getFloorDecorationPath(floor.author.floorDecoration, theme)}
                   editHref={getThreadEditHref(data.bid, data.tid, floor.floor)}
                   floor={floor}
                   hideSignature={assistiveBarEnabled && signatureToggleEnabled && signaturesHidden}

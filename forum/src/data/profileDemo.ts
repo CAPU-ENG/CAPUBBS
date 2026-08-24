@@ -1,4 +1,5 @@
 import defaultAvatar from '../assets/bg/bicycle.svg';
+import type { FloorDecorationPaths } from './floorDecoration';
 import type { UserTag } from './tags';
 
 export type ProfileTab = 'posts' | 'replies' | 'activities' | 'bookmarks' | 'drafts' | 'signatures';
@@ -38,6 +39,7 @@ export type ProfileViewData = {
   details: ProfileDetail[];
   emailVerified: boolean;
   emailVisible: boolean;
+  floorDecoration?: FloorDecorationPaths;
   id: string;
   intro: string;
   rating: number;

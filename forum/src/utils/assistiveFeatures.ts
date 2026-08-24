@@ -4,6 +4,7 @@ export const AUTO_SAVE_ENABLED_STORAGE_KEY = 'capubbs-auto-save-enabled';
 export const SIGNATURE_TOGGLE_ENABLED_STORAGE_KEY = 'capubbs-signature-toggle-enabled';
 export const SIGNATURES_HIDDEN_STORAGE_KEY = 'capubbs-signatures-hidden';
 export const WATERFALL_FEED_ENABLED_STORAGE_KEY = 'capubbs-waterfall-feed-enabled';
+export const FLOOR_DECORATION_ENABLED_STORAGE_KEY = 'capubbs-floor-decoration-enabled';
 export const ASSISTIVE_FEATURES_CHANGE_EVENT = 'capubbs-assistive-features-change';
 
 function readBoolean(key: string, defaultValue = false) {
@@ -78,6 +79,14 @@ export function saveWaterfallFeedEnabled(enabled: boolean) {
   return saveBoolean(WATERFALL_FEED_ENABLED_STORAGE_KEY, enabled);
 }
 
+export function readFloorDecorationEnabled() {
+  return readBoolean(FLOOR_DECORATION_ENABLED_STORAGE_KEY, true);
+}
+
+export function saveFloorDecorationEnabled(enabled: boolean) {
+  return saveBoolean(FLOOR_DECORATION_ENABLED_STORAGE_KEY, enabled);
+}
+
 export function subscribeAssistiveFeatures(listener: () => void) {
   if (typeof window === 'undefined') return () => {};
 
@@ -89,6 +98,7 @@ export function subscribeAssistiveFeatures(listener: () => void) {
       || event.key === SIGNATURE_TOGGLE_ENABLED_STORAGE_KEY
       || event.key === SIGNATURES_HIDDEN_STORAGE_KEY
       || event.key === WATERFALL_FEED_ENABLED_STORAGE_KEY
+      || event.key === FLOOR_DECORATION_ENABLED_STORAGE_KEY
     ) listener();
   };
 

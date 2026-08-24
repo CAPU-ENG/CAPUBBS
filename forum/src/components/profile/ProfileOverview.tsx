@@ -1,20 +1,21 @@
-import { AtSign, Bike, Edit3, ExternalLink, Info, Mail, MapPin, MessageCircle, ShieldCheck, X } from 'lucide-react';
+import { AtSign, Bike, Edit3, ExternalLink, Mail, MapPin, MessageCircle, Palette, ShieldCheck } from 'lucide-react';
 import { useState, type ComponentType, type SVGProps } from 'react';
 import type { ProfileDetailKey, ProfileViewData } from '../../data/profileDemo';
 import { getDisplayedTags, getTagsForUser } from '../../data/tags';
 import { USER_CENTER_PATH } from '../../utils/userRoutes';
 import { StarRulesDialog } from './ProfileDialogs';
 import { TagList } from '../tags/TagBadge';
+import { useTheme } from '../../hooks/useTheme';
+import { getFloorDecorationPath } from '../../data/floorDecoration';
 
 export type ProfileDraft = {
-  displayTagIds: string[];
   hobby: string;
   intro: string;
   location: string;
   qq: string;
 };
 
-export type ProfileTextDraftKey = Exclude<keyof ProfileDraft, 'displayTagIds'>;
+export type ProfileTextDraftKey = keyof ProfileDraft;
 
 type ProfileOverviewProps = {
   actionsDisabled?: boolean;
@@ -29,12 +30,10 @@ type ProfileOverviewProps = {
   onDraftChange?: (key: ProfileTextDraftKey, value: string) => void;
   onEditToggle?: () => void;
   onOpenEmail?: () => void;
+  onOpenPersonalization?: () => void;
   onOpenSecurity?: () => void;
   onPrivateMessage?: () => void;
-  onTagHintClose?: () => void;
-  onTagToggle?: (tagId: string) => void;
   profile: ProfileViewData;
-  tagHintVisible?: boolean;
 };
 
 const detailIcons: Record<ProfileDetailKey, ComponentType<SVGProps<SVGSVGElement>>> = {
@@ -57,20 +56,18 @@ export function ProfileOverview({
   onDraftChange,
   onEditToggle,
   onOpenEmail,
+  onOpenPersonalization,
   onOpenSecurity,
   onPrivateMessage,
-  onTagHintClose,
-  onTagToggle,
   profile,
-  tagHintVisible = false,
 }: ProfileOverviewProps) {
   const privateMode = mode === 'private';
   const [starRulesOpen, setStarRulesOpen] = useState(false);
+  const { theme } = useTheme();
+  const decorationImageSrc = getFloorDecorationPath(profile.floorDecoration, theme);
   const visibleIntro = isEditing && draft ? draft.intro : profile.intro;
   const tags = profile.tags ?? getTagsForUser(profile.id);
-  const selectedTagIds = isEditing && draft
-    ? draft.displayTagIds
-    : getDisplayedTags(tags).map((tag) => tag.id);
+  const selectedTagIds = getDisplayedTags(tags).map((tag) => tag.id);
   const details = profile.details.map((detail) => {
     if (detail.key === 'email') {
       if (privateMode || isOwnPublicProfile) return detail;
@@ -86,7 +83,10 @@ export function ProfileOverview({
 
   return (
     <div className="profile-overview" aria-label={privateMode ? '个人资料' : `${profile.id}的公开资料`}>
-      <section className="profile-identity-card">
+      <section className={`profile-identity-card${decorationImageSrc ? ' profile-identity-card-decorated' : ''}`}>
+        {decorationImageSrc ? (
+          <span aria-hidden="true" className="profile-identity-decoration"><img alt="" src={decorationImageSrc} /></span>
+        ) : null}
         <div className="profile-file-stamp" aria-hidden="true">
           <span>CAPU</span>
           <small>RIDER PROFILE</small>
@@ -129,26 +129,7 @@ export function ProfileOverview({
             ) : (
               <p className="profile-intro">{visibleIntro || '暂未填写个人简介。'}</p>
             )}
-            {isEditing && draft ? (
-              <div aria-label="会员标签" className="profile-tag-selector">
-                {tags.map((tag) => {
-                  const selected = selectedTagIds.includes(tag.id);
-                  return (
-                    <button
-                      aria-pressed={selected}
-                      disabled={actionsDisabled || (!selected && selectedTagIds.length >= 2)}
-                      key={tag.id}
-                      onClick={() => onTagToggle?.(tag.id)}
-                      type="button"
-                    >
-                      <TagList selectedTagIds={selected ? [tag.id] : []} tags={[tag]} />
-                    </button>
-                  );
-                })}
-              </div>
-            ) : (
-              <TagList selectedTagIds={selectedTagIds} tags={tags} />
-            )}
+            <TagList selectedTagIds={selectedTagIds} tags={tags} />
           </div>
         </div>
 
@@ -161,9 +142,14 @@ export function ProfileOverview({
               {isEditing ? (
                 <button className="profile-secondary-action" disabled={actionsDisabled} type="button" onClick={onCancelEdit}>取消</button>
               ) : (
-                <button className="profile-secondary-action" disabled={actionsDisabled} type="button" onClick={onOpenSecurity}>
-                  <ShieldCheck size={16} />修改密码
-                </button>
+                <>
+                  <button className="profile-secondary-action" disabled={actionsDisabled} type="button" onClick={onOpenPersonalization}>
+                    <Palette size={16} />个性化
+                  </button>
+                  <button className="profile-secondary-action" disabled={actionsDisabled} type="button" onClick={onOpenSecurity}>
+                    <ShieldCheck size={16} />修改密码
+                  </button>
+                </>
               )}
             </>
           ) : isOwnPublicProfile ? (
@@ -177,14 +163,6 @@ export function ProfileOverview({
           )}
         </div>
       </section>
-
-      {privateMode && isEditing && tags.length > 0 && tagHintVisible ? (
-        <div className="profile-tag-hint" role="status">
-          <Info aria-hidden="true" size={15} />
-          <span>可以点选标签选择展示，最多两个</span>
-          <button aria-label="关闭标签选择提示" onClick={onTagHintClose} type="button"><X size={15} /></button>
-        </div>
-      ) : null}
 
       <div className="profile-detail-grid">
         {details.map((detail) => {

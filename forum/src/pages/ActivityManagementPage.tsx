@@ -59,6 +59,7 @@ export function ActivityManagementPage() {
   const { data, error, retry, status } = useThreadData({
     authorOnly: false,
     bid: request.bid,
+    decoration: false,
     page: 1,
     tid: request.tid,
   });

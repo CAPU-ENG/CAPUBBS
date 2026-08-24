@@ -3,6 +3,7 @@ import {
   readAssistiveBarEnabled,
   readAutoSaveEnabled,
   readBackToTopEnabled,
+  readFloorDecorationEnabled,
   readSignaturesHidden,
   readSignatureToggleEnabled,
   readWaterfallFeedEnabled,
@@ -31,4 +32,8 @@ export function useSignaturesHidden() {
 
 export function useWaterfallFeedEnabled() {
   return useSyncExternalStore(subscribeAssistiveFeatures, readWaterfallFeedEnabled, () => false);
+}
+
+export function useFloorDecorationEnabled() {
+  return useSyncExternalStore(subscribeAssistiveFeatures, readFloorDecorationEnabled, () => true);
 }

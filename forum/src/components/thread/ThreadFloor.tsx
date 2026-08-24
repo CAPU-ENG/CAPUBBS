@@ -34,11 +34,6 @@ type PreviewImageState = {
   onImageChange?: ForumMarkupImageChangeHandler;
 };
 
-export type FloorDecoration = {
-  imageSrc: string;
-  placement: 'top-left' | 'top-right';
-};
-
 function AuthorCard({ author, id }: { author: ThreadAuthor; id: string }) {
   const tags = author.tags ?? getTagsForUser(author.name);
   const [tagsOverflow, setTagsOverflow] = useState(false);
@@ -173,7 +168,7 @@ function copyAsPlainText(event: ClipboardEvent<HTMLElement>) {
 export function ThreadFloor({
   canQuote,
   canReply,
-  decoration,
+  decorationImageSrc,
   editHref,
   floor,
   isActivityThread,
@@ -189,7 +184,7 @@ export function ThreadFloor({
 }: {
   canQuote: boolean;
   canReply: boolean;
-  decoration?: FloorDecoration;
+  decorationImageSrc?: string;
   editHref: string;
   floor: ThreadFloorData;
   isActivityThread: boolean;
@@ -403,14 +398,12 @@ export function ThreadFloor({
       data-floor={floor.floor}
       onCopy={copyAsPlainText}
     >
-      {decoration && (
+      {decorationImageSrc && (
         <span
           aria-hidden="true"
-          className={`thread-floor-decoration ${decoration.placement === 'top-left'
-            ? 'thread-floor-decoration-top-left'
-            : 'thread-floor-decoration-top-right'}`}
+          className="thread-floor-decoration"
         >
-          <img alt="" src={decoration.imageSrc} />
+          <img alt="" src={decorationImageSrc} />
         </span>
       )}
       {showAuthorProfile

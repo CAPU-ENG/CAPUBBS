@@ -146,6 +146,12 @@ function jiekoufunc_user_profile($con, $params) {
         return jiekoufunc_report('3', '用户不存在。');
     }
 
+    $decoration = floor_decoration_query_for_username($con, $username);
+    foreach ($rows as &$row) {
+        $row['floorDecoration'] = $decoration;
+    }
+    unset($row);
+
     return array_merge(array(array('code' => '0', 'count' => strval(count($rows)))), $rows);
 }
 

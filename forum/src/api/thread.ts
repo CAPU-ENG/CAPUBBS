@@ -1,6 +1,7 @@
 import defaultAvatar from '../assets/bg/bicycle.svg';
 import type { NestedReply, ThreadAuthor, ThreadFloorData } from '../data/threadDemo';
 import type { UserTag } from '../data/tags';
+import type { FloorDecorationPaths } from '../data/floorDecoration';
 import {
   forumMarkupToPlainText,
   renderForumMarkup,
@@ -147,12 +148,14 @@ export class ThreadApiError extends Error {
 export async function fetchThreadDetail({
   authorOnly,
   bid,
+  decoration,
   page,
   signal,
   tid,
 }: {
   authorOnly: boolean;
   bid: number;
+  decoration: boolean;
   page: number;
   signal?: AbortSignal;
   tid: number;
@@ -166,6 +169,7 @@ export async function fetchThreadDetail({
     render: 'both',
     tid: String(tid),
   });
+  if (decoration) body.set('decoration', '1');
 
   let response: Response;
   try {
@@ -917,6 +921,7 @@ function mapNestedReply(row: ApiRow): NestedReply {
 
 function mapAuthor(row: ApiRow, fallbackName: string): ThreadAuthor {
   const stats = asRow(row.stats);
+  const floorDecoration = mapFloorDecoration(row.floorDecoration);
   return {
     avatar: normalizeLegacyAvatar(row.avatar ?? row.icon) || defaultAvatar,
     checkins: nonNegativeInteger(stats.checkins),
@@ -927,6 +932,16 @@ function mapAuthor(row: ApiRow, fallbackName: string): ThreadAuthor {
     stars: nonNegativeInteger(row.star),
     tags: Array.isArray(row.tags) ? mapThreadTags(row.tags) : undefined,
     topics: nonNegativeInteger(stats.posts),
+    ...(floorDecoration ? { floorDecoration } : {}),
+  };
+}
+
+function mapFloorDecoration(value: unknown): FloorDecorationPaths | null {
+  const decoration = nullableRow(value);
+  if (!decoration) return null;
+  return {
+    darkImagePath: stringValue(decoration.darkImagePath) || null,
+    lightImagePath: stringValue(decoration.lightImagePath) || null,
   };
 }
 
