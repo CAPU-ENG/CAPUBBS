@@ -872,8 +872,12 @@
     mask-image: linear-gradient(225deg, #000 0%, #000 10%, rgb(0 0 0 / 0.7) 18%, transparent 34%);
   }
 
-  .thread-floor > :not(.thread-floor-decoration) {
+  .thread-floor-main {
     position: relative;
+    z-index: 1;
+  }
+
+  .thread-floor > .thread-author-profile {
     z-index: 1;
   }
 
