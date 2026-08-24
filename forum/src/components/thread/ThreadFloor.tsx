@@ -406,7 +406,9 @@ export function ThreadFloor({
       {decoration && (
         <span
           aria-hidden="true"
-          className={`thread-floor-decoration thread-floor-decoration-${decoration.placement}`}
+          className={`thread-floor-decoration ${decoration.placement === 'top-left'
+            ? 'thread-floor-decoration-top-left'
+            : 'thread-floor-decoration-top-right'}`}
         >
           <img alt="" src={decoration.imageSrc} />
         </span>

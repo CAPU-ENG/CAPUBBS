@@ -861,8 +861,8 @@
   .thread-floor-decoration-top-left > img {
     left: 0;
     object-position: left top;
-    -webkit-mask-image: radial-gradient(ellipse 100% 100% at left top, #000 0%, #000 24%, rgb(0 0 0 / 0.76) 44%, transparent 76%);
-    mask-image: radial-gradient(ellipse 100% 100% at left top, #000 0%, #000 24%, rgb(0 0 0 / 0.76) 44%, transparent 76%);
+    -webkit-mask-image: linear-gradient(135deg, #000 0%, #000 10%, rgb(0 0 0 / 0.7) 18%, transparent 34%);
+    mask-image: linear-gradient(135deg, #000 0%, #000 10%, rgb(0 0 0 / 0.7) 18%, transparent 34%);
   }
 
   .thread-floor-decoration-top-right > img {

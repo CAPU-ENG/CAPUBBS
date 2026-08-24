@@ -399,7 +399,7 @@ export function ThreadPage() {
                   canReply={data.canReply && Boolean(data.viewer)}
                   decoration={floorDecorationDemoEnabled ? {
                     imageSrc: floorDecorationDemoImage,
-                    placement: floor.floor % 2 === 0 ? 'top-left' : 'top-right',
+                    placement: 'top-left',
                   } : undefined}
                   editHref={getThreadEditHref(data.bid, data.tid, floor.floor)}
                   floor={floor}
