@@ -1,4 +1,4 @@
-import { useEffect, useLayoutEffect, useMemo, useRef, useState, type CSSProperties } from 'react';
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, type CSSProperties } from 'react';
 import { fetchSignatureReferencedFloorHtml } from '../../api/thread';
 import {
   renderForumMarkup,
@@ -137,6 +137,7 @@ function ThreadSandboxedHtmlFrame({
   const canOpenImages = Boolean(onImageOpen);
   const [frameHeight, setFrameHeight] = useState<number | null>(null);
   const isDarkTheme = useDarkTheme();
+  const initialDarkThemeRef = useRef(isDarkTheme);
   const forumContentFontSize = useForumContentFontSize();
   const frameFontSize = variant === 'signature' ? 14 : forumContentFontSize;
   const frameDocument = useMemo(() => buildHtmlFrameDocument({
@@ -144,18 +145,30 @@ function ThreadSandboxedHtmlFrame({
     frameId: frameIdRef.current,
     html,
     isActivitySignupCanceled,
-    isDarkTheme,
+    isDarkTheme: initialDarkThemeRef.current,
     fontSize: frameFontSize,
     variant,
-  }), [canOpenImages, frameFontSize, html, isActivitySignupCanceled, isDarkTheme, variant]);
+  }), [canOpenImages, frameFontSize, html, isActivitySignupCanceled, variant]);
   const frameSource = useMemo(
     () => `data:text/html;charset=utf-8,${encodeURIComponent(frameDocument)}`,
     [frameDocument],
   );
+  const syncFrameTheme = useCallback(() => {
+    iframeRef.current?.contentWindow?.postMessage({
+      frameId: frameIdRef.current,
+      source: HTML_FRAME_MESSAGE_SOURCE,
+      theme: isDarkTheme ? 'dark' : 'light',
+      type: 'theme',
+    }, '*');
+  }, [isDarkTheme]);
 
   useEffect(() => {
     setFrameHeight(null);
   }, [frameSource]);
+
+  useEffect(() => {
+    syncFrameTheme();
+  }, [syncFrameTheme]);
 
   useLayoutEffect(() => {
     function handleMessage(event: MessageEvent) {
@@ -239,6 +252,7 @@ function ThreadSandboxedHtmlFrame({
       sandbox="allow-scripts allow-same-origin"
       scrolling="no"
       src={frameSource}
+      onLoad={syncFrameTheme}
       style={{
         '--thread-html-frame-width-allowance': `${FRAME_WIDTH_ALLOWANCE}px`,
         ...(frameHeight === null ? {} : { '--thread-html-frame-height': `${frameHeight}px` }),
@@ -307,9 +321,8 @@ function buildHtmlFrameDocument({
   variant: ThreadHtmlVariant;
 }) {
   const isSignature = variant === 'signature';
-  const color = isSignature
-    ? '#999999'
-    : (isDarkTheme ? 'rgb(228 228 231)' : 'rgb(63 63 70)');
+  const lightColor = isSignature ? '#999999' : 'rgb(63 63 70)';
+  const darkColor = isSignature ? '#999999' : 'rgb(228 228 231)';
   const fontFamily = isSignature
     ? 'monospace'
     : "ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif";
@@ -328,7 +341,8 @@ function buildHtmlFrameDocument({
   <meta http-equiv="Content-Security-Policy" content="${buildContentSecurityPolicy()}">
   <link rel="stylesheet" href="${escapeHtmlAttribute(HTML_FRAME_STYLESHEET_URL)}">
   <style>
-    html,body{margin:0;padding:0;min-width:0;min-height:0;overflow:hidden;background:transparent!important;color:${color};font-family:${fontFamily};font-size:${fontSize}px;line-height:1.6;overflow-wrap:anywhere;word-break:break-word}
+    html{--capubbs-frame-text-color:${lightColor}}html.dark{--capubbs-frame-text-color:${darkColor}}
+    html,body{margin:0;padding:0;min-width:0;min-height:0;overflow:hidden;background:transparent!important;color:var(--capubbs-frame-text-color);font-family:${fontFamily};font-size:${fontSize}px;line-height:1.6;overflow-wrap:anywhere;word-break:break-word}
     .capubbs-html-frame-root{display:flow-root;width:calc(100% - ${FRAME_WIDTH_ALLOWANCE}px);${signatureRootStyle}}.capubbs-html-frame-root iframe{display:inline-block;vertical-align:baseline}
   </style>
   <script>${buildFrameBridgeScript(frameId, canOpenImages)}</script>
@@ -541,9 +555,19 @@ function buildFrameBridgeScript(frameId: string, canOpenImages: boolean) {
       var activeIndex=slides.findIndex(function(slide){return slide.getAttribute('data-capubbs-gallery-active')==='true';});
       return activeIndex>=0?setGalleryIndex(gallery,activeIndex):false;
     }
-    function handleGallerySelection(event){
+    function handleParentMessage(event){
       var data=event.data;
-      if(event.source!==window.parent||!data||data.source!=='${HTML_FRAME_MESSAGE_SOURCE}'||data.type!=='gallery-select'||data.frameId!==frameId)return;
+      if(event.source!==window.parent||!data||data.source!=='${HTML_FRAME_MESSAGE_SOURCE}'||data.frameId!==frameId)return;
+      if(data.type==='theme'){
+        if(data.theme!=='dark'&&data.theme!=='light')return;
+        var dark=data.theme==='dark';
+        document.documentElement.classList.toggle('dark',dark);
+        document.documentElement.classList.toggle('light',!dark);
+        document.documentElement.style.colorScheme=data.theme;
+        queueHeight();
+        return;
+      }
+      if(data.type!=='gallery-select')return;
       if(!Number.isSafeInteger(data.galleryId)||!Number.isSafeInteger(data.galleryIndex)||data.galleryId<0||data.galleryIndex<0)return;
       var galleries=Array.prototype.slice.call(document.querySelectorAll('.capubbs-html-frame-root .capubbs-gallery'));
       var gallery=galleries[data.galleryId];
@@ -589,7 +613,7 @@ function buildFrameBridgeScript(frameId: string, canOpenImages: boolean) {
       document.addEventListener('animationend',queueHeight);
       document.addEventListener('click',handleGalleryClick);
       document.addEventListener('keydown',handleGalleryKeyDown);
-      window.addEventListener('message',handleGallerySelection);
+      window.addEventListener('message',handleParentMessage);
       document.addEventListener('click',handleImageClick);
       document.addEventListener('keydown',handleImageKeyDown);
       document.addEventListener('click',handleForumNavigationClick);
