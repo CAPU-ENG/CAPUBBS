@@ -27,7 +27,8 @@
   font-weight: 650;
   line-height: 1.4;
   text-align: center;
-  white-space: nowrap;
+  white-space: normal;
+  overflow-wrap: anywhere;
 }
 
 .browser-recommendation-actions {
