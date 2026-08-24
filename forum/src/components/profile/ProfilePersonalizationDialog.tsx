@@ -120,6 +120,7 @@ export function ProfilePersonalizationDialog({
           <div className="profile-personalization-body">
             <div className="profile-decoration-columns">
               <DecorationColumn
+                description="上传一张图片用于在日间模式下装饰你的楼层卡片的左上角。"
                 icon={<Sun size={17} />}
                 imageSrc={imagePath('light')}
                 label="日间装饰"
@@ -128,6 +129,7 @@ export function ProfilePersonalizationDialog({
                 saving={saving}
               />
               <DecorationColumn
+                description="上传一张图片用于在夜间模式下装饰你的楼层卡片的左上角。"
                 icon={<Moon size={17} />}
                 imageSrc={imagePath('dark')}
                 label="夜间装饰"
@@ -139,6 +141,7 @@ export function ProfilePersonalizationDialog({
 
             <section className="profile-personalization-tags" aria-labelledby="profile-personalization-tags-title">
               <h3 id="profile-personalization-tags-title">展示标签</h3>
+              <p className="profile-personalization-copy">点击选择标签进行展示，最多选 2 个。</p>
               <div className="profile-tag-selector">
                 {tags.map((tag) => {
                   const selected = selectedTagIds.includes(tag.id);
@@ -190,6 +193,7 @@ export function ProfilePersonalizationDialog({
 }
 
 function DecorationColumn({
+  description,
   icon,
   imageSrc,
   label,
@@ -197,6 +201,7 @@ function DecorationColumn({
   onUpload,
   saving,
 }: {
+  description: string;
   icon: ReactNode;
   imageSrc: string;
   label: string;
@@ -207,6 +212,7 @@ function DecorationColumn({
   return (
     <section className="profile-decoration-column">
       <h3>{icon}{label}</h3>
+      <p className="profile-personalization-copy">{description}</p>
       <div className="profile-decoration-preview">
         {imageSrc ? <img alt={`${label}预览`} src={imageSrc} /> : <ImagePlus aria-hidden="true" size={28} />}
       </div>

@@ -1052,6 +1052,13 @@
     font-weight: 730;
   }
 
+  .profile-personalization-copy {
+    margin: 0;
+    color: var(--text-faint);
+    font-size: var(--ui-font-size-md);
+    line-height: 1.65;
+  }
+
   .profile-decoration-preview {
     display: grid;
     width: min(100%, 220px);
