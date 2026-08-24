@@ -21,6 +21,7 @@ function jiekoufunc_thread_detail($con, $bid, $tid, $params, $token, $ip) {
     $page = thread_detail_query_int_param($params, 'page', thread_detail_query_int_param($params, 'p', 1));
     $author_only = thread_detail_query_bool_param($params, 'authorOnly') || thread_detail_query_bool_param($params, 'see_lz');
     $include_tags = thread_detail_query_bool_param($params, 'tag');
+    $include_decoration = thread_detail_query_bool_param($params, 'decoration');
     $render = thread_detail_query_render_param($params);
 
     $current_username = thread_detail_query_current_username($con, $token);
@@ -77,6 +78,15 @@ function jiekoufunc_thread_detail($con, $bid, $tid, $params, $token, $ip) {
     $attachments_by_id = thread_detail_query_get_attachments_by_id($con, $attachment_ids);
     $authors = thread_detail_query_collect_authors($all_post_rows, $lzl_by_fid);
     $profiles_by_username = thread_detail_query_get_profiles_by_username($con, $authors, $include_tags);
+    if ($include_decoration && !empty($profiles_by_username)) {
+        $decorations_by_username = floor_decoration_query_by_usernames($con, array_keys($profiles_by_username));
+        foreach ($profiles_by_username as $profile_username => &$profile) {
+            $profile['_floor_decoration'] = isset($decorations_by_username[$profile_username])
+                ? $decorations_by_username[$profile_username]
+                : floor_decoration_empty();
+        }
+        unset($profile);
+    }
     $rights = thread_detail_query_get_board_rights($board_row, $viewer);
     $favorite_count = thread_detail_query_get_favorite_count($con, $bid, $tid);
     $bookmarked = $current_username ? thread_detail_query_is_favorite($con, $current_username, $bid, $tid) : false;
@@ -116,6 +126,7 @@ function jiekoufunc_thread_detail($con, $bid, $tid, $params, $token, $ip) {
             'render' => $render,
             'authorOnly' => $author_only,
             'tag' => $include_tags ? 1 : 0,
+            'decoration' => $include_decoration ? 1 : 0,
         ),
         'board' => thread_detail_query_pack_board($board_row),
         'thread' => thread_detail_query_pack_thread($thread_row, $board_row, $favorite_count, $activity),
@@ -697,6 +708,11 @@ function thread_detail_query_pack_profile($row, $include_viewer_fields) {
     );
     if (array_key_exists('_tags', $row)) {
         $profile['tags'] = is_array($row['_tags']) ? $row['_tags'] : array();
+    }
+    if (array_key_exists('_floor_decoration', $row)) {
+        $profile['floorDecoration'] = is_array($row['_floor_decoration'])
+            ? $row['_floor_decoration']
+            : floor_decoration_empty();
     }
     if ($include_viewer_fields) {
         $profile['unreadMessages'] = intval(isset($row['newmsg']) ? $row['newmsg'] : 0);

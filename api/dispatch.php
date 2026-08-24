@@ -18,6 +18,7 @@
 
 require_once __DIR__.'/jiekoufunc.php';
 require_once __DIR__.'/lib/ActivityHandlers.php';
+require_once __DIR__.'/lib/FloorDecorationHandlers.php';
 require_once __DIR__.'/lib/TagHandlers.php';
 require_once __DIR__.'/lib/ThreadDetailQuery.php';
 
@@ -68,6 +69,8 @@ function _dispatch_build_routes() {
         'reply'            => array('handler' => 'jiekoufunc_reply',            'check_login' => true, 'require_rights' => 0),
         'sendmsg'          => array('handler' => 'jiekoufunc_sendmsg',          'check_login' => true, 'require_rights' => 0),
         'edituser'         => array('handler' => 'jiekoufunc_edituser',         'check_login' => true, 'require_rights' => 0),
+        'floor_decoration_upload' => array('handler' => 'jiekoufunc_floor_decoration_upload', 'check_login' => true, 'require_rights' => 0),
+        'floor_decoration_delete' => array('handler' => 'jiekoufunc_floor_decoration_delete', 'check_login' => true, 'require_rights' => 0),
         'changepsd'        => array('handler' => 'jiekoufunc_changepsd',        'check_login' => true, 'require_rights' => 0),
         'currentUserInfo'  => array('handler' => 'jiekoufunc_currentUserInfo',  'check_login' => true, 'require_rights' => 0),
         'editpreview'      => array('handler' => 'jiekoufunc_editpreview',      'check_login' => true, 'require_rights' => 0),
@@ -328,6 +331,15 @@ function jiekoufunc_dispatch($con, $params) {
                 return jiekoufunc_searchByKeyword($con, $keyword, $token, $type, $bid, $params);
             case 'jiekoufunc_edituser':
                 return jiekoufunc_edituser($con, $token, $ip, $params);
+            case 'jiekoufunc_floor_decoration_upload':
+                return jiekoufunc_floor_decoration_upload(
+                    $con,
+                    $token,
+                    $params,
+                    isset($_FILES['file']) ? $_FILES['file'] : null
+                );
+            case 'jiekoufunc_floor_decoration_delete':
+                return jiekoufunc_floor_decoration_delete($con, $token, $params);
             case 'jiekoufunc_viewonline':
                 return jiekoufunc_viewonline($con);
             case 'jiekoufunc_updatetokentime':
