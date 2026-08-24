@@ -2606,27 +2606,31 @@
     .thread-floor-header {
       display: grid;
       min-height: 44px;
-      grid-template-columns: minmax(0, 1fr) max-content auto;
-      gap: 7px;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 4px 7px;
       padding-bottom: 10px;
       padding-left: 44px;
     }
 
     .thread-floor-author {
+      grid-row: 1;
+      grid-column: 1;
       min-height: 0;
       flex-wrap: nowrap;
     }
 
     .thread-floor-time {
-      display: grid;
-      justify-content: flex-start;
-      gap: 0;
-      font-size: 0.625rem;
+      grid-row: 2;
+      grid-column: 1 / -1;
+      justify-content: flex-end;
+      gap: 4px;
+      font-size: 0.5625rem;
       line-height: 1.35;
     }
 
-    .thread-floor-time > span {
-      display: none;
+    .thread-floor-index {
+      grid-row: 1;
+      grid-column: 2;
     }
 
     .thread-floor-body {
