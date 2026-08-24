@@ -6,10 +6,10 @@ import { ThreadFloor } from '../components/thread/ThreadFloor';
 import { FloorNodes, MobileFloorNode, ThreadPagination } from '../components/thread/ThreadNavigation';
 import { AppBackground } from '../components/layout/AppBackground';
 import { TopBar } from '../components/layout/TopBar';
+import floorDecorationDemoImage from '../assets/activity/activity.avif';
 import { setThreadBookmarked } from '../api/favorite';
 import { deleteNestedReply, deleteThreadFloor, postNestedReply } from '../api/thread';
 import { useAuth } from '../context/AuthContext';
-import { getBoardCoverImage } from '../data/boardCovers';
 import type { NestedReply, ThreadFloorData } from '../data/threadDemo';
 import {
   useAssistiveBarEnabled,
@@ -398,7 +398,7 @@ export function ThreadPage() {
                   canQuote={!data.isActivity && data.canReply && Boolean(data.viewer)}
                   canReply={data.canReply && Boolean(data.viewer)}
                   decoration={floorDecorationDemoEnabled ? {
-                    imageSrc: getBoardCoverImage(data.bid),
+                    imageSrc: floorDecorationDemoImage,
                     placement: floor.floor % 2 === 0 ? 'top-left' : 'top-right',
                   } : undefined}
                   editHref={getThreadEditHref(data.bid, data.tid, floor.floor)}
