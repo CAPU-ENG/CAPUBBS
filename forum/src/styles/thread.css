@@ -855,7 +855,6 @@
     width: min(340px, 44%);
     aspect-ratio: 3 / 2;
     object-fit: cover;
-    opacity: 0.38;
   }
 
   .thread-floor-decoration-top-left > img {
@@ -2604,7 +2603,6 @@
     .thread-floor-decoration > img {
       width: min(190px, 58%);
       aspect-ratio: 3 / 2;
-      opacity: 0.3;
     }
 
     .thread-author-profile {
