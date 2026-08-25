@@ -93,6 +93,7 @@ export function ThreadEditPage() {
 
   const isMainPost = floor?.pid === 1;
   const backHref = request ? getThreadFloorHref(request.bid, request.tid, request.pid) : '/';
+  const displayTitle = floor ? (isMainPost ? title.trim() || floor.title : floor.title) : '';
   const isDirty = Boolean(floor && (
     title !== floor.title
     || editorValue.content !== floor.text
@@ -213,7 +214,7 @@ export function ThreadEditPage() {
               </button>
               <div className="thread-edit-heading-copy">
                 <span>{isMainPost ? '编辑帖子' : '编辑楼层'}</span>
-                <h1 id="edit-page-title">{isMainPost ? title.trim() || floor.title : `Re: ${floor.title}`}</h1>
+                <h1 id="edit-page-title">{displayTitle}</h1>
               </div>
             </header>
 
@@ -279,7 +280,7 @@ export function ThreadEditPage() {
           previewFloor={floor.pid}
           previewSignature={signatureIndex > 0 ? floor.previewSignatures[signatureIndex - 1] : undefined}
           previewedAt={formatPostTime(floor.updatedAt || floor.createdAt)}
-          title={isMainPost ? title.trim() || floor.title : `Re: ${floor.title}`}
+          title={displayTitle}
         />
       )}
     </div>
