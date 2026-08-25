@@ -1,5 +1,6 @@
 import defaultAvatar from '../assets/bg/bicycle.svg';
 import type { FloorDecorationPaths } from './floorDecoration';
+import type { UserMedal } from './medals';
 import type { SafeForumHtml } from '../utils/forumMarkup';
 import type { UserTag } from './tags';
 
@@ -13,6 +14,7 @@ export type ThreadAuthor = {
   lastSeen: string;
   avatar: string;
   floorDecoration?: FloorDecorationPaths;
+  medals?: UserMedal[];
   tags?: UserTag[];
 };
 

@@ -2,6 +2,7 @@ import defaultAvatar from '../assets/bg/bicycle.svg';
 import type { NestedReply, ThreadAuthor, ThreadFloorData } from '../data/threadDemo';
 import type { UserTag } from '../data/tags';
 import type { FloorDecorationPaths } from '../data/floorDecoration';
+import { mapUserMedals } from './medals';
 import {
   forumMarkupToPlainText,
   renderForumMarkup,
@@ -164,6 +165,7 @@ export async function fetchThreadDetail({
     ask: 'thread_detail',
     authorOnly: authorOnly ? '1' : '0',
     bid: String(bid),
+    medal: '1',
     tag: '1',
     page: String(page),
     render: 'both',
@@ -926,6 +928,7 @@ function mapAuthor(row: ApiRow, fallbackName: string): ThreadAuthor {
     avatar: normalizeLegacyAvatar(row.avatar ?? row.icon) || defaultAvatar,
     checkins: nonNegativeInteger(stats.checkins),
     lastSeen: plainText(row.lastSeenAt) || '时间未知',
+    medals: Array.isArray(row.medals) ? mapUserMedals(row.medals) : undefined,
     name: plainText(row.username) || fallbackName || '匿名用户',
     replies: nonNegativeInteger(stats.replies),
     role: '',

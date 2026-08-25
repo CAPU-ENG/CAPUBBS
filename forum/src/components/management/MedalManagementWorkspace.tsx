@@ -11,318 +11,367 @@ import {
   UserPlus,
   Users,
 } from 'lucide-react';
-import { useMemo, useRef, useState, type FormEvent, type RefObject } from 'react';
-import defaultMedalImage from '../../assets/activity/activity.avif';
+import Papa from 'papaparse';
+import readXlsxFile from 'read-excel-file/browser';
+import { useEffect, useMemo, useRef, useState, type FormEvent, type RefObject } from 'react';
+import {
+  checkMedalMembers,
+  createMedalDefinition,
+  deleteMedalDefinition,
+  fetchMedalDefinitions,
+  fetchMedalMembers,
+  grantMedalMembers,
+  updateMedalDefinition,
+  type MedalAssignmentInput,
+  type MedalDefinition,
+  type MedalMember,
+  type MedalMemberCheck,
+} from '../../api/medals';
 import { getPublicProfilePath } from '../../utils/userRoutes';
 import { MedalDesignerPanel } from './MedalDesignerPanel';
 import { type MedalDraft, type MedalTextureId } from './medalDesign';
 
-type MedalMember = {
-  acquiredAt: string;
-  id: string;
-  name: string;
-  role: string;
-};
-
-type MedalRecord = MedalDraft & {
-  id: string;
-  members: MedalMember[];
-};
-
-type MemberDirectoryEntry = {
-  id: string;
-  name: string;
-};
-
-type CheckState = 'already-owned' | 'available' | 'not-found';
-type IndividualCheck = {
-  member?: MemberDirectoryEntry;
-  state: CheckState;
-};
-
-const MEMBER_DIRECTORY: MemberDirectoryEntry[] = [
-  { id: 'mira', name: 'Mira' },
-  { id: 'northwind', name: '北风' },
-  { id: 'qinghe', name: '清和' },
-  { id: 'linxiang', name: '林巷' },
-  { id: 'aurora', name: 'Aurora' },
-  { id: 'seabird', name: '海鸟' },
-];
-
-const INITIAL_MEDALS: MedalRecord[] = [
-  {
-    id: 'spring-hike-2026',
-    imageSource: defaultMedalImage,
-    members: [
-      { acquiredAt: '2026-04-19', id: 'mira', name: 'Mira', role: '队长' },
-      { acquiredAt: '2026-04-19', id: 'northwind', name: '北风', role: '参与者' },
-      { acquiredAt: '2026-04-19', id: 'qinghe', name: '清和', role: '摄影' },
-    ],
-    name: '春季远足纪念',
-    textureId: 'swirl',
-  },
-  {
-    id: 'anniversary-2026',
-    imageSource: defaultMedalImage,
-    members: [
-      { acquiredAt: '2026-05-28', id: 'linxiang', name: '林巷', role: '策划' },
-      { acquiredAt: '2026-05-28', id: 'aurora', name: 'Aurora', role: '参与者' },
-    ],
-    name: '论坛周年活动',
-    textureId: 'geometric',
-  },
-  {
-    id: 'welcome-volunteer-2026',
-    imageSource: defaultMedalImage,
-    members: [
-      { acquiredAt: '2026-08-18', id: 'seabird', name: '海鸟', role: '志愿者' },
-    ],
-    name: '迎新志愿服务',
-    textureId: 'carbon',
-  },
-];
-
-const BATCH_SOURCE_ROWS = [
-  { id: 'linxiang', role: '队长' },
-  { id: 'mira', role: '参与者' },
-  { id: 'missing-member', role: '后勤' },
-] as const;
+type LoadState = 'error' | 'loading' | 'ready';
+type Notice = { kind: 'error' | 'success'; text: string } | null;
 
 export function MedalManagementWorkspace() {
-  const [medals, setMedals] = useState<MedalRecord[]>(INITIAL_MEDALS);
-  const [selectedId, setSelectedId] = useState(INITIAL_MEDALS[0].id);
+  const [medals, setMedals] = useState<MedalDefinition[]>([]);
+  const [members, setMembers] = useState<MedalMember[]>([]);
+  const [selectedId, setSelectedId] = useState('');
+  const [definitionsStatus, setDefinitionsStatus] = useState<LoadState>('loading');
+  const [membersStatus, setMembersStatus] = useState<LoadState>('ready');
   const [detailTab, setDetailTab] = useState<'issue' | 'members'>('members');
   const [issueMode, setIssueMode] = useState<'batch' | 'single'>('single');
   const [editorMode, setEditorMode] = useState<'create' | 'edit' | null>(null);
   const [deleteOpen, setDeleteOpen] = useState(false);
   const [singleId, setSingleId] = useState('');
   const [singleRole, setSingleRole] = useState('');
-  const [individualCheck, setIndividualCheck] = useState<IndividualCheck | null>(null);
-  const [notice, setNotice] = useState('');
-  const [batchFileName, setBatchFileName] = useState('春季活动名单.xlsx');
+  const [individualCheck, setIndividualCheck] = useState<MedalMemberCheck | null>(null);
+  const [batchFileName, setBatchFileName] = useState('');
+  const [batchRows, setBatchRows] = useState<MedalMemberCheck[]>([]);
+  const [pendingAction, setPendingAction] = useState<string | null>(null);
+  const [notice, setNotice] = useState<Notice>(null);
   const batchInputRef = useRef<HTMLInputElement>(null);
   const selectedMedal = medals.find((medal) => medal.id === selectedId) ?? medals[0] ?? null;
-
-  const batchRows = useMemo(() => BATCH_SOURCE_ROWS.map((row) => {
-    const member = findDirectoryMember(row.id);
-    const alreadyOwned = selectedMedal?.members.some((item) => sameId(item.id, row.id)) ?? false;
-    return {
-      ...row,
-      member,
-      state: !member ? 'not-found' : alreadyOwned ? 'already-owned' : 'available',
-    } satisfies { id: string; member?: MemberDirectoryEntry; role: string; state: CheckState };
-  }), [selectedMedal]);
-  const availableBatchRows = batchRows.filter((row) => row.state === 'available' && row.member);
+  const selectedMedalId = selectedMedal?.id ?? '';
+  const availableBatchRows = useMemo(
+    () => batchRows.filter((row) => row.state === 'available'),
+    [batchRows],
+  );
   const initialDraft = editorMode === 'edit' && selectedMedal
     ? pickDraft(selectedMedal)
-    : { imageSource: defaultMedalImage, name: '', textureId: 'swirl' as MedalTextureId };
+    : { imageSource: '', name: '', textureId: 'swirl' as MedalTextureId };
+
+  useEffect(() => {
+    const controller = new AbortController();
+    setDefinitionsStatus('loading');
+    void fetchMedalDefinitions(controller.signal).then(
+      (items) => {
+        setMedals(items);
+        setSelectedId((current) => items.some((medal) => medal.id === current) ? current : items[0]?.id ?? '');
+        setDefinitionsStatus('ready');
+      },
+      (error: unknown) => {
+        if (isAbortError(error)) return;
+        setDefinitionsStatus('error');
+        setNotice({ kind: 'error', text: errorMessage(error, '勋章列表加载失败，请稍后重试。') });
+      },
+    );
+    return () => controller.abort();
+  }, []);
+
+  useEffect(() => {
+    if (!selectedMedalId) {
+      setMembers([]);
+      setMembersStatus('ready');
+      return;
+    }
+    const controller = new AbortController();
+    setMembersStatus('loading');
+    void fetchMedalMembers(selectedMedalId, controller.signal).then(
+      (items) => {
+        setMembers(items);
+        setMembersStatus('ready');
+      },
+      (error: unknown) => {
+        if (isAbortError(error)) return;
+        setMembersStatus('error');
+        setNotice({ kind: 'error', text: errorMessage(error, '勋章成员加载失败，请稍后重试。') });
+      },
+    );
+    return () => controller.abort();
+  }, [selectedMedalId]);
 
   function selectMedal(id: string) {
     setSelectedId(id);
     setEditorMode(null);
     setDetailTab('members');
-    setIndividualCheck(null);
-    setNotice('');
+    resetImports();
+    setNotice(null);
   }
 
-  function saveMedal(draft: MedalDraft) {
-    if (editorMode === 'create') {
-      const created: MedalRecord = {
-        ...draft,
-        id: `medal-${Date.now()}`,
-        members: [],
-      };
-      setMedals((current) => [...current, created]);
-      setSelectedId(created.id);
-    } else if (selectedMedal) {
-      setMedals((current) => current.map((medal) => medal.id === selectedMedal.id
-        ? { ...medal, ...draft }
-        : medal));
+  async function saveMedal(draft: MedalDraft) {
+    if (pendingAction) return;
+    setPendingAction('medal-save');
+    setNotice(null);
+    try {
+      const image = draft.imageSource.startsWith('data:image/')
+        ? await medalImageFile(draft.imageSource)
+        : undefined;
+      if (editorMode === 'create') {
+        if (!image) throw new Error('请先上传并裁剪勋章图片。');
+        const created = await createMedalDefinition({ image, name: draft.name, textureId: draft.textureId });
+        setMedals((current) => [created, ...current]);
+        setSelectedId(created.id);
+        setMembers([]);
+        setNotice({ kind: 'success', text: '勋章已创建。' });
+      } else if (selectedMedal) {
+        const updated = await updateMedalDefinition(selectedMedal.id, {
+          ...(image ? { image } : {}),
+          name: draft.name,
+          textureId: draft.textureId,
+        });
+        setMedals((current) => current.map((medal) => medal.id === updated.id ? updated : medal));
+        setNotice({ kind: 'success', text: '勋章已更新。' });
+      }
+      setEditorMode(null);
+      setDetailTab('members');
+    } catch (error) {
+      setNotice({ kind: 'error', text: errorMessage(error, '勋章保存失败，请稍后重试。') });
+    } finally {
+      setPendingAction(null);
     }
-    setEditorMode(null);
-    setDetailTab('members');
   }
 
-  function deleteSelectedMedal() {
-    if (!selectedMedal) return;
-    const selectedIndex = medals.findIndex((medal) => medal.id === selectedMedal.id);
-    const nextMedals = medals.filter((medal) => medal.id !== selectedMedal.id);
-    setMedals(nextMedals);
-    setSelectedId(nextMedals[Math.min(selectedIndex, nextMedals.length - 1)]?.id ?? '');
-    setDeleteOpen(false);
-    setEditorMode(null);
+  async function deleteSelectedMedal() {
+    if (!selectedMedal || pendingAction) return;
+    setPendingAction('medal-delete');
+    setNotice(null);
+    try {
+      await deleteMedalDefinition(selectedMedal.id);
+      const selectedIndex = medals.findIndex((medal) => medal.id === selectedMedal.id);
+      const nextMedals = medals.filter((medal) => medal.id !== selectedMedal.id);
+      setMedals(nextMedals);
+      setSelectedId(nextMedals[Math.min(selectedIndex, nextMedals.length - 1)]?.id ?? '');
+      setDeleteOpen(false);
+      setEditorMode(null);
+      setNotice({ kind: 'success', text: '勋章已删除。' });
+    } catch (error) {
+      setNotice({ kind: 'error', text: errorMessage(error, '勋章删除失败，请稍后重试。') });
+    } finally {
+      setPendingAction(null);
+    }
   }
 
-  function checkIndividual(event: FormEvent<HTMLFormElement>) {
+  async function checkIndividual(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    setNotice('');
-    const member = findDirectoryMember(singleId);
-    if (!member) {
-      setIndividualCheck({ state: 'not-found' });
-      return;
+    if (!selectedMedal || !singleId.trim() || !singleRole.trim() || pendingAction) return;
+    setPendingAction('single-check');
+    setIndividualCheck(null);
+    setNotice(null);
+    try {
+      const checks = await checkMedalMembers(selectedMedal.id, [{
+        role: singleRole.trim(),
+        username: singleId.trim(),
+      }]);
+      setIndividualCheck(checks[0] ?? null);
+    } catch (error) {
+      setNotice({ kind: 'error', text: errorMessage(error, '成员检查失败，请稍后重试。') });
+    } finally {
+      setPendingAction(null);
     }
-    const alreadyOwned = selectedMedal?.members.some((item) => sameId(item.id, member.id)) ?? false;
-    setIndividualCheck({ member, state: alreadyOwned ? 'already-owned' : 'available' });
   }
 
-  function importIndividual() {
-    if (!selectedMedal || individualCheck?.state !== 'available' || !individualCheck.member || !singleRole.trim()) return;
-    const member = individualCheck.member;
-    setMedals((current) => current.map((medal) => medal.id === selectedMedal.id
-      ? {
-          ...medal,
-          members: [...medal.members, {
-            acquiredAt: '刚刚',
-            id: member.id,
-            name: member.name,
-            role: singleRole.trim(),
-          }],
-        }
-      : medal));
-    setNotice(`已导入会员 ${member.id}`);
+  async function importIndividual() {
+    if (!selectedMedal || individualCheck?.state !== 'available' || pendingAction) return;
+    setPendingAction('single-import');
+    setNotice(null);
+    try {
+      const results = await grantMedalMembers(selectedMedal.id, [individualCheck]);
+      const added = results.filter((result) => result.status === 'added').length;
+      setMembers(await fetchMedalMembers(selectedMedal.id));
+      setSingleId('');
+      setSingleRole('');
+      setIndividualCheck(null);
+      setNotice({ kind: 'success', text: added ? '勋章已发放。' : '该会员已经拥有此勋章。' });
+    } catch (error) {
+      setNotice({ kind: 'error', text: errorMessage(error, '勋章发放失败，请稍后重试。') });
+    } finally {
+      setPendingAction(null);
+    }
+  }
+
+  async function loadBatchFile(file: File) {
+    if (!selectedMedal || pendingAction) return;
+    setPendingAction('batch-check');
+    setBatchFileName(file.name);
+    setBatchRows([]);
+    setNotice(null);
+    try {
+      const rows = file.name.toLocaleLowerCase().endsWith('.csv')
+        ? await readCsvRows(file)
+        : await readXlsxFile(file);
+      const assignments = normalizeAssignmentRows(rows as unknown[][]);
+      const checks = await checkMedalMembers(selectedMedal.id, assignments);
+      setBatchRows(checks);
+    } catch (error) {
+      setNotice({ kind: 'error', text: errorMessage(error, '表格读取失败，请检查文件内容。') });
+    } finally {
+      setPendingAction(null);
+    }
+  }
+
+  async function importBatch() {
+    if (!selectedMedal || availableBatchRows.length === 0 || pendingAction) return;
+    setPendingAction('batch-import');
+    setNotice(null);
+    try {
+      const results = await grantMedalMembers(selectedMedal.id, availableBatchRows);
+      const added = results.filter((result) => result.status === 'added').length;
+      setMembers(await fetchMedalMembers(selectedMedal.id));
+      setBatchRows([]);
+      setBatchFileName('');
+      setNotice({ kind: 'success', text: `已发放给 ${added} 名会员。` });
+    } catch (error) {
+      setNotice({ kind: 'error', text: errorMessage(error, '批量发放失败，请稍后重试。') });
+    } finally {
+      setPendingAction(null);
+    }
+  }
+
+  function resetImports() {
     setSingleId('');
     setSingleRole('');
     setIndividualCheck(null);
+    setBatchFileName('');
+    setBatchRows([]);
   }
 
-  function importBatch() {
-    if (!selectedMedal || availableBatchRows.length === 0) return;
-    setMedals((current) => current.map((medal) => medal.id === selectedMedal.id
-      ? {
-          ...medal,
-          members: [
-            ...medal.members,
-            ...availableBatchRows.map((row) => ({
-              acquiredAt: '刚刚',
-              id: row.member?.id ?? row.id,
-              name: row.member?.name ?? row.id,
-              role: row.role,
-            })),
-          ],
-        }
-      : medal));
-    setNotice(`已导入 ${availableBatchRows.length} 名成员`);
-  }
+  const loadMessage = definitionsStatus === 'loading'
+    ? '正在加载勋章'
+    : definitionsStatus === 'error'
+      ? '勋章列表加载失败'
+      : null;
 
   return (
     <>
       <section className="management-card management-medal-workspace">
         <header className="management-card-heading">
           <h2>勋章管理</h2>
-          <button className="management-primary-button" disabled={editorMode === 'create'} onClick={() => setEditorMode('create')} type="button">
+          <button
+            className="management-primary-button"
+            disabled={Boolean(pendingAction) || editorMode === 'create'}
+            onClick={() => { setEditorMode('create'); setNotice(null); }}
+            type="button"
+          >
             <Plus size={15} />新建勋章
           </button>
         </header>
 
-        <div className="management-medal-workspace-body">
-          <aside aria-label="勋章列表" className="management-medal-catalog">
-            <header>
-              <strong>勋章列表</strong>
-              <span>{medals.length}</span>
-            </header>
-            <div className="management-medal-catalog-list">
-              {medals.map((medal) => (
-                <button
-                  aria-pressed={selectedMedal?.id === medal.id}
-                  className={selectedMedal?.id === medal.id ? 'is-selected' : ''}
-                  key={medal.id}
-                  onClick={() => selectMedal(medal.id)}
-                  type="button"
-                >
-                  <MedalThumbnail medal={medal} />
-                  <span>
-                    <strong>{medal.name}</strong>
-                  </span>
-                </button>
-              ))}
-            </div>
-          </aside>
-
-          <div className="management-medal-detail">
-            {editorMode ? (
-              <MedalDesignerPanel
-                initialDraft={initialDraft}
-                key={`${editorMode}-${editorMode === 'edit' ? selectedMedal?.id : 'new'}`}
-                mode={editorMode}
-                onCancel={() => setEditorMode(null)}
-                onSave={saveMedal}
-              />
-            ) : selectedMedal ? (
-              <>
-                <header className="management-medal-detail-heading">
-                  <div className="management-medal-detail-identity">
-                    <MedalThumbnail medal={selectedMedal} />
-                    <div>
-                      <h3>{selectedMedal.name}</h3>
-                      <span>{selectedMedal.members.length} 名成员</span>
-                    </div>
-                  </div>
-                  <div className="management-medal-detail-actions">
-                    <button aria-label="编辑勋章" onClick={() => setEditorMode('edit')} title="编辑勋章" type="button"><Pencil size={16} /></button>
-                    <button aria-label="删除勋章" className="is-danger" onClick={() => setDeleteOpen(true)} title="删除勋章" type="button"><Trash2 size={16} /></button>
-                  </div>
-                </header>
-
-                <nav aria-label="勋章详情" className="management-medal-detail-tabs">
-                  <button className={detailTab === 'members' ? 'is-selected' : ''} onClick={() => setDetailTab('members')} type="button">
-                    <Users size={15} />成员名单
+        {notice ? <p className={`management-medal-notice is-${notice.kind}`} role="status">{notice.text}</p> : null}
+        {loadMessage ? (
+          <div className="management-medal-empty"><Medal size={24} /><strong>{loadMessage}</strong></div>
+        ) : (
+          <div className="management-medal-workspace-body">
+            <aside aria-label="勋章列表" className="management-medal-catalog">
+              <header><strong>勋章列表</strong><span>{medals.length}</span></header>
+              <div className="management-medal-catalog-list">
+                {medals.map((medal) => (
+                  <button
+                    aria-pressed={selectedMedal?.id === medal.id}
+                    className={selectedMedal?.id === medal.id ? 'is-selected' : ''}
+                    key={medal.id}
+                    onClick={() => selectMedal(medal.id)}
+                    type="button"
+                  >
+                    <MedalThumbnail imagePath={medal.smallImagePath} />
+                    <span><strong>{medal.name}</strong></span>
                   </button>
-                  <button className={detailTab === 'issue' ? 'is-selected' : ''} onClick={() => { setDetailTab('issue'); setNotice(''); }} type="button">
-                    <UserPlus size={15} />发放勋章
-                  </button>
-                </nav>
-
-                {detailTab === 'members' ? (
-                  <MemberList members={selectedMedal.members} />
-                ) : (
-                  <section aria-label="发放勋章" className="management-medal-issue">
-                    <div className="management-medal-issue-modes" role="tablist" aria-label="导入方式">
-                      <button aria-selected={issueMode === 'single'} className={issueMode === 'single' ? 'is-selected' : ''} onClick={() => { setIssueMode('single'); setNotice(''); }} role="tab" type="button">单独导入</button>
-                      <button aria-selected={issueMode === 'batch'} className={issueMode === 'batch' ? 'is-selected' : ''} onClick={() => { setIssueMode('batch'); setNotice(''); }} role="tab" type="button">表格导入</button>
-                    </div>
-                    {issueMode === 'single' ? (
-                      <SingleImportPanel
-                        check={individualCheck}
-                        memberId={singleId}
-                        notice={notice}
-                        onCheck={checkIndividual}
-                        onImport={importIndividual}
-                        onMemberIdChange={(value) => { setSingleId(value); setIndividualCheck(null); setNotice(''); }}
-                        onRoleChange={(value) => { setSingleRole(value); setNotice(''); }}
-                        role={singleRole}
-                      />
-                    ) : (
-                      <BatchImportPanel
-                        fileName={batchFileName}
-                        inputRef={batchInputRef}
-                        notice={notice}
-                        onFileChange={(fileName) => { setBatchFileName(fileName); setNotice(''); }}
-                        onImport={importBatch}
-                        rows={batchRows}
-                      />
-                    )}
-                  </section>
-                )}
-              </>
-            ) : (
-              <div className="management-medal-empty">
-                <Medal size={24} />
-                <strong>暂无勋章</strong>
-                <button className="management-primary-button" onClick={() => setEditorMode('create')} type="button"><Plus size={15} />新建勋章</button>
+                ))}
               </div>
-            )}
+            </aside>
+
+            <div className="management-medal-detail">
+              {editorMode ? (
+                <MedalDesignerPanel
+                  initialDraft={initialDraft}
+                  key={`${editorMode}-${editorMode === 'edit' ? selectedMedal?.id : 'new'}`}
+                  mode={editorMode}
+                  onCancel={() => setEditorMode(null)}
+                  onSave={(draft) => { void saveMedal(draft); }}
+                  saving={pendingAction === 'medal-save'}
+                />
+              ) : selectedMedal ? (
+                <>
+                  <header className="management-medal-detail-heading">
+                    <div className="management-medal-detail-identity">
+                      <MedalThumbnail imagePath={selectedMedal.smallImagePath} />
+                      <div><h3>{selectedMedal.name}</h3><span>{members.length} 名成员</span></div>
+                    </div>
+                    <div className="management-medal-detail-actions">
+                      <button aria-label="编辑勋章" disabled={Boolean(pendingAction)} onClick={() => setEditorMode('edit')} title="编辑勋章" type="button"><Pencil size={16} /></button>
+                      <button aria-label="删除勋章" className="is-danger" disabled={Boolean(pendingAction)} onClick={() => setDeleteOpen(true)} title="删除勋章" type="button"><Trash2 size={16} /></button>
+                    </div>
+                  </header>
+
+                  <nav aria-label="勋章详情" className="management-medal-detail-tabs">
+                    <button className={detailTab === 'members' ? 'is-selected' : ''} onClick={() => setDetailTab('members')} type="button"><Users size={15} />成员名单</button>
+                    <button className={detailTab === 'issue' ? 'is-selected' : ''} onClick={() => { setDetailTab('issue'); setNotice(null); }} type="button"><UserPlus size={15} />发放勋章</button>
+                  </nav>
+
+                  {detailTab === 'members' ? (
+                    <MemberList members={members} status={membersStatus} />
+                  ) : (
+                    <section aria-label="发放勋章" className="management-medal-issue">
+                      <div className="management-medal-issue-modes" role="tablist" aria-label="导入方式">
+                        <button aria-selected={issueMode === 'single'} className={issueMode === 'single' ? 'is-selected' : ''} onClick={() => { setIssueMode('single'); setNotice(null); }} role="tab" type="button">单独导入</button>
+                        <button aria-selected={issueMode === 'batch'} className={issueMode === 'batch' ? 'is-selected' : ''} onClick={() => { setIssueMode('batch'); setNotice(null); }} role="tab" type="button">表格导入</button>
+                      </div>
+                      {issueMode === 'single' ? (
+                        <SingleImportPanel
+                          check={individualCheck}
+                          checking={pendingAction === 'single-check'}
+                          importing={pendingAction === 'single-import'}
+                          memberId={singleId}
+                          onCheck={checkIndividual}
+                          onImport={() => { void importIndividual(); }}
+                          onMemberIdChange={(value) => { setSingleId(value); setIndividualCheck(null); setNotice(null); }}
+                          onRoleChange={(value) => { setSingleRole(value); setIndividualCheck(null); setNotice(null); }}
+                          role={singleRole}
+                        />
+                      ) : (
+                        <BatchImportPanel
+                          checking={pendingAction === 'batch-check'}
+                          fileName={batchFileName}
+                          importing={pendingAction === 'batch-import'}
+                          inputRef={batchInputRef}
+                          onFileChange={(file) => { void loadBatchFile(file); }}
+                          onImport={() => { void importBatch(); }}
+                          rows={batchRows}
+                        />
+                      )}
+                    </section>
+                  )}
+                </>
+              ) : (
+                <div className="management-medal-empty">
+                  <Medal size={24} /><strong>暂无勋章</strong>
+                  <button className="management-primary-button" onClick={() => setEditorMode('create')} type="button"><Plus size={15} />新建勋章</button>
+                </div>
+              )}
+            </div>
           </div>
-        </div>
+        )}
       </section>
 
       {deleteOpen && selectedMedal ? (
         <div className="management-dialog-backdrop" role="presentation">
           <section aria-labelledby="delete-medal-title" aria-modal="true" className="management-dialog management-confirm-dialog" role="dialog">
             <header><h2 id="delete-medal-title">删除勋章</h2></header>
-            <p className="management-dialog-copy">确定删除“{selectedMedal.name}”？对应的 {selectedMedal.members.length} 条成员记录将一并删除。</p>
+            <p className="management-dialog-copy">确定删除“{selectedMedal.name}”？对应的 {members.length} 条成员记录将一并删除。</p>
             <footer>
-              <button className="management-secondary-button" onClick={() => setDeleteOpen(false)} type="button">取消</button>
-              <button className="management-danger-button" onClick={deleteSelectedMedal} type="button"><Trash2 size={15} />删除</button>
+              <button className="management-secondary-button" disabled={pendingAction === 'medal-delete'} onClick={() => setDeleteOpen(false)} type="button">取消</button>
+              <button className="management-danger-button" disabled={pendingAction === 'medal-delete'} onClick={() => { void deleteSelectedMedal(); }} type="button"><Trash2 size={15} />{pendingAction === 'medal-delete' ? '删除中' : '删除'}</button>
             </footer>
           </section>
         </div>
@@ -331,25 +380,25 @@ export function MedalManagementWorkspace() {
   );
 }
 
-function MedalThumbnail({ medal }: { medal: Pick<MedalRecord, 'imageSource'> }) {
-  return (
-    <span className="management-medal-thumbnail">
-      <img alt="" src={medal.imageSource} />
-    </span>
-  );
+function MedalThumbnail({ imagePath }: { imagePath: string }) {
+  return <span className="management-medal-thumbnail"><img alt="" src={imagePath} /></span>;
 }
 
-function MemberList({ members }: { members: MedalMember[] }) {
+function MemberList({ members, status }: { members: MedalMember[]; status: LoadState }) {
   return (
     <div className="management-medal-table-scroll">
       <table className="management-medal-member-table">
         <thead><tr><th>会员 ID</th><th>活动职务</th><th>获得时间</th></tr></thead>
         <tbody>
-          {members.length > 0 ? members.map((member) => (
-            <tr key={member.id}>
-              <td><a href={getPublicProfilePath(member.id)}>{member.id}</a></td>
+          {status === 'loading' ? (
+            <tr><td className="management-medal-table-empty" colSpan={3}>正在加载成员</td></tr>
+          ) : status === 'error' ? (
+            <tr><td className="management-medal-table-empty" colSpan={3}>成员加载失败</td></tr>
+          ) : members.length > 0 ? members.map((member) => (
+            <tr key={member.username}>
+              <td><a href={member.href}>{member.username}</a></td>
               <td>{member.role}</td>
-              <td>{member.acquiredAt}</td>
+              <td>{formatDate(member.awardedAt)}</td>
             </tr>
           )) : (
             <tr><td className="management-medal-table-empty" colSpan={3}>暂无成员</td></tr>
@@ -360,10 +409,21 @@ function MemberList({ members }: { members: MedalMember[] }) {
   );
 }
 
-function SingleImportPanel({ check, memberId, notice, onCheck, onImport, onMemberIdChange, onRoleChange, role }: {
-  check: IndividualCheck | null;
+function SingleImportPanel({
+  check,
+  checking,
+  importing,
+  memberId,
+  onCheck,
+  onImport,
+  onMemberIdChange,
+  onRoleChange,
+  role,
+}: {
+  check: MedalMemberCheck | null;
+  checking: boolean;
+  importing: boolean;
   memberId: string;
-  notice: string;
   onCheck: (event: FormEvent<HTMLFormElement>) => void;
   onImport: () => void;
   onMemberIdChange: (value: string) => void;
@@ -374,101 +434,162 @@ function SingleImportPanel({ check, memberId, notice, onCheck, onImport, onMembe
     <div className="management-medal-single-import">
       <form onSubmit={onCheck}>
         <label><span>会员 ID</span><input onChange={(event) => onMemberIdChange(event.target.value)} placeholder="输入完整会员 ID" type="search" value={memberId} /></label>
-        <label><span>职务</span><input maxLength={30} onChange={(event) => onRoleChange(event.target.value)} placeholder="例如：队长" type="text" value={role} /></label>
-        <button className="management-secondary-button" disabled={!memberId.trim()} type="submit"><Search size={15} />检查成员</button>
+        <label><span>职务</span><input maxLength={50} onChange={(event) => onRoleChange(event.target.value)} placeholder="例如：队长" type="text" value={role} /></label>
+        <button className="management-secondary-button" disabled={!memberId.trim() || !role.trim() || checking || importing} type="submit"><Search size={15} />{checking ? '检查中' : '检查成员'}</button>
       </form>
       {check ? (
-        <div className="management-medal-check-result" data-state={check.state}>
+        <div className="management-medal-check-result" data-state={check.state.replace('_', '-')}>
           {check.state === 'available' ? <BadgeCheck size={18} /> : <CircleAlert size={18} />}
           <div>
-            <a href={getPublicProfilePath(check.member?.id ?? memberId)}>{check.member?.id ?? memberId}</a>
+            <a href={check.member?.href ?? getPublicProfilePath(check.username)}>{check.member?.username ?? check.username}</a>
             <span>{checkLabel(check)}</span>
           </div>
-          <button className="management-primary-button" disabled={check.state !== 'available' || !role.trim()} onClick={onImport} type="button"><UserPlus size={15} />确认导入</button>
+          <button className="management-primary-button" disabled={check.state !== 'available' || importing} onClick={onImport} type="button"><UserPlus size={15} />{importing ? '导入中' : '确认导入'}</button>
         </div>
       ) : null}
-      {notice ? <p className="management-medal-import-notice"><BadgeCheck size={15} />{notice}</p> : null}
     </div>
   );
 }
 
-function BatchImportPanel({ fileName, inputRef, notice, onFileChange, onImport, rows }: {
+function BatchImportPanel({
+  checking,
+  fileName,
+  importing,
+  inputRef,
+  onFileChange,
+  onImport,
+  rows,
+}: {
+  checking: boolean;
   fileName: string;
+  importing: boolean;
   inputRef: RefObject<HTMLInputElement | null>;
-  notice: string;
-  onFileChange: (fileName: string) => void;
+  onFileChange: (file: File) => void;
   onImport: () => void;
-  rows: Array<{ id: string; member?: MemberDirectoryEntry; role: string; state: CheckState }>;
+  rows: MedalMemberCheck[];
 }) {
   const availableCount = rows.filter((row) => row.state === 'available').length;
-  const alreadyCount = rows.filter((row) => row.state === 'already-owned').length;
-  const missingCount = rows.filter((row) => row.state === 'not-found').length;
+  const alreadyCount = rows.filter((row) => row.state === 'already_owned').length;
+  const missingCount = rows.filter((row) => row.state === 'not_found').length;
   return (
     <div className="management-medal-batch-import">
       <div className="management-medal-file-row">
         <input
-          accept=".csv,.xls,.xlsx"
+          accept=".csv,.xlsx"
           hidden
           onChange={(event) => {
             const file = event.target.files?.[0];
-            if (file) onFileChange(file.name);
+            if (file) onFileChange(file);
             event.target.value = '';
           }}
           ref={inputRef}
           type="file"
         />
-        <button className="management-secondary-button" onClick={() => inputRef.current?.click()} type="button"><Upload size={15} />选择表格</button>
-        <output><FileSpreadsheet size={15} />{fileName}</output>
+        <button className="management-secondary-button" disabled={checking || importing} onClick={() => inputRef.current?.click()} type="button"><Upload size={15} />{checking ? '读取中' : '选择表格'}</button>
+        {fileName ? <output><FileSpreadsheet size={15} />{fileName}</output> : null}
       </div>
 
-      <div className="management-medal-table-scroll">
-        <table className="management-medal-batch-table">
-          <thead><tr><th>ID</th><th>职务</th></tr></thead>
-          <tbody>
-            {rows.map((row) => (
-              <tr key={`${row.id}-${row.role}`}>
-                <td>
-                  <div className="management-medal-batch-id">
-                    <a href={getPublicProfilePath(row.id)}>{row.id}</a>
-                    <span data-state={row.state}>{row.state === 'available' ? <BadgeCheck size={13} /> : <CircleAlert size={13} />}{batchCheckLabel(row)}</span>
-                  </div>
-                </td>
-                <td>{row.role}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+      {rows.length > 0 ? (
+        <div className="management-medal-table-scroll">
+          <table className="management-medal-batch-table">
+            <thead><tr><th>ID</th><th>职务</th></tr></thead>
+            <tbody>
+              {rows.map((row) => (
+                <tr key={row.username}>
+                  <td>
+                    <div className="management-medal-batch-id">
+                      <a href={row.member?.href ?? getPublicProfilePath(row.username)}>{row.username}</a>
+                      <span data-state={row.state.replace('_', '-')}>{row.state === 'available' ? <BadgeCheck size={13} /> : <CircleAlert size={13} />}{batchCheckLabel(row)}</span>
+                    </div>
+                  </td>
+                  <td>{row.role}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      ) : null}
 
-      <footer className="management-medal-batch-footer">
-        <div><span>可导入 {availableCount}</span><span>已拥有 {alreadyCount}</span><span>未找到 {missingCount}</span></div>
-        <button className="management-primary-button" disabled={availableCount === 0} onClick={onImport} type="button"><UserPlus size={15} />导入 {availableCount} 名成员</button>
-      </footer>
-      {notice ? <p className="management-medal-import-notice"><BadgeCheck size={15} />{notice}</p> : null}
+      {rows.length > 0 ? (
+        <footer className="management-medal-batch-footer">
+          <div><span>可导入 {availableCount}</span><span>已拥有 {alreadyCount}</span><span>未找到 {missingCount}</span></div>
+          <button className="management-primary-button" disabled={availableCount === 0 || importing} onClick={onImport} type="button"><UserPlus size={15} />{importing ? '导入中' : `导入 ${availableCount} 名成员`}</button>
+        </footer>
+      ) : null}
     </div>
   );
 }
 
-function checkLabel(check: IndividualCheck) {
-  if (check.state === 'available') return `${check.member?.name ?? ''} · 可以导入`;
-  if (check.state === 'already-owned') return `${check.member?.name ?? ''} · 已拥有该勋章`;
+function checkLabel(check: MedalMemberCheck) {
+  if (check.state === 'available') return '可以导入';
+  if (check.state === 'already_owned') return '已拥有该勋章';
   return '未找到该成员';
 }
 
-function batchCheckLabel(row: { member?: MemberDirectoryEntry; state: CheckState }) {
+function batchCheckLabel(row: MedalMemberCheck) {
   if (row.state === 'available') return '可导入';
-  if (row.state === 'already-owned') return '已拥有';
+  if (row.state === 'already_owned') return '已拥有';
   return '未找到成员';
 }
 
-function findDirectoryMember(id: string) {
-  return MEMBER_DIRECTORY.find((member) => sameId(member.id, id));
+function pickDraft(medal: MedalDefinition): MedalDraft {
+  return { imageSource: medal.largeImagePath, name: medal.name, textureId: medal.textureId };
 }
 
-function sameId(left: string, right: string) {
-  return left.trim() === right.trim();
+async function medalImageFile(dataUrl: string) {
+  const blob = await fetch(dataUrl).then((response) => response.blob());
+  return new File([blob], 'medal.png', { type: blob.type || 'image/png' });
 }
 
-function pickDraft(medal: MedalRecord): MedalDraft {
-  return { imageSource: medal.imageSource, name: medal.name, textureId: medal.textureId };
+async function readCsvRows(file: File): Promise<unknown[][]> {
+  return new Promise((resolve, reject) => {
+    Papa.parse<unknown[]>(file, {
+      complete: (result) => resolve(result.data),
+      error: (error) => reject(error),
+      skipEmptyLines: 'greedy',
+    });
+  });
+}
+
+function normalizeAssignmentRows(rows: unknown[][]): MedalAssignmentInput[] {
+  const populatedRows = rows.filter((row) => row.some((cell) => cellText(cell)));
+  if (populatedRows.length === 0) throw new Error('表格中没有可导入的数据。');
+  const first = populatedRows[0];
+  const contentRows = isHeaderRow(first) ? populatedRows.slice(1) : populatedRows;
+  if (contentRows.length === 0) throw new Error('表格中没有可导入的数据。');
+  if (contentRows.length > 200) throw new Error('一次最多导入 200 名会员。');
+
+  const seen = new Set<string>();
+  return contentRows.map((row, index) => {
+    const username = cellText(row[0]);
+    const role = cellText(row[1]);
+    if (!username || !role) throw new Error(`第 ${index + 1} 行缺少 ID 或职务。`);
+    if (seen.has(username)) throw new Error(`表格中存在重复 ID：${username}`);
+    seen.add(username);
+    return { role, username };
+  });
+}
+
+function isHeaderRow(row: unknown[]) {
+  const id = cellText(row[0]).toLocaleLowerCase().replace(/\s+/g, '');
+  const role = cellText(row[1]).toLocaleLowerCase().replace(/\s+/g, '');
+  return (id === 'id' || id === '会员id') && (role === '职务' || role === 'role' || role === '活动职务');
+}
+
+function cellText(value: unknown) {
+  if (value instanceof Date) return value.toISOString();
+  return typeof value === 'string' || typeof value === 'number' ? String(value).trim() : '';
+}
+
+function formatDate(timestamp: number) {
+  if (!timestamp) return '';
+  return new Intl.DateTimeFormat('zh-CN', { dateStyle: 'medium', timeStyle: 'short' }).format(new Date(timestamp * 1000));
+}
+
+function errorMessage(error: unknown, fallback: string) {
+  return error instanceof Error && error.message.trim() ? error.message : fallback;
+}
+
+function isAbortError(error: unknown) {
+  return error instanceof DOMException && error.name === 'AbortError';
 }

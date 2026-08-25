@@ -3,13 +3,15 @@ import { useEffect, useState, type ReactNode } from 'react';
 import { createPortal } from 'react-dom';
 import {
   deleteProfileFloorDecoration,
-  updateProfileDisplayTags,
+  updateProfilePersonalization,
   uploadProfileFloorDecoration,
 } from '../../api/profile';
 import type { ProfileViewData } from '../../data/profileDemo';
 import type { FloorDecorationVariant } from '../../data/floorDecoration';
+import type { MedalDisplayState } from '../../data/medals';
 import { getDisplayedTags } from '../../data/tags';
 import { createFloorDecorationFile } from '../../utils/floorDecorationImage';
+import { MedalBadge } from '../medals/MedalBadge';
 import { TagList } from '../tags/TagBadge';
 import { AvatarDialog } from './AvatarEditorDialog';
 
@@ -27,16 +29,21 @@ export function ProfilePersonalizationDialog({
   profile: ProfileViewData;
 }) {
   const [selectedTagIds, setSelectedTagIds] = useState<string[]>([]);
+  const [displayMedalIds, setDisplayMedalIds] = useState<string[]>([]);
+  const [hiddenMedalIds, setHiddenMedalIds] = useState<string[]>([]);
   const [pendingImages, setPendingImages] = useState<Partial<Record<FloorDecorationVariant, PendingImage>>>({});
   const [deletedVariants, setDeletedVariants] = useState<FloorDecorationVariant[]>([]);
   const [cropVariant, setCropVariant] = useState<FloorDecorationVariant | null>(null);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
   const tags = profile.tags ?? [];
+  const medals = profile.medals ?? [];
 
   useEffect(() => {
     if (!open) return;
     setSelectedTagIds(getDisplayedTags(tags).map((tag) => tag.id));
+    setDisplayMedalIds(medals.filter((medal) => medal.state === 'display').map((medal) => medal.id));
+    setHiddenMedalIds(medals.filter((medal) => medal.state === 'hidden').map((medal) => medal.id));
     setPendingImages({});
     setDeletedVariants([]);
     setCropVariant(null);
@@ -71,6 +78,17 @@ export function ProfilePersonalizationDialog({
     });
   }
 
+  function setMedalState(medalId: string, state: MedalDisplayState) {
+    setDisplayMedalIds((current) => {
+      const withoutMedal = current.filter((id) => id !== medalId);
+      return state === 'display' && withoutMedal.length < 3 ? [...withoutMedal, medalId] : withoutMedal;
+    });
+    setHiddenMedalIds((current) => {
+      const withoutMedal = current.filter((id) => id !== medalId);
+      return state === 'hidden' ? [...withoutMedal, medalId] : withoutMedal;
+    });
+  }
+
   function removeImage(variant: FloorDecorationVariant) {
     setPendingImages((current) => {
       const next = { ...current };
@@ -94,7 +112,11 @@ export function ProfilePersonalizationDialog({
           await deleteProfileFloorDecoration(variant);
         }
       }
-      const updatedProfile = await updateProfileDisplayTags(selectedTagIds);
+      const updatedProfile = await updateProfilePersonalization(
+        selectedTagIds,
+        displayMedalIds,
+        hiddenMedalIds,
+      );
       onSave(updatedProfile);
       onClose();
     } catch (saveError) {
@@ -160,6 +182,37 @@ export function ProfilePersonalizationDialog({
                 {tags.length === 0 ? <span className="profile-personalization-empty-tags">暂无可选标签</span> : null}
               </div>
             </section>
+            <section className="profile-personalization-medals" aria-labelledby="profile-personalization-medals-title">
+              <h3 id="profile-personalization-medals-title">勋章</h3>
+              <div className="profile-medal-preference-list">
+                {medals.map((medal) => {
+                  const state = getMedalState(medal.id, displayMedalIds, hiddenMedalIds);
+                  return (
+                    <div className="profile-medal-preference" key={medal.id}>
+                      <MedalBadge medal={medal} />
+                      <div className="profile-medal-preference-copy">
+                        <strong>{medal.name}</strong>
+                        {medal.role ? <span>{medal.role}</span> : null}
+                      </div>
+                      <div aria-label={`${medal.name}展示状态`} className="profile-medal-state-control">
+                        {(['display', 'retain', 'hidden'] as const).map((option) => (
+                          <button
+                            aria-pressed={state === option}
+                            disabled={saving || (option === 'display' && state !== 'display' && displayMedalIds.length >= 3)}
+                            key={option}
+                            onClick={() => setMedalState(medal.id, option)}
+                            type="button"
+                          >
+                            {medalStateLabel(option)}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  );
+                })}
+                {medals.length === 0 ? <span className="profile-medal-preference-empty">暂无勋章</span> : null}
+              </div>
+            </section>
             {error ? <p className="profile-dialog-error" role="alert">{error}</p> : null}
           </div>
 
@@ -190,6 +243,22 @@ export function ProfilePersonalizationDialog({
     </>,
     document.body,
   );
+}
+
+function getMedalState(
+  medalId: string,
+  displayMedalIds: string[],
+  hiddenMedalIds: string[],
+): MedalDisplayState {
+  if (displayMedalIds.includes(medalId)) return 'display';
+  if (hiddenMedalIds.includes(medalId)) return 'hidden';
+  return 'retain';
+}
+
+function medalStateLabel(state: MedalDisplayState) {
+  if (state === 'display') return '展示';
+  if (state === 'hidden') return '隐藏';
+  return '保留';
 }
 
 function DecorationColumn({

@@ -1,0 +1,404 @@
+@layer components {
+  .user-medal {
+    box-sizing: border-box;
+    flex: 0 0 auto;
+  }
+
+  .user-medal-compact {
+    display: inline-grid;
+    width: 21px;
+    height: 21px;
+    clip-path: polygon(29.289% 0, 70.711% 0, 100% 29.289%, 100% 70.711%, 70.711% 100%, 29.289% 100%, 0 70.711%, 0 29.289%);
+    padding: 1px;
+    background: linear-gradient(135deg, #f5f7f5 8%, #747d78 47%, #e4e8e5 78%, #4e5752);
+    vertical-align: middle;
+  }
+
+  .user-medal-compact > img {
+    display: block;
+    width: 100%;
+    height: 100%;
+    clip-path: inherit;
+    object-fit: cover;
+  }
+
+  .user-medal-list {
+    display: inline-flex;
+    min-width: 0;
+    flex: 0 0 auto;
+    align-items: center;
+    gap: 3px;
+    line-height: 0;
+  }
+
+  .user-medal-large {
+    display: block;
+    width: 132px;
+    aspect-ratio: 1;
+    perspective: 520px;
+    touch-action: pan-y;
+  }
+
+  .user-medal-rotator {
+    --medal-tilt-x: 0deg;
+    --medal-tilt-y: 0deg;
+    --medal-pointer-x: 50%;
+    --medal-pointer-y: 50%;
+    --medal-pointer-distance: 0;
+    --medal-effect-intensity: 0;
+    --medal-background-x: 50%;
+    --medal-background-y: 50%;
+    --medal-space: 5.5%;
+    --medal-angle: 128deg;
+
+    position: relative;
+    display: grid;
+    width: 100%;
+    height: 100%;
+    filter: drop-shadow(0 12px 12px rgb(0 0 0 / 0.24)) drop-shadow(0 3px 4px rgb(0 0 0 / 0.22));
+    transform: rotateY(var(--medal-tilt-x)) rotateX(var(--medal-tilt-y));
+    transform-origin: center;
+    transform-style: preserve-3d;
+    will-change: transform;
+  }
+
+  .user-medal-front,
+  .user-medal-outline {
+    grid-area: 1 / 1;
+    width: 100%;
+    height: 100%;
+  }
+
+  .user-medal-front {
+    position: relative;
+    display: block;
+    overflow: hidden;
+    clip-path: polygon(29.289% 0, 70.711% 0, 100% 29.289%, 100% 70.711%, 70.711% 100%, 29.289% 100%, 0 70.711%, 0 29.289%);
+    background: #151918;
+  }
+
+  .user-medal-front > img {
+    position: absolute;
+    inset: 0;
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    pointer-events: none;
+    user-select: none;
+  }
+
+  .user-medal-shine,
+  .user-medal-glare {
+    position: absolute;
+    inset: 0;
+    display: block;
+    pointer-events: none;
+  }
+
+  .user-medal-shine {
+    background-image:
+      var(--medal-foil),
+      repeating-linear-gradient(
+        -33deg,
+        hsl(2 70% 47%) calc(var(--medal-space) * 1),
+        hsl(228 60% 64%) calc(var(--medal-space) * 2),
+        hsl(176 55% 39%) calc(var(--medal-space) * 3),
+        hsl(123 68% 35%) calc(var(--medal-space) * 4),
+        hsl(283 75% 57%) calc(var(--medal-space) * 5),
+        hsl(2 70% 47%) calc(var(--medal-space) * 6)
+      ),
+      repeating-linear-gradient(
+        var(--medal-angle),
+        hsl(227 53% 12% / 0.5) 0%,
+        hsl(180 10% 50%) 2.5%,
+        hsl(83 50% 35%) 5%,
+        hsl(180 10% 50%) 7.5%,
+        hsl(227 53% 12% / 0.5) 10%,
+        hsl(227 53% 12% / 0.5) 15%
+      ),
+      radial-gradient(
+        farthest-corner circle at var(--medal-pointer-x) var(--medal-pointer-y),
+        hsl(189 76% 77% / 0.6) 0%,
+        hsl(147 59% 77% / 0.6) 25%,
+        hsl(271 55% 69% / 0.6) 50%,
+        hsl(355 56% 72% / 0.6) 75%
+      );
+    background-blend-mode: difference, luminosity, soft-light, normal;
+    background-position:
+      center,
+      var(--medal-background-x) var(--medal-background-y),
+      var(--medal-background-x) var(--medal-background-y),
+      var(--medal-background-x) var(--medal-background-y);
+    background-repeat: repeat;
+    background-size: auto 46%, 1100% 1100%, 600% 600%, 200% 200%;
+    filter: brightness(calc((var(--medal-pointer-distance) * 0.4) + 0.4)) contrast(2) saturate(1);
+    mix-blend-mode: color-dodge;
+    opacity: calc(var(--medal-effect-intensity) * 0.88);
+  }
+
+  .user-medal-shine::after {
+    position: absolute;
+    inset: 0;
+    background-image:
+      repeating-linear-gradient(
+        0deg,
+        hsl(283 100% 73%) calc(var(--medal-space) * 1),
+        hsl(2 100% 73%) calc(var(--medal-space) * 2),
+        hsl(53 100% 69%) calc(var(--medal-space) * 3),
+        hsl(93 100% 69%) calc(var(--medal-space) * 4),
+        hsl(176 100% 76%) calc(var(--medal-space) * 5),
+        hsl(228 100% 74%) calc(var(--medal-space) * 6),
+        hsl(283 100% 73%) calc(var(--medal-space) * 7)
+      ),
+      repeating-linear-gradient(
+        var(--medal-angle),
+        #0e152e 0%,
+        hsl(180 10% 60%) 3.8%,
+        hsl(180 29% 66%) 4.5%,
+        hsl(180 10% 60%) 5.2%,
+        #0e152e 10%,
+        #0e152e 12%
+      );
+    background-blend-mode: hue, normal;
+    background-position: 0% var(--medal-background-y), var(--medal-background-x) var(--medal-background-y);
+    background-size: 200% 700%, 300% 100%;
+    content: '';
+    mix-blend-mode: lighten;
+    opacity: calc((0.3 * var(--medal-effect-intensity)) + var(--medal-effect-intensity) * var(--medal-pointer-distance) * 0.5);
+  }
+
+  .user-medal-glare {
+    background-image: radial-gradient(
+      farthest-corner circle at var(--medal-pointer-x) var(--medal-pointer-y),
+      hsl(0 0% 100% / 0.75) 0%,
+      hsl(0 0% 0%) 120%
+    );
+    mix-blend-mode: hard-light;
+    opacity: calc((0.14 * var(--medal-effect-intensity)) + var(--medal-effect-intensity) * var(--medal-pointer-distance) * 0.68);
+  }
+
+  .user-medal-outline {
+    position: relative;
+    z-index: 3;
+    overflow: visible;
+    pointer-events: none;
+  }
+
+  .user-medal-outline path {
+    fill: none;
+    stroke-linejoin: round;
+  }
+
+  .user-medal-outline-shadow {
+    stroke: rgb(14 17 16 / 0.82);
+    stroke-width: 7;
+  }
+
+  .user-medal-outline-highlight {
+    stroke: rgb(233 241 236 / 0.88);
+    stroke-width: 2.5;
+  }
+
+  .profile-medals {
+    display: grid;
+    gap: 14px;
+    padding: 18px 20px 20px;
+  }
+
+  .profile-medals > h2 {
+    margin: 0;
+    color: var(--text-strong);
+    font-size: var(--ui-font-size-lg);
+    font-weight: 760;
+  }
+
+  .profile-medal-gallery {
+    display: flex;
+    align-items: start;
+    flex-wrap: wrap;
+    gap: 18px;
+  }
+
+  .profile-medal-item {
+    display: grid;
+    width: 148px;
+    min-width: 0;
+    justify-items: center;
+    gap: 9px;
+    padding: 7px 8px 10px;
+  }
+
+  .profile-medal-item > div {
+    display: grid;
+    min-width: 0;
+    justify-items: center;
+    gap: 2px;
+    text-align: center;
+  }
+
+  .profile-medal-item strong,
+  .profile-medal-item span {
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .profile-medal-item strong {
+    color: var(--text-strong);
+    font-size: var(--ui-font-size-md);
+  }
+
+  .profile-medal-item span {
+    color: var(--text-faint);
+    font-size: var(--ui-font-size-sm);
+  }
+
+  .profile-personalization-medals {
+    display: grid;
+    gap: 10px;
+    border-top: 1px solid var(--line);
+    padding: 18px 20px 20px;
+  }
+
+  .profile-personalization-medals > h3 {
+    margin: 0;
+    color: var(--text-strong);
+    font-size: var(--ui-font-size-lg);
+    font-weight: 730;
+  }
+
+  .profile-medal-preference-list {
+    display: grid;
+    border: 1px solid var(--line);
+  }
+
+  .profile-medal-preference {
+    display: grid;
+    grid-template-columns: 24px minmax(0, 1fr) auto;
+    min-width: 0;
+    align-items: center;
+    gap: 9px;
+    padding: 9px 10px;
+    background: var(--surface-raised);
+  }
+
+  .profile-medal-preference + .profile-medal-preference {
+    border-top: 1px solid var(--line);
+  }
+
+  .profile-medal-preference-copy {
+    display: grid;
+    min-width: 0;
+    gap: 2px;
+  }
+
+  .profile-medal-preference-copy strong,
+  .profile-medal-preference-copy span {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .profile-medal-preference-copy strong {
+    color: var(--text-strong);
+    font-size: var(--ui-font-size-md);
+  }
+
+  .profile-medal-preference-copy span {
+    color: var(--text-faint);
+    font-size: var(--ui-font-size-xs);
+  }
+
+  .profile-medal-state-control {
+    display: inline-flex;
+    overflow: hidden;
+    border: 1px solid var(--line-strong);
+    border-radius: var(--control-radius);
+  }
+
+  .profile-medal-state-control button {
+    min-width: 48px;
+    min-height: 30px;
+    border-right: 1px solid var(--line);
+    padding: 0 8px;
+    background: var(--surface-raised);
+    color: var(--text-faint);
+    font-size: var(--ui-font-size-sm);
+    font-weight: 710;
+  }
+
+  .profile-medal-state-control button:last-child {
+    border-right: 0;
+  }
+
+  .profile-medal-state-control button[aria-pressed='true'] {
+    background: var(--brand-strong);
+    color: var(--surface-raised);
+  }
+
+  .profile-medal-state-control button:disabled {
+    cursor: not-allowed;
+    opacity: 0.42;
+  }
+
+  .profile-medal-preference-empty {
+    padding: 14px;
+    color: var(--text-faint);
+    font-size: var(--ui-font-size-md);
+  }
+
+  .thread-author-profile-identity > .user-medal-list {
+    justify-content: center;
+  }
+
+  .author-card-medals {
+    margin-top: 9px;
+  }
+
+  .thread-floor-author > .user-medal-list {
+    max-width: 69px;
+  }
+}
+
+@layer utilities {
+  @media (max-width: 680px) {
+    .profile-medals {
+      padding: 15px 12px 18px;
+    }
+
+    .profile-medal-gallery {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 12px 4px;
+    }
+
+    .profile-medal-item {
+      width: 100%;
+    }
+
+    .user-medal-large {
+      width: 116px;
+    }
+
+    .profile-medal-preference {
+      grid-template-columns: 24px minmax(0, 1fr);
+    }
+
+    .profile-medal-state-control {
+      grid-column: 1 / -1;
+      width: 100%;
+    }
+
+    .profile-medal-state-control button {
+      flex: 1;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .user-medal-rotator {
+      transform: none;
+    }
+  }
+}

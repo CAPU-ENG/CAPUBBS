@@ -6,7 +6,9 @@ import type {
   ProfileViewData,
 } from '../data/profileDemo';
 import type { UserTag } from '../data/tags';
+import type { UserMedal } from '../data/medals';
 import type { FloorDecorationPaths, FloorDecorationVariant } from '../data/floorDecoration';
+import { fetchSelfMedals, mapUserMedals, updateMedalPreferences } from './medals';
 import { normalizeLegacyAvatar } from '../utils/legacyAssets';
 import { md5LegacyStringHex } from '../utils/md5';
 
@@ -47,7 +49,10 @@ export class ProfileApiError extends Error {
 }
 
 export async function fetchUserCenterProfile(signal?: AbortSignal) {
-  const profileRow = await fetchCurrentUserRow(signal);
+  const [profileRow, medals] = await Promise.all([
+    fetchCurrentUserRow(signal),
+    fetchSelfMedals(signal),
+  ]);
   const username = stringValue(profileRow.username);
   const [postRows, replyRows, activityRows, favoriteRows] = await Promise.all([
     requestRows({ ask: 'recentpost', limit: 'all', view: username }, signal),
@@ -60,6 +65,7 @@ export async function fetchUserCenterProfile(signal?: AbortSignal) {
     activityRows,
     favoriteRows,
     includeSignatures: true,
+    medals,
     postRows,
     replyRows,
   });
@@ -70,7 +76,7 @@ export async function fetchPublicProfile(profileName: string, signal?: AbortSign
   if (!username) throw new ProfileApiError('用户不存在。');
 
   const [profileRows, viewerRows] = await Promise.all([
-    requestRows({ ask: 'user_profile', tag: 1, username }, signal),
+    requestRows({ ask: 'user_profile', medal: 1, tag: 1, username }, signal),
     requestRows({ ask: 'getuser' }, signal),
   ]);
   const profileRow = profileRows[0];
@@ -108,9 +114,16 @@ export async function updateProfileDetails(details: EditUserOverrides['details']
   return fetchUserCenterProfile();
 }
 
-export async function updateProfileDisplayTags(displayTagIds: string[]) {
+export async function updateProfilePersonalization(
+  displayTagIds: string[],
+  displayMedalIds: string[],
+  hiddenMedalIds: string[],
+) {
   const row = await fetchCurrentUserRow();
-  await editUser(row, { displayTagIds });
+  await Promise.all([
+    editUser(row, { displayTagIds }),
+    updateMedalPreferences(displayMedalIds, hiddenMedalIds),
+  ]);
   return fetchUserCenterProfile();
 }
 
@@ -329,12 +342,14 @@ function mapProfile(
     activityRows,
     favoriteRows,
     includeSignatures,
+    medals,
     postRows,
     replyRows,
   }: {
     activityRows: ApiRow[];
     favoriteRows: ApiRow[];
     includeSignatures: boolean;
+    medals?: UserMedal[];
     postRows: ApiRow[];
     replyRows: ApiRow[];
   },
@@ -381,6 +396,7 @@ function mapProfile(
     floorDecoration: mapFloorDecoration(row.floorDecoration),
     id: username,
     intro: stringValue(row.intro),
+    medals: medals ?? (Array.isArray(row.medals) ? mapUserMedals(row.medals) : undefined),
     rating: Math.max(0, Math.min(9, numberValue(row.star))),
     starPostReplyCount: postCount + replyCount,
     records,

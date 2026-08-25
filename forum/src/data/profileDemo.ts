@@ -1,5 +1,6 @@
 import defaultAvatar from '../assets/bg/bicycle.svg';
 import type { FloorDecorationPaths } from './floorDecoration';
+import type { UserMedal } from './medals';
 import type { UserTag } from './tags';
 
 export type ProfileTab = 'posts' | 'replies' | 'activities' | 'bookmarks' | 'drafts' | 'signatures';
@@ -42,6 +43,7 @@ export type ProfileViewData = {
   floorDecoration?: FloorDecorationPaths;
   id: string;
   intro: string;
+  medals?: UserMedal[];
   rating: number;
   starPostReplyCount: number;
   records: ProfileRecordMap;
