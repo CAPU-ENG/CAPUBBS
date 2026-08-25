@@ -2,6 +2,7 @@ import type {
   DirectChatMessage,
   DirectConversation,
   ForumMessage,
+  ForumSystemEvent,
   MessageSummary,
 } from '../types/messages';
 import { USER_CENTER_PATH } from '../utils/userRoutes';
@@ -128,27 +129,34 @@ function mapSystemMessage(row: ApiRow, index: number, page: number): ForumMessag
   const sender = stringValue(row.username) || '系统';
   const type = stringValue(row.type);
   const subject = decodeHtml(stringValue(row.title));
-  const tagName = parseTagGrant(subject);
+  const grantEvent = parseGrantEvent(subject);
   const formattedTime = formatTimestamp(row.time);
 
   return {
     category: 'replies',
-    context: tagName ? undefined : subject,
+    context: grantEvent ? undefined : subject,
     excerpt: getSystemMessageExcerpt(type, sender, subject),
     group: formattedTime.date || '更早',
-    href: tagName ? USER_CENTER_PATH : normalizeThreadHref(stringValue(row.url)),
+    href: grantEvent ? USER_CENTER_PATH : normalizeThreadHref(stringValue(row.url)),
     id: `system-${type || 'message'}-${stringValue(row.time) || 'unknown'}-${page}-${index}`,
     sender,
-    systemEvent: tagName ? { kind: 'tag-granted', tagName } : undefined,
+    systemEvent: grantEvent ?? undefined,
     time: formattedTime.time,
-    title: tagName ? '为你添加了标签' : getSystemMessageAction(type),
+    title: grantEvent
+      ? grantEvent.kind === 'tag-granted' ? '为你添加了标签' : '为你发放了勋章'
+      : getSystemMessageAction(type),
     unread: stringValue(row.hasread) === '0',
   };
 }
 
-function parseTagGrant(subject: string) {
-  const match = subject.match(/^为你添加了“(.+)”标签，可前往个人中心查看。$/u);
-  return match?.[1]?.trim() || null;
+function parseGrantEvent(subject: string): ForumSystemEvent | null {
+  const tagMatch = subject.match(/^为你添加了“(.+)”标签，可前往个人中心查看。$/u);
+  const tagName = tagMatch?.[1]?.trim();
+  if (tagName) return { kind: 'tag-granted', tagName };
+
+  const medalMatch = subject.match(/^(?:为你发放了|你获得了)“(.+)”勋章，可前往个人中心查看。$/u);
+  const medalName = medalMatch?.[1]?.trim();
+  return medalName ? { kind: 'medal-granted', medalName } : null;
 }
 
 function mapChatMessage(row: ApiRow, conversationId: string, index: number): DirectChatMessage {

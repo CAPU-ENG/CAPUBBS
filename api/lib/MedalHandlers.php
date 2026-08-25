@@ -382,7 +382,7 @@ function jiekoufunc_management_medal_members_add($con, $token, $params) {
         return jiekoufunc_report('8', '批量授予勋章失败。');
     }
 
-    $notification = '你获得了“' . $medal['name'] . '”勋章，可前往个人中心查看。';
+    $notification = '为你发放了“' . $medal['name'] . '”勋章，可前往个人中心查看。';
     $notification_failures = 0;
     foreach ($added_usernames as $username) {
         try {

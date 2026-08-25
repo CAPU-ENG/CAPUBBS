@@ -164,7 +164,8 @@ function MessageCard({
   onOpenConversation: (conversationId: string) => void;
 }) {
   const isDirect = message.category === 'direct';
-  const tagGrant = message.systemEvent?.kind === 'tag-granted' ? message.systemEvent : null;
+  const grantEvent = message.systemEvent ?? null;
+  const grantName = grantEvent?.kind === 'tag-granted' ? grantEvent.tagName : grantEvent?.medalName;
   const markRead = () => onMarkMessageRead(message.id);
 
   return (
@@ -172,10 +173,12 @@ function MessageCard({
       <span className="message-card-dot" />
       <div>
         <header>
-          {tagGrant ? (
+          {grantEvent && grantName ? (
             <strong className="message-card-tag-grant">
               <a href={getPublicProfilePath(message.sender)} onClick={markRead}>{message.sender}</a>
-              {' 为你添加了“'}{tagGrant.tagName}{'”标签，可前往'}
+              {grantEvent.kind === 'tag-granted' ? ' 为你添加了“' : ' 为你发放了“'}
+              {grantName}
+              {grantEvent.kind === 'tag-granted' ? '”标签，可前往' : '”勋章，可前往'}
               <a href={USER_CENTER_PATH} onClick={markRead}>个人中心</a>
               查看。
             </strong>

@@ -1,9 +1,8 @@
 export type MessageCategory = 'replies' | 'direct';
 
-export type ForumSystemEvent = {
-  kind: 'tag-granted';
-  tagName: string;
-};
+export type ForumSystemEvent =
+  | { kind: 'medal-granted'; medalName: string }
+  | { kind: 'tag-granted'; tagName: string };
 
 export type ForumMessage = {
   category: MessageCategory;
