@@ -885,7 +885,7 @@
       display: none;
     }
 
-    .thread-floor-with-author-profile .thread-floor-content {
+    .thread-floor-with-author-profile .thread-floor-body {
       min-height: 230px;
     }
   }
