@@ -7,13 +7,13 @@ import {
   type RefObject,
 } from 'react';
 import defaultMedalImage from '../../assets/activity/activity.avif';
-import geometricTexture from '../../assets/medal-textures/09810d1b758b0deaae34fce040e4d60e.jpg';
-import interlacedTexture from '../../assets/medal-textures/50258bd9234725df864d4369601b1670.jpg';
-import carbonTexture from '../../assets/medal-textures/6e37fd57ab60350a357de4cc54b43f6b.jpg';
-import halftoneTexture from '../../assets/medal-textures/b6fb5952-a33d-45e7-8857-b03eedad9842.jpg';
-import scaleTexture from '../../assets/medal-textures/c863c62bcdaa5bc68e4b462a2b1b1709.jpg';
-import pixelTexture from '../../assets/medal-textures/fa5ec07ec3d7c4fd5dbc067e19d58808.jpg';
-import swirlTexture from '../../assets/medal-textures/vu5azD2.jpeg';
+import carbonTexture from '../../assets/medal-textures/carbon-fiber.jpg';
+import geometricTexture from '../../assets/medal-textures/geometric.jpg';
+import halftoneTexture from '../../assets/medal-textures/halftone.jpg';
+import interlacedTexture from '../../assets/medal-textures/interlaced.jpg';
+import pixelTexture from '../../assets/medal-textures/pixel.jpg';
+import scaleTexture from '../../assets/medal-textures/scales.jpg';
+import swirlTexture from '../../assets/medal-textures/swirl.jpg';
 import { AvatarDialog } from '../profile/AvatarEditorDialog';
 
 const OCTAGON_PATH = 'M .310893 0 H .689107 Q .707107 0 .719835 .012728 L .987272 .280165 Q 1 .292893 1 .310893 V .689107 Q 1 .707107 .987272 .719835 L .719835 .987272 Q .707107 1 .689107 1 H .310893 Q .292893 1 .280165 .987272 L .012728 .719835 Q 0 .707107 0 .689107 V .310893 Q 0 .292893 .012728 .280165 L .280165 .012728 Q .292893 0 .310893 0 Z';
