@@ -387,7 +387,7 @@ export function AvatarDialog({ avatarSrc, mode = 'avatar', onClose, onSave, open
           </div>
 
           <aside className="profile-avatar-editor-aside">
-            <div className="profile-avatar-result">
+            <div className={`profile-avatar-result${isDecoration ? ' profile-avatar-result-decoration' : ''}`}>
               {previewSrc ? <img src={previewSrc} alt={isDecoration ? '装饰图片裁切预览' : '头像裁切预览'} /> : <div className="profile-avatar-empty-result"><ImagePlus size={22} /><span>上传后预览</span></div>}
             </div>
             <input ref={fileInputRef} hidden type="file" accept="image/*" onChange={handleUpload} />
