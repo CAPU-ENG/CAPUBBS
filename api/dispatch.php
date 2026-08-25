@@ -20,6 +20,7 @@ require_once __DIR__.'/jiekoufunc.php';
 require_once __DIR__.'/lib/ActivityHandlers.php';
 require_once __DIR__.'/lib/FloorDecorationHandlers.php';
 require_once __DIR__.'/lib/TagHandlers.php';
+require_once __DIR__.'/lib/MedalHandlers.php';
 require_once __DIR__.'/lib/ThreadDetailQuery.php';
 
 function _dispatch_build_routes() {
@@ -71,6 +72,8 @@ function _dispatch_build_routes() {
         'edituser'         => array('handler' => 'jiekoufunc_edituser',         'check_login' => true, 'require_rights' => 0),
         'floor_decoration_upload' => array('handler' => 'jiekoufunc_floor_decoration_upload', 'check_login' => true, 'require_rights' => 0),
         'floor_decoration_delete' => array('handler' => 'jiekoufunc_floor_decoration_delete', 'check_login' => true, 'require_rights' => 0),
+        'medal_self_settings' => array('handler' => 'jiekoufunc_medal_self_settings', 'check_login' => true, 'require_rights' => 0),
+        'medal_preferences_update' => array('handler' => 'jiekoufunc_medal_preferences_update', 'check_login' => true, 'require_rights' => 0),
         'changepsd'        => array('handler' => 'jiekoufunc_changepsd',        'check_login' => true, 'require_rights' => 0),
         'currentUserInfo'  => array('handler' => 'jiekoufunc_currentUserInfo',  'check_login' => true, 'require_rights' => 0),
         'editpreview'      => array('handler' => 'jiekoufunc_editpreview',      'check_login' => true, 'require_rights' => 0),
@@ -117,6 +120,13 @@ function _dispatch_build_routes() {
         'management_tag_member_check' => array('handler' => 'jiekoufunc_management_tag_member_check', 'check_login' => true, 'require_rights' => 3),
         'management_tag_members_add' => array('handler' => 'jiekoufunc_management_tag_members_add', 'check_login' => true, 'require_rights' => 3),
         'management_tag_member_remove' => array('handler' => 'jiekoufunc_management_tag_member_remove', 'check_login' => true, 'require_rights' => 3),
+        'management_medal_list' => array('handler' => 'jiekoufunc_management_medal_list', 'check_login' => true, 'require_rights' => 3),
+        'management_medal_create' => array('handler' => 'jiekoufunc_management_medal_create', 'check_login' => true, 'require_rights' => 3),
+        'management_medal_update' => array('handler' => 'jiekoufunc_management_medal_update', 'check_login' => true, 'require_rights' => 3),
+        'management_medal_delete' => array('handler' => 'jiekoufunc_management_medal_delete', 'check_login' => true, 'require_rights' => 3),
+        'management_medal_members' => array('handler' => 'jiekoufunc_management_medal_members', 'check_login' => true, 'require_rights' => 3),
+        'management_medal_members_check' => array('handler' => 'jiekoufunc_management_medal_members_check', 'check_login' => true, 'require_rights' => 3),
+        'management_medal_members_add' => array('handler' => 'jiekoufunc_management_medal_members_add', 'check_login' => true, 'require_rights' => 3),
         'toggleEmailVisible' => array('handler' => null, 'check_login' => true,  'require_rights' => 0),
 
         // ================================================================
@@ -273,6 +283,34 @@ function jiekoufunc_dispatch($con, $params) {
                 return jiekoufunc_management_tag_members_add($con, $token, $params);
             case 'jiekoufunc_management_tag_member_remove':
                 return jiekoufunc_management_tag_member_remove($con, $params);
+            case 'jiekoufunc_management_medal_list':
+                return jiekoufunc_management_medal_list($con);
+            case 'jiekoufunc_management_medal_create':
+                return jiekoufunc_management_medal_create(
+                    $con,
+                    $token,
+                    $params,
+                    isset($_FILES['file']) ? $_FILES['file'] : null
+                );
+            case 'jiekoufunc_management_medal_update':
+                return jiekoufunc_management_medal_update(
+                    $con,
+                    $token,
+                    $params,
+                    isset($_FILES['file']) ? $_FILES['file'] : null
+                );
+            case 'jiekoufunc_management_medal_delete':
+                return jiekoufunc_management_medal_delete($con, $params);
+            case 'jiekoufunc_management_medal_members':
+                return jiekoufunc_management_medal_members($con, $params);
+            case 'jiekoufunc_management_medal_members_check':
+                return jiekoufunc_management_medal_members_check($con, $params);
+            case 'jiekoufunc_management_medal_members_add':
+                return jiekoufunc_management_medal_members_add($con, $token, $params);
+            case 'jiekoufunc_medal_self_settings':
+                return jiekoufunc_medal_self_settings($con, $token);
+            case 'jiekoufunc_medal_preferences_update':
+                return jiekoufunc_medal_preferences_update($con, $token, $params);
             case 'jiekoufunc_activity_create':
                 return jiekoufunc_activity_create($con, $token, $bid, $ip, $params);
             case 'jiekoufunc_activity_signup':
