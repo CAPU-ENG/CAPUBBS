@@ -264,7 +264,7 @@ function mapMedalMemberCheck(value: unknown): MedalMemberCheck | null {
   const username = textValue(row.username);
   const role = textValue(row.role);
   const state = textValue(row.state);
-  if (!username || !role || (state !== 'available' && state !== 'already_owned' && state !== 'not_found')) return null;
+  if (!username || (state !== 'available' && state !== 'already_owned' && state !== 'not_found')) return null;
   const member = asRow(row.member);
   const memberUsername = textValue(member.username);
   return {
@@ -285,7 +285,7 @@ function mapMedalGrantResult(value: unknown): MedalGrantResult | null {
   const username = textValue(row.username);
   const role = textValue(row.role);
   const status = textValue(row.status);
-  if (!username || !role || (status !== 'added' && status !== 'already_owned' && status !== 'not_found')) return null;
+  if (!username || (status !== 'added' && status !== 'already_owned' && status !== 'not_found')) return null;
   return { awardedAt: nullablePositiveInteger(row.awarded_at), role, status, username };
 }
 

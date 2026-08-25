@@ -708,8 +708,8 @@ function medal_parse_assignments($params, &$error) {
             $error = '会员 ID 必须为 1 至 30 个字符。';
             return false;
         }
-        if ($role_length < 1 || $role_length > 50) {
-            $error = '活动职务必须为 1 至 50 个字符。';
+        if ($role_length > 50) {
+            $error = '活动职务不得超过 50 个字符。';
             return false;
         }
         $key = medal_username_key($username);

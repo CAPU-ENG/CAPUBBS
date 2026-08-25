@@ -5,7 +5,6 @@ import {
   Medal,
   Pencil,
   Plus,
-  Search,
   Trash2,
   Upload,
   UserPlus,
@@ -163,10 +162,10 @@ export function MedalManagementWorkspace() {
     }
   }
 
-  async function checkIndividual(event: FormEvent<HTMLFormElement>) {
+  async function importIndividual(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    if (!selectedMedal || !singleId.trim() || !singleRole.trim() || pendingAction) return;
-    setPendingAction('single-check');
+    if (!selectedMedal || !singleId.trim() || pendingAction) return;
+    setPendingAction('single-import');
     setIndividualCheck(null);
     setNotice(null);
     try {
@@ -174,20 +173,10 @@ export function MedalManagementWorkspace() {
         role: singleRole.trim(),
         username: singleId.trim(),
       }]);
-      setIndividualCheck(checks[0] ?? null);
-    } catch (error) {
-      setNotice({ kind: 'error', text: errorMessage(error, '成员检查失败，请稍后重试。') });
-    } finally {
-      setPendingAction(null);
-    }
-  }
-
-  async function importIndividual() {
-    if (!selectedMedal || individualCheck?.state !== 'available' || pendingAction) return;
-    setPendingAction('single-import');
-    setNotice(null);
-    try {
-      const results = await grantMedalMembers(selectedMedal.id, [individualCheck]);
+      const check = checks[0] ?? null;
+      setIndividualCheck(check);
+      if (!check || check.state !== 'available') return;
+      const results = await grantMedalMembers(selectedMedal.id, [check]);
       const added = results.filter((result) => result.status === 'added').length;
       setMembers(await fetchMedalMembers(selectedMedal.id));
       setSingleId('');
@@ -330,11 +319,9 @@ export function MedalManagementWorkspace() {
                       {issueMode === 'single' ? (
                         <SingleImportPanel
                           check={individualCheck}
-                          checking={pendingAction === 'single-check'}
                           importing={pendingAction === 'single-import'}
                           memberId={singleId}
-                          onCheck={checkIndividual}
-                          onImport={() => { void importIndividual(); }}
+                          onImport={importIndividual}
                           onMemberIdChange={(value) => { setSingleId(value); setIndividualCheck(null); setNotice(null); }}
                           onRoleChange={(value) => { setSingleRole(value); setIndividualCheck(null); setNotice(null); }}
                           role={singleRole}
@@ -411,31 +398,27 @@ function MemberList({ members, status }: { members: MedalMember[]; status: LoadS
 
 function SingleImportPanel({
   check,
-  checking,
   importing,
   memberId,
-  onCheck,
   onImport,
   onMemberIdChange,
   onRoleChange,
   role,
 }: {
   check: MedalMemberCheck | null;
-  checking: boolean;
   importing: boolean;
   memberId: string;
-  onCheck: (event: FormEvent<HTMLFormElement>) => void;
-  onImport: () => void;
+  onImport: (event: FormEvent<HTMLFormElement>) => void;
   onMemberIdChange: (value: string) => void;
   onRoleChange: (value: string) => void;
   role: string;
 }) {
   return (
     <div className="management-medal-single-import">
-      <form onSubmit={onCheck}>
+      <form onSubmit={onImport}>
         <label><span>会员 ID</span><input onChange={(event) => onMemberIdChange(event.target.value)} placeholder="输入完整会员 ID" type="search" value={memberId} /></label>
-        <label><span>职务</span><input maxLength={50} onChange={(event) => onRoleChange(event.target.value)} placeholder="例如：队长" type="text" value={role} /></label>
-        <button className="management-secondary-button" disabled={!memberId.trim() || !role.trim() || checking || importing} type="submit"><Search size={15} />{checking ? '检查中' : '检查成员'}</button>
+        <label><span>职务（选填）</span><input maxLength={50} onChange={(event) => onRoleChange(event.target.value)} placeholder="例如：队长" type="text" value={role} /></label>
+        <button className="management-primary-button" disabled={!memberId.trim() || importing} type="submit"><UserPlus size={15} />{importing ? '导入中' : '确认导入'}</button>
       </form>
       {check ? (
         <div className="management-medal-check-result" data-state={check.state.replace('_', '-')}>
@@ -444,7 +427,6 @@ function SingleImportPanel({
             <a href={check.member?.href ?? getPublicProfilePath(check.username)}>{check.member?.username ?? check.username}</a>
             <span>{checkLabel(check)}</span>
           </div>
-          <button className="management-primary-button" disabled={check.state !== 'available' || importing} onClick={onImport} type="button"><UserPlus size={15} />{importing ? '导入中' : '确认导入'}</button>
         </div>
       ) : null}
     </div>
@@ -563,7 +545,7 @@ function normalizeAssignmentRows(rows: unknown[][]): MedalAssignmentInput[] {
   return contentRows.map((row, index) => {
     const username = cellText(row[0]);
     const role = cellText(row[1]);
-    if (!username || !role) throw new Error(`第 ${index + 1} 行缺少 ID 或职务。`);
+    if (!username) throw new Error(`第 ${index + 1} 行缺少 ID。`);
     if (seen.has(username)) throw new Error(`表格中存在重复 ID：${username}`);
     seen.add(username);
     return { role, username };
