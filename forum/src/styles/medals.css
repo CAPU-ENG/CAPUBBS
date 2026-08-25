@@ -200,59 +200,172 @@
     stroke-width: 2.5;
   }
 
-  .profile-medals {
-    display: grid;
-    gap: 14px;
-    padding: 18px 20px 20px;
-  }
-
-  .profile-medals > h2 {
-    margin: 0;
-    color: var(--text-strong);
-    font-size: var(--ui-font-size-lg);
-    font-weight: 760;
-  }
-
-  .profile-medal-gallery {
+  .profile-identity-medals {
     display: flex;
-    align-items: start;
+    min-height: 25px;
+    align-items: center;
     flex-wrap: wrap;
-    gap: 18px;
+    gap: 4px;
+    margin-top: 6px;
   }
 
-  .profile-medal-item {
+  .profile-identity-medal-button {
+    display: inline-grid;
+    width: 25px;
+    height: 25px;
+    place-items: center;
+    border-radius: 2px;
+    background: transparent;
+    transition: background 140ms ease, transform 140ms ease;
+  }
+
+  .profile-identity-medal-button:hover {
+    background: color-mix(in srgb, var(--brand) 9%, transparent);
+    transform: translateY(-1px);
+  }
+
+  .profile-identity-medal-button:focus-visible {
+    outline: 2px solid var(--brand);
+    outline-offset: 2px;
+  }
+
+  .profile-medal-lightbox-backdrop {
+    position: fixed;
+    z-index: 300;
+    inset: 0;
     display: grid;
-    width: 148px;
-    min-width: 0;
-    justify-items: center;
-    gap: 9px;
-    padding: 7px 8px 10px;
+    place-items: center;
+    overflow-y: auto;
+    padding: 24px;
+    background: rgb(0 0 0 / 0.96);
   }
 
-  .profile-medal-item > div {
+  .profile-medal-lightbox {
+    position: relative;
+    display: grid;
+    width: min(900px, 100%);
+    min-height: min(620px, calc(100dvh - 48px));
+    place-items: center;
+    padding: 68px 74px 48px;
+    color: #f4f6f5;
+  }
+
+  .profile-medal-lightbox-close,
+  .profile-medal-lightbox-nav {
+    position: absolute;
+    z-index: 2;
+    display: inline-grid;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid rgb(255 255 255 / 0.2);
+    border-radius: 50%;
+    background: rgb(255 255 255 / 0.06);
+    color: #f4f6f5;
+    transition: border-color 140ms ease, background 140ms ease;
+  }
+
+  .profile-medal-lightbox-close:hover,
+  .profile-medal-lightbox-nav:hover:not(:disabled) {
+    border-color: rgb(255 255 255 / 0.52);
+    background: rgb(255 255 255 / 0.14);
+  }
+
+  .profile-medal-lightbox-close:focus-visible,
+  .profile-medal-lightbox-nav:focus-visible {
+    outline: 2px solid #fff;
+    outline-offset: 3px;
+  }
+
+  .profile-medal-lightbox-close {
+    top: 0;
+    right: 0;
+    width: 42px;
+    height: 42px;
+  }
+
+  .profile-medal-lightbox-nav {
+    top: 50%;
+    width: 46px;
+    height: 46px;
+    transform: translateY(-50%);
+  }
+
+  .profile-medal-lightbox-nav:disabled {
+    cursor: default;
+    opacity: 0.24;
+  }
+
+  .profile-medal-lightbox-prev {
+    left: 0;
+  }
+
+  .profile-medal-lightbox-next {
+    right: 0;
+  }
+
+  .profile-medal-lightbox-stage {
+    display: grid;
+    width: min(720px, 100%);
+    grid-template-columns: minmax(240px, 330px) minmax(220px, 1fr);
+    align-items: center;
+    gap: 52px;
+  }
+
+  .profile-medal-lightbox-medal {
     display: grid;
     min-width: 0;
-    justify-items: center;
-    gap: 2px;
-    text-align: center;
+    place-items: center;
   }
 
-  .profile-medal-item strong,
-  .profile-medal-item span {
-    max-width: 100%;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
+  .profile-medal-lightbox .user-medal-large {
+    width: min(310px, 34vw);
   }
 
-  .profile-medal-item strong {
-    color: var(--text-strong);
-    font-size: var(--ui-font-size-md);
+  .profile-medal-lightbox-copy {
+    min-width: 0;
+    border-left: 1px solid rgb(255 255 255 / 0.2);
+    padding-left: 30px;
   }
 
-  .profile-medal-item span {
-    color: var(--text-faint);
+  .profile-medal-lightbox-copy > span {
+    color: rgb(255 255 255 / 0.54);
     font-size: var(--ui-font-size-sm);
+    font-variant-numeric: tabular-nums;
+  }
+
+  .profile-medal-lightbox-copy h2 {
+    margin: 8px 0 26px;
+    overflow-wrap: anywhere;
+    color: #fff;
+    font-size: var(--ui-font-size-page-title);
+    font-weight: 760;
+    letter-spacing: 0;
+    line-height: 1.25;
+  }
+
+  .profile-medal-lightbox-copy dl {
+    display: grid;
+    gap: 18px;
+    margin: 0;
+  }
+
+  .profile-medal-lightbox-copy dl > div {
+    display: grid;
+    gap: 4px;
+  }
+
+  .profile-medal-lightbox-copy dt {
+    color: rgb(255 255 255 / 0.5);
+    font-size: var(--ui-font-size-xs);
+    font-weight: 720;
+  }
+
+  .profile-medal-lightbox-copy dd {
+    margin: 0;
+    overflow-wrap: anywhere;
+    color: #f4f6f5;
+    font-size: var(--ui-font-size-md);
+    line-height: 1.5;
   }
 
   .profile-personalization-medals {
@@ -364,22 +477,52 @@
 
 @layer utilities {
   @media (max-width: 680px) {
-    .profile-medals {
-      padding: 15px 12px 18px;
+    .profile-medal-lightbox-backdrop {
+      padding: 10px;
     }
 
-    .profile-medal-gallery {
-      display: grid;
-      grid-template-columns: repeat(2, minmax(0, 1fr));
-      gap: 12px 4px;
+    .profile-medal-lightbox {
+      min-height: calc(100dvh - 20px);
+      padding: 54px 42px 30px;
     }
 
-    .profile-medal-item {
-      width: 100%;
+    .profile-medal-lightbox-close {
+      top: 2px;
+      right: 2px;
+      width: 38px;
+      height: 38px;
     }
 
-    .user-medal-large {
-      width: 116px;
+    .profile-medal-lightbox-nav {
+      width: 38px;
+      height: 38px;
+    }
+
+    .profile-medal-lightbox-stage {
+      grid-template-columns: minmax(0, 1fr);
+      gap: 32px;
+    }
+
+    .profile-medal-lightbox .user-medal-large {
+      width: min(230px, 66vw);
+    }
+
+    .profile-medal-lightbox-copy {
+      width: min(330px, 100%);
+      justify-self: center;
+      border-top: 1px solid rgb(255 255 255 / 0.2);
+      border-left: 0;
+      padding-top: 20px;
+      padding-left: 0;
+      text-align: center;
+    }
+
+    .profile-medal-lightbox-copy h2 {
+      margin-bottom: 18px;
+    }
+
+    .profile-medal-lightbox-copy dl {
+      gap: 12px;
     }
 
     .profile-medal-preference {
@@ -397,8 +540,10 @@
   }
 
   @media (prefers-reduced-motion: reduce) {
-    .user-medal-rotator {
+    .user-medal-rotator,
+    .profile-identity-medal-button {
       transform: none;
+      transition: none;
     }
   }
 }

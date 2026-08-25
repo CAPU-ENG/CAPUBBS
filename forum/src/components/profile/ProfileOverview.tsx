@@ -4,7 +4,7 @@ import type { ProfileDetailKey, ProfileViewData } from '../../data/profileDemo';
 import { getDisplayedTags, getTagsForUser } from '../../data/tags';
 import { USER_CENTER_PATH } from '../../utils/userRoutes';
 import { StarRulesDialog } from './ProfileDialogs';
-import { MedalBadge } from '../medals/MedalBadge';
+import { ProfileMedalGallery } from '../medals/ProfileMedalGallery';
 import { TagList } from '../tags/TagBadge';
 import { useTheme } from '../../hooks/useTheme';
 import { getFloorDecorationPath } from '../../data/floorDecoration';
@@ -132,6 +132,7 @@ export function ProfileOverview({
               <p className="profile-intro">{visibleIntro || '暂未填写个人简介。'}</p>
             )}
             <TagList selectedTagIds={selectedTagIds} tags={tags} />
+            <ProfileMedalGallery medals={visibleMedals} />
           </div>
         </div>
 
@@ -165,23 +166,6 @@ export function ProfileOverview({
           )}
         </div>
       </section>
-
-      {visibleMedals.length > 0 ? (
-        <section className="profile-medals" aria-labelledby="profile-medals-title">
-          <h2 id="profile-medals-title">勋章</h2>
-          <div className="profile-medal-gallery">
-            {visibleMedals.map((medal) => (
-              <article className="profile-medal-item" key={medal.id}>
-                <MedalBadge medal={medal} size="large" />
-                <div>
-                  <strong>{medal.name}</strong>
-                  {medal.role ? <span>{medal.role}</span> : null}
-                </div>
-              </article>
-            ))}
-          </div>
-        </section>
-      ) : null}
 
       <div className="profile-detail-grid">
         {details.map((detail) => {
