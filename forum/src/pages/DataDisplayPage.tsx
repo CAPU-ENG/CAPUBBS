@@ -38,7 +38,7 @@ const PANEL_ITEMS: Array<{
   { icon: Users, id: 'online', label: '当前在线' },
   { icon: CalendarCheck2, id: 'checkins', label: '今日签到' },
   { icon: Trophy, id: 'checkin-ranking', label: '签到排行' },
-  { icon: Tags, id: 'tags', label: '标签汇总' },
+  { icon: Tags, id: 'tags', label: '标签查询' },
   { icon: AlertCircle, id: 'punishments', label: '罚跑记录' },
 ] satisfies Array<{ icon: LucideIcon; id: DisplayPanel; label: string }>;
 

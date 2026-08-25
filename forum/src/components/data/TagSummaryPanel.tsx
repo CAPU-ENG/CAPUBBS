@@ -142,7 +142,7 @@ export function TagSummaryPanel() {
     } catch (error) {
       if (isAbortError(error)) return;
       setQueryStatus('error');
-      setQueryError(errorMessage(error, '标签汇总查询失败，请稍后重试'));
+      setQueryError(errorMessage(error, '标签查询失败，请稍后重试'));
     }
   }
 
@@ -150,7 +150,7 @@ export function TagSummaryPanel() {
     <section className="data-display-card tag-summary-card">
       <header className="data-display-card-header tag-summary-card-header">
         <span className="data-display-card-icon"><Tags size={17} /></span>
-        <h1>标签汇总</h1>
+        <h1>标签查询</h1>
         {queryMode === 'basic' && (
           <span className="tag-summary-help">
             <button aria-describedby="tag-summary-help-tooltip" aria-label="标签筛选说明" type="button"><CircleHelp size={15} /></button>
