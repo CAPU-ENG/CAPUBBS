@@ -99,6 +99,11 @@ function AuthorCard({ author, id }: { author: ThreadAuthor; id: string }) {
           <TagList size="compact" tags={tags} />
         </div>
       ) : null}
+      {author.medals?.length ? (
+        <div className="author-card-medals">
+          <MedalList medals={author.medals} />
+        </div>
+      ) : null}
       <div ref={tagMeasureRef} className="author-card-tag-width-measure" aria-hidden="true">
         <TagList size="compact" tags={tags} />
       </div>

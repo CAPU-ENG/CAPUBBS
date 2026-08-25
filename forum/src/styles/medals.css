@@ -527,6 +527,13 @@
     justify-content: center;
     margin-top: 7px;
   }
+
+  .author-card-medals {
+    display: flex;
+    min-height: 21px;
+    align-items: center;
+    margin-top: 9px;
+  }
 }
 
 @layer utilities {
