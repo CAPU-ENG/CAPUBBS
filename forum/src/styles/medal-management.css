@@ -241,8 +241,29 @@
     font-weight: 760;
   }
 
-  .management-medal-member-table th:first-child { width: 42%; }
-  .management-medal-member-table th:nth-child(2) { width: 31%; }
+  .management-medal-member-table th:first-child { width: 37%; }
+  .management-medal-member-table th:nth-child(2) { width: 27%; }
+  .management-medal-member-table th:last-child { width: 58px; }
+
+  .management-medal-member-table th:last-child,
+  .management-medal-member-table td:last-child {
+    text-align: center;
+  }
+
+  .management-medal-member-remove {
+    display: inline-flex;
+    width: 26px;
+    height: 26px;
+    align-items: center;
+    justify-content: center;
+    border-radius: var(--control-radius);
+    color: var(--text-faint);
+  }
+
+  .management-medal-member-remove:hover {
+    background: color-mix(in srgb, var(--danger) 9%, transparent);
+    color: var(--danger);
+  }
 
   .management-medal-member-table td a,
   .management-medal-batch-table td a,

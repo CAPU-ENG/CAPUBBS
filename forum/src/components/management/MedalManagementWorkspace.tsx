@@ -9,6 +9,7 @@ import {
   Upload,
   UserPlus,
   Users,
+  X,
 } from 'lucide-react';
 import Papa from 'papaparse';
 import { readSheet } from 'read-excel-file/browser';
@@ -20,6 +21,7 @@ import {
   fetchMedalDefinitions,
   fetchMedalMembers,
   grantMedalMembers,
+  removeMedalMember,
   updateMedalDefinition,
   type MedalAssignmentInput,
   type MedalDefinition,
@@ -43,6 +45,7 @@ export function MedalManagementWorkspace() {
   const [issueMode, setIssueMode] = useState<'batch' | 'single'>('single');
   const [editorMode, setEditorMode] = useState<'create' | 'edit' | null>(null);
   const [deleteOpen, setDeleteOpen] = useState(false);
+  const [removeMemberTarget, setRemoveMemberTarget] = useState<MedalMember | null>(null);
   const [singleId, setSingleId] = useState('');
   const [singleRole, setSingleRole] = useState('');
   const [individualCheck, setIndividualCheck] = useState<MedalMemberCheck | null>(null);
@@ -105,6 +108,7 @@ export function MedalManagementWorkspace() {
     setSelectedId(id);
     setEditorMode(null);
     setDetailTab('members');
+    setRemoveMemberTarget(null);
     resetImports();
     setNotice(null);
   }
@@ -233,6 +237,24 @@ export function MedalManagementWorkspace() {
     }
   }
 
+  async function removeSelectedMember() {
+    if (!selectedMedal || !removeMemberTarget || pendingAction) return;
+    const medalName = selectedMedal.name;
+    const username = removeMemberTarget.username;
+    setPendingAction(`member-remove-${username}`);
+    setNotice(null);
+    try {
+      await removeMedalMember(selectedMedal.id, username);
+      setMembers((current) => current.filter((member) => member.username !== username));
+      setNotice({ kind: 'success', text: `已从“${medalName}”勋章移除 ${username}` });
+    } catch (error) {
+      setNotice({ kind: 'error', text: errorMessage(error, '移除勋章成员失败，请稍后重试。') });
+    } finally {
+      setRemoveMemberTarget(null);
+      setPendingAction(null);
+    }
+  }
+
   function resetImports() {
     setSingleId('');
     setSingleRole('');
@@ -303,7 +325,7 @@ export function MedalManagementWorkspace() {
                     </div>
                     <div className="management-medal-detail-actions">
                       <button aria-label="编辑勋章" disabled={Boolean(pendingAction)} onClick={() => setEditorMode('edit')} title="编辑勋章" type="button"><Pencil size={16} /></button>
-                      <button aria-label="删除勋章" className="is-danger" disabled={Boolean(pendingAction)} onClick={() => setDeleteOpen(true)} title="删除勋章" type="button"><Trash2 size={16} /></button>
+                      <button aria-label="删除勋章" className="is-danger" disabled={Boolean(pendingAction)} onClick={() => { setRemoveMemberTarget(null); setDeleteOpen(true); }} title="删除勋章" type="button"><Trash2 size={16} /></button>
                     </div>
                   </header>
 
@@ -313,7 +335,12 @@ export function MedalManagementWorkspace() {
                   </nav>
 
                   {detailTab === 'members' ? (
-                    <MemberList members={members} status={membersStatus} />
+                    <MemberList
+                      disabled={Boolean(pendingAction)}
+                      members={members}
+                      onRemove={(member) => { setNotice(null); setRemoveMemberTarget(member); }}
+                      status={membersStatus}
+                    />
                   ) : (
                     <section aria-label="发放勋章" className="management-medal-issue">
                       <div className="management-medal-issue-modes" role="tablist" aria-label="导入方式">
@@ -369,6 +396,22 @@ export function MedalManagementWorkspace() {
           </section>
         </div>
       ) : null}
+
+      {removeMemberTarget && selectedMedal ? (
+        <div className="management-dialog-backdrop" role="presentation">
+          <section aria-labelledby="remove-medal-member-title" aria-modal="true" className="management-dialog management-confirm-dialog" role="dialog">
+            <header>
+              <h2 id="remove-medal-member-title">移除成员</h2>
+              <button aria-label="关闭" className="management-icon-button" disabled={Boolean(pendingAction)} onClick={() => setRemoveMemberTarget(null)} type="button"><X size={16} /></button>
+            </header>
+            <p className="management-dialog-copy">确定撤销 {removeMemberTarget.username} 的“{selectedMedal.name}”勋章吗？</p>
+            <footer>
+              <button className="management-secondary-button" disabled={Boolean(pendingAction)} onClick={() => setRemoveMemberTarget(null)} type="button">取消</button>
+              <button className="management-danger-button" disabled={Boolean(pendingAction)} onClick={() => { void removeSelectedMember(); }} type="button"><Trash2 size={14} />{pendingAction?.startsWith('member-remove-') ? '移除中' : '确认移除'}</button>
+            </footer>
+          </section>
+        </div>
+      ) : null}
     </>
   );
 }
@@ -384,24 +427,35 @@ function MedalThumbnail({ imagePath }: { imagePath: string }) {
   return <span className="management-medal-thumbnail"><img alt="" src={imagePath} /></span>;
 }
 
-function MemberList({ members, status }: { members: MedalMember[]; status: LoadState }) {
+function MemberList({
+  disabled,
+  members,
+  onRemove,
+  status,
+}: {
+  disabled: boolean;
+  members: MedalMember[];
+  onRemove: (member: MedalMember) => void;
+  status: LoadState;
+}) {
   return (
     <div className="management-medal-table-scroll">
       <table className="management-medal-member-table">
-        <thead><tr><th>会员 ID</th><th>活动职务</th><th>获得时间</th></tr></thead>
+        <thead><tr><th>会员 ID</th><th>活动职务</th><th>获得时间</th><th>操作</th></tr></thead>
         <tbody>
           {status === 'loading' ? (
-            <tr><td className="management-medal-table-empty" colSpan={3}>正在加载成员</td></tr>
+            <tr><td className="management-medal-table-empty" colSpan={4}>正在加载成员</td></tr>
           ) : status === 'error' ? (
-            <tr><td className="management-medal-table-empty" colSpan={3}>成员加载失败</td></tr>
+            <tr><td className="management-medal-table-empty" colSpan={4}>成员加载失败</td></tr>
           ) : members.length > 0 ? members.map((member) => (
             <tr key={member.username}>
               <td><a href={member.href}>{member.username}</a></td>
               <td>{member.role}</td>
               <td>{formatDate(member.awardedAt)}</td>
+              <td><button aria-label={`移除${member.username}的勋章`} className="management-medal-member-remove" disabled={disabled} onClick={() => onRemove(member)} title="移除成员" type="button"><X size={15} /></button></td>
             </tr>
           )) : (
-            <tr><td className="management-medal-table-empty" colSpan={3}>暂无成员</td></tr>
+            <tr><td className="management-medal-table-empty" colSpan={4}>暂无成员</td></tr>
           )}
         </tbody>
       </table>

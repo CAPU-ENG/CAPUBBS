@@ -431,6 +431,31 @@ function jiekoufunc_management_medal_members_add($con, $token, $params) {
     ), count($ordered_results));
 }
 
+function jiekoufunc_management_medal_member_remove($con, $params) {
+    $medal_id = medal_param_id($params);
+    $username_value = isset($params['username']) ? $params['username'] : '';
+    $username = is_array($username_value) ? '' : trim(strval($username_value));
+    $username_length = medal_string_length($username);
+    if ($medal_id <= 0 || $username_length < 1 || $username_length > 30) {
+        return jiekoufunc_report('14', '缺少有效的勋章 ID 或会员 ID。');
+    }
+    if (!medal_find($con, $medal_id)) {
+        return jiekoufunc_report('3', '勋章不存在。');
+    }
+
+    $username_escaped = mysqli_real_escape_string($con, $username);
+    $statement = "DELETE FROM user_medal_members
+        WHERE medal_id=$medal_id AND username='$username_escaped'";
+    if (!medal_db_query($con, $statement)) {
+        return jiekoufunc_report('8', '移除勋章成员失败。');
+    }
+    return medal_response(array(
+        'medal_id' => $medal_id,
+        'username' => $username,
+        'removed' => mysqli_affected_rows($con) === 1,
+    ));
+}
+
 function jiekoufunc_medal_self_settings($con, $token) {
     $username = medal_operator($con, $token);
     if ($username === '') {

@@ -127,6 +127,7 @@ function _dispatch_build_routes() {
         'management_medal_members' => array('handler' => 'jiekoufunc_management_medal_members', 'check_login' => true, 'require_rights' => 3),
         'management_medal_members_check' => array('handler' => 'jiekoufunc_management_medal_members_check', 'check_login' => true, 'require_rights' => 3),
         'management_medal_members_add' => array('handler' => 'jiekoufunc_management_medal_members_add', 'check_login' => true, 'require_rights' => 3),
+        'management_medal_member_remove' => array('handler' => 'jiekoufunc_management_medal_member_remove', 'check_login' => true, 'require_rights' => 3),
         'toggleEmailVisible' => array('handler' => null, 'check_login' => true,  'require_rights' => 0),
 
         // ================================================================
@@ -307,6 +308,8 @@ function jiekoufunc_dispatch($con, $params) {
                 return jiekoufunc_management_medal_members_check($con, $params);
             case 'jiekoufunc_management_medal_members_add':
                 return jiekoufunc_management_medal_members_add($con, $token, $params);
+            case 'jiekoufunc_management_medal_member_remove':
+                return jiekoufunc_management_medal_member_remove($con, $params);
             case 'jiekoufunc_medal_self_settings':
                 return jiekoufunc_medal_self_settings($con, $token);
             case 'jiekoufunc_medal_preferences_update':

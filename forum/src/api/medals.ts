@@ -157,6 +157,14 @@ export async function grantMedalMembers(
   return itemsFrom(asRow(data).results).map(mapMedalGrantResult).filter(isPresent);
 }
 
+export async function removeMedalMember(medalId: string, username: string) {
+  await requestMedalData({
+    ask: 'management_medal_member_remove',
+    medal_id: medalId,
+    username: username.trim(),
+  });
+}
+
 export async function fetchSelfMedals(signal?: AbortSignal): Promise<UserMedal[]> {
   const data = await requestMedalData({ ask: 'medal_self_settings' }, signal);
   return itemsFrom(data).map(mapUserMedal).filter(isPresent);
