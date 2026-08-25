@@ -21,11 +21,12 @@ function jiekoufunc_thread_detail($con, $bid, $tid, $params, $token, $ip) {
     $page = thread_detail_query_int_param($params, 'page', thread_detail_query_int_param($params, 'p', 1));
     $author_only = thread_detail_query_bool_param($params, 'authorOnly') || thread_detail_query_bool_param($params, 'see_lz');
     $include_tags = thread_detail_query_bool_param($params, 'tag');
+    $include_medals = thread_detail_query_bool_param($params, 'medal');
     $include_decoration = thread_detail_query_bool_param($params, 'decoration');
     $render = thread_detail_query_render_param($params);
 
     $current_username = thread_detail_query_current_username($con, $token);
-    $viewer = thread_detail_query_get_viewer($con, $current_username, $include_tags);
+    $viewer = thread_detail_query_get_viewer($con, $current_username, $include_tags, $include_medals);
 
     $thread_row = thread_detail_query_get_thread($con, $bid, $tid);
     if ($thread_row === false) {
@@ -77,7 +78,12 @@ function jiekoufunc_thread_detail($con, $bid, $tid, $params, $token, $ip) {
     $attachment_ids = thread_detail_query_collect_attachment_ids($all_post_rows);
     $attachments_by_id = thread_detail_query_get_attachments_by_id($con, $attachment_ids);
     $authors = thread_detail_query_collect_authors($all_post_rows, $lzl_by_fid);
-    $profiles_by_username = thread_detail_query_get_profiles_by_username($con, $authors, $include_tags);
+    $profiles_by_username = thread_detail_query_get_profiles_by_username(
+        $con,
+        $authors,
+        $include_tags,
+        $include_medals
+    );
     if ($include_decoration && !empty($profiles_by_username)) {
         $decorations_by_username = floor_decoration_query_by_usernames($con, array_keys($profiles_by_username));
         foreach ($profiles_by_username as $profile_username => &$profile) {
@@ -126,6 +132,7 @@ function jiekoufunc_thread_detail($con, $bid, $tid, $params, $token, $ip) {
             'render' => $render,
             'authorOnly' => $author_only,
             'tag' => $include_tags ? 1 : 0,
+            'medal' => $include_medals ? 1 : 0,
             'decoration' => $include_decoration ? 1 : 0,
         ),
         'board' => thread_detail_query_pack_board($board_row),
@@ -211,7 +218,7 @@ function thread_detail_query_get_board($con, $bid) {
     return thread_detail_query_fetch_one($con, "select * from boardinfo where bid=$bid limit 1");
 }
 
-function thread_detail_query_get_viewer($con, $username, $include_tags = false) {
+function thread_detail_query_get_viewer($con, $username, $include_tags = false, $include_medals = false) {
     if (!$username) {
         return null;
     }
@@ -224,6 +231,12 @@ function thread_detail_query_get_viewer($con, $username, $include_tags = false) 
         $tags_by_username = jiekoufunc_query_user_tags($con, array($row['username']));
         $row['_tags'] = isset($tags_by_username[$row['username']])
             ? $tags_by_username[$row['username']]
+            : array();
+    }
+    if ($include_medals && function_exists('medal_query_thread_by_usernames')) {
+        $medals_by_username = medal_query_thread_by_usernames($con, array($row['username']));
+        $row['_medals'] = isset($medals_by_username[$row['username']])
+            ? $medals_by_username[$row['username']]
             : array();
     }
     return thread_detail_query_pack_profile($row, true);
@@ -367,7 +380,7 @@ function thread_detail_query_collect_authors($post_rows, $lzl_by_fid) {
     return array_values($authors);
 }
 
-function thread_detail_query_get_profiles_by_username($con, $usernames, $include_tags = false) {
+function thread_detail_query_get_profiles_by_username($con, $usernames, $include_tags = false, $include_medals = false) {
     if (count($usernames) === 0) {
         return array();
     }
@@ -388,6 +401,15 @@ function thread_detail_query_get_profiles_by_username($con, $usernames, $include
         foreach ($profiles as $username => &$profile) {
             $profile['_tags'] = isset($tags_by_username[$username])
                 ? $tags_by_username[$username]
+                : array();
+        }
+        unset($profile);
+    }
+    if ($include_medals && !empty($profiles) && function_exists('medal_query_thread_by_usernames')) {
+        $medals_by_username = medal_query_thread_by_usernames($con, array_keys($profiles));
+        foreach ($profiles as $username => &$profile) {
+            $profile['_medals'] = isset($medals_by_username[$username])
+                ? $medals_by_username[$username]
                 : array();
         }
         unset($profile);
@@ -708,6 +730,9 @@ function thread_detail_query_pack_profile($row, $include_viewer_fields) {
     );
     if (array_key_exists('_tags', $row)) {
         $profile['tags'] = is_array($row['_tags']) ? $row['_tags'] : array();
+    }
+    if (array_key_exists('_medals', $row)) {
+        $profile['medals'] = is_array($row['_medals']) ? $row['_medals'] : array();
     }
     if (array_key_exists('_floor_decoration', $row)) {
         $profile['floorDecoration'] = is_array($row['_floor_decoration'])

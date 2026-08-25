@@ -152,6 +152,26 @@ function jiekoufunc_user_profile($con, $params) {
     }
     unset($row);
 
+    $include_medals = isset($params['medal']) && intval($params['medal']) === 1;
+    if ($include_medals) {
+        $profile_usernames = array();
+        foreach ($rows as $row) {
+            if (isset($row['username']) && strval($row['username']) !== '') {
+                $profile_usernames[] = strval($row['username']);
+            }
+        }
+        $medals_by_username = function_exists('medal_query_profile_by_usernames')
+            ? medal_query_profile_by_usernames($con, $profile_usernames)
+            : array();
+        foreach ($rows as &$row) {
+            $profile_username = isset($row['username']) ? strval($row['username']) : '';
+            $row['medals'] = isset($medals_by_username[$profile_username])
+                ? $medals_by_username[$profile_username]
+                : array();
+        }
+        unset($row);
+    }
+
     return array_merge(array(array('code' => '0', 'count' => strval(count($rows)))), $rows);
 }
 
