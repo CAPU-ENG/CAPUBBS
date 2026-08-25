@@ -25,11 +25,9 @@ export function PublicProfilePage({ profileName }: { profileName: string | null 
   }
 
   const { canViewActivities, isOwnProfile, profile } = loadedProfile;
-  const allowedTabs: ProfileTab[] = isOwnProfile
-    ? ['posts', 'replies', 'activities', 'bookmarks']
-    : canViewActivities
-      ? ['posts', 'replies', 'activities']
-      : ['posts', 'replies'];
+  const allowedTabs: ProfileTab[] = canViewActivities
+    ? ['posts', 'replies', 'activities']
+    : ['posts', 'replies'];
 
   return (
     <div className="profile-page min-h-screen text-[var(--text)]">
