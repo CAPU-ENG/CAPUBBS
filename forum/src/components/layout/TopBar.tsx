@@ -49,6 +49,7 @@ export function TopBar({
     && !params.has('bid')
     && !params.has('board');
   const isSearchPage = window.location.pathname.replace(/\/+$/, '') === '/search';
+  const isSettingsPage = window.location.pathname.replace(/\/+$/, '') === '/settings';
   const isManagePage = window.location.pathname.replace(/\/+$/, '') === '/manage';
   const canManageForum = authStatus === 'authenticated' && (viewer?.rights ?? 0) >= 3;
   const currentBoardId = Number(params.get('bid') ?? params.get('board'));
@@ -428,6 +429,13 @@ export function TopBar({
               </span>
             ) : authStatus === 'guest' ? (
               <>
+                <a
+                  className={`icon-button ${isSettingsPage ? 'icon-button-active' : ''}`}
+                  href="/settings"
+                  aria-label="设置"
+                >
+                  <Settings size={19} />
+                </a>
                 <a className="topbar-login-link" href={getLoginPathWithReturnTo()}>
                   <LogIn size={15} />登录
                 </a>
