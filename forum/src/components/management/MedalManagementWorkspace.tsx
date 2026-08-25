@@ -182,7 +182,12 @@ export function MedalManagementWorkspace() {
       setSingleId('');
       setSingleRole('');
       setIndividualCheck(null);
-      setNotice({ kind: 'success', text: added ? '勋章已发放。' : '该会员已经拥有此勋章。' });
+      setNotice({
+        kind: 'success',
+        text: added
+          ? `已向 ${check.member?.username ?? check.username} 发放“${selectedMedal.name}”`
+          : '该会员已经拥有此勋章。',
+      });
     } catch (error) {
       setNotice({ kind: 'error', text: errorMessage(error, '勋章发放失败，请稍后重试。') });
     } finally {
@@ -220,7 +225,7 @@ export function MedalManagementWorkspace() {
       setMembers(await fetchMedalMembers(selectedMedal.id));
       setBatchRows([]);
       setBatchFileName('');
-      setNotice({ kind: 'success', text: `已发放给 ${added} 名会员。` });
+      setNotice({ kind: 'success', text: `已向 ${added} 名会员发放“${selectedMedal.name}”` });
     } catch (error) {
       setNotice({ kind: 'error', text: errorMessage(error, '批量发放失败，请稍后重试。') });
     } finally {
@@ -257,7 +262,6 @@ export function MedalManagementWorkspace() {
           </button>
         </header>
 
-        {notice ? <p className={`management-medal-notice is-${notice.kind}`} role="status">{notice.text}</p> : null}
         {loadMessage ? (
           <div className="management-medal-empty"><Medal size={24} /><strong>{loadMessage}</strong></div>
         ) : (
@@ -351,6 +355,8 @@ export function MedalManagementWorkspace() {
         )}
       </section>
 
+      {notice ? <ManagementNotice kind={notice.kind}>{notice.text}</ManagementNotice> : null}
+
       {deleteOpen && selectedMedal ? (
         <div className="management-dialog-backdrop" role="presentation">
           <section aria-labelledby="delete-medal-title" aria-modal="true" className="management-dialog management-confirm-dialog" role="dialog">
@@ -365,6 +371,13 @@ export function MedalManagementWorkspace() {
       ) : null}
     </>
   );
+}
+
+function ManagementNotice({ children, kind }: {
+  children: string;
+  kind: NonNullable<Notice>['kind'];
+}) {
+  return <div className={`management-notice management-notice-${kind}`}>{children}</div>;
 }
 
 function MedalThumbnail({ imagePath }: { imagePath: string }) {
