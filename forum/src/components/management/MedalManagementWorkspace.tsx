@@ -11,7 +11,7 @@ import {
   Users,
 } from 'lucide-react';
 import Papa from 'papaparse';
-import readXlsxFile from 'read-excel-file/browser';
+import { readSheet } from 'read-excel-file/browser';
 import { useEffect, useMemo, useRef, useState, type FormEvent, type RefObject } from 'react';
 import {
   checkMedalMembers,
@@ -185,7 +185,7 @@ export function MedalManagementWorkspace() {
       setNotice({
         kind: 'success',
         text: added
-          ? `已向 ${check.member?.username ?? check.username} 发放“${selectedMedal.name}”`
+          ? `已向 ${check.member?.username ?? check.username} 发放“${selectedMedal.name}”勋章`
           : '该会员已经拥有此勋章。',
       });
     } catch (error) {
@@ -204,8 +204,8 @@ export function MedalManagementWorkspace() {
     try {
       const rows = file.name.toLocaleLowerCase().endsWith('.csv')
         ? await readCsvRows(file)
-        : await readXlsxFile(file);
-      const assignments = normalizeAssignmentRows(rows as unknown[][]);
+        : await readSheet(file);
+      const assignments = normalizeAssignmentRows(rows);
       const checks = await checkMedalMembers(selectedMedal.id, assignments);
       setBatchRows(checks);
     } catch (error) {
@@ -225,7 +225,7 @@ export function MedalManagementWorkspace() {
       setMembers(await fetchMedalMembers(selectedMedal.id));
       setBatchRows([]);
       setBatchFileName('');
-      setNotice({ kind: 'success', text: `已向 ${added} 名会员发放“${selectedMedal.name}”` });
+      setNotice({ kind: 'success', text: `已向 ${added} 名会员发放“${selectedMedal.name}”勋章` });
     } catch (error) {
       setNotice({ kind: 'error', text: errorMessage(error, '批量发放失败，请稍后重试。') });
     } finally {
@@ -546,7 +546,10 @@ async function readCsvRows(file: File): Promise<unknown[][]> {
   });
 }
 
-function normalizeAssignmentRows(rows: unknown[][]): MedalAssignmentInput[] {
+function normalizeAssignmentRows(rows: unknown): MedalAssignmentInput[] {
+  if (!isTableRows(rows)) {
+    throw new Error('表格内容格式不正确。');
+  }
   const populatedRows = rows.filter((row) => row.some((cell) => cellText(cell)));
   if (populatedRows.length === 0) throw new Error('表格中没有可导入的数据。');
   const first = populatedRows[0];
@@ -563,6 +566,10 @@ function normalizeAssignmentRows(rows: unknown[][]): MedalAssignmentInput[] {
     seen.add(username);
     return { role, username };
   });
+}
+
+function isTableRows(value: unknown): value is unknown[][] {
+  return Array.isArray(value) && value.every((row: unknown) => Array.isArray(row));
 }
 
 function isHeaderRow(row: unknown[]) {
