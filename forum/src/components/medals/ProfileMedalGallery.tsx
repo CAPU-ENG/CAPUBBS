@@ -8,7 +8,13 @@ const MEDAL_DATE_FORMATTER = new Intl.DateTimeFormat('zh-CN', {
   dateStyle: 'long',
 });
 
-export function ProfileMedalGallery({ medals }: { medals: UserMedal[] }) {
+export function ProfileMedalGallery({
+  medals,
+  variant = 'profile',
+}: {
+  medals: UserMedal[];
+  variant?: 'compact' | 'profile';
+}) {
   const [activeIndex, setActiveIndex] = useState<number | null>(null);
   const closeButtonRef = useRef<HTMLButtonElement>(null);
   const dialogRef = useRef<HTMLElement>(null);
@@ -62,13 +68,19 @@ export function ProfileMedalGallery({ medals }: { medals: UserMedal[] }) {
 
   if (medals.length === 0) return null;
 
+  const compact = variant === 'compact';
+
   return (
     <>
-      <div aria-label="勋章" className="profile-identity-medals" role="group">
+      <div
+        aria-label={compact ? '展示勋章' : '勋章'}
+        className={compact ? 'user-medal-list' : 'profile-identity-medals'}
+        role="group"
+      >
         {medals.map((medal, index) => (
           <button
             aria-label={`查看“${medal.name}”勋章`}
-            className="profile-identity-medal-button"
+            className={compact ? 'user-medal-list-button' : 'profile-identity-medal-button'}
             key={medal.id}
             onClick={() => setActiveIndex(index)}
             type="button"

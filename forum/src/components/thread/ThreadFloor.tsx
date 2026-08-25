@@ -33,7 +33,7 @@ import {
 import { ThreadImageLightbox } from './ThreadImageLightbox';
 import { ThreadPostContent } from './ThreadPostContent';
 import { DisplayedTagList, TagList } from '../tags/TagBadge';
-import { MedalList } from '../medals/MedalBadge';
+import { ProfileMedalGallery } from '../medals/ProfileMedalGallery';
 
 type DeleteDialogTarget =
   | { kind: 'floor' }
@@ -111,7 +111,7 @@ function AuthorCard({ author, id }: { author: ThreadAuthor; id: string }) {
       ) : null}
       {author.medals?.length ? (
         <div className="author-card-medals">
-          <MedalList medals={author.medals} />
+          <ProfileMedalGallery medals={author.medals} variant="compact" />
         </div>
       ) : null}
       <div ref={tagMeasureRef} className="author-card-tag-width-measure" aria-hidden="true">
@@ -133,7 +133,6 @@ function AuthorCard({ author, id }: { author: ThreadAuthor; id: string }) {
 function AuthorProfile({ author }: { author: ThreadAuthor }) {
   const tags = author.tags ?? getTagsForUser(author.name);
   const displayedTags = getDisplayedTags(tags);
-  const overflowCount = displayedTags.length > 0 ? Math.max(0, tags.length - displayedTags.length) : 0;
   const profileHref = getPublicProfilePath(author.name);
 
   return (
@@ -152,8 +151,8 @@ function AuthorProfile({ author }: { author: ThreadAuthor }) {
           {author.role && <strong>{author.role}</strong>}
         </div>
       )}
-      <DisplayedTagList overflowCount={overflowCount} tags={displayedTags} />
-      <MedalList medals={author.medals ?? []} />
+      <DisplayedTagList tags={displayedTags} />
+      <ProfileMedalGallery medals={author.medals ?? []} variant="compact" />
       <dl className="thread-author-profile-stats">
         <div><dt>主题</dt><dd>{author.topics}</dd></div>
         <div><dt>回复</dt><dd>{author.replies}</dd></div>

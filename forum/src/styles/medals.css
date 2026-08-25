@@ -61,7 +61,8 @@
   }
 
   .user-medal-compact:hover::after,
-  .profile-identity-medal-button:focus-visible .user-medal-compact::after {
+  .profile-identity-medal-button:focus-visible .user-medal-compact::after,
+  .user-medal-list-button:focus-visible .user-medal-compact::after {
     opacity: 1;
     transform: translate(-50%, 0);
   }
@@ -73,6 +74,23 @@
     align-items: center;
     gap: 3px;
     line-height: 0;
+  }
+
+  .user-medal-list-button {
+    display: inline-grid;
+    width: 21px;
+    height: 21px;
+    place-items: center;
+    border: 0;
+    border-radius: 2px;
+    padding: 0;
+    background: transparent;
+    cursor: pointer;
+  }
+
+  .user-medal-list-button:focus-visible {
+    outline: 2px solid var(--brand);
+    outline-offset: 2px;
   }
 
   .user-medal-large {
