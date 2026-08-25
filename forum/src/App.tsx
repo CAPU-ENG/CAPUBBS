@@ -18,7 +18,6 @@ const loadCalendarAdminPage = () => import('./pages/CalendarAdminPage');
 const loadDataDisplayPage = () => import('./pages/DataDisplayPage');
 const loadLoginPage = () => import('./pages/LoginPage');
 const loadManagementPage = () => import('./pages/ManagementPage');
-const loadMedalDemoPage = () => import('./pages/MedalDemoPage');
 const loadPublicProfilePage = () => import('./pages/PublicProfilePage');
 const loadRegisterPage = () => import('./pages/RegisterPage');
 const loadSearchPage = () => import('./pages/SearchPage');
@@ -62,8 +61,6 @@ const LoginPage = lazy(() => loadLoginPage()
   .then((module) => ({ default: module.LoginPage })));
 const ManagementPage = lazy(() => loadManagementPage()
   .then((module) => ({ default: module.ManagementPage })));
-const MedalDemoPage = lazy(() => loadMedalDemoPage()
-  .then((module) => ({ default: module.MedalDemoPage })));
 const PublicProfilePage = lazy(() => loadPublicProfilePage()
   .then((module) => ({ default: module.PublicProfilePage })));
 const RegisterPage = lazy(() => loadRegisterPage()
@@ -176,7 +173,6 @@ function ForumRouter() {
   if (pathname === '/settings') return <SettingsPage />;
   if (pathname === '/calendar-admin') return <CalendarAdminPage />;
   if (pathname === '/manage') return <ManagementPage />;
-  if (pathname === '/medal-demo') return <MedalDemoPage />;
   if (pathname === '/data') return <DataDisplayPage />;
   if (pathname === '/activity-management') return <ActivityManagementPage />;
   if (pathname === '/archive-room') return <ArchiveRoomPage />;
