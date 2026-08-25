@@ -125,20 +125,24 @@
   }
 
   .management-medal-detail-identity > div {
-    display: grid;
+    display: flex;
     min-width: 0;
-    gap: 4px;
+    align-items: baseline;
+    gap: 8px;
   }
 
   .management-medal-detail-heading h3 {
+    min-width: 0;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
   }
 
   .management-medal-detail-identity span {
+    flex: 0 0 auto;
     color: var(--text-faint);
     font-size: var(--ui-font-size-xs);
+    white-space: nowrap;
   }
 
   .management-medal-detail-actions,
