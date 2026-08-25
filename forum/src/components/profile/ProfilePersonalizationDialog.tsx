@@ -131,12 +131,31 @@ export function ProfilePersonalizationDialog({
   return createPortal(
     <>
       <div className="profile-dialog-backdrop" role="presentation">
-        <button className="profile-dialog-dismiss" type="button" aria-label="关闭个性化设置" onClick={saving ? undefined : onClose} />
-        <section className="profile-dialog profile-personalization-dialog" role="dialog" aria-modal="true" aria-labelledby="profile-personalization-title">
+        <button
+          className="profile-dialog-dismiss"
+          type="button"
+          aria-label="关闭个性化设置"
+          onClick={saving ? undefined : onClose}
+        />
+        <section
+          className="profile-dialog profile-personalization-dialog"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="profile-personalization-title"
+        >
           <header>
-            <span><Palette size={18} /></span>
+            <span>
+              <Palette size={18} />
+            </span>
             <h2 id="profile-personalization-title">个性化</h2>
-            <button aria-label="关闭" disabled={saving} type="button" onClick={onClose}><X size={18} /></button>
+            <button
+              aria-label="关闭"
+              disabled={saving}
+              type="button"
+              onClick={onClose}
+            >
+              <X size={18} />
+            </button>
           </header>
 
           <div className="profile-personalization-body">
@@ -144,52 +163,75 @@ export function ProfilePersonalizationDialog({
               <DecorationColumn
                 description="上传一张图片用于在日间模式下装饰你的楼层卡片的左上角。"
                 icon={<Sun size={17} />}
-                imageSrc={imagePath('light')}
+                imageSrc={imagePath("light")}
                 label="日间装饰"
-                onDelete={() => removeImage('light')}
-                onUpload={() => setCropVariant('light')}
+                onDelete={() => removeImage("light")}
+                onUpload={() => setCropVariant("light")}
                 saving={saving}
               />
               <DecorationColumn
                 description="上传一张图片用于在夜间模式下装饰你的楼层卡片的左上角。"
                 icon={<Moon size={17} />}
-                imageSrc={imagePath('dark')}
+                imageSrc={imagePath("dark")}
                 label="夜间装饰"
-                onDelete={() => removeImage('dark')}
-                onUpload={() => setCropVariant('dark')}
+                onDelete={() => removeImage("dark")}
+                onUpload={() => setCropVariant("dark")}
                 saving={saving}
               />
             </div>
 
-            <section className="profile-personalization-tags" aria-labelledby="profile-personalization-tags-title">
+            <section
+              className="profile-personalization-tags"
+              aria-labelledby="profile-personalization-tags-title"
+            >
               <h3 id="profile-personalization-tags-title">展示标签</h3>
-              <p className="profile-personalization-copy">点击选择标签进行展示，最多选 2 个。</p>
+              <p className="profile-personalization-copy">
+                点击选择标签进行展示，最多选 2 个。
+              </p>
               <div className="profile-tag-selector">
                 {tags.map((tag) => {
                   const selected = selectedTagIds.includes(tag.id);
                   return (
                     <button
                       aria-pressed={selected}
-                      disabled={saving || (!selected && selectedTagIds.length >= 2)}
+                      disabled={
+                        saving || (!selected && selectedTagIds.length >= 2)
+                      }
                       key={tag.id}
                       onClick={() => toggleTag(tag.id)}
                       type="button"
                     >
-                      <TagList selectedTagIds={selected ? [tag.id] : []} tags={[tag]} />
+                      <TagList
+                        selectedTagIds={selected ? [tag.id] : []}
+                        tags={[tag]}
+                      />
                     </button>
                   );
                 })}
-                {tags.length === 0 ? <span className="profile-personalization-empty-tags">暂无可选标签</span> : null}
+                {tags.length === 0 ? (
+                  <span className="profile-personalization-empty-tags">
+                    暂无可选标签
+                  </span>
+                ) : null}
               </div>
             </section>
-            <section className="profile-personalization-medals" aria-labelledby="profile-personalization-medals-title">
+            <section
+              className="profile-personalization-medals"
+              aria-labelledby="profile-personalization-medals-title"
+            >
               <div className="profile-personalization-medal-heading">
                 <h3 id="profile-personalization-medals-title">勋章</h3>
-                <p>可以最多选择 3 枚勋章在楼层中展示，可选任意枚勋章进行隐藏</p>
+                <p>
+                  可以最多选择 3 枚勋章在楼层中展示，可选任意枚勋章进行隐藏。
+                </p>
               </div>
               <div className="profile-medal-preference-list">
                 {medals.map((medal) => {
-                  const state = getMedalState(medal.id, displayMedalIds, hiddenMedalIds);
+                  const state = getMedalState(
+                    medal.id,
+                    displayMedalIds,
+                    hiddenMedalIds,
+                  );
                   return (
                     <div className="profile-medal-preference" key={medal.id}>
                       <MedalBadge medal={medal} />
@@ -197,32 +239,65 @@ export function ProfilePersonalizationDialog({
                         <strong>{medal.name}</strong>
                         {medal.role ? <span>{medal.role}</span> : null}
                       </div>
-                      <div aria-label={`${medal.name}展示状态`} className="profile-medal-state-control">
-                        {(['display', 'retain', 'hidden'] as const).map((option) => (
-                          <button
-                            aria-pressed={state === option}
-                            disabled={saving || (option === 'display' && state !== 'display' && displayMedalIds.length >= 3)}
-                            key={option}
-                            onClick={() => setMedalState(medal.id, option)}
-                            type="button"
-                          >
-                            {medalStateLabel(option)}
-                          </button>
-                        ))}
+                      <div
+                        aria-label={`${medal.name}展示状态`}
+                        className="profile-medal-state-control"
+                      >
+                        {(["display", "retain", "hidden"] as const).map(
+                          (option) => (
+                            <button
+                              aria-pressed={state === option}
+                              disabled={
+                                saving ||
+                                (option === "display" &&
+                                  state !== "display" &&
+                                  displayMedalIds.length >= 3)
+                              }
+                              key={option}
+                              onClick={() => setMedalState(medal.id, option)}
+                              type="button"
+                            >
+                              {medalStateLabel(option)}
+                            </button>
+                          ),
+                        )}
                       </div>
                     </div>
                   );
                 })}
-                {medals.length === 0 ? <span className="profile-medal-preference-empty">暂无勋章</span> : null}
+                {medals.length === 0 ? (
+                  <span className="profile-medal-preference-empty">
+                    暂无勋章
+                  </span>
+                ) : null}
               </div>
             </section>
-            {error ? <p className="profile-dialog-error" role="alert">{error}</p> : null}
+            {error ? (
+              <p className="profile-dialog-error" role="alert">
+                {error}
+              </p>
+            ) : null}
           </div>
 
           <footer className="profile-dialog-footer">
-            <button className="profile-dialog-cancel" type="button" disabled={saving} onClick={onClose}>取消</button>
-            <button className="profile-dialog-confirm" type="button" disabled={saving} onClick={() => { void savePersonalization(); }}>
-              <Check size={14} />{saving ? '保存中' : '保存'}
+            <button
+              className="profile-dialog-cancel"
+              type="button"
+              disabled={saving}
+              onClick={onClose}
+            >
+              取消
+            </button>
+            <button
+              className="profile-dialog-confirm"
+              type="button"
+              disabled={saving}
+              onClick={() => {
+                void savePersonalization();
+              }}
+            >
+              <Check size={14} />
+              {saving ? "保存中" : "保存"}
             </button>
           </footer>
         </section>
@@ -236,8 +311,13 @@ export function ProfilePersonalizationDialog({
           if (!cropVariant) return;
           const variant = cropVariant;
           const file = await createFloorDecorationFile(src, variant);
-          setPendingImages((current) => ({ ...current, [variant]: { file, previewSrc: src } }));
-          setDeletedVariants((current) => current.filter((item) => item !== variant));
+          setPendingImages((current) => ({
+            ...current,
+            [variant]: { file, previewSrc: src },
+          }));
+          setDeletedVariants((current) =>
+            current.filter((item) => item !== variant),
+          );
           setCropVariant(null);
         }}
         open={cropVariant !== null}
