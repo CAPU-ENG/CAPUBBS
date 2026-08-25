@@ -877,9 +877,9 @@
   }
 
   @media (min-width: 1024px) {
-    .thread-page-shell-author-profile .thread-floor {
-      grid-template-columns: var(--thread-author-profile-column) minmax(0, 1fr);
-      gap: var(--thread-author-profile-gap);
+    .thread-floor-with-author-profile {
+      grid-template-columns: var(--thread-author-profile-column, 136px) minmax(0, 1fr);
+      gap: var(--thread-author-profile-gap, 18px);
       padding: 20px 40px 18px 18px;
     }
 

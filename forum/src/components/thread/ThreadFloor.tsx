@@ -1,4 +1,14 @@
-import { useEffect, useLayoutEffect, useMemo, useRef, useState, type ClipboardEvent, type FormEvent } from 'react';
+import {
+  useEffect,
+  useLayoutEffect,
+  useMemo,
+  useRef,
+  useState,
+  type ClipboardEvent,
+  type ClipboardEventHandler,
+  type FormEvent,
+  type ReactNode,
+} from 'react';
 import {
   AlertTriangle,
   Check,
@@ -120,7 +130,7 @@ function AuthorCard({ author, id }: { author: ThreadAuthor; id: string }) {
   );
 }
 
-export function AuthorProfile({ author }: { author: ThreadAuthor }) {
+function AuthorProfile({ author }: { author: ThreadAuthor }) {
   const tags = author.tags ?? getTagsForUser(author.name);
   const displayedTags = getDisplayedTags(tags);
   const overflowCount = displayedTags.length > 0 ? Math.max(0, tags.length - displayedTags.length) : 0;
@@ -170,6 +180,88 @@ function copyAsPlainText(event: ClipboardEvent<HTMLElement>) {
 
   event.preventDefault();
   event.clipboardData.setData('text/plain', selectedText);
+}
+
+export function ThreadFloorPresentation({
+  articleAfterContent,
+  author,
+  avatarRail,
+  className = '',
+  content,
+  decorationImageSrc,
+  editedAt,
+  floor,
+  floorIndex,
+  id,
+  inlineAvatar = false,
+  mainAfterContent,
+  onCopy,
+  publishedAt,
+  showAuthorProfile,
+}: {
+  articleAfterContent?: ReactNode;
+  author: ThreadAuthor;
+  avatarRail: ReactNode;
+  className?: string;
+  content: ReactNode;
+  decorationImageSrc?: string;
+  editedAt?: string;
+  floor: number;
+  floorIndex: ReactNode;
+  id?: string;
+  inlineAvatar?: boolean;
+  mainAfterContent?: ReactNode;
+  onCopy?: ClipboardEventHandler<HTMLElement>;
+  publishedAt: string;
+  showAuthorProfile: boolean;
+}) {
+  const authorTags = author.tags ?? getTagsForUser(author.name);
+  const displayedTags = getDisplayedTags(authorTags);
+
+  return (
+    <article
+      className={`thread-floor${showAuthorProfile ? ' thread-floor-with-author-profile' : ''}${className ? ` ${className}` : ''}`}
+      data-floor={floor}
+      id={id}
+      onCopy={onCopy}
+    >
+      {decorationImageSrc && (
+        <span aria-hidden="true" className="thread-floor-decoration">
+          <img alt="" src={decorationImageSrc} />
+        </span>
+      )}
+      {showAuthorProfile
+        ? <AuthorProfile author={author} />
+        : !inlineAvatar && avatarRail}
+
+      <div className="thread-floor-main">
+        <header className="thread-floor-header">
+          {!showAuthorProfile && inlineAvatar && avatarRail}
+          <div className="thread-floor-author">
+            <a href={getPublicProfilePath(author.name)}>{author.name}</a>
+            <DisplayedTagList tags={displayedTags} />
+          </div>
+          <div className="thread-floor-time">
+            <time>{formatFloorTime(publishedAt)}</time>
+            {editedAt && (
+              <>
+                <span>·</span>
+                <time>编辑于 {formatFloorTime(editedAt)}</time>
+              </>
+            )}
+          </div>
+          {floorIndex}
+        </header>
+
+        {showAuthorProfile
+          ? <div className="thread-floor-content">{content}</div>
+          : content}
+        {mainAfterContent}
+      </div>
+
+      {articleAfterContent}
+    </article>
+  );
 }
 
 export function ThreadFloor({
@@ -233,9 +325,6 @@ export function ThreadFloor({
     && !isMainPost
     && /<\s*(?:s|strike)\b/i.test(floor.contentHtml ?? '');
   const bodyClassName = `thread-floor-body${isActivitySignupCanceled ? ' capubbs-activity-signup-canceled' : ''}`;
-  const floorAuthorTags = floor.author.tags ?? getTagsForUser(floor.author.name);
-  const floorAuthorDisplayedTags = getDisplayedTags(floorAuthorTags);
-
   useEffect(() => {
     return () => {
       if (copyNoticeTimerRef.current !== null) window.clearTimeout(copyNoticeTimerRef.current);
@@ -398,199 +487,162 @@ export function ThreadFloor({
     />
   );
 
-  return (
-    <article
-      className={`thread-floor${showAuthorProfile ? ' thread-floor-with-author-profile' : ''}`}
-      id={String(floor.floor)}
-      data-floor={floor.floor}
-      onCopy={copyAsPlainText}
+  const floorIndex = (
+    <button
+      aria-label={`复制第 ${floor.floor} 楼链接`}
+      className="thread-floor-index"
+      onClick={copyFloorLink}
+      title="复制楼层链接"
+      type="button"
     >
-      {decorationImageSrc && (
-        <span
-          aria-hidden="true"
-          className="thread-floor-decoration"
-        >
-          <img alt="" src={decorationImageSrc} />
-        </span>
-      )}
-      {showAuthorProfile
-        ? <AuthorProfile author={floor.author} />
-        : !inlineAvatar && avatarRail}
-
-      <div className="thread-floor-main">
-        <header className="thread-floor-header">
-          {!showAuthorProfile && inlineAvatar && avatarRail}
-          <div className="thread-floor-author">
-            <a href={getPublicProfilePath(floor.author.name)}>
-              {floor.author.name}
-            </a>
-            <DisplayedTagList tags={floorAuthorDisplayedTags} />
-          </div>
-          <div className="thread-floor-time">
-            <time>{formatFloorTime(floor.publishedAt)}</time>
-            {floor.editedAt && (
-              <>
-                <span>·</span>
-                <time>编辑于 {formatFloorTime(floor.editedAt)}</time>
-              </>
-            )}
-          </div>
+      #{floor.floor}
+    </button>
+  );
+  const mainAfterContent = (
+    <>
+      <div className="thread-floor-actions">
+        {canQuote && (
+          <button onClick={() => onQuote(floor)} type="button">
+            <Quote size={15} />
+            引用
+          </button>
+        )}
+        {canReply && (
+          <button onClick={() => openNestedReplyComposer()} type="button">
+            <Reply size={15} />
+            回复
+          </button>
+        )}
+        {(!isActivityThread || isMainPost) && floor.isOwn && (
+          <a href={editHref}>
+            <Pencil size={15} />
+            编辑
+          </a>
+        )}
+        {(!isActivityThread || isMainPost) && (floor.canDelete ?? floor.isOwn) && (
           <button
-            aria-label={`复制第 ${floor.floor} 楼链接`}
-            className="thread-floor-index"
-            onClick={copyFloorLink}
-            title="复制楼层链接"
+            aria-busy={floorDeletePending}
+            className="floor-action-danger"
+            disabled={floorDeletePending}
+            onClick={(event) => {
+              deleteTriggerRef.current = event.currentTarget;
+              setFloorDeleteError('');
+              setDeleteDialogTarget({ kind: 'floor' });
+            }}
             type="button"
           >
-            #{floor.floor}
+            <Trash2 size={15} />
+            {floorDeletePending ? '删除中' : '删除'}
           </button>
-        </header>
-
-        {showAuthorProfile
-          ? <div className="thread-floor-content">{postContent}</div>
-          : postContent}
-
-        <div className="thread-floor-actions">
-          {canQuote && (
-            <button onClick={() => onQuote(floor)} type="button">
-              <Quote size={15} />
-              引用
-            </button>
-          )}
-          {canReply && (
-            <button onClick={() => openNestedReplyComposer()} type="button">
-              <Reply size={15} />
-              回复
-            </button>
-          )}
-          {(!isActivityThread || isMainPost) && floor.isOwn && (
-            <a href={editHref}>
-              <Pencil size={15} />
-              编辑
-            </a>
-          )}
-          {(!isActivityThread || isMainPost) && (floor.canDelete ?? floor.isOwn) && (
-            <button
-              aria-busy={floorDeletePending}
-              className="floor-action-danger"
-              disabled={floorDeletePending}
-              onClick={(event) => {
-                deleteTriggerRef.current = event.currentTarget;
-                setFloorDeleteError('');
-                setDeleteDialogTarget({ kind: 'floor' });
-              }}
-              type="button"
-            >
-              <Trash2 size={15} />
-              {floorDeletePending ? '删除中' : '删除'}
-            </button>
-          )}
-        </div>
-
-        {floorDeleteError && (
-          <p className="thread-floor-delete-error" role="alert">{floorDeleteError}</p>
-        )}
-
-        {nestedReplies.length > 0 && (
-          <section
-            className="nested-replies"
-            aria-label={`${floor.floor} 楼的楼中楼回复`}
-          >
-            {nestedReplies.map((reply) => (
-              <article key={reply.id}>
-                <img src={reply.author.avatar} alt="" />
-                <div>
-                  <a className="nested-reply-author" href={getPublicProfilePath(reply.author.name)}>
-                    {reply.author.name}
-                  </a>
-                  {reply.target && (
-                    <span className="nested-reply-target">
-                      {' '}回复{' '}
-                      <a href={getPublicProfilePath(reply.target)}>{reply.target}</a>
-                    </span>
-                  )}
-                  {reply.contentHtml ? (
-                    <ForumMarkup
-                      className="nested-reply-content"
-                      html={reply.contentHtml}
-                      onImageOpen={openImagePreview}
-                      variant="nested"
-                    />
-                  ) : (
-                    <p>{reply.content}</p>
-                  )}
-                  <footer className="nested-reply-footer">
-                    <time>{formatFloorTime(reply.publishedAt)}</time>
-                    {canReply && (
-                      <button
-                        onClick={() => openNestedReplyComposer(reply.author.name)}
-                        type="button"
-                      >
-                        回复
-                      </button>
-                    )}
-                    {reply.canDelete && (
-                      <button
-                        className="nested-reply-delete"
-                        disabled={nestedReplyDeletingId === reply.id}
-                        onClick={(event) => {
-                          deleteTriggerRef.current = event.currentTarget;
-                          setNestedReplyDeleteError('');
-                          setDeleteDialogTarget({ kind: 'nested', reply });
-                        }}
-                        type="button"
-                      >
-                        <Trash2 size={12} />
-                        {nestedReplyDeletingId === reply.id ? '删除中' : '删除'}
-                      </button>
-                    )}
-                  </footer>
-                </div>
-              </article>
-            ))}
-          </section>
-        )}
-        {nestedReplyDeleteError && (
-          <p className="nested-reply-delete-error" role="alert">{nestedReplyDeleteError}</p>
-        )}
-        {nestedReplyTarget !== undefined && canReply && (
-          <form className="nested-reply-composer" onSubmit={submitNestedReply}>
-            <textarea
-              aria-label={nestedReplyTarget ? `回复 @${nestedReplyTarget}` : `回复第 ${floor.floor} 楼`}
-              maxLength={500}
-              onChange={(event) => {
-                setNestedReplyContent(event.target.value);
-                setNestedReplyError('');
-              }}
-              placeholder={nestedReplyTarget ? `回复 @${nestedReplyTarget}` : '写一条楼中楼回复'}
-              ref={nestedReplyInputRef}
-              rows={2}
-              value={nestedReplyContent}
-            />
-            <div className="nested-reply-composer-actions">
-              <button
-                aria-label="取消楼中楼回复"
-                className="nested-reply-cancel"
-                disabled={nestedReplyPending}
-                onClick={closeNestedReplyComposer}
-                type="button"
-              >
-                <X size={15} />
-              </button>
-              <button
-                className="nested-reply-submit"
-                disabled={!nestedReplyContent.trim() || nestedReplyPending}
-                type="submit"
-              >
-                <Send size={14} />
-                {nestedReplyPending ? '发送中' : '发送'}
-              </button>
-            </div>
-            {nestedReplyError && <p className="nested-reply-error" role="alert">{nestedReplyError}</p>}
-          </form>
         )}
       </div>
 
+      {floorDeleteError && (
+        <p className="thread-floor-delete-error" role="alert">{floorDeleteError}</p>
+      )}
+
+      {nestedReplies.length > 0 && (
+        <section
+          className="nested-replies"
+          aria-label={`${floor.floor} 楼的楼中楼回复`}
+        >
+          {nestedReplies.map((reply) => (
+            <article key={reply.id}>
+              <img src={reply.author.avatar} alt="" />
+              <div>
+                <a className="nested-reply-author" href={getPublicProfilePath(reply.author.name)}>
+                  {reply.author.name}
+                </a>
+                {reply.target && (
+                  <span className="nested-reply-target">
+                    {' '}回复{' '}
+                    <a href={getPublicProfilePath(reply.target)}>{reply.target}</a>
+                  </span>
+                )}
+                {reply.contentHtml ? (
+                  <ForumMarkup
+                    className="nested-reply-content"
+                    html={reply.contentHtml}
+                    onImageOpen={openImagePreview}
+                    variant="nested"
+                  />
+                ) : (
+                  <p>{reply.content}</p>
+                )}
+                <footer className="nested-reply-footer">
+                  <time>{formatFloorTime(reply.publishedAt)}</time>
+                  {canReply && (
+                    <button
+                      onClick={() => openNestedReplyComposer(reply.author.name)}
+                      type="button"
+                    >
+                      回复
+                    </button>
+                  )}
+                  {reply.canDelete && (
+                    <button
+                      className="nested-reply-delete"
+                      disabled={nestedReplyDeletingId === reply.id}
+                      onClick={(event) => {
+                        deleteTriggerRef.current = event.currentTarget;
+                        setNestedReplyDeleteError('');
+                        setDeleteDialogTarget({ kind: 'nested', reply });
+                      }}
+                      type="button"
+                    >
+                      <Trash2 size={12} />
+                      {nestedReplyDeletingId === reply.id ? '删除中' : '删除'}
+                    </button>
+                  )}
+                </footer>
+              </div>
+            </article>
+          ))}
+        </section>
+      )}
+      {nestedReplyDeleteError && (
+        <p className="nested-reply-delete-error" role="alert">{nestedReplyDeleteError}</p>
+      )}
+      {nestedReplyTarget !== undefined && canReply && (
+        <form className="nested-reply-composer" onSubmit={submitNestedReply}>
+          <textarea
+            aria-label={nestedReplyTarget ? `回复 @${nestedReplyTarget}` : `回复第 ${floor.floor} 楼`}
+            maxLength={500}
+            onChange={(event) => {
+              setNestedReplyContent(event.target.value);
+              setNestedReplyError('');
+            }}
+            placeholder={nestedReplyTarget ? `回复 @${nestedReplyTarget}` : '写一条楼中楼回复'}
+            ref={nestedReplyInputRef}
+            rows={2}
+            value={nestedReplyContent}
+          />
+          <div className="nested-reply-composer-actions">
+            <button
+              aria-label="取消楼中楼回复"
+              className="nested-reply-cancel"
+              disabled={nestedReplyPending}
+              onClick={closeNestedReplyComposer}
+              type="button"
+            >
+              <X size={15} />
+            </button>
+            <button
+              className="nested-reply-submit"
+              disabled={!nestedReplyContent.trim() || nestedReplyPending}
+              type="submit"
+            >
+              <Send size={14} />
+              {nestedReplyPending ? '发送中' : '发送'}
+            </button>
+          </div>
+          {nestedReplyError && <p className="nested-reply-error" role="alert">{nestedReplyError}</p>}
+        </form>
+      )}
+    </>
+  );
+  const articleAfterContent = (
+    <>
       {copyNoticeOpen && (
         <div aria-live="polite" className="copy-floor-toast" role="status">
           <Check aria-hidden="true" size={15} />
@@ -614,7 +666,26 @@ export function ThreadFloor({
           target={deleteDialogTarget}
         />
       )}
-    </article>
+    </>
+  );
+
+  return (
+    <ThreadFloorPresentation
+      articleAfterContent={articleAfterContent}
+      author={floor.author}
+      avatarRail={avatarRail}
+      content={postContent}
+      decorationImageSrc={decorationImageSrc}
+      editedAt={floor.editedAt}
+      floor={floor.floor}
+      floorIndex={floorIndex}
+      id={String(floor.floor)}
+      inlineAvatar={inlineAvatar}
+      mainAfterContent={mainAfterContent}
+      onCopy={copyAsPlainText}
+      publishedAt={floor.publishedAt}
+      showAuthorProfile={showAuthorProfile}
+    />
   );
 }
 

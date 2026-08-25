@@ -9,19 +9,16 @@ import {
 } from 'react';
 import { getFloorDecorationPath } from '../../data/floorDecoration';
 import type { ThreadAuthor } from '../../data/threadDemo';
-import { getDisplayedTags, getTagsForUser } from '../../data/tags';
 import { useFloorDecorationEnabled } from '../../hooks/useAssistiveFeatures';
 import { useAuthorProfileEnabled } from '../../hooks/useAuthorProfile';
 import { useTheme } from '../../hooks/useTheme';
-import { getPublicProfilePath } from '../../utils/userRoutes';
-import { DisplayedTagList } from '../tags/TagBadge';
 import {
   getRichTextEditorHtmlValue,
   hasRichTextEditorHtmlContent,
   RichTextEditor,
   type RichTextEditorValue,
 } from '../editor/RichTextEditor';
-import { AuthorProfile } from './ThreadFloor';
+import { ThreadFloorPresentation } from './ThreadFloor';
 import { ThreadPostContent } from './ThreadPostContent';
 
 export type PostEditorAttachment = {
@@ -284,8 +281,6 @@ export function PostEditorPreviewDialog({
   const decorationImageSrc = floorDecorationEnabled
     ? getFloorDecorationPath(previewAuthor.floorDecoration, theme)
     : '';
-  const previewAuthorTags = previewAuthor.tags ?? getTagsForUser(previewAuthor.name);
-  const previewAuthorDisplayedTags = getDisplayedTags(previewAuthorTags);
   const previewPostContent = (
     <ThreadPostContent
       bodyClassName="thread-floor-body reply-preview-floor-body"
@@ -326,48 +321,32 @@ export function PostEditorPreviewDialog({
           <button aria-label="关闭内容预览" onClick={onClose} type="button"><X size={18} /></button>
         </header>
         <div className="reply-preview-stage">
-          <article className={`thread-floor reply-preview-floor${showAuthorProfile ? ' thread-floor-with-author-profile' : ''}`}>
-            {decorationImageSrc && (
-              <span aria-hidden="true" className="thread-floor-decoration">
-                <img alt="" src={decorationImageSrc} />
-              </span>
-            )}
-
-            {showAuthorProfile ? (
-              <AuthorProfile author={previewAuthor} />
-            ) : (
+          <ThreadFloorPresentation
+            author={previewAuthor}
+            avatarRail={(
               <div className="thread-avatar-rail reply-preview-avatar-rail">
                 <div className="thread-avatar-button"><img src={previewAuthor.avatar} alt="" /></div>
               </div>
             )}
-
-            <div className="thread-floor-main">
-              <header className="thread-floor-header">
-                <div className="thread-floor-author">
-                  <a href={getPublicProfilePath(previewAuthor.name)}>{previewAuthor.name}</a>
-                  <DisplayedTagList tags={previewAuthorDisplayedTags} />
-                </div>
-                <div className="thread-floor-time"><time>{previewedAt}</time></div>
-                <span className="thread-floor-index">#{previewFloor}</span>
-              </header>
-
-              {showAuthorProfile ? (
-                <div className="thread-floor-content">{previewPostContent}</div>
-              ) : previewPostContent}
-
-              {attachments.length > 0 && (
-                <ul className="reply-preview-attachments" aria-label="附件预览">
-                  {attachments.map((attachment) => (
-                    <li key={attachment.id}>
-                      <Paperclip size={13} />
-                      <span>{attachment.name}</span>
-                      <small>{formatAttachmentMeta(attachment)}</small>
-                    </li>
-                  ))}
-                </ul>
-              )}
-            </div>
-          </article>
+            className="reply-preview-floor"
+            content={previewPostContent}
+            decorationImageSrc={decorationImageSrc}
+            floor={previewFloor}
+            floorIndex={<span className="thread-floor-index">#{previewFloor}</span>}
+            mainAfterContent={attachments.length > 0 ? (
+              <ul className="reply-preview-attachments" aria-label="附件预览">
+                {attachments.map((attachment) => (
+                  <li key={attachment.id}>
+                    <Paperclip size={13} />
+                    <span>{attachment.name}</span>
+                    <small>{formatAttachmentMeta(attachment)}</small>
+                  </li>
+                ))}
+              </ul>
+            ) : undefined}
+            publishedAt={previewedAt}
+            showAuthorProfile={showAuthorProfile}
+          />
           {previewExtra}
         </div>
         <footer>

@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import {
   fetchThreadDetail,
+  fetchThreadEditorViewer,
   isAbortError,
   type ThreadDetail,
 } from '../api/thread';
@@ -38,7 +39,17 @@ export function useThreadData({
       return () => controller.abort();
     }
 
-    void fetchThreadDetail({ authorOnly, bid, decoration, page, signal: controller.signal, tid }).then(
+    void fetchThreadDetail({ authorOnly, bid, decoration, page, signal: controller.signal, tid }).then(async (detail) => {
+      if (!decoration || !detail.viewer || detail.viewer.floorDecoration !== undefined) return detail;
+
+      try {
+        const viewer = await fetchThreadEditorViewer(detail.viewer.name, controller.signal);
+        return { ...detail, viewer, viewerSignatures: viewer.signatures };
+      } catch (requestError) {
+        if (isAbortError(requestError)) throw requestError;
+        return detail;
+      }
+    }).then(
       (detail) => {
         setData(detail);
         setStatus('ready');
