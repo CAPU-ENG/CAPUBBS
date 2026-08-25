@@ -7,6 +7,36 @@ type Spring = {
   velocity: Record<string, number>;
 };
 
+type DeviceOrientationConstructorWithPermission = typeof DeviceOrientationEvent & {
+  requestPermission?: () => Promise<'denied' | 'granted'>;
+};
+
+type OrientationAxes = {
+  horizontal: number;
+  vertical: number;
+};
+
+let motionPermissionRequested = false;
+
+export function requestMedalMotionPermission() {
+  if (
+    motionPermissionRequested
+    || typeof window === 'undefined'
+    || !window.isSecureContext
+    || !window.matchMedia('(any-pointer: coarse)').matches
+    || typeof DeviceOrientationEvent === 'undefined'
+  ) return;
+
+  const orientationEvent = DeviceOrientationEvent as DeviceOrientationConstructorWithPermission;
+  if (typeof orientationEvent.requestPermission !== 'function') return;
+  motionPermissionRequested = true;
+  try {
+    void orientationEvent.requestPermission().catch(() => undefined);
+  } catch {
+    // The lightbox remains usable when the browser rejects sensor access synchronously.
+  }
+}
+
 export function useMedalTilt(
   cardRef: RefObject<HTMLElement | null>,
   rotatorRef: RefObject<HTMLElement | null>,
@@ -15,6 +45,7 @@ export function useMedalTilt(
     const card = cardRef.current;
     const rotator = rotatorRef.current;
     if (!card || !rotator) return undefined;
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return undefined;
     const activeCard = card;
     const activeRotator = rotator;
 
@@ -28,6 +59,7 @@ export function useMedalTilt(
     let frameId: number | null = null;
     let lastTimestamp = 0;
     let resetTimer: number | null = null;
+    let orientationBaseline: OrientationAxes | null = null;
 
     function applyVisualState() {
       const pointerX = round(pointerSpring.current.x);
@@ -68,10 +100,15 @@ export function useMedalTilt(
     function handlePointerMove(event: PointerEvent) {
       if (resetTimer !== null) window.clearTimeout(resetTimer);
       resetTimer = null;
-      settings = interactSettings;
       const rect = activeCard.getBoundingClientRect();
       const pointerX = round(clamp(((event.clientX - rect.left) / rect.width) * 100));
       const pointerY = round(clamp(((event.clientY - rect.top) / rect.height) * 100));
+
+      setInteractionTarget(pointerX, pointerY);
+    }
+
+    function setInteractionTarget(pointerX: number, pointerY: number) {
+      settings = interactSettings;
 
       setSpringTarget(rotationSpring, { x: -((pointerX - 50) / 3.5), y: (pointerY - 50) / 3.5 });
       setSpringTarget(backgroundSpring, {
@@ -80,6 +117,28 @@ export function useMedalTilt(
       });
       setSpringTarget(pointerSpring, { effectIntensity: 1, x: pointerX, y: pointerY });
       startAnimation();
+    }
+
+    function handleDeviceOrientation(event: DeviceOrientationEvent) {
+      if (event.beta === null || event.gamma === null) return;
+      if (resetTimer !== null) window.clearTimeout(resetTimer);
+      resetTimer = null;
+      const axes = deviceOrientationAxes(event.beta, event.gamma);
+      if (!orientationBaseline) {
+        orientationBaseline = axes;
+        return;
+      }
+
+      const horizontalDelta = applyDeadZone(angleDelta(axes.horizontal, orientationBaseline.horizontal), 1.25);
+      const verticalDelta = applyDeadZone(angleDelta(axes.vertical, orientationBaseline.vertical), 1.25);
+      const pointerX = round(50 + clamp(horizontalDelta * 1.8, -42, 42));
+      const pointerY = round(50 + clamp(verticalDelta * 1.45, -42, 42));
+      setInteractionTarget(pointerX, pointerY);
+    }
+
+    function handleScreenOrientationChange() {
+      orientationBaseline = null;
+      handlePointerLeave();
     }
 
     function handlePointerLeave() {
@@ -97,14 +156,48 @@ export function useMedalTilt(
     activeCard.addEventListener('pointermove', handlePointerMove);
     activeCard.addEventListener('pointerleave', handlePointerLeave);
     activeCard.addEventListener('pointercancel', handlePointerLeave);
+    const deviceOrientationEnabled = window.isSecureContext
+      && window.matchMedia('(any-pointer: coarse)').matches
+      && typeof DeviceOrientationEvent !== 'undefined';
+    if (deviceOrientationEnabled) {
+      window.addEventListener('deviceorientation', handleDeviceOrientation);
+      window.addEventListener('orientationchange', handleScreenOrientationChange);
+    }
     return () => {
       activeCard.removeEventListener('pointermove', handlePointerMove);
       activeCard.removeEventListener('pointerleave', handlePointerLeave);
       activeCard.removeEventListener('pointercancel', handlePointerLeave);
+      if (deviceOrientationEnabled) {
+        window.removeEventListener('deviceorientation', handleDeviceOrientation);
+        window.removeEventListener('orientationchange', handleScreenOrientationChange);
+      }
       if (frameId !== null) window.cancelAnimationFrame(frameId);
       if (resetTimer !== null) window.clearTimeout(resetTimer);
     };
   }, [cardRef, rotatorRef]);
+}
+
+function deviceOrientationAxes(beta: number, gamma: number): OrientationAxes {
+  const orientation = normalizedScreenOrientation();
+  if (orientation === 90) return { horizontal: beta, vertical: -gamma };
+  if (orientation === 180) return { horizontal: -gamma, vertical: -beta };
+  if (orientation === 270) return { horizontal: -beta, vertical: gamma };
+  return { horizontal: gamma, vertical: beta };
+}
+
+function normalizedScreenOrientation() {
+  const legacyOrientation = (window as Window & { orientation?: number }).orientation;
+  const angle = window.screen.orientation?.angle ?? legacyOrientation ?? 0;
+  return ((angle % 360) + 360) % 360;
+}
+
+function angleDelta(value: number, baseline: number) {
+  return ((value - baseline + 540) % 360) - 180;
+}
+
+function applyDeadZone(value: number, deadZone: number) {
+  if (Math.abs(value) <= deadZone) return 0;
+  return Math.sign(value) * (Math.abs(value) - deadZone);
 }
 
 function createSpring(initialValue: Record<string, number>): Spring {

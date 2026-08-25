@@ -4,6 +4,7 @@ import { createPortal } from 'react-dom';
 import { fetchPublicUserMedals } from '../../api/medals';
 import type { UserMedal } from '../../data/medals';
 import { MedalBadge } from './MedalBadge';
+import { requestMedalMotionPermission } from './useMedalTilt';
 
 const MEDAL_DATE_FORMATTER = new Intl.DateTimeFormat('zh-CN', {
   dateStyle: 'long',
@@ -96,7 +97,10 @@ export function ProfileMedalGallery({
             aria-label={`查看“${medal.name}”勋章`}
             className={compact ? 'user-medal-list-button' : 'profile-identity-medal-button'}
             key={medal.id}
-            onClick={() => setActiveIndex(index)}
+            onClick={() => {
+              requestMedalMotionPermission();
+              setActiveIndex(index);
+            }}
             type="button"
           >
             <MedalBadge medal={medal} />
