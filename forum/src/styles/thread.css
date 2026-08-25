@@ -2021,6 +2021,11 @@
     opacity: 0.55;
   }
 
+  .thread-floor-actions-decorative {
+    pointer-events: none;
+    user-select: none;
+  }
+
   .thread-floor-delete-error {
     margin-top: 8px;
     color: var(--danger);

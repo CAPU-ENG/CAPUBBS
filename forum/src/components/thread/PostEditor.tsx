@@ -18,7 +18,7 @@ import {
   RichTextEditor,
   type RichTextEditorValue,
 } from '../editor/RichTextEditor';
-import { ThreadFloorPresentation } from './ThreadFloor';
+import { ThreadFloorActions, ThreadFloorPresentation } from './ThreadFloor';
 import { ThreadPostContent } from './ThreadPostContent';
 
 export type PostEditorAttachment = {
@@ -333,17 +333,28 @@ export function PostEditorPreviewDialog({
             decorationImageSrc={decorationImageSrc}
             floor={previewFloor}
             floorIndex={<span className="thread-floor-index">#{previewFloor}</span>}
-            mainAfterContent={attachments.length > 0 ? (
-              <ul className="reply-preview-attachments" aria-label="附件预览">
-                {attachments.map((attachment) => (
-                  <li key={attachment.id}>
-                    <Paperclip size={13} />
-                    <span>{attachment.name}</span>
-                    <small>{formatAttachmentMeta(attachment)}</small>
-                  </li>
-                ))}
-              </ul>
-            ) : undefined}
+            mainAfterContent={(
+              <>
+                {attachments.length > 0 && (
+                  <ul className="reply-preview-attachments" aria-label="附件预览">
+                    {attachments.map((attachment) => (
+                      <li key={attachment.id}>
+                        <Paperclip size={13} />
+                        <span>{attachment.name}</span>
+                        <small>{formatAttachmentMeta(attachment)}</small>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+                <ThreadFloorActions
+                  canDelete
+                  canEdit
+                  canQuote
+                  canReply
+                  decorative
+                />
+              </>
+            )}
             publishedAt={previewedAt}
             showAuthorProfile={showAuthorProfile}
           />

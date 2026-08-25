@@ -264,6 +264,76 @@ export function ThreadFloorPresentation({
   );
 }
 
+export function ThreadFloorActions({
+  canDelete,
+  canEdit,
+  canQuote,
+  canReply,
+  decorative = false,
+  deleting = false,
+  editHref = '',
+  onDelete,
+  onQuote,
+  onReply,
+}: {
+  canDelete: boolean;
+  canEdit: boolean;
+  canQuote: boolean;
+  canReply: boolean;
+  decorative?: boolean;
+  deleting?: boolean;
+  editHref?: string;
+  onDelete?: (trigger: HTMLButtonElement) => void;
+  onQuote?: () => void;
+  onReply?: () => void;
+}) {
+  const tabIndex = decorative ? -1 : undefined;
+
+  return (
+    <div
+      aria-hidden={decorative || undefined}
+      className={`thread-floor-actions${decorative ? ' thread-floor-actions-decorative' : ''}`}
+    >
+      {canQuote && (
+        <button onClick={onQuote} tabIndex={tabIndex} type="button">
+          <Quote size={15} />
+          引用
+        </button>
+      )}
+      {canReply && (
+        <button onClick={onReply} tabIndex={tabIndex} type="button">
+          <Reply size={15} />
+          回复
+        </button>
+      )}
+      {canEdit && (decorative ? (
+        <button tabIndex={-1} type="button">
+          <Pencil size={15} />
+          编辑
+        </button>
+      ) : (
+        <a href={editHref}>
+          <Pencil size={15} />
+          编辑
+        </a>
+      ))}
+      {canDelete && (
+        <button
+          aria-busy={deleting || undefined}
+          className="floor-action-danger"
+          disabled={!decorative && deleting}
+          onClick={decorative ? undefined : (event) => onDelete?.(event.currentTarget)}
+          tabIndex={tabIndex}
+          type="button"
+        >
+          <Trash2 size={15} />
+          {deleting ? '删除中' : '删除'}
+        </button>
+      )}
+    </div>
+  );
+}
+
 export function ThreadFloor({
   canQuote,
   canReply,
@@ -500,42 +570,21 @@ export function ThreadFloor({
   );
   const mainAfterContent = (
     <>
-      <div className="thread-floor-actions">
-        {canQuote && (
-          <button onClick={() => onQuote(floor)} type="button">
-            <Quote size={15} />
-            引用
-          </button>
-        )}
-        {canReply && (
-          <button onClick={() => openNestedReplyComposer()} type="button">
-            <Reply size={15} />
-            回复
-          </button>
-        )}
-        {(!isActivityThread || isMainPost) && floor.isOwn && (
-          <a href={editHref}>
-            <Pencil size={15} />
-            编辑
-          </a>
-        )}
-        {(!isActivityThread || isMainPost) && (floor.canDelete ?? floor.isOwn) && (
-          <button
-            aria-busy={floorDeletePending}
-            className="floor-action-danger"
-            disabled={floorDeletePending}
-            onClick={(event) => {
-              deleteTriggerRef.current = event.currentTarget;
-              setFloorDeleteError('');
-              setDeleteDialogTarget({ kind: 'floor' });
-            }}
-            type="button"
-          >
-            <Trash2 size={15} />
-            {floorDeletePending ? '删除中' : '删除'}
-          </button>
-        )}
-      </div>
+      <ThreadFloorActions
+        canDelete={(!isActivityThread || isMainPost) && (floor.canDelete ?? floor.isOwn ?? false)}
+        canEdit={(!isActivityThread || isMainPost) && Boolean(floor.isOwn)}
+        canQuote={canQuote}
+        canReply={canReply}
+        deleting={floorDeletePending}
+        editHref={editHref}
+        onDelete={(trigger) => {
+          deleteTriggerRef.current = trigger;
+          setFloorDeleteError('');
+          setDeleteDialogTarget({ kind: 'floor' });
+        }}
+        onQuote={() => onQuote(floor)}
+        onReply={() => openNestedReplyComposer()}
+      />
 
       {floorDeleteError && (
         <p className="thread-floor-delete-error" role="alert">{floorDeleteError}</p>
