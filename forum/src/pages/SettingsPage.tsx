@@ -176,6 +176,7 @@ export function SettingsPage() {
               />
               <SettingsCheckbox
                 checked={!authorProfileEnabled && avatarFollowEnabled}
+                desktopOnly
                 disabled={authorProfileEnabled}
                 disabledReason="请先关闭资料卡展示"
                 help="滚动楼层时让发帖者头像保持可见。"
