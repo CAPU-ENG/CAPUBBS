@@ -94,7 +94,6 @@ function AuthorCard({ author, id }: { author: ThreadAuthor; id: string }) {
           )}
         </div>
       </div>
-      {author.medals?.length ? <div className="author-card-medals"><MedalList medals={author.medals} /></div> : null}
       {tagsOverflow ? (
         <div className="author-card-tags-row">
           <TagList size="compact" tags={tags} />
@@ -129,7 +128,6 @@ function AuthorProfile({ author }: { author: ThreadAuthor }) {
       </a>
       <div className="thread-author-profile-identity">
         <a href={profileHref}>{author.name}</a>
-        <MedalList medals={author.medals ?? []} />
       </div>
       {(author.stars > 0 || author.role) && (
         <div className="thread-author-profile-status">
@@ -140,6 +138,7 @@ function AuthorProfile({ author }: { author: ThreadAuthor }) {
         </div>
       )}
       <DisplayedTagList overflowCount={overflowCount} tags={displayedTags} />
+      <MedalList medals={author.medals ?? []} />
       <dl className="thread-author-profile-stats">
         <div><dt>主题</dt><dd>{author.topics}</dd></div>
         <div><dt>回复</dt><dd>{author.replies}</dd></div>
@@ -420,7 +419,6 @@ export function ThreadFloor({
             <a href={getPublicProfilePath(floor.author.name)}>
               {floor.author.name}
             </a>
-            <MedalList medals={floor.author.medals ?? []} />
             <DisplayedTagList tags={floorAuthorDisplayedTags} />
           </div>
           <div className="thread-floor-time">

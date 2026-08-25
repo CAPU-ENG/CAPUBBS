@@ -478,16 +478,10 @@
     font-size: var(--ui-font-size-md);
   }
 
-  .thread-author-profile-identity > .user-medal-list {
+  .thread-author-profile > .user-medal-list {
+    width: 100%;
     justify-content: center;
-  }
-
-  .author-card-medals {
-    margin-top: 9px;
-  }
-
-  .thread-floor-author > .user-medal-list {
-    max-width: 69px;
+    margin-top: 7px;
   }
 }
 
