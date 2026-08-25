@@ -861,6 +861,12 @@
     mask-image: linear-gradient(135deg, rgb(0 0 0 / 0.8) 0%, rgb(0 0 0 / 0.8) 10%, rgb(0 0 0 / 0.7) 18%, transparent 34%);
   }
 
+  .thread-page-shell-compact-author .thread-floor-decoration > img {
+    width: 100px;
+    height: 100px;
+    aspect-ratio: 1;
+  }
+
   .thread-floor-main {
     position: relative;
     z-index: 1;
