@@ -170,8 +170,8 @@ function writeMedalPosition(element: HTMLDivElement, x: number, y: number) {
   const style = element.style;
   style.setProperty('--pointer-x', `${(x + 1) * 50}%`);
   style.setProperty('--pointer-y', `${(y + 1) * 50}%`);
-  style.setProperty('--tilt-x', `${y * -4}deg`);
-  style.setProperty('--tilt-y', `${x * 4}deg`);
+  style.setProperty('--tilt-x', `${y * -9}deg`);
+  style.setProperty('--tilt-y', `${x * 9}deg`);
   style.setProperty('--shadow-x', `${x * -8}px`);
   style.setProperty('--shadow-y', `${y * -5 + 14}px`);
 }
