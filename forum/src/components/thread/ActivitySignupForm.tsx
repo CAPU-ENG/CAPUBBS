@@ -228,7 +228,7 @@ export function ActivitySignupForm({
           }}
           label="报名预览"
           onClose={() => setPreviewOpen(false)}
-          previewAuthor={{ avatar: viewer.avatar, name: viewer.name }}
+          previewAuthor={viewer}
           previewFloor={previewFloor}
           previewSignature={signatureIndex > 0 ? signatures[signatureIndex - 1] : undefined}
           previewedAt={previewedAt}

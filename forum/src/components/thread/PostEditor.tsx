@@ -7,12 +7,21 @@ import {
   type ReactNode,
   type RefObject,
 } from 'react';
+import { getFloorDecorationPath } from '../../data/floorDecoration';
+import type { ThreadAuthor } from '../../data/threadDemo';
+import { getDisplayedTags, getTagsForUser } from '../../data/tags';
+import { useFloorDecorationEnabled } from '../../hooks/useAssistiveFeatures';
+import { useAuthorProfileEnabled } from '../../hooks/useAuthorProfile';
+import { useTheme } from '../../hooks/useTheme';
+import { getPublicProfilePath } from '../../utils/userRoutes';
+import { DisplayedTagList } from '../tags/TagBadge';
 import {
   getRichTextEditorHtmlValue,
   hasRichTextEditorHtmlContent,
   RichTextEditor,
   type RichTextEditorValue,
 } from '../editor/RichTextEditor';
+import { AuthorProfile } from './ThreadFloor';
 import { ThreadPostContent } from './ThreadPostContent';
 
 export type PostEditorAttachment = {
@@ -21,10 +30,7 @@ export type PostEditorAttachment = {
   size: number;
 };
 
-export type PostEditorPreviewAuthor = {
-  avatar: string;
-  name: string;
-};
+export type PostEditorPreviewAuthor = ThreadAuthor;
 
 export const AUTO_SAVE_STATUS = '自动保存至草稿箱';
 
@@ -272,6 +278,23 @@ export function PostEditorPreviewDialog({
   previewedAt: string;
   title: string;
 }) {
+  const showAuthorProfile = useAuthorProfileEnabled();
+  const floorDecorationEnabled = useFloorDecorationEnabled();
+  const { theme } = useTheme();
+  const decorationImageSrc = floorDecorationEnabled
+    ? getFloorDecorationPath(previewAuthor.floorDecoration, theme)
+    : '';
+  const previewAuthorTags = previewAuthor.tags ?? getTagsForUser(previewAuthor.name);
+  const previewAuthorDisplayedTags = getDisplayedTags(previewAuthorTags);
+  const previewPostContent = (
+    <ThreadPostContent
+      bodyClassName="thread-floor-body reply-preview-floor-body"
+      bodyHtml={getRichTextEditorHtmlValue(editorValue)}
+      floor={previewFloor}
+      signatureHtml={previewSignature}
+    />
+  );
+
   useEffect(() => {
     document.body.classList.add('reply-preview-open');
     return () => document.body.classList.remove('reply-preview-open');
@@ -291,7 +314,7 @@ export function PostEditorPreviewDialog({
       <section
         aria-labelledby="post-editor-preview-title"
         aria-modal="true"
-        className="reply-preview-dialog"
+        className={`reply-preview-dialog${showAuthorProfile ? ' reply-preview-dialog-author-profile' : ''}`}
         onClick={(event) => event.stopPropagation()}
         role="dialog"
       >
@@ -303,24 +326,34 @@ export function PostEditorPreviewDialog({
           <button aria-label="关闭内容预览" onClick={onClose} type="button"><X size={18} /></button>
         </header>
         <div className="reply-preview-stage">
-          <article className="thread-floor reply-preview-floor">
-            <div className="thread-avatar-rail reply-preview-avatar-rail">
-              <div className="thread-avatar-button"><img src={previewAuthor.avatar} alt="" /></div>
-            </div>
+          <article className={`thread-floor reply-preview-floor${showAuthorProfile ? ' thread-floor-with-author-profile' : ''}`}>
+            {decorationImageSrc && (
+              <span aria-hidden="true" className="thread-floor-decoration">
+                <img alt="" src={decorationImageSrc} />
+              </span>
+            )}
+
+            {showAuthorProfile ? (
+              <AuthorProfile author={previewAuthor} />
+            ) : (
+              <div className="thread-avatar-rail reply-preview-avatar-rail">
+                <div className="thread-avatar-button"><img src={previewAuthor.avatar} alt="" /></div>
+              </div>
+            )}
 
             <div className="thread-floor-main">
               <header className="thread-floor-header">
-                <div className="thread-floor-author"><strong>{previewAuthor.name}</strong></div>
+                <div className="thread-floor-author">
+                  <a href={getPublicProfilePath(previewAuthor.name)}>{previewAuthor.name}</a>
+                  <DisplayedTagList tags={previewAuthorDisplayedTags} />
+                </div>
                 <div className="thread-floor-time"><time>{previewedAt}</time></div>
                 <span className="thread-floor-index">#{previewFloor}</span>
               </header>
 
-              <ThreadPostContent
-                bodyClassName="thread-floor-body reply-preview-floor-body"
-                bodyHtml={getRichTextEditorHtmlValue(editorValue)}
-                floor={previewFloor}
-                signatureHtml={previewSignature}
-              />
+              {showAuthorProfile ? (
+                <div className="thread-floor-content">{previewPostContent}</div>
+              ) : previewPostContent}
 
               {attachments.length > 0 && (
                 <ul className="reply-preview-attachments" aria-label="附件预览">

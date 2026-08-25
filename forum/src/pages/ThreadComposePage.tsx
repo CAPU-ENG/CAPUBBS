@@ -619,7 +619,7 @@ export function ThreadComposePage() {
           formatAttachmentMeta={(attachment) => formatPostEditorBytes(attachment.size)}
           label={`${boardName} · ${isReply ? '回帖' : isActivity ? '活动' : '发帖'}预览`}
           onClose={() => setPreviewOpen(false)}
-          previewAuthor={{ avatar: editorViewer.avatar, name: editorViewer.name }}
+          previewAuthor={editorViewer}
           previewExtra={isActivity ? (
             <ActivitySignupFormPreview value={activitySignup} viewerName={editorViewer.name} />
           ) : undefined}

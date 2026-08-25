@@ -92,7 +92,7 @@ export type EditableThreadFloor = {
   bid: number;
   createdAt: string;
   pid: number;
-  previewAvatar: string;
+  previewAuthor: ThreadAuthor;
   previewSignatures: string[];
   signatureIndex: number;
   text: string;
@@ -107,9 +107,7 @@ export type ThreadAttachmentInfo = {
   size: number;
 };
 
-export type ThreadEditorViewer = {
-  avatar: string;
-  name: string;
+export type ThreadEditorViewer = ThreadAuthor & {
   signatures: string[];
 };
 
@@ -239,7 +237,7 @@ export async function fetchEditableThreadFloor({
     throw new ThreadApiError('无法读取编辑用户信息，请重新登录后再试。');
   }
 
-  const editorViewer = await fetchThreadEditorViewer(viewerName, signal);
+  const previewAuthor = await fetchThreadEditorViewer(plainText(post.author) || viewerName, signal);
 
   return {
     attachments: stringValue(post.attachs),
@@ -247,11 +245,8 @@ export async function fetchEditableThreadFloor({
     bid,
     createdAt: stringValue(post.timestamp ?? post.posttime ?? post.createdAt),
     pid,
-    previewAvatar: editorViewer.avatar
-      || normalizeLegacyAvatar(viewer.avatar)
-      || normalizeLegacyAvatar(viewer.icon)
-      || defaultAvatar,
-    previewSignatures: editorViewer.signatures,
+    previewAuthor,
+    previewSignatures: previewAuthor.signatures,
     signatureIndex: Math.min(3, nonNegativeInteger(post.sig)),
     text: stringValue(post.text) === '<br>' ? '' : stringValue(post.text),
     tid,
@@ -266,15 +261,26 @@ export async function fetchThreadEditorViewer(username: string, signal?: AbortSi
 
   const payload = await requestThreadApi(new URLSearchParams({
     ask: 'user_profile',
+    medal: '1',
+    tag: '1',
     username: normalizedUsername,
   }), signal, '签名档读取失败，请稍后重试。');
   const profile = asRows(payload.data)[0] ?? asRow(payload.data);
   const name = plainText(profile.username) || normalizedUsername;
 
+  const author = mapAuthor(profile, name);
+  const stats = asRow(profile.stats);
+
   return {
-    avatar: normalizeLegacyAvatar(profile.avatar) || normalizeLegacyAvatar(profile.icon) || defaultAvatar,
-    name,
+    ...author,
+    avatar: normalizeLegacyAvatar(profile.avatar)
+      || normalizeLegacyAvatar(profile.icon)
+      || author.avatar,
+    checkins: nonNegativeInteger(stats.checkins ?? profile.sign),
+    lastSeen: plainText(profile.lastSeenAt ?? profile.lastdate) || '时间未知',
+    replies: nonNegativeInteger(stats.replies ?? profile.reply),
     signatures: mapEditableViewerSignatures(profile),
+    topics: nonNegativeInteger(stats.posts ?? profile.post),
   };
 }
 

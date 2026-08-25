@@ -120,7 +120,7 @@ function AuthorCard({ author, id }: { author: ThreadAuthor; id: string }) {
   );
 }
 
-function AuthorProfile({ author }: { author: ThreadAuthor }) {
+export function AuthorProfile({ author }: { author: ThreadAuthor }) {
   const tags = author.tags ?? getTagsForUser(author.name);
   const displayedTags = getDisplayedTags(tags);
   const overflowCount = displayedTags.length > 0 ? Math.max(0, tags.length - displayedTags.length) : 0;

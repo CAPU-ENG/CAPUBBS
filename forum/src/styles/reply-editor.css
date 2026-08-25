@@ -572,6 +572,10 @@
     animation: local-panel-in 160ms ease both;
   }
 
+  .reply-preview-dialog-author-profile {
+    width: min(100%, calc(var(--thread-main-column) + 122px));
+  }
+
   .reply-preview-dialog > header {
     display: flex;
     min-width: 0;
@@ -632,6 +636,16 @@
     box-shadow: none;
   }
 
+  .reply-preview-dialog-author-profile .reply-preview-floor {
+    width: min(100%, calc(var(--thread-main-column) + 88px));
+  }
+
+  .reply-preview-dialog:not(.reply-preview-dialog-author-profile) .thread-floor-decoration > img {
+    width: 150px;
+    height: 150px;
+    aspect-ratio: 1;
+  }
+
   .reply-preview-stage > .activity-signup-card-preview {
     width: min(100%, var(--thread-main-column));
     margin: 12px auto 0;
@@ -649,12 +663,6 @@
 
   .reply-preview-avatar-rail {
     position: static;
-  }
-
-  .reply-preview-floor .thread-floor-author > strong {
-    color: var(--text-strong);
-    font-size: 16px;
-    font-weight: 760;
   }
 
   .reply-preview-floor .thread-floor-index {

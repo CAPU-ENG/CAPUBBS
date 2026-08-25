@@ -275,7 +275,7 @@ export function ThreadEditPage() {
             : `附件 #${attachment.id}`}
           label={isMainPost ? '帖子修改预览' : `楼层修改预览 · #${floor.pid}`}
           onClose={() => setPreviewOpen(false)}
-          previewAuthor={{ avatar: floor.previewAvatar, name: floor.author }}
+          previewAuthor={floor.previewAuthor}
           previewFloor={floor.pid}
           previewSignature={signatureIndex > 0 ? floor.previewSignatures[signatureIndex - 1] : undefined}
           previewedAt={formatPostTime(floor.updatedAt || floor.createdAt)}
