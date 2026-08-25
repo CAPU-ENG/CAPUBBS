@@ -17,8 +17,8 @@
     width: 100%;
     height: 100%;
     clip-path: polygon(29.289% 0, 70.711% 0, 100% 29.289%, 100% 70.711%, 70.711% 100%, 29.289% 100%, 0 70.711%, 0 29.289%);
-    padding: 1px;
-    background: linear-gradient(135deg, #f5f7f5 8%, #747d78 47%, #e4e8e5 78%, #4e5752);
+    padding: 0.5px;
+    background: var(--text-faint);
   }
 
   .user-medal-compact-visual > img {
