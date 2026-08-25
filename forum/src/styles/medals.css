@@ -375,11 +375,27 @@
     padding: 18px 20px 20px;
   }
 
-  .profile-personalization-medals > h3 {
+  .profile-personalization-medal-heading {
+    display: flex;
+    min-width: 0;
+    align-items: baseline;
+    flex-wrap: wrap;
+    gap: 4px 12px;
+  }
+
+  .profile-personalization-medal-heading h3 {
     margin: 0;
     color: var(--text-strong);
     font-size: var(--ui-font-size-lg);
     font-weight: 730;
+  }
+
+  .profile-personalization-medal-heading p {
+    min-width: 0;
+    margin: 0;
+    color: var(--text-faint);
+    font-size: var(--ui-font-size-md);
+    line-height: 1.5;
   }
 
   .profile-medal-preference-list {

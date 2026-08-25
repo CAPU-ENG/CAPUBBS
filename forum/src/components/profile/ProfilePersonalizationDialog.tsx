@@ -183,7 +183,10 @@ export function ProfilePersonalizationDialog({
               </div>
             </section>
             <section className="profile-personalization-medals" aria-labelledby="profile-personalization-medals-title">
-              <h3 id="profile-personalization-medals-title">勋章</h3>
+              <div className="profile-personalization-medal-heading">
+                <h3 id="profile-personalization-medals-title">勋章</h3>
+                <p>可以最多选择 3 枚勋章在楼层中展示，可选任意枚勋章进行隐藏</p>
+              </div>
               <div className="profile-medal-preference-list">
                 {medals.map((medal) => {
                   const state = getMedalState(medal.id, displayMedalIds, hiddenMedalIds);

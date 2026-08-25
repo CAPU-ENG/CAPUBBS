@@ -6,7 +6,6 @@ import { MedalBadge } from './MedalBadge';
 
 const MEDAL_DATE_FORMATTER = new Intl.DateTimeFormat('zh-CN', {
   dateStyle: 'long',
-  timeStyle: 'short',
 });
 
 export function ProfileMedalGallery({ medals }: { medals: UserMedal[] }) {
@@ -122,8 +121,8 @@ export function ProfileMedalGallery({ medals }: { medals: UserMedal[] }) {
                 <span>{(activeIndex ?? 0) + 1} / {medals.length}</span>
                 <h2 id="profile-medal-lightbox-title">{activeMedal.name}</h2>
                 <dl>
-                  <div><dt>职务</dt><dd>{activeMedal.role || '无'}</dd></div>
-                  <div><dt>获取时间</dt><dd>{formatAwardedAt(activeMedal.awardedAt)}</dd></div>
+                  {activeMedal.role ? <div><dt>职务</dt><dd>{activeMedal.role}</dd></div> : null}
+                  <div><dt>获取日期</dt><dd>{formatAwardedAt(activeMedal.awardedAt)}</dd></div>
                 </dl>
               </div>
             </div>
