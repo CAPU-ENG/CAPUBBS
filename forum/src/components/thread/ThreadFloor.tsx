@@ -111,7 +111,7 @@ function AuthorCard({ author, id }: { author: ThreadAuthor; id: string }) {
       ) : null}
       {author.medals?.length ? (
         <div className="author-card-medals">
-          <ProfileMedalGallery medals={author.medals} variant="compact" />
+          <ProfileMedalGallery medals={author.medals} profileName={author.name} variant="compact" />
         </div>
       ) : null}
       <div ref={tagMeasureRef} className="author-card-tag-width-measure" aria-hidden="true">
@@ -152,7 +152,7 @@ function AuthorProfile({ author }: { author: ThreadAuthor }) {
         </div>
       )}
       <DisplayedTagList tags={displayedTags} />
-      <ProfileMedalGallery medals={author.medals ?? []} variant="compact" />
+      <ProfileMedalGallery medals={author.medals ?? []} profileName={author.name} variant="compact" />
       <dl className="thread-author-profile-stats">
         <div><dt>主题</dt><dd>{author.topics}</dd></div>
         <div><dt>回复</dt><dd>{author.replies}</dd></div>

@@ -1,6 +1,7 @@
 import { ChevronLeft, ChevronRight, X } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
+import { fetchPublicUserMedals } from '../../api/medals';
 import type { UserMedal } from '../../data/medals';
 import { MedalBadge } from './MedalBadge';
 
@@ -10,20 +11,33 @@ const MEDAL_DATE_FORMATTER = new Intl.DateTimeFormat('zh-CN', {
 
 export function ProfileMedalGallery({
   medals,
+  profileName,
   variant = 'profile',
 }: {
   medals: UserMedal[];
+  profileName?: string;
   variant?: 'compact' | 'profile';
 }) {
   const [activeIndex, setActiveIndex] = useState<number | null>(null);
+  const [loadedMedals, setLoadedMedals] = useState<UserMedal[]>([]);
   const closeButtonRef = useRef<HTMLButtonElement>(null);
   const dialogRef = useRef<HTMLElement>(null);
   const lightboxOpen = activeIndex !== null;
-  const activeMedal = activeIndex === null ? null : medals[activeIndex] ?? null;
+  const selectedMedal = activeIndex === null ? null : medals[activeIndex] ?? null;
+  const activeMedal = selectedMedal
+    ? loadedMedals.find((medal) => medal.id === selectedMedal.id) ?? selectedMedal
+    : null;
 
   useEffect(() => {
     if (activeIndex !== null && activeIndex >= medals.length) setActiveIndex(null);
   }, [activeIndex, medals.length]);
+
+  useEffect(() => {
+    if (!activeMedal || activeMedal.largeImagePath || !profileName?.trim()) return;
+    const controller = new AbortController();
+    void fetchPublicUserMedals(profileName, controller.signal).then(setLoadedMedals).catch(() => undefined);
+    return () => controller.abort();
+  }, [activeMedal, profileName]);
 
   useEffect(() => {
     if (!lightboxOpen) return;

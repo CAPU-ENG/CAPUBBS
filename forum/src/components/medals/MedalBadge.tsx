@@ -53,7 +53,9 @@ function LargeMedalBadge({ medal }: { medal: UserMedal }) {
         style={{ '--medal-foil': `url(${texture.src})` } as CSSProperties}
       >
         <span className="user-medal-front">
-          <img alt="" draggable={false} src={medal.largeImagePath ?? medal.smallImagePath} />
+          {medal.largeImagePath ? (
+            <img alt="" draggable={false} src={medal.largeImagePath} />
+          ) : null}
           <span aria-hidden="true" className="user-medal-shine" />
           <span aria-hidden="true" className="user-medal-glare" />
         </span>

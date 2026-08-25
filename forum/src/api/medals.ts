@@ -170,6 +170,16 @@ export async function fetchSelfMedals(signal?: AbortSignal): Promise<UserMedal[]
   return itemsFrom(data).map(mapUserMedal).filter(isPresent);
 }
 
+export async function fetchPublicUserMedals(username: string, signal?: AbortSignal): Promise<UserMedal[]> {
+  const data = await requestMedalData({
+    ask: 'user_profile',
+    medal: 1,
+    username: username.trim(),
+  }, signal);
+  const profile = asRow(Array.isArray(data) ? data[0] : data);
+  return mapUserMedals(profile.medals);
+}
+
 export async function updateMedalPreferences(
   displayMedalIds: string[],
   hiddenMedalIds: string[],
