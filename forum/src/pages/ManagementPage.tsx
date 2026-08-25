@@ -8,6 +8,7 @@ import {
   LoaderCircle,
   Mail,
   MapPin,
+  Medal,
   Pin,
   PinOff,
   Search,
@@ -43,13 +44,14 @@ import {
 } from '../api/management';
 import defaultAvatar from '../assets/bg/bicycle.svg';
 import { AppBackground } from '../components/layout/AppBackground';
+import { MedalManagementWorkspace } from '../components/management/MedalManagementWorkspace';
 import { TagManagementWorkspace } from '../components/management/TagManagementWorkspace';
 import { TopBar } from '../components/layout/TopBar';
 import { useAuth } from '../context/AuthContext';
 import { ALL_BOARDS, PRIMARY_BOARDS, SECONDARY_BOARDS } from '../data/boards';
 import { getLoginPathWithReturnTo, getRegisterPathWithReturnTo } from '../utils/authRoutes';
 
-type AdminTab = 'pins' | 'move' | 'members' | 'moderators' | 'tags';
+type AdminTab = 'pins' | 'move' | 'members' | 'moderators' | 'tags' | 'medals';
 type NoticeKind = 'error' | 'info' | 'success';
 
 const TAB_ITEMS: Array<{ icon: typeof Pin; id: AdminTab; label: string }> = [
@@ -58,6 +60,7 @@ const TAB_ITEMS: Array<{ icon: typeof Pin; id: AdminTab; label: string }> = [
   { icon: Users, id: 'members', label: '会员管理' },
   { icon: Shield, id: 'moderators', label: '版主管理' },
   { icon: Tags, id: 'tags', label: '标签管理' },
+  { icon: Medal, id: 'medals', label: '勋章管理' },
 ];
 const MEMBER_ID_COLLATOR = new Intl.Collator('zh-CN', { numeric: true, sensitivity: 'base' });
 
@@ -121,6 +124,7 @@ export function ManagementPage() {
                 {activeTab === 'members' && <MemberManagementPanel />}
                 {activeTab === 'moderators' && <ModeratorManagementPanel />}
                 {activeTab === 'tags' && <TagManagementWorkspace />}
+                {activeTab === 'medals' && <MedalManagementWorkspace />}
               </div>
             </section>
           </>

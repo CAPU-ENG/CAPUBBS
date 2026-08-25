@@ -1,0 +1,486 @@
+@layer components {
+  .management-medal-card {
+    width: 100%;
+  }
+
+  .management-medal-body {
+    display: grid;
+    grid-template-columns: minmax(330px, 0.88fr) minmax(400px, 1.12fr);
+    min-width: 0;
+  }
+
+  .management-medal-controls {
+    display: grid;
+    align-content: start;
+    gap: 18px;
+    border-right: 1px solid var(--line);
+    padding: 18px;
+  }
+
+  .management-medal-field {
+    display: grid;
+    gap: 7px;
+    min-width: 0;
+  }
+
+  .management-medal-field > span,
+  .management-medal-crop legend,
+  .management-medal-textures legend,
+  .management-medal-preview-column h3 {
+    color: var(--text-muted);
+    font-size: var(--ui-font-size-sm);
+    font-weight: 750;
+  }
+
+  .management-medal-field > input {
+    width: 100%;
+    height: 38px;
+    border: 1px solid var(--line);
+    border-radius: var(--control-radius);
+    padding: 0 10px;
+    background: var(--surface-soft);
+    color: var(--text-strong);
+    font-size: var(--ui-font-size-md);
+    outline: none;
+  }
+
+  .management-medal-field > input:focus {
+    border-color: var(--brand);
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--brand) 14%, transparent);
+  }
+
+  .management-medal-file {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    align-items: center;
+    gap: 9px;
+    min-width: 0;
+    cursor: pointer;
+  }
+
+  .management-medal-file-button {
+    display: inline-flex;
+    min-height: 36px;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    border: 1px solid var(--line);
+    border-radius: var(--control-radius);
+    padding: 0 10px;
+    background: var(--surface-raised);
+    color: var(--text-muted);
+    font-size: var(--ui-font-size-sm);
+    font-weight: 740;
+    transition: border-color 140ms ease, background 140ms ease, color 140ms ease;
+  }
+
+  .management-medal-file:hover .management-medal-file-button,
+  .management-medal-file input:focus-visible + .management-medal-file-button {
+    border-color: var(--brand);
+    background: var(--brand-faint);
+    color: var(--brand-strong);
+  }
+
+  .management-medal-file input:focus-visible + .management-medal-file-button {
+    outline: 3px solid color-mix(in srgb, var(--brand) 16%, transparent);
+    outline-offset: 1px;
+  }
+
+  .management-medal-file output {
+    min-width: 0;
+    overflow: hidden;
+    color: var(--text-faint);
+    font-size: var(--ui-font-size-sm);
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .management-medal-crop,
+  .management-medal-textures {
+    min-width: 0;
+    margin: 0;
+    border: 0;
+    padding: 0;
+  }
+
+  .management-medal-crop legend,
+  .management-medal-textures legend {
+    margin-bottom: 7px;
+    padding: 0;
+  }
+
+  .management-medal-range {
+    display: grid;
+    grid-template-columns: 40px minmax(0, 1fr) 44px;
+    min-height: 40px;
+    align-items: center;
+    gap: 9px;
+    border-bottom: 1px solid var(--line);
+  }
+
+  .management-medal-range > span,
+  .management-medal-range output {
+    color: var(--text-faint);
+    font-size: var(--ui-font-size-xs);
+  }
+
+  .management-medal-range input {
+    width: 100%;
+    margin: 0;
+    accent-color: var(--brand-strong);
+    cursor: pointer;
+  }
+
+  .management-medal-range input:focus-visible {
+    outline: 2px solid var(--brand);
+    outline-offset: 2px;
+  }
+
+  .management-medal-range output {
+    font-variant-numeric: tabular-nums;
+    text-align: right;
+  }
+
+  .management-medal-textures {
+    padding-top: 2px;
+  }
+
+  .management-medal-texture-grid {
+    display: grid;
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+    gap: 9px 7px;
+  }
+
+  .management-medal-texture {
+    display: grid;
+    gap: 5px;
+    min-width: 0;
+    cursor: pointer;
+    text-align: center;
+  }
+
+  .management-medal-texture input {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+  }
+
+  .management-medal-texture > span {
+    width: 100%;
+    aspect-ratio: 1;
+    border: 1px solid var(--line);
+    border-radius: var(--control-radius);
+    background-color: #202524;
+    background-position: center;
+    background-size: cover;
+    transition: border-color 140ms ease, box-shadow 140ms ease;
+  }
+
+  .management-medal-texture:hover > span,
+  .management-medal-texture input:checked + span {
+    border-color: var(--brand);
+  }
+
+  .management-medal-texture input:checked + span {
+    box-shadow: 0 0 0 2px color-mix(in srgb, var(--brand) 22%, transparent);
+  }
+
+  .management-medal-texture input:focus-visible + span {
+    outline: 2px solid var(--brand);
+    outline-offset: 2px;
+  }
+
+  .management-medal-texture small {
+    overflow: hidden;
+    color: var(--text-faint);
+    font-size: var(--ui-font-size-xs);
+    font-weight: 650;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .management-medal-texture input:checked ~ small {
+    color: var(--text-strong);
+  }
+
+  .management-medal-preview-column {
+    display: grid;
+    grid-template-rows: auto 1fr;
+    min-width: 0;
+    gap: 14px;
+    padding: 18px;
+    background: color-mix(in srgb, var(--surface-soft) 55%, transparent);
+  }
+
+  .management-medal-preview-column h3 {
+    margin: 0;
+  }
+
+  .management-medal-preview-stage {
+    display: grid;
+    min-height: 450px;
+    place-items: center;
+    overflow: hidden;
+    padding: 26px;
+    background:
+      linear-gradient(90deg, color-mix(in srgb, var(--line) 52%, transparent) 1px, transparent 1px),
+      linear-gradient(color-mix(in srgb, var(--line) 52%, transparent) 1px, transparent 1px),
+      color-mix(in srgb, var(--surface) 78%, #171b1a);
+    background-size: 24px 24px;
+  }
+
+  .management-medal-preview {
+    width: min(100%, 400px);
+    aspect-ratio: 1;
+    perspective: 700px;
+    touch-action: pan-y;
+  }
+
+  .management-medal-rotator {
+    --medal-tilt-x: 0deg;
+    --medal-tilt-y: 0deg;
+    --medal-pointer-x: 50%;
+    --medal-pointer-y: 50%;
+    --medal-pointer-distance: 0;
+    --medal-effect-intensity: 0;
+    --medal-background-x: 50%;
+    --medal-background-y: 50%;
+    --medal-space: 5.5%;
+    --medal-angle: 128deg;
+    --medal-texture-size: auto 46%;
+
+    position: relative;
+    display: grid;
+    width: 100%;
+    height: 100%;
+    transform: rotateY(var(--medal-tilt-x)) rotateX(var(--medal-tilt-y));
+    transform-origin: center;
+    transform-style: preserve-3d;
+    filter: drop-shadow(0 22px 22px rgb(0 0 0 / 0.34)) drop-shadow(0 7px 8px rgb(0 0 0 / 0.28));
+    will-change: transform;
+  }
+
+  .management-medal-front,
+  .management-medal-outline {
+    grid-area: 1 / 1;
+    width: 100%;
+    height: 100%;
+  }
+
+  .management-medal-front {
+    position: relative;
+    overflow: hidden;
+    clip-path: polygon(
+      29.289% 0,
+      70.711% 0,
+      100% 29.289%,
+      100% 70.711%,
+      70.711% 100%,
+      29.289% 100%,
+      0 70.711%,
+      0 29.289%
+    );
+    background: #151918;
+  }
+
+  .management-medal-front > img {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    display: block;
+    max-width: none;
+    pointer-events: none;
+    user-select: none;
+  }
+
+  .management-medal-shine,
+  .management-medal-glare {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+  }
+
+  .management-medal-shine {
+    display: grid;
+    background-image:
+      var(--medal-foil),
+      repeating-linear-gradient(
+        -33deg,
+        hsl(2 70% 47%) calc(var(--medal-space) * 1),
+        hsl(228 60% 64%) calc(var(--medal-space) * 2),
+        hsl(176 55% 39%) calc(var(--medal-space) * 3),
+        hsl(123 68% 35%) calc(var(--medal-space) * 4),
+        hsl(283 75% 57%) calc(var(--medal-space) * 5),
+        hsl(2 70% 47%) calc(var(--medal-space) * 6)
+      ),
+      repeating-linear-gradient(
+        var(--medal-angle),
+        hsl(227 53% 12% / 0.5) 0%,
+        hsl(180 10% 50%) 2.5%,
+        hsl(83 50% 35%) 5%,
+        hsl(180 10% 50%) 7.5%,
+        hsl(227 53% 12% / 0.5) 10%,
+        hsl(227 53% 12% / 0.5) 15%
+      ),
+      radial-gradient(
+        farthest-corner circle at var(--medal-pointer-x) var(--medal-pointer-y),
+        hsl(189 76% 77% / 0.6) 0%,
+        hsl(147 59% 77% / 0.6) 25%,
+        hsl(271 55% 69% / 0.6) 50%,
+        hsl(355 56% 72% / 0.6) 75%
+      );
+    background-blend-mode: difference, luminosity, soft-light, normal;
+    background-position:
+      center,
+      var(--medal-background-x) var(--medal-background-y),
+      var(--medal-background-x) var(--medal-background-y),
+      var(--medal-background-x) var(--medal-background-y);
+    background-repeat: repeat, repeat, repeat, repeat;
+    background-size: var(--medal-texture-size), 1100% 1100%, 600% 600%, 200% 200%;
+    filter: brightness(calc((var(--medal-pointer-distance) * 0.4) + 0.4)) contrast(2) saturate(1);
+    mix-blend-mode: color-dodge;
+    opacity: calc(var(--medal-effect-intensity) * 0.88);
+  }
+
+  .management-medal-shine::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-image:
+      repeating-linear-gradient(
+        0deg,
+        hsl(283 100% 73%) calc(var(--medal-space) * 1),
+        hsl(2 100% 73%) calc(var(--medal-space) * 2),
+        hsl(53 100% 69%) calc(var(--medal-space) * 3),
+        hsl(93 100% 69%) calc(var(--medal-space) * 4),
+        hsl(176 100% 76%) calc(var(--medal-space) * 5),
+        hsl(228 100% 74%) calc(var(--medal-space) * 6),
+        hsl(283 100% 73%) calc(var(--medal-space) * 7)
+      ),
+      repeating-linear-gradient(
+        var(--medal-angle),
+        #0e152e 0%,
+        hsl(180 10% 60%) 3.8%,
+        hsl(180 29% 66%) 4.5%,
+        hsl(180 10% 60%) 5.2%,
+        #0e152e 10%,
+        #0e152e 12%
+      );
+    background-blend-mode: hue, normal;
+    background-position: 0% var(--medal-background-y), var(--medal-background-x) var(--medal-background-y);
+    background-size: 200% 700%, 300% 100%;
+    mix-blend-mode: lighten;
+    opacity: calc(
+      (0.3 * var(--medal-effect-intensity))
+      + var(--medal-effect-intensity) * var(--medal-pointer-distance) * 0.5
+    );
+  }
+
+  .management-medal-glare {
+    background-image: radial-gradient(
+      farthest-corner circle at var(--medal-pointer-x) var(--medal-pointer-y),
+      hsl(0 0% 100% / 0.75) 0%,
+      hsl(0 0% 0%) 120%
+    );
+    mix-blend-mode: hard-light;
+    opacity: calc(
+      (0.14 * var(--medal-effect-intensity))
+      + var(--medal-effect-intensity) * var(--medal-pointer-distance) * 0.68
+    );
+  }
+
+  .management-medal-front > strong {
+    position: absolute;
+    z-index: 2;
+    right: 15%;
+    bottom: 13%;
+    left: 15%;
+    display: flex;
+    min-height: 54px;
+    align-items: center;
+    justify-content: center;
+    border-top: 1px solid rgb(255 255 255 / 0.48);
+    border-bottom: 1px solid rgb(255 255 255 / 0.3);
+    padding: 7px 12px;
+    background: rgb(9 13 12 / 0.66);
+    color: #fff;
+    font-size: 22px;
+    font-weight: 780;
+    line-height: 1.25;
+    overflow-wrap: anywhere;
+    text-align: center;
+    text-shadow: 0 1px 3px rgb(0 0 0 / 0.68);
+  }
+
+  .management-medal-outline {
+    position: relative;
+    z-index: 3;
+    overflow: visible;
+    pointer-events: none;
+  }
+
+  .management-medal-outline path {
+    fill: none;
+    stroke-linejoin: round;
+  }
+
+  .management-medal-outline-shadow {
+    stroke: rgb(14 17 16 / 0.82);
+    stroke-width: 8;
+  }
+
+  .management-medal-outline-highlight {
+    stroke: rgb(233 241 236 / 0.88);
+    stroke-width: 3;
+  }
+}
+
+@layer utilities {
+  @media (max-width: 940px) {
+    .management-medal-body {
+      grid-template-columns: 1fr;
+    }
+
+    .management-medal-controls {
+      border-right: 0;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .management-medal-preview-stage {
+      min-height: 430px;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .management-medal-controls,
+    .management-medal-preview-column {
+      padding: 14px;
+    }
+
+    .management-medal-texture-grid {
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+    }
+
+    .management-medal-preview-stage {
+      min-height: 0;
+      padding: 24px;
+    }
+
+    .management-medal-preview {
+      width: min(100%, 360px);
+    }
+
+    .management-medal-front > strong {
+      min-height: 46px;
+      font-size: 18px;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .management-medal-rotator {
+      transform: none;
+    }
+  }
+}
