@@ -175,6 +175,14 @@ export function SettingsPage() {
                 }}
               />
               <SettingsCheckbox
+                checked={floorDecorationEnabled}
+                help="在帖子详情页展示用户设置的昼夜楼层装饰。"
+                helpId="floor-decoration-help"
+                icon={<ImageIcon size={15} />}
+                label="展示楼层装饰"
+                onChange={saveFloorDecorationEnabled}
+              />
+              <SettingsCheckbox
                 checked={!authorProfileEnabled && avatarFollowEnabled}
                 disabled={authorProfileEnabled}
                 disabledReason="请先关闭资料卡展示"
@@ -240,14 +248,6 @@ export function SettingsPage() {
                 icon={<Save size={15} />}
                 label="自动保存"
                 onChange={saveAutoSaveEnabled}
-              />
-              <SettingsCheckbox
-                checked={floorDecorationEnabled}
-                help="在帖子详情页展示用户设置的昼夜楼层装饰。"
-                helpId="floor-decoration-help"
-                icon={<ImageIcon size={15} />}
-                label="展示楼层装饰"
-                onChange={saveFloorDecorationEnabled}
               />
               <SettingsCheckbox
                 checked={assistiveBarEnabled}
