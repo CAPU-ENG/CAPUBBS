@@ -1,46 +1,33 @@
-import { Upload } from 'lucide-react';
+import { Crop } from 'lucide-react';
 import {
-  useCallback,
   useEffect,
   useRef,
   useState,
-  type ChangeEvent,
   type CSSProperties,
   type RefObject,
 } from 'react';
 import defaultMedalImage from '../../assets/activity/activity.avif';
 import geometricTexture from '../../assets/medal-textures/09810d1b758b0deaae34fce040e4d60e.jpg';
-import wornTexture from '../../assets/medal-textures/22635.jpg';
 import interlacedTexture from '../../assets/medal-textures/50258bd9234725df864d4369601b1670.jpg';
 import carbonTexture from '../../assets/medal-textures/6e37fd57ab60350a357de4cc54b43f6b.jpg';
-import prismTexture from '../../assets/medal-textures/72c1e5b1496af59c28ae6884afbb73bb.jpg';
-import silverWaveTexture from '../../assets/medal-textures/932d08689a38499082175fef7e2d2824.jpg';
-import matteTexture from '../../assets/medal-textures/annie-spratt-6a3nqQ1YwBw-unsplash.jpg';
 import halftoneTexture from '../../assets/medal-textures/b6fb5952-a33d-45e7-8857-b03eedad9842.jpg';
 import scaleTexture from '../../assets/medal-textures/c863c62bcdaa5bc68e4b462a2b1b1709.jpg';
 import pixelTexture from '../../assets/medal-textures/fa5ec07ec3d7c4fd5dbc067e19d58808.jpg';
-import fabricTexture from '../../assets/medal-textures/preview.jpg';
 import swirlTexture from '../../assets/medal-textures/vu5azD2.jpeg';
+import { AvatarDialog } from '../profile/AvatarEditorDialog';
 
 const OCTAGON_PATH = 'M .310893 0 H .689107 Q .707107 0 .719835 .012728 L .987272 .280165 Q 1 .292893 1 .310893 V .689107 Q 1 .707107 .987272 .719835 L .719835 .987272 Q .707107 1 .689107 1 H .310893 Q .292893 1 .280165 .987272 L .012728 .719835 Q 0 .707107 0 .689107 V .310893 Q 0 .292893 .012728 .280165 L .280165 .012728 Q .292893 0 .310893 0 Z';
-const DEFAULT_CROP = { x: 0, y: 0, zoom: 100 };
 
 const TEXTURES = [
   { id: 'swirl', label: '旋纹', src: swirlTexture },
-  { id: 'worn', label: '磨损', src: wornTexture },
-  { id: 'matte', label: '暗面', src: matteTexture },
   { id: 'halftone', label: '网点', src: halftoneTexture },
-  { id: 'fabric', label: '织物', src: fabricTexture },
   { id: 'geometric', label: '几何', src: geometricTexture },
   { id: 'interlaced', label: '交错', src: interlacedTexture },
   { id: 'carbon', label: '碳纤', src: carbonTexture },
-  { id: 'prism', label: '棱镜', src: prismTexture },
-  { id: 'silver-wave', label: '银波', src: silverWaveTexture },
   { id: 'scale', label: '鳞片', src: scaleTexture },
   { id: 'pixel', label: '像素', src: pixelTexture },
 ] as const;
 
-type CropKey = keyof typeof DEFAULT_CROP;
 type Spring = {
   axes: string[];
   current: Record<string, number>;
@@ -51,222 +38,114 @@ type Spring = {
 export function MedalManagementWorkspace() {
   const [medalName, setMedalName] = useState('活动纪念');
   const [imageSource, setImageSource] = useState(defaultMedalImage);
-  const [imageName, setImageName] = useState('默认图片');
-  const [crop, setCrop] = useState(DEFAULT_CROP);
+  const [cropOpen, setCropOpen] = useState(false);
   const [textureId, setTextureId] = useState<(typeof TEXTURES)[number]['id']>('swirl');
-  const objectUrlRef = useRef<string | null>(null);
   const previewRef = useRef<HTMLDivElement>(null);
   const rotatorRef = useRef<HTMLDivElement>(null);
-  const frameRef = useRef<HTMLDivElement>(null);
-  const imageRef = useRef<HTMLImageElement>(null);
   const selectedTexture = TEXTURES.find((texture) => texture.id === textureId) ?? TEXTURES[0];
-  const displayName = medalName.trim() || '未命名勋章';
 
   useMedalTilt(previewRef, rotatorRef);
 
-  const updateCrop = useCallback(() => {
-    const frame = frameRef.current;
-    const image = imageRef.current;
-    if (!frame || !image?.naturalWidth || !image.naturalHeight) return;
-
-    const frameRect = frame.getBoundingClientRect();
-    const zoom = crop.zoom / 100;
-    const coverScale = Math.max(
-      frameRect.width / image.naturalWidth,
-      frameRect.height / image.naturalHeight,
-    );
-    const renderWidth = image.naturalWidth * coverScale * zoom;
-    const renderHeight = image.naturalHeight * coverScale * zoom;
-    const maxOffsetX = Math.max((renderWidth - frameRect.width) / 2, 0);
-    const maxOffsetY = Math.max((renderHeight - frameRect.height) / 2, 0);
-
-    image.style.width = `${renderWidth}px`;
-    image.style.height = `${renderHeight}px`;
-    image.style.transform = `translate(calc(-50% + ${-maxOffsetX * crop.x / 100}px), calc(-50% + ${-maxOffsetY * crop.y / 100}px))`;
-  }, [crop]);
-
-  useEffect(() => {
-    updateCrop();
-  }, [imageSource, updateCrop]);
-
-  useEffect(() => {
-    const frame = frameRef.current;
-    if (!frame || !('ResizeObserver' in window)) return undefined;
-    const observer = new ResizeObserver(updateCrop);
-    observer.observe(frame);
-    return () => observer.disconnect();
-  }, [updateCrop]);
-
-  useEffect(() => () => {
-    if (objectUrlRef.current) URL.revokeObjectURL(objectUrlRef.current);
-  }, []);
-
-  function changeCrop(key: CropKey, value: number) {
-    setCrop((current) => ({ ...current, [key]: value }));
-  }
-
-  function uploadImage(event: ChangeEvent<HTMLInputElement>) {
-    const file = event.currentTarget.files?.[0];
-    if (!file?.type.startsWith('image/')) {
-      event.currentTarget.value = '';
-      return;
-    }
-
-    const objectUrl = URL.createObjectURL(file);
-    if (objectUrlRef.current) URL.revokeObjectURL(objectUrlRef.current);
-    objectUrlRef.current = objectUrl;
-    setCrop(DEFAULT_CROP);
-    setImageName(file.name);
-    setImageSource(objectUrl);
-    event.currentTarget.value = '';
-  }
-
   return (
-    <section className="management-card management-medal-card">
-      <header className="management-card-heading">
-        <h2>勋章设计</h2>
-      </header>
+    <>
+      <section className="management-card management-medal-card">
+        <header className="management-card-heading">
+          <h2>勋章设计</h2>
+        </header>
 
-      <div className="management-medal-body">
-        <div className="management-medal-controls">
-          <label className="management-medal-field">
-            <span>勋章名称</span>
-            <input
-              maxLength={24}
-              onChange={(event) => setMedalName(event.target.value)}
-              type="text"
-              value={medalName}
-            />
-          </label>
-
-          <div className="management-medal-field">
-            <span>图片</span>
-            <label className="management-medal-file">
-              <input accept="image/*" className="sr-only" onChange={uploadImage} type="file" />
-              <span className="management-medal-file-button">
-                <Upload size={15} />
-                选择图片
-              </span>
-              <output>{imageName}</output>
+        <div className="management-medal-body">
+          <div className="management-medal-controls">
+            <label className="management-medal-field">
+              <span>勋章名称</span>
+              <input
+                maxLength={24}
+                onChange={(event) => setMedalName(event.target.value)}
+                type="text"
+                value={medalName}
+              />
             </label>
+
+            <div className="management-medal-field">
+              <span>图片</span>
+              <button className="management-medal-image-button" onClick={() => setCropOpen(true)} type="button">
+                <Crop size={15} />
+                裁剪图片
+              </button>
+            </div>
+
+            <fieldset className="management-medal-textures">
+              <legend>纹理</legend>
+              <div className="management-medal-texture-grid">
+                {TEXTURES.map((texture) => (
+                  <label className="management-medal-texture" key={texture.id} title={texture.label}>
+                    <input
+                      checked={texture.id === textureId}
+                      name="medal-texture"
+                      onChange={() => setTextureId(texture.id)}
+                      type="radio"
+                      value={texture.id}
+                    />
+                    <span style={{ backgroundImage: `url(${texture.src})` }} />
+                    <small>{texture.label}</small>
+                  </label>
+                ))}
+              </div>
+            </fieldset>
           </div>
 
-          <fieldset className="management-medal-crop">
-            <legend>图片裁剪</legend>
-            <CropControl
-              label="缩放"
-              max={250}
-              min={100}
-              onChange={(value) => changeCrop('zoom', value)}
-              suffix="%"
-              value={crop.zoom}
-            />
-            <CropControl
-              label="水平"
-              max={100}
-              min={-100}
-              onChange={(value) => changeCrop('x', value)}
-              value={crop.x}
-            />
-            <CropControl
-              label="垂直"
-              max={100}
-              min={-100}
-              onChange={(value) => changeCrop('y', value)}
-              value={crop.y}
-            />
-          </fieldset>
-
-          <fieldset className="management-medal-textures">
-            <legend>纹理</legend>
-            <div className="management-medal-texture-grid">
-              {TEXTURES.map((texture) => (
-                <label className="management-medal-texture" key={texture.id} title={texture.label}>
-                  <input
-                    checked={texture.id === textureId}
-                    name="medal-texture"
-                    onChange={() => setTextureId(texture.id)}
-                    type="radio"
-                    value={texture.id}
-                  />
-                  <span style={{ backgroundImage: `url(${texture.src})` }} />
-                  <small>{texture.label}</small>
-                </label>
-              ))}
-            </div>
-          </fieldset>
-        </div>
-
-        <section aria-label="勋章预览" className="management-medal-preview-column">
-          <h3>预览</h3>
-          <div className="management-medal-preview-stage">
-            <svg aria-hidden="true" height="0" width="0">
-              <defs>
-                <clipPath clipPathUnits="objectBoundingBox" id="management-medal-rounded-octagon">
-                  <path d={OCTAGON_PATH} />
-                </clipPath>
-              </defs>
-            </svg>
-            <div
-              aria-label={`勋章预览：${displayName}`}
-              className="management-medal-preview"
-              ref={previewRef}
-              role="img"
-            >
+          <section aria-label="勋章预览" className="management-medal-preview-column">
+            <h3>预览</h3>
+            <div className="management-medal-preview-stage">
+              <svg aria-hidden="true" height="0" width="0">
+                <defs>
+                  <clipPath clipPathUnits="objectBoundingBox" id="management-medal-rounded-octagon">
+                    <path d={OCTAGON_PATH} />
+                  </clipPath>
+                </defs>
+              </svg>
               <div
-                className="management-medal-rotator"
-                ref={rotatorRef}
-                style={{ '--medal-foil': `url(${selectedTexture.src})` } as CSSProperties}
+                aria-label="勋章图案预览"
+                className="management-medal-preview"
+                ref={previewRef}
+                role="img"
               >
                 <div
-                  className="management-medal-front"
-                  ref={frameRef}
-                  style={{ clipPath: 'url(#management-medal-rounded-octagon)' }}
+                  className="management-medal-rotator"
+                  ref={rotatorRef}
+                  style={{ '--medal-foil': `url(${selectedTexture.src})` } as CSSProperties}
                 >
-                  <img alt="" draggable={false} onLoad={updateCrop} ref={imageRef} src={imageSource} />
-                  <div aria-hidden="true" className="management-medal-shine" />
-                  <div aria-hidden="true" className="management-medal-glare" />
-                  <strong>{displayName}</strong>
+                  <div
+                    className="management-medal-front"
+                    style={{ clipPath: 'url(#management-medal-rounded-octagon)' }}
+                  >
+                    <img alt="" draggable={false} src={imageSource} />
+                    <div aria-hidden="true" className="management-medal-shine" />
+                    <div aria-hidden="true" className="management-medal-glare" />
+                  </div>
+                  <svg
+                    aria-hidden="true"
+                    className="management-medal-outline"
+                    preserveAspectRatio="none"
+                    viewBox="0 0 1 1"
+                  >
+                    <path className="management-medal-outline-shadow" d={OCTAGON_PATH} vectorEffect="non-scaling-stroke" />
+                    <path className="management-medal-outline-highlight" d={OCTAGON_PATH} vectorEffect="non-scaling-stroke" />
+                  </svg>
                 </div>
-                <svg
-                  aria-hidden="true"
-                  className="management-medal-outline"
-                  preserveAspectRatio="none"
-                  viewBox="0 0 1 1"
-                >
-                  <path className="management-medal-outline-shadow" d={OCTAGON_PATH} vectorEffect="non-scaling-stroke" />
-                  <path className="management-medal-outline-highlight" d={OCTAGON_PATH} vectorEffect="non-scaling-stroke" />
-                </svg>
               </div>
             </div>
-          </div>
-        </section>
-      </div>
-    </section>
-  );
-}
-
-function CropControl({ label, max, min, onChange, suffix = '', value }: {
-  label: string;
-  max: number;
-  min: number;
-  onChange: (value: number) => void;
-  suffix?: string;
-  value: number;
-}) {
-  return (
-    <label className="management-medal-range">
-      <span>{label}</span>
-      <input
-        max={max}
-        min={min}
-        onChange={(event) => onChange(Number(event.target.value))}
-        step="1"
-        type="range"
-        value={value}
+          </section>
+        </div>
+      </section>
+      <AvatarDialog
+        avatarSrc={imageSource}
+        mode="medal"
+        onClose={() => setCropOpen(false)}
+        onSave={(src) => setImageSource(src)}
+        open={cropOpen}
+        showDefaultOption={false}
       />
-      <output>{value}{suffix}</output>
-    </label>
+    </>
   );
 }
 

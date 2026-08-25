@@ -13,7 +13,7 @@ import defaultAvatar from '../../assets/bg/bicycle.svg';
 
 type AvatarDialogProps = {
   avatarSrc: string;
-  mode?: 'avatar' | 'decoration';
+  mode?: 'avatar' | 'decoration' | 'medal';
   onClose: () => void;
   onSave: (src: string) => Promise<void> | void;
   open: boolean;
@@ -53,6 +53,7 @@ const WORKSPACE_SIZE = 360;
 const MIN_CROP_SIZE = 64;
 const KEYBOARD_MOVE_STEP = 4;
 const corners: ResizeCorner[] = ['nw', 'ne', 'sw', 'se'];
+const ROUNDED_OCTAGON_PATH = 'M .310893 0 H .689107 Q .707107 0 .719835 .012728 L .987272 .280165 Q 1 .292893 1 .310893 V .689107 Q 1 .707107 .987272 .719835 L .719835 .987272 Q .707107 1 .689107 1 H .310893 Q .292893 1 .280165 .987272 L .012728 .719835 Q 0 .707107 0 .689107 V .310893 Q 0 .292893 .012728 .280165 L .280165 .012728 Q .292893 0 .310893 0 Z';
 
 export function AvatarDialog({ avatarSrc, mode = 'avatar', onClose, onSave, open, showDefaultOption = true }: AvatarDialogProps) {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
@@ -81,6 +82,11 @@ export function AvatarDialog({ avatarSrc, mode = 'avatar', onClose, onSave, open
   const safeCropX = clamp(cropX, positionBounds.minX, positionBounds.maxX);
   const safeCropY = clamp(cropY, positionBounds.minY, positionBounds.maxY);
   const isDecoration = mode === 'decoration';
+  const isMedal = mode === 'medal';
+  const closeLabel = isMedal ? '关闭勋章图片裁剪窗口' : isDecoration ? '关闭装饰图片裁剪窗口' : '关闭头像编辑窗口';
+  const cropLabel = isMedal ? '勋章图片裁剪框' : isDecoration ? '装饰图片裁剪框' : '头像裁剪框';
+  const editorTitle = isMedal ? '裁剪勋章图片' : isDecoration ? '裁剪装饰图片' : '加工头像';
+  const previewAlt = isMedal ? '勋章图片裁切预览' : isDecoration ? '装饰图片裁切预览' : '头像裁切预览';
 
   useEffect(() => {
     if (!open) return;
@@ -297,11 +303,11 @@ export function AvatarDialog({ avatarSrc, mode = 'avatar', onClose, onSave, open
 
     try {
       setIsSaving(true);
-      setStatus(isDecoration ? '正在处理装饰图片' : '正在保存头像');
+      setStatus(isMedal ? '正在处理勋章图片' : isDecoration ? '正在处理装饰图片' : '正在保存头像');
       await onSave(nextAvatar);
       onClose();
     } catch (error) {
-      setStatus(error instanceof Error ? error.message : isDecoration ? '装饰图片处理失败，请重试' : '头像保存失败，请重试');
+      setStatus(error instanceof Error ? error.message : isMedal ? '勋章图片处理失败，请重试' : isDecoration ? '装饰图片处理失败，请重试' : '头像保存失败，请重试');
     } finally {
       setIsSaving(false);
     }
@@ -309,11 +315,20 @@ export function AvatarDialog({ avatarSrc, mode = 'avatar', onClose, onSave, open
 
   return createPortal(
     <div className="profile-dialog-backdrop" role="presentation">
-      <button className="profile-dialog-dismiss" type="button" aria-label={isDecoration ? '关闭装饰图片裁剪窗口' : '关闭头像编辑窗口'} onClick={isSaving ? undefined : onClose} />
+      {isMedal ? (
+        <svg aria-hidden="true" height="0" width="0">
+          <defs>
+            <clipPath clipPathUnits="objectBoundingBox" id="profile-medal-rounded-octagon">
+              <path d={ROUNDED_OCTAGON_PATH} />
+            </clipPath>
+          </defs>
+        </svg>
+      ) : null}
+      <button className="profile-dialog-dismiss" type="button" aria-label={closeLabel} onClick={isSaving ? undefined : onClose} />
       <section className="profile-dialog profile-avatar-editor" role="dialog" aria-modal="true" aria-labelledby="avatar-editor-title">
         <header>
           <span><Scissors size={18} /></span>
-          <h2 id="avatar-editor-title">{isDecoration ? '裁剪装饰图片' : '加工头像'}</h2>
+          <h2 id="avatar-editor-title">{editorTitle}</h2>
           <button aria-label="关闭" disabled={isSaving} type="button" onClick={onClose}><X size={18} /></button>
         </header>
 
@@ -337,10 +352,10 @@ export function AvatarDialog({ avatarSrc, mode = 'avatar', onClose, onSave, open
                     />
                     <div className="profile-avatar-crop-shade" />
                     <div
-                      className={`profile-avatar-crop-box${isDecoration ? ' profile-avatar-crop-box-decoration' : ''}`}
+                      className={`profile-avatar-crop-box${isDecoration ? ' profile-avatar-crop-box-decoration' : ''}${isMedal ? ' profile-avatar-crop-box-medal' : ''}`}
                       role="group"
                       tabIndex={0}
-                      aria-label={isDecoration ? '装饰图片裁剪框' : '头像裁剪框'}
+                      aria-label={cropLabel}
                       onKeyDown={moveCropWithKeyboard}
                       onPointerCancel={endDrag}
                       onPointerDown={(event) => beginDrag(event, 'move')}
@@ -348,20 +363,28 @@ export function AvatarDialog({ avatarSrc, mode = 'avatar', onClose, onSave, open
                       onPointerUp={endDrag}
                       style={{ height: safeCropSize, left: safeCropX, top: safeCropY, width: safeCropSize }}
                     >
-                      <div className="profile-avatar-crop-image">
-                      <img
-                        src={sourceSrc}
-                        alt=""
-                        draggable={false}
-                        style={{
-                          height: displayMetrics.height,
-                          left: displayMetrics.offsetX - safeCropX,
-                          top: displayMetrics.offsetY - safeCropY,
-                          width: displayMetrics.width,
-                        }}
-                      />
+                      <div
+                        className="profile-avatar-crop-image"
+                        style={isMedal ? { clipPath: 'url(#profile-medal-rounded-octagon)' } : undefined}
+                      >
+                        <img
+                          src={sourceSrc}
+                          alt=""
+                          draggable={false}
+                          style={{
+                            height: displayMetrics.height,
+                            left: displayMetrics.offsetX - safeCropX,
+                            top: displayMetrics.offsetY - safeCropY,
+                            width: displayMetrics.width,
+                          }}
+                        />
                         <i /><i /><i /><i />
                       </div>
+                      {isMedal ? (
+                        <svg aria-hidden="true" className="profile-avatar-crop-octagon-outline" preserveAspectRatio="none" viewBox="0 0 1 1">
+                          <path d={ROUNDED_OCTAGON_PATH} vectorEffect="non-scaling-stroke" />
+                        </svg>
+                      ) : null}
                       {corners.map((corner) => (
                         <span
                           aria-hidden="true"
@@ -387,8 +410,8 @@ export function AvatarDialog({ avatarSrc, mode = 'avatar', onClose, onSave, open
           </div>
 
           <aside className="profile-avatar-editor-aside">
-            <div className={`profile-avatar-result${isDecoration ? ' profile-avatar-result-decoration' : ''}`}>
-              {previewSrc ? <img src={previewSrc} alt={isDecoration ? '装饰图片裁切预览' : '头像裁切预览'} /> : <div className="profile-avatar-empty-result"><ImagePlus size={22} /><span>上传后预览</span></div>}
+            <div className={`profile-avatar-result${isDecoration ? ' profile-avatar-result-decoration' : ''}${isMedal ? ' profile-avatar-result-medal' : ''}`}>
+              {previewSrc ? <img src={previewSrc} alt={previewAlt} /> : <div className="profile-avatar-empty-result"><ImagePlus size={22} /><span>上传后预览</span></div>}
             </div>
             <input ref={fileInputRef} hidden type="file" accept="image/*" onChange={handleUpload} />
             <button type="button" disabled={isSaving} onClick={() => fileInputRef.current?.click()}><Upload size={15} />上传图片</button>
@@ -401,7 +424,7 @@ export function AvatarDialog({ avatarSrc, mode = 'avatar', onClose, onSave, open
         <footer className="profile-dialog-footer">
           <button className="profile-dialog-cancel" type="button" disabled={isSaving} onClick={onClose}>取消</button>
           <button className="profile-dialog-confirm" type="button" disabled={isSaving || !sourceSrc} onClick={saveAvatar}>
-            <Check size={14} />{isSaving ? '处理中' : isDecoration ? '使用裁剪结果' : '保存头像'}
+            <Check size={14} />{isSaving ? '处理中' : isMedal || isDecoration ? '使用裁剪结果' : '保存头像'}
           </button>
         </footer>
       </section>

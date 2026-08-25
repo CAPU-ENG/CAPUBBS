@@ -1318,6 +1318,37 @@
     outline-offset: 3px;
   }
 
+  .profile-avatar-crop-box-medal {
+    border: 0;
+    outline: 0;
+  }
+
+  .profile-avatar-crop-box-medal:focus-visible {
+    outline: 0;
+  }
+
+  .profile-avatar-crop-octagon-outline {
+    position: absolute;
+    z-index: 1;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    overflow: visible;
+    pointer-events: none;
+  }
+
+  .profile-avatar-crop-octagon-outline path {
+    fill: none;
+    stroke: #fff;
+    stroke-linejoin: round;
+    stroke-width: 2;
+  }
+
+  .profile-avatar-crop-box-medal:focus-visible .profile-avatar-crop-octagon-outline path {
+    stroke: var(--brand);
+    stroke-width: 3;
+  }
+
   .profile-avatar-crop-box-decoration::after {
     position: absolute;
     z-index: 1;
@@ -1425,6 +1456,11 @@
   .profile-avatar-result-decoration img {
     -webkit-mask-image: linear-gradient(135deg, rgb(0 0 0 / 0.8) 0%, rgb(0 0 0 / 0.8) 10%, rgb(0 0 0 / 0.7) 18%, transparent 34%);
     mask-image: linear-gradient(135deg, rgb(0 0 0 / 0.8) 0%, rgb(0 0 0 / 0.8) 10%, rgb(0 0 0 / 0.7) 18%, transparent 34%);
+  }
+
+  .profile-avatar-result-medal img {
+    border: 0;
+    clip-path: url('#profile-medal-rounded-octagon');
   }
 
   .profile-avatar-empty-result {
