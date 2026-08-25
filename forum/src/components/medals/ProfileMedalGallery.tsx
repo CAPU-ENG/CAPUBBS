@@ -114,9 +114,6 @@ export function ProfileMedalGallery({ medals }: { medals: UserMedal[] }) {
             </button>
 
             <div className="profile-medal-lightbox-stage">
-              <div className="profile-medal-lightbox-medal">
-                <MedalBadge key={activeMedal.id} medal={activeMedal} size="large" />
-              </div>
               <div aria-live="polite" className="profile-medal-lightbox-copy">
                 <span>{(activeIndex ?? 0) + 1} / {medals.length}</span>
                 <h2 id="profile-medal-lightbox-title">{activeMedal.name}</h2>
@@ -124,6 +121,9 @@ export function ProfileMedalGallery({ medals }: { medals: UserMedal[] }) {
                   {activeMedal.role ? <div><dt>职务</dt><dd>{activeMedal.role}</dd></div> : null}
                   <div><dt>获取日期</dt><dd>{formatAwardedAt(activeMedal.awardedAt)}</dd></div>
                 </dl>
+              </div>
+              <div className="profile-medal-lightbox-medal">
+                <MedalBadge key={activeMedal.id} medal={activeMedal} size="large" />
               </div>
             </div>
 
