@@ -84,7 +84,7 @@
   .medal-demo-stack {
     position: relative;
     width: clamp(248px, 42vw, 342px);
-    aspect-ratio: 0.88;
+    aspect-ratio: 1;
     filter: drop-shadow(0 1px 0 rgb(255 255 255 / 0.22));
     transform: rotateX(var(--tilt-x)) rotateY(var(--tilt-y));
     transform-style: preserve-3d;
@@ -101,7 +101,7 @@
   .medal-demo-card {
     position: absolute;
     inset: 0;
-    clip-path: polygon(50% 0, 96% 19%, 96% 81%, 50% 100%, 4% 81%, 4% 19%);
+    clip-path: polygon(29% 0, 71% 0, 100% 29%, 100% 71%, 71% 100%, 29% 100%, 0 71%, 0 29%);
   }
 
   .medal-demo-shadow {
@@ -193,8 +193,8 @@
   .medal-demo-card-header {
     position: absolute;
     top: 17.5%;
-    right: 10%;
-    left: 10%;
+    right: 13%;
+    left: 13%;
     z-index: 2;
     display: flex;
     min-width: 0;
@@ -233,8 +233,8 @@
   .medal-demo-artwork {
     position: absolute;
     top: 28%;
-    right: 9.5%;
-    left: 9.5%;
+    right: 10.5%;
+    left: 10.5%;
     z-index: 2;
     height: 34%;
     overflow: hidden;
@@ -381,20 +381,61 @@
 
   .medal-demo-foil {
     inset: 11px;
-    background:
-      repeating-linear-gradient(118deg, transparent 0 15px, rgb(255 255 255 / 0.09) 15px 16px, transparent 16px 31px),
-      radial-gradient(circle at var(--pointer-x) var(--pointer-y), rgb(255 255 255 / 0.46), transparent 39%);
-    mix-blend-mode: screen;
-    opacity: 0.66;
+    background-image:
+      radial-gradient(circle at var(--pointer-x) var(--pointer-y), rgb(255 255 255 / 0.76), rgb(20 20 20 / 0.18) 42%, transparent 68%),
+      url('../assets/medal/illusion.png');
+    background-position: center, var(--pointer-x) var(--pointer-y);
+    background-size: cover, 170% 170%;
+    background-blend-mode: soft-light;
+    filter: brightness(1.08) contrast(1.2) saturate(0.85);
+    mix-blend-mode: color-dodge;
+    opacity: 0.62;
+    -webkit-mask-image: url('../assets/medal/illusion-mask.png');
+    mask-image: url('../assets/medal/illusion-mask.png');
+    -webkit-mask-position: var(--pointer-x) var(--pointer-y);
+    mask-position: var(--pointer-x) var(--pointer-y);
+    -webkit-mask-size: 150% 150%;
+    mask-size: 150% 150%;
+  }
+
+  .medal-demo-foil::before,
+  .medal-demo-foil::after {
+    position: absolute;
+    inset: 0;
+    content: "";
+  }
+
+  .medal-demo-foil::before {
+    background-image: url('../assets/medal/glitter.png');
+    background-position: var(--pointer-x) var(--pointer-y);
+    background-size: 42% 42%;
+    filter: brightness(1.18) contrast(1.65);
+    mix-blend-mode: color-dodge;
+    opacity: 0.28;
+  }
+
+  .medal-demo-foil::after {
+    background: radial-gradient(
+      farthest-corner circle at var(--pointer-x) var(--pointer-y),
+      rgb(255 255 255 / 0.78) 0,
+      rgb(255 255 255 / 0.12) 28%,
+      rgb(0 0 0 / 0.66) 86%
+    );
+    filter: brightness(0.82) contrast(2.4);
+    mix-blend-mode: luminosity;
+    opacity: 0.7;
   }
 
   .medal-demo-interaction[data-material="holographic"] .medal-demo-foil {
-    background:
-      repeating-linear-gradient(115deg, rgb(255 70 150 / 0.24) 0 14px, rgb(77 229 255 / 0.27) 14px 29px, rgb(255 225 85 / 0.23) 29px 43px, rgb(133 92 255 / 0.24) 43px 58px),
+    background-image:
+      url('../assets/medal/illusion.png'),
+      repeating-linear-gradient(115deg, #ff4696 0 14px, #4de5ff 14px 29px, #ffe155 29px 43px, #855cff 43px 58px),
       conic-gradient(from 35deg at var(--pointer-x) var(--pointer-y), #ff6fa6, #78e7ff, #fff087, #9c83ff, #ff6fa6);
-    background-position: var(--pointer-x) var(--pointer-y), center;
-    filter: saturate(1.18);
-    opacity: 0.42;
+    background-position: var(--pointer-x) var(--pointer-y), var(--pointer-x) var(--pointer-y), center;
+    background-size: 160% 160%, 260% 260%, cover;
+    background-blend-mode: soft-light, overlay;
+    filter: brightness(0.92) contrast(1.55) saturate(1.12);
+    opacity: 0.58;
   }
 
   .medal-demo-glare {
@@ -524,14 +565,14 @@
     }
 
     .medal-demo-interaction {
-      min-height: 430px;
+      min-height: 400px;
       padding: 42px 18px 50px;
     }
   }
 
   @media (max-width: 460px) {
     .medal-demo-interaction {
-      min-height: 390px;
+      min-height: 370px;
       padding: 34px 14px 42px;
     }
 
