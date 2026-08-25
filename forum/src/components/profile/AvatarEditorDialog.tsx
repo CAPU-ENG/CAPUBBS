@@ -337,10 +337,10 @@ export function AvatarDialog({ avatarSrc, mode = 'avatar', onClose, onSave, open
                     />
                     <div className="profile-avatar-crop-shade" />
                     <div
-                      className="profile-avatar-crop-box"
+                      className={`profile-avatar-crop-box${isDecoration ? ' profile-avatar-crop-box-decoration' : ''}`}
                       role="group"
                       tabIndex={0}
-                      aria-label="头像裁剪框"
+                      aria-label={isDecoration ? '装饰图片裁剪框' : '头像裁剪框'}
                       onKeyDown={moveCropWithKeyboard}
                       onPointerCancel={endDrag}
                       onPointerDown={(event) => beginDrag(event, 'move')}

@@ -1318,6 +1318,19 @@
     outline-offset: 3px;
   }
 
+  .profile-avatar-crop-box-decoration::after {
+    position: absolute;
+    z-index: 1;
+    top: 50%;
+    left: 50%;
+    width: 141.421%;
+    border-top: 2px dashed rgb(255 255 255 / 82%);
+    content: "";
+    pointer-events: none;
+    transform: translate(-50%, -50%) rotate(-45deg);
+    transform-origin: center;
+  }
+
   .profile-avatar-crop-image {
     position: absolute;
     inset: 0;
@@ -1353,7 +1366,7 @@
 
   .profile-avatar-crop-box > span {
     position: absolute;
-    z-index: 1;
+    z-index: 2;
     width: 22px;
     height: 22px;
     border-color: #fff;
