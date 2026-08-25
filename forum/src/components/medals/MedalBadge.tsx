@@ -5,14 +5,17 @@ import { useMedalTilt } from './useMedalTilt';
 
 export function MedalBadge({ medal, size = 'compact' }: { medal: UserMedal; size?: 'compact' | 'large' }) {
   if (size === 'compact') {
+    const label = medalLabel(medal);
     return (
       <span
-        aria-label={medalLabel(medal)}
+        aria-label={label}
         className="user-medal user-medal-compact"
+        data-tooltip={label}
         role="img"
-        title={medalLabel(medal)}
       >
-        <img alt="" draggable={false} src={medal.smallImagePath} />
+        <span aria-hidden="true" className="user-medal-compact-visual">
+          <img alt="" draggable={false} src={medal.smallImagePath} />
+        </span>
       </span>
     );
   }
@@ -64,5 +67,5 @@ function LargeMedalBadge({ medal }: { medal: UserMedal }) {
 }
 
 function medalLabel(medal: UserMedal) {
-  return medal.role ? `${medal.name}，${medal.role}` : medal.name;
+  return medal.role ? `${medal.name}-${medal.role}` : medal.name;
 }
