@@ -11,10 +11,11 @@ import {
   UserPlus,
   Users,
 } from 'lucide-react';
-import { useMemo, useRef, useState, type CSSProperties, type FormEvent, type RefObject } from 'react';
+import { useMemo, useRef, useState, type FormEvent, type RefObject } from 'react';
 import defaultMedalImage from '../../assets/activity/activity.avif';
+import { getPublicProfilePath } from '../../utils/userRoutes';
 import { MedalDesignerPanel } from './MedalDesignerPanel';
-import { MEDAL_TEXTURES, type MedalDraft, type MedalTextureId } from './medalDesign';
+import { type MedalDraft, type MedalTextureId } from './medalDesign';
 
 type MedalMember = {
   acquiredAt: string;
@@ -231,7 +232,6 @@ export function MedalManagementWorkspace() {
                   <MedalThumbnail medal={medal} />
                   <span>
                     <strong>{medal.name}</strong>
-                    <small>{medal.members.length} 名成员</small>
                   </span>
                 </button>
               ))}
@@ -331,12 +331,10 @@ export function MedalManagementWorkspace() {
   );
 }
 
-function MedalThumbnail({ medal }: { medal: Pick<MedalRecord, 'imageSource' | 'textureId'> }) {
-  const texture = MEDAL_TEXTURES.find((item) => item.id === medal.textureId) ?? MEDAL_TEXTURES[0];
+function MedalThumbnail({ medal }: { medal: Pick<MedalRecord, 'imageSource'> }) {
   return (
     <span className="management-medal-thumbnail">
       <img alt="" src={medal.imageSource} />
-      <i aria-hidden="true" style={{ backgroundImage: `url(${texture.src})` } as CSSProperties} />
     </span>
   );
 }
@@ -349,7 +347,7 @@ function MemberList({ members }: { members: MedalMember[] }) {
         <tbody>
           {members.length > 0 ? members.map((member) => (
             <tr key={member.id}>
-              <td><strong>{member.id}</strong><span>{member.name}</span></td>
+              <td><a href={getPublicProfilePath(member.id)}>{member.id}</a></td>
               <td>{member.role}</td>
               <td>{member.acquiredAt}</td>
             </tr>
@@ -383,7 +381,7 @@ function SingleImportPanel({ check, memberId, notice, onCheck, onImport, onMembe
         <div className="management-medal-check-result" data-state={check.state}>
           {check.state === 'available' ? <BadgeCheck size={18} /> : <CircleAlert size={18} />}
           <div>
-            <strong>{check.member?.id ?? memberId}</strong>
+            <a href={getPublicProfilePath(check.member?.id ?? memberId)}>{check.member?.id ?? memberId}</a>
             <span>{checkLabel(check)}</span>
           </div>
           <button className="management-primary-button" disabled={check.state !== 'available' || !role.trim()} onClick={onImport} type="button"><UserPlus size={15} />确认导入</button>
@@ -430,8 +428,10 @@ function BatchImportPanel({ fileName, inputRef, notice, onFileChange, onImport, 
             {rows.map((row) => (
               <tr key={`${row.id}-${row.role}`}>
                 <td>
-                  <strong>{row.id}</strong>
-                  <span data-state={row.state}>{row.state === 'available' ? <BadgeCheck size={13} /> : <CircleAlert size={13} />}{batchCheckLabel(row)}</span>
+                  <div className="management-medal-batch-id">
+                    <a href={getPublicProfilePath(row.id)}>{row.id}</a>
+                    <span data-state={row.state}>{row.state === 'available' ? <BadgeCheck size={13} /> : <CircleAlert size={13} />}{batchCheckLabel(row)}</span>
+                  </div>
                 </td>
                 <td>{row.role}</td>
               </tr>
@@ -456,8 +456,8 @@ function checkLabel(check: IndividualCheck) {
 }
 
 function batchCheckLabel(row: { member?: MemberDirectoryEntry; state: CheckState }) {
-  if (row.state === 'available') return `${row.member?.name ?? ''} · 可导入`;
-  if (row.state === 'already-owned') return `${row.member?.name ?? ''} · 已拥有`;
+  if (row.state === 'available') return '可导入';
+  if (row.state === 'already-owned') return '已拥有';
   return '未找到成员';
 }
 
@@ -466,7 +466,7 @@ function findDirectoryMember(id: string) {
 }
 
 function sameId(left: string, right: string) {
-  return left.trim().toLocaleLowerCase() === right.trim().toLocaleLowerCase();
+  return left.trim() === right.trim();
 }
 
 function pickDraft(medal: MedalRecord): MedalDraft {
