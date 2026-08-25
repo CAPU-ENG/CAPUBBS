@@ -35,7 +35,7 @@ export function MedalList({ medals }: { medals: UserMedal[] }) {
 function LargeMedalBadge({ medal }: { medal: UserMedal }) {
   const previewRef = useRef<HTMLSpanElement>(null);
   const rotatorRef = useRef<HTMLSpanElement>(null);
-  const texture = MEDAL_TEXTURES.find((item) => item.id === medal.textureId) ?? MEDAL_TEXTURES[0];
+  const texture = MEDAL_TEXTURES.find((item) => item.id === medal.textureId);
 
   useMedalTilt(previewRef, rotatorRef);
 
@@ -50,7 +50,7 @@ function LargeMedalBadge({ medal }: { medal: UserMedal }) {
       <span
         className="user-medal-rotator"
         ref={rotatorRef}
-        style={{ '--medal-foil': `url(${texture.src})` } as CSSProperties}
+        style={texture ? { '--medal-foil': `url(${texture.src})` } as CSSProperties : undefined}
       >
         <span className="user-medal-front">
           {medal.largeImagePath ? (

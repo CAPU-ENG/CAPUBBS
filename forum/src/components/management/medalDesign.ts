@@ -21,6 +21,19 @@ export const MEDAL_TEXTURES = [
   { id: 'pixel', label: '像素', src: pixelTexture },
 ] as const;
 
+const preloadedMedalTextures: HTMLImageElement[] = [];
+
+export function preloadMedalTextures() {
+  if (typeof Image === 'undefined' || preloadedMedalTextures.length > 0) return;
+  MEDAL_TEXTURES.forEach((texture) => {
+    const image = new Image();
+    image.decoding = 'async';
+    image.fetchPriority = 'low';
+    image.src = texture.src;
+    preloadedMedalTextures.push(image);
+  });
+}
+
 export type MedalDraft = {
   imageSource: string;
   name: string;
