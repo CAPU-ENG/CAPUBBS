@@ -190,7 +190,7 @@ export function GalleryDialog({
             type="button"
           >
             <UploadCloud size={18} />
-            {isCheckingFiles ? '正在处理图片' : images.length > 0 ? '继续添加图片' : '选择图片'}
+            {isCheckingFiles ? '正在处理图片' : images.length > 0 ? '继续添加图片' : '选择若干张图片'}
           </button>
           <input
             ref={inputRef}
