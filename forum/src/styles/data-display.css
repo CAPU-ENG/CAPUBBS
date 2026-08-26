@@ -1351,6 +1351,7 @@
 
     .tag-summary-card-header {
       align-items: center;
+      padding-top: 12px;
     }
 
     .tag-summary-mode-switch {
