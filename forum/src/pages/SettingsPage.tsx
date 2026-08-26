@@ -17,6 +17,7 @@ import {
   Save,
   Signature,
   SunMoon,
+  Tags,
   UserRound,
 } from 'lucide-react';
 import { useEffect, useId, useRef, useState, type ReactNode } from 'react';
@@ -36,6 +37,7 @@ import { useAvatarFollowEnabled } from '../hooks/useAvatarFollow';
 import { useCompactMode } from '../hooks/useCompactMode';
 import { useForumContentFontSize } from '../hooks/useForumContentFontSize';
 import { usePinnedBoardIds } from '../hooks/usePinnedBoards';
+import { useTagMedalDisplayEnabled } from '../hooks/useTagMedalDisplay';
 import { useTheme } from '../hooks/useTheme';
 import { useTopBarAutoHideEnabled } from '../hooks/useTopBarAutoHide';
 import {
@@ -54,6 +56,7 @@ import {
   saveForumContentFontSize,
 } from '../utils/forumFontSize';
 import { MAX_PINNED_BOARDS, savePinnedBoardIds } from '../utils/localSettings';
+import { saveTagMedalDisplayEnabled } from '../utils/tagMedalDisplay';
 import { saveThemeFollowsSystem } from '../utils/theme';
 import { saveTopBarAutoHideEnabled } from '../utils/topBarAutoHide';
 
@@ -69,6 +72,7 @@ export function SettingsPage() {
   const pinnedBoardIds = usePinnedBoardIds();
   const { followsSystem } = useTheme();
   const signatureToggleEnabled = useSignatureToggleEnabled();
+  const tagMedalDisplayEnabled = useTagMedalDisplayEnabled();
   const topBarAutoHideEnabled = useTopBarAutoHideEnabled();
   const waterfallFeedEnabled = useWaterfallFeedEnabled();
   const [draftBoardIds, setDraftBoardIds] = useState(pinnedBoardIds);
@@ -192,6 +196,12 @@ export function SettingsPage() {
                 icon={<ImageIcon size={15} />}
                 label="展示楼层装饰"
                 onChange={saveFloorDecorationEnabled}
+              />
+              <SettingsCheckbox
+                checked={tagMedalDisplayEnabled}
+                icon={<Tags size={15} />}
+                label="展示标签和勋章"
+                onChange={saveTagMedalDisplayEnabled}
               />
             </div>
 

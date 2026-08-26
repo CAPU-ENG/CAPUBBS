@@ -13,12 +13,14 @@ export function useThreadData({
   bid,
   decoration,
   page,
+  tagMedalDisplay = true,
   tid,
 }: {
   authorOnly: boolean;
   bid: number;
   decoration: boolean;
   page: number;
+  tagMedalDisplay?: boolean;
   tid: number;
 }) {
   const [data, setData] = useState<ThreadDetail | null>(null);
@@ -39,7 +41,15 @@ export function useThreadData({
       return () => controller.abort();
     }
 
-    void fetchThreadDetail({ authorOnly, bid, decoration, page, signal: controller.signal, tid }).then(async (detail) => {
+    void fetchThreadDetail({
+      authorOnly,
+      bid,
+      decoration,
+      page,
+      signal: controller.signal,
+      tagMedalDisplay,
+      tid,
+    }).then(async (detail) => {
       if (!decoration || !detail.viewer || detail.viewer.floorDecoration !== undefined) return detail;
 
       try {
@@ -62,7 +72,7 @@ export function useThreadData({
     );
 
     return () => controller.abort();
-  }, [authorOnly, bid, decoration, page, requestVersion, tid]);
+  }, [authorOnly, bid, decoration, page, requestVersion, tagMedalDisplay, tid]);
 
   return { data, error, retry, status };
 }

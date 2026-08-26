@@ -21,6 +21,7 @@ import { useAuthorProfileEnabled } from '../hooks/useAuthorProfile';
 import { useAvatarFollowDisabled } from '../hooks/useAvatarFollow';
 import { useThreadTopBar } from '../hooks/useThreadTopBar';
 import { useThreadData } from '../hooks/useThreadData';
+import { useTagMedalDisplayEnabled } from '../hooks/useTagMedalDisplay';
 import { useTheme } from '../hooks/useTheme';
 import { useTopBarAutoHideEnabled } from '../hooks/useTopBarAutoHide';
 import { saveSignaturesHidden } from '../utils/assistiveFeatures';
@@ -69,11 +70,16 @@ export function ThreadPage() {
   const avatarFollowDisabled = authorProfileEnabled || avatarFollowPreferenceDisabled;
   const backToTopEnabled = useBackToTopEnabled();
   const floorDecorationEnabled = useFloorDecorationEnabled();
+  const tagMedalDisplayEnabled = useTagMedalDisplayEnabled();
   const topBarAutoHideEnabled = useTopBarAutoHideEnabled();
   const { viewer } = useAuth();
   const { theme } = useTheme();
   const request = getThreadRequest();
-  const { data, error, retry, status } = useThreadData({ ...request, decoration: floorDecorationEnabled });
+  const { data, error, retry, status } = useThreadData({
+    ...request,
+    decoration: floorDecorationEnabled,
+    tagMedalDisplay: tagMedalDisplayEnabled,
+  });
   const [quoteRequest, setQuoteRequest] = useState<QuoteRequest | null>(null);
   const quoteRequestIdRef = useRef(0);
   const [activeFloor, setActiveFloor] = useState(1);

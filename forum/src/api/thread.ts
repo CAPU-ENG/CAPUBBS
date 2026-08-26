@@ -150,6 +150,7 @@ export async function fetchThreadDetail({
   decoration,
   page,
   signal,
+  tagMedalDisplay,
   tid,
 }: {
   authorOnly: boolean;
@@ -157,14 +158,15 @@ export async function fetchThreadDetail({
   decoration: boolean;
   page: number;
   signal?: AbortSignal;
+  tagMedalDisplay: boolean;
   tid: number;
 }) {
   const body = new URLSearchParams({
     ask: 'thread_detail',
     authorOnly: authorOnly ? '1' : '0',
     bid: String(bid),
-    medal: '1',
-    tag: '1',
+    medal: tagMedalDisplay ? '1' : '0',
+    tag: tagMedalDisplay ? '1' : '0',
     page: String(page),
     render: 'both',
     tid: String(tid),
@@ -934,12 +936,12 @@ function mapAuthor(row: ApiRow, fallbackName: string): ThreadAuthor {
     avatar: normalizeLegacyAvatar(row.avatar ?? row.icon) || defaultAvatar,
     checkins: nonNegativeInteger(stats.checkins),
     lastSeen: plainText(row.lastSeenAt) || '时间未知',
-    medals: Array.isArray(row.medals) ? mapUserMedals(row.medals) : undefined,
+    medals: Array.isArray(row.medals) ? mapUserMedals(row.medals) : [],
     name: plainText(row.username) || fallbackName || '匿名用户',
     replies: nonNegativeInteger(stats.replies),
     role: '',
     stars: nonNegativeInteger(row.star),
-    tags: Array.isArray(row.tags) ? mapThreadTags(row.tags) : undefined,
+    tags: Array.isArray(row.tags) ? mapThreadTags(row.tags) : [],
     topics: nonNegativeInteger(stats.posts),
     ...(floorDecoration ? { floorDecoration } : {}),
   };
