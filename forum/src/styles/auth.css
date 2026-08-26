@@ -183,13 +183,13 @@
     .topbar-login-link {
       min-height: 34px;
       padding: 0 9px;
-      font-size: var(--ui-font-size-md);
+      font-size: var(--ui-font-size-sm);
     }
 
     .topbar-register-link {
       min-height: 34px;
       padding: 0 9px;
-      font-size: var(--ui-font-size-md);
+      font-size: var(--ui-font-size-sm);
     }
   }
 }

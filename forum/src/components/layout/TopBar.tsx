@@ -430,7 +430,7 @@ export function TopBar({
             ) : authStatus === 'guest' ? (
               <>
                 <a
-                  className={`icon-button ${isSettingsPage ? 'icon-button-active' : ''}`}
+                  className={`icon-button hidden lg:inline-flex ${isSettingsPage ? 'icon-button-active' : ''}`}
                   href="/settings"
                   aria-label="设置"
                 >
@@ -512,7 +512,11 @@ export function TopBar({
 
       {anyOverlayOpen && <button className="page-overlay" type="button" aria-label="关闭当前面板" onClick={closeAllLayers} />}
 
-      <MobileBoardSidebar open={mobileSidebarOpen} onClose={closeAllLayers} />
+      <MobileBoardSidebar
+        open={mobileSidebarOpen}
+        onClose={closeAllLayers}
+        showGuestLinks={authStatus === 'guest'}
+      />
     </>
   );
 }

@@ -8,10 +8,12 @@ import {
   Droplets,
   Footprints,
   Globe2,
+  History,
   House,
   LoaderCircle,
   Megaphone,
   ServerCog,
+  Settings,
   Trophy,
   Wrench,
   X,
@@ -113,7 +115,15 @@ export function DesktopBoardDrawer({ onNavigate }: { onNavigate: () => void }) {
   );
 }
 
-export function MobileBoardSidebar({ open, onClose }: { open: boolean; onClose: () => void }) {
+export function MobileBoardSidebar({
+  open,
+  onClose,
+  showGuestLinks = false,
+}: {
+  open: boolean;
+  onClose: () => void;
+  showGuestLinks?: boolean;
+}) {
   return (
     <aside
       aria-hidden={!open}
@@ -165,6 +175,23 @@ export function MobileBoardSidebar({ open, onClose }: { open: boolean; onClose: 
             <House size={16} /> 车协家园
           </a>
         </div>
+
+        {showGuestLinks && (
+          <div className="mobile-sidebar-guest-links">
+            <a className="supplement-link" href="/settings" onClick={onClose}>
+              <Settings size={16} /> 设置
+            </a>
+            <a
+              className="supplement-link"
+              href="/bbs/index/"
+              target="_blank"
+              rel="noreferrer"
+              onClick={onClose}
+            >
+              <History size={16} /> 回到旧论坛
+            </a>
+          </div>
+        )}
       </div>
     </aside>
   );
