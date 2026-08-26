@@ -568,6 +568,20 @@ function BatchImportPanel({
         {fileName ? <output><FileSpreadsheet size={15} />{fileName}</output> : null}
       </div>
 
+      {!fileName ? (
+        <div className="management-medal-table-scroll">
+          <table className="management-medal-batch-table management-medal-example-table">
+            <caption>示例表格</caption>
+            <thead><tr><th>会员 ID</th><th>职务</th></tr></thead>
+            <tbody>
+              <tr><td>example_member_01</td><td>领队</td></tr>
+              <tr><td>example_member_02</td><td>摄影</td></tr>
+              <tr><td>example_member_03</td><td className="management-medal-example-empty">（留空）</td></tr>
+            </tbody>
+          </table>
+        </div>
+      ) : null}
+
       {rows.length > 0 ? (
         <div className="management-medal-table-scroll">
           <table className="management-medal-batch-table">

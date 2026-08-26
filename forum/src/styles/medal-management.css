@@ -464,6 +464,26 @@
 
   .management-medal-batch-table th:first-child { width: 62%; }
 
+  .management-medal-example-table caption {
+    border: 1px solid var(--line);
+    border-bottom: 0;
+    padding: 8px 14px;
+    background: var(--surface-raised);
+    color: var(--text-muted);
+    font-size: var(--ui-font-size-sm);
+    font-weight: 750;
+    text-align: left;
+  }
+
+  .management-medal-example-table td {
+    background: color-mix(in srgb, var(--surface-soft) 48%, transparent);
+  }
+
+  .management-medal-example-empty {
+    color: var(--text-faint) !important;
+    font-style: italic;
+  }
+
   .management-medal-batch-id {
     display: flex;
     min-width: 0;
