@@ -19,6 +19,7 @@ import {
   createMedalDefinition,
   deleteMedalDefinition,
   fetchMedalDefinitions,
+  fetchMedalMemberCount,
   fetchMedalMembers,
   grantMedalMembers,
   removeMedalMember,
@@ -38,6 +39,7 @@ type Notice = { kind: 'error' | 'success'; text: string } | null;
 export function MedalManagementWorkspace() {
   const [medals, setMedals] = useState<MedalDefinition[]>([]);
   const [members, setMembers] = useState<MedalMember[]>([]);
+  const [memberCounts, setMemberCounts] = useState<Record<string, number | null>>({});
   const [selectedId, setSelectedId] = useState('');
   const [definitionsStatus, setDefinitionsStatus] = useState<LoadState>('loading');
   const [membersStatus, setMembersStatus] = useState<LoadState>('ready');
@@ -56,6 +58,7 @@ export function MedalManagementWorkspace() {
   const batchInputRef = useRef<HTMLInputElement>(null);
   const selectedMedal = medals.find((medal) => medal.id === selectedId) ?? medals[0] ?? null;
   const selectedMedalId = selectedMedal?.id ?? '';
+  const medalIds = medals.map((medal) => medal.id).join(',');
   const availableBatchRows = useMemo(
     () => batchRows.filter((row) => row.state === 'available'),
     [batchRows],
@@ -83,6 +86,22 @@ export function MedalManagementWorkspace() {
   }, []);
 
   useEffect(() => {
+    const controller = new AbortController();
+    const ids = medalIds ? medalIds.split(',') : [];
+    setMemberCounts((current) => Object.fromEntries(ids.map((id) => [id, current[id]])));
+    ids.forEach((id) => {
+      void fetchMedalMemberCount(id, controller.signal).then(
+        (count) => setMemberCounts((current) => ({ ...current, [id]: count })),
+        (error: unknown) => {
+          if (isAbortError(error)) return;
+          setMemberCounts((current) => ({ ...current, [id]: null }));
+        },
+      );
+    });
+    return () => controller.abort();
+  }, [medalIds]);
+
+  useEffect(() => {
     if (!selectedMedalId) {
       setMembers([]);
       setMembersStatus('ready');
@@ -93,6 +112,7 @@ export function MedalManagementWorkspace() {
     void fetchMedalMembers(selectedMedalId, controller.signal).then(
       (items) => {
         setMembers(items);
+        setMemberCounts((current) => ({ ...current, [selectedMedalId]: items.length }));
         setMembersStatus('ready');
       },
       (error: unknown) => {
@@ -182,7 +202,9 @@ export function MedalManagementWorkspace() {
       if (!check || check.state !== 'available') return;
       const results = await grantMedalMembers(selectedMedal.id, [check]);
       const added = results.filter((result) => result.status === 'added').length;
-      setMembers(await fetchMedalMembers(selectedMedal.id));
+      const updatedMembers = await fetchMedalMembers(selectedMedal.id);
+      setMembers(updatedMembers);
+      setMemberCounts((current) => ({ ...current, [selectedMedal.id]: updatedMembers.length }));
       setSingleId('');
       setSingleRole('');
       setIndividualCheck(null);
@@ -226,7 +248,9 @@ export function MedalManagementWorkspace() {
     try {
       const results = await grantMedalMembers(selectedMedal.id, availableBatchRows);
       const added = results.filter((result) => result.status === 'added').length;
-      setMembers(await fetchMedalMembers(selectedMedal.id));
+      const updatedMembers = await fetchMedalMembers(selectedMedal.id);
+      setMembers(updatedMembers);
+      setMemberCounts((current) => ({ ...current, [selectedMedal.id]: updatedMembers.length }));
       setBatchRows([]);
       setBatchFileName('');
       setNotice({ kind: 'success', text: `已向 ${added} 名会员发放“${selectedMedal.name}”勋章` });
@@ -246,6 +270,10 @@ export function MedalManagementWorkspace() {
     try {
       await removeMedalMember(selectedMedal.id, username);
       setMembers((current) => current.filter((member) => member.username !== username));
+      setMemberCounts((current) => ({
+        ...current,
+        [selectedMedal.id]: members.filter((member) => member.username !== username).length,
+      }));
       setNotice({ kind: 'success', text: `已从“${medalName}”勋章移除 ${username}` });
     } catch (error) {
       setNotice({ kind: 'error', text: errorMessage(error, '移除勋章成员失败，请稍后重试。') });
@@ -300,7 +328,8 @@ export function MedalManagementWorkspace() {
                     type="button"
                   >
                     <MedalThumbnail imagePath={medal.smallImagePath} />
-                    <span><strong>{medal.name}</strong></span>
+                    <span className="management-medal-catalog-name"><strong>{medal.name}</strong></span>
+                    <span aria-label={memberCounts[medal.id] === null ? '人数加载失败' : undefined} className="management-medal-catalog-count">{formatMemberCount(memberCounts[medal.id])}</span>
                   </button>
                 ))}
               </div>
@@ -522,6 +551,7 @@ function BatchImportPanel({
   const missingCount = rows.filter((row) => row.state === 'not_found').length;
   return (
     <div className="management-medal-batch-import">
+      <p className="management-medal-file-format"><FileSpreadsheet aria-hidden="true" size={15} />CSV / XLSX：第一列会员 ID，第二列职务（选填），每行一名会员，最多 200 名。</p>
       <div className="management-medal-file-row">
         <input
           accept=".csv,.xlsx"
@@ -579,6 +609,12 @@ function batchCheckLabel(row: MedalMemberCheck) {
   if (row.state === 'available') return '可导入';
   if (row.state === 'already_owned') return '已拥有';
   return '未找到成员';
+}
+
+function formatMemberCount(count: number | null | undefined) {
+  if (count === undefined) return '...';
+  if (count === null) return '--';
+  return `${count} 人`;
 }
 
 function pickDraft(medal: MedalDefinition): MedalDraft {

@@ -1314,6 +1314,14 @@
     margin: -15px -16px 15px;
   }
 
+  .management-member-total {
+    margin-left: auto;
+    color: var(--text-faint);
+    font-size: var(--ui-font-size-sm);
+    font-weight: 720;
+    white-space: nowrap;
+  }
+
   .management-member-grid {
     display: grid;
     grid-template-columns: repeat(4, minmax(0, 1fr));

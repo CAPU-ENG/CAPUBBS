@@ -344,6 +344,7 @@ export function TagManagementWorkspace() {
                 <div className="tag-summary-sort-bar management-member-sort-bar">
                   <button aria-pressed={memberSortOrder === 'acquiredAt'} className={memberSortOrder === 'acquiredAt' ? 'tag-summary-sort-active' : ''} onClick={() => setMemberSortOrder('acquiredAt')} type="button"><Clock3 size={14} />获取时间</button>
                   <button aria-pressed={memberSortOrder === 'id'} className={memberSortOrder === 'id' ? 'tag-summary-sort-active' : ''} onClick={() => setMemberSortOrder('id')} type="button"><ArrowDownAZ size={14} />ID</button>
+                  <span className="management-member-total">共 {members.length} 人</span>
                 </div>
                 {sortedMembers.length > 0 ? (
                   <div className="management-member-grid">

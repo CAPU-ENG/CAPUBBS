@@ -45,7 +45,7 @@
 
   .management-medal-catalog-list > button {
     display: grid;
-    grid-template-columns: 20px minmax(0, 1fr);
+    grid-template-columns: 20px minmax(0, 1fr) auto;
     min-width: 0;
     min-height: 40px;
     align-items: center;
@@ -68,8 +68,21 @@
     color: var(--brand-strong);
   }
 
-  .management-medal-catalog-list > button > span:last-child {
+  .management-medal-catalog-name {
     min-width: 0;
+  }
+
+  .management-medal-catalog-count {
+    min-width: 34px;
+    color: var(--text-faint);
+    font-size: var(--ui-font-size-xs);
+    font-weight: 720;
+    text-align: right;
+    white-space: nowrap;
+  }
+
+  .management-medal-catalog-list > button.is-selected .management-medal-catalog-count {
+    color: currentColor;
   }
 
   .management-medal-catalog-list strong {
@@ -411,6 +424,21 @@
     min-width: 0;
     align-items: center;
     gap: 10px;
+  }
+
+  .management-medal-file-format {
+    display: flex;
+    align-items: flex-start;
+    gap: 6px;
+    margin: 0;
+    color: var(--text-faint);
+    font-size: var(--ui-font-size-sm);
+    line-height: 1.5;
+  }
+
+  .management-medal-file-format svg {
+    flex: 0 0 auto;
+    margin-top: 2px;
   }
 
   .management-medal-file-row output {

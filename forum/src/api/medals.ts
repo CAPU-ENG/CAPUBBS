@@ -71,6 +71,16 @@ export async function fetchMedalDefinitions(signal?: AbortSignal): Promise<Medal
   return itemsFrom(data).map(mapMedalDefinition).filter(isPresent);
 }
 
+export async function fetchMedalMemberCount(medalId: string, signal?: AbortSignal) {
+  const data = await requestMedalData({
+    ask: 'management_medal_members',
+    medal_id: medalId,
+    page: 1,
+    page_size: 1,
+  }, signal);
+  return nonNegativeInteger(asRow(data).total);
+}
+
 export async function createMedalDefinition({
   image,
   name,
