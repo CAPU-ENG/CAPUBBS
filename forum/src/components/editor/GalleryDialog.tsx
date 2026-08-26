@@ -140,8 +140,8 @@ export function GalleryDialog({
   }
 
   async function insertGallery() {
-    if (images.length < 2 || isCheckingFiles || isUploading || images.some((image) => image.processingError)) {
-      if (images.length < 2) setError('请至少选择两张图片。');
+    if (images.length === 0 || isCheckingFiles || isUploading || images.some((image) => image.processingError)) {
+      if (images.length === 0) setError('请至少选择一张图片。');
       return;
     }
 
@@ -190,7 +190,7 @@ export function GalleryDialog({
             type="button"
           >
             <UploadCloud size={18} />
-            {isCheckingFiles ? '正在处理图片' : images.length > 0 ? '继续添加图片' : '选择多张图片'}
+            {isCheckingFiles ? '正在处理图片' : images.length > 0 ? '继续添加图片' : '选择图片'}
           </button>
           <input
             ref={inputRef}
@@ -239,7 +239,7 @@ export function GalleryDialog({
         <footer>
           <span>{images.length} 张</span>
           <button disabled={isBusy} onClick={onCancel} type="button">取消</button>
-          <button disabled={images.length < 2 || isCheckingFiles || isUploading} onClick={insertGallery} type="button">
+          <button disabled={images.length === 0 || isCheckingFiles || isUploading} onClick={insertGallery} type="button">
             {isUploading ? '正在上传' : isCheckingFiles ? '正在处理图片' : isEditing ? '保存图廊' : '上传并插入'}
           </button>
         </footer>
