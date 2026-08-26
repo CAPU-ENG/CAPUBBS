@@ -30,8 +30,8 @@ const TOOL_TABS: Array<{ icon: LucideIcon; id: ToolTab; label: string }> = [
 ];
 
 const EXAMPLE_CONTACTS: ContactRow[] = [
-  { id: '20260001', name: '张三', role: '领队', phone: '13800138000' },
-  { id: '20260002', name: '李四', role: '摄影', phone: '13900139000' },
+  { username: 'example_member_01', name: '张三', role: '领队', phone: '13800138000' },
+  { username: 'example_member_02', name: '李四', role: '摄影', phone: '13900139000' },
 ];
 const EXAMPLE_VCF = convertTableToVcf(EXAMPLE_CONTACTS).content;
 
@@ -127,7 +127,7 @@ function TableToVcfTool() {
   function downloadExampleTable() {
     const csvRows = [
       ['ID', '姓名', '职务', '电话'],
-      ...EXAMPLE_CONTACTS.map((contact) => [contact.id, contact.name, contact.role, contact.phone]),
+      ...EXAMPLE_CONTACTS.map((contact) => [contact.username, contact.name, contact.role, contact.phone]),
     ];
     downloadTextFile(
       '表格转VCF示例.csv',
@@ -148,7 +148,7 @@ function TableToVcfTool() {
       <div className="toolbox-converter">
         <p className="toolbox-file-format">
           <FileSpreadsheet aria-hidden="true" size={15} />
-          CSV / XLSX / TSV：列顺序为 ID、姓名、职务、电话，首行为表头。
+          CSV / XLSX / TSV：列顺序为 ID、姓名、职务、电话，其中 ID 为论坛用户名，首行为表头。
         </p>
 
         <div className="toolbox-file-row">
@@ -209,8 +209,8 @@ function ToolExamples() {
           <thead><tr><th>ID</th><th>姓名</th><th>职务</th><th>电话</th></tr></thead>
           <tbody>
             {EXAMPLE_CONTACTS.map((contact) => (
-              <tr key={contact.id}>
-                <td>{contact.id}</td><td>{contact.name}</td><td>{contact.role}</td><td>{contact.phone}</td>
+              <tr key={contact.username}>
+                <td>{contact.username}</td><td>{contact.name}</td><td>{contact.role}</td><td>{contact.phone}</td>
               </tr>
             ))}
           </tbody>
@@ -231,8 +231,8 @@ function ContactPreview({ rows }: { rows: ContactRow[] }) {
         <thead><tr><th>ID</th><th>姓名</th><th>职务</th><th>电话</th><th>VCF 姓名</th></tr></thead>
         <tbody>
           {rows.map((contact, index) => (
-            <tr key={`${contact.id}-${index}`}>
-              <td>{contact.id}</td>
+            <tr key={`${contact.username}-${index}`}>
+              <td>{contact.username}</td>
               <td>{contact.name}</td>
               <td>{contact.role}</td>
               <td>{contact.phone}</td>

@@ -1,8 +1,8 @@
 export type ContactRow = {
-  id: string;
   name: string;
   phone: string;
   role: string;
+  username: string;
 };
 
 export type ContactTable = {
@@ -35,13 +35,13 @@ export function normalizeContactTable(rows: unknown[][]): ContactTable {
 
   const contactRows = populatedRows.slice(1).map(({ cells, rowNumber }) => {
     const contact: ContactRow = {
-      id: cells[0] ?? '',
       name: cells[1] ?? '',
       role: cells[2] ?? '',
       phone: cells[3] ?? '',
+      username: cells[0] ?? '',
     };
     const missingFields = [
-      ['ID', contact.id],
+      ['ID', contact.username],
       ['姓名', contact.name],
       ['职务', contact.role],
       ['电话', contact.phone],
@@ -57,7 +57,7 @@ export function normalizeContactTable(rows: unknown[][]): ContactTable {
 }
 
 export function getVCardDisplayName(contact: ContactRow) {
-  return `${contact.id}｜${contact.name}｜${contact.role}`;
+  return `${contact.username}｜${contact.name}｜${contact.role}`;
 }
 
 export function convertTableToVcf(rows: ContactRow[]): VCardConversionResult {
