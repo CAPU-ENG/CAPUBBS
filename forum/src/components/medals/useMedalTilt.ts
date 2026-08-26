@@ -40,6 +40,7 @@ export function requestMedalMotionPermission() {
 export function useMedalTilt(
   cardRef: RefObject<HTMLElement | null>,
   rotatorRef: RefObject<HTMLElement | null>,
+  introReady = false,
 ) {
   useEffect(() => {
     const card = cardRef.current;
@@ -54,11 +55,14 @@ export function useMedalTilt(
     const pointerSpring = createSpring({ effectIntensity: 0, x: 50, y: 50 });
     const springs = [rotationSpring, backgroundSpring, pointerSpring];
     const interactSettings = { damping: 0.25, stiffness: 0.066 };
+    const introReturnSettings = { damping: 0.16, stiffness: 0.035 };
     const returnSettings = { damping: 0.06, stiffness: 0.01 };
     let settings = interactSettings;
     let frameId: number | null = null;
     let lastTimestamp = 0;
     let resetTimer: number | null = null;
+    let introActive = false;
+    const introTimers: number[] = [];
     let orientationBaseline: OrientationAxes | null = null;
 
     function applyVisualState() {
@@ -98,6 +102,7 @@ export function useMedalTilt(
     }
 
     function handlePointerMove(event: PointerEvent) {
+      cancelIntro();
       if (resetTimer !== null) window.clearTimeout(resetTimer);
       resetTimer = null;
       const rect = activeCard.getBoundingClientRect();
@@ -119,8 +124,46 @@ export function useMedalTilt(
       startAnimation();
     }
 
+    function setRestTarget(nextSettings = returnSettings) {
+      settings = nextSettings;
+      setSpringTarget(rotationSpring, { x: 0, y: 0 });
+      setSpringTarget(backgroundSpring, { x: 50, y: 50 });
+      setSpringTarget(pointerSpring, { effectIntensity: 0, x: 50, y: 50 });
+      startAnimation();
+    }
+
+    function cancelIntro() {
+      if (!introActive && introTimers.length === 0) return;
+      introActive = false;
+      introTimers.splice(0).forEach((timer) => window.clearTimeout(timer));
+    }
+
+    function startIntro() {
+      introActive = true;
+      const horizontalDirection = Math.random() < 0.5 ? -1 : 1;
+      const verticalDirection = Math.random() < 0.5 ? -1 : 1;
+      const firstTarget = {
+        x: 50 + horizontalDirection * randomBetween(16, 24),
+        y: 50 + verticalDirection * randomBetween(9, 17),
+      };
+      const secondTarget = {
+        x: 50 - horizontalDirection * randomBetween(12, 20),
+        y: 50 - verticalDirection * randomBetween(8, 15),
+      };
+
+      introTimers.push(
+        window.setTimeout(() => setInteractionTarget(firstTarget.x, firstTarget.y), 140),
+        window.setTimeout(() => setInteractionTarget(secondTarget.x, secondTarget.y), 410),
+        window.setTimeout(() => {
+          introActive = false;
+          setRestTarget(introReturnSettings);
+        }, 720),
+      );
+    }
+
     function handleDeviceOrientation(event: DeviceOrientationEvent) {
       if (event.beta === null || event.gamma === null) return;
+      if (introActive) return;
       if (resetTimer !== null) window.clearTimeout(resetTimer);
       resetTimer = null;
       const axes = deviceOrientationAxes(event.beta, event.gamma);
@@ -137,6 +180,7 @@ export function useMedalTilt(
     }
 
     function handleScreenOrientationChange() {
+      cancelIntro();
       orientationBaseline = null;
       handlePointerLeave();
     }
@@ -144,14 +188,12 @@ export function useMedalTilt(
     function handlePointerLeave() {
       if (resetTimer !== null) window.clearTimeout(resetTimer);
       resetTimer = window.setTimeout(() => {
-        settings = returnSettings;
-        setSpringTarget(rotationSpring, { x: 0, y: 0 });
-        setSpringTarget(backgroundSpring, { x: 50, y: 50 });
-        setSpringTarget(pointerSpring, { effectIntensity: 0, x: 50, y: 50 });
+        setRestTarget();
         resetTimer = null;
-        startAnimation();
       }, 500);
     }
+
+    if (introReady) startIntro();
 
     activeCard.addEventListener('pointermove', handlePointerMove);
     activeCard.addEventListener('pointerleave', handlePointerLeave);
@@ -173,8 +215,9 @@ export function useMedalTilt(
       }
       if (frameId !== null) window.cancelAnimationFrame(frameId);
       if (resetTimer !== null) window.clearTimeout(resetTimer);
+      cancelIntro();
     };
-  }, [cardRef, rotatorRef]);
+  }, [cardRef, introReady, rotatorRef]);
 }
 
 function deviceOrientationAxes(beta: number, gamma: number): OrientationAxes {
@@ -247,4 +290,8 @@ function clamp(value: number, min = 0, max = 100) {
 
 function round(value: number, precision = 3) {
   return Number(value.toFixed(precision));
+}
+
+function randomBetween(min: number, max: number) {
+  return min + Math.random() * (max - min);
 }

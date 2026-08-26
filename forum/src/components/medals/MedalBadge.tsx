@@ -1,4 +1,4 @@
-import { useRef, type CSSProperties } from 'react';
+import { useEffect, useRef, useState, type CSSProperties } from 'react';
 import type { UserMedal } from '../../data/medals';
 import { MEDAL_OCTAGON_PATH, MEDAL_TEXTURES } from '../management/medalDesign';
 import { useMedalTilt } from './useMedalTilt';
@@ -36,8 +36,10 @@ function LargeMedalBadge({ medal }: { medal: UserMedal }) {
   const previewRef = useRef<HTMLSpanElement>(null);
   const rotatorRef = useRef<HTMLSpanElement>(null);
   const texture = MEDAL_TEXTURES.find((item) => item.id === medal.textureId);
+  const artworkReady = useImageReady(medal.largeImagePath, false);
+  const textureReady = useImageReady(texture?.src, true);
 
-  useMedalTilt(previewRef, rotatorRef);
+  useMedalTilt(previewRef, rotatorRef, artworkReady && textureReady);
 
   return (
     <span
@@ -66,6 +68,27 @@ function LargeMedalBadge({ medal }: { medal: UserMedal }) {
       </span>
     </span>
   );
+}
+
+function useImageReady(src: string | undefined, readyWithoutSource: boolean) {
+  const [loadedSrc, setLoadedSrc] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!src) return undefined;
+    let active = true;
+    const image = new Image();
+    image.onload = () => {
+      if (active) setLoadedSrc(src);
+    };
+    image.src = src;
+    if (image.complete && image.naturalWidth > 0) setLoadedSrc(src);
+    return () => {
+      active = false;
+      image.onload = null;
+    };
+  }, [src]);
+
+  return src ? loadedSrc === src : readyWithoutSource;
 }
 
 function medalLabel(medal: UserMedal) {
