@@ -79,6 +79,7 @@ const appRouteCases = [
   ['/users/%E4%B9%82%E4%BA%95', '/users/%E4%B9%82%E4%BA%95'],
   ['/?bid=4&p=2', '/?bid=4&p=2'],
   ['/data?panel=records', '/data?panel=records'],
+  ['/toolbox?tab=table-vcf', '/toolbox?tab=table-vcf'],
   ['/settings', '/settings'],
   ['/home?tab=posts', '/home?tab=posts'],
   ['../main/?bid=4&p=2&extr=1', '/?bid=4&p=2&digest=1'],

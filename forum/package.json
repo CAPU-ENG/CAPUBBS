@@ -13,6 +13,7 @@
     "verify:legacy-assets": "node --experimental-strip-types verify-legacy-assets.mjs",
     "verify:legacy-routes": "node --experimental-strip-types verify-legacy-forum-routes.mjs",
     "verify:legacy-signatures": "node --experimental-strip-types verify-legacy-signature-floor-links.mjs",
+    "verify:table-to-vcf": "node --experimental-strip-types verify-table-to-vcf.mjs",
     "verify:tag-expression": "node --experimental-strip-types verify-tag-expression.mjs"
   },
   "dependencies": {

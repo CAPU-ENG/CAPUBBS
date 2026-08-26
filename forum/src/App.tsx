@@ -25,6 +25,7 @@ const loadSettingsPage = () => import('./pages/SettingsPage');
 const loadThreadComposePage = () => import('./pages/ThreadComposePage');
 const loadThreadEditPage = () => import('./pages/ThreadEditPage');
 const loadThreadPage = () => import('./pages/ThreadPage');
+const loadToolboxPage = () => import('./pages/ToolboxPage');
 const loadUserCenterPage = () => import('./pages/UserCenterPage');
 
 const remainingForumPageLoaders = [
@@ -41,6 +42,7 @@ const remainingForumPageLoaders = [
   loadSettingsPage,
   loadThreadComposePage,
   loadThreadEditPage,
+  loadToolboxPage,
   loadUserCenterPage,
 ] as const;
 
@@ -74,6 +76,8 @@ const ThreadEditPage = lazy(() => loadThreadEditPage()
   .then((module) => ({ default: module.ThreadEditPage })));
 const ThreadPage = lazy(() => loadThreadPage()
   .then((module) => ({ default: module.ThreadPage })));
+const ToolboxPage = lazy(() => loadToolboxPage()
+  .then((module) => ({ default: module.ToolboxPage })));
 const UserCenterPage = lazy(() => loadUserCenterPage()
   .then((module) => ({ default: module.UserCenterPage })));
 
@@ -175,6 +179,7 @@ function ForumRouter() {
   if (pathname === '/data') return <DataDisplayPage />;
   if (pathname === '/activity-management') return <ActivityManagementPage />;
   if (pathname === '/archive-room') return <ArchiveRoomPage />;
+  if (pathname === '/toolbox') return <ToolboxPage />;
   if (isThreadComposePath(pathname)) return <ThreadComposePage />;
   if (isThreadEditPath(pathname)) return <ThreadEditPage />;
   if (pathname === USER_CENTER_PATH) return <UserCenterPage />;

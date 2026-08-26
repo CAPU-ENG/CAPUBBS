@@ -99,9 +99,12 @@ export function DesktopBoardDrawer({ onNavigate }: { onNavigate: () => void }) {
         </div>
       </div>
 
-      <div className="board-drawer-section flex items-center gap-2 border-t border-[var(--line)]">
+      <div className="board-drawer-section flex flex-wrap items-center gap-2 border-t border-[var(--line)]">
         <a className="supplement-link" href="/data" onClick={onNavigate}>
           <BarChart3 size={15} /> 数据展示
+        </a>
+        <a className="supplement-link" href="/toolbox" onClick={onNavigate}>
+          <Wrench size={15} /> 工具箱
         </a>
         <RandomThreadButton onNavigate={onNavigate} />
         <a className="supplement-link" href="/archive-room" onClick={onNavigate}>
@@ -166,6 +169,9 @@ export function MobileBoardSidebar({
         <div className="mt-6 flex flex-wrap gap-2 border-t border-[var(--line)] pt-5">
           <a className="supplement-link" href="/data" onClick={onClose}>
             <BarChart3 size={16} /> 数据展示
+          </a>
+          <a className="supplement-link" href="/toolbox" onClick={onClose}>
+            <Wrench size={16} /> 工具箱
           </a>
           <RandomThreadButton onNavigate={onClose} />
           <a className="supplement-link" href="/archive-room" onClick={onClose}>
