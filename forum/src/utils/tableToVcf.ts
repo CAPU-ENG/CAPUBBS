@@ -14,7 +14,7 @@ export type VCardConversionResult = {
   contactCount: number;
 };
 
-const EXPECTED_HEADERS = ['id', '姓名', '职务', '电话'] as const;
+const SUPPORTED_HEADERS = ['id', '姓名', '职务', '电话'] as const;
 
 export function normalizeContactTable(rows: unknown[][]): ContactTable {
   const populatedRows = rows
@@ -26,24 +26,30 @@ export function normalizeContactTable(rows: unknown[][]): ContactTable {
   }
 
   const headers = populatedRows[0].cells.map(normalizeHeader);
-  if (
-    EXPECTED_HEADERS.some((expected, index) => headers[index] !== expected)
-    || populatedRows[0].cells.slice(EXPECTED_HEADERS.length).some(Boolean)
-  ) {
-    throw new Error('表头应依次为 ID、姓名、职务、电话。');
+  if (headers.some((header) => !isSupportedHeader(header)) || new Set(headers).size !== headers.length) {
+    throw new Error('表头仅支持 ID、姓名、职务、电话，且不能重复。');
+  }
+  if (!headers.includes('姓名') || !headers.includes('电话')) {
+    throw new Error('表格必须包含姓名和电话列。');
+  }
+  const headerOrder = headers.map((header) => SUPPORTED_HEADERS.findIndex((supported) => supported === header));
+  if (headerOrder.some((order, index) => index > 0 && order < headerOrder[index - 1])) {
+    throw new Error('表头顺序应为 ID、姓名、职务、电话，ID 和职务可省略。');
   }
 
+  const usernameIndex = headers.indexOf('id');
+  const nameIndex = headers.indexOf('姓名');
+  const roleIndex = headers.indexOf('职务');
+  const phoneIndex = headers.indexOf('电话');
   const contactRows = populatedRows.slice(1).map(({ cells, rowNumber }) => {
     const contact: ContactRow = {
-      name: cells[1] ?? '',
-      role: cells[2] ?? '',
-      phone: cells[3] ?? '',
-      username: cells[0] ?? '',
+      name: cells[nameIndex] ?? '',
+      role: roleIndex >= 0 ? cells[roleIndex] ?? '' : '',
+      phone: cells[phoneIndex] ?? '',
+      username: usernameIndex >= 0 ? cells[usernameIndex] ?? '' : '',
     };
     const missingFields = [
-      ['ID', contact.username],
       ['姓名', contact.name],
-      ['职务', contact.role],
       ['电话', contact.phone],
     ].filter(([, value]) => !value).map(([label]) => label);
 
@@ -57,7 +63,7 @@ export function normalizeContactTable(rows: unknown[][]): ContactTable {
 }
 
 export function getVCardDisplayName(contact: ContactRow) {
-  return `${contact.username}｜${contact.name}｜${contact.role}`;
+  return [contact.username, contact.name, contact.role].filter(Boolean).join('｜');
 }
 
 export function convertTableToVcf(rows: ContactRow[]): VCardConversionResult {
@@ -90,6 +96,10 @@ function contactCellText(value: unknown) {
 
 function normalizeHeader(value: string) {
   return value.toLocaleLowerCase().replace(/[\s_\-—–()（）【】\[\]]+/g, '');
+}
+
+function isSupportedHeader(header: string): header is typeof SUPPORTED_HEADERS[number] {
+  return SUPPORTED_HEADERS.some((supported) => supported === header);
 }
 
 function splitPhoneValues(value: string) {

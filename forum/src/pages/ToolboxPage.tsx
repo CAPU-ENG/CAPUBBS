@@ -31,7 +31,7 @@ const TOOL_TABS: Array<{ icon: LucideIcon; id: ToolTab; label: string }> = [
 
 const EXAMPLE_CONTACTS: ContactRow[] = [
   { username: 'example_member_01', name: '张三', role: '领队', phone: '13800138000' },
-  { username: 'example_member_02', name: '李四', role: '摄影', phone: '13900139000' },
+  { username: '', name: '李四', role: '', phone: '13900139000' },
 ];
 const EXAMPLE_VCF = convertTableToVcf(EXAMPLE_CONTACTS).content;
 
@@ -124,20 +124,6 @@ function TableToVcfTool() {
     setNotice(`已导出 ${result.contactCount} 位联系人。`);
   }
 
-  function downloadExampleTable() {
-    const csvRows = [
-      ['ID', '姓名', '职务', '电话'],
-      ...EXAMPLE_CONTACTS.map((contact) => [contact.username, contact.name, contact.role, contact.phone]),
-    ];
-    downloadTextFile(
-      '表格转VCF示例.csv',
-      `\uFEFF${csvRows.map((row) => row.join(',')).join('\r\n')}\r\n`,
-      'text/csv;charset=utf-8',
-    );
-    setError('');
-    setNotice('已下载示例表格。');
-  }
-
   return (
     <section className="toolbox-workspace" aria-labelledby="table-vcf-title">
       <header className="toolbox-workspace-header">
@@ -148,7 +134,7 @@ function TableToVcfTool() {
       <div className="toolbox-converter">
         <p className="toolbox-file-format">
           <FileSpreadsheet aria-hidden="true" size={15} />
-          CSV / XLSX / TSV：列顺序为 ID、姓名、职务、电话，其中 ID 为论坛用户名，首行为表头。
+          CSV / XLSX / TSV：姓名和电话为必填列；ID（论坛用户名）和职务可省略或留空。
         </p>
 
         <div className="toolbox-file-row">
@@ -163,11 +149,6 @@ function TableToVcfTool() {
             {loading ? <LoaderCircle className="animate-spin" size={15} /> : <Upload size={15} />}
             {loading ? '读取中' : table ? '更换表格' : '选择表格'}
           </button>
-          {!table ? (
-            <button className="toolbox-secondary-button" onClick={downloadExampleTable} type="button">
-              <Download size={15} />下载示例表格
-            </button>
-          ) : null}
           {fileName ? (
             <output><FileSpreadsheet size={15} /><span title={fileName}>{fileName}</span></output>
           ) : null}
@@ -209,8 +190,11 @@ function ToolExamples() {
           <thead><tr><th>ID</th><th>姓名</th><th>职务</th><th>电话</th></tr></thead>
           <tbody>
             {EXAMPLE_CONTACTS.map((contact) => (
-              <tr key={contact.username}>
-                <td>{contact.username}</td><td>{contact.name}</td><td>{contact.role}</td><td>{contact.phone}</td>
+              <tr key={`${contact.username}-${contact.name}`}>
+                <td>{contact.username || '（留空）'}</td>
+                <td>{contact.name}</td>
+                <td>{contact.role || '（留空）'}</td>
+                <td>{contact.phone}</td>
               </tr>
             ))}
           </tbody>
