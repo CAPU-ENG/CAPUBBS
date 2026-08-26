@@ -27,7 +27,7 @@ const loadThreadEditPage = () => import('./pages/ThreadEditPage');
 const loadThreadPage = () => import('./pages/ThreadPage');
 const loadUserCenterPage = () => import('./pages/UserCenterPage');
 
-const forumPageLoaders = [
+const remainingForumPageLoaders = [
   loadActivityManagementPage,
   loadArchiveRoomPage,
   loadBoardPage,
@@ -41,7 +41,6 @@ const forumPageLoaders = [
   loadSettingsPage,
   loadThreadComposePage,
   loadThreadEditPage,
-  loadThreadPage,
   loadUserCenterPage,
 ] as const;
 
@@ -191,19 +190,12 @@ function ForumRouter() {
 
 function HomeRoute() {
   useEffect(() => {
-    const preloadPages = () => {
-      pagePreloadPromise ??= Promise.allSettled(
-        forumPageLoaders.map((loadPage) => loadPage()),
-      ).then(() => undefined);
-    };
-
-    if (document.readyState === 'complete') {
-      preloadPages();
-      return;
-    }
-
-    window.addEventListener('load', preloadPages, { once: true });
-    return () => window.removeEventListener('load', preloadPages);
+    pagePreloadPromise ??= loadThreadPage()
+      .then(() => undefined, () => undefined)
+      .then(() => Promise.allSettled(
+        remainingForumPageLoaders.map((loadPage) => loadPage()),
+      ))
+      .then(() => undefined);
   }, []);
 
   return <HomePage />;
