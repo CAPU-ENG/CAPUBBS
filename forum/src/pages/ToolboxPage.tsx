@@ -3,6 +3,7 @@ import {
   CheckCircle2,
   ContactRound,
   Download,
+  FileCode2,
   FileSpreadsheet,
   LoaderCircle,
   Upload,
@@ -10,17 +11,15 @@ import {
   X,
   type LucideIcon,
 } from 'lucide-react';
-import { useRef, useState, type DragEvent } from 'react';
+import { useRef, useState } from 'react';
 import { readSheet } from 'read-excel-file/browser';
 import { AppBackground } from '../components/layout/AppBackground';
 import { TopBar } from '../components/layout/TopBar';
 import {
-  EMPTY_CONTACT_MAPPING,
   convertTableToVcf,
-  inferContactColumnMapping,
+  getVCardDisplayName,
   normalizeContactTable,
-  type ContactColumnMapping,
-  type ContactField,
+  type ContactRow,
   type ContactTable,
 } from '../utils/tableToVcf';
 
@@ -30,14 +29,11 @@ const TOOL_TABS: Array<{ icon: LucideIcon; id: ToolTab; label: string }> = [
   { icon: ContactRound, id: 'table-vcf', label: '表格转 VCF' },
 ];
 
-const CONTACT_FIELDS: Array<{ id: ContactField; label: string }> = [
-  { id: 'name', label: '姓名' },
-  { id: 'phone', label: '手机' },
-  { id: 'email', label: '邮箱' },
-  { id: 'organization', label: '单位' },
-  { id: 'title', label: '职位' },
-  { id: 'note', label: '备注' },
+const EXAMPLE_CONTACTS: ContactRow[] = [
+  { id: '20260001', name: '张三', role: '领队', phone: '13800138000' },
+  { id: '20260002', name: '李四', role: '摄影', phone: '13900139000' },
 ];
+const EXAMPLE_VCF = convertTableToVcf(EXAMPLE_CONTACTS).content;
 
 export function ToolboxPage() {
   const [activeTab, setActiveTab] = useState<ToolTab>(readTabFromLocation);
@@ -88,11 +84,9 @@ export function ToolboxPage() {
 
 function TableToVcfTool() {
   const inputRef = useRef<HTMLInputElement>(null);
-  const [dragging, setDragging] = useState(false);
   const [error, setError] = useState('');
   const [fileName, setFileName] = useState('');
   const [loading, setLoading] = useState(false);
-  const [mapping, setMapping] = useState<ContactColumnMapping>(EMPTY_CONTACT_MAPPING);
   const [notice, setNotice] = useState('');
   const [table, setTable] = useState<ContactTable | null>(null);
 
@@ -104,10 +98,8 @@ function TableToVcfTool() {
 
     try {
       const rows = await readTableRows(file);
-      const nextTable = normalizeContactTable(rows);
+      setTable(normalizeContactTable(rows));
       setFileName(file.name);
-      setMapping(inferContactColumnMapping(nextTable.headers));
-      setTable(nextTable);
     } catch (loadError) {
       setError(loadError instanceof Error ? loadError.message : '表格读取失败。');
     } finally {
@@ -119,55 +111,31 @@ function TableToVcfTool() {
   function resetTable() {
     setError('');
     setFileName('');
-    setMapping(EMPTY_CONTACT_MAPPING);
     setNotice('');
     setTable(null);
     if (inputRef.current) inputRef.current.value = '';
   }
 
-  function updateMapping(field: ContactField, value: string) {
-    setMapping((current) => ({
-      ...current,
-      [field]: value === '' ? null : Number(value),
-    }));
-    setError('');
-    setNotice('');
-  }
-
   function downloadVcf() {
     if (!table) return;
-    if (mapping.name === null && mapping.phone === null && mapping.email === null) {
-      setError('请至少选择姓名、手机或邮箱字段。');
-      return;
-    }
-
-    const result = convertTableToVcf(table.rows, mapping);
-    if (result.contactCount === 0) {
-      setError('所选字段中没有可转换的联系人。');
-      return;
-    }
-
-    const blob = new Blob([result.content], { type: 'text/vcard;charset=utf-8' });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.download = `${fileBaseName(fileName)}.vcf`;
-    link.href = url;
-    document.body.append(link);
-    link.click();
-    link.remove();
-    window.setTimeout(() => URL.revokeObjectURL(url), 0);
+    const result = convertTableToVcf(table.rows);
+    downloadTextFile(`${fileBaseName(fileName)}.vcf`, result.content, 'text/vcard;charset=utf-8');
     setError('');
-    setNotice(
-      result.skippedRowCount > 0
-        ? `已导出 ${result.contactCount} 位联系人，跳过 ${result.skippedRowCount} 行空数据。`
-        : `已导出 ${result.contactCount} 位联系人。`,
-    );
+    setNotice(`已导出 ${result.contactCount} 位联系人。`);
   }
 
-  function handleDrop(event: DragEvent<HTMLDivElement>) {
-    event.preventDefault();
-    setDragging(false);
-    void loadFile(event.dataTransfer.files[0] ?? null);
+  function downloadExampleTable() {
+    const csvRows = [
+      ['ID', '姓名', '职务', '电话'],
+      ...EXAMPLE_CONTACTS.map((contact) => [contact.id, contact.name, contact.role, contact.phone]),
+    ];
+    downloadTextFile(
+      '表格转VCF示例.csv',
+      `\uFEFF${csvRows.map((row) => row.join(',')).join('\r\n')}\r\n`,
+      'text/csv;charset=utf-8',
+    );
+    setError('');
+    setNotice('已下载示例表格。');
   }
 
   return (
@@ -177,93 +145,103 @@ function TableToVcfTool() {
         <h1 id="table-vcf-title">表格转 VCF</h1>
       </header>
 
-      {!table ? (
-        <div
-          className="toolbox-upload-zone"
-          data-dragging={dragging}
-          onDragEnter={() => setDragging(true)}
-          onDragLeave={() => setDragging(false)}
-          onDragOver={(event) => event.preventDefault()}
-          onDrop={handleDrop}
-        >
-          {loading ? <LoaderCircle className="animate-spin" size={26} /> : <FileSpreadsheet size={26} />}
-          <button disabled={loading} onClick={() => inputRef.current?.click()} type="button">
-            <Upload size={16} />
-            {loading ? '正在读取' : '选择表格'}
+      <div className="toolbox-converter">
+        <p className="toolbox-file-format">
+          <FileSpreadsheet aria-hidden="true" size={15} />
+          CSV / XLSX / TSV：列顺序为 ID、姓名、职务、电话，首行为表头。
+        </p>
+
+        <div className="toolbox-file-row">
+          <input
+            accept=".xlsx,.csv,.tsv,text/csv,text/tab-separated-values"
+            hidden
+            onChange={(event) => void loadFile(event.target.files?.[0] ?? null)}
+            ref={inputRef}
+            type="file"
+          />
+          <button className="toolbox-secondary-button" disabled={loading} onClick={() => inputRef.current?.click()} type="button">
+            {loading ? <LoaderCircle className="animate-spin" size={15} /> : <Upload size={15} />}
+            {loading ? '读取中' : table ? '更换表格' : '选择表格'}
           </button>
+          {!table ? (
+            <button className="toolbox-secondary-button" onClick={downloadExampleTable} type="button">
+              <Download size={15} />下载示例表格
+            </button>
+          ) : null}
+          {fileName ? (
+            <output><FileSpreadsheet size={15} /><span title={fileName}>{fileName}</span></output>
+          ) : null}
+          {table ? (
+            <button aria-label="移除表格" className="toolbox-icon-button" onClick={resetTable} title="移除表格" type="button">
+              <X size={16} />
+            </button>
+          ) : null}
         </div>
-      ) : (
-        <>
-          <div className="toolbox-file-bar">
-            <FileSpreadsheet size={18} />
-            <strong title={fileName}>{fileName}</strong>
-            <span>{table.rows.length} 行</span>
-            <button aria-label="移除表格" onClick={resetTable} title="移除表格" type="button">
-              <X size={17} />
-            </button>
-          </div>
 
-          <div className="toolbox-mapping-grid">
-            {CONTACT_FIELDS.map((field) => (
-              <label key={field.id}>
-                <span>{field.label}</span>
-                <select
-                  onChange={(event) => updateMapping(field.id, event.target.value)}
-                  value={mapping[field.id] ?? ''}
-                >
-                  <option value="">不导出</option>
-                  {table.headers.map((header, columnIndex) => (
-                    <option key={`${columnIndex}-${header}`} value={columnIndex}>
-                      {header}（第 {columnIndex + 1} 列）
-                    </option>
-                  ))}
-                </select>
-              </label>
-            ))}
-          </div>
+        {!table ? <ToolExamples /> : <ContactPreview rows={table.rows} />}
 
-          <div className="toolbox-preview-scroll">
-            <table className="toolbox-preview-table">
-              <thead>
-                <tr>{CONTACT_FIELDS.map((field) => <th key={field.id}>{field.label}</th>)}</tr>
-              </thead>
-              <tbody>
-                {table.rows.slice(0, 5).map((row, rowIndex) => (
-                  <tr key={rowIndex}>
-                    {CONTACT_FIELDS.map((field) => (
-                      <td key={field.id}>{previewCell(row, mapping[field.id]) || '--'}</td>
-                    ))}
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-
-          <footer className="toolbox-workspace-footer">
-            <button className="toolbox-replace-button" onClick={() => inputRef.current?.click()} type="button">
-              <Upload size={16} /> 更换表格
-            </button>
-            <button className="toolbox-download-button" onClick={downloadVcf} type="button">
-              <Download size={16} /> 下载 VCF
+        {table ? (
+          <footer className="toolbox-converter-footer">
+            <div><span>{table.rows.length} 位联系人</span></div>
+            <button className="toolbox-primary-button" onClick={downloadVcf} type="button">
+              <Download size={15} />下载 VCF
             </button>
           </footer>
-        </>
-      )}
+        ) : null}
 
-      <input
-        accept=".xlsx,.csv,.tsv,text/csv,text/tab-separated-values"
-        className="sr-only"
-        onChange={(event) => void loadFile(event.target.files?.[0] ?? null)}
-        ref={inputRef}
-        type="file"
-      />
-      {error ? <p className="toolbox-feedback toolbox-feedback-error" role="alert">{error}</p> : null}
-      {notice ? (
-        <p className="toolbox-feedback toolbox-feedback-success" role="status">
-          <CheckCircle2 size={16} /> {notice}
-        </p>
-      ) : null}
+        {error ? <p className="toolbox-feedback toolbox-feedback-error" role="alert">{error}</p> : null}
+        {notice ? (
+          <p className="toolbox-feedback toolbox-feedback-success" role="status">
+            <CheckCircle2 size={15} />{notice}
+          </p>
+        ) : null}
+      </div>
     </section>
+  );
+}
+
+function ToolExamples() {
+  return (
+    <div className="toolbox-example-grid">
+      <div className="toolbox-table-scroll">
+        <table className="toolbox-table toolbox-example-table">
+          <caption>示例表格</caption>
+          <thead><tr><th>ID</th><th>姓名</th><th>职务</th><th>电话</th></tr></thead>
+          <tbody>
+            {EXAMPLE_CONTACTS.map((contact) => (
+              <tr key={contact.id}>
+                <td>{contact.id}</td><td>{contact.name}</td><td>{contact.role}</td><td>{contact.phone}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+      <section className="toolbox-output-example" aria-labelledby="toolbox-output-example-title">
+        <header><FileCode2 size={15} /><h2 id="toolbox-output-example-title">示例输出</h2></header>
+        <pre>{EXAMPLE_VCF}</pre>
+      </section>
+    </div>
+  );
+}
+
+function ContactPreview({ rows }: { rows: ContactRow[] }) {
+  return (
+    <div className="toolbox-table-scroll">
+      <table className="toolbox-table toolbox-contact-table">
+        <thead><tr><th>ID</th><th>姓名</th><th>职务</th><th>电话</th><th>VCF 姓名</th></tr></thead>
+        <tbody>
+          {rows.map((contact, index) => (
+            <tr key={`${contact.id}-${index}`}>
+              <td>{contact.id}</td>
+              <td>{contact.name}</td>
+              <td>{contact.role}</td>
+              <td>{contact.phone}</td>
+              <td>{getVCardDisplayName(contact)}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
   );
 }
 
@@ -292,8 +270,15 @@ function readDelimitedRows(file: File, delimiter: string): Promise<unknown[][]> 
   });
 }
 
-function previewCell(row: string[], columnIndex: number | null) {
-  return columnIndex === null ? '' : row[columnIndex] ?? '';
+function downloadTextFile(fileName: string, content: string, type: string) {
+  const url = URL.createObjectURL(new Blob([content], { type }));
+  const link = document.createElement('a');
+  link.download = fileName;
+  link.href = url;
+  document.body.append(link);
+  link.click();
+  link.remove();
+  window.setTimeout(() => URL.revokeObjectURL(url), 0);
 }
 
 function fileBaseName(fileName: string) {

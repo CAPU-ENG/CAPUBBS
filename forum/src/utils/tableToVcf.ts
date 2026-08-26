@@ -1,116 +1,86 @@
-export type ContactField = 'name' | 'phone' | 'email' | 'organization' | 'title' | 'note';
-
-export type ContactColumnMapping = Record<ContactField, number | null>;
+export type ContactRow = {
+  id: string;
+  name: string;
+  phone: string;
+  role: string;
+};
 
 export type ContactTable = {
-  headers: string[];
-  rows: string[][];
+  rows: ContactRow[];
 };
 
 export type VCardConversionResult = {
   content: string;
   contactCount: number;
-  skippedRowCount: number;
 };
 
-const HEADER_ALIASES: Record<ContactField, string[]> = {
-  name: ['姓名', '名称', '联系人', '名字', 'name', 'fullname', 'fn'],
-  phone: ['手机号', '手机号码', '手机', '联系电话', '电话号码', '电话', '移动电话', 'mobile', 'phone', 'tel', 'telephone'],
-  email: ['邮箱', '电子邮箱', '电子邮件', '邮件', 'email', 'mail'],
-  organization: ['单位', '公司', '组织', '机构', '部门', 'organization', 'organisation', 'company', 'org'],
-  title: ['职位', '职务', '岗位', 'title', 'jobtitle', 'position'],
-  note: ['备注', '注释', '说明', 'note', 'notes', 'remark', 'remarks'],
-};
-
-export const EMPTY_CONTACT_MAPPING: ContactColumnMapping = {
-  name: null,
-  phone: null,
-  email: null,
-  organization: null,
-  title: null,
-  note: null,
-};
+const EXPECTED_HEADERS = ['id', '姓名', '职务', '电话'] as const;
 
 export function normalizeContactTable(rows: unknown[][]): ContactTable {
   const populatedRows = rows
-    .map((row) => row.map(contactCellText))
-    .filter((row) => row.some(Boolean));
+    .map((row, index) => ({ cells: row.map(contactCellText), rowNumber: index + 1 }))
+    .filter(({ cells }) => cells.some(Boolean));
 
   if (populatedRows.length < 2) {
     throw new Error('表格中没有可转换的数据。');
   }
 
-  const columnCount = Math.max(...populatedRows.map((row) => row.length));
-  const headers = Array.from({ length: columnCount }, (_, index) => (
-    populatedRows[0][index] || `第 ${index + 1} 列`
-  ));
-  const dataRows = populatedRows
-    .slice(1)
-    .map((row) => Array.from({ length: columnCount }, (_, index) => row[index] ?? ''))
-    .filter((row) => row.some(Boolean));
-
-  if (dataRows.length === 0) {
-    throw new Error('表格中没有可转换的数据。');
+  const headers = populatedRows[0].cells.map(normalizeHeader);
+  if (
+    EXPECTED_HEADERS.some((expected, index) => headers[index] !== expected)
+    || populatedRows[0].cells.slice(EXPECTED_HEADERS.length).some(Boolean)
+  ) {
+    throw new Error('表头应依次为 ID、姓名、职务、电话。');
   }
 
-  return { headers, rows: dataRows };
-}
+  const contactRows = populatedRows.slice(1).map(({ cells, rowNumber }) => {
+    const contact: ContactRow = {
+      id: cells[0] ?? '',
+      name: cells[1] ?? '',
+      role: cells[2] ?? '',
+      phone: cells[3] ?? '',
+    };
+    const missingFields = [
+      ['ID', contact.id],
+      ['姓名', contact.name],
+      ['职务', contact.role],
+      ['电话', contact.phone],
+    ].filter(([, value]) => !value).map(([label]) => label);
 
-export function inferContactColumnMapping(headers: string[]): ContactColumnMapping {
-  const normalizedHeaders = headers.map(normalizeHeader);
-  return Object.fromEntries(
-    (Object.keys(HEADER_ALIASES) as ContactField[]).map((field) => {
-      const aliases = new Set(HEADER_ALIASES[field].map(normalizeHeader));
-      const columnIndex = normalizedHeaders.findIndex((header) => aliases.has(header));
-      return [field, columnIndex >= 0 ? columnIndex : null];
-    }),
-  ) as ContactColumnMapping;
-}
-
-export function convertTableToVcf(
-  rows: string[][],
-  mapping: ContactColumnMapping,
-): VCardConversionResult {
-  const cards: string[] = [];
-  let skippedRowCount = 0;
-
-  for (const row of rows) {
-    const name = mappedCell(row, mapping.name);
-    const phones = splitMultipleValues(mappedCell(row, mapping.phone));
-    const emails = splitMultipleValues(mappedCell(row, mapping.email));
-    const organization = mappedCell(row, mapping.organization);
-    const title = mappedCell(row, mapping.title);
-    const note = mappedCell(row, mapping.note);
-    const displayName = name || phones[0] || emails[0];
-
-    if (!displayName) {
-      skippedRowCount += 1;
-      continue;
+    if (missingFields.length > 0) {
+      throw new Error(`第 ${rowNumber} 行缺少${missingFields.join('、')}。`);
     }
+    return contact;
+  });
 
+  return { rows: contactRows };
+}
+
+export function getVCardDisplayName(contact: ContactRow) {
+  return `${contact.id}｜${contact.name}｜${contact.role}`;
+}
+
+export function convertTableToVcf(rows: ContactRow[]): VCardConversionResult {
+  const cards = rows.map((contact) => {
+    const displayName = getVCardDisplayName(contact);
     const lines = [
       'BEGIN:VCARD',
       'VERSION:3.0',
       `N:;${escapeVCardText(displayName)};;;`,
       `FN:${escapeVCardText(displayName)}`,
-      ...phones.map((phone) => `TEL;TYPE=CELL:${escapeVCardText(phone)}`),
-      ...emails.map((email) => `EMAIL;TYPE=INTERNET:${escapeVCardText(email)}`),
-      ...(organization ? [`ORG:${escapeVCardText(organization)}`] : []),
-      ...(title ? [`TITLE:${escapeVCardText(title)}`] : []),
-      ...(note ? [`NOTE:${escapeVCardText(note)}`] : []),
+      ...splitPhoneValues(contact.phone).map((phone) => `TEL;TYPE=CELL:${escapeVCardText(phone)}`),
       'END:VCARD',
     ];
-    cards.push(lines.map(foldVCardLine).join('\r\n'));
-  }
+    return lines.map(foldVCardLine).join('\r\n');
+  });
 
   return {
     content: cards.length > 0 ? `${cards.join('\r\n')}\r\n` : '',
     contactCount: cards.length,
-    skippedRowCount,
   };
 }
 
-export function contactCellText(value: unknown) {
+function contactCellText(value: unknown) {
   if (value instanceof Date) return value.toISOString();
   if (typeof value === 'string' || typeof value === 'number' || typeof value === 'boolean') {
     return String(value).trim();
@@ -118,17 +88,13 @@ export function contactCellText(value: unknown) {
   return '';
 }
 
-function mappedCell(row: string[], columnIndex: number | null) {
-  return columnIndex === null ? '' : (row[columnIndex] ?? '').trim();
-}
-
 function normalizeHeader(value: string) {
   return value.toLocaleLowerCase().replace(/[\s_\-—–()（）【】\[\]]+/g, '');
 }
 
-function splitMultipleValues(value: string) {
+function splitPhoneValues(value: string) {
   return value
-    .split(/[\n,，;；]+/)
+    .split(/[\n,，;；、]+/)
     .map((item) => item.trim())
     .filter(Boolean);
 }
