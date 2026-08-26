@@ -256,8 +256,7 @@
   .profile-dialog-field input,
   .profile-dialog-field textarea,
   .profile-filter-panel input,
-  .profile-data-card input,
-  .profile-signature-editor textarea {
+  .profile-data-card input {
     width: 100%;
     border: 1px solid var(--line-strong);
     border-radius: var(--control-radius);
@@ -268,8 +267,7 @@
   }
 
   .profile-intro-editor textarea,
-  .profile-dialog-field textarea,
-  .profile-signature-editor textarea {
+  .profile-dialog-field textarea {
     resize: vertical;
   }
 
@@ -284,8 +282,7 @@
   .profile-dialog-field input:focus,
   .profile-dialog-field textarea:focus,
   .profile-filter-panel input:focus,
-  .profile-data-card input:focus,
-  .profile-signature-editor textarea:focus {
+  .profile-data-card input:focus {
     border-color: var(--brand);
     box-shadow: 0 0 0 3px color-mix(in srgb, var(--brand) 14%, transparent);
   }
@@ -348,8 +345,9 @@
   .profile-secondary-action:focus-visible,
   .profile-inline-action:focus-visible,
   .profile-tab:focus-visible,
-  .profile-record a:focus-visible,
-  .profile-record button:focus-visible,
+  .profile-record-actions a:focus-visible,
+  .profile-record-actions button:focus-visible,
+  .profile-signature-floor-link:focus-visible,
   .profile-filter-toggle:focus-visible,
   .profile-aside-link:focus-visible {
     outline: 2px solid var(--brand);
@@ -676,8 +674,7 @@
   }
 
   .profile-record-actions a,
-  .profile-record-actions button,
-  .profile-signature-editor button {
+  .profile-record-actions button {
     display: inline-flex;
     min-height: 27px;
     align-items: center;
@@ -693,8 +690,7 @@
   }
 
   .profile-record-actions a:hover,
-  .profile-record-actions button:hover,
-  .profile-signature-editor button:hover {
+  .profile-record-actions button:hover {
     border-color: color-mix(in srgb, var(--brand) 38%, var(--line));
     background: var(--brand-faint);
     color: var(--brand-strong);

@@ -154,7 +154,7 @@ export function PostEditor({
 
       {beforeEditor}
 
-      <div className="reply-editor-core">
+      <div className="reply-editor-core rich-text-editor-field">
         <RichTextEditor
           ariaLabel={ariaLabel}
           focusRequest={focusRequest}

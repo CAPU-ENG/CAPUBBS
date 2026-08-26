@@ -83,30 +83,30 @@
     padding: 4px 16px 6px;
   }
 
-  .reply-editor .reply-editor-core > section {
+  .rich-text-editor-field > section.capubbs-rich-text-editor {
     border-color: var(--line);
     border-radius: 2px;
     background: var(--surface);
     box-shadow: none;
   }
 
-  .reply-editor-core .capubbs-rich-text-editor[data-auto-height="false"] {
+  .rich-text-editor-field .capubbs-rich-text-editor[data-auto-height="false"] {
     display: flex;
     height: 50vh;
     height: 50dvh;
     flex-direction: column;
   }
 
-  .reply-editor-core .capubbs-rich-text-editor[data-auto-height="false"] > [data-editor-mode] {
+  .rich-text-editor-field .capubbs-rich-text-editor[data-auto-height="false"] > [data-editor-mode] {
     min-height: 0 !important;
     flex: 1 1 auto;
     height: auto !important;
   }
 
-  .reply-editor-core button:not([aria-label^="文字颜色 "]),
-  .reply-editor-core input:not([type="radio"]):not([type="color"]),
-  .reply-editor-core select,
-  .reply-editor-core textarea {
+  .rich-text-editor-field button:not([aria-label^="文字颜色 "]),
+  .rich-text-editor-field input:not([type="radio"]):not([type="color"]),
+  .rich-text-editor-field select,
+  .rich-text-editor-field textarea {
     border-radius: var(--control-radius) !important;
   }
 

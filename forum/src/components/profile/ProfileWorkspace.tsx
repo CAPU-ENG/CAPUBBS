@@ -392,7 +392,7 @@ function ProfileRecordRow({
         ) : null}
       </div>
       {editing && activeTab === 'signatures' ? (
-        <div className="profile-signature-editor">
+        <div className="profile-signature-editor rich-text-editor-field">
           <RichTextEditor
             ariaLabel={`${record.title}内容`}
             placeholder="写下签名档……"
