@@ -199,6 +199,8 @@ export function SettingsPage() {
               />
               <SettingsCheckbox
                 checked={tagMedalDisplayEnabled}
+                help="在帖子详情页展示用户的标签和勋章。"
+                helpId="tag-medal-display-help"
                 icon={<Tags size={15} />}
                 label="展示标签和勋章"
                 onChange={saveTagMedalDisplayEnabled}
