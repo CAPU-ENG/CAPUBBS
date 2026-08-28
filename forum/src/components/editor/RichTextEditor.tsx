@@ -21,6 +21,7 @@ import {
   Strikethrough,
   Subscript,
   Superscript,
+  TextInitial,
   Underline,
   X,
 } from 'lucide-react';
@@ -137,7 +138,9 @@ const richToggleCommands = [
 ] as const;
 
 type RichToggleCommand = typeof richToggleCommands[number];
-type RichToggleCommandStates = Record<RichToggleCommand, boolean>;
+type RichToggleCommandStates = Record<RichToggleCommand, boolean> & {
+  firstLineIndent: boolean;
+};
 
 const maxEditorHistoryEntries = 120;
 const maxRecentTextColors = 8;
@@ -147,6 +150,7 @@ const galleryResizeMinHeight = 160;
 const galleryResizeMaxHeight = 1200;
 const richTypingStyleAttribute = 'data-capubbs-typing-style';
 const richTypingStyleMarker = '\u200B';
+const richFirstLineIndentValue = '2em';
 
 export function getRichTextEditorStorageValue(value: RichTextEditorValue): RichTextEditorValue {
   if (value.mode === 'markdown') {
@@ -764,6 +768,26 @@ export function RichTextEditor({
 
       if (
         editor.contains(range.commonAncestorContainer)
+        && isRichFirstLineIndentActive(range, editor)
+      ) {
+        event.preventDefault();
+        document.execCommand(event.shiftKey ? 'insertLineBreak' : 'insertParagraph', false);
+
+        if (!event.shiftKey) {
+          const nextSelection = window.getSelection();
+          const nextRange = nextSelection?.rangeCount ? nextSelection.getRangeAt(0) : null;
+          if (nextRange && editor.contains(nextRange.commonAncestorContainer)) {
+            ensureRichParagraphBlocks(nextRange, editor).forEach(applyRichFirstLineIndent);
+          }
+        }
+
+        updateContent(editor.innerHTML);
+        setActiveRichCommands(readRichCommandStates(editor));
+        return;
+      }
+
+      if (
+        editor.contains(range.commonAncestorContainer)
         && !isSelectionInsideStructuredRichBlock(editor, range.commonAncestorContainer)
       ) {
         event.preventDefault();
@@ -964,6 +988,28 @@ export function RichTextEditor({
     }
     updateContent(editor?.innerHTML ?? '');
     if (editor) setActiveRichCommands(readRichCommandStates(editor));
+  };
+
+  const toggleRichFirstLineIndent = () => {
+    const editor = editorRef.current;
+    const selection = window.getSelection();
+    if (!editor || !selection || selection.rangeCount === 0) return;
+
+    const range = selection.getRangeAt(0);
+    if (!editor.contains(range.commonAncestorContainer)) return;
+
+    const shouldRemoveIndent = isRichFirstLineIndentActive(range, editor);
+    const paragraphBlocks = ensureRichParagraphBlocks(range, editor);
+    paragraphBlocks.forEach((paragraph) => {
+      if (shouldRemoveIndent) {
+        removeRichFirstLineIndent(paragraph);
+      } else {
+        applyRichFirstLineIndent(paragraph);
+      }
+    });
+
+    updateContent(editor.innerHTML);
+    setActiveRichCommands(readRichCommandStates(editor));
   };
 
   const insertRichHtml = (html: string) => {
@@ -1803,6 +1849,9 @@ export function RichTextEditor({
 
               <ToolbarDivider />
 
+              <ToolbarButton active={activeRichCommands.firstLineIndent} label="首行缩进" onMouseDown={handleToolbarMouseDown} onClick={toggleRichFirstLineIndent}>
+                <TextInitial size={14} />
+              </ToolbarButton>
               <ToolbarButton label="左对齐" onMouseDown={handleToolbarMouseDown} onClick={() => runRichCommand('justifyLeft')}>
                 <AlignLeft size={14} />
               </ToolbarButton>
@@ -2296,6 +2345,7 @@ function normalizeRichIndentation(editor: HTMLElement) {
 function createInactiveRichCommandStates(): RichToggleCommandStates {
   return {
     bold: false,
+    firstLineIndent: false,
     italic: false,
     strikeThrough: false,
     subscript: false,
@@ -2326,7 +2376,86 @@ function readRichCommandStates(editor: HTMLElement): RichToggleCommandStates {
     states.subscript = verticalAlign === 'sub';
   }
 
+  states.firstLineIndent = isRichFirstLineIndentActive(range, editor);
+
   return states;
+}
+
+function ensureRichParagraphBlocks(range: Range, editor: HTMLElement) {
+  let paragraphBlocks = getSelectedRichParagraphBlocks(range, editor);
+  if (paragraphBlocks.length > 0) return paragraphBlocks;
+
+  document.execCommand('formatBlock', false, 'p');
+  const selection = window.getSelection();
+  const formattedRange = selection?.rangeCount ? selection.getRangeAt(0) : null;
+  if (!formattedRange || !editor.contains(formattedRange.commonAncestorContainer)) return [];
+
+  paragraphBlocks = getSelectedRichParagraphBlocks(formattedRange, editor);
+  return paragraphBlocks;
+}
+
+function getSelectedRichParagraphBlocks(range: Range, editor: HTMLElement) {
+  if (range.collapsed) {
+    const paragraph = findRichParagraphBlock(range.startContainer, editor);
+    return paragraph ? [paragraph] : [];
+  }
+
+  const selectedBlocks = Array.from(
+    editor.querySelectorAll<HTMLElement>('p, div, h1, h2, h3, h4, h5, h6'),
+  ).filter((element) => (
+    !element.closest('.capubbs-gallery')
+    && rangeIntersectsNode(range, element)
+  ));
+
+  const startBlock = findRichParagraphBlock(range.startContainer, editor);
+  const endBlock = findRichParagraphBlock(range.endContainer, editor);
+  if (startBlock) selectedBlocks.push(startBlock);
+  if (endBlock) selectedBlocks.push(endBlock);
+
+  const uniqueBlocks = Array.from(new Set(selectedBlocks));
+  return uniqueBlocks.filter((block) => (
+    !uniqueBlocks.some((otherBlock) => otherBlock !== block && block.contains(otherBlock))
+  ));
+}
+
+function findRichParagraphBlock(node: Node, editor: HTMLElement) {
+  let element = node instanceof Element ? node : node.parentElement;
+
+  while (element && element !== editor) {
+    if (/^(?:P|DIV|H[1-6])$/.test(element.tagName) && !element.closest('.capubbs-gallery')) {
+      return element as HTMLElement;
+    }
+    element = element.parentElement;
+  }
+
+  return null;
+}
+
+function rangeIntersectsNode(range: Range, node: Node) {
+  try {
+    return range.intersectsNode(node);
+  } catch {
+    return false;
+  }
+}
+
+function isRichFirstLineIndentActive(range: Range, editor: HTMLElement) {
+  const paragraphBlocks = getSelectedRichParagraphBlocks(range, editor);
+  return paragraphBlocks.length > 0 && paragraphBlocks.every(hasRichFirstLineIndent);
+}
+
+function hasRichFirstLineIndent(paragraph: HTMLElement) {
+  return paragraph.style.getPropertyValue('text-indent').replaceAll(' ', '').toLowerCase()
+    === richFirstLineIndentValue;
+}
+
+function applyRichFirstLineIndent(paragraph: HTMLElement) {
+  paragraph.style.setProperty('text-indent', richFirstLineIndentValue);
+}
+
+function removeRichFirstLineIndent(paragraph: HTMLElement) {
+  paragraph.style.removeProperty('text-indent');
+  if (!paragraph.getAttribute('style')?.trim()) paragraph.removeAttribute('style');
 }
 
 function findRichVerticalAlignAtCaret(range: Range, editor: HTMLElement): 'super' | 'sub' | null {
