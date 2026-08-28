@@ -42,7 +42,7 @@ export class ThreadPublishingError extends Error {
 }
 
 class PublishTransportError extends Error {
-  constructor(kind: 'invalid_response' | 'network' | 'timeout') {
+  constructor(kind: 'network' | 'timeout') {
     super(kind);
     this.name = 'PublishTransportError';
   }
@@ -70,12 +70,16 @@ export async function publishThreadContent(
   });
 
   try {
-    const payload = await requestPublish(
+    await requestPublish(
       body,
       options.publishTimeoutMs ?? DEFAULT_PUBLISH_TIMEOUT_MS,
       request.tid ? '回复发布失败，请稍后重试。' : '主题发表失败，请稍后重试。',
     );
-    return mapPublishedResult(payload.data, request);
+    return {
+      bid: request.bid,
+      pid: null,
+      tid: request.tid,
+    };
   } catch (error) {
     if (!(error instanceof PublishTransportError)) throw error;
 
@@ -111,17 +115,19 @@ async function requestPublish(body: URLSearchParams, timeoutMs: number, fallback
       signal: controller.signal,
     });
 
-    let payload: ApiEnvelope;
+    if (response.status >= 200 && response.status < 300) {
+      if (response.body) void response.body.cancel().catch(() => undefined);
+      return;
+    }
+
+    let payload: ApiEnvelope | null = null;
     try {
       payload = await response.json() as ApiEnvelope;
     } catch {
-      throw new PublishTransportError(timedOut ? 'timeout' : 'invalid_response');
+      if (timedOut) throw new PublishTransportError('timeout');
     }
 
-    if (!response.ok || payload.code !== 0) {
-      throw new ThreadPublishingError(payload.message?.trim() || fallbackMessage);
-    }
-    return payload;
+    throw new ThreadPublishingError(payload?.message?.trim() || fallbackMessage);
   } catch (error) {
     if (error instanceof ThreadPublishingError || error instanceof PublishTransportError) throw error;
     throw new PublishTransportError(timedOut ? 'timeout' : 'network');
@@ -207,17 +213,6 @@ async function requestRecovery(body: URLSearchParams, deadline: number) {
   } finally {
     clearTimeout(timer);
   }
-}
-
-function mapPublishedResult(data: unknown, request: ThreadPublicationRequest): PublishedThreadResult {
-  const row = Array.isArray(data)
-    ? data.map(asRow).find((item) => Object.keys(item).length > 0) ?? {}
-    : asRow(data);
-  return {
-    bid: positiveInteger(row.bid) || request.bid,
-    pid: positiveInteger(row.pid ?? row.floor) || null,
-    tid: positiveInteger(row.tid) || request.tid,
-  };
 }
 
 function createPublishMarker() {

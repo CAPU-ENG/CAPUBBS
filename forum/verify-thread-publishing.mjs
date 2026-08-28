@@ -8,17 +8,45 @@ const originalFetch = globalThis.fetch;
 
 try {
   let publishedBody;
+  let successBodyCancelled = false;
+  let successJsonRead = false;
   globalThis.fetch = async (_url, init) => {
     publishedBody = new URLSearchParams(init.body);
-    return jsonResponse({ code: 0, data: { bid: 28, tid: 155, pid: 5 } });
+    return {
+      body: {
+        cancel() {
+          successBodyCancelled = true;
+          return Promise.resolve();
+        },
+      },
+      async json() {
+        successJsonRead = true;
+        return { code: 0, data: { bid: 28, tid: 155, pid: 5 } };
+      },
+      status: 200,
+    };
   };
   assert.deepEqual(await publishThreadContent(createReplyRequest()), {
     bid: 28,
-    pid: 5,
+    pid: null,
     tid: 155,
   });
+  assert.equal(successBodyCancelled, true);
+  assert.equal(successJsonRead, false);
   assert.equal(publishedBody.get('ask'), 'reply');
   assert.match(publishedBody.get('text'), /<!--capubbs:publish:[^>]+-->$/);
+
+  globalThis.fetch = async () => new Response(JSON.stringify({
+    code: 1000,
+    message: '请先登录',
+  }), {
+    headers: { 'Content-Type': 'application/json' },
+    status: 401,
+  });
+  await assert.rejects(
+    publishThreadContent(createReplyRequest()),
+    (error) => error instanceof ThreadPublishingError && error.message === '请先登录',
+  );
 
   let requestCount = 0;
   let storedText = '';
@@ -78,7 +106,7 @@ try {
   globalThis.fetch = originalFetch;
 }
 
-console.log('thread publishing verification passed (7 assertions)');
+console.log('thread publishing verification passed (10 assertions)');
 
 function createReplyRequest() {
   return {

@@ -253,9 +253,11 @@ export function ReplyEditor({
       saveDefaultSignatureIndex(signatureIndex, ownerKey);
       queueLocalDraftCleanup({ bid, ownerKey, tid, type: "reply" });
 
-      window.location.href = published.tid && published.pid
-        ? getThreadFloorHref(published.bid, published.tid, published.pid)
-        : `/?${new URLSearchParams({ bid: String(bid), tid: String(tid) }).toString()}`;
+      if (!published.pid) {
+        window.location.reload();
+        return;
+      }
+      window.location.href = getThreadFloorHref(published.bid, published.tid ?? tid, published.pid);
     } catch (error) {
       setStatus(error instanceof Error ? error.message : "回复发布失败，请稍后重试。");
       setStatusIsError(true);
