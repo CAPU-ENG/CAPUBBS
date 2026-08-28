@@ -2,12 +2,12 @@ import type { ChangeEvent, Dispatch, RefObject, SetStateAction } from 'react';
 import { richTextHeadingOptions } from './RichTextEditor.constants';
 import { escapeAttribute, escapeHtml } from './RichTextEditor.html';
 import {
-  applyRichFirstLineIndent, ensureRichParagraphBlocks, isRichFirstLineIndentActive,
   maxRecentTextColors, mergeFullySelectedChildRichSpansIntoWrapper,
   normalizeRedundantRichSpans, normalizeRichIndentation,
   readRichCommandStates, removeOverriddenRichInlineStyles,
-  removeOverriddenRichInlineStylesFromFullySelectedAncestors, removeRichFirstLineIndent,
+  removeOverriddenRichInlineStylesFromFullySelectedAncestors,
   richTypingStyleAttribute, richTypingStyleMarker,
+  toggleRichFirstLineIndentForRange,
   type RichToggleCommandStates,
 } from './RichTextEditor.richDom';
 import { applyInlineStyleToElement, normalizeCssColor } from './RichTextEditor.richText';
@@ -57,15 +57,7 @@ export function createRichTextEditorRichActions({
     const range = selection.getRangeAt(0);
     if (!editor.contains(range.commonAncestorContainer)) return;
 
-    const shouldRemoveIndent = isRichFirstLineIndentActive(range, editor);
-    const paragraphBlocks = ensureRichParagraphBlocks(range, editor);
-    paragraphBlocks.forEach((paragraph) => {
-      if (shouldRemoveIndent) {
-        removeRichFirstLineIndent(paragraph);
-      } else {
-        applyRichFirstLineIndent(paragraph);
-      }
-    });
+    toggleRichFirstLineIndentForRange(range, editor);
 
     updateContent(editor.innerHTML);
     setActiveRichCommands(readRichCommandStates(editor));
