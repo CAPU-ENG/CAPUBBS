@@ -1,5 +1,8 @@
 import assert from 'node:assert/strict';
-import { toggleRichFirstLineIndentForParagraphs } from './src/components/editor/RichTextEditor.richIndent.ts';
+import {
+  groupRichParagraphChildNodes,
+  toggleRichFirstLineIndentForParagraphs,
+} from './src/components/editor/RichTextEditor.richIndent.ts';
 
 function createParagraph(firstLineIndent = '') {
   const properties = new Map();
@@ -46,4 +49,19 @@ toggleRichFirstLineIndentForParagraphs(mixedParagraphs);
 assert.deepEqual(mixedParagraphs.map(readIndent), ['', '', '']);
 assert.deepEqual(mixedParagraphs.map((paragraph) => paragraph.getAttribute('style')), [null, null, null]);
 
-console.log('rich text indentation verification passed (4 assertions)');
+const text = (value) => ({ nodeName: '#text', value });
+const breakNode = { nodeName: 'BR' };
+assert.deepEqual(
+  groupRichParagraphChildNodes([
+    text('说明'), breakNode, text('第一项'), breakNode, text('第二项'), breakNode, text('第三项'),
+  ]).map((group) => group.map((node) => node.value ?? '<br>')),
+  [['说明'], ['第一项'], ['第二项'], ['第三项']],
+);
+
+assert.deepEqual(
+  groupRichParagraphChildNodes([text('首段'), breakNode, breakNode, text('末段')])
+    .map((group) => group.map((node) => node.value ?? '<br>')),
+  [['首段'], [], ['末段']],
+);
+
+console.log('rich text indentation verification passed (6 assertions)');

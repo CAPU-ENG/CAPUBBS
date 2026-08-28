@@ -3,7 +3,9 @@ const richParagraphBlockSelector = 'p, div, h1, h2, h3, h4, h5, h6, li, blockquo
 
 export function ensureRichParagraphBlocks(range: Range, editor: HTMLElement) {
   let paragraphBlocks = getSelectedRichParagraphBlocks(range, editor);
-  if (paragraphBlocks.length > 0) return paragraphBlocks;
+  if (paragraphBlocks.length > 0) {
+    return splitSelectedRichParagraphBreaks(range, paragraphBlocks);
+  }
 
   document.execCommand('formatBlock', false, 'p');
   const selection = window.getSelection();
@@ -11,7 +13,61 @@ export function ensureRichParagraphBlocks(range: Range, editor: HTMLElement) {
   if (!formattedRange || !editor.contains(formattedRange.commonAncestorContainer)) return [];
 
   paragraphBlocks = getSelectedRichParagraphBlocks(formattedRange, editor);
-  return paragraphBlocks;
+  return splitSelectedRichParagraphBreaks(formattedRange, paragraphBlocks);
+}
+
+function splitSelectedRichParagraphBreaks(range: Range, paragraphBlocks: HTMLElement[]) {
+  if (range.collapsed) return paragraphBlocks;
+
+  const splitPlans = paragraphBlocks.map((paragraph) => {
+    if (!['P', 'DIV'].includes(paragraph.tagName)) return null;
+
+    const groups = groupRichParagraphChildNodes(Array.from(paragraph.childNodes));
+    if (groups.length < 2) return null;
+
+    const selectedGroups = groups.map((nodes) => (
+      nodes.some((node) => rangeIntersectsNode(range, node))
+    ));
+    if (!selectedGroups.some(Boolean)) selectedGroups.fill(true);
+
+    return { groups, paragraph, selectedGroups };
+  });
+
+  const replacements = new Map<HTMLElement, HTMLElement[]>();
+  splitPlans.forEach((plan) => {
+    if (!plan) return;
+
+    const replacementParagraphs = plan.groups.map((nodes, index) => {
+      const paragraph = document.createElement('p');
+      Array.from(plan.paragraph.attributes).forEach((attribute) => {
+        if (attribute.name !== 'id' || index === 0) {
+          paragraph.setAttribute(attribute.name, attribute.value);
+        }
+      });
+      nodes.forEach((node) => paragraph.append(node));
+      if (nodes.length === 0) paragraph.append(document.createElement('br'));
+      return paragraph;
+    });
+
+    plan.paragraph.replaceWith(...replacementParagraphs);
+    replacements.set(
+      plan.paragraph,
+      replacementParagraphs.filter((_, index) => plan.selectedGroups[index]),
+    );
+  });
+
+  return paragraphBlocks.flatMap((paragraph) => replacements.get(paragraph) ?? [paragraph]);
+}
+
+export function groupRichParagraphChildNodes<T extends { nodeName: string }>(childNodes: T[]) {
+  return childNodes.reduce<T[][]>((groups, node) => {
+    if (node.nodeName.toUpperCase() === 'BR') {
+      groups.push([]);
+    } else {
+      groups.at(-1)?.push(node);
+    }
+    return groups;
+  }, [[]]);
 }
 
 function getSelectedRichParagraphBlocks(range: Range, editor: HTMLElement) {
