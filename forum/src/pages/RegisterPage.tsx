@@ -281,7 +281,7 @@ export function RegisterPage() {
                       <span id="register-email-domains" role="tooltip">允许的邮箱：@*.pku.edu.cn、@bjmu.edu.cn</span>
                     </span>
                   </div>
-                  <small>管理员邮箱：<a href={`mailto:${ADMIN_EMAIL}`}>{ADMIN_EMAIL}</a></small>
+                  <small>如遇问题，请联系管理员邮箱：<a href={`mailto:${ADMIN_EMAIL}`}>{ADMIN_EMAIL}</a></small>
                 </div>
 
                 <div className="register-field">
