@@ -1353,11 +1353,11 @@
     margin: 0;
   }
 
-  .forum-markup-floor p {
+  .forum-markup[data-forum-markup="floor"] p {
     margin: 0 0 0.75rem;
   }
 
-  .forum-markup-floor > div + div {
+  .forum-markup[data-forum-markup="floor"] > div + div {
     margin-top: 0.55em;
   }
 
