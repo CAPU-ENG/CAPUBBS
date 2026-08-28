@@ -35,7 +35,8 @@ markdownRenderer.renderer.rules.blockquote_open = (tokens, index, options, envir
 export function renderMarkdownToHtml(markdown: string) {
   if (!markdown.trim()) return '';
 
-  const extracted = extractMarkdownFloorQuotes(markdown.replace(/\r\n?/g, '\n'));
+  const normalizedMarkdown = normalizeMarkdownListHierarchy(markdown.replace(/\r\n?/g, '\n'));
+  const extracted = extractMarkdownFloorQuotes(normalizedMarkdown);
   let html = markdownRenderer.render(extracted.markdown);
 
   extracted.floorQuotes.forEach(({ html: floorQuoteHtml, placeholder }) => {
@@ -43,6 +44,61 @@ export function renderMarkdownToHtml(markdown: string) {
   });
 
   return html.trim();
+}
+
+type MarkdownListLevel = {
+  contentIndent: number;
+  sourceIndent: number;
+};
+
+function normalizeMarkdownListHierarchy(markdown: string) {
+  const lines = markdown.split('\n');
+  const levels: MarkdownListLevel[] = [];
+  let activeFence: { length: number; marker: string } | null = null;
+
+  return lines.map((line) => {
+    const fence = parseMarkdownFence(line);
+    if (fence) {
+      if (!activeFence) activeFence = fence;
+      else if (
+        fence.canClose
+        && fence.marker === activeFence.marker
+        && fence.length >= activeFence.length
+      ) activeFence = null;
+      return line;
+    }
+    if (activeFence) return line;
+
+    const match = line.match(/^( *)([-+*]|(\d+)([.)]))([ \t]+)(.*)$/);
+    if (!match) {
+      if (line.trim() && !/^\s/.test(line)) levels.length = 0;
+      return line;
+    }
+
+    const sourceIndent = match[1].length;
+    while (levels.length > 0 && levels.at(-1)!.sourceIndent > sourceIndent) levels.pop();
+
+    let level = levels.find((candidate) => candidate.sourceIndent === sourceIndent);
+    const parent = [...levels].reverse().find((candidate) => candidate.sourceIndent < sourceIndent);
+    const isNewNestedLevel = !level && Boolean(parent);
+    const renderedIndent = parent?.contentIndent ?? sourceIndent;
+    let marker = match[2];
+
+    if (isNewNestedLevel && match[3]) {
+      marker = `${String(1).padStart(match[3].length, match[3].startsWith('0') ? '0' : '')}${match[4]}`;
+    }
+
+    if (!level) {
+      level = {
+        contentIndent: renderedIndent + marker.length + match[5].length,
+        sourceIndent,
+      };
+      levels.push(level);
+      levels.sort((left, right) => left.sourceIndent - right.sourceIndent);
+    }
+
+    return `${' '.repeat(renderedIndent)}${marker}${match[5]}${match[6]}`;
+  }).join('\n');
 }
 
 function parseMarkdownMention(state: StateInline, silent: boolean) {

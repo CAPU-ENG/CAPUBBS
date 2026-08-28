@@ -33,6 +33,16 @@ assert.match(
   /<ul>[\s\S]*<ol>[\s\S]*<li>子项目<\/li>[\s\S]*<li>另一个子项目<\/li>[\s\S]*<\/ol>[\s\S]*<\/ul>/,
 );
 
+assert.match(
+  renderMarkdownToHtml('1. 父项目\n  2. 两空格子项目'),
+  /<ol>[\s\S]*<li>父项目[\s\S]*<ol>[\s\S]*<li>两空格子项目<\/li>[\s\S]*<\/ol>[\s\S]*<\/li>[\s\S]*<\/ol>/,
+);
+
+assert.match(
+  renderMarkdownToHtml('1. 父项目\n   2. 非一开头的子项目'),
+  /<ol>[\s\S]*<li>父项目[\s\S]*<ol>[\s\S]*<li>非一开头的子项目<\/li>[\s\S]*<\/ol>[\s\S]*<\/li>[\s\S]*<\/ol>/,
+);
+
 assert.match(renderMarkdownToHtml('+ 项目'), /<ul>[\s\S]*<li>项目<\/li>[\s\S]*<\/ul>/);
 assert.match(renderMarkdownToHtml('> 普通引用'), /<blockquote class="forum-quote">/);
 assert.match(
@@ -62,4 +72,4 @@ const fencedQuote = renderMarkdownToHtml(
 assert.doesNotMatch(fencedQuote, /capubbs-floor-quote/);
 assert.match(fencedQuote, /<code class="language-md">/);
 
-console.log('markdown rendering verification passed (12 assertions)');
+console.log('markdown rendering verification passed (14 assertions)');
