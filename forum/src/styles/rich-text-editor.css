@@ -26,39 +26,6 @@
     margin: 0 0 0.75rem;
   }
 
-  .capubbs-editor-prose h1,
-  .capubbs-editor-prose h2,
-  .capubbs-editor-prose h3,
-  .capubbs-editor-prose h4,
-  .capubbs-editor-prose h5,
-  .capubbs-editor-prose h6 {
-    color: #174f38;
-    font-weight: 800;
-    line-height: 1.35;
-    margin: 0.9rem 0 0.45rem;
-  }
-
-  .dark .capubbs-editor-prose h1,
-  .dark .capubbs-editor-prose h2,
-  .dark .capubbs-editor-prose h3,
-  .dark .capubbs-editor-prose h4,
-  .dark .capubbs-editor-prose h5,
-  .dark .capubbs-editor-prose h6 {
-    color: #fff;
-  }
-
-  .capubbs-editor-prose h1 {
-    font-size: 1.45rem;
-  }
-
-  .capubbs-editor-prose h2 {
-    font-size: 1.25rem;
-  }
-
-  .capubbs-editor-prose h3 {
-    font-size: 1.1rem;
-  }
-
   .capubbs-editor-prose a {
     color: #174f38;
     font-weight: 700;

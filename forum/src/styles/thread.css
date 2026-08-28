@@ -1405,18 +1405,18 @@
   .forum-markup h4,
   .forum-markup h5,
   .forum-markup h6 {
-    margin: 0.8em 0 0.35em;
-    color: var(--text-strong);
-    font-weight: 760;
+    margin: 0.9rem 0 0.45rem;
+    color: var(--brand-strong);
+    font-weight: 800;
     line-height: 1.35;
   }
 
-  .forum-markup h1 { font-size: 1.45em; }
-  .forum-markup h2 { font-size: 1.3em; }
-  .forum-markup h3 { font-size: 1.18em; }
+  .forum-markup h1 { font-size: 1.45rem; }
+  .forum-markup h2 { font-size: 1.25rem; }
+  .forum-markup h3 { font-size: 1.1rem; }
   .forum-markup h4,
   .forum-markup h5,
-  .forum-markup h6 { font-size: 1.05em; }
+  .forum-markup h6 { font-size: 1em; }
 
   .forum-markup ul,
   .forum-markup ol {

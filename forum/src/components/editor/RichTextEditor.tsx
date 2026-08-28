@@ -685,7 +685,8 @@ export function RichTextEditor({
           </div>
           <div
             aria-label="Markdown预览"
-            className={`capubbs-editor-prose ${splitPaneChildClassName} bg-zinc-50/70 px-3 py-3 text-sm leading-6 text-zinc-800 dark:bg-white/[0.035] dark:text-zinc-100 ${splitPaneDividerClassName} ${isAutoHeightEnabled ? 'overflow-visible' : 'overflow-y-auto'}`}
+            className={`forum-markup capubbs-editor-prose ${splitPaneChildClassName} bg-zinc-50/70 px-3 py-3 text-sm leading-6 text-zinc-800 dark:bg-white/[0.035] dark:text-zinc-100 ${splitPaneDividerClassName} ${isAutoHeightEnabled ? 'overflow-visible' : 'overflow-y-auto'}`}
+            data-forum-markup="floor"
             dangerouslySetInnerHTML={{ __html: markdownPreview }}
           />
         </div>
@@ -795,7 +796,8 @@ export function RichTextEditor({
           onPointerMove={handleGalleryResizePointerMove}
           onPointerUp={finishGalleryResize}
           onScroll={updateRichImageResizeHandle}
-          className={`capubbs-editor-prose capubbs-rich-editor-input px-3 py-3 leading-6 text-zinc-800 outline-none dark:text-zinc-100 ${isAutoHeightEnabled ? 'min-h-[50vh] overflow-visible' : 'h-[50vh] overflow-y-auto'}`}
+          className={`forum-markup capubbs-editor-prose capubbs-rich-editor-input px-3 py-3 leading-6 text-zinc-800 outline-none dark:text-zinc-100 ${isAutoHeightEnabled ? 'min-h-[50vh] overflow-visible' : 'h-[50vh] overflow-y-auto'}`}
+          data-forum-markup="floor"
           style={{ fontSize: defaultRichTextFontSize }}
         />
       )}
