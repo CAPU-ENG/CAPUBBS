@@ -1,5 +1,6 @@
-import { Ban, Check, ClipboardList, Eye, LogIn, RotateCcw, Send, X } from 'lucide-react';
+import { AlertTriangle, Ban, Check, ClipboardList, Eye, LogIn, RotateCcw, Send, X } from 'lucide-react';
 import { useEffect, useState, type FormEvent } from 'react';
+import { fetchDataDisplayPanel } from '../../api/dataDisplay';
 import {
   publishActivitySignup,
   type ActivitySignupValue,
@@ -66,6 +67,7 @@ export function ActivitySignupForm({
   const [previewOpen, setPreviewOpen] = useState(false);
   const [previewedAt, setPreviewedAt] = useState('');
   const [cancelDialogOpen, setCancelDialogOpen] = useState(false);
+  const [punishmentReminderOpen, setPunishmentReminderOpen] = useState(false);
   const requiredFieldsComplete = activity.questions.every((question) =>
     !question.required || hasSignupValue(values[question.id]),
   );
@@ -100,6 +102,10 @@ export function ActivitySignupForm({
     try {
       await publishActivitySignup({ action, bid, signatureIndex, tid, title: threadTitle, values });
       saveDefaultSignatureIndex(signatureIndex, viewer?.name);
+      if (viewer && await hasUnfinishedPunishment(viewer.name)) {
+        setPunishmentReminderOpen(true);
+        return;
+      }
       window.location.reload();
     } catch (error) {
       setStatusIsError(true);
@@ -251,7 +257,56 @@ export function ActivitySignupForm({
           onConfirm={() => { void cancelSignup(); }}
         />
       )}
+      {punishmentReminderOpen && (
+        <ActivitySignupPunishmentReminder onClose={() => window.location.reload()} />
+      )}
     </section>
+  );
+}
+
+function ActivitySignupPunishmentReminder({ onClose }: { onClose: () => void }) {
+  useEffect(() => {
+    document.body.classList.add('thread-delete-dialog-open');
+    return () => document.body.classList.remove('thread-delete-dialog-open');
+  }, []);
+
+  useEffect(() => {
+    function closeOnEscape(event: KeyboardEvent) {
+      if (event.key === 'Escape') onClose();
+    }
+
+    document.addEventListener('keydown', closeOnEscape);
+    return () => document.removeEventListener('keydown', closeOnEscape);
+  }, [onClose]);
+
+  return (
+    <div
+      className="thread-delete-dialog-backdrop"
+      onMouseDown={(event) => {
+        if (event.currentTarget === event.target) onClose();
+      }}
+      role="presentation"
+    >
+      <section
+        aria-describedby="activity-signup-punishment-description"
+        aria-labelledby="activity-signup-punishment-title"
+        aria-modal="true"
+        className="thread-delete-dialog"
+        role="dialog"
+      >
+        <header>
+          <span className="thread-delete-dialog-icon" aria-hidden="true"><AlertTriangle size={19} /></span>
+          <div><h2 id="activity-signup-punishment-title">罚跑提醒</h2></div>
+          <button aria-label="关闭罚跑提醒" onClick={onClose} type="button"><X size={18} /></button>
+        </header>
+        <div className="thread-delete-dialog-body">
+          <p id="activity-signup-punishment-description">仍存在未完成的罚跑，请在活动开始前完成。</p>
+        </div>
+        <footer>
+          <button autoFocus className="thread-delete-dialog-confirm" onClick={onClose} type="button">我知道了</button>
+        </footer>
+      </section>
+    </div>
   );
 }
 
@@ -468,6 +523,18 @@ function getStoredQuestionValue(source: string, question: ThreadActivityQuestion
 
 function hasSignupValue(value: ActivitySignupValue | undefined) {
   return Array.isArray(value) ? value.length > 0 : Boolean(value?.trim());
+}
+
+async function hasUnfinishedPunishment(username: string) {
+  try {
+    const { punishmentRecords } = await fetchDataDisplayPanel('punishments');
+    const normalizedUsername = username.trim().toLocaleLowerCase();
+    return punishmentRecords.some((record) => (
+      !record.isComplete && record.username.trim().toLocaleLowerCase() === normalizedUsername
+    ));
+  } catch {
+    return false;
+  }
 }
 
 function formatActivitySignupPreviewHtml(
