@@ -209,6 +209,14 @@ table {
   list-style: decimal;
 }
 
+.forum-markup ol.capubbs-ordered-list-alpha {
+  list-style-type: lower-alpha;
+}
+
+.forum-markup ol.capubbs-ordered-list-roman {
+  list-style-type: lower-roman;
+}
+
 .forum-markup pre {
   max-width: 100%;
   overflow-x: auto;

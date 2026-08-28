@@ -25,22 +25,33 @@ const orderedEdit = getMarkdownTabEdit(
 assert.equal(orderedEdit.content, '1. 父项目\n   1. 子项目');
 assert.match(
   renderMarkdownToHtml(orderedEdit.content),
-  /<ol>[\s\S]*<li>父项目[\s\S]*<ol>[\s\S]*<li>子项目<\/li>[\s\S]*<\/ol>[\s\S]*<\/li>[\s\S]*<\/ol>/,
+  /<ol[^>]*>[\s\S]*<li>父项目[\s\S]*<ol[^>]*>[\s\S]*<li>子项目<\/li>[\s\S]*<\/ol>[\s\S]*<\/li>[\s\S]*<\/ol>/,
 );
 
 assert.match(
   renderMarkdownToHtml('- 父项目\n  1. 子项目\n  2. 另一个子项目'),
-  /<ul>[\s\S]*<ol>[\s\S]*<li>子项目<\/li>[\s\S]*<li>另一个子项目<\/li>[\s\S]*<\/ol>[\s\S]*<\/ul>/,
+  /<ul>[\s\S]*<ol[^>]*>[\s\S]*<li>子项目<\/li>[\s\S]*<li>另一个子项目<\/li>[\s\S]*<\/ol>[\s\S]*<\/ul>/,
 );
 
 assert.match(
   renderMarkdownToHtml('1. 父项目\n  2. 两空格子项目'),
-  /<ol>[\s\S]*<li>父项目[\s\S]*<ol>[\s\S]*<li>两空格子项目<\/li>[\s\S]*<\/ol>[\s\S]*<\/li>[\s\S]*<\/ol>/,
+  /<ol[^>]*>[\s\S]*<li>父项目[\s\S]*<ol[^>]*>[\s\S]*<li>两空格子项目<\/li>[\s\S]*<\/ol>[\s\S]*<\/li>[\s\S]*<\/ol>/,
 );
 
 assert.match(
   renderMarkdownToHtml('1. 父项目\n   2. 非一开头的子项目'),
-  /<ol>[\s\S]*<li>父项目[\s\S]*<ol>[\s\S]*<li>非一开头的子项目<\/li>[\s\S]*<\/ol>[\s\S]*<\/li>[\s\S]*<\/ol>/,
+  /<ol[^>]*>[\s\S]*<li>父项目[\s\S]*<ol[^>]*>[\s\S]*<li>非一开头的子项目<\/li>[\s\S]*<\/ol>[\s\S]*<\/li>[\s\S]*<\/ol>/,
+);
+
+const orderedListLevels = renderMarkdownToHtml(
+  '1. 一级\n   1. 二级\n      1. 三级\n         1. 四级',
+);
+assert.match(orderedListLevels, /<ol class="capubbs-ordered-list-decimal">/);
+assert.match(orderedListLevels, /<ol class="capubbs-ordered-list-alpha">/);
+assert.match(orderedListLevels, /<ol class="capubbs-ordered-list-roman">/);
+assert.equal(
+  orderedListLevels.match(/<ol class="capubbs-ordered-list-decimal">/g)?.length,
+  2,
 );
 
 assert.match(renderMarkdownToHtml('+ 项目'), /<ul>[\s\S]*<li>项目<\/li>[\s\S]*<\/ul>/);
@@ -72,4 +83,4 @@ const fencedQuote = renderMarkdownToHtml(
 assert.doesNotMatch(fencedQuote, /capubbs-floor-quote/);
 assert.match(fencedQuote, /<code class="language-md">/);
 
-console.log('markdown rendering verification passed (14 assertions)');
+console.log('markdown rendering verification passed (18 assertions)');

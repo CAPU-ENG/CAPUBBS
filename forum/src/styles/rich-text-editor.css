@@ -148,6 +148,14 @@
     list-style: decimal;
   }
 
+  .capubbs-editor-prose ol.capubbs-ordered-list-alpha {
+    list-style-type: lower-alpha;
+  }
+
+  .capubbs-editor-prose ol.capubbs-ordered-list-roman {
+    list-style-type: lower-roman;
+  }
+
   .capubbs-editor-prose li + li {
     margin-top: 0.2rem;
   }

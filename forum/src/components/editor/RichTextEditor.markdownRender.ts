@@ -32,6 +32,19 @@ markdownRenderer.renderer.rules.blockquote_open = (tokens, index, options, envir
   return defaultBlockquoteOpenRenderer(tokens, index, options, environment, renderer);
 };
 
+const orderedListStyleClasses = [
+  'capubbs-ordered-list-decimal',
+  'capubbs-ordered-list-alpha',
+  'capubbs-ordered-list-roman',
+] as const;
+const defaultOrderedListOpenRenderer: RendererRule = markdownRenderer.renderer.rules.ordered_list_open
+  ?? ((tokens, index, options, _environment, renderer) => renderer.renderToken(tokens, index, options));
+markdownRenderer.renderer.rules.ordered_list_open = (tokens, index, options, environment, renderer) => {
+  const orderedDepth = getOrderedListDepth(tokens, index);
+  tokens[index].attrJoin('class', orderedListStyleClasses[(orderedDepth - 1) % orderedListStyleClasses.length]);
+  return defaultOrderedListOpenRenderer(tokens, index, options, environment, renderer);
+};
+
 export function renderMarkdownToHtml(markdown: string) {
   if (!markdown.trim()) return '';
 
@@ -99,6 +112,15 @@ function normalizeMarkdownListHierarchy(markdown: string) {
 
     return `${' '.repeat(renderedIndent)}${marker}${match[5]}${match[6]}`;
   }).join('\n');
+}
+
+function getOrderedListDepth(tokens: Parameters<RendererRule>[0], currentIndex: number) {
+  let depth = 1;
+  for (let index = 0; index < currentIndex; index += 1) {
+    if (tokens[index].type === 'ordered_list_open') depth += 1;
+    else if (tokens[index].type === 'ordered_list_close') depth -= 1;
+  }
+  return depth;
 }
 
 function parseMarkdownMention(state: StateInline, silent: boolean) {

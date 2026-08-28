@@ -185,6 +185,18 @@ export function buildHtmlPreviewDocument(html: string, isDarkTheme: boolean, emb
       vertical-align: middle;
     }
 
+    ol.capubbs-ordered-list-decimal {
+      list-style-type: decimal;
+    }
+
+    ol.capubbs-ordered-list-alpha {
+      list-style-type: lower-alpha;
+    }
+
+    ol.capubbs-ordered-list-roman {
+      list-style-type: lower-roman;
+    }
+
     table {
       border-collapse: collapse;
       margin: 12px 0;
