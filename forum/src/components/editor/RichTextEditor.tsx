@@ -1,103 +1,74 @@
+import { PanelRightOpen, X } from 'lucide-react';
 import {
-  AlignCenter,
-  AlignJustify,
-  AlignLeft,
-  AlignRight,
-  AtSign,
-  Bold,
-  Eraser,
-  Images as GalleryIcon,
-  Image as ImageIcon,
-  IndentDecrease,
-  IndentIncrease,
-  Italic,
-  Link2,
-  List,
-  ListOrdered,
-  MessageSquareQuote,
-  Minus,
-  Palette,
-  PanelRightOpen,
-  Strikethrough,
-  Subscript,
-  Superscript,
-  TextInitial,
-  Underline,
-  X,
-} from 'lucide-react';
-import {
-  type ClipboardEvent,
-  type ChangeEvent,
   useEffect,
-  useMemo,
   useRef,
   useState,
   type FormEvent,
   type KeyboardEvent,
   type MouseEvent,
-  type PointerEvent,
-  type ReactNode,
 } from 'react';
-import { FORUM_DEFAULT_FONT_SIZE } from '../../utils/forumFontSize';
-import { renderForumMarkup } from '../../utils/forumMarkup';
-import { translateLegacyBbcode } from '../../utils/legacyBbcode';
 import { getPublicProfileAppPath } from '../../utils/userRoutes';
 import { PastedImageDialog } from './PastedImageDialog';
-import { GalleryDialog, type GalleryDialogImage } from './GalleryDialog';
+import { GalleryDialog } from './GalleryDialog';
+import { RichTextEditorControls } from './RichTextEditor.controls';
+import { escapeMarkdownLinkText, hasModeSwitchingContent, plainTextLength } from './RichTextEditor.content';
 import {
   defaultRichTextFontSize,
   defaultTextColor,
   editorModeGroups,
-  htmlVoidTags,
-  maxInlineImageBytes,
-  richTextFontOptions,
-  richTextFontSizeOptions,
-  richTextHeadingOptions,
 } from './RichTextEditor.constants';
+import { escapeAttribute, escapeHtml, normalizeUrl, safeUrl } from './RichTextEditor.html';
 import { useIsDarkTheme, useIsMobileViewport } from './RichTextEditor.hooks';
+import { useRichTextEditorHistory } from './RichTextEditor.history';
 import {
-  getMarkdownListEnterEdit,
-  getMarkdownTabEdit,
-  type MarkdownSourceEdit,
-} from './RichTextEditor.markdown';
-import { renderMarkdownToHtml } from './RichTextEditor.markdownRender';
+  createRichTextEditorMediaActions,
+  type GalleryDialogState,
+} from './RichTextEditor.media';
+import { useRichTextEditorSource } from './RichTextEditor.source';
 import {
-  compressImageFileUnderLimit,
-  createUploadableImageFileUnderLimit,
-  editorImageInputAccept,
-  getClipboardImageFile,
-  getImageFileDimensions,
-  getImageFileMd5Hex,
-  getImageAltText,
-  uploadEditorImage,
-  validateEditorImageFile,
-} from './RichTextEditor.images';
-import {
-  buildEditorGalleryHtml,
   ensureEditorGalleryEditControls,
   getEditorGalleryAction,
   getEditorGalleryEditTarget,
   getEditorGalleryImageHeight,
   getEditorGalleryResizeTarget,
   moveEditorGallery,
-  readEditorGallery,
-  stripEditorGalleryEditControls,
 } from './RichTextEditor.gallery';
-import type { EditorGalleryImage } from './RichTextEditor.gallery';
+import { focusRichTextEditorAtEnd } from './RichTextEditor.richText';
 import {
-  applyInlineStyleToElement,
-  focusRichTextEditorAtEnd,
-  normalizeCssColor,
-} from './RichTextEditor.richText';
+  applyRichFirstLineIndent,
+  createInactiveRichCommandStates,
+  ensureRichParagraphBlocks,
+  isRichFirstLineIndentActive,
+  isSelectionInsideStructuredRichBlock,
+  normalizeRichTypingStylesAfterInput,
+  readRecentTextColors,
+  readRichCommandStates,
+  storeRecentTextColors,
+  type RichToggleCommandStates,
+} from './RichTextEditor.richDom';
+import { createRichTextEditorRichActions } from './RichTextEditor.richActions';
+import {
+  applyGalleryImageHeight,
+  clampImageDimension,
+  galleryResizeMaxHeight,
+  galleryResizeMinHeight,
+  type ActiveGalleryResize,
+  type ActiveRichImageResize,
+  type RichImageResizeHandle,
+} from './RichTextEditor.resize';
 import type {
   EditorPopover,
   PastedImageState,
-  RichInlineStyle,
-  RichTextEditorMode,
   RichTextEditorValue,
 } from './RichTextEditor.types';
 
 export type { RichTextEditorMode, RichTextEditorValue } from './RichTextEditor.types';
+export {
+  getRichTextEditorHtmlValue,
+  getRichTextEditorPreviewDocument,
+  getRichTextEditorStorageValue,
+  hasRichTextEditorHtmlContent,
+} from './RichTextEditor.content';
 
 type RichTextEditorProps = {
   ariaLabel: string;
@@ -106,219 +77,6 @@ type RichTextEditorProps = {
   placeholder?: string;
   value: RichTextEditorValue;
 };
-
-type ActiveRichImageResize = {
-  aspectRatio: number;
-  image: HTMLImageElement;
-  maxWidth: number;
-  pointerId: number;
-  startHeight: number;
-  startWidth: number;
-  startX: number;
-  startY: number;
-};
-
-type ActiveGalleryResize = {
-  gallery: HTMLElement;
-  maxHeight: number;
-  minHeight: number;
-  pointerId: number;
-  resizeControl: HTMLElement;
-  startHeight: number;
-  startY: number;
-};
-
-type RichImageResizeHandle = {
-  left: number;
-  top: number;
-};
-
-const richToggleCommands = [
-  'bold',
-  'italic',
-  'underline',
-  'strikeThrough',
-  'superscript',
-  'subscript',
-] as const;
-
-type RichToggleCommand = typeof richToggleCommands[number];
-type RichToggleCommandStates = Record<RichToggleCommand, boolean> & {
-  firstLineIndent: boolean;
-};
-
-const maxEditorHistoryEntries = 120;
-const maxRecentTextColors = 8;
-const recentTextColorsStorageKey = 'capubbs-rich-text-recent-colors:v1';
-const richImageResizeMinWidth = 48;
-const galleryResizeMinHeight = 160;
-const galleryResizeMaxHeight = 1200;
-const richTypingStyleAttribute = 'data-capubbs-typing-style';
-const richTypingStyleMarker = '\u200B';
-const richFirstLineIndentValue = '2em';
-
-export function getRichTextEditorStorageValue(value: RichTextEditorValue): RichTextEditorValue {
-  if (value.mode === 'markdown') {
-    return value;
-  }
-
-  return {
-    ...value,
-    content: compactHtmlForStorage(
-      value.mode === 'rich'
-        ? translateRichTextBbcode(value.content)
-        : value.content,
-    ),
-  };
-}
-
-export function getRichTextEditorHtmlValue(value: RichTextEditorValue) {
-  const html = value.mode === 'markdown'
-    ? renderMarkdownToHtml(value.content)
-    : value.mode === 'rich'
-      ? translateRichTextBbcode(value.content)
-      : value.content;
-  return compactHtmlForStorage(html);
-}
-
-export function getRichTextEditorPreviewDocument(
-  value: RichTextEditorValue,
-  options: { embedded?: boolean } = {},
-) {
-  const previewHtml = value.mode === 'markdown'
-    ? renderForumMarkup(renderMarkdownToHtml(value.content))
-    : value.mode === 'rich'
-      ? translateRichTextBbcode(value.content)
-      : value.content;
-  return buildHtmlPreviewDocument(
-    value.mode === 'markdown' ? previewHtml : compactHtmlForStorage(previewHtml),
-    document.documentElement.classList.contains('dark'),
-    options.embedded,
-  );
-}
-
-export function hasRichTextEditorHtmlContent(content: string) {
-  const container = document.createElement('div');
-  container.innerHTML = finalizeRichTypingStyles(content);
-  return (
-    (container.textContent ?? '').replace(/\u00a0/g, ' ').trim().length > 0
-    || Boolean(container.querySelector('img, hr'))
-  );
-}
-
-function areEditorValuesEqual(currentValue: RichTextEditorValue, nextValue: RichTextEditorValue) {
-  return currentValue.content === nextValue.content && currentValue.mode === nextValue.mode;
-}
-
-function pushEditorHistoryEntry(stack: RichTextEditorValue[], entry: RichTextEditorValue) {
-  const lastEntry = stack[stack.length - 1];
-
-  if (lastEntry && areEditorValuesEqual(lastEntry, entry)) {
-    return;
-  }
-
-  stack.push({ ...entry });
-
-  if (stack.length > maxEditorHistoryEntries) {
-    stack.shift();
-  }
-}
-
-function clampImageDimension(value: number, min: number, max: number) {
-  return Math.min(Math.max(value, min), max);
-}
-
-function applyGalleryImageHeight(gallery: HTMLElement, resizeControl: HTMLElement, height: number) {
-  const roundedHeight = Math.round(height);
-  gallery.style.setProperty('--capubbs-gallery-image-height', `${roundedHeight}px`);
-  resizeControl.setAttribute('aria-valuemax', String(galleryResizeMaxHeight));
-  resizeControl.setAttribute('aria-valuemin', String(galleryResizeMinHeight));
-  resizeControl.setAttribute('aria-valuenow', String(roundedHeight));
-}
-
-function applyImagePixelDimensions(image: HTMLImageElement, width: number, height: number) {
-  image.style.width = `${width}px`;
-  image.style.height = `${height}px`;
-  image.setAttribute('width', String(width));
-  image.setAttribute('height', String(height));
-}
-
-function getEditorContentWidth(editor: HTMLElement) {
-  const computedStyle = window.getComputedStyle(editor);
-  const horizontalPadding = (Number.parseFloat(computedStyle.paddingLeft) || 0)
-    + (Number.parseFloat(computedStyle.paddingRight) || 0);
-  return Math.max(1, editor.clientWidth - horizontalPadding);
-}
-
-function applyImageIntrinsicDimensions(image: HTMLImageElement, maxWidth: number) {
-  return applyImageDimensions(image, maxWidth, {
-    height: image.naturalHeight,
-    width: image.naturalWidth,
-  });
-}
-
-type ImagePixelDimensions = {
-  height: number;
-  width: number;
-};
-
-function applyImageDimensions(image: HTMLImageElement, maxWidth: number, dimensions: ImagePixelDimensions) {
-  if (dimensions.width <= 0 || dimensions.height <= 0) {
-    return false;
-  }
-
-  const width = Math.min(dimensions.width, Math.max(1, Math.round(maxWidth)));
-  const height = Math.max(1, Math.round(dimensions.height * width / dimensions.width));
-  applyImagePixelDimensions(image, width, height);
-  return true;
-}
-
-type ImageDimensions = {
-  height?: string;
-  width?: string;
-};
-
-function normalizeImageDimensionValue(value: string | null | undefined) {
-  const trimmedValue = value?.trim() ?? '';
-
-  if (!trimmedValue) {
-    return undefined;
-  }
-
-  const numericMatch = trimmedValue.match(/^(\d+(?:\.\d+)?)(px|%)?$/i);
-
-  if (!numericMatch) {
-    return undefined;
-  }
-
-  const numericValue = Number(numericMatch[1]);
-
-  if (!Number.isFinite(numericValue) || numericValue <= 0) {
-    return undefined;
-  }
-
-  const unit = numericMatch[2]?.toLowerCase() ?? 'px';
-  const roundedValue = Math.round(numericValue * 100) / 100;
-
-  return `${roundedValue}${unit}`;
-}
-
-function getHtmlImageDimensions(image: HTMLElement): ImageDimensions {
-  return {
-    height: normalizeImageDimensionValue(image.style.height) ?? normalizeImageDimensionValue(image.getAttribute('height')),
-    width: normalizeImageDimensionValue(image.style.width) ?? normalizeImageDimensionValue(image.getAttribute('width')),
-  };
-}
-
-function formatMarkdownImageDimensions(image: HTMLElement) {
-  const dimensions = getHtmlImageDimensions(image);
-  const attributes = [
-    dimensions.width ? `width=${dimensions.width}` : '',
-    dimensions.height ? `height=${dimensions.height}` : '',
-  ].filter(Boolean);
-
-  return attributes.length > 0 ? `{${attributes.join(' ')}}` : '';
-}
 
 export function RichTextEditor({
   ariaLabel,
@@ -338,10 +96,6 @@ export function RichTextEditor({
   const selectedRichImageRef = useRef<HTMLImageElement | null>(null);
   const activeRichImageResizeRef = useRef<ActiveRichImageResize | null>(null);
   const activeGalleryResizeRef = useRef<ActiveGalleryResize | null>(null);
-  const currentValueRef = useRef<RichTextEditorValue>(value);
-  const undoStackRef = useRef<RichTextEditorValue[]>([]);
-  const redoStackRef = useRef<RichTextEditorValue[]>([]);
-  const isApplyingHistoryRef = useRef(false);
   const [activePopover, setActivePopover] = useState<EditorPopover>(null);
   const [activeRichCommands, setActiveRichCommands] = useState<RichToggleCommandStates>(createInactiveRichCommandStates);
   const [isAutoHeightEnabled, setIsAutoHeightEnabled] = useState(false);
@@ -354,115 +108,64 @@ export function RichTextEditor({
   const [fontSizeSelectValue, setFontSizeSelectValue] = useState(defaultRichTextFontSize);
   const [headingSelectValue, setHeadingSelectValue] = useState('p');
   const [imageFileError, setImageFileError] = useState('');
-  const [galleryDialogState, setGalleryDialogState] = useState<{
-    images: Array<{ alt: string; caption: string; url: string }>;
-    target: HTMLElement | null;
-    title: string;
-  } | null>(null);
+  const [galleryDialogState, setGalleryDialogState] = useState<GalleryDialogState | null>(null);
   const [isCheckingImageFile, setIsCheckingImageFile] = useState(false);
   const [pastedImage, setPastedImage] = useState<PastedImageState | null>(null);
   const [recentTextColors, setRecentTextColors] = useState(readRecentTextColors);
   const [selectedTextColor, setSelectedTextColor] = useState(defaultTextColor);
   const [hexSourceValue, setHexSourceValue] = useState(defaultTextColor);
   const [richImageResizeHandle, setRichImageResizeHandle] = useState<RichImageResizeHandle | null>(null);
+  const { currentValueRef, handleEditorKeyDown, updateContent, updateMode } = useRichTextEditorHistory({
+    editorRef,
+    onChange,
+    savedRangeRef,
+    setActivePopover,
+    setIsColorPickerOpen,
+    sourceRef,
+    sourceSelectionRef,
+    value,
+  });
   const isDarkTheme = useIsDarkTheme();
   const isMobileViewport = useIsMobileViewport();
   const isMarkdownMode = value.mode === 'markdown';
   const isHtmlMode = value.mode === 'html';
   const isSourceMode = isMarkdownMode || isHtmlMode;
   const hasEditorContent = hasModeSwitchingContent(value);
-  const shouldShowSourceLineNumbers = isSourceMode && showSourceLineNumbers;
-  const sourceLineCount = useMemo(() => Math.max(1, value.content.split('\n').length), [value.content]);
-  const sourceLineNumbers = useMemo(
-    () => Array.from({ length: sourceLineCount }, (_, index) => index + 1),
-    [sourceLineCount],
-  );
-  const sourceLineNumberColumnWidth = `${Math.max(2, String(sourceLineCount).length) + 1}ch`;
-  const sourceTextareaWrap = shouldShowSourceLineNumbers ? 'off' : 'soft';
-  const markdownSourceOverflowClassName = isAutoHeightEnabled
-    ? shouldShowSourceLineNumbers
-      ? 'overflow-x-auto overflow-y-hidden'
-      : 'overflow-hidden'
-    : shouldShowSourceLineNumbers
-      ? 'overflow-auto'
-      : 'overflow-y-auto';
-  const htmlSourceOverflowClassName = isAutoHeightEnabled
-    ? shouldShowSourceLineNumbers
-      ? 'overflow-x-auto overflow-y-hidden'
-      : 'overflow-hidden'
-    : 'overflow-auto';
-  const splitPaneClassName = isMobileViewport
-    ? `flex flex-col ${isAutoHeightEnabled ? 'min-h-[50vh]' : 'h-[50vh]'}`
-    : `flex flex-row ${isAutoHeightEnabled ? 'min-h-[50vh]' : 'h-[50vh]'}`;
-  const splitPaneChildClassName = 'min-h-0 min-w-0 flex-1 basis-0';
-  const splitPaneDividerClassName = isMobileViewport
-    ? 'border-t border-zinc-200/80 dark:border-white/10'
-    : 'border-l border-zinc-200/80 dark:border-white/10';
-  const htmlSourcePaneClassName = `${splitPaneChildClassName} flex flex-col ${
-    isHtmlPreviewOpen
-      ? isMobileViewport
-        ? 'border-b border-zinc-200/80 dark:border-white/10'
-        : 'border-r border-zinc-200/80 dark:border-white/10'
-      : ''
-  }`;
-  const markdownPreview = useMemo(
-    () => renderForumMarkup(renderMarkdownToHtml(value.content)),
-    [value.content],
-  );
-  const highlightedHtml = useMemo(() => highlightHtmlSource(value.content), [value.content]);
-  const htmlPreviewDocument = useMemo(
-    () => buildHtmlPreviewDocument(compactHtmlForStorage(value.content), isDarkTheme),
-    [isDarkTheme, value.content],
-  );
-
-  const syncSourceLineNumbersScroll = () => {
-    if (!sourceLineNumbersRef.current || !sourceRef.current) {
-      return;
-    }
-
-    sourceLineNumbersRef.current.scrollTop = sourceRef.current.scrollTop;
-  };
-
-  const resizeSourceTextarea = () => {
-    const textarea = sourceRef.current;
-    if (!textarea) {
-      return;
-    }
-
-    if (!isAutoHeightEnabled) {
-      textarea.style.height = '';
-      if (htmlHighlightRef.current) {
-        htmlHighlightRef.current.style.height = '';
-      }
-      return;
-    }
-
-    textarea.style.height = 'auto';
-    const nextHeight = `${Math.max(textarea.scrollHeight, Math.round(window.innerHeight * 0.4))}px`;
-    textarea.style.height = nextHeight;
-
-    if (htmlHighlightRef.current) {
-      htmlHighlightRef.current.style.height = nextHeight;
-    }
-  };
-
-  useEffect(() => {
-    if (areEditorValuesEqual(currentValueRef.current, value)) {
-      isApplyingHistoryRef.current = false;
-      return;
-    }
-
-    currentValueRef.current = value;
-
-    if (isApplyingHistoryRef.current) {
-      isApplyingHistoryRef.current = false;
-      return;
-    }
-
-    undoStackRef.current = [];
-    redoStackRef.current = [];
-  }, [value.content, value.mode]);
-
+  const {
+    handleHtmlSourceScroll,
+    handleMarkdownEditorKeyDown,
+    handleMarkdownSourceScroll,
+    highlightedHtml,
+    htmlPreviewDocument,
+    htmlSourceOverflowClassName,
+    htmlSourcePaneClassName,
+    insertSourceBlock,
+    markdownPreview,
+    markdownSourceOverflowClassName,
+    replaceSourceSelection,
+    shouldShowSourceLineNumbers,
+    sourceLineNumberColumnWidth,
+    sourceLineNumbers,
+    sourceTextareaWrap,
+    splitPaneChildClassName,
+    splitPaneClassName,
+    splitPaneDividerClassName,
+    wrapSourceSelection,
+  } = useRichTextEditorSource({
+    handleEditorKeyDown,
+    htmlHighlightRef,
+    isAutoHeightEnabled,
+    isDarkTheme,
+    isHtmlPreviewOpen,
+    isMobileViewport,
+    isSourceMode,
+    showSourceLineNumbers,
+    sourceLineNumbersRef,
+    sourceRef,
+    sourceSelectionRef,
+    updateContent,
+    value,
+  });
   useEffect(() => {
     storeRecentTextColors(recentTextColors);
   }, [recentTextColors]);
@@ -522,22 +225,6 @@ export function RichTextEditor({
   }, [isSourceMode]);
 
   useEffect(() => {
-    const frame = window.requestAnimationFrame(resizeSourceTextarea);
-
-    return () => window.cancelAnimationFrame(frame);
-  }, [isAutoHeightEnabled, isSourceMode, value.content, value.mode]);
-
-  useEffect(() => {
-    if (!shouldShowSourceLineNumbers) {
-      return undefined;
-    }
-
-    const frame = window.requestAnimationFrame(syncSourceLineNumbersScroll);
-
-    return () => window.cancelAnimationFrame(frame);
-  }, [shouldShowSourceLineNumbers, sourceLineCount, value.mode]);
-
-  useEffect(() => {
     if (focusRequest === 0) {
       return;
     }
@@ -564,163 +251,6 @@ export function RichTextEditor({
 
     return () => URL.revokeObjectURL(pastedImage.previewUrl);
   }, [pastedImage?.previewUrl]);
-
-  const commitEditorValue = (nextValue: RichTextEditorValue, recordHistory = true) => {
-    const previousValue = currentValueRef.current;
-
-    if (areEditorValuesEqual(previousValue, nextValue)) {
-      return;
-    }
-
-    if (recordHistory) {
-      pushEditorHistoryEntry(undoStackRef.current, previousValue);
-      redoStackRef.current = [];
-    } else {
-      isApplyingHistoryRef.current = true;
-    }
-
-    currentValueRef.current = nextValue;
-    onChange(nextValue);
-  };
-
-  const updateContent = (content: string) => {
-    commitEditorValue({
-      content,
-      mode: currentValueRef.current.mode,
-    });
-  };
-
-  const updateMode = (nextMode: RichTextEditorMode) => {
-    const currentValue = currentValueRef.current;
-
-    if (nextMode === currentValue.mode || isCrossGroupModeSwitchLocked(currentValue, nextMode)) {
-      return;
-    }
-
-    setActivePopover(null);
-    setIsColorPickerOpen(false);
-    savedRangeRef.current = null;
-    sourceSelectionRef.current = null;
-    commitEditorValue({
-      content: convertEditorContent(currentValue.content, currentValue.mode, nextMode),
-      mode: nextMode,
-    });
-  };
-
-  const focusEditorAfterHistoryChange = (nextValue: RichTextEditorValue) => {
-    savedRangeRef.current = null;
-    sourceSelectionRef.current = null;
-
-    window.requestAnimationFrame(() => {
-      if (nextValue.mode === 'rich') {
-        if (editorRef.current) {
-          focusRichTextEditorAtEnd(editorRef.current);
-        }
-        return;
-      }
-
-      if (!sourceRef.current) {
-        return;
-      }
-
-      const selectionPosition = sourceRef.current.value.length;
-      sourceRef.current.focus();
-      sourceRef.current.setSelectionRange(selectionPosition, selectionPosition);
-      sourceSelectionRef.current = {
-        end: selectionPosition,
-        start: selectionPosition,
-      };
-    });
-  };
-
-  const undoEditorChange = () => {
-    const previousValue = undoStackRef.current.pop();
-
-    if (!previousValue) {
-      return;
-    }
-
-    pushEditorHistoryEntry(redoStackRef.current, currentValueRef.current);
-    commitEditorValue(previousValue, false);
-    focusEditorAfterHistoryChange(previousValue);
-  };
-
-  const redoEditorChange = () => {
-    const nextValue = redoStackRef.current.pop();
-
-    if (!nextValue) {
-      return;
-    }
-
-    pushEditorHistoryEntry(undoStackRef.current, currentValueRef.current);
-    commitEditorValue(nextValue, false);
-    focusEditorAfterHistoryChange(nextValue);
-  };
-
-  const handleEditorKeyDown = (event: KeyboardEvent<HTMLDivElement | HTMLTextAreaElement>) => {
-    if (!(event.ctrlKey || event.metaKey) || event.altKey) {
-      return;
-    }
-
-    const key = event.key.toLowerCase();
-    const isUndoShortcut = key === 'z' && !event.shiftKey;
-    const isRedoShortcut = key === 'y' || (key === 'z' && event.shiftKey);
-
-    if (!isUndoShortcut && !isRedoShortcut) {
-      return;
-    }
-
-    event.preventDefault();
-
-    if (isUndoShortcut) {
-      undoEditorChange();
-      return;
-    }
-
-    redoEditorChange();
-  };
-
-  const applyMarkdownSourceEdit = (textarea: HTMLTextAreaElement, edit: MarkdownSourceEdit) => {
-    sourceSelectionRef.current = null;
-    updateContent(edit.content);
-    window.requestAnimationFrame(() => {
-      textarea.focus();
-      textarea.setSelectionRange(edit.selectionStart, edit.selectionEnd);
-    });
-  };
-
-  const handleMarkdownEditorKeyDown = (event: KeyboardEvent<HTMLTextAreaElement>) => {
-    if (event.nativeEvent.isComposing) {
-      return;
-    }
-
-    const textarea = event.currentTarget;
-    const hasCommandModifier = event.ctrlKey || event.metaKey || event.altKey;
-    let edit: MarkdownSourceEdit | null = null;
-
-    if (event.key === 'Tab' && !hasCommandModifier) {
-      edit = getMarkdownTabEdit(
-        textarea.value,
-        textarea.selectionStart,
-        textarea.selectionEnd,
-        event.shiftKey,
-      );
-    } else if (event.key === 'Enter' && !event.shiftKey && !hasCommandModifier) {
-      edit = getMarkdownListEnterEdit(
-        textarea.value,
-        textarea.selectionStart,
-        textarea.selectionEnd,
-      );
-    }
-
-    if (edit) {
-      event.preventDefault();
-      applyMarkdownSourceEdit(textarea, edit);
-      return;
-    }
-
-    handleEditorKeyDown(event);
-  };
 
   const handleRichEditorKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
     const editor = event.currentTarget;
@@ -812,697 +342,37 @@ export function RichTextEditor({
     handleEditorKeyDown(event);
   };
 
-  const clearRichImageSelection = () => {
-    selectedRichImageRef.current = null;
-    activeRichImageResizeRef.current = null;
-    setRichImageResizeHandle(null);
-  };
-
-  const updateRichImageResizeHandle = () => {
-    const editorShell = editorShellRef.current;
-    const editor = editorRef.current;
-    const image = selectedRichImageRef.current;
-
-    if (!editorShell || !editor || !image || !editor.contains(image)) {
-      clearRichImageSelection();
-      return;
-    }
-
-    const shellBounds = editorShell.getBoundingClientRect();
-    const imageBounds = image.getBoundingClientRect();
-
-    if (imageBounds.width <= 0 || imageBounds.height <= 0) {
-      clearRichImageSelection();
-      return;
-    }
-
-    setRichImageResizeHandle({
-      left: imageBounds.right - shellBounds.left,
-      top: imageBounds.bottom - shellBounds.top,
-    });
-  };
-
-  const selectRichImage = (image: HTMLImageElement) => {
-    selectedRichImageRef.current = image;
-    window.requestAnimationFrame(updateRichImageResizeHandle);
-  };
-
-  const handleRichEditorClick = (event: MouseEvent<HTMLDivElement>) => {
-    const galleryToEdit = getEditorGalleryEditTarget(event.target);
-    if (galleryToEdit) {
-      event.preventDefault();
-      openEditorGalleryForEditing(galleryToEdit);
-      clearRichImageSelection();
-      return;
-    }
-
-    const galleryAction = getEditorGalleryAction(event.target);
-    if (galleryAction) {
-      event.preventDefault();
-      moveEditorGallery(event.target as Element, galleryAction);
-      clearRichImageSelection();
-      return;
-    }
-
-    if (event.target instanceof HTMLImageElement) {
-      if (event.target.closest('.capubbs-gallery')) {
-        clearRichImageSelection();
-        return;
-      }
-
-      selectRichImage(event.target);
-      return;
-    }
-
-    clearRichImageSelection();
-  };
-
-  const handleGalleryResizePointerDown = (event: PointerEvent<HTMLDivElement>) => {
-    const target = getEditorGalleryResizeTarget(event.target);
-    if (!target) return;
-
-    event.preventDefault();
-    event.stopPropagation();
-    target.resizeControl.setPointerCapture(event.pointerId);
-    const stage = target.gallery.querySelector<HTMLElement>('.capubbs-gallery-stage');
-    const startHeight = getEditorGalleryImageHeight(target.gallery)
-      ?? stage?.getBoundingClientRect().height
-      ?? galleryResizeMinHeight;
-
-    activeGalleryResizeRef.current = {
-      ...target,
-      maxHeight: galleryResizeMaxHeight,
-      minHeight: galleryResizeMinHeight,
-      pointerId: event.pointerId,
-      startHeight,
-      startY: event.clientY,
-    };
-    applyGalleryImageHeight(target.gallery, target.resizeControl, startHeight);
-    clearRichImageSelection();
-  };
-
-  const handleGalleryResizePointerMove = (event: PointerEvent<HTMLDivElement>) => {
-    const resize = activeGalleryResizeRef.current;
-    if (!resize || resize.pointerId !== event.pointerId) return;
-
-    event.preventDefault();
-    const nextHeight = clampImageDimension(
-      resize.startHeight + event.clientY - resize.startY,
-      resize.minHeight,
-      resize.maxHeight,
-    );
-    applyGalleryImageHeight(resize.gallery, resize.resizeControl, nextHeight);
-  };
-
-  const finishGalleryResize = (event: PointerEvent<HTMLDivElement>) => {
-    const resize = activeGalleryResizeRef.current;
-    if (!resize || resize.pointerId !== event.pointerId) return;
-
-    if (resize.resizeControl.hasPointerCapture(event.pointerId)) {
-      resize.resizeControl.releasePointerCapture(event.pointerId);
-    }
-    activeGalleryResizeRef.current = null;
-    updateContent(editorRef.current?.innerHTML ?? '');
-  };
-
-  const handleRichImageResizePointerDown = (event: PointerEvent<HTMLButtonElement>) => {
-    const image = selectedRichImageRef.current;
-    const editor = editorRef.current;
-
-    if (!image || !editor) {
-      return;
-    }
-
-    event.preventDefault();
-    event.stopPropagation();
-    event.currentTarget.setPointerCapture(event.pointerId);
-
-    const imageBounds = image.getBoundingClientRect();
-    const startWidth = imageBounds.width;
-    const startHeight = imageBounds.height;
-
-    activeRichImageResizeRef.current = {
-      aspectRatio: startHeight > 0 ? startWidth / startHeight : 1,
-      image,
-      maxWidth: Math.max(richImageResizeMinWidth, editor.clientWidth),
-      pointerId: event.pointerId,
-      startHeight,
-      startWidth,
-      startX: event.clientX,
-      startY: event.clientY,
-    };
-  };
-
-  const handleRichImageResizePointerMove = (event: PointerEvent<HTMLButtonElement>) => {
-    const resizeState = activeRichImageResizeRef.current;
-
-    if (!resizeState || resizeState.pointerId !== event.pointerId) {
-      return;
-    }
-
-    event.preventDefault();
-    const horizontalDelta = event.clientX - resizeState.startX;
-    const verticalDelta = (event.clientY - resizeState.startY) * resizeState.aspectRatio;
-    const resizeDelta = Math.abs(horizontalDelta) >= Math.abs(verticalDelta) ? horizontalDelta : verticalDelta;
-    const nextWidth = clampImageDimension(
-      Math.round(resizeState.startWidth + resizeDelta),
-      richImageResizeMinWidth,
-      resizeState.maxWidth,
-    );
-    const nextHeight = Math.max(1, Math.round(nextWidth / resizeState.aspectRatio));
-
-    applyImagePixelDimensions(resizeState.image, nextWidth, nextHeight);
-    updateRichImageResizeHandle();
-  };
-
-  const finishRichImageResize = (event: PointerEvent<HTMLButtonElement>) => {
-    const resizeState = activeRichImageResizeRef.current;
-
-    if (!resizeState || resizeState.pointerId !== event.pointerId) {
-      return;
-    }
-
-    if (event.currentTarget.hasPointerCapture(event.pointerId)) {
-      event.currentTarget.releasePointerCapture(event.pointerId);
-    }
-
-    activeRichImageResizeRef.current = null;
-    updateContent(editorRef.current?.innerHTML ?? '');
-    updateRichImageResizeHandle();
-  };
-
-  const runRichCommand = (command: string, commandValue?: string) => {
-    const editor = editorRef.current;
-    editor?.focus();
-    document.execCommand(command, false, commandValue);
-    if (editor && (command === 'indent' || command === 'outdent')) {
-      normalizeRichIndentation(editor);
-    }
-    updateContent(editor?.innerHTML ?? '');
-    if (editor) setActiveRichCommands(readRichCommandStates(editor));
-  };
-
-  const toggleRichFirstLineIndent = () => {
-    const editor = editorRef.current;
-    const selection = window.getSelection();
-    if (!editor || !selection || selection.rangeCount === 0) return;
-
-    const range = selection.getRangeAt(0);
-    if (!editor.contains(range.commonAncestorContainer)) return;
-
-    const shouldRemoveIndent = isRichFirstLineIndentActive(range, editor);
-    const paragraphBlocks = ensureRichParagraphBlocks(range, editor);
-    paragraphBlocks.forEach((paragraph) => {
-      if (shouldRemoveIndent) {
-        removeRichFirstLineIndent(paragraph);
-      } else {
-        applyRichFirstLineIndent(paragraph);
-      }
-    });
-
-    updateContent(editor.innerHTML);
-    setActiveRichCommands(readRichCommandStates(editor));
-  };
-
-  const insertRichHtml = (html: string) => {
-    editorRef.current?.focus();
-    restoreRichSelection();
-    document.execCommand('insertHTML', false, html);
-    updateContent(editorRef.current?.innerHTML ?? '');
-  };
-
-  const insertRichImage = (url: string, altText: string, intrinsicDimensions?: ImagePixelDimensions) => {
-    const marker = `capubbs-inserted-image-${Date.now()}-${Math.random().toString(36).slice(2)}`;
-
-    editorRef.current?.focus();
-    restoreRichSelection();
-    document.execCommand(
-      'insertHTML',
-      false,
-      `<img src="${escapeAttribute(url)}" alt="${escapeAttribute(altText)}" data-capubbs-image-marker="${marker}">`,
-    );
-
-    const image = editorRef.current?.querySelector<HTMLImageElement>(`img[data-capubbs-image-marker="${marker}"]`);
-    image?.removeAttribute('data-capubbs-image-marker');
-    updateContent(editorRef.current?.innerHTML ?? '');
-
-    if (image) {
-      selectRichImage(image);
-
-      const applyDimensions = () => {
-        const editor = editorRef.current;
-        if (!editor || !editor.contains(image)) {
-          return false;
-        }
-
-        const applied = intrinsicDimensions
-          ? applyImageDimensions(image, getEditorContentWidth(editor), intrinsicDimensions)
-          : applyImageIntrinsicDimensions(image, getEditorContentWidth(editor));
-        if (applied) {
-          updateContent(editor.innerHTML);
-          updateRichImageResizeHandle();
-        }
-        return applied;
-      };
-
-      if (intrinsicDimensions) {
-        applyDimensions();
-        return Promise.resolve();
-      }
-
-      return new Promise<void>((resolve) => {
-        let settled = false;
-        let timeoutId: number | undefined;
-        let applyIntrinsicDimensions: () => void;
-        const handleImageError = () => finish();
-        const finish = () => {
-          if (settled) return;
-          settled = true;
-          if (typeof timeoutId !== 'undefined') window.clearTimeout(timeoutId);
-          image.removeEventListener('load', applyIntrinsicDimensions);
-          image.removeEventListener('error', handleImageError);
-          resolve();
-        };
-        applyIntrinsicDimensions = () => {
-          const editor = editorRef.current;
-          if (!editor || !editor.contains(image)) {
-            finish();
-            return;
-          }
-
-          applyDimensions();
-          finish();
-        };
-
-        image.addEventListener('load', applyIntrinsicDimensions, { once: true });
-        image.addEventListener('error', handleImageError, { once: true });
-        timeoutId = window.setTimeout(finish, 5000);
-        if (image.complete) {
-          window.requestAnimationFrame(applyIntrinsicDimensions);
-        }
-      });
-    }
-
-    return Promise.resolve();
-  };
-
-  const openGalleryDialog = () => {
-    saveSelection();
-    setActivePopover(null);
-    setIsColorPickerOpen(false);
-    setGalleryDialogState({ images: [], target: null, title: '' });
-  };
-
-  const openEditorGalleryForEditing = (gallery: HTMLElement) => {
-    const snapshot = readEditorGallery(gallery);
-    if (snapshot.images.length === 0) return;
-
-    setActivePopover(null);
-    setIsColorPickerOpen(false);
-    setGalleryDialogState({ ...snapshot, target: gallery });
-  };
-
-  const uploadAndInsertGallery = async (title: string, images: GalleryDialogImage[]) => {
-    const uploadedImages: EditorGalleryImage[] = [];
-    for (const image of images) {
-      if (!image.file && image.url) {
-        uploadedImages.push({
-          alt: image.alt,
-          caption: image.caption,
-          url: image.url,
-        });
-        continue;
-      }
-
-      if (!image.file) {
-        throw new Error('图廊图片无效，请移除后重新添加。');
-      }
-
-      if (image.file.size > maxInlineImageBytes) {
-        throw new Error('图片仍在处理，请稍后再试。');
-      }
-
-      const md5 = await getImageFileMd5Hex(image.file);
-      const { url } = await uploadEditorImage(image.file, md5);
-
-      uploadedImages.push({
-        alt: image.alt || getImageAltText(image.file),
-        caption: image.caption,
-        url,
-      });
-    }
-    const editedGallery = galleryDialogState?.target;
-    const galleryHtml = buildEditorGalleryHtml(
-      title,
-      uploadedImages,
-      editedGallery ? getEditorGalleryImageHeight(editedGallery) : undefined,
-    );
-    const editorMode = currentValueRef.current.mode;
-
-    if (editedGallery && editorRef.current?.contains(editedGallery)) {
-      editedGallery.insertAdjacentHTML('afterend', galleryHtml);
-      editedGallery.remove();
-      updateContent(editorRef.current.innerHTML);
-    } else if (editorMode === 'markdown' || editorMode === 'html') {
-      insertSourceBlock(galleryHtml);
-    } else {
-      insertRichHtml(`${galleryHtml}<p><br></p>`);
-    }
-
-    setGalleryDialogState(null);
-  };
-
-  const openPastedImageDialog = (file: File, source: PastedImageState['source']) => {
-    setPastedImage({
-      isCompressing: false,
-      isUploading: false,
-      originalFile: file,
-      previewUrl: URL.createObjectURL(file),
-      source,
-      workingFile: file,
-    });
-  };
-
-  const closePastedImageDialog = () => {
-    setPastedImage(null);
-  };
-
-  const handleEditorPaste = (event: ClipboardEvent<HTMLDivElement | HTMLTextAreaElement>) => {
-    const imageFile = getClipboardImageFile(event.clipboardData);
-
-    if (!imageFile) {
-      return;
-    }
-
-    event.preventDefault();
-    saveSelection();
-    setActivePopover(null);
-    setIsColorPickerOpen(false);
-    openPastedImageDialog(imageFile, 'paste');
-  };
-
-  const handleLocalImageFileChange = async (event: ChangeEvent<HTMLInputElement>) => {
-    const input = event.currentTarget;
-    const file = input.files?.[0];
-    input.value = '';
-
-    if (!file) {
-      return;
-    }
-
-    setImageFileError('');
-    setIsCheckingImageFile(true);
-
-    try {
-      await validateEditorImageFile(file);
-      closePopover();
-      openPastedImageDialog(file, 'file');
-    } catch (error) {
-      setImageFileError(error instanceof Error ? error.message : '图片文件检查失败，请重新选择。');
-    } finally {
-      setIsCheckingImageFile(false);
-    }
-  };
-
-  const compressPastedImage = async () => {
-    if (!pastedImage || pastedImage.isCompressing) {
-      return;
-    }
-
-    setPastedImage((current) =>
-      current
-        ? {
-            ...current,
-            error: undefined,
-            isCompressing: true,
-            isUploading: false,
-          }
-        : current,
-    );
-
-    try {
-      const compressedFile = await compressImageFileUnderLimit(pastedImage.originalFile, maxInlineImageBytes);
-
-      setPastedImage((current) =>
-        current
-          ? {
-              ...current,
-              error: undefined,
-              isCompressing: false,
-              previewUrl: URL.createObjectURL(compressedFile),
-              workingFile: compressedFile,
-            }
-          : current,
-      );
-    } catch (error) {
-      setPastedImage((current) =>
-        current
-          ? {
-              ...current,
-              error: error instanceof Error ? error.message : '图片压缩失败，请换一张图片再试。',
-              isCompressing: false,
-            }
-          : current,
-      );
-    }
-  };
-
-  const uploadAndInsertPastedImage = async () => {
-    if (
-      !pastedImage ||
-      pastedImage.isCompressing ||
-      pastedImage.isUploading ||
-      pastedImage.workingFile.size > maxInlineImageBytes
-    ) {
-      return;
-    }
-
-    setPastedImage((current) =>
-      current
-        ? {
-            ...current,
-            error: undefined,
-            isUploading: true,
-          }
-        : current,
-    );
-
-    try {
-      const uploadFile = await createUploadableImageFileUnderLimit(pastedImage.workingFile, maxInlineImageBytes);
-      const intrinsicDimensions = await getImageFileDimensions(uploadFile);
-      const md5 = await getImageFileMd5Hex(uploadFile);
-      const { url } = await uploadEditorImage(uploadFile, md5);
-      const altText = getImageAltText(pastedImage.originalFile);
-
-      if (isMarkdownMode) {
-        replaceSourceSelection(
-          `![${escapeMarkdownLinkText(altText)}](${url}){width=${intrinsicDimensions.width}px height=${intrinsicDimensions.height}px}`,
-        );
-      } else if (isHtmlMode) {
-        replaceSourceSelection(
-          `<img src="${escapeAttribute(url)}" alt="${escapeAttribute(altText)}" width="${intrinsicDimensions.width}" height="${intrinsicDimensions.height}">`,
-        );
-      } else {
-        await insertRichImage(url, altText, intrinsicDimensions);
-      }
-
-      closePastedImageDialog();
-    } catch (error) {
-      setPastedImage((current) =>
-        current
-          ? {
-              ...current,
-              error: error instanceof Error ? error.message : '图片上传失败，请稍后重试。',
-              isUploading: false,
-            }
-          : current,
-      );
-    }
-  };
-
-  const getRichSelectionHtml = (fallback: string) => {
-    const selection = window.getSelection();
-    if (!selection || selection.rangeCount === 0) {
-      return fallback;
-    }
-
-    const range = selection.getRangeAt(0);
-    if (!editorRef.current?.contains(range.commonAncestorContainer) || range.collapsed) {
-      return fallback;
-    }
-
-    const container = document.createElement('div');
-    container.appendChild(range.cloneContents());
-
-    return container.innerHTML || escapeHtml(selection.toString()) || fallback;
-  };
-
-  const wrapRichSelectionWithTag = (tagName: string, fallback: string, className = '') => {
-    const classAttribute = className ? ` class="${escapeAttribute(className)}"` : '';
-    insertRichHtml(`<${tagName}${classAttribute}>${getRichSelectionHtml(fallback)}</${tagName}>`);
-  };
-
-  const applyRichInlineStyle = (style: RichInlineStyle) => {
-    const editor = editorRef.current;
-    const selection = window.getSelection();
-
-    if (!editor || !selection) {
-      savedRangeRef.current = null;
-      return;
-    }
-
-    const currentRange = selection.rangeCount > 0 ? selection.getRangeAt(0) : null;
-    const range = currentRange
-      && editor.contains(currentRange.commonAncestorContainer)
-      ? currentRange.cloneRange()
-      : savedRangeRef.current?.cloneRange();
-
-    if (!range || !editor.contains(range.commonAncestorContainer)) {
-      savedRangeRef.current = null;
-      return;
-    }
-
-    editor.focus();
-    selection.removeAllRanges();
-    selection.addRange(range);
-
-    const wrapper = document.createElement('span');
-    applyInlineStyleToElement(wrapper, style);
-    const nextRange = document.createRange();
-
-    if (range.collapsed) {
-      wrapper.setAttribute(richTypingStyleAttribute, 'true');
-      const marker = document.createTextNode(richTypingStyleMarker);
-      wrapper.appendChild(marker);
-      range.insertNode(wrapper);
-      nextRange.setStart(marker, marker.length);
-      nextRange.collapse(true);
-    } else {
-      const selectedContent = range.extractContents();
-      removeOverriddenRichInlineStyles(selectedContent, style);
-      wrapper.appendChild(selectedContent);
-      mergeFullySelectedChildRichSpansIntoWrapper(wrapper);
-      range.insertNode(wrapper);
-      normalizeRedundantRichSpans(editor);
-      removeOverriddenRichInlineStylesFromFullySelectedAncestors(wrapper, editor, style);
-      normalizeRedundantRichSpans(editor);
-      nextRange.selectNodeContents(wrapper);
-    }
-
-    selection.removeAllRanges();
-    selection.addRange(nextRange);
-    updateContent(editor.innerHTML);
-    savedRangeRef.current = null;
-  };
-
-  const handleRichFontChange = (event: ChangeEvent<HTMLSelectElement>) => {
-    const fontName = event.target.value;
-
-    setFontSelectValue(fontName);
-
-    if (!fontName) {
-      return;
-    }
-
-    applyRichInlineStyle({ fontFamily: fontName });
-  };
-
-  const handleRichFontSizeChange = (event: ChangeEvent<HTMLSelectElement>) => {
-    const fontSize = event.target.value;
-
-    if (!fontSize) {
-      return;
-    }
-
-    setFontSizeSelectValue(fontSize);
-    applyRichInlineStyle({ fontSize });
-  };
-
-  const handleRichHeadingChange = (event: ChangeEvent<HTMLSelectElement>) => {
-    const headingTag = event.target.value;
-
-    if (!richTextHeadingOptions.some((option) => option.value === headingTag)) {
-      return;
-    }
-
-    setHeadingSelectValue(headingTag);
-    editorRef.current?.focus();
-    restoreRichSelection();
-    document.execCommand('formatBlock', false, headingTag);
-    updateContent(editorRef.current?.innerHTML ?? '');
-    savedRangeRef.current = null;
-  };
-
-  const applyRichTextColor = (color: string) => {
-    const normalizedColor = normalizeCssColor(color);
-
-    if (!normalizedColor) {
-      return;
-    }
-
-    setSelectedTextColor(normalizedColor);
-    setHexSourceValue(normalizedColor);
-    setRecentTextColors((currentColors) => {
-      return [
-        normalizedColor,
-        ...currentColors.filter((recentColor) => recentColor !== normalizedColor),
-      ].slice(0, maxRecentTextColors);
-    });
-    applyRichInlineStyle({ color: normalizedColor });
-  };
-
-  const handleHexSourceChange = (nextValue: string) => {
-    const normalizedInput = nextValue.toUpperCase();
-    setHexSourceValue(normalizedInput);
-
-    if (/^#[0-9A-F]{6}$/.test(normalizedInput)) {
-      setSelectedTextColor(normalizedInput);
-    }
-  };
-
-  const applyHexSourceColor = () => {
-    if (/^#[0-9A-F]{6}$/.test(hexSourceValue)) {
-      applyRichTextColor(hexSourceValue);
-    }
-  };
-
-  const toggleColorPicker = () => {
-    saveSelection();
-    setActivePopover(null);
-    setIsColorPickerOpen((open) => !open);
-  };
-
-  const saveSelection = () => {
-    if (isSourceMode) {
-      if (sourceRef.current) {
-        sourceSelectionRef.current = {
-          end: sourceRef.current.selectionEnd,
-          start: sourceRef.current.selectionStart,
-        };
-      }
-      return;
-    }
-
-    const selection = window.getSelection();
-    if (!selection || selection.rangeCount === 0) {
-      return;
-    }
-
-    const range = selection.getRangeAt(0);
-    if (editorRef.current?.contains(range.commonAncestorContainer)) {
-      savedRangeRef.current = range.cloneRange();
-    }
-  };
-
-  const restoreRichSelection = () => {
-    if (!savedRangeRef.current) {
-      return;
-    }
-
-    const selection = window.getSelection();
-    selection?.removeAllRanges();
-    selection?.addRange(savedRangeRef.current);
-  };
+  const {
+    applyHexSourceColor,
+    applyRichTextColor,
+    handleHexSourceChange,
+    handleRichFontChange,
+    handleRichFontSizeChange,
+    handleRichHeadingChange,
+    restoreRichSelection,
+    runRichCommand,
+    saveSelection,
+    toggleColorPicker,
+    toggleRichFirstLineIndent,
+    wrapRichSelectionWithTag,
+  } = createRichTextEditorRichActions({
+    editorRef,
+    hexSourceValue,
+    isSourceMode,
+    savedRangeRef,
+    setActivePopover,
+    setActiveRichCommands,
+    setFontSelectValue,
+    setFontSizeSelectValue,
+    setHeadingSelectValue,
+    setHexSourceValue,
+    setIsColorPickerOpen,
+    setRecentTextColors,
+    setSelectedTextColor,
+    sourceRef,
+    sourceSelectionRef,
+    updateContent,
+  });
 
   const getCurrentSelectionText = () => {
     if (isSourceMode) {
@@ -1545,6 +415,51 @@ export function RichTextEditor({
     setPopoverTextValue('');
     setPopoverValue('');
   };
+
+  const {
+    closePastedImageDialog,
+    compressPastedImage,
+    finishGalleryResize,
+    finishRichImageResize,
+    handleEditorPaste,
+    handleGalleryResizePointerDown,
+    handleGalleryResizePointerMove,
+    handleLocalImageFileChange,
+    handleRichEditorClick,
+    handleRichImageResizePointerDown,
+    handleRichImageResizePointerMove,
+    insertRichHtml,
+    insertRichImage,
+    openGalleryDialog,
+    openEditorGalleryForEditing,
+    updateRichImageResizeHandle,
+    uploadAndInsertGallery,
+    uploadAndInsertPastedImage,
+  } = createRichTextEditorMediaActions({
+    activeGalleryResizeRef,
+    activeRichImageResizeRef,
+    closePopover,
+    currentValueRef,
+    editorRef,
+    editorShellRef,
+    galleryDialogState,
+    insertSourceBlock,
+    isHtmlMode,
+    isMarkdownMode,
+    pastedImage,
+    replaceSourceSelection,
+    restoreRichSelection,
+    saveSelection,
+    selectedRichImageRef,
+    setActivePopover,
+    setGalleryDialogState,
+    setImageFileError,
+    setIsCheckingImageFile,
+    setIsColorPickerOpen,
+    setPastedImage,
+    setRichImageResizeHandle,
+    updateContent,
+  });
 
   const handlePopoverSubmit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -1626,78 +541,6 @@ export function RichTextEditor({
     closePopover();
   };
 
-  const getSourceSelection = () => {
-    const textarea = sourceRef.current;
-    if (!textarea) {
-      return null;
-    }
-
-    const start = sourceSelectionRef.current?.start ?? textarea.selectionStart;
-    const end = sourceSelectionRef.current?.end ?? textarea.selectionEnd;
-
-    return {
-      end,
-      selectedText: value.content.slice(start, end),
-      start,
-      textarea,
-    };
-  };
-
-  const replaceSourceRange = (
-    range: NonNullable<ReturnType<typeof getSourceSelection>>,
-    replacement: string,
-    nextSelectionStart = range.start + replacement.length,
-    nextSelectionEnd = nextSelectionStart,
-  ) => {
-    const nextContent = `${value.content.slice(0, range.start)}${replacement}${value.content.slice(range.end)}`;
-    sourceSelectionRef.current = null;
-    updateContent(nextContent);
-    window.requestAnimationFrame(() => {
-      range.textarea.focus();
-      range.textarea.setSelectionRange(nextSelectionStart, nextSelectionEnd);
-    });
-  };
-
-  const wrapSourceSelection = (prefix: string, suffix: string, fallback = '') => {
-    const range = getSourceSelection();
-    if (!range) {
-      return;
-    }
-
-    const selectedText = range.selectedText || fallback;
-    const replacement = `${prefix}${selectedText}${suffix}`;
-    replaceSourceRange(
-      range,
-      replacement,
-      range.start + prefix.length,
-      range.start + prefix.length + selectedText.length,
-    );
-  };
-
-  const replaceSourceSelection = (replacement: string) => {
-    const range = getSourceSelection();
-    if (!range) {
-      return;
-    }
-
-    replaceSourceRange(range, replacement);
-  };
-
-  const insertSourceBlock = (block: string) => {
-    const range = getSourceSelection();
-    if (!range) {
-      return;
-    }
-
-    const before = value.content.slice(0, range.start);
-    const after = value.content.slice(range.end);
-    const prefix = before.trim().length === 0 || before.endsWith('\n\n') ? '' : before.endsWith('\n') ? '\n' : '\n\n';
-    const suffix = after.trim().length === 0 || after.startsWith('\n\n') ? '' : after.startsWith('\n') ? '\n' : '\n\n';
-    const replacement = `${prefix}${block}${suffix}`;
-
-    replaceSourceRange(range, replacement);
-  };
-
   const insertHorizontalRule = () => {
     setActivePopover(null);
     setIsColorPickerOpen(false);
@@ -1713,21 +556,6 @@ export function RichTextEditor({
     }
 
     insertRichHtml('<hr><p><br></p>');
-  };
-
-  const handleMarkdownSourceScroll = () => {
-    syncSourceLineNumbersScroll();
-  };
-
-  const handleHtmlSourceScroll = () => {
-    if (!sourceRef.current || !htmlHighlightRef.current) {
-      syncSourceLineNumbersScroll();
-      return;
-    }
-
-    htmlHighlightRef.current.scrollLeft = sourceRef.current.scrollLeft;
-    htmlHighlightRef.current.scrollTop = sourceRef.current.scrollTop;
-    syncSourceLineNumbersScroll();
   };
 
   const handleToolbarMouseDown = (event: MouseEvent<HTMLButtonElement>) => {
@@ -1774,313 +602,47 @@ export function RichTextEditor({
       className="capubbs-rich-text-editor relative overflow-hidden rounded-[2px] border border-zinc-200 bg-white/70 shadow-sm dark:border-white/10 dark:bg-white/[0.05]"
       data-auto-height={isAutoHeightEnabled ? 'true' : 'false'}
     >
-      <div className="bg-white/70 dark:bg-white/[0.04]">
-        {!isSourceMode ? (
-          <div className="capubbs-rich-toolbar overflow-x-auto border-b border-zinc-200/80 px-1.5 py-1 dark:border-white/10">
-            <div className="flex min-w-max flex-nowrap items-center gap-[0.5px]">
-              <ToolbarButton active={activeRichCommands.bold} label="加粗" onMouseDown={handleToolbarMouseDown} onClick={() => runRichCommand('bold')}>
-                <Bold size={14} />
-              </ToolbarButton>
-              <ToolbarButton active={activeRichCommands.italic} label="斜体" onMouseDown={handleToolbarMouseDown} onClick={() => runRichCommand('italic')}>
-                <Italic size={14} />
-              </ToolbarButton>
-              <ToolbarButton active={activeRichCommands.underline} label="下划线" onMouseDown={handleToolbarMouseDown} onClick={() => runRichCommand('underline')}>
-                <Underline size={14} />
-              </ToolbarButton>
-              <ToolbarButton active={activeRichCommands.strikeThrough} label="删除线" onMouseDown={handleToolbarMouseDown} onClick={() => runRichCommand('strikeThrough')}>
-                <Strikethrough size={14} />
-              </ToolbarButton>
-
-              <ToolbarDivider />
-
-              <label className="flex h-6 items-center rounded-[var(--control-radius)] border border-zinc-200 bg-white px-1 dark:border-white/10 dark:bg-zinc-950">
-                <span className="sr-only">字体</span>
-                <select
-                  value={fontSelectValue}
-                  onMouseDown={saveSelection}
-                  onFocus={saveSelection}
-                  onChange={handleRichFontChange}
-                  className="h-5 w-16 border-0 bg-transparent px-0 text-[length:var(--ui-font-size-md)] font-medium text-zinc-700 outline-none dark:text-zinc-200"
-                  aria-label="字体"
-                >
-                  <option value="">字体</option>
-                  {richTextFontOptions.map((fontOption) => (
-                    <option key={fontOption.value} value={fontOption.value}>
-                      {fontOption.label}
-                    </option>
-                  ))}
-                </select>
-              </label>
-              <label className="flex h-6 items-center rounded-[var(--control-radius)] border border-zinc-200 bg-white px-1 dark:border-white/10 dark:bg-zinc-950">
-                <span className="sr-only">字号</span>
-                <select
-                  value={fontSizeSelectValue}
-                  onMouseDown={saveSelection}
-                  onFocus={saveSelection}
-                  onChange={handleRichFontSizeChange}
-                  className="h-5 w-12 border-0 bg-transparent px-0 text-[length:var(--ui-font-size-md)] font-medium text-zinc-700 outline-none dark:text-zinc-200"
-                  aria-label="字号"
-                >
-                  <option value="">字号</option>
-                  {richTextFontSizeOptions.map((fontSizeOption) => (
-                    <option key={fontSizeOption.value} value={fontSizeOption.value}>
-                      {fontSizeOption.label}
-                    </option>
-                  ))}
-                </select>
-              </label>
-
-              <ToolbarDivider />
-
-              <ToolbarButton active={activeRichCommands.superscript} label="上标" onMouseDown={handleToolbarMouseDown} onClick={() => runRichCommand('superscript')}>
-                <Superscript size={14} />
-              </ToolbarButton>
-              <ToolbarButton active={activeRichCommands.subscript} label="下标" onMouseDown={handleToolbarMouseDown} onClick={() => runRichCommand('subscript')}>
-                <Subscript size={14} />
-              </ToolbarButton>
-              <label className="flex h-6 items-center rounded-[var(--control-radius)] border border-zinc-200 bg-white px-1 dark:border-white/10 dark:bg-zinc-950">
-                <span className="sr-only">标题格式</span>
-                <select
-                  value={headingSelectValue}
-                  onMouseDown={saveSelection}
-                  onFocus={saveSelection}
-                  onChange={handleRichHeadingChange}
-                  className="h-5 w-16 border-0 bg-transparent px-0 text-[length:var(--ui-font-size-md)] font-medium text-zinc-700 outline-none dark:text-zinc-200"
-                  aria-label="标题格式"
-                >
-                  {richTextHeadingOptions.map((headingOption) => (
-                    <option key={headingOption.value} value={headingOption.value}>
-                      {headingOption.label}
-                    </option>
-                  ))}
-                </select>
-              </label>
-              <ToolbarButton label="引用" onMouseDown={handleToolbarMouseDown} onClick={() => wrapRichSelectionWithTag('blockquote', '引用内容', 'forum-quote')}>
-                <MessageSquareQuote size={14} />
-              </ToolbarButton>
-
-              <ToolbarDivider />
-
-              <ToolbarButton active={activeRichCommands.firstLineIndent} label="首行缩进" onMouseDown={handleToolbarMouseDown} onClick={toggleRichFirstLineIndent}>
-                <TextInitial size={14} />
-              </ToolbarButton>
-              <ToolbarButton label="左对齐" onMouseDown={handleToolbarMouseDown} onClick={() => runRichCommand('justifyLeft')}>
-                <AlignLeft size={14} />
-              </ToolbarButton>
-              <ToolbarButton label="居中" onMouseDown={handleToolbarMouseDown} onClick={() => runRichCommand('justifyCenter')}>
-                <AlignCenter size={14} />
-              </ToolbarButton>
-              <ToolbarButton label="右对齐" onMouseDown={handleToolbarMouseDown} onClick={() => runRichCommand('justifyRight')}>
-                <AlignRight size={14} />
-              </ToolbarButton>
-              <ToolbarButton label="两端对齐" onMouseDown={handleToolbarMouseDown} onClick={() => runRichCommand('justifyFull')}>
-                <AlignJustify size={14} />
-              </ToolbarButton>
-              <ToolbarButton label="无序列表" onMouseDown={handleToolbarMouseDown} onClick={() => runRichCommand('insertUnorderedList')}>
-                <List size={14} />
-              </ToolbarButton>
-              <ToolbarButton label="有序列表" onMouseDown={handleToolbarMouseDown} onClick={() => runRichCommand('insertOrderedList')}>
-                <ListOrdered size={14} />
-              </ToolbarButton>
-              <ToolbarButton label="增加缩进" onMouseDown={handleToolbarMouseDown} onClick={() => runRichCommand('indent')}>
-                <IndentIncrease size={14} />
-              </ToolbarButton>
-              <ToolbarButton label="减少缩进" onMouseDown={handleToolbarMouseDown} onClick={() => runRichCommand('outdent')}>
-                <IndentDecrease size={14} />
-              </ToolbarButton>
-
-              <ToolbarDivider />
-
-              <ToolbarButton label="插入链接" onMouseDown={handleToolbarMouseDown} onClick={() => openPopover('link')}>
-                <Link2 size={14} />
-              </ToolbarButton>
-              <ToolbarButton label="插入图片" onMouseDown={handleToolbarMouseDown} onClick={() => openPopover('image')}>
-                <ImageIcon size={14} />
-              </ToolbarButton>
-              <ToolbarButton label="插入图廊" onMouseDown={handleToolbarMouseDown} onClick={openGalleryDialog}>
-                <GalleryIcon size={14} />
-              </ToolbarButton>
-              <ToolbarButton label="@ 用户" onMouseDown={handleToolbarMouseDown} onClick={() => openPopover('mention')}>
-                <AtSign size={14} />
-              </ToolbarButton>
-              <ToolbarButton label="分隔线" onMouseDown={handleToolbarMouseDown} onClick={insertHorizontalRule}>
-                <Minus size={14} />
-              </ToolbarButton>
-              <ToolbarButton label="清除格式" onMouseDown={handleToolbarMouseDown} onClick={() => runRichCommand('removeFormat')}>
-                <Eraser size={14} />
-              </ToolbarButton>
-
-              <ToolbarDivider />
-
-              <button
-                type="button"
-                onMouseDown={(event) => {
-                  handleToolbarMouseDown(event);
-                  saveSelection();
-                }}
-                onClick={toggleColorPicker}
-                className={`relative inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-[var(--control-radius)] text-zinc-600 transition hover:bg-zinc-100 hover:text-zinc-950 dark:text-zinc-300 dark:hover:bg-white/10 dark:hover:text-white ${
-                  isColorPickerOpen ? 'bg-zinc-100 text-zinc-950 dark:bg-white/10 dark:text-white' : ''
-                }`}
-                aria-label="文字颜色"
-                title="文字颜色"
-              >
-                <Palette size={14} />
-                <span
-                  className="pointer-events-none absolute inset-x-1 bottom-0.5 h-0.5 rounded-full"
-                  style={{ backgroundColor: normalizeCssColor(selectedTextColor) ?? defaultTextColor }}
-                  aria-hidden="true"
-                />
-              </button>
-            </div>
-          </div>
-        ) : null}
-
-        {isColorPickerOpen && !isSourceMode ? (
-          <div className="capubbs-editor-color-panel flex flex-wrap items-end gap-2 border-b border-zinc-200/80 px-2 py-2 dark:border-white/10">
-            <label className="grid gap-1 text-[length:var(--ui-font-size-md)] font-semibold text-zinc-500 dark:text-zinc-400">
-              取色
-              <input
-                type="color"
-                value={normalizeCssColor(selectedTextColor) ?? defaultTextColor}
-                onMouseDown={saveSelection}
-                onChange={(event) => {
-                  const color = event.target.value.toUpperCase();
-                  setSelectedTextColor(color);
-                  setHexSourceValue(color);
-                }}
-                className="h-7 w-9 cursor-pointer border border-zinc-200 bg-white p-1 dark:border-white/10 dark:bg-zinc-950"
-                aria-label="选择文字颜色"
-              />
-            </label>
-            {recentTextColors.length > 0 ? (
-              <div className="grid gap-1 text-[length:var(--ui-font-size-md)] font-semibold text-zinc-500 dark:text-zinc-400">
-                <span>最近使用</span>
-                <div className="flex h-7 items-center gap-1">
-                  {recentTextColors.map((recentColor) => (
-                    <button
-                      key={recentColor}
-                      type="button"
-                      aria-label={`使用最近颜色 ${recentColor}`}
-                      title={recentColor}
-                      onMouseDown={handleColorActionMouseDown}
-                      onClick={() => applyRichTextColor(recentColor)}
-                      className="h-6 w-6 rounded-[var(--control-radius)] border border-zinc-300 shadow-sm transition hover:scale-105 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#174f38] dark:border-white/20"
-                      style={{ backgroundColor: recentColor }}
-                    />
-                  ))}
-                </div>
-              </div>
-            ) : null}
-            <label className="grid w-24 gap-1 text-[length:var(--ui-font-size-md)] font-semibold text-zinc-500 dark:text-zinc-400">
-              HEX 色值
-              <input
-                value={hexSourceValue}
-                onMouseDown={saveSelection}
-                onChange={(event) => handleHexSourceChange(event.target.value)}
-                maxLength={7}
-                pattern="#[0-9A-Fa-f]{6}"
-                placeholder="#174F38"
-                spellCheck={false}
-                className="h-7 w-full border border-zinc-200 bg-white px-2 font-mono text-[length:var(--ui-font-size-md)] font-medium uppercase text-zinc-800 outline-none transition focus:border-emerald-700/60 focus:ring-2 focus:ring-emerald-700/10 dark:border-white/10 dark:bg-zinc-950 dark:text-zinc-100"
-                aria-label="六位十六进制颜色"
-              />
-            </label>
-            <button
-              type="button"
-              onMouseDown={handleColorActionMouseDown}
-              onClick={applyHexSourceColor}
-              disabled={!/^#[0-9A-F]{6}$/.test(hexSourceValue)}
-              className="h-7 rounded-[var(--control-radius)] bg-emerald-800 px-2.5 text-[length:var(--ui-font-size-md)] font-semibold text-white transition hover:bg-emerald-900 disabled:cursor-not-allowed disabled:opacity-40 dark:bg-emerald-600 dark:hover:bg-emerald-500"
-            >
-              应用
-            </button>
-          </div>
-        ) : null}
-
-        {popoverConfig ? (
-          <form
-            onSubmit={handlePopoverSubmit}
-            className="flex flex-wrap items-center gap-2 border-t border-zinc-200/80 px-2 py-2 dark:border-white/10"
-          >
-            {activePopover === 'link' ? (
-              <>
-                <label className="min-w-[10rem] flex-1">
-                  <span className="sr-only">链接文本</span>
-                  <input
-                    autoFocus
-                    value={popoverTextValue}
-                    onChange={(event) => setPopoverTextValue(event.target.value)}
-                    placeholder="链接文本"
-                    className="h-9 w-full rounded-[1px] border border-zinc-200 bg-white/80 px-3 text-[length:var(--ui-font-size-lg)] font-semibold text-zinc-800 outline-none transition placeholder:text-zinc-400 focus:border-[#174f38] focus:ring-2 focus:ring-[#174f38] dark:border-white/10 dark:bg-white/[0.06] dark:text-white dark:placeholder:text-zinc-500"
-                  />
-                </label>
-                <label className="min-w-[12rem] flex-[1.4]">
-                  <span className="sr-only">链接地址</span>
-                  <input
-                    value={popoverValue}
-                    onChange={(event) => setPopoverValue(event.target.value)}
-                    placeholder="链接地址"
-                    className="h-9 w-full rounded-[1px] border border-zinc-200 bg-white/80 px-3 text-[length:var(--ui-font-size-lg)] font-semibold text-zinc-800 outline-none transition placeholder:text-zinc-400 focus:border-[#174f38] focus:ring-2 focus:ring-[#174f38] dark:border-white/10 dark:bg-white/[0.06] dark:text-white dark:placeholder:text-zinc-500"
-                  />
-                </label>
-              </>
-            ) : (
-              <label className="min-w-0 flex-1">
-                <span className="sr-only">{popoverConfig.label}</span>
-                <input
-                  autoFocus
-                  value={popoverValue}
-                  onChange={(event) => setPopoverValue(event.target.value)}
-                  placeholder={popoverConfig.placeholder}
-                  className="h-9 w-full rounded-[1px] border border-zinc-200 bg-white/80 px-3 text-[length:var(--ui-font-size-lg)] font-semibold text-zinc-800 outline-none transition placeholder:text-zinc-400 focus:border-[#174f38] focus:ring-2 focus:ring-[#174f38] dark:border-white/10 dark:bg-white/[0.06] dark:text-white dark:placeholder:text-zinc-500"
-                />
-              </label>
-            )}
-            {activePopover === 'image' ? (
-              <>
-                <input
-                  ref={imageFileInputRef}
-                  type="file"
-                  accept={editorImageInputAccept}
-                  onChange={handleLocalImageFileChange}
-                  className="sr-only"
-                  tabIndex={-1}
-                />
-                <button
-                  type="button"
-                  disabled={isCheckingImageFile}
-                  onClick={() => imageFileInputRef.current?.click()}
-                  className="h-9 rounded-[1px] border border-[#174f38] bg-white/70 px-3 text-[length:var(--ui-font-size-md)] font-bold text-[#174f38] transition hover:bg-emerald-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#174f38] disabled:cursor-wait disabled:opacity-50 dark:border-emerald-200 dark:bg-white/[0.06] dark:text-emerald-200 dark:hover:bg-emerald-200/10"
-                >
-                  {isCheckingImageFile ? '检查中...' : '上传图片'}
-                </button>
-              </>
-            ) : null}
-            <button
-              type="submit"
-              disabled={isCheckingImageFile}
-              className="h-9 rounded-[1px] bg-[#174f38] px-3 text-[length:var(--ui-font-size-md)] font-bold text-white transition hover:bg-[#123d2c] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#174f38] dark:bg-emerald-200 dark:text-zinc-950 dark:hover:bg-emerald-100"
-            >
-              插入
-            </button>
-            <button
-              type="button"
-              onClick={closePopover}
-              disabled={isCheckingImageFile}
-              className="h-9 rounded-[1px] border border-zinc-200 bg-white/70 px-3 text-[length:var(--ui-font-size-md)] font-semibold text-zinc-700 transition hover:bg-zinc-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#174f38] dark:border-white/10 dark:bg-white/[0.06] dark:text-white dark:hover:bg-white/[0.1]"
-            >
-              取消
-            </button>
-            {activePopover === 'image' && imageFileError ? (
-              <p role="alert" className="basis-full text-[length:var(--ui-font-size-sm)] font-semibold text-rose-700 dark:text-rose-200">
-                {imageFileError}
-              </p>
-            ) : null}
-          </form>
-        ) : null}
-      </div>
-
+      <RichTextEditorControls
+        activePopover={activePopover}
+        activeRichCommands={activeRichCommands}
+        applyHexSourceColor={applyHexSourceColor}
+        applyRichTextColor={applyRichTextColor}
+        closePopover={closePopover}
+        fontSelectValue={fontSelectValue}
+        fontSizeSelectValue={fontSizeSelectValue}
+        handleColorActionMouseDown={handleColorActionMouseDown}
+        handleHexSourceChange={handleHexSourceChange}
+        handleLocalImageFileChange={handleLocalImageFileChange}
+        handlePopoverSubmit={handlePopoverSubmit}
+        handleRichFontChange={handleRichFontChange}
+        handleRichFontSizeChange={handleRichFontSizeChange}
+        handleRichHeadingChange={handleRichHeadingChange}
+        handleToolbarMouseDown={handleToolbarMouseDown}
+        headingSelectValue={headingSelectValue}
+        hexSourceValue={hexSourceValue}
+        imageFileError={imageFileError}
+        imageFileInputRef={imageFileInputRef}
+        insertHorizontalRule={insertHorizontalRule}
+        isCheckingImageFile={isCheckingImageFile}
+        isColorPickerOpen={isColorPickerOpen}
+        isSourceMode={isSourceMode}
+        openGalleryDialog={openGalleryDialog}
+        openPopover={openPopover}
+        popoverConfig={popoverConfig}
+        popoverTextValue={popoverTextValue}
+        popoverValue={popoverValue}
+        recentTextColors={recentTextColors}
+        runRichCommand={runRichCommand}
+        saveSelection={saveSelection}
+        selectedTextColor={selectedTextColor}
+        setHexSourceValue={setHexSourceValue}
+        setPopoverTextValue={setPopoverTextValue}
+        setPopoverValue={setPopoverValue}
+        setSelectedTextColor={setSelectedTextColor}
+        toggleColorPicker={toggleColorPicker}
+        toggleRichFirstLineIndent={toggleRichFirstLineIndent}
+        wrapRichSelectionWithTag={wrapRichSelectionWithTag}
+      />
       {isMarkdownMode ? (
         <div key="markdown-editor-pane" className={splitPaneClassName} data-editor-mode="markdown">
           <div className={`${splitPaneChildClassName} flex overflow-hidden bg-white/45 dark:bg-white/[0.03]`}>
@@ -2301,407 +863,6 @@ export function RichTextEditor({
   );
 }
 
-function ToolbarButton({
-  active,
-  children,
-  label,
-  onClick,
-  onMouseDown,
-}: {
-  active?: boolean;
-  children: ReactNode;
-  label: string;
-  onClick: () => void;
-  onMouseDown: (event: MouseEvent<HTMLButtonElement>) => void;
-}) {
-  return (
-    <button
-      type="button"
-      aria-label={label}
-      aria-pressed={typeof active === 'boolean' ? active : undefined}
-      title={label}
-      onMouseDown={onMouseDown}
-      onClick={onClick}
-      className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-[var(--control-radius)] border text-[#174f38] transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#174f38] dark:text-white ${
-        active
-          ? 'border-[#174f38]/30 bg-[#174f38]/10 shadow-inner dark:border-emerald-200/30 dark:bg-emerald-200/15'
-          : 'border-transparent hover:border-zinc-200 hover:bg-zinc-100 dark:hover:border-white/10 dark:hover:bg-white/[0.1]'
-      }`}
-    >
-      {children}
-    </button>
-  );
-}
-
-function ToolbarDivider() {
-  return <span className="mx-px h-4 w-px shrink-0 bg-zinc-200 dark:bg-white/10" />;
-}
-
-function normalizeRichIndentation(editor: HTMLElement) {
-  const indentationBlockquotes = editor.querySelectorAll<HTMLElement>(
-    'blockquote:not(.forum-quote):not(.forum-legacy-quote):not(.capubbs-floor-quote)',
-  );
-
-  indentationBlockquotes.forEach((blockquote) => {
-    blockquote.style.removeProperty('margin');
-    blockquote.style.removeProperty('margin-left');
-    blockquote.style.removeProperty('border');
-    blockquote.style.removeProperty('padding');
-
-    if (!blockquote.getAttribute('style')?.trim()) {
-      blockquote.removeAttribute('style');
-    }
-  });
-}
-
-function createInactiveRichCommandStates(): RichToggleCommandStates {
-  return {
-    bold: false,
-    firstLineIndent: false,
-    italic: false,
-    strikeThrough: false,
-    subscript: false,
-    superscript: false,
-    underline: false,
-  };
-}
-
-function readRichCommandStates(editor: HTMLElement): RichToggleCommandStates {
-  const selection = window.getSelection();
-  if (!selection || selection.rangeCount === 0) return createInactiveRichCommandStates();
-
-  const range = selection.getRangeAt(0);
-  if (!editor.contains(range.commonAncestorContainer)) return createInactiveRichCommandStates();
-
-  const states = richToggleCommands.reduce((commandStates, command) => {
-    try {
-      commandStates[command] = document.queryCommandState(command);
-    } catch {
-      commandStates[command] = false;
-    }
-    return commandStates;
-  }, createInactiveRichCommandStates());
-
-  const verticalAlign = findRichVerticalAlignAtCaret(range, editor);
-  if (verticalAlign) {
-    states.superscript = verticalAlign === 'super';
-    states.subscript = verticalAlign === 'sub';
-  }
-
-  states.firstLineIndent = isRichFirstLineIndentActive(range, editor);
-
-  return states;
-}
-
-function ensureRichParagraphBlocks(range: Range, editor: HTMLElement) {
-  let paragraphBlocks = getSelectedRichParagraphBlocks(range, editor);
-  if (paragraphBlocks.length > 0) return paragraphBlocks;
-
-  document.execCommand('formatBlock', false, 'p');
-  const selection = window.getSelection();
-  const formattedRange = selection?.rangeCount ? selection.getRangeAt(0) : null;
-  if (!formattedRange || !editor.contains(formattedRange.commonAncestorContainer)) return [];
-
-  paragraphBlocks = getSelectedRichParagraphBlocks(formattedRange, editor);
-  return paragraphBlocks;
-}
-
-function getSelectedRichParagraphBlocks(range: Range, editor: HTMLElement) {
-  if (range.collapsed) {
-    const paragraph = findRichParagraphBlock(range.startContainer, editor);
-    return paragraph ? [paragraph] : [];
-  }
-
-  const selectedBlocks = Array.from(
-    editor.querySelectorAll<HTMLElement>('p, div, h1, h2, h3, h4, h5, h6'),
-  ).filter((element) => (
-    !element.closest('.capubbs-gallery')
-    && rangeIntersectsNode(range, element)
-  ));
-
-  const startBlock = findRichParagraphBlock(range.startContainer, editor);
-  const endBlock = findRichParagraphBlock(range.endContainer, editor);
-  if (startBlock) selectedBlocks.push(startBlock);
-  if (endBlock) selectedBlocks.push(endBlock);
-
-  const uniqueBlocks = Array.from(new Set(selectedBlocks));
-  return uniqueBlocks.filter((block) => (
-    !uniqueBlocks.some((otherBlock) => otherBlock !== block && block.contains(otherBlock))
-  ));
-}
-
-function findRichParagraphBlock(node: Node, editor: HTMLElement) {
-  let element = node instanceof Element ? node : node.parentElement;
-
-  while (element && element !== editor) {
-    if (/^(?:P|DIV|H[1-6])$/.test(element.tagName) && !element.closest('.capubbs-gallery')) {
-      return element as HTMLElement;
-    }
-    element = element.parentElement;
-  }
-
-  return null;
-}
-
-function rangeIntersectsNode(range: Range, node: Node) {
-  try {
-    return range.intersectsNode(node);
-  } catch {
-    return false;
-  }
-}
-
-function isRichFirstLineIndentActive(range: Range, editor: HTMLElement) {
-  const paragraphBlocks = getSelectedRichParagraphBlocks(range, editor);
-  return paragraphBlocks.length > 0 && paragraphBlocks.every(hasRichFirstLineIndent);
-}
-
-function hasRichFirstLineIndent(paragraph: HTMLElement) {
-  return paragraph.style.getPropertyValue('text-indent').replaceAll(' ', '').toLowerCase()
-    === richFirstLineIndentValue;
-}
-
-function applyRichFirstLineIndent(paragraph: HTMLElement) {
-  paragraph.style.setProperty('text-indent', richFirstLineIndentValue);
-}
-
-function removeRichFirstLineIndent(paragraph: HTMLElement) {
-  paragraph.style.removeProperty('text-indent');
-  if (!paragraph.getAttribute('style')?.trim()) paragraph.removeAttribute('style');
-}
-
-function findRichVerticalAlignAtCaret(range: Range, editor: HTMLElement): 'super' | 'sub' | null {
-  let element = range.startContainer instanceof Element
-    ? range.startContainer
-    : range.startContainer.parentElement;
-
-  while (element && element !== editor) {
-    const tagName = element.tagName.toLowerCase();
-    const verticalAlign = element instanceof HTMLElement
-      ? element.style.verticalAlign.trim().toLowerCase()
-      : '';
-
-    if (tagName === 'sup' || verticalAlign === 'super') return 'super';
-    if (tagName === 'sub' || verticalAlign === 'sub') return 'sub';
-    element = element.parentElement;
-  }
-
-  return null;
-}
-
-function normalizeRichTypingStylesAfterInput(editor: HTMLElement) {
-  const typingSpans = Array.from(editor.querySelectorAll<HTMLElement>(`[${richTypingStyleAttribute}]`));
-  const completedSpans = typingSpans.filter((span) => (
-    (span.textContent ?? '').replaceAll(richTypingStyleMarker, '').length > 0
-    || Boolean(span.querySelector('br, img, hr'))
-  ));
-  if (completedSpans.length === 0) return;
-
-  const textNodes = new Set<Text>();
-  completedSpans.forEach((span) => {
-    const walker = document.createTreeWalker(span, NodeFilter.SHOW_TEXT);
-    let node = walker.nextNode();
-    while (node) {
-      if (node instanceof Text && node.data.includes(richTypingStyleMarker)) textNodes.add(node);
-      node = walker.nextNode();
-    }
-  });
-
-  const selection = window.getSelection();
-  const activeRange = selection?.rangeCount && editor.contains(selection.getRangeAt(0).commonAncestorContainer)
-    ? selection.getRangeAt(0).cloneRange()
-    : null;
-  const startOffset = activeRange?.startContainer instanceof Text
-    ? getOffsetWithoutTypingMarkers(activeRange.startContainer.data, activeRange.startOffset)
-    : null;
-  const endOffset = activeRange?.endContainer instanceof Text
-    ? getOffsetWithoutTypingMarkers(activeRange.endContainer.data, activeRange.endOffset)
-    : null;
-
-  textNodes.forEach((node) => {
-    node.data = node.data.replaceAll(richTypingStyleMarker, '');
-  });
-  completedSpans.forEach((span) => span.removeAttribute(richTypingStyleAttribute));
-
-  if (!selection || !activeRange) return;
-  try {
-    if (startOffset !== null) {
-      activeRange.setStart(activeRange.startContainer, Math.min(startOffset, activeRange.startContainer.textContent?.length ?? 0));
-    }
-    if (endOffset !== null) {
-      activeRange.setEnd(activeRange.endContainer, Math.min(endOffset, activeRange.endContainer.textContent?.length ?? 0));
-    }
-    selection.removeAllRanges();
-    selection.addRange(activeRange);
-  } catch {
-    // The browser already placed the caret safely after the input.
-  }
-}
-
-function getOffsetWithoutTypingMarkers(value: string, offset: number) {
-  return value.slice(0, offset).replaceAll(richTypingStyleMarker, '').length;
-}
-
-function finalizeRichTypingStyles(html: string) {
-  if (!html.includes(richTypingStyleMarker) && !html.includes(richTypingStyleAttribute)) return html;
-
-  const template = document.createElement('template');
-  template.innerHTML = html;
-  const typingSpans = Array.from(template.content.querySelectorAll<HTMLElement>(`[${richTypingStyleAttribute}]`));
-  const walker = document.createTreeWalker(template.content, NodeFilter.SHOW_TEXT);
-  let node = walker.nextNode();
-  while (node) {
-    if (node instanceof Text && node.data.includes(richTypingStyleMarker)) {
-      node.data = node.data.replaceAll(richTypingStyleMarker, '');
-    }
-    node = walker.nextNode();
-  }
-
-  typingSpans.forEach((span) => {
-    span.removeAttribute(richTypingStyleAttribute);
-    if (!(span.textContent ?? '').length && !span.querySelector('br, img, hr')) span.remove();
-  });
-  return template.innerHTML;
-}
-
-function removeOverriddenRichInlineStyles(content: DocumentFragment, style: RichInlineStyle) {
-  content.querySelectorAll<HTMLElement>('*').forEach((element) => {
-    removeOverriddenRichInlineStyleFromElement(element, style);
-  });
-
-  normalizeRedundantRichSpans(content);
-}
-
-function removeOverriddenRichInlineStylesFromFullySelectedAncestors(
-  wrapper: HTMLSpanElement,
-  editor: HTMLElement,
-  style: RichInlineStyle,
-) {
-  let selectedNode: Node = wrapper;
-  let ancestor = wrapper.parentElement;
-
-  while (ancestor && ancestor !== editor && ancestor.tagName === 'SPAN') {
-    const childNodes = Array.from(ancestor.childNodes);
-    if (childNodes.length !== 1 || childNodes[0] !== selectedNode) break;
-
-    removeOverriddenRichInlineStyleFromElement(ancestor, style);
-    if (
-      ancestor instanceof HTMLSpanElement
-      && selectedNode instanceof HTMLSpanElement
-      && canMergeRichInlineStyleSpans(ancestor, selectedNode)
-    ) {
-      mergeRichInlineStyles(ancestor, selectedNode);
-      const parent = ancestor.parentElement;
-      ancestor.replaceWith(selectedNode);
-      ancestor = parent;
-    } else if (ancestor.attributes.length === 0) {
-      const parent = ancestor.parentElement;
-      ancestor.replaceWith(...Array.from(ancestor.childNodes));
-      ancestor = parent;
-    } else {
-      selectedNode = ancestor;
-      ancestor = ancestor.parentElement;
-    }
-  }
-}
-
-function mergeFullySelectedChildRichSpansIntoWrapper(wrapper: HTMLSpanElement) {
-  let child = wrapper.firstElementChild;
-
-  while (
-    wrapper.childNodes.length === 1
-    && child instanceof HTMLSpanElement
-    && canMergeRichInlineStyleSpans(child, wrapper)
-  ) {
-    mergeRichInlineStyles(child, wrapper);
-    child.replaceWith(...Array.from(child.childNodes));
-    child = wrapper.firstElementChild;
-  }
-}
-
-function canMergeRichInlineStyleSpans(source: HTMLSpanElement, target: HTMLSpanElement) {
-  const supportedProperties = new Set(['color', 'font-family', 'font-size']);
-  return source.attributes.length === 1
-    && source.hasAttribute('style')
-    && target.attributes.length === 1
-    && target.hasAttribute('style')
-    && Array.from(source.style).every((property) => supportedProperties.has(property))
-    && Array.from(target.style).every((property) => supportedProperties.has(property));
-}
-
-function mergeRichInlineStyles(source: HTMLSpanElement, target: HTMLSpanElement) {
-  Array.from(source.style).forEach((property) => {
-    if (!target.style.getPropertyValue(property)) {
-      target.style.setProperty(
-        property,
-        source.style.getPropertyValue(property),
-        source.style.getPropertyPriority(property),
-      );
-    }
-  });
-}
-
-function removeOverriddenRichInlineStyleFromElement(element: HTMLElement, style: RichInlineStyle) {
-  if (style.color) {
-    element.style.removeProperty('color');
-    element.removeAttribute('color');
-  }
-
-  if (style.fontFamily) {
-    element.style.removeProperty('font-family');
-    element.removeAttribute('face');
-  }
-
-  if (style.fontSize) {
-    element.style.removeProperty('font-size');
-    element.removeAttribute('size');
-  }
-
-  if (element.hasAttribute('style') && !element.getAttribute('style')?.trim()) {
-    element.removeAttribute('style');
-  }
-}
-
-function normalizeRedundantRichSpans(content: ParentNode) {
-  content.normalize();
-  Array.from(content.querySelectorAll('span')).reverse().forEach((span) => {
-    if (!(span.textContent ?? '').length && !span.querySelector('br, img, hr')) {
-      span.remove();
-    } else if (span.attributes.length === 0) {
-      span.replaceWith(...Array.from(span.childNodes));
-    }
-  });
-  content.normalize();
-}
-
-function readRecentTextColors() {
-  if (typeof window === 'undefined') {
-    return [];
-  }
-
-  try {
-    const storedColors = JSON.parse(window.localStorage.getItem(recentTextColorsStorageKey) ?? '[]');
-    if (!Array.isArray(storedColors)) {
-      return [];
-    }
-
-    return storedColors
-      .map((color) => typeof color === 'string' ? normalizeCssColor(color) : null)
-      .filter((color): color is string => color !== null)
-      .slice(0, maxRecentTextColors);
-  } catch {
-    return [];
-  }
-}
-
-function storeRecentTextColors(colors: string[]) {
-  try {
-    window.localStorage.setItem(recentTextColorsStorageKey, JSON.stringify(colors));
-  } catch {
-    // The color still applies when persistent storage is unavailable.
-  }
-}
-
 function getPopoverConfig(popover: EditorPopover) {
   if (popover === 'image') {
     return {
@@ -2732,516 +893,4 @@ function getPopoverConfig(popover: EditorPopover) {
   }
 
   return null;
-}
-
-function convertEditorContent(content: string, from: RichTextEditorMode, to: RichTextEditorMode) {
-  if (from === to) {
-    return content;
-  }
-
-  if (to === 'rich') {
-    return from === 'markdown' ? renderMarkdownToHtml(content) : compactHtmlForStorage(content);
-  }
-
-  if (to === 'markdown') {
-    return htmlToMarkdown(content);
-  }
-
-  if (from === 'markdown') {
-    return formatHtmlForSource(renderMarkdownToHtml(content));
-  }
-
-  return formatHtmlForSource(
-    from === 'rich'
-      ? translateRichTextBbcode(content)
-      : content,
-  );
-}
-
-function translateRichTextBbcode(content: string) {
-  return translateLegacyBbcode(finalizeRichTypingStyles(stripEditorGalleryEditControls(content)));
-}
-
-function isCrossGroupModeSwitchLocked(value: RichTextEditorValue, nextMode: RichTextEditorMode) {
-  const switchesMarkdownGroup = (value.mode === 'markdown') !== (nextMode === 'markdown');
-  return switchesMarkdownGroup && hasModeSwitchingContent(value);
-}
-
-function isSelectionInsideStructuredRichBlock(editor: HTMLElement, node: Node) {
-  let element = node instanceof Element ? node : node.parentElement;
-
-  while (element && element !== editor) {
-    if (/^(?:BLOCKQUOTE|H[1-6]|LI|PRE|T[DH])$/.test(element.tagName)) {
-      return true;
-    }
-
-    element = element.parentElement;
-  }
-
-  return false;
-}
-
-function hasModeSwitchingContent(value: RichTextEditorValue) {
-  if (value.mode !== 'rich') {
-    return value.content.trim().length > 0;
-  }
-  return hasRichTextEditorHtmlContent(value.content);
-}
-
-function buildHtmlPreviewDocument(html: string, isDarkTheme: boolean, embedded = false) {
-  const renderedHtml = translateLegacyBbcode(html);
-  const theme = isDarkTheme
-    ? {
-        background: '#171d19',
-        blockquoteBorder: 'rgb(217 249 157 / 0.45)',
-        blockquoteColor: 'rgb(255 255 255 / 0.74)',
-        codeBackground: 'rgb(255 255 255 / 0.1)',
-        codeColor: 'rgb(255 255 255 / 0.9)',
-        color: '#e4e4e7',
-        colorScheme: 'dark',
-        headingColor: '#ffffff',
-        linkColor: '#d9f99d',
-        preBackground: '#0f172a',
-        preBorder: 'rgb(255 255 255 / 0.14)',
-        preColor: '#e5e7eb',
-        tableBorder: 'rgb(255 255 255 / 0.14)',
-      }
-    : {
-        background: '#fffefa',
-        blockquoteBorder: 'rgb(56 87 114 / 0.45)',
-        blockquoteColor: '#875a41',
-        codeBackground: 'rgb(228 228 231 / 0.8)',
-        codeColor: '#3f3f46',
-        color: '#3f3f46',
-        colorScheme: 'light',
-        headingColor: '#174f38',
-        linkColor: '#174f38',
-        preBackground: '#f6f8fa',
-        preBorder: '#d0d7de',
-        preColor: '#24292f',
-        tableBorder: '#d4d4d8',
-      };
-  const previewHead = `
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta http-equiv="Content-Security-Policy" content="script-src 'none'; object-src 'none'">
-  <base target="_blank">
-  <style>
-    :root {
-      color-scheme: ${theme.colorScheme};
-      font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-      --capubbs-preview-bg: ${theme.background};
-      --capubbs-preview-text: ${theme.color};
-      --capubbs-preview-heading: ${theme.headingColor};
-      --capubbs-preview-link: ${theme.linkColor};
-      --capubbs-preview-quote-border: ${theme.blockquoteBorder};
-      --capubbs-preview-quote-text: ${theme.blockquoteColor};
-      --capubbs-preview-code-bg: ${theme.codeBackground};
-      --capubbs-preview-code-text: ${theme.codeColor};
-      --capubbs-preview-pre-bg: ${theme.preBackground};
-      --capubbs-preview-pre-border: ${theme.preBorder};
-      --capubbs-preview-pre-text: ${theme.preColor};
-      --capubbs-preview-table-border: ${theme.tableBorder};
-    }
-
-    html {
-      background: var(--capubbs-preview-bg);
-    }
-
-    body {
-      background: var(--capubbs-preview-bg);
-      color: var(--capubbs-preview-text);
-      font-size: ${FORUM_DEFAULT_FONT_SIZE};
-      line-height: 1.7;
-      margin: 0;
-      padding: ${embedded ? '0' : '16px'};
-      word-break: break-word;
-    }
-
-    body > :first-child {
-      margin-top: 0;
-    }
-
-    body > :last-child {
-      margin-bottom: 0;
-    }
-
-    h1,
-    h2,
-    h3,
-    h4,
-    h5,
-    h6 {
-      color: var(--capubbs-preview-heading);
-      font-weight: 800;
-      line-height: 1.35;
-      margin: 0.9rem 0 0.45rem;
-    }
-
-    a {
-      color: var(--capubbs-preview-link);
-      font-weight: 700;
-      text-decoration: underline;
-      text-underline-offset: 0.16em;
-    }
-
-    blockquote {
-      border: 0;
-      color: inherit;
-      margin: 0 0 0 2em;
-      padding: 0;
-    }
-
-    blockquote.forum-quote,
-    blockquote.forum-legacy-quote,
-    blockquote.capubbs-floor-quote {
-      border-left: 3px solid var(--capubbs-preview-quote-border);
-      color: var(--capubbs-preview-quote-text);
-      margin: 12px 0;
-      padding: 2px 0 2px 12px;
-    }
-
-    blockquote.capubbs-floor-quote {
-      color: inherit;
-    }
-
-    hr {
-      border: 0;
-      border-top: 1px solid ${isDarkTheme ? 'rgb(255 255 255 / 0.18)' : 'rgb(56 87 114 / 0.24)'};
-      margin: 16px 0;
-    }
-
-    .capubbs-floor-quote-content {
-      color: ${isDarkTheme ? 'rgb(212 212 216 / 0.78)' : '#71717a'};
-      font-size: 0.875em;
-      line-height: 1.65;
-      margin-bottom: 8px;
-    }
-
-    .capubbs-floor-quote-meta {
-      align-items: center;
-      color: ${isDarkTheme ? '#fff' : '#18181b'};
-      display: flex;
-      font-size: 0.875em;
-      font-weight: 600;
-      gap: 12px;
-      justify-content: space-between;
-      margin: 9px 0 0;
-    }
-
-    .capubbs-floor-quote-jump {
-      margin-left: auto;
-      white-space: nowrap;
-    }
-
-    code,
-    pre {
-      font-family: "SFMono-Regular", "Cascadia Code", "Fira Code", Consolas, "Liberation Mono", monospace;
-    }
-
-    code {
-      background: var(--capubbs-preview-code-bg);
-      border-radius: 4px;
-      color: var(--capubbs-preview-code-text);
-      font-size: 0.92em;
-      padding: 1px 4px;
-    }
-
-    pre {
-      background: var(--capubbs-preview-pre-bg);
-      border: 1px solid var(--capubbs-preview-pre-border);
-      border-radius: 8px;
-      color: var(--capubbs-preview-pre-text);
-      line-height: 1.65;
-      margin: 12px 0;
-      overflow: auto;
-      padding: 12px;
-      white-space: pre-wrap;
-    }
-
-    pre code {
-      background: transparent;
-      color: inherit;
-      padding: 0;
-    }
-
-    img {
-      border-radius: 6px;
-      display: inline-block;
-      max-width: 100%;
-      vertical-align: middle;
-    }
-
-    table {
-      border-collapse: collapse;
-      margin: 12px 0;
-      width: 100%;
-    }
-
-    th,
-    td {
-      border: 1px solid var(--capubbs-preview-table-border);
-      padding: 6px 8px;
-      text-align: left;
-    }
-  </style>
-`;
-  const trimmedHtml = renderedHtml.trim();
-
-  if (/<html[\s>]/i.test(trimmedHtml)) {
-    if (/<head[\s>]/i.test(trimmedHtml)) {
-      return trimmedHtml.replace(/<head([^>]*)>/i, `<head$1>${previewHead}`);
-    }
-
-    return trimmedHtml.replace(/<html([^>]*)>/i, `<html$1><head>${previewHead}</head>`);
-  }
-
-  return `<!doctype html>
-<html>
-<head>${previewHead}</head>
-<body>${renderedHtml}</body>
-</html>`;
-}
-
-function highlightHtmlSource(source: string) {
-  if (!source) {
-    return '';
-  }
-
-  const tokenPattern = /(<!--[\s\S]*?-->|<!\[CDATA\[[\s\S]*?\]\]>|<\/?[a-zA-Z][^<>]*?>|<!doctype[^>]*>|&[a-zA-Z0-9#]+;)/gi;
-  let highlighted = '';
-  let lastIndex = 0;
-  let match: RegExpExecArray | null;
-
-  while ((match = tokenPattern.exec(source)) !== null) {
-    highlighted += escapeHtml(source.slice(lastIndex, match.index));
-    highlighted += highlightHtmlToken(match[0]);
-    lastIndex = match.index + match[0].length;
-  }
-
-  highlighted += escapeHtml(source.slice(lastIndex));
-
-  return highlighted;
-}
-
-function highlightHtmlToken(token: string) {
-  if (token.startsWith('<!--') || token.startsWith('<![CDATA[')) {
-    return `<span class="capubbs-code-comment">${escapeHtml(token)}</span>`;
-  }
-
-  if (/^&[a-zA-Z0-9#]+;$/.test(token)) {
-    return `<span class="capubbs-code-entity">${escapeHtml(token)}</span>`;
-  }
-
-  const escapedToken = escapeHtml(token);
-  const tagMatch = escapedToken.match(/^(&lt;!?\/?)([^\s&/]+)([\s\S]*?)((?:\/)?&gt;)$/i);
-  if (!tagMatch) {
-    return escapedToken;
-  }
-
-  const [, open, tagName, attributes, close] = tagMatch;
-
-  return [
-    `<span class="capubbs-code-punctuation">${open}</span>`,
-    `<span class="capubbs-code-tag">${tagName}</span>`,
-    highlightEscapedHtmlAttributes(attributes),
-    `<span class="capubbs-code-punctuation">${close}</span>`,
-  ].join('');
-}
-
-function highlightEscapedHtmlAttributes(attributes: string) {
-  return attributes.replace(
-    /([:\w.-]+)(\s*=\s*)(&quot;[\s\S]*?&quot;|&#039;[\s\S]*?&#039;|[^\s&]+)/g,
-    (_match, name: string, equals: string, attributeValue: string) => (
-      `<span class="capubbs-code-attr">${name}</span>` +
-      `<span class="capubbs-code-punctuation">${equals}</span>` +
-      `<span class="capubbs-code-string">${attributeValue}</span>`
-    ),
-  );
-}
-
-function formatHtmlForSource(html: string) {
-  const trimmedHtml = html.trim();
-  if (!trimmedHtml) {
-    return '';
-  }
-
-  const tokens = trimmedHtml.match(/<!--[\s\S]*?-->|<!\[CDATA\[[\s\S]*?\]\]>|<!doctype[^>]*>|<\/?[a-zA-Z][^<>]*?>|[^<]+/gi);
-  if (!tokens) {
-    return trimmedHtml;
-  }
-
-  let depth = 0;
-  const lines: string[] = [];
-
-  tokens.forEach((rawToken) => {
-    const token = rawToken.trim();
-    if (!token) {
-      return;
-    }
-
-    const isClosingTag = /^<\//.test(token);
-    const isOpeningTag = /^<[a-zA-Z][^>]*>$/.test(token);
-    const tagName = token.match(/^<\/?\s*([a-zA-Z0-9:-]+)/)?.[1]?.toLowerCase() ?? '';
-    const isVoidTag = htmlVoidTags.has(tagName);
-    const isSelfClosing = /\/>$/.test(token);
-    const shouldIndentNext = isOpeningTag && !isClosingTag && !isSelfClosing && !isVoidTag;
-
-    if (isClosingTag) {
-      depth = Math.max(depth - 1, 0);
-    }
-
-    lines.push(`${'  '.repeat(depth)}${token}`);
-
-    if (shouldIndentNext) {
-      depth += 1;
-    }
-  });
-
-  return lines.join('\n');
-}
-
-function compactHtmlForStorage(html: string) {
-  if (!html.trim()) {
-    return '';
-  }
-
-  const htmlWithSingleLineTags = html.replace(
-    /<[^>]*>/g,
-    (tag) => tag.replace(/[\t ]*[\r\n]+[\t ]*/g, ' '),
-  );
-
-  return htmlWithSingleLineTags
-    .replace(/[\t ]*[\r\n]+[\t ]*/g, '')
-    .replace(/>[\t ]+</g, '><')
-    .trim();
-}
-
-function escapeMarkdownLinkText(text: string) {
-  return text.replace(/([\\[\]])/g, '\\$1');
-}
-
-function htmlToMarkdown(html: string) {
-  if (!html.trim()) {
-    return '';
-  }
-
-  const container = document.createElement('div');
-  container.innerHTML = html;
-  const markdown = Array.from(container.childNodes).map(nodeToMarkdown).join('');
-
-  return markdown.replace(/\n{3,}/g, '\n\n').trim();
-}
-
-function nodeToMarkdown(node: ChildNode): string {
-  if (node.nodeType === Node.TEXT_NODE) {
-    const text = node.textContent ?? '';
-    const parentTag = node.parentElement?.tagName.toLowerCase();
-    if (parentTag === 'code' || parentTag === 'pre') {
-      return text;
-    }
-
-    return text.trim() ? text : '';
-  }
-
-  if (!(node instanceof HTMLElement)) {
-    return '';
-  }
-
-  const content = Array.from(node.childNodes).map(nodeToMarkdown).join('');
-
-  switch (node.tagName.toLowerCase()) {
-    case 'a':
-      return `[${content || node.textContent || '链接'}](${node.getAttribute('href') || '#'})`;
-    case 'b':
-    case 'strong':
-      return `**${content}**`;
-    case 'br':
-      return '\n';
-    case 'blockquote':
-      return `${content.split('\n').filter(Boolean).map((line) => `> ${line}`).join('\n')}\n\n`;
-    case 'code':
-      if (node.parentElement?.tagName.toLowerCase() === 'pre') {
-        return content;
-      }
-
-      return `\`${content}\``;
-    case 'div':
-    case 'p':
-      return `${content}\n\n`;
-    case 'del':
-    case 's':
-    case 'strike':
-      return `~~${content}~~`;
-    case 'em':
-    case 'i':
-      return `_${content}_`;
-    case 'h1':
-      return `# ${content}\n\n`;
-    case 'h2':
-      return `## ${content}\n\n`;
-    case 'h3':
-      return `### ${content}\n\n`;
-    case 'h4':
-      return `#### ${content}\n\n`;
-    case 'h5':
-      return `##### ${content}\n\n`;
-    case 'h6':
-      return `###### ${content}\n\n`;
-    case 'hr':
-      return '\n---\n\n';
-    case 'img':
-      return `![${escapeMarkdownLinkText(node.getAttribute('alt') || '图片')}](${node.getAttribute('src') || ''})${formatMarkdownImageDimensions(node)}`;
-    case 'li':
-      return `- ${content}\n`;
-    case 'ol':
-      return `\n${Array.from(node.children)
-        .filter((child) => child.tagName.toLowerCase() === 'li')
-        .map((child, index) => `${index + 1}. ${Array.from(child.childNodes).map(nodeToMarkdown).join('')}`)
-        .join('\n')}\n\n`;
-    case 'pre':
-      return `\n\`\`\`\n${node.textContent ?? ''}\n\`\`\`\n\n`;
-    case 'ul':
-      return `\n${content}\n`;
-    default:
-      return content;
-  }
-}
-
-function plainTextLength(content: string, mode: RichTextEditorMode) {
-  if (mode !== 'rich') {
-    return content.length;
-  }
-
-  const container = document.createElement('div');
-  container.innerHTML = finalizeRichTypingStyles(content);
-  return (container.textContent ?? '').length;
-}
-
-function normalizeUrl(url: string) {
-  const trimmedUrl = url.trim();
-
-  if (/^(https?:|mailto:|\/|#|data:image\/)/i.test(trimmedUrl)) {
-    return trimmedUrl;
-  }
-
-  return `https://${trimmedUrl}`;
-}
-
-function safeUrl(url: string) {
-  const normalizedUrl = normalizeUrl(url);
-  return /^javascript:/i.test(normalizedUrl) ? '#' : normalizedUrl;
-}
-
-function escapeHtml(text: string) {
-  return text
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;')
-    .replace(/'/g, '&#039;');
-}
-
-function escapeAttribute(text: string) {
-  return escapeHtml(text).replace(/`/g, '&#096;');
 }
