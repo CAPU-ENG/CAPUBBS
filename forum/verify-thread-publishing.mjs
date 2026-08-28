@@ -1,0 +1,108 @@
+import assert from 'node:assert/strict';
+import {
+  publishThreadContent,
+  ThreadPublishingError,
+} from './src/api/threadPublishing.ts';
+
+const originalFetch = globalThis.fetch;
+
+try {
+  let publishedBody;
+  globalThis.fetch = async (_url, init) => {
+    publishedBody = new URLSearchParams(init.body);
+    return jsonResponse({ code: 0, data: { bid: 28, tid: 155, pid: 5 } });
+  };
+  assert.deepEqual(await publishThreadContent(createReplyRequest()), {
+    bid: 28,
+    pid: 5,
+    tid: 155,
+  });
+  assert.equal(publishedBody.get('ask'), 'reply');
+  assert.match(publishedBody.get('text'), /<!--capubbs:publish:[^>]+-->$/);
+
+  let requestCount = 0;
+  let storedText = '';
+  globalThis.fetch = async (_url, init) => {
+    requestCount += 1;
+    const body = new URLSearchParams(init.body);
+    if (requestCount === 1) {
+      storedText = body.get('text');
+      return abortablePendingResponse(init.signal);
+    }
+    if (body.get('ask') === 'recentreply') {
+      return jsonResponse({
+        code: 0,
+        data: [
+          { nowuser: '' },
+          { bid: '28', pid: '5', tid: '155', title: 'Re: 测试主题' },
+        ],
+      });
+    }
+    assert.equal(body.get('ask'), 'thread_detail');
+    return jsonResponse({
+      code: 0,
+      data: {
+        floorsPage: { items: [{ pid: 5, rawText: storedText }] },
+        mainPost: { pid: 1, rawText: '楼主内容' },
+      },
+    });
+  };
+  assert.deepEqual(await publishThreadContent(createReplyRequest(), {
+    publishTimeoutMs: 5,
+    recoveryDelayMs: 0,
+    recoveryTimeoutMs: 100,
+  }), {
+    bid: 28,
+    pid: 5,
+    tid: 155,
+  });
+  assert.equal(requestCount, 3);
+
+  globalThis.fetch = async (_url, init) => {
+    const body = new URLSearchParams(init.body);
+    if (body.get('ask') === 'reply') return abortablePendingResponse(init.signal);
+    return jsonResponse({ code: 0, data: [{ nowuser: '' }] });
+  };
+  await assert.rejects(
+    publishThreadContent(createReplyRequest(), {
+      publishTimeoutMs: 5,
+      recoveryDelayMs: 0,
+      recoveryTimeoutMs: 100,
+    }),
+    (error) => (
+      error instanceof ThreadPublishingError
+      && /刷新帖子检查是否已经发布/.test(error.message)
+    ),
+  );
+} finally {
+  globalThis.fetch = originalFetch;
+}
+
+console.log('thread publishing verification passed (7 assertions)');
+
+function createReplyRequest() {
+  return {
+    attachments: '',
+    author: '余割',
+    bid: 28,
+    signatureIndex: 0,
+    text: '<p>测试正文</p>',
+    tid: 155,
+    title: 'Re: 测试主题',
+  };
+}
+
+function jsonResponse(payload) {
+  return new Response(JSON.stringify(payload), {
+    headers: { 'Content-Type': 'application/json' },
+    status: 200,
+  });
+}
+
+function abortablePendingResponse(signal) {
+  return new Promise((_resolve, reject) => {
+    signal.addEventListener('abort', () => {
+      reject(new DOMException('aborted', 'AbortError'));
+    }, { once: true });
+  });
+}

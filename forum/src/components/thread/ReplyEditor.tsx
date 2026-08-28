@@ -6,9 +6,9 @@ import {
   type RichTextEditorValue,
 } from "../editor/RichTextEditor";
 import {
-  publishThreadReply,
   uploadThreadAttachment,
 } from "../../api/thread";
+import { publishThreadContent } from "../../api/threadPublishing";
 import { useAutoSaveEnabled } from "../../hooks/useAssistiveFeatures";
 import {
   readDefaultSignatureIndex,
@@ -241,20 +241,21 @@ export function ReplyEditor({
     setStatus("正在发布回复…");
     setStatusIsError(false);
     try {
-      const published = await publishThreadReply({
-        attachments: attachments.map((attachment) => attachment.id),
+      const published = await publishThreadContent({
+        attachments: attachments.map((attachment) => attachment.id).join(" "),
+        author: ownerKey,
         bid,
         signatureIndex,
         text: html,
         tid,
-        title: threadTitle,
+        title: `Re: ${threadTitle}`,
       });
       saveDefaultSignatureIndex(signatureIndex, ownerKey);
       queueLocalDraftCleanup({ bid, ownerKey, tid, type: "reply" });
 
-      window.location.href = published.pid > 0
+      window.location.href = published.tid && published.pid
         ? getThreadFloorHref(published.bid, published.tid, published.pid)
-        : `/?${new URLSearchParams({ bid: String(published.bid), tid: String(published.tid) }).toString()}`;
+        : `/?${new URLSearchParams({ bid: String(bid), tid: String(tid) }).toString()}`;
     } catch (error) {
       setStatus(error instanceof Error ? error.message : "回复发布失败，请稍后重试。");
       setStatusIsError(true);

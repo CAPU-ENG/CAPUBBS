@@ -18,7 +18,8 @@
     "verify:markdown-rendering": "node --experimental-strip-types verify-markdown-rendering.mjs",
     "verify:rich-text-indentation": "node --experimental-strip-types verify-rich-text-indentation.mjs",
     "verify:table-to-vcf": "node --experimental-strip-types verify-table-to-vcf.mjs",
-    "verify:tag-expression": "node --experimental-strip-types verify-tag-expression.mjs"
+    "verify:tag-expression": "node --experimental-strip-types verify-tag-expression.mjs",
+    "verify:thread-publishing": "node --experimental-strip-types verify-thread-publishing.mjs"
   },
   "dependencies": {
     "lucide-react": "^0.561.0",

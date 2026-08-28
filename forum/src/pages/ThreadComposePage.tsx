@@ -8,6 +8,7 @@ import {
   type ThreadAttachmentInfo,
   type ThreadEditorViewer,
 } from '../api/thread';
+import { publishThreadContent } from '../api/threadPublishing';
 import {
   getRichTextEditorHtmlValue,
   getRichTextEditorStorageValue,
@@ -427,6 +428,7 @@ export function ThreadComposePage() {
         activitySchedule: isActivity ? activitySchedule : null,
         activitySignup: isActivity ? activitySignup : null,
         attachments: attachments.map((attachment) => attachment.id).join(' '),
+        author: ownerKey ?? '',
         bid: request.bid,
         signatureIndex,
         text: html,
@@ -720,6 +722,7 @@ async function publishThread({
   activitySchedule,
   activitySignup,
   attachments,
+  author,
   bid,
   signatureIndex,
   text,
@@ -729,6 +732,7 @@ async function publishThread({
   activitySchedule: ActivityDateRange | null;
   activitySignup: ActivitySignupSettings | null;
   attachments: string;
+  author: string;
   bid: number;
   signatureIndex: number;
   text: string;
@@ -746,58 +750,15 @@ async function publishThread({
       title,
     });
   }
-
-  const action = tid ? 'reply' : 'post';
-  let response: Response;
-  try {
-    response = await fetch(THREAD_API_URL, {
-      body: new URLSearchParams({
-        ask: action,
-        attachs: attachments,
-        bid: String(bid),
-        sig: String(signatureIndex),
-        text,
-        title,
-        ...(tid ? { tid: String(tid) } : {}),
-        type: 'web',
-      }),
-      credentials: 'include',
-      headers: {
-        Accept: 'application/json',
-        'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
-      },
-      method: 'POST',
-    });
-  } catch {
-    throw new ThreadApiError(`暂时无法连接论坛服务，${tid ? '回复' : '主题'}发表失败。`);
-  }
-
-  let payload: { code: number; data?: unknown; message?: string };
-  try {
-    payload = await response.json() as typeof payload;
-  } catch {
-    throw new ThreadApiError('论坛服务返回了无法识别的数据。');
-  }
-
-  if (!response.ok || payload.code !== 0) {
-    throw new ThreadApiError(payload.message?.trim() || `${tid ? '回复' : '主题'}发表失败，请稍后重试。`);
-  }
-
-  const data = Array.isArray(payload.data)
-    ? payload.data.find((item): item is Record<string, unknown> => (
-      typeof item === 'object' && item !== null && !Array.isArray(item)
-    )) ?? {}
-    : payload.data && typeof payload.data === 'object'
-      ? payload.data as Record<string, unknown>
-      : {};
-  const publishedBid = Number(data.bid);
-  const publishedTid = Number(data.tid);
-  const publishedPid = Number(data.pid ?? data.floor);
-  return {
-    bid: Number.isSafeInteger(publishedBid) && publishedBid > 0 ? publishedBid : bid,
-    pid: Number.isSafeInteger(publishedPid) && publishedPid > 0 ? publishedPid : null,
-    tid: Number.isSafeInteger(publishedTid) && publishedTid > 0 ? publishedTid : tid,
-  };
+  return publishThreadContent({
+    attachments,
+    author,
+    bid,
+    signatureIndex,
+    text,
+    tid,
+    title,
+  });
 }
 
 async function publishActivityThread({
