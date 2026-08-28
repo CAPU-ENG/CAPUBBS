@@ -18,6 +18,7 @@ import {
   useSignatureToggleEnabled,
 } from '../hooks/useAssistiveFeatures';
 import { useAuthorProfileEnabled } from '../hooks/useAuthorProfile';
+import { useDocumentTitle } from '../hooks/useDocumentTitle';
 import { useAvatarFollowDisabled } from '../hooks/useAvatarFollow';
 import { useThreadTopBar } from '../hooks/useThreadTopBar';
 import { useThreadData } from '../hooks/useThreadData';
@@ -101,6 +102,7 @@ export function ThreadPage() {
     avatarFollowDisabled ? 'thread-page-shell-avatar-static' : 'thread-page-shell-avatar-sticky',
     assistiveBarEnabled ? 'thread-page-shell-with-assistive-bar' : 'thread-page-shell-without-assistive-bar',
   ].filter(Boolean).join(' ');
+  useDocumentTitle(data?.title ?? (status === 'loading' ? '正在读取帖子' : '帖子暂时无法打开'));
   const syncAvatarStickyTop = useCallback((topBarBottom: number) => {
     pageRef.current?.style.setProperty('--thread-avatar-sticky-top', `${topBarBottom}px`);
   }, []);

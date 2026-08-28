@@ -6,10 +6,12 @@ import { TopBar } from '../components/layout/TopBar';
 import { useAuth } from '../context/AuthContext';
 import { useWaterfallFeedEnabled } from '../hooks/useAssistiveFeatures';
 import { useCompactMode } from '../hooks/useCompactMode';
+import { useDocumentTitle } from '../hooks/useDocumentTitle';
 import { useHomeData } from '../hooks/useHomeData';
 import { useReadThreadIds } from '../hooks/useReadThreadIds';
 
 export function HomePage() {
+  useDocumentTitle('车协论坛');
   const { viewer } = useAuth();
   const compactMode = useCompactMode();
   const waterfallFeedEnabled = useWaterfallFeedEnabled();

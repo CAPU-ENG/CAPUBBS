@@ -48,6 +48,7 @@ import { MedalManagementWorkspace } from '../components/management/MedalManageme
 import { TagManagementWorkspace } from '../components/management/TagManagementWorkspace';
 import { TopBar } from '../components/layout/TopBar';
 import { useAuth } from '../context/AuthContext';
+import { useDocumentTitle } from '../hooks/useDocumentTitle';
 import { ALL_BOARDS, PRIMARY_BOARDS, SECONDARY_BOARDS } from '../data/boards';
 import { getLoginPathWithReturnTo, getRegisterPathWithReturnTo } from '../utils/authRoutes';
 
@@ -69,6 +70,9 @@ export function ManagementPage() {
   const [activeTab, setActiveTab] = useState<AdminTab>(readTabFromLocation);
   const authPending = authStatus === 'loading' || authStatus === 'restoring';
   const isAuthorized = authStatus === 'authenticated' && (viewer?.rights ?? 0) >= 3;
+  useDocumentTitle(authPending
+    ? '正在确认管理权限'
+    : isAuthorized ? '论坛管理' : '无法进入论坛管理');
 
   function selectTab(tab: AdminTab) {
     if (tab === activeTab) return;

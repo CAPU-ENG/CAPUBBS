@@ -35,6 +35,7 @@ import {
 import { useAuthorProfileEnabled } from '../hooks/useAuthorProfile';
 import { useAvatarFollowEnabled } from '../hooks/useAvatarFollow';
 import { useCompactMode } from '../hooks/useCompactMode';
+import { useDocumentTitle } from '../hooks/useDocumentTitle';
 import { useForumContentFontSize } from '../hooks/useForumContentFontSize';
 import { usePinnedBoardIds } from '../hooks/usePinnedBoards';
 import { useTagMedalDisplayEnabled } from '../hooks/useTagMedalDisplay';
@@ -61,6 +62,7 @@ import { saveThemeFollowsSystem } from '../utils/theme';
 import { saveTopBarAutoHideEnabled } from '../utils/topBarAutoHide';
 
 export function SettingsPage() {
+  useDocumentTitle('设置');
   const assistiveBarEnabled = useAssistiveBarEnabled();
   const autoSaveEnabled = useAutoSaveEnabled();
   const authorProfileEnabled = useAuthorProfileEnabled();

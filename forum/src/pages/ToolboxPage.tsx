@@ -15,6 +15,7 @@ import { useRef, useState } from 'react';
 import { readSheet } from 'read-excel-file/browser';
 import { AppBackground } from '../components/layout/AppBackground';
 import { TopBar } from '../components/layout/TopBar';
+import { useDocumentTitle } from '../hooks/useDocumentTitle';
 import {
   convertTableToVcf,
   getVCardDisplayName,
@@ -37,6 +38,7 @@ const EXAMPLE_VCF = convertTableToVcf(EXAMPLE_CONTACTS).content;
 
 export function ToolboxPage() {
   const [activeTab, setActiveTab] = useState<ToolTab>(readTabFromLocation);
+  useDocumentTitle(TOOL_TABS.find((tab) => tab.id === activeTab)?.label ?? '工具箱');
 
   function selectTab(tab: ToolTab) {
     if (tab === activeTab) return;

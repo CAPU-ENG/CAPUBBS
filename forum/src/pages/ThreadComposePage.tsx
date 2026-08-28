@@ -33,6 +33,7 @@ import {
 } from '../components/thread/ActivitySignupEditor';
 import { useAuth } from '../context/AuthContext';
 import { useAutoSaveEnabled } from '../hooks/useAssistiveFeatures';
+import { useDocumentTitle } from '../hooks/useDocumentTitle';
 import { getLoginPathWithReturnTo, getRegisterPathWithReturnTo } from '../utils/authRoutes';
 import {
   readDefaultSignatureIndex,
@@ -469,6 +470,22 @@ export function ThreadComposePage() {
       || (authStatus === 'authenticated' && (!draftLoadComplete || !editorViewer))
     ),
   );
+  const documentTitle = !request
+    ? '无法确定编辑对象'
+    : pageLoadError
+      ? '暂时无法进入编辑页'
+      : authStatus === 'guest'
+        ? `登录后${isReply ? '编辑草稿' : '开始发帖'}`
+        : pagePending
+          ? '正在准备编辑器'
+          : isActivity && !canCreateActivity
+            ? '当前无法发起活动'
+            : starRestricted && board
+              ? '当前星级不足'
+              : boardName
+                ? isReply ? `编辑：${title}` : isActivity ? '发起新活动' : '发表新主题'
+                : '无法确定编辑对象';
+  useDocumentTitle(documentTitle);
 
   return (
     <div className="relative min-h-screen text-[var(--text)] transition-colors duration-200">

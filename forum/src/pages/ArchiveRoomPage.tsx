@@ -7,6 +7,7 @@ import {
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { AppBackground } from '../components/layout/AppBackground';
 import { TopBar } from '../components/layout/TopBar';
+import { useDocumentTitle } from '../hooks/useDocumentTitle';
 import { useAuth } from '../context/AuthContext';
 import { getLoginPathWithReturnTo, getRegisterPathWithReturnTo } from '../utils/authRoutes';
 import {
@@ -27,6 +28,7 @@ const KIND_META: Record<ArchiveKind, { icon: LucideIcon; tone: string }> = {
 };
 
 export function ArchiveRoomPage() {
+  useDocumentTitle('档案室');
   const { status: authStatus } = useAuth();
   const isAuthenticated = authStatus === 'authenticated' || authStatus === 'restoring';
   const [serverCanManage, setServerCanManage] = useState(false);

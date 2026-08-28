@@ -2,12 +2,14 @@ import { useEffect, useState, type FormEvent } from 'react';
 import { ArrowRight, Bike, LoaderCircle, LockKeyhole, UserRound } from 'lucide-react';
 import { AppBackground } from '../components/layout/AppBackground';
 import { TopBar } from '../components/layout/TopBar';
+import { useDocumentTitle } from '../hooks/useDocumentTitle';
 import { ADMIN_EMAIL } from '../constants/contact';
 import { useAuth } from '../context/AuthContext';
 import { getAuthPathWithReturnTo, getAuthReturnTo, replaceForumLocation } from '../utils/authRoutes';
 import { md5LegacyStringHex } from '../utils/md5';
 
 export function LoginPage() {
+  useDocumentTitle('CAPUBBS');
   const { login, status } = useAuth();
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');

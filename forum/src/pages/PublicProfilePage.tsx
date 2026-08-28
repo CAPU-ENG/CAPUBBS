@@ -8,11 +8,14 @@ import { ProfileOverview } from '../components/profile/ProfileOverview';
 import { ProfileWorkspace } from '../components/profile/ProfileWorkspace';
 import type { ProfileTab } from '../data/profileDemo';
 import { usePublicProfile } from '../hooks/useProfileData';
+import { useDocumentTitle } from '../hooks/useDocumentTitle';
 
 export function PublicProfilePage({ profileName }: { profileName: string | null }) {
   const profileState = usePublicProfile(profileName);
   const [messageOpen, setMessageOpen] = useState(false);
   const loadedProfile = profileState.data;
+  useDocumentTitle(loadedProfile?.profile.id
+    ?? (profileState.status === 'loading' ? '正在加载个人主页' : '没有找到这位用户'));
 
   if (!loadedProfile) {
     return (

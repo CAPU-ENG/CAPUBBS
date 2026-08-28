@@ -21,6 +21,7 @@ import qqIcon from '../assets/icons/qq.svg';
 import { isUsernameAvailable, sendRegisterEmailCode } from '../api/auth';
 import { AppBackground } from '../components/layout/AppBackground';
 import { TopBar } from '../components/layout/TopBar';
+import { useDocumentTitle } from '../hooks/useDocumentTitle';
 import { AvatarDialog } from '../components/profile/AvatarEditorDialog';
 import { ADMIN_EMAIL } from '../constants/contact';
 import { useAuth } from '../context/AuthContext';
@@ -46,6 +47,7 @@ type UsernameState = 'idle' | 'checking' | 'available' | 'taken' | 'invalid';
 type Notice = { message: string; tone: 'error' | 'success' } | null;
 
 export function RegisterPage() {
+  useDocumentTitle('欢迎加入 CAPU');
   const { register, status } = useAuth();
   const usernameCheckRequestRef = useRef(0);
   const [username, setUsername] = useState('');

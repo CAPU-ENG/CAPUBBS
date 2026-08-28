@@ -19,6 +19,7 @@ import { ProfilePersonalizationDialog } from '../components/profile/ProfilePerso
 import { useAuth } from '../context/AuthContext';
 import type { ProfileDetail, ProfileRecordMap } from '../data/profileDemo';
 import { useUserCenterProfile } from '../hooks/useProfileData';
+import { useDocumentTitle } from '../hooks/useDocumentTitle';
 import {
   deleteStoredReplyDraftForThread,
   readStoredReplyDrafts,
@@ -47,6 +48,11 @@ export function UserCenterPage() {
   const { logout, status: authStatus, updateViewerAvatar, viewer } = useAuth();
   const profileState = useUserCenterProfile(authStatus === 'authenticated');
   const profile = authStatus === 'authenticated' ? profileState.data : null;
+  const authPending = authStatus === 'loading' || authStatus === 'restoring';
+  const loginRequired = authStatus === 'guest';
+  const profileLoading = !loginRequired && (authPending || profileState.status === 'loading');
+  useDocumentTitle(profile?.id
+    ?? (profileLoading ? '正在确认登录状态' : loginRequired ? '请先登录' : '个人资料加载失败'));
   const draftOwnerKey = viewer?.username ?? null;
   const [isEditing, setIsEditing] = useState(false);
   const [isSavingProfile, setIsSavingProfile] = useState(false);
@@ -198,12 +204,10 @@ export function UserCenterPage() {
   }
 
   if (!profile) {
-    const authPending = authStatus === 'loading' || authStatus === 'restoring';
-    const loginRequired = authStatus === 'guest';
     return (
       <ProfileLoadPage
         error={loginRequired ? '登录后才能查看和修改个人资料。' : profileState.error}
-        loading={!loginRequired && (authPending || profileState.status === 'loading')}
+        loading={profileLoading}
         loginHref={loginRequired ? getAuthPathWithReturnTo('/login', USER_CENTER_PATH) : undefined}
         registerHref={loginRequired ? getAuthPathWithReturnTo('/register', USER_CENTER_PATH) : undefined}
         onRetry={profileState.reload}

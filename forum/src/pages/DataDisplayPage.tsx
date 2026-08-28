@@ -21,6 +21,7 @@ import { PunishmentRecords } from '../components/data/PunishmentRecords';
 import { TagSummaryPanel } from '../components/data/TagSummaryPanel';
 import { AppBackground } from '../components/layout/AppBackground';
 import { TopBar } from '../components/layout/TopBar';
+import { useDocumentTitle } from '../hooks/useDocumentTitle';
 
 type LoadState = {
   data: DataDisplayResult | null;
@@ -46,6 +47,7 @@ export function DataDisplayPage() {
   const [activePanel, setActivePanel] = useState<DisplayPanel>(readPanelFromLocation);
   const [reloadToken, setReloadToken] = useState(0);
   const [state, setState] = useState<LoadState>({ data: null, error: '', status: 'loading' });
+  useDocumentTitle(PANEL_ITEMS.find((panel) => panel.id === activePanel)?.label ?? '数据展示');
 
   useEffect(() => {
     const controller = new AbortController();

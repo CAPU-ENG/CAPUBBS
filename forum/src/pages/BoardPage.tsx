@@ -11,6 +11,7 @@ import {
 } from '../api/board';
 import { useAuth } from '../context/AuthContext';
 import { useBoardData } from '../hooks/useBoardData';
+import { useDocumentTitle } from '../hooks/useDocumentTitle';
 import { useScrollContextTitle } from '../hooks/useScrollContextTitle';
 import { getPublicProfilePath } from '../utils/userRoutes';
 import { getThreadComposeHref } from '../utils/threadRoutes';
@@ -191,6 +192,7 @@ export function BoardPage({ boardId }: { boardId: number }) {
     && viewer.rights <= 1
     && viewer.stars < data.board.requiredStars,
   );
+  useDocumentTitle(data?.board.name ?? (status === 'loading' ? '正在读取版面' : '版面暂时无法打开'));
 
   useEffect(() => {
     if (!canManage) setManagementMode(false);

@@ -14,6 +14,7 @@ import { AppBackground } from '../components/layout/AppBackground';
 import { Pagination } from '../components/layout/Pagination';
 import { TopBar } from '../components/layout/TopBar';
 import { useSearchData, type SearchField, type SearchRequest, type SearchResult } from '../hooks/useSearchData';
+import { useDocumentTitle } from '../hooks/useDocumentTitle';
 import { getPublicProfilePath } from '../utils/userRoutes';
 import { ALL_BOARDS } from '../data/boards';
 
@@ -56,6 +57,7 @@ export function SearchPage() {
   const safePage = Math.min(currentPage, pageCount);
   const visibleResults = results.slice((safePage - 1) * SEARCH_PAGE_SIZE, safePage * SEARCH_PAGE_SIZE);
   const hasSearch = Boolean(applied.keyword);
+  useDocumentTitle(applied.keyword ? `“${applied.keyword}”` : '等待搜索');
 
   function applySearch(options: SearchOptions) {
     const normalized = { ...options, author: options.author.trim(), keyword: options.keyword.trim() };

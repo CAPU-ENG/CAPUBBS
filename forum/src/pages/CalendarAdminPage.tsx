@@ -15,6 +15,7 @@ import { fetchHomeCalendar, type HomeCalendarEvent } from '../api/home';
 import { AppBackground } from '../components/layout/AppBackground';
 import { TopBar } from '../components/layout/TopBar';
 import { useAuth } from '../context/AuthContext';
+import { useDocumentTitle } from '../hooks/useDocumentTitle';
 import { canManageCalendar, saveCalendarEventsForDate } from '../utils/calendarManagement';
 import { getLoginPathWithReturnTo, getRegisterPathWithReturnTo } from '../utils/authRoutes';
 
@@ -44,6 +45,9 @@ export function CalendarAdminPage() {
   const authPending = authStatus === 'loading' || authStatus === 'restoring';
   const isAuthorized = authStatus === 'authenticated'
     && canManageCalendar(viewer?.username, viewer?.rights);
+  useDocumentTitle(authPending
+    ? '正在确认管理权限'
+    : isAuthorized ? '日历管理' : '无法进入日历管理');
   const selectedDateKey = formatDateKey(selectedDate);
 
   useEffect(() => {

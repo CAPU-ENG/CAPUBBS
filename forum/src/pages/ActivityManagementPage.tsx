@@ -27,6 +27,7 @@ import {
   ActivitySignupSchedule,
 } from '../components/thread/ActivitySignupEditor';
 import { useAuth } from '../context/AuthContext';
+import { useDocumentTitle } from '../hooks/useDocumentTitle';
 import { useThreadData } from '../hooks/useThreadData';
 import { getLoginPathWithReturnTo, getRegisterPathWithReturnTo } from '../utils/authRoutes';
 import {
@@ -170,6 +171,18 @@ export function ActivityManagementPage() {
     ? `/?${new URLSearchParams({ bid: String(request.bid), p: '1', tid: String(request.tid) }).toString()}#1`
     : '/';
   const records = signupSummary?.records ?? [];
+  const documentTitle = authPending || status === 'loading'
+    ? '正在读取活动'
+    : status === 'error' || !data
+      ? '活动暂时无法打开'
+      : !data.isActivity || !data.activity
+        ? '这不是活动帖'
+        : !managedActivity
+          ? '正在准备活动管理'
+          : !isAuthorized
+            ? '无法进入活动管理'
+            : `活动管理：${data.title}`;
+  useDocumentTitle(documentTitle);
 
   return (
     <div className="activity-management-page relative min-h-screen text-[var(--text)] transition-colors duration-200">

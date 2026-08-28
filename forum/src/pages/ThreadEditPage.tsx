@@ -24,6 +24,7 @@ import {
   type ThreadAttachmentInfo,
 } from '../api/thread';
 import { useAuth } from '../context/AuthContext';
+import { useDocumentTitle } from '../hooks/useDocumentTitle';
 import { getLoginPathWithReturnTo, getRegisterPathWithReturnTo } from '../utils/authRoutes';
 import { normalizeFloorQuotesForLegacyStorage } from '../utils/floorQuote';
 import { getThreadFloorHref } from '../utils/threadRoutes';
@@ -94,6 +95,11 @@ export function ThreadEditPage() {
   const isMainPost = floor?.pid === 1;
   const backHref = request ? getThreadFloorHref(request.bid, request.tid, request.pid) : '/';
   const displayTitle = floor ? (isMainPost ? title.trim() || floor.title : floor.title) : '';
+  useDocumentTitle(!request
+    ? '无法确定编辑对象'
+    : loadError
+      ? '暂时无法进入编辑'
+      : floor ? displayTitle : '正在读取编辑内容');
   const isDirty = Boolean(floor && (
     title !== floor.title
     || editorValue.content !== floor.text
