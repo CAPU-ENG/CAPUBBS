@@ -22,6 +22,7 @@ import { isUsernameAvailable, sendRegisterEmailCode } from '../api/auth';
 import { AppBackground } from '../components/layout/AppBackground';
 import { TopBar } from '../components/layout/TopBar';
 import { AvatarDialog } from '../components/profile/AvatarEditorDialog';
+import { ADMIN_EMAIL } from '../constants/contact';
 import { useAuth } from '../context/AuthContext';
 import { getAuthPathWithReturnTo, getAuthReturnTo, replaceForumLocation } from '../utils/authRoutes';
 import { normalizeLegacyAvatar } from '../utils/legacyAssets';
@@ -280,6 +281,7 @@ export function RegisterPage() {
                       <span id="register-email-domains" role="tooltip">允许的邮箱：@*.pku.edu.cn、@bjmu.edu.cn</span>
                     </span>
                   </div>
+                  <small>管理员邮箱：<a href={`mailto:${ADMIN_EMAIL}`}>{ADMIN_EMAIL}</a></small>
                 </div>
 
                 <div className="register-field">

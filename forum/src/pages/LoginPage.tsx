@@ -2,6 +2,7 @@ import { useEffect, useState, type FormEvent } from 'react';
 import { ArrowRight, Bike, LoaderCircle, LockKeyhole, UserRound } from 'lucide-react';
 import { AppBackground } from '../components/layout/AppBackground';
 import { TopBar } from '../components/layout/TopBar';
+import { ADMIN_EMAIL } from '../constants/contact';
 import { useAuth } from '../context/AuthContext';
 import { getAuthPathWithReturnTo, getAuthReturnTo, replaceForumLocation } from '../utils/authRoutes';
 import { md5LegacyStringHex } from '../utils/md5';
@@ -82,6 +83,10 @@ export function LoginPage() {
                 />
               </div>
             </label>
+
+            <p className="auth-help">
+              若忘记密码，请联系管理员：<a href={`mailto:${ADMIN_EMAIL}`}>{ADMIN_EMAIL}</a>
+            </p>
 
             {error && <p className="auth-error" role="alert">{error}</p>}
 

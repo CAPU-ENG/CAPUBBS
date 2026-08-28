@@ -107,6 +107,17 @@
     font-size: var(--ui-font-size-lg);
   }
 
+  .auth-help {
+    color: var(--text-faint);
+    font-size: var(--ui-font-size-md);
+    line-height: 1.55;
+  }
+
+  .auth-help a {
+    color: var(--brand-strong);
+    font-weight: 700;
+  }
+
   .auth-submit,
   .topbar-login-link,
   .topbar-register-link {
