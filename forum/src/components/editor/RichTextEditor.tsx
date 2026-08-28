@@ -49,7 +49,6 @@ import {
   defaultTextColor,
   editorModeGroups,
   htmlVoidTags,
-  markdownFloorQuoteMetaPattern,
   maxInlineImageBytes,
   richTextFontOptions,
   richTextFontSizeOptions,
@@ -61,6 +60,7 @@ import {
   getMarkdownTabEdit,
   type MarkdownSourceEdit,
 } from './RichTextEditor.markdown';
+import { renderMarkdownToHtml } from './RichTextEditor.markdownRender';
 import {
   compressImageFileUnderLimit,
   createUploadableImageFileUnderLimit,
@@ -318,41 +318,6 @@ function formatMarkdownImageDimensions(image: HTMLElement) {
   ].filter(Boolean);
 
   return attributes.length > 0 ? `{${attributes.join(' ')}}` : '';
-}
-
-function parseMarkdownImageDimensions(attributes: string | undefined): ImageDimensions {
-  if (!attributes) {
-    return {};
-  }
-
-  const dimensions: ImageDimensions = {};
-  const attributePattern = /\b(width|height)\s*[:=]\s*([0-9.]+(?:px|%)?)/gi;
-  let match: RegExpExecArray | null;
-
-  while ((match = attributePattern.exec(attributes)) !== null) {
-    const value = normalizeImageDimensionValue(match[2]);
-
-    if (!value) {
-      continue;
-    }
-
-    if (match[1].toLowerCase() === 'width') {
-      dimensions.width = value;
-    } else {
-      dimensions.height = value;
-    }
-  }
-
-  return dimensions;
-}
-
-function buildImageDimensionStyleAttribute(dimensions: ImageDimensions) {
-  const styles = [
-    dimensions.width ? `width: ${dimensions.width}` : '',
-    dimensions.height ? `height: ${dimensions.height}` : '',
-  ].filter(Boolean);
-
-  return styles.length > 0 ? ` style="${escapeAttribute(`${styles.join('; ')};`)}"` : '';
 }
 
 export function RichTextEditor({
@@ -3152,217 +3117,8 @@ function compactHtmlForStorage(html: string) {
     .trim();
 }
 
-function renderMarkdownToHtml(markdown: string) {
-  const lines = markdown.replace(/\r\n?/g, '\n').split('\n');
-  const blocks: string[] = [];
-  let paragraph: string[] = [];
-  let listItems: string[] = [];
-  let orderedListItems: string[] = [];
-  let quoteLines: string[] = [];
-  let codeLines: string[] = [];
-  let isCodeBlock = false;
-
-  const flushParagraph = () => {
-    if (paragraph.length === 0) {
-      return;
-    }
-
-    blocks.push(`<p>${renderMarkdownInline(paragraph.join(' '))}</p>`);
-    paragraph = [];
-  };
-
-  const flushLists = () => {
-    if (listItems.length > 0) {
-      blocks.push(`<ul>${listItems.map((item) => `<li>${renderMarkdownInline(item)}</li>`).join('')}</ul>`);
-      listItems = [];
-    }
-
-    if (orderedListItems.length > 0) {
-      blocks.push(`<ol>${orderedListItems.map((item) => `<li>${renderMarkdownInline(item)}</li>`).join('')}</ol>`);
-      orderedListItems = [];
-    }
-  };
-
-  const flushQuote = () => {
-    if (quoteLines.length === 0) {
-      return;
-    }
-
-    blocks.push(renderMarkdownQuoteBlock(quoteLines));
-    quoteLines = [];
-  };
-
-  const flushCodeBlock = () => {
-    if (codeLines.length === 0) {
-      return;
-    }
-
-    blocks.push(`<pre><code>${escapeHtml(codeLines.join('\n'))}</code></pre>`);
-    codeLines = [];
-  };
-
-  for (const line of lines) {
-    if (line.trim().startsWith('```')) {
-      if (isCodeBlock) {
-        flushCodeBlock();
-      } else {
-        flushParagraph();
-        flushLists();
-        flushQuote();
-      }
-
-      isCodeBlock = !isCodeBlock;
-      continue;
-    }
-
-    if (isCodeBlock) {
-      codeLines.push(line);
-      continue;
-    }
-
-    if (line.trim() === '') {
-      flushParagraph();
-      flushLists();
-      flushQuote();
-      continue;
-    }
-
-    const headingMatch = line.match(/^(#{1,6})\s+(.+)$/);
-    const horizontalRuleMatch = line.match(/^\s{0,3}(?:-{3,}|\*{3,}|_{3,}|(?:-\s*){3,}|(?:\*\s*){3,}|(?:_\s*){3,})\s*$/);
-    const unorderedListMatch = line.match(/^\s*[-+*]\s+(.+)$/);
-    const orderedListMatch = line.match(/^\s*\d+\.\s+(.+)$/);
-    const quoteMatch = line.match(/^\s*>\s?(.*)$/);
-
-    if (headingMatch) {
-      flushParagraph();
-      flushLists();
-      flushQuote();
-      const level = Math.min(headingMatch[1].length, 6);
-      blocks.push(`<h${level}>${renderMarkdownInline(headingMatch[2])}</h${level}>`);
-      continue;
-    }
-
-    if (horizontalRuleMatch) {
-      flushParagraph();
-      flushLists();
-      flushQuote();
-      blocks.push('<hr>');
-      continue;
-    }
-
-    if (quoteMatch) {
-      flushParagraph();
-      flushLists();
-      quoteLines.push(quoteMatch[1]);
-      continue;
-    }
-
-    if (unorderedListMatch) {
-      flushParagraph();
-      flushQuote();
-      listItems.push(unorderedListMatch[1]);
-      continue;
-    }
-
-    if (orderedListMatch) {
-      flushParagraph();
-      flushQuote();
-      orderedListItems.push(orderedListMatch[1]);
-      continue;
-    }
-
-    flushLists();
-    flushQuote();
-    paragraph.push(line.trim());
-  }
-
-  if (isCodeBlock) {
-    flushCodeBlock();
-  }
-
-  flushParagraph();
-  flushLists();
-  flushQuote();
-
-  return blocks.join('');
-}
-
-function renderMarkdownQuoteBlock(quoteLines: string[]) {
-  const metaLineIndex = findFloorQuoteMetaLineIndex(quoteLines);
-
-  if (metaLineIndex === -1) {
-    return `<blockquote class="forum-quote">${quoteLines.map((line) => `<p>${renderMarkdownInline(line)}</p>`).join('')}</blockquote>`;
-  }
-
-  const metaMatch = quoteLines[metaLineIndex].match(markdownFloorQuoteMetaPattern);
-
-  if (!metaMatch) {
-    return `<blockquote class="forum-quote">${quoteLines.map((line) => `<p>${renderMarkdownInline(line)}</p>`).join('')}</blockquote>`;
-  }
-
-  const quoteContent = quoteLines
-    .slice(0, metaLineIndex)
-    .filter((line) => line.trim().length > 0)
-    .map((line) => `<p class="capubbs-floor-quote-content">${renderMarkdownInline(line)}</p>`)
-    .join('');
-  const author = unescapeMarkdownLinkText(metaMatch[1]);
-  const authorHref = safeUrl(metaMatch[2]);
-  const floorHref = safeUrl(metaMatch[3]);
-
-  return [
-    '<blockquote class="capubbs-floor-quote">',
-    quoteContent,
-    `<p class="capubbs-floor-quote-meta"><span>引用自 <a href="${escapeAttribute(authorHref)}" target="_blank" rel="noreferrer">${escapeHtml(author)}</a></span><a class="capubbs-floor-quote-jump" href="${escapeAttribute(floorHref)}" target="_blank" rel="noreferrer">&gt;&gt;</a></p>`,
-    '</blockquote>',
-  ].join('');
-}
-
-function findFloorQuoteMetaLineIndex(quoteLines: string[]) {
-  for (let index = quoteLines.length - 1; index >= 0; index -= 1) {
-    if (!quoteLines[index].trim()) {
-      continue;
-    }
-
-    return markdownFloorQuoteMetaPattern.test(quoteLines[index]) ? index : -1;
-  }
-
-  return -1;
-}
-
-function unescapeMarkdownLinkText(text: string) {
-  return text.replace(/\\([\\[\]])/g, '$1');
-}
-
 function escapeMarkdownLinkText(text: string) {
   return text.replace(/([\\[\]])/g, '\\$1');
-}
-
-function renderMarkdownInline(rawText: string) {
-  let html = escapeHtml(rawText);
-
-  html = html.replace(
-    /!\[([^\]]*)\]\(([^)]+)\)(?:\{([^}]+)\})?/g,
-    (_match, alt: string, url: string, attributes: string | undefined) => {
-      const dimensions = parseMarkdownImageDimensions(attributes);
-
-      return `<img src="${escapeAttribute(safeUrl(url))}" alt="${escapeAttribute(alt)}"${buildImageDimensionStyleAttribute(dimensions)}>`;
-    },
-  );
-  html = html.replace(
-    /\[([^\]]+)\]\(([^)]+)\)/g,
-    (_match, text: string, url: string) => `<a href="${escapeAttribute(safeUrl(url))}" target="_blank" rel="noreferrer">${text}</a>`,
-  );
-  html = html.replace(/\[at\](.+?)\[\/at\]/g, (_match, username: string) => {
-    const safeUsername = escapeHtml(username);
-    return `<a href="${escapeAttribute(getPublicProfileAppPath(username))}">@${safeUsername}</a>`;
-  });
-  html = html.replace(/`([^`]+)`/g, '<code>$1</code>');
-  html = html.replace(/~~([^~]+)~~/g, '<del>$1</del>');
-  html = html.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
-  html = html.replace(/_([^_]+)_/g, '<em>$1</em>');
-  html = html.replace(/\*([^*]+)\*/g, '<em>$1</em>');
-
-  return html;
 }
 
 function htmlToMarkdown(html: string) {

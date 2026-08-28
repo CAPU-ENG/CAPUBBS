@@ -6,7 +6,8 @@ export type MarkdownSourceEdit = {
 
 const markdownIndent = '  ';
 const unorderedListPattern = /^(\s*)([-+*])([ \t]+)(.*)$/;
-const orderedListPattern = /^(\s*)(\d+)(\.)([ \t]+)(.*)$/;
+const orderedListPattern = /^(\s*)(\d+)([.)])([ \t]+)(.*)$/;
+const markdownListMarkerPattern = /^( *)(?:[-+*]|\d+[.)])[ \t]+/;
 
 export function getMarkdownTabEdit(
   content: string,
@@ -20,41 +21,149 @@ export function getMarkdownTabEdit(
   const followingLineBreak = content.indexOf('\n', lastSelectedOffset);
   const lineEnd = followingLineBreak === -1 ? content.length : followingLineBreak;
   const selectedLines = content.slice(lineStart, lineEnd).split('\n');
-  const indentationChanges: number[] = [];
-  const replacement = selectedLines.map((line) => {
-    if (!outdent) {
-      indentationChanges.push(markdownIndent.length);
-      return `${markdownIndent}${line}`;
-    }
+  const indentationWidth = outdent
+    ? getMarkdownOutdentWidth(content, lineStart, selectedLines[0])
+    : getMarkdownIndentWidth(content, lineStart, selectedLines[0]);
+  const indentation = ' '.repeat(indentationWidth);
+  const baseIndent = selectedLines[0].match(/^\s*/)?.[0] ?? '';
+  let nextOrderedNumber = 1;
+  const lineEdits = selectedLines.map((line) => {
+    if (outdent) return createMarkdownOutdentLineEdit(line, indentationWidth);
 
-    const removableIndent = line.startsWith('\t')
-      ? 1
-      : Math.min(line.match(/^ */)?.[0].length ?? 0, markdownIndent.length);
-    indentationChanges.push(-removableIndent);
-    return line.slice(removableIndent);
-  }).join('\n');
+    const orderedMatch = line.match(orderedListPattern);
+    const shouldRenumber = orderedMatch?.[1] === baseIndent;
+    const replacementNumber = shouldRenumber
+      ? formatMarkdownListNumber(nextOrderedNumber, orderedMatch[2])
+      : null;
+    if (shouldRenumber) nextOrderedNumber += 1;
+
+    return createMarkdownIndentLineEdit(line, indentation, orderedMatch, replacementNumber);
+  });
+  const replacement = lineEdits.map((edit) => edit.content).join('\n');
   const nextContent = `${content.slice(0, lineStart)}${replacement}${content.slice(lineEnd)}`;
-  const firstLineChange = indentationChanges[0] ?? 0;
-
-  if (selectionStart === selectionEnd) {
-    const offsetInLine = selectionStart - lineStart;
-    const caretChange = firstLineChange >= 0
-      ? firstLineChange
-      : -Math.min(-firstLineChange, offsetInLine);
-    const nextCaret = selectionStart + caretChange;
-    return { content: nextContent, selectionEnd: nextCaret, selectionStart: nextCaret };
-  }
-
-  const selectionStartChange = firstLineChange >= 0
-    ? firstLineChange
-    : -Math.min(-firstLineChange, selectionStart - lineStart);
-  const totalChange = indentationChanges.reduce((sum, change) => sum + change, 0);
 
   return {
     content: nextContent,
-    selectionEnd: selectionEnd + totalChange,
-    selectionStart: selectionStart + selectionStartChange,
+    selectionEnd: lineStart + mapMarkdownEditOffset(
+      selectedLines,
+      lineEdits,
+      selectionEnd - lineStart,
+    ),
+    selectionStart: lineStart + mapMarkdownEditOffset(
+      selectedLines,
+      lineEdits,
+      selectionStart - lineStart,
+    ),
   };
+}
+
+function formatMarkdownListNumber(value: number, originalValue: string) {
+  const nextValue = String(value);
+  return originalValue.startsWith('0') ? nextValue.padStart(originalValue.length, '0') : nextValue;
+}
+
+type MarkdownLineEdit = {
+  content: string;
+  mapOffset: (offset: number) => number;
+};
+
+function createMarkdownIndentLineEdit(
+  line: string,
+  indentation: string,
+  orderedMatch: RegExpMatchArray | null,
+  replacementNumber: string | null,
+): MarkdownLineEdit {
+  if (!orderedMatch || replacementNumber === null) {
+    return {
+      content: `${indentation}${line}`,
+      mapOffset: (offset) => indentation.length + offset,
+    };
+  }
+
+  const numberStart = orderedMatch[1].length;
+  const numberEnd = numberStart + orderedMatch[2].length;
+  const numberLengthChange = replacementNumber.length - orderedMatch[2].length;
+  return {
+    content: `${indentation}${line.slice(0, numberStart)}${replacementNumber}${line.slice(numberEnd)}`,
+    mapOffset: (offset) => {
+      if (offset <= numberStart) return indentation.length + offset;
+      if (offset >= numberEnd) return indentation.length + offset + numberLengthChange;
+      return indentation.length + numberStart + Math.min(offset - numberStart, replacementNumber.length);
+    },
+  };
+}
+
+function createMarkdownOutdentLineEdit(line: string, indentationWidth: number): MarkdownLineEdit {
+  const removableIndent = line.startsWith('\t')
+    ? 1
+    : Math.min(line.match(/^ */)?.[0].length ?? 0, indentationWidth);
+  return {
+    content: line.slice(removableIndent),
+    mapOffset: (offset) => Math.max(0, offset - removableIndent),
+  };
+}
+
+function mapMarkdownEditOffset(
+  originalLines: string[],
+  lineEdits: MarkdownLineEdit[],
+  originalOffset: number,
+) {
+  let remainingOffset = originalOffset;
+  let nextOffset = 0;
+
+  for (let index = 0; index < originalLines.length; index += 1) {
+    const originalLine = originalLines[index];
+    const lineEdit = lineEdits[index];
+    if (remainingOffset <= originalLine.length) {
+      return nextOffset + lineEdit.mapOffset(remainingOffset);
+    }
+
+    remainingOffset -= originalLine.length + 1;
+    nextOffset += lineEdit.content.length + 1;
+  }
+
+  return nextOffset;
+}
+
+function getMarkdownIndentWidth(content: string, lineStart: number, currentLine: string) {
+  const previousLine = getPreviousMarkdownLine(content, lineStart);
+  const previousMarker = previousLine?.match(markdownListMarkerPattern);
+  const currentIndentWidth = currentLine.match(/^ */)?.[0].length ?? 0;
+
+  if (previousMarker && previousMarker[1].length === currentIndentWidth) {
+    return previousMarker[0].length - currentIndentWidth;
+  }
+
+  return markdownIndent.length;
+}
+
+function getMarkdownOutdentWidth(content: string, lineStart: number, currentLine: string) {
+  const currentIndentWidth = currentLine.match(/^ */)?.[0].length ?? 0;
+  if (currentIndentWidth === 0) return markdownIndent.length;
+
+  let precedingLineStart = lineStart;
+  while (precedingLineStart > 0) {
+    const previousLine = getPreviousMarkdownLine(content, precedingLineStart);
+    if (previousLine === null || !previousLine.trim()) break;
+
+    const previousMarker = previousLine.match(markdownListMarkerPattern);
+    const previousIndentWidth = previousMarker?.[1].length;
+    if (typeof previousIndentWidth === 'number' && previousIndentWidth < currentIndentWidth) {
+      return currentIndentWidth - previousIndentWidth;
+    }
+
+    precedingLineStart -= previousLine.length + 1;
+  }
+
+  return Math.min(markdownIndent.length, currentIndentWidth);
+}
+
+function getPreviousMarkdownLine(content: string, lineStart: number) {
+  if (lineStart <= 0) return null;
+
+  const previousLineEnd = lineStart - 1;
+  const previousLineStart = content.lastIndexOf('\n', Math.max(0, previousLineEnd - 1)) + 1;
+  return content.slice(previousLineStart, previousLineEnd);
 }
 
 export function getMarkdownListEnterEdit(

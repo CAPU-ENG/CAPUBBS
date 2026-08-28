@@ -34,6 +34,24 @@ assert.deepEqual(getMarkdownTabEdit('- 第一项\n- 第二项', 0, 6, false), {
   selectionStart: 2,
 });
 
+assert.deepEqual(getMarkdownTabEdit('1. first\n2. second', 18, 18, false), {
+  content: '1. first\n   1. second',
+  selectionEnd: 21,
+  selectionStart: 21,
+});
+
+assert.deepEqual(getMarkdownTabEdit('10. first\n11. second', 20, 20, false), {
+  content: '10. first\n    1. second',
+  selectionEnd: 23,
+  selectionStart: 23,
+});
+
+assert.deepEqual(getMarkdownTabEdit('1. first\n   1. second', 21, 21, true), {
+  content: '1. first\n1. second',
+  selectionEnd: 18,
+  selectionStart: 18,
+});
+
 assert.deepEqual(getMarkdownListEnterEdit('- 第一项', 5, 5), {
   content: '- 第一项\n- ',
   selectionEnd: 8,
@@ -64,6 +82,12 @@ assert.deepEqual(getMarkdownListEnterEdit('09. 第九项', 7, 7), {
   selectionStart: 12,
 });
 
+assert.deepEqual(getMarkdownListEnterEdit('1) 第一项', 6, 6), {
+  content: '1) 第一项\n2) ',
+  selectionEnd: 10,
+  selectionStart: 10,
+});
+
 assert.deepEqual(getMarkdownListEnterEdit('- 第一项\n- ', 8, 8), {
   content: '- 第一项\n',
   selectionEnd: 6,
@@ -80,4 +104,4 @@ assert.equal(getMarkdownListEnterEdit('普通文本', 4, 4), null);
 assert.equal(getMarkdownListEnterEdit('- 第一项', 0, 5), null);
 assert.equal(getMarkdownListEnterEdit('- ', 0, 0), null);
 
-console.log('markdown editing verification passed (15 assertions)');
+console.log('markdown editing verification passed (19 assertions)');

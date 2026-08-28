@@ -14,11 +14,13 @@
     "verify:legacy-routes": "node --experimental-strip-types verify-legacy-forum-routes.mjs",
     "verify:legacy-signatures": "node --experimental-strip-types verify-legacy-signature-floor-links.mjs",
     "verify:markdown-editing": "node --experimental-strip-types verify-markdown-editing.mjs",
+    "verify:markdown-rendering": "node --experimental-strip-types verify-markdown-rendering.mjs",
     "verify:table-to-vcf": "node --experimental-strip-types verify-table-to-vcf.mjs",
     "verify:tag-expression": "node --experimental-strip-types verify-tag-expression.mjs"
   },
   "dependencies": {
     "lucide-react": "^0.561.0",
+    "markdown-it": "^15.0.1",
     "papaparse": "^5.5.3",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
