@@ -10,6 +10,10 @@ import {
   uploadThreadAttachment,
 } from "../../api/thread";
 import { useAutoSaveEnabled } from "../../hooks/useAssistiveFeatures";
+import {
+  readDefaultSignatureIndex,
+  saveDefaultSignatureIndex,
+} from "../../utils/defaultSignature";
 import { queueLocalDraftCleanup } from "../../utils/draftCleanup";
 import {
   appendFloorQuote,
@@ -74,7 +78,7 @@ export function ReplyEditor({
     content: "",
     mode: "rich",
   });
-  const [signatureIndex, setSignatureIndex] = useState(0);
+  const [signatureIndex, setSignatureIndex] = useState(() => readDefaultSignatureIndex(ownerKey));
   const [attachments, setAttachments] = useState<ReplyAttachment[]>([]);
   const [previewOpen, setPreviewOpen] = useState(false);
   const [previewedAt, setPreviewedAt] = useState("");
@@ -87,7 +91,7 @@ export function ReplyEditor({
   const [savedDraftId, setSavedDraftId] = useState<string | null>(null);
   const [savedDraftSnapshot, setSavedDraftSnapshot] = useState(() => getReplyDraftSnapshot(
     { content: "", mode: "rich" },
-    0,
+    readDefaultSignatureIndex(ownerKey),
     [],
   ));
   const appliedQuoteRequestRef = useRef(0);
@@ -245,6 +249,7 @@ export function ReplyEditor({
         tid,
         title: threadTitle,
       });
+      saveDefaultSignatureIndex(signatureIndex, ownerKey);
       queueLocalDraftCleanup({ bid, ownerKey, tid, type: "reply" });
 
       window.location.href = published.pid > 0

@@ -8,6 +8,7 @@
     "build": "tsc -b && vite build",
     "preview": "vite preview --host localhost",
     "typecheck": "tsc -b --pretty false",
+    "verify:default-signature": "node --experimental-strip-types verify-default-signature.mjs",
     "verify:floor-quotes": "node --experimental-strip-types verify-floor-quotes.mjs",
     "verify:font-sizes": "node --experimental-strip-types verify-forum-font-sizes.mjs",
     "verify:legacy-assets": "node --experimental-strip-types verify-legacy-assets.mjs",

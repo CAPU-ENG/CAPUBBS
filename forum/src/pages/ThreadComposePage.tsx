@@ -33,6 +33,10 @@ import {
 import { useAuth } from '../context/AuthContext';
 import { useAutoSaveEnabled } from '../hooks/useAssistiveFeatures';
 import { getLoginPathWithReturnTo, getRegisterPathWithReturnTo } from '../utils/authRoutes';
+import {
+  readDefaultSignatureIndex,
+  saveDefaultSignatureIndex,
+} from '../utils/defaultSignature';
 import { queueLocalDraftCleanup } from '../utils/draftCleanup';
 import { normalizeFloorQuotesForLegacyStorage } from '../utils/floorQuote';
 import {
@@ -178,19 +182,20 @@ export function ThreadComposePage() {
       || (!request.tid && !board)
     ) return;
     let active = true;
+    const defaultSignatureIndex = readDefaultSignatureIndex(ownerKey);
     setDraftLoadComplete(false);
     setLoadError('');
     setStatus('');
     setStatusIsError(false);
     setTitle('');
     setEditorValue({ content: '', mode: 'rich' });
-    setSignatureIndex(0);
+    setSignatureIndex(defaultSignatureIndex);
     setAttachments([]);
     setReplyBoardName('');
     setStoredReplyDraftId(null);
     setActivitySchedule(createDefaultActivityDateRange());
     setActivitySignup(createDefaultActivitySignupSettings());
-    setSavedSnapshot(makeSnapshot('', { content: '', mode: 'rich' }, 0, [], null, null));
+    setSavedSnapshot(makeSnapshot('', { content: '', mode: 'rich' }, defaultSignatureIndex, [], null, null));
     lastAutoSaveAttemptRef.current = null;
 
     const loadDraft = async () => {
@@ -428,6 +433,7 @@ export function ThreadComposePage() {
         tid: request.tid,
         title: title.trim(),
       });
+      saveDefaultSignatureIndex(signatureIndex, ownerKey);
       if (ownerKey) {
         queueLocalDraftCleanup(request.tid
           ? { bid: request.bid, ownerKey, tid: request.tid, type: 'reply' }

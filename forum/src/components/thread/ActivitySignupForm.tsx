@@ -8,6 +8,10 @@ import {
 } from '../../api/thread';
 import type { ThreadAuthor, ThreadFloorData } from '../../data/threadDemo';
 import {
+  readDefaultSignatureIndex,
+  saveDefaultSignatureIndex,
+} from '../../utils/defaultSignature';
+import {
   formatPostEditorPreviewTimestamp,
   PostEditorPreviewDialog,
 } from './PostEditor';
@@ -52,7 +56,9 @@ export function ActivitySignupForm({
   const [values, setValues] = useState<Record<string, ActivitySignupValue>>(() =>
     createInitialValues(activity.questions, viewer?.name ?? '', existingSignup),
   );
-  const [signatureIndex, setSignatureIndex] = useState(existingSignup?.signatureIndex ?? 0);
+  const [signatureIndex, setSignatureIndex] = useState(
+    existingSignup ? existingSignup.signatureIndex ?? 0 : readDefaultSignatureIndex(viewer?.name),
+  );
   const action = !existingSignup ? 'join' : signupCanceled ? 'restore' : 'modify';
   const [status, setStatus] = useState('');
   const [statusIsError, setStatusIsError] = useState(false);
@@ -93,6 +99,7 @@ export function ActivitySignupForm({
     setStatus(action === 'modify' ? '正在保存修改' : action === 'restore' ? '正在恢复报名' : '正在提交报名');
     try {
       await publishActivitySignup({ action, bid, signatureIndex, tid, title: threadTitle, values });
+      saveDefaultSignatureIndex(signatureIndex, viewer?.name);
       window.location.reload();
     } catch (error) {
       setStatusIsError(true);
