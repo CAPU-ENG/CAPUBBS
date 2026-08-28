@@ -31,7 +31,7 @@ scripts/
 /.mypy_cache/
 /.planning/
 /.ruff_cache/
-/AGENTS.md
+AGENTS.md
 /CLAUDE.md
 /GEMINI.md
 /.agents/
