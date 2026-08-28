@@ -75,6 +75,16 @@ export async function publishThreadContent(
       options.publishTimeoutMs ?? DEFAULT_PUBLISH_TIMEOUT_MS,
       request.tid ? '回复发布失败，请稍后重试。' : '主题发表失败，请稍后重试。',
     );
+    if (!request.tid) {
+      const published = await recoverPublishedResult(request, publishMarker, {
+        delayMs: options.recoveryDelayMs ?? DEFAULT_RECOVERY_DELAY_MS,
+        timeoutMs: options.recoveryTimeoutMs ?? DEFAULT_RECOVERY_TIMEOUT_MS,
+      });
+      if (published) return published;
+      throw new ThreadPublishingError(
+        '主题已发表，但暂时无法定位帖子地址，请前往版面查看，避免重复提交。',
+      );
+    }
     return {
       bid: request.bid,
       pid: null,

@@ -36,6 +36,43 @@ try {
   assert.equal(publishedBody.get('ask'), 'reply');
   assert.match(publishedBody.get('text'), /<!--capubbs:publish:[^>]+-->$/);
 
+  let newThreadRequestCount = 0;
+  let newThreadStoredText = '';
+  globalThis.fetch = async (_url, init) => {
+    newThreadRequestCount += 1;
+    const body = new URLSearchParams(init.body);
+    if (body.get('ask') === 'post') {
+      newThreadStoredText = body.get('text');
+      return {
+        body: { cancel: () => Promise.resolve() },
+        status: 200,
+      };
+    }
+    if (body.get('ask') === 'recentpost') {
+      return jsonResponse({
+        code: 0,
+        data: [{ bid: '28', pid: '1', tid: '156', title: '测试新主题' }],
+      });
+    }
+    assert.equal(body.get('ask'), 'thread_detail');
+    return jsonResponse({
+      code: 0,
+      data: {
+        floorsPage: { items: [] },
+        mainPost: { pid: 1, rawText: newThreadStoredText },
+      },
+    });
+  };
+  assert.deepEqual(await publishThreadContent(createPostRequest(), {
+    recoveryDelayMs: 0,
+    recoveryTimeoutMs: 100,
+  }), {
+    bid: 28,
+    pid: 1,
+    tid: 156,
+  });
+  assert.equal(newThreadRequestCount, 3);
+
   globalThis.fetch = async () => new Response(JSON.stringify({
     code: 1000,
     message: '请先登录',
@@ -106,7 +143,19 @@ try {
   globalThis.fetch = originalFetch;
 }
 
-console.log('thread publishing verification passed (10 assertions)');
+console.log('thread publishing verification passed (13 assertions)');
+
+function createPostRequest() {
+  return {
+    attachments: '',
+    author: '余割',
+    bid: 28,
+    signatureIndex: 0,
+    text: '<p>测试新主题正文</p>',
+    tid: null,
+    title: '测试新主题',
+  };
+}
 
 function createReplyRequest() {
   return {
