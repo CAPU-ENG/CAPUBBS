@@ -1,11 +1,12 @@
 import {
   AlertTriangle, Archive, ArrowDownAZ, ChevronRight, Download, ExternalLink, FileArchive, FileAudio2, FileImage, FileText,
-  FileUp, FileVideo2, Folder, FolderInput, FolderPlus, FolderUp, Grid2X2, List, LoaderCircle, LogIn, MessageSquarePlus,
+  FileUp, FileVideo2, Folder, FolderInput, FolderPlus, FolderUp, Grid2X2, List, LogIn, MessageSquarePlus,
   Link2, Pencil, Search, ShieldCheck, Trash2, UserPlus, UserRound, X,
   type LucideIcon,
 } from 'lucide-react';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { AppBackground } from '../components/layout/AppBackground';
+import { LoadingSpinner as LoaderCircle } from '../components/layout/LoadingSpinner';
 import { TopBar } from '../components/layout/TopBar';
 import { useDocumentTitle } from '../hooks/useDocumentTitle';
 import { useAuth } from '../context/AuthContext';

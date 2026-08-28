@@ -1,4 +1,4 @@
-import { LoaderCircle, RefreshCw } from 'lucide-react';
+import { RefreshCw } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 import { createPortal } from 'react-dom';
 import {
@@ -11,6 +11,7 @@ import {
   verifyProfileEmail,
 } from '../api/profile';
 import { AppBackground } from '../components/layout/AppBackground';
+import { LoadingState } from '../components/layout/LoadingState';
 import { TopBar } from '../components/layout/TopBar';
 import { AvatarDialog, EmailDialog, SecurityDialog } from '../components/profile/ProfileDialogs';
 import { ProfileOverview, type ProfileDraft, type ProfileTextDraftKey } from '../components/profile/ProfileOverview';
@@ -336,18 +337,21 @@ function ProfileLoadPage({
       <AppBackground />
       <TopBar />
       <main className="profile-page-shell profile-not-found-wrap">
-        <section className="profile-not-found" role={loading ? 'status' : 'alert'}>
-          {loading ? <LoaderCircle className="profile-loading-icon" size={34} /> : null}
-          <h1>{loading ? '正在确认登录状态' : loginHref ? '请先登录' : '个人资料加载失败'}</h1>
-          {!loading ? <p>{error}</p> : null}
-          {!loading && loginHref ? (
-            <div className="profile-auth-actions">
-              <a href={loginHref}>前往登录</a>
-              {registerHref ? <a href={registerHref}>注册账号</a> : null}
-            </div>
-          ) : null}
-          {!loading && !loginHref ? <button type="button" onClick={onRetry}><RefreshCw size={15} />重新加载</button> : null}
-        </section>
+        {loading ? (
+          <LoadingState label="正在确认登录状态" />
+        ) : (
+          <section className="profile-not-found" role="alert">
+            <h1>{loginHref ? '请先登录' : '个人资料加载失败'}</h1>
+            <p>{error}</p>
+            {loginHref ? (
+              <div className="profile-auth-actions">
+                <a href={loginHref}>前往登录</a>
+                {registerHref ? <a href={registerHref}>注册账号</a> : null}
+              </div>
+            ) : null}
+            {!loginHref ? <button type="button" onClick={onRetry}><RefreshCw size={15} />重新加载</button> : null}
+          </section>
+        )}
       </main>
     </div>
   );

@@ -7,7 +7,6 @@ import {
   ChevronDown,
   CircleHelp,
   Heart,
-  LoaderCircle,
   LockKeyhole,
   MapPin,
   RefreshCw,
@@ -20,6 +19,7 @@ import defaultAvatar from '../assets/bg/bicycle.svg';
 import qqIcon from '../assets/icons/qq.svg';
 import { isUsernameAvailable, sendRegisterEmailCode } from '../api/auth';
 import { AppBackground } from '../components/layout/AppBackground';
+import { LoadingSpinner as LoaderCircle } from '../components/layout/LoadingSpinner';
 import { TopBar } from '../components/layout/TopBar';
 import { useDocumentTitle } from '../hooks/useDocumentTitle';
 import { AvatarDialog } from '../components/profile/AvatarEditorDialog';

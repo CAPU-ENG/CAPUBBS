@@ -1,6 +1,7 @@
 import { AlertTriangle, Ban, Check, ClipboardList, Eye, LogIn, RotateCcw, Send, X } from 'lucide-react';
 import { useEffect, useState, type FormEvent } from 'react';
 import { fetchDataDisplayPanel } from '../../api/dataDisplay';
+import { LoadingSpinner } from '../layout/LoadingSpinner';
 import {
   publishActivitySignup,
   type ActivitySignupValue,
@@ -202,7 +203,7 @@ export function ActivitySignupForm({
                 </button>
                 <button className="activity-signup-submit-button" disabled={!canSubmit} type="submit">
                   {submitting
-                    ? <span className="activity-signup-spinner" aria-hidden="true" />
+                    ? <LoadingSpinner size={14} />
                     : action === 'modify'
                       ? <Check size={15} />
                       : action === 'restore'

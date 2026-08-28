@@ -1,7 +1,8 @@
-import { LoaderCircle, RefreshCw, UserRoundX } from 'lucide-react';
+import { RefreshCw, UserRoundX } from 'lucide-react';
 import { useState } from 'react';
 import { sendProfilePrivateMessage } from '../api/profile';
 import { AppBackground } from '../components/layout/AppBackground';
+import { LoadingState } from '../components/layout/LoadingState';
 import { TopBar } from '../components/layout/TopBar';
 import { PrivateMessageDialog } from '../components/profile/ProfileDialogs';
 import { ProfileOverview } from '../components/profile/ProfileOverview';
@@ -77,12 +78,16 @@ function PublicProfileState({
       <AppBackground />
       <TopBar />
       <main className="profile-page-shell profile-not-found-wrap">
-        <section className="profile-not-found" role={loading ? 'status' : 'alert'}>
-          {loading ? <LoaderCircle className="profile-loading-icon" size={34} /> : <UserRoundX size={34} />}
-          <h1>{loading ? '正在加载个人主页' : '没有找到这位用户'}</h1>
-          {!loading ? <p>{error || '用户名可能已经变更，或者当前链接并不完整。'}</p> : null}
-          {!loading ? <button type="button" onClick={onRetry}><RefreshCw size={15} />重新加载</button> : null}
-        </section>
+        {loading ? (
+          <LoadingState label="正在加载个人主页" />
+        ) : (
+          <section className="profile-not-found" role="alert">
+            <UserRoundX size={34} />
+            <h1>没有找到这位用户</h1>
+            <p>{error || '用户名可能已经变更，或者当前链接并不完整。'}</p>
+            <button type="button" onClick={onRetry}><RefreshCw size={15} />重新加载</button>
+          </section>
+        )}
       </main>
     </div>
   );

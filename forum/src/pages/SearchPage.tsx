@@ -2,7 +2,6 @@ import {
   CalendarDays,
   FileSearch,
   History,
-  LoaderCircle,
   RefreshCw,
   Search,
   SlidersHorizontal,
@@ -11,6 +10,7 @@ import {
 } from 'lucide-react';
 import { useMemo, useState, type FormEvent, type ReactNode } from 'react';
 import { AppBackground } from '../components/layout/AppBackground';
+import { LoadingState } from '../components/layout/LoadingState';
 import { Pagination } from '../components/layout/Pagination';
 import { TopBar } from '../components/layout/TopBar';
 import { useSearchData, type SearchField, type SearchRequest, type SearchResult } from '../hooks/useSearchData';
@@ -365,12 +365,7 @@ function SearchStart({
 }
 
 function SearchLoading() {
-  return (
-    <section className="search-state-card">
-      <LoaderCircle className="animate-spin" size={22} />
-      <h3>正在检索论坛档案</h3>
-    </section>
-  );
+  return <LoadingState className="search-state-card" label="正在检索论坛档案" variant="panel" />;
 }
 
 function SearchError({ error, onRetry }: { error: string; onRetry: () => void }) {

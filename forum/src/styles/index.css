@@ -23,6 +23,7 @@
 @import './data-display.css';
 @import './toolbox.css';
 @import './browser-recommendation.css';
+@import './loading.css';
 @import './utilities.css';
 
 @tailwind base;

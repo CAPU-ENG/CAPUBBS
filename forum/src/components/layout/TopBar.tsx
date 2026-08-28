@@ -2,7 +2,6 @@ import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import {
   ChevronDown,
   History,
-  LoaderCircle,
   LogIn,
   LogOut,
   Menu,
@@ -13,6 +12,7 @@ import {
   UserPlus,
   UserRound,
 } from 'lucide-react';
+import { LoadingSpinner as LoaderCircle } from './LoadingSpinner';
 import defaultAvatar from '../../assets/bg/bicycle.svg';
 import logo1 from '../../assets/logo/logo1.webp';
 import logo2 from '../../assets/logo/logo2.webp';

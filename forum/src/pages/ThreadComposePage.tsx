@@ -1,4 +1,4 @@
-import { ArrowLeft, LoaderCircle, Save, Send } from 'lucide-react';
+import { ArrowLeft, Save, Send } from 'lucide-react';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { fetchBoardPage, isAbortError, type BoardInfo } from '../api/board';
 import {
@@ -15,6 +15,8 @@ import {
   type RichTextEditorValue,
 } from '../components/editor/RichTextEditor';
 import { AppBackground } from '../components/layout/AppBackground';
+import { LoadingSpinner as LoaderCircle } from '../components/layout/LoadingSpinner';
+import { LoadingState } from '../components/layout/LoadingState';
 import { TopBar } from '../components/layout/TopBar';
 import {
   formatPostEditorBytes,
@@ -515,10 +517,7 @@ export function ThreadComposePage() {
             title={`登录后${isReply ? '编辑草稿' : '开始发帖'}`}
           />
         ) : pagePending ? (
-          <section className="thread-edit-request-state" aria-live="polite">
-            <LoaderCircle className="thread-edit-spinner" size={22} />
-            <h1>正在准备编辑器</h1>
-          </section>
+          <LoadingState label="正在准备编辑器" />
         ) : isActivity && !canCreateActivity ? (
           <ComposeRequestState
             backHref={backHref}
@@ -619,7 +618,7 @@ export function ThreadComposePage() {
                   onClick={() => void saveDraft()}
                   type="button"
                 >
-                  {isSavingDraft ? <LoaderCircle className="thread-edit-spinner" size={15} /> : <Save size={15} />}
+                  {isSavingDraft ? <LoaderCircle size={15} /> : <Save size={15} />}
                   <span className="reply-action-label-full">{isSavingDraft ? '保存中' : isReply ? '保存草稿' : '存入草稿'}</span>
                   <span className="reply-action-label-compact">{isSavingDraft ? '保存中' : '草稿'}</span>
                 </button>
@@ -629,7 +628,7 @@ export function ThreadComposePage() {
               statusIsError={statusIsError}
               submitCompactLabel={isPublishing ? '发表中' : isReply ? '回复' : isActivity ? '发布活动' : '发表'}
               submitDisabled={!canPublish}
-              submitIcon={isPublishing ? <LoaderCircle className="thread-edit-spinner" size={15} /> : <Send size={15} />}
+              submitIcon={isPublishing ? <LoaderCircle size={15} /> : <Send size={15} />}
               submitLabel={isPublishing ? '正在发表' : isReply ? '发布回复' : isActivity ? '发布活动' : '发表主题'}
               uploadingAttachments={isUploadingAttachments}
             />

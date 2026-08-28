@@ -5,7 +5,6 @@ import {
   CircleAlert,
   ExternalLink,
   FileInput,
-  LoaderCircle,
   Mail,
   MapPin,
   Medal,
@@ -44,6 +43,8 @@ import {
 } from '../api/management';
 import defaultAvatar from '../assets/bg/bicycle.svg';
 import { AppBackground } from '../components/layout/AppBackground';
+import { LoadingSpinner as LoaderCircle } from '../components/layout/LoadingSpinner';
+import { LoadingState } from '../components/layout/LoadingState';
 import { MedalManagementWorkspace } from '../components/management/MedalManagementWorkspace';
 import { TagManagementWorkspace } from '../components/management/TagManagementWorkspace';
 import { TopBar } from '../components/layout/TopBar';
@@ -89,7 +90,7 @@ export function ManagementPage() {
 
       <main className="management-shell">
         {authPending ? (
-          <ManagementState icon={<LoaderCircle className="animate-spin" size={22} />} title="正在确认管理权限" />
+          <LoadingState label="正在确认管理权限" />
         ) : !isAuthorized ? (
           <ManagementState
             icon={<ShieldAlert size={22} />}

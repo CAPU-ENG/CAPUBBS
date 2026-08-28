@@ -817,15 +817,6 @@
     background: color-mix(in srgb, var(--danger) 14%, var(--surface));
   }
 
-  .activity-signup-spinner {
-    width: 14px;
-    height: 14px;
-    border: 2px solid rgb(255 255 255 / 0.45);
-    border-top-color: white;
-    border-radius: 999px;
-    animation: thread-request-spin 700ms linear infinite;
-  }
-
   .thread-floor {
     position: relative;
     display: grid;
@@ -1978,15 +1969,6 @@
     gap: 8px;
   }
 
-  .thread-request-spinner {
-    width: 22px;
-    height: 22px;
-    border: 2px solid var(--line-strong);
-    border-top-color: var(--brand);
-    border-radius: 50%;
-    animation: thread-request-spin 720ms linear infinite;
-  }
-
   .thread-reply-unavailable {
     max-width: 100%;
     min-height: 150px;
@@ -2870,12 +2852,6 @@
       display: block;
     }
 
-  }
-
-  @keyframes thread-request-spin {
-    to {
-      transform: rotate(360deg);
-    }
   }
 
   @keyframes thread-image-backdrop-in {

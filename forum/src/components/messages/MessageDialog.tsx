@@ -1,6 +1,5 @@
 import {
   CheckCheck,
-  LoaderCircle,
   Mail,
   MessageCircleReply,
   MessageSquareText,
@@ -9,6 +8,7 @@ import {
 } from 'lucide-react';
 import { useMemo, useState, type ReactNode } from 'react';
 import { createPortal } from 'react-dom';
+import { LoadingSpinner as LoaderCircle } from '../layout/LoadingSpinner';
 import type { ForumMessage, MessageCategory, MessageSummary } from '../../types/messages';
 import { getPublicProfilePath, USER_CENTER_PATH } from '../../utils/userRoutes';
 

@@ -1,5 +1,6 @@
-import { CalendarPlus, LoaderCircle, LockKeyhole, PenLine, RefreshCw, Settings2, Sparkles } from 'lucide-react';
+import { CalendarPlus, LockKeyhole, PenLine, RefreshCw, Settings2, Sparkles } from 'lucide-react';
 import { AppBackground } from '../components/layout/AppBackground';
+import { LoadingState } from '../components/layout/LoadingState';
 import { Pagination } from '../components/layout/Pagination';
 import { TopBar } from '../components/layout/TopBar';
 import { getBoardCoverImage } from '../data/boardCovers';
@@ -238,20 +239,15 @@ export function BoardPage({ boardId }: { boardId: number }) {
         <AppBackground />
         <TopBar />
         <main className="board-page-shell">
-          <section className="board-data-state" aria-live="polite">
-            {status === 'loading' ? (
-              <>
-                <LoaderCircle className="animate-spin" size={22} />
-                <h1>正在读取版面</h1>
-              </>
-            ) : (
-              <>
-                <h1>版面暂时无法打开</h1>
-                <p>{error}</p>
-                <button onClick={retry} type="button"><RefreshCw size={15} />重新加载</button>
-              </>
-            )}
-          </section>
+          {status === 'loading' ? (
+            <LoadingState label="正在读取版面" />
+          ) : (
+            <section className="board-data-state" aria-live="polite">
+              <h1>版面暂时无法打开</h1>
+              <p>{error}</p>
+              <button onClick={retry} type="button"><RefreshCw size={15} />重新加载</button>
+            </section>
+          )}
         </main>
       </div>
     );

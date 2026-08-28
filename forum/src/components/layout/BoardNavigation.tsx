@@ -10,7 +10,6 @@ import {
   Globe2,
   History,
   House,
-  LoaderCircle,
   Megaphone,
   ServerCog,
   Settings,
@@ -20,6 +19,7 @@ import {
   type LucideIcon,
 } from 'lucide-react';
 import { useState } from 'react';
+import { LoadingSpinner as LoaderCircle } from './LoadingSpinner';
 import logo1 from '../../assets/logo/logo1.webp';
 import logo2 from '../../assets/logo/logo2.webp';
 import { fetchRandomThread } from '../../api/randomThread';

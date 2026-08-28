@@ -1,6 +1,7 @@
 import { lazy, Suspense, useEffect, useReducer } from 'react';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { BrowserRecommendationDialog } from './components/browser/BrowserRecommendationDialog';
+import { RouteLoadingPage } from './components/layout/LoadingState';
 import { useForumContentFontSize } from './hooks/useForumContentFontSize';
 import { HomePage } from './pages/HomePage';
 import { FORUM_LOCATION_CHANGE_EVENT } from './utils/authRoutes';
@@ -92,7 +93,7 @@ export function App() {
     <AuthProvider>
       <PendingDraftCleanup />
       <BrowserRecommendationDialog />
-      <Suspense fallback={null}>
+      <Suspense fallback={<RouteLoadingPage />}>
         <ForumRouter />
       </Suspense>
     </AuthProvider>

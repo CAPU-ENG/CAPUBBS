@@ -1,0 +1,103 @@
+@layer components {
+  .forum-loading-state {
+    display: grid;
+    width: 100%;
+    place-items: center;
+    align-content: center;
+    gap: 14px;
+    color: var(--text-muted);
+    text-align: center;
+  }
+
+  .forum-loading-state-page {
+    min-height: clamp(260px, 52vh, 440px);
+    border: 1px solid var(--line);
+    border-radius: var(--card-radius);
+    padding: 40px 24px;
+    background: color-mix(in srgb, var(--surface) 96%, transparent);
+    box-shadow: var(--shadow-card);
+  }
+
+  .forum-loading-state-panel {
+    min-height: 220px;
+    padding: 32px 20px;
+  }
+
+  .forum-loading-visual {
+    position: relative;
+    display: grid;
+    width: 52px;
+    height: 52px;
+    place-items: center;
+    border: 1px solid color-mix(in srgb, var(--brand) 24%, var(--line));
+    border-radius: var(--card-radius);
+    background:
+      linear-gradient(135deg, color-mix(in srgb, var(--brand-faint) 88%, transparent), transparent),
+      var(--surface-raised);
+    color: var(--brand-strong);
+    box-shadow: 0 8px 24px color-mix(in srgb, var(--brand) 8%, transparent);
+  }
+
+  .forum-loading-visual::after {
+    position: absolute;
+    width: 4px;
+    height: 4px;
+    border-radius: 50%;
+    background: var(--brand);
+    box-shadow: 9px 0 0 color-mix(in srgb, var(--brand) 58%, transparent), -9px 0 0 color-mix(in srgb, var(--brand) 32%, transparent);
+    content: '';
+    opacity: 0.72;
+    transform: translateY(18px);
+  }
+
+  .forum-loading-state h1,
+  .forum-loading-state p {
+    margin: 0;
+    color: var(--text-strong);
+    font-size: var(--ui-font-size-xl);
+    font-weight: 760;
+    letter-spacing: 0.01em;
+  }
+
+  .forum-loading-spinner {
+    flex: none;
+    animation: forum-loading-spin 0.84s linear infinite;
+  }
+
+  .forum-loading-spinner.animate-spin {
+    animation: forum-loading-spin 0.84s linear infinite;
+  }
+
+  .forum-route-loading-page {
+    min-height: 100vh;
+    color: var(--text);
+  }
+
+  .forum-route-loading-shell {
+    width: min(1080px, calc(100% - 40px));
+    margin-inline: auto;
+    padding-top: calc(var(--topbar-height) + 28px);
+  }
+
+  @keyframes forum-loading-spin {
+    to { transform: rotate(360deg); }
+  }
+
+  @media (max-width: 760px) {
+    .forum-loading-state-page {
+      min-height: 250px;
+      padding: 32px 18px;
+    }
+
+    .forum-route-loading-shell {
+      width: calc(100% - 20px);
+      padding-top: calc(var(--topbar-height) + 10px);
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .forum-loading-spinner {
+      animation: none !important;
+    }
+  }
+}

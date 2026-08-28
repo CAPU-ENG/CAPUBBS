@@ -1,6 +1,7 @@
 import { useEffect, useState, type FormEvent } from 'react';
-import { ArrowRight, Bike, LoaderCircle, LockKeyhole, UserRound } from 'lucide-react';
+import { ArrowRight, Bike, LockKeyhole, UserRound } from 'lucide-react';
 import { AppBackground } from '../components/layout/AppBackground';
+import { LoadingSpinner as LoaderCircle } from '../components/layout/LoadingSpinner';
 import { TopBar } from '../components/layout/TopBar';
 import { useDocumentTitle } from '../hooks/useDocumentTitle';
 import { ADMIN_EMAIL } from '../constants/contact';

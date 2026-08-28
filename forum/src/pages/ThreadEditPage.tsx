@@ -1,10 +1,12 @@
-import { ArrowLeft, LoaderCircle, Save } from 'lucide-react';
+import { ArrowLeft, Save } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 import {
   getRichTextEditorHtmlValue,
   type RichTextEditorValue,
 } from '../components/editor/RichTextEditor';
 import { AppBackground } from '../components/layout/AppBackground';
+import { LoadingSpinner as LoaderCircle } from '../components/layout/LoadingSpinner';
+import { LoadingState } from '../components/layout/LoadingState';
 import { TopBar } from '../components/layout/TopBar';
 import {
   formatPostEditorBytes,
@@ -208,10 +210,7 @@ export function ThreadEditPage() {
             title="暂时无法进入编辑"
           />
         ) : !floor ? (
-          <section className="thread-edit-request-state" aria-live="polite">
-            <LoaderCircle className="thread-edit-spinner" size={22} />
-            <h1>正在读取编辑内容</h1>
-          </section>
+          <LoadingState label="正在读取编辑内容" />
         ) : (
           <>
             <header className="thread-edit-heading-card">
@@ -265,7 +264,7 @@ export function ThreadEditPage() {
               statusIsError={Boolean(saveError)}
               submitCompactLabel={isSaving ? '保存中' : '保存'}
               submitDisabled={!canSave}
-              submitIcon={isSaving ? <LoaderCircle className="thread-edit-spinner" size={15} /> : <Save size={15} />}
+              submitIcon={isSaving ? <LoaderCircle size={15} /> : <Save size={15} />}
               submitLabel={isSaving ? '保存中' : '保存修改'}
               uploadingAttachments={isUploadingAttachments}
             />

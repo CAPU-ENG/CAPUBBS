@@ -5,7 +5,6 @@ import {
   Download,
   FileCode2,
   FileSpreadsheet,
-  LoaderCircle,
   Upload,
   Wrench,
   X,
@@ -14,6 +13,7 @@ import {
 import { useRef, useState } from 'react';
 import { readSheet } from 'read-excel-file/browser';
 import { AppBackground } from '../components/layout/AppBackground';
+import { LoadingSpinner as LoaderCircle } from '../components/layout/LoadingSpinner';
 import { TopBar } from '../components/layout/TopBar';
 import { useDocumentTitle } from '../hooks/useDocumentTitle';
 import {

@@ -1,7 +1,6 @@
 import {
   AlertCircle,
   CalendarCheck2,
-  LoaderCircle,
   RefreshCw,
   Tags,
   Trophy,
@@ -20,6 +19,7 @@ import {
 import { PunishmentRecords } from '../components/data/PunishmentRecords';
 import { TagSummaryPanel } from '../components/data/TagSummaryPanel';
 import { AppBackground } from '../components/layout/AppBackground';
+import { LoadingState } from '../components/layout/LoadingState';
 import { TopBar } from '../components/layout/TopBar';
 import { useDocumentTitle } from '../hooks/useDocumentTitle';
 
@@ -103,7 +103,7 @@ export function DataDisplayPage() {
         </nav>
 
         {state.status === 'loading' ? (
-          <DataState icon={<LoaderCircle className="animate-spin" size={20} />}>正在加载数据</DataState>
+          <LoadingState className="data-display-state" label="正在加载数据" variant="panel" />
         ) : state.status === 'error' ? (
           <DataState icon={<AlertCircle size={20} />}>
             <span>{state.error}</span>

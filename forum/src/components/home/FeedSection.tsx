@@ -1,8 +1,10 @@
-import { ArrowDown, Eye, LoaderCircle, MessageCircle, RefreshCw } from 'lucide-react';
+import { ArrowDown, Eye, MessageCircle, RefreshCw } from 'lucide-react';
 import { useEffect } from 'react';
 import defaultAvatar from '../../assets/bg/bicycle.svg';
 import type { HomeThread } from '../../api/home';
 import type { HomeDataStatus } from '../../hooks/useHomeData';
+import { LoadingSpinner } from '../layout/LoadingSpinner';
+import { LoadingState } from '../layout/LoadingState';
 import { getThreadTitleClassName } from '../../utils/threadTitleTypography';
 
 function FeedItem({ compactMode, item }: { compactMode: boolean; item: HomeThread }) {
@@ -117,10 +119,7 @@ export function FeedSection({ autoLoadMore, compactMode, error, hasMore, items, 
   return (
     <section className="feed-section" id="feed" aria-label="论坛帖子">
       {status === 'loading' && items.length === 0 ? (
-        <div className="home-data-state" aria-live="polite">
-          <LoaderCircle className="animate-spin" size={20} />
-          <span>正在加载最新回复…</span>
-        </div>
+        <LoadingState className="home-data-state" label="正在加载最新回复" variant="panel" />
       ) : status === 'error' && items.length === 0 ? (
         <div className="home-data-state home-data-error" role="alert">
           <p>{error}</p>
@@ -142,7 +141,7 @@ export function FeedSection({ autoLoadMore, compactMode, error, hasMore, items, 
           type="button"
         >
           {loadingMore ? (
-            <><LoaderCircle className="animate-spin" size={16} />正在加载…</>
+            <><LoadingSpinner size={16} />正在加载…</>
           ) : loadMoreFailed ? (
             <><RefreshCw size={15} />加载失败，重试</>
           ) : (

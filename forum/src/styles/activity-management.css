@@ -632,14 +632,6 @@
     font-weight: 760;
   }
 
-  .activity-management-spinner {
-    animation: activity-management-spin 0.8s linear infinite;
-  }
-
-  @keyframes activity-management-spin {
-    to { transform: rotate(360deg); }
-  }
-
   @media (max-width: 720px) {
     .activity-management-shell {
       width: calc(100% - 18px);

@@ -5,7 +5,6 @@ import {
   ClipboardList,
   Download,
   FileSpreadsheet,
-  LoaderCircle,
   Save,
   ShieldAlert,
   X,
@@ -20,6 +19,8 @@ import {
   type ThreadActivityQuestion,
 } from '../api/thread';
 import { AppBackground } from '../components/layout/AppBackground';
+import { LoadingSpinner as LoaderCircle } from '../components/layout/LoadingSpinner';
+import { LoadingState } from '../components/layout/LoadingState';
 import { TopBar } from '../components/layout/TopBar';
 import {
   ActivityDateSchedule,
@@ -191,7 +192,7 @@ export function ActivityManagementPage() {
 
       <main className="activity-management-shell">
         {authPending || status === 'loading' ? (
-          <ActivityManagementState icon={<LoaderCircle className="activity-management-spinner" size={22} />} title="正在读取活动" />
+          <LoadingState label="正在读取活动" />
         ) : status === 'error' || !data ? (
           <ActivityManagementState action={<button onClick={retry} type="button">重新加载</button>} title="活动暂时无法打开">
             {error || '没有找到对应的活动帖。'}
@@ -201,7 +202,7 @@ export function ActivityManagementPage() {
             活动管理仅用于带报名问卷的活动帖。
           </ActivityManagementState>
         ) : !managedActivity ? (
-          <ActivityManagementState icon={<LoaderCircle className="activity-management-spinner" size={22} />} title="正在准备活动管理" />
+          <LoadingState label="正在准备活动管理" />
         ) : !isAuthorized ? (
           <ActivityManagementState
             action={(
@@ -307,7 +308,7 @@ function QuestionnairePanel({
         <div>
           {notice && <span className={notice.error ? 'activity-management-notice-error' : ''} role={notice.error ? 'alert' : 'status'}>{notice.text}</span>}
           <button disabled={isSaving} onClick={onSave} type="button">
-            {isSaving ? <LoaderCircle className="activity-management-spinner" size={15} /> : <Save size={15} />}
+            {isSaving ? <LoaderCircle size={15} /> : <Save size={15} />}
             {isSaving ? '保存中' : '保存修改'}
           </button>
         </div>
@@ -440,7 +441,7 @@ function SignupSummaryPanel({
       </header>
 
       {loadStatus === 'loading' ? (
-        <div className="activity-summary-state"><LoaderCircle className="activity-management-spinner" size={20} />正在汇总全部报名</div>
+        <div className="activity-summary-state"><LoaderCircle size={20} />正在汇总全部报名</div>
       ) : loadStatus === 'error' ? (
         <div className="activity-summary-state activity-management-notice-error">报名信息读取失败，请刷新后重试。</div>
       ) : records.length === 0 ? (

@@ -5,6 +5,7 @@ import { ReplyEditor, type QuoteRequest } from '../components/thread/ReplyEditor
 import { ThreadFloor } from '../components/thread/ThreadFloor';
 import { FloorNodes, MobileFloorNode, ThreadPagination } from '../components/thread/ThreadNavigation';
 import { AppBackground } from '../components/layout/AppBackground';
+import { LoadingState } from '../components/layout/LoadingState';
 import { TopBar } from '../components/layout/TopBar';
 import { setThreadBookmarked } from '../api/favorite';
 import { deleteNestedReply, deleteThreadFloor, postNestedReply } from '../api/thread';
@@ -291,20 +292,15 @@ export function ThreadPage() {
         <AppBackground />
         <TopBar />
         <main className={threadPageShellClassName}>
-          <section className="thread-request-state" aria-live="polite">
-            {status === 'loading' ? (
-              <>
-                <span className="thread-request-spinner" aria-hidden="true" />
-                <h1>正在读取帖子</h1>
-              </>
-            ) : (
-              <>
-                <h1>帖子暂时无法打开</h1>
-                <p>{error}</p>
-                <button onClick={retry} type="button"><RotateCw size={15} />重新加载</button>
-              </>
-            )}
-          </section>
+          {status === 'loading' ? (
+            <LoadingState label="正在读取帖子" />
+          ) : (
+            <section className="thread-request-state" aria-live="polite">
+              <h1>帖子暂时无法打开</h1>
+              <p>{error}</p>
+              <button onClick={retry} type="button"><RotateCw size={15} />重新加载</button>
+            </section>
+          )}
         </main>
       </div>
     );

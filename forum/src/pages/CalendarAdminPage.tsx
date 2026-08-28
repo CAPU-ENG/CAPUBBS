@@ -4,7 +4,6 @@ import {
   ChevronLeft,
   ChevronRight,
   Clock3,
-  LoaderCircle,
   Pencil,
   Save,
   ShieldAlert,
@@ -13,6 +12,8 @@ import {
 import { useEffect, useMemo, useState, type ChangeEvent } from 'react';
 import { fetchHomeCalendar, type HomeCalendarEvent } from '../api/home';
 import { AppBackground } from '../components/layout/AppBackground';
+import { LoadingSpinner as LoaderCircle } from '../components/layout/LoadingSpinner';
+import { LoadingState } from '../components/layout/LoadingState';
 import { TopBar } from '../components/layout/TopBar';
 import { useAuth } from '../context/AuthContext';
 import { useDocumentTitle } from '../hooks/useDocumentTitle';
@@ -218,7 +219,7 @@ export function CalendarAdminPage() {
 
       <main className="calendar-admin-shell">
         {authPending ? (
-          <CalendarAdminState icon={<LoaderCircle className="animate-spin" size={22} />} title="正在确认管理权限" />
+          <LoadingState label="正在确认管理权限" />
         ) : !isAuthorized ? (
           <CalendarAdminState authStatus={authStatus} icon={<ShieldAlert size={22} />} title="无法进入日历管理">
             此页面仅供 ID 为“组织部”或权限值不低于 3 的会员使用。

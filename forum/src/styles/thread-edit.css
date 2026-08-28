@@ -541,14 +541,6 @@
     color: var(--brand-strong);
   }
 
-  .thread-edit-spinner {
-    animation: thread-edit-spin 0.8s linear infinite;
-  }
-
-  @keyframes thread-edit-spin {
-    to { transform: rotate(360deg); }
-  }
-
   @media (max-width: 760px) {
     .thread-edit-page-shell {
       width: min(100% - 20px, 1080px);
