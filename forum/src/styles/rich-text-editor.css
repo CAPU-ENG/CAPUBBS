@@ -1,4 +1,8 @@
 @layer components {
+  body.html-snippet-dialog-open {
+    overflow: hidden;
+  }
+
 +  .capubbs-rich-editor-input:empty::before {
     color: rgb(161 161 170);
     content: attr(data-placeholder);

@@ -1,4 +1,4 @@
-import { PanelRightOpen, X } from 'lucide-react';
+import { Braces, PanelRightOpen, X } from 'lucide-react';
 import {
   useEffect,
   useRef,
@@ -10,6 +10,7 @@ import {
 import { getPublicProfileAppPath } from '../../utils/userRoutes';
 import { PastedImageDialog } from './PastedImageDialog';
 import { GalleryDialog } from './GalleryDialog';
+import { HtmlSnippetDialog } from './HtmlSnippetDialog';
 import { RichTextEditorControls } from './RichTextEditor.controls';
 import { escapeMarkdownLinkText, hasModeSwitchingContent, plainTextLength } from './RichTextEditor.content';
 import {
@@ -100,6 +101,7 @@ export function RichTextEditor({
   const [activeRichCommands, setActiveRichCommands] = useState<RichToggleCommandStates>(createInactiveRichCommandStates);
   const [isAutoHeightEnabled, setIsAutoHeightEnabled] = useState(false);
   const [isHtmlPreviewOpen, setIsHtmlPreviewOpen] = useState(true);
+  const [isHtmlSnippetDialogOpen, setIsHtmlSnippetDialogOpen] = useState(false);
   const [showSourceLineNumbers, setShowSourceLineNumbers] = useState(false);
   const [isColorPickerOpen, setIsColorPickerOpen] = useState(false);
   const [popoverTextValue, setPopoverTextValue] = useState('');
@@ -567,6 +569,27 @@ export function RichTextEditor({
     saveSelection();
   };
 
+  const openHtmlSnippetDialog = () => {
+    const textarea = sourceRef.current;
+    if (textarea) {
+      sourceSelectionRef.current = {
+        end: textarea.selectionEnd,
+        start: textarea.selectionStart,
+      };
+    }
+    setIsHtmlSnippetDialogOpen(true);
+  };
+
+  const insertHtmlSnippet = (code: string) => {
+    replaceSourceSelection(code);
+    setIsHtmlSnippetDialogOpen(false);
+  };
+
+  const closeHtmlSnippetDialog = () => {
+    sourceSelectionRef.current = null;
+    setIsHtmlSnippetDialogOpen(false);
+  };
+
   const renderSourceLineNumbers = (variant: 'code' | 'markdown') => {
     if (!shouldShowSourceLineNumbers) {
       return null;
@@ -671,6 +694,17 @@ export function RichTextEditor({
           <div className={htmlSourcePaneClassName}>
             <div className="flex h-9 items-center justify-between border-b border-zinc-200 bg-zinc-50 px-3 text-[length:var(--ui-font-size-sm)] font-bold text-zinc-500 dark:border-white/10 dark:bg-slate-950 dark:text-slate-300">
               <span>HTML源码</span>
+              <div className="flex items-center gap-1">
+                <button
+                  type="button"
+                  aria-label="打开代码片段"
+                  title="代码片段"
+                  onClick={openHtmlSnippetDialog}
+                  className="inline-flex h-6 items-center gap-1 rounded-[1px] px-1.5 transition hover:bg-zinc-200/70 hover:text-zinc-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#174f38] dark:hover:bg-white/10 dark:hover:text-white"
+                >
+                  <Braces size={14} />
+                  <span>代码片段</span>
+                </button>
               {!isHtmlPreviewOpen ? (
                 <button
                   type="button"
@@ -682,6 +716,7 @@ export function RichTextEditor({
                   <PanelRightOpen size={14} />
                 </button>
               ) : null}
+              </div>
             </div>
             <div
               className={`capubbs-code-shell flex ${isAutoHeightEnabled ? 'min-h-[calc(50vh-2.25rem)]' : 'min-h-0 flex-1'}`}
@@ -857,6 +892,12 @@ export function RichTextEditor({
         initialTitle={galleryDialogState.title}
         onCancel={() => setGalleryDialogState(null)}
         onInsert={uploadAndInsertGallery}
+      />
+    ) : null}
+    {isHtmlSnippetDialogOpen ? (
+      <HtmlSnippetDialog
+        onCancel={closeHtmlSnippetDialog}
+        onInsert={insertHtmlSnippet}
       />
     ) : null}
     </>
