@@ -44,7 +44,7 @@ const REPLY_DRAFT_DATABASE_KEY_PREFIX = 'reply-drafts:v1';
 const LEGACY_REPLY_DRAFT_STORAGE_KEY_PREFIX = 'capubbs-reply-drafts:v1';
 const REPLY_DRAFT_CHANGE_EVENT = 'capubbs-reply-drafts-change';
 const REPLY_DRAFT_BROADCAST_CHANNEL = 'capubbs-reply-drafts';
-const MAX_STORED_REPLY_DRAFTS = 30;
+const MAX_STORED_REPLY_DRAFTS = 100;
 
 export async function readStoredReplyDrafts(ownerKey: string | null | undefined) {
   const databaseKey = getReplyDraftDatabaseKey(ownerKey);
