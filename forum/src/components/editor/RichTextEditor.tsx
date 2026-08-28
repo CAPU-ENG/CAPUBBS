@@ -44,7 +44,6 @@ import { getPublicProfileAppPath } from '../../utils/userRoutes';
 import { PastedImageDialog } from './PastedImageDialog';
 import { GalleryDialog, type GalleryDialogImage } from './GalleryDialog';
 import {
-  defaultRichTextFont,
   defaultRichTextFontSize,
   defaultTextColor,
   editorModeGroups,
@@ -2139,7 +2138,7 @@ export function RichTextEditor({
           onPointerUp={finishGalleryResize}
           onScroll={updateRichImageResizeHandle}
           className={`capubbs-editor-prose capubbs-rich-editor-input px-3 py-3 leading-6 text-zinc-800 outline-none dark:text-zinc-100 ${isAutoHeightEnabled ? 'min-h-[50vh] overflow-visible' : 'h-[50vh] overflow-y-auto'}`}
-          style={{ fontFamily: defaultRichTextFont, fontSize: defaultRichTextFontSize }}
+          style={{ fontSize: defaultRichTextFontSize }}
         />
       )}
 

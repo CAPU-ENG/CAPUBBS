@@ -44,7 +44,6 @@ export const richTextHeadingOptions = [
   { label: '标题 6', value: 'h6' },
 ];
 
-export const defaultRichTextFont = richTextFontOptions[0].value;
 export const defaultRichTextFontSize = FORUM_DEFAULT_FONT_SIZE;
 export const defaultTextColor = '#111827';
 export const mobileViewportQuery = '(max-width: 767px)';
