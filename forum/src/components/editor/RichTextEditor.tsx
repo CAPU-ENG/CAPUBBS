@@ -57,6 +57,11 @@ import {
 } from './RichTextEditor.constants';
 import { useIsDarkTheme, useIsMobileViewport } from './RichTextEditor.hooks';
 import {
+  getMarkdownListEnterEdit,
+  getMarkdownTabEdit,
+  type MarkdownSourceEdit,
+} from './RichTextEditor.markdown';
+import {
   compressImageFileUnderLimit,
   createUploadableImageFileUnderLimit,
   editorImageInputAccept,
@@ -708,6 +713,48 @@ export function RichTextEditor({
     }
 
     redoEditorChange();
+  };
+
+  const applyMarkdownSourceEdit = (textarea: HTMLTextAreaElement, edit: MarkdownSourceEdit) => {
+    sourceSelectionRef.current = null;
+    updateContent(edit.content);
+    window.requestAnimationFrame(() => {
+      textarea.focus();
+      textarea.setSelectionRange(edit.selectionStart, edit.selectionEnd);
+    });
+  };
+
+  const handleMarkdownEditorKeyDown = (event: KeyboardEvent<HTMLTextAreaElement>) => {
+    if (event.nativeEvent.isComposing) {
+      return;
+    }
+
+    const textarea = event.currentTarget;
+    const hasCommandModifier = event.ctrlKey || event.metaKey || event.altKey;
+    let edit: MarkdownSourceEdit | null = null;
+
+    if (event.key === 'Tab' && !hasCommandModifier) {
+      edit = getMarkdownTabEdit(
+        textarea.value,
+        textarea.selectionStart,
+        textarea.selectionEnd,
+        event.shiftKey,
+      );
+    } else if (event.key === 'Enter' && !event.shiftKey && !hasCommandModifier) {
+      edit = getMarkdownListEnterEdit(
+        textarea.value,
+        textarea.selectionStart,
+        textarea.selectionEnd,
+      );
+    }
+
+    if (edit) {
+      event.preventDefault();
+      applyMarkdownSourceEdit(textarea, edit);
+      return;
+    }
+
+    handleEditorKeyDown(event);
   };
 
   const handleRichEditorKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
@@ -2080,7 +2127,7 @@ export function RichTextEditor({
               placeholder={placeholder}
               wrap={sourceTextareaWrap}
               onChange={(event) => updateContent(event.target.value)}
-              onKeyDown={handleEditorKeyDown}
+              onKeyDown={handleMarkdownEditorKeyDown}
               onPaste={handleEditorPaste}
               onScroll={handleMarkdownSourceScroll}
               className={`min-w-0 flex-1 resize-none border-0 bg-transparent px-3 py-3 text-sm leading-6 text-zinc-800 outline-none placeholder:text-zinc-400 focus:ring-0 dark:text-white dark:placeholder:text-zinc-500 ${isAutoHeightEnabled ? 'min-h-[50vh]' : 'min-h-0'} ${markdownSourceOverflowClassName}`}
@@ -3182,7 +3229,7 @@ function renderMarkdownToHtml(markdown: string) {
 
     const headingMatch = line.match(/^(#{1,6})\s+(.+)$/);
     const horizontalRuleMatch = line.match(/^\s{0,3}(?:-{3,}|\*{3,}|_{3,}|(?:-\s*){3,}|(?:\*\s*){3,}|(?:_\s*){3,})\s*$/);
-    const unorderedListMatch = line.match(/^\s*[-*]\s+(.+)$/);
+    const unorderedListMatch = line.match(/^\s*[-+*]\s+(.+)$/);
     const orderedListMatch = line.match(/^\s*\d+\.\s+(.+)$/);
     const quoteMatch = line.match(/^\s*>\s?(.*)$/);
 
