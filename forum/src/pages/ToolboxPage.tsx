@@ -1,4 +1,3 @@
-import Papa from 'papaparse';
 import {
   CheckCircle2,
   ContactRound,
@@ -11,7 +10,6 @@ import {
   type LucideIcon,
 } from 'lucide-react';
 import { useRef, useState } from 'react';
-import { readSheet } from 'read-excel-file/browser';
 import { AppBackground } from '../components/layout/AppBackground';
 import { LoadingSpinner as LoaderCircle } from '../components/layout/LoadingSpinner';
 import { TopBar } from '../components/layout/TopBar';
@@ -233,12 +231,16 @@ function ContactPreview({ rows }: { rows: ContactRow[] }) {
 
 async function readTableRows(file: File): Promise<unknown[][]> {
   const extension = file.name.toLocaleLowerCase().split('.').pop();
-  if (extension === 'xlsx') return readSheet(file);
+  if (extension === 'xlsx') {
+    const { readSheet } = await import('read-excel-file/browser');
+    return readSheet(file);
+  }
   if (extension === 'csv' || extension === 'tsv') return readDelimitedRows(file, extension === 'tsv' ? '\t' : '');
   throw new Error('请选择 XLSX、CSV 或 TSV 表格。');
 }
 
-function readDelimitedRows(file: File, delimiter: string): Promise<unknown[][]> {
+async function readDelimitedRows(file: File, delimiter: string): Promise<unknown[][]> {
+  const { default: Papa } = await import('papaparse');
   return new Promise((resolve, reject) => {
     Papa.parse<unknown[]>(file, {
       complete: (result) => {

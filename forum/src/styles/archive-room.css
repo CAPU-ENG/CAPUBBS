@@ -441,12 +441,26 @@
 
   .archive-room-state {
     display: flex;
-    min-height: 180px;
+    min-height: 220px;
     align-items: center;
     justify-content: center;
-    gap: 9px;
-    color: var(--text-faint);
+    flex-direction: column;
+    gap: 14px;
+    margin: 20px 24px 24px;
+    padding: 32px 20px;
+    border: 1px solid var(--line);
+    border-radius: var(--card-radius);
+    background: var(--surface);
+    box-shadow: var(--shadow-card);
+    color: var(--text-strong);
     font-size: var(--ui-font-size-lg);
+    font-weight: 760;
+    letter-spacing: 0.01em;
+  }
+
+  .archive-room-state .forum-loading-spinner {
+    width: 34px;
+    height: 34px;
   }
 
   .archive-room-dialog-backdrop {
