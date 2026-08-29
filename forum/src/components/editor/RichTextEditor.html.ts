@@ -1,38 +1,42 @@
 import { FORUM_DEFAULT_FONT_SIZE } from '../../utils/forumFontSize';
 import { translateLegacyBbcode } from '../../utils/legacyBbcode';
+import galleryStyles from '../../styles/gallery.css?raw';
 import { htmlVoidTags } from './RichTextEditor.constants';
-export function buildHtmlPreviewDocument(html: string, isDarkTheme: boolean, embedded = false) {
+export function buildHtmlPreviewDocument(
+  html: string,
+  isDarkTheme: boolean,
+  embedded = false,
+  fontSize = FORUM_DEFAULT_FONT_SIZE,
+) {
   const renderedHtml = translateLegacyBbcode(html);
   const theme = isDarkTheme
     ? {
         background: '#171d19',
-        blockquoteBorder: 'rgb(217 249 157 / 0.45)',
-        blockquoteColor: 'rgb(255 255 255 / 0.74)',
-        codeBackground: 'rgb(255 255 255 / 0.1)',
-        codeColor: 'rgb(255 255 255 / 0.9)',
-        color: '#e4e4e7',
+        brand: '#69b98d',
+        brandStrong: '#8bcca6',
         colorScheme: 'dark',
-        headingColor: '#ffffff',
-        linkColor: '#d9f99d',
-        preBackground: '#0f172a',
-        preBorder: 'rgb(255 255 255 / 0.14)',
-        preColor: '#e5e7eb',
-        tableBorder: 'rgb(255 255 255 / 0.14)',
+        line: '#2c362f',
+        lineStrong: '#3c493f',
+        surfaceRaised: '#1c241f',
+        surfaceSoft: '#1f2822',
+        text: '#dde5de',
+        textFaint: '#748078',
+        textMuted: '#a0aca2',
+        textStrong: '#f6faf6',
       }
     : {
         background: '#fffefa',
-        blockquoteBorder: 'rgb(56 87 114 / 0.45)',
-        blockquoteColor: '#875a41',
-        codeBackground: 'rgb(228 228 231 / 0.8)',
-        codeColor: '#3f3f46',
-        color: '#3f3f46',
+        brand: '#236b4c',
+        brandStrong: '#174f38',
         colorScheme: 'light',
-        headingColor: '#174f38',
-        linkColor: '#174f38',
-        preBackground: '#f6f8fa',
-        preBorder: '#d0d7de',
-        preColor: '#24292f',
-        tableBorder: '#d4d4d8',
+        line: '#e1e6df',
+        lineStrong: '#cdd5cc',
+        surfaceRaised: '#ffffff',
+        surfaceSoft: '#f6f8f4',
+        text: '#20231f',
+        textFaint: '#919991',
+        textMuted: '#687068',
+        textStrong: '#111411',
       };
   const previewHead = `
   <meta charset="utf-8">
@@ -40,178 +44,201 @@ export function buildHtmlPreviewDocument(html: string, isDarkTheme: boolean, emb
   <meta http-equiv="Content-Security-Policy" content="script-src 'none'; object-src 'none'">
   <base target="_blank">
   <style>
-    :root {
-      color-scheme: ${theme.colorScheme};
-      font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-      --capubbs-preview-bg: ${theme.background};
-      --capubbs-preview-text: ${theme.color};
-      --capubbs-preview-heading: ${theme.headingColor};
-      --capubbs-preview-link: ${theme.linkColor};
-      --capubbs-preview-quote-border: ${theme.blockquoteBorder};
-      --capubbs-preview-quote-text: ${theme.blockquoteColor};
-      --capubbs-preview-code-bg: ${theme.codeBackground};
-      --capubbs-preview-code-text: ${theme.codeColor};
-      --capubbs-preview-pre-bg: ${theme.preBackground};
-      --capubbs-preview-pre-border: ${theme.preBorder};
-      --capubbs-preview-pre-text: ${theme.preColor};
-      --capubbs-preview-table-border: ${theme.tableBorder};
+    @layer components {
+      :root {
+        color-scheme: ${theme.colorScheme};
+        font-family: "Noto Sans CJK SC", "Source Han Sans SC", "PingFang SC", "Microsoft YaHei", sans-serif;
+        --surface: ${theme.background};
+        --surface-raised: ${theme.surfaceRaised};
+        --surface-soft: ${theme.surfaceSoft};
+        --text: ${theme.text};
+        --text-strong: ${theme.textStrong};
+        --text-muted: ${theme.textMuted};
+        --text-faint: ${theme.textFaint};
+        --line: ${theme.line};
+        --line-strong: ${theme.lineStrong};
+        --brand: ${theme.brand};
+        --brand-strong: ${theme.brandStrong};
+      }
+
+      html {
+        background: var(--surface);
+      }
+
+      body {
+        margin: 0;
+        padding: ${embedded ? '0' : '16px'};
+        background: var(--surface);
+        color: var(--text);
+        font-size: ${fontSize};
+        line-height: 1.6;
+        overflow-wrap: anywhere;
+        word-break: break-word;
+      }
+
+      body > :first-child {
+        margin-top: 0;
+      }
+
+      body > :last-child {
+        margin-bottom: 0;
+      }
+
+      body p,
+      body div {
+        margin: 0;
+      }
+
+      body p {
+        margin: 0 0 0.75em;
+      }
+
+      body > div + div {
+        margin-top: 0.55em;
+      }
+
+      a {
+        color: var(--brand-strong);
+        font-weight: inherit;
+        text-decoration: underline;
+        text-decoration-thickness: 1px;
+        text-underline-offset: 0.16em;
+      }
+
+      .forum-mention {
+        text-decoration: none;
+      }
+
+      blockquote {
+        margin: 0 0 0 2em;
+        border: 0;
+        padding: 0;
+        background: transparent;
+        color: inherit;
+      }
+
+      blockquote.forum-quote,
+      .forum-legacy-quote,
+      blockquote.capubbs-floor-quote {
+        margin: 0.8em 0;
+        border-left: 3px solid color-mix(in srgb, var(--brand) 38%, var(--line));
+        padding: 0.55em 0.75em;
+        background: var(--surface-soft);
+        color: var(--text-muted);
+      }
+
+      .capubbs-floor-quote-jump {
+        margin-left: 0.75em;
+      }
+
+      .forum-legacy-quote-content {
+        margin: 0;
+      }
+
+      h1,
+      h2,
+      h3,
+      h4,
+      h5,
+      h6 {
+        margin: 0.9rem 0 0.45rem;
+        color: var(--brand-strong);
+        font-weight: 800;
+        line-height: 1.35;
+      }
+
+      h1 { font-size: 1.45rem; }
+      h2 { font-size: 1.25rem; }
+      h3 { font-size: 1.1rem; }
+      h4,
+      h5,
+      h6 { font-size: 1em; }
+
+      ul,
+      ol {
+        margin: 0.65em 0;
+        padding-left: 1.45em;
+      }
+
+      ul { list-style: disc; }
+      ol { list-style: decimal; }
+      ol.capubbs-ordered-list-alpha { list-style-type: lower-alpha; }
+      ol.capubbs-ordered-list-roman { list-style-type: lower-roman; }
+
+      pre {
+        max-width: 100%;
+        overflow-x: auto;
+        margin: 0.75em 0;
+        border-radius: 2px;
+        padding: 0.75em;
+        background: #182531;
+        color: #f8fafc;
+        white-space: pre-wrap;
+      }
+
+      code,
+      kbd {
+        border-radius: 2px;
+        padding: 0.08em 0.25em;
+        background: color-mix(in srgb, var(--surface-soft) 75%, var(--line));
+        font-family: "SFMono-Regular", "Cascadia Code", Consolas, monospace;
+        font-size: 0.9em;
+      }
+
+      pre code {
+        padding: 0;
+        background: transparent;
+        color: inherit;
+      }
+
+      font[size="1"] { font-size: 11px; }
+      font[size="2"] { font-size: 13px; }
+      font[size="3"] { font-size: 15px; }
+      font[size="4"] { font-size: 17px; }
+      font[size="5"] { font-size: 19px; }
+      font[size="6"] { font-size: 21px; }
+      font[size="7"] { font-size: 23px; }
+
+      hr {
+        margin: 0.9em 0;
+        border: 0;
+        border-top: 1px solid var(--line-strong);
+      }
+
+      img {
+        display: inline-block;
+        height: auto;
+        max-width: 100%;
+        vertical-align: middle;
+      }
+
+      img[role="button"] {
+        cursor: zoom-in;
+      }
+
+      img[role="button"]:focus-visible {
+        outline: 2px solid var(--brand);
+        outline-offset: 3px;
+      }
+
+      table {
+        display: block;
+        max-width: 100%;
+        overflow-x: auto;
+        border-collapse: collapse;
+      }
+
+      td,
+      th {
+        border: 1px solid var(--line);
+        padding: 0.35em 0.5em;
+      }
     }
 
-    html {
-      background: var(--capubbs-preview-bg);
-    }
-
-    body {
-      background: var(--capubbs-preview-bg);
-      color: var(--capubbs-preview-text);
-      font-size: ${FORUM_DEFAULT_FONT_SIZE};
-      line-height: 1.7;
-      margin: 0;
-      padding: ${embedded ? '0' : '16px'};
-      word-break: break-word;
-    }
-
-    body > :first-child {
-      margin-top: 0;
-    }
-
-    body > :last-child {
-      margin-bottom: 0;
-    }
-
-    h1,
-    h2,
-    h3,
-    h4,
-    h5,
-    h6 {
-      color: var(--capubbs-preview-heading);
-      font-weight: 800;
-      line-height: 1.35;
-      margin: 0.9rem 0 0.45rem;
-    }
-
-    a {
-      color: var(--capubbs-preview-link);
-      font-weight: 700;
-      text-decoration: underline;
-      text-underline-offset: 0.16em;
-    }
-
-    blockquote {
-      border: 0;
-      color: inherit;
-      margin: 0 0 0 2em;
-      padding: 0;
-    }
-
-    blockquote.forum-quote,
-    blockquote.forum-legacy-quote,
-    blockquote.capubbs-floor-quote {
-      border-left: 3px solid var(--capubbs-preview-quote-border);
-      color: var(--capubbs-preview-quote-text);
-      margin: 12px 0;
-      padding: 2px 0 2px 12px;
-    }
-
-    blockquote.capubbs-floor-quote {
-      color: inherit;
-    }
-
-    hr {
-      border: 0;
-      border-top: 1px solid ${isDarkTheme ? 'rgb(255 255 255 / 0.18)' : 'rgb(56 87 114 / 0.24)'};
-      margin: 16px 0;
-    }
-
-    .capubbs-floor-quote-content {
-      color: ${isDarkTheme ? 'rgb(212 212 216 / 0.78)' : '#71717a'};
-      font-size: 0.875em;
-      line-height: 1.65;
-      margin-bottom: 8px;
-    }
-
-    .capubbs-floor-quote-meta {
-      align-items: center;
-      color: ${isDarkTheme ? '#fff' : '#18181b'};
-      display: flex;
-      font-size: 0.875em;
-      font-weight: 600;
-      gap: 12px;
-      justify-content: space-between;
-      margin: 9px 0 0;
-    }
-
-    .capubbs-floor-quote-jump {
-      margin-left: auto;
-      white-space: nowrap;
-    }
-
-    code,
-    pre {
-      font-family: "SFMono-Regular", "Cascadia Code", "Fira Code", Consolas, "Liberation Mono", monospace;
-    }
-
-    code {
-      background: var(--capubbs-preview-code-bg);
-      border-radius: 4px;
-      color: var(--capubbs-preview-code-text);
-      font-size: 0.92em;
-      padding: 1px 4px;
-    }
-
-    pre {
-      background: var(--capubbs-preview-pre-bg);
-      border: 1px solid var(--capubbs-preview-pre-border);
-      border-radius: 8px;
-      color: var(--capubbs-preview-pre-text);
-      line-height: 1.65;
-      margin: 12px 0;
-      overflow: auto;
-      padding: 12px;
-      white-space: pre-wrap;
-    }
-
-    pre code {
-      background: transparent;
-      color: inherit;
-      padding: 0;
-    }
-
-    img {
-      border-radius: 6px;
-      display: inline-block;
-      max-width: 100%;
-      vertical-align: middle;
-    }
-
-    ol.capubbs-ordered-list-decimal {
-      list-style-type: decimal;
-    }
-
-    ol.capubbs-ordered-list-alpha {
-      list-style-type: lower-alpha;
-    }
-
-    ol.capubbs-ordered-list-roman {
-      list-style-type: lower-roman;
-    }
-
-    table {
-      border-collapse: collapse;
-      margin: 12px 0;
-      width: 100%;
-    }
-
-    th,
-    td {
-      border: 1px solid var(--capubbs-preview-table-border);
-      padding: 6px 8px;
-      text-align: left;
-    }
+    ${galleryStyles}
   </style>
 `;
-  const trimmedHtml = renderedHtml.trim();
+  const trimmedHtml = addPreviewBodyClass(renderedHtml.trim());
 
   if (/<html[\s>]/i.test(trimmedHtml)) {
     if (/<head[\s>]/i.test(trimmedHtml)) {
@@ -224,8 +251,25 @@ export function buildHtmlPreviewDocument(html: string, isDarkTheme: boolean, emb
   return `<!doctype html>
 <html>
 <head>${previewHead}</head>
-<body>${renderedHtml}</body>
+<body class="forum-markup forum-markup-floor" data-forum-markup="floor">${renderedHtml}</body>
 </html>`;
+}
+
+function addPreviewBodyClass(html: string) {
+  return html.replace(/<body([^>]*)>/i, (_match, attributes: string) => {
+    const classMatch = attributes.match(/\sclass\s*=\s*(?:(["'])(.*?)\1|([^\s"'=<>`]+))/i);
+    const attributesWithoutVariant = attributes.replace(/\sdata-forum-markup\s*=\s*(?:["'][^"']*["']|[^\s>]+)/i, '');
+    if (!classMatch) {
+      return `<body${attributesWithoutVariant} class="forum-markup forum-markup-floor" data-forum-markup="floor">`;
+    }
+
+    const classNames = new Set((classMatch[2] ?? classMatch[3]).split(/\s+/).filter(Boolean));
+    classNames.add('forum-markup');
+    classNames.add('forum-markup-floor');
+    const nextClassAttribute = ` class="${Array.from(classNames).join(' ')}"`;
+    const nextAttributes = attributesWithoutVariant.replace(classMatch[0], nextClassAttribute);
+    return `<body${nextAttributes} data-forum-markup="floor">`;
+  });
 }
 
 export function highlightHtmlSource(source: string) {

@@ -1,4 +1,5 @@
 import { renderForumMarkup } from '../../utils/forumMarkup';
+import { readForumContentFontSize } from '../../utils/forumFontSize';
 import { translateLegacyBbcode } from '../../utils/legacyBbcode';
 import { stripEditorGalleryEditControls } from './RichTextEditor.gallery';
 import {
@@ -43,6 +44,7 @@ export function getRichTextEditorPreviewDocument(
     value.mode === 'markdown' ? previewHtml : compactHtmlForStorage(previewHtml),
     document.documentElement.classList.contains('dark'),
     options.embedded,
+    `${readForumContentFontSize()}px`,
   );
 }
 

@@ -1,4 +1,5 @@
 import { type KeyboardEvent, type RefObject, useEffect, useMemo } from 'react';
+import { useForumContentFontSize } from '../../hooks/useForumContentFontSize';
 import { renderForumMarkup } from '../../utils/forumMarkup';
 import {
   buildHtmlPreviewDocument,
@@ -44,6 +45,7 @@ export function useRichTextEditorSource({
   updateContent,
   value,
 }: SourceEditorOptions) {
+  const forumContentFontSize = useForumContentFontSize();
   const shouldShowSourceLineNumbers = isSourceMode && showSourceLineNumbers;
   const sourceLineCount = useMemo(() => Math.max(1, value.content.split('\n').length), [value.content]);
   const sourceLineNumbers = useMemo(
@@ -78,8 +80,13 @@ export function useRichTextEditorSource({
   );
   const highlightedHtml = useMemo(() => highlightHtmlSource(value.content), [value.content]);
   const htmlPreviewDocument = useMemo(
-    () => buildHtmlPreviewDocument(compactHtmlForStorage(value.content), isDarkTheme),
-    [isDarkTheme, value.content],
+    () => buildHtmlPreviewDocument(
+      compactHtmlForStorage(value.content),
+      isDarkTheme,
+      false,
+      `${forumContentFontSize}px`,
+    ),
+    [forumContentFontSize, isDarkTheme, value.content],
   );
 
   const syncSourceLineNumbersScroll = () => {

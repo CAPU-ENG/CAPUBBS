@@ -325,7 +325,7 @@ function buildHtmlFrameDocument({
   const darkColor = isSignature ? '#999999' : 'rgb(228 228 231)';
   const fontFamily = isSignature
     ? 'monospace'
-    : "ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif";
+    : "'Noto Sans CJK SC','Source Han Sans SC','PingFang SC','Microsoft YaHei',sans-serif";
   const signatureRootStyle = isSignature
     ? 'padding-top:10px;color:inherit;font-family:inherit;font-size:inherit;'
     : '';
