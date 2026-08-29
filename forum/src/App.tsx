@@ -4,6 +4,7 @@ import { BrowserRecommendationDialog } from './components/browser/BrowserRecomme
 import { RouteLoadingPage } from './components/layout/LoadingState';
 import { useForumContentFontSize } from './hooks/useForumContentFontSize';
 import { HomePage } from './pages/HomePage';
+import { SearchPage } from './pages/SearchPage';
 import { FORUM_LOCATION_CHANGE_EVENT } from './utils/authRoutes';
 import { consumeQueuedLocalDraftCleanups } from './utils/draftCleanup';
 import { applyForumContentFontSize } from './utils/forumFontSize';
@@ -21,7 +22,6 @@ const loadLoginPage = () => import('./pages/LoginPage');
 const loadManagementPage = () => import('./pages/ManagementPage');
 const loadPublicProfilePage = () => import('./pages/PublicProfilePage');
 const loadRegisterPage = () => import('./pages/RegisterPage');
-const loadSearchPage = () => import('./pages/SearchPage');
 const loadSettingsPage = () => import('./pages/SettingsPage');
 const loadThreadComposePage = () => import('./pages/ThreadComposePage');
 const loadThreadEditPage = () => import('./pages/ThreadEditPage');
@@ -39,7 +39,6 @@ const remainingForumPageLoaders = [
   loadManagementPage,
   loadPublicProfilePage,
   loadRegisterPage,
-  loadSearchPage,
   loadSettingsPage,
   loadThreadComposePage,
   loadThreadEditPage,
@@ -67,8 +66,6 @@ const PublicProfilePage = lazy(() => loadPublicProfilePage()
   .then((module) => ({ default: module.PublicProfilePage })));
 const RegisterPage = lazy(() => loadRegisterPage()
   .then((module) => ({ default: module.RegisterPage })));
-const SearchPage = lazy(() => loadSearchPage()
-  .then((module) => ({ default: module.SearchPage })));
 const SettingsPage = lazy(() => loadSettingsPage()
   .then((module) => ({ default: module.SettingsPage })));
 const ThreadComposePage = lazy(() => loadThreadComposePage()

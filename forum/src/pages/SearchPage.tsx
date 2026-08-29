@@ -127,7 +127,7 @@ export function SearchPage() {
             <SearchResultHeader applied={applied} count={results.length} status={status} />
 
             {!hasSearch ? (
-              <SearchStart field={applied.field} history={history} onSearch={(keyword) => applySearch({ ...draft, keyword })} />
+              <SearchStart history={history} onSearch={(keyword) => applySearch({ ...draft, keyword })} />
             ) : status === 'loading' ? (
               <SearchLoading />
             ) : status === 'error' ? (
@@ -344,22 +344,22 @@ function HighlightedText({ keyword, text }: { keyword: string; text: string }) {
 }
 
 function SearchStart({
-  field,
   history,
   onSearch,
 }: {
-  field: SearchField;
   history: string[];
   onSearch: (keyword: string) => void;
 }) {
+  if (history.length === 0) return null;
+
   return (
     <section className="search-state-card search-start-card">
       <div className="search-state-icon"><History size={20} /></div>
-      <h3>{history.length ? '继续最近的搜索' : '从一个关键词开始'}</h3>
-      <p>{history.length ? '搜索记录只保存在当前浏览器。' : field === 'user' ? '输入用户名查找公开个人主页。' : '可以搜索路线、装备、活动，或某一段旧日讨论。'}</p>
-      {history.length ? <div className="search-history-list">{history.map((term) => (
+      <h3>继续最近的搜索</h3>
+      <p>搜索记录只保存在当前浏览器。</p>
+      <div className="search-history-list">{history.map((term) => (
         <button key={term} onClick={() => onSearch(term)} type="button">{term}</button>
-      ))}</div> : null}
+      ))}</div>
     </section>
   );
 }
