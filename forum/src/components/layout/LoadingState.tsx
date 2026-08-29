@@ -9,7 +9,10 @@ type LoadingStateProps = {
 };
 
 export function LoadingState({ className = '', label, variant = 'page' }: LoadingStateProps) {
-  const classes = `forum-loading-state forum-loading-state-${variant}${className ? ` ${className}` : ''}`;
+  const variantClassName = variant === 'page'
+    ? 'forum-loading-state-page'
+    : 'forum-loading-state-panel';
+  const classes = `forum-loading-state forum-loading-state-card ${variantClassName}${className ? ` ${className}` : ''}`;
 
   return (
     <section aria-busy="true" aria-live="polite" className={classes} role="status">

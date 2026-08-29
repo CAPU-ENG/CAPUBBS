@@ -9,19 +9,21 @@
     text-align: center;
   }
 
-  .forum-loading-state-page {
-    min-height: clamp(260px, 52vh, 440px);
+  .forum-loading-state-card {
     border: 1px solid var(--line);
     border-radius: var(--card-radius);
-    padding: 40px 24px;
     background: var(--surface);
     box-shadow: var(--shadow-card);
+  }
+
+  .forum-loading-state-page {
+    min-height: clamp(260px, 52vh, 440px);
+    padding: 40px 24px;
   }
 
   .forum-loading-state-panel {
     min-height: 220px;
     padding: 32px 20px;
-    background: var(--surface);
   }
 
   .forum-loading-visual {
