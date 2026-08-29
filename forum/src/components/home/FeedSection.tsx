@@ -116,11 +116,21 @@ export function FeedSection({ autoLoadMore, compactMode, error, hasMore, items, 
     };
   }, [autoLoadMore, hasMore, items.length, loadMoreFailed, loadingMore, onLoadMore]);
 
+  if (status === 'loading' && items.length === 0) {
+    return (
+      <LoadingState
+        ariaLabel="论坛帖子"
+        className="home-data-state"
+        id="feed"
+        label="正在加载最新回复"
+        variant="panel"
+      />
+    );
+  }
+
   return (
     <section className="feed-section" id="feed" aria-label="论坛帖子">
-      {status === 'loading' && items.length === 0 ? (
-        <LoadingState className="home-data-state" label="正在加载最新回复" variant="panel" />
-      ) : status === 'error' && items.length === 0 ? (
+      {status === 'error' && items.length === 0 ? (
         <div className="home-data-state home-data-error" role="alert">
           <p>{error}</p>
           <button type="button" onClick={onRetry}><RefreshCw size={14} />重新加载</button>
