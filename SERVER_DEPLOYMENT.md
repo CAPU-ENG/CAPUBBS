@@ -1,8 +1,8 @@
 # CAPUBBS 新论坛正式上线手册
 
-本文面向负责 CAPUBBS 正式服务器的系统管理员。目标是在保留现有数据库、根目录主页、老 BBS、用户上传文件和账号体系的前提下，将新论坛完整上线，并为失败回滚保留可靠路径。
+本文面向负责 CAPUBBS 正式服务器的系统管理员。目标是在保留现有数据库、老 BBS、用户上传文件和账号体系的前提下，将新论坛完整上线，并为失败回滚保留可靠路径。
 
-站点根路径 `/` 必须继续执行 Web 根目录下的 `index.php`。新论坛部署在 `/forum/`，只有 `/forum/*` 路径使用前端深链回退；不得把任意其他不存在的站点路径回退到新论坛。
+新论坛部署在 `/forum/`，前端深链回退配置在该路径下。
 
 本手册默认使用 Nginx、PHP-FPM 和 MySQL。若正式服务器使用 Apache，请实现与本文 Nginx 配置等价的静态文件、PHP、前端深链回退和敏感文件保护规则。
 
@@ -349,7 +349,7 @@ test -f /srv/releases/capubbs-new-dist/php.ini
 grep -q '"/forum/assets/' /srv/releases/capubbs-new-dist/forum/index.html
 ```
 
-`rev-parse` 必须得到本次审批的提交号；`find` 不应输出任何文件；最后一个 `grep` 必须成功，证明新论坛资源以 `/forum/assets/` 为前缀。若构建产物仍引用根路径 `/assets/`，应退回发布负责人重新构建，不能靠覆盖旧站 `/assets/` 勉强上线。若使用归档包，还要先执行 `sha256sum -c` 验证发布负责人提供的校验文件。
+`rev-parse` 必须得到本次审批的提交号；`find` 不应输出任何文件；最后一个 `grep` 必须成功，证明新论坛资源以 `/forum/assets/` 为前缀。若前缀不正确，应退回发布负责人重新构建。若使用归档包，还要先执行 `sha256sum -c` 验证发布负责人提供的校验文件。
 
 同步前先执行一次 `--dry-run`：
 
@@ -402,7 +402,7 @@ server {
     charset utf-8;
     client_max_body_size 520m;
 
-    # 域名根路径始终执行仓库根目录的 index.php。
+    # 现有站点首页。
     location = / {
         rewrite ^ /index.php last;
     }
@@ -429,13 +429,12 @@ server {
         try_files $uri $uri/ /forum/index.html;
     }
 
-    # 根路径 assets 属于现有站点；新论坛资源必须位于 /forum/assets/。
+    # 现有站点静态资源。
     location /assets/ {
         try_files $uri =404;
     }
 
-    # API、老 BBS、图片和其他现有路径按真实文件处理。
-    # 只有 /forum/* 可以回退到 forum/index.html。
+    # API、老 BBS、图片和其他现有路径按真实文件处理，不参与前端深链回退。
     location / {
         try_files $uri $uri/ =404;
     }
@@ -524,7 +523,6 @@ curl -o /dev/null -sS -w '%{http_code}\n' https://chexie.net/.git/config
 
 ### 公开访问
 
-- `/` 执行根目录 `index.php`，显示原有“北京大学自行车协会”主页。
 - `/forum/` 和一个新论坛深链刷新后都能正常打开。
 - 游客能查看允许公开的版面、主题和用户资料。
 - 游客无法读取受限版面正文。
@@ -600,7 +598,7 @@ curl -o /dev/null -sS -w '%{http_code}\n' https://chexie.net/.git/config
 1. 重新进入维护模式并停止写入。
 2. 保存故障时间段的 Nginx、PHP 和 MySQL 日志。
 3. 恢复上一版代码，保留当前 `config.php` 和所有用户文件目录。
-4. 恢复上一版 Nginx 路由；根路径始终保持指向根目录 `index.php`。若仅新论坛故障，可暂时关闭 `/forum/` 或恢复上一版 `forum/` 构建产物，不要改变站点根首页。
+4. 恢复上一版 Nginx 路由；若仅新论坛故障，可暂时关闭 `/forum/` 或恢复上一版 `forum/` 构建产物。
 5. 重启 PHP-FPM，执行 `nginx -t` 后重载 Nginx。
 6. 验证老 BBS 的登录、读帖、发帖和附件。
 7. 只有确认新代码已经写坏旧表数据时，才在维护窗口内恢复数据库备份。
@@ -619,7 +617,6 @@ curl -o /dev/null -sS -w '%{http_code}\n' https://chexie.net/.git/config
 - [ ] PHP-FPM、Nginx、CDN 的上传限制一致。
 - [ ] 用户上传目录被保留且只有必要目录可写。
 - [ ] Nginx 深链回退和敏感文件保护已生效。
-- [ ] `/` 执行根目录 `index.php`，只有 `/forum/*` 会回退到新论坛。
 - [ ] API、老 BBS 和新论坛均通过命令行检查。
 - [ ] 全部功能验收通过。
 - [ ] 错误日志、监控和回滚负责人已就绪。
