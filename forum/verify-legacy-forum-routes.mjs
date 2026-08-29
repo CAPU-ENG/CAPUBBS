@@ -107,6 +107,7 @@ for (const href of [
 assert.equal(toForumHref('/search?q=test'), '/forum/search?q=test');
 assert.equal(toForumHref('/forum/search?q=test'), '/forum/search?q=test');
 assert.equal(stripForumBasePath('/forum/users/test'), '/users/test');
+assert.equal(stripForumBasePath('/forum'), '/');
 assert.equal(stripForumBasePath('/forum/'), '/');
 assert.equal(getAuthPathWithReturnTo('/login', '/forum/'), '/forum/login');
 assert.equal(
@@ -123,4 +124,4 @@ assert.equal(
   '/forum/post?bid=4&tid=19853',
 );
 
-console.log(`legacy forum route verification passed (${cases.length + legacyPageCases.length + appRouteCases.length + 20} cases)`);
+console.log(`legacy forum route verification passed (${cases.length + legacyPageCases.length + appRouteCases.length + 21} cases)`);
