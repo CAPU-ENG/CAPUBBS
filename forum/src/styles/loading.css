@@ -14,13 +14,14 @@
     border: 1px solid var(--line);
     border-radius: var(--card-radius);
     padding: 40px 24px;
-    background: color-mix(in srgb, var(--surface) 96%, transparent);
+    background: var(--surface);
     box-shadow: var(--shadow-card);
   }
 
   .forum-loading-state-panel {
     min-height: 220px;
     padding: 32px 20px;
+    background: var(--surface);
   }
 
   .forum-loading-visual {
