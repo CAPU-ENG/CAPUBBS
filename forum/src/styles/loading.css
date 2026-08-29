@@ -24,30 +24,11 @@
   }
 
   .forum-loading-visual {
-    position: relative;
     display: grid;
-    width: 52px;
-    height: 52px;
+    width: 44px;
+    height: 44px;
     place-items: center;
-    border: 1px solid color-mix(in srgb, var(--brand) 24%, var(--line));
-    border-radius: var(--card-radius);
-    background:
-      linear-gradient(135deg, color-mix(in srgb, var(--brand-faint) 88%, transparent), transparent),
-      var(--surface-raised);
-    color: var(--brand-strong);
-    box-shadow: 0 8px 24px color-mix(in srgb, var(--brand) 8%, transparent);
-  }
-
-  .forum-loading-visual::after {
-    position: absolute;
-    width: 4px;
-    height: 4px;
-    border-radius: 50%;
-    background: var(--brand);
-    box-shadow: 9px 0 0 color-mix(in srgb, var(--brand) 58%, transparent), -9px 0 0 color-mix(in srgb, var(--brand) 32%, transparent);
-    content: '';
-    opacity: 0.72;
-    transform: translateY(18px);
+    color: var(--text-faint);
   }
 
   .forum-loading-state h1,
@@ -76,7 +57,13 @@
   .forum-route-loading-shell {
     width: min(1080px, calc(100% - 40px));
     margin-inline: auto;
-    padding-top: calc(var(--topbar-height) + 28px);
+    padding-top: calc(var(--topbar-height) + 18px);
+  }
+
+  .profile-page-shell:has(> .forum-loading-state-page),
+  .management-shell:has(> .forum-loading-state-page),
+  .calendar-admin-shell:has(> .forum-loading-state-page) {
+    padding-top: calc(var(--topbar-height) + 18px);
   }
 
   @keyframes forum-loading-spin {
@@ -91,6 +78,12 @@
 
     .forum-route-loading-shell {
       width: calc(100% - 20px);
+      padding-top: calc(var(--topbar-height) + 10px);
+    }
+
+    .profile-page-shell:has(> .forum-loading-state-page),
+    .management-shell:has(> .forum-loading-state-page),
+    .calendar-admin-shell:has(> .forum-loading-state-page) {
       padding-top: calc(var(--topbar-height) + 10px);
     }
   }

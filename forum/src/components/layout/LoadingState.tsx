@@ -14,7 +14,7 @@ export function LoadingState({ className = '', label, variant = 'page' }: Loadin
   return (
     <section aria-busy="true" aria-live="polite" className={classes} role="status">
       <span aria-hidden="true" className="forum-loading-visual">
-        <LoadingSpinner size={24} />
+        <LoadingSpinner size={variant === 'page' ? 40 : 34} />
       </span>
       {variant === 'page' ? <h1>{label}</h1> : <p>{label}</p>}
     </section>

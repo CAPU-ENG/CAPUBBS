@@ -77,7 +77,7 @@ function PublicProfileState({
     <div className="profile-page min-h-screen text-[var(--text)]">
       <AppBackground />
       <TopBar />
-      <main className="profile-page-shell profile-not-found-wrap">
+      <main className={`profile-page-shell${loading ? '' : ' profile-not-found-wrap'}`}>
         {loading ? (
           <LoadingState label="正在加载个人主页" />
         ) : (
