@@ -1,5 +1,5 @@
 import { getPublicProfilePath } from './userRoutes';
-import { translateLegacyForumThreadHref } from './legacyForumRoutes';
+import { getForumNavigationHref } from './forumNavigation';
 import { translateLegacyBbcode } from './legacyBbcode';
 import { localizeChexieImageRequests, normalizeLegacyPostImage } from './legacyAssets';
 import {
@@ -123,8 +123,9 @@ function isDangerousUrl(value: string) {
 function sanitizeAnchor(anchor: HTMLAnchorElement) {
   const rawHref = anchor.getAttribute('href')?.trim() ?? '';
   const legacyProfileName = getLegacyProfileName(rawHref, anchor.classList.contains('forum-mention'));
-  const href = translateLegacyForumThreadHref(rawHref)
-    || (legacyProfileName ? getPublicProfilePath(legacyProfileName) : rawHref);
+  const href = legacyProfileName
+    ? getPublicProfilePath(legacyProfileName)
+    : getForumNavigationHref(rawHref, `${PUBLIC_ASSET_ORIGIN}/bbs/content/`);
   if (!href || isDangerousUrl(href)) {
     anchor.removeAttribute('href');
     anchor.removeAttribute('target');

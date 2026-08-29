@@ -1,6 +1,7 @@
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { Pagination } from '../layout/Pagination';
 import { getThreadFloorElement } from '../../utils/threadRoutes';
+import { toForumHref } from '../../utils/forumBasePath';
 
 type PaginationProps = {
   boardId: number;
@@ -19,7 +20,7 @@ function pageHref(boardId: number, threadId: number, page: number, authorOnly: b
     tid: String(threadId),
   });
   if (authorOnly) params.set('see_lz', '1');
-  return `/?${params.toString()}`;
+  return toForumHref(`/?${params.toString()}`);
 }
 
 export function ThreadPagination({

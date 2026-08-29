@@ -1,6 +1,8 @@
+import { FORUM_BASE_PATH, toForumHref } from './forumBasePath.ts';
+
 const LEGACY_CONTENT_BASE_URL = 'https://chexie.net/bbs/content/';
 const LEGACY_THREAD_PAGE_SIZE = 12;
-const KNOWN_FORUM_MOUNT_PREFIXES = ['/bbs-new', '/capubbs-new'];
+const KNOWN_FORUM_MOUNT_PREFIXES = [FORUM_BASE_PATH, '/bbs-new', '/capubbs-new'];
 const LEGACY_CGI_BOARD_IDS: Record<string, number> = {
   acad: 5,
   act: 1,
@@ -59,7 +61,7 @@ export function translateLegacyForumThreadHref(
   });
 
   if (url.searchParams.get('see_lz')) params.set('see_lz', '1');
-  return `/?${params.toString()}${floor ? `#${floor}` : ''}`;
+  return toForumHref(`/?${params.toString()}${floor ? `#${floor}` : ''}`);
 }
 
 /**
@@ -89,15 +91,15 @@ export function translateLegacyForumPageHref(
   if (!isRelativeHref && !isTrustedForumUrl(url, baseUrl)) return null;
 
   const pathname = stripKnownForumMountPrefix(normalizePathname(url.pathname));
-  if (isLegacyForumHomePath(pathname)) return '/';
+  if (isLegacyForumHomePath(pathname)) return toForumHref('/');
   if (isLegacyBoardPath(pathname)) return getLegacyBoardRoute(url.searchParams);
   if (isLegacyProfilePath(pathname)) return getLegacyProfileRoute(url.searchParams);
   if (isLegacyUserCenterPath(pathname)) return appendSearchAndHash('/home', url);
-  if (isLegacyFavoritesPath(pathname)) return '/home?tab=bookmarks';
+  if (isLegacyFavoritesPath(pathname)) return toForumHref('/home?tab=bookmarks');
   if (isLegacySearchPath(pathname)) return appendSearchAndHash('/search', url);
-  if (isLegacyLoginPath(pathname)) return '/login';
-  if (isLegacyRegisterPath(pathname)) return '/register';
-  if (isLegacyManagementPath(pathname)) return '/manage';
+  if (isLegacyLoginPath(pathname)) return toForumHref('/login');
+  if (isLegacyRegisterPath(pathname)) return toForumHref('/register');
+  if (isLegacyManagementPath(pathname)) return toForumHref('/manage');
   if (isLegacyDataPath(pathname)) return appendSearchAndHash('/data', url);
   if (isLegacySettingsPath(pathname)) return appendSearchAndHash('/settings', url);
   return null;
@@ -123,14 +125,14 @@ function getLegacyBoardRoute(searchParams: URLSearchParams) {
   const page = getPositiveInteger(searchParams.get('p') ?? searchParams.get('page'));
   if (page && page > 1) params.set('p', String(page));
   if (searchParams.get('extr') === '1' || searchParams.get('digest') === '1') params.set('digest', '1');
-  return `/?${params.toString()}`;
+  return toForumHref(`/?${params.toString()}`);
 }
 
 function getLegacyProfileRoute(searchParams: URLSearchParams) {
   const name = searchParams.get('name')?.trim()
     || searchParams.get('user')?.trim()
     || searchParams.get('view')?.trim();
-  return name ? `/users/${encodeURIComponent(name)}` : '/users';
+  return toForumHref(name ? `/users/${encodeURIComponent(name)}` : '/users');
 }
 
 function getLegacyCgiTarget(searchParams: URLSearchParams) {
@@ -240,7 +242,7 @@ function isLegacySettingsPath(pathname: string) {
 }
 
 function appendSearchAndHash(pathname: string, url: URL) {
-  return `${pathname}${url.search}${url.hash}`;
+  return toForumHref(`${pathname}${url.search}${url.hash}`);
 }
 
 function normalizePathname(pathname: string) {

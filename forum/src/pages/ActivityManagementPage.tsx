@@ -31,6 +31,7 @@ import { useAuth } from '../context/AuthContext';
 import { useDocumentTitle } from '../hooks/useDocumentTitle';
 import { useThreadData } from '../hooks/useThreadData';
 import { getLoginPathWithReturnTo, getRegisterPathWithReturnTo } from '../utils/authRoutes';
+import { toForumHref } from '../utils/forumBasePath';
 import {
   createEditableActivitySettings,
   buildActivityUpdateOptions,
@@ -169,8 +170,8 @@ export function ActivityManagementPage() {
   }
 
   const threadHref = request.bid > 0 && request.tid > 0
-    ? `/?${new URLSearchParams({ bid: String(request.bid), p: '1', tid: String(request.tid) }).toString()}#1`
-    : '/';
+    ? toForumHref(`/?${new URLSearchParams({ bid: String(request.bid), p: '1', tid: String(request.tid) }).toString()}#1`)
+    : toForumHref('/');
   const records = signupSummary?.records ?? [];
   const documentTitle = authPending || status === 'loading'
     ? '正在读取活动'

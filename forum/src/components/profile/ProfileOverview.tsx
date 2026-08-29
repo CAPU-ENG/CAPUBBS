@@ -2,7 +2,7 @@ import { AtSign, Bike, Edit3, ExternalLink, Mail, MapPin, MessageCircle, Palette
 import { useState, type ComponentType, type SVGProps } from 'react';
 import type { ProfileDetailKey, ProfileViewData } from '../../data/profileDemo';
 import { getDisplayedTags, getTagsForUser } from '../../data/tags';
-import { USER_CENTER_PATH } from '../../utils/userRoutes';
+import { USER_CENTER_HREF } from '../../utils/userRoutes';
 import { StarRulesDialog } from './ProfileDialogs';
 import { ProfileMedalGallery } from '../medals/ProfileMedalGallery';
 import { TagList } from '../tags/TagBadge';
@@ -156,7 +156,7 @@ export function ProfileOverview({
               )}
             </>
           ) : isOwnPublicProfile ? (
-            <a className="profile-primary-action" href={USER_CENTER_PATH}>
+            <a className="profile-primary-action" href={USER_CENTER_HREF}>
               <ExternalLink size={16} />进入个人中心
             </a>
           ) : (

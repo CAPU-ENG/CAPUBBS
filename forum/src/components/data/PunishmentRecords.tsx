@@ -16,6 +16,7 @@ import {
   type PunishmentRecord,
 } from '../../api/dataDisplay';
 import { useAuth } from '../../context/AuthContext';
+import { getForumNavigationHref } from '../../utils/forumNavigation';
 
 type AcademicYearGroup = {
   key: string;
@@ -178,7 +179,7 @@ export function PunishmentRecords({
               return (
                 <tr key={record.id}>
                   <td>{record.name || '—'}</td>
-                  <td>{record.username ? <a href={record.href}>{record.username}</a> : '—'}</td>
+                  <td>{record.username ? <a href={getForumNavigationHref(record.href, window.location.href)}>{record.username}</a> : '—'}</td>
                   <td>{record.reason || '—'}</td>
                   <td>{formatDistance(record.distance)}</td>
                   <td>{record.addition ? '是' : '否'}</td>

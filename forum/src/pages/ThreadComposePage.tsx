@@ -43,6 +43,7 @@ import {
 } from '../utils/defaultSignature';
 import { queueLocalDraftCleanup } from '../utils/draftCleanup';
 import { normalizeFloorQuotesForLegacyStorage } from '../utils/floorQuote';
+import { toForumHref } from '../utils/forumBasePath';
 import {
   readStoredReplyDraftForThread,
   saveStoredReplyDraft,
@@ -113,9 +114,9 @@ export function ThreadComposePage() {
     && viewer.rights <= 1
     && viewer.stars < board.requiredStars,
   );
-  const boardHref = request ? `/?bid=${request.bid}` : '/';
+  const boardHref = toForumHref(request ? `/?bid=${request.bid}` : '/');
   const backHref = request?.tid
-    ? `/?${new URLSearchParams({ bid: String(request.bid), p: '1', tid: String(request.tid) }).toString()}#reply-editor`
+    ? toForumHref(`/?${new URLSearchParams({ bid: String(request.bid), p: '1', tid: String(request.tid) }).toString()}#reply-editor`)
     : boardHref;
   const currentSnapshot = makeSnapshot(
     title,
@@ -452,8 +453,8 @@ export function ThreadComposePage() {
       window.location.href = published.tid && published.pid
         ? getThreadFloorHref(published.bid, published.tid, published.pid)
         : published.tid
-          ? `/?bid=${published.bid}&p=1&tid=${published.tid}#1`
-        : `/?bid=${published.bid}`;
+          ? toForumHref(`/?bid=${published.bid}&p=1&tid=${published.tid}#1`)
+          : toForumHref(`/?bid=${published.bid}`);
     } catch (error) {
       setStatus(error instanceof Error ? error.message : `${isReply ? '回复' : '主题'}发表失败，请稍后重试。`);
       setStatusIsError(true);
@@ -496,7 +497,7 @@ export function ThreadComposePage() {
       <main className="thread-edit-page-shell">
         {!request ? (
           <ComposeRequestState
-            backHref="/"
+            backHref={toForumHref('/')}
             description="当前地址缺少有效的版块编号。"
             title="无法确定编辑对象"
           />

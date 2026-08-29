@@ -38,7 +38,7 @@ import {
   subscribeStoredThreadComposeDrafts,
   type StoredThreadComposeDraft,
 } from '../utils/threadComposeDraftStorage';
-import { getPublicProfilePath, USER_CENTER_PATH } from '../utils/userRoutes';
+import { getPublicProfilePath, USER_CENTER_HREF } from '../utils/userRoutes';
 import { getAuthPathWithReturnTo } from '../utils/authRoutes';
 import { getThreadComposeHref, getThreadHref } from '../utils/threadRoutes';
 
@@ -209,8 +209,8 @@ export function UserCenterPage() {
       <ProfileLoadPage
         error={loginRequired ? '登录后才能查看和修改个人资料。' : profileState.error}
         loading={profileLoading}
-        loginHref={loginRequired ? getAuthPathWithReturnTo('/login', USER_CENTER_PATH) : undefined}
-        registerHref={loginRequired ? getAuthPathWithReturnTo('/register', USER_CENTER_PATH) : undefined}
+        loginHref={loginRequired ? getAuthPathWithReturnTo('/login', USER_CENTER_HREF) : undefined}
+        registerHref={loginRequired ? getAuthPathWithReturnTo('/register', USER_CENTER_HREF) : undefined}
         onRetry={profileState.reload}
       />
     );

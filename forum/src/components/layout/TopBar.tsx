@@ -19,7 +19,8 @@ import logo2 from '../../assets/logo/logo2.webp';
 import { DesktopBoardDrawer, MobileBoardSidebar } from './BoardNavigation';
 import { useAuth } from '../../context/AuthContext';
 import { getLoginPathWithReturnTo, getRegisterPathWithReturnTo } from '../../utils/authRoutes';
-import { USER_CENTER_PATH } from '../../utils/userRoutes';
+import { stripForumBasePath, toForumHref } from '../../utils/forumBasePath';
+import { USER_CENTER_HREF } from '../../utils/userRoutes';
 import { MessageCenter } from '../messages/MessageCenter';
 import { getBoardById } from '../../data/boards';
 import { usePinnedBoardIds } from '../../hooks/usePinnedBoards';
@@ -43,14 +44,15 @@ export function TopBar({
   const { logout, status: authStatus, updateViewerUnreadMessages, viewer } = useAuth();
   const authPending = authStatus === 'loading' || authStatus === 'restoring';
   const params = new URLSearchParams(window.location.search);
-  const isHomePage = window.location.pathname === '/'
+  const pathname = stripForumBasePath(window.location.pathname).replace(/\/+$/, '') || '/';
+  const isHomePage = pathname === '/'
     && !params.has('tid')
     && !params.has('thread')
     && !params.has('bid')
     && !params.has('board');
-  const isSearchPage = window.location.pathname.replace(/\/+$/, '') === '/search';
-  const isSettingsPage = window.location.pathname.replace(/\/+$/, '') === '/settings';
-  const isManagePage = window.location.pathname.replace(/\/+$/, '') === '/manage';
+  const isSearchPage = pathname === '/search';
+  const isSettingsPage = pathname === '/settings';
+  const isManagePage = pathname === '/manage';
   const canManageForum = authStatus === 'authenticated' && (viewer?.rights ?? 0) >= 3;
   const currentBoardId = Number(params.get('bid') ?? params.get('board'));
   const pinnedBoards = usePinnedBoardIds()
@@ -250,7 +252,7 @@ export function TopBar({
     return (
       <header className="topbar">
         <div className="topbar-shell">
-          <a href="/" aria-label="返回首页" className="brand-link">
+          <a href={toForumHref('/')} aria-label="返回首页" className="brand-link">
             <img src={logo1} alt="" className="brand-mark" />
             <img src={logo2} alt="车协论坛" className="brand-wordmark" />
           </a>
@@ -305,7 +307,7 @@ export function TopBar({
             <Menu size={20} />
           </button>
 
-          <a href="/" aria-label="返回首页" className="brand-link">
+          <a href={toForumHref('/')} aria-label="返回首页" className="brand-link">
             <img src={logo1} alt="" className="brand-mark" />
             <img src={logo2} alt="车协论坛" className="brand-wordmark" />
           </a>
@@ -320,7 +322,7 @@ export function TopBar({
               className="topbar-primary-nav"
             >
               <a
-                href="/"
+                href={toForumHref('/')}
                 className={`top-nav-link ${isHomePage ? 'top-nav-link-active' : ''}`}
                 tabIndex={contextTitleVisible ? -1 : undefined}
               >
@@ -349,7 +351,7 @@ export function TopBar({
               </div>
               {canManageForum && (
                 <a
-                  href="/manage"
+                  href={toForumHref('/manage')}
                   className={`top-nav-link ${isManagePage ? 'top-nav-link-active' : ''}`}
                   tabIndex={contextTitleVisible ? -1 : undefined}
                 >
@@ -360,7 +362,7 @@ export function TopBar({
                 <a
                   aria-current={currentBoardId === board.id ? 'page' : undefined}
                   className={`top-nav-link top-nav-pinned-link ${currentBoardId === board.id ? 'top-nav-link-active' : ''}`}
-                  href={`/?bid=${board.id}`}
+                  href={toForumHref(`/?bid=${board.id}`)}
                   key={board.id}
                   tabIndex={contextTitleVisible ? -1 : undefined}
                   title={board.label}
@@ -386,7 +388,7 @@ export function TopBar({
           <div className="ml-auto flex items-center gap-1.5 sm:gap-2">
             <a
               className={`icon-button ${isSearchPage ? 'icon-button-active' : ''}`}
-              href="/search"
+              href={toForumHref('/search')}
               aria-label="搜索"
             >
               <Search size={19} />
@@ -431,7 +433,7 @@ export function TopBar({
               <>
                 <a
                   className={`icon-button hidden lg:inline-flex ${isSettingsPage ? 'icon-button-active' : ''}`}
-                  href="/settings"
+                  href={toForumHref('/settings')}
                   aria-label="设置"
                 >
                   <Settings size={19} />
@@ -468,10 +470,10 @@ export function TopBar({
 
                 {profileOpen && (
                   <div aria-label="个人菜单" className="profile-menu" role="menu">
-                    <a href={USER_CENTER_PATH} role="menuitem" onClick={() => setProfileOpen(false)}>
+                    <a href={USER_CENTER_HREF} role="menuitem" onClick={() => setProfileOpen(false)}>
                       <UserRound size={16} />个人中心
                     </a>
-                    <a href="/settings" role="menuitem" onClick={() => setProfileOpen(false)}>
+                    <a href={toForumHref('/settings')} role="menuitem" onClick={() => setProfileOpen(false)}>
                       <Settings size={16} />设置
                     </a>
                     <button

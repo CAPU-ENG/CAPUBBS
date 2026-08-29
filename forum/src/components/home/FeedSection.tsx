@@ -5,9 +5,13 @@ import type { HomeThread } from '../../api/home';
 import type { HomeDataStatus } from '../../hooks/useHomeData';
 import { LoadingSpinner } from '../layout/LoadingSpinner';
 import { LoadingState } from '../layout/LoadingState';
+import { getForumNavigationHref } from '../../utils/forumNavigation';
 import { getThreadTitleClassName } from '../../utils/threadTitleTypography';
 
 function FeedItem({ compactMode, item }: { compactMode: boolean; item: HomeThread }) {
+  const authorHref = getForumNavigationHref(item.authorHref, window.location.href);
+  const threadHref = getForumNavigationHref(item.href, window.location.href);
+
   function useDefaultAvatar(event: React.SyntheticEvent<HTMLImageElement>) {
     if (event.currentTarget.src !== defaultAvatar) event.currentTarget.src = defaultAvatar;
   }
@@ -17,7 +21,7 @@ function FeedItem({ compactMode, item }: { compactMode: boolean; item: HomeThrea
       <article className="feed-item feed-item-compact">
         <div className="feed-item-compact-row">
           <h2>
-            <a className={getThreadTitleClassName(item.title, 'feed-item-compact-title')} href={item.href}>
+            <a className={getThreadTitleClassName(item.title, 'feed-item-compact-title')} href={threadHref}>
               {item.title}
             </a>
           </h2>
@@ -25,7 +29,7 @@ function FeedItem({ compactMode, item }: { compactMode: boolean; item: HomeThrea
             <a
               aria-label={`查看 ${item.author} 的个人主页`}
               className="feed-item-compact-author"
-              href={item.authorHref}
+              href={authorHref}
             >
               {item.author}
             </a>
@@ -39,14 +43,14 @@ function FeedItem({ compactMode, item }: { compactMode: boolean; item: HomeThrea
 
   return (
     <article className="feed-item">
-      <a className="feed-item-content" href={item.href}>
+      <a className="feed-item-content" href={threadHref}>
         <h2 className={getThreadTitleClassName(item.title)}>
           {item.title}
         </h2>
         <p>{item.summary}</p>
       </a>
       <div className="feed-item-meta">
-        <a className="feed-author" href={item.authorHref}>
+        <a className="feed-author" href={authorHref}>
           <img
             src={item.avatar || defaultAvatar}
             alt=""

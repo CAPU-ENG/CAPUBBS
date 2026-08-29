@@ -28,6 +28,8 @@ import { useTopBarAutoHideEnabled } from '../hooks/useTopBarAutoHide';
 import { saveSignaturesHidden } from '../utils/assistiveFeatures';
 import { getLoginPathWithReturnTo, getRegisterPathWithReturnTo } from '../utils/authRoutes';
 import { writeClipboardText } from '../utils/clipboard';
+import { toForumHref } from '../utils/forumBasePath';
+import { resolveForumAppRoute } from '../utils/forumNavigation';
 import {
   getActivityManagementHref,
   getThreadEditHref,
@@ -86,6 +88,9 @@ export function ThreadPage() {
     decoration: floorDecorationEnabled,
     tagMedalDisplay: tagMedalDisplayEnabled,
   });
+  const boardHref = data
+    ? resolveForumAppRoute(data.boardHref, window.location.href) ?? toForumHref('/')
+    : toForumHref('/');
   const [quoteRequest, setQuoteRequest] = useState<QuoteRequest | null>(null);
   const quoteRequestIdRef = useRef(0);
   const [activeFloor, setActiveFloor] = useState(1);
@@ -227,7 +232,7 @@ export function ThreadPage() {
     });
 
     if (floor.floor === 1 && data.replies === 0) {
-      window.location.href = data.boardHref;
+      window.location.href = boardHref;
       return;
     }
 
@@ -242,7 +247,7 @@ export function ThreadPage() {
       tid: String(data.tid),
     });
     if (!data.authorOnly) params.set('see_lz', '1');
-    window.location.href = `/?${params.toString()}`;
+    window.location.href = toForumHref(`/?${params.toString()}`);
   }
 
   async function toggleBookmark() {
@@ -362,7 +367,7 @@ export function ThreadPage() {
             )}
           </div>
           <div className="thread-title-meta">
-            <a className="thread-board-card" href={data.boardHref}>{data.board}</a>
+            <a className="thread-board-card" href={boardHref}>{data.board}</a>
             <span><MessageCircle size={15} />{data.replies} 条回复</span>
             <span><Eye size={16} />{data.views} 次浏览</span>
             <div className="thread-title-actions">
@@ -485,7 +490,7 @@ export function ThreadPage() {
             <ReplyEditor
               bid={data.bid}
               board={data.board}
-              boardHref={data.boardHref}
+              boardHref={boardHref}
               editorRef={editorRef}
               ownerKey={data.viewer.name}
               previewAuthor={data.viewer}

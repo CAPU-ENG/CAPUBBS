@@ -62,7 +62,7 @@ assert.match(
 );
 assert.match(
   renderMarkdownToHtml('[at]测试用户[/at]'),
-  /<a href="\/users\/%E6%B5%8B%E8%AF%95%E7%94%A8%E6%88%B7" target="_blank" rel="noreferrer">@测试用户<\/a>/,
+  /<a href="\/forum\/users\/%E6%B5%8B%E8%AF%95%E7%94%A8%E6%88%B7" target="_blank" rel="noreferrer">@测试用户<\/a>/,
 );
 assert.match(
   renderMarkdownToHtml('![图](https://example.com/image.png){width=120px height=50%}'),

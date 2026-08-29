@@ -8,6 +8,7 @@ import {
   type TagMember,
 } from '../../api/tags';
 import type { TagDefinition } from '../../data/tags';
+import { getForumNavigationHref } from '../../utils/forumNavigation';
 import {
   createTagExpressionFromFilters,
   parseTagExpressionTokens,
@@ -231,11 +232,11 @@ export function TagSummaryPanel() {
           <div className="tag-summary-member-grid">
             {sortedMembers.map((member) => (
               <article className="tag-summary-member-card" key={member.username}>
-                <a className="tag-summary-member-avatar" href={member.href}>
+                <a className="tag-summary-member-avatar" href={getForumNavigationHref(member.href, window.location.href)}>
                   <img alt={`${member.username}的头像`} src={member.avatar} />
                 </a>
                 <div>
-                  <a className="tag-summary-member-id" href={member.href}>{member.username}</a>
+                  <a className="tag-summary-member-id" href={getForumNavigationHref(member.href, window.location.href)}>{member.username}</a>
                   <time dateTime={toIsoDate(member.addedAt)}>{formatDate(member.addedAt)}</time>
                 </div>
               </article>

@@ -52,6 +52,8 @@ import { useAuth } from '../context/AuthContext';
 import { useDocumentTitle } from '../hooks/useDocumentTitle';
 import { ALL_BOARDS, PRIMARY_BOARDS, SECONDARY_BOARDS } from '../data/boards';
 import { getLoginPathWithReturnTo, getRegisterPathWithReturnTo } from '../utils/authRoutes';
+import { toForumHref } from '../utils/forumBasePath';
+import { getForumNavigationHref } from '../utils/forumNavigation';
 
 type AdminTab = 'pins' | 'move' | 'members' | 'moderators' | 'tags' | 'medals';
 type NoticeKind = 'error' | 'info' | 'success';
@@ -327,7 +329,7 @@ function GlobalPinsPanel() {
             <article key={threadKey(pin)}>
               <span className="management-row-icon"><Pin size={15} /></span>
               <div className="management-row-main">
-                <a href={pin.url}>{pin.title}<ExternalLink size={12} /></a>
+                <a href={getForumNavigationHref(pin.url, window.location.href)}>{pin.title}<ExternalLink size={12} /></a>
                 <p><span>{pin.board}</span><i />作者 {pin.author}</p>
               </div>
               <button
@@ -1029,7 +1031,7 @@ function ThreadIdentity({ thread }: { thread: ManagementThread }) {
   return (
     <div className="management-thread-identity">
       <span>请确认帖子信息</span>
-      <a href={thread.url}>{thread.title}<ExternalLink size={12} /></a>
+      <a href={getForumNavigationHref(thread.url, window.location.href)}>{thread.title}<ExternalLink size={12} /></a>
       <dl>
         <div><dt>作者</dt><dd>{thread.author}</dd></div>
         <div><dt>当前版块</dt><dd>{thread.board}</dd></div>
@@ -1064,7 +1066,7 @@ function ManagementState({ children, icon, loginHref, registerHref, title }: {
       <h1>{title}</h1>
       {children ? <p>{children}</p> : null}
       <div className="management-state-actions">
-        <a href="/">返回首页</a>
+        <a href={toForumHref('/')}>返回首页</a>
         {loginHref && <a href={loginHref}>前往登录</a>}
         {registerHref && <a href={registerHref}>注册账号</a>}
       </div>

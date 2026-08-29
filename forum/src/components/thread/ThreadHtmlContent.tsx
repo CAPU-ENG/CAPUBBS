@@ -8,6 +8,7 @@ import {
 } from '../../utils/forumMarkup';
 import { useForumContentFontSize } from '../../hooks/useForumContentFontSize';
 import { FORUM_LOCATION_CHANGE_EVENT } from '../../utils/authRoutes';
+import { FORUM_BASE_PATH } from '../../utils/forumBasePath';
 import {
   FORUM_APP_EXACT_PATHS,
   FORUM_APP_PATH_PREFIXES,
@@ -356,6 +357,7 @@ function buildFrameBridgeScript(frameId: string, canOpenImages: boolean) {
   return `(function(){
     var frameId=${JSON.stringify(frameId)};
     var forumOrigin=${JSON.stringify(window.location.origin)};
+    var forumBasePath=${JSON.stringify(FORUM_BASE_PATH)};
     var canOpenImages=${JSON.stringify(canOpenImages)};
     var forumAppExactPaths=${JSON.stringify(FORUM_APP_EXACT_PATHS)};
     var forumAppPathPrefixes=${JSON.stringify(FORUM_APP_PATH_PREFIXES)};
@@ -404,7 +406,8 @@ function buildFrameBridgeScript(frameId: string, canOpenImages: boolean) {
         var host=url.hostname.toLowerCase();
         var trusted=url.origin===forumOrigin||host==='chexie.net'||host.endsWith('.chexie.net');
         var path=url.pathname.replace(/\\/{2,}/g,'/').replace(/\\/+$/,'')||'/';
-        var appPath=path.replace(/^\\/(?:bbs-new|capubbs-new)(?=\\/)/,'');
+        var appPath=path===forumBasePath?'/':path.indexOf(forumBasePath+'/')===0?path.slice(forumBasePath.length):path;
+        appPath=appPath.replace(/^\\/(?:bbs-new|capubbs-new)(?=\\/)/,'');
         var appRoute=forumAppExactPaths.indexOf(appPath)>=0||forumAppPathPrefixes.some(function(prefix){return appPath.indexOf(prefix)===0;});
         var legacyRoute=legacyForumExactPaths.indexOf(appPath)>=0||legacyForumPathPatterns.some(function(pattern){return pattern.test(appPath);});
         return trusted&&(appRoute||legacyRoute)?url.href:'';

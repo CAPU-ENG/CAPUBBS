@@ -13,6 +13,7 @@ import {
   type TagMember,
 } from '../../api/tags';
 import type { TagDefinition } from '../../data/tags';
+import { getForumNavigationHref } from '../../utils/forumNavigation';
 import { TagBadge } from '../tags/TagBadge';
 
 const MEMBER_ID_COLLATOR = new Intl.Collator('zh-CN', { numeric: true, sensitivity: 'base' });
@@ -350,7 +351,7 @@ export function TagManagementWorkspace() {
                   <div className="management-member-grid">
                     {sortedMembers.map((member) => (
                       <article className="management-member-card" key={member.username}>
-                        <a className="management-member-id" href={member.href}>{member.username}</a>
+                        <a className="management-member-id" href={getForumNavigationHref(member.href, window.location.href)}>{member.username}</a>
                         <time>{formatTagAddedAt(member.addedAt)}</time>
                         <button aria-label={`从${activeTag?.name ?? '标签'}移除${member.username}`} className="management-member-remove" disabled={Boolean(pendingAction)} onClick={() => removeMember(member.username)} title="移除会员" type="button"><X size={15} /></button>
                       </article>
@@ -373,7 +374,7 @@ export function TagManagementWorkspace() {
                 <strong>标签会员</strong>
                 {deleteTagMembersStatus === 'loading' ? <span>正在加载会员</span> : deleteTagMembersStatus === 'error' ? <span>会员加载失败</span> : deleteTagMembers.length > 0 ? (
                   <div className="management-delete-tag-member-list">
-                    {deleteTagMembers.map((member) => <a href={member.href} key={member.username}>{member.username}</a>)}
+                    {deleteTagMembers.map((member) => <a href={getForumNavigationHref(member.href, window.location.href)} key={member.username}>{member.username}</a>)}
                   </div>
                 ) : <span>暂无会员</span>}
               </div>

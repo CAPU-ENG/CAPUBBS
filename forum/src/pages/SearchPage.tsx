@@ -15,6 +15,8 @@ import { Pagination } from '../components/layout/Pagination';
 import { TopBar } from '../components/layout/TopBar';
 import { useSearchData, type SearchField, type SearchRequest, type SearchResult } from '../hooks/useSearchData';
 import { useDocumentTitle } from '../hooks/useDocumentTitle';
+import { toForumHref } from '../utils/forumBasePath';
+import { getThreadFloorHref, getThreadHref } from '../utils/threadRoutes';
 import { getPublicProfilePath } from '../utils/userRoutes';
 import { ALL_BOARDS } from '../data/boards';
 
@@ -32,7 +34,6 @@ type SearchOptions = {
 
 const SEARCH_PAGE_SIZE = 15;
 const SEARCH_HISTORY_KEY = 'capubbs-search-history:v1';
-const THREAD_FLOORS_PER_PAGE = 12;
 
 const boards = ALL_BOARDS;
 
@@ -306,17 +307,16 @@ function SearchResultRow({
   }
 
   const board = boards.find((item) => item.id === result.bid);
-  const floorPage = Math.max(1, Math.ceil(result.pid / THREAD_FLOORS_PER_PAGE));
   const href = field === 'body' && result.pid > 1
-    ? `/?bid=${result.bid}&tid=${result.tid}&p=${floorPage}#${result.pid}`
-    : `/?bid=${result.bid}&tid=${result.tid}&p=1`;
+    ? getThreadFloorHref(result.bid, result.tid, result.pid)
+    : getThreadHref(result.bid, result.tid);
 
   return (
     <article className="search-result-row">
       <div className="search-result-icon"><FileSearch size={18} /></div>
       <div className="search-result-body">
         <div className="search-result-meta">
-          <a href={`/?bid=${result.bid}`}>{board?.label ?? `版面 ${result.bid}`}</a>
+          <a href={toForumHref(`/?bid=${result.bid}`)}>{board?.label ?? `版面 ${result.bid}`}</a>
           <span>·</span>
           <a href={getPublicProfilePath(result.author)}>{result.author}</a>
           {field === 'body' ? <><span>·</span><em>{result.pid} 楼</em></> : null}
@@ -425,7 +425,7 @@ function searchHref(options: SearchOptions, page: number) {
   if (options.field !== 'user' && options.range === 'custom' && options.startDate) params.set('start', options.startDate);
   if (options.field !== 'user' && options.range === 'custom' && options.endDate) params.set('end', options.endDate);
   if (page > 1) params.set('page', String(page));
-  return `/search${params.size ? `?${params.toString()}` : ''}`;
+  return toForumHref(`/search${params.size ? `?${params.toString()}` : ''}`);
 }
 
 function resolveStartDate(options: SearchOptions) {

@@ -1,3 +1,5 @@
+import { toForumHref } from './forumBasePath.ts';
+
 const THREAD_PAGE_SIZE = 12;
 
 export function getThreadFloorFromHash(hash: string) {
@@ -24,14 +26,14 @@ export function getThreadHref(bid: number, tid: number) {
     p: '1',
     tid: String(tid),
   });
-  return `/?${params.toString()}`;
+  return toForumHref(`/?${params.toString()}`);
 }
 
 export function getThreadComposeHref(bid: number, tid?: number, kind: 'activity' | 'thread' = 'thread') {
   const params = new URLSearchParams({ bid: String(bid) });
   if (tid) params.set('tid', String(tid));
   if (!tid && kind === 'activity') params.set('kind', 'activity');
-  return `/post?${params.toString()}`;
+  return toForumHref(`/post?${params.toString()}`);
 }
 
 export function getThreadFloorHref(bid: number, tid: number, pid: number) {
@@ -40,7 +42,7 @@ export function getThreadFloorHref(bid: number, tid: number, pid: number) {
     p: String(getThreadPageForFloor(pid)),
     tid: String(tid),
   });
-  return `/?${params.toString()}#${pid}`;
+  return toForumHref(`/?${params.toString()}#${pid}`);
 }
 
 export function getThreadEditHref(bid: number, tid: number, pid: number) {
@@ -49,7 +51,7 @@ export function getThreadEditHref(bid: number, tid: number, pid: number) {
     pid: String(pid),
     tid: String(tid),
   });
-  return `/editpid?${params.toString()}`;
+  return toForumHref(`/editpid?${params.toString()}`);
 }
 
 export function getActivityManagementHref(bid: number, tid: number) {
@@ -57,5 +59,5 @@ export function getActivityManagementHref(bid: number, tid: number) {
     bid: String(bid),
     tid: String(tid),
   });
-  return `/activity-management?${params.toString()}`;
+  return toForumHref(`/activity-management?${params.toString()}`);
 }

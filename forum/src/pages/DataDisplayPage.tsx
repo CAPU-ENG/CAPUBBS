@@ -22,6 +22,7 @@ import { AppBackground } from '../components/layout/AppBackground';
 import { LoadingState } from '../components/layout/LoadingState';
 import { TopBar } from '../components/layout/TopBar';
 import { useDocumentTitle } from '../hooks/useDocumentTitle';
+import { getForumNavigationHref } from '../utils/forumNavigation';
 
 type LoadState = {
   data: DataDisplayResult | null;
@@ -138,7 +139,7 @@ function OnlineTable({ records }: { records: OnlineUser[] }) {
         <tbody>
           {records.map((record) => (
             <tr key={record.username}>
-              <td><a href={record.href}>{record.username}</a></td>
+              <td><a href={getForumNavigationHref(record.href, window.location.href)}>{record.username}</a></td>
               <td>{record.location}</td>
               <td>{record.loginType}</td>
               <td>{record.recentActiveAt}</td>
@@ -160,7 +161,7 @@ function CheckinTable({ records }: { records: CheckinRecord[] }) {
           {records.map((record) => (
             <tr key={record.username}>
               <td><RankNumber rank={record.rank} /></td>
-              <td><a href={record.href}>{record.username}</a></td>
+              <td><a href={getForumNavigationHref(record.href, window.location.href)}>{record.username}</a></td>
             </tr>
           ))}
           {records.length === 0 && <EmptyRow columns={2}>暂无签到记录</EmptyRow>}
@@ -179,7 +180,7 @@ function RankingTable({ records }: { records: CheckinRankingRecord[] }) {
           {records.map((record) => (
             <tr key={`${record.rank}-${record.username}`}>
               <td><RankNumber rank={record.rank} /></td>
-              <td><a href={record.href}>{record.username}</a></td>
+              <td><a href={getForumNavigationHref(record.href, window.location.href)}>{record.username}</a></td>
               <td>{record.totalCheckins} 次</td>
             </tr>
           ))}

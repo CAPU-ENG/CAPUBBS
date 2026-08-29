@@ -1,18 +1,21 @@
+import { toForumHref } from './forumBasePath.ts';
+
 export const PUBLIC_PROFILE_PATH = '/users';
 export const USER_CENTER_PATH = '/home';
+export const USER_CENTER_HREF = toForumHref(USER_CENTER_PATH);
 
 export function getPublicProfilePath(userId: string | null | undefined) {
   const normalizedUserId = normalizeProfileName(userId);
 
   if (!normalizedUserId) {
-    return PUBLIC_PROFILE_PATH;
+    return toForumHref(PUBLIC_PROFILE_PATH);
   }
 
-  return `${PUBLIC_PROFILE_PATH}/${encodeURIComponent(normalizedUserId)}`;
+  return toForumHref(`${PUBLIC_PROFILE_PATH}/${encodeURIComponent(normalizedUserId)}`);
 }
 
-export function getPublicProfileAppPath(userId: string | null | undefined, baseUrl = import.meta.env.BASE_URL) {
-  return `${normalizeBasePath(baseUrl)}${getPublicProfilePath(userId)}`;
+export function getPublicProfileAppPath(userId: string | null | undefined) {
+  return getPublicProfilePath(userId);
 }
 
 export function getPublicProfileNameFromLocation(pathname: string, search: string) {
@@ -48,12 +51,4 @@ function isPublicProfilePath(pathname: string) {
 
 function normalizeProfileName(userId: string | null | undefined) {
   return userId?.trim() ?? '';
-}
-
-function normalizeBasePath(baseUrl: string) {
-  if (!baseUrl || baseUrl === '/') {
-    return '';
-  }
-
-  return baseUrl.endsWith('/') ? baseUrl.slice(0, -1) : baseUrl;
 }

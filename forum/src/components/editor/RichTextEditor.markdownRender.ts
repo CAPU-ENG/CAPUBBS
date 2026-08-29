@@ -135,7 +135,7 @@ function parseMarkdownMention(state: StateInline, silent: boolean) {
 
   if (!silent) {
     const linkOpen = state.push('link_open', 'a', 1);
-    linkOpen.attrSet('href', getPublicProfileAppPath(username, '/'));
+    linkOpen.attrSet('href', getPublicProfileAppPath(username));
     const text = state.push('text', '', 0);
     text.content = `@${username}`;
     state.push('link_close', 'a', -1);

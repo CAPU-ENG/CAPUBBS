@@ -28,6 +28,7 @@ import {
   parseSignatureFloorLink,
   type SignatureFloorReference,
 } from '../../utils/signatureFloorLink';
+import { getForumNavigationHref } from '../../utils/forumNavigation';
 import {
   getRichTextEditorStorageValue,
   RichTextEditor,
@@ -261,7 +262,7 @@ export function ProfileWorkspace({
         <aside className="profile-workspace-aside">
           {activeTab !== 'signatures' ? <div className="profile-desktop-filter">{filterPanel}</div> : null}
           {asideLink ? (
-            <a className="profile-aside-link" href={asideLink.href}>
+            <a className="profile-aside-link" href={getForumNavigationHref(asideLink.href, window.location.href)}>
               <span>{asideLink.label}</span><ExternalLink size={15} />
             </a>
           ) : null}
@@ -354,7 +355,7 @@ function ProfileRecordRow({
   return (
     <article className="profile-record">
       <div className="profile-record-line">
-        <h3>{activeTab === 'signatures' ? record.title : <a href={record.href}>{record.title}</a>}</h3>
+        <h3>{activeTab === 'signatures' ? record.title : <a href={getForumNavigationHref(record.href, window.location.href)}>{record.title}</a>}</h3>
         {activeTab === 'activities' && record.status ? (
           <span className="profile-record-status" data-canceled={record.status === '已取消报名' ? 'true' : undefined}>
             {record.status}
@@ -365,7 +366,7 @@ function ProfileRecordRow({
           <div className="profile-record-actions profile-draft-actions">
             <a
               aria-disabled={deleting || undefined}
-              href={deleting ? undefined : record.draftHref ?? record.href}
+              href={deleting ? undefined : getForumNavigationHref(record.draftHref ?? record.href, window.location.href)}
               onClick={(event) => { if (deleting) event.preventDefault(); }}
             >
               <RotateCcw size={13} />恢复草稿

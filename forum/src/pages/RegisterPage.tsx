@@ -28,6 +28,7 @@ import { useAuth } from '../context/AuthContext';
 import { getAuthPathWithReturnTo, getAuthReturnTo, replaceForumLocation } from '../utils/authRoutes';
 import { normalizeLegacyAvatar } from '../utils/legacyAssets';
 import { md5LegacyStringHex } from '../utils/md5';
+import { getThreadHref } from '../utils/threadRoutes';
 
 const PKU_EMAIL_PATTERN = /^\d{10}@(?:(?:.+\.)?pku\.edu\.cn|bjmu\.edu\.cn)$/i;
 const AVATAR_OPTIONS = [
@@ -256,7 +257,7 @@ export function RegisterPage() {
                   <small>
                     {getUsernameHint(usernameState)}
                     {' · '}
-                    <a href="/?bid=2&tid=6205" target="_blank" rel="noreferrer">如何取一个好的 ID？</a>
+                    <a href={getThreadHref(2, 6205)} target="_blank" rel="noreferrer">如何取一个好的 ID？</a>
                   </small>
                 </label>
 

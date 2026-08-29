@@ -27,6 +27,7 @@ import {
 } from '../api/thread';
 import { useAuth } from '../context/AuthContext';
 import { useDocumentTitle } from '../hooks/useDocumentTitle';
+import { toForumHref } from '../utils/forumBasePath';
 import { getLoginPathWithReturnTo, getRegisterPathWithReturnTo } from '../utils/authRoutes';
 import { normalizeFloorQuotesForLegacyStorage } from '../utils/floorQuote';
 import { getThreadFloorHref } from '../utils/threadRoutes';
@@ -95,7 +96,7 @@ export function ThreadEditPage() {
   }, [authStatus, request]);
 
   const isMainPost = floor?.pid === 1;
-  const backHref = request ? getThreadFloorHref(request.bid, request.tid, request.pid) : '/';
+  const backHref = request ? getThreadFloorHref(request.bid, request.tid, request.pid) : toForumHref('/');
   const displayTitle = floor ? (isMainPost ? title.trim() || floor.title : floor.title) : '';
   useDocumentTitle(!request
     ? '无法确定编辑对象'
@@ -197,7 +198,7 @@ export function ThreadEditPage() {
       <main className="thread-edit-page-shell">
         {!request ? (
           <EditRequestState
-            backHref="/"
+            backHref={toForumHref('/')}
             description="当前地址缺少有效的版块、帖子或楼层编号。"
             title="无法确定编辑对象"
           />

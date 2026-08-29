@@ -40,4 +40,6 @@ npm ci
 npm run build
 ```
 
-将 `forum/dist` 部署到 Web 服务器，并确保 `/api`、`/assets`、`/bbs` 和 `/bbsimg` 仍由 PHP 站点处理。部署 PHP 配置或前端文件后，重启 PHP-FPM/Web 服务器并清理可能存在的旧缓存。
+将 `forum/dist` 的内容部署到 Web 服务器的 `/forum/` 目录，并将 `/forum/*` 中不存在的静态文件回退到 `/forum/index.html`。`/api`、旧站 `/assets`、`/bbs` 和 `/bbsimg` 继续由域名根目录下的 PHP 站点处理。部署 PHP 配置或前端文件后，重启 PHP-FPM/Web 服务器并清理可能存在的旧缓存。
+
+新论坛生成的页面地址统一以 `/forum/` 为前缀；Web 服务器还应将 `/forum` 规范重定向到 `/forum/`。

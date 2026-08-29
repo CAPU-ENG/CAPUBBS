@@ -30,6 +30,7 @@ import {
   type MedalMemberCheck,
 } from '../../api/medals';
 import { getPublicProfilePath } from '../../utils/userRoutes';
+import { getForumNavigationHref } from '../../utils/forumNavigation';
 import { MedalDesignerPanel } from './MedalDesignerPanel';
 import { type MedalDraft, type MedalTextureId } from './medalDesign';
 
@@ -478,7 +479,7 @@ function MemberList({
             <tr><td className="management-medal-table-empty" colSpan={4}>成员加载失败</td></tr>
           ) : members.length > 0 ? members.map((member) => (
             <tr key={member.username}>
-              <td><a href={member.href}>{member.username}</a></td>
+              <td><a href={getForumNavigationHref(member.href, window.location.href)}>{member.username}</a></td>
               <td>{member.role}</td>
               <td>{formatDate(member.awardedAt)}</td>
               <td><button aria-label={`移除${member.username}的勋章`} className="management-medal-member-remove" disabled={disabled} onClick={() => onRemove(member)} title="移除成员" type="button"><X size={15} /></button></td>
@@ -520,7 +521,7 @@ function SingleImportPanel({
         <div className="management-medal-check-result" data-state={check.state.replace('_', '-')}>
           {check.state === 'available' ? <BadgeCheck size={18} /> : <CircleAlert size={18} />}
           <div>
-            <a href={check.member?.href ?? getPublicProfilePath(check.username)}>{check.member?.username ?? check.username}</a>
+            <a href={getForumNavigationHref(check.member?.href ?? getPublicProfilePath(check.username), window.location.href)}>{check.member?.username ?? check.username}</a>
             <span>{checkLabel(check)}</span>
           </div>
         </div>
@@ -591,7 +592,7 @@ function BatchImportPanel({
                 <tr key={row.username}>
                   <td>
                     <div className="management-medal-batch-id">
-                      <a href={row.member?.href ?? getPublicProfilePath(row.username)}>{row.username}</a>
+                      <a href={getForumNavigationHref(row.member?.href ?? getPublicProfilePath(row.username), window.location.href)}>{row.username}</a>
                       <span data-state={row.state.replace('_', '-')}>{row.state === 'available' ? <BadgeCheck size={13} /> : <CircleAlert size={13} />}{batchCheckLabel(row)}</span>
                     </div>
                   </td>

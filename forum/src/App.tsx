@@ -11,6 +11,7 @@ import { SettingsPage } from './pages/SettingsPage';
 import { ToolboxPage } from './pages/ToolboxPage';
 import { FORUM_LOCATION_CHANGE_EVENT } from './utils/authRoutes';
 import { consumeQueuedLocalDraftCleanups } from './utils/draftCleanup';
+import { stripForumBasePath } from './utils/forumBasePath';
 import { applyForumContentFontSize } from './utils/forumFontSize';
 import { resolveForumAppRoute } from './utils/forumNavigation';
 import { translateLegacyForumThreadHref } from './utils/legacyForumRoutes';
@@ -162,7 +163,7 @@ function ForumRouter() {
     };
   }, []);
 
-  const pathname = normalizePathname(window.location.pathname);
+  const pathname = normalizePathname(stripForumBasePath(window.location.pathname));
   const params = new URLSearchParams(window.location.search);
   if (pathname === '/login') return <LoginPage />;
   if (pathname === '/register') return <RegisterPage />;

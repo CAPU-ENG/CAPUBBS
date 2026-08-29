@@ -14,6 +14,7 @@ import { useAuth } from '../context/AuthContext';
 import { useBoardData } from '../hooks/useBoardData';
 import { useDocumentTitle } from '../hooks/useDocumentTitle';
 import { useScrollContextTitle } from '../hooks/useScrollContextTitle';
+import { toForumHref } from '../utils/forumBasePath';
 import { getPublicProfilePath } from '../utils/userRoutes';
 import { getThreadComposeHref } from '../utils/threadRoutes';
 import { getThreadTitleClassName } from '../utils/threadTitleTypography';
@@ -34,7 +35,7 @@ function boardPageHref(boardId: number, page: number, digestOnly: boolean) {
   params.set('bid', String(boardId));
   if (page > 1) params.set('p', String(page));
   if (digestOnly) params.set('digest', '1');
-  return `/?${params.toString()}`;
+  return toForumHref(`/?${params.toString()}`);
 }
 
 function threadHref(thread: BoardThreadData) {
@@ -43,7 +44,7 @@ function threadHref(thread: BoardThreadData) {
     p: '1',
     tid: String(thread.id),
   });
-  return `/?${params.toString()}`;
+  return toForumHref(`/?${params.toString()}`);
 }
 
 function ExactTime({ label, value }: { label: string; value: string }) {

@@ -10,7 +10,8 @@ import { useMemo, useState, type ReactNode } from 'react';
 import { createPortal } from 'react-dom';
 import { LoadingSpinner as LoaderCircle } from '../layout/LoadingSpinner';
 import type { ForumMessage, MessageCategory, MessageSummary } from '../../types/messages';
-import { getPublicProfilePath, USER_CENTER_PATH } from '../../utils/userRoutes';
+import { getForumNavigationHref } from '../../utils/forumNavigation';
+import { getPublicProfilePath, USER_CENTER_HREF } from '../../utils/userRoutes';
 
 const MESSAGE_TABS: Array<{ icon: ReactNode; key: MessageCategory; label: string }> = [
   { icon: <MessageCircleReply size={16} />, key: 'replies', label: '回复' },
@@ -166,6 +167,7 @@ function MessageCard({
   const isDirect = message.category === 'direct';
   const grantEvent = message.systemEvent ?? null;
   const grantName = grantEvent?.kind === 'tag-granted' ? grantEvent.tagName : grantEvent?.medalName;
+  const messageHref = getForumNavigationHref(message.href, window.location.href);
   const markRead = () => onMarkMessageRead(message.id);
 
   return (
@@ -179,7 +181,7 @@ function MessageCard({
               {grantEvent.kind === 'tag-granted' ? ' 为你添加了“' : ' 为你发放了“'}
               {grantName}
               {grantEvent.kind === 'tag-granted' ? '”标签，可前往' : '”勋章，可前往'}
-              <a href={USER_CENTER_PATH} onClick={markRead}>个人中心</a>
+              <a href={USER_CENTER_HREF} onClick={markRead}>个人中心</a>
               查看。
             </strong>
           ) : (
@@ -188,7 +190,7 @@ function MessageCard({
           <time>{message.time}</time>
         </header>
         {message.context && (
-          <a href={message.href} onClick={() => onMarkMessageRead(message.id)}>{message.context}</a>
+          <a href={messageHref} onClick={() => onMarkMessageRead(message.id)}>{message.context}</a>
         )}
         {isDirect && <p>{message.excerpt}</p>}
         <div className="message-card-actions">
@@ -200,7 +202,7 @@ function MessageCard({
               打开对话
             </button>
           ) : (
-            <a href={message.href} onClick={markRead}>打开</a>
+            <a href={messageHref} onClick={markRead}>打开</a>
           )}
         </div>
       </div>

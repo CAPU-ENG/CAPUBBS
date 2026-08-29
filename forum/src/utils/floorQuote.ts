@@ -1,4 +1,5 @@
 import type { RichTextEditorValue } from '../components/editor/RichTextEditor';
+import { toForumHref } from './forumBasePath.ts';
 
 const FLOOR_QUOTE_COMMENT_PREFIX = 'capubbs:quote ';
 
@@ -227,7 +228,7 @@ function normalizeFloorQuoteHref(value: string | undefined) {
     ?? positiveInteger(url.searchParams.get('page'))
     ?? Math.ceil(floor / 12);
   const params = new URLSearchParams({ bid: String(bid), tid: String(tid), p: String(page) });
-  return `/?${params.toString()}#${floor}`;
+  return toForumHref(`/?${params.toString()}#${floor}`);
 }
 
 function normalizeFloorNumber(value: number | undefined) {

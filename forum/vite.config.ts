@@ -1,7 +1,9 @@
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
+import { FORUM_BASE_URL } from './src/utils/forumBasePath';
 
 export default defineConfig({
+  base: FORUM_BASE_URL,
   plugins: [react()],
   server: {
     proxy: {

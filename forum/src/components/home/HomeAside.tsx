@@ -4,6 +4,8 @@ import type { HomeCalendarEvent, HomeSignupActivity, HomeThread } from '../../ap
 import { useAuth } from '../../context/AuthContext';
 import type { HomeDataStatus } from '../../hooks/useHomeData';
 import { canManageCalendar } from '../../utils/calendarManagement';
+import { toForumHref } from '../../utils/forumBasePath';
+import { getForumNavigationHref } from '../../utils/forumNavigation';
 
 const HOME_CALENDAR_MIN_YEAR = 1995;
 const HOME_CALENDAR_MONTHS = Array.from({ length: 12 }, (_item, month) => ({
@@ -66,7 +68,7 @@ function PinnedPanel({ items, readThreadIds }: PinnedProps) {
       <ul className="pinned-list">
         {items.map((thread) => (
           <li key={thread.id}>
-            <a href={thread.href}>
+            <a href={getForumNavigationHref(thread.href, window.location.href)}>
               {!readThreadIds.has(thread.id) && <span>新</span>}
               <strong>{thread.title}</strong>
               <ChevronRight size={14} />
@@ -98,7 +100,7 @@ export function ActivitySignupList({
         const upcoming = new Date(activity.startsAt).getTime() > now;
         const countdownTarget = upcoming ? activity.startsAt : activity.endsAt;
         return (
-          <a className="signup-activity-card" href={activity.href} key={activity.id}>
+          <a className="signup-activity-card" href={getForumNavigationHref(activity.href, window.location.href)} key={activity.id}>
             <div className="signup-card-topline">
               <span>{formatActivityDateRange(activity.activityStartsOn, activity.activityEndsOn)}</span>
               <em>{upcoming ? '即将开始' : '报名中'}</em>
@@ -229,7 +231,7 @@ export function ActivityCalendar({ compact = false, error, items, status }: Cale
           <span className="aside-card-icon"><CalendarDays size={15} /></span>
           <h2 id="calendar-title">活动日历</h2>
           {authStatus === 'authenticated' && canManageCalendar(viewer?.username, viewer?.rights) ? (
-            <a className="calendar-manage-link" href="/calendar-admin">
+            <a className="calendar-manage-link" href={toForumHref('/calendar-admin')}>
               <Settings size={13} />管理
             </a>
           ) : null}
@@ -348,7 +350,7 @@ export function ActivityCalendar({ compact = false, error, items, status }: Cale
             </>
           );
           return activity.url ? (
-            <a href={activity.url} key={activity.id}>{content}</a>
+            <a href={getForumNavigationHref(activity.url, window.location.href)} key={activity.id}>{content}</a>
           ) : (
             <article key={activity.id}>{content}</article>
           );

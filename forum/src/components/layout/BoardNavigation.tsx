@@ -24,6 +24,7 @@ import logo1 from '../../assets/logo/logo1.webp';
 import logo2 from '../../assets/logo/logo2.webp';
 import { fetchRandomThread } from '../../api/randomThread';
 import { PRIMARY_BOARDS, SECONDARY_BOARDS } from '../../data/boards';
+import { toForumHref } from '../../utils/forumBasePath';
 
 const boardIcons: Record<number, LucideIcon> = {
   1: Megaphone,
@@ -38,7 +39,7 @@ const boardIcons: Record<number, LucideIcon> = {
 };
 
 function boardHref(id: number) {
-  return `/?bid=${id}`;
+  return toForumHref(`/?bid=${id}`);
 }
 
 function RandomThreadButton({ onNavigate }: { onNavigate: () => void }) {
@@ -51,7 +52,7 @@ function RandomThreadButton({ onNavigate }: { onNavigate: () => void }) {
     try {
       const { bid, tid } = await fetchRandomThread();
       onNavigate();
-      window.location.assign(`/?bid=${bid}&tid=${tid}&p=1`);
+      window.location.assign(toForumHref(`/?bid=${bid}&tid=${tid}&p=1`));
     } catch (error) {
       window.alert(error instanceof Error ? error.message : '随机帖子加载失败，请稍后重试。');
     } finally {
@@ -100,14 +101,14 @@ export function DesktopBoardDrawer({ onNavigate }: { onNavigate: () => void }) {
       </div>
 
       <div className="board-drawer-section flex flex-wrap items-center gap-2 border-t border-[var(--line)]">
-        <a className="supplement-link" href="/data" onClick={onNavigate}>
+        <a className="supplement-link" href={toForumHref('/data')} onClick={onNavigate}>
           <BarChart3 size={15} /> 数据展示
         </a>
-        <a className="supplement-link" href="/toolbox" onClick={onNavigate}>
+        <a className="supplement-link" href={toForumHref('/toolbox')} onClick={onNavigate}>
           <Wrench size={15} /> 工具箱
         </a>
         <RandomThreadButton onNavigate={onNavigate} />
-        <a className="supplement-link" href="/archive-room" onClick={onNavigate}>
+        <a className="supplement-link" href={toForumHref('/archive-room')} onClick={onNavigate}>
           <Archive size={15} /> 档案室
         </a>
         <a className="supplement-link" href="https://www.chexie.space/" onClick={onNavigate}>
@@ -134,7 +135,7 @@ export function MobileBoardSidebar({
       className={`mobile-sidebar ${open ? 'mobile-sidebar-open' : ''}`}
     >
       <div className="flex h-16 items-center border-b border-[var(--line)] px-4">
-        <a className="flex min-w-0 items-center gap-0.5" href="/" onClick={onClose}>
+        <a className="flex min-w-0 items-center gap-0.5" href={toForumHref('/')} onClick={onClose}>
           <img src={logo1} alt="" className="h-7 w-auto" />
           <img src={logo2} alt="车协论坛" className="mobile-sidebar-wordmark h-7 w-[76px] object-cover object-center" />
         </a>
@@ -167,14 +168,14 @@ export function MobileBoardSidebar({
         </div>
 
         <div className="mt-6 flex flex-wrap gap-2 border-t border-[var(--line)] pt-5">
-          <a className="supplement-link" href="/data" onClick={onClose}>
+          <a className="supplement-link" href={toForumHref('/data')} onClick={onClose}>
             <BarChart3 size={16} /> 数据展示
           </a>
-          <a className="supplement-link" href="/toolbox" onClick={onClose}>
+          <a className="supplement-link" href={toForumHref('/toolbox')} onClick={onClose}>
             <Wrench size={16} /> 工具箱
           </a>
           <RandomThreadButton onNavigate={onClose} />
-          <a className="supplement-link" href="/archive-room" onClick={onClose}>
+          <a className="supplement-link" href={toForumHref('/archive-room')} onClick={onClose}>
             <Archive size={16} /> 档案室
           </a>
           <a className="supplement-link" href="https://www.chexie.space/" onClick={onClose}>
@@ -184,7 +185,7 @@ export function MobileBoardSidebar({
 
         {showGuestLinks && (
           <div className="mobile-sidebar-guest-links">
-            <a className="supplement-link" href="/settings" onClick={onClose}>
+            <a className="supplement-link" href={toForumHref('/settings')} onClick={onClose}>
               <Settings size={16} /> 设置
             </a>
             <a

@@ -19,6 +19,7 @@ import { useAuth } from '../context/AuthContext';
 import { useDocumentTitle } from '../hooks/useDocumentTitle';
 import { canManageCalendar, saveCalendarEventsForDate } from '../utils/calendarManagement';
 import { getLoginPathWithReturnTo, getRegisterPathWithReturnTo } from '../utils/authRoutes';
+import { toForumHref } from '../utils/forumBasePath';
 
 type CalendarFormState = {
   date: string;
@@ -235,7 +236,7 @@ export function CalendarAdminPage() {
                 </div>
               </div>
               <div className="calendar-admin-heading-actions">
-                <a href="/"><ArrowLeft size={15} />返回首页</a>
+                <a href={toForumHref('/')}><ArrowLeft size={15} />返回首页</a>
               </div>
             </header>
 
@@ -362,7 +363,7 @@ function CalendarAdminState({
       <h1>{title}</h1>
       {children ? <p>{children}</p> : null}
       <div className="calendar-admin-state-actions">
-        <a href="/"><ArrowLeft size={15} />返回首页</a>
+        <a href={toForumHref('/')}><ArrowLeft size={15} />返回首页</a>
         {authStatus === 'guest' && <a href={getLoginPathWithReturnTo()}>前往登录</a>}
         {authStatus === 'guest' && <a href={getRegisterPathWithReturnTo()}>注册账号</a>}
       </div>

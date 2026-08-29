@@ -3,6 +3,7 @@ import {
   translateLegacyForumPageHref,
   translateLegacyForumThreadHref,
 } from './legacyForumRoutes.ts';
+import { stripForumBasePath, toForumHref } from './forumBasePath.ts';
 import { USER_CENTER_PATH } from './userRoutes.ts';
 
 export const FORUM_APP_EXACT_PATHS = [
@@ -80,7 +81,11 @@ export function resolveForumAppRoute(value: string, currentUrl: string) {
   if (!['http:', 'https:'].includes(url.protocol) || !isTrustedForumUrl(url, baseUrl)) return null;
   const pathname = stripKnownForumMountPrefix(normalizePathname(url.pathname));
   if (!isForumAppPath(pathname)) return null;
-  return `${pathname}${url.search}${url.hash}`;
+  return toForumHref(`${pathname}${url.search}${url.hash}`);
+}
+
+export function getForumNavigationHref(value: string, currentUrl: string) {
+  return resolveForumAppRoute(value, currentUrl) ?? value;
 }
 
 export function isForumAppPath(pathname: string) {
@@ -90,6 +95,9 @@ export function isForumAppPath(pathname: string) {
 }
 
 function stripKnownForumMountPrefix(pathname: string) {
+  const currentPathname = stripForumBasePath(pathname);
+  if (currentPathname !== pathname) return currentPathname;
+
   for (const prefix of ['/bbs-new', '/capubbs-new']) {
     if (pathname === prefix) return '/';
     if (pathname.startsWith(`${prefix}/`)) return pathname.slice(prefix.length);
