@@ -1,10 +1,10 @@
 import { lazy, Suspense, useEffect, useReducer } from 'react';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { BrowserRecommendationDialog } from './components/browser/BrowserRecommendationDialog';
-import { RouteLoadingPage } from './components/layout/LoadingState';
+import { AppBackground } from './components/layout/AppBackground';
+import { LoadingState, RouteLoadingPage } from './components/layout/LoadingState';
+import { TopBar } from './components/layout/TopBar';
 import { useForumContentFontSize } from './hooks/useForumContentFontSize';
-import { ArchiveRoomPage } from './pages/ArchiveRoomPage';
-import { DataDisplayPage } from './pages/DataDisplayPage';
 import { HomePage } from './pages/HomePage';
 import { SearchPage } from './pages/SearchPage';
 import { SettingsPage } from './pages/SettingsPage';
@@ -18,8 +18,10 @@ import { getThreadFloorElement, getThreadFloorFromHash } from './utils/threadRou
 import { getPublicProfileNameFromLocation, USER_CENTER_PATH } from './utils/userRoutes';
 
 const loadActivityManagementPage = () => import('./pages/ActivityManagementPage');
+const loadArchiveRoomPage = () => import('./pages/ArchiveRoomPage');
 const loadBoardPage = () => import('./pages/BoardPage');
 const loadCalendarAdminPage = () => import('./pages/CalendarAdminPage');
+const loadDataDisplayPage = () => import('./pages/DataDisplayPage');
 const loadLoginPage = () => import('./pages/LoginPage');
 const loadManagementPage = () => import('./pages/ManagementPage');
 const loadPublicProfilePage = () => import('./pages/PublicProfilePage');
@@ -31,8 +33,10 @@ const loadUserCenterPage = () => import('./pages/UserCenterPage');
 
 const remainingForumPageLoaders = [
   loadActivityManagementPage,
+  loadArchiveRoomPage,
   loadBoardPage,
   loadCalendarAdminPage,
+  loadDataDisplayPage,
   loadLoginPage,
   loadManagementPage,
   loadPublicProfilePage,
@@ -46,10 +50,14 @@ let pagePreloadPromise: Promise<void> | undefined;
 
 const ActivityManagementPage = lazy(() => loadActivityManagementPage()
   .then((module) => ({ default: module.ActivityManagementPage })));
+const ArchiveRoomPage = lazy(() => loadArchiveRoomPage()
+  .then((module) => ({ default: module.ArchiveRoomPage })));
 const BoardPage = lazy(() => loadBoardPage()
   .then((module) => ({ default: module.BoardPage })));
 const CalendarAdminPage = lazy(() => loadCalendarAdminPage()
   .then((module) => ({ default: module.CalendarAdminPage })));
+const DataDisplayPage = lazy(() => loadDataDisplayPage()
+  .then((module) => ({ default: module.DataDisplayPage })));
 const LoginPage = lazy(() => loadLoginPage()
   .then((module) => ({ default: module.LoginPage })));
 const ManagementPage = lazy(() => loadManagementPage()
@@ -162,9 +170,21 @@ function ForumRouter() {
   if (pathname === '/settings') return <SettingsPage />;
   if (pathname === '/calendar-admin') return <CalendarAdminPage />;
   if (pathname === '/manage') return <ManagementPage />;
-  if (pathname === '/data') return <DataDisplayPage />;
+  if (pathname === '/data') {
+    return (
+      <Suspense fallback={<DataDisplayRouteLoading />}>
+        <DataDisplayPage />
+      </Suspense>
+    );
+  }
   if (pathname === '/activity-management') return <ActivityManagementPage />;
-  if (pathname === '/archive-room') return <ArchiveRoomPage />;
+  if (pathname === '/archive-room') {
+    return (
+      <Suspense fallback={<ArchiveRoomRouteLoading />}>
+        <ArchiveRoomPage />
+      </Suspense>
+    );
+  }
   if (pathname === '/toolbox') return <ToolboxPage />;
   if (isThreadComposePath(pathname)) return <ThreadComposePage />;
   if (isThreadEditPath(pathname)) return <ThreadEditPage />;
@@ -190,6 +210,30 @@ function HomeRoute() {
   }, []);
 
   return <HomePage />;
+}
+
+function DataDisplayRouteLoading() {
+  return (
+    <div className="data-display-page relative min-h-screen text-[var(--text)] transition-colors duration-200">
+      <AppBackground />
+      <TopBar contextHref="#data-display" contextTitle="数据展示" />
+      <main className="data-display-shell" id="data-display">
+        <LoadingState className="data-display-state" label="正在打开数据展示" variant="panel" />
+      </main>
+    </div>
+  );
+}
+
+function ArchiveRoomRouteLoading() {
+  return (
+    <div className="archive-room-page relative min-h-screen text-[var(--text)] transition-colors duration-200">
+      <AppBackground />
+      <TopBar contextHref="#archive-room-title" contextTitle="档案室" />
+      <main className="archive-room-shell" id="archive-room-title">
+        <LoadingState label="正在打开档案室" variant="panel" />
+      </main>
+    </div>
+  );
 }
 
 function isThreadComposePath(pathname: string) {

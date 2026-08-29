@@ -15,6 +15,10 @@
     max-width: 100%;
   }
 
+  .thread-reply-loading {
+    margin-top: 18px;
+  }
+
   .reply-editor-heading {
     display: flex;
     align-items: center;

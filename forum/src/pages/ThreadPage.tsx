@@ -1,7 +1,6 @@
-import { Fragment, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
+import { Fragment, lazy, Suspense, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { ArrowUpToLine, Bookmark, BookmarkCheck, Check, Eye, EyeOff, Link2, MessageCircle, RotateCw, Settings } from 'lucide-react';
-import { ActivitySignupForm } from '../components/thread/ActivitySignupForm';
-import { ReplyEditor, type QuoteRequest } from '../components/thread/ReplyEditor';
+import type { QuoteRequest } from '../components/thread/ReplyEditor';
 import { ThreadFloor } from '../components/thread/ThreadFloor';
 import { FloorNodes, MobileFloorNode, ThreadPagination } from '../components/thread/ThreadNavigation';
 import { AppBackground } from '../components/layout/AppBackground';
@@ -42,6 +41,11 @@ import { markThreadRead } from '../utils/threadReadState';
 import { isActivityPhoneQuestion, maskActivitySignupFloor } from '../utils/activityPhonePrivacy';
 import { getPublicProfilePath } from '../utils/userRoutes';
 import { getFloorDecorationPath } from '../data/floorDecoration';
+
+const ActivitySignupForm = lazy(() => import('../components/thread/ActivitySignupForm')
+  .then((module) => ({ default: module.ActivitySignupForm })));
+const ReplyEditor = lazy(() => import('../components/thread/ReplyEditor')
+  .then((module) => ({ default: module.ReplyEditor })));
 
 function getThreadRequest() {
   const params = new URLSearchParams(window.location.search);
@@ -419,18 +423,20 @@ export function ThreadPage() {
                   viewer={data.viewer}
                 />
                 {floor.floor === 1 && data.activity && (
-                  <ActivitySignupForm
-                    activity={data.activity}
-                    bid={data.bid}
-                    floors={pageFloors}
-                    locked={data.locked}
-                    loginHref={loginHref}
-                    registerHref={registerHref}
-                    signatures={data.viewerSignatures}
-                    threadTitle={data.title}
-                    tid={data.tid}
-                    viewer={data.viewer}
-                  />
+                  <Suspense fallback={<LoadingState label="正在准备报名表单" variant="panel" />}>
+                    <ActivitySignupForm
+                      activity={data.activity}
+                      bid={data.bid}
+                      floors={pageFloors}
+                      locked={data.locked}
+                      loginHref={loginHref}
+                      registerHref={registerHref}
+                      signatures={data.viewerSignatures}
+                      threadTitle={data.title}
+                      tid={data.tid}
+                      viewer={data.viewer}
+                    />
+                  </Suspense>
                 )}
               </Fragment>
             ))}
@@ -475,19 +481,21 @@ export function ThreadPage() {
         </div>
 
         {!data.isActivity && (data.canReply && data.viewer ? (
-          <ReplyEditor
-            bid={data.bid}
-            board={data.board}
-            boardHref={data.boardHref}
-            editorRef={editorRef}
-            ownerKey={data.viewer.name}
-            previewAuthor={data.viewer}
-            previewFloor={data.replies + 2}
-            previewSignatures={data.viewerSignatures}
-            quoteRequest={quoteRequest}
-            tid={data.tid}
-            threadTitle={data.title}
-          />
+          <Suspense fallback={<LoadingState className="thread-reply-loading" label="正在准备回复编辑器" variant="panel" />}>
+            <ReplyEditor
+              bid={data.bid}
+              board={data.board}
+              boardHref={data.boardHref}
+              editorRef={editorRef}
+              ownerKey={data.viewer.name}
+              previewAuthor={data.viewer}
+              previewFloor={data.replies + 2}
+              previewSignatures={data.viewerSignatures}
+              quoteRequest={quoteRequest}
+              tid={data.tid}
+              threadTitle={data.title}
+            />
+          </Suspense>
         ) : (
           <section className="thread-reply-unavailable">
             <strong>{data.locked ? '本主题已锁定' : starRestricted ? `本版回复至少需要 ${data.requiredStars} 星` : '登录后参与回复'}</strong>
