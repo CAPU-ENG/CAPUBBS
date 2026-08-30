@@ -47,6 +47,43 @@ input.button{
     color: #be0000;
     text-align: center;
 }
+.reset-panel{
+    box-sizing: border-box;
+    display: none;
+    width: 360px;
+    margin: 22px auto 0;
+    padding: 14px 18px;
+    border: 1px solid rgba(255,255,255,0.75);
+    border-radius: 10px;
+    background: rgba(255,255,255,0.86);
+    color: #333;
+}
+.reset-panel h2{
+    margin: 0 0 12px;
+    text-align: center;
+    font-size: 18px;
+}
+.reset-row{
+    margin-top: 9px;
+    white-space: nowrap;
+}
+.reset-row label{
+    display: inline-block;
+    width: 82px;
+}
+.reset-row input.text{
+    box-sizing: border-box;
+    width: 190px;
+}
+.reset-actions{
+    margin-top: 12px;
+    text-align: center;
+}
+.reset-help,
+.reset-msg{
+    margin-top: 9px;
+    font-size: 12px;
+}
 </style>
 </head>
 <body>
@@ -65,8 +102,32 @@ input.button{
 </form>
 <div id="tip" class="tip">
 <?php echo(@$_GET['tip']); ?>
-</span>
 </div>
+</div>
+<?php if (CAPUBBS_ENABLE_EMAIL_VERIFY): ?>
+<div id="resetPanel" class="reset-panel">
+    <h2>重置密码</h2>
+    <div class="reset-row">
+        <label for="resetUsername">用户名：</label>
+        <input id="resetUsername" type="text" class="text" autocomplete="username">
+    </div>
+    <div class="reset-row">
+        <label for="resetEmail">注册邮箱：</label>
+        <input id="resetEmail" type="text" class="text" autocomplete="email">
+    </div>
+    <div class="reset-row">
+        <label for="resetCode">验证码：</label>
+        <input id="resetCode" type="text" class="text" autocomplete="one-time-code">
+    </div>
+    <div class="reset-actions">
+        <input type="button" value="发送验证码" class="button" id="resetSendBtn" onclick="sendResetCode()">
+        <input type="button" value="重置密码" class="button" onclick="resetPassword()">
+        <span id="resetCountdown"></span>
+    </div>
+    <div id="resetMsg" class="reset-msg"></div>
+    <div class="reset-help">无法通过邮箱重设？联系管理员：<a href="mailto:<?php echo ADMIN_EMAIL; ?>"><?php echo ADMIN_EMAIL; ?></a></div>
+</div>
+<?php endif; ?>
 </div>
 <script type="text/javascript" src="../lib/md5.js"></script>
 <script src="../lib/jquery.min.js"></script>
@@ -117,18 +178,7 @@ function check(){
 }
 function forget() {
     <?php if (CAPUBBS_ENABLE_EMAIL_VERIFY): ?>
-    var html = '<div style="margin-top:15px;text-align:left;">' +
-        '<p style="font-size:13px;">第一步：输入注册邮箱，发送验证码</p>' +
-        '<input id="resetEmail" type="text" class="text" placeholder="请输入PKU邮箱" style="width:200px;">' +
-        '<input type="button" value="发送验证码" class="button" id="resetSendBtn" onclick="sendResetCode()" style="margin-left:5px;">' +
-        '<span id="resetCountdown" style="font-size:12px;color:#999;margin-left:5px;"></span>' +
-        '<p style="font-size:13px;margin-top:10px;">第二步：输入验证码，重置密码</p>' +
-        '<input id="resetCode" type="text" class="text" placeholder="6位验证码" style="width:200px;">' +
-        '<input type="button" value="重置密码" class="button" onclick="resetPassword()" style="margin-left:5px;">' +
-        '<p style="font-size:12px;color:#999;margin-top:5px;">密码将重置为 123456，请登录后尽快修改。</p>' +
-        '<div id="resetMsg" style="font-size:12px;margin-top:5px;"></div>' +
-        '</div>';
-    $('#tip').html(html);
+    $('#resetPanel').toggle();
     <?php else: ?>
     $('#tip').html('请联系管理员，邮箱：<a href="mailto:<?php echo ADMIN_EMAIL; ?>"><?php echo ADMIN_EMAIL; ?></a>');
     <?php endif; ?>
@@ -138,8 +188,9 @@ function forget() {
 var resetCountdownTimer = null;
 
 function sendResetCode() {
+    var username = $('#resetUsername').val().trim();
     var email = $('#resetEmail').val().trim();
-    if (!email) { $('#resetMsg').css('color','#be0000').text('请输入邮箱地址。'); return; }
+    if (!username || !email) { $('#resetMsg').css('color','#be0000').text('请填写用户名和注册邮箱。'); return; }
 
     var btn = $('#resetSendBtn');
     btn.prop('disabled', true);
@@ -147,6 +198,7 @@ function sendResetCode() {
 
     $.post('/api/jiekoujson.php', {
         ask: 'sendResetPasswordCode',
+        username: username,
         email: email
     }, function(resp) {
         try { var r = JSON.parse(resp); } catch(e) { r = resp; }
@@ -174,20 +226,22 @@ function sendResetCode() {
 }
 
 function resetPassword() {
+    var username = $('#resetUsername').val().trim();
     var email = $('#resetEmail').val().trim();
     var code = $('#resetCode').val().trim();
-    if (!email || !code) { $('#resetMsg').css('color','#be0000').text('请填写邮箱和验证码。'); return; }
+    if (!username || !email || !code) { $('#resetMsg').css('color','#be0000').text('请填写用户名、注册邮箱和验证码。'); return; }
 
     $('#resetMsg').css('color','#666').text('处理中...');
 
     $.post('/api/jiekoujson.php', {
         ask: 'resetPasswordByEmail',
+        username: username,
         email: email,
         code: code
     }, function(resp) {
         try { var r = JSON.parse(resp); } catch(e) { r = resp; }
         if (r.code == 0) {
-            $('#resetMsg').css('color','green').text('密码已重置为 123456，请登录后修改密码。');
+            $('#resetMsg').css('color','green').text('密码已重置，新密码已发送至您的邮箱。');
         } else {
             $('#resetMsg').css('color','#be0000').text(r.msg || '重置失败');
         }
