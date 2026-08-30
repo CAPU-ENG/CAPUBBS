@@ -8,7 +8,7 @@ import {
   type RefObject,
 } from 'react';
 import { getFloorDecorationPath } from '../../data/floorDecoration';
-import type { ThreadAuthor } from '../../data/threadDemo';
+import type { ThreadAuthor } from '../../data/thread';
 import { useFloorDecorationEnabled } from '../../hooks/useAssistiveFeatures';
 import { useAuthorProfileEnabled } from '../../hooks/useAuthorProfile';
 import { useTheme } from '../../hooks/useTheme';

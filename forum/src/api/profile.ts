@@ -4,7 +4,7 @@ import type {
   ProfileRecord,
   ProfileRecordMap,
   ProfileViewData,
-} from '../data/profileDemo';
+} from '../data/profile';
 import type { UserTag } from '../data/tags';
 import type { UserMedal } from '../data/medals';
 import type { FloorDecorationPaths, FloorDecorationVariant } from '../data/floorDecoration';

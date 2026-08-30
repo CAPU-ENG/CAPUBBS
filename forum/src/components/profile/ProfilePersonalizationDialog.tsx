@@ -6,7 +6,7 @@ import {
   updateProfilePersonalization,
   uploadProfileFloorDecoration,
 } from '../../api/profile';
-import type { ProfileViewData } from '../../data/profileDemo';
+import type { ProfileViewData } from '../../data/profile';
 import type { FloorDecorationVariant } from '../../data/floorDecoration';
 import type { MedalDisplayState } from '../../data/medals';
 import { getDisplayedTags } from '../../data/tags';

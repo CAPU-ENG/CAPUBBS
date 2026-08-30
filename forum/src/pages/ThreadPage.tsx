@@ -9,7 +9,7 @@ import { TopBar } from '../components/layout/TopBar';
 import { setThreadBookmarked } from '../api/favorite';
 import { deleteNestedReply, deleteThreadFloor, postNestedReply } from '../api/thread';
 import { useAuth } from '../context/AuthContext';
-import type { NestedReply, ThreadFloorData } from '../data/threadDemo';
+import type { NestedReply, ThreadFloorData } from '../data/thread';
 import {
   useAssistiveBarEnabled,
   useBackToTopEnabled,

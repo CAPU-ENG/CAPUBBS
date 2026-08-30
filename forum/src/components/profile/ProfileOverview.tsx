@@ -1,7 +1,7 @@
 import { AtSign, Bike, Edit3, ExternalLink, Mail, MapPin, MessageCircle, Palette, ShieldCheck } from 'lucide-react';
 import { useState, type ComponentType, type SVGProps } from 'react';
-import type { ProfileDetailKey, ProfileViewData } from '../../data/profileDemo';
-import { getDisplayedTags, getTagsForUser } from '../../data/tags';
+import type { ProfileDetailKey, ProfileViewData } from '../../data/profile';
+import { getDisplayedTags } from '../../data/tags';
 import { USER_CENTER_HREF } from '../../utils/userRoutes';
 import { StarRulesDialog } from './ProfileDialogs';
 import { ProfileMedalGallery } from '../medals/ProfileMedalGallery';
@@ -67,7 +67,7 @@ export function ProfileOverview({
   const { theme } = useTheme();
   const decorationImageSrc = getFloorDecorationPath(profile.floorDecoration, theme);
   const visibleIntro = isEditing && draft ? draft.intro : profile.intro;
-  const tags = profile.tags ?? getTagsForUser(profile.id);
+  const tags = profile.tags ?? [];
   const selectedTagIds = getDisplayedTags(tags).map((tag) => tag.id);
   const visibleMedals = (profile.medals ?? []).filter((medal) => medal.state !== 'hidden');
   const details = profile.details.map((detail) => {

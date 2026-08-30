@@ -7,7 +7,7 @@ import { TopBar } from '../components/layout/TopBar';
 import { PrivateMessageDialog } from '../components/profile/ProfileDialogs';
 import { ProfileOverview } from '../components/profile/ProfileOverview';
 import { ProfileWorkspace } from '../components/profile/ProfileWorkspace';
-import type { ProfileTab } from '../data/profileDemo';
+import type { ProfileTab } from '../data/profile';
 import { usePublicProfile } from '../hooks/useProfileData';
 import { useDocumentTitle } from '../hooks/useDocumentTitle';
 

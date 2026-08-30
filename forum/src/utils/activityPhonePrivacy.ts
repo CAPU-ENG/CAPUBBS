@@ -1,4 +1,4 @@
-import type { ThreadFloorData } from '../data/threadDemo';
+import type { ThreadFloorData } from '../data/thread';
 
 const PHONE_LABEL_PATTERN = /电话|手机|联系电话|mobile|phone|tel/i;
 const MASKED_PHONE_VALUE = '***********';

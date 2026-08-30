@@ -8,7 +8,7 @@ import {
   type ThreadActivity,
   type ThreadActivityQuestion,
 } from '../../api/thread';
-import type { ThreadAuthor, ThreadFloorData } from '../../data/threadDemo';
+import type { ThreadAuthor, ThreadFloorData } from '../../data/thread';
 import {
   readDefaultSignatureIndex,
   saveDefaultSignatureIndex,

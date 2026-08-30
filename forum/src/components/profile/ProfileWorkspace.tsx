@@ -21,7 +21,7 @@ import {
   type ProfileRecord,
   type ProfileRecordMap,
   type ProfileTab,
-} from '../../data/profileDemo';
+} from '../../data/profile';
 import {
   buildSignatureFloorHref,
   buildSignatureFloorMarker,

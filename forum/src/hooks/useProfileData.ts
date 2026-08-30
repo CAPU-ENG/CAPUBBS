@@ -5,7 +5,7 @@ import {
   isProfileAbortError,
   type LoadedPublicProfile,
 } from '../api/profile';
-import type { ProfileViewData } from '../data/profileDemo';
+import type { ProfileViewData } from '../data/profile';
 
 type ProfileLoadState<T> = {
   data: T | null;

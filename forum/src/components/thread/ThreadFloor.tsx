@@ -20,8 +20,8 @@ import {
   Trash2,
   X,
 } from 'lucide-react';
-import type { NestedReply, ThreadAuthor, ThreadFloorData } from '../../data/threadDemo';
-import { getDisplayedTags, getTagsForUser } from '../../data/tags';
+import type { NestedReply, ThreadAuthor, ThreadFloorData } from '../../data/thread';
+import { getDisplayedTags } from '../../data/tags';
 import { writeClipboardText } from '../../utils/clipboard';
 import { getPublicProfilePath } from '../../utils/userRoutes';
 import {
@@ -46,7 +46,7 @@ type PreviewImageState = {
 };
 
 function AuthorCard({ author, id }: { author: ThreadAuthor; id: string }) {
-  const tags = author.tags ?? getTagsForUser(author.name);
+  const tags = author.tags ?? [];
   const [tagsOverflow, setTagsOverflow] = useState(false);
   const cardRef = useRef<HTMLDivElement>(null);
   const nameLineRef = useRef<HTMLDivElement>(null);
@@ -131,7 +131,7 @@ function AuthorCard({ author, id }: { author: ThreadAuthor; id: string }) {
 }
 
 function AuthorProfile({ author }: { author: ThreadAuthor }) {
-  const tags = author.tags ?? getTagsForUser(author.name);
+  const tags = author.tags ?? [];
   const displayedTags = getDisplayedTags(tags);
   const profileHref = getPublicProfilePath(author.name);
 
@@ -214,7 +214,7 @@ export function ThreadFloorPresentation({
   publishedAt: string;
   showAuthorProfile: boolean;
 }) {
-  const authorTags = author.tags ?? getTagsForUser(author.name);
+  const authorTags = author.tags ?? [];
   const displayedTags = getDisplayedTags(authorTags);
 
   return (

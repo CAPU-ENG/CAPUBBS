@@ -18,7 +18,7 @@ import { ProfileOverview, type ProfileDraft, type ProfileTextDraftKey } from '..
 import { ProfileWorkspace } from '../components/profile/ProfileWorkspace';
 import { ProfilePersonalizationDialog } from '../components/profile/ProfilePersonalizationDialog';
 import { useAuth } from '../context/AuthContext';
-import type { ProfileDetail, ProfileRecordMap } from '../data/profileDemo';
+import type { ProfileDetail, ProfileRecordMap } from '../data/profile';
 import { useUserCenterProfile } from '../hooks/useProfileData';
 import { useDocumentTitle } from '../hooks/useDocumentTitle';
 import {
