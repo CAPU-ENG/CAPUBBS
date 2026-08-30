@@ -21,9 +21,9 @@ import { isUsernameAvailable, sendRegisterEmailCode } from '../api/auth';
 import { AppBackground } from '../components/layout/AppBackground';
 import { LoadingSpinner as LoaderCircle } from '../components/layout/LoadingSpinner';
 import { TopBar } from '../components/layout/TopBar';
+import { useClientConfig } from '../hooks/useClientConfig';
 import { useDocumentTitle } from '../hooks/useDocumentTitle';
 import { AvatarDialog } from '../components/profile/AvatarEditorDialog';
-import { ADMIN_EMAIL } from '../constants/contact';
 import { useAuth } from '../context/AuthContext';
 import { getAuthPathWithReturnTo, getAuthReturnTo, replaceForumLocation } from '../utils/authRoutes';
 import { normalizeLegacyAvatar } from '../utils/legacyAssets';
@@ -50,6 +50,8 @@ type Notice = { message: string; tone: 'error' | 'success' } | null;
 export function RegisterPage() {
   useDocumentTitle('欢迎加入 CAPU');
   const { register, status } = useAuth();
+  const clientConfig = useClientConfig();
+  const adminEmail = clientConfig?.adminEmail ?? '';
   const usernameCheckRequestRef = useRef(0);
   const [username, setUsername] = useState('');
   const [usernameState, setUsernameState] = useState<UsernameState>('idle');
@@ -284,7 +286,9 @@ export function RegisterPage() {
                       <span id="register-email-domains" role="tooltip">允许的邮箱：@*.pku.edu.cn、@bjmu.edu.cn</span>
                     </span>
                   </div>
-                  <small>如遇问题，请联系管理员邮箱：<a href={`mailto:${ADMIN_EMAIL}`}>{ADMIN_EMAIL}</a></small>
+                  {adminEmail && (
+                    <small>如遇问题，请联系管理员邮箱：<a href={`mailto:${adminEmail}`}>{adminEmail}</a></small>
+                  )}
                 </div>
 
                 <div className="register-field">

@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { useClientConfig } from '../../hooks/useClientConfig';
 
 const MOBILE_VIEWPORT_QUERY = '(max-width: 767px)';
 const DISMISSED_STORAGE_KEY = 'capubbs-browser-recommendation-dismissed';
@@ -7,7 +8,8 @@ const FALLBACK_BROWSER_DOWNLOAD_URL = 'https://frostember.lanzoup.com/b00oe4ba4j
 export function BrowserRecommendationDialog() {
   const [mobileViewport, setMobileViewport] = useState(false);
   const [open, setOpen] = useState(false);
-  const [browserDownloadUrl, setBrowserDownloadUrl] = useState(FALLBACK_BROWSER_DOWNLOAD_URL);
+  const clientConfig = useClientConfig();
+  const browserDownloadUrl = clientConfig?.browserDownloadUrl || FALLBACK_BROWSER_DOWNLOAD_URL;
 
   useEffect(() => {
     const mediaQuery = window.matchMedia(MOBILE_VIEWPORT_QUERY);
@@ -20,22 +22,6 @@ export function BrowserRecommendationDialog() {
   useEffect(() => {
     if (mobileViewport && !hasDismissedRecommendation()) setOpen(true);
   }, [mobileViewport]);
-
-  useEffect(() => {
-    let active = true;
-    fetch('/config/client.php', { credentials: 'same-origin' })
-      .then((response) => response.ok ? response.json() : null)
-      .then((config: unknown) => {
-        if (!active || !config || typeof config !== 'object' || !('browserDownloadUrl' in config)) return;
-        const url = config.browserDownloadUrl;
-        if (typeof url === 'string' && url.trim()) setBrowserDownloadUrl(url.trim());
-      })
-      .catch(() => undefined);
-
-    return () => {
-      active = false;
-    };
-  }, []);
 
   function dismiss() {
     setOpen(false);

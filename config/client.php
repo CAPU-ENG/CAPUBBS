@@ -7,6 +7,9 @@ header('Cache-Control: no-store');
 
 echo json_encode(
     array(
+        'adminEmail' => defined('ADMIN_EMAIL')
+            ? ADMIN_EMAIL
+            : '',
         'browserDownloadUrl' => defined('CAPUBBS_BROWSER_DOWNLOAD_URL')
             ? CAPUBBS_BROWSER_DOWNLOAD_URL
             : '',

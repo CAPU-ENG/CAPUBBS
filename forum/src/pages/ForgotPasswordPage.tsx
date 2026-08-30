@@ -4,7 +4,7 @@ import { resetPasswordByEmail, sendPasswordResetCode } from '../api/auth';
 import { AppBackground } from '../components/layout/AppBackground';
 import { LoadingSpinner as LoaderCircle } from '../components/layout/LoadingSpinner';
 import { TopBar } from '../components/layout/TopBar';
-import { ADMIN_EMAIL } from '../constants/contact';
+import { useClientConfig } from '../hooks/useClientConfig';
 import { useDocumentTitle } from '../hooks/useDocumentTitle';
 import { getAuthPathWithReturnTo, getAuthReturnTo } from '../utils/authRoutes';
 
@@ -12,6 +12,8 @@ const RESET_CODE_COOLDOWN_SECONDS = 60;
 
 export function ForgotPasswordPage() {
   useDocumentTitle('重设密码 - CAPUBBS');
+  const clientConfig = useClientConfig();
+  const adminEmail = clientConfig?.adminEmail ?? '';
   const [username, setUsername] = useState('');
   const [email, setEmail] = useState('');
   const [code, setCode] = useState('');
@@ -154,9 +156,11 @@ export function ForgotPasswordPage() {
               {submitting ? '重设中…' : '重设密码'}
             </button>
 
-            <p className="auth-help">
-              无法通过邮箱重设？联系管理员：<a href={`mailto:${ADMIN_EMAIL}`}>{ADMIN_EMAIL}</a>
-            </p>
+            {adminEmail && (
+              <p className="auth-help">
+                无法通过邮箱重设？联系管理员：<a href={`mailto:${adminEmail}`}>{adminEmail}</a>
+              </p>
+            )}
           </form>
 
           <footer className="auth-card-footer">
