@@ -192,6 +192,7 @@ export function MobileBoardSidebar({
             <a
               className="supplement-link"
               href={SHARED_FORUM_ENTRY_PATH}
+              data-forum-entry-reload="true"
               onClick={() => {
                 saveForumMode('legacy');
                 onClose();

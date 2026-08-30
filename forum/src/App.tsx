@@ -127,6 +127,7 @@ function ForumRouter() {
 
       const target = event.target instanceof Element ? event.target.closest('a') : null;
       if (!(target instanceof HTMLAnchorElement) || target.download) return;
+      if (target.dataset.forumEntryReload === 'true') return;
 
       const href = target.getAttribute('href');
       if (!href || href.startsWith('#')) return;

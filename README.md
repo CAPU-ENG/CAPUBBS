@@ -21,6 +21,8 @@ npm run dev
 
 Vite 默认通过 `http://localhost:8080` 访问 PHP 接口；如 PHP 服务使用其他地址，设置 `CAPUBBS_PHP_ORIGIN`。
 
+通过本地 PHP 服务验证统一入口 `/bbs/` 前，先执行 `npm run build`。本地入口会读取 `forum/dist/index.html` 并把构建资源从 `/forum/dist/` 加载；正式部署则读取部署到 `/forum/index.html` 的构建入口。
+
 ## 服务器部署
 
 服务器上的 PHP-FPM、Apache 或其他 PHP 运行时必须配置以下值，并在修改后重启对应服务：
@@ -42,7 +44,7 @@ npm run build
 
 将 `forum/dist` 的内容部署到 Web 服务器的 `/forum/` 目录，并将 `/forum/*` 中不存在的静态文件回退到 `/forum/index.html`。`/api`、旧站 `/assets`、`/bbs` 和 `/bbsimg` 继续由域名根目录下的 PHP 站点处理。部署 PHP 配置或前端文件后，重启 PHP-FPM/Web 服务器并清理可能存在的旧缓存。
 
-`/bbs/` 是新旧论坛的统一入口。首次访问默认进入新论坛；在论坛内切换模式时会写入浏览器 Cookie，后续访问纯 `/bbs/` 时继续进入相同模式，不需要附加查询参数。新论坛实际页面仍位于 `/forum/`，旧论坛实际页面仍位于 `/bbs/index/`，两者的深层链接不受入口偏好影响。
+`/bbs/` 是新旧论坛的统一入口。首次访问默认直接加载新论坛首页；在论坛内切换模式时会写入浏览器 Cookie，后续访问纯 `/bbs/` 时由 PHP 直接输出相同模式的首页，浏览器地址不会跳转到其他目录，也不需要附加查询参数。新论坛 `/forum/` 和旧论坛 `/bbs/index/` 的既有深层链接继续保留。
 
 新论坛生成的页面地址统一以 `/forum/` 为前缀。为了让无尾斜杠的 `/forum` 也能直接访问，Nginx 需要增加精确入口，并与 `/forum/` 深链共同回退到同一个前端文件：
 

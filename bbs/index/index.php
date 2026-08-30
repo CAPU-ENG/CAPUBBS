@@ -9,6 +9,7 @@
 <html>
 <head>
 <meta charset="utf-8">
+<base href="/bbs/index/">
 <title>CAPUBBS - 选择讨论区</title>
 <link rel="stylesheet" href="../lib/general.css">
 <link rel="stylesheet" href="style.css">

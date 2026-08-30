@@ -2,7 +2,7 @@
 
 本文面向负责 CAPUBBS 正式服务器的系统管理员。目标是在保留现有数据库、老 BBS、用户上传文件和账号体系的前提下，将新论坛完整上线，并为失败回滚保留可靠路径。
 
-新论坛部署在 `/forum/`，前端深链回退配置在该路径下。`/bbs/` 作为新旧论坛统一入口，根据浏览器 Cookie 中保存的模式进入 `/forum/` 或旧论坛 `/bbs/index/`，首次访问默认进入新论坛，入口地址不附加模式参数。
+新论坛部署在 `/forum/`，前端深链回退配置在该路径下。`/bbs/` 作为新旧论坛统一入口，根据浏览器 Cookie 中保存的模式直接输出新论坛或旧论坛首页，首次访问默认使用新论坛；浏览器地址始终保留为 `/bbs/`，不跳转目录，也不附加模式参数。
 
 本手册默认使用 Nginx、PHP-FPM 和 MySQL。若正式服务器使用 Apache，请实现与本文 Nginx 配置等价的静态文件、PHP、前端深链回退和敏感文件保护规则。
 
@@ -412,7 +412,7 @@ server {
         return 308 /forum/;
     }
 
-    # 规范化新旧论坛统一入口；/bbs/ 由 bbs/index.php 处理。
+    # 规范化新旧论坛统一入口；/bbs/ 由 bbs/index.php 按 Cookie 直接输出页面。
     location = /bbs {
         return 308 /bbs/;
     }
@@ -497,8 +497,8 @@ systemctl reload nginx
 ```bash
 curl -fsS https://chexie.net/ | grep -q '<title>北京大学自行车协会</title>'
 curl -fsS https://chexie.net/forum/ | grep -q '<title>车协论坛</title>'
-test "$(curl -fsS -o /dev/null -w '%{redirect_url}' https://chexie.net/bbs/)" = 'https://chexie.net/forum/'
-test "$(curl -fsS -o /dev/null -w '%{redirect_url}' -H 'Cookie: capubbs_forum_mode=legacy' https://chexie.net/bbs/)" = 'https://chexie.net/bbs/index/'
+curl -fsS https://chexie.net/bbs/ | grep -q '<title>车协论坛</title>'
+curl -fsS -H 'Cookie: capubbs_forum_mode=legacy' https://chexie.net/bbs/ | grep -q '<title>CAPUBBS - 选择讨论区</title>'
 curl -fsS https://chexie.net/config/client.php
 curl -fsS 'https://chexie.net/api/api.php?ask=bbsinfo'
 curl -fsSI https://chexie.net/bbs/index/
@@ -530,8 +530,8 @@ curl -o /dev/null -sS -w '%{http_code}\n' https://chexie.net/.git/config
 
 ### 公开访问
 
-- 清除站点的 `capubbs_forum_mode` Cookie 后访问 `/bbs/`，默认进入新论坛。
-- 从新论坛切换到旧论坛、再访问 `/bbs/`，仍进入旧论坛；切回新论坛后同理。
+- 清除站点的 `capubbs_forum_mode` Cookie 后访问 `/bbs/`，地址不变并加载新论坛首页。
+- 从新论坛切换到旧论坛后，地址仍为 `/bbs/` 并加载旧论坛首页；刷新后保持旧论坛，切回新论坛后同理。
 - `/forum/` 和一个新论坛深链刷新后都能正常打开。
 - 游客能查看允许公开的版面、主题和用户资料。
 - 游客无法读取受限版面正文。

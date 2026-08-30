@@ -420,6 +420,7 @@ export function TopBar({
               className="icon-button hidden lg:inline-flex"
               href={SHARED_FORUM_ENTRY_PATH}
               aria-label="切换回旧论坛"
+              data-forum-entry-reload="true"
               onClick={() => saveForumMode('legacy')}
             >
               <History size={19} />

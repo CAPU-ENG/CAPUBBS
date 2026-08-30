@@ -17,6 +17,7 @@ export function toForumHref(route: string) {
 }
 
 export function stripForumBasePath(pathname: string) {
+  if (pathname === '/bbs' || pathname === '/bbs/') return '/';
   if (pathname === FORUM_BASE_PATH || pathname === FORUM_BASE_URL) return '/';
   if (pathname.startsWith(`${FORUM_BASE_PATH}/`)) {
     return pathname.slice(FORUM_BASE_PATH.length) || '/';
