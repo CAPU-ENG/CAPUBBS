@@ -186,8 +186,7 @@ function isLegacyThreadPath(pathname: string) {
 }
 
 function isLegacyForumHomePath(pathname: string) {
-  return pathname === '/bbs'
-    || pathname === '/bbs/index'
+  return pathname === '/bbs/index'
     || pathname === '/bbs/index/index.php';
 }
 
