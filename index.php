@@ -1,7 +1,7 @@
 <?php
 
     if (@$_SERVER['HTTP_HOST']=="bbs.chexie.net") {
-        echo '<script>window.location="http://www.chexie.net/bbs/index/";</script></head></html>';
+        echo '<script>window.location="https://www.chexie.net/bbs/";</script></head></html>';
         exit;
     }
 
@@ -91,7 +91,7 @@
       <ul class="nav navbar-nav">
         <li id="navbar-home"><a href="javascript:setActive('#main')">首页</a></li>
     <li class="devider"></li>
-        <li><a href="/bbs/index/" target="_blank">进入论坛</a></li>
+        <li><a href="/bbs/" target="_blank">进入论坛</a></li>
         <li class="devider"></li>
     <li><a href="https://pan.chexie.net" target="_blank">下载中心</a></li>
         <li class="devider"></li>

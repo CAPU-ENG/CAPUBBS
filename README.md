@@ -42,11 +42,17 @@ npm run build
 
 将 `forum/dist` 的内容部署到 Web 服务器的 `/forum/` 目录，并将 `/forum/*` 中不存在的静态文件回退到 `/forum/index.html`。`/api`、旧站 `/assets`、`/bbs` 和 `/bbsimg` 继续由域名根目录下的 PHP 站点处理。部署 PHP 配置或前端文件后，重启 PHP-FPM/Web 服务器并清理可能存在的旧缓存。
 
+`/bbs/` 是新旧论坛的统一入口。首次访问默认进入新论坛；在论坛内切换模式时会写入浏览器 Cookie，后续访问纯 `/bbs/` 时继续进入相同模式，不需要附加查询参数。新论坛实际页面仍位于 `/forum/`，旧论坛实际页面仍位于 `/bbs/index/`，两者的深层链接不受入口偏好影响。
+
 新论坛生成的页面地址统一以 `/forum/` 为前缀。为了让无尾斜杠的 `/forum` 也能直接访问，Nginx 需要增加精确入口，并与 `/forum/` 深链共同回退到同一个前端文件：
 
 ```nginx
 location = /forum {
     try_files /forum/index.html =404;
+}
+
+location = /bbs {
+    return 308 /bbs/;
 }
 
 location /forum/ {

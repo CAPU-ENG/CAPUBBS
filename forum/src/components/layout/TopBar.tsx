@@ -20,6 +20,7 @@ import { DesktopBoardDrawer, MobileBoardSidebar } from './BoardNavigation';
 import { useAuth } from '../../context/AuthContext';
 import { getLoginPathWithReturnTo, getRegisterPathWithReturnTo } from '../../utils/authRoutes';
 import { stripForumBasePath, toForumHref } from '../../utils/forumBasePath';
+import { saveForumMode, SHARED_FORUM_ENTRY_PATH } from '../../utils/forumMode';
 import { USER_CENTER_HREF } from '../../utils/userRoutes';
 import { MessageCenter } from '../messages/MessageCenter';
 import { getBoardById } from '../../data/boards';
@@ -417,10 +418,9 @@ export function TopBar({
 
             <a
               className="icon-button hidden lg:inline-flex"
-              href="/bbs/index/"
+              href={SHARED_FORUM_ENTRY_PATH}
               aria-label="切换回旧论坛"
-              target="_blank"
-              rel="noreferrer"
+              onClick={() => saveForumMode('legacy')}
             >
               <History size={19} />
             </a>

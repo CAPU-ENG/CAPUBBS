@@ -25,6 +25,7 @@ import logo2 from '../../assets/logo/logo2.webp';
 import { fetchRandomThread } from '../../api/randomThread';
 import { PRIMARY_BOARDS, SECONDARY_BOARDS } from '../../data/boards';
 import { toForumHref } from '../../utils/forumBasePath';
+import { saveForumMode, SHARED_FORUM_ENTRY_PATH } from '../../utils/forumMode';
 
 const boardIcons: Record<number, LucideIcon> = {
   1: Megaphone,
@@ -190,10 +191,11 @@ export function MobileBoardSidebar({
             </a>
             <a
               className="supplement-link"
-              href="/bbs/index/"
-              target="_blank"
-              rel="noreferrer"
-              onClick={onClose}
+              href={SHARED_FORUM_ENTRY_PATH}
+              onClick={() => {
+                saveForumMode('legacy');
+                onClose();
+              }}
             >
               <History size={16} /> 回到旧论坛
             </a>
