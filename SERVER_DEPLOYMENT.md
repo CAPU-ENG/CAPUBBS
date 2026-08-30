@@ -386,9 +386,17 @@ rsync -a --delete --dry-run \
 
 ```nginx
 # 放在 http 作用域，server 块之外。
-map $cookie_capubbs_forum_mode $capubbs_forum_mode {
+map "$cookie_capubbs_forum_mode|$cookie_token" $capubbs_forum_mode {
+    ~^legacy\| legacy;
+    ~^new\| new;
+    # 尚未选择模式但仍有旧论坛登录 token：初始化为旧论坛。
+    ~^\|.+ legacy;
     default new;
-    legacy legacy;
+}
+
+map "$cookie_capubbs_forum_mode|$cookie_token|$uri" $capubbs_forum_mode_cookie {
+    ~^\|[^|]+\|/bbs(?:/|$) "capubbs_forum_mode=legacy; Path=/; Max-Age=31536000; SameSite=Lax; Secure";
+    default "";
 }
 
 server {
@@ -407,6 +415,9 @@ server {
     index index.php index.html;
     charset utf-8;
     client_max_body_size 520m;
+
+    # 只在首次用旧登录 token 识别论坛模式时种下模式 Cookie；空值不会生成响应头。
+    add_header Set-Cookie $capubbs_forum_mode_cookie always;
 
     # 现有站点首页。
     location = / {
@@ -533,6 +544,9 @@ systemctl reload nginx
 curl -fsS https://chexie.net/ | grep -q '<title>北京大学自行车协会</title>'
 curl -fsS https://chexie.net/bbs/ | grep -q '<title>车协论坛</title>'
 curl -fsS -H 'Cookie: capubbs_forum_mode=legacy' https://chexie.net/bbs/ | grep -q '<title>CAPUBBS - 选择讨论区</title>'
+curl -fsS -H 'Cookie: token=legacy-user-test' https://chexie.net/bbs/ | grep -q '<title>CAPUBBS - 选择讨论区</title>'
+curl -fsSI -H 'Cookie: token=legacy-user-test' https://chexie.net/bbs/ | grep -qi '^set-cookie: capubbs_forum_mode=legacy;'
+curl -fsS -H 'Cookie: token=legacy-user-test; capubbs_forum_mode=new' https://chexie.net/bbs/ | grep -q '<title>车协论坛</title>'
 curl -fsS 'https://chexie.net/bbs/?bid=2&tid=6205&p=1' | grep -q '<title>车协论坛</title>'
 curl -fsS -H 'Cookie: capubbs_forum_mode=legacy' 'https://chexie.net/bbs/?bid=2&tid=6205&p=1' | grep -q '<base href="/bbs/content/">'
 curl -fsS -H 'Cookie: capubbs_forum_mode=legacy' 'https://chexie.net/bbs/?bid=2&p=1' | grep -q '<base href="/bbs/main/">'
@@ -569,7 +583,8 @@ curl -o /dev/null -sS -w '%{http_code}\n' https://chexie.net/.git/config
 
 ### 公开访问
 
-- 清除站点的 `capubbs_forum_mode` Cookie 后访问 `/bbs/`，地址不变并加载新论坛首页。
+- 同时没有 `capubbs_forum_mode` 和登录 `token` Cookie 的新用户访问 `/bbs/`，地址不变并加载新论坛首页。
+- 没有模式 Cookie、但仍有登录 `token` 的老用户访问 `/bbs/`，首次加载旧论坛并收到 `legacy` 模式 Cookie；已有明确模式时不得被登录 token 覆盖。
 - 从新论坛切换到旧论坛后，地址仍为 `/bbs/` 并加载旧论坛首页；刷新后保持旧论坛，切回新论坛后同理。
 - 同一个版面或帖子 `/bbs/...` 深链在 `new` Cookie 下加载新论坛，在 `legacy` Cookie 下加载对应旧页面；刷新后模式保持不变，页面中不生成 `/forum` 链接。
 - 游客能查看允许公开的版面、主题和用户资料。

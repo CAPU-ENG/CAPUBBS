@@ -9,6 +9,21 @@ export function createForumModeCookie(mode: ForumMode, secure: boolean) {
 }
 
 export function getForumModeFromCookieHeader(cookieHeader: string | undefined): ForumMode | null {
+  const value = getCookieValue(cookieHeader, FORUM_MODE_COOKIE_NAME);
+  return value === 'new' || value === 'legacy' ? value : null;
+}
+
+export function shouldInitializeLegacyForum(cookieHeader: string | undefined) {
+  return getCookieValue(cookieHeader, FORUM_MODE_COOKIE_NAME) === null
+    && Boolean(getCookieValue(cookieHeader, 'token'));
+}
+
+export function resolveForumMode(cookieHeader: string | undefined): ForumMode {
+  return getForumModeFromCookieHeader(cookieHeader)
+    ?? (shouldInitializeLegacyForum(cookieHeader) ? 'legacy' : 'new');
+}
+
+function getCookieValue(cookieHeader: string | undefined, cookieName: string) {
   if (!cookieHeader) return null;
 
   for (const part of cookieHeader.split(';')) {
@@ -16,7 +31,7 @@ export function getForumModeFromCookieHeader(cookieHeader: string | undefined): 
     if (separatorIndex < 0) continue;
     const name = part.slice(0, separatorIndex).trim();
     const value = part.slice(separatorIndex + 1).trim();
-    if (name === FORUM_MODE_COOKIE_NAME && (value === 'new' || value === 'legacy')) return value;
+    if (name === cookieName) return value;
   }
 
   return null;

@@ -4,7 +4,11 @@ import { request as createHttpsRequest } from 'node:https';
 import { defineConfig, type Plugin } from 'vite';
 import react from '@vitejs/plugin-react';
 import { FORUM_BASE_PATH, FORUM_BASE_URL } from './src/utils/forumBasePath';
-import { getForumModeFromCookieHeader } from './src/utils/forumModeCookie.ts';
+import {
+  createForumModeCookie,
+  resolveForumMode,
+  shouldInitializeLegacyForum,
+} from './src/utils/forumModeCookie.ts';
 
 const PHP_ORIGIN = process.env.CAPUBBS_PHP_ORIGIN || 'http://localhost:8080';
 
@@ -38,12 +42,12 @@ function forumBasePathFallback(): Plugin {
 function legacyForumCookieProxy(): Plugin {
   function installMiddleware(server: MiddlewareServer) {
     server.middlewares.use((request, response, next) => {
-      if (!isForumRequest(request.url) || getForumModeFromCookieHeader(request.headers.cookie) !== 'legacy') {
+      if (!isForumRequest(request.url) || resolveForumMode(request.headers.cookie) !== 'legacy') {
         next();
         return;
       }
 
-      proxyToPhp(request, response);
+      proxyToPhp(request, response, shouldInitializeLegacyForum(request.headers.cookie));
     });
   }
 
@@ -60,17 +64,25 @@ function isForumRequest(requestUrl: string | undefined) {
   return pathname === FORUM_BASE_PATH || pathname.startsWith(FORUM_BASE_URL);
 }
 
-function proxyToPhp(request: IncomingMessage, response: ServerResponse) {
+function proxyToPhp(request: IncomingMessage, response: ServerResponse, initializeLegacyMode: boolean) {
   const target = new URL(request.url || FORUM_BASE_URL, PHP_ORIGIN);
   const createRequest = target.protocol === 'https:' ? createHttpsRequest : createHttpRequest;
+  const requestHeaders = { ...request.headers, host: target.host };
+  if (initializeLegacyMode) {
+    requestHeaders.cookie = appendCookieHeader(request.headers.cookie, 'capubbs_forum_mode=legacy');
+  }
   const proxyRequest = createRequest(target, {
-    headers: {
-      ...request.headers,
-      host: target.host,
-    },
+    headers: requestHeaders,
     method: request.method,
   }, (proxyResponse) => {
-    response.writeHead(proxyResponse.statusCode ?? 502, proxyResponse.headers);
+    const responseHeaders = { ...proxyResponse.headers };
+    if (initializeLegacyMode) {
+      responseHeaders['set-cookie'] = appendSetCookieHeader(
+        proxyResponse.headers['set-cookie'],
+        createForumModeCookie('legacy', false),
+      );
+    }
+    response.writeHead(proxyResponse.statusCode ?? 502, responseHeaders);
     proxyResponse.pipe(response);
   });
 
@@ -83,6 +95,14 @@ function proxyToPhp(request: IncomingMessage, response: ServerResponse) {
     response.end('Bad Gateway');
   });
   request.pipe(proxyRequest);
+}
+
+function appendCookieHeader(cookieHeader: string | undefined, cookie: string) {
+  return cookieHeader ? `${cookieHeader}; ${cookie}` : cookie;
+}
+
+function appendSetCookieHeader(existingCookies: string[] | undefined, cookie: string) {
+  return existingCookies ? [...existingCookies, cookie] : [cookie];
 }
 
 export default defineConfig({

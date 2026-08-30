@@ -7,8 +7,10 @@ import {
   FORUM_MODE_COOKIE_MAX_AGE,
   FORUM_MODE_COOKIE_NAME,
   getForumModeFromCookieHeader,
+  resolveForumMode,
   saveForumMode,
   SHARED_FORUM_ENTRY_PATH,
+  shouldInitializeLegacyForum,
 } from './src/utils/forumMode.ts';
 import { stripForumBasePath } from './src/utils/forumBasePath.ts';
 
@@ -35,6 +37,13 @@ assert.equal(
 assert.equal(getForumModeFromCookieHeader('token=abc; capubbs_forum_mode=legacy'), 'legacy');
 assert.equal(getForumModeFromCookieHeader('capubbs_forum_mode=new; token=abc'), 'new');
 assert.equal(getForumModeFromCookieHeader('capubbs_forum_mode=invalid'), null);
+assert.equal(shouldInitializeLegacyForum('token=abc'), true);
+assert.equal(shouldInitializeLegacyForum('token='), false);
+assert.equal(shouldInitializeLegacyForum('capubbs_forum_mode=new; token=abc'), false);
+assert.equal(shouldInitializeLegacyForum('capubbs_forum_mode=invalid; token=abc'), false);
+assert.equal(resolveForumMode('token=abc'), 'legacy');
+assert.equal(resolveForumMode(undefined), 'new');
+assert.equal(resolveForumMode('capubbs_forum_mode=new; token=abc'), 'new');
 
 globalThis.window = { location: { protocol: 'http:' } };
 globalThis.document = { cookie: '' };
@@ -64,11 +73,14 @@ assert.match(gatewaySource, /Cache-Control: private, no-store/);
 assert.match(gatewaySource, /Vary: Cookie/);
 assert.doesNotMatch(gatewaySource, /header\('Location:/);
 assert.match(routerSource, /serve_new_forum_file\(\$requestPath, '\/bbs\/new-assets\/'/);
-assert.match(routerSource, /\$_COOKIE\['capubbs_forum_mode'\] === 'legacy'/);
+assert.match(routerSource, /\$forumMode === 'legacy'/);
+assert.match(routerSource, /trim\(\(string\)@\$_COOKIE\['token'\]\) !== ''/);
+assert.match(routerSource, /setcookie\('capubbs_forum_mode', 'legacy'/);
 assert.match(routerSource, /require __DIR__\.'\/bbs\/index\.php'/);
 assert.match(viteConfigSource, /assetsDir: 'new-assets'/);
 assert.match(viteConfigSource, /legacy-forum-cookie-proxy/);
-assert.match(viteConfigSource, /getForumModeFromCookieHeader\(request\.headers\.cookie\) !== 'legacy'/);
+assert.match(viteConfigSource, /resolveForumMode\(request\.headers\.cookie\) !== 'legacy'/);
+assert.match(viteConfigSource, /shouldInitializeLegacyForum\(request\.headers\.cookie\)/);
 
 const oldForumSource = readFileSync(resolve(forumDirectory, '../bbs/index/index.php'), 'utf8');
 const siteHomeSource = readFileSync(resolve(forumDirectory, '../index.php'), 'utf8');
@@ -89,4 +101,4 @@ assert.match(topBarSource, /data-forum-entry-reload="true"/);
 assert.match(boardNavigationSource, /data-forum-entry-reload="true"/);
 assert.match(appSource, /target\.dataset\.forumEntryReload === 'true'/);
 
-console.log('forum mode verification passed (39 cases)');
+console.log('forum mode verification passed (49 cases)');

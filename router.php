@@ -61,6 +61,20 @@ foreach ($passthroughPrefixes as $passthroughPrefix) {
     if (str_starts_with($requestPath, $passthroughPrefix)) return false;
 }
 if (in_array($requestPath, $passthroughPaths, true)) return false;
-if (@$_COOKIE['capubbs_forum_mode'] === 'legacy') return false;
+$forumMode = @$_COOKIE['capubbs_forum_mode'];
+$hasLegacyLoginToken = !isset($_COOKIE['capubbs_forum_mode']) && trim((string)@$_COOKIE['token']) !== '';
+if ($hasLegacyLoginToken) {
+    $cookieSecure = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off');
+    setcookie('capubbs_forum_mode', 'legacy', array(
+        'expires' => time() + 31536000,
+        'path' => '/',
+        'secure' => $cookieSecure,
+        'httponly' => false,
+        'samesite' => 'Lax'
+    ));
+    $_COOKIE['capubbs_forum_mode'] = 'legacy';
+    $forumMode = 'legacy';
+}
+if ($forumMode === 'legacy') return false;
 
 require __DIR__.'/bbs/index.php';
