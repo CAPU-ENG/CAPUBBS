@@ -29,6 +29,7 @@ import {
   type SignatureFloorReference,
 } from '../../utils/signatureFloorLink';
 import { getForumNavigationHref } from '../../utils/forumNavigation';
+import { stripForumBasePath } from '../../utils/forumBasePath';
 import {
   getRichTextEditorStorageValue,
   RichTextEditor,
@@ -530,6 +531,10 @@ function ProfilePagination({
 
 function getRequestedTab(allowedTabs: ProfileTab[]) {
   const requested = new URLSearchParams(window.location.search).get('tab') as ProfileTab | null;
+  const pathname = stripForumBasePath(window.location.pathname).replace(/\/+$/, '');
+  if (!requested && (pathname === '/favorite' || pathname === '/favorite/index.php')) {
+    return allowedTabs.includes('bookmarks') ? 'bookmarks' : allowedTabs[0] ?? 'posts';
+  }
   return requested && allowedTabs.includes(requested) ? requested : allowedTabs[0] ?? 'posts';
 }
 

@@ -20,14 +20,11 @@
         __DIR__.'/../forum/dist/index.html'
     );
     $indexContents = false;
-    $usingLocalDist = false;
-
     foreach ($indexCandidates as $indexCandidate) {
         if (!is_readable($indexCandidate)) continue;
         $candidateContents = file_get_contents($indexCandidate);
         if ($candidateContents === false || strpos($candidateContents, '/src/main.tsx') !== false) continue;
         $indexContents = $candidateContents;
-        $usingLocalDist = str_ends_with($indexCandidate, '/dist/index.html');
         break;
     }
 
@@ -35,10 +32,6 @@
         http_response_code(503);
         echo 'Service Unavailable';
         exit;
-    }
-
-    if ($usingLocalDist) {
-        $indexContents = str_replace('"/forum/', '"/forum/dist/', $indexContents);
     }
 
     echo $indexContents;

@@ -12,6 +12,8 @@ import { stripForumBasePath } from './src/utils/forumBasePath.ts';
 
 const forumDirectory = dirname(fileURLToPath(import.meta.url));
 const gatewaySource = readFileSync(resolve(forumDirectory, '../bbs/index.php'), 'utf8');
+const routerSource = readFileSync(resolve(forumDirectory, '../router.php'), 'utf8');
+const viteConfigSource = readFileSync(resolve(forumDirectory, 'vite.config.ts'), 'utf8');
 
 assert.equal(SHARED_FORUM_ENTRY_PATH, '/bbs/');
 assert.equal(stripForumBasePath('/bbs'), '/');
@@ -31,11 +33,13 @@ assert.match(gatewaySource, /\$mode === 'legacy'/);
 assert.match(gatewaySource, /chdir\(__DIR__\.'\/index'\)/);
 assert.match(gatewaySource, /require __DIR__\.'\/index\/index\.php'/);
 assert.match(gatewaySource, /forum\/dist\/index\.html/);
-assert.match(gatewaySource, /str_ends_with\(\$indexCandidate, '\/dist\/index\.html'\)/);
-assert.match(gatewaySource, /str_replace\('"\/forum\/', '"\/forum\/dist\/'/);
 assert.match(gatewaySource, /Cache-Control: private, no-store/);
 assert.match(gatewaySource, /Vary: Cookie/);
 assert.doesNotMatch(gatewaySource, /header\('Location:/);
+assert.match(routerSource, /serve_new_forum_file\(\$requestPath, '\/bbs\/new-assets\/'/);
+assert.match(routerSource, /\$_COOKIE\['capubbs_forum_mode'\] === 'legacy'/);
+assert.match(routerSource, /require __DIR__\.'\/bbs\/index\.php'/);
+assert.match(viteConfigSource, /assetsDir: 'new-assets'/);
 
 const oldForumSource = readFileSync(resolve(forumDirectory, '../bbs/index/index.php'), 'utf8');
 const siteHomeSource = readFileSync(resolve(forumDirectory, '../index.php'), 'utf8');
@@ -56,4 +60,4 @@ assert.match(topBarSource, /data-forum-entry-reload="true"/);
 assert.match(boardNavigationSource, /data-forum-entry-reload="true"/);
 assert.match(appSource, /target\.dataset\.forumEntryReload === 'true'/);
 
-console.log('forum mode verification passed (26 cases)');
+console.log('forum mode verification passed (28 cases)');

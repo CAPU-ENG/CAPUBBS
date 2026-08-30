@@ -170,14 +170,14 @@ function ForumRouter() {
 
   const pathname = normalizePathname(stripForumBasePath(window.location.pathname));
   const params = new URLSearchParams(window.location.search);
-  if (pathname === '/forgot-password') return <ForgotPasswordPage />;
-  if (pathname === '/login') return <LoginPage />;
-  if (pathname === '/register') return <RegisterPage />;
-  if (pathname === '/search') return <SearchPage />;
-  if (pathname === '/settings') return <SettingsPage />;
-  if (pathname === '/calendar-admin') return <CalendarAdminPage />;
-  if (pathname === '/manage') return <ManagementPage />;
-  if (pathname === '/data') {
+  if (matchesPagePath(pathname, '/forgot-password')) return <ForgotPasswordPage />;
+  if (matchesPagePath(pathname, '/login')) return <LoginPage />;
+  if (matchesPagePath(pathname, '/register')) return <RegisterPage />;
+  if (matchesPagePath(pathname, '/search')) return <SearchPage />;
+  if (matchesPagePath(pathname, '/settings')) return <SettingsPage />;
+  if (matchesPagePath(pathname, '/calendar-admin')) return <CalendarAdminPage />;
+  if (matchesPagePath(pathname, '/manage')) return <ManagementPage />;
+  if (matchesPagePath(pathname, '/data')) {
     return (
       <Suspense fallback={<DataDisplayRouteLoading />}>
         <DataDisplayPage />
@@ -195,7 +195,13 @@ function ForumRouter() {
   if (pathname === '/toolbox') return <ToolboxPage />;
   if (isThreadComposePath(pathname)) return <ThreadComposePage />;
   if (isThreadEditPath(pathname)) return <ThreadEditPage />;
-  if (pathname === USER_CENTER_PATH) return <UserCenterPage />;
+  if (
+    matchesPagePath(pathname, USER_CENTER_PATH)
+    || matchesPagePath(pathname, '/favorite')
+  ) return <UserCenterPage />;
+  if (matchesPagePath(pathname, '/user')) {
+    return <PublicProfilePage profileName={params.get('name') ?? params.get('user') ?? params.get('view')} />;
+  }
   if (pathname === '/users' || pathname.startsWith('/users/')) {
     return <PublicProfilePage profileName={getPublicProfileNameFromLocation(pathname, window.location.search)} />;
   }
@@ -245,14 +251,16 @@ function ArchiveRoomRouteLoading() {
 
 function isThreadComposePath(pathname: string) {
   return pathname === '/post'
-    || pathname === '/bbs/post'
-    || pathname === '/bbs/post/index.php';
+    || pathname === '/post/index.php';
 }
 
 function isThreadEditPath(pathname: string) {
   return pathname === '/editpid'
-    || pathname === '/bbs/editpid'
-    || pathname === '/bbs/editpid/index.php';
+    || pathname === '/editpid/index.php';
+}
+
+function matchesPagePath(pathname: string, pagePath: string) {
+  return pathname === pagePath || pathname === `${pagePath}/index.php`;
 }
 
 function normalizePathname(pathname: string) {

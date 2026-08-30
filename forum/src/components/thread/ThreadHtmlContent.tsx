@@ -409,7 +409,7 @@ function buildFrameBridgeScript(frameId: string, canOpenImages: boolean) {
         var appPath=path===forumBasePath?'/':path.indexOf(forumBasePath+'/')===0?path.slice(forumBasePath.length):path;
         appPath=appPath.replace(/^\\/(?:bbs-new|capubbs-new)(?=\\/)/,'');
         var appRoute=forumAppExactPaths.indexOf(appPath)>=0||forumAppPathPrefixes.some(function(prefix){return appPath.indexOf(prefix)===0;});
-        var legacyRoute=legacyForumExactPaths.indexOf(appPath)>=0||legacyForumPathPatterns.some(function(pattern){return pattern.test(appPath);});
+        var legacyRoute=legacyForumExactPaths.indexOf(path)>=0||legacyForumExactPaths.indexOf(appPath)>=0||legacyForumPathPatterns.some(function(pattern){return pattern.test(path)||pattern.test(appPath);});
         return trusted&&(appRoute||legacyRoute)?url.href:'';
       }catch(error){return '';}
     }

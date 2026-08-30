@@ -8,7 +8,7 @@ APIs and web for CAPUBBS.
 在仓库根目录启动 PHP 服务。必须加载仓库内的 `php.ini`，否则档案室上传仍会使用 PHP 默认的 2M/8M 限制：
 
 ```bash
-php -c php.ini -S localhost:8080
+php -c php.ini -S localhost:8080 router.php
 ```
 
 另开终端启动新论坛前端：
@@ -21,7 +21,7 @@ npm run dev
 
 Vite 默认通过 `http://localhost:8080` 访问 PHP 接口；如 PHP 服务使用其他地址，设置 `CAPUBBS_PHP_ORIGIN`。
 
-通过本地 PHP 服务验证统一入口 `/bbs/` 前，先执行 `npm run build`。本地入口会读取 `forum/dist/index.html` 并把构建资源从 `/forum/dist/` 加载；正式部署则读取部署到 `/forum/index.html` 的构建入口。
+通过本地 PHP 服务验证统一入口 `/bbs/` 前，先执行 `npm run build`。`router.php` 会让所有 `/bbs/...` 页面按 `capubbs_forum_mode` Cookie 分流，并从 `/bbs/new-assets/` 提供本地构建资源。
 
 ## 服务器部署
 
@@ -42,22 +42,26 @@ npm ci
 npm run build
 ```
 
-将 `forum/dist` 的内容部署到 Web 服务器的 `/forum/` 目录，并将 `/forum/*` 中不存在的静态文件回退到 `/forum/index.html`。`/api`、旧站 `/assets`、`/bbs` 和 `/bbsimg` 继续由域名根目录下的 PHP 站点处理。部署 PHP 配置或前端文件后，重启 PHP-FPM/Web 服务器并清理可能存在的旧缓存。
+将 `forum/dist` 的内容部署到服务器的内部新论坛静态目录。对外页面和资源统一使用 `/bbs/` 与 `/bbs/new-assets/`，不再公开 `/forum` 链接。`/api`、旧站 `/assets`、旧论坛文件和 `/bbsimg` 继续由 PHP 站点处理。部署 PHP 配置或前端文件后，重启 PHP-FPM/Web 服务器并清理可能存在的旧缓存。
 
-`/bbs/` 是新旧论坛的统一入口。首次访问默认直接加载新论坛首页；在论坛内切换模式时会写入浏览器 Cookie，后续访问纯 `/bbs/` 时由 PHP 直接输出相同模式的首页，浏览器地址不会跳转到其他目录，也不需要附加查询参数。新论坛 `/forum/` 和旧论坛 `/bbs/index/` 的既有深层链接继续保留。
+`/bbs/` 是新旧论坛的统一路由根。首次访问默认加载新论坛；切换模式时写入浏览器 Cookie。此后首页、版面、帖子、搜索、用户中心等 `/bbs/...` 请求都按 Cookie 加载对应实现，不跳转目录，也不附加模式参数。新论坛生成的链接只使用 `/bbs`。
 
-新论坛生成的页面地址统一以 `/forum/` 为前缀。为了让无尾斜杠的 `/forum` 也能直接访问，Nginx 需要增加精确入口，并与 `/forum/` 深链共同回退到同一个前端文件：
+生产环境需要在 Nginx 的 `http` 作用域根据 Cookie 生成模式变量，并在站点中配置 `/bbs` 分流。完整规则见 `SERVER_DEPLOYMENT.md`；核心逻辑如下：
 
 ```nginx
-location = /forum {
-    try_files /forum/index.html =404;
+map $cookie_capubbs_forum_mode $capubbs_forum_mode {
+    default new;
+    legacy legacy;
 }
 
 location = /bbs {
     return 308 /bbs/;
 }
 
-location /forum/ {
-    try_files $uri $uri/ /forum/index.html;
+location /bbs/ {
+    if ($capubbs_forum_mode = new) {
+        rewrite ^ /__capubbs_new_forum last;
+    }
+    try_files $uri $uri/ =404;
 }
 ```

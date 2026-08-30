@@ -25,6 +25,9 @@ function forumBasePathFallback(): Plugin {
 
 export default defineConfig({
   base: FORUM_BASE_URL,
+  build: {
+    assetsDir: 'new-assets',
+  },
   plugins: [forumBasePathFallback(), react()],
   server: {
     proxy: {
@@ -34,7 +37,28 @@ export default defineConfig({
       '/assets': {
         target: process.env.CAPUBBS_PHP_ORIGIN || 'http://localhost:8080',
       },
-      '/bbs': {
+      '/bbs/assets': {
+        target: process.env.CAPUBBS_PHP_ORIGIN || 'http://localhost:8080',
+      },
+      '/bbs/attach': {
+        target: process.env.CAPUBBS_PHP_ORIGIN || 'http://localhost:8080',
+      },
+      '/bbs/content/test.php': {
+        target: process.env.CAPUBBS_PHP_ORIGIN || 'http://localhost:8080',
+      },
+      '/bbs/download': {
+        target: process.env.CAPUBBS_PHP_ORIGIN || 'http://localhost:8080',
+      },
+      '/bbs/images': {
+        target: process.env.CAPUBBS_PHP_ORIGIN || 'http://localhost:8080',
+      },
+      '/bbs/lib': {
+        target: process.env.CAPUBBS_PHP_ORIGIN || 'http://localhost:8080',
+      },
+      '/bbs/register/action.php': {
+        target: process.env.CAPUBBS_PHP_ORIGIN || 'http://localhost:8080',
+      },
+      '/bbs/utils': {
         target: process.env.CAPUBBS_PHP_ORIGIN || 'http://localhost:8080',
       },
       '/bbsimg': {

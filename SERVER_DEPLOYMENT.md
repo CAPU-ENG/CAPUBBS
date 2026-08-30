@@ -2,7 +2,7 @@
 
 本文面向负责 CAPUBBS 正式服务器的系统管理员。目标是在保留现有数据库、老 BBS、用户上传文件和账号体系的前提下，将新论坛完整上线，并为失败回滚保留可靠路径。
 
-新论坛部署在 `/forum/`，前端深链回退配置在该路径下。`/bbs/` 作为新旧论坛统一入口，根据浏览器 Cookie 中保存的模式直接输出新论坛或旧论坛首页，首次访问默认使用新论坛；浏览器地址始终保留为 `/bbs/`，不跳转目录，也不附加模式参数。
+新论坛构建文件部署在服务器内部的 `forum/` 目录，但不再对外提供 `/forum` 路由。所有论坛页面统一使用 `/bbs/...`；Nginx 根据浏览器 Cookie 为每个页面请求选择新论坛 SPA 或旧论坛 PHP，首次访问默认使用新论坛。
 
 本手册默认使用 Nginx、PHP-FPM 和 MySQL。若正式服务器使用 Apache，请实现与本文 Nginx 配置等价的静态文件、PHP、前端深链回退和敏感文件保护规则。
 
@@ -346,10 +346,10 @@ find /srv/releases/capubbs-new-dist -type f \
   -print
 test -f /srv/releases/capubbs-new-dist/forum/index.html
 test -f /srv/releases/capubbs-new-dist/php.ini
-grep -q '"/forum/assets/' /srv/releases/capubbs-new-dist/forum/index.html
+grep -q '"/bbs/new-assets/' /srv/releases/capubbs-new-dist/forum/index.html
 ```
 
-`rev-parse` 必须得到本次审批的提交号；`find` 不应输出任何文件；最后一个 `grep` 必须成功，证明新论坛资源以 `/forum/assets/` 为前缀。若前缀不正确，应退回发布负责人重新构建。若使用归档包，还要先执行 `sha256sum -c` 验证发布负责人提供的校验文件。
+`rev-parse` 必须得到本次审批的提交号；`find` 不应输出任何文件；最后一个 `grep` 必须成功，证明新论坛资源以 `/bbs/new-assets/` 为前缀。若前缀不正确，应退回发布负责人重新构建。若使用归档包，还要先执行 `sha256sum -c` 验证发布负责人提供的校验文件。
 
 同步前先执行一次 `--dry-run`：
 
@@ -377,7 +377,7 @@ rsync -a --delete --dry-run \
 
 - `config.php` 仍存在且权限未改变。
 - `php.ini`、`README.md`、`.git` 和备份文件不能被 HTTP 下载。
-- `forum/index.html` 和 `forum/assets/` 来自同一次构建，不能混用不同版本的哈希资源。
+- `forum/index.html` 和 `forum/new-assets/` 来自同一次构建，不能混用不同版本的哈希资源。
 - `new-dist` 中不存在 SQL 和 Agent 文档。
 
 ## 十一、配置 Nginx
@@ -385,6 +385,12 @@ rsync -a --delete --dry-run \
 以下配置展示关键路由。证书路径、日志、PHP-FPM 套接字和安全策略应合并到服务器现有配置中：
 
 ```nginx
+# 放在 http 作用域，server 块之外。
+map $cookie_capubbs_forum_mode $capubbs_forum_mode {
+    default new;
+    legacy legacy;
+}
+
 server {
     listen 80;
     listen [::]:80;
@@ -407,39 +413,67 @@ server {
         rewrite ^ /index.php last;
     }
 
-    # 规范化新论坛入口。
-    location = /forum {
-        return 308 /forum/;
-    }
-
-    # 规范化新旧论坛统一入口；/bbs/ 由 bbs/index.php 按 Cookie 直接输出页面。
+    # 规范化新旧论坛统一入口。
     location = /bbs {
         return 308 /bbs/;
     }
 
-    # HTML 入口不做长期缓存，确保新版本能及时引用新的哈希资源。
-    location = /forum/index.html {
-        add_header Cache-Control "no-cache";
-    }
-
-    # 带内容哈希的构建资源可长期缓存。
-    location ^~ /forum/assets/ {
-        try_files $uri =404;
+    # 新论坛构建资源与旧论坛 /bbs/assets/ 分开存放。
+    location ^~ /bbs/new-assets/ {
+        alias /var/www/capubbs/forum/new-assets/;
         expires 1y;
         add_header Cache-Control "public, immutable";
     }
 
-    # React 路由深链回退。
-    location /forum/ {
-        try_files $uri $uri/ /forum/index.html;
+    location = /bbs/favicon.png {
+        alias /var/www/capubbs/forum/favicon.png;
     }
+
+    # 新论坛仍需读取的旧论坛静态资源和上传端点不参与页面分流。
+    location ~* ^/bbs/(?:assets|images|lib|content/clips|user/icons)/.*\.(?:css|gif|ico|jpe?g|js|png|svg|webp|woff2?)$ {
+        try_files $uri =404;
+    }
+    location /bbs/attach/ { try_files $uri $uri/ =404; }
+    location /bbs/download/ { try_files $uri $uri/ =404; }
+    location /bbs/utils/ { try_files $uri $uri/ =404; }
+
+    # 内部新论坛入口；外部无法直接访问这个 URI。
+    location = /__capubbs_new_forum {
+        internal;
+        alias /var/www/capubbs/forum/index.html;
+        default_type text/html;
+        add_header Cache-Control "private, no-store";
+        add_header Vary "Cookie";
+    }
+
+    # 无 .php 后缀的新旧论坛页面均在这里按 Cookie 分流。
+    location /bbs/ {
+        if ($capubbs_forum_mode = new) {
+            rewrite ^ /__capubbs_new_forum last;
+        }
+        try_files $uri $uri/ =404;
+    }
+
+    # 兼容旧书签中的页面 index.php；操作型 PHP 端点仍走后面的通用 PHP 规则。
+    location ~ ^/bbs/(?:index|content|main|user|home|favorite|search|login|register|manage|data|settings|post|editpid)/index\.php$ {
+        if ($capubbs_forum_mode = new) {
+            rewrite ^ /__capubbs_new_forum last;
+        }
+        try_files $uri =404;
+        include snippets/fastcgi-php.conf;
+        fastcgi_pass unix:/run/php/php8.5-fpm.sock;
+    }
+
+    # /forum 不再是公开路由。
+    location = /forum { return 404; }
+    location /forum/ { return 404; }
 
     # 现有站点静态资源。
     location /assets/ {
         try_files $uri =404;
     }
 
-    # API、老 BBS、图片和其他现有路径按真实文件处理，不参与前端深链回退。
+    # API、站点图片和其他现有路径按真实文件处理。
     location / {
         try_files $uri $uri/ =404;
     }
@@ -481,7 +515,7 @@ server {
 - 同步设置最大请求体和超时。
 - 正确配置可信代理和真实客户端 IP，否则下载记录和安全日志只会记录代理 IP。
 - 不缓存登录、用户资料、消息、管理和上传 API。
-- `forum/assets/` 可以长缓存，但 `forum/index.html` 应使用短缓存或不缓存。
+- `/bbs/new-assets/` 可以长缓存，但内部的 `forum/index.html` 不应缓存。
 
 检查并平滑重载：
 
@@ -496,9 +530,10 @@ systemctl reload nginx
 
 ```bash
 curl -fsS https://chexie.net/ | grep -q '<title>北京大学自行车协会</title>'
-curl -fsS https://chexie.net/forum/ | grep -q '<title>车协论坛</title>'
 curl -fsS https://chexie.net/bbs/ | grep -q '<title>车协论坛</title>'
 curl -fsS -H 'Cookie: capubbs_forum_mode=legacy' https://chexie.net/bbs/ | grep -q '<title>CAPUBBS - 选择讨论区</title>'
+curl -fsS 'https://chexie.net/bbs/search?q=test' | grep -q '<title>车协论坛</title>'
+curl -fsS -H 'Cookie: capubbs_forum_mode=legacy' 'https://chexie.net/bbs/search/?keyword=test' | grep -q '<title>CAPUBBS'
 curl -fsS https://chexie.net/config/client.php
 curl -fsS 'https://chexie.net/api/api.php?ask=bbsinfo'
 curl -fsSI https://chexie.net/bbs/index/
@@ -532,7 +567,7 @@ curl -o /dev/null -sS -w '%{http_code}\n' https://chexie.net/.git/config
 
 - 清除站点的 `capubbs_forum_mode` Cookie 后访问 `/bbs/`，地址不变并加载新论坛首页。
 - 从新论坛切换到旧论坛后，地址仍为 `/bbs/` 并加载旧论坛首页；刷新后保持旧论坛，切回新论坛后同理。
-- `/forum/` 和一个新论坛深链刷新后都能正常打开。
+- `/bbs/` 和一个新论坛 `/bbs/...` 深链刷新后都保持新论坛，页面中不生成 `/forum` 链接。
 - 游客能查看允许公开的版面、主题和用户资料。
 - 游客无法读取受限版面正文。
 - 老 BBS `/bbs/index/` 仍可访问。
@@ -588,7 +623,7 @@ curl -o /dev/null -sS -w '%{http_code}\n' https://chexie.net/.git/config
 - `archive_downloads`、标签、勋章、活动表的写入情况。
 - `bbsimg/`、附件目录、档案室和 PHP 临时目录的磁盘增长。
 - SMTP 退信和验证码发送失败。
-- CDN 是否缓存了用户相关 API 或旧版 `forum/index.html`。
+- CDN 是否缓存了用户相关 API 或内部的 `forum/index.html`。
 
 保留本次发布的提交号、数据库脚本校验值、开始/结束时间、执行人、验证结果和异常处理记录。
 
@@ -607,7 +642,7 @@ curl -o /dev/null -sS -w '%{http_code}\n' https://chexie.net/.git/config
 1. 重新进入维护模式并停止写入。
 2. 保存故障时间段的 Nginx、PHP 和 MySQL 日志。
 3. 恢复上一版代码，保留当前 `config.php` 和所有用户文件目录。
-4. 恢复上一版 Nginx 路由；若仅新论坛故障，可暂时关闭 `/forum/` 或恢复上一版 `forum/` 构建产物。
+4. 恢复上一版 Nginx 路由；若仅新论坛故障，可把 Cookie 分流默认值临时改为 `legacy`，或恢复上一版 `forum/` 构建产物。
 5. 重启 PHP-FPM，执行 `nginx -t` 后重载 Nginx。
 6. 验证老 BBS 的登录、读帖、发帖和附件。
 7. 只有确认新代码已经写坏旧表数据时，才在维护窗口内恢复数据库备份。

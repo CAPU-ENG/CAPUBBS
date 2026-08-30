@@ -1,8 +1,8 @@
-import { FORUM_BASE_PATH, toForumHref } from './forumBasePath.ts';
+import { toForumHref } from './forumBasePath.ts';
 
 const LEGACY_CONTENT_BASE_URL = 'https://chexie.net/bbs/content/';
 const LEGACY_THREAD_PAGE_SIZE = 12;
-const KNOWN_FORUM_MOUNT_PREFIXES = [FORUM_BASE_PATH, '/bbs-new', '/capubbs-new'];
+const KNOWN_FORUM_MOUNT_PREFIXES = ['/forum', '/bbs-new', '/capubbs-new'];
 const LEGACY_CGI_BOARD_IDS: Record<string, number> = {
   acad: 5,
   act: 1,
