@@ -82,6 +82,7 @@
 <html>
 <head>
 <meta charset="utf-8">
+<base href="/bbs/content/">
 <meta name="apple-itunes-app" content="app-id=826386033">
 <title><?php echo $title;?></title>
 <script type="text/javascript" src="../lib/general.js"></script>

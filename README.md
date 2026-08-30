@@ -8,7 +8,7 @@ APIs and web for CAPUBBS.
 在仓库根目录启动 PHP 服务。必须加载仓库内的 `php.ini`，否则档案室上传仍会使用 PHP 默认的 2M/8M 限制：
 
 ```bash
-php -c php.ini -S localhost:8080
+php -c php.ini -S localhost:8080 router.php
 ```
 
 另开终端启动新论坛前端：
@@ -19,7 +19,9 @@ npm install
 npm run dev
 ```
 
-Vite 默认通过 `http://localhost:8080` 访问 PHP 接口；如 PHP 服务使用其他地址，设置 `CAPUBBS_PHP_ORIGIN`。
+Vite 默认通过 `http://localhost:8080` 访问 PHP 接口；如 PHP 服务使用其他地址，设置 `CAPUBBS_PHP_ORIGIN`。开发服务也会读取 `capubbs_forum_mode` Cookie：`legacy` 请求转发给旧 PHP 论坛，其余请求加载新论坛。没有模式 Cookie 但保留登录 `token` 的老用户会首次初始化为 `legacy`；没有这两个 Cookie 的新用户默认进入新论坛。
+
+通过本地 PHP 服务验证统一入口 `/bbs/` 前，先执行 `npm run build`。`router.php` 会让所有 `/bbs/...` 页面按 `capubbs_forum_mode` Cookie 分流，并从 `/bbs/new-assets/` 提供本地构建资源。
 
 ## 服务器部署
 
@@ -40,16 +42,35 @@ npm ci
 npm run build
 ```
 
-将 `forum/dist` 的内容部署到 Web 服务器的 `/forum/` 目录，并将 `/forum/*` 中不存在的静态文件回退到 `/forum/index.html`。`/api`、旧站 `/assets`、`/bbs` 和 `/bbsimg` 继续由域名根目录下的 PHP 站点处理。部署 PHP 配置或前端文件后，重启 PHP-FPM/Web 服务器并清理可能存在的旧缓存。
+将 `forum/dist` 的内容部署到服务器的内部新论坛静态目录。对外页面和资源统一使用 `/bbs/` 与 `/bbs/new-assets/`，不再公开 `/forum` 链接。`/api`、旧站 `/assets`、旧论坛文件和 `/bbsimg` 继续由 PHP 站点处理。部署 PHP 配置或前端文件后，重启 PHP-FPM/Web 服务器并清理可能存在的旧缓存。
 
-新论坛生成的页面地址统一以 `/forum/` 为前缀。为了让无尾斜杠的 `/forum` 也能直接访问，Nginx 需要增加精确入口，并与 `/forum/` 深链共同回退到同一个前端文件：
+`/bbs/` 是新旧论坛的统一路由根。没有模式 Cookie 时，保留登录 `token` 的老用户初始化为旧论坛，其余新用户默认加载新论坛；切换模式时写入浏览器 Cookie。此后首页、版面、帖子、搜索、用户中心等 `/bbs/...` 请求都按 Cookie 加载对应实现，不跳转目录，也不附加模式参数。新论坛生成的链接只使用 `/bbs`。
+
+生产环境需要在 Nginx 的 `http` 作用域根据 Cookie 生成模式变量，并在站点中配置 `/bbs` 分流。完整规则见 `SERVER_DEPLOYMENT.md`；核心逻辑如下：
 
 ```nginx
-location = /forum {
-    try_files /forum/index.html =404;
+map "$cookie_capubbs_forum_mode|$cookie_token" $capubbs_forum_mode {
+    ~^legacy\| legacy;
+    ~^new\| new;
+    ~^\|.+ legacy;
+    default new;
 }
 
-location /forum/ {
-    try_files $uri $uri/ /forum/index.html;
+map "$cookie_capubbs_forum_mode|$cookie_token|$uri" $capubbs_forum_mode_cookie {
+    ~^\|[^|]+\|/bbs(?:/|$) "capubbs_forum_mode=legacy; Path=/; Max-Age=31536000; SameSite=Lax; Secure";
+    default "";
+}
+
+add_header Set-Cookie $capubbs_forum_mode_cookie always;
+
+location = /bbs {
+    return 308 /bbs/;
+}
+
+location /bbs/ {
+    if ($capubbs_forum_mode = new) {
+        rewrite ^ /__capubbs_new_forum last;
+    }
+    try_files $uri $uri/ /bbs/index.php?$query_string;
 }
 ```
