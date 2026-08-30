@@ -2240,7 +2240,8 @@ function jiekoufunc_sendResetPasswordCode($con, $params) {
             'msg' => '邮箱验证功能已被管理员关闭。'));
     }
 
-    $email = isset($params['email']) ? $params['email'] : '';
+    $username = isset($params['username']) ? trim($params['username']) : '';
+    $email = isset($params['email']) ? trim($params['email']) : '';
     if (empty($email)) {
         return jiekoufunc_report('3', '请输入邮箱地址。');
     }
@@ -2251,10 +2252,23 @@ function jiekoufunc_sendResetPasswordCode($con, $params) {
     }
 
     $email_esc = mysqli_real_escape_string($con, $email);
-    $res = mysqli_fetch_array(mysqli_query($con,
-        "SELECT username FROM userinfo WHERE mail='$email_esc' AND verified=1 LIMIT 1"));
+    if ($username !== '') {
+        $username_esc = mysqli_real_escape_string($con, $username);
+        $user_query = mysqli_query($con,
+            "SELECT username FROM userinfo
+             WHERE username='$username_esc' AND mail='$email_esc' AND verified=1 LIMIT 1");
+    } else {
+        // 兼容旧调用方；同一邮箱对应多个账号时不得随机选择其中一个。
+        $user_query = mysqli_query($con,
+            "SELECT username FROM userinfo WHERE mail='$email_esc' AND verified=1 LIMIT 2");
+    }
 
-    // 不管邮箱是否匹配，统一返回成功，避免邮箱枚举
+    $res = false;
+    if ($user_query && mysqli_num_rows($user_query) === 1) {
+        $res = mysqli_fetch_array($user_query);
+    }
+
+    // 不管 ID 与邮箱是否匹配，统一返回成功，避免账号和邮箱枚举。
     if (!$res) {
         return array(array('code' => '0', 'msg' => '验证码已发送，请检查邮箱。'));
     }
@@ -2291,8 +2305,9 @@ function jiekoufunc_resetPasswordByEmail($con, $params) {
             'msg' => '邮箱验证功能已被管理员关闭。'));
     }
 
-    $email = isset($params['email']) ? $params['email'] : '';
-    $code = isset($params['code']) ? $params['code'] : '';
+    $username = isset($params['username']) ? trim($params['username']) : '';
+    $email = isset($params['email']) ? trim($params['email']) : '';
+    $code = isset($params['code']) ? trim($params['code']) : '';
     if (empty($email) || empty($code)) {
         return jiekoufunc_report('3', '缺少参数。');
     }
@@ -2304,9 +2319,14 @@ function jiekoufunc_resetPasswordByEmail($con, $params) {
 
     $email_esc = mysqli_real_escape_string($con, $email);
     $code_esc = mysqli_real_escape_string($con, $code);
+    $username_condition = '';
+    if ($username !== '') {
+        $username_esc = mysqli_real_escape_string($con, $username);
+        $username_condition = "username='$username_esc' AND ";
+    }
     $result = mysqli_fetch_array(mysqli_query($con,
         "SELECT * FROM email_verification
-         WHERE email='$email_esc' AND code='$code_esc' AND type='reset_password'
+         WHERE {$username_condition}email='$email_esc' AND code='$code_esc' AND type='reset_password'
          AND used=0 ORDER BY id DESC LIMIT 1"));
 
     if (!$result) {

@@ -164,8 +164,8 @@ export async function sendRegisterEmailCode(email: string) {
   return stringValue(row?.msg) || '验证码已发送，请检查邮箱。';
 }
 
-export async function sendPasswordResetCode(email: string) {
-  const data = await requestAuthApi({ ask: 'sendResetPasswordCode', email });
+export async function sendPasswordResetCode(username: string, email: string) {
+  const data = await requestAuthApi({ ask: 'sendResetPasswordCode', email, username });
   const row = asRows(data)[0];
   const legacyCode = stringValue(row?.code);
 
@@ -176,8 +176,8 @@ export async function sendPasswordResetCode(email: string) {
   return stringValue(row?.msg) || '验证码已发送，请检查邮箱。';
 }
 
-export async function resetPasswordByEmail(email: string, code: string) {
-  const data = await requestAuthApi({ ask: 'resetPasswordByEmail', code, email });
+export async function resetPasswordByEmail(username: string, email: string, code: string) {
+  const data = await requestAuthApi({ ask: 'resetPasswordByEmail', code, email, username });
   const row = asRows(data)[0];
   const legacyCode = stringValue(row?.code);
 

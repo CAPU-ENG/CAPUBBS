@@ -1,5 +1,5 @@
 import { useEffect, useState, type FormEvent } from 'react';
-import { ArrowRight, KeyRound, Mail } from 'lucide-react';
+import { ArrowRight, KeyRound, Mail, UserRound } from 'lucide-react';
 import { resetPasswordByEmail, sendPasswordResetCode } from '../api/auth';
 import { AppBackground } from '../components/layout/AppBackground';
 import { LoadingSpinner as LoaderCircle } from '../components/layout/LoadingSpinner';
@@ -12,6 +12,7 @@ const RESET_CODE_COOLDOWN_SECONDS = 60;
 
 export function ForgotPasswordPage() {
   useDocumentTitle('重设密码 - CAPUBBS');
+  const [username, setUsername] = useState('');
   const [email, setEmail] = useState('');
   const [code, setCode] = useState('');
   const [sending, setSending] = useState(false);
@@ -28,9 +29,10 @@ export function ForgotPasswordPage() {
   }, [cooldown]);
 
   async function sendCode() {
+    const normalizedUsername = username.trim();
     const normalizedEmail = email.trim();
-    if (!normalizedEmail) {
-      setError('请输入注册邮箱。');
+    if (!normalizedUsername || !normalizedEmail) {
+      setError('请填写论坛 ID 和注册邮箱。');
       return;
     }
 
@@ -38,7 +40,7 @@ export function ForgotPasswordPage() {
     setError('');
     setMessage('');
     try {
-      const result = await sendPasswordResetCode(normalizedEmail);
+      const result = await sendPasswordResetCode(normalizedUsername, normalizedEmail);
       setMessage(result);
       setCooldown(RESET_CODE_COOLDOWN_SECONDS);
     } catch (sendError) {
@@ -50,10 +52,11 @@ export function ForgotPasswordPage() {
 
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    const normalizedUsername = username.trim();
     const normalizedEmail = email.trim();
     const normalizedCode = code.trim();
-    if (!normalizedEmail || !normalizedCode) {
-      setError('请填写注册邮箱和验证码。');
+    if (!normalizedUsername || !normalizedEmail || !normalizedCode) {
+      setError('请填写论坛 ID、注册邮箱和验证码。');
       return;
     }
 
@@ -61,7 +64,7 @@ export function ForgotPasswordPage() {
     setError('');
     setMessage('');
     try {
-      const result = await resetPasswordByEmail(normalizedEmail, normalizedCode);
+      const result = await resetPasswordByEmail(normalizedUsername, normalizedEmail, normalizedCode);
       setMessage(result);
       setCode('');
     } catch (submitError) {
@@ -87,12 +90,26 @@ export function ForgotPasswordPage() {
 
           <form onSubmit={submit}>
             <label>
+              <span>论坛 ID</span>
+              <div className="auth-input-wrap">
+                <UserRound size={17} />
+                <input
+                  autoComplete="username"
+                  autoFocus
+                  name="username"
+                  onChange={(event) => setUsername(event.currentTarget.value)}
+                  placeholder="输入需要重设密码的论坛 ID"
+                  value={username}
+                />
+              </div>
+            </label>
+
+            <label>
               <span>注册邮箱</span>
               <div className="auth-input-wrap">
                 <Mail size={17} />
                 <input
                   autoComplete="email"
-                  autoFocus
                   inputMode="email"
                   name="email"
                   onChange={(event) => setEmail(event.currentTarget.value)}
