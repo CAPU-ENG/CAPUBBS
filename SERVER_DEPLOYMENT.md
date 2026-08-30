@@ -451,7 +451,8 @@ server {
         if ($capubbs_forum_mode = new) {
             rewrite ^ /__capubbs_new_forum last;
         }
-        try_files $uri $uri/ =404;
+        # 旧论坛没有同名物理目录的新式深链交给统一 PHP 入口解释。
+        try_files $uri $uri/ /bbs/index.php?$query_string;
     }
 
     # 兼容旧书签中的页面 index.php；操作型 PHP 端点仍走后面的通用 PHP 规则。
@@ -532,6 +533,9 @@ systemctl reload nginx
 curl -fsS https://chexie.net/ | grep -q '<title>北京大学自行车协会</title>'
 curl -fsS https://chexie.net/bbs/ | grep -q '<title>车协论坛</title>'
 curl -fsS -H 'Cookie: capubbs_forum_mode=legacy' https://chexie.net/bbs/ | grep -q '<title>CAPUBBS - 选择讨论区</title>'
+curl -fsS 'https://chexie.net/bbs/?bid=2&tid=6205&p=1' | grep -q '<title>车协论坛</title>'
+curl -fsS -H 'Cookie: capubbs_forum_mode=legacy' 'https://chexie.net/bbs/?bid=2&tid=6205&p=1' | grep -q '<base href="/bbs/content/">'
+curl -fsS -H 'Cookie: capubbs_forum_mode=legacy' 'https://chexie.net/bbs/?bid=2&p=1' | grep -q '<base href="/bbs/main/">'
 curl -fsS 'https://chexie.net/bbs/search?q=test' | grep -q '<title>车协论坛</title>'
 curl -fsS -H 'Cookie: capubbs_forum_mode=legacy' 'https://chexie.net/bbs/search/?keyword=test' | grep -q '<title>CAPUBBS'
 curl -fsS https://chexie.net/config/client.php
@@ -567,7 +571,7 @@ curl -o /dev/null -sS -w '%{http_code}\n' https://chexie.net/.git/config
 
 - 清除站点的 `capubbs_forum_mode` Cookie 后访问 `/bbs/`，地址不变并加载新论坛首页。
 - 从新论坛切换到旧论坛后，地址仍为 `/bbs/` 并加载旧论坛首页；刷新后保持旧论坛，切回新论坛后同理。
-- `/bbs/` 和一个新论坛 `/bbs/...` 深链刷新后都保持新论坛，页面中不生成 `/forum` 链接。
+- 同一个版面或帖子 `/bbs/...` 深链在 `new` Cookie 下加载新论坛，在 `legacy` Cookie 下加载对应旧页面；刷新后模式保持不变，页面中不生成 `/forum` 链接。
 - 游客能查看允许公开的版面、主题和用户资料。
 - 游客无法读取受限版面正文。
 - 老 BBS `/bbs/index/` 仍可访问。

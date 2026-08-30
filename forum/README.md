@@ -14,4 +14,4 @@ npm run preview
 npm run typecheck
 ```
 
-Vite proxies `/api`, `/assets`, `/bbs`, `/bbsimg`, and `/config` to that server; avatar and post image paths are always normalized to the local `/bbsimg` and `/bbs/images` directories. Set `CAPUBBS_PHP_ORIGIN` to use a different PHP origin, `VITE_API_URL` to override the browser forum API endpoint, or `VITE_CALENDAR_API_URL` to override the calendar endpoint. Change `CAPUBBS_BROWSER_DOWNLOAD_URL` in the repository root `config.php` to update the browser recommendation download link.
+Vite proxies `/api`, `/assets`, `/bbs`, `/bbsimg`, and `/config` to that server; `/bbs/...` page requests carrying `capubbs_forum_mode=legacy` are sent to the legacy PHP forum, while the default and `new` modes stay in the React app. Avatar and post image paths are always normalized to the local `/bbsimg` and `/bbs/images` directories. Set `CAPUBBS_PHP_ORIGIN` to use a different PHP origin, `VITE_API_URL` to override the browser forum API endpoint, or `VITE_CALENDAR_API_URL` to override the calendar endpoint. Change `CAPUBBS_BROWSER_DOWNLOAD_URL` in the repository root `config.php` to update the browser recommendation download link.

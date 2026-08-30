@@ -19,7 +19,7 @@ npm install
 npm run dev
 ```
 
-Vite 默认通过 `http://localhost:8080` 访问 PHP 接口；如 PHP 服务使用其他地址，设置 `CAPUBBS_PHP_ORIGIN`。
+Vite 默认通过 `http://localhost:8080` 访问 PHP 接口；如 PHP 服务使用其他地址，设置 `CAPUBBS_PHP_ORIGIN`。开发服务也会读取 `capubbs_forum_mode` Cookie：`legacy` 请求转发给旧 PHP 论坛，其余请求加载新论坛。
 
 通过本地 PHP 服务验证统一入口 `/bbs/` 前，先执行 `npm run build`。`router.php` 会让所有 `/bbs/...` 页面按 `capubbs_forum_mode` Cookie 分流，并从 `/bbs/new-assets/` 提供本地构建资源。
 
@@ -62,6 +62,6 @@ location /bbs/ {
     if ($capubbs_forum_mode = new) {
         rewrite ^ /__capubbs_new_forum last;
     }
-    try_files $uri $uri/ =404;
+    try_files $uri $uri/ /bbs/index.php?$query_string;
 }
 ```
