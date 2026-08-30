@@ -23,6 +23,7 @@ const loadArchiveRoomPage = () => import('./pages/ArchiveRoomPage');
 const loadBoardPage = () => import('./pages/BoardPage');
 const loadCalendarAdminPage = () => import('./pages/CalendarAdminPage');
 const loadDataDisplayPage = () => import('./pages/DataDisplayPage');
+const loadForgotPasswordPage = () => import('./pages/ForgotPasswordPage');
 const loadLoginPage = () => import('./pages/LoginPage');
 const loadManagementPage = () => import('./pages/ManagementPage');
 const loadPublicProfilePage = () => import('./pages/PublicProfilePage');
@@ -38,6 +39,7 @@ const remainingForumPageLoaders = [
   loadBoardPage,
   loadCalendarAdminPage,
   loadDataDisplayPage,
+  loadForgotPasswordPage,
   loadLoginPage,
   loadManagementPage,
   loadPublicProfilePage,
@@ -59,6 +61,8 @@ const CalendarAdminPage = lazy(() => loadCalendarAdminPage()
   .then((module) => ({ default: module.CalendarAdminPage })));
 const DataDisplayPage = lazy(() => loadDataDisplayPage()
   .then((module) => ({ default: module.DataDisplayPage })));
+const ForgotPasswordPage = lazy(() => loadForgotPasswordPage()
+  .then((module) => ({ default: module.ForgotPasswordPage })));
 const LoginPage = lazy(() => loadLoginPage()
   .then((module) => ({ default: module.LoginPage })));
 const ManagementPage = lazy(() => loadManagementPage()
@@ -165,6 +169,7 @@ function ForumRouter() {
 
   const pathname = normalizePathname(stripForumBasePath(window.location.pathname));
   const params = new URLSearchParams(window.location.search);
+  if (pathname === '/forgot-password') return <ForgotPasswordPage />;
   if (pathname === '/login') return <LoginPage />;
   if (pathname === '/register') return <RegisterPage />;
   if (pathname === '/search') return <SearchPage />;

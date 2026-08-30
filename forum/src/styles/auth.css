@@ -107,6 +107,48 @@
     font-size: var(--ui-font-size-lg);
   }
 
+  .auth-success {
+    border: 1px solid color-mix(in srgb, var(--brand) 28%, var(--line));
+    border-radius: var(--control-radius);
+    padding: 9px 10px;
+    background: var(--brand-soft);
+    color: var(--brand-strong);
+    font-size: var(--ui-font-size-lg);
+  }
+
+  .auth-code-row {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: end;
+    gap: 9px;
+  }
+
+  .auth-code-button {
+    display: inline-flex;
+    min-width: 108px;
+    min-height: 42px;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    border: 1px solid var(--brand);
+    border-radius: var(--control-radius);
+    padding: 0 11px;
+    background: var(--surface-raised);
+    color: var(--brand-strong);
+    font-size: var(--ui-font-size-md);
+    font-weight: 750;
+    transition: 150ms ease;
+  }
+
+  .auth-code-button:hover {
+    background: var(--brand-soft);
+  }
+
+  .auth-code-button:disabled {
+    cursor: wait;
+    opacity: 0.58;
+  }
+
   .auth-help {
     color: var(--text-faint);
     font-size: var(--ui-font-size-md);
@@ -191,6 +233,10 @@
 
 @layer utilities {
   @media (max-width: 640px) {
+    .auth-code-row {
+      grid-template-columns: 1fr;
+    }
+
     .topbar-login-link {
       min-height: 34px;
       padding: 0 9px;

@@ -4,7 +4,6 @@ import { AppBackground } from '../components/layout/AppBackground';
 import { LoadingSpinner as LoaderCircle } from '../components/layout/LoadingSpinner';
 import { TopBar } from '../components/layout/TopBar';
 import { useDocumentTitle } from '../hooks/useDocumentTitle';
-import { ADMIN_EMAIL } from '../constants/contact';
 import { useAuth } from '../context/AuthContext';
 import { getAuthPathWithReturnTo, getAuthReturnTo, replaceForumLocation } from '../utils/authRoutes';
 import { md5LegacyStringHex } from '../utils/md5';
@@ -88,7 +87,7 @@ export function LoginPage() {
             </label>
 
             <p className="auth-help">
-              若忘记密码，请联系管理员：<a href={`mailto:${ADMIN_EMAIL}`}>{ADMIN_EMAIL}</a>
+              <a href={getAuthPathWithReturnTo('/forgot-password', returnTo)}>忘记密码？</a>
             </p>
 
             {error && <p className="auth-error" role="alert">{error}</p>}

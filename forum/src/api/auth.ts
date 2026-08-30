@@ -164,6 +164,30 @@ export async function sendRegisterEmailCode(email: string) {
   return stringValue(row?.msg) || '验证码已发送，请检查邮箱。';
 }
 
+export async function sendPasswordResetCode(email: string) {
+  const data = await requestAuthApi({ ask: 'sendResetPasswordCode', email });
+  const row = asRows(data)[0];
+  const legacyCode = stringValue(row?.code);
+
+  if (legacyCode && legacyCode !== '0') {
+    throw new AuthApiError(stringValue(row?.msg) || '验证码发送失败。', Number(legacyCode) || 4000);
+  }
+
+  return stringValue(row?.msg) || '验证码已发送，请检查邮箱。';
+}
+
+export async function resetPasswordByEmail(email: string, code: string) {
+  const data = await requestAuthApi({ ask: 'resetPasswordByEmail', code, email });
+  const row = asRows(data)[0];
+  const legacyCode = stringValue(row?.code);
+
+  if (legacyCode && legacyCode !== '0') {
+    throw new AuthApiError(stringValue(row?.msg) || '密码重设失败。', Number(legacyCode) || 4000);
+  }
+
+  return stringValue(row?.msg) || '密码已重设，新密码已发送至您的邮箱。';
+}
+
 export async function isUsernameAvailable(username: string) {
   let response: Response;
   try {

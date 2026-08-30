@@ -8,6 +8,7 @@ import { USER_CENTER_PATH } from './userRoutes.ts';
 
 export const FORUM_APP_EXACT_PATHS = [
   '/',
+  '/forgot-password',
   '/login',
   '/register',
   '/search',

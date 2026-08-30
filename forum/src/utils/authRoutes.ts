@@ -14,7 +14,7 @@ export function getRegisterPathWithReturnTo() {
   return getAuthPathWithReturnTo('/register', returnTo);
 }
 
-export function getAuthPathWithReturnTo(path: '/login' | '/register', returnTo: string) {
+export function getAuthPathWithReturnTo(path: '/forgot-password' | '/login' | '/register', returnTo: string) {
   const safeReturnTo = getSafeReturnTo(returnTo);
   const authPath = toForumHref(path);
   return safeReturnTo === FORUM_BASE_URL ? authPath : `${authPath}?returnTo=${encodeURIComponent(safeReturnTo)}`;
@@ -35,7 +35,12 @@ function getSafeReturnTo(value: string | null | undefined) {
   try {
     const url = new URL(value, LOCAL_ORIGIN);
     const pathname = stripForumBasePath(url.pathname);
-    if (url.origin !== LOCAL_ORIGIN || pathname === '/login' || pathname === '/register') return FORUM_BASE_URL;
+    if (
+      url.origin !== LOCAL_ORIGIN
+      || pathname === '/forgot-password'
+      || pathname === '/login'
+      || pathname === '/register'
+    ) return FORUM_BASE_URL;
     return toForumHref(`${pathname}${url.search}${url.hash}`);
   } catch {
     return FORUM_BASE_URL;
