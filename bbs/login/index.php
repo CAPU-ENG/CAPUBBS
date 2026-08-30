@@ -108,7 +108,7 @@ input.button{
 <div id="resetPanel" class="reset-panel">
     <h2>重置密码</h2>
     <div class="reset-row">
-        <label for="resetUsername">论坛 ID：</label>
+        <label for="resetUsername">用户名：</label>
         <input id="resetUsername" type="text" class="text" autocomplete="username">
     </div>
     <div class="reset-row">
@@ -190,7 +190,7 @@ var resetCountdownTimer = null;
 function sendResetCode() {
     var username = $('#resetUsername').val().trim();
     var email = $('#resetEmail').val().trim();
-    if (!username || !email) { $('#resetMsg').css('color','#be0000').text('请填写论坛 ID 和注册邮箱。'); return; }
+    if (!username || !email) { $('#resetMsg').css('color','#be0000').text('请填写用户名和注册邮箱。'); return; }
 
     var btn = $('#resetSendBtn');
     btn.prop('disabled', true);
@@ -229,7 +229,7 @@ function resetPassword() {
     var username = $('#resetUsername').val().trim();
     var email = $('#resetEmail').val().trim();
     var code = $('#resetCode').val().trim();
-    if (!username || !email || !code) { $('#resetMsg').css('color','#be0000').text('请填写论坛 ID、注册邮箱和验证码。'); return; }
+    if (!username || !email || !code) { $('#resetMsg').css('color','#be0000').text('请填写用户名、注册邮箱和验证码。'); return; }
 
     $('#resetMsg').css('color','#666').text('处理中...');
 
