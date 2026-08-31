@@ -18,6 +18,7 @@
 
 require_once __DIR__.'/jiekoufunc.php';
 require_once __DIR__.'/lib/ActivityHandlers.php';
+require_once __DIR__.'/lib/AvatarHandlers.php';
 require_once __DIR__.'/lib/FloorDecorationHandlers.php';
 require_once __DIR__.'/lib/TagHandlers.php';
 require_once __DIR__.'/lib/MedalHandlers.php';
@@ -69,6 +70,7 @@ function _dispatch_build_routes() {
         'reply'            => array('handler' => 'jiekoufunc_reply',            'check_login' => true, 'require_rights' => 0),
         'sendmsg'          => array('handler' => 'jiekoufunc_sendmsg',          'check_login' => true, 'require_rights' => 0),
         'edituser'         => array('handler' => 'jiekoufunc_edituser',         'check_login' => true, 'require_rights' => 0),
+        'avatar_update'    => array('handler' => 'jiekoufunc_avatar_update',    'check_login' => true, 'require_rights' => 0),
         'floor_decoration_upload' => array('handler' => 'jiekoufunc_floor_decoration_upload', 'check_login' => true, 'require_rights' => 0),
         'floor_decoration_delete' => array('handler' => 'jiekoufunc_floor_decoration_delete', 'check_login' => true, 'require_rights' => 0),
         'medal_self_settings' => array('handler' => 'jiekoufunc_medal_self_settings', 'check_login' => true, 'require_rights' => 0),
@@ -371,6 +373,13 @@ function jiekoufunc_dispatch($con, $params) {
                 return jiekoufunc_searchByKeyword($con, $keyword, $token, $type, $bid, $params);
             case 'jiekoufunc_edituser':
                 return jiekoufunc_edituser($con, $token, $ip, $params);
+            case 'jiekoufunc_avatar_update':
+                return jiekoufunc_avatar_update(
+                    $con,
+                    $token,
+                    $params,
+                    isset($_FILES['file']) ? $_FILES['file'] : null
+                );
             case 'jiekoufunc_floor_decoration_upload':
                 return jiekoufunc_floor_decoration_upload(
                     $con,
@@ -545,18 +554,30 @@ function jiekoufunc_dispatch($con, $params) {
             else $extr = 1;
             if ($page == "") $page = 1;
             $start = ($page - 1) * 25;
+            /*
+             * MariaDB may join every thread to posts before applying the sort
+             * and LIMIT. Materializing the requested page first keeps the
+             * first-post lookup bounded to at most 25 rows.
+             */
             $statement = "
-            select threads.bid,threads.tid,threads.title,threads.author,threads.replyer,threads.click,threads.reply,
-            threads.extr,threads.top,threads.locked,threads.timestamp,threads.postdate,
+            select recent_threads.bid,recent_threads.tid,recent_threads.title,recent_threads.author,
+            recent_threads.replyer,recent_threads.click,recent_threads.reply,recent_threads.extr,
+            recent_threads.top,recent_threads.locked,recent_threads.timestamp,recent_threads.postdate,
             /* 新版版面列表展示精确发布时间；首楼 replytime 是主题真实创建时间。 */
             first_post.replytime as created_at,
             case when thread_global_top.bid is null then 0 else 1 end as global_top
-            from threads
-            left join thread_global_top on threads.bid=thread_global_top.bid and threads.tid=thread_global_top.tid
+            from (
+                select bid,tid,title,author,replyer,click,reply,extr,top,locked,timestamp,postdate
+                from threads
+                where bid=$bid and extr>=$extr
+                order by top desc, timestamp desc
+                limit $start, 25
+            ) as recent_threads
+            left join thread_global_top
+                on recent_threads.bid=thread_global_top.bid and recent_threads.tid=thread_global_top.tid
             left join posts as first_post
-                on first_post.bid=threads.bid and first_post.tid=threads.tid and first_post.pid=1
-            where threads.bid=$bid and threads.extr>=$extr
-            order by threads.top desc, threads.timestamp desc limit $start, 25";
+                on first_post.bid=recent_threads.bid and first_post.tid=recent_threads.tid and first_post.pid=1
+            order by recent_threads.top desc, recent_threads.timestamp desc";
         }
 
         $result = jiekoufunc_view_bbs_array($con, $statement);

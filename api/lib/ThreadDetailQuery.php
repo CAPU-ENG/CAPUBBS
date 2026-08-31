@@ -26,7 +26,6 @@ function jiekoufunc_thread_detail($con, $bid, $tid, $params, $token, $ip) {
     $render = thread_detail_query_render_param($params);
 
     $current_username = thread_detail_query_current_username($con, $token);
-    $viewer = thread_detail_query_get_viewer($con, $current_username, $include_tags, $include_medals);
 
     $thread_row = thread_detail_query_get_thread($con, $bid, $tid);
     if ($thread_row === false) {
@@ -78,6 +77,9 @@ function jiekoufunc_thread_detail($con, $bid, $tid, $params, $token, $ip) {
     $attachment_ids = thread_detail_query_collect_attachment_ids($all_post_rows);
     $attachments_by_id = thread_detail_query_get_attachments_by_id($con, $attachment_ids);
     $authors = thread_detail_query_collect_authors($all_post_rows, $lzl_by_fid);
+    if ($current_username !== '' && !in_array($current_username, $authors, true)) {
+        $authors[] = $current_username;
+    }
     $profiles_by_username = thread_detail_query_get_profiles_by_username(
         $con,
         $authors,
@@ -93,10 +95,14 @@ function jiekoufunc_thread_detail($con, $bid, $tid, $params, $token, $ip) {
         }
         unset($profile);
     }
+    $viewer = isset($profiles_by_username[$current_username])
+        ? thread_detail_query_pack_profile($profiles_by_username[$current_username], true)
+        : null;
     $rights = thread_detail_query_get_board_rights($board_row, $viewer);
-    $favorite_count = thread_detail_query_get_favorite_count($con, $bid, $tid);
     $bookmarked = $current_username ? thread_detail_query_is_favorite($con, $current_username, $bid, $tid) : false;
-    $activity = thread_detail_query_get_activity($con, $bid, $tid);
+    $activity = intval(isset($thread_row['activity_id']) ? $thread_row['activity_id'] : 0) > 0
+        ? thread_detail_query_get_activity($con, $bid, $tid)
+        : null;
 
     $main_post = thread_detail_query_pack_floor(
         $main_post_row,
@@ -136,7 +142,7 @@ function jiekoufunc_thread_detail($con, $bid, $tid, $params, $token, $ip) {
             'decoration' => $include_decoration ? 1 : 0,
         ),
         'board' => thread_detail_query_pack_board($board_row),
-        'thread' => thread_detail_query_pack_thread($thread_row, $board_row, $favorite_count, $activity),
+        'thread' => thread_detail_query_pack_thread($thread_row, $board_row, $activity),
         'mainPost' => $main_post,
         'floorsPage' => array(
             'items' => $floor_items,
@@ -216,30 +222,6 @@ function thread_detail_query_get_thread($con, $bid, $tid) {
 
 function thread_detail_query_get_board($con, $bid) {
     return thread_detail_query_fetch_one($con, "select * from boardinfo where bid=$bid limit 1");
-}
-
-function thread_detail_query_get_viewer($con, $username, $include_tags = false, $include_medals = false) {
-    if (!$username) {
-        return null;
-    }
-    $username_escaped = mysqli_real_escape_string($con, $username);
-    $row = thread_detail_query_fetch_one($con, "select * from userinfo where username='$username_escaped' limit 1");
-    if (!$row || $row === false) {
-        return null;
-    }
-    if ($include_tags) {
-        $tags_by_username = jiekoufunc_query_user_tags($con, array($row['username']));
-        $row['_tags'] = isset($tags_by_username[$row['username']])
-            ? $tags_by_username[$row['username']]
-            : array();
-    }
-    if ($include_medals && function_exists('medal_query_thread_by_usernames')) {
-        $medals_by_username = medal_query_thread_by_usernames($con, array($row['username']));
-        $row['_medals'] = isset($medals_by_username[$row['username']])
-            ? $medals_by_username[$row['username']]
-            : array();
-    }
-    return thread_detail_query_pack_profile($row, true);
 }
 
 function thread_detail_query_record_view($con, $bid, $tid, $username, $ip) {
@@ -451,11 +433,6 @@ function thread_detail_query_get_board_rights($board_row, $viewer) {
     );
 }
 
-function thread_detail_query_get_favorite_count($con, $bid, $tid) {
-    $row = thread_detail_query_fetch_one($con, "select count(*) as num from favorites where bid=$bid and tid=$tid");
-    return intval($row && $row !== false ? $row['num'] : 0);
-}
-
 function thread_detail_query_is_favorite($con, $username, $bid, $tid) {
     $username_escaped = mysqli_real_escape_string($con, $username);
     $row = thread_detail_query_fetch_one($con, "select 1 as hit from favorites where username='$username_escaped' and bid=$bid and tid=$tid limit 1");
@@ -552,11 +529,10 @@ function thread_detail_query_pack_board($row) {
         'hidden' => intval(isset($row['hide']) ? $row['hide'] : 0) === 1,
         'moderators' => $moderators,
         'requiredStar' => intval(isset($row['need']) ? $row['need'] : 0),
-        'raw' => thread_detail_query_strip_numeric_keys($row),
     );
 }
 
-function thread_detail_query_pack_thread($row, $board_row, $favorite_count, $activity) {
+function thread_detail_query_pack_thread($row, $board_row, $activity) {
     $bid = intval($row['bid']);
     $tid = intval($row['tid']);
     $board = thread_detail_query_pack_board($board_row);
@@ -573,7 +549,6 @@ function thread_detail_query_pack_thread($row, $board_row, $favorite_count, $act
         'author' => thread_detail_query_string($row['author']),
         'replyer' => thread_detail_query_string(isset($row['replyer']) ? $row['replyer'] : ''),
         'views' => intval($row['click']),
-        'favorites' => $favorite_count,
         'replies' => intval($row['reply']),
         'digest' => intval($row['extr']) > 0,
         'pinned' => intval($row['top']) > 0,
@@ -588,7 +563,6 @@ function thread_detail_query_pack_thread($row, $board_row, $favorite_count, $act
             'name' => $board['name'],
             'title' => $board['title'],
         ),
-        'raw' => thread_detail_query_strip_numeric_keys($row),
     );
 }
 
@@ -629,7 +603,6 @@ function thread_detail_query_pack_floor($row, $profiles_by_username, $lzl_by_fid
         'type' => thread_detail_query_string(isset($row['type']) ? $row['type'] : ''),
         'canEdit' => thread_detail_query_can_manage_author_content($author, $rights, $current_username),
         'canDelete' => thread_detail_query_can_manage_author_content($author, $rights, $current_username),
-        'raw' => thread_detail_query_strip_numeric_keys($row),
     );
 
     if ($render === 'raw' || $render === 'both') {
@@ -694,10 +667,8 @@ function thread_detail_query_pack_nested_replies($rows, $profiles_by_username, $
             'author' => $author !== '' ? $author : '匿名用户',
             'authorAvatar' => $profile ? thread_detail_query_translate_icon(thread_detail_query_string(isset($profile['icon']) ? $profile['icon'] : '')) : '',
             'content' => $text,
-            'contentHtml' => nl2br(htmlspecialchars($text, ENT_QUOTES, 'UTF-8')),
             'createdAt' => thread_detail_query_format_timestamp(isset($row['time']) ? $row['time'] : ''),
             'canDelete' => thread_detail_query_can_manage_author_content($author, $rights, $current_username),
-            'raw' => thread_detail_query_strip_numeric_keys($row),
         );
     }
     return $items;
@@ -833,20 +804,6 @@ function thread_detail_query_string($value) {
         return '';
     }
     return strval($value);
-}
-
-function thread_detail_query_strip_numeric_keys($row) {
-    $clean = array();
-    foreach ($row as $key => $value) {
-        if (is_int($key)) {
-            continue;
-        }
-        if ($key === 'password' || $key === 'token' || $key === 'tokentime') {
-            continue;
-        }
-        $clean[$key] = $value;
-    }
-    return $clean;
 }
 
 function thread_detail_query_translate_icon($icon) {
