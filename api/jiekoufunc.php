@@ -198,28 +198,37 @@ function jiekoufunc_hot($con, $token, $params) {
     $text_select = '';
     if ($include_text) {
         $latest_text = "
-            select posts.text
-            from posts
-            where posts.bid=threads.bid and posts.tid=threads.tid
-            order by posts.pid desc
+            select latest_post.text
+            from posts as latest_post force index (unique_btp_id)
+            where latest_post.bid=recent_threads.bid and latest_post.tid=recent_threads.tid
+            order by latest_post.pid desc
             limit 1";
         if ($nowuser === '') {
-            $text_select = ",case when threads.bid=1 then null else ($latest_text) end as text";
+            $text_select = ",case when recent_threads.bid=1 then null else ($latest_text) end as text";
         } else {
             $text_select = ",($latest_text) as text";
         }
     }
 
-    $results = mysqli_query($con, "
-        select threads.bid,threads.tid,title,author,replyer,click,reply,extr,top,locked,timestamp,postdate$text_select,
+    $recent_threads = "
+        select threads.bid,threads.tid,threads.title,threads.author,threads.replyer,threads.click,threads.reply,
+        threads.extr,threads.top,threads.locked,threads.timestamp,threads.postdate,
         case
             when thread_global_top.bid is null then 0
             else 1
         end as global_top
         from threads left join thread_global_top on threads.bid=thread_global_top.bid and threads.tid=thread_global_top.tid
         where thread_global_top.bid is null
-        order by timestamp desc
-        limit 0,$hotnum");
+        order by threads.timestamp desc
+        limit 0,$hotnum";
+
+    $results = mysqli_query($con, "
+        select recent_threads.bid,recent_threads.tid,recent_threads.title,recent_threads.author,
+        recent_threads.replyer,recent_threads.click,recent_threads.reply,recent_threads.extr,
+        recent_threads.top,recent_threads.locked,recent_threads.timestamp,recent_threads.postdate$text_select,
+        recent_threads.global_top
+        from ($recent_threads) as recent_threads
+        order by recent_threads.timestamp desc");
     while ($res = mysqli_fetch_array($results)) {
         $info = array();
         foreach ($res as $key => $value) {
@@ -1876,129 +1885,6 @@ function jiekoufunc_recent_threads($con, $params) {
             WHERE 1 = 1 $bid_where
             ORDER BY t.timestamp DESC
             LIMIT $limit";
-
-    return jiekoufunc_view_bbs_array($con, $sql);
-}
-
-/**
- * Return the N hottest threads, with multiple heat-calculation methods.
- *
- * Supported methods (params['method']):
- *   reply_count    — pure reply count
- *   recent_activity — reply count within the time window
- *   engagement     — replies + unique participants + clicks
- *   hacker_news    — gravity-based decay: replies / (hours + 2)^1.5
- *   composite      — weighted mix of replies, 24h activity, and clicks (default)
- *
- * @param $con    mysqli connection
- * @param $params array with optional keys:
- *                limit   (default 10, max 100)
- *                bid     (0=all boards)
- *                method  (default 'composite')
- *                days    (time window in days, default 7)
- *                min_replies (minimum reply count threshold, default 0)
- */
-function jiekoufunc_hot_threads($con, $params) {
-    $limit = isset($params['limit']) ? intval($params['limit']) : 10;
-    $bid = isset($params['bid']) ? intval($params['bid']) : 0;
-    $method = isset($params['method']) ? $params['method'] : 'composite';
-    $days = isset($params['days']) ? intval($params['days']) : 7;
-    $min_replies = isset($params['min_replies']) ? intval($params['min_replies']) : 0;
-
-    if ($limit <= 0) $limit = 10;
-    if ($limit > 100) $limit = 100;
-    if ($days <= 0) $days = 7;
-
-    $cutoff = time() - ($days * 86400);
-    $bid_where = ($bid > 0) ? "AND t.bid = $bid" : "";
-
-    // Total LZL count per thread (sum of lzl counters across all posts)
-    $lzl_total = "(SELECT COALESCE(SUM(p2.lzl), 0) FROM posts p2 WHERE p2.bid = t.bid AND p2.tid = t.tid)";
-    // Total replies + LZL (used for scoring and threshold)
-    $total_eng = "(t.reply + $lzl_total)";
-    $reply_min = ($min_replies > 0) ? "AND $total_eng >= $min_replies" : "";
-
-    switch ($method) {
-        case 'reply_count':
-            $sql = "SELECT t.bid, t.tid, t.title, t.author, t.replyer,
-                           t.click, t.reply, t.timestamp, t.postdate,
-                           t.extr, t.top, t.locked,
-                           $total_eng AS score
-                    FROM threads t
-                    WHERE t.timestamp >= $cutoff $bid_where $reply_min
-                    ORDER BY score DESC
-                    LIMIT $limit";
-            break;
-
-        case 'recent_activity':
-            // Recent posts + recent LZL within the time window.
-            // LZL is stored in the `lzl` table with a `time` column.
-            $lzl_recent = "(SELECT COUNT(*) FROM lzl
-                            WHERE fid IN (SELECT fid FROM posts WHERE bid = t.bid AND tid = t.tid)
-                            AND time >= $cutoff)";
-            $sql = "SELECT t.bid, t.tid, t.title, t.author, t.replyer,
-                           t.click, t.reply, t.timestamp, t.postdate,
-                           t.extr, t.top, t.locked,
-                           (COUNT(p.fid) + COALESCE($lzl_recent, 0)) AS score
-                    FROM threads t
-                    LEFT JOIN posts p ON t.bid = p.bid AND t.tid = p.tid
-                                      AND p.replytime >= $cutoff
-                    WHERE t.timestamp >= $cutoff $bid_where $reply_min
-                    GROUP BY t.bid, t.tid
-                    ORDER BY score DESC
-                    LIMIT $limit";
-            break;
-
-        case 'engagement':
-            // Total engagement: replies + LZL + unique participants + clicks
-            $sql = "SELECT t.bid, t.tid, t.title, t.author, t.replyer,
-                           t.click, t.reply, t.timestamp, t.postdate,
-                           t.extr, t.top, t.locked,
-                           ($total_eng * 1.0
-                            + COUNT(DISTINCT p.author) * 2.0
-                            + t.click * 0.1) AS score
-                    FROM threads t
-                    LEFT JOIN posts p ON t.bid = p.bid AND t.tid = p.tid
-                    WHERE t.timestamp >= $cutoff $bid_where $reply_min
-                    GROUP BY t.bid, t.tid
-                    ORDER BY score DESC
-                    LIMIT $limit";
-            break;
-
-        case 'hacker_news':
-            $now = time();
-            $sql = "SELECT t.bid, t.tid, t.title, t.author, t.replyer,
-                           t.click, t.reply, t.timestamp, t.postdate,
-                           t.extr, t.top, t.locked,
-                           ($total_eng) / POW(GREATEST(($now - t.timestamp) / 3600 + 2, 1), 1.5) AS score
-                    FROM threads t
-                    WHERE 1 = 1 $bid_where $reply_min
-                    ORDER BY score DESC
-                    LIMIT $limit";
-            break;
-
-        case 'composite':
-        default:
-            // Weighted mix: total engagement + 24h activity + clicks
-            $one_day_ago = time() - 86400;
-            $lzl_24h = "(SELECT COALESCE(COUNT(*), 0) FROM lzl
-                         WHERE fid IN (SELECT fid FROM posts WHERE bid = t.bid AND tid = t.tid)
-                         AND time >= $one_day_ago)";
-            $sql = "SELECT t.bid, t.tid, t.title, t.author, t.replyer,
-                           t.click, t.reply, t.timestamp, t.postdate,
-                           t.extr, t.top, t.locked,
-                           ($total_eng * 0.6
-                            + (SELECT COUNT(*) FROM posts p
-                               WHERE p.bid = t.bid AND p.tid = t.tid
-                               AND p.replytime >= $one_day_ago) * 2.0
-                            + COALESCE($lzl_24h, 0) * 2.0
-                            + t.click * 0.01) AS score
-                    FROM threads t
-                    WHERE t.timestamp >= $cutoff $bid_where $reply_min
-                    ORDER BY score DESC
-                    LIMIT $limit";
-            break;
-    }
 
     return jiekoufunc_view_bbs_array($con, $sql);
 }
