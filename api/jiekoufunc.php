@@ -198,28 +198,37 @@ function jiekoufunc_hot($con, $token, $params) {
     $text_select = '';
     if ($include_text) {
         $latest_text = "
-            select posts.text
-            from posts
-            where posts.bid=threads.bid and posts.tid=threads.tid
-            order by posts.pid desc
+            select latest_post.text
+            from posts as latest_post force index (unique_btp_id)
+            where latest_post.bid=recent_threads.bid and latest_post.tid=recent_threads.tid
+            order by latest_post.pid desc
             limit 1";
         if ($nowuser === '') {
-            $text_select = ",case when threads.bid=1 then null else ($latest_text) end as text";
+            $text_select = ",case when recent_threads.bid=1 then null else ($latest_text) end as text";
         } else {
             $text_select = ",($latest_text) as text";
         }
     }
 
-    $results = mysqli_query($con, "
-        select threads.bid,threads.tid,title,author,replyer,click,reply,extr,top,locked,timestamp,postdate$text_select,
+    $recent_threads = "
+        select threads.bid,threads.tid,threads.title,threads.author,threads.replyer,threads.click,threads.reply,
+        threads.extr,threads.top,threads.locked,threads.timestamp,threads.postdate,
         case
             when thread_global_top.bid is null then 0
             else 1
         end as global_top
         from threads left join thread_global_top on threads.bid=thread_global_top.bid and threads.tid=thread_global_top.tid
         where thread_global_top.bid is null
-        order by timestamp desc
-        limit 0,$hotnum");
+        order by threads.timestamp desc
+        limit 0,$hotnum";
+
+    $results = mysqli_query($con, "
+        select recent_threads.bid,recent_threads.tid,recent_threads.title,recent_threads.author,
+        recent_threads.replyer,recent_threads.click,recent_threads.reply,recent_threads.extr,
+        recent_threads.top,recent_threads.locked,recent_threads.timestamp,recent_threads.postdate$text_select,
+        recent_threads.global_top
+        from ($recent_threads) as recent_threads
+        order by recent_threads.timestamp desc");
     while ($res = mysqli_fetch_array($results)) {
         $info = array();
         foreach ($res as $key => $value) {
