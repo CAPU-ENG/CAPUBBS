@@ -49,6 +49,16 @@ const ActivitySignupForm = lazy(() => import('../components/thread/ActivitySignu
 const ReplyEditor = lazy(() => import('../components/thread/ReplyEditor')
   .then((module) => ({ default: module.ReplyEditor })));
 
+const FLOOR_ANCHOR_CANCEL_KEYS = new Set([
+  ' ',
+  'ArrowDown',
+  'ArrowUp',
+  'End',
+  'Home',
+  'PageDown',
+  'PageUp',
+]);
+
 function getThreadRequest() {
   const params = new URLSearchParams(window.location.search);
   const tid = positiveInteger(params.get('tid') ?? params.get('thread'));
@@ -69,6 +79,61 @@ function getThreadRequest() {
 function positiveInteger(value: string | null) {
   const number = Number(value);
   return Number.isFinite(number) && number > 0 ? Math.floor(number) : 0;
+}
+
+function keepFloorAnchored(floorElement: HTMLElement, layoutRoot: HTMLElement) {
+  let active = true;
+  let frame = 0;
+
+  function preserveAnchor() {
+    frame = 0;
+    if (!active || !floorElement.isConnected) {
+      cleanup();
+      return;
+    }
+
+    const scrollMarginTop = Number.parseFloat(window.getComputedStyle(floorElement).scrollMarginTop) || 0;
+    const offset = floorElement.getBoundingClientRect().top - scrollMarginTop;
+    if (Math.abs(offset) >= 1) window.scrollBy({ left: 0, top: offset });
+  }
+
+  function scheduleAnchorPreservation() {
+    if (!active || frame) return;
+    frame = window.requestAnimationFrame(preserveAnchor);
+  }
+
+  function cancelForScrollKey(event: KeyboardEvent) {
+    if (FLOOR_ANCHOR_CANCEL_KEYS.has(event.key)) cleanup();
+  }
+
+  const resizeObserver = new ResizeObserver(scheduleAnchorPreservation);
+
+  function cleanup() {
+    if (!active) return;
+    active = false;
+    resizeObserver.disconnect();
+    window.removeEventListener('click', cleanup, true);
+    window.removeEventListener('keydown', cancelForScrollKey, true);
+    window.removeEventListener('pointerdown', cleanup, true);
+    window.removeEventListener('resize', scheduleAnchorPreservation);
+    window.removeEventListener('touchstart', cleanup, true);
+    window.removeEventListener('wheel', cleanup, true);
+    if (frame) window.cancelAnimationFrame(frame);
+  }
+
+  floorElement.scrollIntoView({ block: 'start' });
+  // Keep late-loading content above the requested floor from moving the anchor in the viewport.
+  resizeObserver.observe(layoutRoot);
+  layoutRoot.querySelectorAll<HTMLElement>('.thread-floor').forEach((floor) => resizeObserver.observe(floor));
+  window.addEventListener('click', cleanup, true);
+  window.addEventListener('keydown', cancelForScrollKey, true);
+  window.addEventListener('pointerdown', cleanup, { capture: true, passive: true });
+  window.addEventListener('resize', scheduleAnchorPreservation);
+  window.addEventListener('touchstart', cleanup, { capture: true, passive: true });
+  window.addEventListener('wheel', cleanup, { capture: true, passive: true });
+  scheduleAnchorPreservation();
+
+  return cleanup;
 }
 
 export function ThreadPage() {
@@ -151,7 +216,11 @@ export function ThreadPage() {
   useLayoutEffect(() => {
     if (!data) return;
     const hashFloor = getThreadFloorFromHash(window.location.hash);
-    if (hashFloor) getThreadFloorElement(hashFloor)?.scrollIntoView({ block: 'start' });
+    const floorElement = getThreadFloorElement(hashFloor);
+    const layoutRoot = pageRef.current;
+    if (!floorElement || !layoutRoot) return;
+
+    return keepFloorAnchored(floorElement, layoutRoot);
   }, [data]);
 
   useEffect(() => {
