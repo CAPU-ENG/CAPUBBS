@@ -250,7 +250,7 @@ function ThreadSandboxedHtmlFrame({
       ref={iframeRef}
       className={`thread-html-frame thread-html-frame-${variant} ${className}`.trim()}
       referrerPolicy="no-referrer"
-      sandbox="allow-scripts allow-same-origin"
+      sandbox="allow-scripts allow-same-origin allow-downloads"
       scrolling="no"
       src={frameSource}
       onLoad={syncFrameTheme}
