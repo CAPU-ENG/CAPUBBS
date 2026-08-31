@@ -7,6 +7,7 @@
 <html>
 <head>
 <meta charset="utf-8">
+<base href="/bbs/home/">
 <title>CAPUBBS - 我</title>
 <link rel="stylesheet" href="../lib/general.css">
 <link rel="shortcut icon" href="/assets/images/capu.jpg">
@@ -110,10 +111,10 @@ if($username!=""){
     $icon=translateicon($userinfo['icon']);
     $rank=$userinfo['star'];
 
-    $nowurl=$_SERVER["PHP_SELF"]. "?".$_SERVER["QUERY_STRING"];
+    $nowurl=isset($_SERVER["REQUEST_URI"]) ? $_SERVER["REQUEST_URI"] : '/bbs/home';
     $nowurl=urlencode($nowurl);
 }else{
-    $nowurl=$_SERVER["PHP_SELF"]. "?".$_SERVER["QUERY_STRING"];
+    $nowurl=isset($_SERVER["REQUEST_URI"]) ? $_SERVER["REQUEST_URI"] : '/bbs/home';
     $msg=0;
     $nowurl=urlencode($nowurl);
     echo("<span class='guest'>欢迎您，游客！<a href='../login?from=$nowurl'>登录</a> 或者 <a href='../register'>注册</a></span>");

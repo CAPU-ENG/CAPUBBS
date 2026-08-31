@@ -3,6 +3,7 @@
 <head>
 <title>CAPUBBS - 修改资料</title>
 <meta charset="utf-8">
+<base href="/bbs/edituser/">
 <?php
     $userinfo=mainfunc(array("ask"=>"currentUserInfo"));
     if(count($userinfo)==0) die("尚未登录</head></html>");

@@ -2,6 +2,7 @@
 <html>
 <head>
 <meta charset="utf-8">
+<base href="/bbs/editpid/">
 <title>CAPUBBS - 编辑帖子</title>
 <?php
     $bid=$_GET['bid'];

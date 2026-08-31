@@ -65,6 +65,7 @@ $nowurl = urlencode($_SERVER["PHP_SELF"] . "?" . $_SERVER["QUERY_STRING"]);
 <html>
 <head>
 <meta charset="utf-8">
+<base href="/bbs/manage/reset_password/">
 <meta name="apple-itunes-app" content="app-id=826386033">
 <title>密码重置 - 管理员工具</title>
 <script src="../../lib/jquery.min.js"></script>

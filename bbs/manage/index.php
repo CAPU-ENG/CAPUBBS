@@ -12,6 +12,7 @@ $can_access = ($username != '' && $rights >= 1);
 <html lang="zh-CN">
 <head>
     <meta charset="utf-8">
+    <base href="/bbs/manage/">
     <title>管理工具 - CAPUBBS</title>
     <link rel="stylesheet" type="text/css" href="../lib/general.css">
     <link rel="stylesheet" type="text/css" href="../main/style.css">

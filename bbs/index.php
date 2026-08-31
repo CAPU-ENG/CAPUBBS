@@ -48,18 +48,36 @@
             $legacyDirectory = 'user';
         } else {
             $legacyRouteDirectories = array(
+                '/bbs/attach' => 'attach',
+                '/bbs/boardcast' => 'boardcast',
                 '/bbs/content' => 'content',
+                '/bbs/delattach' => 'delattach',
+                '/bbs/delete' => 'delete',
+                '/bbs/deletelzl' => 'deletelzl',
+                '/bbs/download' => 'download',
                 '/bbs/editpid' => 'editpid',
+                '/bbs/edituser' => 'edituser',
                 '/bbs/favorite' => 'favorite',
                 '/bbs/forgot-password' => 'login',
                 '/bbs/home' => 'home',
                 '/bbs/index' => 'index',
                 '/bbs/login' => 'login',
+                '/bbs/logout' => 'logout',
                 '/bbs/main' => 'main',
                 '/bbs/manage' => 'manage',
+                '/bbs/manage/email_mute' => 'manage/email_mute',
+                '/bbs/manage/post_activity' => 'manage/post_activity',
+                '/bbs/manage/reset_password' => 'manage/reset_password',
+                '/bbs/manage/trash' => 'manage/trash',
+                '/bbs/message' => 'message',
+                '/bbs/move' => 'move',
+                '/bbs/online' => 'online',
                 '/bbs/post' => 'post',
+                '/bbs/postlzl' => 'postlzl',
                 '/bbs/register' => 'register',
                 '/bbs/search' => 'search',
+                '/bbs/settid' => 'settid',
+                '/bbs/sign' => 'sign',
                 '/bbs/user' => 'user'
             );
             if (isset($legacyRouteDirectories[$requestPath])) {

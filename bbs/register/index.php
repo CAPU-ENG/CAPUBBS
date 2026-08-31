@@ -6,6 +6,7 @@ include_once "../../config.php";
 <head>
 <title>CAPUBBS - 注册</title>
 <meta charset="utf-8">
+<base href="/bbs/register/">
 <link rel="stylesheet" href="../lib/general.css">
 <script type="text/javascript" src="../lib/md5.js"></script>
 <script src="../lib/jquery.min.js"></script>
