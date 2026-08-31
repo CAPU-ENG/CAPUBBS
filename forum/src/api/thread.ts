@@ -162,7 +162,7 @@ export async function fetchThreadDetail({
     medal: tagMedalDisplay ? '1' : '0',
     tag: tagMedalDisplay ? '1' : '0',
     page: String(page),
-    render: 'both',
+    render: 'raw',
     tid: String(tid),
   });
   if (decoration) body.set('decoration', '1');
