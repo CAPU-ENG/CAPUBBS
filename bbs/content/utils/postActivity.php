@@ -1,5 +1,4 @@
 <?php
-require_once __DIR__ . "/../../lib/mainfunc.php";
 require_once __DIR__ . "/activityService.php";
 require_once __DIR__ . '/../../../lib.php';
 
