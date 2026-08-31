@@ -179,8 +179,7 @@ CREATE TABLE `lzl` (
   `text` mediumtext COLLATE utf8mb4_unicode_ci NOT NULL,
   `time` int(11) NOT NULL,
   `visible` int(11) NOT NULL DEFAULT '1',
-  PRIMARY KEY (`id`),
-  KEY `idx_lzl_fid_visible_id` (`fid`,`visible`,`id`)
+  PRIMARY KEY (`id`)
 ) ENGINE=MyISAM AUTO_INCREMENT=185500 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 

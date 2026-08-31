@@ -1,8 +1,8 @@
 -- CAPUBBS production database extensions.
 --
--- Run this file after selecting the production CAPUBBS database. It creates
--- the tables and indexes required by the new forum features and does not drop
--- or overwrite existing tables or data.
+-- Run this file after selecting the production CAPUBBS database. It only
+-- creates the tables required by the new forum features and does not drop or
+-- overwrite existing tables or data.
 --
 -- Requirements:
 --   - MySQL 5.7 or later.
@@ -14,28 +14,6 @@
 /*!40101 SET @OLD_CHARACTER_SET_RESULTS=@@CHARACTER_SET_RESULTS */;
 /*!40101 SET @OLD_COLLATION_CONNECTION=@@COLLATION_CONNECTION */;
 /*!40101 SET NAMES utf8mb4 */;
-
--- --------------------------------------------------------------------------
--- Legacy thread query indexes
--- --------------------------------------------------------------------------
-
--- Thread detail loads visible nested replies by floor. The legacy table only
--- has an id primary key, which otherwise forces a full-table scan.
-SET @capubbs_lzl_index_exists = (
-  SELECT COUNT(*)
-  FROM information_schema.statistics
-  WHERE table_schema=DATABASE()
-    AND table_name='lzl'
-    AND index_name='idx_lzl_fid_visible_id'
-);
-SET @capubbs_lzl_index_sql = IF(
-  @capubbs_lzl_index_exists > 0,
-  'SELECT 1',
-  'ALTER TABLE `lzl` ADD INDEX `idx_lzl_fid_visible_id` (`fid`,`visible`,`id`)'
-);
-PREPARE capubbs_lzl_index_statement FROM @capubbs_lzl_index_sql;
-EXECUTE capubbs_lzl_index_statement;
-DEALLOCATE PREPARE capubbs_lzl_index_statement;
 
 -- --------------------------------------------------------------------------
 -- Activity schedule and signup window
