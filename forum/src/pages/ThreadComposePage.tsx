@@ -641,7 +641,6 @@ export function ThreadComposePage() {
         <PostEditorPreviewDialog
           attachments={attachments}
           editorValue={editorValue}
-          formatAttachmentMeta={(attachment) => formatPostEditorBytes(attachment.size)}
           label={`${boardName} · ${isReply ? '回帖' : isActivity ? '活动' : '发帖'}预览`}
           onClose={() => setPreviewOpen(false)}
           previewAuthor={editorViewer}

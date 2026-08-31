@@ -8,7 +8,7 @@ import {
   type RefObject,
 } from 'react';
 import { getFloorDecorationPath } from '../../data/floorDecoration';
-import type { ThreadAuthor } from '../../data/thread';
+import type { ThreadAttachment, ThreadAuthor } from '../../data/thread';
 import { useFloorDecorationEnabled } from '../../hooks/useAssistiveFeatures';
 import { useAuthorProfileEnabled } from '../../hooks/useAuthorProfile';
 import { useTheme } from '../../hooks/useTheme';
@@ -21,11 +21,7 @@ import {
 import { ThreadFloorActions, ThreadFloorPresentation } from './ThreadFloor';
 import { ThreadPostContent } from './ThreadPostContent';
 
-export type PostEditorAttachment = {
-  id: string;
-  name: string;
-  size: number;
-};
+export type PostEditorAttachment = Pick<ThreadAttachment, 'id' | 'name' | 'size'>;
 
 export type PostEditorPreviewAuthor = ThreadAuthor;
 
@@ -253,7 +249,6 @@ export function PostEditor({
 export function PostEditorPreviewDialog({
   attachments,
   editorValue,
-  formatAttachmentMeta = (attachment) => formatBytes(attachment.size),
   label,
   onClose,
   previewAuthor,
@@ -265,7 +260,6 @@ export function PostEditorPreviewDialog({
 }: {
   attachments: PostEditorAttachment[];
   editorValue: RichTextEditorValue;
-  formatAttachmentMeta?: (attachment: PostEditorAttachment) => string;
   label: string;
   onClose: () => void;
   previewAuthor: PostEditorPreviewAuthor;
@@ -283,6 +277,7 @@ export function PostEditorPreviewDialog({
     : '';
   const previewPostContent = (
     <ThreadPostContent
+      attachments={attachments}
       bodyClassName="thread-floor-body reply-preview-floor-body"
       bodyHtml={getRichTextEditorHtmlValue(editorValue)}
       floor={previewFloor}
@@ -334,26 +329,13 @@ export function PostEditorPreviewDialog({
             floor={previewFloor}
             floorIndex={<span className="thread-floor-index">#{previewFloor}</span>}
             mainAfterContent={(
-              <>
-                {attachments.length > 0 && (
-                  <ul className="reply-preview-attachments" aria-label="附件预览">
-                    {attachments.map((attachment) => (
-                      <li key={attachment.id}>
-                        <Paperclip size={13} />
-                        <span>{attachment.name}</span>
-                        <small>{formatAttachmentMeta(attachment)}</small>
-                      </li>
-                    ))}
-                  </ul>
-                )}
-                <ThreadFloorActions
-                  canDelete
-                  canEdit
-                  canQuote
-                  canReply
-                  decorative
-                />
-              </>
+              <ThreadFloorActions
+                canDelete
+                canEdit
+                canQuote
+                canReply
+                decorative
+              />
             )}
             publishedAt={previewedAt}
             showAuthorProfile={showAuthorProfile}

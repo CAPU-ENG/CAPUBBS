@@ -27,6 +27,17 @@ export type NestedReply = {
   target?: string;
 };
 
+export type ThreadAttachment = {
+  id: string;
+  name: string;
+  size: number;
+  downloadHref?: string;
+  downloadCount?: number;
+  exists?: boolean;
+  price?: number;
+  auth?: number;
+};
+
 export type ThreadFloorData = {
   id: string;
   fid: number;
@@ -40,6 +51,7 @@ export type ThreadFloorData = {
   contentHtml?: string;
   quoteText?: string;
   signatureHtml?: string;
+  attachments?: ThreadAttachment[];
   nestedReplies?: NestedReply[];
   isOwn?: boolean;
   canEdit?: boolean;

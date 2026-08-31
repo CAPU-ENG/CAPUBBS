@@ -686,35 +686,6 @@
     background: var(--surface);
   }
 
-  .reply-preview-attachments {
-    display: grid;
-    gap: 6px;
-    margin-top: 8px;
-    border-top: 1px solid var(--line);
-    padding-top: 12px;
-  }
-
-  .reply-preview-attachments > li {
-    display: flex;
-    min-width: 0;
-    align-items: center;
-    gap: 7px;
-    color: var(--text-muted);
-    font-size: var(--ui-font-size-md);
-  }
-
-  .reply-preview-attachments span {
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-  }
-
-  .reply-preview-attachments small {
-    flex-shrink: 0;
-    margin-left: auto;
-    color: var(--text-faint);
-  }
-
   .reply-preview-dialog > footer {
     display: flex;
     justify-content: flex-end;

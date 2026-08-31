@@ -277,9 +277,6 @@ export function ThreadEditPage() {
         <PostEditorPreviewDialog
           attachments={attachments}
           editorValue={editorValue}
-          formatAttachmentMeta={(attachment) => attachment.size > 0
-            ? formatPostEditorBytes(attachment.size)
-            : `附件 #${attachment.id}`}
           label={isMainPost ? '帖子修改预览' : `楼层修改预览 · #${floor.pid}`}
           onClose={() => setPreviewOpen(false)}
           previewAuthor={floor.previewAuthor}

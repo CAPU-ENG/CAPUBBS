@@ -1,5 +1,10 @@
 import defaultAvatar from '../assets/avatar/default-avatar.svg';
-import type { NestedReply, ThreadAuthor, ThreadFloorData } from '../data/thread';
+import type {
+  NestedReply,
+  ThreadAttachment,
+  ThreadAuthor,
+  ThreadFloorData,
+} from '../data/thread';
 import type { UserTag } from '../data/tags';
 import type { FloorDecorationPaths } from '../data/floorDecoration';
 import { mapUserMedals } from './medals';
@@ -829,6 +834,9 @@ function mapFloor(row: ApiRow, viewerName: string): ThreadFloorData {
   const canDelete = Boolean(row.canDelete);
 
   return {
+    attachments: asRows(row.attachments)
+      .map(mapThreadAttachment)
+      .filter((attachment): attachment is ThreadAttachment => attachment !== null),
     author: mapAuthor(profile ?? { username: authorName, avatar: row.authorAvatar, star: row.authorStar }, authorName),
     canDelete,
     canEdit,
@@ -845,6 +853,23 @@ function mapFloor(row: ApiRow, viewerName: string): ThreadFloorData {
     signature: forumMarkupToPlainText(safeSignatureHtml),
     signatureHtml,
     signatureIndex,
+  };
+}
+
+function mapThreadAttachment(row: ApiRow): ThreadAttachment | null {
+  const id = stringValue(row.id);
+  if (!id) return null;
+
+  const exists = row.exists !== false && stringValue(row.exists).toUpperCase() !== 'NO';
+  return {
+    auth: nonNegativeInteger(row.auth),
+    downloadCount: nonNegativeInteger(row.count),
+    downloadHref: stringValue(row.path) || `/bbs/download/?id=${encodeURIComponent(id)}`,
+    exists,
+    id,
+    name: plainText(row.name) || `附件 #${id}`,
+    price: nonNegativeInteger(row.price),
+    size: nonNegativeInteger(row.size),
   };
 }
 

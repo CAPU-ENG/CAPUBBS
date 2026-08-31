@@ -539,6 +539,7 @@ export function ThreadFloor({
   );
   const postContent = (
     <ThreadPostContent
+      attachments={floor.attachments}
       bodyFallback={(
         <div className={bodyClassName}>
           {floor.paragraphs.map((paragraph) => (
