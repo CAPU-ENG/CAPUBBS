@@ -225,9 +225,12 @@ function jiekoufunc_hot($con, $token, $params) {
     $results = mysqli_query($con, "
         select recent_threads.bid,recent_threads.tid,recent_threads.title,recent_threads.author,
         recent_threads.replyer,recent_threads.click,recent_threads.reply,recent_threads.extr,
-        recent_threads.top,recent_threads.locked,recent_threads.timestamp,recent_threads.postdate$text_select,
+        recent_threads.top,recent_threads.locked,recent_threads.timestamp,recent_threads.postdate,
+        home_author.icon$text_select,
         recent_threads.global_top
         from ($recent_threads) as recent_threads
+        left join userinfo as home_author
+            on home_author.username=coalesce(nullif(recent_threads.replyer,''),recent_threads.author)
         order by recent_threads.timestamp desc");
     while ($res = mysqli_fetch_array($results)) {
         $info = array();

@@ -4,7 +4,6 @@ import {
   fetchHomeCalendar,
   fetchHomeFeed,
   fetchHomeSignupActivities,
-  hydrateHomeThreadAvatars,
   isAbortError,
   type HomeCalendarEvent,
   type HomeSignupActivity,
@@ -77,16 +76,9 @@ export function useHomeData(compactMode = false) {
     setFeed((current) => ({ ...current, error: '', status: 'loading' }));
 
     void fetchHomeFeed(activeFeedLimit, controller.signal, !compactMode).then(
-      async (items) => {
+      (items) => {
         setFeedHasMore(items.length >= activeFeedLimit);
         setFeed({ error: '', items, status: 'ready' });
-        if (compactMode) return;
-        try {
-          const hydratedItems = await hydrateHomeThreadAvatars(items, controller.signal);
-          setFeed({ error: '', items: hydratedItems, status: 'ready' });
-        } catch (error) {
-          if (isAbortError(error)) return;
-        }
       },
       (error: unknown) => {
         if (!isAbortError(error)) {
@@ -107,14 +99,8 @@ export function useHomeData(compactMode = false) {
     setPinned((current) => ({ ...current, error: '', status: 'loading' }));
 
     void fetchGlobalPinnedThreads(controller.signal).then(
-      async (items) => {
+      (items) => {
         setPinned({ error: '', items, status: 'ready' });
-        try {
-          const hydratedItems = await hydrateHomeThreadAvatars(items, controller.signal);
-          setPinned({ error: '', items: hydratedItems, status: 'ready' });
-        } catch (error) {
-          if (isAbortError(error)) return;
-        }
       },
       (error: unknown) => {
         if (!isAbortError(error)) {

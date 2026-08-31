@@ -5,8 +5,6 @@ import { maskActivitySignupSummary } from '../utils/activityPhonePrivacy';
 const HOME_API_URL = import.meta.env.VITE_API_URL?.trim() || '/api/api.php';
 const HOME_CALENDAR_API_URL = import.meta.env.VITE_CALENDAR_API_URL?.trim()
   || '/assets/api/getCalendar.php';
-const avatarCache = new Map<string, string>();
-const avatarRequests = new Map<string, Promise<string>>();
 
 type ApiEnvelope = {
   code: number;
@@ -106,31 +104,6 @@ export async function fetchHomeCalendar(signal?: AbortSignal) {
     .sort((left, right) => `${left.date} ${left.time}`.localeCompare(`${right.date} ${right.time}`));
 }
 
-export async function hydrateHomeThreadAvatars(threads: HomeThread[], signal?: AbortSignal) {
-  throwIfAborted(signal);
-  const authors = Array.from(new Set(threads.map((thread) => thread.author).filter(Boolean)));
-  const avatars = new Map<string, string>();
-  let nextAuthorIndex = 0;
-
-  async function loadNextAvatar() {
-    while (nextAuthorIndex < authors.length) {
-      const author = authors[nextAuthorIndex];
-      nextAuthorIndex += 1;
-      avatars.set(author, await fetchUserAvatar(author));
-    }
-  }
-
-  await Promise.all(
-    Array.from({ length: Math.min(4, authors.length) }, () => loadNextAvatar()),
-  );
-  throwIfAborted(signal);
-
-  return threads.map((thread) => ({
-    ...thread,
-    avatar: avatars.get(thread.author) ?? '',
-  }));
-}
-
 async function requestRows(params: Record<string, string | number>, signal?: AbortSignal) {
   const body = new URLSearchParams();
   Object.entries(params).forEach(([key, value]) => body.set(key, String(value)));
@@ -191,7 +164,7 @@ function mapThreadRow(row: ApiRow, linkToLatestFloor = false): HomeThread | null
   return {
     author,
     authorHref: getPublicProfilePath(author),
-    avatar: '',
+    avatar: normalizeLegacyAvatar(row.icon),
     bid,
     href: linkToLatestFloor
       ? `/?bid=${bid}&tid=${tid}#${targetFloor}`
@@ -290,30 +263,6 @@ function normalizeCalendarUrl(value: unknown) {
   } catch {
     return '';
   }
-}
-
-async function fetchUserAvatar(username: string) {
-  const cachedAvatar = avatarCache.get(username);
-  if (cachedAvatar !== undefined) return cachedAvatar;
-
-  const pendingRequest = avatarRequests.get(username);
-  if (pendingRequest) return pendingRequest;
-
-  const request = requestRows({ ask: 'user_profile', username })
-    .then((rows) => normalizeLegacyAvatar(rows[0]?.icon))
-    .catch(() => '')
-    .then((avatar) => {
-      avatarCache.set(username, avatar);
-      return avatar;
-    })
-    .finally(() => avatarRequests.delete(username));
-
-  avatarRequests.set(username, request);
-  return request;
-}
-
-function throwIfAborted(signal?: AbortSignal) {
-  if (signal?.aborted) throw new DOMException('Request aborted', 'AbortError');
 }
 
 function excerptText(value: string) {
