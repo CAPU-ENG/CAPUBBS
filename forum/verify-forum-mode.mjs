@@ -61,6 +61,8 @@ assert.equal(
 delete globalThis.window;
 delete globalThis.document;
 assert.match(gatewaySource, /\$_COOKIE\['capubbs_forum_mode'\]/);
+assert.match(gatewaySource, /trim\(\(string\)@\$_COOKIE\['token'\]\) !== ''/);
+assert.match(gatewaySource, /setcookie\('capubbs_forum_mode', 'legacy'/);
 assert.match(gatewaySource, /\$mode === 'legacy'/);
 assert.match(gatewaySource, /intval\(@\$_GET\['bid'\]\) > 0 && intval\(@\$_GET\['tid'\]\) > 0/);
 assert.match(gatewaySource, /\$legacyDirectory = 'content'/);
@@ -101,4 +103,4 @@ assert.match(topBarSource, /data-forum-entry-reload="true"/);
 assert.match(boardNavigationSource, /data-forum-entry-reload="true"/);
 assert.match(appSource, /target\.dataset\.forumEntryReload === 'true'/);
 
-console.log('forum mode verification passed (49 cases)');
+console.log('forum mode verification passed (51 cases)');
