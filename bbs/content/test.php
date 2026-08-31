@@ -52,20 +52,16 @@
     }
 
     // 验证文件是否为真实图片
-    $finfo = finfo_open(FILEINFO_MIME_TYPE);
-    if ($finfo) {
-        $mime = finfo_file($finfo, $_FILES['image']['tmp_name']);
-        finfo_close($finfo);
-        $allowed = array('image/png', 'image/jpeg', 'image/gif', 'image/webp');
-        if (!in_array($mime, $allowed, true)) {
-            http_response_code(400);
-            echo "不支持的文件类型";
-            exit;
-        }
+    $mime = capubbs_detect_image_mime($_FILES['image']['tmp_name']);
+    $allowed = array('image/png', 'image/jpeg', 'image/gif', 'image/webp');
+    if ($mime !== '' && !in_array($mime, $allowed, true)) {
+        http_response_code(400);
+        echo "不支持的文件类型";
+        exit;
     }
 
-    // 二次验证：用 getimagesize 确保是有效的图片文件
-    $imageInfo = @getimagesize($_FILES['image']['tmp_name']);
+    // 二次验证：读取图片尺寸，兼容 PHP 5.6 无法识别 WebP 的情况
+    $imageInfo = capubbs_get_image_size($_FILES['image']['tmp_name']);
     if ($imageInfo === false) {
         http_response_code(400);
         echo "无法识别的图片格式";
@@ -125,10 +121,9 @@
         {
             $toFile = $srcFile;
         }
-        $info = "";
         //返回含有4个单元的数组，0-宽，1-高，2-图像类型，3-宽高的文本描述。
         //失败返回false并产生警告。
-        $data = getimagesize($srcFile, $info);
+        $data = capubbs_get_image_size($srcFile);
         if (!$data)
             return false;
 
@@ -156,6 +151,21 @@
         case 3:
             $im = imagecreatefrompng($srcFile);
             break;
+
+        case 18:
+            if (!function_exists("imagecreatefromstring"))
+            {
+                echo "the GD can't support .webp, please use .jpeg or .png! <a href='javascript:history.back();'>back</a>";
+                exit();
+            }
+            $webpBytes = @file_get_contents($srcFile);
+            $im = $webpBytes === false ? false : @imagecreatefromstring($webpBytes);
+            if (!$im)
+                return false;
+            break;
+
+        default:
+            return false;
         }
 
         //计算缩略图的宽高
