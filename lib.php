@@ -100,6 +100,28 @@ function capubbs_detect_image_mime($path) {
     return $detected;
 }
 
+// Decode an uploaded image across the PHP 5.6 production GD build and newer
+// runtimes. That build can decode WebP from a path but not from a byte string.
+function capubbs_image_create_from_file($path, $mime = '') {
+    $mime = strtolower(trim(strval($mime)));
+    if ($mime === '') {
+        $mime = capubbs_detect_image_mime($path);
+    }
+
+    if ($mime === 'image/webp' && function_exists('imagecreatefromwebp')) {
+        $image = @imagecreatefromwebp($path);
+        if ($image !== false) {
+            return $image;
+        }
+    }
+
+    if (!function_exists('imagecreatefromstring')) {
+        return false;
+    }
+    $bytes = @file_get_contents($path);
+    return $bytes === false ? false : @imagecreatefromstring($bytes);
+}
+
 function capubbs_get_webp_image_size($path) {
     $file_size = @filesize($path);
     if ($file_size === false || $file_size < 20) {
