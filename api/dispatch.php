@@ -18,6 +18,7 @@
 
 require_once __DIR__.'/jiekoufunc.php';
 require_once __DIR__.'/lib/ActivityHandlers.php';
+require_once __DIR__.'/lib/AvatarHandlers.php';
 require_once __DIR__.'/lib/FloorDecorationHandlers.php';
 require_once __DIR__.'/lib/TagHandlers.php';
 require_once __DIR__.'/lib/MedalHandlers.php';
@@ -69,6 +70,7 @@ function _dispatch_build_routes() {
         'reply'            => array('handler' => 'jiekoufunc_reply',            'check_login' => true, 'require_rights' => 0),
         'sendmsg'          => array('handler' => 'jiekoufunc_sendmsg',          'check_login' => true, 'require_rights' => 0),
         'edituser'         => array('handler' => 'jiekoufunc_edituser',         'check_login' => true, 'require_rights' => 0),
+        'avatar_update'    => array('handler' => 'jiekoufunc_avatar_update',    'check_login' => true, 'require_rights' => 0),
         'floor_decoration_upload' => array('handler' => 'jiekoufunc_floor_decoration_upload', 'check_login' => true, 'require_rights' => 0),
         'floor_decoration_delete' => array('handler' => 'jiekoufunc_floor_decoration_delete', 'check_login' => true, 'require_rights' => 0),
         'medal_self_settings' => array('handler' => 'jiekoufunc_medal_self_settings', 'check_login' => true, 'require_rights' => 0),
@@ -371,6 +373,13 @@ function jiekoufunc_dispatch($con, $params) {
                 return jiekoufunc_searchByKeyword($con, $keyword, $token, $type, $bid, $params);
             case 'jiekoufunc_edituser':
                 return jiekoufunc_edituser($con, $token, $ip, $params);
+            case 'jiekoufunc_avatar_update':
+                return jiekoufunc_avatar_update(
+                    $con,
+                    $token,
+                    $params,
+                    isset($_FILES['file']) ? $_FILES['file'] : null
+                );
             case 'jiekoufunc_floor_decoration_upload':
                 return jiekoufunc_floor_decoration_upload(
                     $con,

@@ -13,7 +13,6 @@ import { normalizeLegacyAvatar } from '../utils/legacyAssets';
 import { md5LegacyStringHex } from '../utils/md5';
 
 const PROFILE_API_URL = import.meta.env.VITE_API_URL?.trim() || '/api/api.php';
-const AVATAR_UPLOAD_URL = import.meta.env.VITE_AVATAR_UPLOAD_URL?.trim() || '/bbs/utils/icon_upload.php';
 
 type ApiEnvelope = {
   code: number;
@@ -148,16 +147,17 @@ export async function updateProfileSignatures(signatures: ProfileRecord[]) {
 }
 
 export async function updateProfileAvatar(avatarSrc: string) {
-  const row = await fetchCurrentUserRow();
-  let icon = stringValue(row.icon);
-
+  const body = new FormData();
+  body.set('ask', 'avatar_update');
   if (avatarSrc === defaultAvatar || !avatarSrc.trim()) {
-    icon = '';
+    body.set('use_default', '1');
   } else if (avatarSrc.startsWith('data:image/')) {
-    icon = await uploadAvatarDataUrl(avatarSrc);
+    const blob = await fetch(avatarSrc).then((response) => response.blob());
+    body.set('file', new File([blob], 'avatar.png', { type: 'image/png' }));
+  } else {
+    return fetchUserCenterProfile();
   }
-
-  await editUser(row, { icon });
+  await requestMultipartData(body);
   return fetchUserCenterProfile();
 }
 
@@ -263,36 +263,6 @@ async function requestMultipartData(body: FormData, signal?: AbortSignal) {
     throw new ProfileApiError(payload.message?.trim() || '装饰图片上传失败。');
   }
   return payload.data;
-}
-
-async function uploadAvatarDataUrl(dataUrl: string) {
-  const blob = await fetch(dataUrl).then((response) => response.blob());
-  const body = new FormData();
-  body.set('file', new File([blob], 'avatar.png', { type: 'image/png' }));
-
-  let response: Response;
-  try {
-    response = await fetch(AVATAR_UPLOAD_URL, {
-      body,
-      credentials: 'include',
-      method: 'POST',
-    });
-  } catch {
-    throw new ProfileApiError('头像上传失败，请稍后重试。');
-  }
-
-  let payload: unknown;
-  try {
-    payload = await response.json();
-  } catch {
-    throw new ProfileApiError('头像上传服务返回了无法识别的数据。');
-  }
-
-  if (!response.ok || !isApiRow(payload) || Number(payload.code) !== 0 || !stringValue(payload.url)) {
-    throw new ProfileApiError(isApiRow(payload) ? stringValue(payload.msg) || '头像上传失败。' : '头像上传失败。');
-  }
-
-  return stringValue(payload.url);
 }
 
 async function requestRows(params: Record<string, string | number>, signal?: AbortSignal) {
