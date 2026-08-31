@@ -107,7 +107,7 @@ function avatar_image_prepare($file, &$error) {
         return false;
     }
 
-    $image_info = @getimagesize($file['tmp_name']);
+    $image_info = capubbs_get_image_size($file['tmp_name']);
     if (!$image_info || intval($image_info[0]) <= 0 || intval($image_info[1]) <= 0) {
         $error = '头像图片无法识别。';
         return false;
@@ -189,20 +189,7 @@ function avatar_image_prepare($file, &$error) {
 }
 
 function avatar_image_detect_mime($path) {
-    if (function_exists('finfo_open')) {
-        $finfo = finfo_open(FILEINFO_MIME_TYPE);
-        if ($finfo) {
-            $mime = finfo_file($finfo, $path);
-            if (PHP_VERSION_ID < 80500) {
-                finfo_close($finfo);
-            }
-            if (is_string($mime)) {
-                return strtolower($mime);
-            }
-        }
-    }
-    $info = @getimagesize($path);
-    return $info && isset($info['mime']) ? strtolower(strval($info['mime'])) : '';
+    return capubbs_detect_image_mime($path);
 }
 
 function avatar_image_store($username, $encoded) {

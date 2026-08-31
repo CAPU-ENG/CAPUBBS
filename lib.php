@@ -62,6 +62,149 @@ function capubbs_random_bytes($length) {
     throw new Exception('Unable to obtain secure random bytes.');
 }
 
+// Read image dimensions on PHP 5.6 and newer. PHP only added WebP support to
+// getimagesize() in PHP 7.1, so older production runtimes need a RIFF fallback.
+function capubbs_get_image_size($path) {
+    $info = @getimagesize($path);
+    if ($info && intval($info[0]) > 0 && intval($info[1]) > 0) {
+        return $info;
+    }
+    if (PHP_VERSION_ID >= 70100) {
+        return false;
+    }
+    return capubbs_get_webp_image_size($path);
+}
+
+function capubbs_detect_image_mime($path) {
+    $detected = '';
+    if (function_exists('finfo_open')) {
+        $finfo = finfo_open(FILEINFO_MIME_TYPE);
+        if ($finfo) {
+            $mime = finfo_file($finfo, $path);
+            if (PHP_VERSION_ID < 80500) {
+                finfo_close($finfo);
+            }
+            if (is_string($mime)) {
+                $detected = strtolower(trim($mime));
+                if (in_array($detected, array('image/gif', 'image/jpeg', 'image/png', 'image/webp'), true)) {
+                    return $detected;
+                }
+            }
+        }
+    }
+
+    $info = capubbs_get_image_size($path);
+    if ($info && isset($info['mime'])) {
+        return strtolower(strval($info['mime']));
+    }
+    return $detected;
+}
+
+function capubbs_get_webp_image_size($path) {
+    $file_size = @filesize($path);
+    if ($file_size === false || $file_size < 20) {
+        return false;
+    }
+
+    $handle = @fopen($path, 'rb');
+    if ($handle === false) {
+        return false;
+    }
+
+    $header = fread($handle, 12);
+    if (strlen($header) !== 12 || substr($header, 0, 4) !== 'RIFF' || substr($header, 8, 4) !== 'WEBP') {
+        fclose($handle);
+        return false;
+    }
+
+    $riff_size = capubbs_unpack_uint32_le(substr($header, 4, 4));
+    $riff_end = 8 + $riff_size;
+    if ($riff_size < 12 || $riff_end > $file_size) {
+        fclose($handle);
+        return false;
+    }
+
+    $offset = 12;
+    while ($offset <= $riff_end - 8) {
+        if (fseek($handle, $offset) !== 0) {
+            break;
+        }
+        $chunk_header = fread($handle, 8);
+        if (strlen($chunk_header) !== 8) {
+            break;
+        }
+
+        $chunk_type = substr($chunk_header, 0, 4);
+        $chunk_size = capubbs_unpack_uint32_le(substr($chunk_header, 4, 4));
+        $payload_offset = $offset + 8;
+        if ($chunk_size > $riff_end - $payload_offset) {
+            break;
+        }
+
+        $required = $chunk_type === 'VP8X' ? 10 : ($chunk_type === 'VP8 ' ? 10 : ($chunk_type === 'VP8L' ? 5 : 0));
+        if ($required > 0 && $chunk_size >= $required) {
+            $payload = fread($handle, $required);
+            if (strlen($payload) !== $required) {
+                break;
+            }
+            $dimensions = capubbs_webp_chunk_dimensions($chunk_type, $payload);
+            if ($dimensions !== false) {
+                fclose($handle);
+                return array(
+                    0 => $dimensions[0],
+                    1 => $dimensions[1],
+                    2 => 18,
+                    3 => 'width="' . $dimensions[0] . '" height="' . $dimensions[1] . '"',
+                    'mime' => 'image/webp',
+                );
+            }
+        }
+
+        $offset = $payload_offset + $chunk_size + ($chunk_size % 2);
+    }
+
+    fclose($handle);
+    return false;
+}
+
+function capubbs_webp_chunk_dimensions($chunk_type, $payload) {
+    if ($chunk_type === 'VP8X') {
+        $width = 1 + capubbs_unpack_uint24_le(substr($payload, 4, 3));
+        $height = 1 + capubbs_unpack_uint24_le(substr($payload, 7, 3));
+    } elseif ($chunk_type === 'VP8 ') {
+        if (substr($payload, 3, 3) !== "\x9d\x01\x2a") {
+            return false;
+        }
+        $width = (ord($payload[6]) | (ord($payload[7]) << 8)) & 0x3fff;
+        $height = (ord($payload[8]) | (ord($payload[9]) << 8)) & 0x3fff;
+    } elseif ($chunk_type === 'VP8L') {
+        if (ord($payload[0]) !== 0x2f) {
+            return false;
+        }
+        $byte_1 = ord($payload[1]);
+        $byte_2 = ord($payload[2]);
+        $byte_3 = ord($payload[3]);
+        $byte_4 = ord($payload[4]);
+        $width = 1 + $byte_1 + (($byte_2 & 0x3f) << 8);
+        $height = 1 + (($byte_2 & 0xc0) >> 6) + ($byte_3 << 2) + (($byte_4 & 0x0f) << 10);
+    } else {
+        return false;
+    }
+
+    return $width > 0 && $height > 0 ? array($width, $height) : false;
+}
+
+function capubbs_unpack_uint24_le($bytes) {
+    return ord($bytes[0]) + (ord($bytes[1]) << 8) + (ord($bytes[2]) << 16);
+}
+
+function capubbs_unpack_uint32_le($bytes) {
+    return ord($bytes[0])
+        + (ord($bytes[1]) << 8)
+        + (ord($bytes[2]) << 16)
+        + (ord($bytes[3]) * 16777216);
+}
+
 function checkuser_mysqli() {
     $token = @$_COOKIE['token'];
     if ($token == "") return array("", 0);

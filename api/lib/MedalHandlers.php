@@ -969,7 +969,7 @@ function medal_image_create_pair($file, &$error) {
         return false;
     }
 
-    $image_info = @getimagesize($file['tmp_name']);
+    $image_info = capubbs_get_image_size($file['tmp_name']);
     if (!$image_info || intval($image_info[0]) <= 0 || intval($image_info[1]) <= 0) {
         $error = '勋章图片无法识别。';
         return false;
@@ -1027,18 +1027,7 @@ function medal_image_create_pair($file, &$error) {
 }
 
 function medal_image_detect_mime($path) {
-    if (function_exists('finfo_open')) {
-        $finfo = finfo_open(FILEINFO_MIME_TYPE);
-        if ($finfo) {
-            $mime = finfo_file($finfo, $path);
-            finfo_close($finfo);
-            if (is_string($mime)) {
-                return strtolower($mime);
-            }
-        }
-    }
-    $info = @getimagesize($path);
-    return $info && isset($info['mime']) ? strtolower(strval($info['mime'])) : '';
+    return capubbs_detect_image_mime($path);
 }
 
 function medal_image_encode_variant($source, $maximum_size, $maximum_bytes) {

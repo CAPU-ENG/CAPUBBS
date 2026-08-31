@@ -29,8 +29,11 @@ function jiekoufunc_floor_decoration_upload($con, $token, $params, $file) {
         return jiekoufunc_report('14', '装饰图片必须小于 64 KB。');
     }
 
-    $image_info = @getimagesize($file['tmp_name']);
-    if (!$image_info || intval($image_info[0]) <= 0 || intval($image_info[0]) !== intval($image_info[1])) {
+    $image_info = capubbs_get_image_size($file['tmp_name']);
+    if (!$image_info || intval($image_info[0]) <= 0 || intval($image_info[1]) <= 0) {
+        return jiekoufunc_report('14', '装饰图片无法识别。');
+    }
+    if (intval($image_info[0]) !== intval($image_info[1])) {
         return jiekoufunc_report('14', '装饰图片必须是方形图片。');
     }
     if (intval($image_info[0]) > 4096) {
@@ -175,18 +178,7 @@ function floor_decoration_nullable_path($value) {
 }
 
 function floor_decoration_detect_mime($path) {
-    if (function_exists('finfo_open')) {
-        $finfo = finfo_open(FILEINFO_MIME_TYPE);
-        if ($finfo) {
-            $mime = finfo_file($finfo, $path);
-            finfo_close($finfo);
-            if (is_string($mime)) {
-                return strtolower($mime);
-            }
-        }
-    }
-    $info = @getimagesize($path);
-    return $info && isset($info['mime']) ? strtolower(strval($info['mime'])) : '';
+    return capubbs_detect_image_mime($path);
 }
 
 function floor_decoration_reencode($path) {
