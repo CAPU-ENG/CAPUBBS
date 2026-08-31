@@ -1,4 +1,4 @@
-import defaultAvatar from '../assets/bg/bicycle.svg';
+import defaultAvatar from '../assets/avatar/default-avatar.svg';
 import type { MedalDisplayState, MedalTextureId, UserMedal } from '../data/medals';
 import { normalizeLegacyAvatar } from '../utils/legacyAssets';
 import { getPublicProfilePath } from '../utils/userRoutes';

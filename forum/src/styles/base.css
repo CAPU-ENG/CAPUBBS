@@ -116,12 +116,12 @@
   }
 
   /* Keep the default avatar fully visible in square avatar slots. */
-  img[src*="/bicycle"]:not(.profile-avatar-source) {
+  img[src*="/default-avatar"]:not(.profile-avatar-source) {
     object-fit: contain !important;
     padding: 0;
   }
 
-  .dark img[src*="/bicycle"] {
+  .dark img[src*="/default-avatar"] {
     filter: brightness(0) invert(1);
   }
 }

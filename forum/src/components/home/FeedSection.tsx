@@ -1,6 +1,6 @@
 import { ArrowDown, Eye, MessageCircle, RefreshCw } from 'lucide-react';
 import { useEffect } from 'react';
-import defaultAvatar from '../../assets/bg/bicycle.svg';
+import defaultAvatar from '../../assets/avatar/default-avatar.svg';
 import type { HomeThread } from '../../api/home';
 import type { HomeDataStatus } from '../../hooks/useHomeData';
 import { LoadingSpinner } from '../layout/LoadingSpinner';

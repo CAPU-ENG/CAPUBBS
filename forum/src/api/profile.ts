@@ -1,4 +1,4 @@
-import defaultAvatar from '../assets/bg/bicycle.svg';
+import defaultAvatar from '../assets/avatar/default-avatar.svg';
 import type {
   ProfileDetail,
   ProfileRecord,

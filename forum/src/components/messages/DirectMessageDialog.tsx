@@ -1,7 +1,7 @@
 import { Send, X } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
-import defaultAvatar from '../../assets/bg/bicycle.svg';
+import defaultAvatar from '../../assets/avatar/default-avatar.svg';
 import { LoadingSpinner as LoaderCircle } from '../layout/LoadingSpinner';
 import type { DirectChatMessage, DirectConversation } from '../../types/messages';
 

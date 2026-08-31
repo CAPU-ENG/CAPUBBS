@@ -15,7 +15,7 @@ import {
   UserPlus,
   UserRound,
 } from 'lucide-react';
-import defaultAvatar from '../assets/bg/bicycle.svg';
+import defaultAvatar from '../assets/avatar/default-avatar.svg';
 import qqIcon from '../assets/icons/qq.svg';
 import { isUsernameAvailable, sendRegisterEmailCode } from '../api/auth';
 import { AppBackground } from '../components/layout/AppBackground';

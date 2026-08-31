@@ -41,7 +41,7 @@ import {
   type ManagementMute,
   type ManagementThread,
 } from '../api/management';
-import defaultAvatar from '../assets/bg/bicycle.svg';
+import defaultAvatar from '../assets/avatar/default-avatar.svg';
 import { AppBackground } from '../components/layout/AppBackground';
 import { LoadingSpinner as LoaderCircle } from '../components/layout/LoadingSpinner';
 import { LoadingState } from '../components/layout/LoadingState';

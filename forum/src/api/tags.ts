@@ -1,4 +1,4 @@
-import defaultAvatar from '../assets/bg/bicycle.svg';
+import defaultAvatar from '../assets/avatar/default-avatar.svg';
 import type { TagDefinition } from '../data/tags';
 import type { TagExpressionPayload } from '../utils/tagExpression';
 import { normalizeLegacyAvatar } from '../utils/legacyAssets';

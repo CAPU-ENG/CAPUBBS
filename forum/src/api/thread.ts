@@ -1,4 +1,4 @@
-import defaultAvatar from '../assets/bg/bicycle.svg';
+import defaultAvatar from '../assets/avatar/default-avatar.svg';
 import type { NestedReply, ThreadAuthor, ThreadFloorData } from '../data/thread';
 import type { UserTag } from '../data/tags';
 import type { FloorDecorationPaths } from '../data/floorDecoration';

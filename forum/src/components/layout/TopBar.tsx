@@ -13,7 +13,7 @@ import {
   UserRound,
 } from 'lucide-react';
 import { LoadingSpinner as LoaderCircle } from './LoadingSpinner';
-import defaultAvatar from '../../assets/bg/bicycle.svg';
+import defaultAvatar from '../../assets/avatar/default-avatar.svg';
 import logo1 from '../../assets/logo/logo1.webp';
 import logo2 from '../../assets/logo/logo2.webp';
 import { DesktopBoardDrawer, MobileBoardSidebar } from './BoardNavigation';
