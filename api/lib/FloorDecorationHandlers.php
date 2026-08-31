@@ -52,8 +52,8 @@ function jiekoufunc_floor_decoration_upload($con, $token, $params, $file) {
     $content_hash = substr(hash('sha256', $encoded), 0, 24);
     $relative_directory = '/bbsimg/floor-decorations/' . $user_hash;
     $public_path = $relative_directory . '/' . $variant . '-' . $content_hash . '.webp';
-    $absolute_directory = dirname(__DIR__, 2) . $relative_directory;
-    $absolute_path = dirname(__DIR__, 2) . $public_path;
+    $absolute_directory = dirname(dirname(__DIR__)) . $relative_directory;
+    $absolute_path = dirname(dirname(__DIR__)) . $public_path;
 
     if (!is_dir($absolute_directory) && !@mkdir($absolute_directory, 0755, true)) {
         return jiekoufunc_report('8', '无法创建装饰图片目录。');
@@ -248,7 +248,7 @@ function floor_decoration_delete_owned_file($username, $public_path) {
     if (strpos($public_path, $relative_directory) !== 0 || basename($public_path) !== substr($public_path, strlen($relative_directory))) {
         return;
     }
-    $absolute_path = dirname(__DIR__, 2) . $public_path;
+    $absolute_path = dirname(dirname(__DIR__)) . $public_path;
     if (is_file($absolute_path)) {
         @unlink($absolute_path);
     }

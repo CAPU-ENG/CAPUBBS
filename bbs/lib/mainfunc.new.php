@@ -12,7 +12,7 @@
     function checkUserAndSign($con, $ip, $token) {
         $GLOBALS['validtime']=60*60*24*7;
 
-        $token = mysqli_real_escape_string($con, $token ?? '');
+        $token = mysqli_real_escape_string($con, isset($token) ? $token : '');
 
         $nowtime=time();
         $time=time();
@@ -67,7 +67,7 @@
     function getOnePage($con, $bid, $tid, $page, $see_lz, $ip, $token) {
         $GLOBALS['validtime']=60*60*24*7;
 
-        $token = mysqli_real_escape_string($con, $token ?? '');
+        $token = mysqli_real_escape_string($con, isset($token) ? $token : '');
         $ip    = mysqli_real_escape_string($con, $ip);
 
         $user="";

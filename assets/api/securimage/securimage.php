@@ -2465,7 +2465,7 @@ class Securimage {
                         $letter_file,
                         $this->getSoxEffectChain());
 
-                    $data = `$sox_cmd`;
+                    $data = shell_exec($sox_cmd);
 
                     $l = new WavFile();
                     $l->setIgnoreChunkSizes(true);
@@ -2726,7 +2726,7 @@ class Securimage {
             $steps[$selSteps[1]],
             $sweep1[1]
         );
-        $data = `$cmd`;
+        $data = shell_exec($cmd);
 
         return $data;
     }

@@ -210,8 +210,8 @@ function avatar_image_store($username, $encoded) {
     $content_hash = substr(hash('sha256', $encoded), 0, 24);
     $relative_directory = '/bbsimg/icons/user_upload/' . $user_hash;
     $public_path = $relative_directory . '/avatar-' . $content_hash . '.webp';
-    $absolute_directory = dirname(__DIR__, 2) . $relative_directory;
-    $absolute_path = dirname(__DIR__, 2) . $public_path;
+    $absolute_directory = dirname(dirname(__DIR__)) . $relative_directory;
+    $absolute_path = dirname(dirname(__DIR__)) . $public_path;
 
     if (!is_dir($absolute_directory) && !@mkdir($absolute_directory, 0755, true)) {
         return false;
@@ -225,7 +225,7 @@ function avatar_image_store($username, $encoded) {
     }
 
     try {
-        $temporary_path = $absolute_directory . '/.' . bin2hex(random_bytes(12)) . '.tmp';
+        $temporary_path = $absolute_directory . '/.' . bin2hex(capubbs_random_bytes(12)) . '.tmp';
     } catch (Exception $error) {
         return false;
     }
@@ -272,7 +272,7 @@ function avatar_update_lock($con, $username, $acquire) {
 function avatar_cleanup_user_directory($username, $current_icon) {
     $user_hash = hash('sha256', $username);
     $relative_directory = '/bbsimg/icons/user_upload/' . $user_hash . '/';
-    $absolute_directory = dirname(__DIR__, 2) . rtrim($relative_directory, '/');
+    $absolute_directory = dirname(dirname(__DIR__)) . rtrim($relative_directory, '/');
     if (!is_dir($absolute_directory)) {
         return;
     }
@@ -337,7 +337,7 @@ function avatar_legacy_upload_path($icon) {
     }
 
     return array(
-        'absolute_path' => dirname(__DIR__, 2) . '/bbsimg/icons/' . $relative,
+        'absolute_path' => dirname(dirname(__DIR__)) . '/bbsimg/icons/' . $relative,
         'aliases' => array(
             $relative,
             'bbsimg/icons/' . $relative,
