@@ -67,6 +67,17 @@
         echo "无法识别的图片格式";
         exit;
     }
+    if ($mime === 'image/webp') {
+        $decodedWebp = capubbs_image_create_from_file($_FILES['image']['tmp_name'], $mime);
+        if ($decodedWebp === false) {
+            http_response_code(400);
+            echo "无法解码的 WebP 图片";
+            exit;
+        }
+        if (PHP_VERSION_ID < 80500 && function_exists('imagedestroy')) {
+            imagedestroy($decodedWebp);
+        }
+    }
 
     $name = $_FILES['image']['name'];
     $extension=get_extension($name);
@@ -153,13 +164,7 @@
             break;
 
         case 18:
-            if (!function_exists("imagecreatefromstring"))
-            {
-                echo "the GD can't support .webp, please use .jpeg or .png! <a href='javascript:history.back();'>back</a>";
-                exit();
-            }
-            $webpBytes = @file_get_contents($srcFile);
-            $im = $webpBytes === false ? false : @imagecreatefromstring($webpBytes);
+            $im = capubbs_image_create_from_file($srcFile, 'image/webp');
             if (!$im)
                 return false;
             break;

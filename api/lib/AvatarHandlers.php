@@ -126,13 +126,13 @@ function avatar_image_prepare($file, &$error) {
         $error = '仅支持 JPEG、PNG 或 WebP 头像图片。';
         return false;
     }
-    if (!function_exists('imagecreatefromstring') || !function_exists('imagewebp')) {
+    if (!function_exists('imagewebp')
+        || (!function_exists('imagecreatefromstring') && !function_exists('imagecreatefromwebp'))) {
         $error = '服务器缺少头像图片处理组件。';
         return false;
     }
 
-    $source_bytes = @file_get_contents($file['tmp_name']);
-    $source = $source_bytes === false ? false : @imagecreatefromstring($source_bytes);
+    $source = capubbs_image_create_from_file($file['tmp_name'], $mime);
     if (!$source) {
         $error = '头像图片无法解码。';
         return false;
