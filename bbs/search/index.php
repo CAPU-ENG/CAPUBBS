@@ -26,6 +26,7 @@ $result=mainfunc(array(
 <head>
 <title>CAPUBBS - 搜索</title>
 <meta charset="utf-8">
+<base href="/bbs/search/">
 <link rel="stylesheet" href="../lib/general.css">
 <link rel="shortcut icon" href="/assets/images/capu.jpg">
 <style>

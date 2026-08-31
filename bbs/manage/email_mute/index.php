@@ -4,7 +4,7 @@ include("../../lib/mainfunc.php");
 include_once "../../../config.php";
 
 if (!CAPUBBS_ENABLE_EMAIL_MUTE) {
-    echo '<html><head><meta charset="utf-8"><link rel="stylesheet" href="../../lib/general.css"></head><body>';
+    echo '<html><head><meta charset="utf-8"><base href="/bbs/manage/email_mute/"><link rel="stylesheet" href="../../lib/general.css"></head><body>';
     echo '<p style="text-align:center;color:#999;margin-top:100px;">管理员已关闭邮箱禁言功能。</p>';
     echo '</body></html>';
     exit;
@@ -15,7 +15,7 @@ $username = $users['username'];
 $rights = intval($users['rights']);
 
 if ($username == '' || $rights < 1) {
-    echo '<html><head><meta charset="utf-8"><link rel="stylesheet" href="../../lib/general.css"></head><body>';
+    echo '<html><head><meta charset="utf-8"><base href="/bbs/manage/email_mute/"><link rel="stylesheet" href="../../lib/general.css"></head><body>';
     echo '<p style="text-align:center;color:#999;margin-top:100px;">权限不足：仅限版主或管理员访问。</p>';
     echo '</body></html>';
     exit;
@@ -27,6 +27,7 @@ $mutes_result = mainfunc(array("ask" => "listEmailMutes"));
 <html lang="zh-CN">
 <head>
     <meta charset="utf-8">
+    <base href="/bbs/manage/email_mute/">
     <title>邮箱禁言管理 - CAPUBBS</title>
     <link rel="stylesheet" type="text/css" href="../../lib/general.css">
     <link rel="stylesheet" type="text/css" href="../../main/style.css">

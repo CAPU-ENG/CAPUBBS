@@ -13,6 +13,7 @@
 <html>
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<base href="/bbs/online/">
 <title>当前在线</title>
 <style>
 *{font-size:14px}

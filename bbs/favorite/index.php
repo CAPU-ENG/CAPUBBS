@@ -7,8 +7,8 @@
     $username = $users['username'];
 
     if ($username == "") {
-        $nowurl = urlencode($_SERVER["PHP_SELF"] . "?" . $_SERVER["QUERY_STRING"]);
-        header("Location: ../login?from=$nowurl");
+        $nowurl = urlencode(isset($_SERVER["REQUEST_URI"]) ? $_SERVER["REQUEST_URI"] : '/bbs/favorite');
+        header("Location: /bbs/login?from=$nowurl");
         exit;
     }
 
@@ -31,13 +31,14 @@
         $act_bid = intval($_GET['bid']);
         $act_tid = intval($_GET['tid']);
         mainfunc(array("ask" => "favorite_remove", "bid" => $act_bid, "tid" => $act_tid));
-        header("Location: ./");
+        header("Location: /bbs/favorite/");
         exit;
     }
 ?>
 <html>
 <head>
 <meta charset="utf-8">
+<base href="/bbs/favorite/">
 <meta name="apple-itunes-app" content="app-id=826386033">
 <title>我的收藏 - CAPUBBS</title>
 <script type="text/javascript" src="../lib/general.js"></script>
@@ -53,7 +54,7 @@
 
 <div class="user">
 <?php
-$nowurl=$_SERVER["PHP_SELF"]. "?".$_SERVER["QUERY_STRING"];
+$nowurl=isset($_SERVER["REQUEST_URI"]) ? $_SERVER["REQUEST_URI"] : '/bbs/favorite';
 $nowurl=urlencode($nowurl);
 if($username!=""){
     $userinfo=mainfunc(array("view"=>$username));
@@ -79,7 +80,7 @@ if($username!=""){
     echo("<br><a href='../logout?from=$nowurl'>注销</a>");
     echo("</div>");
 }else{
-    $nowurl=$_SERVER["PHP_SELF"]. "?".$_SERVER["QUERY_STRING"];
+    $nowurl=isset($_SERVER["REQUEST_URI"]) ? $_SERVER["REQUEST_URI"] : '/bbs/favorite';
     $nowurl=urlencode($nowurl);
     echo("<script type='text/javascript'>var score=-1;</script>");
     echo("<span class='guest'>欢迎您，游客！<a href='../login?from=$nowurl'>登录</a> 或者 <a href='../register'>注册</a></span>");

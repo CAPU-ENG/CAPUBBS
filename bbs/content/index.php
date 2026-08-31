@@ -181,14 +181,14 @@ window.addEventListener('message', function(e) {
                 echo("，<a href='../home?pos=message' target='_blank'>您有 $msg 条未读消息</a>");
                 echo("&nbsp;<a href='../favorite/'>我的收藏</a>");
             }
-            $nowurl=$_SERVER["PHP_SELF"]. "?".$_SERVER["QUERY_STRING"];
+            $nowurl=isset($_SERVER["REQUEST_URI"]) ? $_SERVER["REQUEST_URI"] : '/bbs/';
             $nowurl=urlencode($nowurl);
             echo("&nbsp;<a href='../logout?from=$nowurl'>注销</a>");
             // if (intval($users['rights']) >= 1) {
             //     echo("&nbsp;<a href='../manage/' style='color:#337ab7;'>管理工具</a>");
             // }
         }else{
-            $nowurl=$_SERVER["PHP_SELF"]. "?".$_SERVER["QUERY_STRING"];
+            $nowurl=isset($_SERVER["REQUEST_URI"]) ? $_SERVER["REQUEST_URI"] : '/bbs/';
             $nowurl=urlencode($nowurl);
             $right=-1;
             $currentuser=null;

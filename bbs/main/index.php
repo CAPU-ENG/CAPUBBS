@@ -115,12 +115,12 @@ if($username!=""){
         echo("<br><a href='../home?pos=message' target='_blank'>您有 $msg 条未读消息</a>");
         echo("&nbsp;<a href='../favorite/'>我的收藏</a>");
     }
-    $nowurl=$_SERVER["PHP_SELF"]. "?".$_SERVER["QUERY_STRING"];
+    $nowurl=isset($_SERVER["REQUEST_URI"]) ? $_SERVER["REQUEST_URI"] : '/bbs/';
     $nowurl=urlencode($nowurl);
     echo("<br><a href='../logout?from=$nowurl'>注销</a>");
     echo("</div>");
 }else{
-    $nowurl=$_SERVER["PHP_SELF"]. "?".$_SERVER["QUERY_STRING"];
+    $nowurl=isset($_SERVER["REQUEST_URI"]) ? $_SERVER["REQUEST_URI"] : '/bbs/';
     $nowurl=urlencode($nowurl);
 	    $email_muted = false;
     echo("<span class='guest'>欢迎您，游客！<a href='../login?from=$nowurl'>登录</a> 或者 <a href='../register'>注册</a></span>");

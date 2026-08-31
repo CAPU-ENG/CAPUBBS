@@ -13,6 +13,7 @@
     "verify:font-sizes": "node --experimental-strip-types verify-forum-font-sizes.mjs",
     "verify:forum-mode": "node --experimental-strip-types verify-forum-mode.mjs",
     "verify:legacy-assets": "node --experimental-strip-types verify-legacy-assets.mjs",
+    "verify:legacy-gateway": "node --experimental-strip-types verify-legacy-gateway.mjs",
     "verify:legacy-routes": "node --experimental-strip-types verify-legacy-forum-routes.mjs",
     "verify:legacy-signatures": "node --experimental-strip-types verify-legacy-signature-floor-links.mjs",
     "verify:markdown-editing": "node --experimental-strip-types verify-markdown-editing.mjs",
