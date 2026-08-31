@@ -1085,7 +1085,7 @@ function medal_image_encode_variant($source, $maximum_size, $maximum_bytes) {
 }
 
 function medal_image_store_pair($large_bytes, $small_bytes) {
-    $root = dirname(__DIR__, 2);
+    $root = dirname(dirname(__DIR__));
     $base_directory = $root . '/bbsimg/medals';
     if (!is_dir($base_directory) && !@mkdir($base_directory, 0755, true)) {
         return false;
@@ -1093,7 +1093,7 @@ function medal_image_store_pair($large_bytes, $small_bytes) {
 
     for ($attempt = 0; $attempt < 10; $attempt++) {
         try {
-            $key = bin2hex(random_bytes(16));
+            $key = bin2hex(capubbs_random_bytes(16));
         } catch (Exception $error) {
             return false;
         }
@@ -1134,7 +1134,7 @@ function medal_image_delete_pair($large_path, $small_path) {
             $ok = false;
             continue;
         }
-        $absolute_path = dirname(__DIR__, 2) . $public_path;
+        $absolute_path = dirname(dirname(__DIR__)) . $public_path;
         $directories[dirname($absolute_path)] = true;
         if (is_file($absolute_path) && !@unlink($absolute_path)) {
             $ok = false;

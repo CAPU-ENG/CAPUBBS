@@ -23,6 +23,45 @@ function dbconnect_mysqli() {
     return $con;
 }
 
+// Return cryptographically secure random bytes on both PHP 5.6 and newer PHP.
+// PHP did not provide random_bytes() until PHP 7.0.
+function capubbs_random_bytes($length) {
+    $length = intval($length);
+    if ($length < 1) {
+        throw new InvalidArgumentException('Random byte length must be positive.');
+    }
+
+    if (function_exists('random_bytes')) {
+        return random_bytes($length);
+    }
+
+    if (function_exists('openssl_random_pseudo_bytes')) {
+        $strong = false;
+        $bytes = openssl_random_pseudo_bytes($length, $strong);
+        if ($bytes !== false && strlen($bytes) === $length && $strong) {
+            return $bytes;
+        }
+    }
+
+    $handle = @fopen('/dev/urandom', 'rb');
+    if ($handle !== false) {
+        $bytes = '';
+        while (strlen($bytes) < $length && !feof($handle)) {
+            $chunk = fread($handle, $length - strlen($bytes));
+            if ($chunk === false || $chunk === '') {
+                break;
+            }
+            $bytes .= $chunk;
+        }
+        fclose($handle);
+        if (strlen($bytes) === $length) {
+            return $bytes;
+        }
+    }
+
+    throw new Exception('Unable to obtain secure random bytes.');
+}
+
 function checkuser_mysqli() {
     $token = @$_COOKIE['token'];
     if ($token == "") return array("", 0);
