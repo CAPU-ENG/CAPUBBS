@@ -5,6 +5,7 @@
 <html>
 <head>
 <meta charset="utf-8">
+<base href="/bbs/login/">
 <title>CAPUBBS - 登录</title>
 <link rel="stylesheet" href="../lib/general.css">
 <link rel="shortcut icon" href="/assets/images/capu.jpg">
