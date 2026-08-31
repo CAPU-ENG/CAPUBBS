@@ -55,7 +55,6 @@ function _dispatch_build_routes() {
         'lzl'             => array('handler' => 'jiekoufunc_lzl',             'check_login' => false, 'require_rights' => 0),
         'calendar'        => array('handler' => 'jiekoufunc_calendar',        'check_login' => false, 'require_rights' => 0),
         'recent_threads'  => array('handler' => 'jiekoufunc_recent_threads',  'check_login' => false, 'require_rights' => 0),
-        'hot_threads'     => array('handler' => 'jiekoufunc_hot_threads',     'check_login' => false, 'require_rights' => 0),
         'activity_signup_list' => array('handler' => 'jiekoufunc_activity_signup_list', 'check_login' => false, 'require_rights' => 0),
 
         // Auth operations — handle login/session themselves
@@ -427,8 +426,6 @@ function jiekoufunc_dispatch($con, $params) {
                 return jiekoufunc_verifiedCount($con);
             case 'jiekoufunc_recent_threads':
                 return jiekoufunc_recent_threads($con, $params);
-            case 'jiekoufunc_hot_threads':
-                return jiekoufunc_hot_threads($con, $params);
         }
     }
 
