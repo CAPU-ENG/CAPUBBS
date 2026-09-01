@@ -394,6 +394,11 @@
     font-weight: 700;
   }
 
+  .register-field > .register-field-error {
+    color: var(--danger);
+    font-weight: 700;
+  }
+
   .register-input-wrap {
     display: flex;
     min-width: 0;

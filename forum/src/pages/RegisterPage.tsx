@@ -44,7 +44,9 @@ const AVATAR_OPTIONS = [
   src: `/bbsimg/icons/${encodeURIComponent(filename)}`,
 }));
 
-type UsernameState = 'idle' | 'checking' | 'available' | 'taken' | 'invalid';
+type UsernameState = 'idle' | 'checking' | 'available' | 'taken' | 'invalid' | 'error';
+type RegistrationField = 'username' | 'email' | 'emailCode' | 'password' | 'confirmPassword' | 'captcha';
+type FieldErrors = Partial<Record<RegistrationField, string>>;
 type Notice = { message: string; tone: 'error' | 'success' } | null;
 
 export function RegisterPage() {
@@ -69,6 +71,7 @@ export function RegisterPage() {
   const [place, setPlace] = useState('');
   const [hobby, setHobby] = useState('');
   const [intro, setIntro] = useState('');
+  const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
   const [notice, setNotice] = useState<Notice>(null);
   const [submitting, setSubmitting] = useState(false);
   const [sendingCode, setSendingCode] = useState(false);
@@ -90,40 +93,71 @@ export function RegisterPage() {
     return () => window.clearInterval(timer);
   }, [cooldown]);
 
-  async function checkUsername() {
-    const value = username.trim();
+  function clearFieldError(field: RegistrationField) {
+    setFieldErrors((current) => {
+      if (!current[field]) return current;
+      const next = { ...current };
+      delete next[field];
+      return next;
+    });
+  }
+
+  async function checkUsername(candidate = username): Promise<UsernameState | null> {
+    const value = candidate.trim();
     const requestId = ++usernameCheckRequestRef.current;
-    if (!value || value.includes("'")) {
+    if (!value) {
       setUsernameState('invalid');
-      return;
+      setFieldErrors((current) => ({ ...current, username: 'ID 不能为空。' }));
+      return 'invalid';
+    }
+    if (value.includes("'")) {
+      setUsernameState('invalid');
+      setFieldErrors((current) => ({ ...current, username: 'ID 含有非法字符。' }));
+      return 'invalid';
     }
 
     setUsernameState('checking');
+    clearFieldError('username');
     try {
       const available = await isUsernameAvailable(value);
-      if (requestId !== usernameCheckRequestRef.current || username.trim() !== value) return;
-      setUsernameState(available ? 'available' : 'taken');
+      if (requestId !== usernameCheckRequestRef.current || username.trim() !== value) return null;
+      const nextState = available ? 'available' : 'taken';
+      setUsernameState(nextState);
+      setFieldErrors((current) => {
+        const next = { ...current };
+        if (available) delete next.username;
+        else next.username = '这个 ID 已被注册，请换一个。';
+        return next;
+      });
+      return nextState;
     } catch {
-      if (requestId !== usernameCheckRequestRef.current || username.trim() !== value) return;
-      setUsernameState('invalid');
+      if (requestId !== usernameCheckRequestRef.current || username.trim() !== value) return null;
+      setUsernameState('error');
+      setFieldErrors((current) => ({ ...current, username: '暂时无法检查 ID，请稍后重试。' }));
+      return 'error';
     }
   }
 
   async function sendEmailCode() {
     const normalizedEmail = email.trim();
     if (!PKU_EMAIL_PATTERN.test(normalizedEmail)) {
-      setNotice({ message: '请输入允许的 PKU 学号邮箱。', tone: 'error' });
+      setFieldErrors((current) => ({ ...current, email: '请输入允许的 PKU 学号邮箱。' }));
+      setNotice(null);
       return;
     }
 
     setSendingCode(true);
+    clearFieldError('email');
     setNotice(null);
     try {
       const message = await sendRegisterEmailCode(normalizedEmail);
       setCooldown(60);
       setNotice({ message, tone: 'success' });
     } catch (error) {
-      setNotice({ message: getErrorMessage(error, '验证码发送失败，请稍后重试。'), tone: 'error' });
+      setFieldErrors((current) => ({
+        ...current,
+        email: getErrorMessage(error, '验证码发送失败，请稍后重试。'),
+      }));
     } finally {
       setSendingCode(false);
     }
@@ -172,21 +206,29 @@ export function RegisterPage() {
     const normalizedCode = emailCode.trim();
     const normalizedCaptcha = captcha.trim();
 
-    const validationMessage = validateRegistration({
+    const nextFieldErrors = validateRegistration({
       captcha: normalizedCaptcha,
       confirmPassword,
       email: normalizedEmail,
       emailCode: normalizedCode,
       password,
       username: normalizedUsername,
-      usernameState,
     });
-    if (validationMessage) {
-      setNotice({ message: validationMessage, tone: 'error' });
+    if (!nextFieldErrors.username) {
+      const checkedState = await checkUsername(normalizedUsername);
+      if (checkedState === 'taken') nextFieldErrors.username = '这个 ID 已被注册，请换一个。';
+      if (checkedState === 'invalid') nextFieldErrors.username = '请填写有效的论坛 ID。';
+      if (checkedState === 'error') nextFieldErrors.username = '暂时无法检查 ID，请稍后重试。';
+      if (checkedState === null) nextFieldErrors.username = 'ID 已变更，请重新提交。';
+    }
+    if (Object.keys(nextFieldErrors).length > 0) {
+      setFieldErrors(nextFieldErrors);
+      setNotice(null);
       return;
     }
 
     setSubmitting(true);
+    setFieldErrors({});
     setNotice(null);
     try {
       await register({
@@ -205,8 +247,15 @@ export function RegisterPage() {
       setNotice({ message: '注册成功，正在进入论坛。', tone: 'success' });
       replaceForumLocation(returnTo);
     } catch (error) {
-      setNotice({ message: getErrorMessage(error, '注册失败，请刷新验证码后重试。'), tone: 'error' });
+      const message = getErrorMessage(error, '注册失败，请刷新验证码后重试。');
       refreshCaptcha();
+      const serverField = getRegistrationServerField(message);
+      if (serverField) {
+        setFieldErrors({ [serverField]: message });
+        setNotice(null);
+      } else {
+        setNotice({ message, tone: 'error' });
+      }
     } finally {
       setSubmitting(false);
     }
@@ -226,7 +275,7 @@ export function RegisterPage() {
             </div>
           </header>
 
-          <form className="register-form" onSubmit={submit}>
+          <form className="register-form" noValidate onSubmit={submit}>
             <div className="register-form-grid">
               <section className="register-form-section" aria-labelledby="account-section-title">
                 <div className="register-section-title">
@@ -241,6 +290,8 @@ export function RegisterPage() {
                   <div className="register-input-wrap">
                     <UserRound size={17} />
                     <input
+                      aria-describedby="register-username-help"
+                      aria-invalid={Boolean(fieldErrors.username)}
                       autoComplete="username"
                       autoFocus
                       maxLength={30}
@@ -249,6 +300,7 @@ export function RegisterPage() {
                       onChange={(event) => {
                         setUsername(event.currentTarget.value);
                         setUsernameState('idle');
+                        clearFieldError('username');
                         usernameCheckRequestRef.current += 1;
                       }}
                       placeholder="一个好的 ID 是美好的开始"
@@ -256,8 +308,8 @@ export function RegisterPage() {
                     />
                     <UsernameIndicator state={usernameState} />
                   </div>
-                  <small>
-                    {getUsernameHint(usernameState)}
+                  <small className={fieldErrors.username ? 'register-field-error' : undefined} id="register-username-help">
+                    {fieldErrors.username ?? getUsernameHint(usernameState)}
                     {' · '}
                     <a href={getThreadHref(2, 6205)} target="_blank" rel="noreferrer">如何取一个好的 ID？</a>
                   </small>
@@ -268,7 +320,8 @@ export function RegisterPage() {
                   <div className="register-input-wrap">
                     <AtSign size={17} />
                     <input
-                      aria-describedby="register-email-domains"
+                      aria-describedby={fieldErrors.email ? 'register-email-error register-email-domains' : 'register-email-domains'}
+                      aria-invalid={Boolean(fieldErrors.email)}
                       autoComplete="email"
                       id="register-email"
                       maxLength={64}
@@ -276,6 +329,8 @@ export function RegisterPage() {
                       onChange={(event) => {
                         setEmail(event.currentTarget.value);
                         setEmailCode('');
+                        clearFieldError('email');
+                        clearFieldError('emailCode');
                       }}
                       placeholder="PKU学号邮箱"
                       type="email"
@@ -286,6 +341,7 @@ export function RegisterPage() {
                       <span id="register-email-domains" role="tooltip">允许的邮箱：@*.pku.edu.cn、@bjmu.edu.cn</span>
                     </span>
                   </div>
+                  {fieldErrors.email && <small className="register-field-error" id="register-email-error" role="alert">{fieldErrors.email}</small>}
                   {adminEmail && (
                     <small>如遇问题，请联系管理员邮箱：<a href={`mailto:${adminEmail}`}>{adminEmail}</a></small>
                   )}
@@ -297,11 +353,16 @@ export function RegisterPage() {
                     <div className="register-input-wrap">
                       <ShieldCheck size={17} />
                       <input
+                        aria-describedby={fieldErrors.emailCode ? 'register-email-code-error' : undefined}
+                        aria-invalid={Boolean(fieldErrors.emailCode)}
                         autoComplete="one-time-code"
                         inputMode="numeric"
                         maxLength={6}
                         name="emailCode"
-                        onChange={(event) => setEmailCode(event.currentTarget.value.replace(/\D/g, ''))}
+                        onChange={(event) => {
+                          setEmailCode(event.currentTarget.value.replace(/\D/g, ''));
+                          clearFieldError('emailCode');
+                        }}
                         placeholder="6 位数字"
                         value={emailCode}
                       />
@@ -316,6 +377,7 @@ export function RegisterPage() {
                       {cooldown > 0 ? `${cooldown}s 后重发` : sendingCode ? '发送中' : '发送验证码'}
                     </button>
                   </div>
+                  {fieldErrors.emailCode && <small className="register-field-error" id="register-email-code-error" role="alert">{fieldErrors.emailCode}</small>}
                 </div>
 
                 <label className="register-field">
@@ -323,11 +385,17 @@ export function RegisterPage() {
                   <div className="register-input-wrap">
                     <LockKeyhole size={17} />
                     <input
+                      aria-describedby={fieldErrors.password ? 'register-password-error' : undefined}
+                      aria-invalid={Boolean(fieldErrors.password)}
                       autoComplete="new-password"
                       maxLength={18}
                       minLength={6}
                       name="password"
-                      onChange={(event) => setPassword(event.currentTarget.value)}
+                      onChange={(event) => {
+                        setPassword(event.currentTarget.value);
+                        clearFieldError('password');
+                        clearFieldError('confirmPassword');
+                      }}
                       placeholder="6–18 位密码"
                       type="password"
                       value={password}
@@ -337,6 +405,7 @@ export function RegisterPage() {
                     <span /><span /><span />
                     <small>{passwordStrength.label}</small>
                   </div>
+                  {fieldErrors.password && <small className="register-field-error" id="register-password-error" role="alert">{fieldErrors.password}</small>}
                 </label>
 
                 <label className="register-field">
@@ -344,16 +413,22 @@ export function RegisterPage() {
                   <div className="register-input-wrap">
                     <LockKeyhole size={17} />
                     <input
+                      aria-describedby={fieldErrors.confirmPassword ? 'register-confirm-password-error' : undefined}
+                      aria-invalid={Boolean(fieldErrors.confirmPassword)}
                       autoComplete="new-password"
                       maxLength={18}
                       name="confirmPassword"
-                      onChange={(event) => setConfirmPassword(event.currentTarget.value)}
+                      onChange={(event) => {
+                        setConfirmPassword(event.currentTarget.value);
+                        clearFieldError('confirmPassword');
+                      }}
                       placeholder="再次输入密码"
                       type="password"
                       value={confirmPassword}
                     />
                     {confirmPassword && password === confirmPassword && <Check className="register-valid-icon" size={16} />}
                   </div>
+                  {fieldErrors.confirmPassword && <small className="register-field-error" id="register-confirm-password-error" role="alert">{fieldErrors.confirmPassword}</small>}
                 </label>
               </section>
 
@@ -431,9 +506,14 @@ export function RegisterPage() {
                     <div className="register-input-wrap">
                       <ShieldCheck size={17} />
                       <input
+                        aria-describedby={fieldErrors.captcha ? 'register-captcha-error register-captcha-help' : 'register-captcha-help'}
+                        aria-invalid={Boolean(fieldErrors.captcha)}
                         autoComplete="off"
                         name="captcha"
-                        onChange={(event) => setCaptcha(event.currentTarget.value)}
+                        onChange={(event) => {
+                          setCaptcha(event.currentTarget.value);
+                          clearFieldError('captcha');
+                        }}
                         placeholder="输入图中算式答案"
                         value={captcha}
                       />
@@ -443,7 +523,8 @@ export function RegisterPage() {
                       <RefreshCw size={14} />
                     </button>
                   </div>
-                  <small>看不清时点击图片刷新。</small>
+                  {fieldErrors.captcha && <small className="register-field-error" id="register-captcha-error" role="alert">{fieldErrors.captcha}</small>}
+                  <small id="register-captcha-help">看不清时点击图片刷新。</small>
                 </div>
 
                 <details className="register-more-fields">
@@ -525,6 +606,7 @@ function getUsernameHint(state: UsernameState) {
   if (state === 'available') return '这个 ID 可以使用';
   if (state === 'taken') return '这个 ID 已被注册';
   if (state === 'invalid') return 'ID 不能为空或包含英文单引号';
+  if (state === 'error') return '暂时无法检查 ID，请稍后重试';
   return 'ID 将成为你在论坛中的名字';
 }
 
@@ -543,16 +625,24 @@ function validateRegistration(values: {
   emailCode: string;
   password: string;
   username: string;
-  usernameState: UsernameState;
 }) {
-  if (!values.username || values.username.includes("'")) return '请填写有效的论坛 ID。';
-  if (values.usernameState === 'taken') return '这个 ID 已被注册，请换一个。';
-  if (!PKU_EMAIL_PATTERN.test(values.email)) return '请输入允许的 PKU 学号邮箱。';
-  if (!/^\d{6}$/.test(values.emailCode)) return '邮箱验证码应为 6 位数字。';
-  if (values.password.length < 6 || values.password.length > 18) return '密码长度应为 6–18 位。';
-  if (values.password !== values.confirmPassword) return '两次输入的密码不一致。';
-  if (!values.captcha) return '请输入图中算式答案。';
-  return '';
+  const errors: FieldErrors = {};
+  if (!values.username || values.username.includes("'")) errors.username = '请填写有效的论坛 ID。';
+  if (!PKU_EMAIL_PATTERN.test(values.email)) errors.email = '请输入允许的 PKU 学号邮箱。';
+  if (!/^\d{6}$/.test(values.emailCode)) errors.emailCode = '邮箱验证码应为 6 位数字。';
+  if (values.password.length < 6 || values.password.length > 18) errors.password = '密码长度应为 6–18 位。';
+  if (values.password !== values.confirmPassword) errors.confirmPassword = '两次输入的密码不一致。';
+  if (!values.captcha) errors.captcha = '请输入图中算式答案。';
+  return errors;
+}
+
+function getRegistrationServerField(message: string): RegistrationField | null {
+  if (/图片验证码/.test(message)) return 'captcha';
+  if (/用户名|用户已存在|\bID\b/i.test(message)) return 'username';
+  if (/验证码/.test(message)) return 'emailCode';
+  if (/邮箱|邮件|学号@|pku\.edu\.cn|bjmu\.edu\.cn/i.test(message)) return 'email';
+  if (/密码/.test(message)) return 'password';
+  return null;
 }
 
 function isAvatarUploadResult(value: unknown): value is { code: number; msg?: string; url?: string } {
