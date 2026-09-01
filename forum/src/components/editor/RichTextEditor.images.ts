@@ -96,41 +96,41 @@ export async function getImageFileMd5Hex(file: File) {
   return md5BytesHex(new Uint8Array(await file.arrayBuffer()));
 }
 
-export async function uploadEditorImage(file: File, md5: string) {
+export function uploadEditorImage(file: File, md5: string, onProgress?: (progress: number) => void) {
   const formData = new FormData();
   formData.append('image', file);
-  const controller = new AbortController();
-  const timeoutId = window.setTimeout(() => controller.abort(), 60_000);
 
-  let response: Response;
-  try {
-    response = await fetch(uploadUrl, {
-      body: formData,
-      credentials: 'include',
-      method: 'POST',
-      signal: controller.signal,
+  return new Promise<{ md5: string; url: string }>((resolve, reject) => {
+    const xhr = new XMLHttpRequest();
+    xhr.open('POST', uploadUrl);
+    xhr.timeout = 60_000;
+    xhr.withCredentials = true;
+
+    xhr.upload.addEventListener('progress', (event) => {
+      if (!event.lengthComputable || event.total <= 0) return;
+      onProgress?.(Math.min(1, event.loaded / event.total));
     });
-  } catch (error) {
-    if (error instanceof DOMException && error.name === 'AbortError') {
-      throw new Error('图片上传超时，请检查网络后重试。');
-    }
-    throw new Error('图片上传失败，请检查网络后重试。');
-  } finally {
-    window.clearTimeout(timeoutId);
-  }
+    xhr.addEventListener('error', () => reject(new Error('图片上传失败，请检查网络后重试。')));
+    xhr.addEventListener('timeout', () => reject(new Error('图片上传超时，请检查网络后重试。')));
+    xhr.addEventListener('load', () => {
+      const payload = parseUploadResponse(xhr.responseText);
 
-  const payload = await readUploadResponse(response);
+      if (xhr.status < 200 || xhr.status >= 300) {
+        reject(new Error(getUploadError(payload)));
+        return;
+      }
 
-  if (!response.ok) {
-    throw new Error(getUploadError(payload));
-  }
+      const url = getUploadedImageUrl(payload);
+      if (!url) {
+        reject(new Error('图片上传成功但返回地址无效。'));
+        return;
+      }
 
-  const url = getUploadedImageUrl(payload);
-  if (!url) {
-    throw new Error('图片上传成功但返回地址无效。');
-  }
-
-  return { md5, url };
+      onProgress?.(1);
+      resolve({ md5, url });
+    });
+    xhr.send(formData);
+  });
 }
 
 const uploadUrl = import.meta.env.VITE_EDITOR_IMAGE_UPLOAD_URL?.trim() || '/bbs/content/test.php';
@@ -273,9 +273,7 @@ function blobToImageFile(blob: Blob, originalFile: File) {
   });
 }
 
-async function readUploadResponse(response: Response) {
-  const text = await response.text();
-
+function parseUploadResponse(text: string) {
   if (!text) {
     return null;
   }

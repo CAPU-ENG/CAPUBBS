@@ -7,7 +7,7 @@ import type {
   RefObject,
   SetStateAction,
 } from 'react';
-import type { GalleryDialogImage } from './GalleryDialog';
+import type { GalleryDialogImage, GalleryUploadProgress } from './GalleryDialog';
 import {
   buildEditorGalleryHtml,
   getEditorGalleryAction,
@@ -382,8 +382,17 @@ export function createRichTextEditorMediaActions({
     setGalleryDialogState({ ...snapshot, target: gallery });
   };
 
-  const uploadAndInsertGallery = async (title: string, images: GalleryDialogImage[]) => {
+  const uploadAndInsertGallery = async (
+    title: string,
+    images: GalleryDialogImage[],
+    onProgress: (progress: GalleryUploadProgress) => void,
+  ) => {
     const uploadedImages: EditorGalleryImage[] = [];
+    const uploadImages = images.filter((image) => Boolean(image.file));
+    const totalBytes = uploadImages.reduce((sum, image) => sum + (image.file?.size ?? 0), 0);
+    let completedBytes = 0;
+    let completedImages = 0;
+
     for (const image of images) {
       if (!image.file && image.url) {
         uploadedImages.push({
@@ -402,8 +411,20 @@ export function createRichTextEditorMediaActions({
         throw new Error('图片仍在处理，请稍后再试。');
       }
 
+      const currentImage = completedImages + 1;
+      const reportProgress = (fileProgress: number) => {
+        const uploadedBytes = completedBytes + (image.file?.size ?? 0) * fileProgress;
+        onProgress({
+          current: currentImage,
+          percent: totalBytes > 0 ? Math.min(100, Math.round((uploadedBytes / totalBytes) * 100)) : 100,
+          total: uploadImages.length,
+        });
+      };
+      reportProgress(0);
       const md5 = await getImageFileMd5Hex(image.file);
-      const { url } = await uploadEditorImage(image.file, md5);
+      const { url } = await uploadEditorImage(image.file, md5, reportProgress);
+      completedBytes += image.file.size;
+      completedImages += 1;
 
       uploadedImages.push({
         alt: image.alt || getImageAltText(image.file),

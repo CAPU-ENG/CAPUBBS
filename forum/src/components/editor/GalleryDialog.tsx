@@ -25,6 +25,12 @@ export type GalleryDialogImage = {
   url?: string;
 };
 
+export type GalleryUploadProgress = {
+  current: number;
+  percent: number;
+  total: number;
+};
+
 export function GalleryDialog({
   initialImages = [],
   initialTitle = '',
@@ -34,7 +40,11 @@ export function GalleryDialog({
   initialImages?: EditorGalleryImage[];
   initialTitle?: string;
   onCancel: () => void;
-  onInsert: (title: string, images: GalleryDialogImage[]) => Promise<void>;
+  onInsert: (
+    title: string,
+    images: GalleryDialogImage[],
+    onProgress: (progress: GalleryUploadProgress) => void,
+  ) => Promise<void>;
 }) {
   const inputRef = useRef<HTMLInputElement>(null);
   const imagesRef = useRef<GalleryDialogImage[]>([]);
@@ -50,6 +60,7 @@ export function GalleryDialog({
   const [error, setError] = useState('');
   const [isCheckingFiles, setIsCheckingFiles] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState<GalleryUploadProgress | null>(null);
   const isBusy = isCheckingFiles || isUploading;
   imagesRef.current = images;
 
@@ -146,10 +157,11 @@ export function GalleryDialog({
     }
 
     setError('');
+    setUploadProgress(null);
     setIsUploading(true);
 
     try {
-      await onInsert(title, images);
+      await onInsert(title, images, setUploadProgress);
     } catch (reason) {
       setError(reason instanceof Error ? reason.message : '图廊上传失败，请稍后重试。');
       setIsUploading(false);
@@ -233,6 +245,16 @@ export function GalleryDialog({
             </ol>
           ) : null}
 
+          {isUploading && uploadProgress ? (
+            <div aria-live="polite" className="gallery-dialog-upload-progress">
+              <div>
+                <span>正在上传第 {uploadProgress.current} 张，共 {uploadProgress.total} 张</span>
+                <strong>{uploadProgress.percent}%</strong>
+              </div>
+              <progress aria-label="图廊上传进度" max={100} value={uploadProgress.percent} />
+            </div>
+          ) : null}
+
           {error ? <p className="gallery-dialog-error" role="alert">{error}</p> : null}
         </div>
 
@@ -240,7 +262,13 @@ export function GalleryDialog({
           <span>{images.length} 张</span>
           <button disabled={isBusy} onClick={onCancel} type="button">取消</button>
           <button disabled={images.length === 0 || isCheckingFiles || isUploading} onClick={insertGallery} type="button">
-            {isUploading ? '正在上传' : isCheckingFiles ? '正在处理图片' : isEditing ? '保存图廊' : '上传并插入'}
+            {isUploading
+              ? uploadProgress
+                ? `上传 ${uploadProgress.current}/${uploadProgress.total} · ${uploadProgress.percent}%`
+                : '正在上传'
+              : isCheckingFiles
+                ? '正在处理图片'
+                : isEditing ? '保存图廊' : '上传并插入'}
           </button>
         </footer>
       </section>
