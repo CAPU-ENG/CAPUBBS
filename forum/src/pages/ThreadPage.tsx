@@ -221,13 +221,23 @@ export function ThreadPage() {
 
   useLayoutEffect(() => {
     if (!data) return;
-    const hashFloor = getThreadFloorFromHash(window.location.hash);
+    const requestedLastFloor = window.location.hash === '#last-floor';
+    const hashFloor = requestedLastFloor
+      ? pageFloors.at(-1)?.floor ?? 0
+      : getThreadFloorFromHash(window.location.hash);
     const floorElement = getThreadFloorElement(hashFloor);
     const layoutRoot = pageRef.current;
     if (!floorElement || !layoutRoot) return;
 
+    if (requestedLastFloor) {
+      window.history.replaceState(
+        window.history.state,
+        '',
+        getThreadFloorHref(data.bid, data.tid, hashFloor),
+      );
+    }
     return keepFloorAnchored(floorElement, layoutRoot);
-  }, [data]);
+  }, [data, pageFloors]);
 
   useEffect(() => {
     const floorElements = pageFloors

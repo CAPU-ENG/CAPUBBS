@@ -67,7 +67,15 @@ export async function publishThreadContent(
       body,
       options.publishTimeoutMs ?? DEFAULT_PUBLISH_TIMEOUT_MS,
       request.tid ? '回复发布失败，请稍后重试。' : '主题发表失败，请稍后重试。',
+      !request.tid,
     );
+    if (!payload) {
+      return {
+        bid: request.bid,
+        pid: null,
+        tid: request.tid,
+      };
+    }
     return mapPublishedResult(payload.data, request);
   } catch (error) {
     if (!(error instanceof PublishTransportError)) throw error;
@@ -77,7 +85,12 @@ export async function publishThreadContent(
   }
 }
 
-async function requestPublish(body: URLSearchParams, timeoutMs: number, fallbackMessage: string) {
+async function requestPublish(
+  body: URLSearchParams,
+  timeoutMs: number,
+  fallbackMessage: string,
+  readSuccessPayload: boolean,
+) {
   const controller = new AbortController();
   let timedOut = false;
   const timer = setTimeout(() => {
@@ -96,6 +109,11 @@ async function requestPublish(body: URLSearchParams, timeoutMs: number, fallback
       method: 'POST',
       signal: controller.signal,
     });
+
+    if (response.ok && !readSuccessPayload) {
+      if (response.body) void response.body.cancel().catch(() => undefined);
+      return null;
+    }
 
     let payload: ApiEnvelope;
     try {

@@ -25,6 +25,7 @@ import {
   type ReplyDraftSaveFailureReason,
   type StoredReplyAttachment,
 } from "../../utils/replyDraftStorage";
+import { toForumHref } from "../../utils/forumBasePath";
 import { getThreadFloorHref } from "../../utils/threadRoutes";
 import {
   formatPostEditorBytes,
@@ -48,6 +49,7 @@ export type QuoteRequest = {
 type ReplyAttachment = StoredReplyAttachment & { restored?: boolean };
 
 const AUTO_SAVE_DELAY_MS = 1_200;
+const LAST_THREAD_PAGE = 2_147_483_647;
 
 export function ReplyEditor({
   bid,
@@ -255,7 +257,12 @@ export function ReplyEditor({
       queueLocalDraftCleanup({ bid, ownerKey, tid, type: "reply" });
 
       if (!published.pid) {
-        window.location.reload();
+        const params = new URLSearchParams({
+          bid: String(published.bid),
+          p: String(LAST_THREAD_PAGE),
+          tid: String(published.tid ?? tid),
+        });
+        window.location.href = `${toForumHref(`/?${params.toString()}`)}#last-floor`;
         return;
       }
       window.location.href = getThreadFloorHref(published.bid, published.tid ?? tid, published.pid);

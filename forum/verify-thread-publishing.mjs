@@ -8,15 +8,32 @@ const originalFetch = globalThis.fetch;
 
 try {
   let publishedBody;
+  let successBodyCancelled = false;
+  let successJsonRead = false;
   globalThis.fetch = async (_url, init) => {
     publishedBody = new URLSearchParams(init.body);
-    return jsonResponse({ code: 0, data: { bid: 28, tid: 155, pid: 5 } });
+    return {
+      body: {
+        cancel() {
+          successBodyCancelled = true;
+          return Promise.resolve();
+        },
+      },
+      async json() {
+        successJsonRead = true;
+        return { code: 0, data: { bid: 28, tid: 155, pid: 5 } };
+      },
+      ok: true,
+      status: 200,
+    };
   };
   assert.deepEqual(await publishThreadContent(createReplyRequest()), {
     bid: 28,
-    pid: 5,
+    pid: null,
     tid: 155,
   });
+  assert.equal(successBodyCancelled, true);
+  assert.equal(successJsonRead, false);
   assert.equal(publishedBody.get('ask'), 'reply');
   assert.equal(publishedBody.get('text'), '<p>测试正文</p>');
 
@@ -61,7 +78,7 @@ try {
   globalThis.fetch = originalFetch;
 }
 
-console.log('thread publishing verification passed (8 assertions)');
+console.log('thread publishing verification passed (10 assertions)');
 
 function createPostRequest() {
   return {
