@@ -8,70 +8,30 @@ const originalFetch = globalThis.fetch;
 
 try {
   let publishedBody;
-  let successBodyCancelled = false;
-  let successJsonRead = false;
   globalThis.fetch = async (_url, init) => {
     publishedBody = new URLSearchParams(init.body);
-    return {
-      body: {
-        cancel() {
-          successBodyCancelled = true;
-          return Promise.resolve();
-        },
-      },
-      async json() {
-        successJsonRead = true;
-        return { code: 0, data: { bid: 28, tid: 155, pid: 5 } };
-      },
-      status: 200,
-    };
+    return jsonResponse({ code: 0, data: { bid: 28, tid: 155, pid: 5 } });
   };
   assert.deepEqual(await publishThreadContent(createReplyRequest()), {
     bid: 28,
-    pid: null,
+    pid: 5,
     tid: 155,
   });
-  assert.equal(successBodyCancelled, true);
-  assert.equal(successJsonRead, false);
   assert.equal(publishedBody.get('ask'), 'reply');
-  assert.match(publishedBody.get('text'), /<!--capubbs:publish:[^>]+-->$/);
+  assert.equal(publishedBody.get('text'), '<p>测试正文</p>');
 
-  let newThreadRequestCount = 0;
-  let newThreadStoredText = '';
+  let newThreadBody;
   globalThis.fetch = async (_url, init) => {
-    newThreadRequestCount += 1;
-    const body = new URLSearchParams(init.body);
-    if (body.get('ask') === 'post') {
-      newThreadStoredText = body.get('text');
-      return {
-        body: { cancel: () => Promise.resolve() },
-        status: 200,
-      };
-    }
-    if (body.get('ask') === 'recentpost') {
-      return jsonResponse({
-        code: 0,
-        data: [{ bid: '28', pid: '1', tid: '156', title: '测试新主题' }],
-      });
-    }
-    assert.equal(body.get('ask'), 'thread_detail');
-    return jsonResponse({
-      code: 0,
-      data: {
-        floorsPage: { items: [] },
-        mainPost: { pid: 1, rawText: newThreadStoredText },
-      },
-    });
+    newThreadBody = new URLSearchParams(init.body);
+    return jsonResponse({ code: 0, data: [{ bid: '28', pid: '1', tid: '156' }] });
   };
-  assert.deepEqual(await publishThreadContent(createPostRequest(), {
-    recoveryDelayMs: 0,
-    recoveryTimeoutMs: 100,
-  }), {
+  assert.deepEqual(await publishThreadContent(createPostRequest()), {
     bid: 28,
     pid: 1,
     tid: 156,
   });
-  assert.equal(newThreadRequestCount, 3);
+  assert.equal(newThreadBody.get('ask'), 'post');
+  assert.equal(newThreadBody.get('text'), '<p>测试新主题正文</p>');
 
   globalThis.fetch = async () => new Response(JSON.stringify({
     code: 1000,
@@ -85,54 +45,12 @@ try {
     (error) => error instanceof ThreadPublishingError && error.message === '请先登录',
   );
 
-  let requestCount = 0;
-  let storedText = '';
   globalThis.fetch = async (_url, init) => {
-    requestCount += 1;
-    const body = new URLSearchParams(init.body);
-    if (requestCount === 1) {
-      storedText = body.get('text');
-      return abortablePendingResponse(init.signal);
-    }
-    if (body.get('ask') === 'recentreply') {
-      return jsonResponse({
-        code: 0,
-        data: [
-          { nowuser: '' },
-          { bid: '28', pid: '5', tid: '155', title: 'Re: 测试主题' },
-        ],
-      });
-    }
-    assert.equal(body.get('ask'), 'thread_detail');
-    return jsonResponse({
-      code: 0,
-      data: {
-        floorsPage: { items: [{ pid: 5, rawText: storedText }] },
-        mainPost: { pid: 1, rawText: '楼主内容' },
-      },
-    });
-  };
-  assert.deepEqual(await publishThreadContent(createReplyRequest(), {
-    publishTimeoutMs: 5,
-    recoveryDelayMs: 0,
-    recoveryTimeoutMs: 100,
-  }), {
-    bid: 28,
-    pid: 5,
-    tid: 155,
-  });
-  assert.equal(requestCount, 3);
-
-  globalThis.fetch = async (_url, init) => {
-    const body = new URLSearchParams(init.body);
-    if (body.get('ask') === 'reply') return abortablePendingResponse(init.signal);
-    return jsonResponse({ code: 0, data: [{ nowuser: '' }] });
+    return abortablePendingResponse(init.signal);
   };
   await assert.rejects(
     publishThreadContent(createReplyRequest(), {
       publishTimeoutMs: 5,
-      recoveryDelayMs: 0,
-      recoveryTimeoutMs: 100,
     }),
     (error) => (
       error instanceof ThreadPublishingError
@@ -143,7 +61,7 @@ try {
   globalThis.fetch = originalFetch;
 }
 
-console.log('thread publishing verification passed (13 assertions)');
+console.log('thread publishing verification passed (8 assertions)');
 
 function createPostRequest() {
   return {
