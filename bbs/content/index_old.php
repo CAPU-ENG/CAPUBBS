@@ -88,7 +88,7 @@
 <script type="text/javascript" src="../lib/json2.js"></script>
 <script src="../lib/jquery.min.js"></script>
 <link rel="stylesheet" href="../lib/general.css">
-<link rel="stylesheet" href="style.css">
+<link rel="stylesheet" href="style.css?v=<?php echo filemtime(__DIR__ . '/style.css'); ?>">
 <link rel="shortcut icon" href="/assets/images/capu.jpg">
 </head>
 <body>
