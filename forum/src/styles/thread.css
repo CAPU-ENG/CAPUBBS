@@ -1607,9 +1607,6 @@
   }
 
   .nested-replies > article {
-    display: grid;
-    grid-template-columns: 28px minmax(0, 1fr);
-    gap: 9px;
     padding: 11px 12px;
   }
 
@@ -1617,12 +1614,25 @@
     border-top: 1px solid var(--line);
   }
 
-  .nested-replies > article > img {
+  .nested-reply-header {
+    display: flex;
+    min-width: 0;
+    align-items: center;
+    gap: 9px;
+  }
+
+  .nested-reply-header > img {
+    flex: 0 0 auto;
     width: 28px;
     height: 28px;
     border: 1px solid var(--line);
     border-radius: 2px;
     object-fit: cover;
+  }
+
+  .nested-reply-identity {
+    min-width: 0;
+    overflow-wrap: anywhere;
   }
 
   .nested-reply-author {
@@ -1642,9 +1652,9 @@
 
   .nested-replies p,
   .nested-reply-content {
-    margin-top: 5px;
+    margin-top: 7px;
     color: var(--text-muted);
-    font-size: 0.75rem;
+    font-size: calc(var(--forum-content-font-size, 15px) - 1px);
     line-height: 1.55;
   }
 
@@ -2764,13 +2774,11 @@
     }
 
     .nested-replies > article {
-      grid-template-columns: 24px minmax(0, 1fr);
       padding: 10px;
     }
 
-    .nested-replies > article > img {
-      width: 24px;
-      height: 24px;
+    .nested-reply-header {
+      gap: 8px;
     }
 
     .nested-reply-footer {

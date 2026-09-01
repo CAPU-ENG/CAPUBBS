@@ -597,54 +597,56 @@ export function ThreadFloor({
         >
           {nestedReplies.map((reply) => (
             <article key={reply.id}>
-              <img src={reply.author.avatar} alt="" />
-              <div>
-                <a className="nested-reply-author" href={getPublicProfilePath(reply.author.name)}>
-                  {reply.author.name}
-                </a>
-                {reply.target && (
-                  <span className="nested-reply-target">
-                    {' '}回复{' '}
-                    <a href={getPublicProfilePath(reply.target)}>{reply.target}</a>
-                  </span>
-                )}
-                {reply.contentHtml ? (
-                  <ForumMarkup
-                    className="nested-reply-content"
-                    html={reply.contentHtml}
-                    onImageOpen={openImagePreview}
-                    variant="nested"
-                  />
-                ) : (
-                  <p>{reply.content}</p>
-                )}
-                <footer className="nested-reply-footer">
-                  <time>{formatFloorTime(reply.publishedAt)}</time>
-                  {canReply && (
-                    <button
-                      onClick={() => openNestedReplyComposer(reply.author.name)}
-                      type="button"
-                    >
-                      回复
-                    </button>
+              <header className="nested-reply-header">
+                <img src={reply.author.avatar} alt="" />
+                <div className="nested-reply-identity">
+                  <a className="nested-reply-author" href={getPublicProfilePath(reply.author.name)}>
+                    {reply.author.name}
+                  </a>
+                  {reply.target && (
+                    <span className="nested-reply-target">
+                      {' '}回复{' '}
+                      <a href={getPublicProfilePath(reply.target)}>{reply.target}</a>
+                    </span>
                   )}
-                  {reply.canDelete && (
-                    <button
-                      className="nested-reply-delete"
-                      disabled={nestedReplyDeletingId === reply.id}
-                      onClick={(event) => {
-                        deleteTriggerRef.current = event.currentTarget;
-                        setNestedReplyDeleteError('');
-                        setDeleteDialogTarget({ kind: 'nested', reply });
-                      }}
-                      type="button"
-                    >
-                      <Trash2 size={12} />
-                      {nestedReplyDeletingId === reply.id ? '删除中' : '删除'}
-                    </button>
-                  )}
-                </footer>
-              </div>
+                </div>
+              </header>
+              {reply.contentHtml ? (
+                <ForumMarkup
+                  className="nested-reply-content"
+                  html={reply.contentHtml}
+                  onImageOpen={openImagePreview}
+                  variant="nested"
+                />
+              ) : (
+                <p>{reply.content}</p>
+              )}
+              <footer className="nested-reply-footer">
+                <time>{formatFloorTime(reply.publishedAt)}</time>
+                {canReply && (
+                  <button
+                    onClick={() => openNestedReplyComposer(reply.author.name)}
+                    type="button"
+                  >
+                    回复
+                  </button>
+                )}
+                {reply.canDelete && (
+                  <button
+                    className="nested-reply-delete"
+                    disabled={nestedReplyDeletingId === reply.id}
+                    onClick={(event) => {
+                      deleteTriggerRef.current = event.currentTarget;
+                      setNestedReplyDeleteError('');
+                      setDeleteDialogTarget({ kind: 'nested', reply });
+                    }}
+                    type="button"
+                  >
+                    <Trash2 size={12} />
+                    {nestedReplyDeletingId === reply.id ? '删除中' : '删除'}
+                  </button>
+                )}
+              </footer>
             </article>
           ))}
         </section>
