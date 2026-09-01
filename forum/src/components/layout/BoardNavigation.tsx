@@ -6,9 +6,9 @@ import {
   Compass,
   Dices,
   Droplets,
+  ExternalLink,
   Footprints,
   Globe2,
-  History,
   House,
   Megaphone,
   ServerCog,
@@ -195,7 +195,7 @@ export function MobileBoardSidebar({
               onClose();
             }}
           >
-            <History size={16} /> 回到旧论坛
+            <ExternalLink size={16} /> 回到旧论坛
           </a>
         </div>
       </div>
