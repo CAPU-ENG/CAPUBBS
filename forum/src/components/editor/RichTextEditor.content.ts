@@ -203,5 +203,6 @@ export function plainTextLength(content: string, mode: RichTextEditorMode) {
 
   const container = document.createElement('div');
   container.innerHTML = finalizeRichTypingStyles(content);
+  container.querySelectorAll('.capubbs-gallery').forEach((gallery) => gallery.remove());
   return (container.textContent ?? '').length;
 }
