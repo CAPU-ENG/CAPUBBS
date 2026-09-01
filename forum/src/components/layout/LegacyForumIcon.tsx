@@ -19,10 +19,10 @@ export function LegacyForumIcon({ size = 24, ...props }: LegacyForumIconProps) {
       xmlns="http://www.w3.org/2000/svg"
       {...props}
     >
-      <rect height="17.5" rx="1.75" width="18.5" x="2.75" y="3.25" />
+      <path d="M21.25 11.25V5a1.75 1.75 0 0 0-1.75-1.75h-15A1.75 1.75 0 0 0 2.75 5v14A1.75 1.75 0 0 0 4.5 20.75h6.25" />
       <path d="M3 9.25h18" />
-      <path d="M19 18.5V18a5 5 0 0 0-5-5H8" />
-      <path d="m11 10-3 3 3 3" />
+      <path d="M8.25 13H16a3 2.75 0 0 1 0 5.5h-4" />
+      <path d="m14.5 16-2.5 2.5 2.5 2.5" />
     </svg>
   );
 }
