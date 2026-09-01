@@ -5,10 +5,6 @@ const source = readFileSync(
   new URL('./src/components/thread/ThreadHtmlContent.tsx', import.meta.url),
   'utf8',
 );
-const frameStyles = readFileSync(
-  new URL('./src/styles/thread-html-frame.css', import.meta.url),
-  'utf8',
-);
 
 assert.match(
   source,
@@ -55,25 +51,5 @@ assert.match(
   /jquery\.src=jquerySourceUrl;/,
   'frames must retain the external jQuery fallback when the shared request fails',
 );
-assert.match(
-  source,
-  /url\.hostname\.toLowerCase\(\)==='music\.163\.com'/,
-  'only NetEase outchain players must receive the dedicated treatment',
-);
-assert.match(
-  source,
-  /surface\.className='capubbs-netease-player-surface';/,
-  'NetEase players must be wrapped in a theme-matched compositing surface',
-);
-assert.match(
-  frameStyles,
-  /\.capubbs-netease-player-surface > iframe \{[\s\S]*?mix-blend-mode: multiply;/,
-  'light mode must visually remove the white player canvas with multiply blending',
-);
-assert.match(
-  frameStyles,
-  /:root\.dark \.capubbs-netease-player-surface > iframe \{[\s\S]*?filter: invert\(1\) hue-rotate\(180deg\);[\s\S]*?mix-blend-mode: screen;/,
-  'dark mode must invert and screen-blend the player canvas',
-);
 
-console.log('thread HTML frame resource verification passed (13 assertions)');
+console.log('thread HTML frame resource verification passed (9 assertions)');

@@ -86,28 +86,6 @@ object {
   background-color: transparent !important;
 }
 
-.capubbs-netease-player-surface {
-  display: inline-block;
-  max-width: 100%;
-  background: var(--surface);
-  isolation: isolate;
-  line-height: 0;
-  vertical-align: middle;
-}
-
-.capubbs-html-frame-root .capubbs-netease-player-surface > iframe {
-  display: block;
-  max-width: 100%;
-  background: transparent !important;
-  filter: none;
-  mix-blend-mode: multiply;
-}
-
-:root.dark .capubbs-netease-player-surface > iframe {
-  filter: invert(1) hue-rotate(180deg);
-  mix-blend-mode: screen;
-}
-
 img,
 video {
   max-width: 100%;

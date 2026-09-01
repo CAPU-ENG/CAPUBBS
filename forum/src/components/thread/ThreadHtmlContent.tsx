@@ -695,28 +695,6 @@ function buildFrameBridgeScript(frameId: string, canOpenImages: boolean, hasUser
         if(!image.title)image.title='点击查看大图';
       });
     }
-    function isNeteaseOutchainPlayer(frame){
-      var source=frame&&frame.getAttribute?frame.getAttribute('src')||'':'';
-      if(!source)return false;
-      try{
-        var url=new URL(source,document.baseURI);
-        return url.hostname.toLowerCase()==='music.163.com'&&url.pathname.replace(/\\/+$/,'')==='/outchain/player';
-      }catch(error){return false;}
-    }
-    function prepareEmbeddedPlayers(){
-      var contentRoot=document.querySelector('.capubbs-html-frame-root');
-      if(!contentRoot)return;
-      Array.prototype.forEach.call(contentRoot.querySelectorAll('iframe'),function(frame){
-        if(!isNeteaseOutchainPlayer(frame))return;
-        var parent=frame.parentElement;
-        if(parent&&parent.classList.contains('capubbs-netease-player-surface'))return;
-        var surface=document.createElement('span');
-        surface.className='capubbs-netease-player-surface';
-        surface.setAttribute('data-capubbs-embedded-player','netease');
-        frame.parentNode.insertBefore(surface,frame);
-        surface.appendChild(frame);
-      });
-    }
     function setGalleryIndex(gallery,nextIndex){
       if(!gallery||!Number.isSafeInteger(nextIndex))return false;
       var slides=Array.prototype.slice.call(gallery.querySelectorAll('[data-capubbs-gallery-slide="true"]'));
@@ -814,7 +792,7 @@ function buildFrameBridgeScript(frameId: string, canOpenImages: boolean, hasUser
     function init(){
       var contentRoot=document.querySelector('.capubbs-html-frame-root');
       if(window.ResizeObserver&&contentRoot)new ResizeObserver(queueHeight).observe(contentRoot);
-      if(window.MutationObserver&&contentRoot)new MutationObserver(function(){queueHeight();prepareImages();prepareEmbeddedPlayers();syncGrayscaleTextColors(contentRoot);}).observe(contentRoot,{attributes:true,characterData:true,childList:true,subtree:true});
+      if(window.MutationObserver&&contentRoot)new MutationObserver(function(){queueHeight();prepareImages();syncGrayscaleTextColors(contentRoot);}).observe(contentRoot,{attributes:true,characterData:true,childList:true,subtree:true});
       window.addEventListener('load',queueHeight);
       document.addEventListener('transitionend',queueHeight);
       document.addEventListener('animationend',queueHeight);
@@ -829,7 +807,6 @@ function buildFrameBridgeScript(frameId: string, canOpenImages: boolean, hasUser
       if(hasUserScripts)window.parent.postMessage({source:'${HTML_FRAME_MESSAGE_SOURCE}',type:'jquery-request',frameId:frameId},'*');
       else executeUserScripts();
       prepareImages();
-      prepareEmbeddedPlayers();
       syncGrayscaleTextColors(contentRoot);
       queueHeight();
     }
