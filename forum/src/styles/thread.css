@@ -1608,7 +1608,7 @@
 
   .nested-replies > article {
     display: grid;
-    grid-template-columns: 44px minmax(0, 1fr);
+    grid-template-columns: 42px minmax(0, 1fr);
     gap: 10px;
     padding: 11px 12px;
   }
@@ -1618,8 +1618,8 @@
   }
 
   .nested-replies > article > img {
-    width: 44px;
-    height: 44px;
+    width: 42px;
+    height: 42px;
     border: 1px solid var(--line);
     border-radius: 2px;
     object-fit: cover;
@@ -2773,7 +2773,7 @@
     }
 
     .nested-replies > article {
-      grid-template-columns: 44px minmax(0, 1fr);
+      grid-template-columns: 42px minmax(0, 1fr);
       gap: 9px;
       padding: 10px;
     }
