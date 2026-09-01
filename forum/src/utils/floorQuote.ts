@@ -174,6 +174,9 @@ function getFloorQuoteAuthor(quote: Element) {
 }
 
 function getFloorQuoteContentHtml(quote: Element) {
+  const manualQuoteBody = quote.querySelector('.capubbs-manual-quote-body');
+  if (manualQuoteBody) return manualQuoteBody.innerHTML.trim();
+
   if (quote.classList.contains('capubbs-floor-quote')) {
     const clone = quote.cloneNode(true) as Element;
     const metadata = Array.from(clone.children)

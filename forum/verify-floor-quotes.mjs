@@ -122,6 +122,16 @@ assert.match(
   /quote\.setAttribute\('data-user', submittedValue\)/,
   'confirmed manual quotes must retain the referenced ID for publishing',
 );
+assert.ok(
+  editorSource.indexOf('capubbs-manual-quote-author')
+    < editorSource.indexOf('capubbs-manual-quote-body'),
+  'manual quote authors must be inserted above their quote bodies',
+);
+assert.match(
+  editorSource,
+  /focusQuoteTarget\(quoteFocusTarget\)/,
+  'typing must resume inside the manual quote body after confirming an ID',
+);
 
 const floorQuoteSource = readFileSync(new URL('./src/utils/floorQuote.ts', import.meta.url), 'utf8');
 assert.match(
@@ -133,6 +143,11 @@ assert.match(
   floorQuoteSource,
   /author: manualQuoteAuthor \|\| getFloorQuoteAuthor\(quote\)/,
   'manual quote IDs must be published as quote authors',
+);
+assert.match(
+  floorQuoteSource,
+  /const manualQuoteBody = quote\.querySelector\('\.capubbs-manual-quote-body'\);[\s\S]*?return manualQuoteBody\.innerHTML\.trim\(\);/,
+  'manual quote publishing must serialize only the quote body below the author',
 );
 
 for (const stylesheet of [
@@ -147,4 +162,4 @@ for (const stylesheet of [
   );
 }
 
-console.log('floor quote verification passed (24 assertions)');
+console.log('floor quote verification passed (27 assertions)');

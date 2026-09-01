@@ -570,6 +570,7 @@ export function RichTextEditor({
     } else if (activePopover === 'quote') {
       const submittedValue = popoverValue.trim();
       const quote = pendingQuoteRef.current;
+      let quoteFocusTarget = quote;
 
       if (quote && editorRef.current?.contains(quote) && submittedValue) {
         const quoteContent = quote.innerHTML;
@@ -578,16 +579,19 @@ export function RichTextEditor({
         quote.setAttribute('data-user', submittedValue);
         quote.innerHTML = [
           '<div class="forum-legacy-quote-content">',
-          `引用自 <a class="forum-mention" href="${escapeAttribute(profileHref)}">${escapeHtml(submittedValue)}</a>：<br>`,
-          quoteContent,
+          '<div class="capubbs-manual-quote-author" contenteditable="false">',
+          `引用自 <a class="forum-mention" href="${escapeAttribute(profileHref)}">${escapeHtml(submittedValue)}</a>：`,
+          '</div>',
+          `<div class="capubbs-manual-quote-body">${quoteContent}</div>`,
           '</div>',
         ].join('');
+        quoteFocusTarget = quote.querySelector<HTMLElement>('.capubbs-manual-quote-body');
         updateContent(editorRef.current.innerHTML);
       }
 
       savedRangeRef.current = null;
       closePopover();
-      focusQuoteTarget(quote);
+      focusQuoteTarget(quoteFocusTarget);
       return;
     }
 
