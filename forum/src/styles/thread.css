@@ -1607,6 +1607,9 @@
   }
 
   .nested-replies > article {
+    display: grid;
+    grid-template-columns: 44px minmax(0, 1fr);
+    gap: 10px;
     padding: 11px 12px;
   }
 
@@ -1614,20 +1617,16 @@
     border-top: 1px solid var(--line);
   }
 
-  .nested-reply-header {
-    display: flex;
-    min-width: 0;
-    align-items: center;
-    gap: 9px;
-  }
-
-  .nested-reply-header > img {
-    flex: 0 0 auto;
-    width: 28px;
-    height: 28px;
+  .nested-replies > article > img {
+    width: 44px;
+    height: 44px;
     border: 1px solid var(--line);
     border-radius: 2px;
     object-fit: cover;
+  }
+
+  .nested-reply-main {
+    min-width: 0;
   }
 
   .nested-reply-identity {
@@ -2774,11 +2773,9 @@
     }
 
     .nested-replies > article {
+      grid-template-columns: 44px minmax(0, 1fr);
+      gap: 9px;
       padding: 10px;
-    }
-
-    .nested-reply-header {
-      gap: 8px;
     }
 
     .nested-reply-footer {
