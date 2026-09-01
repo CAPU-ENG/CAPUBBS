@@ -122,6 +122,7 @@ export default defineConfig({
       '/bbs/images': { target: PHP_ORIGIN },
       '/bbs/lib': { target: PHP_ORIGIN },
       '/bbs/register/action.php': { target: PHP_ORIGIN },
+      '/bbs/register/userexists.php': { target: PHP_ORIGIN },
       '/bbs/utils': { target: PHP_ORIGIN },
       '/bbsimg': { target: PHP_ORIGIN },
       '/config': { target: PHP_ORIGIN },

@@ -75,16 +75,20 @@ assert.match(legacyMainSource, /<base href="\/bbs\/main\/">/);
 assert.match(gatewaySource, /forum\/dist\/index\.html/);
 assert.match(gatewaySource, /Cache-Control: private, no-store/);
 assert.match(gatewaySource, /Vary: Cookie/);
+assert.match(gatewaySource, /\$requestPath === '\/bbs\/register\/userexists\.php'/);
+assert.match(gatewaySource, /require \$registerDirectory\.'\/userexists\.php'/);
 assert.doesNotMatch(gatewaySource, /header\('Location:/);
 assert.match(routerSource, /serve_new_forum_file\(\$requestPath, '\/bbs\/new-assets\/'/);
 assert.match(routerSource, /\$forumMode === 'legacy'/);
 assert.match(routerSource, /trim\(\(string\)@\$_COOKIE\['token'\]\) !== ''/);
 assert.match(routerSource, /setcookie\('capubbs_forum_mode', 'legacy'/);
+assert.match(routerSource, /'\/bbs\/register\/userexists\.php'/);
 assert.match(routerSource, /require __DIR__\.'\/bbs\/index\.php'/);
 assert.match(viteConfigSource, /assetsDir: 'new-assets'/);
 assert.match(viteConfigSource, /legacy-forum-cookie-proxy/);
 assert.match(viteConfigSource, /resolveForumMode\(request\.headers\.cookie\) !== 'legacy'/);
 assert.match(viteConfigSource, /shouldInitializeLegacyForum\(request\.headers\.cookie\)/);
+assert.match(viteConfigSource, /'\/bbs\/register\/userexists\.php'/);
 
 const oldForumSource = readFileSync(resolve(forumDirectory, '../bbs/index/index.php'), 'utf8');
 const siteHomeSource = readFileSync(resolve(forumDirectory, '../index.php'), 'utf8');
@@ -105,4 +109,4 @@ assert.match(topBarSource, /data-forum-entry-reload="true"/);
 assert.match(boardNavigationSource, /data-forum-entry-reload="true"/);
 assert.match(appSource, /target\.dataset\.forumEntryReload === 'true'/);
 
-console.log('forum mode verification passed (52 cases)');
+console.log('forum mode verification passed (56 cases)');

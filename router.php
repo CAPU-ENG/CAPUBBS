@@ -58,7 +58,8 @@ $passthroughPrefixes = array(
 );
 $passthroughPaths = array(
     '/bbs/content/test.php',
-    '/bbs/register/action.php'
+    '/bbs/register/action.php',
+    '/bbs/register/userexists.php'
 );
 
 foreach ($passthroughPrefixes as $passthroughPrefix) {
