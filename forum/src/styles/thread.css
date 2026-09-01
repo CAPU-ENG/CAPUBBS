@@ -2260,6 +2260,7 @@
 
   .thread-side-rail {
     position: sticky;
+    z-index: 30;
     top: calc(var(--topbar-height) + 18px);
     display: flex;
     align-self: start;
@@ -2270,7 +2271,6 @@
   @media (min-width: 1024px) {
     .thread-page-shell-author-profile .thread-side-rail {
       position: fixed;
-      z-index: 30;
       top: 50%;
       left: calc(50% + 476px);
       width: var(--thread-rail-column);
