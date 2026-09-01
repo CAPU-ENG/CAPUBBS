@@ -1264,7 +1264,7 @@
     justify-content: flex-end;
     gap: 5px;
     color: var(--text-faint);
-    font-size: 0.5625rem;
+    font-size: var(--ui-font-size-xs);
     font-variant-numeric: tabular-nums;
     white-space: nowrap;
   }
