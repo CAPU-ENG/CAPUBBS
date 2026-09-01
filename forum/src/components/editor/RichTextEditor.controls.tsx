@@ -42,6 +42,7 @@ type Props = {
   isSourceMode: boolean;
   openGalleryDialog: () => void;
   openPopover: (popover: Exclude<EditorPopover, null>) => void;
+  openQuotePopover: () => void;
   popoverConfig: { label: string; placeholder: string } | null;
   popoverTextValue: string;
   popoverValue: string;
@@ -55,7 +56,6 @@ type Props = {
   setSelectedTextColor: Dispatch<SetStateAction<string>>;
   toggleColorPicker: () => void;
   toggleRichFirstLineIndent: () => void;
-  wrapRichSelectionWithTag: (tagName: string, fallback: string, className?: string) => void;
 };
 
 export function RichTextEditorControls(props: Props) {
@@ -67,10 +67,10 @@ export function RichTextEditorControls(props: Props) {
     handleToolbarMouseDown, headingSelectValue, hexSourceValue, imageFileError,
     imageFileInputRef, isCheckingImageFile, isColorPickerOpen, isSourceMode,
     insertHorizontalRule,
-    openGalleryDialog, openPopover, popoverConfig, popoverTextValue, popoverValue,
+    openGalleryDialog, openPopover, openQuotePopover, popoverConfig, popoverTextValue, popoverValue,
     recentTextColors, runRichCommand, saveSelection, selectedTextColor,
     setHexSourceValue, setPopoverTextValue, setPopoverValue, setSelectedTextColor,
-    toggleColorPicker, toggleRichFirstLineIndent, wrapRichSelectionWithTag,
+    toggleColorPicker, toggleRichFirstLineIndent,
   } = props;
 
   return (
@@ -155,7 +155,7 @@ export function RichTextEditorControls(props: Props) {
                   ))}
                 </select>
               </label>
-              <ToolbarButton label="引用" onMouseDown={handleToolbarMouseDown} onClick={() => wrapRichSelectionWithTag('blockquote', '引用内容', 'forum-quote')}>
+              <ToolbarButton active={activePopover === 'quote'} label="引用" onMouseDown={handleToolbarMouseDown} onClick={openQuotePopover}>
                 <MessageSquareQuote size={14} />
               </ToolbarButton>
 
@@ -362,7 +362,7 @@ export function RichTextEditorControls(props: Props) {
               disabled={isCheckingImageFile}
               className="h-9 rounded-[1px] bg-[#174f38] px-3 text-[length:var(--ui-font-size-md)] font-bold text-white transition hover:bg-[#123d2c] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#174f38] dark:bg-emerald-200 dark:text-zinc-950 dark:hover:bg-emerald-100"
             >
-              插入
+              {activePopover === 'quote' ? '确认' : '插入'}
             </button>
             <button
               type="button"

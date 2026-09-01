@@ -97,6 +97,8 @@ export function RichTextEditor({
   const selectedRichImageRef = useRef<HTMLImageElement | null>(null);
   const activeRichImageResizeRef = useRef<ActiveRichImageResize | null>(null);
   const activeGalleryResizeRef = useRef<ActiveGalleryResize | null>(null);
+  const pendingQuoteRef = useRef<HTMLElement | null>(null);
+  const pendingQuoteIdRef = useRef(0);
   const [activePopover, setActivePopover] = useState<EditorPopover>(null);
   const [activeRichCommands, setActiveRichCommands] = useState<RichToggleCommandStates>(createInactiveRichCommandStates);
   const [isAutoHeightEnabled, setIsAutoHeightEnabled] = useState(false);
@@ -356,7 +358,6 @@ export function RichTextEditor({
     saveSelection,
     toggleColorPicker,
     toggleRichFirstLineIndent,
-    wrapRichSelectionWithTag,
   } = createRichTextEditorRichActions({
     editorRef,
     hexSourceValue,
@@ -375,6 +376,49 @@ export function RichTextEditor({
     sourceSelectionRef,
     updateContent,
   });
+
+  const focusQuoteTarget = (quote: HTMLElement | null) => {
+    const editor = editorRef.current;
+    if (!editor || !quote || !editor.contains(quote)) return;
+
+    editor.focus();
+    const range = document.createRange();
+    range.selectNodeContents(quote);
+    range.collapse(false);
+    const selection = window.getSelection();
+    selection?.removeAllRanges();
+    selection?.addRange(range);
+  };
+
+  const openQuotePopover = () => {
+    saveSelection();
+    setIsColorPickerOpen(false);
+    setImageFileError('');
+    setPopoverTextValue('');
+    setPopoverValue('');
+
+    const editor = editorRef.current;
+    if (!editor) return;
+
+    pendingQuoteIdRef.current += 1;
+    const pendingQuoteId = String(pendingQuoteIdRef.current);
+    editor.focus();
+    restoreRichSelection();
+    document.execCommand(
+      'insertHTML',
+      false,
+      `<blockquote class="forum-quote" data-capubbs-pending-quote="${pendingQuoteId}"><br></blockquote><p><br></p>`,
+    );
+
+    const quote = editor.querySelector<HTMLElement>(
+      `[data-capubbs-pending-quote="${pendingQuoteId}"]`,
+    );
+    quote?.removeAttribute('data-capubbs-pending-quote');
+    pendingQuoteRef.current = quote;
+    updateContent(editor.innerHTML);
+    savedRangeRef.current = null;
+    setActivePopover('quote');
+  };
 
   const getCurrentSelectionText = () => {
     if (isSourceMode) {
@@ -404,6 +448,7 @@ export function RichTextEditor({
 
   const openPopover = (popover: Exclude<EditorPopover, null>) => {
     saveSelection();
+    pendingQuoteRef.current = null;
     setIsColorPickerOpen(false);
     setImageFileError('');
     setPopoverTextValue(popover === 'link' ? getCurrentSelectionText() : '');
@@ -412,6 +457,7 @@ export function RichTextEditor({
   };
 
   const closePopover = () => {
+    pendingQuoteRef.current = null;
     setActivePopover(null);
     setImageFileError('');
     setPopoverTextValue('');
@@ -523,20 +569,26 @@ export function RichTextEditor({
       }
     } else if (activePopover === 'quote') {
       const submittedValue = popoverValue.trim();
-      if (!submittedValue) {
-        return;
+      const quote = pendingQuoteRef.current;
+
+      if (quote && editorRef.current?.contains(quote) && submittedValue) {
+        const quoteContent = quote.innerHTML;
+        const profileHref = getPublicProfileAppPath(submittedValue);
+        quote.className = 'forum-legacy-quote';
+        quote.setAttribute('data-user', submittedValue);
+        quote.innerHTML = [
+          '<div class="forum-legacy-quote-content">',
+          `引用自 <a class="forum-mention" href="${escapeAttribute(profileHref)}">${escapeHtml(submittedValue)}</a>：<br>`,
+          quoteContent,
+          '</div>',
+        ].join('');
+        updateContent(editorRef.current.innerHTML);
       }
 
-      if (isHtmlMode) {
-        wrapSourceSelection(
-          `<blockquote class="forum-quote" data-user="${escapeAttribute(submittedValue)}">`,
-          '</blockquote>',
-          '引用内容',
-        );
-      } else {
-        restoreRichSelection();
-        insertRichHtml(`[quote=${submittedValue}]引用内容[/quote]`);
-      }
+      savedRangeRef.current = null;
+      closePopover();
+      focusQuoteTarget(quote);
+      return;
     }
 
     savedRangeRef.current = null;
@@ -651,6 +703,7 @@ export function RichTextEditor({
         isSourceMode={isSourceMode}
         openGalleryDialog={openGalleryDialog}
         openPopover={openPopover}
+        openQuotePopover={openQuotePopover}
         popoverConfig={popoverConfig}
         popoverTextValue={popoverTextValue}
         popoverValue={popoverValue}
@@ -664,7 +717,6 @@ export function RichTextEditor({
         setSelectedTextColor={setSelectedTextColor}
         toggleColorPicker={toggleColorPicker}
         toggleRichFirstLineIndent={toggleRichFirstLineIndent}
-        wrapRichSelectionWithTag={wrapRichSelectionWithTag}
       />
       {isMarkdownMode ? (
         <div key="markdown-editor-pane" className={splitPaneClassName} data-editor-mode="markdown">
@@ -929,8 +981,8 @@ function getPopoverConfig(popover: EditorPopover) {
 
   if (popover === 'quote') {
     return {
-      label: '引用用户',
-      placeholder: '引用用户',
+      label: '被引用人 ID',
+      placeholder: '被引用人 ID（可留空）',
     };
   }
 

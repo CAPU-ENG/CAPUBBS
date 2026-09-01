@@ -1,6 +1,5 @@
 import type { ChangeEvent, Dispatch, RefObject, SetStateAction } from 'react';
 import { richTextHeadingOptions } from './RichTextEditor.constants';
-import { escapeAttribute, escapeHtml } from './RichTextEditor.html';
 import {
   maxRecentTextColors, mergeFullySelectedChildRichSpansIntoWrapper,
   normalizeRedundantRichSpans, normalizeRichIndentation,
@@ -61,35 +60,6 @@ export function createRichTextEditorRichActions({
 
     updateContent(editor.innerHTML);
     setActiveRichCommands(readRichCommandStates(editor));
-  };
-
-  const getRichSelectionHtml = (fallback: string) => {
-    const selection = window.getSelection();
-    if (!selection || selection.rangeCount === 0) {
-      return fallback;
-    }
-
-    const range = selection.getRangeAt(0);
-    if (!editorRef.current?.contains(range.commonAncestorContainer) || range.collapsed) {
-      return fallback;
-    }
-
-    const container = document.createElement('div');
-    container.appendChild(range.cloneContents());
-
-    return container.innerHTML || escapeHtml(selection.toString()) || fallback;
-  };
-
-  const wrapRichSelectionWithTag = (tagName: string, fallback: string, className = '') => {
-    const classAttribute = className ? ` class="${escapeAttribute(className)}"` : '';
-    editorRef.current?.focus();
-    restoreRichSelection();
-    document.execCommand(
-      'insertHTML',
-      false,
-      `<${tagName}${classAttribute}>${getRichSelectionHtml(fallback)}</${tagName}>`,
-    );
-    updateContent(editorRef.current?.innerHTML ?? '');
   };
 
   const applyRichInlineStyle = (style: RichInlineStyle) => {
@@ -267,6 +237,5 @@ export function createRichTextEditorRichActions({
     saveSelection,
     toggleColorPicker,
     toggleRichFirstLineIndent,
-    wrapRichSelectionWithTag,
   };
 }

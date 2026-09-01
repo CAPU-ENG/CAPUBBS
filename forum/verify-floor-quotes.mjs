@@ -108,6 +108,33 @@ for (const sourcePath of [
   );
 }
 
+const editorSource = readFileSync(new URL(
+  './src/components/editor/RichTextEditor.tsx',
+  import.meta.url,
+), 'utf8');
+assert.match(
+  editorSource,
+  /<blockquote class="forum-quote" data-capubbs-pending-quote="\$\{pendingQuoteId\}"><br><\/blockquote>/,
+  'the quote toolbar action must insert an empty quote block before collecting an optional ID',
+);
+assert.match(
+  editorSource,
+  /quote\.setAttribute\('data-user', submittedValue\)/,
+  'confirmed manual quotes must retain the referenced ID for publishing',
+);
+
+const floorQuoteSource = readFileSync(new URL('./src/utils/floorQuote.ts', import.meta.url), 'utf8');
+assert.match(
+  floorQuoteSource,
+  /const manualQuoteAuthor = quote\.getAttribute\('data-user'\)\?\.trim\(\) \?\? '';/,
+  'manual quote IDs must be recognized by legacy quote serialization',
+);
+assert.match(
+  floorQuoteSource,
+  /author: manualQuoteAuthor \|\| getFloorQuoteAuthor\(quote\)/,
+  'manual quote IDs must be published as quote authors',
+);
+
 for (const stylesheet of [
   './src/styles/thread.css',
   './src/styles/thread-html-frame.css',
@@ -120,4 +147,4 @@ for (const stylesheet of [
   );
 }
 
-console.log('floor quote verification passed (20 assertions)');
+console.log('floor quote verification passed (24 assertions)');

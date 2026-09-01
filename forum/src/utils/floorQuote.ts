@@ -108,13 +108,14 @@ export function normalizeFloorQuotesForLegacyStorage(html: string) {
 
   quotes.forEach((quote) => {
     const jump = quote.querySelector<HTMLAnchorElement>('.capubbs-floor-quote-jump[href]');
-    if (!quote.classList.contains('capubbs-floor-quote') && !jump) return;
+    const manualQuoteAuthor = quote.getAttribute('data-user')?.trim() ?? '';
+    if (!quote.classList.contains('capubbs-floor-quote') && !jump && !manualQuoteAuthor) return;
 
     const existingMetadataComment = getAdjacentFloorQuoteMetadataComment(quote);
     const existingMetadata = parseFloorQuoteMetadata(existingMetadataComment?.data);
     const href = jump?.getAttribute('href') ?? existingMetadata.href;
     const storage = buildLegacyFloorQuoteStorage({
-      author: getFloorQuoteAuthor(quote),
+      author: manualQuoteAuthor || getFloorQuoteAuthor(quote),
       content: getFloorQuoteContentHtml(quote),
       floor: getFloorNumberFromHref(href) ?? existingMetadata.floor,
       href,
