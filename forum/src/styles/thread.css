@@ -2773,9 +2773,14 @@
     }
 
     .nested-replies > article {
-      grid-template-columns: 42px minmax(0, 1fr);
+      grid-template-columns: 34px minmax(0, 1fr);
       gap: 9px;
       padding: 10px;
+    }
+
+    .nested-replies > article > img {
+      width: 34px;
+      height: 34px;
     }
 
     .nested-reply-composer {
