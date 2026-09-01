@@ -1,4 +1,16 @@
 <?php
+    $requestPath = parse_url(@$_SERVER['REQUEST_URI'], PHP_URL_PATH);
+    if ($requestPath === '/bbs/register/userexists.php') {
+        $registerDirectory = __DIR__.'/register';
+        if (!chdir($registerDirectory)) {
+            http_response_code(500);
+            echo 'Internal Server Error';
+            exit;
+        }
+        require $registerDirectory.'/userexists.php';
+        exit;
+    }
+
     $mode = @$_COOKIE['capubbs_forum_mode'];
     $hasLegacyLoginToken = !isset($_COOKIE['capubbs_forum_mode'])
         && trim((string)@$_COOKIE['token']) !== '';
@@ -31,7 +43,6 @@
     header('Content-Type: text/html; charset=UTF-8');
 
     if ($mode === 'legacy') {
-        $requestPath = parse_url(@$_SERVER['REQUEST_URI'], PHP_URL_PATH);
         $requestPath = is_string($requestPath) ? rtrim($requestPath, '/') : '/bbs';
         if ($requestPath === '') $requestPath = '/bbs';
 
