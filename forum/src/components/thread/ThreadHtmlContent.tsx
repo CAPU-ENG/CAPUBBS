@@ -379,7 +379,7 @@ function buildHtmlFrameDocument({
 }) {
   const isSignature = variant === 'signature';
   const lightColor = isSignature ? '#999999' : 'rgb(63 63 70)';
-  const darkColor = isSignature ? '#999999' : 'rgb(228 228 231)';
+  const darkColor = isSignature ? '#666666' : 'rgb(228 228 231)';
   const fontFamily = isSignature
     ? 'monospace'
     : "'Noto Sans CJK SC','Source Han Sans SC','PingFang SC','Microsoft YaHei',sans-serif";

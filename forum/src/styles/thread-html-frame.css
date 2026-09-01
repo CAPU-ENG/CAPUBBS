@@ -306,6 +306,10 @@ table {
   overflow-wrap: anywhere;
 }
 
+:root.dark .forum-markup-signature {
+  color: #666;
+}
+
 .forum-markup .capubbs-gallery {
   position: relative;
   display: block;

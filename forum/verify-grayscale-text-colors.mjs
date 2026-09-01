@@ -29,9 +29,14 @@ const frameSource = readFileSync(
   new URL('./src/components/thread/ThreadHtmlContent.tsx', import.meta.url),
   'utf8',
 );
+const threadStyles = readFileSync(new URL('./src/styles/thread.css', import.meta.url), 'utf8');
+const frameStyles = readFileSync(new URL('./src/styles/thread-html-frame.css', import.meta.url), 'utf8');
 assert.match(frameSource, /syncGrayscaleTextColors\(document\.body\);/);
 assert.match(frameSource, /syncGrayscaleTextColors\(contentRoot\);/);
 assert.match(frameSource, /original-grayscale-color-attr/);
 assert.match(frameSource, /original-grayscale-style-color/);
+assert.match(frameSource, /const darkColor = isSignature \? '#666666'/);
+assert.match(threadStyles, /\.dark \.forum-markup-signature \{\s*color: #666;/);
+assert.match(frameStyles, /:root\.dark \.forum-markup-signature \{\s*color: #666;/);
 
-console.log('forum grayscale text color verification passed (16 assertions)');
+console.log('forum grayscale text color verification passed (19 assertions)');
