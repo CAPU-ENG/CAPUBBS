@@ -21,7 +21,7 @@ import {
   findSignatureFloorMarkers,
   replaceLegacySignatureFloorScripts,
 } from '../../utils/signatureFloorLink';
-import frameStylesheetUrl from '../../styles/thread-html-frame.css?url&no-inline';
+import frameStylesheet from '../../styles/thread-html-frame.css?inline';
 import {
   ForumMarkup,
   type ForumMarkupImageChangeHandler,
@@ -35,7 +35,10 @@ const MAX_FRAME_HEIGHT = 50_000;
 const FRAME_BOTTOM_GUARD = 30;
 const FRAME_WIDTH_ALLOWANCE = 30;
 const HTML_FRAME_MESSAGE_SOURCE = 'capubbs-thread-html-frame';
-const HTML_FRAME_STYLESHEET_URL = new URL(frameStylesheetUrl, window.location.origin).href;
+const JQUERY_SOURCE_URL = new URL('/bbs/lib/jquery.min.js', window.location.origin).href;
+const HTML_FRAME_STYLES = escapeInlineStyleText(frameStylesheet);
+
+let jquerySourcePromise: Promise<string | null> | null = null;
 
 type ThreadHtmlVariant = 'floor' | 'signature';
 
@@ -59,6 +62,10 @@ type HtmlFrameMessage = {
   source: typeof HTML_FRAME_MESSAGE_SOURCE;
   type: 'navigate';
   url: string;
+} | {
+  frameId: string;
+  source: typeof HTML_FRAME_MESSAGE_SOURCE;
+  type: 'jquery-request';
 } | {
   frameId: string;
   imageIndex: number;
@@ -153,15 +160,18 @@ function ThreadSandboxedHtmlFrame({
   const initialDarkThemeRef = useRef(isDarkTheme);
   const forumContentFontSize = useForumContentFontSize();
   const frameFontSize = variant === 'signature' ? 14 : forumContentFontSize;
+  const deferredHtml = useMemo(() => deferUserScripts(html), [html]);
+  const hasUserScripts = deferredHtml.includes('type="text/capubbs-user-script"');
   const frameDocument = useMemo(() => buildHtmlFrameDocument({
     canOpenImages,
     frameId: frameIdRef.current,
-    html,
+    hasUserScripts,
+    html: deferredHtml,
     isActivitySignupCanceled,
     isDarkTheme: initialDarkThemeRef.current,
     fontSize: frameFontSize,
     variant,
-  }), [canOpenImages, frameFontSize, html, isActivitySignupCanceled, variant]);
+  }), [canOpenImages, deferredHtml, frameFontSize, hasUserScripts, isActivitySignupCanceled, variant]);
   const frameSource = useMemo(
     () => `data:text/html;charset=utf-8,${encodeURIComponent(frameDocument)}`,
     [frameDocument],
@@ -174,6 +184,22 @@ function ThreadSandboxedHtmlFrame({
       type: 'theme',
     }, '*');
   }, [isDarkTheme]);
+  const sendJquerySource = useCallback((frameWindow = iframeRef.current?.contentWindow) => {
+    if (!hasUserScripts || !frameWindow) return;
+    void loadJquerySource().then((jquerySource) => {
+      if (iframeRef.current?.contentWindow !== frameWindow) return;
+      frameWindow.postMessage({
+        frameId: frameIdRef.current,
+        jquerySource,
+        source: HTML_FRAME_MESSAGE_SOURCE,
+        type: 'jquery-response',
+      }, '*');
+    });
+  }, [hasUserScripts]);
+  const handleFrameLoad = useCallback(() => {
+    syncFrameTheme();
+    sendJquerySource();
+  }, [sendJquerySource, syncFrameTheme]);
 
   useEffect(() => {
     setFrameHeight(null);
@@ -183,10 +209,20 @@ function ThreadSandboxedHtmlFrame({
     syncFrameTheme();
   }, [syncFrameTheme]);
 
+  useEffect(() => {
+    if (hasUserScripts) void loadJquerySource();
+  }, [hasUserScripts]);
+
   useLayoutEffect(() => {
     function handleMessage(event: MessageEvent) {
-      if (event.source !== iframeRef.current?.contentWindow || !isHtmlFrameMessage(event.data)) return;
+      const frameWindow = iframeRef.current?.contentWindow;
+      if (!frameWindow || event.source !== frameWindow || !isHtmlFrameMessage(event.data)) return;
       if (event.data.frameId !== frameIdRef.current) return;
+
+      if (event.data.type === 'jquery-request') {
+        sendJquerySource(frameWindow);
+        return;
+      }
 
       if (event.data.type === 'anchor') {
         const frame = iframeRef.current;
@@ -261,7 +297,7 @@ function ThreadSandboxedHtmlFrame({
 
     window.addEventListener('message', handleMessage);
     return () => window.removeEventListener('message', handleMessage);
-  }, [minHeight]);
+  }, [minHeight, sendJquerySource]);
 
   return (
     <iframe
@@ -271,7 +307,7 @@ function ThreadSandboxedHtmlFrame({
       sandbox="allow-scripts allow-same-origin allow-downloads"
       scrolling="no"
       src={frameSource}
-      onLoad={syncFrameTheme}
+      onLoad={handleFrameLoad}
       style={{
         '--thread-html-frame-width-allowance': `${FRAME_WIDTH_ALLOWANCE}px`,
         ...(frameHeight === null ? {} : { '--thread-html-frame-height': `${frameHeight}px` }),
@@ -326,6 +362,7 @@ function buildHtmlFrameDocument({
   canOpenImages,
   frameId,
   fontSize,
+  hasUserScripts,
   html,
   isActivitySignupCanceled,
   isDarkTheme,
@@ -334,6 +371,7 @@ function buildHtmlFrameDocument({
   canOpenImages: boolean;
   frameId: string;
   fontSize: number;
+  hasUserScripts: boolean;
   html: string;
   isActivitySignupCanceled: boolean;
   isDarkTheme: boolean;
@@ -358,25 +396,26 @@ function buildHtmlFrameDocument({
   <meta name="referrer" content="no-referrer">
   <base href="${escapeHtmlAttribute(getLegacyContentBaseUrl())}">
   <meta http-equiv="Content-Security-Policy" content="${buildContentSecurityPolicy()}">
-  <link rel="stylesheet" href="${escapeHtmlAttribute(HTML_FRAME_STYLESHEET_URL)}">
+  <style>${HTML_FRAME_STYLES}</style>
   <style>
     html{--capubbs-frame-text-color:${lightColor}}html.dark{--capubbs-frame-text-color:${darkColor}}
     html,body{margin:0;padding:0;min-width:0;min-height:0;overflow:hidden;background:transparent!important;color:var(--capubbs-frame-text-color);font-family:${fontFamily};font-size:${fontSize}px;line-height:1.6;overflow-wrap:anywhere;word-break:break-word}
     .capubbs-html-frame-root{display:flow-root;width:calc(100% - ${FRAME_WIDTH_ALLOWANCE}px);${signatureRootStyle}}.capubbs-html-frame-root iframe{display:inline-block;vertical-align:baseline}
   </style>
-  <script>${buildFrameBridgeScript(frameId, canOpenImages)}</script>
-  <script src="/bbs/lib/jquery.min.js"></script>
+  <script>${buildFrameBridgeScript(frameId, canOpenImages, hasUserScripts)}</script>
 </head>
-<body><main class="capubbs-html-frame-root forum-markup forum-markup-${variant}${canceledClassName}">${deferUserScripts(html)}</main></body>
+<body><main class="capubbs-html-frame-root forum-markup forum-markup-${variant}${canceledClassName}">${html}</main></body>
 </html>`;
 }
 
-function buildFrameBridgeScript(frameId: string, canOpenImages: boolean) {
+function buildFrameBridgeScript(frameId: string, canOpenImages: boolean, hasUserScripts: boolean) {
   return `(function(){
     var frameId=${JSON.stringify(frameId)};
     var forumOrigin=${JSON.stringify(window.location.origin)};
     var forumBasePath=${JSON.stringify(FORUM_BASE_PATH)};
     var canOpenImages=${JSON.stringify(canOpenImages)};
+    var hasUserScripts=${JSON.stringify(hasUserScripts)};
+    var jquerySourceUrl=${JSON.stringify(JQUERY_SOURCE_URL)};
     var forumAppExactPaths=${JSON.stringify(FORUM_APP_EXACT_PATHS)};
     var forumAppPathPrefixes=${JSON.stringify(FORUM_APP_PATH_PREFIXES)};
     var legacyForumExactPaths=${JSON.stringify(LEGACY_FORUM_EXACT_PATHS)};
@@ -385,6 +424,7 @@ function buildFrameBridgeScript(frameId: string, canOpenImages: boolean) {
     var queued=false;
     var selectionQueued=false;
     var lastSelectionText='';
+    var userScriptsExecuted=false;
     function getContentHeight(){
       var contentRoot=document.querySelector('.capubbs-html-frame-root');
       if(!contentRoot)return 0;
@@ -420,6 +460,8 @@ function buildFrameBridgeScript(frameId: string, canOpenImages: boolean) {
       window.requestAnimationFrame(sendSelection);
     }
     function executeUserScripts(){
+      if(userScriptsExecuted)return;
+      userScriptsExecuted=true;
       Array.prototype.slice.call(document.querySelectorAll('script[type="text/capubbs-user-script"]')).forEach(function(script){
         var executable=document.createElement('script');
         Array.prototype.forEach.call(script.attributes,function(attribute){
@@ -428,6 +470,20 @@ function buildFrameBridgeScript(frameId: string, canOpenImages: boolean) {
         executable.text=script.text||script.textContent||'';
         script.parentNode.replaceChild(executable,script);
       });
+    }
+    function loadJqueryAndExecuteUserScripts(jquerySource){
+      if(userScriptsExecuted)return;
+      var jquery=document.createElement('script');
+      if(typeof jquerySource==='string'&&jquerySource){
+        jquery.text=jquerySource;
+        document.head.appendChild(jquery);
+        executeUserScripts();
+        return;
+      }
+      jquery.src=jquerySourceUrl;
+      jquery.addEventListener('load',executeUserScripts,{once:true});
+      jquery.addEventListener('error',executeUserScripts,{once:true});
+      document.head.appendChild(jquery);
     }
     function getForumNavigationUrl(target){
       var anchor=target&&target.closest?target.closest('a'):null;
@@ -594,6 +650,10 @@ function buildFrameBridgeScript(frameId: string, canOpenImages: boolean) {
     function handleParentMessage(event){
       var data=event.data;
       if(event.source!==window.parent||!data||data.source!=='${HTML_FRAME_MESSAGE_SOURCE}'||data.frameId!==frameId)return;
+      if(data.type==='jquery-response'){
+        loadJqueryAndExecuteUserScripts(data.jquerySource);
+        return;
+      }
       if(data.type==='theme'){
         if(data.theme!=='dark'&&data.theme!=='light')return;
         var dark=data.theme==='dark';
@@ -655,7 +715,8 @@ function buildFrameBridgeScript(frameId: string, canOpenImages: boolean) {
       document.addEventListener('keydown',handleImageKeyDown);
       document.addEventListener('click',handleForumNavigationClick);
       if(document.fonts&&document.fonts.ready)document.fonts.ready.then(queueHeight);
-      executeUserScripts();
+      if(hasUserScripts)window.parent.postMessage({source:'${HTML_FRAME_MESSAGE_SOURCE}',type:'jquery-request',frameId:frameId},'*');
+      else executeUserScripts();
       prepareImages();
       queueHeight();
     }
@@ -668,6 +729,18 @@ function deferUserScripts(html: string) {
     const attributes = rawAttributes.replace(/\s+type\s*=\s*(?:"[^"]*"|'[^']*'|[^\s>]+)/gi, '');
     return `<script${attributes} type="text/capubbs-user-script">`;
   });
+}
+
+function loadJquerySource() {
+  if (jquerySourcePromise) return jquerySourcePromise;
+
+  jquerySourcePromise = fetch(JQUERY_SOURCE_URL, { credentials: 'same-origin' })
+    .then((response) => {
+      if (!response.ok) throw new Error(`Failed to load jQuery: ${response.status}`);
+      return response.text();
+    })
+    .catch(() => null);
+  return jquerySourcePromise;
 }
 
 function buildContentSecurityPolicy() {
@@ -695,6 +768,10 @@ function escapeHtmlAttribute(value: string) {
   return value.replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 }
 
+function escapeInlineStyleText(value: string) {
+  return value.replace(/<\/style/gi, '<\\/style');
+}
+
 function isHtmlFrameMessage(value: unknown): value is HtmlFrameMessage {
   if (!value || typeof value !== 'object') return false;
   const message = value as Partial<HtmlFrameMessage>;
@@ -705,6 +782,7 @@ function isHtmlFrameMessage(value: unknown): value is HtmlFrameMessage {
       && message.offsetTop >= 0;
   }
   if (message.type === 'navigate') return typeof message.url === 'string';
+  if (message.type === 'jquery-request') return true;
   if (message.type === 'selection') return typeof message.text === 'string';
   if (message.type === 'image-open') {
     return typeof message.imageIndex === 'number'
