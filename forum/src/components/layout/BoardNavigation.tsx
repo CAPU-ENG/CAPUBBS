@@ -4,7 +4,6 @@ import {
   BookOpen,
   ChevronRight,
   Compass,
-  CornerUpLeft,
   Dices,
   Droplets,
   Footprints,
@@ -20,6 +19,7 @@ import {
 } from 'lucide-react';
 import { useState } from 'react';
 import { LoadingSpinner as LoaderCircle } from './LoadingSpinner';
+import { LegacyForumIcon } from './LegacyForumIcon';
 import logo1 from '../../assets/logo/logo1.webp';
 import logo2 from '../../assets/logo/logo2.webp';
 import { fetchRandomThread } from '../../api/randomThread';
@@ -195,7 +195,7 @@ export function MobileBoardSidebar({
               onClose();
             }}
           >
-            <CornerUpLeft size={16} /> 回到旧论坛
+            <LegacyForumIcon size={17} /> 回到旧论坛
           </a>
         </div>
       </div>

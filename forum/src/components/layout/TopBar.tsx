@@ -1,7 +1,6 @@
 import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import {
   ChevronDown,
-  CornerUpLeft,
   LogIn,
   LogOut,
   Menu,
@@ -13,6 +12,7 @@ import {
   UserRound,
 } from 'lucide-react';
 import { LoadingSpinner as LoaderCircle } from './LoadingSpinner';
+import { LegacyForumIcon } from './LegacyForumIcon';
 import defaultAvatar from '../../assets/avatar/default-avatar.svg';
 import logo1 from '../../assets/logo/logo1.webp';
 import logo2 from '../../assets/logo/logo2.webp';
@@ -423,7 +423,7 @@ export function TopBar({
               data-forum-entry-reload="true"
               onClick={() => saveForumMode('legacy')}
             >
-              <CornerUpLeft size={19} />
+              <LegacyForumIcon size={20} />
             </a>
 
             {authPending ? (
