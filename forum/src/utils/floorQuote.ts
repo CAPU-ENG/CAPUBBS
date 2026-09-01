@@ -65,16 +65,16 @@ export function appendFloorQuote(
 
 export function buildLegacyFloorQuoteStorage({
   author,
+  content,
   floor,
   href,
-  text,
 }: {
   author: string;
+  content: string;
   floor?: number;
   href?: string;
-  text: string;
 }) {
-  const quote = `[quote=${sanitizeLegacyQuoteAuthor(author)}]${normalizeLegacyQuoteText(text)}[/quote]`;
+  const quote = `[quote=${sanitizeLegacyQuoteAuthor(author)}]${normalizeLegacyQuoteContent(content)}[/quote]`;
   const metadata = buildFloorQuoteMetadata({ floor, href });
   return metadata ? `${quote}<!--${FLOOR_QUOTE_COMMENT_PREFIX}${metadata}-->` : quote;
 }
@@ -97,12 +97,12 @@ export function normalizeFloorQuotesForLegacyStorage(html: string) {
     const href = jump?.getAttribute('href') ?? existingMetadata.href;
     const storage = buildLegacyFloorQuoteStorage({
       author: getFloorQuoteAuthor(quote),
+      content: getFloorQuoteContentHtml(quote),
       floor: getFloorNumberFromHref(href) ?? existingMetadata.floor,
       href,
-      text: getFloorQuoteText(quote),
     });
     const { comment, text } = splitFloorQuoteStorage(storage);
-    const replacement: Node[] = [document.createTextNode(text)];
+    const replacement = createHtmlFragmentNodes(text);
 
     existingMetadataComment?.remove();
     if (comment) replacement.push(document.createComment(comment));
@@ -154,24 +154,49 @@ function getFloorQuoteAuthor(quote: Element) {
   return author.replace(/^@/, '').trim() || '匿名用户';
 }
 
-function getFloorQuoteText(quote: Element) {
-  const contentBlocks = Array.from(quote.querySelectorAll('.capubbs-floor-quote-content'));
-  if (contentBlocks.length > 0) {
-    return contentBlocks
-      .map((block) => block.textContent?.trim() ?? '')
-      .filter(Boolean)
-      .join('\n');
+function getFloorQuoteContentHtml(quote: Element) {
+  if (quote.classList.contains('capubbs-floor-quote')) {
+    const clone = quote.cloneNode(true) as Element;
+    const metadata = Array.from(clone.children)
+      .find((child) => child.classList.contains('capubbs-floor-quote-meta'));
+    metadata?.remove();
+    return clone.innerHTML.trim();
   }
 
   const content = quote.querySelector('.forum-legacy-quote-content');
-  if (!content) return quote.textContent?.trim() ?? '';
+  if (!content) return quote.innerHTML.trim();
 
   const clone = content.cloneNode(true) as Element;
-  clone.querySelector('.capubbs-floor-quote-jump')?.remove();
-  clone.querySelector('a')?.remove();
-  return (clone.textContent ?? '')
-    .replace(/^\s*引用自\s*[：:]\s*/, '')
-    .trim();
+  const authorLink = clone.querySelector('a:not(.capubbs-floor-quote-jump)');
+  const headerBreak = Array.from(clone.childNodes).find((node) => (
+    node.nodeType === 1 && (node as Element).tagName === 'BR'
+  ));
+
+  if (authorLink && headerBreak) {
+    removeChildNodesThrough(clone, headerBreak);
+  } else {
+    clone.querySelector('.capubbs-floor-quote-jump')?.remove();
+    authorLink?.remove();
+    const firstTextNode = Array.from(clone.childNodes)
+      .find((node): node is Text => node.nodeType === 3);
+    if (firstTextNode) {
+      firstTextNode.data = firstTextNode.data
+        .replace(/^\s*引用自\s*/, '')
+        .replace(/^\s*[：:]\s*/, '');
+    }
+  }
+
+  return clone.innerHTML.trim();
+}
+
+function removeChildNodesThrough(parent: Element, boundary: ChildNode) {
+  let node = parent.firstChild;
+  while (node) {
+    const next = node.nextSibling;
+    node.remove();
+    if (node === boundary) return;
+    node = next;
+  }
 }
 
 function buildFloorQuoteMetadata(metadata: FloorQuoteMetadata) {
@@ -248,7 +273,7 @@ function positiveInteger(value: string | undefined | null) {
   return Number.isSafeInteger(number) && number > 0 ? number : undefined;
 }
 
-function normalizeLegacyQuoteText(value: string) {
+function normalizeLegacyQuoteContent(value: string) {
   return value
     .replace(/\r\n?/g, '\n')
     .replace(/\[\/quote]/gi, '[/ quote]')
@@ -290,6 +315,12 @@ function splitFloorQuoteStorage(storage: string) {
   return match
     ? { comment: match[1], text: storage.slice(0, match.index) }
     : { comment: '', text: storage };
+}
+
+function createHtmlFragmentNodes(html: string): Node[] {
+  const template = document.createElement('template');
+  template.innerHTML = html;
+  return Array.from(template.content.childNodes);
 }
 
 function escapeMarkdownLinkText(value: string) {

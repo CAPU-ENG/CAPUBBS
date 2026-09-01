@@ -30,12 +30,28 @@ assert.equal(appendFloorQuote(empty, { ...target, quote: '   ' }), empty);
 
 const legacyStorage = buildLegacyFloorQuoteStorage({
   author: 'A]B',
+  content: '引用正文[/quote]\n第二段',
   floor: 13,
   href: target.floorHref,
-  text: '引用正文[/quote]\n第二段',
 });
 assert.match(legacyStorage, /^\[quote=AB]引用正文\[\/ quote]\n第二段\[\/quote]/);
 assert.match(legacyStorage, /<!--capubbs:quote \{"href":"\/bbs\/\?bid=4&tid=19989&p=2#13","floor":13}-->$/);
+
+const imageQuoteStorage = buildLegacyFloorQuoteStorage({
+  author: '图片用户',
+  content: '<p class="capubbs-floor-quote-content">引用文字<img src="/bbs/images/quote.png" alt="引用图片" width="640" height="480"></p>',
+  floor: 23,
+  href: '/bbs/?bid=2&tid=9109&p=2#23',
+});
+assert.match(imageQuoteStorage, /\[quote=图片用户]<p class="capubbs-floor-quote-content">引用文字<img src="\/bbs\/images\/quote\.png" alt="引用图片" width="640" height="480"><\/p>\[\/quote]/);
+
+const imageOnlyQuoteStorage = buildLegacyFloorQuoteStorage({
+  author: '图片用户',
+  content: '<img src="/bbs/images/image-only.png" alt="">',
+  floor: 23,
+  href: '/bbs/?bid=2&tid=9109&p=2#23',
+});
+assert.match(imageOnlyQuoteStorage, /\[quote=图片用户]<img src="\/bbs\/images\/image-only\.png" alt="">\[\/quote]/);
 
 const legacyMainfuncPath = fileURLToPath(new URL('../bbs/lib/mainfunc.php', import.meta.url));
 const encodedStorage = Buffer.from(legacyStorage).toString('base64');
@@ -45,6 +61,14 @@ const legacyRenderedHtml = execFileSync('php', [
 ], { encoding: 'utf8' });
 assert.match(legacyRenderedHtml, /<div class='quotel'><div class='quoter'>引用自/);
 assert.match(legacyRenderedHtml, /引用正文\[\/ quote]\s*第二段/);
+
+const encodedImageStorage = Buffer.from(imageQuoteStorage).toString('base64');
+const legacyRenderedImageHtml = execFileSync('php', [
+  '-r',
+  `require ${JSON.stringify(legacyMainfuncPath)}; echo translate(base64_decode('${encodedImageStorage}'), true);`,
+], { encoding: 'utf8' });
+assert.match(legacyRenderedImageHtml, /<div class='quotel'><div class='quoter'>引用自/);
+assert.match(legacyRenderedImageHtml, /<img src="\/bbs\/images\/quote\.png" alt="引用图片" width="640" height="480">/);
 
 for (const sourcePath of [
   './src/components/thread/ReplyEditor.tsx',
@@ -71,4 +95,4 @@ for (const stylesheet of [
   );
 }
 
-console.log('floor quote verification passed (16 assertions)');
+console.log('floor quote verification passed (20 assertions)');
