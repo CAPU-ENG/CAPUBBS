@@ -123,11 +123,9 @@ export function DesktopBoardDrawer({ onNavigate }: { onNavigate: () => void }) {
 export function MobileBoardSidebar({
   open,
   onClose,
-  showGuestLinks = false,
 }: {
   open: boolean;
   onClose: () => void;
-  showGuestLinks?: boolean;
 }) {
   return (
     <aside
@@ -184,24 +182,22 @@ export function MobileBoardSidebar({
           </a>
         </div>
 
-        {showGuestLinks && (
-          <div className="mobile-sidebar-guest-links">
-            <a className="supplement-link" href={toForumHref('/settings')} onClick={onClose}>
-              <Settings size={16} /> 设置
-            </a>
-            <a
-              className="supplement-link"
-              href={SHARED_FORUM_ENTRY_PATH}
-              data-forum-entry-reload="true"
-              onClick={() => {
-                saveForumMode('legacy');
-                onClose();
-              }}
-            >
-              <History size={16} /> 回到旧论坛
-            </a>
-          </div>
-        )}
+        <div className="mobile-sidebar-guest-links">
+          <a className="supplement-link" href={toForumHref('/settings')} onClick={onClose}>
+            <Settings size={16} /> 设置
+          </a>
+          <a
+            className="supplement-link"
+            href={SHARED_FORUM_ENTRY_PATH}
+            data-forum-entry-reload="true"
+            onClick={() => {
+              saveForumMode('legacy');
+              onClose();
+            }}
+          >
+            <History size={16} /> 回到旧论坛
+          </a>
+        </div>
       </div>
     </aside>
   );

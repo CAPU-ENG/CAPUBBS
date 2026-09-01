@@ -518,7 +518,6 @@ export function TopBar({
       <MobileBoardSidebar
         open={mobileSidebarOpen}
         onClose={closeAllLayers}
-        showGuestLinks={authStatus === 'guest'}
       />
     </>
   );
