@@ -41,14 +41,23 @@ const target = {
 };
 
 const markdown = appendFloorQuote({ content: '已有回复', mode: 'markdown' }, target);
-assert.match(markdown.content, /^已有回复\n\n> <script>alert\(1\)<\/script>/);
+assert.match(markdown.content, /^已有回复\n\n> 引用自 /);
 assert.match(markdown.content, /> 引用自 \[A \\\[B\\\] & C\]\(\/bbs\/users\/A%20%5BB%5D%20%26%20C\) \[>>\]\(\/bbs\/\?bid=4&p=2&tid=19989#13\)/);
+assert.ok(
+  markdown.content.indexOf('> 引用自') < markdown.content.indexOf('> <script>alert(1)</script>'),
+  'markdown floor quote attribution must appear above its content',
+);
 
 const rich = appendFloorQuote({ content: '', mode: 'rich' }, target);
 assert.match(rich.content, /^<blockquote class="capubbs-floor-quote">/);
 assert.match(rich.content, /<p class="capubbs-floor-quote-content">&lt;script&gt;alert\(1\)&lt;\/script&gt;<\/p>/);
 assert.match(rich.content, /<a href="\/bbs\/users\/A%20%5BB%5D%20%26%20C">A \[B\] &amp; C<\/a>/);
 assert.match(rich.content, /<a class="capubbs-floor-quote-jump" href="\/bbs\/\?bid=4&amp;p=2&amp;tid=19989#13">&gt;&gt;<\/a>/);
+assert.ok(
+  rich.content.indexOf('capubbs-floor-quote-meta')
+    < rich.content.indexOf('capubbs-floor-quote-content'),
+  'rich floor quote attribution must appear above its content',
+);
 
 const empty = { content: '<p>原文</p>', mode: 'rich' };
 assert.equal(appendFloorQuote(empty, { ...target, quote: '   ' }), empty);
@@ -162,4 +171,4 @@ for (const stylesheet of [
   );
 }
 
-console.log('floor quote verification passed (27 assertions)');
+console.log('floor quote verification passed (29 assertions)');

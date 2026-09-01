@@ -277,7 +277,7 @@ function renderMarkdownFloorQuote(quoteLines: string[]) {
   if (!metaMatch) return '';
 
   const quoteContent = quoteLines
-    .slice(0, metaLineIndex)
+    .filter((_line, index) => index !== metaLineIndex)
     .filter((line) => line.trim().length > 0)
     .map((line) => `<p class="capubbs-floor-quote-content">${markdownRenderer.renderInline(line)}</p>`)
     .join('');
@@ -288,19 +288,14 @@ function renderMarkdownFloorQuote(quoteLines: string[]) {
 
   return [
     '<blockquote class="capubbs-floor-quote">',
-    quoteContent,
     `<p class="capubbs-floor-quote-meta"><span>引用自 <a href="${escapeHtml(authorHref)}" target="_blank" rel="noreferrer">${escapeHtml(author)}</a></span><a class="capubbs-floor-quote-jump" href="${escapeHtml(floorHref)}" target="_blank" rel="noreferrer">&gt;&gt;</a></p>`,
+    quoteContent,
     '</blockquote>',
   ].join('');
 }
 
 function findFloorQuoteMetaLineIndex(quoteLines: string[]) {
-  for (let index = quoteLines.length - 1; index >= 0; index -= 1) {
-    if (!quoteLines[index].trim()) continue;
-    return markdownFloorQuoteMetaPattern.test(quoteLines[index]) ? index : -1;
-  }
-
-  return -1;
+  return quoteLines.findIndex((line) => markdownFloorQuoteMetaPattern.test(line));
 }
 
 function normalizeMarkdownUrl(value: string) {

@@ -56,9 +56,13 @@ assert.equal(
 
 assert.match(renderMarkdownToHtml('+ 项目'), /<ul>[\s\S]*<li>项目<\/li>[\s\S]*<\/ul>/);
 assert.match(renderMarkdownToHtml('> 普通引用'), /<blockquote class="forum-quote">/);
+const renderedFloorQuote = renderMarkdownToHtml(
+  '> 引用内容\n>\n> 引用自 [测试用户](/user/test) [>>](/thread/1#post-2)',
+);
+assert.match(renderedFloorQuote, /<blockquote class="capubbs-floor-quote">[\s\S]*capubbs-floor-quote-jump/);
 assert.match(
-  renderMarkdownToHtml('> 引用内容\n>\n> 引用自 [测试用户](/user/test) [>>](/thread/1#post-2)'),
-  /<blockquote class="capubbs-floor-quote">[\s\S]*capubbs-floor-quote-jump/,
+  renderedFloorQuote,
+  /capubbs-floor-quote-meta[\s\S]*capubbs-floor-quote-content/,
 );
 assert.match(
   renderMarkdownToHtml('[at]测试用户[/at]'),
@@ -83,4 +87,4 @@ const fencedQuote = renderMarkdownToHtml(
 assert.doesNotMatch(fencedQuote, /capubbs-floor-quote/);
 assert.match(fencedQuote, /<code class="language-md">/);
 
-console.log('markdown rendering verification passed (18 assertions)');
+console.log('markdown rendering verification passed (19 assertions)');

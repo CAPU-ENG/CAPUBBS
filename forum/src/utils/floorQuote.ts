@@ -52,9 +52,9 @@ export function appendFloorQuote(
       .flatMap((paragraph, index) => (index === 0 ? [paragraph] : ['', paragraph]))
       .map((line) => `> ${line}`);
     const quoteMarkup = [
-      ...quoteLines,
-      '> ',
       `> 引用自 [${escapeMarkdownLinkText(target.author)}](${target.authorHref}) [>>](${target.floorHref})`,
+      '> ',
+      ...quoteLines,
       '',
     ].join('\n');
 
@@ -69,8 +69,8 @@ export function appendFloorQuote(
     .join('');
   const quoteMarkup = [
     '<blockquote class="capubbs-floor-quote">',
-    quoteParagraphs,
     `<p class="capubbs-floor-quote-meta"><span>引用自 <a href="${escapeHtml(target.authorHref)}">${escapeHtml(target.author)}</a></span><a class="capubbs-floor-quote-jump" href="${escapeHtml(target.floorHref)}">&gt;&gt;</a></p>`,
+    quoteParagraphs,
     '</blockquote>',
     '<p><br></p>',
   ].join('');
