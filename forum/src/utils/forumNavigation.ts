@@ -64,12 +64,6 @@ export const LEGACY_FORUM_EXACT_PATHS = [
 export const LEGACY_FORUM_PATH_PATTERNS = ['^/threads/\\d+-\\d+$'] as const;
 
 export function resolveForumAppRoute(value: string, currentUrl: string) {
-  const legacyThreadRoute = translateLegacyForumThreadHref(value, currentUrl);
-  if (legacyThreadRoute) return legacyThreadRoute;
-
-  const legacyPageRoute = translateLegacyForumPageHref(value, currentUrl);
-  if (legacyPageRoute) return legacyPageRoute;
-
   let url: URL;
   let baseUrl: URL;
   try {
@@ -81,8 +75,12 @@ export function resolveForumAppRoute(value: string, currentUrl: string) {
 
   if (!['http:', 'https:'].includes(url.protocol) || !isTrustedForumUrl(url, baseUrl)) return null;
   const pathname = stripKnownForumMountPrefix(normalizePathname(url.pathname));
-  if (!isForumAppPath(pathname)) return null;
-  return toForumHref(`${pathname}${url.search}${url.hash}`);
+  if (isForumAppPath(pathname)) return toForumHref(`${pathname}${url.search}${url.hash}`);
+
+  const legacyThreadRoute = translateLegacyForumThreadHref(value, currentUrl);
+  if (legacyThreadRoute) return legacyThreadRoute;
+
+  return translateLegacyForumPageHref(value, currentUrl);
 }
 
 export function getForumNavigationHref(value: string, currentUrl: string) {

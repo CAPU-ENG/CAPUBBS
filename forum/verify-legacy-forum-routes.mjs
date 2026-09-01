@@ -84,6 +84,14 @@ const appRouteCases = [
   ['/forum/?bid=4&p=2', '/bbs/?bid=4&p=2'],
   ['/bbs/?bid=4&p=2', '/bbs/?bid=4&p=2'],
   ['/bbs/?bid=4&tid=19989&p=1#1', '/bbs/?bid=4&tid=19989&p=1#1'],
+  [
+    '/bbs/login?returnTo=%2Fbbs%2F%3Fbid%3D4%26tid%3D19989%26p%3D4%2341',
+    '/bbs/login?returnTo=%2Fbbs%2F%3Fbid%3D4%26tid%3D19989%26p%3D4%2341',
+  ],
+  [
+    '/bbs/login?returnTo=%2Fbbs%2Fsearch%3Fq%3Dtest',
+    '/bbs/login?returnTo=%2Fbbs%2Fsearch%3Fq%3Dtest',
+  ],
   ['/data?panel=records', '/bbs/data?panel=records'],
   ['/forum/toolbox?tab=table-vcf', '/bbs/toolbox?tab=table-vcf'],
   ['/settings', '/bbs/settings'],
