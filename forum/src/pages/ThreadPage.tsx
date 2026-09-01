@@ -158,6 +158,12 @@ export function ThreadPage() {
     : toForumHref('/');
   const [quoteRequest, setQuoteRequest] = useState<QuoteRequest | null>(null);
   const quoteRequestIdRef = useRef(0);
+  const isolatedFloorSelectionRef = useRef<{
+    bid: number;
+    floor: number;
+    text: string;
+    tid: number;
+  } | null>(null);
   const [activeFloor, setActiveFloor] = useState(1);
   const [bookmarked, setBookmarked] = useState(false);
   const [bookmarkPending, setBookmarkPending] = useState(false);
@@ -265,15 +271,39 @@ export function ThreadPage() {
     };
   }, [data?.currentPage, pageFloors]);
 
-  function quoteFloor(floor: ThreadFloorData) {
+  function rememberIsolatedFloorSelection(floor: ThreadFloorData, text: string) {
+    if (text && data) {
+      isolatedFloorSelectionRef.current = {
+        bid: data.bid,
+        floor: floor.floor,
+        text,
+        tid: data.tid,
+      };
+    } else if (
+      data
+      && isolatedFloorSelectionRef.current?.bid === data.bid
+      && isolatedFloorSelectionRef.current.tid === data.tid
+      && isolatedFloorSelectionRef.current.floor === floor.floor
+    ) {
+      isolatedFloorSelectionRef.current = null;
+    }
+  }
+
+  function quoteFloor(floor: ThreadFloorData, selectedText?: string) {
     if (!data) return;
+    const isolatedSelection = selectedText === undefined
+      && isolatedFloorSelectionRef.current?.bid === data.bid
+      && isolatedFloorSelectionRef.current.tid === data.tid
+      && isolatedFloorSelectionRef.current.floor === floor.floor
+      ? isolatedFloorSelectionRef.current.text
+      : '';
     quoteRequestIdRef.current += 1;
     setQuoteRequest({
       author: floor.author.name,
       authorHref: getPublicProfilePath(floor.author.name),
       floor: floor.floor,
       floorHref: getThreadFloorHref(data.bid, data.tid, floor.floor),
-      quote: (floor.quoteText || floor.paragraphs[0] || '').slice(0, 90),
+      quote: selectedText || isolatedSelection || (floor.quoteText || floor.paragraphs[0] || '').slice(0, 90),
       requestId: quoteRequestIdRef.current,
     });
     window.requestAnimationFrame(() => {
@@ -492,6 +522,7 @@ export function ThreadPage() {
                   showAuthorProfile={authorProfileEnabled}
                   onDeleteFloor={removeFloor}
                   onDeleteNestedReply={removeNestedReply}
+                  onIsolatedTextSelection={rememberIsolatedFloorSelection}
                   onQuote={quoteFloor}
                   onSubmitNestedReply={submitNestedReply}
                   viewer={data.viewer}

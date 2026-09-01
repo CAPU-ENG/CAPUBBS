@@ -16,6 +16,24 @@ type FloorQuoteMetadata = {
   href?: string;
 };
 
+export function getScopedFloorQuoteSelection(
+  selection: Pick<Selection, 'getRangeAt' | 'rangeCount' | 'toString'> | null,
+  floorBody: Pick<Node, 'contains'> | null,
+) {
+  const selectedText = selection?.toString().trim() ?? '';
+  if (!selection || selection.rangeCount === 0 || !selectedText) return undefined;
+  if (!floorBody) return '';
+
+  for (let index = 0; index < selection.rangeCount; index += 1) {
+    const range = selection.getRangeAt(index);
+    if (!floorBody.contains(range.startContainer) || !floorBody.contains(range.endContainer)) {
+      return '';
+    }
+  }
+
+  return selectedText;
+}
+
 export function appendFloorQuote(
   current: RichTextEditorValue,
   target: FloorQuoteTarget,

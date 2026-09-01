@@ -15,6 +15,7 @@ export function ThreadPostContent({
   floor,
   isActivitySignupCanceled = false,
   onImageOpen,
+  onIsolatedTextSelection,
   signatureClassName = 'thread-signature',
   signatureHtml,
   signatureText,
@@ -26,6 +27,7 @@ export function ThreadPostContent({
   floor: number;
   isActivitySignupCanceled?: boolean;
   onImageOpen?: ForumMarkupImageOpenHandler;
+  onIsolatedTextSelection?: (text: string) => void;
   signatureClassName?: string;
   signatureHtml?: string;
   signatureText?: string;
@@ -51,6 +53,7 @@ export function ThreadPostContent({
           html={bodyHtml}
           isActivitySignupCanceled={isActivitySignupCanceled}
           onImageOpen={onImageOpen}
+          onIsolatedTextSelection={onIsolatedTextSelection}
           variant="floor"
         />
       ) : bodyFallback}

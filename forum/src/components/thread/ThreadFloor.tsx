@@ -23,6 +23,7 @@ import {
 import type { NestedReply, ThreadAuthor, ThreadFloorData } from '../../data/thread';
 import { getDisplayedTags } from '../../data/tags';
 import { writeClipboardText } from '../../utils/clipboard';
+import { getScopedFloorQuoteSelection } from '../../utils/floorQuote';
 import { getPublicProfilePath } from '../../utils/userRoutes';
 import {
   ForumMarkup,
@@ -283,10 +284,11 @@ export function ThreadFloorActions({
   deleting?: boolean;
   editHref?: string;
   onDelete?: (trigger: HTMLButtonElement) => void;
-  onQuote?: () => void;
+  onQuote?: (selectedText?: string) => void;
   onReply?: () => void;
 }) {
   const tabIndex = decorative ? -1 : undefined;
+  const pointerSelectionRef = useRef<{ text?: string } | null>(null);
 
   return (
     <div
@@ -294,7 +296,22 @@ export function ThreadFloorActions({
       className={`thread-floor-actions${decorative ? ' thread-floor-actions-decorative' : ''}`}
     >
       {canQuote && (
-        <button onClick={onQuote} tabIndex={tabIndex} type="button">
+        <button
+          onClick={(event) => {
+            const selectedText = pointerSelectionRef.current
+              ? pointerSelectionRef.current.text
+              : getSelectedFloorText(event.currentTarget);
+            pointerSelectionRef.current = null;
+            onQuote?.(selectedText);
+          }}
+          onPointerDown={(event) => {
+            if (event.button === 0) {
+              pointerSelectionRef.current = { text: getSelectedFloorText(event.currentTarget) };
+            }
+          }}
+          tabIndex={tabIndex}
+          type="button"
+        >
           <Quote size={15} />
           引用
         </button>
@@ -346,6 +363,7 @@ export function ThreadFloor({
   hideSignature,
   onDeleteFloor,
   onDeleteNestedReply,
+  onIsolatedTextSelection,
   onQuote,
   onSubmitNestedReply,
   viewer,
@@ -362,7 +380,8 @@ export function ThreadFloor({
   hideSignature: boolean;
   onDeleteFloor: (floor: ThreadFloorData) => Promise<void>;
   onDeleteNestedReply: (floor: ThreadFloorData, reply: NestedReply) => Promise<void>;
-  onQuote: (floor: ThreadFloorData) => void;
+  onIsolatedTextSelection: (floor: ThreadFloorData, text: string) => void;
+  onQuote: (floor: ThreadFloorData, selectedText?: string) => void;
   onSubmitNestedReply: (floor: ThreadFloorData, targetName: string | null, content: string) => Promise<number>;
   viewer: ThreadAuthor | null;
 }) {
@@ -552,6 +571,7 @@ export function ThreadFloor({
       floor={floor.floor}
       isActivitySignupCanceled={isActivitySignupCanceled}
       onImageOpen={openImagePreview}
+      onIsolatedTextSelection={(text) => onIsolatedTextSelection(floor, text)}
       signatureHtml={hideSignature ? undefined : floor.signatureHtml}
       signatureText={hideSignature ? undefined : floor.signature}
     />
@@ -582,7 +602,7 @@ export function ThreadFloor({
           setFloorDeleteError('');
           setDeleteDialogTarget({ kind: 'floor' });
         }}
-        onQuote={() => onQuote(floor)}
+        onQuote={(selectedText) => onQuote(floor, selectedText)}
         onReply={() => openNestedReplyComposer()}
       />
 
@@ -738,6 +758,13 @@ export function ThreadFloor({
       showAuthorProfile={showAuthorProfile}
     />
   );
+}
+
+function getSelectedFloorText(trigger: HTMLButtonElement) {
+  const floorBody = trigger
+    .closest<HTMLElement>('.thread-floor')
+    ?.querySelector<HTMLElement>('.thread-floor-body');
+  return getScopedFloorQuoteSelection(window.getSelection(), floorBody ?? null);
 }
 
 function DeleteReplyDialog({

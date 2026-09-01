@@ -5,7 +5,32 @@ import { fileURLToPath } from 'node:url';
 import {
   appendFloorQuote,
   buildLegacyFloorQuoteStorage,
+  getScopedFloorQuoteSelection,
 } from './src/utils/floorQuote.ts';
+
+const selectedStart = {};
+const selectedEnd = {};
+const selectedRange = { startContainer: selectedStart, endContainer: selectedEnd };
+const selectedText = {
+  getRangeAt: () => selectedRange,
+  rangeCount: 1,
+  toString: () => '  精确引用的文字  ',
+};
+assert.equal(
+  getScopedFloorQuoteSelection(selectedText, {
+    contains: (node) => node === selectedStart || node === selectedEnd,
+  }),
+  '精确引用的文字',
+);
+assert.equal(
+  getScopedFloorQuoteSelection(selectedText, { contains: (node) => node === selectedStart }),
+  '',
+  'a selection crossing outside the clicked floor must not be quoted',
+);
+assert.equal(
+  getScopedFloorQuoteSelection({ ...selectedText, toString: () => '   ' }, { contains: () => true }),
+  undefined,
+);
 
 const target = {
   author: 'A [B] & C',

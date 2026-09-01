@@ -52,6 +52,11 @@ type HtmlFrameMessage = {
 } | {
   frameId: string;
   source: typeof HTML_FRAME_MESSAGE_SOURCE;
+  text: string;
+  type: 'selection';
+} | {
+  frameId: string;
+  source: typeof HTML_FRAME_MESSAGE_SOURCE;
   type: 'navigate';
   url: string;
 } | {
@@ -68,6 +73,7 @@ export function ThreadHtmlContent({
   html,
   isActivitySignupCanceled = false,
   onImageOpen,
+  onIsolatedTextSelection,
   variant,
 }: {
   className?: string;
@@ -75,6 +81,7 @@ export function ThreadHtmlContent({
   html: string;
   isActivitySignupCanceled?: boolean;
   onImageOpen?: ForumMarkupImageOpenHandler;
+  onIsolatedTextSelection?: (text: string) => void;
   variant: ThreadHtmlVariant;
 }) {
   const signatureHtml = useMemo(
@@ -110,6 +117,7 @@ export function ThreadHtmlContent({
       html={isolatedHtml}
       isActivitySignupCanceled={isActivitySignupCanceled}
       onImageOpen={onImageOpen}
+      onTextSelection={onIsolatedTextSelection}
       variant={variant}
     />
   );
@@ -121,6 +129,7 @@ function ThreadSandboxedHtmlFrame({
   html,
   isActivitySignupCanceled,
   onImageOpen,
+  onTextSelection,
   variant,
 }: {
   className: string;
@@ -128,12 +137,15 @@ function ThreadSandboxedHtmlFrame({
   html: string;
   isActivitySignupCanceled: boolean;
   onImageOpen?: ForumMarkupImageOpenHandler;
+  onTextSelection?: (text: string) => void;
   variant: ThreadHtmlVariant;
 }) {
   const iframeRef = useRef<HTMLIFrameElement>(null);
   const frameIdRef = useRef(`${variant}-${floor}-${Math.random().toString(36).slice(2)}`);
   const onImageOpenRef = useRef(onImageOpen);
   onImageOpenRef.current = onImageOpen;
+  const onTextSelectionRef = useRef(onTextSelection);
+  onTextSelectionRef.current = onTextSelection;
   const minHeight = variant === 'signature' ? MIN_SIGNATURE_FRAME_HEIGHT : MIN_FLOOR_FRAME_HEIGHT;
   const canOpenImages = Boolean(onImageOpen);
   const [frameHeight, setFrameHeight] = useState<number | null>(null);
@@ -232,6 +244,12 @@ function ThreadSandboxedHtmlFrame({
           frame,
           syncImage,
         );
+        return;
+      }
+
+      if (event.data.type === 'selection') {
+        if (event.data.text) window.getSelection()?.removeAllRanges();
+        onTextSelectionRef.current?.(event.data.text);
         return;
       }
 
@@ -365,6 +383,8 @@ function buildFrameBridgeScript(frameId: string, canOpenImages: boolean) {
     var legacyForumPathPatterns=${JSON.stringify(LEGACY_FORUM_PATH_PATTERNS)}.map(function(pattern){return new RegExp(pattern);});
     var minBottomGuard=${FRAME_BOTTOM_GUARD};
     var queued=false;
+    var selectionQueued=false;
+    var lastSelectionText='';
     function getContentHeight(){
       var contentRoot=document.querySelector('.capubbs-html-frame-root');
       if(!contentRoot)return 0;
@@ -385,6 +405,19 @@ function buildFrameBridgeScript(frameId: string, canOpenImages: boolean) {
       if(queued)return;
       queued=true;
       window.setTimeout(sendHeight,0);
+    }
+    function sendSelection(){
+      selectionQueued=false;
+      var selection=window.getSelection?window.getSelection():null;
+      var text=selection?selection.toString().trim():'';
+      if(text===lastSelectionText)return;
+      lastSelectionText=text;
+      window.parent.postMessage({source:'${HTML_FRAME_MESSAGE_SOURCE}',type:'selection',frameId:frameId,text:text},'*');
+    }
+    function queueSelection(){
+      if(selectionQueued)return;
+      selectionQueued=true;
+      window.requestAnimationFrame(sendSelection);
     }
     function executeUserScripts(){
       Array.prototype.slice.call(document.querySelectorAll('script[type="text/capubbs-user-script"]')).forEach(function(script){
@@ -614,6 +647,7 @@ function buildFrameBridgeScript(frameId: string, canOpenImages: boolean) {
       window.addEventListener('load',queueHeight);
       document.addEventListener('transitionend',queueHeight);
       document.addEventListener('animationend',queueHeight);
+      document.addEventListener('selectionchange',queueSelection);
       document.addEventListener('click',handleGalleryClick);
       document.addEventListener('keydown',handleGalleryKeyDown);
       window.addEventListener('message',handleParentMessage);
@@ -671,6 +705,7 @@ function isHtmlFrameMessage(value: unknown): value is HtmlFrameMessage {
       && message.offsetTop >= 0;
   }
   if (message.type === 'navigate') return typeof message.url === 'string';
+  if (message.type === 'selection') return typeof message.text === 'string';
   if (message.type === 'image-open') {
     return typeof message.imageIndex === 'number'
       && Number.isSafeInteger(message.imageIndex)
