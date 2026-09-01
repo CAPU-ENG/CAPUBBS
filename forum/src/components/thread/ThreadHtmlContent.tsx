@@ -649,6 +649,7 @@ function buildContentSecurityPolicy() {
     "connect-src 'none'",
     "object-src 'none'",
     "form-action 'none'",
+    'upgrade-insecure-requests',
   ].join('; ');
 }
 
