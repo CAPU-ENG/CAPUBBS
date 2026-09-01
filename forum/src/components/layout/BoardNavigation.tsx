@@ -4,9 +4,9 @@ import {
   BookOpen,
   ChevronRight,
   Compass,
+  CornerUpLeft,
   Dices,
   Droplets,
-  ExternalLink,
   Footprints,
   Globe2,
   House,
@@ -195,7 +195,7 @@ export function MobileBoardSidebar({
               onClose();
             }}
           >
-            <ExternalLink size={16} /> 回到旧论坛
+            <CornerUpLeft size={16} /> 回到旧论坛
           </a>
         </div>
       </div>

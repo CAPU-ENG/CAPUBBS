@@ -1,7 +1,7 @@
 import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import {
   ChevronDown,
-  ExternalLink,
+  CornerUpLeft,
   LogIn,
   LogOut,
   Menu,
@@ -423,7 +423,7 @@ export function TopBar({
               data-forum-entry-reload="true"
               onClick={() => saveForumMode('legacy')}
             >
-              <ExternalLink size={19} />
+              <CornerUpLeft size={19} />
             </a>
 
             {authPending ? (
