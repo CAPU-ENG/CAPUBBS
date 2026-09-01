@@ -2778,10 +2778,6 @@
       padding: 10px;
     }
 
-    .nested-reply-footer {
-      justify-content: space-between;
-    }
-
     .nested-reply-composer {
       grid-template-columns: minmax(0, 1fr);
     }
