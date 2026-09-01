@@ -425,6 +425,94 @@ function buildFrameBridgeScript(frameId: string, canOpenImages: boolean, hasUser
     var selectionQueued=false;
     var lastSelectionText='';
     var userScriptsExecuted=false;
+    var grayscaleNamedColors={black:0,darkgray:169,darkgrey:169,dimgray:105,dimgrey:105,gainsboro:220,gray:128,grey:128,lightgray:211,lightgrey:211,silver:192,white:255,whitesmoke:245};
+    var originalColorAttribute='data-capubbs-original-grayscale-color-attr';
+    var originalStyleColorAttribute='data-capubbs-original-grayscale-style-color';
+    var syncingGrayscaleTextColors=false;
+    function parseGrayscaleTextColor(value){
+      var colorText=String(value==null?'':value).trim().toLowerCase().replace(/^['"]|['"]$/g,'');
+      var compactColorText=colorText.replace(/\\s+/g,'');
+      var namedChannel=grayscaleNamedColors[compactColorText];
+      if(typeof namedChannel==='number')return {alpha:1,channel:namedChannel};
+      var hexMatch=compactColorText.match(/^#?([0-9a-f]{3}|[0-9a-f]{4}|[0-9a-f]{6}|[0-9a-f]{8})$/);
+      if(hexMatch){
+        var rawHex=hexMatch[1];
+        var hex=rawHex.length<=4?rawHex.split('').map(function(character){return character+character;}).join(''):rawHex;
+        var red=parseInt(hex.slice(0,2),16);
+        var green=parseInt(hex.slice(2,4),16);
+        var blue=parseInt(hex.slice(4,6),16);
+        var hexAlpha=hex.length===8?parseInt(hex.slice(6,8),16)/255:1;
+        return red===green&&green===blue?{alpha:hexAlpha,channel:red}:null;
+      }
+      var rgbMatch=colorText.match(/^rgba?\\(\\s*(\\d{1,3}(?:\\.\\d+)?%?)(?:\\s*,\\s*|\\s+)(\\d{1,3}(?:\\.\\d+)?%?)(?:\\s*,\\s*|\\s+)(\\d{1,3}(?:\\.\\d+)?%?)(?:\\s*(?:,|\\/)\\s*([01](?:\\.\\d+)?|\\.\\d+|100%|\\d{1,3}(?:\\.\\d+)?%))?\\s*\\)$/);
+      if(!rgbMatch)return null;
+      function parseRgbChannel(channelValue){
+        var isPercent=channelValue.endsWith('%');
+        var channel=Number(isPercent?channelValue.slice(0,-1):channelValue);
+        if(!Number.isFinite(channel))return null;
+        if(isPercent)return channel>=0&&channel<=100?Math.round(channel*2.55):null;
+        return channel>=0&&channel<=255?Math.round(channel):null;
+      }
+      function parseAlphaChannel(alphaValue){
+        if(alphaValue===undefined)return 1;
+        var isPercent=alphaValue.endsWith('%');
+        var alpha=Number(isPercent?alphaValue.slice(0,-1):alphaValue);
+        if(!Number.isFinite(alpha))return null;
+        if(isPercent)return alpha>=0&&alpha<=100?alpha/100:null;
+        return alpha>=0&&alpha<=1?alpha:null;
+      }
+      var redChannel=parseRgbChannel(rgbMatch[1]);
+      var greenChannel=parseRgbChannel(rgbMatch[2]);
+      var blueChannel=parseRgbChannel(rgbMatch[3]);
+      var alpha=parseAlphaChannel(rgbMatch[4]);
+      if(redChannel===null||greenChannel===null||blueChannel===null||alpha===null)return null;
+      return redChannel===greenChannel&&greenChannel===blueChannel?{alpha:alpha,channel:redChannel}:null;
+    }
+    function invertGrayscaleTextColor(value,allowAlpha){
+      var grayscaleColor=parseGrayscaleTextColor(value);
+      if(!grayscaleColor)return '';
+      var invertedChannel=255-grayscaleColor.channel;
+      if(allowAlpha&&grayscaleColor.alpha<1)return 'rgba('+invertedChannel+', '+invertedChannel+', '+invertedChannel+', '+Number(grayscaleColor.alpha.toFixed(3))+')';
+      var hex=invertedChannel.toString(16).padStart(2,'0');
+      return '#'+hex+hex+hex;
+    }
+    function syncGrayscaleTextColors(root){
+      if(syncingGrayscaleTextColors)return;
+      syncingGrayscaleTextColors=true;
+      try{
+        var dark=document.documentElement.classList.contains('dark');
+        var scope=root&&root.querySelectorAll?root:document;
+        var elements=Array.prototype.slice.call(scope.querySelectorAll('[color], [style], ['+originalColorAttribute+'], ['+originalStyleColorAttribute+']'));
+        if(scope.nodeType===1&&(scope.matches('[color], [style], ['+originalColorAttribute+'], ['+originalStyleColorAttribute+']')))elements.unshift(scope);
+        elements.forEach(function(element){
+          var originalAttributeColor=element.getAttribute(originalColorAttribute);
+          if(!dark&&originalAttributeColor!==null){
+            element.setAttribute('color',originalAttributeColor);
+            element.removeAttribute(originalColorAttribute);
+          }else if(dark){
+            var attributeSource=originalAttributeColor!==null?originalAttributeColor:element.getAttribute('color');
+            var invertedAttributeColor=invertGrayscaleTextColor(attributeSource,false);
+            if(invertedAttributeColor&&attributeSource!==null){
+              if(originalAttributeColor===null)element.setAttribute(originalColorAttribute,attributeSource);
+              if(element.getAttribute('color')!==invertedAttributeColor)element.setAttribute('color',invertedAttributeColor);
+            }
+          }
+          if(!element.style||!element.style.getPropertyValue)return;
+          var originalStyleColor=element.getAttribute(originalStyleColorAttribute);
+          if(!dark&&originalStyleColor!==null){
+            element.style.setProperty('color',originalStyleColor,element.style.getPropertyPriority('color'));
+            element.removeAttribute(originalStyleColorAttribute);
+          }else if(dark){
+            var styleSource=originalStyleColor!==null?originalStyleColor:element.style.getPropertyValue('color');
+            var invertedStyleColor=invertGrayscaleTextColor(styleSource,true);
+            if(invertedStyleColor&&styleSource){
+              if(originalStyleColor===null)element.setAttribute(originalStyleColorAttribute,styleSource);
+              if(element.style.getPropertyValue('color')!==invertedStyleColor)element.style.setProperty('color',invertedStyleColor,element.style.getPropertyPriority('color'));
+            }
+          }
+        });
+      }finally{syncingGrayscaleTextColors=false;}
+    }
     function getContentHeight(){
       var contentRoot=document.querySelector('.capubbs-html-frame-root');
       if(!contentRoot)return 0;
@@ -660,6 +748,7 @@ function buildFrameBridgeScript(frameId: string, canOpenImages: boolean, hasUser
         document.documentElement.classList.toggle('dark',dark);
         document.documentElement.classList.toggle('light',!dark);
         document.documentElement.style.colorScheme=data.theme;
+        syncGrayscaleTextColors(document.body);
         queueHeight();
         return;
       }
@@ -703,7 +792,7 @@ function buildFrameBridgeScript(frameId: string, canOpenImages: boolean, hasUser
     function init(){
       var contentRoot=document.querySelector('.capubbs-html-frame-root');
       if(window.ResizeObserver&&contentRoot)new ResizeObserver(queueHeight).observe(contentRoot);
-      if(window.MutationObserver&&contentRoot)new MutationObserver(function(){queueHeight();prepareImages();}).observe(contentRoot,{attributes:true,characterData:true,childList:true,subtree:true});
+      if(window.MutationObserver&&contentRoot)new MutationObserver(function(){queueHeight();prepareImages();syncGrayscaleTextColors(contentRoot);}).observe(contentRoot,{attributes:true,characterData:true,childList:true,subtree:true});
       window.addEventListener('load',queueHeight);
       document.addEventListener('transitionend',queueHeight);
       document.addEventListener('animationend',queueHeight);
@@ -718,6 +807,7 @@ function buildFrameBridgeScript(frameId: string, canOpenImages: boolean, hasUser
       if(hasUserScripts)window.parent.postMessage({source:'${HTML_FRAME_MESSAGE_SOURCE}',type:'jquery-request',frameId:frameId},'*');
       else executeUserScripts();
       prepareImages();
+      syncGrayscaleTextColors(contentRoot);
       queueHeight();
     }
     if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init,{once:true});else init();

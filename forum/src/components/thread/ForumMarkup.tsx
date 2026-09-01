@@ -1,5 +1,7 @@
 import type { SafeForumHtml } from '../../utils/forumMarkup';
-import { useEffect, useMemo, useRef, type KeyboardEvent, type MouseEvent } from 'react';
+import { useEffect, useLayoutEffect, useMemo, useRef, type KeyboardEvent, type MouseEvent } from 'react';
+import { useTheme } from '../../hooks/useTheme';
+import { syncForumGrayscaleTextColors } from '../../utils/forumGrayscaleTextColor';
 import {
   getEditorGalleryAction,
   moveEditorGallery,
@@ -39,7 +41,13 @@ export function ForumMarkup({
   variant: ForumMarkupVariant;
 }) {
   const containerRef = useRef<HTMLDivElement>(null);
+  const { theme } = useTheme();
   const dangerousHtml = useMemo(() => ({ __html: html }), [html]);
+
+  useLayoutEffect(() => {
+    const container = containerRef.current;
+    if (container) syncForumGrayscaleTextColors(container, theme);
+  }, [html, theme]);
 
   useEffect(() => {
     const container = containerRef.current;
