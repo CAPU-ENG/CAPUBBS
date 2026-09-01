@@ -1,12 +1,10 @@
 export type ActiveRichImageResize = {
-  aspectRatio: number;
+  contentWidth: number;
   image: HTMLImageElement;
-  maxWidth: number;
+  minWidthPercentage: number;
   pointerId: number;
-  startHeight: number;
-  startWidth: number;
+  startWidthPercentage: number;
   startX: number;
-  startY: number;
 };
 
 export type ActiveGalleryResize = {
@@ -22,11 +20,6 @@ export type ActiveGalleryResize = {
 export type RichImageResizeHandle = {
   left: number;
   top: number;
-};
-
-export type ImagePixelDimensions = {
-  height: number;
-  width: number;
 };
 
 export const richImageResizeMinWidth = 48;
@@ -49,11 +42,13 @@ export function applyGalleryImageHeight(
   resizeControl.setAttribute('aria-valuenow', String(roundedHeight));
 }
 
-export function applyImagePixelDimensions(image: HTMLImageElement, width: number, height: number) {
-  image.style.width = `${width}px`;
-  image.style.height = `${height}px`;
-  image.setAttribute('width', String(width));
-  image.setAttribute('height', String(height));
+export function applyImageWidthPercentage(image: HTMLImageElement, widthPercentage: number) {
+  const normalizedWidth = Math.round(widthPercentage * 100) / 100;
+  const width = `${normalizedWidth}%`;
+  image.style.width = width;
+  image.style.removeProperty('height');
+  image.setAttribute('width', width);
+  image.removeAttribute('height');
 }
 
 export function getEditorContentWidth(editor: HTMLElement) {
@@ -63,22 +58,21 @@ export function getEditorContentWidth(editor: HTMLElement) {
   return Math.max(1, editor.clientWidth - horizontalPadding);
 }
 
-export function applyImageIntrinsicDimensions(image: HTMLImageElement, maxWidth: number) {
-  return applyImageDimensions(image, maxWidth, {
-    height: image.naturalHeight,
-    width: image.naturalWidth,
-  });
+export function getImageWidthPercentage(width: number, contentWidth: number) {
+  if (width <= 0 || contentWidth <= 0) return 100;
+  return clampImageDimension(width / contentWidth * 100, 0, 100);
 }
 
-export function applyImageDimensions(
-  image: HTMLImageElement,
-  maxWidth: number,
-  dimensions: ImagePixelDimensions,
+export function getResizedImageWidthPercentage(
+  startWidthPercentage: number,
+  horizontalDelta: number,
+  contentWidth: number,
+  minWidthPercentage: number,
 ) {
-  if (dimensions.width <= 0 || dimensions.height <= 0) return false;
-
-  const width = Math.min(dimensions.width, Math.max(1, Math.round(maxWidth)));
-  const height = Math.max(1, Math.round(dimensions.height * width / dimensions.width));
-  applyImagePixelDimensions(image, width, height);
-  return true;
+  if (contentWidth <= 0) return startWidthPercentage;
+  return clampImageDimension(
+    startWidthPercentage + horizontalDelta / contentWidth * 100,
+    minWidthPercentage,
+    100,
+  );
 }

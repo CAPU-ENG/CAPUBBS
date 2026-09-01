@@ -21,6 +21,7 @@
     "verify:markdown-editing": "node --experimental-strip-types verify-markdown-editing.mjs",
     "verify:markdown-rendering": "node --experimental-strip-types verify-markdown-rendering.mjs",
     "verify:rich-text-indentation": "node --experimental-strip-types verify-rich-text-indentation.mjs",
+    "verify:rich-image-resizing": "node --experimental-strip-types verify-rich-image-resizing.mjs",
     "verify:table-to-vcf": "node --experimental-strip-types verify-table-to-vcf.mjs",
     "verify:tag-expression": "node --experimental-strip-types verify-tag-expression.mjs",
     "verify:thread-html-frame": "node --experimental-strip-types verify-thread-html-frame.mjs",

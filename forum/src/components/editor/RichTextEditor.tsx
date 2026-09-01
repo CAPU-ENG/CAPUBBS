@@ -543,9 +543,9 @@ export function RichTextEditor({
       }
 
       if (isMarkdownMode) {
-        wrapSourceSelection('![', `](${normalizeUrl(submittedValue)})`, '图片说明');
+        wrapSourceSelection('![', `](${normalizeUrl(submittedValue)}){width=100%}`, '图片说明');
       } else if (isHtmlMode) {
-        replaceSourceSelection(`<img src="${escapeAttribute(safeUrl(submittedValue))}" alt="">`);
+        replaceSourceSelection(`<img src="${escapeAttribute(safeUrl(submittedValue))}" alt="" width="100%">`);
       } else {
         restoreRichSelection();
         insertRichImage(normalizeUrl(submittedValue), '');
