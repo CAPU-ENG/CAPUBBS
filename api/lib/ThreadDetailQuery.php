@@ -135,7 +135,14 @@ function jiekoufunc_thread_detail($con, $bid, $tid, $params, $token, $ip) {
     }
 
     $payload = array(
-        'revision' => thread_detail_query_revision($con, $thread_row, $activity, $viewer_state),
+        'revision' => thread_detail_query_revision(
+            $con,
+            $thread_row,
+            $activity,
+            $viewer_state,
+            $page,
+            $author_only
+        ),
         'request' => array(
             'bid' => $bid,
             'tid' => $tid,
@@ -233,7 +240,16 @@ function jiekoufunc_thread_revisions($con, $params, $token, $ip) {
             ? thread_detail_query_is_favorite($con, $current_username, $bid, $tid)
             : false;
         $viewer_state = thread_detail_query_pack_viewer_state($thread_row, $board_row, $current_viewer, $rights, $bookmarked);
-        $revision = thread_detail_query_revision($con, $thread_row, $activity, $viewer_state);
+        $page = thread_detail_query_int_param($item, 'page', 1);
+        $author_only = thread_detail_query_bool_param($item, 'authorOnly');
+        $revision = thread_detail_query_revision(
+            $con,
+            $thread_row,
+            $activity,
+            $viewer_state,
+            $page,
+            $author_only
+        );
         $known_revision = isset($item['revision']) ? strval($item['revision']) : '';
         if ($record_view) {
             thread_detail_query_record_view($con, $bid, $tid, $current_username, $ip);
@@ -311,26 +327,16 @@ function thread_detail_query_get_thread($con, $bid, $tid) {
     return thread_detail_query_fetch_one($con, $statement);
 }
 
-function thread_detail_query_revision($con, $thread_row, $activity, $viewer_state) {
-    $bid = intval(isset($thread_row['bid']) ? $thread_row['bid'] : 0);
-    $tid = intval(isset($thread_row['tid']) ? $thread_row['tid'] : 0);
-    $post_state = thread_detail_query_fetch_one($con, "
-        select
-            count(*) as post_count,
-            coalesce(max(replytime), 0) as latest_post_time,
-            coalesce(max(updatetime), 0) as latest_post_update
-        from posts
-        where bid=$bid and tid=$tid");
-    $nested_state = thread_detail_query_fetch_one($con, "
-        select
-            count(*) as nested_count,
-            coalesce(max(nested_reply.time), 0) as latest_nested_time
-        from lzl as nested_reply
-        inner join posts as parent_post on parent_post.fid=nested_reply.fid
-        where parent_post.bid=$bid and parent_post.tid=$tid");
+function thread_detail_query_revision($con, $thread_row, $activity, $viewer_state, $page = 1, $author_only = false) {
+    $page_state = thread_detail_query_revision_page_state(
+        $con,
+        $thread_row,
+        max(1, intval($page)),
+        $author_only
+    );
 
     $state = array(
-        'schema' => 1,
+        'schema' => 2,
         'thread' => array(
             'timestamp' => intval(isset($thread_row['timestamp']) ? $thread_row['timestamp'] : 0),
             'reply' => intval(isset($thread_row['reply']) ? $thread_row['reply'] : 0),
@@ -338,21 +344,103 @@ function thread_detail_query_revision($con, $thread_row, $activity, $viewer_stat
             'title' => thread_detail_query_string(isset($thread_row['title']) ? $thread_row['title'] : ''),
             'author' => thread_detail_query_string(isset($thread_row['author']) ? $thread_row['author'] : ''),
         ),
-        'posts' => is_array($post_state) ? array(
-            'count' => intval(isset($post_state['post_count']) ? $post_state['post_count'] : 0),
-            'latest' => intval(isset($post_state['latest_post_time']) ? $post_state['latest_post_time'] : 0),
-            'updated' => intval(isset($post_state['latest_post_update']) ? $post_state['latest_post_update'] : 0),
-        ) : array(),
-        'nested' => is_array($nested_state) ? array(
-            'count' => intval(isset($nested_state['nested_count']) ? $nested_state['nested_count'] : 0),
-            'latest' => intval(isset($nested_state['latest_nested_time']) ? $nested_state['latest_nested_time'] : 0),
-        ) : array(),
+        'page' => $page_state,
         'activity' => $activity,
         'viewer' => $viewer_state,
     );
 
     $encoded = json_encode($state, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
     return hash('sha256', $encoded === false ? serialize($state) : $encoded);
+}
+
+/**
+ * Build a bounded content signature from the main floor, the requested page,
+ * and the thread tail. The regular path reads no more than two pages of post
+ * metadata and deliberately avoids joining the unindexed lzl table; posts.lzl
+ * is the maintained visible nested-reply count used for invalidation.
+ */
+function thread_detail_query_revision_page_state($con, $thread_row, $page, $author_only) {
+    $bid = intval(isset($thread_row['bid']) ? $thread_row['bid'] : 0);
+    $tid = intval(isset($thread_row['tid']) ? $thread_row['tid'] : 0);
+    $page = max(1, intval($page));
+    $rows = array();
+    $last_page = null;
+
+    if ($author_only) {
+        $author = mysqli_real_escape_string(
+            $con,
+            thread_detail_query_string(isset($thread_row['author']) ? $thread_row['author'] : '')
+        );
+        $offset = ($page - 1) * THREAD_DETAIL_QUERY_PAGE_SIZE;
+        $rows = thread_detail_query_fetch_all($con, "
+            select pid, fid, replytime, updatetime, lzl
+            from posts
+            where bid=$bid and tid=$tid and author='$author'
+            order by pid
+            limit $offset," . THREAD_DETAIL_QUERY_PAGE_SIZE);
+        if (!is_array($rows)) {
+            $rows = array();
+        }
+        $tail_rows = thread_detail_query_fetch_all($con, "
+            select pid, fid, replytime, updatetime, lzl
+            from posts
+            where bid=$bid and tid=$tid and author='$author'
+            order by pid desc
+            limit " . THREAD_DETAIL_QUERY_PAGE_SIZE);
+        if (is_array($tail_rows)) {
+            $rows = array_merge($rows, $tail_rows);
+        }
+        if ($page > 1) {
+            $main_row = thread_detail_query_fetch_one($con, "
+                select pid, fid, replytime, updatetime, lzl
+                from posts
+                where bid=$bid and tid=$tid and pid=1
+                limit 1");
+            if (is_array($main_row)) {
+                array_unshift($rows, $main_row);
+            }
+        }
+    } else {
+        $total = max(1, intval(isset($thread_row['reply']) ? $thread_row['reply'] : 0) + 1);
+        $pages = max(1, intval(ceil($total / THREAD_DETAIL_QUERY_PAGE_SIZE)));
+        $page = min($page, $pages);
+        $last_page = $pages;
+        $page_start_pid = (($page - 1) * THREAD_DETAIL_QUERY_PAGE_SIZE) + 1;
+        $page_end_pid = $page_start_pid + THREAD_DETAIL_QUERY_PAGE_SIZE - 1;
+        $last_start_pid = (($pages - 1) * THREAD_DETAIL_QUERY_PAGE_SIZE) + 1;
+        $last_end_pid = $last_start_pid + THREAD_DETAIL_QUERY_PAGE_SIZE - 1;
+        $rows = thread_detail_query_fetch_all($con, "
+            select pid, fid, replytime, updatetime, lzl
+            from posts
+            where bid=$bid and tid=$tid and (
+                pid=1
+                or pid between $page_start_pid and $page_end_pid
+                or pid between $last_start_pid and $last_end_pid
+            )
+            order by pid");
+    }
+
+    if (!is_array($rows)) $rows = array();
+    $post_state_by_pid = array();
+    foreach ($rows as $row) {
+        $pid = intval(isset($row['pid']) ? $row['pid'] : 0);
+        if ($pid <= 0) continue;
+        $post_state_by_pid[$pid] = array(
+            'pid' => $pid,
+            'fid' => intval(isset($row['fid']) ? $row['fid'] : 0),
+            'replytime' => intval(isset($row['replytime']) ? $row['replytime'] : 0),
+            'updatetime' => intval(isset($row['updatetime']) ? $row['updatetime'] : 0),
+            'lzl' => intval(isset($row['lzl']) ? $row['lzl'] : 0),
+        );
+    }
+    ksort($post_state_by_pid, SORT_NUMERIC);
+
+    return array(
+        'authorOnly' => $author_only ? 1 : 0,
+        'page' => $page,
+        'lastPage' => $last_page,
+        'posts' => array_values($post_state_by_pid),
+    );
 }
 
 function thread_detail_query_get_board($con, $bid) {

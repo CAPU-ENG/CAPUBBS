@@ -63,7 +63,9 @@ export type ThreadDetailRequest = {
 };
 
 export type ThreadRevisionRequest = {
+  authorOnly?: boolean;
   bid: number;
+  page?: number;
   revision?: string;
   tid: number;
 };

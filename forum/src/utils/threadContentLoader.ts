@@ -4,6 +4,8 @@ import {
   ThreadApiError,
   type ThreadDetail,
   type ThreadDetailRequest,
+  type ThreadRevisionRequest,
+  type ThreadRevisionStatus,
 } from '../api/thread';
 import { resolveForumAppRoute } from './forumNavigation';
 import { getThreadFloorFromHash, getThreadPageForFloor } from './threadRoutes';
@@ -39,10 +41,23 @@ type DetailTask = {
   viewRecorded: boolean;
 };
 
+type RevisionTask = {
+  key: string;
+  promise: Promise<ThreadRevisionStatus | null>;
+  reject: (reason?: unknown) => void;
+  request: ThreadRevisionRequest;
+  resolve: (status: ThreadRevisionStatus | null) => void;
+};
+
 const PRIORITY = { intent: 1, hot: 2, pinned: 3, activity: 4 } as const;
+const REVISION_BATCH_DELAY_MS = 80;
 const detailTasks = new Map<string, DetailTask>();
 const backgroundQueue: DetailTask[] = [];
+const revisionTasks = new Map<string, RevisionTask>();
+const revisionQueue: RevisionTask[] = [];
 let backgroundRunning = false;
+let revisionRunning = false;
+let revisionTimer: ReturnType<typeof setTimeout> | null = null;
 
 export async function openThreadContent({
   force = false,
@@ -68,7 +83,13 @@ export async function openThreadContent({
   let status;
   try {
     [status] = await fetchThreadRevisions([
-      { bid: request.bid, revision: cached.revision, tid: request.tid },
+      {
+        authorOnly: request.authorOnly,
+        bid: request.bid,
+        page: request.page,
+        revision: cached.revision,
+        tid: request.tid,
+      },
     ], { recordView: true });
   } catch {
     return cached.data;
@@ -122,13 +143,15 @@ export async function preloadThreadCandidates(candidates: ThreadPreloadCandidate
   const changedKeys = new Set<string>();
   const removedKeys = new Set<string>();
   const checks = [...cachedByThread.values()].slice(0, 10).map((items) => ({
+    authorOnly: items[0].candidate.request.authorOnly,
     bid: items[0].candidate.request.bid,
+    page: items[0].candidate.request.page,
     revision: items[0].record.revision,
     tid: items[0].candidate.request.tid,
   }));
   if (checks.length > 0) {
     try {
-      const statuses = await fetchThreadRevisions(checks);
+      const statuses = await fetchBackgroundThreadRevisions(checks);
       statuses.forEach((status) => {
         const threadKey = `${status.bid}:${status.tid}`;
         if (status.state === 'changed') changedKeys.add(threadKey);
@@ -154,6 +177,62 @@ export async function preloadThreadCandidates(candidates: ThreadPreloadCandidate
 
   toLoad.forEach(({ priority, request }) => {
     void preloadThreadContent(request, scope, priority).catch(() => undefined);
+  });
+}
+
+function fetchBackgroundThreadRevisions(requests: ThreadRevisionRequest[]) {
+  return Promise.all(requests.map(queueBackgroundThreadRevision)).then((statuses) => (
+    statuses.filter((status): status is ThreadRevisionStatus => status !== null)
+  ));
+}
+
+function queueBackgroundThreadRevision(request: ThreadRevisionRequest) {
+  const key = [
+    request.bid,
+    request.tid,
+    request.page ?? 1,
+    request.authorOnly ? 1 : 0,
+    request.revision ?? '',
+  ].join(':');
+  const existing = revisionTasks.get(key);
+  if (existing) return existing.promise;
+
+  let resolve!: (status: ThreadRevisionStatus | null) => void;
+  let reject!: (reason?: unknown) => void;
+  const promise = new Promise<ThreadRevisionStatus | null>((taskResolve, taskReject) => {
+    resolve = taskResolve;
+    reject = taskReject;
+  });
+  const task = { key, promise, reject, request, resolve } satisfies RevisionTask;
+  revisionTasks.set(key, task);
+  revisionQueue.push(task);
+  scheduleRevisionBatch();
+  return promise;
+}
+
+function scheduleRevisionBatch() {
+  if (revisionRunning || revisionTimer !== null || revisionQueue.length === 0) return;
+  revisionTimer = setTimeout(() => {
+    revisionTimer = null;
+    runRevisionBatch();
+  }, REVISION_BATCH_DELAY_MS);
+}
+
+function runRevisionBatch() {
+  if (revisionRunning) return;
+  const batch = revisionQueue.splice(0, 10);
+  if (batch.length === 0) return;
+  revisionRunning = true;
+  void fetchThreadRevisions(batch.map((task) => task.request)).then((statuses) => {
+    batch.forEach((task, index) => task.resolve(statuses[index] ?? null));
+  }, (error) => {
+    batch.forEach((task) => task.reject(error));
+  }).finally(() => {
+    batch.forEach((task) => {
+      if (revisionTasks.get(task.key) === task) revisionTasks.delete(task.key);
+    });
+    revisionRunning = false;
+    scheduleRevisionBatch();
   });
 }
 
@@ -278,7 +357,12 @@ function startTask(task: DetailTask, prefetch: boolean) {
 function recordTaskView(task: DetailTask) {
   if (task.viewRecorded || task.viewPromise) return;
   task.viewPromise = fetchThreadRevisions(
-    [{ bid: task.request.bid, tid: task.request.tid }],
+    [{
+      authorOnly: task.request.authorOnly,
+      bid: task.request.bid,
+      page: task.request.page,
+      tid: task.request.tid,
+    }],
     { recordView: true },
   ).then(([status]) => {
     task.viewRecorded = true;
