@@ -647,6 +647,11 @@
     text-align: center;
   }
 
+  .calendar-agenda .calendar-agenda-label {
+    padding: 9px 11px 0;
+    text-align: left;
+  }
+
   .mobile-overview-wrap {
     position: sticky;
     z-index: 35;

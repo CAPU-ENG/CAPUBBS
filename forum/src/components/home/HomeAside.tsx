@@ -39,6 +39,11 @@ function dateKey(year: number, month: number, day: number) {
   return `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
 }
 
+function formatCalendarDate(date: string) {
+  const [, month, day] = date.split('-').map(Number);
+  return `${month} 月 ${day} 日`;
+}
+
 type PinnedProps = {
   items: HomeThread[];
   readThreadIds: ReadonlySet<string>;
@@ -208,6 +213,16 @@ export function ActivityCalendar({ compact = false, error, items, onVisibleDateC
     return groupedActivities;
   }, [items]);
   const selectedActivities = activitiesByDate.get(selectedKey) ?? [];
+  const nextActivity = useMemo(() => (
+    items
+      .filter((activity) => activity.date > selectedKey)
+      .sort((left, right) => (
+        left.date.localeCompare(right.date) || left.time.localeCompare(right.time)
+      ))[0] ?? null
+  ), [items, selectedKey]);
+  const displayedActivities = selectedActivities.length > 0
+    ? selectedActivities
+    : nextActivity ? [nextActivity] : [];
 
   function moveMonth(delta: number) {
     const next = new Date(year, month + delta, 1);
@@ -347,21 +362,26 @@ export function ActivityCalendar({ compact = false, error, items, onVisibleDateC
           <p>活动加载中…</p>
         ) : status === 'error' ? (
           <p>{error}</p>
-        ) : selectedActivities.length > 0 ? selectedActivities.map((activity) => {
-          const content = (
-            <>
-              <strong>{activity.title}</strong>
-              <span><Clock3 size={13} />{activity.time}</span>
-              {activity.description && <span><Info size={13} />{activity.description}</span>}
-            </>
-          );
-          return activity.url ? (
-            <a href={getForumNavigationHref(activity.url, window.location.href)} key={activity.id}>{content}</a>
-          ) : (
-            <article key={activity.id}>{content}</article>
-          );
-        }) : (
-          <p>当天暂无活动</p>
+        ) : displayedActivities.length > 0 ? (
+          <>
+            {selectedActivities.length === 0 ? <p className="calendar-agenda-label">最近活动</p> : null}
+            {displayedActivities.map((activity) => {
+              const content = (
+                <>
+                  <strong>{activity.title}</strong>
+                  <span><Clock3 size={13} />{selectedActivities.length === 0 ? `${formatCalendarDate(activity.date)} ${activity.time}` : activity.time}</span>
+                  {activity.description && <span><Info size={13} />{activity.description}</span>}
+                </>
+              );
+              return activity.url ? (
+                <a href={getForumNavigationHref(activity.url, window.location.href)} key={activity.id}>{content}</a>
+              ) : (
+                <article key={activity.id}>{content}</article>
+              );
+            })}
+          </>
+        ) : (
+          <p>最近暂无活动</p>
         )}
       </div>
     </section>
