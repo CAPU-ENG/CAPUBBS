@@ -28,8 +28,13 @@ assert.match(
 );
 assert.match(
   source,
-  /if \(hasUserScripts\) void loadJquerySource\(\);/,
-  'jQuery must only be prefetched when user scripts are present',
+  /const needsJquery = deferredHtml\.includes\('type="text\/capubbs-user-script"'\)[\s\S]*?INLINE_EVENT_ATTRIBUTE_PATTERN\.test\(deferredHtml\);/,
+  'script tags and inline event handlers must both enable jQuery compatibility',
+);
+assert.match(
+  source,
+  /if \(needsJquery\) void loadJquerySource\(\);/,
+  'jQuery must only be prefetched for executable user content',
 );
 assert.match(
   source,
@@ -52,4 +57,4 @@ assert.match(
   'frames must retain the external jQuery fallback when the shared request fails',
 );
 
-console.log('thread HTML frame resource verification passed (9 assertions)');
+console.log('thread HTML frame resource verification passed (10 assertions)');
