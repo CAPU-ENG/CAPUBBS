@@ -36,7 +36,7 @@ function _dispatch_build_routes() {
         'verifiedCount'   => array('handler' => 'jiekoufunc_verifiedCount',   'check_login' => false, 'require_rights' => 0),
         'tidinfo'         => array('handler' => 'jiekoufunc_tidinfo',         'check_login' => false, 'require_rights' => 0),
         'thread_detail'   => array('handler' => 'jiekoufunc_thread_detail',   'check_login' => false, 'require_rights' => 0, 'check_bid1' => true),
-        'thread_revisions'=> array('handler' => 'jiekoufunc_thread_revisions','check_login' => false, 'require_rights' => 0),
+        'thread_view'     => array('handler' => 'jiekoufunc_thread_view',     'check_login' => false, 'require_rights' => 0, 'check_bid1' => true),
         'getpages'        => array('handler' => 'jiekoufunc_getpages',        'check_login' => false, 'require_rights' => 0),
         'getlznum'        => array('handler' => 'jiekoufunc_getlznum',        'check_login' => false, 'require_rights' => 0),
         'getnum'          => array('handler' => 'jiekoufunc_getnum',          'check_login' => false, 'require_rights' => 0),
@@ -342,8 +342,8 @@ function jiekoufunc_dispatch($con, $params) {
                 return jiekoufunc_tidinfo($con, $bid, $tid);
             case 'jiekoufunc_thread_detail':
                 return jiekoufunc_thread_detail($con, $bid, $tid, $params, $token, $ip);
-            case 'jiekoufunc_thread_revisions':
-                return jiekoufunc_thread_revisions($con, $params, $token, $ip);
+            case 'jiekoufunc_thread_view':
+                return jiekoufunc_thread_view($con, $bid, $tid, $token, $ip);
             case 'jiekoufunc_recentpost':
                 return jiekoufunc_recentpost(
                     $con,
