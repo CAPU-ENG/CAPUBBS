@@ -95,7 +95,7 @@
     font-weight: 750;
   }
 
-  .management-tag-editor input:not([type="color"]) {
+  .management-tag-editor input {
     width: 100%;
     height: 34px;
     border: 1px solid var(--line);
@@ -108,18 +108,9 @@
     transition: 150ms ease;
   }
 
-  .management-tag-editor input:not([type="color"]):focus {
+  .management-tag-editor input:focus {
     border-color: var(--brand);
     box-shadow: 0 0 0 3px color-mix(in srgb, var(--brand) 16%, transparent);
-  }
-
-  .management-tag-editor input[type="color"] {
-    width: 46px;
-    height: 34px;
-    border: 1px solid var(--line);
-    border-radius: var(--control-radius);
-    padding: 2px;
-    background: var(--surface-soft);
   }
 
   .management-tag-editor > div {

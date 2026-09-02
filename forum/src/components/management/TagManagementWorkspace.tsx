@@ -18,6 +18,8 @@ import { TagBadge } from '../tags/TagBadge';
 
 const MEMBER_ID_COLLATOR = new Intl.Collator('zh-CN', { numeric: true, sensitivity: 'base' });
 const TAG_NAME_COLLATOR = new Intl.Collator('zh-CN', { sensitivity: 'base' });
+const HEX_COLOR_PATTERN = /^#[0-9A-F]{6}$/;
+const DEFAULT_TAG_COLOR = '#287A52';
 
 type Notice = { kind: 'error' | 'info' | 'success'; text: string } | null;
 type NoticeKind = 'error' | 'info' | 'success';
@@ -33,7 +35,7 @@ export function TagManagementWorkspace() {
   const [membersStatus, setMembersStatus] = useState<'error' | 'loading' | 'ready'>('ready');
   const [editingId, setEditingId] = useState<string | null>(null);
   const [draftName, setDraftName] = useState('');
-  const [draftColor, setDraftColor] = useState('#287a52');
+  const [draftColor, setDraftColor] = useState(DEFAULT_TAG_COLOR);
   const [memberDialogOpen, setMemberDialogOpen] = useState(false);
   const [memberDraft, setMemberDraft] = useState('');
   const [pendingMembers, setPendingMembers] = useState<string[]>([]);
@@ -115,7 +117,7 @@ export function TagManagementWorkspace() {
   function startCreate() {
     setEditingId('new');
     setDraftName('');
-    setDraftColor('#287a52');
+    setDraftColor(DEFAULT_TAG_COLOR);
     setNotice(null);
   }
 
@@ -126,7 +128,7 @@ export function TagManagementWorkspace() {
     }
     setEditingId(tag.id);
     setDraftName(tag.name);
-    setDraftColor(tag.color);
+    setDraftColor(tag.color.toUpperCase());
     setNotice(null);
   }
 
@@ -141,6 +143,10 @@ export function TagManagementWorkspace() {
     const name = draftName.trim();
     if (!name) {
       setNotice({ kind: 'error', text: '请输入标签名称' });
+      return;
+    }
+    if (!HEX_COLOR_PATTERN.test(draftColor)) {
+      setNotice({ kind: 'error', text: '请输入六位十六进制颜色' });
       return;
     }
     if (definitions.some((tag) => tag.name === name && tag.id !== editingId)) {
@@ -317,7 +323,7 @@ export function TagManagementWorkspace() {
           {editingId && (
             <form className="management-tag-editor" onSubmit={saveTag}>
               <label><span>名称</span><input autoFocus maxLength={50} onChange={(event) => setDraftName(event.target.value)} value={draftName} /></label>
-              <label><span>颜色</span><input aria-label="标签颜色" onChange={(event) => setDraftColor(event.target.value)} type="color" value={draftColor} /></label>
+              <label><span>颜色</span><input aria-label="标签颜色" maxLength={7} onChange={(event) => setDraftColor(event.target.value.toUpperCase())} pattern="#[0-9A-Fa-f]{6}" placeholder="#287A52" spellCheck={false} value={draftColor} /></label>
               <div><button className="management-primary-button" disabled={Boolean(pendingAction)} type="submit">保存</button><button className="management-secondary-button" disabled={Boolean(pendingAction)} onClick={cancelEdit} type="button">取消</button>{editingTag && <button className="management-danger-button" disabled={Boolean(pendingAction)} onClick={() => removeTag(editingTag)} type="button"><Trash2 size={14} />删除</button>}</div>
             </form>
           )}
