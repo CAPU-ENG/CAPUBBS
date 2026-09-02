@@ -345,9 +345,20 @@ function jiekoufunc_dispatch($con, $params) {
             case 'jiekoufunc_thread_revisions':
                 return jiekoufunc_thread_revisions($con, $params, $token, $ip);
             case 'jiekoufunc_recentpost':
-                return jiekoufunc_recentpost($con, $view, $limit_raw);
+                return jiekoufunc_recentpost(
+                    $con,
+                    $view,
+                    $limit_raw,
+                    isset($params['offset']) ? $params['offset'] : ''
+                );
             case 'jiekoufunc_recentreply':
-                return jiekoufunc_recentreply($con, $view, $limit_raw);
+                return jiekoufunc_recentreply(
+                    $con,
+                    $view,
+                    $limit_raw,
+                    isset($params['offset']) ? $params['offset'] : '',
+                    isset($params['replies_only']) && intval($params['replies_only']) === 1
+                );
             case 'jiekoufunc_rights':
                 return jiekoufunc_rights($con, $bid, $token);
             case 'jiekoufunc_attach':

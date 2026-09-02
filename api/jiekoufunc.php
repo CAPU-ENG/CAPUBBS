@@ -323,10 +323,13 @@ function jiekoufunc_tidinfo($con, $bid, $tid) {
     return jiekoufunc_view_bbs_array($con, $statement);
 }
 
-function jiekoufunc_recentpost($con, $view, $limit_raw = '') {
+function jiekoufunc_recentpost($con, $view, $limit_raw = '', $offset_raw = '') {
     $view = mysqli_real_escape_string($con, $view);
     $limit_val = _parse_limit($limit_raw, 10);
-    $limit_clause = ($limit_val === null) ? '' : " limit 0,$limit_val";
+    $offset_val = max(0, intval($offset_raw));
+    $limit_clause = ($limit_val === null)
+        ? ($offset_val > 0 ? " limit $offset_val,18446744073709551615" : '')
+        : " limit $offset_val,$limit_val";
     $results = mysqli_query($con, "select bid,tid,pid,title,author,replytime as timestamp from posts where author='$view' and pid=1 order by replytime desc$limit_clause");
     $infos = array();
     $infos[] = array('nowuser' => '');
@@ -341,11 +344,15 @@ function jiekoufunc_recentpost($con, $view, $limit_raw = '') {
     return $infos;
 }
 
-function jiekoufunc_recentreply($con, $view, $limit_raw = '') {
+function jiekoufunc_recentreply($con, $view, $limit_raw = '', $offset_raw = '', $replies_only = false) {
     $view = mysqli_real_escape_string($con, $view);
     $limit_val = _parse_limit($limit_raw, 10);
-    $limit_clause = ($limit_val === null) ? '' : " limit 0,$limit_val";
-    $results = mysqli_query($con, "select title, bid, tid, pid, updatetime from posts where author='$view' order by updatetime desc$limit_clause");
+    $offset_val = max(0, intval($offset_raw));
+    $limit_clause = ($limit_val === null)
+        ? ($offset_val > 0 ? " limit $offset_val,18446744073709551615" : '')
+        : " limit $offset_val,$limit_val";
+    $reply_clause = $replies_only ? ' and pid>1' : '';
+    $results = mysqli_query($con, "select title, bid, tid, pid, updatetime from posts where author='$view'$reply_clause order by updatetime desc$limit_clause");
     $infos = array();
     $infos[] = array('nowuser' => '');
     while ($res = mysqli_fetch_array($results)) {
