@@ -14,7 +14,6 @@ export type CachedThreadContent = {
   key: string;
   lastAccessedAt: number;
   request: ThreadDetailRequest;
-  revision: string;
   size: number;
 };
 
@@ -83,7 +82,6 @@ export async function writeCachedThreadContent(
   scope: ThreadCacheScope,
   data: ThreadDetail,
 ) {
-  if (!data.revision) return;
   const key = getThreadContentCacheKey(request, scope);
   const now = Date.now();
   const record: CachedThreadContent = {
@@ -92,7 +90,6 @@ export async function writeCachedThreadContent(
     key,
     lastAccessedAt: now,
     request,
-    revision: data.revision,
     size: estimateSize(data),
   };
   memoryCache.set(key, record);
@@ -223,7 +220,6 @@ function isCachedThreadContent(value: unknown): value is CachedThreadContent {
     && typeof record.key === 'string'
     && typeof record.lastAccessedAt === 'number'
     && Boolean(record.request && typeof record.request === 'object')
-    && typeof record.revision === 'string'
     && typeof record.size === 'number';
 }
 

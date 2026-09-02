@@ -135,14 +135,6 @@ function jiekoufunc_thread_detail($con, $bid, $tid, $params, $token, $ip) {
     }
 
     $payload = array(
-        'revision' => thread_detail_query_revision(
-            $con,
-            $thread_row,
-            $activity,
-            $viewer_state,
-            $page,
-            $author_only
-        ),
         'request' => array(
             'bid' => $bid,
             'tid' => $tid,
@@ -172,6 +164,42 @@ function jiekoufunc_thread_detail($con, $bid, $tid, $params, $token, $ip) {
     );
 
     return array(array('code' => '0'), $payload);
+}
+
+/**
+ * Register an actual thread visit without reloading the thread body. Cached
+ * navigation uses this endpoint after rendering the stored content.
+ */
+function jiekoufunc_thread_view($con, $bid, $tid, $token, $ip) {
+    $bid = intval($bid);
+    $tid = intval($tid);
+    if ($bid <= 0 || $tid <= 0) {
+        return jiekoufunc_report('-1', '缺少帖子参数。');
+    }
+
+    $thread_row = thread_detail_query_fetch_one($con, "
+        select bid, tid, click
+        from threads
+        where bid=$bid and tid=$tid
+        limit 1");
+    if ($thread_row === false) {
+        return jiekoufunc_report('8', '数据库查询失败。');
+    }
+    if (!$thread_row) {
+        return jiekoufunc_report('3', '主题不存在。');
+    }
+
+    $current_username = thread_detail_query_current_username($con, $token);
+    if ($bid === 1 && $current_username === '') {
+        return jiekoufunc_report('-2', '本版块需要登录后才能查看');
+    }
+
+    thread_detail_query_record_view($con, $bid, $tid, $current_username, $ip);
+    return array(array('code' => '0'), array(
+        'bid' => $bid,
+        'tid' => $tid,
+        'views' => intval(isset($thread_row['click']) ? $thread_row['click'] : 0) + 1,
+    ));
 }
 
 /**
