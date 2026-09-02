@@ -108,7 +108,7 @@
   }
 
   .rich-text-editor-field button:not([aria-label^="文字颜色 "]),
-  .rich-text-editor-field input:not([type="radio"]):not([type="color"]),
+  .rich-text-editor-field input:not([type="radio"]),
   .rich-text-editor-field select,
   .rich-text-editor-field textarea {
     border-radius: var(--control-radius) !important;

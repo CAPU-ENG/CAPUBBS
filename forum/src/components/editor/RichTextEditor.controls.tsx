@@ -15,6 +15,7 @@ import { editorImageInputAccept } from './RichTextEditor.images';
 import { normalizeCssColor } from './RichTextEditor.richText';
 import type { RichToggleCommandStates } from './RichTextEditor.richDom';
 import type { EditorPopover } from './RichTextEditor.types';
+import { HexColorPanel } from '../HexColorPicker';
 
 type Props = {
   activePopover: EditorPopover;
@@ -50,10 +51,8 @@ type Props = {
   runRichCommand: (command: string, commandValue?: string) => void;
   saveSelection: () => void;
   selectedTextColor: string;
-  setHexSourceValue: Dispatch<SetStateAction<string>>;
   setPopoverTextValue: Dispatch<SetStateAction<string>>;
   setPopoverValue: Dispatch<SetStateAction<string>>;
-  setSelectedTextColor: Dispatch<SetStateAction<string>>;
   toggleColorPicker: () => void;
   toggleRichFirstLineIndent: () => void;
 };
@@ -69,7 +68,7 @@ export function RichTextEditorControls(props: Props) {
     insertHorizontalRule,
     openGalleryDialog, openPopover, openQuotePopover, popoverConfig, popoverTextValue, popoverValue,
     recentTextColors, runRichCommand, saveSelection, selectedTextColor,
-    setHexSourceValue, setPopoverTextValue, setPopoverValue, setSelectedTextColor,
+    setPopoverTextValue, setPopoverValue,
     toggleColorPicker, toggleRichFirstLineIndent,
   } = props;
 
@@ -237,22 +236,15 @@ export function RichTextEditorControls(props: Props) {
         ) : null}
 
         {isColorPickerOpen && !isSourceMode ? (
-          <div className="capubbs-editor-color-panel flex flex-wrap items-end gap-2 border-b border-zinc-200/80 px-2 py-2 dark:border-white/10">
-            <label className="grid gap-1 text-[length:var(--ui-font-size-md)] font-semibold text-zinc-500 dark:text-zinc-400">
-              取色
-              <input
-                type="color"
-                value={normalizeCssColor(selectedTextColor) ?? defaultTextColor}
-                onMouseDown={saveSelection}
-                onChange={(event) => {
-                  const color = event.target.value.toUpperCase();
-                  setSelectedTextColor(color);
-                  setHexSourceValue(color);
-                }}
-                className="h-7 w-9 cursor-pointer border border-zinc-200 bg-white p-1 dark:border-white/10 dark:bg-zinc-950"
-                aria-label="选择文字颜色"
-              />
-            </label>
+          <div className="capubbs-editor-color-panel flex flex-wrap items-start gap-3 border-b border-zinc-200/80 px-2 py-2 dark:border-white/10">
+            <HexColorPanel
+              actionLabel="应用"
+              ariaLabel="文字颜色"
+              onChange={handleHexSourceChange}
+              onCommit={applyHexSourceColor}
+              onInteractionStart={saveSelection}
+              value={hexSourceValue}
+            />
             {recentTextColors.length > 0 ? (
               <div className="grid gap-1 text-[length:var(--ui-font-size-md)] font-semibold text-zinc-500 dark:text-zinc-400">
                 <span>最近使用</span>
@@ -272,29 +264,6 @@ export function RichTextEditorControls(props: Props) {
                 </div>
               </div>
             ) : null}
-            <label className="grid w-24 gap-1 text-[length:var(--ui-font-size-md)] font-semibold text-zinc-500 dark:text-zinc-400">
-              HEX 色值
-              <input
-                value={hexSourceValue}
-                onMouseDown={saveSelection}
-                onChange={(event) => handleHexSourceChange(event.target.value)}
-                maxLength={7}
-                pattern="#[0-9A-Fa-f]{6}"
-                placeholder="#174F38"
-                spellCheck={false}
-                className="h-7 w-full border border-zinc-200 bg-white px-2 font-mono text-[length:var(--ui-font-size-md)] font-medium uppercase text-zinc-800 outline-none transition focus:border-emerald-700/60 focus:ring-2 focus:ring-emerald-700/10 dark:border-white/10 dark:bg-zinc-950 dark:text-zinc-100"
-                aria-label="六位十六进制颜色"
-              />
-            </label>
-            <button
-              type="button"
-              onMouseDown={handleColorActionMouseDown}
-              onClick={applyHexSourceColor}
-              disabled={!/^#[0-9A-F]{6}$/.test(hexSourceValue)}
-              className="h-7 rounded-[var(--control-radius)] bg-emerald-800 px-2.5 text-[length:var(--ui-font-size-md)] font-semibold text-white transition hover:bg-emerald-900 disabled:cursor-not-allowed disabled:opacity-40 dark:bg-emerald-600 dark:hover:bg-emerald-500"
-            >
-              应用
-            </button>
           </div>
         ) : null}
 
