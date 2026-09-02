@@ -232,13 +232,25 @@ export function setEditorGalleryIndex(gallery: HTMLElement, nextIndex: number) {
 export function ensureGalleryDisplayControls(container: ParentNode) {
   container.querySelectorAll<HTMLElement>('.capubbs-gallery').forEach((gallery) => {
     const stage = gallery.querySelector<HTMLElement>('.capubbs-gallery-stage');
-    const slides = gallery.querySelectorAll('[data-capubbs-gallery-slide="true"]');
-    if (!stage || slides.length < 2) return;
+    const slides = Array.from(gallery.querySelectorAll<HTMLElement>('[data-capubbs-gallery-slide="true"]'));
+    if (!stage || slides.length === 0) return;
 
-    if (!stage.querySelector('[data-capubbs-gallery-action="prev"]')) {
+    let header = gallery.querySelector<HTMLElement>('.capubbs-gallery-header');
+    if (!header) {
+      header = document.createElement('header');
+      header.className = 'capubbs-gallery-header';
+      gallery.insertBefore(header, stage);
+    }
+    if (!header.querySelector('.capubbs-gallery-title')) {
+      const title = document.createElement('figcaption');
+      title.className = 'capubbs-gallery-title';
+      header.append(title);
+    }
+
+    if (slides.length > 1 && !stage.querySelector('[data-capubbs-gallery-action="prev"]')) {
       stage.append(createGalleryNavigationControl('prev', '上一张图片'));
     }
-    if (!stage.querySelector('[data-capubbs-gallery-action="next"]')) {
+    if (slides.length > 1 && !stage.querySelector('[data-capubbs-gallery-action="next"]')) {
       stage.append(createGalleryNavigationControl('next', '下一张图片'));
     }
 
@@ -248,15 +260,53 @@ export function ensureGalleryDisplayControls(container: ParentNode) {
       footer.className = 'capubbs-gallery-footer';
       gallery.append(footer);
     }
-    if (!footer.querySelector('.capubbs-gallery-count')) {
-      const count = document.createElement('span');
+
+    let captionsContainer = footer.querySelector<HTMLElement>('.capubbs-gallery-captions');
+    if (!captionsContainer) {
+      captionsContainer = document.createElement('div');
+      captionsContainer.className = 'capubbs-gallery-captions';
+      footer.prepend(captionsContainer);
+    }
+    const captions = Array.from(
+      captionsContainer.querySelectorAll<HTMLElement>('[data-capubbs-gallery-caption="true"]'),
+    );
+    while (captions.length < slides.length) {
+      const caption = document.createElement('span');
+      caption.className = 'capubbs-gallery-caption';
+      caption.dataset.capubbsGalleryCaption = 'true';
+      captionsContainer.append(caption);
+      captions.push(caption);
+    }
+
+    let count = footer.querySelector<HTMLElement>('.capubbs-gallery-count');
+    if (!count) {
+      count = document.createElement('span');
       count.className = 'capubbs-gallery-count';
-      count.dataset.capubbsGalleryCurrent = '1';
-      count.dataset.capubbsGalleryTotal = String(slides.length);
-      count.setAttribute('aria-label', `第 1 张，共 ${slides.length} 张图片`);
       footer.append(count);
     }
+
+    const storedIndex = Number.parseInt(gallery.dataset.capubbsGalleryIndex ?? '', 10);
+    const activeIndex = slides.findIndex((slide) => slide.dataset.capubbsGalleryActive === 'true');
+    const normalizedIndex = activeIndex >= 0
+      ? activeIndex
+      : Number.isSafeInteger(storedIndex) && storedIndex >= 0 && storedIndex < slides.length
+        ? storedIndex
+        : 0;
+    gallery.dataset.capubbsGalleryIndex = String(normalizedIndex);
+    gallery.setAttribute('role', 'region');
+    gallery.setAttribute('tabindex', '0');
+    if (!gallery.getAttribute('aria-label')) gallery.setAttribute('aria-label', '图廊');
+    slides.forEach((slide, index) => setGalleryItemActive(slide, index === normalizedIndex));
+    captions.forEach((caption, index) => setGalleryItemActive(caption, index === normalizedIndex));
+    count.dataset.capubbsGalleryCurrent = String(normalizedIndex + 1);
+    count.dataset.capubbsGalleryTotal = String(slides.length);
+    count.setAttribute('aria-label', `第 ${normalizedIndex + 1} 张，共 ${slides.length} 张图片`);
   });
+}
+
+function setGalleryItemActive(item: HTMLElement, active: boolean) {
+  item.dataset.capubbsGalleryActive = active ? 'true' : 'false';
+  item.setAttribute('aria-hidden', active ? 'false' : 'true');
 }
 
 function createGalleryNavigationControl(direction: 'next' | 'prev', label: string) {

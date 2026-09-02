@@ -35,6 +35,16 @@ assert.match(
   'gallery repair must restore missing navigation controls',
 );
 assert.match(
+  gallerySource,
+  /while \(captions\.length < slides\.length\)[\s\S]*?capubbsGalleryCaption = 'true'/,
+  'gallery normalization must restore one caption placeholder per slide',
+);
+assert.match(
+  gallerySource,
+  /const normalizedIndex = activeIndex[\s\S]*?setGalleryItemActive\(slide[\s\S]*?capubbsGalleryTotal = String\(slides\.length\)/,
+  'gallery normalization must reconcile active state, index, and total count',
+);
+assert.match(
   markupSource,
   /element: candidate/,
   'direct post images must pass their loaded element to the lightbox',
@@ -50,4 +60,4 @@ assert.doesNotMatch(
   'the lightbox must not preload duplicate image resources',
 );
 
-console.log('gallery grouping verification passed (7 assertions)');
+console.log('gallery grouping verification passed (9 assertions)');

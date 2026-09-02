@@ -68,6 +68,11 @@ assert.match(
 );
 assert.match(
   source,
+  /while\(captions\.length<slides\.length\)[\s\S]*?data-capubbs-gallery-caption[\s\S]*?normalizedIndex[\s\S]*?data-capubbs-gallery-total/,
+  'isolated frames must normalize captions, active state, and total count',
+);
+assert.match(
+  source,
   /elementIndex:allImages\.indexOf\(candidate\)/,
   'isolated frames must report the original element index',
 );
@@ -77,4 +82,4 @@ assert.match(
   'isolated frame messages must map back to existing loaded elements',
 );
 
-console.log('thread HTML frame resource verification passed (14 assertions)');
+console.log('thread HTML frame resource verification passed (15 assertions)');

@@ -717,23 +717,47 @@ function buildFrameBridgeScript(frameId: string, canOpenImages: boolean, needsJq
       control.setAttribute('tabindex','0');
       return control;
     }
+    function setGalleryAttribute(element,name,value){
+      if(element.getAttribute(name)!==value)element.setAttribute(name,value);
+    }
+    function setGalleryItemActive(item,active){
+      setGalleryAttribute(item,'data-capubbs-gallery-active',active?'true':'false');
+      setGalleryAttribute(item,'aria-hidden',active?'false':'true');
+    }
     function prepareGalleries(){
       Array.prototype.forEach.call(document.querySelectorAll('.capubbs-html-frame-root .capubbs-gallery'),function(gallery){
         var stage=gallery.querySelector('.capubbs-gallery-stage');
-        var slides=gallery.querySelectorAll('[data-capubbs-gallery-slide="true"]');
-        if(!stage||slides.length<2)return;
-        if(!stage.querySelector('[data-capubbs-gallery-action="prev"]'))stage.appendChild(createGalleryNavigationControl('prev','上一张图片'));
-        if(!stage.querySelector('[data-capubbs-gallery-action="next"]'))stage.appendChild(createGalleryNavigationControl('next','下一张图片'));
+        var slides=Array.prototype.slice.call(gallery.querySelectorAll('[data-capubbs-gallery-slide="true"]'));
+        if(!stage||slides.length===0)return;
+        var header=gallery.querySelector('.capubbs-gallery-header');
+        if(!header){header=document.createElement('header');header.className='capubbs-gallery-header';gallery.insertBefore(header,stage);}
+        if(!header.querySelector('.capubbs-gallery-title')){
+          var title=document.createElement('figcaption');title.className='capubbs-gallery-title';header.appendChild(title);
+        }
+        if(slides.length>1&&!stage.querySelector('[data-capubbs-gallery-action="prev"]'))stage.appendChild(createGalleryNavigationControl('prev','上一张图片'));
+        if(slides.length>1&&!stage.querySelector('[data-capubbs-gallery-action="next"]'))stage.appendChild(createGalleryNavigationControl('next','下一张图片'));
         var footer=gallery.querySelector('.capubbs-gallery-footer');
         if(!footer){footer=document.createElement('footer');footer.className='capubbs-gallery-footer';gallery.appendChild(footer);}
-        if(!footer.querySelector('.capubbs-gallery-count')){
-          var count=document.createElement('span');
-          count.className='capubbs-gallery-count';
-          count.setAttribute('data-capubbs-gallery-current','1');
-          count.setAttribute('data-capubbs-gallery-total',String(slides.length));
-          count.setAttribute('aria-label','第 1 张，共 '+slides.length+' 张图片');
-          footer.appendChild(count);
+        var captionsContainer=footer.querySelector('.capubbs-gallery-captions');
+        if(!captionsContainer){captionsContainer=document.createElement('div');captionsContainer.className='capubbs-gallery-captions';footer.insertBefore(captionsContainer,footer.firstChild);}
+        var captions=Array.prototype.slice.call(captionsContainer.querySelectorAll('[data-capubbs-gallery-caption="true"]'));
+        while(captions.length<slides.length){
+          var caption=document.createElement('span');caption.className='capubbs-gallery-caption';caption.setAttribute('data-capubbs-gallery-caption','true');captionsContainer.appendChild(caption);captions.push(caption);
         }
+        var count=footer.querySelector('.capubbs-gallery-count');
+        if(!count){count=document.createElement('span');count.className='capubbs-gallery-count';footer.appendChild(count);}
+        var storedIndex=parseInt(gallery.getAttribute('data-capubbs-gallery-index')||'',10);
+        var activeIndex=slides.findIndex(function(slide){return slide.getAttribute('data-capubbs-gallery-active')==='true';});
+        var normalizedIndex=activeIndex>=0?activeIndex:(Number.isFinite(storedIndex)&&storedIndex>=0&&storedIndex<slides.length?storedIndex:0);
+        setGalleryAttribute(gallery,'data-capubbs-gallery-index',String(normalizedIndex));
+        setGalleryAttribute(gallery,'role','region');
+        setGalleryAttribute(gallery,'tabindex','0');
+        if(!gallery.getAttribute('aria-label'))setGalleryAttribute(gallery,'aria-label','图廊');
+        slides.forEach(function(slide,index){setGalleryItemActive(slide,index===normalizedIndex);});
+        captions.forEach(function(caption,index){setGalleryItemActive(caption,index===normalizedIndex);});
+        setGalleryAttribute(count,'data-capubbs-gallery-current',String(normalizedIndex+1));
+        setGalleryAttribute(count,'data-capubbs-gallery-total',String(slides.length));
+        setGalleryAttribute(count,'aria-label','第 '+(normalizedIndex+1)+' 张，共 '+slides.length+' 张图片');
       });
     }
     function setGalleryIndex(gallery,nextIndex){
