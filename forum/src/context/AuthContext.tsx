@@ -1,4 +1,4 @@
-import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from 'react';
+import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import {
   fetchSessionViewer,
   loginSession,
@@ -7,12 +7,14 @@ import {
   type RegisterDraft,
   type SessionViewer,
 } from '../api/auth';
+import { fetchMessageSummary } from '../api/messages';
 
 type AuthStatus = 'authenticated' | 'guest' | 'loading' | 'restoring';
 const SESSION_VIEWER_STORAGE_KEY = 'capubbs-session-viewer';
 const SESSION_VIEWER_REFRESHED_AT_STORAGE_KEY = 'capubbs-session-viewer-refreshed-at';
 const SESSION_VIEWER_REFRESH_INTERVAL_MS = 7 * 24 * 60 * 60 * 1000;
 const SESSION_VIEWER_RETRY_INTERVAL_MS = 5 * 60 * 1000;
+const UNREAD_MESSAGE_REFRESH_INTERVAL_MS = 5 * 60 * 1000;
 
 type AuthState = {
   refreshAt: number;
@@ -23,6 +25,7 @@ type AuthState = {
 type AuthContextValue = {
   login: (username: string, passwordHash: string) => Promise<SessionViewer>;
   logout: () => Promise<void>;
+  refreshUnreadMessages: () => Promise<void>;
   refreshViewer: () => void;
   register: (draft: RegisterDraft) => Promise<SessionViewer>;
   status: AuthStatus;
@@ -35,6 +38,47 @@ const AuthContext = createContext<AuthContextValue | null>(null);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [auth, setAuth] = useState<AuthState>(restoreCachedAuth);
+  const unreadRequestRef = useRef<{ promise: Promise<void>; username: string } | null>(null);
+  const activeUsername = auth.status === 'authenticated' ? auth.viewer?.username ?? null : null;
+
+  const refreshUnreadMessagesFor = useCallback((username: string) => {
+    const activeRequest = unreadRequestRef.current;
+    if (activeRequest?.username === username) return activeRequest.promise;
+
+    const promise = fetchMessageSummary()
+      .then((summary) => {
+        setAuth((current) => {
+          if (current.status !== 'authenticated' || current.viewer?.username !== username) return current;
+          const unreadMessages = summary.unread.total;
+          if (current.viewer.unreadMessages === unreadMessages) return current;
+          const viewer = { ...current.viewer, unreadMessages };
+          cacheViewer(viewer);
+          return { ...current, viewer };
+        });
+      })
+      .catch(() => {
+        // Keep the last known count when the background refresh is unavailable.
+      })
+      .finally(() => {
+        if (unreadRequestRef.current?.promise === promise) unreadRequestRef.current = null;
+      });
+
+    unreadRequestRef.current = { promise, username };
+    return promise;
+  }, []);
+
+  const refreshUnreadMessages = useCallback(() => {
+    if (!activeUsername) return Promise.resolve();
+    return refreshUnreadMessagesFor(activeUsername);
+  }, [activeUsername, refreshUnreadMessagesFor]);
+
+  useEffect(() => {
+    if (!activeUsername) return;
+    const interval = window.setInterval(() => {
+      void refreshUnreadMessagesFor(activeUsername);
+    }, UNREAD_MESSAGE_REFRESH_INTERVAL_MS);
+    return () => window.clearInterval(interval);
+  }, [activeUsername, refreshUnreadMessagesFor]);
 
   useEffect(() => {
     if (auth.status === 'guest') return;
@@ -90,8 +134,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       status: 'authenticated',
       viewer: sessionViewer,
     });
+    void refreshUnreadMessagesFor(sessionViewer.username);
     return sessionViewer;
-  }, []);
+  }, [refreshUnreadMessagesFor]);
 
   const logout = useCallback(async () => {
     try {
@@ -116,8 +161,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       status: 'authenticated',
       viewer: sessionViewer,
     });
+    void refreshUnreadMessagesFor(sessionViewer.username);
     return sessionViewer;
-  }, []);
+  }, [refreshUnreadMessagesFor]);
 
   const updateViewerAvatar = useCallback((avatar: string) => {
     setAuth((current) => {
@@ -141,6 +187,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     () => ({
       login,
       logout,
+      refreshUnreadMessages,
       refreshViewer,
       register,
       status: auth.status,
@@ -148,7 +195,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       updateViewerUnreadMessages,
       viewer: auth.viewer,
     }),
-    [auth.status, auth.viewer, login, logout, refreshViewer, register, updateViewerAvatar, updateViewerUnreadMessages],
+    [auth.status, auth.viewer, login, logout, refreshUnreadMessages, refreshViewer, register, updateViewerAvatar, updateViewerUnreadMessages],
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

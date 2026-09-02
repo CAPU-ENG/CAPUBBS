@@ -1,3 +1,4 @@
+import { useEffect } from 'react';
 import { FeedSection } from '../components/home/FeedSection';
 import { DesktopHomeAside } from '../components/home/HomeAside';
 import { MobileActivityBar } from '../components/home/MobileActivityBar';
@@ -12,11 +13,16 @@ import { useReadThreadIds } from '../hooks/useReadThreadIds';
 
 export function HomePage() {
   useDocumentTitle('车协论坛');
-  const { viewer } = useAuth();
+  const { refreshUnreadMessages, status: authStatus, viewer } = useAuth();
   const compactMode = useCompactMode();
   const waterfallFeedEnabled = useWaterfallFeedEnabled();
   const { calendar, feed, feedHasMore, loadMore, pinned, retry, signup } = useHomeData(compactMode);
   const readThreadIds = useReadThreadIds(viewer?.username);
+
+  useEffect(() => {
+    if (authStatus !== 'authenticated') return;
+    void refreshUnreadMessages();
+  }, [authStatus, refreshUnreadMessages, viewer?.username]);
 
   return (
     <div className="relative min-h-screen text-[var(--text)] transition-colors duration-200">
