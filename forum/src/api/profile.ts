@@ -130,16 +130,23 @@ export async function fetchPublicProfileActivities(username: string, signal?: Ab
   return rows.map(mapActivityRecord).filter(isProfileRecord);
 }
 
-export async function fetchProfileRecordPage(
+export async function fetchRemainingProfileRecords(
   username: string,
   tab: 'posts' | 'replies',
   offset: number,
   signal?: AbortSignal,
 ): Promise<ProfileRecordPage> {
-  const page = await requestProfileRecordRowsPage(username, tab, offset, signal);
+  const rows = await requestRows({
+    ask: tab === 'posts' ? 'recentpost' : 'recentreply',
+    limit: 'all',
+    offset: Math.max(0, Math.floor(offset)),
+    ...(tab === 'replies' ? { replies_only: 1 } : {}),
+    view: username.trim(),
+  }, signal);
   return {
-    hasMore: page.hasMore,
-    records: page.rows
+    hasMore: false,
+    records: rows
+      .filter((row) => numberValue(row.pid) >= (tab === 'posts' ? 1 : 2))
       .map((record) => mapRecord(record, tab === 'posts' ? 'post' : 'reply'))
       .filter(isProfileRecord),
   };

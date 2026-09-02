@@ -1,6 +1,6 @@
 import { RefreshCw, UserRoundX } from 'lucide-react';
 import { useCallback, useState } from 'react';
-import { fetchProfileRecordPage, fetchPublicProfileActivities, sendProfilePrivateMessage } from '../api/profile';
+import { fetchPublicProfileActivities, fetchRemainingProfileRecords, sendProfilePrivateMessage } from '../api/profile';
 import { AppBackground } from '../components/layout/AppBackground';
 import { LoadingState } from '../components/layout/LoadingState';
 import { TopBar } from '../components/layout/TopBar';
@@ -26,7 +26,7 @@ export function PublicProfilePage({ profileName }: { profileName: string | null 
   }, [loadedProfile]);
   const loadMore = useCallback((tab: ProfileTab, offset: number) => {
     if ((tab === 'posts' || tab === 'replies') && loadedProfile) {
-      return fetchProfileRecordPage(loadedProfile.profile.id, tab, offset);
+      return fetchRemainingProfileRecords(loadedProfile.profile.id, tab, offset);
     }
     return Promise.resolve({ hasMore: false, records: [] });
   }, [loadedProfile]);

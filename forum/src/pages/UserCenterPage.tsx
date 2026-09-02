@@ -3,7 +3,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { createPortal } from 'react-dom';
 import {
   sendProfileEmailCode,
-  fetchProfileRecordPage,
+  fetchRemainingProfileRecords,
   updateProfileAvatar,
   updateProfileDetails,
   updateProfileEmailVisibility,
@@ -253,7 +253,7 @@ export function UserCenterPage() {
           initialHasMore={profile.recordHasMore}
           initialRecords={workspaceRecords ?? profile.records}
           onLoadMore={(tab, offset) => tab === 'posts' || tab === 'replies'
-            ? fetchProfileRecordPage(profile.id, tab, offset)
+            ? fetchRemainingProfileRecords(profile.id, tab, offset)
             : Promise.resolve({ hasMore: false, records: [] })}
           onDeleteDraft={deleteDraft}
           onSaveSignatures={async (signatures) => {
