@@ -3,7 +3,11 @@
 
     header('Content-type: text/json');
     echo '[';
-    $results = mainfunc(array("ask" => "calendar"));
+    $params = array("ask" => "calendar");
+    if (isset($_GET['start_date'])) $params['start_date'] = $_GET['start_date'];
+    if (isset($_GET['end_date'])) $params['end_date'] = $_GET['end_date'];
+    if (isset($_GET['full'])) $params['full'] = $_GET['full'];
+    $results = mainfunc($params);
     $x = 1;
     foreach ($results as $res) {
         if ($x == 0) echo ',';

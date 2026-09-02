@@ -1347,8 +1347,26 @@ function jiekoufunc_favorite_check($con, $token, $bid, $tid) {
     return array(array('code' => '0', 'favorited' => $favorited));
 }
 
-function jiekoufunc_calendar($con) {
+function jiekoufunc_calendar($con, $params = array()) {
+    $full = isset($params['full']) && strval($params['full']) === '1';
+    $start_date = isset($params['start_date']) ? trim(strval($params['start_date'])) : '';
+    $end_date = isset($params['end_date']) ? trim(strval($params['end_date'])) : '';
+
+    if (!$full && (!preg_match('/^\d{4}-\d{2}-\d{2}$/', $start_date)
+        || !preg_match('/^\d{4}-\d{2}-\d{2}$/', $end_date))) {
+        $current_year = intval(date('Y'));
+        $start_date = ($current_year - 1) . '-01-01';
+        $end_date = ($current_year + 1) . '-12-31';
+    }
+
     $statement = "select * from capubbs.calendar";
+    if (!$full) {
+        $start_date = mysqli_real_escape_string($con, $start_date);
+        $end_date = mysqli_real_escape_string($con, $end_date);
+        $calendar_date = "STR_TO_DATE(CONCAT(year, '-', month, '-', day), '%Y-%c-%e')";
+        $statement .= " where $calendar_date >= '$start_date' and $calendar_date <= '$end_date'";
+    }
+    $statement .= " order by year, month, day, time";
     $results = mysqli_query($con, $statement);
     $infos = array();
     while ($res = mysqli_fetch_array($results)) {

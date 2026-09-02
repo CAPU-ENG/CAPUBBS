@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import {
   fetchGlobalPinnedThreads,
   fetchHomeCalendar,
@@ -51,6 +51,10 @@ const initialSignup: SignupState = {
 const HOME_FEED_BATCH_SIZE = 15;
 const COMPACT_HOME_FEED_BATCH_SIZE = 30;
 
+function calendarDateKey(year: number, month: number, day: number) {
+  return `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+}
+
 export function useHomeData(compactMode = false) {
   const [feed, setFeed] = useState<CollectionState>(initialCollection);
   const [feedHasMore, setFeedHasMore] = useState(true);
@@ -60,6 +64,14 @@ export function useHomeData(compactMode = false) {
   const [calendar, setCalendar] = useState<CalendarState>(initialCalendar);
   const [signup, setSignup] = useState<SignupState>(initialSignup);
   const [requestVersion, setRequestVersion] = useState(0);
+  const [calendarRange] = useState(() => {
+    const currentYear = new Date().getFullYear();
+    return {
+      end: calendarDateKey(currentYear + 1, 12, 31),
+      start: calendarDateKey(currentYear - 1, 1, 1),
+    };
+  });
+  const calendarFullRequestedRef = useRef(false);
   const activeFeedLimit = compactMode ? compactFeedLimit : feedLimit;
 
   const retry = useCallback(() => setRequestVersion((version) => version + 1), []);
@@ -70,6 +82,26 @@ export function useHomeData(compactMode = false) {
     }
     setFeedLimit((limit) => limit + HOME_FEED_BATCH_SIZE);
   }, [compactMode]);
+  const loadFullCalendarForDate = useCallback((date: string) => {
+    if (date >= calendarRange.start && date <= calendarRange.end) return;
+    if (calendarFullRequestedRef.current) return;
+
+    calendarFullRequestedRef.current = true;
+    const controller = new AbortController();
+    setCalendar((current) => ({ ...current, error: '', status: 'loading' }));
+    void fetchHomeCalendar(controller.signal, { full: true }).then(
+      (items) => setCalendar({ error: '', items, status: 'ready' }),
+      (error: unknown) => {
+        if (!isAbortError(error)) {
+          setCalendar((current) => ({
+            ...current,
+            error: error instanceof Error ? error.message : '日历加载失败，请稍后重试。',
+            status: 'error',
+          }));
+        }
+      },
+    );
+  }, [calendarRange]);
 
   useEffect(() => {
     const controller = new AbortController();
@@ -118,10 +150,16 @@ export function useHomeData(compactMode = false) {
 
   useEffect(() => {
     const controller = new AbortController();
+    calendarFullRequestedRef.current = false;
     setCalendar((current) => ({ ...current, error: '', status: 'loading' }));
 
-    void fetchHomeCalendar(controller.signal).then(
-      (items) => setCalendar({ error: '', items, status: 'ready' }),
+    void fetchHomeCalendar(controller.signal, {
+      endDate: calendarRange.end,
+      startDate: calendarRange.start,
+    }).then(
+      (items) => {
+        if (!calendarFullRequestedRef.current) setCalendar({ error: '', items, status: 'ready' });
+      },
       (error: unknown) => {
         if (!isAbortError(error)) {
           setCalendar((current) => ({
@@ -134,7 +172,7 @@ export function useHomeData(compactMode = false) {
     );
 
     return () => controller.abort();
-  }, [requestVersion]);
+  }, [calendarRange, requestVersion]);
 
   useEffect(() => {
     const controller = new AbortController();
@@ -156,5 +194,5 @@ export function useHomeData(compactMode = false) {
     return () => controller.abort();
   }, [requestVersion]);
 
-  return { calendar, feed, feedHasMore, loadMore, pinned, retry, signup };
+  return { calendar, feed, feedHasMore, loadFullCalendarForDate, loadMore, pinned, retry, signup };
 }

@@ -74,10 +74,24 @@ export async function fetchHomeSignupActivities(limit = 5, signal?: AbortSignal)
     .filter((activity): activity is HomeSignupActivity => activity !== null);
 }
 
-export async function fetchHomeCalendar(signal?: AbortSignal) {
+type CalendarRequest = {
+  endDate?: string;
+  full?: boolean;
+  startDate?: string;
+};
+
+export async function fetchHomeCalendar(signal?: AbortSignal, request: CalendarRequest = {}) {
+  const url = new URL(HOME_CALENDAR_API_URL, window.location.origin);
+  if (request.full) {
+    url.searchParams.set('full', '1');
+  } else {
+    if (request.startDate) url.searchParams.set('start_date', request.startDate);
+    if (request.endDate) url.searchParams.set('end_date', request.endDate);
+  }
+
   let response: Response;
   try {
-    response = await fetch(HOME_CALENDAR_API_URL, {
+    response = await fetch(url, {
       credentials: 'include',
       headers: { Accept: 'application/json' },
       signal,

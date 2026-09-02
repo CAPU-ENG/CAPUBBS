@@ -48,6 +48,7 @@ type CalendarProps = {
   compact?: boolean;
   error: string;
   items: HomeCalendarEvent[];
+  onVisibleDateChange: (date: string) => void;
   status: HomeDataStatus;
 };
 
@@ -55,6 +56,7 @@ type DesktopHomeAsideProps = PinnedProps & {
   calendarError: string;
   calendarItems: HomeCalendarEvent[];
   calendarStatus: HomeDataStatus;
+  onCalendarVisibleDateChange: (date: string) => void;
   signupItems: HomeSignupActivity[];
 };
 
@@ -134,7 +136,7 @@ function ActivitySignupPanel({ items }: { items: HomeSignupActivity[] }) {
   );
 }
 
-export function ActivityCalendar({ compact = false, error, items, status }: CalendarProps) {
+export function ActivityCalendar({ compact = false, error, items, onVisibleDateChange, status }: CalendarProps) {
   const { status: authStatus, viewer } = useAuth();
   const periodPickerId = useId();
   const periodPickerRef = useRef<HTMLDivElement | null>(null);
@@ -217,6 +219,7 @@ export function ActivityCalendar({ compact = false, error, items, status }: Cale
     setMonthCursor({ year: nextYear, month: nextMonth });
     setSelectedKey(dateKey(nextYear, nextMonth, 1));
     setOpenPeriodPicker(null);
+    onVisibleDateChange(dateKey(nextYear, nextMonth, 1));
   }
 
   return (
@@ -325,7 +328,10 @@ export function ActivityCalendar({ compact = false, error, items, status }: Cale
               onClick={() => {
                 if (!isSelectable) return;
                 setSelectedKey(cellKey);
-                if (offset !== 0) setMonthCursor({ year: cellDate.getFullYear(), month: cellDate.getMonth() });
+                if (offset !== 0) {
+                  setMonthCursor({ year: cellDate.getFullYear(), month: cellDate.getMonth() });
+                  onVisibleDateChange(cellKey);
+                }
               }}
               key={`${cellKey}-${index}`}
             >
@@ -367,6 +373,7 @@ export function DesktopHomeAside({
   calendarItems,
   calendarStatus,
   items,
+  onCalendarVisibleDateChange,
   readThreadIds,
   signupItems,
 }: DesktopHomeAsideProps) {
@@ -464,6 +471,7 @@ export function DesktopHomeAside({
       <ActivityCalendar
         error={calendarError}
         items={calendarItems}
+        onVisibleDateChange={onCalendarVisibleDateChange}
         status={calendarStatus}
       />
     </aside>

@@ -58,7 +58,7 @@ export function CalendarAdminPage() {
     const controller = new AbortController();
     setLoadStatus('loading');
 
-    void fetchHomeCalendar(controller.signal).then(
+    void fetchHomeCalendar(controller.signal, { full: true }).then(
       (items) => {
         setEvents(items);
         setLoadStatus('ready');

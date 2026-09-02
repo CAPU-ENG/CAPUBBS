@@ -21,7 +21,7 @@ export function HomePage() {
   const floorDecorationEnabled = useFloorDecorationEnabled();
   const tagMedalDisplayEnabled = useTagMedalDisplayEnabled();
   const waterfallFeedEnabled = useWaterfallFeedEnabled();
-  const { calendar, feed, feedHasMore, loadMore, pinned, retry, signup } = useHomeData(compactMode);
+  const { calendar, feed, feedHasMore, loadFullCalendarForDate, loadMore, pinned, retry, signup } = useHomeData(compactMode);
   const readThreadIds = useReadThreadIds(viewer?.username);
   useHomeThreadPreload({
     decoration: floorDecorationEnabled,
@@ -45,6 +45,7 @@ export function HomePage() {
         calendarError={calendar.error}
         calendarItems={calendar.items}
         calendarStatus={calendar.status}
+        onCalendarVisibleDateChange={loadFullCalendarForDate}
         pinnedItems={pinned.items}
         readThreadIds={readThreadIds}
         signupItems={signup.items}
@@ -66,6 +67,7 @@ export function HomePage() {
             calendarError={calendar.error}
             calendarItems={calendar.items}
             calendarStatus={calendar.status}
+            onCalendarVisibleDateChange={loadFullCalendarForDate}
             items={pinned.items}
             readThreadIds={readThreadIds}
             signupItems={signup.items}
