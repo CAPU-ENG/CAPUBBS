@@ -444,7 +444,7 @@ function jiekoufunc_dispatch($con, $params) {
             case 'jiekoufunc_favorite_check':
                 return jiekoufunc_favorite_check($con, $token, $bid, $tid);
             case 'jiekoufunc_calendar':
-                return jiekoufunc_calendar($con);
+                return jiekoufunc_calendar($con, $params);
             case 'jiekoufunc_verifiedCount':
                 return jiekoufunc_verifiedCount($con);
             case 'jiekoufunc_recent_threads':
