@@ -47,7 +47,7 @@ type PageNotice = { message: string; tone: 'error' | 'success' } | null;
 
 export function UserCenterPage() {
   const { logout, status: authStatus, updateViewerAvatar, viewer } = useAuth();
-  const profileState = useUserCenterProfile(authStatus === 'authenticated');
+  const profileState = useUserCenterProfile(authStatus === 'authenticated' ? viewer?.username ?? null : null);
   const profile = authStatus === 'authenticated' ? profileState.data : null;
   const authPending = authStatus === 'loading' || authStatus === 'restoring';
   const loginRequired = authStatus === 'guest';

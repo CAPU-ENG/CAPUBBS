@@ -47,13 +47,38 @@ export class ProfileApiError extends Error {
   }
 }
 
-export async function fetchUserCenterProfile(signal?: AbortSignal) {
-  const [profileRow, medals] = await Promise.all([
-    fetchCurrentUserRow(signal),
-    fetchSelfMedals(signal),
-  ]);
-  const username = stringValue(profileRow.username);
-  const [postRows, replyRows, activityRows, favoriteRows] = await Promise.all([
+export async function fetchUserCenterProfile(signal?: AbortSignal, knownUsername?: string) {
+  const username = knownUsername?.trim();
+  if (!username) {
+    const medalsPromise = fetchSelfMedals(signal);
+    const profileRow = await fetchCurrentUserRow(signal);
+    return fetchUserCenterProfileForUsername(
+      stringValue(profileRow.username),
+      signal,
+      Promise.resolve(profileRow),
+      medalsPromise,
+    );
+  }
+  return fetchUserCenterProfileForUsername(username, signal);
+}
+
+async function fetchUserCenterProfileForUsername(
+  username: string,
+  signal?: AbortSignal,
+  existingProfileRow?: Promise<ApiRow>,
+  existingMedals?: Promise<UserMedal[]>,
+) {
+  const profileRowPromise = existingProfileRow
+    ?? requestRows({ ask: 'user_profile', tag: 1, username }, signal).then((rows) => {
+      const row = rows[0];
+      if (!row || !stringValue(row.username)) {
+        throw new ProfileApiError('个人资料加载失败，请稍后重试。');
+      }
+      return row;
+    });
+  const [profileRow, medals, postRows, replyRows, activityRows, favoriteRows] = await Promise.all([
+    profileRowPromise,
+    existingMedals ?? fetchSelfMedals(signal),
     requestRows({ ask: 'recentpost', limit: 'all', view: username }, signal),
     requestRows({ ask: 'recentreply', limit: 'all', view: username }, signal),
     requestRows({ ask: 'activity_signup_history', username }, signal),
