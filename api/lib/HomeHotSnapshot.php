@@ -178,7 +178,7 @@ function home_hot_snapshot_query_rows($connection, $limit) {
         recent_threads.replyer,recent_threads.click,recent_threads.reply,recent_threads.extr,
         recent_threads.top,recent_threads.locked,recent_threads.timestamp,recent_threads.postdate,
         home_author.icon,
-        case when recent_threads.bid=1 then null else ($latestText) end as text,
+        ($latestText) as text,
         0 as global_top
         from ($recentThreads) as recent_threads
         left join userinfo as home_author

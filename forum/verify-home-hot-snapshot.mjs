@@ -64,6 +64,7 @@ try {
   const homePage = readFileSync(join(forumDirectory, 'src/pages/HomePage.tsx'), 'utf8');
   const homePreload = readFileSync(join(forumDirectory, 'src/hooks/useHomeThreadPreload.ts'), 'utf8');
   const cacheHtaccess = readFileSync(join(repositoryDirectory, 'api/cache/home-hot/.htaccess'), 'utf8');
+  const snapshotBackend = readFileSync(join(repositoryDirectory, 'api/lib/HomeHotSnapshot.php'), 'utf8');
   assert.match(homeApi, /cache\/home-hot\/hot-15\.json/);
   assert.doesNotMatch(homeApi, /requestSnapshotManifest/);
   assert.match(homeApi, /hot-100\.json/);
@@ -72,6 +73,8 @@ try {
   assert.match(homePage, /enabled: feed\.status === 'ready'/);
   assert.match(homePreload, /if \(!enabled \|\| !scope\) return/);
   assert.match(cacheHtaccess, /SetOutputFilter DEFLATE/);
+  assert.match(snapshotBackend, /\(\$latestText\) as text/);
+  assert.doesNotMatch(snapshotBackend, /recent_threads\.bid=1 then null/);
 } finally {
   rmSync(snapshotDirectory, { force: true, recursive: true });
 }
