@@ -5,6 +5,10 @@ const source = readFileSync(
   new URL('./src/components/thread/ThreadHtmlContent.tsx', import.meta.url),
   'utf8',
 );
+const resourceCacheSource = readFileSync(
+  new URL('./src/components/thread/threadImageResourceCache.ts', import.meta.url),
+  'utf8',
+);
 
 assert.match(
   source,
@@ -81,5 +85,40 @@ assert.match(
   /frameImages\[image\.elementIndex\]/,
   'isolated frame messages must map back to existing loaded elements',
 );
+assert.match(
+  source,
+  /deferFrameImageSources\(deferUserScripts\(html\)\)[\s\S]*?image\.removeAttribute\('src'\)/,
+  'isolated frame image sources must be intercepted before their first request',
+);
+assert.match(
+  source,
+  /type:'image-resource-request'/,
+  'iframe must request image resources from the parent broker',
+);
+assert.match(
+  source,
+  /type: 'image-resource-response'/,
+  'the parent broker must return cached image resources',
+);
+assert.match(
+  source,
+  /data\.blob instanceof Blob/,
+  'the iframe must render broker responses as Blob resources',
+);
+assert.match(
+  source,
+  /imageResourceRequestIdsBySource\[normalizedSource\][\s\S]*?\.images\.push\(image\)[\s\S]*?request\.images\.forEach/,
+  'duplicate iframe image URLs must share one broker response and object URL',
+);
+assert.match(
+  source,
+  /getCachedThreadImageObjectUrl\(image\.src\) \?\? image\.src/,
+  'isolated lightbox images must reuse the parent resource cache',
+);
+assert.match(
+  resourceCacheSource,
+  /const resourcePromises = new Map[\s\S]*?if \(cached\) return cached[\s\S]*?response\.blob\(\)/,
+  'the parent resource cache must merge concurrent downloads by URL',
+);
 
-console.log('thread HTML frame resource verification passed (15 assertions)');
+console.log('thread HTML frame resource verification passed (22 assertions)');

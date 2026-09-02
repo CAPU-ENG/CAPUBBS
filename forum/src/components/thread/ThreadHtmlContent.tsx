@@ -28,6 +28,10 @@ import {
   type ForumMarkupImage,
   type ForumMarkupImageOpenHandler,
 } from './ForumMarkup';
+import {
+  getCachedThreadImageObjectUrl,
+  loadThreadImageResource,
+} from './threadImageResourceCache';
 
 const MIN_SIGNATURE_FRAME_HEIGHT = 28;
 const MIN_FLOOR_FRAME_HEIGHT = 64;
@@ -67,6 +71,12 @@ type HtmlFrameMessage = {
   frameId: string;
   source: typeof HTML_FRAME_MESSAGE_SOURCE;
   type: 'jquery-request';
+} | {
+  frameId: string;
+  requestId: string;
+  source: typeof HTML_FRAME_MESSAGE_SOURCE;
+  type: 'image-resource-request';
+  url: string;
 } | {
   frameId: string;
   imageIndex: number;
@@ -161,7 +171,10 @@ function ThreadSandboxedHtmlFrame({
   const initialDarkThemeRef = useRef(isDarkTheme);
   const forumContentFontSize = useForumContentFontSize();
   const frameFontSize = variant === 'signature' ? 14 : forumContentFontSize;
-  const deferredHtml = useMemo(() => deferUserScripts(html), [html]);
+  const deferredHtml = useMemo(
+    () => deferFrameImageSources(deferUserScripts(html)),
+    [html],
+  );
   const needsJquery = deferredHtml.includes('type="text/capubbs-user-script"')
     || INLINE_EVENT_ATTRIBUTE_PATTERN.test(deferredHtml);
   const frameDocument = useMemo(() => buildHtmlFrameDocument({
@@ -226,6 +239,29 @@ function ThreadSandboxedHtmlFrame({
         return;
       }
 
+      if (event.data.type === 'image-resource-request') {
+        const requestFrameWindow = frameWindow;
+        void loadThreadImageResource(event.data.url).then((resource) => {
+          if (iframeRef.current?.contentWindow !== requestFrameWindow) return;
+          requestFrameWindow.postMessage({
+            blob: resource.blob,
+            frameId: frameIdRef.current,
+            requestId: event.data.requestId,
+            source: HTML_FRAME_MESSAGE_SOURCE,
+            type: 'image-resource-response',
+          }, '*');
+        }).catch(() => {
+          if (iframeRef.current?.contentWindow !== requestFrameWindow) return;
+          requestFrameWindow.postMessage({
+            frameId: frameIdRef.current,
+            requestId: event.data.requestId,
+            source: HTML_FRAME_MESSAGE_SOURCE,
+            type: 'image-resource-error',
+          }, '*');
+        });
+        return;
+      }
+
       if (event.data.type === 'anchor') {
         const frame = iframeRef.current;
         if (!frame) return;
@@ -265,6 +301,7 @@ function ThreadSandboxedHtmlFrame({
         const sharedImages = event.data.images.map((image) => ({
           ...image,
           element: typeof image.elementIndex === 'number' ? frameImages[image.elementIndex] : undefined,
+          src: getCachedThreadImageObjectUrl(image.src) ?? image.src,
         }));
         const syncImage: ForumMarkupImageChangeHandler = (imageIndex) => {
           const image = sharedImages[imageIndex];
@@ -432,6 +469,10 @@ function buildFrameBridgeScript(frameId: string, canOpenImages: boolean, needsJq
     var selectionQueued=false;
     var lastSelectionText='';
     var userScriptsExecuted=false;
+    var imageResourceRequestIndex=0;
+    var imageResourceRequests={};
+    var imageResourceRequestIdsBySource={};
+    var imageResourceObjectUrls=[];
     var grayscaleNamedColors={black:0,darkgray:169,darkgrey:169,dimgray:105,dimgrey:105,gainsboro:220,gray:128,grey:128,lightgray:211,lightgrey:211,silver:192,white:255,whitesmoke:245};
     var originalColorAttribute='data-capubbs-original-grayscale-color-attr';
     var originalStyleColorAttribute='data-capubbs-original-grayscale-style-color';
@@ -640,7 +681,8 @@ function buildFrameBridgeScript(frameId: string, canOpenImages: boolean, needsJq
       if(imageIndex<0)return;
       var allImages=Array.prototype.slice.call(document.querySelectorAll('.capubbs-html-frame-root img'));
       var images=imageElements.map(function(candidate){
-        var item={alt:(candidate.alt||'').trim(),elementIndex:allImages.indexOf(candidate),src:candidate.currentSrc||candidate.src||''};
+        var resourceSource=candidate.getAttribute('data-capubbs-image-resource-src');
+        var item={alt:(candidate.alt||'').trim(),elementIndex:allImages.indexOf(candidate),src:resourceSource?new URL(resourceSource,document.baseURI).href:(candidate.currentSrc||candidate.src||'')};
         var gallery=candidate.closest?candidate.closest('.capubbs-gallery'):null;
         if(gallery){
           var galleries=Array.prototype.slice.call(document.querySelectorAll('.capubbs-html-frame-root .capubbs-gallery'));
@@ -675,6 +717,7 @@ function buildFrameBridgeScript(frameId: string, canOpenImages: boolean, needsJq
       queueHeight();
     }
     function observeImageLoad(image){
+      if(image.getAttribute('data-capubbs-image-resource-src')&&!image.getAttribute('src'))return;
       if(image.complete){
         markImageLoaded(image);
         return;
@@ -707,6 +750,46 @@ function buildFrameBridgeScript(frameId: string, canOpenImages: boolean, needsJq
         if(image.getAttribute('aria-label')!==ariaLabel)image.setAttribute('aria-label',ariaLabel);
         if(!image.title)image.title='点击查看大图';
       });
+    }
+    function requestImageResources(){
+      Array.prototype.forEach.call(document.querySelectorAll('img[data-capubbs-image-resource-src]'),function(image){
+        if(image.getAttribute('src')||image.getAttribute('data-capubbs-image-resource-requested')==='true')return;
+        var source=image.getAttribute('data-capubbs-image-resource-src')||'';
+        var normalizedSource=new URL(source,document.baseURI).href;
+        var existingRequestId=imageResourceRequestIdsBySource[normalizedSource];
+        image.setAttribute('data-capubbs-image-resource-requested','true');
+        if(existingRequestId&&imageResourceRequests[existingRequestId]){
+          imageResourceRequests[existingRequestId].images.push(image);
+          return;
+        }
+        var requestId=frameId+'-image-'+(++imageResourceRequestIndex);
+        imageResourceRequests[requestId]={images:[image],source:normalizedSource};
+        imageResourceRequestIdsBySource[normalizedSource]=requestId;
+        window.parent.postMessage({
+          source:'${HTML_FRAME_MESSAGE_SOURCE}',
+          type:'image-resource-request',
+          frameId:frameId,
+          requestId:requestId,
+          url:normalizedSource
+        },'*');
+      });
+    }
+    function applyImageResourceResponse(data){
+      var request=imageResourceRequests[data.requestId];
+      if(!request)return;
+      delete imageResourceRequests[data.requestId];
+      delete imageResourceRequestIdsBySource[request.source];
+      if(data.type==='image-resource-response'&&data.blob instanceof Blob){
+        var objectUrl=URL.createObjectURL(data.blob);
+        imageResourceObjectUrls.push(objectUrl);
+        request.images.forEach(function(image){image.src=objectUrl;observeImageLoad(image);});
+        return;
+      }
+      request.images.forEach(function(image){image.src=request.source;observeImageLoad(image);});
+    }
+    function revokeImageResourceObjectUrls(){
+      imageResourceObjectUrls.forEach(function(objectUrl){URL.revokeObjectURL(objectUrl);});
+      imageResourceObjectUrls=[];
     }
     function createGalleryNavigationControl(direction,label){
       var control=document.createElement('span');
@@ -807,6 +890,10 @@ function buildFrameBridgeScript(frameId: string, canOpenImages: boolean, needsJq
         loadJqueryAndExecuteUserScripts(data.jquerySource);
         return;
       }
+      if(data.type==='image-resource-response'||data.type==='image-resource-error'){
+        applyImageResourceResponse(data);
+        return;
+      }
       if(data.type==='theme'){
         if(data.theme!=='dark'&&data.theme!=='light')return;
         var dark=data.theme==='dark';
@@ -857,8 +944,9 @@ function buildFrameBridgeScript(frameId: string, canOpenImages: boolean, needsJq
     function init(){
       var contentRoot=document.querySelector('.capubbs-html-frame-root');
       if(window.ResizeObserver&&contentRoot)new ResizeObserver(queueHeight).observe(contentRoot);
-      if(window.MutationObserver&&contentRoot)new MutationObserver(function(){queueHeight();prepareImages();prepareGalleries();syncGrayscaleTextColors(contentRoot);}).observe(contentRoot,{attributes:true,characterData:true,childList:true,subtree:true});
+      if(window.MutationObserver&&contentRoot)new MutationObserver(function(){queueHeight();requestImageResources();prepareImages();prepareGalleries();syncGrayscaleTextColors(contentRoot);}).observe(contentRoot,{attributes:true,characterData:true,childList:true,subtree:true});
       window.addEventListener('load',queueHeight);
+      window.addEventListener('unload',revokeImageResourceObjectUrls);
       document.addEventListener('transitionend',queueHeight);
       document.addEventListener('animationend',queueHeight);
       document.addEventListener('selectionchange',queueSelection);
@@ -871,6 +959,7 @@ function buildFrameBridgeScript(frameId: string, canOpenImages: boolean, needsJq
       if(document.fonts&&document.fonts.ready)document.fonts.ready.then(queueHeight);
       if(needsJquery)window.parent.postMessage({source:'${HTML_FRAME_MESSAGE_SOURCE}',type:'jquery-request',frameId:frameId},'*');
       else executeUserScripts();
+      requestImageResources();
       prepareImages();
       prepareGalleries();
       syncGrayscaleTextColors(contentRoot);
@@ -885,6 +974,24 @@ function deferUserScripts(html: string) {
     const attributes = rawAttributes.replace(/\s+type\s*=\s*(?:"[^"]*"|'[^']*'|[^\s>]+)/gi, '');
     return `<script${attributes} type="text/capubbs-user-script">`;
   });
+}
+
+function deferFrameImageSources(html: string) {
+  if (!/<img\b/i.test(html)) return html;
+
+  const template = document.createElement('template');
+  template.innerHTML = html;
+  template.content.querySelectorAll<HTMLImageElement>('img[src]').forEach((image) => {
+    const source = image.getAttribute('src')?.trim() ?? '';
+    if (!source || /^(?:blob:|data:)/i.test(source)) return;
+    image.dataset.capubbsImageResourceSrc = source;
+    image.removeAttribute('src');
+    image.removeAttribute('srcset');
+    image.closest('picture')?.querySelectorAll('source[srcset]').forEach((pictureSource) => {
+      pictureSource.removeAttribute('srcset');
+    });
+  });
+  return template.innerHTML;
 }
 
 function loadJquerySource() {
@@ -939,6 +1046,12 @@ function isHtmlFrameMessage(value: unknown): value is HtmlFrameMessage {
   }
   if (message.type === 'navigate') return typeof message.url === 'string';
   if (message.type === 'jquery-request') return true;
+  if (message.type === 'image-resource-request') {
+    return typeof message.requestId === 'string'
+      && message.requestId.length > 0
+      && typeof message.url === 'string'
+      && message.url.length > 0;
+  }
   if (message.type === 'selection') return typeof message.text === 'string';
   if (message.type === 'image-open') {
     return typeof message.imageIndex === 'number'
