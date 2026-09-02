@@ -9,6 +9,10 @@ const gallerySource = readFileSync(
   new URL('./src/components/editor/RichTextEditor.gallery.ts', import.meta.url),
   'utf8',
 );
+const lightboxSource = readFileSync(
+  new URL('./src/components/thread/ThreadImageLightbox.tsx', import.meta.url),
+  'utf8',
+);
 
 assert.match(
   markupSource,
@@ -30,5 +34,20 @@ assert.match(
   /function createGalleryNavigationControl[\s\S]*?dataset\.capubbsGalleryAction/,
   'gallery repair must restore missing navigation controls',
 );
+assert.match(
+  markupSource,
+  /element: candidate/,
+  'direct post images must pass their loaded element to the lightbox',
+);
+assert.match(
+  lightboxSource,
+  /originalParent\.insertBefore\(placeholder, element\)[\s\S]*?marker\.parentNode\.insertBefore\(element, marker\)[\s\S]*?placeholder\.parentNode\?\.insertBefore\(element, placeholder\)/,
+  'the lightbox must move and restore the existing image element',
+);
+assert.doesNotMatch(
+  lightboxSource,
+  /new Image\(\)/,
+  'the lightbox must not preload duplicate image resources',
+);
 
-console.log('gallery grouping verification passed (4 assertions)');
+console.log('gallery grouping verification passed (7 assertions)');

@@ -12,6 +12,8 @@ import {
 type ForumMarkupVariant = 'floor' | 'nested' | 'signature';
 export type ForumMarkupImage = {
   alt: string;
+  element?: HTMLImageElement;
+  elementIndex?: number;
   galleryId?: number;
   galleryIndex?: number;
   src: string;
@@ -103,6 +105,7 @@ export function ForumMarkup({
       const location = imageLocations[candidateIndex];
       return {
         alt: candidate.alt.trim(),
+        element: candidate,
         src: candidate.currentSrc || candidate.src,
         ...(location ? {
           galleryId: location.galleryId,

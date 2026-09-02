@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useLayoutEffect, useRef, useState, type MutableRefObject } from 'react';
 import { createPortal } from 'react-dom';
 import { ChevronLeft, ChevronRight, Minus, Plus, RotateCcw, X } from 'lucide-react';
 import type { ForumMarkupImage } from './ForumMarkup';
@@ -261,14 +261,6 @@ export function ThreadImageLightbox({
     };
   }, []);
 
-  useEffect(() => {
-    [images[currentImageIndex - 1], images[currentImageIndex + 1]].forEach((candidate) => {
-      if (!candidate) return;
-      const preloadImage = new Image();
-      preloadImage.src = candidate.src;
-    });
-  }, [currentImageIndex, images]);
-
   function startDragging(pointerId: number, clientX: number, clientY: number) {
     dragRef.current = {
       pointerId,
@@ -454,15 +446,11 @@ export function ThreadImageLightbox({
             </button>
           </>
         )}
-        <img
-          alt={image.alt}
-          draggable="false"
-          onLoad={() => updateOffset(offsetRef.current, scaleRef.current)}
-          ref={imageRef}
-          src={image.src}
-          style={{
-            transform: `translate3d(${offset.x}px, ${offset.y}px, 0) scale(${scale})`,
-          }}
+        <SharedLightboxImage
+          image={image}
+          imageRef={imageRef}
+          onReady={() => updateOffset(offsetRef.current, scaleRef.current)}
+          transform={`translate3d(${offset.x}px, ${offset.y}px, 0) scale(${scale})`}
         />
         {image.alt && <figcaption>{image.alt}</figcaption>}
         <div
@@ -505,4 +493,68 @@ export function ThreadImageLightbox({
     </div>,
     document.body,
   );
+}
+
+function SharedLightboxImage({
+  image,
+  imageRef,
+  onReady,
+  transform,
+}: {
+  image: ForumMarkupImage;
+  imageRef: MutableRefObject<HTMLImageElement | null>;
+  onReady: () => void;
+  transform: string;
+}) {
+  const markerRef = useRef<HTMLSpanElement | null>(null);
+  const onReadyRef = useRef(onReady);
+  onReadyRef.current = onReady;
+
+  useLayoutEffect(() => {
+    const element = image.element;
+    const marker = markerRef.current;
+    const originalParent = element?.parentNode;
+    if (!element || !marker?.parentNode || !originalParent) return undefined;
+
+    const placeholder = element.ownerDocument.createComment('capubbs-lightbox-image');
+    const originalStyle = element.getAttribute('style');
+    const originalDraggable = element.getAttribute('draggable');
+    originalParent.insertBefore(placeholder, element);
+    marker.parentNode.insertBefore(element, marker);
+    element.draggable = false;
+    imageRef.current = element;
+
+    const handleLoad = () => onReadyRef.current();
+    element.addEventListener('load', handleLoad);
+    if (element.complete) handleLoad();
+
+    return () => {
+      element.removeEventListener('load', handleLoad);
+      if (originalStyle === null) element.removeAttribute('style');
+      else element.setAttribute('style', originalStyle);
+      if (originalDraggable === null) element.removeAttribute('draggable');
+      else element.setAttribute('draggable', originalDraggable);
+      placeholder.parentNode?.insertBefore(element, placeholder);
+      placeholder.remove();
+      if (imageRef.current === element) imageRef.current = null;
+    };
+  }, [image, imageRef]);
+
+  useLayoutEffect(() => {
+    if (image.element) image.element.style.transform = transform;
+  }, [image, transform]);
+
+  if (!image.element) {
+    return (
+      <img
+        alt={image.alt}
+        draggable="false"
+        onLoad={onReady}
+        ref={imageRef}
+        src={image.src}
+        style={{ transform }}
+      />
+    );
+  }
+  return <span hidden ref={markerRef} />;
 }

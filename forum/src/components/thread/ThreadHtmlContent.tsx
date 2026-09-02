@@ -261,8 +261,13 @@ function ThreadSandboxedHtmlFrame({
       if (event.data.type === 'image-open') {
         const frame = iframeRef.current;
         if (!frame) return;
+        const frameImages = Array.from(frame.contentDocument?.querySelectorAll('img') ?? []);
+        const sharedImages = event.data.images.map((image) => ({
+          ...image,
+          element: typeof image.elementIndex === 'number' ? frameImages[image.elementIndex] : undefined,
+        }));
         const syncImage: ForumMarkupImageChangeHandler = (imageIndex) => {
-          const image = event.data.images[imageIndex];
+          const image = sharedImages[imageIndex];
           if (
             !image
             || typeof image.galleryId !== 'number'
@@ -277,7 +282,7 @@ function ThreadSandboxedHtmlFrame({
           }, '*');
         };
         onImageOpenRef.current?.(
-          event.data.images,
+          sharedImages,
           event.data.imageIndex,
           frame,
           syncImage,
@@ -633,8 +638,9 @@ function buildFrameBridgeScript(frameId: string, canOpenImages: boolean, needsJq
         });
       var imageIndex=imageElements.indexOf(image);
       if(imageIndex<0)return;
+      var allImages=Array.prototype.slice.call(document.querySelectorAll('.capubbs-html-frame-root img'));
       var images=imageElements.map(function(candidate){
-        var item={alt:(candidate.alt||'').trim(),src:candidate.currentSrc||candidate.src||''};
+        var item={alt:(candidate.alt||'').trim(),elementIndex:allImages.indexOf(candidate),src:candidate.currentSrc||candidate.src||''};
         var gallery=candidate.closest?candidate.closest('.capubbs-gallery'):null;
         if(gallery){
           var galleries=Array.prototype.slice.call(document.querySelectorAll('.capubbs-html-frame-root .capubbs-gallery'));
@@ -921,6 +927,9 @@ function isHtmlFrameMessage(value: unknown): value is HtmlFrameMessage {
         Boolean(image)
         && typeof image === 'object'
         && typeof image.alt === 'string'
+        && typeof image.elementIndex === 'number'
+        && Number.isSafeInteger(image.elementIndex)
+        && image.elementIndex >= 0
         && typeof image.src === 'string'
         && image.src.length > 0
         && (
