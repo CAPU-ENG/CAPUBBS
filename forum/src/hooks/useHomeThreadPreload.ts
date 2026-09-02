@@ -16,6 +16,7 @@ type ConnectionInfo = {
 
 export function useHomeThreadPreload({
   decoration,
+  enabled,
   feed,
   pinned,
   scope,
@@ -23,6 +24,7 @@ export function useHomeThreadPreload({
   tagMedalDisplay,
 }: {
   decoration: boolean;
+  enabled: boolean;
   feed: HomeThread[];
   pinned: HomeThread[];
   scope: ThreadCacheScope | null;
@@ -30,7 +32,7 @@ export function useHomeThreadPreload({
   tagMedalDisplay: boolean;
 }) {
   useEffect(() => {
-    if (!scope) return;
+    if (!enabled || !scope) return;
     let canceled = false;
     let cancelScheduled = () => {};
 
@@ -59,7 +61,7 @@ export function useHomeThreadPreload({
       cancelQueuedHomeThreadPreloads();
       document.removeEventListener('visibilitychange', handleVisibility);
     };
-  }, [decoration, feed, pinned, scope, signup, tagMedalDisplay]);
+  }, [decoration, enabled, feed, pinned, scope, signup, tagMedalDisplay]);
 }
 
 function candidate(

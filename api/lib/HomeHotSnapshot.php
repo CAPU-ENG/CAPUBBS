@@ -64,7 +64,18 @@ function home_hot_snapshot_mark_dirty() {
         $manifest['dirty'] = true;
         home_hot_snapshot_write_json_atomic(home_hot_snapshot_manifest_path(), $manifest);
     }
+    home_hot_snapshot_mark_public_documents_dirty();
     return true;
+}
+
+function home_hot_snapshot_mark_public_documents_dirty() {
+    foreach (array('hot-15.json', 'hot-30-compact.json') as $filename) {
+        $path = home_hot_snapshot_root() . '/' . $filename;
+        $document = home_hot_snapshot_read_json($path);
+        if (!is_array($document) || !isset($document['meta']) || !is_array($document['meta'])) continue;
+        $document['meta']['dirty'] = true;
+        home_hot_snapshot_write_json_atomic($path, $document);
+    }
 }
 
 function home_hot_snapshot_should_mark_dirty($ask, $result) {
@@ -80,6 +91,9 @@ function home_hot_snapshot_should_mark_dirty($ask, $result) {
 
 function home_hot_snapshot_needs_refresh() {
     if (is_file(home_hot_snapshot_dirty_path())) return true;
+    foreach (array('hot-15.json', 'hot-30-compact.json') as $filename) {
+        if (!is_file(home_hot_snapshot_root() . '/' . $filename)) return true;
+    }
 
     $manifest = home_hot_snapshot_read_json(home_hot_snapshot_manifest_path());
     if (!is_array($manifest) || empty($manifest['generation']) || empty($manifest['expiresAt'])) return true;
@@ -195,32 +209,46 @@ function home_hot_snapshot_publish($rows, $dirtyAtStart) {
     foreach ($compactRows as &$row) unset($row['text']);
     unset($row);
 
-    $documents = array(
-        'hot-15.json' => home_hot_snapshot_document(array_slice($rows, 0, 15), $generation, 'standard', count($rows)),
-        'hot-30-compact.json' => home_hot_snapshot_document($compactRows, $generation, 'compact', count($rows)),
-        'hot-100.json' => home_hot_snapshot_document($rows, $generation, 'full', count($rows)),
-    );
-    foreach ($documents as $filename => $document) {
-        if (!home_hot_snapshot_write_json_atomic($generationDirectory . '/' . $filename, $document)) return false;
-    }
-
     $currentDirty = @file_get_contents(home_hot_snapshot_dirty_path());
     if ($dirtyAtStart !== false && $currentDirty !== false && $dirtyAtStart === $currentDirty) {
         @unlink(home_hot_snapshot_dirty_path());
     }
     $stillDirty = is_file(home_hot_snapshot_dirty_path());
     $generatedAt = time();
+    $expiresAt = $generatedAt + CAPUBBS_HOME_HOT_SNAPSHOT_TTL;
     $baseUrl = '/api/cache/home-hot/snapshots/' . $generation . '/';
+    $documents = array(
+        'hot-15.json' => home_hot_snapshot_document(
+            array_slice($rows, 0, 15), $generation, 'standard', count($rows), $generatedAt, $expiresAt, $stillDirty
+        ),
+        'hot-30-compact.json' => home_hot_snapshot_document(
+            $compactRows, $generation, 'compact', count($rows), $generatedAt, $expiresAt, $stillDirty
+        ),
+        'hot-100.json' => home_hot_snapshot_document(
+            $rows, $generation, 'full', count($rows), $generatedAt, $expiresAt, $stillDirty
+        ),
+    );
+    foreach ($documents as $filename => $document) {
+        if (!home_hot_snapshot_write_json_atomic($generationDirectory . '/' . $filename, $document)) return false;
+    }
+    foreach (array('hot-15.json', 'hot-30-compact.json') as $filename) {
+        if (!home_hot_snapshot_write_json_atomic($root . '/' . $filename, $documents[$filename])) return false;
+    }
+
+    if (!$stillDirty && is_file(home_hot_snapshot_dirty_path())) {
+        $stillDirty = true;
+        home_hot_snapshot_mark_public_documents_dirty();
+    }
     $manifest = array(
         'version' => 1,
         'generation' => $generation,
         'generatedAt' => $generatedAt,
-        'expiresAt' => $generatedAt + CAPUBBS_HOME_HOT_SNAPSHOT_TTL,
+        'expiresAt' => $expiresAt,
         'dirty' => $stillDirty,
         'count' => count($rows),
         'files' => array(
-            'standard' => $baseUrl . 'hot-15.json',
-            'compact' => $baseUrl . 'hot-30-compact.json',
+            'standard' => '/api/cache/home-hot/hot-15.json',
+            'compact' => '/api/cache/home-hot/hot-30-compact.json',
             'full' => $baseUrl . 'hot-100.json',
         ),
     );
@@ -229,7 +257,7 @@ function home_hot_snapshot_publish($rows, $dirtyAtStart) {
     return true;
 }
 
-function home_hot_snapshot_document($rows, $generation, $kind, $total) {
+function home_hot_snapshot_document($rows, $generation, $kind, $total, $generatedAt, $expiresAt, $dirty) {
     return array(
         'code' => 0,
         'message' => 'success',
@@ -239,6 +267,9 @@ function home_hot_snapshot_document($rows, $generation, $kind, $total) {
             'kind' => $kind,
             'count' => count($rows),
             'total' => intval($total),
+            'generatedAt' => intval($generatedAt),
+            'expiresAt' => intval($expiresAt),
+            'dirty' => !!$dirty,
         ),
     );
 }

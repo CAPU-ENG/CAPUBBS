@@ -32,15 +32,20 @@ $compact = home_hot_snapshot_read_json($generationDirectory . '/hot-30-compact.j
 $full = home_hot_snapshot_read_json($generationDirectory . '/hot-100.json');
 if (count($standard['data']) !== 15 || count($compact['data']) !== 30 || count($full['data']) !== 100) exit(12);
 if (isset($compact['data'][0]['text']) || !isset($full['data'][0]['text'])) exit(13);
+$publicStandard = home_hot_snapshot_read_json(home_hot_snapshot_root() . '/hot-15.json');
+$publicCompact = home_hot_snapshot_read_json(home_hot_snapshot_root() . '/hot-30-compact.json');
+if ($publicStandard['meta']['generation'] !== $manifest['generation'] || count($publicCompact['data']) !== 30) exit(14);
 
 home_hot_snapshot_mark_dirty();
 $dirtyManifest = home_hot_snapshot_read_json(home_hot_snapshot_manifest_path());
-if (empty($dirtyManifest['dirty'])) exit(14);
+if (empty($dirtyManifest['dirty'])) exit(15);
+$dirtyStandard = home_hot_snapshot_read_json(home_hot_snapshot_root() . '/hot-15.json');
+if (empty($dirtyStandard['meta']['dirty'])) exit(16);
 
 $lock = fopen(home_hot_snapshot_root() . '/hot.lock', 'c');
 flock($lock, LOCK_EX);
 $busy = home_hot_snapshot_refresh();
-if ($busy['status'] !== 'busy') exit(15);
+if ($busy['status'] !== 'busy') exit(17);
 `;
 
 try {
@@ -56,10 +61,17 @@ try {
 
   const homeApi = readFileSync(join(forumDirectory, 'src/api/home.ts'), 'utf8');
   const homeData = readFileSync(join(forumDirectory, 'src/hooks/useHomeData.ts'), 'utf8');
-  assert.match(homeApi, /cache\/home-hot\/current\.json/);
+  const homePage = readFileSync(join(forumDirectory, 'src/pages/HomePage.tsx'), 'utf8');
+  const homePreload = readFileSync(join(forumDirectory, 'src/hooks/useHomeThreadPreload.ts'), 'utf8');
+  const cacheHtaccess = readFileSync(join(repositoryDirectory, 'api/cache/home-hot/.htaccess'), 'utf8');
+  assert.match(homeApi, /cache\/home-hot\/hot-15\.json/);
+  assert.doesNotMatch(homeApi, /requestSnapshotManifest/);
   assert.match(homeApi, /hot-100\.json/);
   assert.match(homeData, /feedSnapshotRef/);
   assert.match(homeData, /fetchHomeFeedPage/);
+  assert.match(homePage, /enabled: feed\.status === 'ready'/);
+  assert.match(homePreload, /if \(!enabled \|\| !scope\) return/);
+  assert.match(cacheHtaccess, /SetOutputFilter DEFLATE/);
 } finally {
   rmSync(snapshotDirectory, { force: true, recursive: true });
 }

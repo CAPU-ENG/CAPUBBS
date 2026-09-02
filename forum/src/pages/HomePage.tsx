@@ -25,6 +25,7 @@ export function HomePage() {
   const readThreadIds = useReadThreadIds(viewer?.username);
   useHomeThreadPreload({
     decoration: floorDecorationEnabled,
+    enabled: feed.status === 'ready',
     feed: feed.items,
     pinned: pinned.items,
     scope: authStatus === 'loading' ? null : getThreadCacheScope(viewer?.username),
