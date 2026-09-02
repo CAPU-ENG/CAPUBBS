@@ -10,8 +10,12 @@ import {
 
 type AuthStatus = 'authenticated' | 'guest' | 'loading' | 'restoring';
 const SESSION_VIEWER_STORAGE_KEY = 'capubbs-session-viewer';
+const SESSION_VIEWER_REFRESHED_AT_STORAGE_KEY = 'capubbs-session-viewer-refreshed-at';
+const SESSION_VIEWER_REFRESH_INTERVAL_MS = 7 * 24 * 60 * 60 * 1000;
+const SESSION_VIEWER_RETRY_INTERVAL_MS = 5 * 60 * 1000;
 
 type AuthState = {
+  refreshAt: number;
   status: AuthStatus;
   viewer: SessionViewer | null;
 };
@@ -19,6 +23,7 @@ type AuthState = {
 type AuthContextValue = {
   login: (username: string, passwordHash: string) => Promise<SessionViewer>;
   logout: () => Promise<void>;
+  refreshViewer: () => void;
   register: (draft: RegisterDraft) => Promise<SessionViewer>;
   status: AuthStatus;
   updateViewerAvatar: (avatar: string) => void;
@@ -32,32 +37,59 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [auth, setAuth] = useState<AuthState>(restoreCachedAuth);
 
   useEffect(() => {
-    const controller = new AbortController();
+    if (auth.status === 'guest') return;
 
-    void fetchSessionViewer(controller.signal).then(
-      (sessionViewer) => {
-        if (sessionViewer) {
-          cacheViewer(sessionViewer);
-          setAuth({ status: 'authenticated', viewer: sessionViewer });
-        } else {
+    let controller: AbortController | null = null;
+    const timeout = window.setTimeout(() => {
+      controller = new AbortController();
+      void fetchSessionViewer(controller.signal).then(
+        (sessionViewer) => {
+          if (sessionViewer) {
+            const refreshedAt = Date.now();
+            cacheViewer(sessionViewer);
+            cacheViewerRefreshedAt(refreshedAt);
+            setAuth({
+              refreshAt: refreshedAt + SESSION_VIEWER_REFRESH_INTERVAL_MS,
+              status: 'authenticated',
+              viewer: sessionViewer,
+            });
+          } else {
+            clearCachedViewer();
+            setAuth({ refreshAt: 0, status: 'guest', viewer: null });
+          }
+        },
+        (error: unknown) => {
+          if (error instanceof DOMException && error.name === 'AbortError') return;
+          if (auth.viewer) {
+            setAuth((current) => current.viewer ? {
+              ...current,
+              refreshAt: Date.now() + SESSION_VIEWER_RETRY_INTERVAL_MS,
+              status: 'authenticated',
+            } : current);
+            return;
+          }
           clearCachedViewer();
-          setAuth({ status: 'guest', viewer: null });
-        }
-      },
-      (error: unknown) => {
-        if (error instanceof DOMException && error.name === 'AbortError') return;
-        clearCachedViewer();
-        setAuth({ status: 'guest', viewer: null });
-      },
-    );
+          setAuth({ refreshAt: 0, status: 'guest', viewer: null });
+        },
+      );
+    }, Math.max(0, auth.refreshAt - Date.now()));
 
-    return () => controller.abort();
-  }, []);
+    return () => {
+      window.clearTimeout(timeout);
+      controller?.abort();
+    };
+  }, [auth.refreshAt, auth.status, auth.viewer]);
 
   const login = useCallback(async (username: string, passwordHash: string) => {
     const sessionViewer = await loginSession(username, passwordHash);
+    const refreshedAt = Date.now();
     cacheViewer(sessionViewer);
-    setAuth({ status: 'authenticated', viewer: sessionViewer });
+    cacheViewerRefreshedAt(refreshedAt);
+    setAuth({
+      refreshAt: refreshedAt + SESSION_VIEWER_REFRESH_INTERVAL_MS,
+      status: 'authenticated',
+      viewer: sessionViewer,
+    });
     return sessionViewer;
   }, []);
 
@@ -66,14 +98,24 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       await logoutSession();
     } finally {
       clearCachedViewer();
-      setAuth({ status: 'guest', viewer: null });
+      setAuth({ refreshAt: 0, status: 'guest', viewer: null });
     }
+  }, []);
+
+  const refreshViewer = useCallback(() => {
+    setAuth((current) => current.viewer ? { ...current, refreshAt: Date.now() } : current);
   }, []);
 
   const register = useCallback(async (draft: RegisterDraft) => {
     const sessionViewer = await registerSession(draft);
+    const refreshedAt = Date.now();
     cacheViewer(sessionViewer);
-    setAuth({ status: 'authenticated', viewer: sessionViewer });
+    cacheViewerRefreshedAt(refreshedAt);
+    setAuth({
+      refreshAt: refreshedAt + SESSION_VIEWER_REFRESH_INTERVAL_MS,
+      status: 'authenticated',
+      viewer: sessionViewer,
+    });
     return sessionViewer;
   }, []);
 
@@ -99,13 +141,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     () => ({
       login,
       logout,
+      refreshViewer,
       register,
       status: auth.status,
       updateViewerAvatar,
       updateViewerUnreadMessages,
       viewer: auth.viewer,
     }),
-    [auth.status, auth.viewer, login, logout, register, updateViewerAvatar, updateViewerUnreadMessages],
+    [auth.status, auth.viewer, login, logout, refreshViewer, register, updateViewerAvatar, updateViewerUnreadMessages],
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
@@ -120,12 +163,12 @@ export function useAuth() {
 function restoreCachedAuth(): AuthState {
   if (!hasTokenCookie()) {
     clearCachedViewer();
-    return { status: 'loading', viewer: null };
+    return { refreshAt: 0, status: 'guest', viewer: null };
   }
 
   try {
     const value = window.localStorage.getItem(SESSION_VIEWER_STORAGE_KEY);
-    if (!value) return { status: 'loading', viewer: null };
+    if (!value) return { refreshAt: 0, status: 'loading', viewer: null };
     const viewer = JSON.parse(value) as Partial<SessionViewer>;
     if (
       typeof viewer.username !== 'string'
@@ -135,12 +178,18 @@ function restoreCachedAuth(): AuthState {
       || typeof viewer.unreadMessages !== 'number'
     ) {
       clearCachedViewer();
-      return { status: 'loading', viewer: null };
+      return { refreshAt: 0, status: 'loading', viewer: null };
     }
-    return { status: 'restoring', viewer: viewer as SessionViewer };
+    const refreshedAt = readCachedViewerRefreshedAt();
+    const refreshAt = refreshedAt + SESSION_VIEWER_REFRESH_INTERVAL_MS;
+    return {
+      refreshAt,
+      status: refreshAt > Date.now() ? 'authenticated' : 'restoring',
+      viewer: viewer as SessionViewer,
+    };
   } catch {
     clearCachedViewer();
-    return { status: 'loading', viewer: null };
+    return { refreshAt: 0, status: 'loading', viewer: null };
   }
 }
 
@@ -155,9 +204,23 @@ function cacheViewer(viewer: SessionViewer) {
 function clearCachedViewer() {
   try {
     window.localStorage.removeItem(SESSION_VIEWER_STORAGE_KEY);
+    window.localStorage.removeItem(SESSION_VIEWER_REFRESHED_AT_STORAGE_KEY);
   } catch {
     // Ignore storage restrictions; logout still clears the authentication cookie.
   }
+}
+
+function cacheViewerRefreshedAt(refreshedAt: number) {
+  try {
+    window.localStorage.setItem(SESSION_VIEWER_REFRESHED_AT_STORAGE_KEY, String(refreshedAt));
+  } catch {
+    // The in-memory refresh schedule still applies when storage is unavailable.
+  }
+}
+
+function readCachedViewerRefreshedAt() {
+  const value = Number(window.localStorage.getItem(SESSION_VIEWER_REFRESHED_AT_STORAGE_KEY));
+  return Number.isFinite(value) && value > 0 ? value : 0;
 }
 
 function hasTokenCookie() {

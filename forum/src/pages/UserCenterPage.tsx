@@ -46,7 +46,7 @@ type OpenDialog = 'avatar' | 'email' | 'personalization' | 'security' | null;
 type PageNotice = { message: string; tone: 'error' | 'success' } | null;
 
 export function UserCenterPage() {
-  const { logout, status: authStatus, updateViewerAvatar, viewer } = useAuth();
+  const { logout, refreshViewer, status: authStatus, updateViewerAvatar, viewer } = useAuth();
   const profileState = useUserCenterProfile(authStatus === 'authenticated' ? viewer?.username ?? null : null);
   const profile = authStatus === 'authenticated' ? profileState.data : null;
   const authPending = authStatus === 'loading' || authStatus === 'restoring';
@@ -189,6 +189,7 @@ export function UserCenterPage() {
       setIsSavingProfile(true);
       const updatedProfile = await updateProfileDetails(draft);
       profileState.replace(updatedProfile);
+      refreshViewer();
       setIsEditing(false);
       setNotice({ message: '资料保存成功', tone: 'success' });
     } catch (error) {
@@ -253,6 +254,7 @@ export function UserCenterPage() {
           onSaveSignatures={async (signatures) => {
             const updatedProfile = await updateProfileSignatures(signatures);
             profileState.replace(updatedProfile);
+            refreshViewer();
           }}
           ownerLabel="我"
         />
@@ -273,6 +275,7 @@ export function UserCenterPage() {
           }
           profileState.replace(updatedProfile);
           updateViewerAvatar(updatedProfile.avatarSrc);
+          refreshViewer();
           setNotice({ message: '头像修改成功', tone: 'success' });
         }}
         open={openDialog === 'avatar'}
@@ -284,10 +287,12 @@ export function UserCenterPage() {
         onSave={async (visible) => {
           await updateProfileEmailVisibility(visible);
           profileState.replace({ ...profile, emailVisible: visible });
+          refreshViewer();
         }}
         onSendCode={sendProfileEmailCode}
         onVerify={async (code) => {
           profileState.replace(await verifyProfileEmail(code));
+          refreshViewer();
         }}
         open={openDialog === 'email'}
         verified={profile.emailVerified}
@@ -297,6 +302,7 @@ export function UserCenterPage() {
         onClose={closeDialog}
         onSave={(updatedProfile) => {
           profileState.replace(updatedProfile);
+          refreshViewer();
           setNotice({ message: '个性化设置已保存', tone: 'success' });
         }}
         open={openDialog === 'personalization'}
