@@ -10,6 +10,7 @@ type ApiEnvelope = {
   code: number;
   data?: unknown;
   message?: string;
+  meta?: unknown;
 };
 
 type ApiRow = Record<string, unknown>;
@@ -28,6 +29,19 @@ export type HomeThread = {
   timestamp: string;
   title: string;
   views: number;
+};
+
+export type HomeFeedSnapshot = {
+  fullUrl: string;
+  generation: string;
+  items: HomeThread[];
+  total: number;
+};
+
+export type HomeFeedPage = {
+  hasMore: boolean;
+  items: HomeThread[];
+  snapshot: HomeFeedSnapshot | null;
 };
 
 export type HomeCalendarEvent = {
@@ -60,6 +74,171 @@ export class HomeApiError extends Error {
 export async function fetchHomeFeed(limit = 15, signal?: AbortSignal, includeText = true) {
   const rows = await requestRows({ ask: 'hot', hotnum: limit, text: includeText ? '1' : '0' }, signal);
   return rows.map((row) => mapThreadRow(row, true)).filter((thread): thread is HomeThread => thread !== null);
+}
+
+type HomeHotManifest = {
+  count: number;
+  dirty: boolean;
+  expiresAt: number;
+  files: {
+    compact: string;
+    full: string;
+    standard: string;
+  };
+  generation: string;
+};
+
+export async function fetchHomeFeedPage({
+  includeText = true,
+  limit = 15,
+  previous = null,
+  signal,
+}: {
+  includeText?: boolean;
+  limit?: number;
+  previous?: HomeFeedSnapshot | null;
+  signal?: AbortSignal;
+}): Promise<HomeFeedPage> {
+  if (previous) {
+    const visibleCount = Math.min(limit, previous.total);
+    if (previous.items.length >= visibleCount) {
+      return snapshotPage(previous, limit);
+    }
+
+    try {
+      const fullSnapshot = await requestSnapshot(previous.fullUrl, previous.generation, signal);
+      return snapshotPage(fullSnapshot, limit);
+    } catch (error) {
+      if (isAbortError(error)) throw error;
+    }
+  }
+
+  try {
+    const manifest = await requestSnapshotManifest(signal);
+    const selectedUrl = includeText && limit <= 15
+      ? manifest.files.standard
+      : !includeText && limit <= 30
+        ? manifest.files.compact
+        : manifest.files.full;
+    const snapshot = await requestSnapshot(selectedUrl, manifest.generation, signal, manifest.count);
+    if (manifest.dirty || manifest.expiresAt <= Math.floor(Date.now() / 1000)) triggerSnapshotRefresh();
+    return snapshotPage(snapshot, limit);
+  } catch (error) {
+    if (isAbortError(error)) throw error;
+  }
+
+  const items = await fetchHomeFeed(limit, signal, includeText);
+  triggerSnapshotRefresh();
+  return {
+    hasMore: items.length >= limit,
+    items,
+    snapshot: null,
+  };
+}
+
+function snapshotPage(snapshot: HomeFeedSnapshot, limit: number): HomeFeedPage {
+  const items = snapshot.items.slice(0, limit);
+  return {
+    hasMore: items.length < snapshot.total,
+    items,
+    snapshot,
+  };
+}
+
+async function requestSnapshotManifest(signal?: AbortSignal): Promise<HomeHotManifest> {
+  const response = await fetch(homeApiSiblingUrl('cache/home-hot/current.json'), {
+    cache: 'no-store',
+    credentials: 'include',
+    headers: { Accept: 'application/json' },
+    signal,
+  });
+  if (!response.ok) throw new HomeApiError('热帖快照尚未初始化。');
+
+  const value: unknown = await response.json();
+  if (!isApiRow(value) || !isApiRow(value.files)) throw new HomeApiError('热帖快照清单无效。');
+  const generation = plainSnapshotString(value.generation);
+  const standard = plainSnapshotString(value.files.standard);
+  const compact = plainSnapshotString(value.files.compact);
+  const full = plainSnapshotString(value.files.full);
+  if (!generation || !standard || !compact || !full) throw new HomeApiError('热帖快照清单不完整。');
+
+  return {
+    count: toNumber(value.count),
+    dirty: value.dirty === true,
+    expiresAt: toNumber(value.expiresAt),
+    files: {
+      compact: safeSnapshotUrl(compact),
+      full: safeSnapshotUrl(full),
+      standard: safeSnapshotUrl(standard),
+    },
+    generation,
+  };
+}
+
+async function requestSnapshot(
+  url: string,
+  generation: string,
+  signal?: AbortSignal,
+  manifestTotal?: number,
+): Promise<HomeFeedSnapshot> {
+  const response = await fetch(safeSnapshotUrl(url), {
+    cache: 'force-cache',
+    credentials: 'include',
+    headers: { Accept: 'application/json' },
+    signal,
+  });
+  if (!response.ok) throw new HomeApiError('热帖快照加载失败。');
+
+  const payload = await response.json() as ApiEnvelope;
+  const meta = isApiRow(payload.meta) ? payload.meta : {};
+  const kind = plainSnapshotString(meta.kind);
+  if (payload.code !== 0 || plainSnapshotString(meta.generation) !== generation || !Array.isArray(payload.data)) {
+    throw new HomeApiError('热帖快照数据无效。');
+  }
+  const items = payload.data
+    .filter(isApiRow)
+    .map((row) => mapThreadRow(row, true))
+    .filter((thread): thread is HomeThread => thread !== null);
+  const total = kind === 'full' ? items.length : (manifestTotal ?? toNumber(meta.total));
+  return {
+    fullUrl: safeSnapshotUrl(homeSnapshotFullUrl(url, generation)),
+    generation,
+    items,
+    total: Math.max(items.length, total),
+  };
+}
+
+function homeSnapshotFullUrl(selectedUrl: string, generation: string) {
+  const url = new URL(safeSnapshotUrl(selectedUrl));
+  const expectedSegment = `/snapshots/${generation}/`;
+  if (!url.pathname.includes(expectedSegment)) throw new HomeApiError('热帖快照版本无效。');
+  return new URL('hot-100.json', url).href;
+}
+
+function triggerSnapshotRefresh() {
+  void fetch(homeApiSiblingUrl('home-hot-refresh.php'), {
+    cache: 'no-store',
+    credentials: 'include',
+    headers: { Accept: 'application/json' },
+    method: 'POST',
+  }).catch(() => undefined);
+}
+
+function homeApiSiblingUrl(path: string) {
+  return new URL(path, new URL(HOME_API_URL, window.location.origin)).href;
+}
+
+function safeSnapshotUrl(value: string) {
+  const apiUrl = new URL(HOME_API_URL, window.location.origin);
+  const url = new URL(value, apiUrl);
+  if (url.origin !== apiUrl.origin || !url.pathname.startsWith('/api/cache/home-hot/')) {
+    throw new HomeApiError('热帖快照地址无效。');
+  }
+  return url.href;
+}
+
+function plainSnapshotString(value: unknown) {
+  return typeof value === 'string' ? value.trim() : '';
 }
 
 export async function fetchGlobalPinnedThreads(signal?: AbortSignal) {

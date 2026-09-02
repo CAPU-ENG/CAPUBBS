@@ -2,10 +2,11 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import {
   fetchGlobalPinnedThreads,
   fetchHomeCalendar,
-  fetchHomeFeed,
+  fetchHomeFeedPage,
   fetchHomeSignupActivities,
   isAbortError,
   type HomeCalendarEvent,
+  type HomeFeedSnapshot,
   type HomeSignupActivity,
   type HomeThread,
 } from '../api/home';
@@ -64,6 +65,7 @@ export function useHomeData(compactMode = false) {
   const [calendar, setCalendar] = useState<CalendarState>(initialCalendar);
   const [signup, setSignup] = useState<SignupState>(initialSignup);
   const [requestVersion, setRequestVersion] = useState(0);
+  const feedSnapshotRef = useRef<HomeFeedSnapshot | null>(null);
   const [calendarRange] = useState(() => {
     const currentYear = new Date().getFullYear();
     return {
@@ -107,10 +109,16 @@ export function useHomeData(compactMode = false) {
     const controller = new AbortController();
     setFeed((current) => ({ ...current, error: '', status: 'loading' }));
 
-    void fetchHomeFeed(activeFeedLimit, controller.signal, !compactMode).then(
-      (items) => {
-        setFeedHasMore(items.length >= activeFeedLimit);
-        setFeed({ error: '', items, status: 'ready' });
+    void fetchHomeFeedPage({
+      includeText: !compactMode,
+      limit: activeFeedLimit,
+      previous: feedSnapshotRef.current,
+      signal: controller.signal,
+    }).then(
+      (page) => {
+        feedSnapshotRef.current = page.snapshot;
+        setFeedHasMore(page.hasMore);
+        setFeed({ error: '', items: page.items, status: 'ready' });
       },
       (error: unknown) => {
         if (!isAbortError(error)) {
