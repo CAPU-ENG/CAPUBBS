@@ -3,12 +3,15 @@ import { useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { fetchPublicUserMedals } from '../../api/medals';
 import type { UserMedal } from '../../data/medals';
+import { preloadMedalImages, readCachedUserMedals, writeCachedUserMedals } from '../../utils/medalCache';
 import { MedalBadge } from './MedalBadge';
 import { requestMedalMotionPermission } from './useMedalTilt';
 
 const MEDAL_DATE_FORMATTER = new Intl.DateTimeFormat('zh-CN', {
   dateStyle: 'long',
 });
+
+const medalRequests = new Map<string, Promise<UserMedal[]>>();
 
 export function ProfileMedalGallery({
   medals,
@@ -34,10 +37,34 @@ export function ProfileMedalGallery({
   }, [activeIndex, medals.length]);
 
   useEffect(() => {
+    preloadMedalImages(medals);
+  }, [medals]);
+
+  useEffect(() => {
+    if (!profileName?.trim()) return;
+    let active = true;
+    void readCachedUserMedals(profileName).then((cachedMedals) => {
+      if (!active || !cachedMedals) return;
+      setLoadedMedals(cachedMedals);
+      preloadMedalImages(cachedMedals);
+    });
+    return () => { active = false; };
+  }, [profileName]);
+
+  useEffect(() => {
+    if (variant !== 'profile' || !profileName?.trim()) return;
+    const preload = () => { void loadFullMedals(profileName).then(setLoadedMedals).catch(() => undefined); };
+    if (typeof window.requestIdleCallback === 'function') {
+      const idleId = window.requestIdleCallback(preload, { timeout: 1500 });
+      return () => window.cancelIdleCallback(idleId);
+    }
+    const timeoutId = window.setTimeout(preload, 300);
+    return () => window.clearTimeout(timeoutId);
+  }, [profileName, variant]);
+
+  useEffect(() => {
     if (!activeMedal || activeMedal.largeImagePath || !profileName?.trim()) return;
-    const controller = new AbortController();
-    void fetchPublicUserMedals(profileName, controller.signal).then(setLoadedMedals).catch(() => undefined);
-    return () => controller.abort();
+    void loadFullMedals(profileName).then(setLoadedMedals).catch(() => undefined);
   }, [activeMedal, profileName]);
 
   useEffect(() => {
@@ -97,10 +124,13 @@ export function ProfileMedalGallery({
             aria-label={`查看“${medal.name}”勋章`}
             className={compact ? 'user-medal-list-button' : 'profile-identity-medal-button'}
             key={medal.id}
+            onFocus={() => { void warmMedalGallery(profileName, setLoadedMedals); }}
             onClick={() => {
               requestMedalMotionPermission();
               setActiveIndex(index);
             }}
+            onPointerEnter={() => { void warmMedalGallery(profileName, setLoadedMedals); }}
+            onPointerDown={() => { void warmMedalGallery(profileName, setLoadedMedals); }}
             type="button"
           >
             <MedalBadge medal={medal} />
@@ -172,6 +202,33 @@ export function ProfileMedalGallery({
       ) : null}
     </>
   );
+}
+
+function warmMedalGallery(
+  profileName: string | undefined,
+  onLoaded: (medals: UserMedal[]) => void,
+) {
+  if (!profileName?.trim()) return;
+  void loadFullMedals(profileName).then(onLoaded).catch(() => undefined);
+}
+
+function loadFullMedals(profileName: string) {
+  const requestKey = profileName.trim().toLocaleLowerCase();
+  const pendingRequest = medalRequests.get(requestKey);
+  if (pendingRequest) return pendingRequest;
+
+  const request = fetchPublicUserMedals(profileName)
+    .then((fullMedals) => {
+      preloadMedalImages(fullMedals);
+      void writeCachedUserMedals(profileName, fullMedals);
+      return fullMedals;
+    })
+    .catch((error) => {
+      medalRequests.delete(requestKey);
+      throw error;
+    });
+  medalRequests.set(requestKey, request);
+  return request;
 }
 
 function formatAwardedAt(timestamp: number) {
