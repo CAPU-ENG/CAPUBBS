@@ -44,6 +44,7 @@ export function TagManagementWorkspace() {
   const [deleteTagMembers, setDeleteTagMembers] = useState<TagMember[]>([]);
   const [deleteTagMembersStatus, setDeleteTagMembersStatus] = useState<'error' | 'loading' | 'ready'>('ready');
   const deleteTagMembersRequestId = useRef(0);
+  const memberInputRef = useRef<HTMLInputElement>(null);
   const [notice, setNotice] = useState<Notice>(null);
 
   const sortedDefinitions = useMemo(
@@ -104,6 +105,12 @@ export function TagManagementWorkspace() {
     );
     return () => controller.abort();
   }, [activeTagId]);
+
+  useEffect(() => {
+    if (memberDialogOpen && !memberCheckLoading && !pendingAction) {
+      memberInputRef.current?.focus();
+    }
+  }, [memberCheckLoading, memberDialogOpen, pendingAction]);
 
   function startCreate() {
     setEditingId('new');
@@ -389,7 +396,7 @@ export function TagManagementWorkspace() {
             <header><div><span>批量绑定</span><h2 id="add-tag-members-title">添加到“{activeTag?.name ?? '标签'}”</h2></div><button aria-label="关闭" className="management-icon-button" disabled={Boolean(pendingAction) || memberCheckLoading} onClick={closeMemberDialog} type="button"><X size={16} /></button></header>
             <form className="management-dialog-form" onSubmit={appendMember}>
               <label htmlFor="tag-member-input">会员 ID</label>
-              <div className="management-input-action"><input autoFocus disabled={memberCheckLoading || Boolean(pendingAction)} id="tag-member-input" onChange={(event) => setMemberDraft(event.target.value)} placeholder="输入后按回车" value={memberDraft} /><button disabled={memberCheckLoading || Boolean(pendingAction)} type="submit"><Plus size={15} />{memberCheckLoading ? '查询中' : '加入列表'}</button></div>
+              <div className="management-input-action"><input autoFocus disabled={memberCheckLoading || Boolean(pendingAction)} id="tag-member-input" onChange={(event) => setMemberDraft(event.target.value)} placeholder="输入后按回车" ref={memberInputRef} value={memberDraft} /><button disabled={memberCheckLoading || Boolean(pendingAction)} type="submit"><Plus size={15} />{memberCheckLoading ? '查询中' : '加入列表'}</button></div>
             </form>
             {notice && <ManagementNotice kind={notice.kind}>{notice.text}</ManagementNotice>}
             <div className="management-pending-members">
