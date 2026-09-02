@@ -29,8 +29,10 @@ assert.match(server, /if \(!\$prefetch\) \{[\s\S]*?thread_detail_query_record_vi
 assert.match(server, /function jiekoufunc_thread_view[\s\S]*?thread_detail_query_record_view/, 'cached navigation must have a lightweight view endpoint');
 assert.match(dispatch, /'thread_view'[\s\S]*?'jiekoufunc_thread_view'/, 'the lightweight view endpoint must be registered');
 assert.doesNotMatch(detailPayload, /'revision'/, 'full thread responses must not compute revision tokens');
+assert.doesNotMatch(server, /thread_revisions|thread_detail_query_revision/, 'the legacy revision handler and helpers must be removed');
+assert.doesNotMatch(dispatch, /thread_revisions|jiekoufunc_thread_revisions/, 'the legacy revision route must be removed');
 
-console.log('thread content cache verification passed (17 assertions)');
+console.log('thread content cache verification passed (19 assertions)');
 
 function read(relativePath) {
   return readFileSync(new URL(relativePath, import.meta.url), 'utf8');
