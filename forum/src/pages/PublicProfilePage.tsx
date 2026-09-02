@@ -1,20 +1,29 @@
 import { RefreshCw, UserRoundX } from 'lucide-react';
-import { useState } from 'react';
-import { sendProfilePrivateMessage } from '../api/profile';
+import { useCallback, useState } from 'react';
+import { fetchPublicProfileActivities, sendProfilePrivateMessage } from '../api/profile';
 import { AppBackground } from '../components/layout/AppBackground';
 import { LoadingState } from '../components/layout/LoadingState';
 import { TopBar } from '../components/layout/TopBar';
 import { PrivateMessageDialog } from '../components/profile/ProfileDialogs';
 import { ProfileOverview } from '../components/profile/ProfileOverview';
 import { ProfileWorkspace } from '../components/profile/ProfileWorkspace';
+import { useAuth } from '../context/AuthContext';
 import type { ProfileTab } from '../data/profile';
 import { usePublicProfile } from '../hooks/useProfileData';
 import { useDocumentTitle } from '../hooks/useDocumentTitle';
 
+const PUBLIC_PROFILE_LAZY_TABS: ProfileTab[] = ['activities'];
+
 export function PublicProfilePage({ profileName }: { profileName: string | null }) {
+  const { status: authStatus, viewer } = useAuth();
+  const viewerUsername = authStatus === 'authenticated' ? viewer?.username : undefined;
   const profileState = usePublicProfile(profileName);
   const [messageOpen, setMessageOpen] = useState(false);
   const loadedProfile = profileState.data;
+  const loadTab = useCallback((tab: ProfileTab) => {
+    if (tab === 'activities' && loadedProfile) return fetchPublicProfileActivities(loadedProfile.profile.id);
+    return Promise.resolve(loadedProfile?.profile.records[tab] ?? []);
+  }, [loadedProfile]);
   useDocumentTitle(loadedProfile?.profile.id
     ?? (profileState.status === 'loading' ? '正在加载个人主页' : '没有找到这位用户'));
 
@@ -28,7 +37,9 @@ export function PublicProfilePage({ profileName }: { profileName: string | null 
     );
   }
 
-  const { canViewActivities, isOwnProfile, profile } = loadedProfile;
+  const { profile } = loadedProfile;
+  const canViewActivities = Boolean(viewerUsername);
+  const isOwnProfile = profile.id === viewerUsername;
   const allowedTabs: ProfileTab[] = canViewActivities
     ? ['posts', 'replies', 'activities']
     : ['posts', 'replies'];
@@ -49,8 +60,10 @@ export function PublicProfilePage({ profileName }: { profileName: string | null 
         <ProfileWorkspace
           allowedTabs={allowedTabs}
           initialRecords={profile.records}
+          lazyTabs={PUBLIC_PROFILE_LAZY_TABS}
           ownerLabel={profile.id}
           readOnly
+          onLoadTab={loadTab}
         />
       </main>
 

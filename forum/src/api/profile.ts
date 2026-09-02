@@ -35,8 +35,6 @@ type EditUserOverrides = {
 };
 
 export type LoadedPublicProfile = {
-  canViewActivities: boolean;
-  isOwnProfile: boolean;
   profile: ProfileViewData;
 };
 
@@ -99,37 +97,28 @@ export async function fetchPublicProfile(profileName: string, signal?: AbortSign
   const username = profileName.trim();
   if (!username) throw new ProfileApiError('用户不存在。');
 
-  const [profileRows, viewerRows] = await Promise.all([
+  const [profileRows, postRows, replyRows] = await Promise.all([
     requestRows({ ask: 'user_profile', medal: 1, tag: 1, username }, signal),
-    requestRows({ ask: 'getuser' }, signal),
+    requestRows({ ask: 'recentpost', limit: 'all', view: username }, signal),
+    requestRows({ ask: 'recentreply', limit: 'all', view: username }, signal),
   ]);
   const profileRow = profileRows[0];
   if (!profileRow || !stringValue(profileRow.username)) throw new ProfileApiError('用户不存在。');
 
-  const resolvedUsername = stringValue(profileRow.username);
-  const viewerUsername = stringValue(viewerRows[0]?.username);
-  const canViewActivities = Boolean(viewerUsername);
-  const isOwnProfile = resolvedUsername === viewerUsername;
-  const [postRows, replyRows, activityRows, favoriteRows] = await Promise.all([
-    requestRows({ ask: 'recentpost', limit: 'all', view: resolvedUsername }, signal),
-    requestRows({ ask: 'recentreply', limit: 'all', view: resolvedUsername }, signal),
-    canViewActivities
-      ? requestRows({ ask: 'activity_signup_history', username: resolvedUsername }, signal)
-      : Promise.resolve([]),
-    isOwnProfile ? requestRows({ ask: 'favorite_list', limit: 'all' }, signal) : Promise.resolve([]),
-  ]);
-
   return {
-    canViewActivities,
-    isOwnProfile,
     profile: mapProfile(profileRow, {
-      activityRows,
-      favoriteRows,
+      activityRows: [],
+      favoriteRows: [],
       includeSignatures: false,
       postRows,
       replyRows,
     }),
   };
+}
+
+export async function fetchPublicProfileActivities(username: string, signal?: AbortSignal) {
+  const rows = await requestRows({ ask: 'activity_signup_history', username: username.trim() }, signal);
+  return rows.map(mapActivityRecord).filter(isProfileRecord);
 }
 
 export async function updateProfileDetails(details: EditUserOverrides['details']) {

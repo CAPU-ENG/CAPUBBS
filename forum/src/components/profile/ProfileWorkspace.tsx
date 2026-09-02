@@ -40,7 +40,9 @@ type ProfileWorkspaceProps = {
   allowedTabs: ProfileTab[];
   asideLink?: { href: string; label: string };
   initialRecords: ProfileRecordMap;
+  lazyTabs?: ProfileTab[];
   onDeleteDraft?: (recordId: string) => Promise<void>;
+  onLoadTab?: (tab: ProfileTab) => Promise<ProfileRecord[]>;
   ownerLabel: string;
   onSaveSignatures?: (records: ProfileRecord[]) => Promise<void>;
   readOnly?: boolean;
@@ -63,7 +65,9 @@ export function ProfileWorkspace({
   allowedTabs,
   asideLink,
   initialRecords,
+  lazyTabs = [],
   onDeleteDraft,
+  onLoadTab,
   ownerLabel,
   onSaveSignatures,
   readOnly = false,
@@ -79,11 +83,38 @@ export function ProfileWorkspace({
   const [editingRecordId, setEditingRecordId] = useState<string | null>(null);
   const [deletingRecordId, setDeletingRecordId] = useState<string | null>(null);
   const [notice, setNotice] = useState<WorkspaceNotice>(null);
+  const [loadingTab, setLoadingTab] = useState<ProfileTab | null>(null);
+  const [loadedTabs, setLoadedTabs] = useState<ProfileTab[]>([]);
   const [savingRecordId, setSavingRecordId] = useState<string | null>(null);
 
   useEffect(() => {
     setRecords(initialRecords);
+    setLoadedTabs([]);
   }, [initialRecords]);
+
+  useEffect(() => {
+    if (!onLoadTab || !lazyTabs.includes(activeTab) || loadedTabs.includes(activeTab)) return;
+    let active = true;
+    setLoadingTab(activeTab);
+    void onLoadTab(activeTab).then(
+      (loadedRecords) => {
+        if (!active) return;
+        setRecords((current) => ({ ...current, [activeTab]: loadedRecords }));
+        setLoadedTabs((current) => current.includes(activeTab) ? current : [...current, activeTab]);
+        setLoadingTab(null);
+      },
+      (error: unknown) => {
+        if (!active) return;
+        setNotice({
+          message: error instanceof Error ? error.message : '内容加载失败，请稍后重试',
+          tone: 'error',
+        });
+        setLoadedTabs((current) => current.includes(activeTab) ? current : [...current, activeTab]);
+        setLoadingTab(null);
+      },
+    );
+    return () => { active = false; };
+  }, [activeTab, lazyTabs, loadedTabs, onLoadTab]);
 
   useEffect(() => {
     const requested = new URLSearchParams(window.location.search).get('tab');
@@ -229,7 +260,12 @@ export function ProfileWorkspace({
 
       <div className="profile-content-layout">
         <div className="profile-record-panel">
-          {visibleRecords.length ? (
+          {loadingTab === activeTab ? (
+            <div className="profile-empty-state" role="status">
+              <span><RotateCcw className="animate-spin" size={20} /></span>
+              <h3>正在加载{activeTabMeta.label}</h3>
+            </div>
+          ) : visibleRecords.length ? (
             <div className="profile-record-list">
               {visibleRecords.map((record) => (
                 <ProfileRecordRow
