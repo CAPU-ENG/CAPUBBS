@@ -5,19 +5,32 @@ import { MobileActivityBar } from '../components/home/MobileActivityBar';
 import { AppBackground } from '../components/layout/AppBackground';
 import { TopBar } from '../components/layout/TopBar';
 import { useAuth } from '../context/AuthContext';
-import { useWaterfallFeedEnabled } from '../hooks/useAssistiveFeatures';
+import { useFloorDecorationEnabled, useWaterfallFeedEnabled } from '../hooks/useAssistiveFeatures';
 import { useCompactMode } from '../hooks/useCompactMode';
 import { useDocumentTitle } from '../hooks/useDocumentTitle';
 import { useHomeData } from '../hooks/useHomeData';
+import { useHomeThreadPreload } from '../hooks/useHomeThreadPreload';
 import { useReadThreadIds } from '../hooks/useReadThreadIds';
+import { useTagMedalDisplayEnabled } from '../hooks/useTagMedalDisplay';
+import { getThreadCacheScope } from '../utils/threadContentCache';
 
 export function HomePage() {
   useDocumentTitle('车协论坛');
   const { refreshUnreadMessages, status: authStatus, viewer } = useAuth();
   const compactMode = useCompactMode();
+  const floorDecorationEnabled = useFloorDecorationEnabled();
+  const tagMedalDisplayEnabled = useTagMedalDisplayEnabled();
   const waterfallFeedEnabled = useWaterfallFeedEnabled();
   const { calendar, feed, feedHasMore, loadMore, pinned, retry, signup } = useHomeData(compactMode);
   const readThreadIds = useReadThreadIds(viewer?.username);
+  useHomeThreadPreload({
+    decoration: floorDecorationEnabled,
+    feed: feed.items,
+    pinned: pinned.items,
+    scope: authStatus === 'loading' ? null : getThreadCacheScope(viewer?.username),
+    signup: viewer ? signup.items : [],
+    tagMedalDisplay: tagMedalDisplayEnabled,
+  });
 
   useEffect(() => {
     if (authStatus !== 'authenticated') return;

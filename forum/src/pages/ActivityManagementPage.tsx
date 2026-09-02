@@ -30,6 +30,8 @@ import {
 import { useAuth } from '../context/AuthContext';
 import { useDocumentTitle } from '../hooks/useDocumentTitle';
 import { useThreadData } from '../hooks/useThreadData';
+import { getThreadCacheScope } from '../utils/threadContentCache';
+import { invalidateLoadedThread } from '../utils/threadContentLoader';
 import { getLoginPathWithReturnTo, getRegisterPathWithReturnTo } from '../utils/authRoutes';
 import { toForumHref } from '../utils/forumBasePath';
 import {
@@ -62,6 +64,7 @@ export function ActivityManagementPage() {
   const { data, error, retry, status } = useThreadData({
     authorOnly: false,
     bid: request.bid,
+    cacheScope: authStatus === 'loading' ? null : getThreadCacheScope(viewer?.username),
     decoration: false,
     page: 1,
     tid: request.tid,
@@ -158,6 +161,7 @@ export function ActivityManagementPage() {
       setActivityDateRange(createEditableActivityDateRange(updatedActivity));
       setQuestionCaseIds(createActivityQuestionCaseIds(updatedActivity.questions));
       setSignupRefreshKey((current) => current + 1);
+      await invalidateLoadedThread(getThreadCacheScope(viewer?.username), data.bid, data.tid);
       setQuestionnaireNotice({ error: false, text: '已保存' });
     } catch (saveError) {
       setQuestionnaireNotice({

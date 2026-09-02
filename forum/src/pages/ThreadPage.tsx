@@ -40,6 +40,8 @@ import {
   getThreadPageForFloor,
 } from '../utils/threadRoutes';
 import { markThreadRead } from '../utils/threadReadState';
+import { getThreadCacheScope } from '../utils/threadContentCache';
+import { invalidateLoadedThread } from '../utils/threadContentLoader';
 import { isActivityPhoneQuestion, maskActivitySignupFloor } from '../utils/activityPhonePrivacy';
 import { getPublicProfilePath } from '../utils/userRoutes';
 import { getFloorDecorationPath } from '../data/floorDecoration';
@@ -145,11 +147,12 @@ export function ThreadPage() {
   const floorDecorationEnabled = useFloorDecorationEnabled();
   const tagMedalDisplayEnabled = useTagMedalDisplayEnabled();
   const topBarAutoHideEnabled = useTopBarAutoHideEnabled();
-  const { viewer } = useAuth();
+  const { status: authStatus, viewer } = useAuth();
   const { theme } = useTheme();
   const request = getThreadRequest();
   const { data, error, retry, status } = useThreadData({
     ...request,
+    cacheScope: authStatus === 'loading' ? null : getThreadCacheScope(viewer?.username),
     decoration: floorDecorationEnabled,
     tagMedalDisplay: tagMedalDisplayEnabled,
   });
@@ -323,12 +326,15 @@ export function ThreadPage() {
 
   async function submitNestedReply(floor: ThreadFloorData, targetName: string | null, content: string) {
     const text = targetName ? `回复 @${targetName}：${content}` : content;
-    return postNestedReply({ fid: floor.fid, text });
+    const replyId = await postNestedReply({ fid: floor.fid, text });
+    await invalidateLoadedThread(getThreadCacheScope(viewer?.username), data?.bid ?? request.bid, data?.tid ?? request.tid);
+    return replyId;
   }
 
   async function removeNestedReply(floor: ThreadFloorData, reply: NestedReply) {
     const text = reply.target ? `回复 @${reply.target}：${reply.content}` : reply.content;
     await deleteNestedReply({ fid: floor.fid, id: Number(reply.id), text });
+    await invalidateLoadedThread(getThreadCacheScope(viewer?.username), data?.bid ?? request.bid, data?.tid ?? request.tid);
     window.location.reload();
   }
 
@@ -339,6 +345,7 @@ export function ThreadPage() {
       pid: floor.floor,
       tid: data.tid,
     });
+    await invalidateLoadedThread(getThreadCacheScope(viewer?.username), data.bid, data.tid);
 
     if (floor.floor === 1 && data.replies === 0) {
       window.location.href = boardHref;
@@ -376,6 +383,7 @@ export function ThreadPage() {
         tid: data.tid,
       });
       setBookmarked(nextBookmarked);
+      await invalidateLoadedThread(getThreadCacheScope(viewer?.username), data.bid, data.tid);
     } catch (bookmarkActionError) {
       setBookmarkError(bookmarkActionError instanceof Error
         ? bookmarkActionError.message

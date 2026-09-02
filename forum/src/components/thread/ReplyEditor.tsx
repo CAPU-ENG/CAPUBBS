@@ -27,6 +27,8 @@ import {
 } from "../../utils/replyDraftStorage";
 import { toForumHref } from "../../utils/forumBasePath";
 import { getThreadFloorHref } from "../../utils/threadRoutes";
+import { getThreadCacheScope } from "../../utils/threadContentCache";
+import { invalidateLoadedThread } from "../../utils/threadContentLoader";
 import {
   formatPostEditorBytes,
   formatPostEditorPreviewTimestamp,
@@ -255,6 +257,7 @@ export function ReplyEditor({
       });
       saveDefaultSignatureIndex(signatureIndex, ownerKey);
       queueLocalDraftCleanup({ bid, ownerKey, tid, type: "reply" });
+      await invalidateLoadedThread(getThreadCacheScope(ownerKey), published.bid, published.tid ?? tid);
 
       if (!published.pid) {
         const params = new URLSearchParams({

@@ -44,11 +44,35 @@ export type ThreadDetail = {
   pageCount: number;
   replies: number;
   requiredStars: number;
+  revision: string;
   tid: number;
   title: string;
   totalFloors: number;
   viewer: ThreadAuthor | null;
   viewerSignatures: string[];
+  views: number;
+};
+
+export type ThreadDetailRequest = {
+  authorOnly: boolean;
+  bid: number;
+  decoration: boolean;
+  page: number;
+  tagMedalDisplay: boolean;
+  tid: number;
+};
+
+export type ThreadRevisionRequest = {
+  bid: number;
+  revision?: string;
+  tid: number;
+};
+
+export type ThreadRevisionStatus = {
+  bid: number;
+  revision: string;
+  state: 'changed' | 'forbidden' | 'fresh' | 'gone';
+  tid: number;
   views: number;
 };
 
@@ -148,17 +172,13 @@ export async function fetchThreadDetail({
   bid,
   decoration,
   page,
+  prefetch = false,
   signal,
   tagMedalDisplay,
   tid,
-}: {
-  authorOnly: boolean;
-  bid: number;
-  decoration: boolean;
-  page: number;
+}: ThreadDetailRequest & {
+  prefetch?: boolean;
   signal?: AbortSignal;
-  tagMedalDisplay: boolean;
-  tid: number;
 }) {
   const body = new URLSearchParams({
     ask: 'thread_detail',
@@ -171,6 +191,7 @@ export async function fetchThreadDetail({
     tid: String(tid),
   });
   if (decoration) body.set('decoration', '1');
+  if (prefetch) body.set('prefetch', '1');
 
   let response: Response;
   try {
@@ -201,6 +222,35 @@ export async function fetchThreadDetail({
   }
 
   return mapThreadDetail(payload.data, { authorOnly, bid, page, tid });
+}
+
+export async function fetchThreadRevisions(
+  items: ThreadRevisionRequest[],
+  { recordView = false, signal }: { recordView?: boolean; signal?: AbortSignal } = {},
+): Promise<ThreadRevisionStatus[]> {
+  if (items.length === 0 || items.length > 10) {
+    throw new ThreadApiError('帖子版本检查数量不正确。');
+  }
+  const body = new URLSearchParams({
+    ask: 'thread_revisions',
+    items: JSON.stringify(items),
+  });
+  if (recordView) body.set('recordView', '1');
+  const payload = await requestThreadApi(body, signal, '帖子版本检查失败，请稍后重试。');
+
+  return asRows(payload.data).map((row): ThreadRevisionStatus | null => {
+    const bid = positiveInteger(row.bid, 0);
+    const tid = positiveInteger(row.tid, 0);
+    const state = stringValue(row.state);
+    if (!bid || !tid || !['changed', 'forbidden', 'fresh', 'gone'].includes(state)) return null;
+    return {
+      bid,
+      revision: stringValue(row.revision),
+      state: state as ThreadRevisionStatus['state'],
+      tid,
+      views: nonNegativeInteger(row.views),
+    };
+  }).filter((status): status is ThreadRevisionStatus => status !== null);
 }
 
 export async function fetchEditableThreadFloor({
@@ -760,6 +810,7 @@ function mapThreadDetail(
     pageCount: positiveInteger(floorsPage.pages, 1),
     replies: nonNegativeInteger(thread.replies),
     requiredStars: nonNegativeInteger(viewerState.requiredStar),
+    revision: stringValue(data.revision),
     tid: positiveInteger(thread.tid, request.tid),
     title,
     totalFloors: positiveInteger(floorsPage.total, floors.length),

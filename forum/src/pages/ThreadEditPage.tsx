@@ -31,6 +31,8 @@ import { toForumHref } from '../utils/forumBasePath';
 import { getLoginPathWithReturnTo, getRegisterPathWithReturnTo } from '../utils/authRoutes';
 import { normalizeFloorQuotesForLegacyStorage } from '../utils/floorQuote';
 import { getThreadFloorHref } from '../utils/threadRoutes';
+import { getThreadCacheScope } from '../utils/threadContentCache';
+import { invalidateLoadedThread } from '../utils/threadContentLoader';
 
 type EditRequest = {
   bid: number;
@@ -41,7 +43,7 @@ type EditRequest = {
 export function ThreadEditPage() {
   const locationSearch = window.location.search;
   const request = useMemo(getEditRequest, [locationSearch]);
-  const { status: authStatus } = useAuth();
+  const { status: authStatus, viewer } = useAuth();
   const [floor, setFloor] = useState<EditableThreadFloor | null>(null);
   const [title, setTitle] = useState('');
   const [editorValue, setEditorValue] = useState<RichTextEditorValue>({ content: '', mode: 'rich' });
@@ -156,6 +158,7 @@ export function ThreadEditPage() {
         tid: floor.tid,
         title: isMainPost ? title.trim() : floor.title,
       });
+      await invalidateLoadedThread(getThreadCacheScope(viewer?.username), saved.bid, saved.tid);
       window.location.href = getThreadFloorHref(saved.bid, saved.tid, saved.pid);
     } catch (error) {
       setSaveError(error instanceof ThreadApiError ? error.message : '保存修改失败，请稍后重试。');

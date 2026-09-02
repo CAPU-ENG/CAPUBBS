@@ -1,15 +1,14 @@
-import { useCallback, useEffect, useState } from 'react';
-import {
-  fetchThreadDetail,
-  isAbortError,
-  type ThreadDetail,
-} from '../api/thread';
+import { useCallback, useEffect, useRef, useState } from 'react';
+import type { ThreadDetail } from '../api/thread';
+import { openThreadContent } from '../utils/threadContentLoader';
+import type { ThreadCacheScope } from '../utils/threadContentCache';
 
 export type ThreadDataStatus = 'error' | 'loading' | 'ready';
 
 export function useThreadData({
   authorOnly,
   bid,
+  cacheScope,
   decoration,
   page,
   tagMedalDisplay = true,
@@ -17,6 +16,7 @@ export function useThreadData({
 }: {
   authorOnly: boolean;
   bid: number;
+  cacheScope: ThreadCacheScope | null;
   decoration: boolean;
   page: number;
   tagMedalDisplay?: boolean;
@@ -26,10 +26,11 @@ export function useThreadData({
   const [error, setError] = useState('');
   const [status, setStatus] = useState<ThreadDataStatus>('loading');
   const [requestVersion, setRequestVersion] = useState(0);
+  const handledRequestVersionRef = useRef(0);
   const retry = useCallback(() => setRequestVersion((version) => version + 1), []);
 
   useEffect(() => {
-    const controller = new AbortController();
+    let active = true;
     setData(null);
     setError('');
     setStatus('loading');
@@ -37,31 +38,37 @@ export function useThreadData({
     if (bid <= 0 || tid <= 0) {
       setError('帖子地址缺少有效的版块或主题编号。');
       setStatus('error');
-      return () => controller.abort();
+      return () => { active = false; };
     }
+    if (!cacheScope) return () => { active = false; };
 
-    void fetchThreadDetail({
-      authorOnly,
-      bid,
-      decoration,
-      page,
-      signal: controller.signal,
-      tagMedalDisplay,
-      tid,
+    const force = requestVersion > handledRequestVersionRef.current;
+    handledRequestVersionRef.current = requestVersion;
+    void openThreadContent({
+      force,
+      onCached: (detail) => {
+        if (!active) return;
+        setData(detail);
+        setStatus('ready');
+      },
+      request: { authorOnly, bid, decoration, page, tagMedalDisplay, tid },
+      scope: cacheScope,
     }).then(
       (detail) => {
+        if (!active) return;
         setData(detail);
         setStatus('ready');
       },
       (requestError: unknown) => {
-        if (isAbortError(requestError)) return;
+        if (!active) return;
+        setData(null);
         setError(requestError instanceof Error ? requestError.message : '帖子加载失败，请稍后重试。');
         setStatus('error');
       },
     );
 
-    return () => controller.abort();
-  }, [authorOnly, bid, decoration, page, requestVersion, tagMedalDisplay, tid]);
+    return () => { active = false; };
+  }, [authorOnly, bid, cacheScope, decoration, page, requestVersion, tagMedalDisplay, tid]);
 
   return { data, error, retry, status };
 }

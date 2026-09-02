@@ -23,6 +23,7 @@ function jiekoufunc_thread_detail($con, $bid, $tid, $params, $token, $ip) {
     $include_tags = thread_detail_query_bool_param($params, 'tag');
     $include_medals = thread_detail_query_bool_param($params, 'medal');
     $include_decoration = thread_detail_query_bool_param($params, 'decoration');
+    $prefetch = thread_detail_query_bool_param($params, 'prefetch');
     $render = thread_detail_query_render_param($params);
 
     $current_username = thread_detail_query_current_username($con, $token);
@@ -47,8 +48,10 @@ function jiekoufunc_thread_detail($con, $bid, $tid, $params, $token, $ip) {
         return jiekoufunc_report('-2', '本版块需要登录后才能查看');
     }
 
-    thread_detail_query_record_view($con, $bid, $tid, $current_username, $ip);
-    $thread_row['click'] = intval($thread_row['click']) + 1;
+    if (!$prefetch) {
+        thread_detail_query_record_view($con, $bid, $tid, $current_username, $ip);
+        $thread_row['click'] = intval($thread_row['click']) + 1;
+    }
 
     $total = $author_only
         ? thread_detail_query_count_author_floors($con, $bid, $tid, $thread_row['author'])
@@ -103,6 +106,7 @@ function jiekoufunc_thread_detail($con, $bid, $tid, $params, $token, $ip) {
     $activity = intval(isset($thread_row['activity_id']) ? $thread_row['activity_id'] : 0) > 0
         ? thread_detail_query_get_activity($con, $bid, $tid)
         : null;
+    $viewer_state = thread_detail_query_pack_viewer_state($thread_row, $board_row, $viewer, $rights, $bookmarked);
 
     $main_post = thread_detail_query_pack_floor(
         $main_post_row,
@@ -131,6 +135,7 @@ function jiekoufunc_thread_detail($con, $bid, $tid, $params, $token, $ip) {
     }
 
     $payload = array(
+        'revision' => thread_detail_query_revision($con, $thread_row, $activity, $viewer_state),
         'request' => array(
             'bid' => $bid,
             'tid' => $tid,
@@ -156,10 +161,96 @@ function jiekoufunc_thread_detail($con, $bid, $tid, $params, $token, $ip) {
         ),
         'activity' => $activity,
         'viewer' => $viewer,
-        'viewerState' => thread_detail_query_pack_viewer_state($thread_row, $board_row, $viewer, $rights, $bookmarked),
+        'viewerState' => $viewer_state,
     );
 
     return array(array('code' => '0'), $payload);
+}
+
+/**
+ * Return compact validators for up to ten threads. This endpoint deliberately
+ * does not read full floor bodies and has no view-count side effects unless a
+ * single foreground navigation explicitly sets recordView=1.
+ */
+function jiekoufunc_thread_revisions($con, $params, $token, $ip) {
+    $raw_items = isset($params['items']) ? $params['items'] : array();
+    $items = is_array($raw_items) ? $raw_items : json_decode(strval($raw_items), true);
+    if (!is_array($items) || count($items) === 0 || count($items) > 10) {
+        return jiekoufunc_report('-1', '帖子版本检查参数不正确。');
+    }
+
+    $record_view = thread_detail_query_bool_param($params, 'recordView');
+    if ($record_view && count($items) !== 1) {
+        return jiekoufunc_report('-1', '阅读登记一次只能处理一个帖子。');
+    }
+
+    $current_username = thread_detail_query_current_username($con, $token);
+    $current_viewer = null;
+    if ($current_username !== '') {
+        $current_profiles = thread_detail_query_get_profiles_by_username($con, array($current_username), false, false);
+        if (isset($current_profiles[$current_username])) {
+            $current_viewer = thread_detail_query_pack_profile($current_profiles[$current_username], true);
+        }
+    }
+    $results = array();
+    foreach ($items as $item) {
+        if (!is_array($item)) {
+            continue;
+        }
+        $bid = intval(isset($item['bid']) ? $item['bid'] : 0);
+        $tid = intval(isset($item['tid']) ? $item['tid'] : 0);
+        if ($bid <= 0 || $tid <= 0) {
+            continue;
+        }
+
+        if ($bid === 1 && $current_username === '') {
+            $results[] = array('bid' => $bid, 'tid' => $tid, 'state' => 'forbidden', 'revision' => '');
+            continue;
+        }
+
+        $thread_row = thread_detail_query_get_thread($con, $bid, $tid);
+        if ($thread_row === false) {
+            return jiekoufunc_report('8', '数据库查询失败。');
+        }
+        if (!$thread_row) {
+            $results[] = array('bid' => $bid, 'tid' => $tid, 'state' => 'gone', 'revision' => '');
+            continue;
+        }
+
+        $activity = intval(isset($thread_row['activity_id']) ? $thread_row['activity_id'] : 0) > 0
+            ? thread_detail_query_get_activity($con, $bid, $tid)
+            : null;
+        $board_row = thread_detail_query_get_board($con, $bid);
+        if ($board_row === false) {
+            return jiekoufunc_report('8', '数据库查询失败。');
+        }
+        if (!$board_row) {
+            $results[] = array('bid' => $bid, 'tid' => $tid, 'state' => 'gone', 'revision' => '');
+            continue;
+        }
+        $rights = thread_detail_query_get_board_rights($board_row, $current_viewer);
+        $bookmarked = $current_username !== ''
+            ? thread_detail_query_is_favorite($con, $current_username, $bid, $tid)
+            : false;
+        $viewer_state = thread_detail_query_pack_viewer_state($thread_row, $board_row, $current_viewer, $rights, $bookmarked);
+        $revision = thread_detail_query_revision($con, $thread_row, $activity, $viewer_state);
+        $known_revision = isset($item['revision']) ? strval($item['revision']) : '';
+        if ($record_view) {
+            thread_detail_query_record_view($con, $bid, $tid, $current_username, $ip);
+        }
+        $results[] = array(
+            'bid' => $bid,
+            'tid' => $tid,
+            'state' => $known_revision !== '' && hash_equals($revision, $known_revision) ? 'fresh' : 'changed',
+            'revision' => $revision,
+            'views' => intval(isset($thread_row['click']) ? $thread_row['click'] : 0) + ($record_view ? 1 : 0),
+        );
+    }
+
+    if (count($results) === 0) {
+        return jiekoufunc_report('-1', '没有可检查的帖子。');
+    }
+    return array(array('code' => '0'), $results);
 }
 
 function thread_detail_query_int_param($params, $key, $default) {
@@ -218,6 +309,50 @@ function thread_detail_query_get_thread($con, $bid, $tid) {
         where threads.bid=$bid and threads.tid=$tid
         limit 1";
     return thread_detail_query_fetch_one($con, $statement);
+}
+
+function thread_detail_query_revision($con, $thread_row, $activity, $viewer_state) {
+    $bid = intval(isset($thread_row['bid']) ? $thread_row['bid'] : 0);
+    $tid = intval(isset($thread_row['tid']) ? $thread_row['tid'] : 0);
+    $post_state = thread_detail_query_fetch_one($con, "
+        select
+            count(*) as post_count,
+            coalesce(max(replytime), 0) as latest_post_time,
+            coalesce(max(updatetime), 0) as latest_post_update
+        from posts
+        where bid=$bid and tid=$tid");
+    $nested_state = thread_detail_query_fetch_one($con, "
+        select
+            count(*) as nested_count,
+            coalesce(max(nested_reply.time), 0) as latest_nested_time
+        from lzl as nested_reply
+        inner join posts as parent_post on parent_post.fid=nested_reply.fid
+        where parent_post.bid=$bid and parent_post.tid=$tid");
+
+    $state = array(
+        'schema' => 1,
+        'thread' => array(
+            'timestamp' => intval(isset($thread_row['timestamp']) ? $thread_row['timestamp'] : 0),
+            'reply' => intval(isset($thread_row['reply']) ? $thread_row['reply'] : 0),
+            'locked' => intval(isset($thread_row['locked']) ? $thread_row['locked'] : 0),
+            'title' => thread_detail_query_string(isset($thread_row['title']) ? $thread_row['title'] : ''),
+            'author' => thread_detail_query_string(isset($thread_row['author']) ? $thread_row['author'] : ''),
+        ),
+        'posts' => is_array($post_state) ? array(
+            'count' => intval(isset($post_state['post_count']) ? $post_state['post_count'] : 0),
+            'latest' => intval(isset($post_state['latest_post_time']) ? $post_state['latest_post_time'] : 0),
+            'updated' => intval(isset($post_state['latest_post_update']) ? $post_state['latest_post_update'] : 0),
+        ) : array(),
+        'nested' => is_array($nested_state) ? array(
+            'count' => intval(isset($nested_state['nested_count']) ? $nested_state['nested_count'] : 0),
+            'latest' => intval(isset($nested_state['latest_nested_time']) ? $nested_state['latest_nested_time'] : 0),
+        ) : array(),
+        'activity' => $activity,
+        'viewer' => $viewer_state,
+    );
+
+    $encoded = json_encode($state, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+    return hash('sha256', $encoded === false ? serialize($state) : $encoded);
 }
 
 function thread_detail_query_get_board($con, $bid) {

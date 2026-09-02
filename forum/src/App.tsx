@@ -1,6 +1,7 @@
 import { lazy, Suspense, useEffect, useReducer } from 'react';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { BrowserRecommendationDialog } from './components/browser/BrowserRecommendationDialog';
+import { ThreadIntentPreloader } from './components/thread/ThreadIntentPreloader';
 import { AppBackground } from './components/layout/AppBackground';
 import { LoadingState, RouteLoadingPage } from './components/layout/LoadingState';
 import { TopBar } from './components/layout/TopBar';
@@ -90,6 +91,7 @@ export function App() {
   return (
     <AuthProvider>
       <PendingDraftCleanup />
+      <ThreadIntentPreloader />
       <BrowserRecommendationDialog />
       <Suspense fallback={<RouteLoadingPage />}>
         <ForumRouter />

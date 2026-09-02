@@ -17,6 +17,8 @@ import {
   formatPostEditorPreviewTimestamp,
   PostEditorPreviewDialog,
 } from './PostEditor';
+import { getThreadCacheScope } from '../../utils/threadContentCache';
+import { invalidateLoadedThread } from '../../utils/threadContentLoader';
 
 const signatureOptions = [
   { label: '不使用签名档', value: 0 },
@@ -103,6 +105,7 @@ export function ActivitySignupForm({
     try {
       await publishActivitySignup({ action, bid, signatureIndex, tid, title: threadTitle, values });
       saveDefaultSignatureIndex(signatureIndex, viewer?.name);
+      await invalidateLoadedThread(getThreadCacheScope(viewer?.name), bid, tid);
       if (viewer && await hasUnfinishedPunishment(viewer.name)) {
         setPunishmentReminderOpen(true);
         return;
@@ -131,6 +134,7 @@ export function ActivitySignupForm({
         title: threadTitle,
         values,
       });
+      await invalidateLoadedThread(getThreadCacheScope(viewer?.name), bid, tid);
       window.location.reload();
     } catch (error) {
       setCancelDialogOpen(false);
