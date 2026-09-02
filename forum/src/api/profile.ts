@@ -3,6 +3,7 @@ import type {
   ProfileDetail,
   ProfileRecord,
   ProfileRecordMap,
+  ProfileTab,
   ProfileViewData,
 } from '../data/profile';
 import type { UserTag } from '../data/tags';
@@ -13,6 +14,7 @@ import { normalizeLegacyAvatar } from '../utils/legacyAssets';
 import { md5LegacyStringHex } from '../utils/md5';
 
 const PROFILE_API_URL = import.meta.env.VITE_API_URL?.trim() || '/api/api.php';
+const PROFILE_RECORD_PAGE_SIZE = 15;
 
 type ApiEnvelope = {
   code: number;
@@ -36,6 +38,11 @@ type EditUserOverrides = {
 
 export type LoadedPublicProfile = {
   profile: ProfileViewData;
+};
+
+export type ProfileRecordPage = {
+  hasMore: boolean;
+  records: ProfileRecord[];
 };
 
 export class ProfileApiError extends Error {
@@ -74,11 +81,11 @@ async function fetchUserCenterProfileForUsername(
       }
       return row;
     });
-  const [profileRow, medals, postRows, replyRows, activityRows, favoriteRows] = await Promise.all([
+  const [profileRow, medals, postPage, replyPage, activityRows, favoriteRows] = await Promise.all([
     profileRowPromise,
     existingMedals ?? fetchSelfMedals(signal),
-    requestRows({ ask: 'recentpost', limit: 'all', view: username }, signal),
-    requestRows({ ask: 'recentreply', limit: 'all', view: username }, signal),
+    requestProfileRecordRowsPage(username, 'posts', 0, signal),
+    requestProfileRecordRowsPage(username, 'replies', 0, signal),
     requestRows({ ask: 'activity_signup_history', username }, signal),
     requestRows({ ask: 'favorite_list', limit: 'all' }, signal),
   ]);
@@ -88,8 +95,9 @@ async function fetchUserCenterProfileForUsername(
     favoriteRows,
     includeSignatures: true,
     medals,
-    postRows,
-    replyRows,
+    postRows: postPage.rows,
+    recordHasMore: { posts: postPage.hasMore, replies: replyPage.hasMore },
+    replyRows: replyPage.rows,
   });
 }
 
@@ -97,10 +105,10 @@ export async function fetchPublicProfile(profileName: string, signal?: AbortSign
   const username = profileName.trim();
   if (!username) throw new ProfileApiError('用户不存在。');
 
-  const [profileRows, postRows, replyRows] = await Promise.all([
+  const [profileRows, postPage, replyPage] = await Promise.all([
     requestRows({ ask: 'user_profile', medal: 1, tag: 1, username }, signal),
-    requestRows({ ask: 'recentpost', limit: 'all', view: username }, signal),
-    requestRows({ ask: 'recentreply', limit: 'all', view: username }, signal),
+    requestProfileRecordRowsPage(username, 'posts', 0, signal),
+    requestProfileRecordRowsPage(username, 'replies', 0, signal),
   ]);
   const profileRow = profileRows[0];
   if (!profileRow || !stringValue(profileRow.username)) throw new ProfileApiError('用户不存在。');
@@ -110,8 +118,9 @@ export async function fetchPublicProfile(profileName: string, signal?: AbortSign
       activityRows: [],
       favoriteRows: [],
       includeSignatures: false,
-      postRows,
-      replyRows,
+      postRows: postPage.rows,
+      recordHasMore: { posts: postPage.hasMore, replies: replyPage.hasMore },
+      replyRows: replyPage.rows,
     }),
   };
 }
@@ -119,6 +128,43 @@ export async function fetchPublicProfile(profileName: string, signal?: AbortSign
 export async function fetchPublicProfileActivities(username: string, signal?: AbortSignal) {
   const rows = await requestRows({ ask: 'activity_signup_history', username: username.trim() }, signal);
   return rows.map(mapActivityRecord).filter(isProfileRecord);
+}
+
+export async function fetchProfileRecordPage(
+  username: string,
+  tab: 'posts' | 'replies',
+  offset: number,
+  signal?: AbortSignal,
+): Promise<ProfileRecordPage> {
+  const page = await requestProfileRecordRowsPage(username, tab, offset, signal);
+  return {
+    hasMore: page.hasMore,
+    records: page.rows
+      .map((record) => mapRecord(record, tab === 'posts' ? 'post' : 'reply'))
+      .filter(isProfileRecord),
+  };
+}
+
+async function requestProfileRecordRowsPage(
+  username: string,
+  tab: 'posts' | 'replies',
+  offset: number,
+  signal?: AbortSignal,
+) {
+  const rows = await requestRows({
+    ask: tab === 'posts' ? 'recentpost' : 'recentreply',
+    limit: PROFILE_RECORD_PAGE_SIZE + 1,
+    offset: Math.max(0, Math.floor(offset)),
+    ...(tab === 'replies' ? { replies_only: 1 } : {}),
+    view: username.trim(),
+  }, signal);
+  const contentRows = rows.filter((row) => numberValue(row.pid) >= (tab === 'posts' ? 1 : 2));
+  const hasMore = contentRows.length > PROFILE_RECORD_PAGE_SIZE;
+  const pageRows = contentRows.slice(0, PROFILE_RECORD_PAGE_SIZE);
+  return {
+    hasMore,
+    rows: pageRows,
+  };
 }
 
 export async function updateProfileDetails(details: EditUserOverrides['details']) {
@@ -328,6 +374,7 @@ function mapProfile(
     includeSignatures,
     medals,
     postRows,
+    recordHasMore = {},
     replyRows,
   }: {
     activityRows: ApiRow[];
@@ -335,6 +382,7 @@ function mapProfile(
     includeSignatures: boolean;
     medals?: UserMedal[];
     postRows: ApiRow[];
+    recordHasMore?: Partial<Record<ProfileTab, boolean>>;
     replyRows: ApiRow[];
   },
 ): ProfileViewData {
@@ -380,6 +428,7 @@ function mapProfile(
     floorDecoration: mapFloorDecoration(row.floorDecoration),
     id: username,
     intro: stringValue(row.intro),
+    recordHasMore,
     medals: medals ?? (Array.isArray(row.medals) ? mapUserMedals(row.medals) : undefined),
     rating: Math.max(0, Math.min(9, numberValue(row.star))),
     starPostReplyCount: postCount + replyCount,

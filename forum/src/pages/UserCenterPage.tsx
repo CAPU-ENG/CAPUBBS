@@ -3,6 +3,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { createPortal } from 'react-dom';
 import {
   sendProfileEmailCode,
+  fetchProfileRecordPage,
   updateProfileAvatar,
   updateProfileDetails,
   updateProfileEmailVisibility,
@@ -249,7 +250,11 @@ export function UserCenterPage() {
         <ProfileWorkspace
           allowedTabs={['posts', 'replies', 'activities', 'bookmarks', 'drafts', 'signatures']}
           asideLink={{ href: getPublicProfilePath(profile.id), label: '查看公开个人主页' }}
+          initialHasMore={profile.recordHasMore}
           initialRecords={workspaceRecords ?? profile.records}
+          onLoadMore={(tab, offset) => tab === 'posts' || tab === 'replies'
+            ? fetchProfileRecordPage(profile.id, tab, offset)
+            : Promise.resolve({ hasMore: false, records: [] })}
           onDeleteDraft={deleteDraft}
           onSaveSignatures={async (signatures) => {
             const updatedProfile = await updateProfileSignatures(signatures);

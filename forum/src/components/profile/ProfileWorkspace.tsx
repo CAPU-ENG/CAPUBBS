@@ -39,10 +39,12 @@ import {
 type ProfileWorkspaceProps = {
   allowedTabs: ProfileTab[];
   asideLink?: { href: string; label: string };
+  initialHasMore?: Partial<Record<ProfileTab, boolean>>;
   initialRecords: ProfileRecordMap;
   lazyTabs?: ProfileTab[];
   onDeleteDraft?: (recordId: string) => Promise<void>;
   onLoadTab?: (tab: ProfileTab) => Promise<ProfileRecord[]>;
+  onLoadMore?: (tab: ProfileTab, offset: number) => Promise<{ hasMore: boolean; records: ProfileRecord[] }>;
   ownerLabel: string;
   onSaveSignatures?: (records: ProfileRecord[]) => Promise<void>;
   readOnly?: boolean;
@@ -64,10 +66,12 @@ const PAGE_SIZE = 15;
 export function ProfileWorkspace({
   allowedTabs,
   asideLink,
+  initialHasMore = {},
   initialRecords,
   lazyTabs = [],
   onDeleteDraft,
   onLoadTab,
+  onLoadMore,
   ownerLabel,
   onSaveSignatures,
   readOnly = false,
@@ -84,13 +88,16 @@ export function ProfileWorkspace({
   const [deletingRecordId, setDeletingRecordId] = useState<string | null>(null);
   const [notice, setNotice] = useState<WorkspaceNotice>(null);
   const [loadingTab, setLoadingTab] = useState<ProfileTab | null>(null);
+  const [loadingMoreTab, setLoadingMoreTab] = useState<ProfileTab | null>(null);
   const [loadedTabs, setLoadedTabs] = useState<ProfileTab[]>([]);
+  const [hasMore, setHasMore] = useState(initialHasMore);
   const [savingRecordId, setSavingRecordId] = useState<string | null>(null);
 
   useEffect(() => {
     setRecords(initialRecords);
+    setHasMore(initialHasMore);
     setLoadedTabs([]);
-  }, [initialRecords]);
+  }, [initialHasMore, initialRecords]);
 
   useEffect(() => {
     if (!onLoadTab || !lazyTabs.includes(activeTab) || loadedTabs.includes(activeTab)) return;
@@ -206,6 +213,27 @@ export function ProfileWorkspace({
     }
   }
 
+  async function loadMore() {
+    if (!onLoadMore || !hasMore[activeTab] || loadingMoreTab) return;
+    try {
+      setLoadingMoreTab(activeTab);
+      const loadedPage = await onLoadMore(activeTab, records[activeTab].length);
+      setRecords((current) => {
+        const knownIds = new Set(current[activeTab].map((record) => record.id));
+        const appended = loadedPage.records.filter((record) => !knownIds.has(record.id));
+        return { ...current, [activeTab]: [...current[activeTab], ...appended] };
+      });
+      setHasMore((current) => ({ ...current, [activeTab]: loadedPage.hasMore }));
+    } catch (error) {
+      setNotice({
+        message: error instanceof Error ? error.message : '更多内容加载失败，请稍后重试',
+        tone: 'error',
+      });
+    } finally {
+      setLoadingMoreTab(null);
+    }
+  }
+
   const filterPanel = (
     <ProfileFilterPanel
       endDate={endDate}
@@ -293,6 +321,18 @@ export function ProfileWorkspace({
 
           {pageCount > 1 ? (
             <ProfilePagination currentPage={safePage} pageCount={pageCount} onPageChange={setPage} />
+          ) : null}
+          {hasMore[activeTab] && onLoadMore ? (
+            <div className="profile-load-more-wrap">
+              <button
+                className="profile-secondary-action"
+                disabled={Boolean(loadingMoreTab)}
+                type="button"
+                onClick={() => { void loadMore(); }}
+              >
+                {loadingMoreTab === activeTab ? '正在加载' : `加载更多${activeTabMeta.label}`}
+              </button>
+            </div>
           ) : null}
         </div>
 

@@ -1,6 +1,6 @@
 import { RefreshCw, UserRoundX } from 'lucide-react';
 import { useCallback, useState } from 'react';
-import { fetchPublicProfileActivities, sendProfilePrivateMessage } from '../api/profile';
+import { fetchProfileRecordPage, fetchPublicProfileActivities, sendProfilePrivateMessage } from '../api/profile';
 import { AppBackground } from '../components/layout/AppBackground';
 import { LoadingState } from '../components/layout/LoadingState';
 import { TopBar } from '../components/layout/TopBar';
@@ -23,6 +23,12 @@ export function PublicProfilePage({ profileName }: { profileName: string | null 
   const loadTab = useCallback((tab: ProfileTab) => {
     if (tab === 'activities' && loadedProfile) return fetchPublicProfileActivities(loadedProfile.profile.id);
     return Promise.resolve(loadedProfile?.profile.records[tab] ?? []);
+  }, [loadedProfile]);
+  const loadMore = useCallback((tab: ProfileTab, offset: number) => {
+    if ((tab === 'posts' || tab === 'replies') && loadedProfile) {
+      return fetchProfileRecordPage(loadedProfile.profile.id, tab, offset);
+    }
+    return Promise.resolve({ hasMore: false, records: [] });
   }, [loadedProfile]);
   useDocumentTitle(loadedProfile?.profile.id
     ?? (profileState.status === 'loading' ? '正在加载个人主页' : '没有找到这位用户'));
@@ -59,11 +65,13 @@ export function PublicProfilePage({ profileName }: { profileName: string | null 
 
         <ProfileWorkspace
           allowedTabs={allowedTabs}
+          initialHasMore={profile.recordHasMore}
           initialRecords={profile.records}
           lazyTabs={PUBLIC_PROFILE_LAZY_TABS}
           ownerLabel={profile.id}
           readOnly
           onLoadTab={loadTab}
+          onLoadMore={loadMore}
         />
       </main>
 

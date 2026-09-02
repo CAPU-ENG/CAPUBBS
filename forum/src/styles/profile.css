@@ -812,6 +812,12 @@
     padding: 12px 16px;
   }
 
+  .profile-load-more-wrap {
+    display: flex;
+    justify-content: center;
+    padding: 12px 16px;
+  }
+
   .profile-workspace-aside {
     display: grid;
     min-width: 0;

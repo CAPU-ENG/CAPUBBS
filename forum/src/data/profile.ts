@@ -42,6 +42,7 @@ export type ProfileViewData = {
   floorDecoration?: FloorDecorationPaths;
   id: string;
   intro: string;
+  recordHasMore: Partial<Record<ProfileTab, boolean>>;
   medals?: UserMedal[];
   rating: number;
   starPostReplyCount: number;
