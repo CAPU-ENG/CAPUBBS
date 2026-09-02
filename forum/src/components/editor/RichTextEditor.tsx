@@ -715,8 +715,10 @@ export function RichTextEditor({
         runRichCommand={runRichCommand}
         saveSelection={saveSelection}
         selectedTextColor={selectedTextColor}
+        setHexSourceValue={setHexSourceValue}
         setPopoverTextValue={setPopoverTextValue}
         setPopoverValue={setPopoverValue}
+        setSelectedTextColor={setSelectedTextColor}
         toggleColorPicker={toggleColorPicker}
         toggleRichFirstLineIndent={toggleRichFirstLineIndent}
       />

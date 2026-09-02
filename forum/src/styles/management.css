@@ -113,6 +113,23 @@
     box-shadow: 0 0 0 3px color-mix(in srgb, var(--brand) 16%, transparent);
   }
 
+  .management-tag-color-controls {
+    display: flex;
+    gap: 6px;
+  }
+
+  .management-tag-color-controls input[type="color"] {
+    width: 46px;
+    flex: 0 0 46px;
+    cursor: pointer;
+    padding: 2px;
+  }
+
+  .management-tag-color-controls input:not([type="color"]) {
+    min-width: 0;
+    flex: 1 1 auto;
+  }
+
   .management-tag-editor > div {
     display: flex;
     gap: 6px;

@@ -323,7 +323,13 @@ export function TagManagementWorkspace() {
           {editingId && (
             <form className="management-tag-editor" onSubmit={saveTag}>
               <label><span>名称</span><input autoFocus maxLength={50} onChange={(event) => setDraftName(event.target.value)} value={draftName} /></label>
-              <label><span>颜色</span><input aria-label="标签颜色" maxLength={7} onChange={(event) => setDraftColor(event.target.value.toUpperCase())} pattern="#[0-9A-Fa-f]{6}" placeholder="#287A52" spellCheck={false} value={draftColor} /></label>
+              <label>
+                <span>颜色</span>
+                <span className="management-tag-color-controls">
+                  <input aria-label="标签取色" onChange={(event) => setDraftColor(event.target.value.toUpperCase())} type="color" value={HEX_COLOR_PATTERN.test(draftColor) ? draftColor : DEFAULT_TAG_COLOR} />
+                  <input aria-label="标签颜色十六进制值" maxLength={7} onChange={(event) => setDraftColor(event.target.value.toUpperCase())} pattern="#[0-9A-Fa-f]{6}" placeholder="#287A52" spellCheck={false} value={draftColor} />
+                </span>
+              </label>
               <div><button className="management-primary-button" disabled={Boolean(pendingAction)} type="submit">保存</button><button className="management-secondary-button" disabled={Boolean(pendingAction)} onClick={cancelEdit} type="button">取消</button>{editingTag && <button className="management-danger-button" disabled={Boolean(pendingAction)} onClick={() => removeTag(editingTag)} type="button"><Trash2 size={14} />删除</button>}</div>
             </form>
           )}
