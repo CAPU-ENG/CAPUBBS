@@ -8,6 +8,7 @@ import {
   type SessionViewer,
 } from '../api/auth';
 import { fetchMessageSummary } from '../api/messages';
+import { refreshClientConfig } from '../api/clientConfig';
 
 type AuthStatus = 'authenticated' | 'guest' | 'loading' | 'restoring';
 const SESSION_VIEWER_STORAGE_KEY = 'capubbs-session-viewer';
@@ -135,6 +136,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       viewer: sessionViewer,
     });
     void refreshUnreadMessagesFor(sessionViewer.username);
+    void refreshClientConfig().catch(() => undefined);
     return sessionViewer;
   }, [refreshUnreadMessagesFor]);
 
@@ -162,6 +164,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       viewer: sessionViewer,
     });
     void refreshUnreadMessagesFor(sessionViewer.username);
+    void refreshClientConfig().catch(() => undefined);
     return sessionViewer;
   }, [refreshUnreadMessagesFor]);
 
