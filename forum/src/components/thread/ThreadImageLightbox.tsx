@@ -390,12 +390,15 @@ export function ThreadImageLightbox({
       data-can-pan={scale > MIN_IMAGE_SCALE}
       data-dragging={isDragging}
       onClick={(event) => {
+        if (interactionMovedRef.current) return;
+        const target = event.target;
         if (
-          event.target === event.currentTarget &&
-          !interactionMovedRef.current
+          target instanceof Element &&
+          target.closest('img, button, .thread-image-lightbox-controls')
         ) {
-          closePreview();
+          return;
         }
+        closePreview();
       }}
       onPointerCancel={handlePointerEnd}
       onPointerDown={handlePointerDown}

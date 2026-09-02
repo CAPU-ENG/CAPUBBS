@@ -59,5 +59,10 @@ assert.doesNotMatch(
   /new Image\(\)/,
   'the lightbox must not preload duplicate image resources',
 );
+assert.match(
+  lightboxSource,
+  /target\.closest\('img, button, \.thread-image-lightbox-controls'\)[\s\S]*?closePreview\(\)/,
+  'lightbox clicks outside the image and controls must close the preview',
+);
 
-console.log('gallery grouping verification passed (9 assertions)');
+console.log('gallery grouping verification passed (10 assertions)');
