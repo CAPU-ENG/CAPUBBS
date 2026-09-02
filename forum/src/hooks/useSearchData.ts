@@ -17,6 +17,7 @@ export type SearchField = 'body' | 'title' | 'user';
 export type SearchRequest = {
   author: string;
   boardId: number | null;
+  enabled: boolean;
   endDate: string;
   field: SearchField;
   keyword: string;
@@ -63,7 +64,7 @@ export function useSearchData(request: SearchRequest) {
   const retry = useCallback(() => setRetryKey((key) => key + 1), []);
 
   useEffect(() => {
-    if (!request.keyword.trim()) {
+    if (!request.enabled) {
       setState(idleState);
       return;
     }

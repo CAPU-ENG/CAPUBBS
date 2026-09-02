@@ -41,29 +41,32 @@ export function SearchPage() {
   const initialOptions = useMemo(readOptionsFromLocation, []);
   const [draft, setDraft] = useState<SearchOptions>(initialOptions);
   const [applied, setApplied] = useState<SearchOptions>(initialOptions);
+  const [hasAppliedSearch, setHasAppliedSearch] = useState(readSearchIntentFromLocation);
   const [requestKey, setRequestKey] = useState(0);
   const [currentPage, setCurrentPage] = useState(() => readPageFromLocation());
   const [history, setHistory] = useState(readSearchHistory);
+  const hasSearch = hasAppliedSearch && canSearch(applied);
   const request = useMemo<SearchRequest>(() => ({
     author: applied.author,
     boardId: applied.boardId,
+    enabled: hasSearch,
     endDate: resolveEndDate(applied),
     field: applied.field,
     keyword: applied.keyword,
     requestKey,
     startDate: resolveStartDate(applied),
-  }), [applied, requestKey]);
+  }), [applied, hasSearch, requestKey]);
   const { error, results, retry, status } = useSearchData(request);
   const pageCount = Math.max(1, Math.ceil(results.length / SEARCH_PAGE_SIZE));
   const safePage = Math.min(currentPage, pageCount);
   const visibleResults = results.slice((safePage - 1) * SEARCH_PAGE_SIZE, safePage * SEARCH_PAGE_SIZE);
-  const hasSearch = Boolean(applied.keyword);
-  useDocumentTitle(applied.keyword ? `“${applied.keyword}”` : '等待搜索');
+  useDocumentTitle(applied.keyword ? `“${applied.keyword}”` : hasSearch ? '筛选结果' : '等待搜索');
 
   function applySearch(options: SearchOptions) {
     const normalized = { ...options, author: options.author.trim(), keyword: options.keyword.trim() };
     setDraft(normalized);
     setApplied(normalized);
+    setHasAppliedSearch(true);
     setCurrentPage(1);
     setRequestKey((key) => key + 1);
     updateLocation(normalized, 1);
@@ -125,7 +128,7 @@ export function SearchPage() {
 
         <div className="search-layout">
           <section className="search-results" aria-live="polite">
-            <SearchResultHeader applied={applied} count={results.length} status={status} />
+            <SearchResultHeader applied={applied} count={results.length} hasSearch={hasSearch} status={status} />
 
             {!hasSearch ? (
               <SearchStart history={history} onSearch={(keyword) => applySearch({ ...draft, keyword })} />
@@ -148,7 +151,7 @@ export function SearchPage() {
               </div>
             )}
 
-            {status === 'ready' && pageCount > 1 ? (
+            {hasSearch && status === 'ready' && pageCount > 1 ? (
               <div className="search-pagination-wrap forum-pagination-card">
                 <Pagination
                   ariaLabel="搜索结果分页"
@@ -252,10 +255,12 @@ function SegmentedOption({ checked, label, onChange }: { checked: boolean; label
 function SearchResultHeader({
   applied,
   count,
+  hasSearch,
   status,
 }: {
   applied: SearchOptions;
   count: number;
+  hasSearch: boolean;
   status: 'error' | 'idle' | 'loading' | 'ready';
 }) {
   const board = boards.find((item) => item.id === applied.boardId)?.label;
@@ -263,12 +268,12 @@ function SearchResultHeader({
     <header className="search-results-header">
       <div>
         <span className="eyebrow">RESULTS</span>
-        <h2>{applied.keyword ? `“${applied.keyword}”` : '等待搜索'}</h2>
+        <h2>{applied.keyword ? `“${applied.keyword}”` : hasSearch ? '筛选结果' : '等待搜索'}</h2>
       </div>
       <div className="search-result-summary">
         {applied.field !== 'user' && board ? <span>{board}</span> : null}
         {applied.field !== 'user' && applied.author ? <span>{applied.author}</span> : null}
-        <strong>{status === 'loading' ? '检索中' : status === 'ready' ? `${count} 条结果` : applied.keyword ? '—' : '输入关键词'}</strong>
+        <strong>{status === 'loading' ? '检索中' : status === 'ready' ? `${count} 条结果` : hasSearch ? '—' : '输入关键词'}</strong>
       </div>
     </header>
   );
@@ -323,7 +328,7 @@ function SearchResultRow({
         </div>
         <h3><a href={href}><HighlightedText keyword={keyword} text={result.title} /></a></h3>
         <div className="search-result-footer">
-          <span>{field === 'body' ? '正文命中' : '标题命中'}</span>
+          <span>{keyword ? field === 'body' ? '正文命中' : '标题命中' : field === 'body' ? '帖子' : '主题'}</span>
           <time dateTime={result.timestamp}>{formatSearchTime(result.timestamp)}</time>
         </div>
       </div>
@@ -382,8 +387,8 @@ function SearchEmpty({ field, keyword }: { field: SearchField; keyword: string }
   return (
     <section className="search-state-card">
       <div className="search-state-icon"><CalendarDays size={20} /></div>
-      <h3>没有找到“{keyword}”</h3>
-      <p>{field === 'user' ? '请检查用户名是否正确。' : '试试更短的关键词，或放宽版面和时间范围。'}</p>
+      <h3>{keyword ? `没有找到“${keyword}”` : '没有找到符合条件的帖子'}</h3>
+      <p>{field === 'user' ? '请检查用户名是否正确。' : keyword ? '试试更短的关键词，或放宽版面和时间范围。' : '可以放宽版面和时间范围后再试。'}</p>
     </section>
   );
 }
@@ -411,6 +416,17 @@ function readPageFromLocation() {
   return Number.isInteger(page) && page > 0 ? page : 1;
 }
 
+function readSearchIntentFromLocation() {
+  const params = new URLSearchParams(window.location.search);
+  return ['q', 'keyword', 'board', 'bid', 'author', 'range', 'start', 'starttime', 'end', 'endtime']
+    .some((key) => params.has(key));
+}
+
+function canSearch(options: SearchOptions) {
+  if (options.field === 'user') return Boolean(options.keyword.trim());
+  return true;
+}
+
 function updateLocation(options: SearchOptions, page: number) {
   window.history.replaceState(null, '', searchHref(options, page));
 }
@@ -421,7 +437,7 @@ function searchHref(options: SearchOptions, page: number) {
   if (options.field !== 'title') params.set('field', options.field);
   if (options.field !== 'user' && options.boardId) params.set('board', String(options.boardId));
   if (options.field !== 'user' && options.author) params.set('author', options.author);
-  if (options.field !== 'user' && options.range !== 'year') params.set('range', options.range);
+  if (options.field !== 'user' && (options.range !== 'year' || !options.keyword)) params.set('range', options.range);
   if (options.field !== 'user' && options.range === 'custom' && options.startDate) params.set('start', options.startDate);
   if (options.field !== 'user' && options.range === 'custom' && options.endDate) params.set('end', options.endDate);
   if (page > 1) params.set('page', String(page));
