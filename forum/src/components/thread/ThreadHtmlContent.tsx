@@ -625,7 +625,12 @@ function buildFrameBridgeScript(frameId: string, canOpenImages: boolean, needsJq
     }
     function openImage(image){
       if(!canOpenImages||!image)return;
-      var imageElements=Array.prototype.slice.call(document.querySelectorAll('.capubbs-html-frame-root img'));
+      var gallery=image.closest?image.closest('.capubbs-gallery'):null;
+      var imageElements=gallery
+        ?Array.prototype.slice.call(gallery.querySelectorAll('[data-capubbs-gallery-slide="true"] img'))
+        :Array.prototype.slice.call(document.querySelectorAll('.capubbs-html-frame-root img')).filter(function(candidate){
+          return !candidate.closest||!candidate.closest('.capubbs-gallery');
+        });
       var imageIndex=imageElements.indexOf(image);
       if(imageIndex<0)return;
       var images=imageElements.map(function(candidate){
@@ -695,6 +700,34 @@ function buildFrameBridgeScript(frameId: string, canOpenImages: boolean, needsJq
         if(image.getAttribute('tabindex')!=='0')image.setAttribute('tabindex','0');
         if(image.getAttribute('aria-label')!==ariaLabel)image.setAttribute('aria-label',ariaLabel);
         if(!image.title)image.title='点击查看大图';
+      });
+    }
+    function createGalleryNavigationControl(direction,label){
+      var control=document.createElement('span');
+      control.className='capubbs-gallery-nav capubbs-gallery-nav-'+direction;
+      control.setAttribute('data-capubbs-gallery-action',direction);
+      control.setAttribute('aria-label',label);
+      control.setAttribute('role','button');
+      control.setAttribute('tabindex','0');
+      return control;
+    }
+    function prepareGalleries(){
+      Array.prototype.forEach.call(document.querySelectorAll('.capubbs-html-frame-root .capubbs-gallery'),function(gallery){
+        var stage=gallery.querySelector('.capubbs-gallery-stage');
+        var slides=gallery.querySelectorAll('[data-capubbs-gallery-slide="true"]');
+        if(!stage||slides.length<2)return;
+        if(!stage.querySelector('[data-capubbs-gallery-action="prev"]'))stage.appendChild(createGalleryNavigationControl('prev','上一张图片'));
+        if(!stage.querySelector('[data-capubbs-gallery-action="next"]'))stage.appendChild(createGalleryNavigationControl('next','下一张图片'));
+        var footer=gallery.querySelector('.capubbs-gallery-footer');
+        if(!footer){footer=document.createElement('footer');footer.className='capubbs-gallery-footer';gallery.appendChild(footer);}
+        if(!footer.querySelector('.capubbs-gallery-count')){
+          var count=document.createElement('span');
+          count.className='capubbs-gallery-count';
+          count.setAttribute('data-capubbs-gallery-current','1');
+          count.setAttribute('data-capubbs-gallery-total',String(slides.length));
+          count.setAttribute('aria-label','第 1 张，共 '+slides.length+' 张图片');
+          footer.appendChild(count);
+        }
       });
     }
     function setGalleryIndex(gallery,nextIndex){
@@ -794,7 +827,7 @@ function buildFrameBridgeScript(frameId: string, canOpenImages: boolean, needsJq
     function init(){
       var contentRoot=document.querySelector('.capubbs-html-frame-root');
       if(window.ResizeObserver&&contentRoot)new ResizeObserver(queueHeight).observe(contentRoot);
-      if(window.MutationObserver&&contentRoot)new MutationObserver(function(){queueHeight();prepareImages();syncGrayscaleTextColors(contentRoot);}).observe(contentRoot,{attributes:true,characterData:true,childList:true,subtree:true});
+      if(window.MutationObserver&&contentRoot)new MutationObserver(function(){queueHeight();prepareImages();prepareGalleries();syncGrayscaleTextColors(contentRoot);}).observe(contentRoot,{attributes:true,characterData:true,childList:true,subtree:true});
       window.addEventListener('load',queueHeight);
       document.addEventListener('transitionend',queueHeight);
       document.addEventListener('animationend',queueHeight);
@@ -809,6 +842,7 @@ function buildFrameBridgeScript(frameId: string, canOpenImages: boolean, needsJq
       if(needsJquery)window.parent.postMessage({source:'${HTML_FRAME_MESSAGE_SOURCE}',type:'jquery-request',frameId:frameId},'*');
       else executeUserScripts();
       prepareImages();
+      prepareGalleries();
       syncGrayscaleTextColors(contentRoot);
       queueHeight();
     }

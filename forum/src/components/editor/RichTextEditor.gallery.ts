@@ -229,6 +229,46 @@ export function setEditorGalleryIndex(gallery: HTMLElement, nextIndex: number) {
   return true;
 }
 
+export function ensureGalleryDisplayControls(container: ParentNode) {
+  container.querySelectorAll<HTMLElement>('.capubbs-gallery').forEach((gallery) => {
+    const stage = gallery.querySelector<HTMLElement>('.capubbs-gallery-stage');
+    const slides = gallery.querySelectorAll('[data-capubbs-gallery-slide="true"]');
+    if (!stage || slides.length < 2) return;
+
+    if (!stage.querySelector('[data-capubbs-gallery-action="prev"]')) {
+      stage.append(createGalleryNavigationControl('prev', '上一张图片'));
+    }
+    if (!stage.querySelector('[data-capubbs-gallery-action="next"]')) {
+      stage.append(createGalleryNavigationControl('next', '下一张图片'));
+    }
+
+    let footer = gallery.querySelector<HTMLElement>('.capubbs-gallery-footer');
+    if (!footer) {
+      footer = document.createElement('footer');
+      footer.className = 'capubbs-gallery-footer';
+      gallery.append(footer);
+    }
+    if (!footer.querySelector('.capubbs-gallery-count')) {
+      const count = document.createElement('span');
+      count.className = 'capubbs-gallery-count';
+      count.dataset.capubbsGalleryCurrent = '1';
+      count.dataset.capubbsGalleryTotal = String(slides.length);
+      count.setAttribute('aria-label', `第 1 张，共 ${slides.length} 张图片`);
+      footer.append(count);
+    }
+  });
+}
+
+function createGalleryNavigationControl(direction: 'next' | 'prev', label: string) {
+  const control = document.createElement('span');
+  control.className = `capubbs-gallery-nav capubbs-gallery-nav-${direction}`;
+  control.dataset.capubbsGalleryAction = direction;
+  control.setAttribute('aria-label', label);
+  control.setAttribute('role', 'button');
+  control.setAttribute('tabindex', '0');
+  return control;
+}
+
 export function getEditorGalleryEditTarget(target: EventTarget | null) {
   if (!(target instanceof Element)) return null;
   const editControl = target.closest<HTMLElement>('[data-capubbs-gallery-edit="true"]');

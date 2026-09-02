@@ -56,5 +56,15 @@ assert.match(
   /jquery\.src=jquerySourceUrl;/,
   'frames must retain the external jQuery fallback when the shared request fails',
 );
+assert.match(
+  source,
+  /var imageElements=gallery[\s\S]*?gallery\.querySelectorAll\('\[data-capubbs-gallery-slide="true"\] img'\)[\s\S]*?filter\(function\(candidate\)[\s\S]*?!candidate\.closest\('\.capubbs-gallery'\)/,
+  'isolated frames must keep each gallery separate and group only bare floor images together',
+);
+assert.match(
+  source,
+  /function prepareGalleries\(\)[\s\S]*?data-capubbs-gallery-action[\s\S]*?capubbs-gallery-count/,
+  'isolated frames must restore missing historical gallery navigation and count controls',
+);
 
-console.log('thread HTML frame resource verification passed (10 assertions)');
+console.log('thread HTML frame resource verification passed (12 assertions)');

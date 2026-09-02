@@ -3,6 +3,7 @@ import { useEffect, useLayoutEffect, useMemo, useRef, type KeyboardEvent, type M
 import { useTheme } from '../../hooks/useTheme';
 import { syncForumGrayscaleTextColors } from '../../utils/forumGrayscaleTextColor';
 import {
+  ensureGalleryDisplayControls,
   getEditorGalleryAction,
   moveEditorGallery,
   setEditorGalleryIndex,
@@ -46,7 +47,10 @@ export function ForumMarkup({
 
   useLayoutEffect(() => {
     const container = containerRef.current;
-    if (container) syncForumGrayscaleTextColors(container, theme);
+    if (container) {
+      ensureGalleryDisplayControls(container);
+      syncForumGrayscaleTextColors(container, theme);
+    }
   }, [html, theme]);
 
   useEffect(() => {
@@ -85,7 +89,12 @@ export function ForumMarkup({
     const image = target.closest('img');
     if (!(image instanceof HTMLImageElement)) return;
 
-    const imageElements = Array.from(container.querySelectorAll('img'));
+    const gallery = image.closest<HTMLElement>('.capubbs-gallery');
+    const imageElements = gallery
+      ? Array.from(gallery.querySelectorAll<HTMLImageElement>('[data-capubbs-gallery-slide="true"] img'))
+      : Array.from(container.querySelectorAll<HTMLImageElement>('img')).filter(
+        (candidate) => !candidate.closest('.capubbs-gallery'),
+      );
     const imageIndex = imageElements.indexOf(image);
     if (imageIndex < 0) return;
 

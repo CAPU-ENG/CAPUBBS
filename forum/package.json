@@ -13,6 +13,7 @@
     "verify:grayscale-colors": "node --experimental-strip-types verify-grayscale-text-colors.mjs",
     "verify:font-sizes": "node --experimental-strip-types verify-forum-font-sizes.mjs",
     "verify:forum-mode": "node --experimental-strip-types verify-forum-mode.mjs",
+    "verify:gallery-grouping": "node --experimental-strip-types verify-gallery-grouping.mjs",
     "verify:home-hot-snapshot": "node --experimental-strip-types verify-home-hot-snapshot.mjs",
     "verify:legacy-assets": "node --experimental-strip-types verify-legacy-assets.mjs",
     "verify:legacy-bbcode": "node --experimental-strip-types verify-legacy-bbcode.mjs",
