@@ -9,7 +9,7 @@ import {
   ShieldAlert,
   Trash2,
 } from 'lucide-react';
-import { useEffect, useMemo, useState, type ChangeEvent } from 'react';
+import { useEffect, useId, useMemo, useRef, useState, type ChangeEvent } from 'react';
 import { fetchHomeCalendar, type HomeCalendarEvent } from '../api/home';
 import { AppBackground } from '../components/layout/AppBackground';
 import { LoadingSpinner as LoaderCircle } from '../components/layout/LoadingSpinner';
@@ -31,9 +31,13 @@ type CalendarFormState = {
 type LoadStatus = 'error' | 'loading' | 'ready';
 
 const WEEKDAYS = ['一', '二', '三', '四', '五', '六', '日'];
+const CALENDAR_MIN_YEAR = 1995;
+const MONTH_OPTIONS = Array.from({ length: 12 }, (_item, month) => month);
 
 export function CalendarAdminPage() {
   const { status: authStatus, viewer } = useAuth();
+  const periodPickerId = useId();
+  const periodPickerRef = useRef<HTMLDivElement | null>(null);
   const [today] = useState(() => startOfDay(new Date()));
   const [selectedDate, setSelectedDate] = useState(today);
   const [visibleMonth, setVisibleMonth] = useState(() => startOfMonth(today));
@@ -44,6 +48,7 @@ export function CalendarAdminPage() {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [isSaving, setIsSaving] = useState(false);
   const [formState, setFormState] = useState<CalendarFormState>(() => emptyForm(today));
+  const [openPeriodPicker, setOpenPeriodPicker] = useState<'month' | 'year' | null>(null);
   const authPending = authStatus === 'loading' || authStatus === 'restoring';
   const isAuthorized = authStatus === 'authenticated'
     && canManageCalendar(viewer?.username, viewer?.rights);
@@ -51,6 +56,33 @@ export function CalendarAdminPage() {
     ? '正在确认管理权限'
     : isAuthorized ? '日历管理' : '无法进入日历管理');
   const selectedDateKey = formatDateKey(selectedDate);
+  const visibleYear = visibleMonth.getFullYear();
+  const visibleMonthIndex = visibleMonth.getMonth();
+  const minYear = Math.min(CALENDAR_MIN_YEAR, visibleYear);
+  const maxYear = Math.max(today.getFullYear() + 1, visibleYear);
+  const yearOptions = useMemo(() => Array.from(
+    { length: maxYear - minYear + 1 },
+    (_item, index) => maxYear - index,
+  ), [maxYear, minYear]);
+
+  useEffect(() => {
+    if (!openPeriodPicker) return;
+
+    function closePickerOnOutsidePress(event: PointerEvent) {
+      if (!periodPickerRef.current?.contains(event.target as Node)) setOpenPeriodPicker(null);
+    }
+
+    function closePickerOnEscape(event: KeyboardEvent) {
+      if (event.key === 'Escape') setOpenPeriodPicker(null);
+    }
+
+    document.addEventListener('pointerdown', closePickerOnOutsidePress);
+    window.addEventListener('keydown', closePickerOnEscape);
+    return () => {
+      document.removeEventListener('pointerdown', closePickerOnOutsidePress);
+      window.removeEventListener('keydown', closePickerOnEscape);
+    };
+  }, [openPeriodPicker]);
 
   useEffect(() => {
     if (!isAuthorized) return;
@@ -93,11 +125,16 @@ export function CalendarAdminPage() {
     setFormState(emptyForm(date));
     setFeedbackKind('info');
     setFeedback('已切换日期，可新增活动或从左侧列表选择编辑。');
+    setOpenPeriodPicker(null);
   }
 
   function moveMonth(delta: number) {
     const nextMonth = new Date(visibleMonth.getFullYear(), visibleMonth.getMonth() + delta, 1);
     selectDate(nextMonth);
+  }
+
+  function selectMonth(year: number, month: number) {
+    selectDate(new Date(year, month, 1));
   }
 
   function startCreate() {
@@ -245,7 +282,66 @@ export function CalendarAdminPage() {
                 <section className="calendar-admin-calendar" aria-label="选择活动日期">
                   <div className="calendar-admin-month-nav">
                     <button aria-label="上个月" onClick={() => moveMonth(-1)} type="button"><ChevronLeft size={17} /></button>
-                    <strong>{visibleMonth.getFullYear()} 年 {visibleMonth.getMonth() + 1} 月</strong>
+                    <div className="calendar-period-control" ref={periodPickerRef}>
+                      <div className="calendar-period-title">
+                        <button
+                          aria-controls={`${periodPickerId}-year`}
+                          aria-expanded={openPeriodPicker === 'year'}
+                          aria-haspopup="listbox"
+                          className="calendar-period-trigger"
+                          onClick={() => setOpenPeriodPicker((current) => current === 'year' ? null : 'year')}
+                          type="button"
+                        >
+                          {visibleYear}
+                        </button>
+                        <span>年</span>
+                        <button
+                          aria-controls={`${periodPickerId}-month`}
+                          aria-expanded={openPeriodPicker === 'month'}
+                          aria-haspopup="listbox"
+                          className="calendar-period-trigger"
+                          onClick={() => setOpenPeriodPicker((current) => current === 'month' ? null : 'month')}
+                          type="button"
+                        >
+                          {visibleMonthIndex + 1}
+                        </button>
+                        <span>月</span>
+                      </div>
+
+                      {openPeriodPicker === 'year' ? (
+                        <div aria-label="选择年份" className="calendar-period-popover calendar-year-picker" id={`${periodPickerId}-year`} role="listbox">
+                          {yearOptions.map((year) => (
+                            <button
+                              aria-selected={year === visibleYear}
+                              className={year === visibleYear ? 'calendar-period-option-active' : ''}
+                              key={year}
+                              onClick={() => selectMonth(year, visibleMonthIndex)}
+                              role="option"
+                              type="button"
+                            >
+                              {year}
+                            </button>
+                          ))}
+                        </div>
+                      ) : null}
+
+                      {openPeriodPicker === 'month' ? (
+                        <div aria-label="选择月份" className="calendar-period-popover calendar-month-picker" id={`${periodPickerId}-month`} role="listbox">
+                          {MONTH_OPTIONS.map((month) => (
+                            <button
+                              aria-selected={month === visibleMonthIndex}
+                              className={month === visibleMonthIndex ? 'calendar-period-option-active' : ''}
+                              key={month}
+                              onClick={() => selectMonth(visibleYear, month)}
+                              role="option"
+                              type="button"
+                            >
+                              {month + 1} 月
+                            </button>
+                          ))}
+                        </div>
+                      ) : null}
+                    </div>
                     <button aria-label="下个月" onClick={() => moveMonth(1)} type="button"><ChevronRight size={17} /></button>
                   </div>
 

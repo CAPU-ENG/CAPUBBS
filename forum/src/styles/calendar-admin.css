@@ -173,7 +173,7 @@
     margin-bottom: 15px;
   }
 
-  .calendar-admin-month-nav button {
+  .calendar-admin-month-nav > button {
     display: inline-flex;
     width: 36px;
     height: 36px;
@@ -186,14 +186,12 @@
     transition: 140ms ease;
   }
 
-  .calendar-admin-month-nav button:hover {
+  .calendar-admin-month-nav > button:hover {
     border-color: var(--line-strong);
     color: var(--brand-strong);
   }
 
-  .calendar-admin-month-nav strong {
-    text-align: center;
-    color: var(--text-strong);
+  .calendar-admin-month-nav .calendar-period-title {
     font-size: var(--ui-font-size-xl);
     font-weight: 750;
   }
