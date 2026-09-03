@@ -20,51 +20,8 @@
   }
 
   .feed-item {
-    --feed-board-accent: #f4f6f2;
-
-    border-left: 4px solid var(--feed-board-accent);
     padding: 22px;
     transition: background 160ms ease;
-  }
-
-  .feed-item + .feed-item {
-    border-top: 1px solid var(--line);
-  }
-
-  .feed-item[data-board-id='1'] {
-    --feed-board-accent: #d04b23;
-  }
-
-  .feed-item[data-board-id='2'] {
-    --feed-board-accent: #ebcea8;
-  }
-
-  .feed-item[data-board-id='3'] {
-    --feed-board-accent: #dfdccc;
-  }
-
-  .feed-item[data-board-id='4'] {
-    --feed-board-accent: #485c76;
-  }
-
-  .feed-item[data-board-id='5'] {
-    --feed-board-accent: #836754;
-  }
-
-  .feed-item[data-board-id='6'] {
-    --feed-board-accent: #f7f7d0;
-  }
-
-  .feed-item[data-board-id='7'] {
-    --feed-board-accent: #e6d1d9;
-  }
-
-  .feed-item[data-board-id='9'] {
-    --feed-board-accent: #88b995;
-  }
-
-  .feed-item[data-board-id='28'] {
-    --feed-board-accent: #000;
   }
 
   .feed-item:hover {
