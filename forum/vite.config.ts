@@ -109,7 +109,6 @@ export default defineConfig({
   base: FORUM_BASE_URL,
   build: {
     assetsDir: 'new-assets',
-    manifest: 'new-assets/precache-manifest.json',
   },
   plugins: [forumBasePathFallback(), legacyForumCookieProxy(), react()],
   server: {

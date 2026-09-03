@@ -1,5 +1,5 @@
 <IfModule mod_headers.c>
-    <FilesMatch "^index-(?:worker|preload)\.js$">
-        Header set Cache-Control "no-cache"
-    </FilesMatch>
+    <Files "index-worker.js">
+        Header set Cache-Control "no-cache, no-store, must-revalidate"
+    </Files>
 </IfModule>

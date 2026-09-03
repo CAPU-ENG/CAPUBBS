@@ -13,13 +13,14 @@
 
     if ($requestPath === '/bbs/index-worker.js') {
         $workerCandidates = array(
+            __DIR__.'/index-worker.js',
             __DIR__.'/../forum/dist/index-worker.js',
             __DIR__.'/../forum/public/index-worker.js'
         );
         foreach ($workerCandidates as $workerCandidate) {
             if (!is_readable($workerCandidate)) continue;
             header('Content-Type: application/javascript; charset=UTF-8');
-            header('Cache-Control: no-cache');
+            header('Cache-Control: no-cache, no-store, must-revalidate');
             header('Service-Worker-Allowed: /bbs/');
             readfile($workerCandidate);
             exit;
@@ -28,9 +29,8 @@
         exit;
     }
 
-    $forceNewShell = @$_GET['capubbs_shell'] === 'new';
-    $mode = $forceNewShell ? 'new' : @$_COOKIE['capubbs_forum_mode'];
-    $hasLegacyLoginToken = !$forceNewShell && !isset($_COOKIE['capubbs_forum_mode'])
+    $mode = @$_COOKIE['capubbs_forum_mode'];
+    $hasLegacyLoginToken = !isset($_COOKIE['capubbs_forum_mode'])
         && trim((string)@$_COOKIE['token']) !== '';
 
     if ($hasLegacyLoginToken) {

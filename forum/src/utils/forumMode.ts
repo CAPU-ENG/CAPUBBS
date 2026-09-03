@@ -13,7 +13,4 @@ export {
 
 export function saveForumMode(mode: ForumMode) {
   document.cookie = createForumModeCookie(mode, window.location.protocol === 'https:');
-  if (typeof navigator !== 'undefined') {
-    navigator.serviceWorker?.controller?.postMessage({ type: 'SET_FORUM_MODE', mode });
-  }
 }

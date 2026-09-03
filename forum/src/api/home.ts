@@ -1,7 +1,6 @@
 import { getPublicProfilePath } from '../utils/userRoutes';
 import { normalizeLegacyAvatar } from '../utils/legacyAssets';
 import { maskActivitySignupSummary } from '../utils/activityPhonePrivacy';
-import { compareForumIndexVersion } from '../utils/forumIndexCache';
 
 const HOME_API_URL = import.meta.env.VITE_API_URL?.trim() || '/api/api.php';
 const HOME_CALENDAR_API_URL = import.meta.env.VITE_CALENDAR_API_URL?.trim()
@@ -175,7 +174,6 @@ async function requestSnapshot(
   const meta = isApiRow(payload.meta) ? payload.meta : {};
   const kind = plainSnapshotString(meta.kind);
   const generation = plainSnapshotString(meta.generation);
-  compareForumIndexVersion(plainSnapshotString(meta.indexVersion));
   if (payload.code !== 0 || !isSnapshotGeneration(generation)
     || (expectedGeneration && generation !== expectedGeneration) || !Array.isArray(payload.data)) {
     throw new HomeApiError('热帖快照数据无效。');
