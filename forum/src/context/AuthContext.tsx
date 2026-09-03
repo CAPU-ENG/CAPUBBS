@@ -11,14 +11,14 @@ import { fetchMessageSummary } from '../api/messages';
 import { refreshClientConfig } from '../api/clientConfig';
 
 type AuthStatus = 'authenticated' | 'guest' | 'loading' | 'restoring';
-const SESSION_VIEWER_STORAGE_KEY = 'capubbs-session-viewer';
-const SESSION_VIEWER_REFRESHED_AT_STORAGE_KEY = 'capubbs-session-viewer-refreshed-at';
-const SESSION_VIEWER_REFRESH_INTERVAL_MS = 7 * 24 * 60 * 60 * 1000;
-const SESSION_VIEWER_RETRY_INTERVAL_MS = 5 * 60 * 1000;
+const SESSION_VIEWER_COOKIE_KEY = 'capubbs-session-viewer';
+const LEGACY_SESSION_VIEWER_STORAGE_KEY = 'capubbs-session-viewer';
+const LEGACY_SESSION_VIEWER_REFRESHED_AT_STORAGE_KEY = 'capubbs-session-viewer-refreshed-at';
+const SESSION_VIEWER_COOKIE_MAX_AGE_SECONDS = 999999;
+const PRODUCTION_COOKIE_DOMAIN = 'chexie.net';
 const UNREAD_MESSAGE_REFRESH_INTERVAL_MS = 5 * 60 * 1000;
 
 type AuthState = {
-  refreshAt: number;
   status: AuthStatus;
   viewer: SessionViewer | null;
 };
@@ -82,59 +82,65 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [activeUsername, refreshUnreadMessagesFor]);
 
   useEffect(() => {
-    if (auth.status === 'guest') return;
+    if (auth.status !== 'loading' && auth.status !== 'restoring') return;
 
-    let controller: AbortController | null = null;
-    const timeout = window.setTimeout(() => {
-      controller = new AbortController();
-      void fetchSessionViewer(controller.signal).then(
-        (sessionViewer) => {
-          if (sessionViewer) {
-            const refreshedAt = Date.now();
-            cacheViewer(sessionViewer);
-            cacheViewerRefreshedAt(refreshedAt);
-            setAuth({
-              refreshAt: refreshedAt + SESSION_VIEWER_REFRESH_INTERVAL_MS,
-              status: 'authenticated',
-              viewer: sessionViewer,
-            });
-          } else {
-            clearCachedViewer();
-            setAuth({ refreshAt: 0, status: 'guest', viewer: null });
-          }
-        },
-        (error: unknown) => {
-          if (error instanceof DOMException && error.name === 'AbortError') return;
-          if (auth.viewer) {
-            setAuth((current) => current.viewer ? {
-              ...current,
-              refreshAt: Date.now() + SESSION_VIEWER_RETRY_INTERVAL_MS,
-              status: 'authenticated',
-            } : current);
-            return;
-          }
+    const controller = new AbortController();
+    void fetchSessionViewer(controller.signal).then(
+      (sessionViewer) => {
+        if (sessionViewer) {
+          cacheViewer(sessionViewer, true);
+          setAuth({ status: 'authenticated', viewer: sessionViewer });
+        } else {
           clearCachedViewer();
-          setAuth({ refreshAt: 0, status: 'guest', viewer: null });
-        },
-      );
-    }, Math.max(0, auth.refreshAt - Date.now()));
+          setAuth({ status: 'guest', viewer: null });
+        }
+      },
+      (error: unknown) => {
+        if (error instanceof DOMException && error.name === 'AbortError') return;
+        if (auth.viewer) {
+          setAuth({ status: 'authenticated', viewer: auth.viewer });
+          return;
+        }
+        clearCachedViewer();
+        setAuth({ status: 'guest', viewer: null });
+      },
+    );
 
-    return () => {
-      window.clearTimeout(timeout);
-      controller?.abort();
+    return () => controller.abort();
+  }, [auth.status, auth.viewer]);
+
+  useEffect(() => {
+    const syncViewerFromCookie = () => {
+      const viewer = readCachedViewer();
+      setAuth((current) => {
+        if (!hasTokenCookie()) {
+          return current.status === 'guest' && !current.viewer
+            ? current
+            : { status: 'guest', viewer: null };
+        }
+        if (!viewer) return current.status === 'loading' ? current : { status: 'loading', viewer: null };
+        if (current.status === 'authenticated' && sameViewer(current.viewer, viewer)) return current;
+        return { status: 'authenticated', viewer };
+      });
     };
-  }, [auth.refreshAt, auth.status, auth.viewer]);
+    const syncVisibleViewer = () => {
+      if (document.visibilityState === 'visible') syncViewerFromCookie();
+    };
+
+    window.addEventListener('focus', syncViewerFromCookie);
+    window.addEventListener('pageshow', syncViewerFromCookie);
+    document.addEventListener('visibilitychange', syncVisibleViewer);
+    return () => {
+      window.removeEventListener('focus', syncViewerFromCookie);
+      window.removeEventListener('pageshow', syncViewerFromCookie);
+      document.removeEventListener('visibilitychange', syncVisibleViewer);
+    };
+  }, []);
 
   const login = useCallback(async (username: string, passwordHash: string) => {
     const sessionViewer = await loginSession(username, passwordHash);
-    const refreshedAt = Date.now();
-    cacheViewer(sessionViewer);
-    cacheViewerRefreshedAt(refreshedAt);
-    setAuth({
-      refreshAt: refreshedAt + SESSION_VIEWER_REFRESH_INTERVAL_MS,
-      status: 'authenticated',
-      viewer: sessionViewer,
-    });
+    cacheViewer(sessionViewer, true);
+    setAuth({ status: 'authenticated', viewer: sessionViewer });
     void refreshUnreadMessagesFor(sessionViewer.username);
     void refreshClientConfig().catch(() => undefined);
     return sessionViewer;
@@ -145,24 +151,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       await logoutSession();
     } finally {
       clearCachedViewer();
-      setAuth({ refreshAt: 0, status: 'guest', viewer: null });
+      setAuth({ status: 'guest', viewer: null });
     }
   }, []);
 
   const refreshViewer = useCallback(() => {
-    setAuth((current) => current.viewer ? { ...current, refreshAt: Date.now() } : current);
+    setAuth((current) => current.viewer ? { ...current, status: 'restoring' } : current);
   }, []);
 
   const register = useCallback(async (draft: RegisterDraft) => {
     const sessionViewer = await registerSession(draft);
-    const refreshedAt = Date.now();
-    cacheViewer(sessionViewer);
-    cacheViewerRefreshedAt(refreshedAt);
-    setAuth({
-      refreshAt: refreshedAt + SESSION_VIEWER_REFRESH_INTERVAL_MS,
-      status: 'authenticated',
-      viewer: sessionViewer,
-    });
+    cacheViewer(sessionViewer, true);
+    setAuth({ status: 'authenticated', viewer: sessionViewer });
     void refreshUnreadMessagesFor(sessionViewer.username);
     void refreshClientConfig().catch(() => undefined);
     return sessionViewer;
@@ -213,64 +213,82 @@ export function useAuth() {
 function restoreCachedAuth(): AuthState {
   if (!hasTokenCookie()) {
     clearCachedViewer();
-    return { refreshAt: 0, status: 'guest', viewer: null };
+    return { status: 'guest', viewer: null };
   }
 
+  const viewer = readCachedViewer();
+  return viewer ? { status: 'authenticated', viewer } : { status: 'loading', viewer: null };
+}
+
+function cacheViewer(viewer: SessionViewer, replaceIdentity = false) {
+  const cachedViewer = readCachedViewer();
+  if (!replaceIdentity && cachedViewer && cachedViewer.username !== viewer.username) return;
+
   try {
-    const value = window.localStorage.getItem(SESSION_VIEWER_STORAGE_KEY);
-    if (!value) return { refreshAt: 0, status: 'loading', viewer: null };
-    const viewer = JSON.parse(value) as Partial<SessionViewer>;
+    const secure = window.location.protocol === 'https:' ? '; Secure' : '';
+    const domain = sharedCookieDomain();
+    const attributes = `path=/; max-age=${SESSION_VIEWER_COOKIE_MAX_AGE_SECONDS}; SameSite=Lax${secure}`;
+    document.cookie = `${SESSION_VIEWER_COOKIE_KEY}=${encodeURIComponent(JSON.stringify(viewer))}; ${attributes}${domain ? `; domain=${domain}` : ''}`;
+    clearLegacyViewerStorage();
+  } catch {
+    // A missing cache falls back to session verification on the next page load.
+  }
+}
+
+function clearCachedViewer() {
+  const secure = window.location.protocol === 'https:' ? '; Secure' : '';
+  expireViewerCookie('', secure);
+  const domain = sharedCookieDomain();
+  if (domain) expireViewerCookie(domain, secure);
+  clearLegacyViewerStorage();
+}
+
+function readCachedViewer(): SessionViewer | null {
+  try {
+    const cookie = document.cookie.split(';').find((item) => item.trim().startsWith(`${SESSION_VIEWER_COOKIE_KEY}=`));
+    if (!cookie) return null;
+    const value = cookie.trim().slice(SESSION_VIEWER_COOKIE_KEY.length + 1);
+    const viewer = JSON.parse(decodeURIComponent(value)) as Partial<SessionViewer>;
     if (
       typeof viewer.username !== 'string'
       || typeof viewer.avatar !== 'string'
       || typeof viewer.rights !== 'number'
       || typeof viewer.stars !== 'number'
       || typeof viewer.unreadMessages !== 'number'
-    ) {
-      clearCachedViewer();
-      return { refreshAt: 0, status: 'loading', viewer: null };
-    }
-    const refreshedAt = readCachedViewerRefreshedAt();
-    const refreshAt = refreshedAt + SESSION_VIEWER_REFRESH_INTERVAL_MS;
-    return {
-      refreshAt,
-      status: refreshAt > Date.now() ? 'authenticated' : 'restoring',
-      viewer: viewer as SessionViewer,
-    };
+    ) return null;
+    return viewer as SessionViewer;
   } catch {
-    clearCachedViewer();
-    return { refreshAt: 0, status: 'loading', viewer: null };
+    return null;
   }
 }
 
-function cacheViewer(viewer: SessionViewer) {
+function clearLegacyViewerStorage() {
   try {
-    window.localStorage.setItem(SESSION_VIEWER_STORAGE_KEY, JSON.stringify(viewer));
+    window.localStorage.removeItem(LEGACY_SESSION_VIEWER_STORAGE_KEY);
+    window.localStorage.removeItem(LEGACY_SESSION_VIEWER_REFRESHED_AT_STORAGE_KEY);
   } catch {
-    // Cookie verification remains the source of truth when storage is unavailable.
+    // Ignore storage restrictions; the shared cookie remains authoritative.
   }
 }
 
-function clearCachedViewer() {
-  try {
-    window.localStorage.removeItem(SESSION_VIEWER_STORAGE_KEY);
-    window.localStorage.removeItem(SESSION_VIEWER_REFRESHED_AT_STORAGE_KEY);
-  } catch {
-    // Ignore storage restrictions; logout still clears the authentication cookie.
-  }
+function expireViewerCookie(domain: string, secure: string) {
+  document.cookie = `${SESSION_VIEWER_COOKIE_KEY}=; path=/; max-age=0; expires=Thu, 01 Jan 1970 00:00:00 GMT; SameSite=Lax${secure}${domain ? `; domain=${domain}` : ''}`;
 }
 
-function cacheViewerRefreshedAt(refreshedAt: number) {
-  try {
-    window.localStorage.setItem(SESSION_VIEWER_REFRESHED_AT_STORAGE_KEY, String(refreshedAt));
-  } catch {
-    // The in-memory refresh schedule still applies when storage is unavailable.
-  }
+function sharedCookieDomain() {
+  const configuredDomain = import.meta.env.VITE_COOKIE_DOMAIN?.trim().replace(/^\./, '');
+  const hostname = window.location.hostname.toLowerCase();
+  const domain = configuredDomain || PRODUCTION_COOKIE_DOMAIN;
+  return hostname === domain || hostname.endsWith(`.${domain}`) ? domain : '';
 }
 
-function readCachedViewerRefreshedAt() {
-  const value = Number(window.localStorage.getItem(SESSION_VIEWER_REFRESHED_AT_STORAGE_KEY));
-  return Number.isFinite(value) && value > 0 ? value : 0;
+function sameViewer(left: SessionViewer | null, right: SessionViewer) {
+  return Boolean(left)
+    && left?.username === right.username
+    && left.avatar === right.avatar
+    && left.rights === right.rights
+    && left.stars === right.stars
+    && left.unreadMessages === right.unreadMessages;
 }
 
 function hasTokenCookie() {
