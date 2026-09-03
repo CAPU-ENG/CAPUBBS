@@ -73,6 +73,8 @@ assert.match(legacyContentSource, /<base href="\/bbs\/content\/">/);
 assert.match(legacyLoginSource, /<base href="\/bbs\/login\/">/);
 assert.match(legacyMainSource, /<base href="\/bbs\/main\/">/);
 assert.match(gatewaySource, /forum\/dist\/index\.html/);
+assert.match(gatewaySource, /\/bbs\/index-worker\.js/);
+assert.match(gatewaySource, /Service-Worker-Allowed: \/bbs\//);
 assert.match(gatewaySource, /Cache-Control: private, no-store/);
 assert.match(gatewaySource, /Vary: Cookie/);
 assert.match(gatewaySource, /\$requestPath === '\/bbs\/register\/userexists\.php'/);

@@ -35,6 +35,7 @@ if (isset($compact['data'][0]['text']) || !isset($full['data'][0]['text'])) exit
 $publicStandard = home_hot_snapshot_read_json(home_hot_snapshot_root() . '/hot-15.json');
 $publicCompact = home_hot_snapshot_read_json(home_hot_snapshot_root() . '/hot-30-compact.json');
 if ($publicStandard['meta']['generation'] !== $manifest['generation'] || count($publicCompact['data']) !== 30) exit(14);
+if (!preg_match('/^[a-f0-9]{64}$/', $publicStandard['meta']['indexVersion'])) exit(18);
 
 home_hot_snapshot_mark_dirty();
 $dirtyManifest = home_hot_snapshot_read_json(home_hot_snapshot_manifest_path());
@@ -65,6 +66,7 @@ try {
   const homePreload = readFileSync(join(forumDirectory, 'src/hooks/useHomeThreadPreload.ts'), 'utf8');
   const cacheHtaccess = readFileSync(join(repositoryDirectory, 'api/cache/home-hot/.htaccess'), 'utf8');
   const snapshotBackend = readFileSync(join(repositoryDirectory, 'api/lib/HomeHotSnapshot.php'), 'utf8');
+  const indexWorker = readFileSync(join(forumDirectory, 'public/index-worker.js'), 'utf8');
   assert.match(homeApi, /cache\/home-hot\/hot-15\.json/);
   assert.doesNotMatch(homeApi, /requestSnapshotManifest/);
   assert.match(homeApi, /hot-100\.json/);
@@ -75,6 +77,10 @@ try {
   assert.match(cacheHtaccess, /SetOutputFilter DEFLATE/);
   assert.match(snapshotBackend, /\(\$latestText\) as text/);
   assert.doesNotMatch(snapshotBackend, /recent_threads\.bid=1 then null/);
+  assert.match(indexWorker, /COMPARE_INDEX_VERSION/);
+  assert.match(indexWorker, /request\.mode !== 'navigate'/);
+  assert.match(indexWorker, /PASSTHROUGH_PREFIXES/);
+  assert.match(indexWorker, /event\.request\.method !== 'GET'/);
 } finally {
   rmSync(snapshotDirectory, { force: true, recursive: true });
 }
