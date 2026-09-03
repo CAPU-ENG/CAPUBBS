@@ -8,7 +8,12 @@ import type {
   SetStateAction,
 } from 'react';
 import type { GalleryDialogImage, GalleryUploadProgress } from './GalleryDialog';
-import { getClipboardImageFile } from './RichTextEditor.clipboard';
+import {
+  clipboardPlainTextToRichHtml,
+  getClipboardImageFile,
+  getMicrosoftWordClipboardHtml,
+  sanitizeMicrosoftWordClipboardHtml,
+} from './RichTextEditor.clipboard';
 import {
   buildEditorGalleryHtml,
   getEditorGalleryAction,
@@ -459,6 +464,22 @@ export function createRichTextEditorMediaActions({
   };
 
   const handleEditorPaste = (event: ClipboardEvent<HTMLDivElement | HTMLTextAreaElement>) => {
+    const wordHtml = !isHtmlMode && !isMarkdownMode
+      ? getMicrosoftWordClipboardHtml(event.clipboardData)
+      : '';
+
+    if (wordHtml) {
+      event.preventDefault();
+      saveSelection();
+      setActivePopover(null);
+      setIsColorPickerOpen(false);
+      insertRichHtml(
+        sanitizeMicrosoftWordClipboardHtml(wordHtml)
+        || clipboardPlainTextToRichHtml(event.clipboardData.getData('text/plain')),
+      );
+      return;
+    }
+
     const imageFile = getClipboardImageFile(event.clipboardData);
 
     if (!imageFile) {

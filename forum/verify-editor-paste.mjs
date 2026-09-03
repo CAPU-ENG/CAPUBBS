@@ -1,11 +1,19 @@
 import assert from 'node:assert/strict';
-import { getClipboardImageFile } from './src/components/editor/RichTextEditor.clipboard.ts';
+import {
+  clipboardPlainTextToRichHtml,
+  getClipboardImageFile,
+  getMicrosoftWordClipboardHtml,
+  getWordClipboardElementAction,
+  isMicrosoftWordClipboardHtml,
+} from './src/components/editor/RichTextEditor.clipboard.ts';
 
-function createClipboardData({ files = [], items = [], plainText = '' } = {}) {
+function createClipboardData({ files = [], html = '', items = [], plainText = '' } = {}) {
   return {
     files,
     getData(type) {
-      return type === 'text/plain' ? plainText : '';
+      if (type === 'text/plain') return plainText;
+      if (type === 'text/html') return html;
+      return '';
     },
     items,
   };
@@ -13,6 +21,29 @@ function createClipboardData({ files = [], items = [], plainText = '' } = {}) {
 
 const generatedWordPreview = { name: 'word-preview.png', type: 'image/png' };
 const copiedScreenshot = { name: 'screenshot.png', type: 'image/png' };
+const wordHtml = '<p class="MsoNormal" style="mso-margin-top-alt:auto"><span>Word 正文</span><o:p></o:p></p>';
+
+assert.equal(isMicrosoftWordClipboardHtml(wordHtml), true);
+assert.equal(isMicrosoftWordClipboardHtml('<p>普通网页正文</p>'), false);
+assert.equal(
+  getMicrosoftWordClipboardHtml(createClipboardData({ html: wordHtml, plainText: 'Word 正文' })),
+  wordHtml,
+);
+assert.equal(
+  getMicrosoftWordClipboardHtml(createClipboardData({ html: wordHtml })),
+  '',
+);
+
+assert.equal(getWordClipboardElementAction('p'), 'keep');
+assert.equal(getWordClipboardElementAction('STRONG'), 'keep');
+assert.equal(getWordClipboardElementAction('span'), 'unwrap');
+assert.equal(getWordClipboardElementAction('o:p'), 'unwrap');
+assert.equal(getWordClipboardElementAction('style'), 'remove');
+assert.equal(getWordClipboardElementAction('IMG'), 'remove');
+assert.equal(
+  clipboardPlainTextToRichHtml('第一行\r\n第二行\n<&>'),
+  '第一行<br>第二行<br>&lt;&amp;&gt;',
+);
 
 assert.equal(
   getClipboardImageFile(createClipboardData({
@@ -51,4 +82,4 @@ assert.equal(
   null,
 );
 
-console.log('editor paste verification passed (5 assertions)');
+console.log('editor paste verification passed (16 assertions)');
