@@ -143,7 +143,7 @@ export function FeedSection({ autoLoadMore, compactMode, error, hasMore, items, 
       ) : items.length === 0 ? (
         <div className="home-data-state"><span>暂时还没有帖子。</span></div>
       ) : (
-        <div className="divide-y divide-[var(--line)]">
+        <div className="feed-list">
           {items.map((item) => <FeedItem compactMode={compactMode} item={item} key={item.id} />)}
         </div>
       )}

@@ -22,9 +22,13 @@
   .feed-item {
     --feed-board-accent: #f4f6f2;
 
+    border-left: 4px solid var(--feed-board-accent);
     padding: 22px;
-    box-shadow: inset 4px 0 0 var(--feed-board-accent);
     transition: background 160ms ease;
+  }
+
+  .feed-item + .feed-item {
+    border-top: 1px solid var(--line);
   }
 
   .feed-item[data-board-id='1'] {
