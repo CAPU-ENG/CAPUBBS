@@ -1,4 +1,3 @@
-import { useEffect } from 'react';
 import { FeedSection } from '../components/home/FeedSection';
 import { DesktopHomeAside } from '../components/home/HomeAside';
 import { MobileActivityBar } from '../components/home/MobileActivityBar';
@@ -16,7 +15,7 @@ import { getThreadCacheScope } from '../utils/threadContentCache';
 
 export function HomePage() {
   useDocumentTitle('车协论坛');
-  const { refreshUnreadMessages, status: authStatus, viewer } = useAuth();
+  const { status: authStatus, viewer } = useAuth();
   const compactMode = useCompactMode();
   const floorDecorationEnabled = useFloorDecorationEnabled();
   const tagMedalDisplayEnabled = useTagMedalDisplayEnabled();
@@ -32,11 +31,6 @@ export function HomePage() {
     signup: viewer ? signup.items : [],
     tagMedalDisplay: tagMedalDisplayEnabled,
   });
-
-  useEffect(() => {
-    if (authStatus !== 'authenticated') return;
-    void refreshUnreadMessages();
-  }, [authStatus, refreshUnreadMessages, viewer?.username]);
 
   return (
     <div className="relative min-h-screen text-[var(--text)] transition-colors duration-200">

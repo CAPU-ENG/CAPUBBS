@@ -75,6 +75,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     if (!activeUsername) return;
+    void refreshUnreadMessagesFor(activeUsername);
     const interval = window.setInterval(() => {
       void refreshUnreadMessagesFor(activeUsername);
     }, UNREAD_MESSAGE_REFRESH_INTERVAL_MS);
@@ -141,10 +142,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const sessionViewer = await loginSession(username, passwordHash);
     cacheViewer(sessionViewer, true);
     setAuth({ status: 'authenticated', viewer: sessionViewer });
-    void refreshUnreadMessagesFor(sessionViewer.username);
     void refreshClientConfig().catch(() => undefined);
     return sessionViewer;
-  }, [refreshUnreadMessagesFor]);
+  }, []);
 
   const logout = useCallback(async () => {
     try {
@@ -163,10 +163,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const sessionViewer = await registerSession(draft);
     cacheViewer(sessionViewer, true);
     setAuth({ status: 'authenticated', viewer: sessionViewer });
-    void refreshUnreadMessagesFor(sessionViewer.username);
     void refreshClientConfig().catch(() => undefined);
     return sessionViewer;
-  }, [refreshUnreadMessagesFor]);
+  }, []);
 
   const updateViewerAvatar = useCallback((avatar: string) => {
     setAuth((current) => {
