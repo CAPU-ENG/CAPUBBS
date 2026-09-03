@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict';
 import {
+  applyImageIntrinsicDimensions,
   applyImageWidthPercentage,
   getImageWidthPercentage,
   getResizedImageWidthPercentage,
@@ -44,8 +45,14 @@ assert.equal(getResizedImageWidthPercentage(20, -200, 800, 6), 6);
 const { attributes, image, style } = createImageStub();
 applyImageWidthPercentage(image, 37.126);
 assert.equal(style.width, '37.13%');
-assert.equal(style.height, '');
-assert.equal(attributes.get('width'), '37.13%');
-assert.equal(attributes.has('height'), false);
+assert.equal(style.height, 'auto');
+assert.equal(attributes.get('width'), '640');
+assert.equal(attributes.get('height'), '480');
 
-console.log('rich image resizing verification passed (10 assertions)');
+assert.equal(applyImageIntrinsicDimensions(image, { height: 1080, width: 1920 }), true);
+assert.equal(attributes.get('width'), '1920');
+assert.equal(attributes.get('height'), '1080');
+assert.equal(applyImageIntrinsicDimensions(image, { height: 0, width: 1920 }), false);
+assert.equal(attributes.get('height'), '1080');
+
+console.log('rich image resizing verification passed (15 assertions)');

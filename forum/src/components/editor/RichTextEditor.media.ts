@@ -23,6 +23,7 @@ import {
   createUploadableImageFileUnderLimit,
   getClipboardImageFile,
   getImageAltText,
+  getImageFileDimensions,
   getImageFileMd5Hex,
   uploadEditorImage,
   validateEditorImageFile,
@@ -30,6 +31,7 @@ import {
 import { maxInlineImageBytes } from './RichTextEditor.constants';
 import {
   applyGalleryImageHeight,
+  applyImageIntrinsicDimensions,
   applyImageWidthPercentage,
   clampImageDimension,
   galleryResizeMaxHeight,
@@ -40,6 +42,7 @@ import {
   richImageResizeMinWidth,
   type ActiveGalleryResize,
   type ActiveRichImageResize,
+  type ImageIntrinsicDimensions,
   type RichImageResizeHandle,
 } from './RichTextEditor.resize';
 import type { PastedImageState, RichTextEditorValue } from './RichTextEditor.types';
@@ -226,6 +229,10 @@ export function createRichTextEditorMediaActions({
 
     event.preventDefault();
     event.stopPropagation();
+    applyImageIntrinsicDimensions(image, {
+      height: image.naturalHeight,
+      width: image.naturalWidth,
+    });
     event.currentTarget.setPointerCapture(event.pointerId);
 
     const imageBounds = image.getBoundingClientRect();
@@ -283,7 +290,11 @@ export function createRichTextEditorMediaActions({
     updateContent(editorRef.current?.innerHTML ?? '');
   };
 
-  const insertRichImage = (url: string, altText: string) => {
+  const insertRichImage = (
+    url: string,
+    altText: string,
+    intrinsicDimensions?: ImageIntrinsicDimensions,
+  ) => {
     const marker = `capubbs-inserted-image-${Date.now()}-${Math.random().toString(36).slice(2)}`;
 
     editorRef.current?.focus();
@@ -301,8 +312,45 @@ export function createRichTextEditorMediaActions({
     if (image) {
       selectRichImage(image);
       applyImageWidthPercentage(image, 100);
-      updateContent(editorRef.current?.innerHTML ?? '');
-      updateRichImageResizeHandle();
+
+      const persistIntrinsicDimensions = () => {
+        const editor = editorRef.current;
+        if (!editor || !editor.contains(image)) return false;
+        const dimensions = intrinsicDimensions ?? {
+          height: image.naturalHeight,
+          width: image.naturalWidth,
+        };
+        if (!applyImageIntrinsicDimensions(image, dimensions)) return false;
+        updateContent(editor.innerHTML);
+        updateRichImageResizeHandle();
+        return true;
+      };
+
+      if (persistIntrinsicDimensions()) return Promise.resolve();
+
+      return new Promise<void>((resolve) => {
+        let settled = false;
+        let timeoutId: number | undefined;
+        const finish = () => {
+          if (settled) return;
+          settled = true;
+          if (typeof timeoutId !== 'undefined') window.clearTimeout(timeoutId);
+          image.removeEventListener('load', handleImageLoad);
+          image.removeEventListener('error', finish);
+          resolve();
+        };
+        const handleImageLoad = () => {
+          persistIntrinsicDimensions();
+          finish();
+        };
+
+        image.addEventListener('load', handleImageLoad, { once: true });
+        image.addEventListener('error', finish, { once: true });
+        timeoutId = window.setTimeout(finish, 5000);
+        updateContent(editorRef.current?.innerHTML ?? '');
+        updateRichImageResizeHandle();
+        if (image.complete) window.requestAnimationFrame(handleImageLoad);
+      });
     }
 
     return Promise.resolve();
@@ -512,20 +560,21 @@ export function createRichTextEditorMediaActions({
 
     try {
       const uploadFile = await createUploadableImageFileUnderLimit(pastedImage.workingFile, maxInlineImageBytes);
+      const intrinsicDimensions = await getImageFileDimensions(uploadFile);
       const md5 = await getImageFileMd5Hex(uploadFile);
       const { url } = await uploadEditorImage(uploadFile, md5);
       const altText = getImageAltText(pastedImage.originalFile);
 
       if (isMarkdownMode) {
         replaceSourceSelection(
-          `![${escapeMarkdownLinkText(altText)}](${url}){width=100%}`,
+          `![${escapeMarkdownLinkText(altText)}](${url}){width=${intrinsicDimensions.width}px height=${intrinsicDimensions.height}px}`,
         );
       } else if (isHtmlMode) {
         replaceSourceSelection(
-          `<img src="${escapeAttribute(url)}" alt="${escapeAttribute(altText)}" width="100%">`,
+          `<img src="${escapeAttribute(url)}" alt="${escapeAttribute(altText)}" width="${intrinsicDimensions.width}" height="${intrinsicDimensions.height}" style="width: 100%; height: auto;">`,
         );
       } else {
-        await insertRichImage(url, altText);
+        await insertRichImage(url, altText, intrinsicDimensions);
       }
 
       closePastedImageDialog();

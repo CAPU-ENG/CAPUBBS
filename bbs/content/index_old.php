@@ -509,7 +509,13 @@ $(window).load(function() {
             var img = $(this);
             var width = parseInt(img.css("width"));
             width = (width > 700) ? 700 : width;
-            img.css("width", width);
+            var pixelDimension = /^\d+(?:\.\d+)?(?:px)?$/i;
+            var hasPixelDimensions = (
+                pixelDimension.test(img.attr("width") || "") && pixelDimension.test(img.attr("height") || "")
+            ) || (
+                pixelDimension.test(img[0].style.width || "") && pixelDimension.test(img[0].style.height || "")
+            );
+            img.css(hasPixelDimensions ? {"width": width, "height": "auto"} : {"width": width});
         });
     });
 });

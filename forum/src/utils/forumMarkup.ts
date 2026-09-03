@@ -169,20 +169,27 @@ function applyImageLayoutDimensions(image: HTMLImageElement) {
   image.setAttribute('height', String(height));
   image.dataset.capubbsImageWidth = String(width);
   image.dataset.capubbsImageHeight = String(height);
-  image.style.setProperty('width', `min(${width}px, 100%)`);
+  if (!image.style.getPropertyValue('width').trim()) {
+    image.style.setProperty('width', `min(${width}px, 100%)`);
+  }
   image.style.setProperty('height', 'auto');
   image.style.setProperty('aspect-ratio', `${width} / ${height}`);
 }
 
 function readPixelImageDimension(image: HTMLImageElement, property: 'height' | 'width') {
-  const rawValue = image.style.getPropertyValue(property).trim() || image.getAttribute(property)?.trim() || '';
-  const match = rawValue.match(/^(\d+(?:\.\d+)?)(?:px)?$/i);
-  if (!match) {
-    return 0;
+  const values = [
+    image.getAttribute(property)?.trim() ?? '',
+    image.style.getPropertyValue(property).trim(),
+  ];
+
+  for (const rawValue of values) {
+    const match = rawValue.match(/^(\d+(?:\.\d+)?)(?:px)?$/i);
+    if (!match) continue;
+    const value = Number(match[1]);
+    if (Number.isFinite(value) && value > 0) return Math.round(value);
   }
 
-  const value = Number(match[1]);
-  return Number.isFinite(value) && value > 0 ? Math.round(value) : 0;
+  return 0;
 }
 
 function getLegacyProfileName(href: string, isMention: boolean) {

@@ -22,6 +22,11 @@ export type RichImageResizeHandle = {
   top: number;
 };
 
+export type ImageIntrinsicDimensions = {
+  height: number;
+  width: number;
+};
+
 export const richImageResizeMinWidth = 48;
 export const galleryResizeMinHeight = 160;
 export const galleryResizeMaxHeight = 1200;
@@ -46,9 +51,20 @@ export function applyImageWidthPercentage(image: HTMLImageElement, widthPercenta
   const normalizedWidth = Math.round(widthPercentage * 100) / 100;
   const width = `${normalizedWidth}%`;
   image.style.width = width;
-  image.style.removeProperty('height');
-  image.setAttribute('width', width);
-  image.removeAttribute('height');
+  image.style.height = 'auto';
+}
+
+export function applyImageIntrinsicDimensions(
+  image: HTMLImageElement,
+  dimensions: ImageIntrinsicDimensions,
+) {
+  const width = Math.round(dimensions.width);
+  const height = Math.round(dimensions.height);
+  if (!Number.isFinite(width) || !Number.isFinite(height) || width <= 0 || height <= 0) return false;
+
+  image.setAttribute('width', String(width));
+  image.setAttribute('height', String(height));
+  return true;
 }
 
 export function getEditorContentWidth(editor: HTMLElement) {

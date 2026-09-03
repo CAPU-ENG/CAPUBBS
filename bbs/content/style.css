@@ -143,6 +143,9 @@ a.message{
 .textblock img {
     max-width:100%;
 }
+.textblock img[width][height] {
+    height:auto;
+}
 .sigblock img {
     max-width:100%;
 }

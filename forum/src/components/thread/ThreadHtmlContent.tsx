@@ -739,7 +739,7 @@ function buildFrameBridgeScript(frameId: string, canOpenImages: boolean, needsJq
           if(image.getAttribute('data-capubbs-image-height')!==String(height))image.setAttribute('data-capubbs-image-height',String(height));
           var boundedWidth='min('+width+'px, 100%)';
           var aspectRatio=width+' / '+height;
-          if(image.style.width!==boundedWidth)image.style.width=boundedWidth;
+          if(!image.style.width)image.style.width=boundedWidth;
           if(image.style.height!=='auto')image.style.height='auto';
           if(image.style.aspectRatio!==aspectRatio)image.style.aspectRatio=aspectRatio;
         }
