@@ -11,6 +11,23 @@
         exit;
     }
 
+    if ($requestPath === '/bbs/index-worker.js') {
+        $workerCandidates = array(
+            __DIR__.'/../forum/dist/index-worker.js',
+            __DIR__.'/../forum/public/index-worker.js'
+        );
+        foreach ($workerCandidates as $workerCandidate) {
+            if (!is_readable($workerCandidate)) continue;
+            header('Content-Type: application/javascript; charset=UTF-8');
+            header('Cache-Control: private, max-age=86400');
+            header('Service-Worker-Allowed: /bbs/');
+            readfile($workerCandidate);
+            exit;
+        }
+        http_response_code(404);
+        exit;
+    }
+
     $mode = @$_COOKIE['capubbs_forum_mode'];
     $hasLegacyLoginToken = !isset($_COOKIE['capubbs_forum_mode'])
         && trim((string)@$_COOKIE['token']) !== '';

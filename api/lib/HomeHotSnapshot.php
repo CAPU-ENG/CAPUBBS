@@ -216,16 +216,17 @@ function home_hot_snapshot_publish($rows, $dirtyAtStart) {
     $stillDirty = is_file(home_hot_snapshot_dirty_path());
     $generatedAt = time();
     $expiresAt = $generatedAt + CAPUBBS_HOME_HOT_SNAPSHOT_TTL;
+    $indexVersion = home_hot_snapshot_index_version();
     $baseUrl = '/api/cache/home-hot/snapshots/' . $generation . '/';
     $documents = array(
         'hot-15.json' => home_hot_snapshot_document(
-            array_slice($rows, 0, 15), $generation, 'standard', count($rows), $generatedAt, $expiresAt, $stillDirty
+            array_slice($rows, 0, 15), $generation, 'standard', count($rows), $generatedAt, $expiresAt, $stillDirty, $indexVersion
         ),
         'hot-30-compact.json' => home_hot_snapshot_document(
-            $compactRows, $generation, 'compact', count($rows), $generatedAt, $expiresAt, $stillDirty
+            $compactRows, $generation, 'compact', count($rows), $generatedAt, $expiresAt, $stillDirty, $indexVersion
         ),
         'hot-100.json' => home_hot_snapshot_document(
-            $rows, $generation, 'full', count($rows), $generatedAt, $expiresAt, $stillDirty
+            $rows, $generation, 'full', count($rows), $generatedAt, $expiresAt, $stillDirty, $indexVersion
         ),
     );
     foreach ($documents as $filename => $document) {
@@ -257,7 +258,24 @@ function home_hot_snapshot_publish($rows, $dirtyAtStart) {
     return true;
 }
 
-function home_hot_snapshot_document($rows, $generation, $kind, $total, $generatedAt, $expiresAt, $dirty) {
+function home_hot_snapshot_index_version() {
+    $override = getenv('CAPUBBS_FORUM_INDEX_PATH');
+    $candidates = array();
+    if ($override !== false && trim($override) !== '') $candidates[] = $override;
+    $candidates[] = dirname(__DIR__, 2) . '/forum/index.html';
+    $candidates[] = dirname(__DIR__, 2) . '/forum/dist/index.html';
+
+    foreach ($candidates as $path) {
+        if (!is_readable($path)) continue;
+        $contents = @file_get_contents($path);
+        if ($contents === false || strpos($contents, '/src/main.tsx') !== false) continue;
+        $version = @hash_file('sha256', $path);
+        if (is_string($version) && preg_match('/^[a-f0-9]{64}$/', $version)) return $version;
+    }
+    return '';
+}
+
+function home_hot_snapshot_document($rows, $generation, $kind, $total, $generatedAt, $expiresAt, $dirty, $indexVersion = '') {
     return array(
         'code' => 0,
         'message' => 'success',
@@ -270,6 +288,7 @@ function home_hot_snapshot_document($rows, $generation, $kind, $total, $generate
             'generatedAt' => intval($generatedAt),
             'expiresAt' => intval($expiresAt),
             'dirty' => !!$dirty,
+            'indexVersion' => strval($indexVersion),
         ),
     );
 }
