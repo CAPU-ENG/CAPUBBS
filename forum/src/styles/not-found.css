@@ -10,46 +10,185 @@
     display: grid;
     min-height: 100dvh;
     place-items: center;
-    padding: calc(var(--topbar-height) + 32px) 20px 48px;
+    padding: calc(var(--topbar-height) + 40px) 20px 56px;
   }
 
   .not-found-panel {
-    width: min(100%, 520px);
+    position: relative;
+    width: min(100%, 780px);
+    overflow: hidden;
     border: 1px solid var(--line);
     border-radius: var(--card-radius);
-    padding: 44px 28px 36px;
     background: color-mix(in srgb, var(--surface) 96%, transparent);
     box-shadow: var(--shadow-card);
-    text-align: center;
+  }
+
+  .not-found-panel::before {
+    position: absolute;
+    inset: 0 auto 0 0;
+    width: 4px;
+    background: var(--brand);
+    content: '';
+  }
+
+  .not-found-panel-header {
+    display: flex;
+    min-height: 48px;
+    align-items: center;
+    justify-content: space-between;
+    gap: 18px;
+    border-bottom: 1px solid var(--line);
+    padding: 0 22px 0 26px;
+    color: var(--text-muted);
+    font-size: var(--ui-font-size-xs);
+    font-weight: 760;
+    letter-spacing: 0.12em;
+  }
+
+  .not-found-status {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .not-found-status > span {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: var(--danger);
+    box-shadow: 0 0 0 4px color-mix(in srgb, var(--danger) 12%, transparent);
+  }
+
+  .not-found-header-code {
+    color: var(--text-faint);
+    font-variant-numeric: tabular-nums;
+  }
+
+  .not-found-route {
+    position: relative;
+    height: 104px;
+    overflow: hidden;
+    border-bottom: 1px solid var(--line);
+    background:
+      linear-gradient(90deg, color-mix(in srgb, var(--brand-faint) 76%, transparent), transparent 66%),
+      var(--surface-soft);
+  }
+
+  .not-found-route-line {
+    position: absolute;
+    top: 62px;
+    right: 72px;
+    left: 72px;
+    border-top: 2px dashed color-mix(in srgb, var(--brand) 42%, var(--line));
+  }
+
+  .not-found-route-start,
+  .not-found-route-stop {
+    position: absolute;
+    z-index: 2;
+    top: 51px;
+    display: grid;
+    width: 24px;
+    height: 24px;
+    place-items: center;
+    border: 2px solid var(--surface-soft);
+    border-radius: 50%;
+  }
+
+  .not-found-route-start {
+    left: 60px;
+    background: var(--brand);
+    box-shadow: 0 0 0 1px var(--brand);
+  }
+
+  .not-found-route-stop {
+    right: 60px;
+    background: var(--surface-raised);
+    box-shadow: 0 0 0 1px var(--danger);
+    color: var(--danger);
+  }
+
+  .not-found-route img {
+    position: absolute;
+    z-index: 3;
+    bottom: 32px;
+    left: 31%;
+    width: 76px;
+    height: auto;
+    filter: drop-shadow(0 5px 7px rgb(19 54 37 / 0.13));
+    transform: rotate(-2deg);
+  }
+
+  .dark .not-found-route img {
+    filter: brightness(1.65) saturate(0.75) drop-shadow(0 5px 8px rgb(0 0 0 / 0.28));
+  }
+
+  .not-found-content {
+    display: grid;
+    grid-template-columns: minmax(180px, 0.72fr) minmax(280px, 1fr);
+    align-items: center;
+    gap: 36px;
+    padding: 38px 44px 42px;
   }
 
   .not-found-code {
-    color: var(--brand);
-    font-size: clamp(4rem, 14vw, 7rem);
-    font-weight: 820;
-    letter-spacing: -0.075em;
-    line-height: 0.9;
+    color: color-mix(in srgb, var(--brand) 88%, var(--text-strong));
+    font-size: clamp(5rem, 13vw, 8.5rem);
+    font-variant-numeric: tabular-nums;
+    font-weight: 840;
+    letter-spacing: -0.09em;
+    line-height: 0.82;
   }
 
-  .not-found-panel h1 {
-    margin: 22px 0 0;
+  .not-found-copy {
+    min-width: 0;
+    border-left: 1px solid var(--line);
+    padding-left: 36px;
+  }
+
+  .not-found-copy h1 {
+    margin: 0;
     color: var(--text-strong);
-    font-size: var(--ui-font-size-title);
-    font-weight: 760;
+    font-family: "Noto Serif CJK SC", "Source Han Serif SC", "Songti SC", serif;
+    font-size: clamp(1.7rem, 4vw, 2.35rem);
+    font-weight: 720;
+    letter-spacing: -0.03em;
+    line-height: 1.2;
+  }
+
+  .not-found-path {
+    display: flex;
+    min-width: 0;
+    align-items: center;
+    gap: 8px;
+    margin-top: 15px;
+    color: var(--text-muted);
+  }
+
+  .not-found-path svg {
+    flex: 0 0 auto;
+    color: var(--brand);
+  }
+
+  .not-found-path code {
+    overflow: hidden;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+    font-size: var(--ui-font-size-sm);
+    text-overflow: ellipsis;
+    white-space: nowrap;
   }
 
   .not-found-actions {
     display: flex;
     flex-wrap: wrap;
-    justify-content: center;
     gap: 10px;
-    margin-top: 28px;
+    margin-top: 26px;
   }
 
   .not-found-actions button,
   .not-found-home-link {
     display: inline-flex;
-    min-height: 40px;
+    min-height: 42px;
     align-items: center;
     justify-content: center;
     gap: 7px;
@@ -65,6 +204,7 @@
 
   .not-found-actions button:hover {
     border-color: var(--brand);
+    background: var(--brand-faint);
     color: var(--brand-strong);
   }
 
@@ -84,13 +224,64 @@
     outline-offset: 2px;
   }
 
-  @media (max-width: 520px) {
+  .not-found-home-link:hover {
+    border-color: var(--brand-strong);
+    background: var(--brand-strong);
+  }
+
+  @media (max-width: 640px) {
     .not-found-shell {
       padding: calc(var(--topbar-height) + 18px) 10px 32px;
     }
 
-    .not-found-panel {
-      padding: 36px 18px 28px;
+    .not-found-panel-header {
+      padding: 0 16px 0 20px;
+    }
+
+    .not-found-route {
+      height: 88px;
+    }
+
+    .not-found-route-line {
+      top: 53px;
+      right: 42px;
+      left: 42px;
+    }
+
+    .not-found-route-start,
+    .not-found-route-stop {
+      top: 42px;
+    }
+
+    .not-found-route-start {
+      left: 31px;
+    }
+
+    .not-found-route-stop {
+      right: 31px;
+    }
+
+    .not-found-route img {
+      bottom: 27px;
+      left: 25%;
+      width: 64px;
+    }
+
+    .not-found-content {
+      grid-template-columns: 1fr;
+      gap: 24px;
+      padding: 32px 24px 28px;
+    }
+
+    .not-found-code {
+      font-size: clamp(5.4rem, 28vw, 7.5rem);
+    }
+
+    .not-found-copy {
+      border-top: 1px solid var(--line);
+      border-left: 0;
+      padding-top: 24px;
+      padding-left: 0;
     }
 
     .not-found-actions {
