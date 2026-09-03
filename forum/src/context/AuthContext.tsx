@@ -9,7 +9,6 @@ import {
 } from '../api/auth';
 import { fetchMessageSummary } from '../api/messages';
 import { refreshClientConfig } from '../api/clientConfig';
-import { clearThreadContentCache, getThreadCacheScope } from '../utils/threadContentCache';
 
 type AuthStatus = 'authenticated' | 'guest' | 'loading' | 'restoring';
 const SESSION_VIEWER_STORAGE_KEY = 'capubbs-session-viewer';
@@ -128,10 +127,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const login = useCallback(async (username: string, passwordHash: string) => {
     const sessionViewer = await loginSession(username, passwordHash);
-    await Promise.all([
-      clearThreadContentCache(getThreadCacheScope(activeUsername)),
-      clearThreadContentCache(getThreadCacheScope(sessionViewer.username)),
-    ]);
     const refreshedAt = Date.now();
     cacheViewer(sessionViewer);
     cacheViewerRefreshedAt(refreshedAt);
@@ -143,17 +138,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     void refreshUnreadMessagesFor(sessionViewer.username);
     void refreshClientConfig().catch(() => undefined);
     return sessionViewer;
-  }, [activeUsername, refreshUnreadMessagesFor]);
+  }, [refreshUnreadMessagesFor]);
 
   const logout = useCallback(async () => {
     try {
       await logoutSession();
     } finally {
-      await clearThreadContentCache(getThreadCacheScope(activeUsername));
       clearCachedViewer();
       setAuth({ refreshAt: 0, status: 'guest', viewer: null });
     }
-  }, [activeUsername]);
+  }, []);
 
   const refreshViewer = useCallback(() => {
     setAuth((current) => current.viewer ? { ...current, refreshAt: Date.now() } : current);
@@ -161,10 +155,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const register = useCallback(async (draft: RegisterDraft) => {
     const sessionViewer = await registerSession(draft);
-    await Promise.all([
-      clearThreadContentCache(getThreadCacheScope(activeUsername)),
-      clearThreadContentCache(getThreadCacheScope(sessionViewer.username)),
-    ]);
     const refreshedAt = Date.now();
     cacheViewer(sessionViewer);
     cacheViewerRefreshedAt(refreshedAt);
@@ -176,7 +166,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     void refreshUnreadMessagesFor(sessionViewer.username);
     void refreshClientConfig().catch(() => undefined);
     return sessionViewer;
-  }, [activeUsername, refreshUnreadMessagesFor]);
+  }, [refreshUnreadMessagesFor]);
 
   const updateViewerAvatar = useCallback((avatar: string) => {
     setAuth((current) => {

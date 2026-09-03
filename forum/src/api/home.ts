@@ -279,19 +279,6 @@ export async function fetchHomeSignupActivities(limit = 5, signal?: AbortSignal)
     .filter((activity): activity is HomeSignupActivity => activity !== null);
 }
 
-export async function refreshHomeThreadSnapshots(signal?: AbortSignal) {
-  const response = await fetch(homeApiSiblingUrl('home-thread-refresh.php'), {
-    cache: 'no-store',
-    credentials: 'include',
-    headers: { Accept: 'application/json' },
-    method: 'POST',
-    signal,
-  });
-  if (!response.ok) throw new HomeApiError('帖子快照维护失败。');
-  const payload = await response.json() as ApiEnvelope;
-  if (payload.code !== 0) throw new HomeApiError(payload.message?.trim() || '帖子快照维护失败。');
-}
-
 type CalendarRequest = {
   endDate?: string;
   full?: boolean;
