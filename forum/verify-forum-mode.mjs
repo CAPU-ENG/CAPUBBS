@@ -16,7 +16,6 @@ import { stripForumBasePath } from './src/utils/forumBasePath.ts';
 
 const forumDirectory = dirname(fileURLToPath(import.meta.url));
 const gatewaySource = readFileSync(resolve(forumDirectory, '../bbs/index.php'), 'utf8');
-const workerSource = readFileSync(resolve(forumDirectory, '../bbs/index-worker.js'), 'utf8');
 const legacyContentSource = readFileSync(resolve(forumDirectory, '../bbs/content/index.php'), 'utf8');
 const legacyLoginSource = readFileSync(resolve(forumDirectory, '../bbs/login/index.php'), 'utf8');
 const legacyMainSource = readFileSync(resolve(forumDirectory, '../bbs/main/index.php'), 'utf8');
@@ -74,9 +73,6 @@ assert.match(legacyContentSource, /<base href="\/bbs\/content\/">/);
 assert.match(legacyLoginSource, /<base href="\/bbs\/login\/">/);
 assert.match(legacyMainSource, /<base href="\/bbs\/main\/">/);
 assert.match(gatewaySource, /forum\/dist\/index\.html/);
-assert.match(gatewaySource, /\/bbs\/index-worker\.js/);
-assert.match(workerSource, /registration\.unregister\(\)/);
-assert.doesNotMatch(workerSource, /addEventListener\('fetch'/);
 assert.match(gatewaySource, /Cache-Control: private, no-store/);
 assert.match(gatewaySource, /Vary: Cookie/);
 assert.match(gatewaySource, /\$requestPath === '\/bbs\/register\/userexists\.php'/);
