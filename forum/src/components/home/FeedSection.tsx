@@ -2,6 +2,7 @@ import { ArrowDown, Eye, MessageCircle, RefreshCw } from 'lucide-react';
 import { useEffect } from 'react';
 import defaultAvatar from '../../assets/avatar/default-avatar.svg';
 import type { HomeThread } from '../../api/home';
+import { getBoardById } from '../../data/boards';
 import type { HomeDataStatus } from '../../hooks/useHomeData';
 import { LoadingSpinner } from '../layout/LoadingSpinner';
 import { LoadingState } from '../layout/LoadingState';
@@ -11,6 +12,7 @@ import { getThreadTitleClassName } from '../../utils/threadTitleTypography';
 
 function FeedItem({ compactMode, item }: { compactMode: boolean; item: HomeThread }) {
   const authorHref = getForumNavigationHref(item.authorHref, window.location.href);
+  const boardName = getBoardById(item.bid)?.label ?? `版块 ${item.bid}`;
   const threadHref = getForumNavigationHref(item.href, window.location.href);
 
   function useDefaultAvatar(event: React.SyntheticEvent<HTMLImageElement>) {
@@ -63,6 +65,10 @@ function FeedItem({ compactMode, item }: { compactMode: boolean; item: HomeThrea
         </a>
         <span className="feed-meta-separator">·</span>
         <time dateTime={item.timestamp}>{item.timeLabel}</time>
+        <span className="feed-board-meta">
+          <span className="feed-meta-separator" aria-hidden="true">·</span>
+          <span className="feed-board-name">{boardName}</span>
+        </span>
         <span className="feed-stats">
           <span title={`${item.replies} 条评论`}><MessageCircle size={15} />{item.replies}</span>
           <span title={`${item.views} 次浏览`}><Eye size={16} />{item.views}</span>

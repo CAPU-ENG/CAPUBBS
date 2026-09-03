@@ -183,6 +183,16 @@
     flex-shrink: 0;
   }
 
+  .feed-board-meta {
+    display: inline-flex;
+    flex-shrink: 0;
+    align-items: center;
+  }
+
+  .feed-board-name {
+    color: var(--text-muted);
+  }
+
   .feed-stats {
     display: inline-flex;
     flex-shrink: 0;
@@ -908,6 +918,10 @@
     .feed-item-meta {
       margin-top: 14px;
       font-size: var(--ui-font-size-md);
+    }
+
+    .feed-board-meta {
+      display: none;
     }
 
     .feed-stats {
