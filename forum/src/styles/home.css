@@ -189,10 +189,6 @@
     align-items: center;
   }
 
-  .feed-board-name {
-    color: var(--text-muted);
-  }
-
   .feed-stats {
     display: inline-flex;
     flex-shrink: 0;

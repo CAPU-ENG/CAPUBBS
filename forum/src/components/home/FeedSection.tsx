@@ -67,7 +67,7 @@ function FeedItem({ compactMode, item }: { compactMode: boolean; item: HomeThrea
         <time dateTime={item.timestamp}>{item.timeLabel}</time>
         <span className="feed-board-meta">
           <span className="feed-meta-separator" aria-hidden="true">·</span>
-          <span className="feed-board-name">{boardName}</span>
+          <span>{boardName}</span>
         </span>
         <span className="feed-stats">
           <span title={`${item.replies} 条评论`}><MessageCircle size={15} />{item.replies}</span>
