@@ -149,14 +149,17 @@ function ForumRouter() {
       if (
         url.pathname === window.location.pathname
         && url.search === window.location.search
-        && url.hash !== window.location.hash
       ) {
         const floor = getThreadFloorFromHash(url.hash);
         if (!floor) return;
 
         event.preventDefault();
-        window.history.pushState(null, '', `${url.pathname}${url.search}#${floor}`);
-        getThreadFloorElement(floor)?.scrollIntoView({ block: 'start' });
+        if (url.hash !== window.location.hash) {
+          window.history.pushState(null, '', `${url.pathname}${url.search}#${floor}`);
+        }
+        const floorElement = getThreadFloorElement(floor);
+        if (floorElement) floorElement.scrollIntoView({ block: 'start' });
+        else refresh();
         return;
       }
 
