@@ -8,6 +8,7 @@ import type {
   SetStateAction,
 } from 'react';
 import type { GalleryDialogImage, GalleryUploadProgress } from './GalleryDialog';
+import { getClipboardImageFile } from './RichTextEditor.clipboard';
 import {
   buildEditorGalleryHtml,
   getEditorGalleryAction,
@@ -21,7 +22,6 @@ import type { EditorGalleryImage } from './RichTextEditor.gallery';
 import {
   compressImageFileUnderLimit,
   createUploadableImageFileUnderLimit,
-  getClipboardImageFile,
   getImageAltText,
   getImageFileDimensions,
   getImageFileMd5Hex,

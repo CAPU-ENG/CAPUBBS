@@ -20,18 +20,6 @@ const editorImageFormatByMime: Record<string, EditorImageFormat> = {
 
 export const editorImageInputAccept = '.gif,.jpg,.jpeg,.png,.webp,image/gif,image/jpeg,image/png,image/webp';
 
-export function getClipboardImageFile(clipboardData: DataTransfer) {
-  const file = Array.from(clipboardData.files).find((item) => item.type.startsWith('image/'));
-
-  if (file) {
-    return file;
-  }
-
-  const imageItem = Array.from(clipboardData.items).find((item) => item.kind === 'file' && item.type.startsWith('image/'));
-
-  return imageItem?.getAsFile() ?? null;
-}
-
 export function formatBytes(bytes: number) {
   if (bytes >= 1024 * 1024) {
     return `${(bytes / 1024 / 1024).toFixed(2)} MB`;
