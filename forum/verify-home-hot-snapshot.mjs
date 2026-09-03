@@ -81,6 +81,8 @@ try {
   assert.match(indexWorker, /request\.mode !== 'navigate'/);
   assert.match(indexWorker, /PASSTHROUGH_PREFIXES/);
   assert.match(indexWorker, /event\.request\.method !== 'GET'/);
+  assert.match(indexWorker, /event\.waitUntil\(installForumShell\(\)\)/);
+  assert.match(indexWorker, /cacheCriticalAssets/);
 } finally {
   rmSync(snapshotDirectory, { force: true, recursive: true });
 }

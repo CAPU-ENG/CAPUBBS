@@ -12,8 +12,8 @@ export async function registerForumIndexCache() {
     await navigator.serviceWorker.register(WORKER_URL, { scope: '/bbs/', updateViaCache: 'all' });
     const registration = await navigator.serviceWorker.ready;
     (navigator.serviceWorker.controller ?? registration.active)?.postMessage({ type: 'CACHE_CURRENT_INDEX' });
-  } catch {
-    // Navigation continues normally when the browser or server rejects registration.
+  } catch (error) {
+    console.error('[CAPUBBS] 论坛入口缓存注册失败。', error);
   }
 }
 
