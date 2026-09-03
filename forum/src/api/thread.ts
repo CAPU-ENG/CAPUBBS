@@ -19,6 +19,10 @@ import type { SignatureFloorReference } from '../utils/signatureFloorLink';
 
 const THREAD_API_URL = import.meta.env.VITE_API_URL?.trim() || '/api/api.php';
 
+function threadDetailApiUrl() {
+  return new URL('thread-detail-cached.php', new URL(THREAD_API_URL, window.location.origin)).href;
+}
+
 type ApiEnvelope = {
   code: number;
   data?: unknown;
@@ -180,7 +184,7 @@ export async function fetchThreadDetail({
 
   let response: Response;
   try {
-    response = await fetch(THREAD_API_URL, {
+    response = await fetch(threadDetailApiUrl(), {
       body,
       credentials: 'include',
       headers: {

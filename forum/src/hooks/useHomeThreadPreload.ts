@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import type { HomeSignupActivity, HomeThread } from '../api/home';
+import { refreshHomeThreadSnapshots, type HomeSignupActivity, type HomeThread } from '../api/home';
 import type { ThreadDetailRequest } from '../api/thread';
 import {
   cancelQueuedHomeThreadPreloads,
@@ -40,13 +40,18 @@ export function useHomeThreadPreload({
       cancelScheduled();
       cancelScheduled = scheduleWhenIdle(() => {
         if (canceled || !allowsBackgroundPreload()) return;
-        const display = { decoration, tagMedalDisplay };
-        const candidates: ThreadPreloadCandidate[] = [
-          ...feed.slice(0, 5).flatMap((thread) => candidate(thread.href, display, 'hot')),
-          ...pinned.slice(0, 2).flatMap((thread) => candidate(thread.href, display, 'pinned')),
-          ...signup.slice(0, 1).flatMap((activity) => candidate(activity.href, display, 'activity')),
-        ];
-        void preloadThreadCandidates(candidates, scope);
+        const controller = new AbortController();
+        void refreshHomeThreadSnapshots(controller.signal).catch(() => undefined).finally(() => {
+          if (canceled || !allowsBackgroundPreload()) return;
+          const display = { decoration, tagMedalDisplay };
+          const candidates: ThreadPreloadCandidate[] = [
+            ...feed.slice(0, 2).flatMap((thread) => candidate(thread.href, display, 'hot')),
+            ...pinned.slice(0, 1).flatMap((thread) => candidate(thread.href, display, 'pinned')),
+            ...signup.slice(0, 1).flatMap((activity) => candidate(activity.href, display, 'activity')),
+          ];
+          void preloadThreadCandidates(candidates, scope);
+        });
+        cancelScheduled = () => controller.abort();
       });
     };
 

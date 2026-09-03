@@ -130,6 +130,17 @@ export async function invalidateThreadContent(scope: ThreadCacheScope, bid: numb
   });
 }
 
+export async function clearThreadContentCache(scope: ThreadCacheScope) {
+  for (const [key, record] of memoryCache) {
+    if (record.key.startsWith(`${scope}:`)) memoryCache.delete(key);
+  }
+
+  await mutatePersistentIndex(scope, async (index) => {
+    await Promise.all(index.map((item) => safelyDelete(databaseEntryKey(scope, item.key))));
+    return [];
+  });
+}
+
 function canPersistRequest(request: ThreadDetailRequest) {
   return request.bid !== 1;
 }
