@@ -12,6 +12,7 @@ import { getThreadTitleClassName } from '../../utils/threadTitleTypography';
 
 function FeedItem({ compactMode, item }: { compactMode: boolean; item: HomeThread }) {
   const authorHref = getForumNavigationHref(item.authorHref, window.location.href);
+  const boardHref = getForumNavigationHref(`/?bid=${item.bid}`, window.location.href);
   const boardName = getBoardById(item.bid)?.label ?? `版块 ${item.bid}`;
   const threadHref = getForumNavigationHref(item.href, window.location.href);
 
@@ -67,7 +68,7 @@ function FeedItem({ compactMode, item }: { compactMode: boolean; item: HomeThrea
         <time dateTime={item.timestamp}>{item.timeLabel}</time>
         <span className="feed-board-meta">
           <span className="feed-meta-separator" aria-hidden="true">·</span>
-          <span>{boardName}</span>
+          <a className="feed-board-link" href={boardHref}>{boardName}</a>
         </span>
         <span className="feed-stats">
           <span title={`${item.replies} 条评论`}><MessageCircle size={15} />{item.replies}</span>

@@ -189,6 +189,15 @@
     align-items: center;
   }
 
+  .feed-board-link {
+    color: inherit;
+    transition: color 160ms ease;
+  }
+
+  .feed-board-link:hover {
+    color: var(--brand-strong);
+  }
+
   .feed-stats {
     display: inline-flex;
     flex-shrink: 0;
