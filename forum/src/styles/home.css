@@ -20,45 +20,47 @@
   }
 
   .feed-item {
-    border-left: 4px solid #f4f6f2;
+    --feed-board-accent: #f4f6f2;
+
     padding: 22px;
+    box-shadow: inset 4px 0 0 var(--feed-board-accent);
     transition: background 160ms ease;
   }
 
   .feed-item[data-board-id='1'] {
-    border-left-color: #8da3be;
+    --feed-board-accent: #8da3be;
   }
 
   .feed-item[data-board-id='2'] {
-    border-left-color: #ebcea8;
+    --feed-board-accent: #ebcea8;
   }
 
   .feed-item[data-board-id='3'] {
-    border-left-color: #dfdccc;
+    --feed-board-accent: #dfdccc;
   }
 
   .feed-item[data-board-id='4'] {
-    border-left-color: #485c76;
+    --feed-board-accent: #485c76;
   }
 
   .feed-item[data-board-id='5'] {
-    border-left-color: #836754;
+    --feed-board-accent: #836754;
   }
 
   .feed-item[data-board-id='6'] {
-    border-left-color: #f7f7d0;
+    --feed-board-accent: #f7f7d0;
   }
 
   .feed-item[data-board-id='7'] {
-    border-left-color: #e6d1d9;
+    --feed-board-accent: #e6d1d9;
   }
 
   .feed-item[data-board-id='9'] {
-    border-left-color: #88b995;
+    --feed-board-accent: #88b995;
   }
 
   .feed-item[data-board-id='28'] {
-    border-left-color: #000;
+    --feed-board-accent: #000;
   }
 
   .feed-item:hover {
