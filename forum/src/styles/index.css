@@ -25,6 +25,7 @@
 @import './toolbox.css';
 @import './browser-recommendation.css';
 @import './loading.css';
+@import './not-found.css';
 @import './utilities.css';
 
 @tailwind base;

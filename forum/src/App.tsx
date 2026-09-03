@@ -7,6 +7,7 @@ import { LoadingState, RouteLoadingPage } from './components/layout/LoadingState
 import { TopBar } from './components/layout/TopBar';
 import { useForumContentFontSize } from './hooks/useForumContentFontSize';
 import { HomePage } from './pages/HomePage';
+import { NotFoundPage } from './pages/NotFoundPage';
 import { SearchPage } from './pages/SearchPage';
 import { SettingsPage } from './pages/SettingsPage';
 import { ToolboxPage } from './pages/ToolboxPage';
@@ -14,6 +15,11 @@ import { FORUM_LOCATION_CHANGE_EVENT } from './utils/authRoutes';
 import { consumeQueuedLocalDraftCleanups } from './utils/draftCleanup';
 import { stripForumBasePath } from './utils/forumBasePath';
 import { applyForumContentFontSize } from './utils/forumFontSize';
+import {
+  isBoardRoutePath,
+  isHomeRoutePath,
+  isThreadRoutePath,
+} from './utils/forumRouteMatch';
 import { resolveForumAppRoute } from './utils/forumNavigation';
 import { translateLegacyForumThreadHref } from './utils/legacyForumRoutes';
 import { getThreadFloorElement, getThreadFloorFromHash } from './utils/threadRoutes';
@@ -208,10 +214,15 @@ function ForumRouter() {
     return <PublicProfilePage profileName={getPublicProfileNameFromLocation(pathname, window.location.search)} />;
   }
   const threadId = Number(params.get('tid') ?? params.get('thread'));
-  if (Number.isFinite(threadId) && threadId > 0) return <ThreadPage />;
+  if (isThreadRoutePath(pathname) && Number.isFinite(threadId) && threadId > 0) {
+    return <ThreadPage />;
+  }
   const boardId = Number(params.get('bid') ?? params.get('board'));
-  if (Number.isInteger(boardId) && boardId > 0) return <BoardPage boardId={boardId} />;
-  return <HomeRoute />;
+  if (isBoardRoutePath(pathname) && Number.isInteger(boardId) && boardId > 0) {
+    return <BoardPage boardId={boardId} />;
+  }
+  if (isHomeRoutePath(pathname)) return <HomeRoute />;
+  return <NotFoundPage />;
 }
 
 function HomeRoute() {

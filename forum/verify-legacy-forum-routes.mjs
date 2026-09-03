@@ -3,6 +3,11 @@ import { getAuthPathWithReturnTo, getAuthReturnTo } from './src/utils/authRoutes
 import { resolveForumAppRoute } from './src/utils/forumNavigation.ts';
 import { stripForumBasePath, toForumHref } from './src/utils/forumBasePath.ts';
 import {
+  isBoardRoutePath,
+  isHomeRoutePath,
+  isThreadRoutePath,
+} from './src/utils/forumRouteMatch.ts';
+import {
   translateLegacyForumPageHref,
   translateLegacyForumThreadHref,
 } from './src/utils/legacyForumRoutes.ts';
@@ -121,6 +126,12 @@ assert.equal(stripForumBasePath('/forum/users/test'), '/users/test');
 assert.equal(stripForumBasePath('/bbs/users/test'), '/users/test');
 assert.equal(stripForumBasePath('/forum'), '/');
 assert.equal(stripForumBasePath('/forum/'), '/');
+assert.equal(isHomeRoutePath('/'), true);
+assert.equal(isHomeRoutePath('/not-a-real-page'), false);
+assert.equal(isBoardRoutePath('/main'), true);
+assert.equal(isBoardRoutePath('/not-a-real-page'), false);
+assert.equal(isThreadRoutePath('/content'), true);
+assert.equal(isThreadRoutePath('/not-a-real-page'), false);
 assert.equal(getAuthPathWithReturnTo('/login', '/bbs/'), '/bbs/login');
 assert.equal(
   getAuthPathWithReturnTo('/login', '/bbs/?bid=4&tid=19989'),
@@ -136,4 +147,4 @@ assert.equal(
   '/bbs/post?bid=4&tid=19853',
 );
 
-console.log(`legacy forum route verification passed (${cases.length + legacyPageCases.length + appRouteCases.length + 23} cases)`);
+console.log(`legacy forum route verification passed (${cases.length + legacyPageCases.length + appRouteCases.length + 29} cases)`);

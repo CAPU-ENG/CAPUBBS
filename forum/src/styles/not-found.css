@@ -1,0 +1,101 @@
+@layer components {
+  .not-found-page {
+    position: relative;
+    isolation: isolate;
+  }
+
+  .not-found-shell {
+    position: relative;
+    z-index: 1;
+    display: grid;
+    min-height: 100dvh;
+    place-items: center;
+    padding: calc(var(--topbar-height) + 32px) 20px 48px;
+  }
+
+  .not-found-panel {
+    width: min(100%, 520px);
+    border: 1px solid var(--line);
+    border-radius: var(--card-radius);
+    padding: 44px 28px 36px;
+    background: color-mix(in srgb, var(--surface) 96%, transparent);
+    box-shadow: var(--shadow-card);
+    text-align: center;
+  }
+
+  .not-found-code {
+    color: var(--brand);
+    font-size: clamp(4rem, 14vw, 7rem);
+    font-weight: 820;
+    letter-spacing: -0.075em;
+    line-height: 0.9;
+  }
+
+  .not-found-panel h1 {
+    margin: 22px 0 0;
+    color: var(--text-strong);
+    font-size: var(--ui-font-size-title);
+    font-weight: 760;
+  }
+
+  .not-found-actions {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 10px;
+    margin-top: 28px;
+  }
+
+  .not-found-actions button,
+  .not-found-home-link {
+    display: inline-flex;
+    min-height: 40px;
+    align-items: center;
+    justify-content: center;
+    gap: 7px;
+    border: 1px solid var(--line-strong);
+    border-radius: var(--control-radius);
+    padding: 0 15px;
+    background: var(--surface-raised);
+    color: var(--text);
+    font-size: var(--ui-font-size-md);
+    font-weight: 720;
+    transition: border-color 150ms ease, background 150ms ease, color 150ms ease;
+  }
+
+  .not-found-actions button:hover {
+    border-color: var(--brand);
+    color: var(--brand-strong);
+  }
+
+  .not-found-home-link {
+    border-color: var(--brand);
+    background: var(--brand);
+    color: #fff;
+  }
+
+  .dark .not-found-home-link {
+    color: #0d2116;
+  }
+
+  .not-found-actions button:focus-visible,
+  .not-found-home-link:focus-visible {
+    outline: 3px solid color-mix(in srgb, var(--brand) 22%, transparent);
+    outline-offset: 2px;
+  }
+
+  @media (max-width: 520px) {
+    .not-found-shell {
+      padding: calc(var(--topbar-height) + 18px) 10px 32px;
+    }
+
+    .not-found-panel {
+      padding: 36px 18px 28px;
+    }
+
+    .not-found-actions {
+      align-items: stretch;
+      flex-direction: column;
+    }
+  }
+}
