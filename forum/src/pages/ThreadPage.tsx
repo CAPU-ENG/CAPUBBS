@@ -150,6 +150,7 @@ export function ThreadPage() {
   const { status: authStatus, viewer } = useAuth();
   const { theme } = useTheme();
   const request = getThreadRequest();
+  const threadLocationHref = `${window.location.pathname}${window.location.search}${window.location.hash}`;
   const { data, error, retry, status } = useThreadData({
     ...request,
     cacheScope: authStatus === 'loading' ? null : getThreadCacheScope(viewer?.username),
@@ -240,7 +241,7 @@ export function ThreadPage() {
       );
     }
     return keepFloorAnchored(floorElement, layoutRoot);
-  }, [data, pageFloors]);
+  }, [data, pageFloors, threadLocationHref]);
 
   useEffect(() => {
     const floorElements = pageFloors
