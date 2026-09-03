@@ -1,7 +1,7 @@
 import type { RichTextEditorMode } from './RichTextEditor.types';
 import { FORUM_DEFAULT_FONT_SIZE } from '../../utils/forumFontSize';
 
-export const maxInlineImageBytes = 2 * 1024 * 1024;
+export const maxInlineImageBytes = 1 * 1024 * 1024;
 export const imageCompressionMaxEdge = 2200;
 
 export const editorModeGroups: Array<Array<{ label: string; mode: RichTextEditorMode }>> = [

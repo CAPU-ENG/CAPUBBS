@@ -23,7 +23,7 @@ export function PastedImageDialog({
   image,
   previewAlt = '粘贴图片预览',
   title = '插入粘贴图片',
-  tooLargeMessage = '图片超过 2MB，需要先压缩后再插入。',
+  tooLargeMessage = '图片超过 1MB，需要先压缩后再插入。',
   onCancel,
   onCompress,
   onUpload,

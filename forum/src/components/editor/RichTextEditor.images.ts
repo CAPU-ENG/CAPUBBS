@@ -170,7 +170,7 @@ export async function compressImageFileUnderLimit(file: File, maxBytes: number) 
     image.close?.();
   }
 
-  throw new Error('无法在当前压缩参数下压到 2MB 以内。');
+  throw new Error('无法在当前压缩参数下压到 1MB 以内。');
 }
 
 export async function getImageFileDimensions(file: File) {
