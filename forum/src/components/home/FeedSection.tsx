@@ -19,7 +19,7 @@ function FeedItem({ compactMode, item }: { compactMode: boolean; item: HomeThrea
 
   if (compactMode) {
     return (
-      <article className="feed-item feed-item-compact">
+      <article className="feed-item feed-item-compact" data-board-id={item.bid}>
         <div className="feed-item-compact-row">
           <h2>
             <a className={getThreadTitleClassName(item.title, 'feed-item-compact-title')} href={threadHref}>
@@ -43,7 +43,7 @@ function FeedItem({ compactMode, item }: { compactMode: boolean; item: HomeThrea
   }
 
   return (
-    <article className="feed-item">
+    <article className="feed-item" data-board-id={item.bid}>
       <a className="feed-item-content" href={threadHref}>
         <h2 className={getThreadTitleClassName(item.title)}>
           {item.title}

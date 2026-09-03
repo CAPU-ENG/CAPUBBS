@@ -20,8 +20,45 @@
   }
 
   .feed-item {
+    border-left: 4px solid #f4f6f2;
     padding: 22px;
     transition: background 160ms ease;
+  }
+
+  .feed-item[data-board-id='1'] {
+    border-left-color: #8da3be;
+  }
+
+  .feed-item[data-board-id='2'] {
+    border-left-color: #ebcea8;
+  }
+
+  .feed-item[data-board-id='3'] {
+    border-left-color: #dfdccc;
+  }
+
+  .feed-item[data-board-id='4'] {
+    border-left-color: #485c76;
+  }
+
+  .feed-item[data-board-id='5'] {
+    border-left-color: #836754;
+  }
+
+  .feed-item[data-board-id='6'] {
+    border-left-color: #f7f7d0;
+  }
+
+  .feed-item[data-board-id='7'] {
+    border-left-color: #e6d1d9;
+  }
+
+  .feed-item[data-board-id='9'] {
+    border-left-color: #88b995;
+  }
+
+  .feed-item[data-board-id='28'] {
+    border-left-color: #000;
   }
 
   .feed-item:hover {
