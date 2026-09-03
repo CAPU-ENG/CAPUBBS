@@ -113,6 +113,7 @@ export function MessageDialog({
                       <MessageCard
                         key={message.id}
                         message={message}
+                        onClose={onClose}
                         onMarkMessageRead={onMarkMessageRead}
                         onOpenConversation={onOpenConversation}
                       />
@@ -157,10 +158,12 @@ export function MessageDialog({
 
 function MessageCard({
   message,
+  onClose,
   onMarkMessageRead,
   onOpenConversation,
 }: {
   message: ForumMessage;
+  onClose: () => void;
   onMarkMessageRead: (messageId: string) => void;
   onOpenConversation: (conversationId: string) => void;
 }) {
@@ -168,7 +171,10 @@ function MessageCard({
   const grantEvent = message.systemEvent ?? null;
   const grantName = grantEvent?.kind === 'tag-granted' ? grantEvent.tagName : grantEvent?.medalName;
   const messageHref = getForumNavigationHref(message.href, window.location.href);
-  const markRead = () => onMarkMessageRead(message.id);
+  const openMessageTarget = () => {
+    onMarkMessageRead(message.id);
+    onClose();
+  };
 
   return (
     <article className={`message-card ${message.unread ? 'message-card-unread' : ''}`}>
@@ -177,11 +183,11 @@ function MessageCard({
         <header>
           {grantEvent && grantName ? (
             <strong className="message-card-tag-grant">
-              <a href={getPublicProfilePath(message.sender)} onClick={markRead}>{message.sender}</a>
+              <a href={getPublicProfilePath(message.sender)} onClick={openMessageTarget}>{message.sender}</a>
               {grantEvent.kind === 'tag-granted' ? ' 为你添加了“' : ' 为你发放了“'}
               {grantName}
               {grantEvent.kind === 'tag-granted' ? '”标签，可前往' : '”勋章，可前往'}
-              <a href={USER_CENTER_HREF} onClick={markRead}>个人中心</a>
+              <a href={USER_CENTER_HREF} onClick={openMessageTarget}>个人中心</a>
               查看。
             </strong>
           ) : (
@@ -190,7 +196,7 @@ function MessageCard({
           <time>{message.time}</time>
         </header>
         {message.context && (
-          <a href={messageHref} onClick={() => onMarkMessageRead(message.id)}>{message.context}</a>
+          <a href={messageHref} onClick={openMessageTarget}>{message.context}</a>
         )}
         {isDirect && <p>{message.excerpt}</p>}
         <div className="message-card-actions">
@@ -202,7 +208,7 @@ function MessageCard({
               打开对话
             </button>
           ) : (
-            <a href={messageHref} onClick={markRead}>打开</a>
+            <a href={messageHref} onClick={openMessageTarget}>打开</a>
           )}
         </div>
       </div>
