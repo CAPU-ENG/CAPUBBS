@@ -4,7 +4,6 @@ import {
   BookOpen,
   ChevronRight,
   Compass,
-  Dices,
   Droplets,
   Footprints,
   Globe2,
@@ -17,12 +16,10 @@ import {
   X,
   type LucideIcon,
 } from 'lucide-react';
-import { useState } from 'react';
-import { LoadingSpinner as LoaderCircle } from './LoadingSpinner';
 import { LegacyForumIcon } from './LegacyForumIcon';
+import { RandomThreadButton } from './RandomThreadButton';
 import logo1 from '../../assets/logo/logo1.webp';
 import logo2 from '../../assets/logo/logo2.webp';
-import { fetchRandomThread } from '../../api/randomThread';
 import { PRIMARY_BOARDS, SECONDARY_BOARDS } from '../../data/boards';
 import { toForumHref } from '../../utils/forumBasePath';
 import { saveForumMode, SHARED_FORUM_ENTRY_PATH } from '../../utils/forumMode';
@@ -41,38 +38,6 @@ const boardIcons: Record<number, LucideIcon> = {
 
 function boardHref(id: number) {
   return toForumHref(`/?bid=${id}`);
-}
-
-function RandomThreadButton({ onNavigate }: { onNavigate: () => void }) {
-  const [loading, setLoading] = useState(false);
-
-  async function navigateToRandomThread() {
-    if (loading) return;
-    setLoading(true);
-
-    try {
-      const { bid, tid } = await fetchRandomThread();
-      onNavigate();
-      window.location.assign(toForumHref(`/?bid=${bid}&tid=${tid}&p=1`));
-    } catch (error) {
-      window.alert(error instanceof Error ? error.message : '随机帖子加载失败，请稍后重试。');
-    } finally {
-      setLoading(false);
-    }
-  }
-
-  return (
-    <button
-      aria-busy={loading}
-      className="supplement-link"
-      disabled={loading}
-      type="button"
-      onClick={() => void navigateToRandomThread()}
-    >
-      {loading ? <LoaderCircle className="animate-spin" size={15} /> : <Dices size={15} />}
-      试试手气
-    </button>
-  );
 }
 
 export function DesktopBoardDrawer({ onNavigate }: { onNavigate: () => void }) {

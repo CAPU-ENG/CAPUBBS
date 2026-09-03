@@ -215,6 +215,47 @@
     background: var(--brand-faint);
   }
 
+  .feed-random-card {
+    display: flex;
+    min-height: 54px;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    border-top: 1px solid var(--line);
+    color: var(--text-muted);
+    font-size: var(--ui-font-size-lg);
+  }
+
+  .feed-random-button {
+    display: inline-flex;
+    min-height: 32px;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+    border: 1px solid var(--line-strong);
+    border-radius: var(--control-radius);
+    padding: 0 10px;
+    background: var(--surface-raised);
+    color: var(--brand-strong);
+    font-weight: 700;
+    transition: 150ms ease;
+  }
+
+  .feed-random-button:hover {
+    border-color: color-mix(in srgb, var(--brand) 42%, var(--line));
+    background: var(--brand-faint);
+  }
+
+  .feed-random-button:focus-visible {
+    outline: 2px solid color-mix(in srgb, var(--brand) 55%, transparent);
+    outline-offset: 1px;
+  }
+
+  .feed-random-button:disabled {
+    cursor: wait;
+    opacity: 0.65;
+  }
+
   .home-data-state {
     display: flex;
     min-height: 180px;

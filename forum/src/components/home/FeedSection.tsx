@@ -5,6 +5,7 @@ import type { HomeThread } from '../../api/home';
 import type { HomeDataStatus } from '../../hooks/useHomeData';
 import { LoadingSpinner } from '../layout/LoadingSpinner';
 import { LoadingState } from '../layout/LoadingState';
+import { RandomThreadButton } from '../layout/RandomThreadButton';
 import { getForumNavigationHref } from '../../utils/forumNavigation';
 import { getThreadTitleClassName } from '../../utils/threadTitleTypography';
 
@@ -162,6 +163,13 @@ export function FeedSection({ autoLoadMore, compactMode, error, hasMore, items, 
             <>加载更多 <ArrowDown size={16} /></>
           )}
         </button>
+      )}
+
+      {status === 'ready' && !hasMore && items.length >= 100 && (
+        <div className="feed-random-card">
+          <span>想看更多？</span>
+          <RandomThreadButton className="feed-random-button" />
+        </div>
       )}
     </section>
   );
