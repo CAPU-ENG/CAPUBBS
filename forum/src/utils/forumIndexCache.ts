@@ -9,7 +9,7 @@ export async function registerForumIndexCache() {
   }
 
   try {
-    await navigator.serviceWorker.register(WORKER_URL, { scope: '/bbs/', updateViaCache: 'all' });
+    await navigator.serviceWorker.register(WORKER_URL, { scope: '/bbs/', updateViaCache: 'none' });
     const registration = await navigator.serviceWorker.ready;
     (navigator.serviceWorker.controller ?? registration.active)?.postMessage({ type: 'CACHE_CURRENT_INDEX' });
   } catch (error) {

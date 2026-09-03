@@ -20,6 +20,7 @@
 <!DOCTYPE html>
 <html>
 <head>
+<script src="/bbs/index-preload.js"></script>
 <!--
 
                                                                                                             

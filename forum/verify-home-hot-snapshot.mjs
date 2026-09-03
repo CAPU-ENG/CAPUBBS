@@ -82,7 +82,10 @@ try {
   assert.match(indexWorker, /PASSTHROUGH_PREFIXES/);
   assert.match(indexWorker, /event\.request\.method !== 'GET'/);
   assert.match(indexWorker, /event\.waitUntil\(installForumShell\(\)\)/);
-  assert.match(indexWorker, /cacheCriticalAssets/);
+  assert.match(indexWorker, /PREPARE_FORUM_SHELL/);
+  assert.match(indexWorker, /precacheForumAssets/);
+  assert.match(indexWorker, /precache-manifest\.json/);
+  assert.match(indexWorker, /capubbs-forum-assets-v2/);
 } finally {
   rmSync(snapshotDirectory, { force: true, recursive: true });
 }

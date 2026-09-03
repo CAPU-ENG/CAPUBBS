@@ -1,5 +1,5 @@
 <IfModule mod_headers.c>
-    <Files "index-worker.js">
-        Header set Cache-Control "private, max-age=86400"
-    </Files>
+    <FilesMatch "^index-(?:worker|preload)\.js$">
+        Header set Cache-Control "no-cache"
+    </FilesMatch>
 </IfModule>

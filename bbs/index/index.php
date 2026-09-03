@@ -8,6 +8,7 @@
 ?>
 <html>
 <head>
+<script src="/bbs/index-preload.js"></script>
 <meta charset="utf-8">
 <base href="/bbs/index/">
 <title>CAPUBBS - 选择讨论区</title>
@@ -53,13 +54,13 @@ if ($username!="") {
         echo("&nbsp;<a href='../favorite/'>我的收藏</a>");
     }
     echo("<br><a href='../logout?from=%2Fbbs%2Findex'>注销</a>");
-    echo("<br><a href='/bbs/' class='new-forum-link' onclick=\"saveForumMode('new')\">试试新论坛</a>");
+    echo("<br><a href='/bbs/' class='new-forum-link' onclick=\"return openNewForum(event)\">试试新论坛</a>");
     // if (intval($users['rights']) >= 1) {
     //     echo("<br><a href='../manage/' style='color:#337ab7;'>管理工具</a>");
     // }
     echo("</div>");
 }else{
-    echo("<span class='guest'>欢迎您，游客！<a href='../login?from=%2Fbbs%2Findex'>登录</a> 或者 <a href='../register'>注册</a><br><a href='/bbs/' class='new-forum-link' onclick=\"saveForumMode('new')\">试试新论坛</a></span>");
+    echo("<span class='guest'>欢迎您，游客！<a href='../login?from=%2Fbbs%2Findex'>登录</a> 或者 <a href='../register'>注册</a><br><a href='/bbs/' class='new-forum-link' onclick=\"return openNewForum(event)\">试试新论坛</a></span>");
 }
 ?>
 
@@ -170,6 +171,22 @@ if ($username!="") {
 function saveForumMode(mode) {
     var secure = window.location.protocol === 'https:' ? '; Secure' : '';
     document.cookie = 'capubbs_forum_mode=' + mode + '; Path=/; Max-Age=31536000; SameSite=Lax' + secure;
+}
+
+function openNewForum(event) {
+    if (event && event.preventDefault) event.preventDefault();
+    saveForumMode('new');
+    var preparation = typeof window.capubbsPrepareForumShell === 'function'
+        ? window.capubbsPrepareForumShell('new')
+        : Promise.resolve(false);
+    preparation.catch(function (error) {
+        if (window.console && typeof window.console.error === 'function') {
+            window.console.error('[CAPUBBS] 进入新论坛前的缓存准备失败。', error);
+        }
+    }).then(function () {
+        window.location.assign('/bbs/');
+    });
+    return false;
 }
 
 function showall() {
