@@ -1,7 +1,10 @@
-const INDEX_CACHE = 'capubbs-forum-index-v1';
-const ASSET_CACHE = 'capubbs-forum-assets-v1';
+const CACHE_PREFIX = 'capubbs-forum-';
+const INDEX_CACHE = 'capubbs-forum-index-v2';
+const ASSET_CACHE = 'capubbs-forum-assets-v2';
 const INDEX_CACHE_KEY = '/bbs/__capubbs-index-cache__';
 const INDEX_META_KEY = '/bbs/__capubbs-index-meta__';
+const FORUM_SHELL_URL = '/bbs/?capubbs_shell=new';
+const PRECACHE_MANIFEST_URL = '/bbs/new-assets/precache-manifest.json';
 const PASSTHROUGH_PREFIXES = [
   '/bbs/assets/',
   '/bbs/attach/',
@@ -22,7 +25,7 @@ self.addEventListener('install', (event) => {
 });
 
 self.addEventListener('activate', (event) => {
-  event.waitUntil(self.clients.claim());
+  event.waitUntil(activateForumWorker());
 });
 
 self.addEventListener('message', (event) => {
@@ -30,6 +33,12 @@ self.addEventListener('message', (event) => {
   if (!message || typeof message.type !== 'string') return;
   if (message.type === 'CACHE_CURRENT_INDEX') {
     event.waitUntil(cacheLatestIndex());
+  }
+  if (message.type === 'PREPARE_FORUM_SHELL') {
+    event.waitUntil(prepareForumShell(message.mode).then(
+      () => replyToMessage(event, { ok: true }),
+      (error) => replyToMessage(event, { error: String(error), ok: false }),
+    ));
   }
   if (message.type === 'SET_FORUM_MODE' && (message.mode === 'new' || message.mode === 'legacy')) {
     event.waitUntil(storeForumMode(message.mode));
@@ -53,9 +62,30 @@ self.addEventListener('fetch', (event) => {
 });
 
 async function installForumShell() {
-  const cache = await caches.open(INDEX_CACHE);
-  await fetchAndCacheIndex(new Request('/bbs/', { credentials: 'include' }), cache);
+  await prepareForumShell();
   await self.skipWaiting();
+}
+
+async function activateForumWorker() {
+  const cacheNames = await caches.keys();
+  await Promise.all(cacheNames
+    .filter((name) => name.startsWith(CACHE_PREFIX) && name !== INDEX_CACHE && name !== ASSET_CACHE)
+    .map((name) => caches.delete(name)));
+  await self.clients.claim();
+}
+
+async function prepareForumShell(mode) {
+  const cache = await caches.open(INDEX_CACHE);
+  if (mode === 'new' || mode === 'legacy') await storeForumMode(mode, cache);
+  await fetchAndCacheIndex(new Request(FORUM_SHELL_URL, {
+    cache: 'no-store',
+    credentials: 'include',
+  }), cache, true);
+}
+
+function replyToMessage(event, payload) {
+  const port = event.ports && event.ports[0];
+  if (port) port.postMessage(payload);
 }
 
 function isForumPagePath(pathname) {
@@ -79,18 +109,24 @@ async function cacheLatestIndex() {
   await fetchAndCacheIndex(new Request('/bbs/', { credentials: 'include' }), cache);
 }
 
-async function fetchAndCacheIndex(request, cache) {
+async function fetchAndCacheIndex(request, cache, requireForumIndex = false) {
   try {
     const response = await fetch(request);
-    if (!response.ok || !isHtml(response)) return response;
+    if (!response.ok || !isHtml(response)) {
+      if (requireForumIndex) throw new Error(`Forum shell request failed: ${response.status}`);
+      return response;
+    }
     const html = await response.clone().text();
-    if (!isForumIndexHtml(html)) return response;
+    if (!isForumIndexHtml(html)) {
+      if (requireForumIndex) throw new Error('Forum shell response is not the new forum index.');
+      return response;
+    }
     const version = await contentsVersion(html);
     const previousMeta = await readMeta(cache);
     await Promise.all([
       cache.put(INDEX_CACHE_KEY, response.clone()),
       writeMeta(cache, { dirty: false, mode: previousMeta?.mode || 'new', version }),
-      cacheCriticalAssets(html),
+      precacheForumAssets(),
     ]);
     return response;
   } catch (error) {
@@ -117,9 +153,33 @@ function isForumIndexHtml(html) {
   return html.includes('<div id="root"></div>') && html.includes('/bbs/new-assets/');
 }
 
-async function cacheCriticalAssets(html) {
-  const urls = Array.from(html.matchAll(/(?:src|href)=["'](\/bbs\/new-assets\/[^"']+)["']/g), (match) => match[1]);
-  await Promise.allSettled(urls.map((url) => cacheFirstAsset(new Request(url))));
+async function precacheForumAssets() {
+  const manifestResponse = await fetch(`${PRECACHE_MANIFEST_URL}?v=${Date.now()}`, {
+    cache: 'no-store',
+    credentials: 'same-origin',
+  });
+  if (!manifestResponse.ok) throw new Error(`Precache manifest request failed: ${manifestResponse.status}`);
+  const manifest = await manifestResponse.json();
+  const urls = manifestAssetUrls(manifest);
+  if (!urls.length) throw new Error('Precache manifest contains no assets.');
+
+  for (let index = 0; index < urls.length; index += 6) {
+    await Promise.all(urls.slice(index, index + 6).map((url) => cacheFirstAsset(new Request(url))));
+  }
+}
+
+function manifestAssetUrls(manifest) {
+  const paths = new Set();
+  for (const entry of Object.values(manifest || {})) {
+    if (!entry || typeof entry !== 'object') continue;
+    if (typeof entry.file === 'string') paths.add(entry.file);
+    for (const field of ['css', 'assets']) {
+      if (!Array.isArray(entry[field])) continue;
+      for (const path of entry[field]) if (typeof path === 'string') paths.add(path);
+    }
+  }
+  return Array.from(paths, (path) => new URL(path, `${self.location.origin}/bbs/`).href)
+    .filter((url) => new URL(url).pathname.startsWith('/bbs/new-assets/'));
 }
 
 async function cacheFirstAsset(request) {

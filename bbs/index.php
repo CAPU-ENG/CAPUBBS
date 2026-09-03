@@ -19,7 +19,7 @@
         foreach ($workerCandidates as $workerCandidate) {
             if (!is_readable($workerCandidate)) continue;
             header('Content-Type: application/javascript; charset=UTF-8');
-            header('Cache-Control: private, max-age=86400');
+            header('Cache-Control: no-cache');
             header('Service-Worker-Allowed: /bbs/');
             readfile($workerCandidate);
             exit;
@@ -28,8 +28,9 @@
         exit;
     }
 
-    $mode = @$_COOKIE['capubbs_forum_mode'];
-    $hasLegacyLoginToken = !isset($_COOKIE['capubbs_forum_mode'])
+    $forceNewShell = @$_GET['capubbs_shell'] === 'new';
+    $mode = $forceNewShell ? 'new' : @$_COOKIE['capubbs_forum_mode'];
+    $hasLegacyLoginToken = !$forceNewShell && !isset($_COOKIE['capubbs_forum_mode'])
         && trim((string)@$_COOKIE['token']) !== '';
 
     if ($hasLegacyLoginToken) {
