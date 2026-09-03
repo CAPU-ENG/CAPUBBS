@@ -1,0 +1,5 @@
+<IfModule mod_headers.c>
+    <Files "index-worker.js">
+        Header set Cache-Control "private, max-age=86400"
+    </Files>
+</IfModule>

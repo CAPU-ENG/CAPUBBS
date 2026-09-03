@@ -1,4 +1,5 @@
 const INDEX_CACHE = 'capubbs-forum-index-v1';
+const ASSET_CACHE = 'capubbs-forum-assets-v1';
 const INDEX_CACHE_KEY = '/bbs/__capubbs-index-cache__';
 const INDEX_META_KEY = '/bbs/__capubbs-index-meta__';
 const PASSTHROUGH_PREFIXES = [
@@ -16,7 +17,9 @@ const PASSTHROUGH_PATHS = new Set([
   '/bbs/register/userexists.php',
 ]);
 
-self.addEventListener('install', () => self.skipWaiting());
+self.addEventListener('install', (event) => {
+  event.waitUntil(installForumShell());
+});
 
 self.addEventListener('activate', (event) => {
   event.waitUntil(self.clients.claim());
@@ -28,6 +31,9 @@ self.addEventListener('message', (event) => {
   if (message.type === 'CACHE_CURRENT_INDEX') {
     event.waitUntil(cacheLatestIndex());
   }
+  if (message.type === 'SET_FORUM_MODE' && (message.mode === 'new' || message.mode === 'legacy')) {
+    event.waitUntil(storeForumMode(message.mode));
+  }
   if (message.type === 'COMPARE_INDEX_VERSION' && /^[a-f0-9]{64}$/.test(message.version)) {
     event.waitUntil(markDirtyWhenVersionChanged(message.version));
   }
@@ -35,11 +41,22 @@ self.addEventListener('message', (event) => {
 
 self.addEventListener('fetch', (event) => {
   const url = new URL(event.request.url);
+  if (event.request.method === 'GET' && url.origin === self.location.origin
+    && url.pathname.startsWith('/bbs/new-assets/')) {
+    event.respondWith(cacheFirstAsset(event.request));
+    return;
+  }
   if (event.request.method !== 'GET' || event.request.mode !== 'navigate'
     || url.origin !== self.location.origin || !isForumPagePath(url.pathname)) return;
 
   event.respondWith(resolveForumNavigation(event.request));
 });
+
+async function installForumShell() {
+  const cache = await caches.open(INDEX_CACHE);
+  await fetchAndCacheIndex(new Request('/bbs/', { credentials: 'include' }), cache);
+  await self.skipWaiting();
+}
 
 function isForumPagePath(pathname) {
   if (pathname !== '/bbs' && !pathname.startsWith('/bbs/')) return false;
@@ -48,17 +65,16 @@ function isForumPagePath(pathname) {
 }
 
 async function resolveForumNavigation(request) {
-  if (await forumMode() !== 'new') return fetch(request);
-
   const cache = await caches.open(INDEX_CACHE);
+  if (await forumMode(cache) !== 'new') return fetch(request);
   const meta = await readMeta(cache);
   if (!meta || meta.dirty) return fetchAndCacheIndex(request, cache);
   return (await cache.match(INDEX_CACHE_KEY)) || fetchAndCacheIndex(request, cache);
 }
 
 async function cacheLatestIndex() {
-  if (await forumMode() !== 'new') return;
   const cache = await caches.open(INDEX_CACHE);
+  await storeForumMode('new', cache);
   if (await cache.match(INDEX_CACHE_KEY)) return;
   await fetchAndCacheIndex(new Request('/bbs/', { credentials: 'include' }), cache);
 }
@@ -67,10 +83,14 @@ async function fetchAndCacheIndex(request, cache) {
   try {
     const response = await fetch(request);
     if (!response.ok || !isHtml(response)) return response;
-    const version = await responseVersion(response.clone());
+    const html = await response.clone().text();
+    if (!isForumIndexHtml(html)) return response;
+    const version = await contentsVersion(html);
+    const previousMeta = await readMeta(cache);
     await Promise.all([
       cache.put(INDEX_CACHE_KEY, response.clone()),
-      writeMeta(cache, { dirty: false, version }),
+      writeMeta(cache, { dirty: false, mode: previousMeta?.mode || 'new', version }),
+      cacheCriticalAssets(html),
     ]);
     return response;
   } catch (error) {
@@ -87,10 +107,28 @@ async function markDirtyWhenVersionChanged(version) {
   await writeMeta(cache, { ...meta, dirty: true });
 }
 
-async function responseVersion(response) {
-  const contents = new TextEncoder().encode(await response.text());
+async function contentsVersion(html) {
+  const contents = new TextEncoder().encode(html);
   const digest = await crypto.subtle.digest('SHA-256', contents);
   return Array.from(new Uint8Array(digest), (byte) => byte.toString(16).padStart(2, '0')).join('');
+}
+
+function isForumIndexHtml(html) {
+  return html.includes('<div id="root"></div>') && html.includes('/bbs/new-assets/');
+}
+
+async function cacheCriticalAssets(html) {
+  const urls = Array.from(html.matchAll(/(?:src|href)=["'](\/bbs\/new-assets\/[^"']+)["']/g), (match) => match[1]);
+  await Promise.allSettled(urls.map((url) => cacheFirstAsset(new Request(url))));
+}
+
+async function cacheFirstAsset(request) {
+  const cache = await caches.open(ASSET_CACHE);
+  const cached = await cache.match(request);
+  if (cached) return cached;
+  const response = await fetch(request);
+  if (response.ok) await cache.put(request, response.clone());
+  return response;
 }
 
 function isHtml(response) {
@@ -113,8 +151,16 @@ function writeMeta(cache, meta) {
   }));
 }
 
-async function forumMode() {
-  if (!self.cookieStore) return null;
-  const cookie = await self.cookieStore.get('capubbs_forum_mode');
-  return cookie && cookie.value;
+async function storeForumMode(mode, existingCache) {
+  const cache = existingCache || await caches.open(INDEX_CACHE);
+  const meta = await readMeta(cache) || {};
+  await writeMeta(cache, { ...meta, mode });
+}
+
+async function forumMode(cache) {
+  if (self.cookieStore) {
+    const cookie = await self.cookieStore.get('capubbs_forum_mode');
+    if (cookie && (cookie.value === 'new' || cookie.value === 'legacy')) return cookie.value;
+  }
+  return (await readMeta(cache))?.mode || null;
 }
