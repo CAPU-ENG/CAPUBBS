@@ -115,9 +115,6 @@ function sanitizeWordClipboardElementAttributes(element: Element) {
   const tagName = element.tagName.toLowerCase();
   const styledElement = element instanceof HTMLElement ? element : null;
   const href = tagName === 'a' ? getSafeClipboardHref(element.getAttribute('href')) : '';
-  const language = /^[a-z]{2,3}(?:-[a-z0-9]{2,8})*$/i.test(element.getAttribute('lang') ?? '')
-    ? element.getAttribute('lang')
-    : null;
   const direction = /^(?:auto|ltr|rtl)$/i.test(element.getAttribute('dir') ?? '')
     ? element.getAttribute('dir')?.toLowerCase() ?? null
     : null;
@@ -150,7 +147,6 @@ function sanitizeWordClipboardElementAttributes(element: Element) {
 
   usefulStyles.forEach(({ property, value }) => styledElement?.style.setProperty(property, value));
   if (href) element.setAttribute('href', href);
-  if (language) element.setAttribute('lang', language);
   if (direction) element.setAttribute('dir', direction);
   if (horizontalAlignment && !styledElement?.style.textAlign) {
     styledElement?.style.setProperty('text-align', horizontalAlignment);
