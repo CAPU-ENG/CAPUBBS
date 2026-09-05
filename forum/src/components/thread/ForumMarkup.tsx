@@ -2,6 +2,7 @@ import type { SafeForumHtml } from '../../utils/forumMarkup';
 import { useEffect, useLayoutEffect, useMemo, useRef, type KeyboardEvent, type MouseEvent } from 'react';
 import { useTheme } from '../../hooks/useTheme';
 import { syncForumGrayscaleTextColors } from '../../utils/forumGrayscaleTextColor';
+import { preloadNearbyImages } from '../../utils/imagePreloading';
 import {
   ensureGalleryDisplayControls,
   getEditorGalleryAction,
@@ -54,6 +55,11 @@ export function ForumMarkup({
       syncForumGrayscaleTextColors(container, theme);
     }
   }, [html, theme]);
+
+  useLayoutEffect(() => {
+    const container = containerRef.current;
+    if (container) return preloadNearbyImages(container);
+  }, [html]);
 
   useEffect(() => {
     const container = containerRef.current;

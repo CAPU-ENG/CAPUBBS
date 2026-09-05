@@ -15,6 +15,7 @@
     "verify:forum-mode": "node --experimental-strip-types verify-forum-mode.mjs",
     "verify:gallery-grouping": "node --experimental-strip-types verify-gallery-grouping.mjs",
     "verify:home-hot-snapshot": "node --experimental-strip-types verify-home-hot-snapshot.mjs",
+    "verify:image-preloading": "node --experimental-strip-types verify-image-preloading.mjs",
     "verify:legacy-assets": "node --experimental-strip-types verify-legacy-assets.mjs",
     "verify:legacy-bbcode": "node --experimental-strip-types verify-legacy-bbcode.mjs",
     "verify:legacy-gateway": "node --experimental-strip-types verify-legacy-gateway.mjs",

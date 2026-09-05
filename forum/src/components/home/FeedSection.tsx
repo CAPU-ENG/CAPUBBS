@@ -1,5 +1,5 @@
 import { ArrowDown, Eye, MessageCircle, RefreshCw } from 'lucide-react';
-import { useEffect } from 'react';
+import { useEffect, useLayoutEffect, useRef } from 'react';
 import defaultAvatar from '../../assets/avatar/default-avatar.svg';
 import type { HomeThread } from '../../api/home';
 import { getBoardById } from '../../data/boards';
@@ -9,6 +9,7 @@ import { LoadingState } from '../layout/LoadingState';
 import { RandomThreadButton } from '../layout/RandomThreadButton';
 import { getForumNavigationHref } from '../../utils/forumNavigation';
 import { getThreadTitleClassName } from '../../utils/threadTitleTypography';
+import { preloadNearbyImages } from '../../utils/imagePreloading';
 
 function FeedItem({ compactMode, item }: { compactMode: boolean; item: HomeThread }) {
   const authorHref = getForumNavigationHref(item.authorHref, window.location.href);
@@ -91,8 +92,14 @@ type FeedSectionProps = {
 };
 
 export function FeedSection({ autoLoadMore, compactMode, error, hasMore, items, onLoadMore, onRetry, status }: FeedSectionProps) {
+  const feedRef = useRef<HTMLElement>(null);
   const loadingMore = status === 'loading' && items.length > 0;
   const loadMoreFailed = status === 'error' && items.length > 0;
+
+  useLayoutEffect(() => {
+    const container = feedRef.current;
+    if (container) return preloadNearbyImages(container);
+  }, [compactMode, items]);
 
   useEffect(() => {
     if (!autoLoadMore || !hasMore || loadingMore || loadMoreFailed) return;
@@ -141,7 +148,7 @@ export function FeedSection({ autoLoadMore, compactMode, error, hasMore, items, 
   }
 
   return (
-    <section className="feed-section" id="feed" aria-label="论坛帖子">
+    <section ref={feedRef} className="feed-section" id="feed" aria-label="论坛帖子">
       {status === 'error' && items.length === 0 ? (
         <div className="home-data-state home-data-error" role="alert">
           <p>{error}</p>
