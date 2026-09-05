@@ -365,6 +365,8 @@
   :is(.forum-markup, .capubbs-editor-prose) .capubbs-gallery-stage {
     position: relative;
     display: block;
+    /* Override the fixed stage height in embedded gallery compatibility styles. */
+    height: var(--capubbs-gallery-image-height, clamp(280px, 52vw, 560px));
     margin: 0;
     background: transparent;
   }
@@ -549,6 +551,7 @@
       height: 58px;
     }
 
+    :is(.forum-markup, .capubbs-editor-prose) .capubbs-gallery-stage,
     :is(.forum-markup, .capubbs-editor-prose) .capubbs-gallery-slide > img {
       height: var(--capubbs-gallery-image-height, min(72vw, 420px));
     }
