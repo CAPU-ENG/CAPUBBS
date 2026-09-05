@@ -31,17 +31,17 @@ function container(...images) {
 }
 
 const visible = imageAt(0);
-const ahead = imageAt(2600);
-const behind = imageAt(-1500);
+const ahead = imageAt(4400);
+const behind = imageAt(-3500);
 const distant = imageAt(6000);
 const cached = Object.assign(imageAt(6000), { complete: true, naturalWidth: 300 });
 const cleanup = preloadNearbyImages(container(visible, ahead, behind, distant, cached));
 assert.equal(visible.loading, 'eager', 'the initial viewport must start loading synchronously');
-assert.equal(ahead.loading, 'eager', 'images two screens ahead must start before entering the viewport');
+assert.equal(ahead.loading, 'eager', 'images four screens ahead must start before entering the viewport');
 assert.equal(behind.loading, 'eager', 'upward scrolling must get the same head start');
 assert.equal(distant.loading, 'lazy', 'distant images must retain native lazy loading');
 assert.equal(distant.src, '/bbs/images/example.jpg', 'image URLs must remain available to native loading and the lightbox');
-assert.equal(observers[0].options.rootMargin, '1800px 0px');
+assert.equal(observers[0].options.rootMargin, '3600px 0px');
 assert.deepEqual([...observers[0].targets], [distant], 'cached and nearby images must not remain observed');
 observers[0].intersect(distant, false);
 assert.equal(distant.loading, 'lazy', 'non-intersecting notifications must not trigger downloads');

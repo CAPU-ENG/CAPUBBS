@@ -20,7 +20,9 @@ export function preloadNearbyImages(container: HTMLElement) {
   }
 
   if (!observer) {
-    preloadMargin = Math.max(1600, window.innerHeight * 2);
+    // Images take about 3 seconds to load. Four screens leave roughly one
+    // second of headroom at one screen per second; keep that runway on mobile.
+    preloadMargin = Math.max(3600, window.innerHeight * 4);
     observer = new IntersectionObserver((entries) => {
       entries.forEach((entry) => {
         if (entry.isIntersecting) loadImages(entry.target);
