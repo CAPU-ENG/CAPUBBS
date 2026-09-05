@@ -16,6 +16,7 @@ import {
 } from './RichTextEditor.clipboard';
 import {
   buildEditorGalleryHtml,
+  ensureEditorGalleryEditControls,
   getEditorGalleryAction,
   getEditorGalleryEditTarget,
   getEditorGalleryImageHeight,
@@ -438,6 +439,8 @@ export function createRichTextEditorMediaActions({
     if (editedGallery && editorRef.current?.contains(editedGallery)) {
       editedGallery.insertAdjacentHTML('afterend', galleryHtml);
       editedGallery.remove();
+      // Saving unchanged content may skip the content effect that restores controls.
+      ensureEditorGalleryEditControls(editorRef.current);
       updateContent(editorRef.current.innerHTML);
     } else if (editorMode === 'markdown' || editorMode === 'html') {
       insertSourceBlock(galleryHtml);
