@@ -1,4 +1,4 @@
-import { Images, Trash2, UploadCloud, X } from 'lucide-react';
+import { ArrowDown, ArrowUp, Images, Trash2, UploadCloud, X } from 'lucide-react';
 import {
   useCallback,
   useEffect,
@@ -180,6 +180,19 @@ export function GalleryDialog({
     setImages((current) => current.map((image) => image.id === id ? { ...image, caption } : image));
   }
 
+  function moveImage(id: string, direction: -1 | 1) {
+    if (isBusy) return;
+    setImages((current) => {
+      const index = current.findIndex((image) => image.id === id);
+      const targetIndex = index + direction;
+      if (index < 0 || targetIndex < 0 || targetIndex >= current.length) return current;
+
+      const reordered = [...current];
+      [reordered[index], reordered[targetIndex]] = [reordered[targetIndex], reordered[index]];
+      return reordered;
+    });
+  }
+
   async function insertGallery() {
     if (images.length === 0 || isCheckingFiles || isUploading || images.some((image) => image.processingError)) {
       if (images.length === 0) setError('请至少选择一张图片。');
@@ -263,14 +276,35 @@ export function GalleryDialog({
                       value={image.caption}
                     />
                   </label>
-                  <button
-                    aria-label={`移除第 ${index + 1} 张图片`}
-                    disabled={isBusy}
-                    onClick={() => removeImage(image.id)}
-                    type="button"
-                  >
-                    <Trash2 size={16} />
-                  </button>
+                  <div className="gallery-dialog-image-actions">
+                    <button
+                      aria-label={`上移第 ${index + 1} 张图片`}
+                      disabled={isBusy || index === 0}
+                      onClick={() => moveImage(image.id, -1)}
+                      title="上移"
+                      type="button"
+                    >
+                      <ArrowUp size={16} />
+                    </button>
+                    <button
+                      aria-label={`下移第 ${index + 1} 张图片`}
+                      disabled={isBusy || index === images.length - 1}
+                      onClick={() => moveImage(image.id, 1)}
+                      title="下移"
+                      type="button"
+                    >
+                      <ArrowDown size={16} />
+                    </button>
+                    <button
+                      aria-label={`移除第 ${index + 1} 张图片`}
+                      disabled={isBusy}
+                      onClick={() => removeImage(image.id)}
+                      title="移除"
+                      type="button"
+                    >
+                      <Trash2 size={16} />
+                    </button>
+                  </div>
                 </li>
               ))}
             </ol>

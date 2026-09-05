@@ -58,7 +58,7 @@
   }
 
   .gallery-dialog > header button,
-  .gallery-dialog-images > li > button {
+  .gallery-dialog-image-actions > button {
     display: grid;
     width: 34px;
     height: 34px;
@@ -70,7 +70,7 @@
   }
 
   .gallery-dialog > header button:hover:not(:disabled),
-  .gallery-dialog-images > li > button:hover:not(:disabled) {
+  .gallery-dialog-image-actions > button:hover:not(:disabled) {
     background: var(--surface-soft);
     color: var(--text-strong);
   }
@@ -154,6 +154,11 @@
     border: 1px solid var(--line);
     border-radius: 2px;
     background: var(--surface-soft);
+  }
+
+  .gallery-dialog-image-actions {
+    display: flex;
+    flex-direction: column;
   }
 
   .gallery-dialog-image-preview {
