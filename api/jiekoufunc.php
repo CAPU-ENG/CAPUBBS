@@ -807,27 +807,51 @@ function jiekoufunc_login($con, $username_raw, $password, $ip, $params) {
         $statement = "update userinfo set tokentime=$nowtime, token='$token', nowboard=null, lastdate='$today',onlinetype='$onlinetype',logininfo='$logininfo' where username='$username'";
     mysqli_query($con, $statement);
 
-    jiekoufunc_auto_sign($con, $username);
+    jiekoufunc_auto_sign($con, $username_raw);
 
     return array(array('code' => '0', 'username' => $username, 'token' => $token));
 }
 
 function jiekoufunc_auto_sign($con, $username) {
-    $time = time();
-    $year = date("Y", $time);
-    $month = date("m", $time);
-    $day = date("d", $time);
-    $statement = "select * from capubbs.sign where year=$year && month=$month && day=$day && username='$username'";
-    $result = mysqli_query($con, $statement);
-    if (mysqli_num_rows($result) == 0) {
+    // Resolve the stored spelling so case/collation-equivalent logins share a lock.
+    $username = mysqli_real_escape_string($con, $username);
+    $result = mysqli_query($con, "select username from capubbs.userinfo where username='$username' limit 1");
+    if (!$result) return;
+    $user = mysqli_fetch_row($result);
+    if (!$user) return;
+    $lock_name = 'capubbs_sign_' . sha1($user[0]);
+    $username = mysqli_real_escape_string($con, $user[0]);
+
+    // A busy/unavailable lock skips this attempt; a later request can sign in.
+    try {
+        $result = mysqli_query($con, "select GET_LOCK('$lock_name', 1)");
+    } catch (Exception $error) {
+        return;
+    }
+    if (!$result) return;
+    $lock = mysqli_fetch_row($result);
+    if (!$lock || intval($lock[0]) !== 1) return;
+
+    try {
+        $time = time();
+        $year = date("Y", $time);
+        $month = date("m", $time);
+        $day = date("d", $time);
+        $statement = "select * from capubbs.sign where year=$year && month=$month && day=$day && username='$username'";
+        $result = mysqli_query($con, $statement);
+        if (!$result || mysqli_num_rows($result) > 0) return;
+
         $hour = date("H", $time);
         $minute = date("i", $time);
         $second = date("s", $time);
         $week = date("N", $time);
         $statement = "insert into capubbs.sign values ($year,$month,$day,$hour,$minute,$second,$week,'$username')";
-        mysqli_query($con, $statement);
-        $statement = "update capubbs.userinfo set sign=sign+1 where username='$username'";
-        mysqli_query($con, $statement);
+        if (mysqli_query($con, $statement) && mysqli_affected_rows($con) === 1) {
+            $statement = "update capubbs.userinfo set sign=sign+1 where username='$username'";
+            mysqli_query($con, $statement);
+        }
+    } finally {
+        mysqli_query($con, "select RELEASE_LOCK('$lock_name')");
     }
 }
 

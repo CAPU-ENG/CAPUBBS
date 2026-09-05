@@ -339,21 +339,7 @@ function jiekoufunc_validate_token_and_sign($con, $token, $ip) {
 
         mysqli_query($con, $statement);
 
-        $year = date("Y", $time);
-        $month = date("m", $time);
-        $day = date("d", $time);
-        $statement = "select * from capubbs.sign where year=$year && month=$month && day=$day && username='$username'";
-        $result = mysqli_query($con, $statement);
-        if (mysqli_num_rows($result) == 0) {
-            $hour = date("H", $time);
-            $minute = date("i", $time);
-            $second = date("s", $time);
-            $week = date("N", $time);
-            $statement = "insert into capubbs.sign values ($year,$month,$day,$hour,$minute,$second,$week,'$username')";
-            mysqli_query($con, $statement);
-            $statement = "update capubbs.userinfo set sign=sign+1 where username='$username'";
-            mysqli_query($con, $statement);
-        }
+        jiekoufunc_auto_sign($con, $username);
     }
     return $username;
 }
