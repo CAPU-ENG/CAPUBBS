@@ -1,5 +1,6 @@
 import { Images, Trash2, UploadCloud, X } from 'lucide-react';
 import {
+  useCallback,
   useEffect,
   useRef,
   useState,
@@ -47,6 +48,7 @@ export function GalleryDialog({
   ) => Promise<void>;
 }) {
   const inputRef = useRef<HTMLInputElement>(null);
+  const checkingFilesRef = useRef(false);
   const imagesRef = useRef<GalleryDialogImage[]>([]);
   const isEditing = initialImages.length > 0;
   const [title, setTitle] = useState(initialTitle);
@@ -84,11 +86,10 @@ export function GalleryDialog({
     });
   }, []);
 
-  async function addFiles(event: ChangeEvent<HTMLInputElement>) {
-    const files = Array.from(event.currentTarget.files ?? []);
-    event.currentTarget.value = '';
-    if (files.length === 0) return;
+  const addFiles = useCallback(async (files: File[]) => {
+    if (files.length === 0 || checkingFilesRef.current) return;
 
+    checkingFilesRef.current = true;
     setError('');
     setIsCheckingFiles(true);
 
@@ -134,8 +135,37 @@ export function GalleryDialog({
         }
       }
     } finally {
+      checkingFilesRef.current = false;
       setIsCheckingFiles(false);
     }
+  }, []);
+
+  useEffect(() => {
+    function pasteImages(event: ClipboardEvent) {
+      if (!event.clipboardData) return;
+      let files = Array.from(event.clipboardData.files).filter((file) => file.type.startsWith('image/'));
+      if (files.length === 0) {
+        files = Array.from(event.clipboardData.items).flatMap((item) => {
+          if (item.kind !== 'file' || !item.type.startsWith('image/')) return [];
+          const file = item.getAsFile();
+          return file ? [file] : [];
+        });
+      }
+      if (files.length === 0) return;
+
+      event.preventDefault();
+      event.stopPropagation();
+      if (!isBusy) void addFiles(files);
+    }
+
+    document.addEventListener('paste', pasteImages, true);
+    return () => document.removeEventListener('paste', pasteImages, true);
+  }, [addFiles, isBusy]);
+
+  function selectFiles(event: ChangeEvent<HTMLInputElement>) {
+    const files = Array.from(event.currentTarget.files ?? []);
+    event.currentTarget.value = '';
+    if (!isBusy) void addFiles(files);
   }
 
   function removeImage(id: string) {
@@ -204,13 +234,14 @@ export function GalleryDialog({
             <UploadCloud size={18} />
             {isCheckingFiles ? '正在处理图片' : images.length > 0 ? '继续添加图片' : '选择若干张图片'}
           </button>
+          <p className="gallery-dialog-paste-hint">可直接粘贴图片（Ctrl+V / ⌘V）</p>
           <input
             ref={inputRef}
             accept={editorImageInputAccept}
             className="sr-only"
             disabled={isCheckingFiles || isUploading}
             multiple
-            onChange={addFiles}
+            onChange={selectFiles}
             type="file"
           />
 

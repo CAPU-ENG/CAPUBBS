@@ -131,6 +131,12 @@
     background: color-mix(in srgb, var(--brand) 8%, var(--surface));
   }
 
+  .gallery-dialog-paste-hint {
+    margin: 8px 0 0;
+    color: var(--text-muted);
+    font-size: var(--ui-font-size-md);
+  }
+
   .gallery-dialog-images {
     display: grid;
     gap: 10px;
