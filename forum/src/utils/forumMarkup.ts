@@ -149,6 +149,7 @@ function sanitizeImage(image: HTMLImageElement) {
 
   image.setAttribute('src', src);
   image.setAttribute('loading', 'lazy');
+  image.setAttribute('fetchpriority', 'low');
   image.setAttribute('role', 'button');
   image.setAttribute('tabindex', '0');
   image.setAttribute('aria-label', image.alt.trim() ? `查看大图：${image.alt.trim()}` : '查看大图');

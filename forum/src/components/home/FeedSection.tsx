@@ -61,6 +61,7 @@ function FeedItem({ compactMode, item }: { compactMode: boolean; item: HomeThrea
             alt=""
             decoding="async"
             loading="lazy"
+            fetchPriority="low"
             onError={useDefaultAvatar}
           />
           <strong>{item.author}</strong>

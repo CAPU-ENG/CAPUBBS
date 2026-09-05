@@ -31,7 +31,9 @@ import {
 import {
   getCachedThreadImageObjectUrl,
   loadThreadImageResource,
+  refreshThreadImagePriorities,
 } from './threadImageResourceCache';
+import { getFrameImagePriority, type FrameImageBounds } from './threadImagePriority';
 
 const MIN_SIGNATURE_FRAME_HEIGHT = 28;
 const MIN_FLOOR_FRAME_HEIGHT = 64;
@@ -77,6 +79,13 @@ type HtmlFrameMessage = {
   source: typeof HTML_FRAME_MESSAGE_SOURCE;
   type: 'image-resource-request';
   url: string;
+  bounds: FrameImageBounds[];
+} | {
+  frameId: string;
+  requestId: string;
+  source: typeof HTML_FRAME_MESSAGE_SOURCE;
+  type: 'image-resource-layout';
+  bounds: FrameImageBounds[];
 } | {
   frameId: string;
   imageIndex: number;
@@ -229,6 +238,12 @@ function ThreadSandboxedHtmlFrame({
   }, [needsJquery]);
 
   useLayoutEffect(() => {
+    refreshThreadImagePriorities();
+  }, [frameHeight]);
+
+  useLayoutEffect(() => {
+    let active = true;
+    const imageBounds = new Map<string, FrameImageBounds[]>();
     function handleMessage(event: MessageEvent) {
       const frameWindow = iframeRef.current?.contentWindow;
       if (!frameWindow || event.source !== frameWindow || !isHtmlFrameMessage(event.data)) return;
@@ -239,26 +254,46 @@ function ThreadSandboxedHtmlFrame({
         return;
       }
 
+      if (event.data.type === 'image-resource-layout') {
+        if (imageBounds.has(event.data.requestId)) {
+          imageBounds.set(event.data.requestId, event.data.bounds);
+          refreshThreadImagePriorities();
+        }
+        return;
+      }
+
       if (event.data.type === 'image-resource-request') {
         const requestFrameWindow = frameWindow;
-        void loadThreadImageResource(event.data.url).then((resource) => {
-          if (iframeRef.current?.contentWindow !== requestFrameWindow) return;
+        const requestId = event.data.requestId;
+        imageBounds.set(requestId, event.data.bounds);
+        const readPriority = () => {
+          const frame = iframeRef.current;
+          if (!active || !frame || frame.contentWindow !== requestFrameWindow) return null;
+          return getFrameImagePriority(frame.getBoundingClientRect(), imageBounds.get(requestId) ?? [], {
+            width: window.innerWidth,
+            height: window.innerHeight,
+          });
+        };
+        void loadThreadImageResource(event.data.url, readPriority).then((resource) => {
+          if (!active || iframeRef.current?.contentWindow !== requestFrameWindow) return;
           requestFrameWindow.postMessage({
             blob: resource.blob,
+            priority: readPriority(),
             frameId: frameIdRef.current,
             requestId: event.data.requestId,
             source: HTML_FRAME_MESSAGE_SOURCE,
             type: 'image-resource-response',
           }, '*');
         }).catch(() => {
-          if (iframeRef.current?.contentWindow !== requestFrameWindow) return;
+          if (!active || iframeRef.current?.contentWindow !== requestFrameWindow) return;
           requestFrameWindow.postMessage({
+            priority: readPriority(),
             frameId: frameIdRef.current,
             requestId: event.data.requestId,
             source: HTML_FRAME_MESSAGE_SOURCE,
             type: 'image-resource-error',
           }, '*');
-        });
+        }).finally(() => imageBounds.delete(requestId));
         return;
       }
 
@@ -340,8 +375,13 @@ function ThreadSandboxedHtmlFrame({
     }
 
     window.addEventListener('message', handleMessage);
-    return () => window.removeEventListener('message', handleMessage);
-  }, [minHeight, sendJquerySource]);
+    return () => {
+      active = false;
+      imageBounds.clear();
+      window.removeEventListener('message', handleMessage);
+      refreshThreadImagePriorities();
+    };
+  }, [frameSource, minHeight, sendJquerySource]);
 
   return (
     <iframe
@@ -473,6 +513,14 @@ function buildFrameBridgeScript(frameId: string, canOpenImages: boolean, needsJq
     var imageResourceRequests={};
     var imageResourceRequestIdsBySource={};
     var imageResourceObjectUrls=[];
+    var priorityObservedImages=new WeakSet();
+    var imagePriorityObserver=window.IntersectionObserver?new IntersectionObserver(function(entries){
+      entries.forEach(function(entry){
+        var priority=entry.isIntersecting?'high':'low';
+        if(entry.target.fetchPriority!==priority)entry.target.fetchPriority=priority;
+        if(entry.isIntersecting&&entry.target.loading!=='eager')entry.target.loading='eager';
+      });
+    },{rootMargin:'0px',threshold:0}):null;
     var grayscaleNamedColors={black:0,darkgray:169,darkgrey:169,dimgray:105,dimgrey:105,gainsboro:220,gray:128,grey:128,lightgray:211,lightgrey:211,silver:192,white:255,whitesmoke:245};
     var originalColorAttribute='data-capubbs-original-grayscale-color-attr';
     var originalStyleColorAttribute='data-capubbs-original-grayscale-style-color';
@@ -576,6 +624,7 @@ function buildFrameBridgeScript(frameId: string, canOpenImages: boolean, needsJq
       queued=false;
       var height=getContentHeight();
       window.parent.postMessage({source:'${HTML_FRAME_MESSAGE_SOURCE}',type:'resize',frameId:frameId,height:height},'*');
+      Object.keys(imageResourceRequests).forEach(function(requestId){reportImageResourceLayout(requestId);});
     }
     function queueHeight(){
       if(queued)return;
@@ -729,6 +778,10 @@ function buildFrameBridgeScript(frameId: string, canOpenImages: boolean, needsJq
     }
     function prepareImages(){
       Array.prototype.forEach.call(document.images,function(image){
+        if(imagePriorityObserver&&!priorityObservedImages.has(image)){
+          priorityObservedImages.add(image);
+          imagePriorityObserver.observe(image);
+        }
         observeImageLoad(image);
         var width=parseFloat(image.getAttribute('width')||'');
         var height=parseFloat(image.getAttribute('height')||'');
@@ -751,6 +804,17 @@ function buildFrameBridgeScript(frameId: string, canOpenImages: boolean, needsJq
         if(!image.title)image.title='点击查看大图';
       });
     }
+    function getImageResourceBounds(images){
+      return images.map(function(image){
+        var bounds=image.getBoundingClientRect();
+        return {top:bounds.top,bottom:bounds.bottom,left:bounds.left,right:bounds.right};
+      });
+    }
+    function reportImageResourceLayout(requestId){
+      var request=imageResourceRequests[requestId];
+      if(!request)return;
+      window.parent.postMessage({source:'${HTML_FRAME_MESSAGE_SOURCE}',type:'image-resource-layout',frameId:frameId,requestId:requestId,bounds:getImageResourceBounds(request.images)},'*');
+    }
     function requestImageResources(){
       Array.prototype.forEach.call(document.querySelectorAll('img[data-capubbs-image-resource-src]'),function(image){
         if(image.getAttribute('src')||image.getAttribute('data-capubbs-image-resource-requested')==='true')return;
@@ -760,6 +824,7 @@ function buildFrameBridgeScript(frameId: string, canOpenImages: boolean, needsJq
         image.setAttribute('data-capubbs-image-resource-requested','true');
         if(existingRequestId&&imageResourceRequests[existingRequestId]){
           imageResourceRequests[existingRequestId].images.push(image);
+          reportImageResourceLayout(existingRequestId);
           return;
         }
         var requestId=frameId+'-image-'+(++imageResourceRequestIndex);
@@ -770,7 +835,8 @@ function buildFrameBridgeScript(frameId: string, canOpenImages: boolean, needsJq
           type:'image-resource-request',
           frameId:frameId,
           requestId:requestId,
-          url:normalizedSource
+          url:normalizedSource,
+          bounds:getImageResourceBounds([image])
         },'*');
       });
     }
@@ -779,6 +845,7 @@ function buildFrameBridgeScript(frameId: string, canOpenImages: boolean, needsJq
       if(!request)return;
       delete imageResourceRequests[data.requestId];
       delete imageResourceRequestIdsBySource[request.source];
+      request.images.forEach(function(image){image.fetchPriority=data.priority==='high'?'high':'low';});
       if(data.type==='image-resource-response'&&data.blob instanceof Blob){
         var objectUrl=URL.createObjectURL(data.blob);
         imageResourceObjectUrls.push(objectUrl);
@@ -985,6 +1052,7 @@ function deferFrameImageSources(html: string) {
     const source = image.getAttribute('src')?.trim() ?? '';
     if (!source || /^(?:blob:|data:)/i.test(source)) return;
     image.dataset.capubbsImageResourceSrc = source;
+    image.setAttribute('fetchpriority', 'low');
     image.removeAttribute('src');
     image.removeAttribute('srcset');
     image.closest('picture')?.querySelectorAll('source[srcset]').forEach((pictureSource) => {
@@ -1046,11 +1114,15 @@ function isHtmlFrameMessage(value: unknown): value is HtmlFrameMessage {
   }
   if (message.type === 'navigate') return typeof message.url === 'string';
   if (message.type === 'jquery-request') return true;
-  if (message.type === 'image-resource-request') {
+  if (message.type === 'image-resource-request' || message.type === 'image-resource-layout') {
     return typeof message.requestId === 'string'
       && message.requestId.length > 0
-      && typeof message.url === 'string'
-      && message.url.length > 0;
+      && Array.isArray(message.bounds)
+      && message.bounds.every((bounds) => bounds && ['top', 'bottom', 'left', 'right'].every(
+        (key) => typeof bounds[key as keyof FrameImageBounds] === 'number'
+          && Number.isFinite(bounds[key as keyof FrameImageBounds]),
+      ))
+      && (message.type === 'image-resource-layout' || ('url' in message && typeof message.url === 'string' && message.url.length > 0));
   }
   if (message.type === 'selection') return typeof message.text === 'string';
   if (message.type === 'image-open') {

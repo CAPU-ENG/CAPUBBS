@@ -117,7 +117,7 @@ assert.match(
 );
 assert.match(
   resourceCacheSource,
-  /const resourcePromises = new Map[\s\S]*?if \(cached\) return cached[\s\S]*?response\.blob\(\)/,
+  /const resourcePromises = new Map[\s\S]*?if \(cached\) \{[\s\S]*?return cached[\s\S]*?response\.blob\(\)/,
   'the parent resource cache must merge concurrent downloads by URL',
 );
 
