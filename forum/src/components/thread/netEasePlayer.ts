@@ -19,6 +19,15 @@ export type NetEasePlayerLayout = {
   height: number;
 };
 
+export function getFrameContentOffset(frame: HTMLElement | null) {
+  if (!frame) return { left: 0, top: 0 };
+  const style = window.getComputedStyle(frame);
+  return {
+    left: frame.offsetLeft + frame.clientLeft + (Number.parseFloat(style.paddingLeft) || 0),
+    top: frame.offsetTop + frame.clientTop + (Number.parseFloat(style.paddingTop) || 0),
+  };
+}
+
 export function isNetEasePlayerLayout(value: unknown): value is NetEasePlayerLayout {
   if (!value || typeof value !== 'object') return false;
   const player = value as NetEasePlayerLayout;

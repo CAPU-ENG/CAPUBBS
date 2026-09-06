@@ -1,7 +1,16 @@
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { runInNewContext } from 'node:vm';
-import { normalizeNetEasePlayerUrl, isNetEasePlayerLayout } from './src/components/thread/netEasePlayer.ts';
+import { getFrameContentOffset, normalizeNetEasePlayerUrl, isNetEasePlayerLayout } from './src/components/thread/netEasePlayer.ts';
+
+assert.deepEqual(getFrameContentOffset(null), { left: 0, top: 0 });
+globalThis.window = { getComputedStyle: frame => frame.style };
+const outerFrame = { offsetLeft: 4, offsetTop: 20, clientLeft: 1, clientTop: 2, style: { paddingLeft: '6px', paddingTop: '18px' } };
+assert.deepEqual(getFrameContentOffset(outerFrame), { left: 11, top: 40 }, 'player origin includes the outer border and desktop padding');
+outerFrame.style.paddingTop = '14px';
+assert.deepEqual(getFrameContentOffset(outerFrame), { left: 11, top: 36 }, 'mobile padding is read from the current stylesheet');
+outerFrame.style.paddingTop = '0px';
+assert.equal(getFrameContentOffset(outerFrame).top, 22, 'signatures without top padding retain their original offset');
 
 const src = 'https://music.163.com/outchain/player?type=2&id=2096553555&auto=0&height=66';
 assert.equal(normalizeNetEasePlayerUrl(src.replace('https:', ''), 'http://localhost/bbs/'), src);

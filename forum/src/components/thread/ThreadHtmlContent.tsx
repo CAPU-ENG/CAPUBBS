@@ -23,7 +23,7 @@ import {
 } from '../../utils/signatureFloorLink';
 import frameStylesheet from '../../styles/thread-html-frame.css?inline';
 import frameBootstrapUrl from './threadHtmlBootstrap.html?url&no-inline';
-import { isNetEasePlayerLayout, normalizeNetEasePlayerUrl, type NetEasePlayerLayout } from './netEasePlayer';
+import { getFrameContentOffset, isNetEasePlayerLayout, normalizeNetEasePlayerUrl, type NetEasePlayerLayout } from './netEasePlayer';
 import {
   ForumMarkup,
   type ForumMarkupImageChangeHandler,
@@ -417,6 +417,9 @@ function ThreadSandboxedHtmlFrame({
     };
   }, [documentToken, frameSource, minHeight, sendFrameDocument, sendJquerySource]);
 
+  // Child viewport coordinates start inside the outer iframe's border and padding.
+  const frameContentOffset = getFrameContentOffset(iframeRef.current);
+
   return (
     <div className="thread-html-frame-container">
       <iframe
@@ -443,8 +446,8 @@ function ThreadSandboxedHtmlFrame({
           allow="autoplay"
           scrolling="no"
           style={{
-            left: player.left + (iframeRef.current?.offsetLeft ?? 0),
-            top: player.top + (iframeRef.current?.offsetTop ?? 0),
+            left: player.left + frameContentOffset.left,
+            top: player.top + frameContentOffset.top,
             width: player.width,
             height: player.height,
           }}
