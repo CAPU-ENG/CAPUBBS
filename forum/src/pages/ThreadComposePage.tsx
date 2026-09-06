@@ -4,7 +4,8 @@ import { fetchBoardPage, isAbortError, type BoardInfo } from '../api/board';
 import {
   fetchThreadEditorViewer,
   ThreadApiError,
-  uploadThreadAttachment,
+  uploadThreadAttachments,
+  type ThreadAttachmentUploadProgress,
   type ThreadAttachmentInfo,
   type ThreadEditorViewer,
 } from '../api/thread';
@@ -91,6 +92,7 @@ export function ThreadComposePage() {
   const [loadError, setLoadError] = useState('');
   const [viewerLoadError, setViewerLoadError] = useState('');
   const [isUploadingAttachments, setIsUploadingAttachments] = useState(false);
+  const [attachmentUploadProgress, setAttachmentUploadProgress] = useState<ThreadAttachmentUploadProgress | null>(null);
   const [isSavingDraft, setIsSavingDraft] = useState(false);
   const [isPublishing, setIsPublishing] = useState(false);
   const [previewOpen, setPreviewOpen] = useState(false);
@@ -333,7 +335,7 @@ export function ThreadComposePage() {
     setStatusIsError(false);
     setIsUploadingAttachments(true);
     try {
-      const results = await Promise.allSettled(files.map(uploadThreadAttachment));
+      const results = await uploadThreadAttachments(files, setAttachmentUploadProgress);
       const uploaded = results.flatMap((result) => result.status === 'fulfilled' ? [result.value] : []);
       const failed = results.filter((result) => result.status === 'rejected');
       if (uploaded.length > 0) setAttachments((current) => [...current, ...uploaded]);
@@ -343,6 +345,7 @@ export function ThreadComposePage() {
       setStatusIsError(failed.length > 0);
     } finally {
       setIsUploadingAttachments(false);
+      setAttachmentUploadProgress(null);
     }
   }
 
@@ -636,6 +639,7 @@ export function ThreadComposePage() {
               submitDisabled={!canPublish}
               submitIcon={isPublishing ? <LoaderCircle size={15} /> : <Send size={15} />}
               submitLabel={isPublishing ? '正在发表' : isReply ? '发布回复' : isActivity ? '发布活动' : '发表主题'}
+              attachmentUploadProgress={attachmentUploadProgress}
               uploadingAttachments={isUploadingAttachments}
             />
           </>

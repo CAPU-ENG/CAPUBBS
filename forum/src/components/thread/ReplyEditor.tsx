@@ -7,7 +7,8 @@ import {
   type RichTextEditorValue,
 } from "../editor/RichTextEditor";
 import {
-  uploadThreadAttachment,
+  uploadThreadAttachments,
+  type ThreadAttachmentUploadProgress,
 } from "../../api/thread";
 import { publishThreadContent } from "../../api/threadPublishing";
 import { useAutoSaveEnabled } from "../../hooks/useAssistiveFeatures";
@@ -91,6 +92,7 @@ export function ReplyEditor({
   const [status, setStatus] = useState("");
   const [statusIsError, setStatusIsError] = useState(false);
   const [isUploadingAttachments, setIsUploadingAttachments] = useState(false);
+  const [attachmentUploadProgress, setAttachmentUploadProgress] = useState<ThreadAttachmentUploadProgress | null>(null);
   const [isSavingDraft, setIsSavingDraft] = useState(false);
   const [isPublishing, setIsPublishing] = useState(false);
   const [savedDraftId, setSavedDraftId] = useState<string | null>(null);
@@ -157,7 +159,7 @@ export function ReplyEditor({
     setStatusIsError(false);
     setIsUploadingAttachments(true);
     try {
-      const results = await Promise.allSettled(files.map(uploadThreadAttachment));
+      const results = await uploadThreadAttachments(files, setAttachmentUploadProgress);
       const uploaded = results.flatMap((result, index) => result.status === "fulfilled"
         ? [{
           ...result.value,
@@ -173,6 +175,7 @@ export function ReplyEditor({
       setStatusIsError(failedCount > 0);
     } finally {
       setIsUploadingAttachments(false);
+      setAttachmentUploadProgress(null);
     }
   }
 
@@ -329,6 +332,7 @@ export function ReplyEditor({
         submitDisabled={isPublishing || isUploadingAttachments}
         submitIcon={isPublishing ? <LoaderCircle size={15} /> : <Send size={15} />}
         submitLabel={isPublishing ? "正在发布" : "发布回复"}
+        attachmentUploadProgress={attachmentUploadProgress}
         uploadingAttachments={isUploadingAttachments}
       />
       {previewOpen && (

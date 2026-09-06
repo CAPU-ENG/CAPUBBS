@@ -20,7 +20,8 @@ import {
   fetchThreadAttachmentInfo,
   isAbortError,
   ThreadApiError,
-  uploadThreadAttachment,
+  uploadThreadAttachments,
+  type ThreadAttachmentUploadProgress,
   updateThreadFloor,
   type EditableThreadFloor,
   type ThreadAttachmentInfo,
@@ -51,6 +52,7 @@ export function ThreadEditPage() {
   const [attachments, setAttachments] = useState<ThreadAttachmentInfo[]>([]);
   const [attachmentStatus, setAttachmentStatus] = useState('');
   const [isUploadingAttachments, setIsUploadingAttachments] = useState(false);
+  const [attachmentUploadProgress, setAttachmentUploadProgress] = useState<ThreadAttachmentUploadProgress | null>(null);
   const [loadError, setLoadError] = useState('');
   const [saveError, setSaveError] = useState('');
   const [isSaving, setIsSaving] = useState(false);
@@ -167,7 +169,7 @@ export function ThreadEditPage() {
   }
 
   async function addAttachments(files: File[]) {
-    if (files.length === 0) return;
+    if (files.length === 0 || isUploadingAttachments) return;
     const oversizedFile = files.find((file) => file.size > 5 * 1024 * 1024);
     if (oversizedFile) {
       setAttachmentStatus(`${oversizedFile.name} 超过 5MB，无法上传。`);
@@ -177,7 +179,7 @@ export function ThreadEditPage() {
     setAttachmentStatus(files.length > 1 ? `正在上传 ${files.length} 个附件…` : `正在上传 ${files[0].name}…`);
     setIsUploadingAttachments(true);
     try {
-      const results = await Promise.allSettled(files.map(uploadThreadAttachment));
+      const results = await uploadThreadAttachments(files, setAttachmentUploadProgress);
       const uploaded = results.flatMap((result) => result.status === 'fulfilled' ? [result.value] : []);
       const failed = results.filter((result) => result.status === 'rejected');
       if (uploaded.length > 0) setAttachments((current) => [...current, ...uploaded]);
@@ -186,6 +188,7 @@ export function ThreadEditPage() {
         : `已添加 ${uploaded.length} 个附件`);
     } finally {
       setIsUploadingAttachments(false);
+      setAttachmentUploadProgress(null);
     }
   }
 
@@ -270,6 +273,7 @@ export function ThreadEditPage() {
               submitDisabled={!canSave}
               submitIcon={isSaving ? <LoaderCircle size={15} /> : <Save size={15} />}
               submitLabel={isSaving ? '保存中' : '保存修改'}
+              attachmentUploadProgress={attachmentUploadProgress}
               uploadingAttachments={isUploadingAttachments}
             />
           </>

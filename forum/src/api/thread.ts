@@ -372,39 +372,82 @@ export async function fetchThreadAttachmentInfo(id: string, signal?: AbortSignal
   };
 }
 
-export async function uploadThreadAttachment(file: File): Promise<ThreadAttachmentInfo> {
-  const formData = new FormData();
-  formData.append('file', file);
+export type ThreadAttachmentUploadProgress = {
+  fileName: string;
+  fileIndex: number;
+  fileCount: number;
+  loaded: number;
+  total: number;
+  percent: number;
+  bytesPerSecond: number;
+};
 
-  let response: Response;
-  try {
-    response = await fetch('/bbs/attach/', {
-      body: formData,
-      credentials: 'include',
-      method: 'POST',
+type AttachmentTransferProgress = Pick<ThreadAttachmentUploadProgress, 'loaded' | 'total' | 'percent' | 'bytesPerSecond'>;
+
+export function uploadThreadAttachment(
+  file: File,
+  onProgress?: (progress: AttachmentTransferProgress) => void,
+): Promise<ThreadAttachmentInfo> {
+  return new Promise((resolve, reject) => {
+    const formData = new FormData();
+    formData.append('file', file);
+    const xhr = new XMLHttpRequest();
+    xhr.open('POST', '/bbs/attach/');
+    xhr.withCredentials = true;
+    const startedAt = performance.now();
+    xhr.upload.addEventListener('progress', (event) => {
+      if (!event.lengthComputable || event.total <= 0) return;
+      // Multipart includes headers; scale its transfer ratio to the file size.
+      const ratio = Math.min(1, event.loaded / event.total);
+      const loaded = Math.round(file.size * ratio);
+      const elapsed = (performance.now() - startedAt) / 1000;
+      onProgress?.({
+        loaded,
+        total: file.size,
+        percent: ratio === 1 ? 100 : Math.floor(ratio * 100),
+        bytesPerSecond: elapsed > 0 ? loaded / elapsed : 0,
+      });
     });
-  } catch {
-    throw new ThreadApiError('暂时无法上传附件，请稍后重试。');
-  }
+    const fail = () => reject(new ThreadApiError('暂时无法上传附件，请稍后重试。'));
+    xhr.addEventListener('error', fail);
+    xhr.addEventListener('abort', fail);
+    xhr.addEventListener('timeout', fail);
+    xhr.addEventListener('load', () => {
+      let payload: ApiRow;
+      try {
+        payload = asRow(JSON.parse(xhr.responseText));
+      } catch {
+        reject(new ThreadApiError('附件服务返回了无法识别的数据。'));
+        return;
+      }
+      const id = stringValue(payload.msg ?? payload.id);
+      if (xhr.status < 200 || xhr.status >= 300 || stringValue(payload.code) !== '0' || !id) {
+        reject(new ThreadApiError(stringValue(payload.msg) || '附件上传失败，请稍后重试。'));
+        return;
+      }
+      resolve({ id, name: file.name, size: file.size });
+    });
+    xhr.send(formData);
+  });
+}
 
-  let payload: ApiRow;
-  try {
-    payload = asRow(await response.json());
-  } catch {
-    throw new ThreadApiError('附件服务返回了无法识别的数据。');
+export async function uploadThreadAttachments(
+  files: File[],
+  onProgress: (progress: ThreadAttachmentUploadProgress) => void,
+): Promise<PromiseSettledResult<ThreadAttachmentInfo>[]> {
+  const results: PromiseSettledResult<ThreadAttachmentInfo>[] = [];
+  for (const [index, file] of files.entries()) {
+    const report = (progress: AttachmentTransferProgress) => onProgress({
+      ...progress, fileName: file.name, fileIndex: index + 1, fileCount: files.length,
+    });
+    report({ loaded: 0, total: file.size, percent: 0, bytesPerSecond: 0 });
+    try {
+      results.push({ status: 'fulfilled', value: await uploadThreadAttachment(file, report) });
+    } catch (reason) {
+      results.push({ status: 'rejected', reason });
+    }
   }
-
-  const legacyCode = stringValue(payload.code);
-  const id = stringValue(payload.msg ?? payload.id);
-  if (!response.ok || legacyCode !== '0' || !id) {
-    throw new ThreadApiError(stringValue(payload.msg) || '附件上传失败，请稍后重试。');
-  }
-
-  return {
-    id,
-    name: file.name,
-    size: file.size,
-  };
+  return results;
 }
 
 export async function publishActivitySignup({

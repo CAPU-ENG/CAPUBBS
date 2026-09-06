@@ -7,6 +7,7 @@ import {
   type ReactNode,
   type RefObject,
 } from 'react';
+import type { ThreadAttachmentUploadProgress } from '../../api/thread';
 import { getFloorDecorationPath } from '../../data/floorDecoration';
 import type { ThreadAttachment, ThreadAuthor } from '../../data/thread';
 import { useFloorDecorationEnabled } from '../../hooks/useAssistiveFeatures';
@@ -70,6 +71,7 @@ export function PostEditor({
   ariaLabel,
   attachmentDialogDescription,
   attachmentLabel = '待上传附件',
+  attachmentUploadProgress,
   attachments,
   beforeEditor,
   className = '',
@@ -103,6 +105,7 @@ export function PostEditor({
   ariaLabel: string;
   attachmentDialogDescription: string;
   attachmentLabel?: string;
+  attachmentUploadProgress?: ThreadAttachmentUploadProgress | null;
   attachments: PostEditorAttachment[];
   beforeEditor?: ReactNode;
   className?: string;
@@ -199,7 +202,6 @@ export function PostEditor({
       <footer className="reply-editor-footer">
         <button
           className="reply-secondary-button"
-          disabled={uploadingAttachments}
           onClick={() => setAttachmentDialogOpen(true)}
           type="button"
         >
@@ -240,6 +242,7 @@ export function PostEditor({
           onClose={() => setAttachmentDialogOpen(false)}
           onRemove={onRemoveAttachment}
           uploading={uploadingAttachments}
+          progress={attachmentUploadProgress}
         />
       )}
     </section>
@@ -358,6 +361,7 @@ function PostEditorAttachmentDialog({
   onClose,
   onRemove,
   uploading,
+  progress,
 }: {
   attachments: PostEditorAttachment[];
   description: string;
@@ -366,6 +370,7 @@ function PostEditorAttachmentDialog({
   onClose: () => void;
   onRemove: (id: string) => void;
   uploading: boolean;
+  progress?: ThreadAttachmentUploadProgress | null;
 }) {
   const inputRef = useRef<HTMLInputElement | null>(null);
   const [fileError, setFileError] = useState('');
@@ -407,6 +412,19 @@ function PostEditorAttachmentDialog({
           <span>{description}</span>
           <span>单个文件不超过 5MB</span>
         </button>
+        {uploading && progress && (
+          <div className="attachment-upload-progress">
+            <div role="status">正在上传第 {progress.fileIndex} / {progress.fileCount} 个文件</div>
+            <strong className="attachment-upload-name" title={progress.fileName}>{progress.fileName}</strong>
+            <progress aria-label="当前文件上传进度" max={100} value={progress.percent} />
+            <div className="attachment-upload-details">
+              <span>{progress.percent}%</span>
+              <span>{formatTransferBytes(progress.loaded)} / {formatTransferBytes(progress.total)}</span>
+              <span>{formatTransferBytes(progress.bytesPerSecond)}/s</span>
+            </div>
+            {progress.percent === 100 && <span>正在处理附件…</span>}
+          </div>
+        )}
         {fileError && <p className="reply-editor-status thread-edit-error" role="alert">{fileError}</p>}
         <input className="sr-only" disabled={uploading} multiple onChange={handleFileChange} ref={inputRef} type="file" />
         {attachments.length > 0 && (
@@ -448,4 +466,10 @@ function formatBytes(bytes: number) {
   if (bytes <= 0) return '大小未知';
   if (bytes >= 1024 * 1024) return `${(bytes / 1024 / 1024).toFixed(2)} MB`;
   return `${Math.max(1, Math.round(bytes / 1024))} KB`;
+}
+
+function formatTransferBytes(bytes: number) {
+  if (bytes < 1024) return `${Math.max(0, Math.round(bytes))} B`;
+  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(2)} KB`;
+  return `${(bytes / 1024 / 1024).toFixed(2)} MB`;
 }
