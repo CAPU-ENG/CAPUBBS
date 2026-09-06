@@ -265,6 +265,8 @@ table {
 }
 
 .forum-markup img[data-capubbs-image-width][data-capubbs-image-height]:not([data-capubbs-image-loaded="true"]) {
+  color: transparent;
+  font-size: 0;
   background-color: color-mix(in srgb, var(--surface-soft) 82%, var(--line));
   background-image: linear-gradient(
     105deg,
