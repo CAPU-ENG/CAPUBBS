@@ -22,6 +22,7 @@ import {
   replaceLegacySignatureFloorScripts,
 } from '../../utils/signatureFloorLink';
 import frameStylesheet from '../../styles/thread-html-frame.css?inline';
+import frameBootstrapUrl from './threadHtmlBootstrap.html?url&no-inline';
 import {
   ForumMarkup,
   type ForumMarkupImageChangeHandler,
@@ -50,6 +51,11 @@ let jquerySourcePromise: Promise<string | null> | null = null;
 type ThreadHtmlVariant = 'floor' | 'signature';
 
 type HtmlFrameMessage = {
+  frameId: string;
+  token: string;
+  source: typeof HTML_FRAME_MESSAGE_SOURCE;
+  type: 'document-request';
+} | {
   frameId: string;
   height: number;
   source: typeof HTML_FRAME_MESSAGE_SOURCE;
@@ -196,10 +202,21 @@ function ThreadSandboxedHtmlFrame({
     fontSize: frameFontSize,
     variant,
   }), [canOpenImages, deferredHtml, frameFontSize, isActivitySignupCanceled, needsJquery, variant]);
-  const frameSource = useMemo(
-    () => `data:text/html;charset=utf-8,${encodeURIComponent(frameDocument)}`,
-    [frameDocument],
-  );
+  const documentToken = useMemo(() => Math.random().toString(36).slice(2), [frameDocument]);
+  const frameSource = useMemo(() => variant === 'signature'
+    ? `data:text/html;charset=utf-8,${encodeURIComponent(frameDocument)}`
+    : `${frameBootstrapUrl}#${new URLSearchParams({ frameId: frameIdRef.current, token: documentToken })}`,
+  [documentToken, frameDocument, variant]);
+  const sendFrameDocument = useCallback(() => {
+    if (variant !== 'floor') return;
+    iframeRef.current?.contentWindow?.postMessage({
+      source: HTML_FRAME_MESSAGE_SOURCE,
+      type: 'document-response',
+      frameId: frameIdRef.current,
+      token: documentToken,
+      html: frameDocument,
+    }, '*');
+  }, [documentToken, frameDocument, variant]);
   const syncFrameTheme = useCallback(() => {
     iframeRef.current?.contentWindow?.postMessage({
       frameId: frameIdRef.current,
@@ -221,9 +238,10 @@ function ThreadSandboxedHtmlFrame({
     });
   }, [needsJquery]);
   const handleFrameLoad = useCallback(() => {
+    sendFrameDocument();
     syncFrameTheme();
     sendJquerySource();
-  }, [sendJquerySource, syncFrameTheme]);
+  }, [sendFrameDocument, sendJquerySource, syncFrameTheme]);
 
   useEffect(() => {
     setFrameHeight(null);
@@ -248,6 +266,11 @@ function ThreadSandboxedHtmlFrame({
       const frameWindow = iframeRef.current?.contentWindow;
       if (!frameWindow || event.source !== frameWindow || !isHtmlFrameMessage(event.data)) return;
       if (event.data.frameId !== frameIdRef.current) return;
+
+      if (event.data.type === 'document-request') {
+        if (event.data.token === documentToken) sendFrameDocument();
+        return;
+      }
 
       if (event.data.type === 'jquery-request') {
         sendJquerySource(frameWindow);
@@ -381,14 +404,15 @@ function ThreadSandboxedHtmlFrame({
       window.removeEventListener('message', handleMessage);
       refreshThreadImagePriorities();
     };
-  }, [frameSource, minHeight, sendJquerySource]);
+  }, [documentToken, frameSource, minHeight, sendFrameDocument, sendJquerySource]);
 
   return (
     <iframe
+      key={variant === 'floor' ? documentToken : undefined}
       ref={iframeRef}
       className={`thread-html-frame thread-html-frame-${variant} ${className}`.trim()}
       referrerPolicy="no-referrer"
-      sandbox="allow-scripts allow-same-origin allow-downloads"
+      sandbox={variant === 'floor' ? 'allow-scripts allow-downloads' : 'allow-scripts allow-same-origin allow-downloads'}
       scrolling="no"
       src={frameSource}
       onLoad={handleFrameLoad}
@@ -1107,6 +1131,7 @@ function isHtmlFrameMessage(value: unknown): value is HtmlFrameMessage {
   if (!value || typeof value !== 'object') return false;
   const message = value as Partial<HtmlFrameMessage>;
   if (message.source !== HTML_FRAME_MESSAGE_SOURCE || typeof message.frameId !== 'string') return false;
+  if (message.type === 'document-request') return typeof message.token === 'string';
   if (message.type === 'anchor') {
     return typeof message.offsetTop === 'number'
       && Number.isFinite(message.offsetTop)
