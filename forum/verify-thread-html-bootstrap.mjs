@@ -49,6 +49,7 @@ assert.equal(opens, 1, 'load-event retries must not reset an already loaded docu
 
 const component = readFileSync(new URL('./src/components/thread/ThreadHtmlContent.tsx', import.meta.url), 'utf8');
 assert.match(component, /threadHtmlBootstrap\.html\?url&no-inline/, 'bootstrap must remain a normal URL after building');
-assert.match(component, /sandbox=\{variant === 'floor' \? 'allow-scripts allow-downloads'/, 'same-site bootstrap must retain an opaque sandbox origin');
-assert.match(component, /key=\{variant === 'floor' \? documentToken/, 'content changes must create a fresh bootstrap document');
-console.log('Thread HTML bootstrap verification passed (11 assertions)');
+assert.match(component, /sandbox="allow-scripts allow-downloads"/, 'same-site bootstrap must retain an opaque sandbox origin');
+assert.match(component, /key=\{documentToken\}/, 'content changes must create a fresh bootstrap document');
+assert.doesNotMatch(component, /data:text\/html/, 'signatures and floors must both use the normal HTML bootstrap');
+console.log('Thread HTML bootstrap verification passed (12 assertions)');

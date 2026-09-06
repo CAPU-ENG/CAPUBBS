@@ -203,12 +203,11 @@ function ThreadSandboxedHtmlFrame({
     variant,
   }), [canOpenImages, deferredHtml, frameFontSize, isActivitySignupCanceled, needsJquery, variant]);
   const documentToken = useMemo(() => Math.random().toString(36).slice(2), [frameDocument]);
-  const frameSource = useMemo(() => variant === 'signature'
-    ? `data:text/html;charset=utf-8,${encodeURIComponent(frameDocument)}`
-    : `${frameBootstrapUrl}#${new URLSearchParams({ frameId: frameIdRef.current, token: documentToken })}`,
-  [documentToken, frameDocument, variant]);
+  const frameSource = useMemo(
+    () => `${frameBootstrapUrl}#${new URLSearchParams({ frameId: frameIdRef.current, token: documentToken })}`,
+    [documentToken],
+  );
   const sendFrameDocument = useCallback(() => {
-    if (variant !== 'floor') return;
     iframeRef.current?.contentWindow?.postMessage({
       source: HTML_FRAME_MESSAGE_SOURCE,
       type: 'document-response',
@@ -216,7 +215,7 @@ function ThreadSandboxedHtmlFrame({
       token: documentToken,
       html: frameDocument,
     }, '*');
-  }, [documentToken, frameDocument, variant]);
+  }, [documentToken, frameDocument]);
   const syncFrameTheme = useCallback(() => {
     iframeRef.current?.contentWindow?.postMessage({
       frameId: frameIdRef.current,
@@ -408,11 +407,11 @@ function ThreadSandboxedHtmlFrame({
 
   return (
     <iframe
-      key={variant === 'floor' ? documentToken : undefined}
+      key={documentToken}
       ref={iframeRef}
       className={`thread-html-frame thread-html-frame-${variant} ${className}`.trim()}
       referrerPolicy="no-referrer"
-      sandbox={variant === 'floor' ? 'allow-scripts allow-downloads' : 'allow-scripts allow-same-origin allow-downloads'}
+      sandbox="allow-scripts allow-downloads"
       scrolling="no"
       src={frameSource}
       onLoad={handleFrameLoad}
