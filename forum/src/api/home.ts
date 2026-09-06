@@ -374,7 +374,7 @@ function mapThreadRow(row: ApiRow, linkToLatestFloor = false): HomeThread | null
   const textSummary = rawSummary === null ? '' : excerptText(maskActivitySignupSummary(rawSummary));
   const summary = textSummary || (
     rawSummary !== null && rawSummary.trim()
-      ? '【非文字内容】'
+      ? '【非文本内容】'
       : bid === 1
         ? '该版块的回复摘要仅对登录用户可见。'
         : '暂无可显示的回复摘要。'
@@ -496,6 +496,10 @@ function excerptText(value: string) {
 
   const parser = new DOMParser();
   const document = parser.parseFromString(withoutQuotedContent, 'text/html');
+  // Snapshot text may end inside a gallery or script, without a closing tag.
+  // Remove parsed nodes as well so their contents never become summary text.
+  document.querySelectorAll('script, style, blockquote, template, noscript, .capubbs-gallery')
+    .forEach((element) => element.remove());
   return (document.body.textContent ?? '')
     .replace(/\[(?:\/?[a-z][^\]]*)\]/gi, ' ')
     .replace(/\s+/g, ' ')
