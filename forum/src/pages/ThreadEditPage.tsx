@@ -168,9 +168,9 @@ export function ThreadEditPage() {
 
   async function addAttachments(files: File[]) {
     if (files.length === 0) return;
-    const oversizedFile = files.find((file) => file.size > 100 * 1024 * 1024);
+    const oversizedFile = files.find((file) => file.size > 5 * 1024 * 1024);
     if (oversizedFile) {
-      setAttachmentStatus(`${oversizedFile.name} 超过 100MB，无法上传。`);
+      setAttachmentStatus(`${oversizedFile.name} 超过 5MB，无法上传。`);
       return;
     }
 

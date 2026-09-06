@@ -368,10 +368,18 @@ function PostEditorAttachmentDialog({
   uploading: boolean;
 }) {
   const inputRef = useRef<HTMLInputElement | null>(null);
+  const [fileError, setFileError] = useState('');
 
   function handleFileChange(event: ChangeEvent<HTMLInputElement>) {
-    onAdd(Array.from(event.currentTarget.files ?? []));
+    const files = Array.from(event.currentTarget.files ?? []);
     event.currentTarget.value = '';
+    const oversizedFile = files.find((file) => file.size > 5 * 1024 * 1024);
+    if (oversizedFile) {
+      setFileError(`${oversizedFile.name} 超过 5MB，无法上传。`);
+      return;
+    }
+    setFileError('');
+    onAdd(files);
   }
 
   return (
@@ -397,7 +405,9 @@ function PostEditorAttachmentDialog({
           <UploadCloud size={22} />
           <strong>{uploading ? '正在上传附件…' : '选择一个或多个文件'}</strong>
           <span>{description}</span>
+          <span>单个文件不超过 5MB</span>
         </button>
+        {fileError && <p className="reply-editor-status thread-edit-error" role="alert">{fileError}</p>}
         <input className="sr-only" disabled={uploading} multiple onChange={handleFileChange} ref={inputRef} type="file" />
         {attachments.length > 0 && (
           <ul>
