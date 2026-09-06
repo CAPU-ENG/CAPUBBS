@@ -14,6 +14,7 @@ import {
   validateEditorImageFile,
 } from './RichTextEditor.images';
 import type { EditorGalleryImage } from './RichTextEditor.gallery';
+import { snapshotGalleryImageFile } from './GalleryDialog.files';
 
 export type GalleryDialogImage = {
   alt: string;
@@ -94,7 +95,8 @@ export function GalleryDialog({
     setIsCheckingFiles(true);
 
     try {
-      const results = await Promise.allSettled(files.map(async (file) => {
+      const results = await Promise.allSettled(files.map(async (sourceFile) => {
+        const file = await snapshotGalleryImageFile(sourceFile);
         await validateEditorImageFile(file);
         return {
           alt: file.name.replace(/\.[^.]+$/, '').trim() || '图片',

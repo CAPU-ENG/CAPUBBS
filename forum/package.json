@@ -14,6 +14,7 @@
     "verify:font-sizes": "node --experimental-strip-types verify-forum-font-sizes.mjs",
     "verify:forum-mode": "node --experimental-strip-types verify-forum-mode.mjs",
     "verify:gallery-grouping": "node --experimental-strip-types verify-gallery-grouping.mjs",
+    "verify:gallery-files": "node --experimental-strip-types verify-gallery-files.mjs",
     "verify:home-hot-snapshot": "node --experimental-strip-types verify-home-hot-snapshot.mjs",
     "verify:image-preloading": "node --experimental-strip-types verify-image-preloading.mjs",
     "verify:legacy-assets": "node --experimental-strip-types verify-legacy-assets.mjs",
