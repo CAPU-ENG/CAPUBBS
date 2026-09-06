@@ -30,6 +30,7 @@ import {
 } from '../../utils/signatureFloorLink';
 import { getForumNavigationHref } from '../../utils/forumNavigation';
 import { stripForumBasePath } from '../../utils/forumBasePath';
+import { getThreadTitleClassName } from '../../utils/threadTitleTypography';
 import {
   getRichTextEditorStorageValue,
   RichTextEditor,
@@ -432,7 +433,9 @@ function ProfileRecordRow({
   return (
     <article className="profile-record">
       <div className="profile-record-line">
-        <h3>{activeTab === 'signatures' ? record.title : <a href={getForumNavigationHref(record.href, window.location.href)}>{record.title}</a>}</h3>
+        <h3 className={activeTab === 'signatures' ? undefined : getThreadTitleClassName(record.title)}>
+          {activeTab === 'signatures' ? record.title : <a href={getForumNavigationHref(record.href, window.location.href)}>{record.title}</a>}
+        </h3>
         {activeTab === 'activities' && record.status ? (
           <span className="profile-record-status" data-canceled={record.status === '已取消报名' ? 'true' : undefined}>
             {record.status}

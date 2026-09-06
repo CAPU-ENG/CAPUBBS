@@ -1,4 +1,4 @@
-const HANGING_PUNCTUATION_PATTERN = /^[《【（]/;
+const HANGING_PUNCTUATION_PATTERN = /^[《【（“]/;
 const HANGING_PUNCTUATION_CLASS_NAME = 'thread-title-hanging-punctuation';
 
 export function getThreadTitleClassName(title: string, baseClassName?: string) {
