@@ -22,6 +22,7 @@
 
   .archive-room-heading {
     display: flex;
+    flex-wrap: wrap;
     align-items: center;
     justify-content: space-between;
     gap: 16px;
@@ -63,6 +64,28 @@
     color: var(--text-strong);
     font-size: var(--ui-font-size-title);
     font-weight: 780;
+  }
+
+  .archive-room-cloud-drive {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    color: var(--text-muted);
+    font-size: var(--ui-font-size-sm);
+  }
+
+  .archive-room-cloud-drive a {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    align-self: flex-start;
+    color: var(--brand-strong);
+    font-size: var(--ui-font-size-md);
+    font-weight: 700;
+  }
+
+  .archive-room-cloud-drive a:hover {
+    text-decoration: underline;
   }
 
   .archive-room-auth-prompt {
