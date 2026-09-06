@@ -23,6 +23,7 @@ import {
 } from '../../utils/signatureFloorLink';
 import frameStylesheet from '../../styles/thread-html-frame.css?inline';
 import frameBootstrapUrl from './threadHtmlBootstrap.html?url&no-inline';
+import { isNetEasePlayerLayout, normalizeNetEasePlayerUrl, type NetEasePlayerLayout } from './netEasePlayer';
 import {
   ForumMarkup,
   type ForumMarkupImageChangeHandler,
@@ -51,6 +52,11 @@ let jquerySourcePromise: Promise<string | null> | null = null;
 type ThreadHtmlVariant = 'floor' | 'signature';
 
 type HtmlFrameMessage = {
+  frameId: string;
+  players: NetEasePlayerLayout[];
+  source: typeof HTML_FRAME_MESSAGE_SOURCE;
+  type: 'netease-layout';
+} | {
   frameId: string;
   token: string;
   source: typeof HTML_FRAME_MESSAGE_SOURCE;
@@ -182,6 +188,7 @@ function ThreadSandboxedHtmlFrame({
   const minHeight = variant === 'signature' ? MIN_SIGNATURE_FRAME_HEIGHT : MIN_FLOOR_FRAME_HEIGHT;
   const canOpenImages = Boolean(onImageOpen);
   const [frameHeight, setFrameHeight] = useState<number | null>(null);
+  const [playerLayout, setPlayerLayout] = useState<{ token: string; players: NetEasePlayerLayout[] } | null>(null);
   const isDarkTheme = useDarkTheme();
   const initialDarkThemeRef = useRef(isDarkTheme);
   const forumContentFontSize = useForumContentFontSize();
@@ -265,6 +272,11 @@ function ThreadSandboxedHtmlFrame({
       const frameWindow = iframeRef.current?.contentWindow;
       if (!frameWindow || event.source !== frameWindow || !isHtmlFrameMessage(event.data)) return;
       if (event.data.frameId !== frameIdRef.current) return;
+
+      if (event.data.type === 'netease-layout') {
+        setPlayerLayout({ token: documentToken, players: event.data.players });
+        return;
+      }
 
       if (event.data.type === 'document-request') {
         if (event.data.token === documentToken) sendFrameDocument();
@@ -406,21 +418,39 @@ function ThreadSandboxedHtmlFrame({
   }, [documentToken, frameSource, minHeight, sendFrameDocument, sendJquerySource]);
 
   return (
-    <iframe
-      key={documentToken}
-      ref={iframeRef}
-      className={`thread-html-frame thread-html-frame-${variant} ${className}`.trim()}
-      referrerPolicy="no-referrer"
-      sandbox="allow-scripts allow-downloads"
-      scrolling="no"
-      src={frameSource}
-      onLoad={handleFrameLoad}
-      style={{
-        '--thread-html-frame-width-allowance': `${FRAME_WIDTH_ALLOWANCE}px`,
-        ...(frameHeight === null ? {} : { '--thread-html-frame-height': `${frameHeight}px` }),
-      } as CSSProperties}
-      title={variant === 'signature' ? `第 ${floor} 楼签名档` : `第 ${floor} 楼正文`}
-    />
+    <div className="thread-html-frame-container">
+      <iframe
+        key={documentToken}
+        ref={iframeRef}
+        className={`thread-html-frame thread-html-frame-${variant} ${className}`.trim()}
+        referrerPolicy="no-referrer"
+        sandbox="allow-scripts allow-downloads"
+        scrolling="no"
+        src={frameSource}
+        onLoad={handleFrameLoad}
+        style={{
+          '--thread-html-frame-width-allowance': `${FRAME_WIDTH_ALLOWANCE}px`,
+          ...(frameHeight === null ? {} : { '--thread-html-frame-height': `${frameHeight}px` }),
+        } as CSSProperties}
+        title={variant === 'signature' ? `第 ${floor} 楼签名档` : `第 ${floor} 楼正文`}
+      />
+      {playerLayout?.token === documentToken ? playerLayout.players.map((player) => (
+        <iframe
+          key={`${documentToken}-${player.id}`}
+          className="thread-netease-player"
+          src={player.src}
+          title="网易云音乐播放器"
+          allow="autoplay"
+          scrolling="no"
+          style={{
+            left: player.left + (iframeRef.current?.offsetLeft ?? 0),
+            top: player.top + (iframeRef.current?.offsetTop ?? 0),
+            width: player.width,
+            height: player.height,
+          }}
+        />
+      )) : null}
+    </div>
   );
 }
 
@@ -522,6 +552,10 @@ function buildFrameBridgeScript(frameId: string, canOpenImages: boolean, needsJq
     var forumBasePath=${JSON.stringify(FORUM_BASE_PATH)};
     var canOpenImages=${JSON.stringify(canOpenImages)};
     var needsJquery=${JSON.stringify(needsJquery)};
+    var normalizeNetEasePlayerUrl=${normalizeNetEasePlayerUrl.toString()};
+    var playerIds=new WeakMap();
+    var nextPlayerId=0;
+    var lastPlayerLayout='';
     var jquerySourceUrl=${JSON.stringify(JQUERY_SOURCE_URL)};
     var forumAppExactPaths=${JSON.stringify(FORUM_APP_EXACT_PATHS)};
     var forumAppPathPrefixes=${JSON.stringify(FORUM_APP_PATH_PREFIXES)};
@@ -648,6 +682,26 @@ function buildFrameBridgeScript(frameId: string, canOpenImages: boolean, needsJq
       var height=getContentHeight();
       window.parent.postMessage({source:'${HTML_FRAME_MESSAGE_SOURCE}',type:'resize',frameId:frameId,height:height},'*');
       Object.keys(imageResourceRequests).forEach(function(requestId){reportImageResourceLayout(requestId);});
+      reportNetEasePlayers();
+    }
+    function reportNetEasePlayers(){
+      var players=[];
+      Array.prototype.forEach.call(document.querySelectorAll('.capubbs-html-frame-root iframe'),function(player){
+        var raw=player.getAttribute('src')||player.getAttribute('data-capubbs-netease-src')||'';
+        var src=normalizeNetEasePlayerUrl(raw,document.baseURI);
+        if(!src)return;
+        if(player.getAttribute('data-capubbs-netease-src')!==src)player.setAttribute('data-capubbs-netease-src',src);
+        if(player.hasAttribute('src'))player.removeAttribute('src');
+        var rect=player.getBoundingClientRect();
+        var style=window.getComputedStyle(player);
+        if(rect.width<=0||rect.height<=0||style.display==='none'||style.visibility==='hidden')return;
+        if(!playerIds.has(player))playerIds.set(player,String(++nextPlayerId));
+        players.push({id:playerIds.get(player),src:src,left:rect.left,top:rect.top,width:rect.width,height:rect.height});
+      });
+      var serialized=JSON.stringify(players);
+      if(serialized===lastPlayerLayout)return;
+      lastPlayerLayout=serialized;
+      window.parent.postMessage({source:'${HTML_FRAME_MESSAGE_SOURCE}',type:'netease-layout',frameId:frameId,players:players},'*');
     }
     function queueHeight(){
       if(queued)return;
@@ -1036,6 +1090,8 @@ function buildFrameBridgeScript(frameId: string, canOpenImages: boolean, needsJq
       if(window.ResizeObserver&&contentRoot)new ResizeObserver(queueHeight).observe(contentRoot);
       if(window.MutationObserver&&contentRoot)new MutationObserver(function(){queueHeight();requestImageResources();prepareImages();prepareGalleries();syncGrayscaleTextColors(contentRoot);}).observe(contentRoot,{attributes:true,characterData:true,childList:true,subtree:true});
       window.addEventListener('load',queueHeight);
+      window.addEventListener('resize',queueHeight);
+      document.addEventListener('scroll',queueHeight,true);
       window.addEventListener('unload',revokeImageResourceObjectUrls);
       document.addEventListener('transitionend',queueHeight);
       document.addEventListener('animationend',queueHeight);
@@ -1067,10 +1123,16 @@ function deferUserScripts(html: string) {
 }
 
 function deferFrameImageSources(html: string) {
-  if (!/<img\b/i.test(html)) return html;
+  if (!/<(?:img|iframe)\b/i.test(html)) return html;
 
   const template = document.createElement('template');
   template.innerHTML = html;
+  template.content.querySelectorAll<HTMLIFrameElement>('iframe[src]').forEach((frame) => {
+    const src = normalizeNetEasePlayerUrl(frame.getAttribute('src') ?? '', getLegacyContentBaseUrl());
+    if (!src) return;
+    frame.dataset.capubbsNeteaseSrc = src;
+    frame.removeAttribute('src');
+  });
   template.content.querySelectorAll<HTMLImageElement>('img[src]').forEach((image) => {
     const source = image.getAttribute('src')?.trim() ?? '';
     if (!source || /^(?:blob:|data:)/i.test(source)) return;
@@ -1130,6 +1192,7 @@ function isHtmlFrameMessage(value: unknown): value is HtmlFrameMessage {
   if (!value || typeof value !== 'object') return false;
   const message = value as Partial<HtmlFrameMessage>;
   if (message.source !== HTML_FRAME_MESSAGE_SOURCE || typeof message.frameId !== 'string') return false;
+  if (message.type === 'netease-layout') return Array.isArray(message.players) && message.players.every(isNetEasePlayerLayout);
   if (message.type === 'document-request') return typeof message.token === 'string';
   if (message.type === 'anchor') {
     return typeof message.offsetTop === 'number'

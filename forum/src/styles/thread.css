@@ -1817,6 +1817,20 @@
     overflow: hidden;
   }
 
+  .thread-html-frame-container {
+    position: relative;
+    display: flow-root;
+    min-width: 0;
+    isolation: isolate;
+  }
+
+  .thread-netease-player {
+    position: absolute;
+    z-index: 1;
+    border: 0;
+    background: transparent;
+  }
+
   iframe.thread-html-frame.thread-signature {
     background-image: repeating-linear-gradient(
       to right,
@@ -1829,6 +1843,7 @@
   }
 
   .thread-floor-main > iframe.thread-html-frame,
+  .thread-html-frame-container > iframe.thread-html-frame,
   .thread-floor-content > iframe.thread-html-frame {
     height: var(--thread-html-frame-height, auto);
   }
