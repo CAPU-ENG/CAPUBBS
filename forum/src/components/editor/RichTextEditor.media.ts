@@ -303,7 +303,7 @@ export function createRichTextEditorMediaActions({
   ) => {
     const marker = `capubbs-inserted-image-${Date.now()}-${Math.random().toString(36).slice(2)}`;
 
-    editorRef.current?.focus();
+    editorRef.current?.focus({ preventScroll: true });
     restoreRichSelection();
     document.execCommand(
       'insertHTML',
@@ -319,6 +319,33 @@ export function createRichTextEditorMediaActions({
       selectRichImage(image);
       applyImageWidthPercentage(image, 100);
 
+      const caret = document.createRange();
+      caret.setStartAfter(image);
+      caret.collapse(true);
+      const selection = window.getSelection();
+      selection?.removeAllRanges();
+      selection?.addRange(caret);
+      saveSelection();
+
+      const revealInsertedImage = () => {
+        const editor = editorRef.current;
+        const currentSelection = window.getSelection();
+        if (!editor?.contains(image) || document.activeElement !== editor
+          || !currentSelection?.isCollapsed || !currentSelection.rangeCount) return;
+
+        // A delayed image load must not pull the user away from a new caret position.
+        const currentRange = currentSelection.getRangeAt(0);
+        const imageEnd = document.createRange();
+        imageEnd.setStartAfter(image);
+        imageEnd.collapse(true);
+        if (currentRange.compareBoundaryPoints(Range.START_TO_START, imageEnd) !== 0) return;
+
+        image.scrollIntoView({ block: 'end', inline: 'nearest', behavior: 'instant' });
+        saveSelection();
+        updateRichImageResizeHandle();
+      };
+      window.requestAnimationFrame(revealInsertedImage);
+
       const persistIntrinsicDimensions = () => {
         const editor = editorRef.current;
         if (!editor || !editor.contains(image)) return false;
@@ -329,6 +356,7 @@ export function createRichTextEditorMediaActions({
         if (!applyImageIntrinsicDimensions(image, dimensions)) return false;
         updateContent(editor.innerHTML);
         updateRichImageResizeHandle();
+        window.requestAnimationFrame(revealInsertedImage);
         return true;
       };
 
