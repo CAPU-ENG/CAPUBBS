@@ -3,6 +3,8 @@ import { useEffect, useLayoutEffect, useMemo, useRef, type KeyboardEvent, type M
 import { useTheme } from '../../hooks/useTheme';
 import { syncForumGrayscaleTextColors } from '../../utils/forumGrayscaleTextColor';
 import { preloadNearbyImages } from '../../utils/imagePreloading';
+import { prepareForumTables } from './forumTables';
+import '../../styles/forum-tables.css';
 import {
   ensureGalleryDisplayControls,
   getEditorGalleryAction,
@@ -47,6 +49,11 @@ export function ForumMarkup({
   const containerRef = useRef<HTMLDivElement>(null);
   const { theme } = useTheme();
   const dangerousHtml = useMemo(() => ({ __html: html }), [html]);
+
+  useLayoutEffect(() => {
+    const container = containerRef.current;
+    if (container && variant !== 'signature') return prepareForumTables(container);
+  }, [html, variant]);
 
   useLayoutEffect(() => {
     const container = containerRef.current;
