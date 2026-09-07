@@ -53,13 +53,13 @@ export function useRichTextEditorSource({
     [sourceLineCount],
   );
   const sourceLineNumberColumnWidth = `${Math.max(2, String(sourceLineCount).length) + 1}ch`;
-  const sourceTextareaWrap = shouldShowSourceLineNumbers ? 'off' : 'soft';
+  const sourceTextareaWrap = 'soft';
   const markdownSourceOverflowClassName = isAutoHeightEnabled
-    ? shouldShowSourceLineNumbers ? 'overflow-x-auto overflow-y-hidden' : 'overflow-hidden'
-    : shouldShowSourceLineNumbers ? 'overflow-auto' : 'overflow-y-auto';
+    ? 'overflow-hidden'
+    : 'overflow-x-hidden overflow-y-auto';
   const htmlSourceOverflowClassName = isAutoHeightEnabled
-    ? shouldShowSourceLineNumbers ? 'overflow-x-auto overflow-y-hidden' : 'overflow-hidden'
-    : 'overflow-auto';
+    ? 'overflow-hidden'
+    : 'overflow-x-hidden overflow-y-auto';
   const splitPaneClassName = isMobileViewport
     ? `flex flex-col ${isAutoHeightEnabled ? 'min-h-[50vh]' : 'h-[50vh]'}`
     : `flex flex-row ${isAutoHeightEnabled ? 'min-h-[50vh]' : 'h-[50vh]'}`;
@@ -112,15 +112,61 @@ export function useRichTextEditorSource({
   };
 
   useEffect(() => {
-    const frame = window.requestAnimationFrame(resizeSourceTextarea);
-    return () => window.cancelAnimationFrame(frame);
-  }, [isAutoHeightEnabled, isSourceMode, value.content, value.mode]);
+    const textarea = sourceRef.current;
+    if (!isSourceMode || !textarea) return undefined;
 
-  useEffect(() => {
-    if (!shouldShowSourceLineNumbers) return undefined;
-    const frame = window.requestAnimationFrame(syncSourceLineNumbersScroll);
-    return () => window.cancelAnimationFrame(frame);
-  }, [shouldShowSourceLineNumbers, sourceLineCount, value.mode]);
+    // Measure logical lines with the textarea's typography and available width,
+    // so a wrapped line keeps one number and reserves space for its continuations.
+    const mirror = document.createElement('div');
+    mirror.style.cssText = 'position:fixed;left:-100000px;top:0;visibility:hidden;pointer-events:none;';
+    mirror.setAttribute('aria-hidden', 'true');
+    document.body.appendChild(mirror);
+    const updateLayout = () => {
+      resizeSourceTextarea();
+      const style = window.getComputedStyle(textarea);
+      const contentWidth = textarea.clientWidth - parseFloat(style.paddingLeft) - parseFloat(style.paddingRight);
+      if (htmlHighlightRef.current) {
+        htmlHighlightRef.current.style.width = `${textarea.clientWidth}px`;
+        htmlHighlightRef.current.scrollTop = textarea.scrollTop;
+      }
+      if (shouldShowSourceLineNumbers && sourceLineNumbersRef.current) {
+        for (const property of [
+          'font-family', 'font-size', 'font-weight', 'font-style', 'line-height',
+          'letter-spacing', 'word-spacing', 'tab-size', 'white-space', 'word-break', 'overflow-wrap',
+        ]) {
+          mirror.style.setProperty(property, style.getPropertyValue(property));
+        }
+        mirror.style.width = `${Math.max(0, contentWidth)}px`;
+        const lines = textarea.value.split('\n').map((line) => {
+          const row = document.createElement('div');
+          row.textContent = line || '\u200b';
+          return row;
+        });
+        mirror.replaceChildren(...lines);
+        const heights = lines.map((line) => line.getBoundingClientRect().height);
+        Array.from(sourceLineNumbersRef.current.children).forEach((number, index) => {
+          (number as HTMLElement).style.height = `${heights[index]}px`;
+        });
+        syncSourceLineNumbersScroll();
+      }
+    };
+    let frame = window.requestAnimationFrame(updateLayout);
+    const scheduleLayout = () => {
+      window.cancelAnimationFrame(frame);
+      frame = window.requestAnimationFrame(updateLayout);
+    };
+    const observer = new ResizeObserver(scheduleLayout);
+    observer.observe(textarea);
+    window.addEventListener('resize', scheduleLayout);
+    document.fonts.addEventListener('loadingdone', scheduleLayout);
+    return () => {
+      window.cancelAnimationFrame(frame);
+      observer.disconnect();
+      window.removeEventListener('resize', scheduleLayout);
+      document.fonts.removeEventListener('loadingdone', scheduleLayout);
+      mirror.remove();
+    };
+  }, [isAutoHeightEnabled, isSourceMode, shouldShowSourceLineNumbers, value.content, value.mode, forumContentFontSize]);
 
   const applyMarkdownSourceEdit = (textarea: HTMLTextAreaElement, edit: MarkdownSourceEdit) => {
     sourceSelectionRef.current = null;

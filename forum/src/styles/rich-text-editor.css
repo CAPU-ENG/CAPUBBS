@@ -43,7 +43,7 @@
     height: 100%;
     margin: 0;
     min-height: 0;
-    overflow: auto;
+    overflow: hidden;
   }
 
   .capubbs-code-editor {
@@ -59,12 +59,6 @@
     line-height: 1.65;
     padding: 0.75rem 0.5rem;
     text-align: right;
-  }
-
-  .capubbs-code-shell[data-source-line-numbers='true'] .capubbs-code-layer,
-  .capubbs-code-shell[data-source-line-numbers='true'] .capubbs-code-editor {
-    overflow-wrap: normal;
-    white-space: pre;
   }
 
   .dark .capubbs-code-editor {

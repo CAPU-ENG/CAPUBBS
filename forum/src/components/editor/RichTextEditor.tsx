@@ -734,7 +734,7 @@ export function RichTextEditor({
               onKeyDown={handleMarkdownEditorKeyDown}
               onPaste={handleEditorPaste}
               onScroll={handleMarkdownSourceScroll}
-              className={`min-w-0 flex-1 resize-none border-0 bg-transparent px-3 py-3 text-sm leading-6 text-zinc-800 outline-none placeholder:text-zinc-400 focus:ring-0 dark:text-white dark:placeholder:text-zinc-500 ${isAutoHeightEnabled ? 'min-h-[50vh]' : 'min-h-0'} ${markdownSourceOverflowClassName}`}
+              className={`min-w-0 flex-1 resize-none whitespace-pre-wrap [overflow-wrap:anywhere] border-0 bg-transparent px-3 py-3 text-sm leading-6 text-zinc-800 outline-none placeholder:text-zinc-400 focus:ring-0 dark:text-white dark:placeholder:text-zinc-500 ${isAutoHeightEnabled ? 'min-h-[50vh]' : 'min-h-0'} ${markdownSourceOverflowClassName}`}
             />
           </div>
           <div
