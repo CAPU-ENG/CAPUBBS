@@ -1,4 +1,32 @@
 /* Match activity signup tables while keeping long post text fully readable. */
+.forum-markup .forum-table-viewport {
+  position: relative;
+  min-width: 0;
+  max-width: 100%;
+}
+
+.forum-markup .forum-table-viewport::after {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 2;
+  width: 16px;
+  background: linear-gradient(270deg, rgb(15 23 42 / 26%), rgb(15 23 42 / 8%) 55%, transparent);
+  content: '';
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 140ms ease;
+}
+
+.forum-markup .forum-table-more-right::after {
+  opacity: 1;
+}
+
+.dark .forum-markup .forum-table-viewport::after {
+  background: linear-gradient(270deg, rgb(0 0 0 / 42%), rgb(0 0 0 / 14%) 55%, transparent);
+}
+
 .forum-markup .forum-table-scroll {
   max-width: 100%;
   overflow-x: auto;

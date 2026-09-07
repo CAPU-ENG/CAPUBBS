@@ -44,12 +44,33 @@ export function prepareForumTables(container: HTMLElement) {
     }
 
     const scrollContainer = wrapper;
+    let viewport = scrollContainer.parentElement;
+    if (!viewport?.classList.contains('forum-table-viewport')) {
+      viewport = table.ownerDocument.createElement('div');
+      viewport.className = 'forum-table-viewport';
+      scrollContainer.before(viewport);
+      viewport.append(scrollContainer);
+    }
+    const tableViewport = viewport;
     const syncScroll = () => {
       scrollContainer.classList.toggle('forum-table-scrolled', scrollContainer.scrollLeft > 0);
+      tableViewport.classList.toggle(
+        'forum-table-more-right',
+        scrollContainer.scrollWidth - scrollContainer.clientWidth - scrollContainer.scrollLeft > 1,
+      );
     };
     syncScroll();
     scrollContainer.addEventListener('scroll', syncScroll, { passive: true });
-    cleanups.push(() => scrollContainer.removeEventListener('scroll', syncScroll));
+    const view = table.ownerDocument.defaultView;
+    const observer = view?.ResizeObserver ? new view.ResizeObserver(syncScroll) : null;
+    observer?.observe(scrollContainer);
+    observer?.observe(table);
+    view?.addEventListener('resize', syncScroll);
+    cleanups.push(() => {
+      scrollContainer.removeEventListener('scroll', syncScroll);
+      observer?.disconnect();
+      view?.removeEventListener('resize', syncScroll);
+    });
   });
 
   return () => cleanups.forEach((cleanup) => cleanup());
