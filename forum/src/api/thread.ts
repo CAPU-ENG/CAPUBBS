@@ -15,6 +15,7 @@ import {
   translateLegacyForumMarkup,
 } from '../utils/forumMarkup';
 import { normalizeLegacyAvatar } from '../utils/legacyAssets';
+import { normalizeLegacyPostText } from '../utils/legacyPostText';
 import type { SignatureFloorReference } from '../utils/signatureFloorLink';
 
 const THREAD_API_URL = import.meta.env.VITE_API_URL?.trim() || '/api/api.php';
@@ -949,6 +950,9 @@ function renderSignatureHtml(rawSignature: string, translatedSignature: string) 
 
 function renderPostHtml(rawText: string, isHtml: string, translatedHtml: string) {
   if (!rawText.trim()) return translatedHtml.trim();
+  if (isHtml.toUpperCase() !== 'YES') {
+    return translateLegacyForumMarkup(normalizeLegacyPostText(rawText)).trim();
+  }
   if (isHtml.toUpperCase() === 'YES' && requiresIsolatedForumHtml(rawText)) {
     return translateLegacyForumMarkup(rawText).trim();
   }
