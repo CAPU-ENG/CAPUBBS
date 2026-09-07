@@ -70,6 +70,38 @@ button {
   text-transform: none;
 }
 
+/* Bare legacy buttons share forum controls; authored styles and classes keep control. */
+button:where(:not([style]):not([class])) {
+  min-height: 32px;
+  border: 1px solid var(--line);
+  border-radius: 0.5px;
+  padding: 4px 12px;
+  background-color: var(--surface);
+  color: var(--text-muted);
+  font-size: 14px;
+  font-weight: 680;
+  line-height: 1.5;
+  vertical-align: middle;
+  cursor: pointer;
+  transition: background-color 140ms ease, border-color 140ms ease, color 140ms ease;
+}
+
+button:where(:not([style]):not([class]):hover:not(:disabled)) {
+  border-color: var(--line-strong);
+  background-color: var(--surface-soft);
+  color: var(--brand-strong);
+}
+
+button:where(:not([style]):not([class]):focus-visible) {
+  outline: 2px solid var(--brand);
+  outline-offset: 2px;
+}
+
+button:where(:not([style]):not([class]):disabled) {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
 img,
 svg,
 video,
