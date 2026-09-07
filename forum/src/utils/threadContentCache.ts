@@ -25,7 +25,7 @@ type ThreadCacheIndexItem = {
   tid: number;
 };
 
-const CACHE_PREFIX = 'thread-content:v2';
+const CACHE_PREFIX = 'thread-content:v3';
 const CACHE_MAX_AGE_MS = 60 * 60 * 1000;
 const CACHE_MAX_ENTRIES = 24;
 const CACHE_MAX_BYTES = 20 * 1024 * 1024;
