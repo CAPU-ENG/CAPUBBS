@@ -18,9 +18,7 @@ export function MessageCenter({
   const [messagesOpen, setMessagesOpen] = useState(false);
   const [activeConversationId, setActiveConversationId] = useState<string | null>(null);
   const anyDialogOpen = messagesOpen || activeConversationId !== null;
-  const unreadCount = messageCenter.status === 'idle'
-    ? initialUnreadCount
-    : messageCenter.data.unread.total;
+  const unreadCount = initialUnreadCount;
 
   useEffect(() => {
     if (!anyDialogOpen) return;
@@ -50,7 +48,6 @@ export function MessageCenter({
   }
 
   function openConversation(conversationId: string) {
-    messageCenter.markConversationRead(conversationId);
     setMessagesOpen(false);
     setActiveConversationId(conversationId);
   }

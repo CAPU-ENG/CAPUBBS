@@ -30,7 +30,7 @@ export function DirectMessageDialog({
     ?? conversations[0];
 
   useEffect(() => {
-    if (!activeConversation || activeConversation.messagesLoaded) return;
+    if (!activeConversation) return;
     let stale = false;
     setLoadError('');
     setLoadingConversationId(activeConversation.id);
@@ -42,7 +42,7 @@ export function DirectMessageDialog({
         if (!stale) setLoadingConversationId(null);
       });
     return () => { stale = true; };
-  }, [activeConversation?.id, activeConversation?.messagesLoaded, onLoadConversation]);
+  }, [activeConversation?.id, onLoadConversation]);
 
   useEffect(() => {
     const timeline = timelineRef.current;
