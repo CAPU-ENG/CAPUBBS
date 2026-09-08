@@ -7,7 +7,7 @@ import {
   type RegisterDraft,
   type SessionViewer,
 } from '../api/auth';
-import { fetchMessageSummary } from '../api/messages';
+import { fetchUnreadMessageCounts } from '../api/messages';
 import { refreshClientConfig } from '../api/clientConfig';
 
 type AuthStatus = 'authenticated' | 'guest' | 'loading' | 'restoring';
@@ -40,17 +40,20 @@ const AuthContext = createContext<AuthContextValue | null>(null);
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [auth, setAuth] = useState<AuthState>(restoreCachedAuth);
   const unreadRequestRef = useRef<{ promise: Promise<void>; username: string } | null>(null);
+  const unreadRevisionRef = useRef(0);
   const activeUsername = auth.status === 'authenticated' ? auth.viewer?.username ?? null : null;
 
   const refreshUnreadMessagesFor = useCallback((username: string) => {
     const activeRequest = unreadRequestRef.current;
     if (activeRequest?.username === username) return activeRequest.promise;
 
-    const promise = fetchMessageSummary()
-      .then((summary) => {
+    const revision = unreadRevisionRef.current;
+    const promise = fetchUnreadMessageCounts()
+      .then((unread) => {
         setAuth((current) => {
-          if (current.status !== 'authenticated' || current.viewer?.username !== username) return current;
-          const unreadMessages = summary.unread.total;
+          if (current.status !== 'authenticated' || current.viewer?.username !== username
+            || unreadRevisionRef.current !== revision) return current;
+          const unreadMessages = unread.total;
           if (current.viewer.unreadMessages === unreadMessages) return current;
           const viewer = { ...current.viewer, unreadMessages };
           cacheViewer(viewer);
@@ -177,6 +180,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const updateViewerUnreadMessages = useCallback((count: number) => {
+    unreadRevisionRef.current += 1;
     setAuth((current) => {
       if (!current.viewer) return current;
       const viewer = { ...current.viewer, unreadMessages: Math.max(0, Math.floor(count)) };

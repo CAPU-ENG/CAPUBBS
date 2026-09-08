@@ -4,6 +4,7 @@ import {
   fetchMessageSummary,
   fetchMoreReplyMessages,
   isMessageAbortError,
+  markMessagesRead,
   sendDirectMessage as sendDirectMessageRequest,
 } from '../api/messages';
 import type {
@@ -39,12 +40,12 @@ export function useMessageCenter(onUnreadChange: (count: number) => void) {
   useEffect(() => () => activeController.current?.abort(), []);
 
   const commit = useCallback((update: (current: MessageSummary) => MessageSummary) => {
-    setData((current) => {
-      const next = recountUnread(update(current));
-      onUnreadChangeRef.current(next.unread.total);
-      return next;
-    });
+    setData(update);
   }, []);
+
+  useEffect(() => {
+    if (data !== EMPTY_SUMMARY) onUnreadChangeRef.current(data.unread.total);
+  }, [data]);
 
   const load = useCallback(async () => {
     if (loadingPromise.current) return loadingPromise.current;
@@ -91,6 +92,7 @@ export function useMessageCenter(onUnreadChange: (count: number) => void) {
             ...incoming.messages.filter((message) => !existingIds.has(message.id)),
           ],
           replyPage: incoming.page,
+          unread: incoming.unread,
         };
       });
     } catch (requestError) {
@@ -101,56 +103,46 @@ export function useMessageCenter(onUnreadChange: (count: number) => void) {
   }, [commit, data.hasMoreReplies, data.replyPage, isLoadingMore]);
 
   const loadConversation = useCallback(async (conversationId: string) => {
-    const conversation = await fetchDirectConversation(conversationId);
-    commit((current) => mergeConversation(current, conversation));
+    const result = await fetchDirectConversation(conversationId);
+    commit((current) => ({ ...mergeConversation(current, result.conversation), unread: result.unread }));
   }, [commit]);
 
   const sendDirectMessage = useCallback(async (conversationId: string, text: string) => {
-    const conversation = await sendDirectMessageRequest(conversationId, text);
-    commit((current) => mergeConversation(current, conversation));
+    const result = await sendDirectMessageRequest(conversationId, text);
+    commit((current) => ({ ...mergeConversation(current, result.conversation), unread: result.unread }));
   }, [commit]);
 
-  const markMessageRead = useCallback((messageId: string) => {
-    commit((current) => ({
-      ...current,
-      messages: current.messages.map((message) => (
-        message.id === messageId ? { ...message, unread: false } : message
-      )),
-    }));
-  }, [commit]);
-
-  const markConversationRead = useCallback((conversationId: string) => {
-    commit((current) => markConversationStateRead(current, conversationId));
+  const markMessageRead = useCallback(async (messageId: string) => {
+    try {
+      const unread = await markMessagesRead({ messageId });
+      commit((current) => ({
+        ...current,
+        unread,
+        messages: current.messages.map((message) => message.id === messageId ? { ...message, unread: false } : message),
+      }));
+    } catch (requestError) {
+      setError(getErrorMessage(requestError));
+    }
   }, [commit]);
 
   const markCategoryRead = useCallback(async (category: MessageCategory) => {
-    if (category === 'replies') {
-      commit((current) => ({
-        ...current,
-        messages: current.messages.map((message) => (
-          message.category === category ? { ...message, unread: false } : message
-        )),
-      }));
-      return;
-    }
-
-    const unreadConversationIds = data.conversations
-      .filter((conversation) => conversation.unread > 0)
-      .map((conversation) => conversation.id);
-    if (unreadConversationIds.length === 0) return;
-
     setError('');
     try {
-      const conversations = await Promise.all(
-        unreadConversationIds.map((conversationId) => fetchDirectConversation(conversationId)),
-      );
-      commit((current) => conversations.reduce(mergeConversation, current));
+      const unread = await markMessagesRead({ category });
+      commit((current) => ({
+        ...current,
+        unread,
+        conversations: category === 'direct'
+          ? current.conversations.map((conversation) => ({ ...conversation, unread: 0 }))
+          : current.conversations,
+        messages: current.messages.map((message) => message.category === category ? { ...message, unread: false } : message),
+      }));
     } catch (requestError) {
       const message = getErrorMessage(requestError);
       setError(message);
       throw new Error(message);
     }
-  }, [commit, data.conversations]);
+  }, [commit]);
 
   return {
     data,
@@ -159,7 +151,6 @@ export function useMessageCenter(onUnreadChange: (count: number) => void) {
     load,
     loadConversation,
     markCategoryRead,
-    markConversationRead,
     markMessageRead,
     sendDirectMessage,
     status,
@@ -188,26 +179,6 @@ function mergeConversation(data: MessageSummary, conversation: DirectConversatio
     : [directMessage, ...data.messages];
 
   return { ...data, conversations, messages };
-}
-
-function markConversationStateRead(data: MessageSummary, conversationId: string) {
-  return {
-    ...data,
-    conversations: data.conversations.map((conversation) => (
-      conversation.id === conversationId ? { ...conversation, unread: 0 } : conversation
-    )),
-    messages: data.messages.map((message) => (
-      message.category === 'direct' && message.conversationId === conversationId
-        ? { ...message, unread: false }
-        : message
-    )),
-  };
-}
-
-function recountUnread(data: MessageSummary): MessageSummary {
-  const replies = data.messages.filter((message) => message.category === 'replies' && message.unread).length;
-  const direct = data.conversations.reduce((total, conversation) => total + conversation.unread, 0);
-  return { ...data, unread: { direct, replies, total: direct + replies } };
 }
 
 function conversationToMessage(conversation: DirectConversation): ForumMessage {

@@ -25,37 +25,49 @@ export class MessageApiError extends Error {
   }
 }
 
-export async function fetchMessageSummary(signal?: AbortSignal): Promise<MessageSummary> {
-  const [privateRows, systemRows] = await Promise.all([
-    requestRows({ ask: 'msg', shrink: 'no', type: 'private' }, signal),
-    requestRows({ ask: 'msg', p: 1, type: 'system' }, signal),
-  ]);
-  const conversations = privateRows.map(mapConversation).filter(isConversation);
-  const replyMessages = systemRows.map((row, index) => mapSystemMessage(row, index, 1));
-  const directMessages = conversations.map(mapConversationMessage);
+export async function fetchUnreadMessageCounts(signal?: AbortSignal) {
+  return (await requestMessages({ type: 'count' }, signal)).unread;
+}
 
-  return buildSummary(conversations, [...replyMessages, ...directMessages], 1, systemRows.length);
+export async function fetchMessageSummary(signal?: AbortSignal): Promise<MessageSummary> {
+  const [privateData, systemData] = await Promise.all([
+    requestMessages({ type: 'private' }, signal),
+    requestMessages({ p: 1, type: 'system' }, signal),
+  ]);
+  const conversations = privateData.rows.map(mapConversation).filter(isConversation);
+  return {
+    conversations,
+    hasMoreReplies: systemData.rows.length >= SYSTEM_PAGE_SIZE,
+    messages: [...systemData.rows.map(mapSystemMessage), ...conversations.map(mapConversationMessage)],
+    replyPage: 1,
+    unread: systemData.unread,
+  };
 }
 
 export async function fetchMoreReplyMessages(page: number, signal?: AbortSignal) {
   const normalizedPage = Math.max(1, Math.floor(page));
-  const rows = await requestRows({ ask: 'msg', p: normalizedPage, type: 'system' }, signal);
-
+  const data = await requestMessages({ p: normalizedPage, type: 'system' }, signal);
   return {
-    hasMore: rows.length >= SYSTEM_PAGE_SIZE,
-    messages: rows.map((row, index) => mapSystemMessage(row, index, normalizedPage)),
+    hasMore: data.rows.length >= SYSTEM_PAGE_SIZE,
+    messages: data.rows.map(mapSystemMessage),
     page: normalizedPage,
+    unread: data.unread,
   };
+}
+
+export async function markMessagesRead(target: { messageId: string } | { category: string }) {
+  const params: Record<string, string | number> = 'messageId' in target
+    ? { message_id: target.messageId.replace(/^system-/, '') }
+    : { category: target.category };
+  return (await requestMessages({ type: 'read', ...params }, undefined, true)).unread;
 }
 
 export async function fetchDirectConversation(conversationId: string, signal?: AbortSignal) {
   const user = getConversationUser(conversationId);
   if (!user) throw new MessageApiError('请选择私信对象。');
-
-  const rows = await requestRows({ ask: 'msg', shrink: 'no', to: user, type: 'chat' }, signal);
-  const messages = rows.map((row, index) => mapChatMessage(row, conversationId, index));
-
-  return buildLoadedConversation(user, messages);
+  const data = await requestMessages({ to: user, type: 'chat' }, signal);
+  const messages = data.rows.map((row, index) => mapChatMessage(row, conversationId, index));
+  return { conversation: buildLoadedConversation(user, messages), unread: data.unread };
 }
 
 export async function sendDirectMessage(conversationId: string, text: string) {
@@ -70,24 +82,6 @@ export async function sendDirectMessage(conversationId: string, text: string) {
 
 export function isMessageAbortError(error: unknown) {
   return error instanceof DOMException && error.name === 'AbortError';
-}
-
-function buildSummary(
-  conversations: DirectConversation[],
-  messages: ForumMessage[],
-  replyPage: number,
-  replyRowCount: number,
-): MessageSummary {
-  const replies = messages.filter((message) => message.category === 'replies' && message.unread).length;
-  const direct = conversations.reduce((total, conversation) => total + conversation.unread, 0);
-
-  return {
-    conversations,
-    hasMoreReplies: replyRowCount >= SYSTEM_PAGE_SIZE,
-    messages,
-    replyPage,
-    unread: { direct, replies, total: direct + replies },
-  };
 }
 
 function mapConversation(row: ApiRow): DirectConversation | null {
@@ -125,7 +119,7 @@ function mapConversationMessage(conversation: DirectConversation): ForumMessage 
   };
 }
 
-function mapSystemMessage(row: ApiRow, index: number, page: number): ForumMessage {
+function mapSystemMessage(row: ApiRow): ForumMessage {
   const sender = stringValue(row.username) || '系统';
   const type = stringValue(row.type);
   const subject = decodeHtml(stringValue(row.title));
@@ -138,7 +132,7 @@ function mapSystemMessage(row: ApiRow, index: number, page: number): ForumMessag
     excerpt: getSystemMessageExcerpt(type, sender, subject),
     group: formattedTime.date || '更早',
     href: grantEvent ? USER_CENTER_PATH : normalizeThreadHref(stringValue(row.url)),
-    id: `system-${type || 'message'}-${stringValue(row.time) || 'unknown'}-${page}-${index}`,
+    id: `system-${stringValue(row.id)}`,
     sender,
     systemEvent: grantEvent ?? undefined,
     time: formattedTime.time,
@@ -252,13 +246,23 @@ function formatTimestamp(value: unknown) {
   return { date: dateLabel, dateTime: `${dateLabel} ${time}`, time };
 }
 
-async function requestRows(params: Record<string, string | number>, signal?: AbortSignal) {
-  const data = await requestData(params, signal);
-  if (Array.isArray(data)) return data.filter(isRow);
-  return isRow(data) ? [data] : [];
+async function requestMessages(params: Record<string, string | number>, signal?: AbortSignal, keepalive = false) {
+  const data = await requestData({ ask: 'msg', mode: 'forum', ...params }, signal, keepalive);
+  if (!isRow(data) || !Array.isArray(data.rows) || !isRow(data.unread)) {
+    throw new MessageApiError('消息服务返回了无法识别的数据。');
+  }
+  const counts = data.unread;
+  if (!['direct', 'replies', 'total'].every((key) => typeof counts[key] === 'number'
+    && Number.isInteger(counts[key]) && Number(counts[key]) >= 0)
+    || Number(counts.total) !== Number(counts.replies) + Number(counts.direct)) {
+    throw new MessageApiError('消息服务返回了无法识别的数据。');
+  }
+  const replies = toNumber(counts.replies);
+  const direct = toNumber(counts.direct);
+  return { rows: data.rows.filter(isRow), unread: { replies, direct, total: replies + direct } };
 }
 
-async function requestData(params: Record<string, string | number>, signal?: AbortSignal) {
+async function requestData(params: Record<string, string | number>, signal?: AbortSignal, keepalive = false) {
   let response: Response;
   try {
     response = await fetch(MESSAGE_API_URL, {
@@ -269,6 +273,7 @@ async function requestData(params: Record<string, string | number>, signal?: Abo
         'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
       },
       method: 'POST',
+      keepalive,
       signal,
     });
   } catch (error) {

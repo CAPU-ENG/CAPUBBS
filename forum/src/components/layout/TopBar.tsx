@@ -406,6 +406,7 @@ export function TopBar({
 
             {authStatus === 'authenticated' && (
               <MessageCenter
+                key={viewer?.username}
                 initialUnreadCount={viewer?.unreadMessages ?? 0}
                 onBeforeOpen={() => {
                   setBoardsOpen(false);
