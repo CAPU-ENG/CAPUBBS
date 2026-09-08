@@ -656,6 +656,84 @@ function jiekoufunc_msg($con, $token, $type, $params) {
         return array(array('code' => '1', 'msg' => '尚未登录'));
     }
     $username = mysqli_real_escape_string($con, $user['username']);
+    // Opt-in protocol for the new forum. Legacy callers continue below unchanged.
+    if (isset($params['mode']) && $params['mode'] === 'forum') {
+        $rows = array();
+        $changed = false;
+        if ($type === 'system') {
+            $page = max(1, isset($params['p']) ? intval($params['p']) : 1);
+            $start = ($page - 1) * 10;
+            // Reading a page never marks notifications read or reorders them by read state.
+            $result = mysqli_query($con, "select * from messages where receiver='$username' and sender='system' order by time desc,id desc limit $start,10");
+            while ($one = mysqli_fetch_array($result)) {
+                $msgtype = $one['text'];
+                $title = $one['rmsg'];
+                if (!in_array($msgtype, array('reply', 'at', 'replylzl', 'replylzlreply', 'quote'), true)) {
+                    $title = $msgtype;
+                    $msgtype = 'plain';
+                }
+                $rpid = intval($one['rpid']);
+                $thread_page = ceil($rpid / 12);
+                $rows[] = array(
+                    'id' => strval($one['id']), 'username' => $one['ruser'],
+                    'type' => $msgtype, 'title' => $title,
+                    'url' => '/bbs/content/?bid=' . $one['rbid'] . '&tid=' . $one['rtid'] . "&p=$thread_page#$rpid",
+                    'time' => strval($one['time']), 'hasread' => strval($one['hasread'])
+                );
+            }
+        } elseif ($type === 'private') {
+            // Aggregate numerically: GROUP_CONCAT can truncate long conversations.
+            $result = mysqli_query($con, "select peer, max(time) as latest, sum(unread) as unread, count(*) as total from (
+                select sender as peer,time,(hasread=0) as unread from messages where receiver='$username' and sender!='system'
+                union all
+                select receiver as peer,time,0 as unread from messages where sender='$username' and receiver!='$username'
+            ) as conversations group by peer order by latest desc,peer");
+            while ($one = mysqli_fetch_array($result)) {
+                $peer = mysqli_real_escape_string($con, $one['peer']);
+                $last = mysqli_fetch_array(mysqli_query($con, "select text,time from messages where (receiver='$username' and sender='$peer') or (receiver='$peer' and sender='$username') order by time desc,id desc limit 1"));
+                $rows[] = array('username' => $one['peer'], 'text' => $last['text'],
+                    'time' => strval($last['time']), 'number' => strval($one['unread']), 'totalnum' => strval($one['total']));
+            }
+        } elseif ($type === 'chat') {
+            $to = isset($params['to']) ? trim($params['to']) : '';
+            if ($to === '' || strcasecmp($to, 'system') === 0) return jiekoufunc_report('4', '请选择私信对象');
+            $to = mysqli_real_escape_string($con, $to);
+            $result = mysqli_query($con, "select * from messages where (receiver='$username' and sender='$to') or (sender='$username' and receiver='$to') order by time,id");
+            $last_message_id = 0;
+            while ($one = mysqli_fetch_array($result)) {
+                $last_message_id = max($last_message_id, intval($one['id']));
+                $rows[] = array('type' => $one['sender'] === $user['username'] ? 'send' : 'get',
+                    'text' => $one['text'], 'time' => strval($one['time']));
+            }
+            // Do not consume a message arriving after the SELECT.
+            mysqli_query($con, "update messages set hasread=1 where receiver='$username' and sender='$to' and hasread=0 and id<=$last_message_id");
+            $changed = true;
+        } elseif ($type === 'read') {
+            $category = isset($params['category']) ? $params['category'] : '';
+            $id = isset($params['message_id']) ? intval($params['message_id']) : 0;
+            if ($id > 0) {
+                $scope = "sender='system' and id=$id";
+            } elseif ($category === 'replies') {
+                $scope = "sender='system'";
+            } elseif ($category === 'direct') {
+                $scope = "sender!='system'";
+            } else {
+                return jiekoufunc_report('4', '请选择消息');
+            }
+            mysqli_query($con, "update messages set hasread=1 where receiver='$username' and hasread=0 and $scope");
+            $changed = true;
+        } elseif ($type !== 'count') {
+            return jiekoufunc_report('4', '消息类型错误');
+        }
+        $counts = mysqli_fetch_array(mysqli_query($con, "select coalesce(sum(sender='system'),0) as replies, coalesce(sum(sender!='system'),0) as direct from messages where receiver='$username' and hasread=0"));
+        $replies = intval($counts['replies']);
+        $direct = intval($counts['direct']);
+        if ($changed) {
+            mysqli_query($con, "update userinfo set newmsg=(select count(*) from messages where receiver='$username' and hasread=0) where username='$username' limit 1");
+        }
+        return array(array('code' => '0'), array('rows' => $rows,
+            'unread' => array('replies' => $replies, 'direct' => $direct, 'total' => $replies + $direct)));
+    }
     $p = isset($params['p']) ? $params['p'] : '';
 
     $result = mysqli_fetch_array(mysqli_query($con, "select count(1) as c from messages where receiver='$username' and sender='system' and hasread=0"));
