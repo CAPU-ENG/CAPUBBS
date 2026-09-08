@@ -366,20 +366,17 @@ export function ActivityCalendar({ compact = false, error, items, onVisibleDateC
         ) : displayedActivities.length > 0 ? (
           <>
             {selectedActivities.length === 0 ? <p className="calendar-agenda-label">最近活动</p> : null}
-            {displayedActivities.map((activity) => {
-              const content = (
-                <>
-                  <strong>{activity.title}</strong>
-                  <span><Clock3 size={13} />{selectedActivities.length === 0 ? `${formatCalendarDate(activity.date)} ${activity.time}` : activity.time}</span>
-                  {activity.description && <span><Info size={13} />{activity.description}</span>}
-                </>
-              );
-              return activity.url ? (
-                <a href={getForumNavigationHref(activity.url, window.location.href)} key={activity.id}>{content}</a>
-              ) : (
-                <article key={activity.id}>{content}</article>
-              );
-            })}
+            {displayedActivities.map((activity) => (
+              <article key={activity.id}>
+                <strong>
+                  {activity.url ? (
+                    <a href={getForumNavigationHref(activity.url, window.location.href)}>{activity.title}</a>
+                  ) : activity.title}
+                </strong>
+                <span><Clock3 size={13} />{selectedActivities.length === 0 ? `${formatCalendarDate(activity.date)} ${activity.time}` : activity.time}</span>
+                {activity.description && <span><Info size={13} />{activity.description}</span>}
+              </article>
+            ))}
           </>
         ) : (
           <p>最近暂无活动</p>

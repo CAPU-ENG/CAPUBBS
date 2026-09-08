@@ -1,7 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import {
   fetchGlobalPinnedThreads,
-  fetchHomeCalendar,
   fetchHomeFeedPage,
   fetchHomeSignupActivities,
   isAbortError,
@@ -10,6 +9,7 @@ import {
   type HomeSignupActivity,
   type HomeThread,
 } from '../api/home';
+import { loadCalendarEvents } from '../utils/calendarManagement';
 
 export type HomeDataStatus = 'error' | 'loading' | 'ready';
 
@@ -91,7 +91,7 @@ export function useHomeData(compactMode = false) {
     calendarFullRequestedRef.current = true;
     const controller = new AbortController();
     setCalendar((current) => ({ ...current, error: '', status: 'loading' }));
-    void fetchHomeCalendar(controller.signal, { full: true }).then(
+    void loadCalendarEvents(controller.signal, { full: true }).then(
       (items) => setCalendar({ error: '', items, status: 'ready' }),
       (error: unknown) => {
         if (!isAbortError(error)) {
@@ -161,7 +161,7 @@ export function useHomeData(compactMode = false) {
     calendarFullRequestedRef.current = false;
     setCalendar((current) => ({ ...current, error: '', status: 'loading' }));
 
-    void fetchHomeCalendar(controller.signal, {
+    void loadCalendarEvents(controller.signal, {
       endDate: calendarRange.end,
       startDate: calendarRange.start,
     }).then(

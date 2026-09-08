@@ -1,4 +1,10 @@
-import type { HomeCalendarEvent } from '../api/home';
+import { fetchHomeCalendar, type HomeCalendarEvent } from '../api/home';
+import { parseCalendarDescription, serializeCalendarDescription } from './calendarDescription';
+
+export async function loadCalendarEvents(...args: Parameters<typeof fetchHomeCalendar>) {
+  const events = await fetchHomeCalendar(...args);
+  return events.map((event) => ({ ...event, ...parseCalendarDescription(event.description) }));
+}
 
 const CALENDAR_MANAGEMENT_API_URL = import.meta.env.VITE_API_URL?.trim() || '/api/api.php';
 
@@ -28,7 +34,7 @@ export async function saveCalendarEventsForDate(
       body: new URLSearchParams({
         ask: 'savecalendar',
         content: JSON.stringify(events.map((event) => ({
-          content: event.description,
+          content: serializeCalendarDescription(event.description, event.url),
           time: event.time,
           title: event.title,
         }))),
