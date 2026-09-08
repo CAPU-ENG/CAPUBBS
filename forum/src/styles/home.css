@@ -667,6 +667,15 @@
     background: white;
   }
 
+  .calendar-day-past .calendar-event-dot {
+    background: transparent;
+    border: 1px solid var(--brand);
+  }
+
+  .calendar-day-selected.calendar-day-past .calendar-event-dot {
+    border-color: white;
+  }
+
   .calendar-agenda {
     margin: 14px;
     border: 1px solid var(--line);

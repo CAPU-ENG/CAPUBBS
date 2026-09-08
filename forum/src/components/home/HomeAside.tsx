@@ -331,6 +331,7 @@ export function ActivityCalendar({ compact = false, error, items, onVisibleDateC
           const hasActivity = activitiesByDate.has(cellKey);
           const selected = selectedKey === cellKey;
           const isToday = cellKey === todayKey;
+          const isPast = cellKey < todayKey;
           const isSelectable = cellDate.getFullYear() >= HOME_CALENDAR_MIN_YEAR
             && cellDate.getFullYear() <= maxYear;
 
@@ -338,7 +339,7 @@ export function ActivityCalendar({ compact = false, error, items, onVisibleDateC
             <button
               type="button"
               disabled={!isSelectable}
-              className={`${offset !== 0 ? 'calendar-day-muted' : ''} ${selected ? 'calendar-day-selected' : ''} ${isToday ? 'calendar-day-today' : ''}`}
+              className={`${offset !== 0 ? 'calendar-day-muted' : ''} ${selected ? 'calendar-day-selected' : ''} ${isToday ? 'calendar-day-today' : ''} ${isPast ? 'calendar-day-past' : ''}`}
               aria-label={`${cellDate.getFullYear()} 年 ${cellDate.getMonth() + 1} 月 ${cellDate.getDate()} 日${hasActivity ? '，有活动' : ''}`}
               onClick={() => {
                 if (!isSelectable) return;
