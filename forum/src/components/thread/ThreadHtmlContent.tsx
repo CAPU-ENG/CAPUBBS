@@ -23,7 +23,7 @@ import {
 } from '../../utils/signatureFloorLink';
 import frameStylesheet from '../../styles/thread-html-frame.css?inline';
 import frameBootstrapUrl from './threadHtmlBootstrap.html?url&no-inline';
-import { getFrameContentOffset, isNetEasePlayerLayout, normalizeNetEasePlayerUrl, type NetEasePlayerLayout } from './netEasePlayer';
+import { getFrameContentOffset, getNetEasePlayerSource, isNetEasePlayerLayout, normalizeNetEasePlayerUrl, type NetEasePlayerLayout } from './netEasePlayer';
 import {
   ForumMarkup,
   type ForumMarkupImageChangeHandler,
@@ -441,7 +441,7 @@ function ThreadSandboxedHtmlFrame({
         <iframe
           key={`${documentToken}-${player.id}`}
           className="thread-netease-player"
-          src={player.src}
+          src={getNetEasePlayerSource(player.src, navigator.userAgent)}
           title="网易云音乐播放器"
           allow="autoplay"
           scrolling="no"

@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { runInNewContext } from 'node:vm';
-import { getFrameContentOffset, normalizeNetEasePlayerUrl, isNetEasePlayerLayout } from './src/components/thread/netEasePlayer.ts';
+import { getFrameContentOffset, getNetEasePlayerSource, normalizeNetEasePlayerUrl, isNetEasePlayerLayout } from './src/components/thread/netEasePlayer.ts';
 
 assert.deepEqual(getFrameContentOffset(null), { left: 0, top: 0 });
 globalThis.window = { getComputedStyle: frame => frame.style };
@@ -13,12 +13,23 @@ outerFrame.style.paddingTop = '0px';
 assert.equal(getFrameContentOffset(outerFrame).top, 22, 'signatures without top padding retain their original offset');
 
 const src = 'https://music.163.com/outchain/player?type=2&id=2096553555&auto=0&height=66';
+const mobileSrc = src.replace('/outchain/', '/m/outchain/');
+for (const userAgent of ['Mozilla/5.0 (iPhone; CPU iPhone OS 18_0 like Mac OS X) Mobile', 'Mozilla/5.0 (Linux; Android 14; Pixel 8) Mobile', 'Mozilla/5.0 (iPad; CPU OS 18_0 like Mac OS X)']) {
+  assert.equal(getNetEasePlayerSource(src, userAgent), mobileSrc, 'mobile embeds must bypass the HTTP redirect');
+  assert.equal(getNetEasePlayerSource(mobileSrc, userAgent), mobileSrc);
+}
+for (const userAgent of ['Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7)', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)']) {
+  assert.equal(getNetEasePlayerSource(src, userAgent), src);
+  assert.equal(getNetEasePlayerSource(mobileSrc, userAgent), src, 'desktop embeds must also bypass the reverse HTTP redirect');
+}
+assert.equal(normalizeNetEasePlayerUrl(mobileSrc.replace('https:', 'http:'), 'https://localhost'), mobileSrc);
 assert.equal(normalizeNetEasePlayerUrl(src.replace('https:', ''), 'http://localhost/bbs/'), src);
 for (const value of ['javascript:alert(1)', 'https://music.163.com.evil.test/outchain/player', 'https://music.163.com/other', 'https://user@music.163.com/outchain/player']) {
   assert.equal(normalizeNetEasePlayerUrl(value, 'https://localhost'), null);
 }
 const layout = { id: '1', src, left: 12, top: 40, width: 330, height: 86 };
 assert.ok(isNetEasePlayerLayout(layout));
+assert.ok(isNetEasePlayerLayout({ ...layout, src: mobileSrc }));
 assert.equal(isNetEasePlayerLayout({ ...layout, width: NaN }), false);
 assert.equal(isNetEasePlayerLayout({ ...layout, src: 'https://evil.test/' }), false);
 
