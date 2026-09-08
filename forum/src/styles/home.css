@@ -669,7 +669,7 @@
 
   .calendar-day-past .calendar-event-dot {
     background: transparent;
-    border: 1px solid var(--brand);
+    border: 0.5px solid var(--brand);
   }
 
   .calendar-day-selected.calendar-day-past .calendar-event-dot {
