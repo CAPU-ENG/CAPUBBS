@@ -21,13 +21,18 @@ export function parseCalendarDescription(value: string) {
       // Malformed metadata is hidden but must never become a navigation target.
     }
     return '';
-  }).trim();
+  })
+    // Older VARCHAR(40) storage may have cut off both the URL and closing marker.
+    // Hide the remaining metadata, but do not turn an incomplete URL into a link.
+    .replace(/\[calendar-post\][\s\S]*$/gi, '')
+    .trim();
   return { description, url };
 }
 
 export function serializeCalendarDescription(description: string, postUrl: string) {
   const url = normalizeCalendarPostUrl(postUrl);
   const text = parseCalendarDescription(description).description;
+  // Requires calendar.content to be TEXT: the legacy VARCHAR(40) truncates metadata.
   // Keep metadata on the same line: the legacy calendar response embeds raw text in JSON.
   return url ? `${text}[calendar-post]${encodeURIComponent(url)}[/calendar-post]` : text;
 }
