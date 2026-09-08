@@ -683,6 +683,7 @@
     background: var(--surface-soft);
   }
 
+  .calendar-agenda a,
   .calendar-agenda article {
     display: grid;
     grid-template-columns: 1fr auto;

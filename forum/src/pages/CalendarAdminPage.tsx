@@ -10,20 +10,18 @@ import {
   Trash2,
 } from 'lucide-react';
 import { useEffect, useId, useMemo, useRef, useState, type ChangeEvent } from 'react';
-import type { HomeCalendarEvent } from '../api/home';
+import { fetchHomeCalendar, type HomeCalendarEvent } from '../api/home';
 import { AppBackground } from '../components/layout/AppBackground';
 import { LoadingSpinner as LoaderCircle } from '../components/layout/LoadingSpinner';
 import { LoadingState } from '../components/layout/LoadingState';
 import { TopBar } from '../components/layout/TopBar';
 import { useAuth } from '../context/AuthContext';
 import { useDocumentTitle } from '../hooks/useDocumentTitle';
-import { normalizeCalendarPostUrl } from '../utils/calendarDescription';
-import { canManageCalendar, loadCalendarEvents, saveCalendarEventsForDate } from '../utils/calendarManagement';
+import { canManageCalendar, saveCalendarEventsForDate } from '../utils/calendarManagement';
 import { getLoginPathWithReturnTo, getRegisterPathWithReturnTo } from '../utils/authRoutes';
 import { toForumHref } from '../utils/forumBasePath';
 
 type CalendarFormState = {
-  url: string;
   date: string;
   description: string;
   time: string;
@@ -92,7 +90,7 @@ export function CalendarAdminPage() {
     const controller = new AbortController();
     setLoadStatus('loading');
 
-    void loadCalendarEvents(controller.signal, { full: true }).then(
+    void fetchHomeCalendar(controller.signal, { full: true }).then(
       (items) => {
         setEvents(items);
         setLoadStatus('ready');
@@ -154,7 +152,6 @@ export function CalendarAdminPage() {
     setFormState({
       date: event.date,
       description: event.description,
-      url: event.url,
       time: event.time,
       title: event.title,
     });
@@ -167,8 +164,6 @@ export function CalendarAdminPage() {
     const title = formState.title.trim();
     const date = formState.date.trim();
     const time = formState.time.trim();
-    const url = normalizeCalendarPostUrl(formState.url);
-    if (formState.url.trim() && !url) return showError('请填写有效的帖子链接。');
 
     if (!title) return showError('请填写活动标题。');
     if (!isValidDateKey(date)) return showError('请选择有效日期。');
@@ -181,7 +176,7 @@ export function CalendarAdminPage() {
       id: previousEvent?.id ?? `calendar-${date}-${time}-${Date.now()}`,
       time,
       title,
-      url,
+      url: '',
     };
     const nextEvents = previousEvent
       ? events.map((event) => event.id === previousEvent.id ? nextEvent : event)
@@ -423,10 +418,6 @@ export function CalendarAdminPage() {
                     </label>
                   </div>
                   <label>
-                    <span>帖子链接 <small>选填</small></span>
-                    <input onChange={updateFormField('url')} type="url" value={formState.url} />
-                  </label>
-                  <label>
                     <span>显示说明 <small>选填</small></span>
                     <textarea maxLength={120} onChange={updateFormField('description')} placeholder="地点、集合信息或简短备注" rows={5} value={formState.description} />
                   </label>
@@ -480,7 +471,6 @@ function emptyForm(date: Date): CalendarFormState {
   return {
     date: formatDateKey(date),
     description: '',
-    url: '',
     time: '09:00',
     title: '',
   };
