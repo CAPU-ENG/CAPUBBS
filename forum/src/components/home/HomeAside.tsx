@@ -6,6 +6,7 @@ import type { HomeDataStatus } from '../../hooks/useHomeData';
 import { canManageCalendar } from '../../utils/calendarManagement';
 import { toForumHref } from '../../utils/forumBasePath';
 import { getForumNavigationHref } from '../../utils/forumNavigation';
+import { getThreadTitleClassName } from '../../utils/threadTitleTypography';
 
 const HOME_CALENDAR_MIN_YEAR = 1995;
 const HOME_CALENDAR_MONTHS = Array.from({ length: 12 }, (_item, month) => ({
@@ -77,7 +78,7 @@ function PinnedPanel({ items, readThreadIds }: PinnedProps) {
           <li key={thread.id}>
             <a href={getForumNavigationHref(thread.href, window.location.href)}>
               {!readThreadIds.has(thread.id) && <span>新</span>}
-              <strong>{thread.title}</strong>
+              <strong className={getThreadTitleClassName(thread.title)}>{thread.title}</strong>
               <ChevronRight size={14} />
             </a>
           </li>
