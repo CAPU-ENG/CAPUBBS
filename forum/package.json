@@ -31,6 +31,7 @@
     "verify:tag-expression": "node --experimental-strip-types verify-tag-expression.mjs",
     "verify:thread-html-frame": "node --experimental-strip-types verify-thread-html-frame.mjs",
     "verify:thread-html-bootstrap": "node --experimental-strip-types verify-thread-html-bootstrap.mjs",
+    "verify:media-playback": "node --experimental-strip-types verify-media-playback.mjs",
     "verify:netease-player": "node --experimental-strip-types verify-netease-player.mjs",
     "verify:thread-image-resources": "node --experimental-strip-types verify-thread-image-resources.mjs",
     "verify:thread-image-priority": "node --experimental-strip-types verify-thread-image-priority.mjs",

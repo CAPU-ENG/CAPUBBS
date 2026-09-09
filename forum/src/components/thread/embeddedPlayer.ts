@@ -15,7 +15,13 @@ export function normalizeEmbeddedPlayerUrl(value: string, base: string): string 
 }
 
 export function getEmbeddedPlayerSource(src: string, userAgent: string): string {
-  return new URL(src).hostname === 'music.163.com' ? getNetEasePlayerSource(src, userAgent) : src;
+  const url = new URL(src);
+  if (url.hostname === 'music.163.com') {
+    url.searchParams.set('auto', '0');
+    return getNetEasePlayerSource(url.href, userAgent);
+  }
+  url.searchParams.set('autoplay', '0');
+  return url.href;
 }
 
 export type EmbeddedPlayerLayout = {
