@@ -210,6 +210,9 @@ function jiekoufunc_hot($con, $token, $params) {
         }
     }
 
+    // Legacy callers keep excluding global pins unless explicitly requested.
+    $global_top_filter = isset($params['include_global_top']) && strval($params['include_global_top']) === '1'
+        ? '' : 'where thread_global_top.bid is null';
     $recent_threads = "
         select threads.bid,threads.tid,threads.title,threads.author,threads.replyer,threads.click,threads.reply,
         threads.extr,threads.top,threads.locked,threads.timestamp,threads.postdate,
@@ -218,7 +221,7 @@ function jiekoufunc_hot($con, $token, $params) {
             else 1
         end as global_top
         from threads left join thread_global_top on threads.bid=thread_global_top.bid and threads.tid=thread_global_top.tid
-        where thread_global_top.bid is null
+        $global_top_filter
         order by threads.timestamp desc
         limit 0,$hotnum";
 
