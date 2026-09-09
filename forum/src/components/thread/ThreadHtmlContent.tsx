@@ -21,7 +21,6 @@ import {
   findSignatureFloorMarkers,
   replaceLegacySignatureFloorScripts,
 } from '../../utils/signatureFloorLink';
-import { disableMediaAutoplay, installMediaPlaybackGuard } from './mediaPlayback';
 import frameStylesheet from '../../styles/thread-html-frame.css?inline';
 import frameBootstrapUrl from './threadHtmlBootstrap.html?url&no-inline';
 import { getFrameContentOffset, getEmbeddedPlayerSource, isEmbeddedPlayerLayout, normalizeEmbeddedPlayerUrl, type EmbeddedPlayerLayout } from './embeddedPlayer';
@@ -429,7 +428,6 @@ function ThreadSandboxedHtmlFrame({
         className={`thread-html-frame thread-html-frame-${variant} ${className}`.trim()}
         referrerPolicy="no-referrer"
         sandbox="allow-scripts allow-downloads"
-        allow="autoplay 'none'"
         scrolling="no"
         src={frameSource}
         onLoad={handleFrameLoad}
@@ -445,7 +443,7 @@ function ThreadSandboxedHtmlFrame({
           className="thread-embedded-player"
           src={getEmbeddedPlayerSource(player.src, navigator.userAgent)}
           title={new URL(player.src).hostname === 'player.bilibili.com' ? '哔哩哔哩播放器' : '网易云音乐播放器'}
-          allow="autoplay 'none'; fullscreen; picture-in-picture"
+          allow="autoplay; fullscreen; picture-in-picture"
           allowFullScreen
           scrolling="no"
           style={{
@@ -559,8 +557,6 @@ function buildFrameBridgeScript(frameId: string, canOpenImages: boolean, needsJq
     var canOpenImages=${JSON.stringify(canOpenImages)};
     var needsJquery=${JSON.stringify(needsJquery)};
     var normalizeEmbeddedPlayerUrl=${normalizeEmbeddedPlayerUrl.toString()};
-    var disableMediaAutoplay=${disableMediaAutoplay.toString()};
-    (${installMediaPlaybackGuard.toString()})();
     var playerIds=new WeakMap();
     var nextPlayerId=0;
     var lastPlayerLayout='';
@@ -1102,9 +1098,8 @@ function buildFrameBridgeScript(frameId: string, canOpenImages: boolean, needsJq
     }
     function init(){
       var contentRoot=document.querySelector('.capubbs-html-frame-root');
-      if(contentRoot)disableMediaAutoplay(contentRoot);
       if(window.ResizeObserver&&contentRoot)new ResizeObserver(queueHeight).observe(contentRoot);
-      if(window.MutationObserver&&contentRoot)new MutationObserver(function(){disableMediaAutoplay(contentRoot);queueHeight();requestImageResources();prepareImages();prepareGalleries();syncGrayscaleTextColors(contentRoot);}).observe(contentRoot,{attributes:true,characterData:true,childList:true,subtree:true});
+      if(window.MutationObserver&&contentRoot)new MutationObserver(function(){queueHeight();requestImageResources();prepareImages();prepareGalleries();syncGrayscaleTextColors(contentRoot);}).observe(contentRoot,{attributes:true,characterData:true,childList:true,subtree:true});
       window.addEventListener('load',queueHeight);
       window.addEventListener('resize',queueHeight);
       document.addEventListener('scroll',queueHeight,true);
@@ -1140,11 +1135,10 @@ function deferUserScripts(html: string) {
 }
 
 function deferFrameImageSources(html: string) {
-  if (!/<(?:img|iframe|audio|video)\b/i.test(html)) return html;
+  if (!/<(?:img|iframe)\b/i.test(html)) return html;
 
   const template = document.createElement('template');
   template.innerHTML = html;
-  disableMediaAutoplay(template.content);
   template.content.querySelectorAll<HTMLIFrameElement>('iframe[src]').forEach((frame) => {
     const src = normalizeEmbeddedPlayerUrl(frame.getAttribute('src') ?? '', getLegacyContentBaseUrl());
     if (!src) return;
