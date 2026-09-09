@@ -213,16 +213,17 @@ export function ActivityCalendar({ compact = false, error, items, onVisibleDateC
     return groupedActivities;
   }, [items]);
   const selectedActivities = activitiesByDate.get(selectedKey) ?? [];
-  const nextActivity = useMemo(() => (
+  const nextActivities = useMemo(() => (
     items
       .filter((activity) => activity.date > selectedKey)
       .sort((left, right) => (
         left.date.localeCompare(right.date) || left.time.localeCompare(right.time)
-      ))[0] ?? null
+      ))
+      .slice(0, 3)
   ), [items, selectedKey]);
   const displayedActivities = selectedActivities.length > 0
     ? selectedActivities
-    : nextActivity ? [nextActivity] : [];
+    : nextActivities;
 
   function moveMonth(delta: number) {
     const next = new Date(year, month + delta, 1);
