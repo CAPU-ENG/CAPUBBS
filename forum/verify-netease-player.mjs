@@ -1,7 +1,8 @@
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { runInNewContext } from 'node:vm';
-import { getFrameContentOffset, getNetEasePlayerSource, normalizeNetEasePlayerUrl, isNetEasePlayerLayout } from './src/components/thread/netEasePlayer.ts';
+import { getNetEasePlayerSource, normalizeNetEasePlayerUrl } from './src/components/thread/netEasePlayer.ts';
+import { getEmbeddedPlayerSource, getFrameContentOffset, isEmbeddedPlayerLayout, normalizeEmbeddedPlayerUrl } from './src/components/thread/embeddedPlayer.ts';
 
 assert.deepEqual(getFrameContentOffset(null), { left: 0, top: 0 });
 globalThis.window = { getComputedStyle: frame => frame.style };
@@ -28,13 +29,13 @@ for (const value of ['javascript:alert(1)', 'https://music.163.com.evil.test/out
   assert.equal(normalizeNetEasePlayerUrl(value, 'https://localhost'), null);
 }
 const layout = { id: '1', src, left: 12, top: 40, width: 330, height: 86 };
-assert.ok(isNetEasePlayerLayout(layout));
-assert.ok(isNetEasePlayerLayout({ ...layout, src: mobileSrc }));
-assert.equal(isNetEasePlayerLayout({ ...layout, width: NaN }), false);
-assert.equal(isNetEasePlayerLayout({ ...layout, src: 'https://evil.test/' }), false);
+assert.ok(isEmbeddedPlayerLayout(layout));
+assert.ok(isEmbeddedPlayerLayout({ ...layout, src: mobileSrc }));
+assert.equal(isEmbeddedPlayerLayout({ ...layout, width: NaN }), false);
+assert.equal(isEmbeddedPlayerLayout({ ...layout, src: 'https://evil.test/' }), false);
 
 const source = readFileSync(new URL('./src/components/thread/ThreadHtmlContent.tsx', import.meta.url), 'utf8');
-const start = source.indexOf('    function reportNetEasePlayers(){');
+const start = source.indexOf('    function reportEmbeddedPlayers(){');
 const script = source.slice(start, source.indexOf('    function queueHeight(){', start));
 const messages = [];
 const attributes = new Map([['src', src]]);
@@ -48,24 +49,24 @@ let frames = [{
   getBoundingClientRect: () => bounds,
 }];
 const context = {
-  normalizeNetEasePlayerUrl, frameId: 'floor-1', playerIds: new WeakMap(), nextPlayerId: 0, lastPlayerLayout: '',
+  normalizeEmbeddedPlayerUrl, frameId: 'floor-1', playerIds: new WeakMap(), nextPlayerId: 0, lastPlayerLayout: '',
   document: { baseURI: 'http://localhost/bbs/content/', querySelectorAll: () => frames },
   window: { getComputedStyle: () => ({ display: visible ? 'block' : 'none', visibility: 'visible' }), parent: { postMessage: message => messages.push(message) } },
 };
-runInNewContext(script + ';reportNetEasePlayers();', context);
+runInNewContext(script + ';reportEmbeddedPlayers();', context);
 assert.equal(attributes.has('src'), false, 'the nested iframe must stop loading the same player');
 assert.equal(messages[0].players[0].src, src);
-runInNewContext('reportNetEasePlayers()', context);
+runInNewContext('reportEmbeddedPlayers()', context);
 assert.equal(messages.length, 1, 'unchanged layout must not trigger a render loop');
 bounds = { ...bounds, top: 140 };
-runInNewContext('reportNetEasePlayers()', context);
+runInNewContext('reportEmbeddedPlayers()', context);
 assert.equal(messages[1].players[0].top, 140);
 assert.equal(messages[1].players[0].id, '1', 'moving a player must not reload it');
 visible = false;
-runInNewContext('reportNetEasePlayers()', context);
+runInNewContext('reportEmbeddedPlayers()', context);
 assert.equal(messages[2].players.length, 0);
 frames = [];
-runInNewContext('reportNetEasePlayers()', context);
+runInNewContext('reportEmbeddedPlayers()', context);
 assert.equal(messages.length, 3);
 
 // Nonzero geometry is possible inside closed details; the overlay must still hide.
@@ -84,24 +85,47 @@ frames = [{
   parentElement: body,
 }];
 visible = true;
-runInNewContext('reportNetEasePlayers()', context);
+runInNewContext('reportEmbeddedPlayers()', context);
 assert.equal(messages.length, 3, 'closed details must not expose a player with stale nonzero geometry');
 open = true;
-runInNewContext('reportNetEasePlayers()', context);
+runInNewContext('reportEmbeddedPlayers()', context);
 assert.equal(messages.at(-1).players.length, 1, 'expanding details restores the player');
 open = false;
-runInNewContext('reportNetEasePlayers()', context);
+runInNewContext('reportEmbeddedPlayers()', context);
 assert.equal(messages.at(-1).players.length, 0, 'collapsing details removes the overlay');
 frames[0].parentElement = summary;
-runInNewContext('reportNetEasePlayers()', context);
+runInNewContext('reportEmbeddedPlayers()', context);
 assert.equal(messages.at(-1).players.length, 1, 'the first summary stays visible when closed');
 const secondSummary = { tagName: 'SUMMARY', parentElement: details };
 details.children.push(secondSummary);
 frames[0].parentElement = secondSummary;
-runInNewContext('reportNetEasePlayers()', context);
+runInNewContext('reportEmbeddedPlayers()', context);
 assert.equal(messages.at(-1).players.length, 0, 'additional summaries are hidden when closed');
 frames[0].parentElement = summary;
 details.parentElement = { tagName: 'DETAILS', children: [details], hasAttribute: () => false, parentElement: null };
-runInNewContext('reportNetEasePlayers()', context);
+runInNewContext('reportEmbeddedPlayers()', context);
 assert.equal(messages.at(-1).players.length, 0, 'an outer closed details also hides a nested summary player');
-console.log('NetEase player URL validation and layout lifecycle checks passed');
+const bilibiliSrc = 'https://player.bilibili.com/player.html?isOutside=true&aid=113340563130199&bvid=BV16fyYYmEo4&cid=26384728822&p=1&autoplay=0&poster=true&high_quality=1&danmaku=1';
+assert.equal(normalizeEmbeddedPlayerUrl(bilibiliSrc.replace('https:', ''), 'https://localhost'), bilibiliSrc);
+assert.equal(getEmbeddedPlayerSource(bilibiliSrc, 'iPhone Mobile'), bilibiliSrc, 'Bilibili parameters must survive device handling');
+assert.equal(getEmbeddedPlayerSource(src, 'iPhone Mobile'), mobileSrc);
+assert.ok(isEmbeddedPlayerLayout({ ...layout, src: bilibiliSrc }));
+for (const value of ['https://player.bilibili.com.evil.test/player.html', 'https://player.bilibili.com/other', 'https://user@player.bilibili.com/player.html', 'https://player.bilibili.com:8443/player.html', 'javascript:alert(1)']) {
+  assert.equal(normalizeEmbeddedPlayerUrl(value, 'https://localhost'), null);
+  assert.equal(isEmbeddedPlayerLayout({ ...layout, src: value }), false);
+}
+assert.equal(runInNewContext('(' + normalizeEmbeddedPlayerUrl.toString() + ')(src, src)', { URL, src: bilibiliSrc }), bilibiliSrc, 'normalizer injected into the isolated document must be self-contained');
+attributes.set('src', bilibiliSrc);
+details.parentElement = null;
+frames[0].parentElement = body;
+runInNewContext('reportEmbeddedPlayers()', context);
+assert.equal(attributes.has('src'), false, 'Bilibili must not load inside the sandbox');
+assert.equal(messages.at(-1).players.length, 0);
+open = true;
+runInNewContext('reportEmbeddedPlayers()', context);
+assert.equal(messages.at(-1).players[0].src, bilibiliSrc);
+assert.equal(messages.at(-1).players[0].width, bounds.width);
+open = false;
+runInNewContext('reportEmbeddedPlayers()', context);
+assert.equal(messages.at(-1).players.length, 0, 'Bilibili overlay must disappear on collapse');
+console.log('Embedded NetEase and Bilibili player URL validation and layout lifecycle checks passed');

@@ -23,7 +23,7 @@ import {
 } from '../../utils/signatureFloorLink';
 import frameStylesheet from '../../styles/thread-html-frame.css?inline';
 import frameBootstrapUrl from './threadHtmlBootstrap.html?url&no-inline';
-import { getFrameContentOffset, getNetEasePlayerSource, isNetEasePlayerLayout, normalizeNetEasePlayerUrl, type NetEasePlayerLayout } from './netEasePlayer';
+import { getFrameContentOffset, getEmbeddedPlayerSource, isEmbeddedPlayerLayout, normalizeEmbeddedPlayerUrl, type EmbeddedPlayerLayout } from './embeddedPlayer';
 import {
   ForumMarkup,
   type ForumMarkupImageChangeHandler,
@@ -53,9 +53,9 @@ type ThreadHtmlVariant = 'floor' | 'signature';
 
 type HtmlFrameMessage = {
   frameId: string;
-  players: NetEasePlayerLayout[];
+  players: EmbeddedPlayerLayout[];
   source: typeof HTML_FRAME_MESSAGE_SOURCE;
-  type: 'netease-layout';
+  type: 'embedded-player-layout';
 } | {
   frameId: string;
   token: string;
@@ -188,7 +188,7 @@ function ThreadSandboxedHtmlFrame({
   const minHeight = variant === 'signature' ? MIN_SIGNATURE_FRAME_HEIGHT : MIN_FLOOR_FRAME_HEIGHT;
   const canOpenImages = Boolean(onImageOpen);
   const [frameHeight, setFrameHeight] = useState<number | null>(null);
-  const [playerLayout, setPlayerLayout] = useState<{ token: string; players: NetEasePlayerLayout[] } | null>(null);
+  const [playerLayout, setPlayerLayout] = useState<{ token: string; players: EmbeddedPlayerLayout[] } | null>(null);
   const isDarkTheme = useDarkTheme();
   const initialDarkThemeRef = useRef(isDarkTheme);
   const forumContentFontSize = useForumContentFontSize();
@@ -273,7 +273,7 @@ function ThreadSandboxedHtmlFrame({
       if (!frameWindow || event.source !== frameWindow || !isHtmlFrameMessage(event.data)) return;
       if (event.data.frameId !== frameIdRef.current) return;
 
-      if (event.data.type === 'netease-layout') {
+      if (event.data.type === 'embedded-player-layout') {
         setPlayerLayout({ token: documentToken, players: event.data.players });
         return;
       }
@@ -440,10 +440,11 @@ function ThreadSandboxedHtmlFrame({
       {playerLayout?.token === documentToken ? playerLayout.players.map((player) => (
         <iframe
           key={`${documentToken}-${player.id}`}
-          className="thread-netease-player"
-          src={getNetEasePlayerSource(player.src, navigator.userAgent)}
-          title="网易云音乐播放器"
-          allow="autoplay"
+          className="thread-embedded-player"
+          src={getEmbeddedPlayerSource(player.src, navigator.userAgent)}
+          title={new URL(player.src).hostname === 'player.bilibili.com' ? '哔哩哔哩播放器' : '网易云音乐播放器'}
+          allow="autoplay; fullscreen; picture-in-picture"
+          allowFullScreen
           scrolling="no"
           style={{
             left: player.left + frameContentOffset.left,
@@ -555,7 +556,7 @@ function buildFrameBridgeScript(frameId: string, canOpenImages: boolean, needsJq
     var forumBasePath=${JSON.stringify(FORUM_BASE_PATH)};
     var canOpenImages=${JSON.stringify(canOpenImages)};
     var needsJquery=${JSON.stringify(needsJquery)};
-    var normalizeNetEasePlayerUrl=${normalizeNetEasePlayerUrl.toString()};
+    var normalizeEmbeddedPlayerUrl=${normalizeEmbeddedPlayerUrl.toString()};
     var playerIds=new WeakMap();
     var nextPlayerId=0;
     var lastPlayerLayout='';
@@ -685,15 +686,15 @@ function buildFrameBridgeScript(frameId: string, canOpenImages: boolean, needsJq
       var height=getContentHeight();
       window.parent.postMessage({source:'${HTML_FRAME_MESSAGE_SOURCE}',type:'resize',frameId:frameId,height:height},'*');
       Object.keys(imageResourceRequests).forEach(function(requestId){reportImageResourceLayout(requestId);});
-      reportNetEasePlayers();
+      reportEmbeddedPlayers();
     }
-    function reportNetEasePlayers(){
+    function reportEmbeddedPlayers(){
       var players=[];
       Array.prototype.forEach.call(document.querySelectorAll('.capubbs-html-frame-root iframe'),function(player){
-        var raw=player.getAttribute('src')||player.getAttribute('data-capubbs-netease-src')||'';
-        var src=normalizeNetEasePlayerUrl(raw,document.baseURI);
+        var raw=player.getAttribute('src')||player.getAttribute('data-capubbs-player-src')||'';
+        var src=normalizeEmbeddedPlayerUrl(raw,document.baseURI);
         if(!src)return;
-        if(player.getAttribute('data-capubbs-netease-src')!==src)player.setAttribute('data-capubbs-netease-src',src);
+        if(player.getAttribute('data-capubbs-player-src')!==src)player.setAttribute('data-capubbs-player-src',src);
         if(player.hasAttribute('src'))player.removeAttribute('src');
         // Closed details can retain descendant geometry despite not painting it.
         // Only the first direct summary remains visible, including its children.
@@ -711,7 +712,7 @@ function buildFrameBridgeScript(frameId: string, canOpenImages: boolean, needsJq
       var serialized=JSON.stringify(players);
       if(serialized===lastPlayerLayout)return;
       lastPlayerLayout=serialized;
-      window.parent.postMessage({source:'${HTML_FRAME_MESSAGE_SOURCE}',type:'netease-layout',frameId:frameId,players:players},'*');
+      window.parent.postMessage({source:'${HTML_FRAME_MESSAGE_SOURCE}',type:'embedded-player-layout',frameId:frameId,players:players},'*');
     }
     function queueHeight(){
       if(queued)return;
@@ -1139,9 +1140,9 @@ function deferFrameImageSources(html: string) {
   const template = document.createElement('template');
   template.innerHTML = html;
   template.content.querySelectorAll<HTMLIFrameElement>('iframe[src]').forEach((frame) => {
-    const src = normalizeNetEasePlayerUrl(frame.getAttribute('src') ?? '', getLegacyContentBaseUrl());
+    const src = normalizeEmbeddedPlayerUrl(frame.getAttribute('src') ?? '', getLegacyContentBaseUrl());
     if (!src) return;
-    frame.dataset.capubbsNeteaseSrc = src;
+    frame.dataset.capubbsPlayerSrc = src;
     frame.removeAttribute('src');
   });
   template.content.querySelectorAll<HTMLImageElement>('img[src]').forEach((image) => {
@@ -1203,7 +1204,7 @@ function isHtmlFrameMessage(value: unknown): value is HtmlFrameMessage {
   if (!value || typeof value !== 'object') return false;
   const message = value as Partial<HtmlFrameMessage>;
   if (message.source !== HTML_FRAME_MESSAGE_SOURCE || typeof message.frameId !== 'string') return false;
-  if (message.type === 'netease-layout') return Array.isArray(message.players) && message.players.every(isNetEasePlayerLayout);
+  if (message.type === 'embedded-player-layout') return Array.isArray(message.players) && message.players.every(isEmbeddedPlayerLayout);
   if (message.type === 'document-request') return typeof message.token === 'string';
   if (message.type === 'anchor') {
     return typeof message.offsetTop === 'number'

@@ -1824,7 +1824,7 @@
     isolation: isolate;
   }
 
-  .thread-netease-player {
+  .thread-embedded-player {
     position: absolute;
     z-index: 1;
     border: 0;
