@@ -160,13 +160,15 @@ export function TopBar({
 
   useLayoutEffect(() => {
     const topBar = topBarRef.current;
-    if (!topBar || !onBottomChange) return;
+    if (!topBar) return;
     const topBarElement = topBar;
     const activeTransitions = new Set<string>();
     let frame = 0;
 
     function syncBottom() {
-      onBottomChange?.(Math.max(0, topBarElement.getBoundingClientRect().bottom));
+      const bottom = Math.max(0, topBarElement.getBoundingClientRect().bottom);
+      document.documentElement.style.setProperty('--topbar-visible-bottom', `${bottom}px`);
+      onBottomChange?.(bottom);
     }
 
     function trackTransition() {
@@ -204,6 +206,7 @@ export function TopBar({
       topBarElement.removeEventListener('transitionend', handleTransitionEnd);
       topBarElement.removeEventListener('transitioncancel', handleTransitionEnd);
       if (frame) window.cancelAnimationFrame(frame);
+      document.documentElement.style.removeProperty('--topbar-visible-bottom');
     };
   }, [autoHidden, boardsOpen, mobileSidebarOpen, onBottomChange]);
 

@@ -1,4 +1,11 @@
 @layer components {
+  .capubbs-rich-text-editor[data-auto-height="true"] > .capubbs-editor-toolbox {
+    position: sticky;
+    top: var(--topbar-visible-bottom, var(--topbar-height));
+    z-index: 30;
+    background: var(--surface);
+  }
+
   body.html-snippet-dialog-open {
     overflow: hidden;
   }

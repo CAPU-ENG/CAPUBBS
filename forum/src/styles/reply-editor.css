@@ -10,6 +10,10 @@
     box-shadow: var(--shadow-card);
   }
 
+  .reply-editor:has(.capubbs-rich-text-editor[data-auto-height="true"]) {
+    overflow: clip;
+  }
+
   .thread-page-shell > .reply-editor {
     width: 100%;
     max-width: 100%;

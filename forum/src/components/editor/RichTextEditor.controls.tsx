@@ -73,7 +73,7 @@ export function RichTextEditorControls(props: Props) {
   } = props;
 
   return (
-      <div className="bg-white/70 dark:bg-white/[0.04]">
+      <div className="capubbs-editor-toolbox bg-white/70 dark:bg-white/[0.04]">
         {!isSourceMode ? (
           <div className="capubbs-rich-toolbar overflow-x-auto border-b border-zinc-200/80 px-1.5 py-1 dark:border-white/10">
             <div className="flex min-w-max flex-nowrap items-center gap-[0.5px]">

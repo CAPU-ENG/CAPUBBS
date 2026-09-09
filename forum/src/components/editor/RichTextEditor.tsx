@@ -678,7 +678,7 @@ export function RichTextEditor({
     <>
     <section
       ref={editorShellRef}
-      className="capubbs-rich-text-editor relative overflow-hidden rounded-[2px] border border-zinc-200 bg-white/70 shadow-sm dark:border-white/10 dark:bg-white/[0.05]"
+      className={`capubbs-rich-text-editor relative ${isAutoHeightEnabled ? 'overflow-clip' : 'overflow-hidden'} rounded-[2px] border border-zinc-200 bg-white/70 shadow-sm dark:border-white/10 dark:bg-white/[0.05]`}
       data-auto-height={isAutoHeightEnabled ? 'true' : 'false'}
     >
       <RichTextEditorControls
