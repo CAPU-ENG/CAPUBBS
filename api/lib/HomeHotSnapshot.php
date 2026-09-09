@@ -168,9 +168,7 @@ function home_hot_snapshot_query_rows($connection, $limit) {
         select threads.bid,threads.tid,threads.title,threads.author,threads.replyer,
         threads.click,threads.reply,threads.extr,threads.top,threads.locked,
         threads.timestamp,threads.postdate
-        from threads left join thread_global_top
-            on threads.bid=thread_global_top.bid and threads.tid=thread_global_top.tid
-        where thread_global_top.bid is null
+        from threads
         order by threads.timestamp desc
         limit 0,$limit";
     $query = "
@@ -179,8 +177,10 @@ function home_hot_snapshot_query_rows($connection, $limit) {
         recent_threads.top,recent_threads.locked,recent_threads.timestamp,recent_threads.postdate,
         home_author.icon,
         ($latestText) as text,
-        0 as global_top
+        case when thread_global_top.bid is null then 0 else 1 end as global_top
         from ($recentThreads) as recent_threads
+        left join thread_global_top
+            on recent_threads.bid=thread_global_top.bid and recent_threads.tid=thread_global_top.tid
         left join userinfo as home_author
             on home_author.username=coalesce(nullif(recent_threads.replyer,''),recent_threads.author)
         order by recent_threads.timestamp desc";
