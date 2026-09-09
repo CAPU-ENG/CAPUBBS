@@ -695,6 +695,13 @@ function buildFrameBridgeScript(frameId: string, canOpenImages: boolean, needsJq
         if(!src)return;
         if(player.getAttribute('data-capubbs-netease-src')!==src)player.setAttribute('data-capubbs-netease-src',src);
         if(player.hasAttribute('src'))player.removeAttribute('src');
+        // Closed details can retain descendant geometry despite not painting it.
+        // Only the first direct summary remains visible, including its children.
+        for(var child=player,parent=player.parentElement;parent;child=parent,parent=parent.parentElement){
+          if(parent.tagName!=='DETAILS'||parent.hasAttribute('open'))continue;
+          var summary=Array.prototype.find.call(parent.children,function(element){return element.tagName==='SUMMARY';});
+          if(child!==summary)return;
+        }
         var rect=player.getBoundingClientRect();
         var style=window.getComputedStyle(player);
         if(rect.width<=0||rect.height<=0||style.display==='none'||style.visibility==='hidden')return;
@@ -1095,6 +1102,7 @@ function buildFrameBridgeScript(frameId: string, canOpenImages: boolean, needsJq
       window.addEventListener('load',queueHeight);
       window.addEventListener('resize',queueHeight);
       document.addEventListener('scroll',queueHeight,true);
+      document.addEventListener('toggle',queueHeight,true);
       window.addEventListener('unload',revokeImageResourceObjectUrls);
       document.addEventListener('transitionend',queueHeight);
       document.addEventListener('animationend',queueHeight);

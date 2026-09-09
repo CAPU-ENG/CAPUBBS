@@ -67,4 +67,41 @@ assert.equal(messages[2].players.length, 0);
 frames = [];
 runInNewContext('reportNetEasePlayers()', context);
 assert.equal(messages.length, 3);
+
+// Nonzero geometry is possible inside closed details; the overlay must still hide.
+const summary = { tagName: 'SUMMARY' };
+const body = { tagName: 'DIV' };
+let open = false;
+const details = { tagName: 'DETAILS', children: [summary, body], hasAttribute: () => open, parentElement: null };
+summary.parentElement = details;
+body.parentElement = details;
+frames = [{
+  getAttribute: name => attributes.get(name) ?? null,
+  setAttribute: (name, value) => attributes.set(name, value),
+  hasAttribute: name => attributes.has(name),
+  removeAttribute: name => attributes.delete(name),
+  getBoundingClientRect: () => bounds,
+  parentElement: body,
+}];
+visible = true;
+runInNewContext('reportNetEasePlayers()', context);
+assert.equal(messages.length, 3, 'closed details must not expose a player with stale nonzero geometry');
+open = true;
+runInNewContext('reportNetEasePlayers()', context);
+assert.equal(messages.at(-1).players.length, 1, 'expanding details restores the player');
+open = false;
+runInNewContext('reportNetEasePlayers()', context);
+assert.equal(messages.at(-1).players.length, 0, 'collapsing details removes the overlay');
+frames[0].parentElement = summary;
+runInNewContext('reportNetEasePlayers()', context);
+assert.equal(messages.at(-1).players.length, 1, 'the first summary stays visible when closed');
+const secondSummary = { tagName: 'SUMMARY', parentElement: details };
+details.children.push(secondSummary);
+frames[0].parentElement = secondSummary;
+runInNewContext('reportNetEasePlayers()', context);
+assert.equal(messages.at(-1).players.length, 0, 'additional summaries are hidden when closed');
+frames[0].parentElement = summary;
+details.parentElement = { tagName: 'DETAILS', children: [details], hasAttribute: () => false, parentElement: null };
+runInNewContext('reportNetEasePlayers()', context);
+assert.equal(messages.at(-1).players.length, 0, 'an outer closed details also hides a nested summary player');
 console.log('NetEase player URL validation and layout lifecycle checks passed');
