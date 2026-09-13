@@ -16,9 +16,9 @@ assert.equal(new Set(daily.map(item => item.id)).size, 1);
 assert.equal(events.length, 1);
 console.log('Calendar date coverage, leap day, inclusive end date, time labels and unique identity passed.');
 
-assert.equal(calendarHomeTimeLabel(single, 2026), '12/31 09:00');
-assert.equal(calendarHomeTimeLabel(single, 2027), '2026/12/31 09:00');
-assert.equal(calendarHomeTimeLabel({ ...event, end: '2026-12-31T12:30' }, 2026), '12/31 09:00 – 12:30');
-assert.equal(calendarHomeTimeLabel({ ...event, date: '2026-09-13', end: '2026-09-15T18:00' }, 2026), '9/13 09:00 – 9/15 18:00');
-assert.equal(calendarHomeTimeLabel(event, 2026), '12/31 09:00 – 2027/1/2 18:00');
+assert.equal(calendarHomeTimeLabel(single, 2026), '12月31日 09:00');
+assert.equal(calendarHomeTimeLabel(single, 2027), '2026年12月31日 09:00');
+assert.equal(calendarHomeTimeLabel({ ...event, end: '2026-12-31T12:30' }, 2026), '12月31日 09:00 – 12:30');
+assert.equal(calendarHomeTimeLabel({ ...event, date: '2026-09-13', end: '2026-09-15T18:00' }, 2026), '9月13日 09:00 – 9月15日 18:00');
+assert.equal(calendarHomeTimeLabel(event, 2026), '12月31日 09:00 – 2027年1月2日 18:00');
 console.log('Homepage calendar current-year, other-year, same-day and multi-day time labels passed.');

@@ -714,6 +714,7 @@
 
   .calendar-agenda-details {
     display: flex;
+    justify-content: space-between;
     flex-wrap: wrap;
     align-items: flex-start;
     gap: 5px 10px;

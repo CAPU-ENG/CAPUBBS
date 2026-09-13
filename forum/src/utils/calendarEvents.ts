@@ -16,7 +16,7 @@ export function calendarEventTimeLabel(event: HomeCalendarEvent) {
 export function calendarHomeTimeLabel(event: HomeCalendarEvent, currentYear: number) {
   function dateLabel(date: string) {
     const [year, month, day] = date.split('-').map(Number);
-    return `${year === currentYear ? '' : `${year}/`}${month}/${day}`;
+    return `${year === currentYear ? '' : `${year}年`}${month}月${day}日`;
   }
   const start = `${dateLabel(event.date)} ${event.time}`;
   if (!event.end) return start;
