@@ -81,6 +81,9 @@
         exit;
     }
 
+    require_once __DIR__.'/../forum/canonical-route.php';
+    capubbs_redirect_new_forum_alias();
+
     $indexCandidates = array(
         __DIR__.'/../forum/index.html',
         __DIR__.'/../forum/dist/index.html'
