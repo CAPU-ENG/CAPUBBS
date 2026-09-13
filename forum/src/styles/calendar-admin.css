@@ -452,6 +452,29 @@
     line-height: 1.6;
   }
 
+  .calendar-admin-description-input {
+    position: relative;
+    display: block;
+  }
+
+  .calendar-admin-description-input textarea {
+    display: block;
+    padding-bottom: 34px;
+  }
+
+  .calendar-admin-form-fields label .calendar-admin-description-count {
+    position: absolute;
+    right: 18px;
+    bottom: 9px;
+    font-size: var(--ui-font-size-md);
+    line-height: 1;
+    pointer-events: none;
+  }
+
+  .calendar-admin-form-fields label .calendar-admin-description-count-error {
+    color: var(--danger);
+  }
+
   .calendar-admin-form-fields input:focus,
   .calendar-admin-form-fields textarea:focus {
     border-color: var(--brand);

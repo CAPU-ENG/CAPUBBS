@@ -34,6 +34,7 @@ type LoadStatus = 'error' | 'loading' | 'ready';
 
 const WEEKDAYS = ['一', '二', '三', '四', '五', '六', '日'];
 const CALENDAR_MIN_YEAR = 1995;
+const DESCRIPTION_LIMIT = 40;
 const MONTH_OPTIONS = Array.from({ length: 12 }, (_item, month) => month);
 
 export function CalendarAdminPage() {
@@ -50,6 +51,8 @@ export function CalendarAdminPage() {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [isSaving, setIsSaving] = useState(false);
   const [formState, setFormState] = useState<CalendarFormState>(() => emptyForm(today));
+  const descriptionLength = Array.from(formState.description).length;
+  const descriptionTooLong = descriptionLength > DESCRIPTION_LIMIT;
   const [openPeriodPicker, setOpenPeriodPicker] = useState<'month' | 'year' | null>(null);
   const authPending = authStatus === 'loading' || authStatus === 'restoring';
   const isAuthorized = authStatus === 'authenticated'
@@ -156,6 +159,7 @@ export function CalendarAdminPage() {
 
   async function submitForm() {
     if (isSaving) return;
+    if (descriptionTooLong) return showError(`显示说明最多 ${DESCRIPTION_LIMIT} 字。`);
     const title = formState.title.trim();
     const date = formState.date.trim();
     const time = formState.time.trim();
@@ -411,8 +415,13 @@ export function CalendarAdminPage() {
                     <input maxLength={2048} onChange={updateFormField('url')} value={formState.url} />
                   </label>
                   <label>
-                    <span>显示说明 <small>选填 · {formState.description.length} / 40</small></span>
-                    <textarea maxLength={40} onChange={updateFormField('description')} placeholder="地点、集合信息或简短备注" rows={5} value={formState.description} />
+                    <span>显示说明 <small>选填</small></span>
+                    <span className="calendar-admin-description-input">
+                      <textarea aria-describedby="calendar-description-count" aria-invalid={descriptionTooLong} onChange={updateFormField('description')} placeholder="地点、集合信息或简短备注" rows={5} value={formState.description} />
+                      <small className={`calendar-admin-description-count${descriptionTooLong ? ' calendar-admin-description-count-error' : ''}`} id="calendar-description-count">
+                        {descriptionLength} / {DESCRIPTION_LIMIT}
+                      </small>
+                    </span>
                   </label>
                 </div>
 
@@ -420,7 +429,7 @@ export function CalendarAdminPage() {
                   {feedback}
                 </p>
                 <footer>
-                  <button className="calendar-admin-save" disabled={isSaving || loadStatus === 'loading'} onClick={() => void submitForm()} type="button">
+                  <button className="calendar-admin-save" disabled={isSaving || loadStatus === 'loading' || descriptionTooLong} onClick={() => void submitForm()} type="button">
                     {isSaving ? <LoaderCircle className="animate-spin" size={16} /> : <Save size={16} />}
                     {isSaving ? '保存中' : '保存活动'}
                   </button>
