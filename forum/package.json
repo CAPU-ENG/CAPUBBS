@@ -7,6 +7,7 @@
     "dev": "vite --host localhost",
     "build": "tsc -b && vite build",
     "preview": "vite preview --host localhost",
+    "verify:calendar": "node --experimental-strip-types verify-calendar.mjs",
     "typecheck": "tsc -b --pretty false",
     "verify:default-signature": "node --experimental-strip-types verify-default-signature.mjs",
     "verify:floor-quotes": "node --experimental-strip-types verify-floor-quotes.mjs",

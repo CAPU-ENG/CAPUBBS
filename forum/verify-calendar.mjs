@@ -1,0 +1,17 @@
+import assert from 'node:assert/strict';
+import { calendarEventOccursOn, calendarEventTimeLabel } from './src/utils/calendarEvents.ts';
+const event = { id: '42', date: '2026-12-31', time: '09:00', title: '跨年', description: '', url: '', end: '2027-01-02T18:00' };
+assert.deepEqual(['2026-12-30','2026-12-31','2027-01-01','2027-01-02','2027-01-03'].map(date => calendarEventOccursOn(event, date)), [false,true,true,true,false]);
+assert.equal(calendarEventTimeLabel(event), '2026-12-31 09:00 – 2027-01-02 18:00');
+const single = { ...event, end: '' };
+assert.equal(calendarEventOccursOn(single, '2026-12-31'), true);
+assert.equal(calendarEventOccursOn(single, '2027-01-01'), false);
+assert.equal(calendarEventTimeLabel(single), '09:00');
+assert.equal(calendarEventTimeLabel({ ...event, end: '2026-12-31T12:30' }), '09:00 – 12:30');
+assert.equal(calendarEventOccursOn({ ...event, date: '2028-02-28', end: '2028-03-01T00:00' }, '2028-02-29'), true);
+const events = [event];
+const daily = ['2026-12-31','2027-01-01','2027-01-02'].flatMap(date => events.filter(item => calendarEventOccursOn(item, date)));
+assert.equal(daily.length, 3);
+assert.equal(new Set(daily.map(item => item.id)).size, 1);
+assert.equal(events.length, 1);
+console.log('Calendar date coverage, leap day, inclusive end date, time labels and unique identity passed.');

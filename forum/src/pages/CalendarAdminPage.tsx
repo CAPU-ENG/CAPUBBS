@@ -17,11 +17,15 @@ import { LoadingState } from '../components/layout/LoadingState';
 import { TopBar } from '../components/layout/TopBar';
 import { useAuth } from '../context/AuthContext';
 import { useDocumentTitle } from '../hooks/useDocumentTitle';
-import { canManageCalendar, saveCalendarEventsForDate } from '../utils/calendarManagement';
+import { calendarEventOccursOn, calendarEventTimeLabel } from '../utils/calendarEvents';
+import { getForumNavigationHref } from '../utils/forumNavigation';
+import { canManageCalendar, saveCalendarEvent, deleteCalendarEvent } from '../utils/calendarManagement';
 import { getLoginPathWithReturnTo, getRegisterPathWithReturnTo } from '../utils/authRoutes';
 import { toForumHref } from '../utils/forumBasePath';
 
 type CalendarFormState = {
+  end: string;
+  url: string;
   date: string;
   description: string;
   time: string;
@@ -106,16 +110,7 @@ export function CalendarAdminPage() {
     return () => controller.abort();
   }, [isAuthorized]);
 
-  const eventsByDate = useMemo(() => {
-    const grouped = new Map<string, HomeCalendarEvent[]>();
-    events.forEach((event) => {
-      const dateEvents = grouped.get(event.date) ?? [];
-      dateEvents.push(event);
-      grouped.set(event.date, dateEvents);
-    });
-    return grouped;
-  }, [events]);
-  const selectedEvents = eventsByDate.get(selectedDateKey) ?? [];
+  const selectedEvents = events.filter((event) => calendarEventOccursOn(event, selectedDateKey));
   const monthCells = useMemo(() => buildMonthCells(visibleMonth), [visibleMonth]);
 
   function selectDate(date: Date) {
@@ -150,6 +145,8 @@ export function CalendarAdminPage() {
     setVisibleMonth(startOfMonth(date));
     setEditingId(event.id);
     setFormState({
+      end: event.end,
+      url: event.url,
       date: event.date,
       description: event.description,
       time: event.time,
@@ -169,6 +166,8 @@ export function CalendarAdminPage() {
     if (!isValidDateKey(date)) return showError('请选择有效日期。');
     if (!isValidTime(time)) return showError('请选择有效活动时间。');
 
+    if (formState.end && formState.end <= `${date}T${time}`) return showError('结束时间必须晚于开始时间。');
+
     const previousEvent = editingId ? events.find((event) => event.id === editingId) ?? null : null;
     const nextEvent: HomeCalendarEvent = {
       date,
@@ -176,24 +175,19 @@ export function CalendarAdminPage() {
       id: previousEvent?.id ?? `calendar-${date}-${time}-${Date.now()}`,
       time,
       title,
-      url: '',
+      url: formState.url.trim(),
+      end: formState.end,
     };
     const nextEvents = previousEvent
       ? events.map((event) => event.id === previousEvent.id ? nextEvent : event)
       : [...events, nextEvent];
-    const changedDates = Array.from(new Set([previousEvent?.date, nextEvent.date].filter(Boolean))) as string[];
 
     setIsSaving(true);
     setFeedbackKind('info');
     setFeedback('正在保存日历活动…');
 
     try {
-      for (const changedDate of changedDates) {
-        await saveCalendarEventsForDate(
-          changedDate,
-          sortEvents(nextEvents.filter((event) => event.date === changedDate)),
-        );
-      }
+      nextEvent.id = await saveCalendarEvent(nextEvent, previousEvent?.id);
       const sortedEvents = sortEvents(nextEvents);
       const nextSelectedDate = parseDateKey(nextEvent.date);
       setEvents(sortedEvents);
@@ -217,10 +211,7 @@ export function CalendarAdminPage() {
     setFeedback(`正在删除“${event.title}”…`);
 
     try {
-      await saveCalendarEventsForDate(
-        event.date,
-        sortEvents(nextEvents.filter((item) => item.date === event.date)),
-      );
+      await deleteCalendarEvent(event.id);
       setEvents(sortEvents(nextEvents));
       if (editingId === event.id) startCreate();
       setFeedbackKind('success');
@@ -354,7 +345,7 @@ export function CalendarAdminPage() {
                       const isCurrentMonth = date.getMonth() === visibleMonth.getMonth();
                       const isSelected = key === selectedDateKey;
                       const isToday = key === formatDateKey(today);
-                      const hasEvent = eventsByDate.has(key);
+                      const hasEvent = events.some((event) => calendarEventOccursOn(event, key));
                       return (
                         <button
                           aria-label={`${formatDateLabel(date)}${hasEvent ? '，有活动' : ''}`}
@@ -387,8 +378,8 @@ export function CalendarAdminPage() {
                     ) : selectedEvents.map((event) => (
                       <article className={editingId === event.id ? 'calendar-admin-event-editing' : ''} key={event.id}>
                         <div>
-                          <strong>{event.title}</strong>
-                          <span><Clock3 size={13} />{event.time}</span>
+                          <strong>{event.url ? <a href={getForumNavigationHref(event.url, window.location.href)}>{event.title}</a> : event.title}</strong>
+                          <span><Clock3 size={13} />{calendarEventTimeLabel(event)}</span>
                           {event.description ? <p>{event.description}</p> : null}
                         </div>
                         <div className="calendar-admin-event-actions">
@@ -405,7 +396,7 @@ export function CalendarAdminPage() {
                 <div className="calendar-admin-form-fields">
                   <label>
                     <span>活动标题</span>
-                    <input maxLength={40} onChange={updateFormField('title')} placeholder="请输入活动名称" value={formState.title} />
+                    <input maxLength={20} onChange={updateFormField('title')} placeholder="请输入活动名称" value={formState.title} />
                   </label>
                   <div className="calendar-admin-form-row">
                     <label>
@@ -418,8 +409,16 @@ export function CalendarAdminPage() {
                     </label>
                   </div>
                   <label>
+                    <span>结束时间 <small>选填</small></span>
+                    <input min={`${formState.date}T${formState.time}`} onChange={updateFormField('end')} type="datetime-local" value={formState.end} />
+                  </label>
+                  <label>
+                    <span>帖子链接 <small>选填</small></span>
+                    <input maxLength={2048} onChange={updateFormField('url')} value={formState.url} />
+                  </label>
+                  <label>
                     <span>显示说明 <small>选填</small></span>
-                    <textarea maxLength={120} onChange={updateFormField('description')} placeholder="地点、集合信息或简短备注" rows={5} value={formState.description} />
+                    <textarea maxLength={40} onChange={updateFormField('description')} placeholder="地点、集合信息或简短备注" rows={5} value={formState.description} />
                   </label>
                 </div>
 
@@ -469,6 +468,8 @@ function CalendarAdminState({
 
 function emptyForm(date: Date): CalendarFormState {
   return {
+    end: '',
+    url: '',
     date: formatDateKey(date),
     description: '',
     time: '09:00',

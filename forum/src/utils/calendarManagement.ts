@@ -5,6 +5,7 @@ const CALENDAR_MANAGEMENT_API_URL = import.meta.env.VITE_API_URL?.trim() || '/ap
 type ApiEnvelope = {
   code: number;
   message?: string;
+  data?: { id?: string };
 };
 
 export function canManageCalendar(
@@ -14,35 +15,33 @@ export function canManageCalendar(
   return username?.trim() === '组织部' || (rights ?? 0) >= 3;
 }
 
-export async function saveCalendarEventsForDate(
-  date: string,
-  events: HomeCalendarEvent[],
-  signal?: AbortSignal,
-) {
-  const match = date.match(/^(\d{4})-(\d{2})-(\d{2})$/);
-  if (!match) throw new Error('请选择有效日期。');
+export async function saveCalendarEvent(event: HomeCalendarEvent, existingId?: string) {
+  const [year, month, day] = event.date.split('-');
+  const result = await calendarRequest({
+    action: 'save', id: existingId ?? '', year, month, day,
+    title: event.title, content: event.description, time: event.time,
+    url: event.url, end: event.end,
+  });
+  const id = result.data?.id;
+  if (!id) throw new Error('日历服务未返回活动标识，请刷新后重试。');
+  return String(id);
+}
 
+export async function deleteCalendarEvent(id: string) {
+  await calendarRequest({ action: 'delete', id });
+}
+
+async function calendarRequest(params: Record<string, string>) {
   let response: Response;
   try {
     response = await fetch(CALENDAR_MANAGEMENT_API_URL, {
-      body: new URLSearchParams({
-        ask: 'savecalendar',
-        content: JSON.stringify(events.map((event) => ({
-          content: event.description,
-          time: event.time,
-          title: event.title,
-        }))),
-        day: match[3],
-        month: match[2],
-        year: match[1],
-      }),
+      body: new URLSearchParams({ ask: 'savecalendar', ...params }),
       credentials: 'include',
       headers: {
         Accept: 'application/json',
         'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
       },
       method: 'POST',
-      signal,
     });
   } catch (error) {
     if (error instanceof DOMException && error.name === 'AbortError') throw error;
@@ -59,4 +58,5 @@ export async function saveCalendarEventsForDate(
   if (!response.ok || payload.code !== 0) {
     throw new Error(payload.message?.trim() || '日历保存失败，请稍后重试。');
   }
+  return payload;
 }

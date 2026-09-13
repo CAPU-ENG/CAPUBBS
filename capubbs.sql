@@ -110,7 +110,11 @@ CREATE TABLE `calendar` (
   `day` varchar(3) COLLATE utf8mb4_unicode_ci NOT NULL,
   `time` varchar(8) COLLATE utf8mb4_unicode_ci NOT NULL,
   `title` varchar(20) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
-  `content` varchar(40) COLLATE utf8mb4_unicode_ci DEFAULT NULL
+  `content` varchar(40) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `id` bigint unsigned NOT NULL AUTO_INCREMENT,
+  `url` varchar(2048) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `end` datetime DEFAULT NULL,
+  PRIMARY KEY (`id`)
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 

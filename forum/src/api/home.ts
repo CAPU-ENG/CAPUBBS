@@ -47,6 +47,7 @@ export type HomeFeedPage = {
 };
 
 export type HomeCalendarEvent = {
+  end: string;
   date: string;
   description: string;
   id: string;
@@ -425,7 +426,8 @@ function mapCalendarRow(value: unknown, index: number): HomeCalendarEvent | null
   return {
     date,
     description: plainText(value.description),
-    id: `${date}-${time}-${title}-${index}`,
+    end: typeof value.end === 'string' ? value.end.replace(' ', 'T').slice(0, 16) : '',
+    id: String(value.id ?? `${date}-${time}-${title}-${index}`),
     time,
     title,
     url: normalizeCalendarUrl(value.url),

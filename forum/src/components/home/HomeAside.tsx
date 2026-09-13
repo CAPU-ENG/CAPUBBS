@@ -3,6 +3,7 @@ import { Bike, CalendarDays, ChevronLeft, ChevronRight, Clock3, Info, Pin, Setti
 import type { HomeCalendarEvent, HomeSignupActivity, HomeThread } from '../../api/home';
 import { useAuth } from '../../context/AuthContext';
 import type { HomeDataStatus } from '../../hooks/useHomeData';
+import { calendarEventOccursOn, calendarEventTimeLabel } from '../../utils/calendarEvents';
 import { canManageCalendar } from '../../utils/calendarManagement';
 import { toForumHref } from '../../utils/forumBasePath';
 import { getForumNavigationHref } from '../../utils/forumNavigation';
@@ -204,16 +205,7 @@ export function ActivityCalendar({ compact = false, error, items, onVisibleDateC
     });
   }, [month, year]);
 
-  const activitiesByDate = useMemo(() => {
-    const groupedActivities = new Map<string, HomeCalendarEvent[]>();
-    items.forEach((activity) => {
-      const dateActivities = groupedActivities.get(activity.date) ?? [];
-      dateActivities.push(activity);
-      groupedActivities.set(activity.date, dateActivities);
-    });
-    return groupedActivities;
-  }, [items]);
-  const selectedActivities = activitiesByDate.get(selectedKey) ?? [];
+  const selectedActivities = items.filter((activity) => calendarEventOccursOn(activity, selectedKey));
   const nextActivities = useMemo(() => (
     items
       .filter((activity) => activity.date > selectedKey)
@@ -330,7 +322,7 @@ export function ActivityCalendar({ compact = false, error, items, onVisibleDateC
         {cells.map(({ day, offset }, index) => {
           const cellDate = new Date(year, month + offset, day);
           const cellKey = dateKey(cellDate.getFullYear(), cellDate.getMonth(), cellDate.getDate());
-          const hasActivity = activitiesByDate.has(cellKey);
+          const hasActivity = items.some((activity) => calendarEventOccursOn(activity, cellKey));
           const selected = selectedKey === cellKey;
           const isToday = cellKey === todayKey;
           const isPast = cellKey < todayKey;
@@ -372,7 +364,7 @@ export function ActivityCalendar({ compact = false, error, items, onVisibleDateC
               const content = (
                 <>
                   <strong>{activity.title}</strong>
-                  <span><Clock3 size={13} />{selectedActivities.length === 0 ? `${formatCalendarDate(activity.date)} ${activity.time}` : activity.time}</span>
+                  <span><Clock3 size={13} />{selectedActivities.length === 0 && (!activity.end || activity.end.slice(0, 10) === activity.date) ? `${formatCalendarDate(activity.date)} ${calendarEventTimeLabel(activity)}` : calendarEventTimeLabel(activity)}</span>
                   {activity.description && <span><Info size={13} />{activity.description}</span>}
                 </>
               );
