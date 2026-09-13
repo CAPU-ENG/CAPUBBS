@@ -13,14 +13,15 @@ export function getForumModeFromCookieHeader(cookieHeader: string | undefined): 
   return value === 'new' || value === 'legacy' ? value : null;
 }
 
-export function shouldInitializeLegacyForum(cookieHeader: string | undefined) {
-  return getCookieValue(cookieHeader, FORUM_MODE_COOKIE_NAME) === null
+export function shouldInitializeLegacyForum(cookieHeader: string | undefined, userAgent?: string) {
+  return !/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini|Mobile/i.test(userAgent ?? '')
+    && getCookieValue(cookieHeader, FORUM_MODE_COOKIE_NAME) === null
     && Boolean(getCookieValue(cookieHeader, 'token'));
 }
 
-export function resolveForumMode(cookieHeader: string | undefined): ForumMode {
+export function resolveForumMode(cookieHeader: string | undefined, userAgent?: string): ForumMode {
   return getForumModeFromCookieHeader(cookieHeader)
-    ?? (shouldInitializeLegacyForum(cookieHeader) ? 'legacy' : 'new');
+    ?? (shouldInitializeLegacyForum(cookieHeader, userAgent) ? 'legacy' : 'new');
 }
 
 function getCookieValue(cookieHeader: string | undefined, cookieName: string) {

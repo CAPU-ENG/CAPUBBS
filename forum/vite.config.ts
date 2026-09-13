@@ -42,12 +42,12 @@ function forumBasePathFallback(): Plugin {
 function legacyForumCookieProxy(): Plugin {
   function installMiddleware(server: MiddlewareServer) {
     server.middlewares.use((request, response, next) => {
-      if (!isForumRequest(request.url) || resolveForumMode(request.headers.cookie) !== 'legacy') {
+      if (!isForumRequest(request.url) || resolveForumMode(request.headers.cookie, request.headers['user-agent']) !== 'legacy') {
         next();
         return;
       }
 
-      proxyToPhp(request, response, shouldInitializeLegacyForum(request.headers.cookie));
+      proxyToPhp(request, response, shouldInitializeLegacyForum(request.headers.cookie, request.headers['user-agent']));
     });
   }
 

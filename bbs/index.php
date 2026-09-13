@@ -12,7 +12,8 @@
     }
 
     $mode = @$_COOKIE['capubbs_forum_mode'];
-    $hasLegacyLoginToken = !isset($_COOKIE['capubbs_forum_mode'])
+    $isMobileRequest = preg_match('/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini|Mobile/i', (string)@$_SERVER['HTTP_USER_AGENT']) === 1;
+    $hasLegacyLoginToken = !$isMobileRequest && !isset($_COOKIE['capubbs_forum_mode'])
         && trim((string)@$_COOKIE['token']) !== '';
 
     if ($hasLegacyLoginToken) {
@@ -39,7 +40,7 @@
     }
 
     header('Cache-Control: private, no-store');
-    header('Vary: Cookie');
+    header('Vary: Cookie, User-Agent');
     header('Content-Type: text/html; charset=UTF-8');
 
     if ($mode === 'legacy') {

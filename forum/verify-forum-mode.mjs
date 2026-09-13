@@ -74,7 +74,7 @@ assert.match(legacyLoginSource, /<base href="\/bbs\/login\/">/);
 assert.match(legacyMainSource, /<base href="\/bbs\/main\/">/);
 assert.match(gatewaySource, /forum\/dist\/index\.html/);
 assert.match(gatewaySource, /Cache-Control: private, no-store/);
-assert.match(gatewaySource, /Vary: Cookie/);
+assert.match(gatewaySource, /Vary: Cookie, User-Agent/);
 assert.match(gatewaySource, /\$requestPath === '\/bbs\/register\/userexists\.php'/);
 assert.match(gatewaySource, /require \$registerDirectory\.'\/userexists\.php'/);
 assert.doesNotMatch(gatewaySource, /header\('Location:/);
@@ -86,8 +86,8 @@ assert.match(routerSource, /'\/bbs\/register\/userexists\.php'/);
 assert.match(routerSource, /require __DIR__\.'\/bbs\/index\.php'/);
 assert.match(viteConfigSource, /assetsDir: 'new-assets'/);
 assert.match(viteConfigSource, /legacy-forum-cookie-proxy/);
-assert.match(viteConfigSource, /resolveForumMode\(request\.headers\.cookie\) !== 'legacy'/);
-assert.match(viteConfigSource, /shouldInitializeLegacyForum\(request\.headers\.cookie\)/);
+assert.match(viteConfigSource, /resolveForumMode\(request\.headers\.cookie, request\.headers\['user-agent'\]\) !== 'legacy'/);
+assert.match(viteConfigSource, /shouldInitializeLegacyForum\(request\.headers\.cookie, request\.headers\['user-agent'\]\)/);
 assert.match(viteConfigSource, /'\/bbs\/register\/userexists\.php'/);
 
 const oldForumSource = readFileSync(resolve(forumDirectory, '../bbs/index/index.php'), 'utf8');
@@ -109,4 +109,17 @@ assert.match(topBarSource, /data-forum-entry-reload="true"/);
 assert.match(boardNavigationSource, /data-forum-entry-reload="true"/);
 assert.match(appSource, /target\.dataset\.forumEntryReload === 'true'/);
 
-console.log('forum mode verification passed (56 cases)');
+for (const userAgent of ['iPhone', 'Android', 'iPad', 'iPod', 'IEMobile', 'Opera Mini']) {
+  assert.equal(shouldInitializeLegacyForum('token=abc', userAgent), false);
+  for (const cookie of [undefined, 'token=', 'token=abc', 'capubbs_forum_mode=invalid; token=abc']) {
+    assert.equal(resolveForumMode(cookie, userAgent), 'new');
+  }
+  assert.equal(resolveForumMode('capubbs_forum_mode=legacy; token=abc', userAgent), 'legacy');
+  assert.equal(resolveForumMode('capubbs_forum_mode=new; token=abc', userAgent), 'new');
+}
+assert.equal(resolveForumMode('token=abc', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)'), 'legacy');
+for (const source of [gatewaySource, routerSource]) {
+  assert.match(source, /\$hasLegacyLoginToken = !\$isMobileRequest && !isset/);
+  assert.match(source, /HTTP_USER_AGENT/);
+}
+console.log('forum mode verification passed');
