@@ -8,6 +8,7 @@
 <html>
 <head>
 <meta charset="utf-8">
+<base href="/bbs/manage/post_activity/">
 <meta name="apple-itunes-app" content="app-id=826386033">
 <title>报名帖发布</title>
 <script type="text/javascript" src="../../lib/general.js"></script>

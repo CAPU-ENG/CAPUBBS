@@ -34,7 +34,7 @@ if ($bid > 0) {
         if (intval($b['bid']) === $bid) { $bid_valid = true; break; }
     }
     if (!$bid_valid) {
-        echo '<!DOCTYPE html><html><head><meta charset="utf-8"><title>版块不存在</title>';
+        echo '<!DOCTYPE html><html><head><meta charset="utf-8"><base href="/bbs/manage/trash/"><title>版块不存在</title>';
         echo '</head><body style="text-align:center;padding-top:80px;font-family:sans-serif;">';
         echo '<h2 style="color:#c33;">版块不存在</h2>';
         echo '<p>该版块 ID 无效或已被删除。</p>';
@@ -60,6 +60,7 @@ if ($can_access) {
 <html lang="zh-CN">
 <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <base href="/bbs/manage/trash/">
     <title>回收站管理 - CAPUBBS</title>
     <link rel="stylesheet" type="text/css" href="../../lib/general.css">
     <link rel="stylesheet" type="text/css" href="../../main/style.css">

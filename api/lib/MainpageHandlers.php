@@ -64,15 +64,16 @@ function mainpage_getfilesize($params) {
 }
 
 function mainpage_loadcalendar($con, $params) {
-    $year  = isset($params['year'])  ? $params['year']  : '';
-    $month = isset($params['month']) ? $params['month'] : '';
-    $day   = isset($params['day'])   ? $params['day']   : '';
-
-    $year  = mysqli_real_escape_string($con, $year);
-    $month = mysqli_real_escape_string($con, $month);
-    $day   = mysqli_real_escape_string($con, $day);
-
-    $statement = "SELECT * FROM capubbs.calendar WHERE year='$year' AND month='$month' AND day='$day'";
+    require_once __DIR__ . '/Calendar.php';
+    try {
+        $date = calendar_request_date($params);
+    } catch (InvalidArgumentException $error) {
+        return array(array('code' => '6', 'msg' => $error->getMessage()));
+    }
+    $year = intval(substr($date, 0, 4));
+    $month = intval(substr($date, 5, 2));
+    $day = intval(substr($date, 8, 2));
+    $statement = "SELECT * FROM capubbs.calendar WHERE year=$year AND month=$month AND day=$day ORDER BY time,id";
     $results = mysqli_query($con, $statement);
 
     $rows = array();
@@ -91,29 +92,14 @@ function mainpage_savecalendar($con, $params) {
     $auth = mainpage_check_auth($con);
     if (is_array($auth)) return $auth; // error array
 
-    $year    = mysqli_real_escape_string($con, isset($params['year'])    ? $params['year']    : '');
-    $month   = mysqli_real_escape_string($con, isset($params['month'])   ? $params['month']   : '');
-    $day     = mysqli_real_escape_string($con, isset($params['day'])     ? $params['day']     : '');
-    $content = isset($params['content']) ? $params['content'] : '';
-
-    // Clear existing events for this date
-    mysqli_query($con, "DELETE FROM capubbs.calendar WHERE year='$year' AND month='$month' AND day='$day'");
-
-    $events = json_decode($content, true);
-    if (is_array($events)) {
-        foreach ($events as $event) {
-            $time  = mysqli_real_escape_string($con, isset($event['time'])    ? $event['time']    : '');
-            $title = mysqli_real_escape_string($con, isset($event['title'])   ? $event['title']   : '');
-            $text  = mysqli_real_escape_string($con, isset($event['content']) ? $event['content'] : '');
-            mysqli_query($con, "INSERT INTO capubbs.calendar VALUES ('$year','$month','$day','$time','$title','$text')");
-        }
+    require_once __DIR__ . '/Calendar.php';
+    try {
+        return calendar_save($con, $params);
+    } catch (InvalidArgumentException $error) {
+        return array(array('code' => '6', 'msg' => $error->getMessage()));
+    } catch (Exception $error) {
+        return array(array('code' => '8', 'msg' => '日历保存失败，请稍后重试。'));
     }
-
-    $errno = mysqli_errno($con);
-    if ($errno !== 0) {
-        return array(array('code' => '8', 'msg' => 'Database error: ' . $errno));
-    }
-    return array(array('code' => '0'));
 }
 
 function mainpage_addinform($con, $params) {

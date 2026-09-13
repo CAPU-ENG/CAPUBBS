@@ -1,3 +1,108 @@
 <?php
-    header("Location: /bbs/index/");
+    $requestPath = parse_url(@$_SERVER['REQUEST_URI'], PHP_URL_PATH);
+    if ($requestPath === '/bbs/register/userexists.php') {
+        $registerDirectory = __DIR__.'/register';
+        if (!chdir($registerDirectory)) {
+            http_response_code(500);
+            echo 'Internal Server Error';
+            exit;
+        }
+        require $registerDirectory.'/userexists.php';
+        exit;
+    }
+
+    $mode = @$_COOKIE['capubbs_forum_mode'];
+
+    header('Cache-Control: private, no-store');
+    header('Vary: Cookie');
+    header('Content-Type: text/html; charset=UTF-8');
+
+    if ($mode === 'legacy') {
+        $requestPath = is_string($requestPath) ? rtrim($requestPath, '/') : '/bbs';
+        if ($requestPath === '') $requestPath = '/bbs';
+
+        $legacyDirectory = 'index';
+        if ($requestPath === '/bbs') {
+            if (intval(@$_GET['bid']) > 0 && intval(@$_GET['tid']) > 0) {
+                $legacyDirectory = 'content';
+            } elseif (intval(@$_GET['bid']) > 0) {
+                $legacyDirectory = 'main';
+            }
+        } elseif (preg_match('#^/bbs/users/([^/]+)$#', $requestPath, $matches)) {
+            $_GET['name'] = rawurldecode($matches[1]);
+            $_REQUEST['name'] = $_GET['name'];
+            $legacyDirectory = 'user';
+        } else {
+            $legacyRouteDirectories = array(
+                '/bbs/attach' => 'attach',
+                '/bbs/boardcast' => 'boardcast',
+                '/bbs/content' => 'content',
+                '/bbs/delattach' => 'delattach',
+                '/bbs/delete' => 'delete',
+                '/bbs/deletelzl' => 'deletelzl',
+                '/bbs/download' => 'download',
+                '/bbs/editpid' => 'editpid',
+                '/bbs/edituser' => 'edituser',
+                '/bbs/favorite' => 'favorite',
+                '/bbs/forgot-password' => 'login',
+                '/bbs/home' => 'home',
+                '/bbs/index' => 'index',
+                '/bbs/login' => 'login',
+                '/bbs/logout' => 'logout',
+                '/bbs/main' => 'main',
+                '/bbs/manage' => 'manage',
+                '/bbs/manage/email_mute' => 'manage/email_mute',
+                '/bbs/manage/post_activity' => 'manage/post_activity',
+                '/bbs/manage/reset_password' => 'manage/reset_password',
+                '/bbs/manage/trash' => 'manage/trash',
+                '/bbs/message' => 'message',
+                '/bbs/move' => 'move',
+                '/bbs/online' => 'online',
+                '/bbs/post' => 'post',
+                '/bbs/postlzl' => 'postlzl',
+                '/bbs/register' => 'register',
+                '/bbs/search' => 'search',
+                '/bbs/settid' => 'settid',
+                '/bbs/sign' => 'sign',
+                '/bbs/user' => 'user'
+            );
+            if (isset($legacyRouteDirectories[$requestPath])) {
+                $legacyDirectory = $legacyRouteDirectories[$requestPath];
+            }
+        }
+
+        $legacyPath = __DIR__.'/'.$legacyDirectory;
+        if (!chdir($legacyPath)) {
+            http_response_code(500);
+            echo 'Internal Server Error';
+            exit;
+        }
+        require $legacyPath.'/index.php';
+        exit;
+    }
+
+    require_once __DIR__.'/../forum/canonical-route.php';
+    capubbs_redirect_new_forum_alias();
+
+    $indexCandidates = array(
+        __DIR__.'/../forum/index.html',
+        __DIR__.'/../forum/dist/index.html'
+    );
+    $indexContents = false;
+    foreach ($indexCandidates as $indexCandidate) {
+        if (!is_readable($indexCandidate)) continue;
+        $candidateContents = file_get_contents($indexCandidate);
+        if ($candidateContents === false || strpos($candidateContents, '/src/main.tsx') !== false) continue;
+        $indexContents = $candidateContents;
+        break;
+    }
+
+    if ($indexContents === false) {
+        http_response_code(503);
+        echo 'Service Unavailable';
+        exit;
+    }
+
+    echo $indexContents;
+    exit;
 ?>

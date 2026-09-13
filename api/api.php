@@ -31,6 +31,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
 
 require_once __DIR__ . '/lib/ApiError.php';
 require_once __DIR__ . '/lib/ApiResponse.php';
+require_once __DIR__ . '/lib/HomeHotSnapshot.php';
 
 // Collect parameters. Start with all request data, then override with
 // sanitized versions for the core fields that jiekoufunc_dispatch expects.
@@ -59,6 +60,10 @@ if (in_array($params['ask'], $mainpage_asks, true)) {
 } else {
     require_once __DIR__ . '/dispatch.php';
     $result = jiekoufunc_dispatch($con, $params);
+}
+
+if (home_hot_snapshot_should_mark_dirty($params['ask'], $result)) {
+    home_hot_snapshot_mark_dirty();
 }
 
 ApiResponse::fromDispatchResult($result)->send();

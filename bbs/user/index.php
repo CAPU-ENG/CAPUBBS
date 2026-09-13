@@ -17,6 +17,7 @@
 <head>
 <title>CAPUBBS - 个人信息</title>
 <meta charset="utf-8">
+<base href="/bbs/user/">
 <link rel="stylesheet" href="../lib/general.css">
 <link rel="shortcut icon" href="/assets/images/capu.jpg">
 <script src="/assets/js/jquery.min.js"></script>

@@ -14,7 +14,7 @@
     "tid"=>$tid));
     $result=$result[0];
     if($result['code']==0){
-        header("Location: ../main/?tid=$tid&bid=$bid&p=$page");
+        header("Location: /bbs/main/?tid=$tid&bid=$bid&p=$page");
     }else{
         echo(json_encode($result));
     }

@@ -88,7 +88,7 @@
 <script type="text/javascript" src="../lib/json2.js"></script>
 <script src="../lib/jquery.min.js"></script>
 <link rel="stylesheet" href="../lib/general.css">
-<link rel="stylesheet" href="style.css">
+<link rel="stylesheet" href="style.css?v=<?php echo filemtime(__DIR__ . '/style.css'); ?>">
 <link rel="shortcut icon" href="/assets/images/capu.jpg">
 </head>
 <body>
@@ -509,7 +509,13 @@ $(window).load(function() {
             var img = $(this);
             var width = parseInt(img.css("width"));
             width = (width > 700) ? 700 : width;
-            img.css("width", width);
+            var pixelDimension = /^\d+(?:\.\d+)?(?:px)?$/i;
+            var hasPixelDimensions = (
+                pixelDimension.test(img.attr("width") || "") && pixelDimension.test(img.attr("height") || "")
+            ) || (
+                pixelDimension.test(img[0].style.width || "") && pixelDimension.test(img[0].style.height || "")
+            );
+            img.css(hasPixelDimensions ? {"width": width, "height": "auto"} : {"width": width});
         });
     });
 });

@@ -519,16 +519,16 @@ function jiekoufunc_delete($con, $token, $bid, $tid, $pid) {
     }
     if ($pid == $number) {
         $newpid = $pid - 1;
-        $statement = "select author,updatetime from posts where bid=$bid && tid=$tid && pid=$newpid";
+        $statement = "select author,replytime from posts where bid=$bid && tid=$tid && pid=$newpid";
         $r2 = mysqli_query($con, $statement);
         $rf = mysqli_fetch_row($r2);
-        $na = $rf[0];
-        $nu = $rf[1];
+        $previous_author = $rf[0];
+        $previous_replytime = $rf[1];
         if ($newpid != 1) {
-            $statement = "update threads set replyer='$na',timestamp=$nu, reply=$new_reply where bid=$bid && tid=$tid";
+            $statement = "update threads set replyer='$previous_author',timestamp=$previous_replytime, reply=$new_reply where bid=$bid && tid=$tid";
             mysqli_query($con, $statement);
         } else {
-            $statement = "update threads set replyer=null,timestamp=$nu, reply=$new_reply where bid=$bid && tid=$tid";
+            $statement = "update threads set replyer=null,timestamp=$previous_replytime, reply=$new_reply where bid=$bid && tid=$tid";
             mysqli_query($con, $statement);
         }
         return array(array('code' => '0'));

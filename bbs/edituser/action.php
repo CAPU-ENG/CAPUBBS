@@ -37,7 +37,7 @@ $result=mainfunc(array(
 $result=$result[0];
 #echo(json_encode($result));
 if($result['code']=="0"){
-    header("Location: ../home");
+    header("Location: /bbs/home");
     echo("Succeed.");
 }else{
     echo($result['msg']);

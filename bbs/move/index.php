@@ -19,7 +19,7 @@
     if ($code==0) {
         $bid=$result['bid'];
         $tid=$result['tid'];
-        header("Location: ../content/?bid=$bid&tid=$tid");
+        header("Location: /bbs/content/?bid=$bid&tid=$tid");
     }
     else
         echo $result['msg'];

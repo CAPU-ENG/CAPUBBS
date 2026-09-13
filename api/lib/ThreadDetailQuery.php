@@ -20,10 +20,13 @@ function jiekoufunc_thread_detail($con, $bid, $tid, $params, $token, $ip) {
 
     $page = thread_detail_query_int_param($params, 'page', thread_detail_query_int_param($params, 'p', 1));
     $author_only = thread_detail_query_bool_param($params, 'authorOnly') || thread_detail_query_bool_param($params, 'see_lz');
+    $include_tags = thread_detail_query_bool_param($params, 'tag');
+    $include_medals = thread_detail_query_bool_param($params, 'medal');
+    $include_decoration = thread_detail_query_bool_param($params, 'decoration');
+    $prefetch = thread_detail_query_bool_param($params, 'prefetch');
     $render = thread_detail_query_render_param($params);
 
     $current_username = thread_detail_query_current_username($con, $token);
-    $viewer = thread_detail_query_get_viewer($con, $current_username);
 
     $thread_row = thread_detail_query_get_thread($con, $bid, $tid);
     if ($thread_row === false) {
@@ -45,8 +48,10 @@ function jiekoufunc_thread_detail($con, $bid, $tid, $params, $token, $ip) {
         return jiekoufunc_report('-2', '本版块需要登录后才能查看');
     }
 
-    thread_detail_query_record_view($con, $bid, $tid, $current_username, $ip);
-    $thread_row['click'] = intval($thread_row['click']) + 1;
+    if (!$prefetch) {
+        thread_detail_query_record_view($con, $bid, $tid, $current_username, $ip);
+        $thread_row['click'] = intval($thread_row['click']) + 1;
+    }
 
     $total = $author_only
         ? thread_detail_query_count_author_floors($con, $bid, $tid, $thread_row['author'])
@@ -75,11 +80,33 @@ function jiekoufunc_thread_detail($con, $bid, $tid, $params, $token, $ip) {
     $attachment_ids = thread_detail_query_collect_attachment_ids($all_post_rows);
     $attachments_by_id = thread_detail_query_get_attachments_by_id($con, $attachment_ids);
     $authors = thread_detail_query_collect_authors($all_post_rows, $lzl_by_fid);
-    $profiles_by_username = thread_detail_query_get_profiles_by_username($con, $authors);
+    if ($current_username !== '' && !in_array($current_username, $authors, true)) {
+        $authors[] = $current_username;
+    }
+    $profiles_by_username = thread_detail_query_get_profiles_by_username(
+        $con,
+        $authors,
+        $include_tags,
+        $include_medals
+    );
+    if ($include_decoration && !empty($profiles_by_username)) {
+        $decorations_by_username = floor_decoration_query_by_usernames($con, array_keys($profiles_by_username));
+        foreach ($profiles_by_username as $profile_username => &$profile) {
+            $profile['_floor_decoration'] = isset($decorations_by_username[$profile_username])
+                ? $decorations_by_username[$profile_username]
+                : floor_decoration_empty();
+        }
+        unset($profile);
+    }
+    $viewer = isset($profiles_by_username[$current_username])
+        ? thread_detail_query_pack_profile($profiles_by_username[$current_username], true)
+        : null;
     $rights = thread_detail_query_get_board_rights($board_row, $viewer);
-    $favorite_count = thread_detail_query_get_favorite_count($con, $bid, $tid);
     $bookmarked = $current_username ? thread_detail_query_is_favorite($con, $current_username, $bid, $tid) : false;
-    $activity = thread_detail_query_get_activity($con, $bid, $tid);
+    $activity = intval(isset($thread_row['activity_id']) ? $thread_row['activity_id'] : 0) > 0
+        ? thread_detail_query_get_activity($con, $bid, $tid)
+        : null;
+    $viewer_state = thread_detail_query_pack_viewer_state($thread_row, $board_row, $viewer, $rights, $bookmarked);
 
     $main_post = thread_detail_query_pack_floor(
         $main_post_row,
@@ -114,9 +141,12 @@ function jiekoufunc_thread_detail($con, $bid, $tid, $params, $token, $ip) {
             'page' => $page,
             'render' => $render,
             'authorOnly' => $author_only,
+            'tag' => $include_tags ? 1 : 0,
+            'medal' => $include_medals ? 1 : 0,
+            'decoration' => $include_decoration ? 1 : 0,
         ),
         'board' => thread_detail_query_pack_board($board_row),
-        'thread' => thread_detail_query_pack_thread($thread_row, $board_row, $favorite_count, $activity),
+        'thread' => thread_detail_query_pack_thread($thread_row, $board_row, $activity),
         'mainPost' => $main_post,
         'floorsPage' => array(
             'items' => $floor_items,
@@ -130,10 +160,46 @@ function jiekoufunc_thread_detail($con, $bid, $tid, $params, $token, $ip) {
         ),
         'activity' => $activity,
         'viewer' => $viewer,
-        'viewerState' => thread_detail_query_pack_viewer_state($thread_row, $board_row, $viewer, $rights, $bookmarked),
+        'viewerState' => $viewer_state,
     );
 
     return array(array('code' => '0'), $payload);
+}
+
+/**
+ * Register an actual thread visit without reloading the thread body. Cached
+ * navigation uses this endpoint after rendering the stored content.
+ */
+function jiekoufunc_thread_view($con, $bid, $tid, $token, $ip) {
+    $bid = intval($bid);
+    $tid = intval($tid);
+    if ($bid <= 0 || $tid <= 0) {
+        return jiekoufunc_report('-1', '缺少帖子参数。');
+    }
+
+    $thread_row = thread_detail_query_fetch_one($con, "
+        select bid, tid, click
+        from threads
+        where bid=$bid and tid=$tid
+        limit 1");
+    if ($thread_row === false) {
+        return jiekoufunc_report('8', '数据库查询失败。');
+    }
+    if (!$thread_row) {
+        return jiekoufunc_report('3', '主题不存在。');
+    }
+
+    $current_username = thread_detail_query_current_username($con, $token);
+    if ($bid === 1 && $current_username === '') {
+        return jiekoufunc_report('-2', '本版块需要登录后才能查看');
+    }
+
+    thread_detail_query_record_view($con, $bid, $tid, $current_username, $ip);
+    return array(array('code' => '0'), array(
+        'bid' => $bid,
+        'tid' => $tid,
+        'views' => intval(isset($thread_row['click']) ? $thread_row['click'] : 0) + 1,
+    ));
 }
 
 function thread_detail_query_int_param($params, $key, $default) {
@@ -196,18 +262,6 @@ function thread_detail_query_get_thread($con, $bid, $tid) {
 
 function thread_detail_query_get_board($con, $bid) {
     return thread_detail_query_fetch_one($con, "select * from boardinfo where bid=$bid limit 1");
-}
-
-function thread_detail_query_get_viewer($con, $username) {
-    if (!$username) {
-        return null;
-    }
-    $username_escaped = mysqli_real_escape_string($con, $username);
-    $row = thread_detail_query_fetch_one($con, "select * from userinfo where username='$username_escaped' limit 1");
-    if (!$row || $row === false) {
-        return null;
-    }
-    return thread_detail_query_pack_profile($row, true);
 }
 
 function thread_detail_query_record_view($con, $bid, $tid, $username, $ip) {
@@ -348,7 +402,7 @@ function thread_detail_query_collect_authors($post_rows, $lzl_by_fid) {
     return array_values($authors);
 }
 
-function thread_detail_query_get_profiles_by_username($con, $usernames) {
+function thread_detail_query_get_profiles_by_username($con, $usernames, $include_tags = false, $include_medals = false) {
     if (count($usernames) === 0) {
         return array();
     }
@@ -363,6 +417,24 @@ function thread_detail_query_get_profiles_by_username($con, $usernames) {
     $profiles = array();
     foreach ($rows as $row) {
         $profiles[$row['username']] = $row;
+    }
+    if ($include_tags && !empty($profiles)) {
+        $tags_by_username = jiekoufunc_query_user_tags($con, array_keys($profiles));
+        foreach ($profiles as $username => &$profile) {
+            $profile['_tags'] = isset($tags_by_username[$username])
+                ? $tags_by_username[$username]
+                : array();
+        }
+        unset($profile);
+    }
+    if ($include_medals && !empty($profiles) && function_exists('medal_query_thread_by_usernames')) {
+        $medals_by_username = medal_query_thread_by_usernames($con, array_keys($profiles));
+        foreach ($profiles as $username => &$profile) {
+            $profile['_medals'] = isset($medals_by_username[$username])
+                ? $medals_by_username[$username]
+                : array();
+        }
+        unset($profile);
     }
     return $profiles;
 }
@@ -399,11 +471,6 @@ function thread_detail_query_get_board_rights($board_row, $viewer) {
         'username' => $username,
         'rights' => $rights,
     );
-}
-
-function thread_detail_query_get_favorite_count($con, $bid, $tid) {
-    $row = thread_detail_query_fetch_one($con, "select count(*) as num from favorites where bid=$bid and tid=$tid");
-    return intval($row && $row !== false ? $row['num'] : 0);
 }
 
 function thread_detail_query_is_favorite($con, $username, $bid, $tid) {
@@ -467,6 +534,8 @@ function thread_detail_query_get_activity($con, $bid, $tid) {
         'season_id' => $activity_row['season_id'],
         'name' => $activity_row['name'],
         'leader_username' => $activity_row['leader_username'],
+        'signup_window' => activity_signup_window_for_activity($con, $activity_id),
+        'schedule' => activity_schedule_for_activity($con, $activity_id),
         'options' => $options,
     );
 }
@@ -500,11 +569,10 @@ function thread_detail_query_pack_board($row) {
         'hidden' => intval(isset($row['hide']) ? $row['hide'] : 0) === 1,
         'moderators' => $moderators,
         'requiredStar' => intval(isset($row['need']) ? $row['need'] : 0),
-        'raw' => thread_detail_query_strip_numeric_keys($row),
     );
 }
 
-function thread_detail_query_pack_thread($row, $board_row, $favorite_count, $activity) {
+function thread_detail_query_pack_thread($row, $board_row, $activity) {
     $bid = intval($row['bid']);
     $tid = intval($row['tid']);
     $board = thread_detail_query_pack_board($board_row);
@@ -521,7 +589,6 @@ function thread_detail_query_pack_thread($row, $board_row, $favorite_count, $act
         'author' => thread_detail_query_string($row['author']),
         'replyer' => thread_detail_query_string(isset($row['replyer']) ? $row['replyer'] : ''),
         'views' => intval($row['click']),
-        'favorites' => $favorite_count,
         'replies' => intval($row['reply']),
         'digest' => intval($row['extr']) > 0,
         'pinned' => intval($row['top']) > 0,
@@ -536,7 +603,6 @@ function thread_detail_query_pack_thread($row, $board_row, $favorite_count, $act
             'name' => $board['name'],
             'title' => $board['title'],
         ),
-        'raw' => thread_detail_query_strip_numeric_keys($row),
     );
 }
 
@@ -577,7 +643,6 @@ function thread_detail_query_pack_floor($row, $profiles_by_username, $lzl_by_fid
         'type' => thread_detail_query_string(isset($row['type']) ? $row['type'] : ''),
         'canEdit' => thread_detail_query_can_manage_author_content($author, $rights, $current_username),
         'canDelete' => thread_detail_query_can_manage_author_content($author, $rights, $current_username),
-        'raw' => thread_detail_query_strip_numeric_keys($row),
     );
 
     if ($render === 'raw' || $render === 'both') {
@@ -642,10 +707,8 @@ function thread_detail_query_pack_nested_replies($rows, $profiles_by_username, $
             'author' => $author !== '' ? $author : '匿名用户',
             'authorAvatar' => $profile ? thread_detail_query_translate_icon(thread_detail_query_string(isset($profile['icon']) ? $profile['icon'] : '')) : '',
             'content' => $text,
-            'contentHtml' => nl2br(htmlspecialchars($text, ENT_QUOTES, 'UTF-8')),
             'createdAt' => thread_detail_query_format_timestamp(isset($row['time']) ? $row['time'] : ''),
             'canDelete' => thread_detail_query_can_manage_author_content($author, $rights, $current_username),
-            'raw' => thread_detail_query_strip_numeric_keys($row),
         );
     }
     return $items;
@@ -676,6 +739,17 @@ function thread_detail_query_pack_profile($row, $include_viewer_fields) {
             '3' => thread_detail_query_string(isset($row['sig3']) ? $row['sig3'] : ''),
         ),
     );
+    if (array_key_exists('_tags', $row)) {
+        $profile['tags'] = is_array($row['_tags']) ? $row['_tags'] : array();
+    }
+    if (array_key_exists('_medals', $row)) {
+        $profile['medals'] = is_array($row['_medals']) ? $row['_medals'] : array();
+    }
+    if (array_key_exists('_floor_decoration', $row)) {
+        $profile['floorDecoration'] = is_array($row['_floor_decoration'])
+            ? $row['_floor_decoration']
+            : floor_decoration_empty();
+    }
     if ($include_viewer_fields) {
         $profile['unreadMessages'] = intval(isset($row['newmsg']) ? $row['newmsg'] : 0);
     }
@@ -772,20 +846,6 @@ function thread_detail_query_string($value) {
     return strval($value);
 }
 
-function thread_detail_query_strip_numeric_keys($row) {
-    $clean = array();
-    foreach ($row as $key => $value) {
-        if (is_int($key)) {
-            continue;
-        }
-        if ($key === 'password' || $key === 'token' || $key === 'tokentime') {
-            continue;
-        }
-        $clean[$key] = $value;
-    }
-    return $clean;
-}
-
 function thread_detail_query_translate_icon($icon) {
     if (is_numeric($icon) || is_numeric(substr($icon, 1))) {
         return '/bbsimg/i/' . $icon . '.gif';
@@ -804,17 +864,7 @@ function thread_detail_query_translate_for_quote($raw, $is_html) {
     if (!$is_html) {
         $html = str_replace(' ', '&nbsp;', $html);
     }
-    $html = preg_replace("#(\\[img])(.+?)(\\[/img])#", "<img src='$2'>", $html);
-    $html = preg_replace("#(\\[quote=)(.+?)(])([\\s\\S]+?)(\\[/quote])#", '', $html);
-    $html = preg_replace("#(\\[size=)(.+?)(])([\\s\\S]+?)(\\[/size])#", "<font size='$2'>$4</font>", $html);
-    $html = preg_replace("#(\\[font=)(.+?)(])([\\s\\S]+?)(\\[/font])#", "<font face='$2'>$4</font>", $html);
-    $html = preg_replace("#(\\[color=)(.+?)(])([\\s\\S]+?)(\\[/color])#", "<font color='$2'>$4</font>", $html);
-    $html = preg_replace("#(\\[at])(.+?)(\\[/at])#", "<a class='author' href='../user?name=$2' target='_blank'>@$2</a>", $html);
-    $html = preg_replace("#(\\[url])(.+?)(\\[/url])#", "<a href='$2' class='link' target='_blank'>$2</a>", $html);
-    $html = preg_replace("#(\\[url=)(.+?)(])([\\s\\S]+?)(\\[/url])#", "<a href='$2' class='link' target='_blank'>$4</a>", $html);
-    $html = preg_replace("#(\\[b])(.+?)(\\[/b])#", '<b>$2</b>', $html);
-    $html = preg_replace("#(\\[i])(.+?)(\\[/i])#", '<i>$2</i>', $html);
-    return $html;
+    return thread_detail_query_render_bbcode($html, true);
 }
 
 function thread_detail_query_translate($raw, $is_html, $space = true) {
@@ -828,17 +878,169 @@ function thread_detail_query_translate($raw, $is_html, $space = true) {
     if (!$space) {
         $html = str_replace(' ', '&nbsp;', $html);
     }
-    $html = preg_replace("#(\\[img])(.+?)(\\[/img])#", "<img src='$2'>", $html);
-    $quote = "<div class='quotel'><div class='quoter'>引用自 <a class='author' href='../user?name=$2' target='_blank'>$2</a> ：<br>$4<br></div><br></div>";
-    $html = preg_replace("#(\\[quote=)(.+?)(])([\\s\\S]+?)(\\[/quote])#", $quote, $html);
-    $html = preg_replace("#(\\[size=)(.+?)(])([\\s\\S]+?)(\\[/size])#", "<font size='$2'>$4</font>", $html);
-    $html = preg_replace("#(\\[font=)(.+?)(])([\\s\\S]+?)(\\[/font])#", "<font face='$2'>$4</font>", $html);
-    $html = preg_replace("#(\\[color=)(.+?)(])([\\s\\S]+?)(\\[/color])#", "<font color='$2'>$4</font>", $html);
-    $html = preg_replace("#(\\[color=)(.+?)(])([\\s\\S]+?)#", "<font color='$2'>$4</font>", $html);
-    $html = preg_replace("#(\\[at])(.+?)(\\[/at])#", "<a class='author' href='../user?name=$2' target='_blank'>@$2</a>", $html);
-    $html = preg_replace("#(\\[url])(.+?)(\\[/url])#", "<a href='$2' class='link' target='_blank'>$2</a>", $html);
-    $html = preg_replace("#(\\[url=)(.+?)(])([\\s\\S]+?)(\\[/url])#", "<a href='$2' class='link' target='_blank'>$4</a>", $html);
-    $html = preg_replace("#(\\[b])(.+?)(\\[/b])#", '<b>$2</b>', $html);
-    $html = preg_replace("#(\\[i])(.+?)(\\[/i])#", '<i>$2</i>', $html);
+    return thread_detail_query_render_bbcode($html, false);
+}
+
+/**
+ * Render the BBCode dialect used by legacy posts and signatures.
+ *
+ * The parser deliberately keeps an opening tag active until its matching
+ * closing tag or the end of the content. This mirrors how browsers recover
+ * from unclosed HTML while avoiding byte-wise regex matches that can split a
+ * UTF-8 character. Mismatched inner tags are closed at the current closing
+ * tag, and unmatched closing tags remain visible as literal text.
+ */
+function thread_detail_query_render_bbcode($html, $for_quote) {
+    $root = array(
+        'type' => 'tag',
+        'tag' => 'root',
+        'argument' => null,
+        'children' => array(),
+    );
+    $stack = array();
+    $stack[] =& $root;
+    $pattern = '#\[(/?)(img|quote|size|font|color|at|url|b|i)(?:=([^\]\r\n]*))?\]#iu';
+    $match_count = preg_match_all($pattern, $html, $matches, PREG_SET_ORDER | PREG_OFFSET_CAPTURE);
+
+    if ($match_count === false) {
+        return $html;
+    }
+
+    $cursor = 0;
+    foreach ($matches as $match) {
+        $token = $match[0][0];
+        $token_offset = $match[0][1];
+        if ($token_offset > $cursor) {
+            thread_detail_query_bbcode_append_text($stack, substr($html, $cursor, $token_offset - $cursor));
+        }
+
+        $closing = $match[1][0] === '/';
+        $tag = strtolower($match[2][0]);
+        $argument = isset($match[3]) && $match[3][1] >= 0 ? $match[3][0] : null;
+
+        if ($closing) {
+            $open_index = -1;
+            if ($argument === null) {
+                for ($index = count($stack) - 1; $index >= 1; $index--) {
+                    if ($stack[$index]['tag'] === $tag) {
+                        $open_index = $index;
+                        break;
+                    }
+                }
+            }
+
+            if ($open_index < 0) {
+                thread_detail_query_bbcode_append_text($stack, $token);
+            } else {
+                while (count($stack) - 1 >= $open_index) {
+                    array_pop($stack);
+                }
+            }
+        } elseif (!thread_detail_query_bbcode_valid_opening($tag, $argument)) {
+            thread_detail_query_bbcode_append_text($stack, $token);
+        } else {
+            $current =& $stack[count($stack) - 1];
+            $current['children'][] = array(
+                'type' => 'tag',
+                'tag' => $tag,
+                'argument' => $argument,
+                'children' => array(),
+            );
+            $child_index = count($current['children']) - 1;
+            $stack[] =& $current['children'][$child_index];
+            unset($current);
+        }
+
+        $cursor = $token_offset + strlen($token);
+    }
+
+    if ($cursor < strlen($html)) {
+        thread_detail_query_bbcode_append_text($stack, substr($html, $cursor));
+    }
+
+    return thread_detail_query_render_bbcode_children($root['children'], $for_quote);
+}
+
+function thread_detail_query_bbcode_valid_opening($tag, $argument) {
+    if (in_array($tag, array('quote', 'size', 'font', 'color'), true)) {
+        return $argument !== null && $argument !== '';
+    }
+    if ($tag === 'url') {
+        return $argument === null || $argument !== '';
+    }
+    return $argument === null;
+}
+
+function thread_detail_query_bbcode_append_text(&$stack, $text) {
+    if ($text === '') {
+        return;
+    }
+    $current =& $stack[count($stack) - 1];
+    $current['children'][] = array(
+        'type' => 'text',
+        'value' => $text,
+    );
+    unset($current);
+}
+
+function thread_detail_query_render_bbcode_children($children, $for_quote) {
+    $html = '';
+    foreach ($children as $child) {
+        if ($child['type'] === 'text') {
+            $html .= $child['value'];
+            continue;
+        }
+
+        $content = thread_detail_query_render_bbcode_children($child['children'], $for_quote);
+        $text_content = thread_detail_query_bbcode_text_content($child['children']);
+        $argument = $child['argument'];
+        switch ($child['tag']) {
+            case 'img':
+                $html .= "<img src='$text_content'>";
+                break;
+            case 'quote':
+                if (!$for_quote) {
+                    $html .= "<div class='quotel'><div class='quoter'>引用自 <a class='author' href='../user?name=$argument' target='_blank'>$argument</a> ：<br>$content<br></div><br></div>";
+                }
+                break;
+            case 'size':
+                $html .= "<font size='$argument'>$content</font>";
+                break;
+            case 'font':
+                $html .= "<font face='$argument'>$content</font>";
+                break;
+            case 'color':
+                $html .= "<font color='$argument'>$content</font>";
+                break;
+            case 'at':
+                $html .= "<a class='author' href='../user?name=$text_content' target='_blank'>@$content</a>";
+                break;
+            case 'url':
+                $href = $argument === null ? $text_content : $argument;
+                $html .= "<a href='$href' class='link' target='_blank'>$content</a>";
+                break;
+            case 'b':
+                $html .= "<b>$content</b>";
+                break;
+            case 'i':
+                $html .= "<i>$content</i>";
+                break;
+            default:
+                $html .= $content;
+                break;
+        }
+    }
     return $html;
+}
+
+function thread_detail_query_bbcode_text_content($children) {
+    $text = '';
+    foreach ($children as $child) {
+        if ($child['type'] === 'text') {
+            $text .= $child['value'];
+        } else {
+            $text .= thread_detail_query_bbcode_text_content($child['children']);
+        }
+    }
+    return $text;
 }

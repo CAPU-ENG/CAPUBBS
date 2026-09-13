@@ -73,15 +73,18 @@ function jiekoufunc_bbsinfo($con, $bid, $name) {
             $time2 = strtotime("$date 23:59:59");
             $statement = "select
                 (select count(*) from threads where bid=$bid) as topics,
+                /* 新版版面标题卡片需要真实回复总数，保留原有统计字段并追加 replies。 */
+                (select coalesce(sum(reply), 0) from threads where bid=$bid) as replies,
                 (select count(*) from threads where bid=$bid && extr=1) as extr,
                 (select count(*) from threads where bid=$bid && postdate='$date') as newpost,
                 (select count(*) from posts where bid=$bid && replytime>=$time1 && replytime<=$time2) as newreply";
             $resultt = mysqli_query($con, $statement);
-            $counts = mysqli_fetch_row($resultt);
-            $info['topics'] = $counts[0];
-            $info['extr'] = $counts[1];
-            $info['newpost'] = $counts[2];
-            $info['newreply'] = $counts[3];
+            $counts = mysqli_fetch_assoc($resultt);
+            $info['topics'] = $counts['topics'];
+            $info['replies'] = $counts['replies'];
+            $info['extr'] = $counts['extr'];
+            $info['newpost'] = $counts['newpost'];
+            $info['newreply'] = $counts['newreply'];
         }
         $infos[] = $info;
     }
@@ -137,9 +140,36 @@ function jiekoufunc_user_profile($con, $params) {
         }
     }
 
-    $rows = jiekoufunc_view_user_array($con, $username, $viewer);
+    $include_tags = isset($params['tag']) ? intval($params['tag']) : 0;
+    $rows = jiekoufunc_view_user_array($con, $username, $viewer, $include_tags);
     if (count($rows) === 0) {
         return jiekoufunc_report('3', '用户不存在。');
+    }
+
+    $decoration = floor_decoration_query_for_username($con, $username);
+    foreach ($rows as &$row) {
+        $row['floorDecoration'] = $decoration;
+    }
+    unset($row);
+
+    $include_medals = isset($params['medal']) && intval($params['medal']) === 1;
+    if ($include_medals) {
+        $profile_usernames = array();
+        foreach ($rows as $row) {
+            if (isset($row['username']) && strval($row['username']) !== '') {
+                $profile_usernames[] = strval($row['username']);
+            }
+        }
+        $medals_by_username = function_exists('medal_query_profile_by_usernames')
+            ? medal_query_profile_by_usernames($con, $profile_usernames)
+            : array();
+        foreach ($rows as &$row) {
+            $profile_username = isset($row['username']) ? strval($row['username']) : '';
+            $row['medals'] = isset($medals_by_username[$profile_username])
+                ? $medals_by_username[$profile_username]
+                : array();
+        }
+        unset($row);
     }
 
     return array_merge(array(array('code' => '0', 'count' => strval(count($rows)))), $rows);
@@ -149,8 +179,11 @@ function jiekoufunc_hot($con, $token, $params) {
     $hotnum = 10;
     if (isset($params['hotnum']) && $params['hotnum'])
         $hotnum = $params['hotnum'];
+    $text_param = isset($params['text']) ? strtolower(trim(strval($params['text']))) : '';
+    $include_text = in_array($text_param, array('1', 'true', 'yes', 'on'), true);
     $time = time();
     $infos = array();
+    $nowuser = '';
 
     $statement = "select username from userinfo where token='$token' && $time<=tokentime+{$GLOBALS['validtime']}";
     $results = mysqli_query($con, $statement);
@@ -158,19 +191,50 @@ function jiekoufunc_hot($con, $token, $params) {
         $infos[] = array('nowuser' => '');
     } else {
         $res = mysqli_fetch_array($results);
-        $infos[] = array('nowuser' => $res[0]);
+        $nowuser = $res[0];
+        $infos[] = array('nowuser' => $nowuser);
     }
 
-    $results = mysqli_query($con, "
-        select threads.bid,threads.tid,title,author,replyer,click,reply,extr,top,locked,timestamp,postdate,
+    $text_select = '';
+    if ($include_text) {
+        $latest_text = "
+            select latest_post.text
+            from posts as latest_post force index (unique_btp_id)
+            where latest_post.bid=recent_threads.bid and latest_post.tid=recent_threads.tid
+            order by latest_post.pid desc
+            limit 1";
+        if ($nowuser === '') {
+            $text_select = ",case when recent_threads.bid=1 then null else ($latest_text) end as text";
+        } else {
+            $text_select = ",($latest_text) as text";
+        }
+    }
+
+    // Legacy callers keep excluding global pins unless explicitly requested.
+    $global_top_filter = isset($params['include_global_top']) && strval($params['include_global_top']) === '1'
+        ? '' : 'where thread_global_top.bid is null';
+    $recent_threads = "
+        select threads.bid,threads.tid,threads.title,threads.author,threads.replyer,threads.click,threads.reply,
+        threads.extr,threads.top,threads.locked,threads.timestamp,threads.postdate,
         case
             when thread_global_top.bid is null then 0
             else 1
         end as global_top
         from threads left join thread_global_top on threads.bid=thread_global_top.bid and threads.tid=thread_global_top.tid
-        where thread_global_top.bid is null
-        order by timestamp desc
-        limit 0,$hotnum");
+        $global_top_filter
+        order by threads.timestamp desc
+        limit 0,$hotnum";
+
+    $results = mysqli_query($con, "
+        select recent_threads.bid,recent_threads.tid,recent_threads.title,recent_threads.author,
+        recent_threads.replyer,recent_threads.click,recent_threads.reply,recent_threads.extr,
+        recent_threads.top,recent_threads.locked,recent_threads.timestamp,recent_threads.postdate,
+        home_author.icon$text_select,
+        recent_threads.global_top
+        from ($recent_threads) as recent_threads
+        left join userinfo as home_author
+            on home_author.username=coalesce(nullif(recent_threads.replyer,''),recent_threads.author)
+        order by recent_threads.timestamp desc");
     while ($res = mysqli_fetch_array($results)) {
         $info = array();
         foreach ($res as $key => $value) {
@@ -180,6 +244,50 @@ function jiekoufunc_hot($con, $token, $params) {
         $infos[] = $info;
     }
     return $infos;
+}
+
+function jiekoufunc_random_thread($con, $token) {
+    $viewer = jiekoufunc_token2user($con, $token);
+    $visibility_condition = $viewer ? '' : ' and threads.bid!=1';
+    $from_and_where = "
+        from threads
+        inner join boardinfo on boardinfo.bid=threads.bid
+        where boardinfo.hide=0$visibility_condition";
+
+    $count_result = mysqli_query($con, "select count(*) as total$from_and_where");
+    if ($count_result === false) {
+        return jiekoufunc_report('8', '随机帖子查询失败。');
+    }
+
+    $count_row = mysqli_fetch_assoc($count_result);
+    $thread_count = intval(isset($count_row['total']) ? $count_row['total'] : 0);
+    if ($thread_count <= 0) {
+        return jiekoufunc_report('3', '暂无可浏览的帖子。');
+    }
+
+    // 使用服务端毫秒时间戳作为种子；截取 7 位散列可兼容 32 位 PHP 整数。
+    $seed = sprintf('%.0f', floor(microtime(true) * 1000));
+    $random_value = hexdec(substr(hash('sha256', $seed), 0, 7));
+    $offset = intval($random_value % $thread_count);
+
+    $thread_result = mysqli_query($con, "
+        select threads.bid,threads.tid
+        $from_and_where
+        order by threads.bid,threads.tid
+        limit $offset,1");
+    if ($thread_result === false) {
+        return jiekoufunc_report('8', '随机帖子查询失败。');
+    }
+
+    $thread = mysqli_fetch_assoc($thread_result);
+    if (!$thread) {
+        return jiekoufunc_report('3', '暂无可浏览的帖子。');
+    }
+
+    return array(
+        array('code' => '0'),
+        array('bid' => intval($thread['bid']), 'tid' => intval($thread['tid']))
+    );
 }
 
 function jiekoufunc_global_top($con, $token) {
@@ -218,10 +326,13 @@ function jiekoufunc_tidinfo($con, $bid, $tid) {
     return jiekoufunc_view_bbs_array($con, $statement);
 }
 
-function jiekoufunc_recentpost($con, $view, $limit_raw = '') {
+function jiekoufunc_recentpost($con, $view, $limit_raw = '', $offset_raw = '') {
     $view = mysqli_real_escape_string($con, $view);
     $limit_val = _parse_limit($limit_raw, 10);
-    $limit_clause = ($limit_val === null) ? '' : " limit 0,$limit_val";
+    $offset_val = max(0, intval($offset_raw));
+    $limit_clause = ($limit_val === null)
+        ? ($offset_val > 0 ? " limit $offset_val,18446744073709551615" : '')
+        : " limit $offset_val,$limit_val";
     $results = mysqli_query($con, "select bid,tid,pid,title,author,replytime as timestamp from posts where author='$view' and pid=1 order by replytime desc$limit_clause");
     $infos = array();
     $infos[] = array('nowuser' => '');
@@ -236,11 +347,15 @@ function jiekoufunc_recentpost($con, $view, $limit_raw = '') {
     return $infos;
 }
 
-function jiekoufunc_recentreply($con, $view, $limit_raw = '') {
+function jiekoufunc_recentreply($con, $view, $limit_raw = '', $offset_raw = '', $replies_only = false) {
     $view = mysqli_real_escape_string($con, $view);
     $limit_val = _parse_limit($limit_raw, 10);
-    $limit_clause = ($limit_val === null) ? '' : " limit 0,$limit_val";
-    $results = mysqli_query($con, "select title, bid, tid, pid, updatetime from posts where author='$view' order by updatetime desc$limit_clause");
+    $offset_val = max(0, intval($offset_raw));
+    $limit_clause = ($limit_val === null)
+        ? ($offset_val > 0 ? " limit $offset_val,18446744073709551615" : '')
+        : " limit $offset_val,$limit_val";
+    $reply_clause = $replies_only ? ' and pid>1' : '';
+    $results = mysqli_query($con, "select title, bid, tid, pid, updatetime from posts where author='$view'$reply_clause order by updatetime desc$limit_clause");
     $infos = array();
     $infos[] = array('nowuser' => '');
     while ($res = mysqli_fetch_array($results)) {
@@ -529,12 +644,13 @@ function jiekoufunc_editpreview($con, $token, $bid, $tid, $pid) {
     return $infos;
 }
 
-function jiekoufunc_currentUserInfo($con, $token) {
+function jiekoufunc_currentUserInfo($con, $token, $params = array()) {
     $user = jiekoufunc_token2user($con, $token);
     if (!$user) {
         return array(array());
     }
-    return jiekoufunc_view_user_array($con, $user['username'], $user['username']);
+    $include_tags = isset($params['tag']) ? intval($params['tag']) : 0;
+    return jiekoufunc_view_user_array($con, $user['username'], $user['username'], $include_tags);
 }
 
 function jiekoufunc_msg($con, $token, $type, $params) {
@@ -543,6 +659,84 @@ function jiekoufunc_msg($con, $token, $type, $params) {
         return array(array('code' => '1', 'msg' => '尚未登录'));
     }
     $username = mysqli_real_escape_string($con, $user['username']);
+    // Opt-in protocol for the new forum. Legacy callers continue below unchanged.
+    if (isset($params['mode']) && $params['mode'] === 'forum') {
+        $rows = array();
+        $changed = false;
+        if ($type === 'system') {
+            $page = max(1, isset($params['p']) ? intval($params['p']) : 1);
+            $start = ($page - 1) * 10;
+            // Reading a page never marks notifications read or reorders them by read state.
+            $result = mysqli_query($con, "select * from messages where receiver='$username' and sender='system' order by time desc,id desc limit $start,10");
+            while ($one = mysqli_fetch_array($result)) {
+                $msgtype = $one['text'];
+                $title = $one['rmsg'];
+                if (!in_array($msgtype, array('reply', 'at', 'replylzl', 'replylzlreply', 'quote'), true)) {
+                    $title = $msgtype;
+                    $msgtype = 'plain';
+                }
+                $rpid = intval($one['rpid']);
+                $thread_page = ceil($rpid / 12);
+                $rows[] = array(
+                    'id' => strval($one['id']), 'username' => $one['ruser'],
+                    'type' => $msgtype, 'title' => $title,
+                    'url' => '/bbs/content/?bid=' . $one['rbid'] . '&tid=' . $one['rtid'] . "&p=$thread_page#$rpid",
+                    'time' => strval($one['time']), 'hasread' => strval($one['hasread'])
+                );
+            }
+        } elseif ($type === 'private') {
+            // Aggregate numerically: GROUP_CONCAT can truncate long conversations.
+            $result = mysqli_query($con, "select peer, max(time) as latest, sum(unread) as unread, count(*) as total from (
+                select sender as peer,time,(hasread=0) as unread from messages where receiver='$username' and sender!='system'
+                union all
+                select receiver as peer,time,0 as unread from messages where sender='$username' and receiver!='$username'
+            ) as conversations group by peer order by latest desc,peer");
+            while ($one = mysqli_fetch_array($result)) {
+                $peer = mysqli_real_escape_string($con, $one['peer']);
+                $last = mysqli_fetch_array(mysqli_query($con, "select text,time from messages where (receiver='$username' and sender='$peer') or (receiver='$peer' and sender='$username') order by time desc,id desc limit 1"));
+                $rows[] = array('username' => $one['peer'], 'text' => $last['text'],
+                    'time' => strval($last['time']), 'number' => strval($one['unread']), 'totalnum' => strval($one['total']));
+            }
+        } elseif ($type === 'chat') {
+            $to = isset($params['to']) ? trim($params['to']) : '';
+            if ($to === '' || strcasecmp($to, 'system') === 0) return jiekoufunc_report('4', '请选择私信对象');
+            $to = mysqli_real_escape_string($con, $to);
+            $result = mysqli_query($con, "select * from messages where (receiver='$username' and sender='$to') or (sender='$username' and receiver='$to') order by time,id");
+            $last_message_id = 0;
+            while ($one = mysqli_fetch_array($result)) {
+                $last_message_id = max($last_message_id, intval($one['id']));
+                $rows[] = array('type' => $one['sender'] === $user['username'] ? 'send' : 'get',
+                    'text' => $one['text'], 'time' => strval($one['time']));
+            }
+            // Do not consume a message arriving after the SELECT.
+            mysqli_query($con, "update messages set hasread=1 where receiver='$username' and sender='$to' and hasread=0 and id<=$last_message_id");
+            $changed = true;
+        } elseif ($type === 'read') {
+            $category = isset($params['category']) ? $params['category'] : '';
+            $id = isset($params['message_id']) ? intval($params['message_id']) : 0;
+            if ($id > 0) {
+                $scope = "sender='system' and id=$id";
+            } elseif ($category === 'replies') {
+                $scope = "sender='system'";
+            } elseif ($category === 'direct') {
+                $scope = "sender!='system'";
+            } else {
+                return jiekoufunc_report('4', '请选择消息');
+            }
+            mysqli_query($con, "update messages set hasread=1 where receiver='$username' and hasread=0 and $scope");
+            $changed = true;
+        } elseif ($type !== 'count') {
+            return jiekoufunc_report('4', '消息类型错误');
+        }
+        $counts = mysqli_fetch_array(mysqli_query($con, "select coalesce(sum(sender='system'),0) as replies, coalesce(sum(sender!='system'),0) as direct from messages where receiver='$username' and hasread=0"));
+        $replies = intval($counts['replies']);
+        $direct = intval($counts['direct']);
+        if ($changed) {
+            mysqli_query($con, "update userinfo set newmsg=(select count(*) from messages where receiver='$username' and hasread=0) where username='$username' limit 1");
+        }
+        return array(array('code' => '0'), array('rows' => $rows,
+            'unread' => array('replies' => $replies, 'direct' => $direct, 'total' => $replies + $direct)));
+    }
     $p = isset($params['p']) ? $params['p'] : '';
 
     $result = mysqli_fetch_array(mysqli_query($con, "select count(1) as c from messages where receiver='$username' and sender='system' and hasread=0"));
@@ -694,27 +888,51 @@ function jiekoufunc_login($con, $username_raw, $password, $ip, $params) {
         $statement = "update userinfo set tokentime=$nowtime, token='$token', nowboard=null, lastdate='$today',onlinetype='$onlinetype',logininfo='$logininfo' where username='$username'";
     mysqli_query($con, $statement);
 
-    jiekoufunc_auto_sign($con, $username);
+    jiekoufunc_auto_sign($con, $username_raw);
 
     return array(array('code' => '0', 'username' => $username, 'token' => $token));
 }
 
 function jiekoufunc_auto_sign($con, $username) {
-    $time = time();
-    $year = date("Y", $time);
-    $month = date("m", $time);
-    $day = date("d", $time);
-    $statement = "select * from capubbs.sign where year=$year && month=$month && day=$day && username='$username'";
-    $result = mysqli_query($con, $statement);
-    if (mysqli_num_rows($result) == 0) {
+    // Resolve the stored spelling so case/collation-equivalent logins share a lock.
+    $username = mysqli_real_escape_string($con, $username);
+    $result = mysqli_query($con, "select username from capubbs.userinfo where username='$username' limit 1");
+    if (!$result) return;
+    $user = mysqli_fetch_row($result);
+    if (!$user) return;
+    $lock_name = 'capubbs_sign_' . sha1($user[0]);
+    $username = mysqli_real_escape_string($con, $user[0]);
+
+    // A busy/unavailable lock skips this attempt; a later request can sign in.
+    try {
+        $result = mysqli_query($con, "select GET_LOCK('$lock_name', 1)");
+    } catch (Exception $error) {
+        return;
+    }
+    if (!$result) return;
+    $lock = mysqli_fetch_row($result);
+    if (!$lock || intval($lock[0]) !== 1) return;
+
+    try {
+        $time = time();
+        $year = date("Y", $time);
+        $month = date("m", $time);
+        $day = date("d", $time);
+        $statement = "select * from capubbs.sign where year=$year && month=$month && day=$day && username='$username'";
+        $result = mysqli_query($con, $statement);
+        if (!$result || mysqli_num_rows($result) > 0) return;
+
         $hour = date("H", $time);
         $minute = date("i", $time);
         $second = date("s", $time);
         $week = date("N", $time);
         $statement = "insert into capubbs.sign values ($year,$month,$day,$hour,$minute,$second,$week,'$username')";
-        mysqli_query($con, $statement);
-        $statement = "update capubbs.userinfo set sign=sign+1 where username='$username'";
-        mysqli_query($con, $statement);
+        if (mysqli_query($con, $statement) && mysqli_affected_rows($con) === 1) {
+            $statement = "update capubbs.userinfo set sign=sign+1 where username='$username'";
+            mysqli_query($con, $statement);
+        }
+    } finally {
+        mysqli_query($con, "select RELEASE_LOCK('$lock_name')");
     }
 }
 
@@ -983,6 +1201,41 @@ function jiekoufunc_edituser($con, $token, $ip, $params) {
     }
     $username = $a['username'];
     $username_esc = mysqli_real_escape_string($con, $username);
+    $display_tag_ids = null;
+    if (array_key_exists('display_tag_ids', $params)) {
+        if (is_array($params['display_tag_ids'])) {
+            return jiekoufunc_report('14', '佩戴标签参数格式错误。');
+        }
+        $display_tag_ids = array();
+        $raw_display_tag_ids = trim(strval($params['display_tag_ids']));
+        if ($raw_display_tag_ids !== '') {
+            $parts = preg_split('/[,\s]+/', $raw_display_tag_ids, -1, PREG_SPLIT_NO_EMPTY);
+            foreach ($parts as $part) {
+                if (!preg_match('/^\d+$/', $part) || intval($part) <= 0) {
+                    return jiekoufunc_report('14', '佩戴标签参数格式错误。');
+                }
+                $tag_id = intval($part);
+                if (!in_array($tag_id, $display_tag_ids, true)) {
+                    $display_tag_ids[] = $tag_id;
+                }
+            }
+        }
+        if (count($display_tag_ids) > 2) {
+            return jiekoufunc_report('14', '最多只能佩戴两个标签。');
+        }
+        $display_table_check = mysqli_query($con, "SELECT 1 FROM user_tag_displays LIMIT 1");
+        if (!$display_table_check) {
+            return jiekoufunc_report('8', '佩戴标签功能尚未完成数据库初始化。');
+        }
+        if (!empty($display_tag_ids)) {
+            $owned_result = mysqli_query($con,
+                "SELECT tag_id FROM user_tag_members
+                 WHERE username='$username_esc' AND tag_id IN (" . implode(',', $display_tag_ids) . ")");
+            if (!$owned_result || mysqli_num_rows($owned_result) !== count($display_tag_ids)) {
+                return jiekoufunc_report('14', '只能佩戴自己拥有的标签。');
+            }
+        }
+    }
     $sig1 = isset($params['sig1']) ? mysqli_real_escape_string($con, sanitize_xml($params['sig1'])) : '';
     $sig2 = isset($params['sig2']) ? mysqli_real_escape_string($con, sanitize_xml($params['sig2'])) : '';
     $sig3 = isset($params['sig3']) ? mysqli_real_escape_string($con, sanitize_xml($params['sig3'])) : '';
@@ -1016,6 +1269,23 @@ function jiekoufunc_edituser($con, $token, $ip, $params) {
     $upsert_err = upsert_user_sigs($con, $username_esc, $sig_vals, $sig_type_vals);
     if ($upsert_err !== null) {
         return array(array('code' => '1', 'error' => '保存签名档失败: ' . $upsert_err));
+    }
+    if ($display_tag_ids !== null) {
+        mysqli_begin_transaction($con);
+        if (!mysqli_query($con, "DELETE FROM user_tag_displays WHERE username='$username_esc'")) {
+            mysqli_rollback($con);
+            return jiekoufunc_report('8', '保存佩戴标签失败。');
+        }
+        foreach ($display_tag_ids as $index => $tag_id) {
+            $display_order = $index + 1;
+            if (!mysqli_query($con,
+                "INSERT INTO user_tag_displays (username, tag_id, display_order)
+                 VALUES ('$username_esc', $tag_id, $display_order)")) {
+                mysqli_rollback($con);
+                return jiekoufunc_report('8', '保存佩戴标签失败。');
+            }
+        }
+        mysqli_commit($con);
     }
     return array(array('code' => '0', 'username' => $username));
 }
@@ -1182,8 +1452,26 @@ function jiekoufunc_favorite_check($con, $token, $bid, $tid) {
     return array(array('code' => '0', 'favorited' => $favorited));
 }
 
-function jiekoufunc_calendar($con) {
+function jiekoufunc_calendar($con, $params = array()) {
+    $full = isset($params['full']) && strval($params['full']) === '1';
+    $start_date = isset($params['start_date']) ? trim(strval($params['start_date'])) : '';
+    $end_date = isset($params['end_date']) ? trim(strval($params['end_date'])) : '';
+
+    if (!$full && (!preg_match('/^\d{4}-\d{2}-\d{2}$/', $start_date)
+        || !preg_match('/^\d{4}-\d{2}-\d{2}$/', $end_date))) {
+        $current_year = intval(date('Y'));
+        $start_date = ($current_year - 1) . '-01-01';
+        $end_date = ($current_year + 1) . '-12-31';
+    }
+
     $statement = "select * from capubbs.calendar";
+    if (!$full) {
+        $start_date = mysqli_real_escape_string($con, $start_date);
+        $end_date = mysqli_real_escape_string($con, $end_date);
+        $calendar_date = "STR_TO_DATE(CONCAT(year, '-', month, '-', day), '%Y-%c-%e')";
+        $statement .= " where COALESCE(`end`, $calendar_date) >= '$start_date 00:00:00' and $calendar_date <= '$end_date'";
+    }
+    $statement .= " order by year, month, day, time";
     $results = mysqli_query($con, $statement);
     $infos = array();
     while ($res = mysqli_fetch_array($results)) {
@@ -1734,129 +2022,6 @@ function jiekoufunc_recent_threads($con, $params) {
     return jiekoufunc_view_bbs_array($con, $sql);
 }
 
-/**
- * Return the N hottest threads, with multiple heat-calculation methods.
- *
- * Supported methods (params['method']):
- *   reply_count    — pure reply count
- *   recent_activity — reply count within the time window
- *   engagement     — replies + unique participants + clicks
- *   hacker_news    — gravity-based decay: replies / (hours + 2)^1.5
- *   composite      — weighted mix of replies, 24h activity, and clicks (default)
- *
- * @param $con    mysqli connection
- * @param $params array with optional keys:
- *                limit   (default 10, max 100)
- *                bid     (0=all boards)
- *                method  (default 'composite')
- *                days    (time window in days, default 7)
- *                min_replies (minimum reply count threshold, default 0)
- */
-function jiekoufunc_hot_threads($con, $params) {
-    $limit = isset($params['limit']) ? intval($params['limit']) : 10;
-    $bid = isset($params['bid']) ? intval($params['bid']) : 0;
-    $method = isset($params['method']) ? $params['method'] : 'composite';
-    $days = isset($params['days']) ? intval($params['days']) : 7;
-    $min_replies = isset($params['min_replies']) ? intval($params['min_replies']) : 0;
-
-    if ($limit <= 0) $limit = 10;
-    if ($limit > 100) $limit = 100;
-    if ($days <= 0) $days = 7;
-
-    $cutoff = time() - ($days * 86400);
-    $bid_where = ($bid > 0) ? "AND t.bid = $bid" : "";
-
-    // Total LZL count per thread (sum of lzl counters across all posts)
-    $lzl_total = "(SELECT COALESCE(SUM(p2.lzl), 0) FROM posts p2 WHERE p2.bid = t.bid AND p2.tid = t.tid)";
-    // Total replies + LZL (used for scoring and threshold)
-    $total_eng = "(t.reply + $lzl_total)";
-    $reply_min = ($min_replies > 0) ? "AND $total_eng >= $min_replies" : "";
-
-    switch ($method) {
-        case 'reply_count':
-            $sql = "SELECT t.bid, t.tid, t.title, t.author, t.replyer,
-                           t.click, t.reply, t.timestamp, t.postdate,
-                           t.extr, t.top, t.locked,
-                           $total_eng AS score
-                    FROM threads t
-                    WHERE t.timestamp >= $cutoff $bid_where $reply_min
-                    ORDER BY score DESC
-                    LIMIT $limit";
-            break;
-
-        case 'recent_activity':
-            // Recent posts + recent LZL within the time window.
-            // LZL is stored in the `lzl` table with a `time` column.
-            $lzl_recent = "(SELECT COUNT(*) FROM lzl
-                            WHERE fid IN (SELECT fid FROM posts WHERE bid = t.bid AND tid = t.tid)
-                            AND time >= $cutoff)";
-            $sql = "SELECT t.bid, t.tid, t.title, t.author, t.replyer,
-                           t.click, t.reply, t.timestamp, t.postdate,
-                           t.extr, t.top, t.locked,
-                           (COUNT(p.fid) + COALESCE($lzl_recent, 0)) AS score
-                    FROM threads t
-                    LEFT JOIN posts p ON t.bid = p.bid AND t.tid = p.tid
-                                      AND p.replytime >= $cutoff
-                    WHERE t.timestamp >= $cutoff $bid_where $reply_min
-                    GROUP BY t.bid, t.tid
-                    ORDER BY score DESC
-                    LIMIT $limit";
-            break;
-
-        case 'engagement':
-            // Total engagement: replies + LZL + unique participants + clicks
-            $sql = "SELECT t.bid, t.tid, t.title, t.author, t.replyer,
-                           t.click, t.reply, t.timestamp, t.postdate,
-                           t.extr, t.top, t.locked,
-                           ($total_eng * 1.0
-                            + COUNT(DISTINCT p.author) * 2.0
-                            + t.click * 0.1) AS score
-                    FROM threads t
-                    LEFT JOIN posts p ON t.bid = p.bid AND t.tid = p.tid
-                    WHERE t.timestamp >= $cutoff $bid_where $reply_min
-                    GROUP BY t.bid, t.tid
-                    ORDER BY score DESC
-                    LIMIT $limit";
-            break;
-
-        case 'hacker_news':
-            $now = time();
-            $sql = "SELECT t.bid, t.tid, t.title, t.author, t.replyer,
-                           t.click, t.reply, t.timestamp, t.postdate,
-                           t.extr, t.top, t.locked,
-                           ($total_eng) / POW(GREATEST(($now - t.timestamp) / 3600 + 2, 1), 1.5) AS score
-                    FROM threads t
-                    WHERE 1 = 1 $bid_where $reply_min
-                    ORDER BY score DESC
-                    LIMIT $limit";
-            break;
-
-        case 'composite':
-        default:
-            // Weighted mix: total engagement + 24h activity + clicks
-            $one_day_ago = time() - 86400;
-            $lzl_24h = "(SELECT COALESCE(COUNT(*), 0) FROM lzl
-                         WHERE fid IN (SELECT fid FROM posts WHERE bid = t.bid AND tid = t.tid)
-                         AND time >= $one_day_ago)";
-            $sql = "SELECT t.bid, t.tid, t.title, t.author, t.replyer,
-                           t.click, t.reply, t.timestamp, t.postdate,
-                           t.extr, t.top, t.locked,
-                           ($total_eng * 0.6
-                            + (SELECT COUNT(*) FROM posts p
-                               WHERE p.bid = t.bid AND p.tid = t.tid
-                               AND p.replytime >= $one_day_ago) * 2.0
-                            + COALESCE($lzl_24h, 0) * 2.0
-                            + t.click * 0.01) AS score
-                    FROM threads t
-                    WHERE t.timestamp >= $cutoff $bid_where $reply_min
-                    ORDER BY score DESC
-                    LIMIT $limit";
-            break;
-    }
-
-    return jiekoufunc_view_bbs_array($con, $sql);
-}
-
 // ============================================================================
 //  Email verification — Helper functions
 // ============================================================================
@@ -2094,7 +2259,8 @@ function jiekoufunc_sendResetPasswordCode($con, $params) {
             'msg' => '邮箱验证功能已被管理员关闭。'));
     }
 
-    $email = isset($params['email']) ? $params['email'] : '';
+    $username = isset($params['username']) ? trim($params['username']) : '';
+    $email = isset($params['email']) ? trim($params['email']) : '';
     if (empty($email)) {
         return jiekoufunc_report('3', '请输入邮箱地址。');
     }
@@ -2105,10 +2271,23 @@ function jiekoufunc_sendResetPasswordCode($con, $params) {
     }
 
     $email_esc = mysqli_real_escape_string($con, $email);
-    $res = mysqli_fetch_array(mysqli_query($con,
-        "SELECT username FROM userinfo WHERE mail='$email_esc' AND verified=1 LIMIT 1"));
+    if ($username !== '') {
+        $username_esc = mysqli_real_escape_string($con, $username);
+        $user_query = mysqli_query($con,
+            "SELECT username FROM userinfo
+             WHERE username='$username_esc' AND mail='$email_esc' AND verified=1 LIMIT 1");
+    } else {
+        // 兼容旧调用方；同一邮箱对应多个账号时不得随机选择其中一个。
+        $user_query = mysqli_query($con,
+            "SELECT username FROM userinfo WHERE mail='$email_esc' AND verified=1 LIMIT 2");
+    }
 
-    // 不管邮箱是否匹配，统一返回成功，避免邮箱枚举
+    $res = false;
+    if ($user_query && mysqli_num_rows($user_query) === 1) {
+        $res = mysqli_fetch_array($user_query);
+    }
+
+    // 不管 ID 与邮箱是否匹配，统一返回成功，避免账号和邮箱枚举。
     if (!$res) {
         return array(array('code' => '0', 'msg' => '验证码已发送，请检查邮箱。'));
     }
@@ -2145,8 +2324,9 @@ function jiekoufunc_resetPasswordByEmail($con, $params) {
             'msg' => '邮箱验证功能已被管理员关闭。'));
     }
 
-    $email = isset($params['email']) ? $params['email'] : '';
-    $code = isset($params['code']) ? $params['code'] : '';
+    $username = isset($params['username']) ? trim($params['username']) : '';
+    $email = isset($params['email']) ? trim($params['email']) : '';
+    $code = isset($params['code']) ? trim($params['code']) : '';
     if (empty($email) || empty($code)) {
         return jiekoufunc_report('3', '缺少参数。');
     }
@@ -2158,9 +2338,14 @@ function jiekoufunc_resetPasswordByEmail($con, $params) {
 
     $email_esc = mysqli_real_escape_string($con, $email);
     $code_esc = mysqli_real_escape_string($con, $code);
+    $username_condition = '';
+    if ($username !== '') {
+        $username_esc = mysqli_real_escape_string($con, $username);
+        $username_condition = "username='$username_esc' AND ";
+    }
     $result = mysqli_fetch_array(mysqli_query($con,
         "SELECT * FROM email_verification
-         WHERE email='$email_esc' AND code='$code_esc' AND type='reset_password'
+         WHERE {$username_condition}email='$email_esc' AND code='$code_esc' AND type='reset_password'
          AND used=0 ORDER BY id DESC LIMIT 1"));
 
     if (!$result) {
@@ -2279,7 +2464,13 @@ function jiekoufunc_listEmailMutes($con, $token) {
         return jiekoufunc_report('1', '会话超时，请重新登录。');
     }
 
-    $result = mysqli_query($con, "SELECT * FROM email_mutes WHERE active=1 ORDER BY created_at DESC");
+    $result = mysqli_query($con,
+        "SELECT email_mutes.*,
+            (SELECT GROUP_CONCAT(userinfo.username ORDER BY userinfo.username SEPARATOR '\n')
+             FROM userinfo WHERE userinfo.mail=email_mutes.email) AS usernames
+         FROM email_mutes
+         WHERE active=1
+         ORDER BY created_at DESC");
     $infos = array();
     while ($res = mysqli_fetch_array($result)) {
         $info = array();
@@ -2290,6 +2481,217 @@ function jiekoufunc_listEmailMutes($con, $token) {
         $infos[] = $info;
     }
     return $infos;
+}
+
+function jiekoufunc_management_member_lookup($con, $params) {
+    $username = isset($params['username']) ? trim($params['username']) : '';
+    if ($username === '') {
+        return jiekoufunc_report('14', '缺少会员 ID。');
+    }
+
+    $username_esc = mysqli_real_escape_string($con, $username);
+    $result = mysqli_query($con,
+        "SELECT username, icon, regdate, rights, mail
+         FROM userinfo
+         WHERE username='$username_esc'
+         LIMIT 1");
+    $member = mysqli_fetch_assoc($result);
+    if (!$member) {
+        return jiekoufunc_report('3', '用户不存在。');
+    }
+
+    $member_mail = isset($member['mail']) ? trim(strval($member['mail'])) : '';
+    $related_ids = array($member['username']);
+    $muted = 0;
+    if ($member_mail !== '') {
+        $mail_esc = mysqli_real_escape_string($con, $member_mail);
+        $related_ids = array();
+        $related_result = mysqli_query($con,
+            "SELECT username FROM userinfo WHERE mail='$mail_esc' ORDER BY username");
+        while ($related = mysqli_fetch_assoc($related_result)) {
+            $related_ids[] = $related['username'];
+        }
+
+        $mute_result = mysqli_fetch_assoc(mysqli_query($con,
+            "SELECT COUNT(*) AS count FROM email_mutes WHERE email='$mail_esc' AND active=1"));
+        $muted = $mute_result && intval($mute_result['count']) > 0 ? 1 : 0;
+    }
+
+    return array(
+        array('code' => '0', 'count' => '1'),
+        array(
+            'username' => $member['username'],
+            'icon' => $member['icon'],
+            'regdate' => $member['regdate'],
+            'rights' => $member['rights'],
+            'mail' => $member_mail,
+            'muted' => $muted,
+            'related_ids' => $related_ids,
+        ),
+    );
+}
+
+function jiekoufunc_management_elevated_members($con) {
+    $result = mysqli_query($con,
+        "SELECT username, icon, regdate, rights, mail
+         FROM userinfo
+         WHERE rights>0
+         ORDER BY rights DESC, username");
+    if (!$result) {
+        return jiekoufunc_report('8', '读取权限会员失败。');
+    }
+
+    $members = array(array('code' => '0', 'count' => strval(mysqli_num_rows($result))));
+    while ($member = mysqli_fetch_assoc($result)) {
+        $members[] = $member;
+    }
+    return $members;
+}
+
+function jiekoufunc_management_rights_transition_allowed($current_rights, $target_rights) {
+    $transition = strval(intval($current_rights)) . '>' . strval(intval($target_rights));
+    return in_array($transition, array('0>2', '2>0', '1>2'), true);
+}
+
+function jiekoufunc_management_member_rights($con, $params) {
+    $username = isset($params['username']) ? trim($params['username']) : '';
+    if ($username === '') {
+        return jiekoufunc_report('14', '缺少会员 ID。');
+    }
+    if (!isset($params['rights']) || !preg_match('/^[0-2]$/', strval($params['rights']))) {
+        return jiekoufunc_report('14', '目标权限必须为 0、1 或 2。');
+    }
+
+    $target_rights = intval($params['rights']);
+    $username_esc = mysqli_real_escape_string($con, $username);
+    $member = mysqli_fetch_assoc(mysqli_query($con,
+        "SELECT rights FROM userinfo WHERE username='$username_esc' LIMIT 1"));
+    if (!$member) {
+        return jiekoufunc_report('3', '用户不存在。');
+    }
+
+    $current_rights = intval($member['rights']);
+    if ($current_rights > 2) {
+        return jiekoufunc_report('5', '高级权限会员受保护。');
+    }
+    if (!jiekoufunc_management_rights_transition_allowed($current_rights, $target_rights)) {
+        return jiekoufunc_report('14', '不支持该会员权限调整。');
+    }
+
+    if ($current_rights === 2 && $target_rights === 0) {
+        $moderator_board = mysqli_fetch_assoc(mysqli_query($con,
+            "SELECT bid FROM boardinfo
+             WHERE m1='$username_esc' OR m2='$username_esc' OR m3='$username_esc' OR m4='$username_esc'
+             LIMIT 1"));
+        if ($moderator_board) {
+            $target_rights = 1;
+        }
+    }
+
+    mysqli_query($con,
+        "UPDATE userinfo
+         SET rights=$target_rights
+         WHERE username='$username_esc' AND rights=$current_rights");
+    if (mysqli_affected_rows($con) !== 1) {
+        return jiekoufunc_report('8', '会员权限已发生变化，请刷新后重试。');
+    }
+
+    return jiekoufunc_management_member_lookup($con, array('username' => $username));
+}
+
+function jiekoufunc_management_board_moderator($con, $params) {
+    $bid = isset($params['bid']) ? intval($params['bid']) : 0;
+    $username = isset($params['username']) ? trim($params['username']) : '';
+    $action = isset($params['action']) ? trim($params['action']) : '';
+    if ($bid <= 0 || $username === '' || !in_array($action, array('add', 'remove'), true)) {
+        return jiekoufunc_report('14', '缺少有效的版块、会员 ID 或操作类型。');
+    }
+
+    $board = mysqli_fetch_assoc(mysqli_query($con,
+        "SELECT bid, bbstitle, m1, m2, m3, m4 FROM boardinfo WHERE bid=$bid LIMIT 1"));
+    if (!$board) {
+        return jiekoufunc_report('3', '版块不存在。');
+    }
+
+    $current_slots = array();
+    $moderators = array();
+    for ($i = 1; $i <= 4; $i++) {
+        $slot = isset($board['m' . $i]) ? trim(strval($board['m' . $i])) : '';
+        $current_slots[] = $slot;
+        if ($slot !== '' && !in_array($slot, $moderators, true)) {
+            $moderators[] = $slot;
+        }
+    }
+
+    $username_esc = mysqli_real_escape_string($con, $username);
+    if ($action === 'add') {
+        $member = mysqli_fetch_assoc(mysqli_query($con,
+            "SELECT rights FROM userinfo WHERE username='$username_esc' LIMIT 1"));
+        if (!$member) {
+            return jiekoufunc_report('3', '用户不存在。');
+        }
+        if (in_array($username, $moderators, true)) {
+            return jiekoufunc_report('14', '该会员已经是本版版主。');
+        }
+        if (count($moderators) >= 4) {
+            return jiekoufunc_report('14', '本版已有 4 名版主，无法继续添加。');
+        }
+
+        if (intval($member['rights']) === 0) {
+            mysqli_query($con,
+                "UPDATE userinfo SET rights=1 WHERE username='$username_esc' AND rights=0");
+            if (mysqli_affected_rows($con) !== 1) {
+                $latest = mysqli_fetch_assoc(mysqli_query($con,
+                    "SELECT rights FROM userinfo WHERE username='$username_esc' LIMIT 1"));
+                if (!$latest || intval($latest['rights']) === 0) {
+                    return jiekoufunc_report('8', '会员权限已发生变化，请刷新后重试。');
+                }
+            }
+        }
+        $moderators[] = $username;
+    } else {
+        if (!in_array($username, $moderators, true)) {
+            return jiekoufunc_report('14', '该会员不是本版版主。');
+        }
+        $moderators = array_values(array_filter($moderators, function ($moderator) use ($username) {
+            return $moderator !== $username;
+        }));
+    }
+
+    $next_slots = array_pad(array_slice($moderators, 0, 4), 4, '');
+    $set_parts = array();
+    $guard_parts = array('bid=' . $bid);
+    for ($i = 0; $i < 4; $i++) {
+        $column = 'm' . strval($i + 1);
+        $next_esc = mysqli_real_escape_string($con, $next_slots[$i]);
+        $current_esc = mysqli_real_escape_string($con, $current_slots[$i]);
+        $set_parts[] = "$column='$next_esc'";
+        $guard_parts[] = "COALESCE($column, '')='$current_esc'";
+    }
+    mysqli_query($con,
+        'UPDATE boardinfo SET ' . implode(', ', $set_parts) .
+        ' WHERE ' . implode(' AND ', $guard_parts));
+    if (mysqli_affected_rows($con) !== 1) {
+        return jiekoufunc_report('8', '版主名单已发生变化，请刷新后重试。');
+    }
+
+    if ($action === 'remove') {
+        $member = mysqli_fetch_assoc(mysqli_query($con,
+            "SELECT rights FROM userinfo WHERE username='$username_esc' LIMIT 1"));
+        if ($member && intval($member['rights']) === 1) {
+            $remaining = mysqli_fetch_assoc(mysqli_query($con,
+                "SELECT COUNT(*) AS count FROM boardinfo
+                 WHERE m1='$username_esc' OR m2='$username_esc' OR m3='$username_esc' OR m4='$username_esc'"));
+            if ($remaining && intval($remaining['count']) === 0) {
+                mysqli_query($con,
+                    "UPDATE userinfo SET rights=0 WHERE username='$username_esc' AND rights=1");
+            }
+        }
+    }
+
+    $updated = mysqli_fetch_assoc(mysqli_query($con,
+        "SELECT bid, bbstitle, m1, m2, m3, m4 FROM boardinfo WHERE bid=$bid LIMIT 1"));
+    return array(array('code' => '0', 'count' => '1'), $updated);
 }
 
 function jiekoufunc_toggleEmailVisible($con, $token, $params) {

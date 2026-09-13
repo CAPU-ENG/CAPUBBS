@@ -17,6 +17,11 @@
  */
 
 require_once __DIR__.'/jiekoufunc.php';
+require_once __DIR__.'/lib/ActivityHandlers.php';
+require_once __DIR__.'/lib/AvatarHandlers.php';
+require_once __DIR__.'/lib/FloorDecorationHandlers.php';
+require_once __DIR__.'/lib/TagHandlers.php';
+require_once __DIR__.'/lib/MedalHandlers.php';
 require_once __DIR__.'/lib/ThreadDetailQuery.php';
 
 function _dispatch_build_routes() {
@@ -26,10 +31,12 @@ function _dispatch_build_routes() {
         // ================================================================
         'bbsinfo'         => array('handler' => 'jiekoufunc_bbsinfo',         'check_login' => false, 'require_rights' => 0),
         'hot'             => array('handler' => 'jiekoufunc_hot',             'check_login' => false, 'require_rights' => 0),
+        'random_thread'   => array('handler' => 'jiekoufunc_random_thread',   'check_login' => false, 'require_rights' => 0),
         'global_top'      => array('handler' => 'jiekoufunc_global_top',      'check_login' => false, 'require_rights' => 0),
         'verifiedCount'   => array('handler' => 'jiekoufunc_verifiedCount',   'check_login' => false, 'require_rights' => 0),
         'tidinfo'         => array('handler' => 'jiekoufunc_tidinfo',         'check_login' => false, 'require_rights' => 0),
         'thread_detail'   => array('handler' => 'jiekoufunc_thread_detail',   'check_login' => false, 'require_rights' => 0, 'check_bid1' => true),
+        'thread_view'     => array('handler' => 'jiekoufunc_thread_view',     'check_login' => false, 'require_rights' => 0, 'check_bid1' => true),
         'getpages'        => array('handler' => 'jiekoufunc_getpages',        'check_login' => false, 'require_rights' => 0),
         'getlznum'        => array('handler' => 'jiekoufunc_getlznum',        'check_login' => false, 'require_rights' => 0),
         'getnum'          => array('handler' => 'jiekoufunc_getnum',          'check_login' => false, 'require_rights' => 0),
@@ -40,6 +47,9 @@ function _dispatch_build_routes() {
         'sign_user'       => array('handler' => 'jiekoufunc_sign_user',       'check_login' => false, 'require_rights' => 0),
         'getuser'         => array('handler' => 'jiekoufunc_getuser',         'check_login' => false, 'require_rights' => 0),
         'user_profile'    => array('handler' => 'jiekoufunc_user_profile',    'check_login' => false, 'require_rights' => 0),
+        'tag_list'        => array('handler' => 'jiekoufunc_tag_list',        'check_login' => false, 'require_rights' => 0),
+        'tag_user_tags'   => array('handler' => 'jiekoufunc_tag_user_tags',   'check_login' => false, 'require_rights' => 0),
+        'tag_summary'     => array('handler' => 'jiekoufunc_tag_summary',     'check_login' => false, 'require_rights' => 0),
         'userexists'      => array('handler' => 'jiekoufunc_userexists',      'check_login' => false, 'require_rights' => 0),
         'rights'          => array('handler' => 'jiekoufunc_rights',          'check_login' => false, 'require_rights' => 0),
         'recentpost'      => array('handler' => 'jiekoufunc_recentpost',      'check_login' => false, 'require_rights' => 0),
@@ -47,7 +57,7 @@ function _dispatch_build_routes() {
         'lzl'             => array('handler' => 'jiekoufunc_lzl',             'check_login' => false, 'require_rights' => 0),
         'calendar'        => array('handler' => 'jiekoufunc_calendar',        'check_login' => false, 'require_rights' => 0),
         'recent_threads'  => array('handler' => 'jiekoufunc_recent_threads',  'check_login' => false, 'require_rights' => 0),
-        'hot_threads'     => array('handler' => 'jiekoufunc_hot_threads',     'check_login' => false, 'require_rights' => 0),
+        'activity_signup_list' => array('handler' => 'jiekoufunc_activity_signup_list', 'check_login' => false, 'require_rights' => 0),
 
         // Auth operations — handle login/session themselves
         'login'           => array('handler' => 'jiekoufunc_login',           'check_login' => false, 'require_rights' => 0),
@@ -61,6 +71,11 @@ function _dispatch_build_routes() {
         'reply'            => array('handler' => 'jiekoufunc_reply',            'check_login' => true, 'require_rights' => 0),
         'sendmsg'          => array('handler' => 'jiekoufunc_sendmsg',          'check_login' => true, 'require_rights' => 0),
         'edituser'         => array('handler' => 'jiekoufunc_edituser',         'check_login' => true, 'require_rights' => 0),
+        'avatar_update'    => array('handler' => 'jiekoufunc_avatar_update',    'check_login' => true, 'require_rights' => 0),
+        'floor_decoration_upload' => array('handler' => 'jiekoufunc_floor_decoration_upload', 'check_login' => true, 'require_rights' => 0),
+        'floor_decoration_delete' => array('handler' => 'jiekoufunc_floor_decoration_delete', 'check_login' => true, 'require_rights' => 0),
+        'medal_self_settings' => array('handler' => 'jiekoufunc_medal_self_settings', 'check_login' => true, 'require_rights' => 0),
+        'medal_preferences_update' => array('handler' => 'jiekoufunc_medal_preferences_update', 'check_login' => true, 'require_rights' => 0),
         'changepsd'        => array('handler' => 'jiekoufunc_changepsd',        'check_login' => true, 'require_rights' => 0),
         'currentUserInfo'  => array('handler' => 'jiekoufunc_currentUserInfo',  'check_login' => true, 'require_rights' => 0),
         'editpreview'      => array('handler' => 'jiekoufunc_editpreview',      'check_login' => true, 'require_rights' => 0),
@@ -78,6 +93,10 @@ function _dispatch_build_routes() {
         'favorite_count'   => array('handler' => 'jiekoufunc_favorite_count',   'check_login' => false, 'require_rights' => 0),
         'favorite_check'   => array('handler' => 'jiekoufunc_favorite_check',   'check_login' => true, 'require_rights' => 0),
         'news'             => array('handler' => 'jiekoufunc_news',             'check_login' => false, 'require_rights' => 0),
+        'activity_signup'  => array('handler' => 'jiekoufunc_activity_signup',  'check_login' => true, 'require_rights' => 0),
+        'activity_signup_history' => array('handler' => 'jiekoufunc_activity_signup_history', 'check_login' => true, 'require_rights' => 0),
+        'activity_signup_summary' => array('handler' => 'jiekoufunc_activity_signup_summary', 'check_login' => true, 'require_rights' => 0),
+        'activity_update'  => array('handler' => 'jiekoufunc_activity_update',  'check_login' => true, 'require_rights' => 0),
 
         // -- Email verification (login required) --
         'sendVerifyCode'   => array('handler' => null, 'check_login' => true,  'require_rights' => 0),
@@ -92,6 +111,25 @@ function _dispatch_build_routes() {
         'muteEmail'        => array('handler' => null, 'check_login' => true,  'require_rights' => 1, 'check_board_mod' => true),
         'unmuteEmail'      => array('handler' => null, 'check_login' => true,  'require_rights' => 1, 'check_board_mod' => true),
         'listEmailMutes'   => array('handler' => null, 'check_login' => true,  'require_rights' => 1, 'check_board_mod' => true),
+        'management_member_lookup' => array('handler' => 'jiekoufunc_management_member_lookup', 'check_login' => true, 'require_rights' => 3),
+        'management_elevated_members' => array('handler' => 'jiekoufunc_management_elevated_members', 'check_login' => true, 'require_rights' => 3),
+        'management_member_rights' => array('handler' => 'jiekoufunc_management_member_rights', 'check_login' => true, 'require_rights' => 3),
+        'management_board_moderator' => array('handler' => 'jiekoufunc_management_board_moderator', 'check_login' => true, 'require_rights' => 3),
+        'management_tag_create' => array('handler' => 'jiekoufunc_management_tag_create', 'check_login' => true, 'require_rights' => 3),
+        'management_tag_update' => array('handler' => 'jiekoufunc_management_tag_update', 'check_login' => true, 'require_rights' => 3),
+        'management_tag_delete' => array('handler' => 'jiekoufunc_management_tag_delete', 'check_login' => true, 'require_rights' => 3),
+        'management_tag_members' => array('handler' => 'jiekoufunc_management_tag_members', 'check_login' => true, 'require_rights' => 3),
+        'management_tag_member_check' => array('handler' => 'jiekoufunc_management_tag_member_check', 'check_login' => true, 'require_rights' => 3),
+        'management_tag_members_add' => array('handler' => 'jiekoufunc_management_tag_members_add', 'check_login' => true, 'require_rights' => 3),
+        'management_tag_member_remove' => array('handler' => 'jiekoufunc_management_tag_member_remove', 'check_login' => true, 'require_rights' => 3),
+        'management_medal_list' => array('handler' => 'jiekoufunc_management_medal_list', 'check_login' => true, 'require_rights' => 3),
+        'management_medal_create' => array('handler' => 'jiekoufunc_management_medal_create', 'check_login' => true, 'require_rights' => 3),
+        'management_medal_update' => array('handler' => 'jiekoufunc_management_medal_update', 'check_login' => true, 'require_rights' => 3),
+        'management_medal_delete' => array('handler' => 'jiekoufunc_management_medal_delete', 'check_login' => true, 'require_rights' => 3),
+        'management_medal_members' => array('handler' => 'jiekoufunc_management_medal_members', 'check_login' => true, 'require_rights' => 3),
+        'management_medal_members_check' => array('handler' => 'jiekoufunc_management_medal_members_check', 'check_login' => true, 'require_rights' => 3),
+        'management_medal_members_add' => array('handler' => 'jiekoufunc_management_medal_members_add', 'check_login' => true, 'require_rights' => 3),
+        'management_medal_member_remove' => array('handler' => 'jiekoufunc_management_medal_member_remove', 'check_login' => true, 'require_rights' => 3),
         'toggleEmailVisible' => array('handler' => null, 'check_login' => true,  'require_rights' => 0),
 
         // ================================================================
@@ -111,6 +149,7 @@ function _dispatch_build_routes() {
         // Admin only
         // ================================================================
         'move'                => array('handler' => 'jiekoufunc_move',                'check_login' => true, 'require_rights' => 2),
+        'activity_create'     => array('handler' => 'jiekoufunc_activity_create',     'check_login' => true, 'require_rights' => 2),
         'global_top_action'   => array('handler' => 'jiekoufunc_threads_action',      'check_login' => true, 'require_rights' => 2, 'check_board_mod' => true),
         'boardcast'           => array('handler' => 'jiekoufunc_boardcast',           'check_login' => true, 'require_rights' => 3),
         'admin_reset_password' => array('handler' => 'jiekoufunc_admin_reset_password', 'check_login' => true, 'require_rights' => 10),
@@ -219,10 +258,82 @@ function jiekoufunc_dispatch($con, $params) {
                 return jiekoufunc_getuser($con, $token);
             case 'jiekoufunc_user_profile':
                 return jiekoufunc_user_profile($con, $params);
+            case 'jiekoufunc_tag_list':
+                return jiekoufunc_tag_list($con, $params);
+            case 'jiekoufunc_tag_user_tags':
+                return jiekoufunc_tag_user_tags($con, $params);
+            case 'jiekoufunc_tag_summary':
+                return jiekoufunc_tag_summary($con, $params);
+            case 'jiekoufunc_management_member_lookup':
+                return jiekoufunc_management_member_lookup($con, $params);
+            case 'jiekoufunc_management_elevated_members':
+                return jiekoufunc_management_elevated_members($con);
+            case 'jiekoufunc_management_member_rights':
+                return jiekoufunc_management_member_rights($con, $params);
+            case 'jiekoufunc_management_board_moderator':
+                return jiekoufunc_management_board_moderator($con, $params);
+            case 'jiekoufunc_management_tag_create':
+                return jiekoufunc_management_tag_create($con, $token, $params);
+            case 'jiekoufunc_management_tag_update':
+                return jiekoufunc_management_tag_update($con, $token, $params);
+            case 'jiekoufunc_management_tag_delete':
+                return jiekoufunc_management_tag_delete($con, $token, $params);
+            case 'jiekoufunc_management_tag_members':
+                return jiekoufunc_management_tag_members($con, $params);
+            case 'jiekoufunc_management_tag_member_check':
+                return jiekoufunc_management_tag_member_check($con, $params);
+            case 'jiekoufunc_management_tag_members_add':
+                return jiekoufunc_management_tag_members_add($con, $token, $params);
+            case 'jiekoufunc_management_tag_member_remove':
+                return jiekoufunc_management_tag_member_remove($con, $params);
+            case 'jiekoufunc_management_medal_list':
+                return jiekoufunc_management_medal_list($con);
+            case 'jiekoufunc_management_medal_create':
+                return jiekoufunc_management_medal_create(
+                    $con,
+                    $token,
+                    $params,
+                    isset($_FILES['file']) ? $_FILES['file'] : null
+                );
+            case 'jiekoufunc_management_medal_update':
+                return jiekoufunc_management_medal_update(
+                    $con,
+                    $token,
+                    $params,
+                    isset($_FILES['file']) ? $_FILES['file'] : null
+                );
+            case 'jiekoufunc_management_medal_delete':
+                return jiekoufunc_management_medal_delete($con, $params);
+            case 'jiekoufunc_management_medal_members':
+                return jiekoufunc_management_medal_members($con, $params);
+            case 'jiekoufunc_management_medal_members_check':
+                return jiekoufunc_management_medal_members_check($con, $params);
+            case 'jiekoufunc_management_medal_members_add':
+                return jiekoufunc_management_medal_members_add($con, $token, $params);
+            case 'jiekoufunc_management_medal_member_remove':
+                return jiekoufunc_management_medal_member_remove($con, $params);
+            case 'jiekoufunc_medal_self_settings':
+                return jiekoufunc_medal_self_settings($con, $token);
+            case 'jiekoufunc_medal_preferences_update':
+                return jiekoufunc_medal_preferences_update($con, $token, $params);
+            case 'jiekoufunc_activity_create':
+                return jiekoufunc_activity_create($con, $token, $bid, $ip, $params);
+            case 'jiekoufunc_activity_signup':
+                return jiekoufunc_activity_signup($con, $token, $bid, $tid, $params);
+            case 'jiekoufunc_activity_signup_history':
+                return jiekoufunc_activity_signup_history($con, $token, $params);
+            case 'jiekoufunc_activity_signup_summary':
+                return jiekoufunc_activity_signup_summary($con, $token, $bid, $tid, $params);
+            case 'jiekoufunc_activity_update':
+                return jiekoufunc_activity_update($con, $token, $bid, $tid, $params);
+            case 'jiekoufunc_activity_signup_list':
+                return jiekoufunc_activity_signup_list($con, $params);
             case 'jiekoufunc_userexists':
                 return jiekoufunc_userexists($con, $params);
             case 'jiekoufunc_hot':
                 return jiekoufunc_hot($con, $token, $params);
+            case 'jiekoufunc_random_thread':
+                return jiekoufunc_random_thread($con, $token);
             case 'jiekoufunc_global_top':
                 return jiekoufunc_global_top($con, $token);
             case 'jiekoufunc_news':
@@ -231,10 +342,23 @@ function jiekoufunc_dispatch($con, $params) {
                 return jiekoufunc_tidinfo($con, $bid, $tid);
             case 'jiekoufunc_thread_detail':
                 return jiekoufunc_thread_detail($con, $bid, $tid, $params, $token, $ip);
+            case 'jiekoufunc_thread_view':
+                return jiekoufunc_thread_view($con, $bid, $tid, $token, $ip);
             case 'jiekoufunc_recentpost':
-                return jiekoufunc_recentpost($con, $view, $limit_raw);
+                return jiekoufunc_recentpost(
+                    $con,
+                    $view,
+                    $limit_raw,
+                    isset($params['offset']) ? $params['offset'] : ''
+                );
             case 'jiekoufunc_recentreply':
-                return jiekoufunc_recentreply($con, $view, $limit_raw);
+                return jiekoufunc_recentreply(
+                    $con,
+                    $view,
+                    $limit_raw,
+                    isset($params['offset']) ? $params['offset'] : '',
+                    isset($params['replies_only']) && intval($params['replies_only']) === 1
+                );
             case 'jiekoufunc_rights':
                 return jiekoufunc_rights($con, $bid, $token);
             case 'jiekoufunc_attach':
@@ -258,11 +382,27 @@ function jiekoufunc_dispatch($con, $params) {
             case 'jiekoufunc_admin_reset_password':
                 return jiekoufunc_admin_reset_password($con, $token, $params);
             case 'jiekoufunc_currentUserInfo':
-                return jiekoufunc_currentUserInfo($con, $token);
+                return jiekoufunc_currentUserInfo($con, $token, $params);
             case 'jiekoufunc_searchByKeyword':
                 return jiekoufunc_searchByKeyword($con, $keyword, $token, $type, $bid, $params);
             case 'jiekoufunc_edituser':
                 return jiekoufunc_edituser($con, $token, $ip, $params);
+            case 'jiekoufunc_avatar_update':
+                return jiekoufunc_avatar_update(
+                    $con,
+                    $token,
+                    $params,
+                    isset($_FILES['file']) ? $_FILES['file'] : null
+                );
+            case 'jiekoufunc_floor_decoration_upload':
+                return jiekoufunc_floor_decoration_upload(
+                    $con,
+                    $token,
+                    $params,
+                    isset($_FILES['file']) ? $_FILES['file'] : null
+                );
+            case 'jiekoufunc_floor_decoration_delete':
+                return jiekoufunc_floor_decoration_delete($con, $token, $params);
             case 'jiekoufunc_viewonline':
                 return jiekoufunc_viewonline($con);
             case 'jiekoufunc_updatetokentime':
@@ -304,13 +444,11 @@ function jiekoufunc_dispatch($con, $params) {
             case 'jiekoufunc_favorite_check':
                 return jiekoufunc_favorite_check($con, $token, $bid, $tid);
             case 'jiekoufunc_calendar':
-                return jiekoufunc_calendar($con);
+                return jiekoufunc_calendar($con, $params);
             case 'jiekoufunc_verifiedCount':
                 return jiekoufunc_verifiedCount($con);
             case 'jiekoufunc_recent_threads':
                 return jiekoufunc_recent_threads($con, $params);
-            case 'jiekoufunc_hot_threads':
-                return jiekoufunc_hot_threads($con, $params);
         }
     }
 
@@ -375,7 +513,8 @@ function jiekoufunc_dispatch($con, $params) {
             $viewer_user = jiekoufunc_token2user($con, $token);
             if ($viewer_user) $viewer = $viewer_user['username'];
         }
-        return jiekoufunc_view_user_array($con, $view, $viewer);
+        $include_tags = isset($params['tag']) ? intval($params['tag']) : 0;
+        return jiekoufunc_view_user_array($con, $view, $viewer, $include_tags);
     }
 
     // === Dispatch by $bid (no $ask, default board/thread rendering) ===
@@ -429,11 +568,30 @@ function jiekoufunc_dispatch($con, $params) {
             else $extr = 1;
             if ($page == "") $page = 1;
             $start = ($page - 1) * 25;
+            /*
+             * MariaDB may join every thread to posts before applying the sort
+             * and LIMIT. Materializing the requested page first keeps the
+             * first-post lookup bounded to at most 25 rows.
+             */
             $statement = "
-            select threads.bid,threads.tid,title,author,replyer,click,reply,extr,top,locked,timestamp,postdate,
+            select recent_threads.bid,recent_threads.tid,recent_threads.title,recent_threads.author,
+            recent_threads.replyer,recent_threads.click,recent_threads.reply,recent_threads.extr,
+            recent_threads.top,recent_threads.locked,recent_threads.timestamp,recent_threads.postdate,
+            /* 新版版面列表展示精确发布时间；首楼 replytime 是主题真实创建时间。 */
+            first_post.replytime as created_at,
             case when thread_global_top.bid is null then 0 else 1 end as global_top
-            from threads left join thread_global_top on threads.bid=thread_global_top.bid and threads.tid=thread_global_top.tid
-            where threads.bid=$bid and extr>=$extr order by top desc, timestamp desc limit $start, 25";
+            from (
+                select bid,tid,title,author,replyer,click,reply,extr,top,locked,timestamp,postdate
+                from threads
+                where bid=$bid and extr>=$extr
+                order by top desc, timestamp desc
+                limit $start, 25
+            ) as recent_threads
+            left join thread_global_top
+                on recent_threads.bid=thread_global_top.bid and recent_threads.tid=thread_global_top.tid
+            left join posts as first_post
+                on first_post.bid=recent_threads.bid and first_post.tid=recent_threads.tid and first_post.pid=1
+            order by recent_threads.top desc, recent_threads.timestamp desc";
         }
 
         $result = jiekoufunc_view_bbs_array($con, $statement);

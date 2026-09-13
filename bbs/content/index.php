@@ -82,13 +82,14 @@
 <html>
 <head>
 <meta charset="utf-8">
+<base href="/bbs/content/">
 <meta name="apple-itunes-app" content="app-id=826386033">
 <title><?php echo $title;?></title>
 <script type="text/javascript" src="../lib/general.js"></script>
 <script type="text/javascript" src="../lib/json2.js"></script>
 <script src="../lib/jquery.min.js"></script>
 <link rel="stylesheet" href="../lib/general.css">
-<link rel="stylesheet" href="style.css">
+<link rel="stylesheet" href="style.css?v=<?php echo filemtime(__DIR__ . '/style.css'); ?>">
 <link rel="shortcut icon" href="/assets/images/capu.jpg">
 <script>
 // 监听签名档 iframe 发来的高度消息，校验来源后更新 iframe 高度
@@ -121,9 +122,9 @@ window.addEventListener('message', function(e) {
         <div class="navigation"><div class="back" onclick="goback();"><span style="margin-left:32px;"><b>返回</b></span></div>
         <span style="float:left;margin-left:20px;"> 
         <?php
-        echo("<a href='../index' onmouseover='showmenu();'>CAPUBBS</a>&nbsp;&gt;&nbsp;");
-        echo("<a href='../main/?bid=$bid'>".$bdata['bbstitle']."</a>&nbsp;&gt;&nbsp;");
-        echo("<a href='./?bid=$bid&tid=$tid&p=1' id='page_title'>".$title."</a>&nbsp;");
+        echo("<a href='/bbs/index/' onmouseover='showmenu();'>CAPUBBS</a>&nbsp;&gt;&nbsp;");
+        echo("<a href='/bbs/main/?bid=$bid'>".$bdata['bbstitle']."</a>&nbsp;&gt;&nbsp;");
+        echo("<a href='/bbs/content/?bid=$bid&tid=$tid&p=1' id='page_title'>".$title."</a>&nbsp;");
         ?>
         <span id="fav-btn" class="fav-btn <?php echo $isFaved ? 'faved' : ''; ?>" onclick="toggleFav()"><?php echo $isFaved ? '★' : '☆'; ?></span>
         <?php
@@ -150,7 +151,7 @@ window.addEventListener('message', function(e) {
         $rights=intval($users['rights']);$star=-1;
         if($currentuser!=""){
             $url_currentuser = rawurlencode($currentuser);
-            echo("欢迎您，<a href='../user/?name=$url_currentuser' target='_blank'>$currentuser</a>");
+            echo("欢迎您，<a href='/bbs/user/?name=$url_currentuser' target='_blank'>$currentuser</a>");
             $userinfo=mainfunc(array("view"=>$currentuser));
             $userinfo=$userinfo[0];
             $star=intval($userinfo['star']);
@@ -174,25 +175,25 @@ window.addEventListener('message', function(e) {
             echo("</script>");
             $msg=intval($userinfo['newmsg']);
             if($msg==0){
-                echo("&nbsp;<a href='../home' target='_blank'>个人中心</a>");
-                echo("&nbsp;<a href='../favorite/'>我的收藏</a>");
+                echo("&nbsp;<a href='/bbs/home/' target='_blank'>个人中心</a>");
+                echo("&nbsp;<a href='/bbs/favorite/'>我的收藏</a>");
             }else{
-                echo("，<a href='../home?pos=message' target='_blank'>您有 $msg 条未读消息</a>");
-                echo("&nbsp;<a href='../favorite/'>我的收藏</a>");
+                echo("，<a href='/bbs/home/?pos=message' target='_blank'>您有 $msg 条未读消息</a>");
+                echo("&nbsp;<a href='/bbs/favorite/'>我的收藏</a>");
             }
-            $nowurl=$_SERVER["PHP_SELF"]. "?".$_SERVER["QUERY_STRING"];
+            $nowurl=isset($_SERVER["REQUEST_URI"]) ? $_SERVER["REQUEST_URI"] : '/bbs/';
             $nowurl=urlencode($nowurl);
-            echo("&nbsp;<a href='../logout?from=$nowurl'>注销</a>");
+            echo("&nbsp;<a href='/bbs/logout/?from=$nowurl'>注销</a>");
             // if (intval($users['rights']) >= 1) {
             //     echo("&nbsp;<a href='../manage/' style='color:#337ab7;'>管理工具</a>");
             // }
         }else{
-            $nowurl=$_SERVER["PHP_SELF"]. "?".$_SERVER["QUERY_STRING"];
+            $nowurl=isset($_SERVER["REQUEST_URI"]) ? $_SERVER["REQUEST_URI"] : '/bbs/';
             $nowurl=urlencode($nowurl);
             $right=-1;
             $currentuser=null;
             $email_muted = false;
-            echo("欢迎您，游客！<a href='../login?from=$nowurl'>登录</a> 或者 <a href='../register'>注册</a>");
+            echo("欢迎您，游客！<a href='/bbs/login/?from=$nowurl'>登录</a> 或者 <a href='/bbs/register/'>注册</a>");
                     }
         echo("<script type='text/javascript'>");
         echo("var bid=".$bid.";");
@@ -593,7 +594,13 @@ $(window).load(function() {
             var img = $(this);
             var width = parseInt(img.css("width"));
             width = (width > 700) ? 700 : width;
-            img.css("width", width);
+            var pixelDimension = /^\d+(?:\.\d+)?(?:px)?$/i;
+            var hasPixelDimensions = (
+                pixelDimension.test(img.attr("width") || "") && pixelDimension.test(img.attr("height") || "")
+            ) || (
+                pixelDimension.test(img[0].style.width || "") && pixelDimension.test(img[0].style.height || "")
+            );
+            img.css(hasPixelDimensions ? {"width": width, "height": "auto"} : {"width": width});
         });
     });
 });

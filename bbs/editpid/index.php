@@ -1,9 +1,10 @@
+<?php include("../lib/mainfunc.php"); ?>
 <html>
 <head>
 <meta charset="utf-8">
+<base href="/bbs/editpid/">
 <title>CAPUBBS - 编辑帖子</title>
 <?php
-    include("../lib/mainfunc.php");
     $bid=$_GET['bid'];
     $tid=$_GET['tid'];
     $pid=$_GET['pid'];

@@ -7,6 +7,7 @@
 <!DOCTYPE html>
 <html>
 <head>
+<base href="/bbs/boardcast/">
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
 <title>群发消息</title>
 <link href="../lib/general.css" rel="stylesheet"/>
@@ -38,4 +39,3 @@ function sendto() {
 }
 </script>
 </body>
-

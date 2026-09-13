@@ -192,7 +192,69 @@ function jiekoufunc_view_bbs_array($con, $statement) {
     return $infos;
 }
 
-function jiekoufunc_view_user_array($con, $username, $viewer = null) {
+/**
+ * Load public tag assignments for one or more usernames.
+ *
+ * A failed optional tag query is treated as an empty result so legacy profile
+ * responses remain available if the tag tables are not installed yet.
+ */
+function jiekoufunc_query_user_tags($con, $usernames) {
+    $requested = array();
+    foreach ($usernames as $username) {
+        $username = strval($username);
+        if ($username === '') continue;
+        $requested[$username] = array();
+    }
+    if (empty($requested)) {
+        return array();
+    }
+
+    $escaped = array();
+    foreach (array_keys($requested) as $username) {
+        $escaped[] = "'" . mysqli_real_escape_string($con, $username) . "'";
+    }
+    $statement = "
+        SELECT m.username, t.id, t.name, t.color, m.added_at, d.display_order
+        FROM user_tag_members AS m
+        INNER JOIN user_tags AS t ON t.id=m.tag_id
+        LEFT JOIN user_tag_displays AS d
+            ON d.tag_id=m.tag_id AND d.username=m.username
+        WHERE m.username IN (" . implode(',', $escaped) . ")
+        ORDER BY m.username ASC, m.added_at DESC, t.id ASC";
+    $result = mysqli_query($con, $statement);
+    if (!$result) {
+        $fallback_statement = "
+            SELECT m.username, t.id, t.name, t.color, m.added_at, NULL AS display_order
+            FROM user_tag_members AS m
+            INNER JOIN user_tags AS t ON t.id=m.tag_id
+            WHERE m.username IN (" . implode(',', $escaped) . ")
+            ORDER BY m.username ASC, m.added_at DESC, t.id ASC";
+        $result = mysqli_query($con, $fallback_statement);
+        if (!$result) {
+            return $requested;
+        }
+    }
+
+    foreach ($requested as $username => $unused) {
+        $requested[$username] = array();
+    }
+    while ($row = mysqli_fetch_assoc($result)) {
+        $username = strval($row['username']);
+        if (!isset($requested[$username])) {
+            $requested[$username] = array();
+        }
+        $requested[$username][] = array(
+            'id' => intval($row['id']),
+            'name' => strval($row['name']),
+            'color' => strtoupper(strval($row['color'])),
+            'added_at' => intval($row['added_at']),
+            'display_order' => $row['display_order'] === null ? null : intval($row['display_order']),
+        );
+    }
+    return $requested;
+}
+
+function jiekoufunc_view_user_array($con, $username, $viewer = null, $tag = 0) {
     static $cache = array();
     $username = mysqli_real_escape_string($con, $username);
     if (isset($cache[$username])) {
@@ -227,6 +289,24 @@ function jiekoufunc_view_user_array($con, $username, $viewer = null) {
                 $info['mail'] = '';
             }
         }
+        unset($info);
+    }
+
+    if (intval($tag) === 1 && !empty($result)) {
+        $usernames = array();
+        foreach ($result as $info) {
+            if (isset($info['username'])) {
+                $usernames[] = $info['username'];
+            }
+        }
+        $tags_by_username = jiekoufunc_query_user_tags($con, $usernames);
+        foreach ($result as &$info) {
+            $profile_username = isset($info['username']) ? $info['username'] : '';
+            $info['tags'] = isset($tags_by_username[$profile_username])
+                ? $tags_by_username[$profile_username]
+                : array();
+        }
+        unset($info);
     }
 
     return $result;
@@ -259,21 +339,7 @@ function jiekoufunc_validate_token_and_sign($con, $token, $ip) {
 
         mysqli_query($con, $statement);
 
-        $year = date("Y", $time);
-        $month = date("m", $time);
-        $day = date("d", $time);
-        $statement = "select * from capubbs.sign where year=$year && month=$month && day=$day && username='$username'";
-        $result = mysqli_query($con, $statement);
-        if (mysqli_num_rows($result) == 0) {
-            $hour = date("H", $time);
-            $minute = date("i", $time);
-            $second = date("s", $time);
-            $week = date("N", $time);
-            $statement = "insert into capubbs.sign values ($year,$month,$day,$hour,$minute,$second,$week,'$username')";
-            mysqli_query($con, $statement);
-            $statement = "update capubbs.userinfo set sign=sign+1 where username='$username'";
-            mysqli_query($con, $statement);
-        }
+        jiekoufunc_auto_sign($con, $username);
     }
     return $username;
 }

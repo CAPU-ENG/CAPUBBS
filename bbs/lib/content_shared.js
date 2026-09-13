@@ -5,11 +5,11 @@
 
 /* ---- page navigation ---- */
 function jump(page) {
-    window.location = "./?bid=" + bid + "&tid=" + tid + "&p=" + page;
+    window.location = "/bbs/content/?bid=" + bid + "&tid=" + tid + "&p=" + page;
 }
 
 function gotobbs(tbid) {
-    window.location = "../main?bid=" + tbid;
+    window.location = "/bbs/main/?bid=" + tbid;
 }
 
 function showmenu() {
@@ -26,9 +26,9 @@ function goback() {
 
 function seelz() {
     if (window.location.href.indexOf('see_lz') !== -1) {
-        window.location = "./?bid=" + bid + "&tid=" + tid;
+        window.location = "/bbs/content/?bid=" + bid + "&tid=" + tid;
     } else {
-        window.location = "./?bid=" + bid + "&tid=" + tid + "&see_lz=1";
+        window.location = "/bbs/content/?bid=" + bid + "&tid=" + tid + "&see_lz=1";
     }
 }
 
