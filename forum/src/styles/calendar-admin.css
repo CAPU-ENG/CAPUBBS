@@ -481,6 +481,7 @@
     transform: translateY(-50%);
   }
 
+  .calendar-admin-form-fields label .calendar-admin-field-error,
   .calendar-admin-form-fields label .calendar-admin-character-count-error {
     color: var(--danger);
   }

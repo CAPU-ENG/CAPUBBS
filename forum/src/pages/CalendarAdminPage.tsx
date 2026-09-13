@@ -56,6 +56,8 @@ export function CalendarAdminPage() {
   const titleTooLong = titleLength > TITLE_LIMIT;
   const descriptionLength = Array.from(formState.description).length;
   const descriptionTooLong = descriptionLength > DESCRIPTION_LIMIT;
+  const endTimeInvalid = Boolean(formState.end)
+    && new Date(formState.end).getTime() <= new Date(`${formState.date}T${formState.time}`).getTime();
   const [openPeriodPicker, setOpenPeriodPicker] = useState<'month' | 'year' | null>(null);
   const authPending = authStatus === 'loading' || authStatus === 'restoring';
   const isAuthorized = authStatus === 'authenticated'
@@ -172,7 +174,7 @@ export function CalendarAdminPage() {
     if (!isValidDateKey(date)) return showError('请选择有效日期。');
     if (!isValidTime(time)) return showError('请选择有效活动时间。');
 
-    if (formState.end && formState.end <= `${date}T${time}`) return showError('结束时间必须晚于开始时间。');
+    if (endTimeInvalid) return showError('结束时间需要在开始时间之后');
 
     const previousEvent = editingId ? events.find((event) => event.id === editingId) ?? null : null;
     const nextEvent: HomeCalendarEvent = {
@@ -417,7 +419,8 @@ export function CalendarAdminPage() {
                   </div>
                   <label>
                     <span>结束时间 <small>选填</small></span>
-                    <input min={`${formState.date}T${formState.time}`} onChange={updateFormField('end')} type="datetime-local" value={formState.end} />
+                    <input aria-describedby={endTimeInvalid ? 'calendar-end-error' : undefined} aria-invalid={endTimeInvalid} min={`${formState.date}T${formState.time}`} onChange={updateFormField('end')} type="datetime-local" value={formState.end} />
+                    {endTimeInvalid && <small className="calendar-admin-field-error" id="calendar-end-error" role="alert">结束时间需要在开始时间之后</small>}
                   </label>
                   <label>
                     <span>帖子链接 <small>选填</small></span>
@@ -438,7 +441,7 @@ export function CalendarAdminPage() {
                   {feedback}
                 </p>
                 <footer>
-                  <button className="calendar-admin-save" disabled={isSaving || loadStatus === 'loading' || titleTooLong || descriptionTooLong} onClick={() => void submitForm()} type="button">
+                  <button className="calendar-admin-save" disabled={isSaving || loadStatus === 'loading' || titleTooLong || descriptionTooLong || endTimeInvalid} onClick={() => void submitForm()} type="button">
                     {isSaving ? <LoaderCircle className="animate-spin" size={16} /> : <Save size={16} />}
                     {isSaving ? '保存中' : '保存活动'}
                   </button>
