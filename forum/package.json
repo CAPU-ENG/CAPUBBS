@@ -23,6 +23,7 @@
     "verify:legacy-bbcode": "node --experimental-strip-types verify-legacy-bbcode.mjs",
     "verify:legacy-gateway": "node --experimental-strip-types verify-legacy-gateway.mjs",
     "verify:legacy-routes": "node --experimental-strip-types verify-legacy-forum-routes.mjs",
+    "verify:canonical-routes": "node --experimental-strip-types verify-forum-canonical-routes.mjs",
     "verify:legacy-signatures": "node --experimental-strip-types verify-legacy-signature-floor-links.mjs",
     "verify:markdown-editing": "node --experimental-strip-types verify-markdown-editing.mjs",
     "verify:markdown-rendering": "node --experimental-strip-types verify-markdown-rendering.mjs",

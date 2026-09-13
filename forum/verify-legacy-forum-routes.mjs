@@ -20,40 +20,40 @@ import {
 const cases = [
   [
     'https://www.chexie.net/bbs/content/?p=4&bid=4&tid=19989#41，',
-    '/bbs/?bid=4&tid=19989&p=4#41',
+    '/bbs/content/?bid=4&tid=19989&p=4#41',
   ],
   [
     'http://chexie.net/bbs/content/index.php?bid=3&amp;tid=8&amp;pid=17&amp;see_lz=1',
-    '/bbs/?bid=3&tid=8&p=2&see_lz=1#17',
+    '/bbs/content/?bid=3&tid=8&p=2&see_lz=1#17',
   ],
   [
     '../content/?bid=2&tid=6205&p=1',
-    '/bbs/?bid=2&tid=6205&p=1',
+    '/bbs/content/?bid=2&tid=6205&p=1',
   ],
   [
     '?bid=7&tid=99&floor=25',
-    '/bbs/?bid=7&tid=99&p=3#25',
+    '/bbs/content/?bid=7&tid=99&p=3#25',
   ],
   [
     'https://www.chexie.net/cgi-bin/bbs.pl?id=water&see=aaaa&p=2#pid5',
-    '/bbs/?bid=4&tid=1&p=2#5',
+    '/bbs/content/?bid=4&tid=1&p=2#5',
   ],
   [
     'www.chexie.net/thread.php?bid=9&tid=42&page=3#floor-31',
-    '/bbs/?bid=9&tid=42&p=3#31',
+    '/bbs/content/?bid=9&tid=42&p=3#31',
   ],
   [
     'https://chexie.net/capubbs-new/threads/4-19989?page=4#floor-41',
-    '/bbs/?bid=4&tid=19989&p=4#41',
+    '/bbs/content/?bid=4&tid=19989&p=4#41',
   ],
   [
     '/bbs-new/thread.php?bid=5&tid=72#9',
-    '/bbs/?bid=5&tid=72&p=1#9',
+    '/bbs/content/?bid=5&tid=72&p=1#9',
   ],
 ];
 
 for (const [legacyHref, expectedRoute] of cases) {
-  assert.equal(translateLegacyForumThreadHref(legacyHref), expectedRoute, legacyHref);
+  assertRoute(translateLegacyForumThreadHref(legacyHref), expectedRoute, legacyHref);
 }
 
 for (const href of [
@@ -66,8 +66,8 @@ for (const href of [
 }
 
 const legacyPageCases = [
-  ['../index/', '/bbs/'],
-  ['../main/?bid=4&p=3&extr=1', '/bbs/?bid=4&p=3&digest=1'],
+  ['../index/', '/bbs/index/'],
+  ['../main/?bid=4&p=3&extr=1', '/bbs/main/?bid=4&p=3&extr=1'],
   ['../user/?name=%E4%B9%82%E4%BA%95', '/bbs/users/%E4%B9%82%E4%BA%95'],
   ['https://www.chexie.net/bbs/home/', '/bbs/home'],
   ['https://chexie.net/bbs/favorite/', '/bbs/home?tab=bookmarks'],
@@ -85,10 +85,10 @@ const frameBaseUrl = 'http://localhost:5173/bbs/content/';
 const appRouteCases = [
   ['/users/%E4%B9%82%E4%BA%95', '/bbs/users/%E4%B9%82%E4%BA%95'],
   ['/forum/users/%E4%B9%82%E4%BA%95', '/bbs/users/%E4%B9%82%E4%BA%95'],
-  ['/?bid=4&p=2', '/bbs/?bid=4&p=2'],
-  ['/forum/?bid=4&p=2', '/bbs/?bid=4&p=2'],
-  ['/bbs/?bid=4&p=2', '/bbs/?bid=4&p=2'],
-  ['/bbs/?bid=4&tid=19989&p=1#1', '/bbs/?bid=4&tid=19989&p=1#1'],
+  ['/?bid=4&p=2', '/bbs/main/?bid=4&p=2'],
+  ['/forum/?bid=4&p=2', '/bbs/main/?bid=4&p=2'],
+  ['/bbs/?bid=4&p=2', '/bbs/main/?bid=4&p=2'],
+  ['/bbs/?bid=4&tid=19989&p=1#1', '/bbs/content/?bid=4&tid=19989&p=1#1'],
   [
     '/bbs/login?returnTo=%2Fbbs%2F%3Fbid%3D4%26tid%3D19989%26p%3D4%2341',
     '/bbs/login?returnTo=%2Fbbs%2F%3Fbid%3D4%26tid%3D19989%26p%3D4%2341',
@@ -101,13 +101,13 @@ const appRouteCases = [
   ['/forum/toolbox?tab=table-vcf', '/bbs/toolbox?tab=table-vcf'],
   ['/settings', '/bbs/settings'],
   ['/forum/home?tab=posts', '/bbs/home?tab=posts'],
-  ['../main/?bid=4&p=2&extr=1', '/bbs/?bid=4&p=2&digest=1'],
+  ['../main/?bid=4&p=2&extr=1', '/bbs/main/?bid=4&p=2&extr=1'],
   ['https://www.chexie.net/bbs/user/?name=test', '/bbs/users/test'],
-  ['https://chexie.net/bbs/content/?bid=4&tid=19989#41', '/bbs/?bid=4&tid=19989&p=4#41'],
+  ['https://chexie.net/bbs/content/?bid=4&tid=19989#41', '/bbs/content/?bid=4&tid=19989&p=4#41'],
 ];
 
 for (const [href, expectedRoute] of appRouteCases) {
-  assert.equal(resolveForumAppRoute(href, frameBaseUrl), expectedRoute, href);
+  assertRoute(resolveForumAppRoute(href, frameBaseUrl), expectedRoute, href);
 }
 
 for (const href of [
@@ -126,7 +126,10 @@ assert.equal(stripForumBasePath('/forum/users/test'), '/users/test');
 assert.equal(stripForumBasePath('/bbs/users/test'), '/users/test');
 assert.equal(stripForumBasePath('/forum'), '/');
 assert.equal(stripForumBasePath('/forum/'), '/');
-assert.equal(isHomeRoutePath('/'), true);
+assert.equal(isHomeRoutePath('/index'), true);
+assert.equal(isHomeRoutePath('/'), false);
+assert.equal(isBoardRoutePath('/'), false);
+assert.equal(isThreadRoutePath('/'), false);
 assert.equal(isHomeRoutePath('/not-a-real-page'), false);
 assert.equal(isBoardRoutePath('/main'), true);
 assert.equal(isBoardRoutePath('/not-a-real-page'), false);
@@ -135,16 +138,26 @@ assert.equal(isThreadRoutePath('/not-a-real-page'), false);
 assert.equal(getAuthPathWithReturnTo('/login', '/bbs/'), '/bbs/login');
 assert.equal(
   getAuthPathWithReturnTo('/login', '/bbs/?bid=4&tid=19989'),
-  '/bbs/login?returnTo=%2Fbbs%2F%3Fbid%3D4%26tid%3D19989',
+  '/bbs/login?returnTo=%2Fbbs%2Fcontent%2F%3Fbid%3D4%26tid%3D19989',
 );
 assert.equal(getAuthReturnTo('?returnTo=%2Fforum%2Fsearch%3Fq%3Dtest'), '/bbs/search?q=test');
-assert.equal(getAuthReturnTo('?returnTo=https%3A%2F%2Fevil.example'), '/bbs/');
+assert.equal(getAuthReturnTo('?returnTo=https%3A%2F%2Fevil.example'), '/bbs/index/');
 assert.equal(getThreadEditHref(4, 19989, 13), '/bbs/editpid?bid=4&pid=13&tid=19989');
-assert.equal(getThreadFloorHref(4, 19989, 13), '/bbs/?bid=4&p=2&tid=19989#13');
+assert.equal(getThreadFloorHref(4, 19989, 13), '/bbs/content/?bid=4&p=2&tid=19989#13');
 assert.equal(getThreadComposeHref(4), '/bbs/post?bid=4');
 assert.equal(
   getThreadComposeHref(4, 19853),
   '/bbs/post?bid=4&tid=19853',
 );
 
-console.log(`legacy forum route verification passed (${cases.length + legacyPageCases.length + appRouteCases.length + 29} cases)`);
+console.log('legacy forum route verification passed');
+
+function assertRoute(actual, expected, message) {
+  assert.ok(actual, message);
+  const normalized = (value) => {
+    const url = new URL(value, 'https://chexie.net');
+    url.searchParams.sort();
+    return url.href;
+  };
+  assert.equal(normalized(actual), normalized(expected), message);
+}

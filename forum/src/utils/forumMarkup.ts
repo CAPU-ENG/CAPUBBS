@@ -1,5 +1,6 @@
 import { getPublicProfilePath } from './userRoutes';
 import { getForumNavigationHref } from './forumNavigation';
+import { normalizeForumContentLinks } from './forumContentLinks';
 import { translateLegacyBbcode } from './legacyBbcode';
 import { localizeChexieImageRequests, normalizeLegacyPostImage } from './legacyAssets';
 import {
@@ -41,9 +42,9 @@ export function renderForumMarkup(
 }
 
 export function translateLegacyForumMarkup(value: string) {
-  return normalizeForumFontSizeMarkup(
+  return normalizeForumContentLinks(normalizeForumFontSizeMarkup(
     localizeChexieImageRequests(translateLegacyBbcode(value)),
-  );
+  ));
 }
 
 const ISOLATED_HTML_TAG_PATTERN = /<\s*\/?\s*(?:script|style|link|meta|base|iframe|frame|frameset|object|embed|audio|video|canvas|svg|math|form|input|textarea|select|button|option)\b/i;

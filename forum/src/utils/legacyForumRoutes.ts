@@ -15,7 +15,7 @@ const LEGACY_CGI_BOARD_IDS: Record<string, number> = {
 };
 
 /**
- * Converts a trusted legacy CAPUBBS thread URL into the query route used by the
+ * Converts a trusted historical CAPUBBS thread URL into the legacy page route used by the
  * current forum app. Non-thread and untrusted external links return null.
  */
 export function translateLegacyForumThreadHref(
@@ -54,14 +54,12 @@ export function translateLegacyForumThreadHref(
   const requestedPage = getPositiveInteger(url.searchParams.get('p'))
     ?? getPositiveInteger(url.searchParams.get('page'));
   const page = requestedPage ?? (floor ? Math.ceil(floor / LEGACY_THREAD_PAGE_SIZE) : 1);
-  const params = new URLSearchParams({
-    bid: String(target.bid),
-    tid: String(target.tid),
-    p: String(page),
-  });
-
-  if (url.searchParams.get('see_lz')) params.set('see_lz', '1');
-  return toForumHref(`/?${params.toString()}${floor ? `#${floor}` : ''}`);
+  const params = pathname === '/cgi-bin/bbs.pl' ? new URLSearchParams() : new URLSearchParams(url.search);
+  for (const alias of ['board', 'thread', 'page', 'pid', 'floor']) params.delete(alias);
+  params.set('bid', String(target.bid));
+  params.set('tid', String(target.tid));
+  if (requestedPage || floor) params.set('p', String(page));
+  return toForumHref(`/content/?${params.toString()}${floor ? `#${floor}` : url.hash}`);
 }
 
 /**
@@ -91,8 +89,8 @@ export function translateLegacyForumPageHref(
   if (!isRelativeHref && !isTrustedForumUrl(url, baseUrl)) return null;
 
   const pathname = stripKnownForumMountPrefix(normalizePathname(url.pathname));
-  if (isLegacyForumHomePath(pathname)) return toForumHref('/');
-  if (isLegacyBoardPath(pathname)) return getLegacyBoardRoute(url.searchParams);
+  if (isLegacyForumHomePath(pathname)) return appendSearchAndHash('/index/', url);
+  if (isLegacyBoardPath(pathname)) return getLegacyBoardRoute(url);
   if (isLegacyProfilePath(pathname)) return getLegacyProfileRoute(url.searchParams);
   if (isLegacyUserCenterPath(pathname)) return appendSearchAndHash('/home', url);
   if (isLegacyFavoritesPath(pathname)) return toForumHref('/home?tab=bookmarks');
@@ -112,20 +110,17 @@ export function isTrustedForumUrl(url: URL, baseUrl: URL) {
 }
 
 function getLegacyContentTarget(searchParams: URLSearchParams) {
-  const bid = getPositiveInteger(searchParams.get('bid'));
-  const tid = getPositiveInteger(searchParams.get('tid'));
+  const bid = getPositiveInteger(searchParams.get('bid') ?? searchParams.get('board'));
+  const tid = getPositiveInteger(searchParams.get('tid') ?? searchParams.get('thread'));
   return bid && tid ? { bid, tid } : null;
 }
 
-function getLegacyBoardRoute(searchParams: URLSearchParams) {
+function getLegacyBoardRoute(url: URL) {
+  const searchParams = url.searchParams;
   const bid = getPositiveInteger(searchParams.get('bid') ?? searchParams.get('board'));
   if (!bid) return null;
 
-  const params = new URLSearchParams({ bid: String(bid) });
-  const page = getPositiveInteger(searchParams.get('p') ?? searchParams.get('page'));
-  if (page && page > 1) params.set('p', String(page));
-  if (searchParams.get('extr') === '1' || searchParams.get('digest') === '1') params.set('digest', '1');
-  return toForumHref(`/?${params.toString()}`);
+  return appendSearchAndHash('/main/', url);
 }
 
 function getLegacyProfileRoute(searchParams: URLSearchParams) {
@@ -180,7 +175,9 @@ function getPositiveInteger(value: string | null) {
 }
 
 function isLegacyThreadPath(pathname: string) {
-  return pathname === '/thread.php'
+  return pathname === '/'
+    || pathname === '/bbs'
+    || pathname === '/thread.php'
     || pathname === '/bbs/content'
     || pathname === '/bbs/content/index.php';
 }

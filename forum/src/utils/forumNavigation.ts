@@ -8,6 +8,12 @@ import { USER_CENTER_PATH } from './userRoutes.ts';
 
 export const FORUM_APP_EXACT_PATHS = [
   '/',
+  '/index',
+  '/index/index.php',
+  '/main',
+  '/main/index.php',
+  '/content',
+  '/content/index.php',
   '/forgot-password',
   '/login',
   '/register',
@@ -64,6 +70,7 @@ export const LEGACY_FORUM_EXACT_PATHS = [
 export const LEGACY_FORUM_PATH_PATTERNS = ['^/threads/\\d+-\\d+$'] as const;
 
 export function resolveForumAppRoute(value: string, currentUrl: string) {
+  if (!value.trim() || value.trim().startsWith('#')) return null;
   let url: URL;
   let baseUrl: URL;
   try {
@@ -75,10 +82,10 @@ export function resolveForumAppRoute(value: string, currentUrl: string) {
 
   if (!['http:', 'https:'].includes(url.protocol) || !isTrustedForumUrl(url, baseUrl)) return null;
   const pathname = stripKnownForumMountPrefix(normalizePathname(url.pathname));
-  if (isForumAppPath(pathname)) return toForumHref(`${pathname}${url.search}${url.hash}`);
-
   const legacyThreadRoute = translateLegacyForumThreadHref(value, currentUrl);
   if (legacyThreadRoute) return legacyThreadRoute;
+
+  if (isForumAppPath(pathname)) return toForumHref(`${pathname}${url.search}${url.hash}`);
 
   return translateLegacyForumPageHref(value, currentUrl);
 }

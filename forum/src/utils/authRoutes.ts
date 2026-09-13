@@ -1,4 +1,4 @@
-import { FORUM_BASE_URL, stripForumBasePath, toForumHref } from './forumBasePath.ts';
+import { FORUM_HOME_URL, stripForumBasePath, toForumHref } from './forumBasePath.ts';
 
 const LOCAL_ORIGIN = 'http://capubbs.local';
 export const FORUM_LOCATION_CHANGE_EVENT = 'capubbs:location-change';
@@ -6,7 +6,7 @@ export const FORUM_LOCATION_CHANGE_EVENT = 'capubbs:location-change';
 export function getLoginPathWithReturnTo() {
   const returnTo = getSafeReturnTo(`${window.location.pathname}${window.location.search}${window.location.hash}`);
   const loginPath = toForumHref('/login');
-  return returnTo === FORUM_BASE_URL ? loginPath : `${loginPath}?returnTo=${encodeURIComponent(returnTo)}`;
+  return returnTo === FORUM_HOME_URL ? loginPath : `${loginPath}?returnTo=${encodeURIComponent(returnTo)}`;
 }
 
 export function getRegisterPathWithReturnTo() {
@@ -17,7 +17,7 @@ export function getRegisterPathWithReturnTo() {
 export function getAuthPathWithReturnTo(path: '/forgot-password' | '/login' | '/register', returnTo: string) {
   const safeReturnTo = getSafeReturnTo(returnTo);
   const authPath = toForumHref(path);
-  return safeReturnTo === FORUM_BASE_URL ? authPath : `${authPath}?returnTo=${encodeURIComponent(safeReturnTo)}`;
+  return safeReturnTo === FORUM_HOME_URL ? authPath : `${authPath}?returnTo=${encodeURIComponent(safeReturnTo)}`;
 }
 
 export function getAuthReturnTo(search: string) {
@@ -30,7 +30,7 @@ export function replaceForumLocation(href: string) {
 }
 
 function getSafeReturnTo(value: string | null | undefined) {
-  if (!value?.startsWith('/') || value.startsWith('//')) return FORUM_BASE_URL;
+  if (!value?.startsWith('/') || value.startsWith('//')) return FORUM_HOME_URL;
 
   try {
     const url = new URL(value, LOCAL_ORIGIN);
@@ -40,9 +40,9 @@ function getSafeReturnTo(value: string | null | undefined) {
       || pathname === '/forgot-password'
       || pathname === '/login'
       || pathname === '/register'
-    ) return FORUM_BASE_URL;
+    ) return FORUM_HOME_URL;
     return toForumHref(`${pathname}${url.search}${url.hash}`);
   } catch {
-    return FORUM_BASE_URL;
+    return FORUM_HOME_URL;
   }
 }

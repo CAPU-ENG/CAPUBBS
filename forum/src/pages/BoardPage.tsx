@@ -27,15 +27,15 @@ function getRequestedPage() {
 }
 
 function getDigestOnly() {
-  return new URLSearchParams(window.location.search).get('digest') === '1';
+  return new URLSearchParams(window.location.search).get('extr') === '1';
 }
 
 function boardPageHref(boardId: number, page: number, digestOnly: boolean) {
   const params = new URLSearchParams();
   params.set('bid', String(boardId));
   if (page > 1) params.set('p', String(page));
-  if (digestOnly) params.set('digest', '1');
-  return toForumHref(`/?${params.toString()}`);
+  if (digestOnly) params.set('extr', '1');
+  return toForumHref(`/main/?${params.toString()}`);
 }
 
 function threadHref(thread: BoardThreadData) {

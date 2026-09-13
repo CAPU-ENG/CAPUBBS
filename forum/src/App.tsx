@@ -14,6 +14,7 @@ import { ToolboxPage } from './pages/ToolboxPage';
 import { FORUM_LOCATION_CHANGE_EVENT } from './utils/authRoutes';
 import { consumeQueuedLocalDraftCleanups } from './utils/draftCleanup';
 import { stripForumBasePath } from './utils/forumBasePath';
+import { replaceAliasedForumLocation } from './utils/forumCanonicalRoute';
 import { applyForumContentFontSize } from './utils/forumFontSize';
 import {
   isBoardRoutePath,
@@ -122,7 +123,10 @@ function ForumRouter() {
   const [, refreshLocation] = useReducer((revision: number) => revision + 1, 0);
 
   useEffect(() => {
-    const refresh = () => refreshLocation();
+    const refresh = () => {
+      replaceAliasedForumLocation(window.location, window.history);
+      refreshLocation();
+    };
     const navigateInsideForum = (event: MouseEvent) => {
       if (
         event.defaultPrevented

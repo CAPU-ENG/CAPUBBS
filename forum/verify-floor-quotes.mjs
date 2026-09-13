@@ -69,7 +69,7 @@ const legacyStorage = buildLegacyFloorQuoteStorage({
   href: target.floorHref,
 });
 assert.match(legacyStorage, /^\[quote=AB]引用正文\[\/ quote]\n第二段\[\/quote]/);
-assert.match(legacyStorage, /<!--capubbs:quote \{"href":"\/bbs\/\?bid=4&tid=19989&p=2#13","floor":13}-->$/);
+assert.match(legacyStorage, /<!--capubbs:quote \{"href":"\/bbs\/content\/\?bid=4&tid=19989&p=2#13","floor":13}-->$/);
 
 const imageQuoteStorage = buildLegacyFloorQuoteStorage({
   author: '图片用户',

@@ -5,6 +5,7 @@ import { defineConfig, type Plugin } from 'vite';
 import react from '@vitejs/plugin-react';
 import { FORUM_BASE_PATH, FORUM_BASE_URL } from './src/utils/forumBasePath';
 import { resolveForumMode } from './src/utils/forumModeCookie.ts';
+import { canonicalizeForumPageRoute } from './src/utils/forumCanonicalRoute';
 
 const PHP_ORIGIN = process.env.CAPUBBS_PHP_ORIGIN || 'http://localhost:8080';
 
@@ -20,7 +21,16 @@ type MiddlewareServer = {
 
 function forumBasePathFallback(): Plugin {
   function installMiddleware(server: MiddlewareServer) {
-    server.middlewares.use((request, _response, next) => {
+    server.middlewares.use((request, response, next) => {
+      if (request.url && ['GET', 'HEAD'].includes(request.method ?? '')
+        && resolveForumMode(request.headers.cookie) !== 'legacy') {
+        const canonical = canonicalizeForumPageRoute(request.url);
+        if (canonical !== request.url) {
+          response.writeHead(308, { Location: canonical, 'Cache-Control': 'private, no-store', Vary: 'Cookie' });
+          response.end();
+          return;
+        }
+      }
       if (request.url === FORUM_BASE_PATH || request.url?.startsWith(`${FORUM_BASE_PATH}?`)) {
         request.url = `${FORUM_BASE_URL}${request.url.slice(FORUM_BASE_PATH.length)}`;
       }
