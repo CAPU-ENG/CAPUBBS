@@ -40,7 +40,7 @@ function packjump($p, $text, $bid, $tid, $see_lz) {
         $lz = "&see_lz=1";
     }
     if ($text == "plain") return "<span class='page'>$p</span>";
-    return "<a class='page' href='../content/?p=$p&bid=$bid&tid=$tid$lz'>$text</a>";
+    return "<a class='page' href='/bbs/content/?p=$p&bid=$bid&tid=$tid$lz'>$text</a>";
 }
 
 function echo_page_control($page, $pages, $bid, $tid, $see_lz) {
