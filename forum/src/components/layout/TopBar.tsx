@@ -12,7 +12,6 @@ import {
   UserRound,
 } from 'lucide-react';
 import { LoadingSpinner as LoaderCircle } from './LoadingSpinner';
-import { LegacyForumIcon } from './LegacyForumIcon';
 import defaultAvatar from '../../assets/avatar/default-avatar.svg';
 import logo1 from '../../assets/logo/logo1.webp';
 import logo2 from '../../assets/logo/logo2.webp';
@@ -20,7 +19,6 @@ import { DesktopBoardDrawer, MobileBoardSidebar } from './BoardNavigation';
 import { useAuth } from '../../context/AuthContext';
 import { getLoginPathWithReturnTo, getRegisterPathWithReturnTo } from '../../utils/authRoutes';
 import { stripForumBasePath, toForumHref } from '../../utils/forumBasePath';
-import { saveForumMode, SHARED_FORUM_ENTRY_PATH } from '../../utils/forumMode';
 import { USER_CENTER_HREF } from '../../utils/userRoutes';
 import { MessageCenter } from '../messages/MessageCenter';
 import { getBoardById } from '../../data/boards';
@@ -419,16 +417,6 @@ export function TopBar({
                 onUnreadChange={updateViewerUnreadMessages}
               />
             )}
-
-            <a
-              className="icon-button hidden lg:inline-flex"
-              href={SHARED_FORUM_ENTRY_PATH}
-              aria-label="切换回旧论坛"
-              data-forum-entry-reload="true"
-              onClick={() => saveForumMode('legacy')}
-            >
-              <LegacyForumIcon size={20} />
-            </a>
 
             {authPending ? (
               <span className="auth-session-loading" aria-label="正在恢复登录状态">

@@ -7,7 +7,6 @@ export {
   FORUM_MODE_COOKIE_NAME,
   getForumModeFromCookieHeader,
   resolveForumMode,
-  shouldInitializeLegacyForum,
   type ForumMode,
 } from './forumModeCookie.ts';
 

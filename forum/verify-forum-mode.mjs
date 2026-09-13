@@ -10,7 +10,6 @@ import {
   resolveForumMode,
   saveForumMode,
   SHARED_FORUM_ENTRY_PATH,
-  shouldInitializeLegacyForum,
 } from './src/utils/forumMode.ts';
 import { stripForumBasePath } from './src/utils/forumBasePath.ts';
 
@@ -38,11 +37,7 @@ assert.equal(
 assert.equal(getForumModeFromCookieHeader('token=abc; capubbs_forum_mode=legacy'), 'legacy');
 assert.equal(getForumModeFromCookieHeader('capubbs_forum_mode=new; token=abc'), 'new');
 assert.equal(getForumModeFromCookieHeader('capubbs_forum_mode=invalid'), null);
-assert.equal(shouldInitializeLegacyForum('token=abc'), true);
-assert.equal(shouldInitializeLegacyForum('token='), false);
-assert.equal(shouldInitializeLegacyForum('capubbs_forum_mode=new; token=abc'), false);
-assert.equal(shouldInitializeLegacyForum('capubbs_forum_mode=invalid; token=abc'), false);
-assert.equal(resolveForumMode('token=abc'), 'legacy');
+assert.equal(resolveForumMode('token=abc'), 'new');
 assert.equal(resolveForumMode(undefined), 'new');
 assert.equal(resolveForumMode('capubbs_forum_mode=new; token=abc'), 'new');
 
@@ -62,8 +57,6 @@ assert.equal(
 delete globalThis.window;
 delete globalThis.document;
 assert.match(gatewaySource, /\$_COOKIE\['capubbs_forum_mode'\]/);
-assert.match(gatewaySource, /trim\(\(string\)@\$_COOKIE\['token'\]\) !== ''/);
-assert.match(gatewaySource, /setcookie\('capubbs_forum_mode', 'legacy'/);
 assert.match(gatewaySource, /\$mode === 'legacy'/);
 assert.match(gatewaySource, /intval\(@\$_GET\['bid'\]\) > 0 && intval\(@\$_GET\['tid'\]\) > 0/);
 assert.match(gatewaySource, /\$legacyDirectory = 'content'/);
@@ -74,20 +67,17 @@ assert.match(legacyLoginSource, /<base href="\/bbs\/login\/">/);
 assert.match(legacyMainSource, /<base href="\/bbs\/main\/">/);
 assert.match(gatewaySource, /forum\/dist\/index\.html/);
 assert.match(gatewaySource, /Cache-Control: private, no-store/);
-assert.match(gatewaySource, /Vary: Cookie, User-Agent/);
+assert.match(gatewaySource, /Vary: Cookie/);
 assert.match(gatewaySource, /\$requestPath === '\/bbs\/register\/userexists\.php'/);
 assert.match(gatewaySource, /require \$registerDirectory\.'\/userexists\.php'/);
 assert.doesNotMatch(gatewaySource, /header\('Location:/);
 assert.match(routerSource, /serve_new_forum_file\(\$requestPath, '\/bbs\/new-assets\/'/);
 assert.match(routerSource, /\$forumMode === 'legacy'/);
-assert.match(routerSource, /trim\(\(string\)@\$_COOKIE\['token'\]\) !== ''/);
-assert.match(routerSource, /setcookie\('capubbs_forum_mode', 'legacy'/);
 assert.match(routerSource, /'\/bbs\/register\/userexists\.php'/);
 assert.match(routerSource, /require __DIR__\.'\/bbs\/index\.php'/);
 assert.match(viteConfigSource, /assetsDir: 'new-assets'/);
 assert.match(viteConfigSource, /legacy-forum-cookie-proxy/);
-assert.match(viteConfigSource, /resolveForumMode\(request\.headers\.cookie, request\.headers\['user-agent'\]\) !== 'legacy'/);
-assert.match(viteConfigSource, /shouldInitializeLegacyForum\(request\.headers\.cookie, request\.headers\['user-agent'\]\)/);
+assert.match(viteConfigSource, /resolveForumMode\(request\.headers\.cookie\) !== 'legacy'/);
 assert.match(viteConfigSource, /'\/bbs\/register\/userexists\.php'/);
 
 const oldForumSource = readFileSync(resolve(forumDirectory, '../bbs/index/index.php'), 'utf8');
@@ -103,23 +93,18 @@ assert.match(oldForumSource, /href='\/bbs\/'/);
 assert.match(oldForumSource, /saveForumMode\('new'\)/);
 assert.match(oldForumSource, /<base href="\/bbs\/index\/">/);
 assert.match(siteHomeSource, /href="\/bbs\/"/);
-assert.match(topBarSource, /saveForumMode\('legacy'\)/);
+assert.doesNotMatch(topBarSource, /saveForumMode\('legacy'\)/);
 assert.match(boardNavigationSource, /saveForumMode\('legacy'\)/);
-assert.match(topBarSource, /data-forum-entry-reload="true"/);
+assert.doesNotMatch(topBarSource, /data-forum-entry-reload="true"/);
 assert.match(boardNavigationSource, /data-forum-entry-reload="true"/);
 assert.match(appSource, /target\.dataset\.forumEntryReload === 'true'/);
 
-for (const userAgent of ['iPhone', 'Android', 'iPad', 'iPod', 'IEMobile', 'Opera Mini']) {
-  assert.equal(shouldInitializeLegacyForum('token=abc', userAgent), false);
-  for (const cookie of [undefined, 'token=', 'token=abc', 'capubbs_forum_mode=invalid; token=abc']) {
-    assert.equal(resolveForumMode(cookie, userAgent), 'new');
-  }
-  assert.equal(resolveForumMode('capubbs_forum_mode=legacy; token=abc', userAgent), 'legacy');
-  assert.equal(resolveForumMode('capubbs_forum_mode=new; token=abc', userAgent), 'new');
+for (const cookie of [undefined, 'token=', 'token=abc', 'capubbs_forum_mode=invalid; token=abc']) {
+  assert.equal(resolveForumMode(cookie), 'new');
 }
-assert.equal(resolveForumMode('token=abc', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)'), 'legacy');
+assert.equal(resolveForumMode('capubbs_forum_mode=legacy; token=abc'), 'legacy');
+assert.equal(resolveForumMode('capubbs_forum_mode=new; token=abc'), 'new');
 for (const source of [gatewaySource, routerSource]) {
-  assert.match(source, /\$hasLegacyLoginToken = !\$isMobileRequest && !isset/);
-  assert.match(source, /HTTP_USER_AGENT/);
+  assert.doesNotMatch(source, /hasLegacyLoginToken|HTTP_USER_AGENT/);
 }
 console.log('forum mode verification passed');

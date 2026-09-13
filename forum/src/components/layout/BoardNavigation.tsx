@@ -80,6 +80,17 @@ export function DesktopBoardDrawer({ onNavigate }: { onNavigate: () => void }) {
         <a className="supplement-link" href="https://www.chexie.space/" onClick={onNavigate}>
           <House size={15} /> 车协家园
         </a>
+        <a
+          className="supplement-link"
+          href={SHARED_FORUM_ENTRY_PATH}
+          data-forum-entry-reload="true"
+          onClick={() => {
+            saveForumMode('legacy');
+            onNavigate();
+          }}
+        >
+          <LegacyForumIcon size={15} /> 回到旧论坛
+        </a>
       </div>
     </section>
   );
