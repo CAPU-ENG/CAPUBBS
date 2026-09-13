@@ -12,3 +12,15 @@ export function calendarEventTimeLabel(event: HomeCalendarEvent) {
     ? `${event.time} – ${endTime}`
     : `${event.date} ${event.time} – ${endDate} ${endTime}`;
 }
+
+export function calendarHomeTimeLabel(event: HomeCalendarEvent, currentYear: number) {
+  function dateLabel(date: string) {
+    const [year, month, day] = date.split('-').map(Number);
+    return `${year === currentYear ? '' : `${year}/`}${month}/${day}`;
+  }
+  const start = `${dateLabel(event.date)} ${event.time}`;
+  if (!event.end) return start;
+  const endDate = event.end.slice(0, 10);
+  const endTime = event.end.slice(11, 16);
+  return `${start} – ${endDate === event.date ? '' : `${dateLabel(endDate)} `}${endTime}`;
+}

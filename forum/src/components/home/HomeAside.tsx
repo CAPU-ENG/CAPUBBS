@@ -1,9 +1,9 @@
 import { useEffect, useId, useLayoutEffect, useMemo, useRef, useState } from 'react';
-import { Bike, CalendarDays, ChevronLeft, ChevronRight, Clock3, Info, Pin, Settings } from 'lucide-react';
+import { Bike, CalendarDays, ChevronLeft, ChevronRight, Clock3, Info, Link2, Pin, Settings } from 'lucide-react';
 import type { HomeCalendarEvent, HomeSignupActivity, HomeThread } from '../../api/home';
 import { useAuth } from '../../context/AuthContext';
 import type { HomeDataStatus } from '../../hooks/useHomeData';
-import { calendarEventOccursOn, calendarEventTimeLabel } from '../../utils/calendarEvents';
+import { calendarEventOccursOn, calendarHomeTimeLabel } from '../../utils/calendarEvents';
 import { canManageCalendar } from '../../utils/calendarManagement';
 import { toForumHref } from '../../utils/forumBasePath';
 import { getForumNavigationHref } from '../../utils/forumNavigation';
@@ -39,11 +39,6 @@ function formatActivityDateRange(startsOn: string, endsOn: string) {
 
 function dateKey(year: number, month: number, day: number) {
   return `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
-}
-
-function formatCalendarDate(date: string) {
-  const [, month, day] = date.split('-').map(Number);
-  return `${month} 月 ${day} 日`;
 }
 
 type PinnedProps = {
@@ -360,20 +355,23 @@ export function ActivityCalendar({ compact = false, error, items, onVisibleDateC
         ) : displayedActivities.length > 0 ? (
           <>
             {selectedActivities.length === 0 ? <p className="calendar-agenda-label">最近活动</p> : null}
-            {displayedActivities.map((activity) => {
-              const content = (
-                <>
-                  <strong>{activity.title}</strong>
-                  <span><Clock3 size={13} />{selectedActivities.length === 0 && (!activity.end || activity.end.slice(0, 10) === activity.date) ? `${formatCalendarDate(activity.date)} ${calendarEventTimeLabel(activity)}` : calendarEventTimeLabel(activity)}</span>
-                  {activity.description && <span><Info size={13} />{activity.description}</span>}
-                </>
-              );
-              return activity.url ? (
-                <a href={getForumNavigationHref(activity.url, window.location.href)} key={activity.id}>{content}</a>
-              ) : (
-                <article key={activity.id}>{content}</article>
-              );
-            })}
+            {displayedActivities.map((activity) => (
+              <article key={activity.id}>
+                <strong className="calendar-agenda-title">
+                  {activity.url ? (
+                    <a href={getForumNavigationHref(activity.url, window.location.href)}>
+                      {activity.title}<Link2 aria-hidden="true" size={12} />
+                    </a>
+                  ) : activity.title}
+                </strong>
+                <div className="calendar-agenda-details">
+                  <span className="calendar-agenda-time"><Clock3 aria-hidden="true" size={13} />{calendarHomeTimeLabel(activity, today.getFullYear())}</span>
+                  {activity.description && (
+                    <span className="calendar-agenda-description"><Info aria-hidden="true" size={13} /><span>{activity.description}</span></span>
+                  )}
+                </div>
+              </article>
+            ))}
           </>
         ) : (
           <p>最近暂无活动</p>
