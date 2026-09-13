@@ -411,7 +411,7 @@ export function CalendarAdminPage() {
                     <input maxLength={2048} onChange={updateFormField('url')} value={formState.url} />
                   </label>
                   <label>
-                    <span>显示说明 <small>选填</small></span>
+                    <span>显示说明 <small>选填 · {formState.description.length} / 40</small></span>
                     <textarea maxLength={40} onChange={updateFormField('description')} placeholder="地点、集合信息或简短备注" rows={5} value={formState.description} />
                   </label>
                 </div>
