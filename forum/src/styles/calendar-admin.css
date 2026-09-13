@@ -452,17 +452,21 @@
     line-height: 1.6;
   }
 
-  .calendar-admin-description-input {
+  .calendar-admin-counted-input {
     position: relative;
     display: block;
   }
 
-  .calendar-admin-description-input textarea {
+  .calendar-admin-counted-input input {
+    padding-right: 76px;
+  }
+
+  .calendar-admin-counted-input textarea {
     display: block;
     padding-bottom: 34px;
   }
 
-  .calendar-admin-form-fields label .calendar-admin-description-count {
+  .calendar-admin-form-fields label .calendar-admin-character-count {
     position: absolute;
     right: 18px;
     bottom: 9px;
@@ -471,7 +475,7 @@
     pointer-events: none;
   }
 
-  .calendar-admin-form-fields label .calendar-admin-description-count-error {
+  .calendar-admin-form-fields label .calendar-admin-character-count-error {
     color: var(--danger);
   }
 
