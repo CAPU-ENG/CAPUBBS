@@ -1,5 +1,4 @@
 import {
-  ArrowLeft,
   CalendarDays,
   ChevronLeft,
   ChevronRight,
@@ -21,7 +20,6 @@ import { calendarEventOccursOn, calendarEventTimeLabel } from '../utils/calendar
 import { getForumNavigationHref } from '../utils/forumNavigation';
 import { canManageCalendar, saveCalendarEvent, deleteCalendarEvent } from '../utils/calendarManagement';
 import { getLoginPathWithReturnTo, getRegisterPathWithReturnTo } from '../utils/authRoutes';
-import { toForumHref } from '../utils/forumBasePath';
 
 type CalendarFormState = {
   end: string;
@@ -260,11 +258,7 @@ export function CalendarAdminPage() {
                 <div className="calendar-admin-title-line">
                   <span className="calendar-admin-title-icon"><CalendarDays size={19} /></span>
                   <h1 id="calendar-admin-title">日历管理</h1>
-                  <em>管理权限</em>
                 </div>
-              </div>
-              <div className="calendar-admin-heading-actions">
-                <a href={toForumHref('/')}><ArrowLeft size={15} />返回首页</a>
               </div>
             </header>
 
@@ -458,7 +452,6 @@ function CalendarAdminState({
       <h1>{title}</h1>
       {children ? <p>{children}</p> : null}
       <div className="calendar-admin-state-actions">
-        <a href={toForumHref('/')}><ArrowLeft size={15} />返回首页</a>
         {authStatus === 'guest' && <a href={getLoginPathWithReturnTo()}>前往登录</a>}
         {authStatus === 'guest' && <a href={getRegisterPathWithReturnTo()}>注册账号</a>}
       </div>
