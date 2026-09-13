@@ -1469,7 +1469,7 @@ function jiekoufunc_calendar($con, $params = array()) {
         $start_date = mysqli_real_escape_string($con, $start_date);
         $end_date = mysqli_real_escape_string($con, $end_date);
         $calendar_date = "STR_TO_DATE(CONCAT(year, '-', month, '-', day), '%Y-%c-%e')";
-        $statement .= " where $calendar_date >= '$start_date' and $calendar_date <= '$end_date'";
+        $statement .= " where COALESCE(`end`, $calendar_date) >= '$start_date 00:00:00' and $calendar_date <= '$end_date'";
     }
     $statement .= " order by year, month, day, time";
     $results = mysqli_query($con, $statement);

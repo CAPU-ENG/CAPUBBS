@@ -150,22 +150,15 @@ function del_inform() {
 }
 
 function savecalendar() {
-    var json = "[";
-    $(".calendar_content").each(function (index1) {
-        if (index1 != 0) json = json + ",";
-        json = json + "{";
-        var y = 0;
-        $(this).children().each(function (index) {
-            if (index == 0) json = json + "\"time\"";
-            else if (index == 1) json = json + ",\"title\"";
-            else if (index == 2) json = json + ",\"content\"";
-            else return;
-            json = json + ":\"" + $(this).text() + "\"";
-            y = 1;
-        });
-        json = json + "}";
+    var events = [];
+    $(".calendar_content").each(function () {
+        var cells = $(this).children();
+        var event = { time: cells.eq(0).text(), title: cells.eq(1).text(), content: cells.eq(2).text() };
+        var id = $(this).attr('data-event-id');
+        if (id) event.id = id;
+        events.push(event);
     });
-    json = json + "]";
+    var json = JSON.stringify(events);
     var year = $('#year').val();
     var month = $('#month').val();
     var day = $('#day').val();
@@ -181,8 +174,10 @@ function savecalendar() {
             alert("超时或权限不足！请重新登录尝试一次。");
             window.parent.showlogin();
             return;
-        } else if (x == 0)
+        } else if (x == 0) {
             $('#alert_success').show();
+            loadcalendar();
+        }
         else alert("未知错误，错误代码 " + x + " 请重试或与我们联系以寻求解决方案。");
     });
 }
@@ -260,13 +255,14 @@ function loadcalendar() {
             var content = data.documentElement.getElementsByTagName("data");
             var txt = "";
             for (var i = 0; i < content.length; i++) {
-                txt = txt + "<tr class='calendar_content' id='calendar_item_" + i + "'>";
+                var eventId = content[i].getElementsByTagName("id")[0];
+                txt = txt + "<tr class='calendar_content' data-event-id='" + (eventId ? eventId.textContent : "") + "' id='calendar_item_" + i + "'>";
                 var time = content[i].getElementsByTagName("time");
-                txt = txt + "<td>" + time[0].firstChild.nodeValue + "</td>";
+                txt = txt + "<td>" + $("<div>").text(time[0].textContent).html() + "</td>";
                 var title = content[i].getElementsByTagName("title");
-                txt = txt + "<td>" + title[0].firstChild.nodeValue + "</td>";
+                txt = txt + "<td>" + $("<div>").text(title[0].textContent).html() + "</td>";
                 var con = content[i].getElementsByTagName("content");
-                txt = txt + "<td>" + con[0].firstChild.nodeValue + "</td>";
+                txt = txt + "<td>" + $("<div>").text(con[0].textContent).html() + "</td>";
                 txt = txt + "<td class='text-center'><a href='javascript:delitem(" + i + ");'><span class='glyphicon glyphicon-minus-sign'></span></a></td></tr>";
             }
             $('#calendar_list').html(table_title + txt + table_end);
