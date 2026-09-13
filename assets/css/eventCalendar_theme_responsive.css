@@ -295,3 +295,14 @@
 /* end of theme css */
 
 
+
+/* Calendar links only apply to the event title. */
+.eventsCalendar-list .eventLinkIcon {
+    display: inline-block;
+    margin-left: 4px;
+    vertical-align: -1px;
+}
+.eventsCalendar-list li a.eventTitle:hover,
+.eventsCalendar-list li a.eventTitle:focus {
+    color: #086a80;
+}
