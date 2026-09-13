@@ -12,31 +12,6 @@
     }
 
     $mode = @$_COOKIE['capubbs_forum_mode'];
-    $hasLegacyLoginToken = !isset($_COOKIE['capubbs_forum_mode'])
-        && trim((string)@$_COOKIE['token']) !== '';
-
-    if ($hasLegacyLoginToken) {
-        $cookieSecure = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off');
-        $cookieExpires = time() + 31536000;
-        if (PHP_VERSION_ID >= 70300) {
-            setcookie('capubbs_forum_mode', 'legacy', array(
-                'expires' => $cookieExpires,
-                'path' => '/',
-                'secure' => $cookieSecure,
-                'httponly' => false,
-                'samesite' => 'Lax'
-            ));
-        } else {
-            $cookieHeader = 'capubbs_forum_mode=legacy; Expires=' . gmdate('D, d M Y H:i:s', $cookieExpires)
-                . ' GMT; Max-Age=31536000; Path=/; SameSite=Lax';
-            if ($cookieSecure) {
-                $cookieHeader .= '; Secure';
-            }
-            header('Set-Cookie: ' . $cookieHeader, false);
-        }
-        $_COOKIE['capubbs_forum_mode'] = 'legacy';
-        $mode = 'legacy';
-    }
 
     header('Cache-Control: private, no-store');
     header('Vary: Cookie');
