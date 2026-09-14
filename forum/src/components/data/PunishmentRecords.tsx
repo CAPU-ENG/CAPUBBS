@@ -127,7 +127,25 @@ export function PunishmentRecords({
     <section className="data-display-card data-display-card-danger punishment-card">
       <header className="data-display-card-header punishment-card-header">
         <span className="data-display-card-icon"><AlertCircle size={17} /></span>
-        <h1>{activeGroup ? `${activeGroup.title} 罚跑记录` : '罚跑记录'}</h1>
+        <nav aria-label="罚跑记录学年" className="punishment-year-navigation">
+          <button
+            aria-label="上一学年"
+            disabled={safeGroupIndex === 0}
+            onClick={() => setActiveGroupIndex(Math.max(0, safeGroupIndex - 1))}
+            type="button"
+          >
+            <ChevronLeft size={16} />
+          </button>
+          <h1>{activeGroup?.title}</h1>
+          <button
+            aria-label="下一学年"
+            disabled={safeGroupIndex === groups.length - 1}
+            onClick={() => setActiveGroupIndex(Math.min(groups.length - 1, safeGroupIndex + 1))}
+            type="button"
+          >
+            <ChevronRight size={16} />
+          </button>
+        </nav>
         <div className="punishment-controls">
           {canManage && (
             <button
@@ -216,28 +234,6 @@ export function PunishmentRecords({
           </tbody>
         </table>
       </div>
-
-      {groups.length > 1 && (
-        <nav aria-label="罚跑记录学年" className="punishment-year-pagination">
-          <button
-            aria-label="上一学年"
-            disabled={safeGroupIndex === 0}
-            onClick={() => setActiveGroupIndex(Math.max(0, safeGroupIndex - 1))}
-            type="button"
-          >
-            <ChevronLeft size={16} />
-          </button>
-          <span>{safeGroupIndex + 1} / {groups.length}</span>
-          <button
-            aria-label="下一学年"
-            disabled={safeGroupIndex === groups.length - 1}
-            onClick={() => setActiveGroupIndex(Math.min(groups.length - 1, safeGroupIndex + 1))}
-            type="button"
-          >
-            <ChevronRight size={16} />
-          </button>
-        </nav>
-      )}
 
       <AddPunishmentDialog onCancel={() => setAddDialogOpen(false)} onSubmit={addRecord} open={addDialogOpen} />
     </section>

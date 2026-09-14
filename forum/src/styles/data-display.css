@@ -469,16 +469,15 @@
     opacity: 0.55;
   }
 
-  .punishment-year-pagination {
+  .punishment-year-navigation {
     display: flex;
     align-items: center;
     justify-content: center;
     gap: 8px;
-    padding: 11px 16px;
-    border-top: 1px solid var(--line);
+    flex-shrink: 0;
   }
 
-  .punishment-year-pagination button {
+  .punishment-year-navigation button {
     display: inline-flex;
     width: 32px;
     height: 32px;
@@ -490,17 +489,13 @@
     color: var(--text-muted);
   }
 
-  .punishment-year-pagination button:disabled {
+  .punishment-year-navigation button:disabled {
     cursor: not-allowed;
     opacity: 0.35;
   }
 
-  .punishment-year-pagination span {
-    min-width: 52px;
-    color: var(--text-faint);
-    font-size: var(--ui-font-size-md);
-    font-weight: 700;
-    text-align: center;
+  .punishment-year-navigation h1 {
+    white-space: nowrap;
   }
 
   body.punishment-dialog-open {
@@ -1308,10 +1303,6 @@
       align-items: flex-start;
       padding-top: 12px;
       padding-bottom: 12px;
-    }
-
-    .punishment-card-header > h1 {
-      padding-top: 6px;
     }
 
     .punishment-controls {
