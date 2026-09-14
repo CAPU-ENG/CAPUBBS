@@ -54,15 +54,17 @@ export function PunishmentRecords({
   records: PunishmentRecord[];
 }) {
   const { status: authStatus, viewer } = useAuth();
-  const [activeGroupIndex, setActiveGroupIndex] = useState(0);
+  const [activeGroupIndex, setActiveGroupIndex] = useState<number | null>(null);
   const [addDialogOpen, setAddDialogOpen] = useState(false);
   const [managementActive, setManagementActive] = useState(false);
   const [pendingFinish, setPendingFinish] = useState<PendingFinish | null>(null);
   const [showOnlyUnfinished, setShowOnlyUnfinished] = useState(false);
   const [sortMode, setSortMode] = useState<SortMode>('time');
   const canManage = authStatus === 'authenticated' && viewer?.username.trim() === '组织部';
-  const groups = useMemo(() => buildAcademicYearGroups(records), [records]);
-  const safeGroupIndex = Math.min(activeGroupIndex, Math.max(0, groups.length - 1));
+  const currentStartYear = getAcademicStartYear(getTodayDate())!;
+  const groups = useMemo(() => buildAcademicYearGroups(records, currentStartYear), [records, currentStartYear]);
+  const defaultGroupIndex = groups.findIndex((group) => group.startYear === currentStartYear);
+  const safeGroupIndex = Math.min(activeGroupIndex ?? defaultGroupIndex, Math.max(0, groups.length - 1));
   const activeGroup = groups[safeGroupIndex] ?? null;
   const visibleRecords = useMemo(
     () => getVisibleRecords(activeGroup?.records ?? [], showOnlyUnfinished, sortMode),
@@ -70,7 +72,7 @@ export function PunishmentRecords({
   );
 
   useEffect(() => {
-    setActiveGroupIndex(0);
+    setActiveGroupIndex(null);
     setPendingFinish(null);
   }, [records]);
 
@@ -220,7 +222,7 @@ export function PunishmentRecords({
           <button
             aria-label="上一学年"
             disabled={safeGroupIndex === 0}
-            onClick={() => setActiveGroupIndex((index) => Math.max(0, index - 1))}
+            onClick={() => setActiveGroupIndex(Math.max(0, safeGroupIndex - 1))}
             type="button"
           >
             <ChevronLeft size={16} />
@@ -229,7 +231,7 @@ export function PunishmentRecords({
           <button
             aria-label="下一学年"
             disabled={safeGroupIndex === groups.length - 1}
-            onClick={() => setActiveGroupIndex((index) => Math.min(groups.length - 1, index + 1))}
+            onClick={() => setActiveGroupIndex(Math.min(groups.length - 1, safeGroupIndex + 1))}
             type="button"
           >
             <ChevronRight size={16} />
@@ -406,8 +408,15 @@ function StatusBadge({ complete }: { complete: boolean }) {
   return <span className={`data-status ${complete ? 'data-status-complete' : ''}`}>{complete ? '已完成' : '进行中'}</span>;
 }
 
-function buildAcademicYearGroups(records: PunishmentRecord[]) {
+function buildAcademicYearGroups(records: PunishmentRecord[], currentStartYear: number) {
   const groups = new Map<string, AcademicYearGroup>();
+  const currentKey = String(currentStartYear);
+  groups.set(currentKey, {
+    key: currentKey,
+    records: [],
+    startYear: currentStartYear,
+    title: `${currentStartYear}-${currentStartYear + 1} 学年`,
+  });
   records.forEach((record) => {
     const startYear = getAcademicStartYear(record.startDate);
     const key = startYear === null ? 'unknown' : String(startYear);
