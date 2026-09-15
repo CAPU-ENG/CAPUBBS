@@ -30,6 +30,7 @@ import {
   useBackToTopEnabled,
   useFloorDecorationEnabled,
   useSignatureToggleEnabled,
+  usePreciseSignatureBlocking,
   useWaterfallFeedEnabled,
 } from '../hooks/useAssistiveFeatures';
 import { useAuthorProfileEnabled } from '../hooks/useAuthorProfile';
@@ -47,6 +48,7 @@ import {
   saveBackToTopEnabled,
   saveFloorDecorationEnabled,
   saveSignatureToggleEnabled,
+  savePreciseSignatureBlocking,
   saveWaterfallFeedEnabled,
 } from '../utils/assistiveFeatures';
 import { saveAuthorProfileEnabled } from '../utils/authorProfile';
@@ -74,6 +76,7 @@ export function SettingsPage() {
   const pinnedBoardIds = usePinnedBoardIds();
   const { followsSystem } = useTheme();
   const signatureToggleEnabled = useSignatureToggleEnabled();
+  const preciseSignatureBlocking = usePreciseSignatureBlocking();
   const tagMedalDisplayEnabled = useTagMedalDisplayEnabled();
   const topBarAutoHideEnabled = useTopBarAutoHideEnabled();
   const waterfallFeedEnabled = useWaterfallFeedEnabled();
@@ -292,6 +295,16 @@ export function SettingsPage() {
                 label="屏蔽签名档"
                 onChange={saveSignatureToggleEnabled}
               />
+              {signatureToggleEnabled && (
+                <SettingsCheckbox
+                  checked={preciseSignatureBlocking}
+                  disabled={!assistiveBarEnabled}
+                  disabledReason="请先开启辅助栏"
+                  icon={<Signature size={15} />}
+                  label="精确屏蔽"
+                  onChange={savePreciseSignatureBlocking}
+                />
+              )}
             </div>
           </section>
 

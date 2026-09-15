@@ -10,6 +10,7 @@
     "verify:legacy-calendar": "node verify-legacy-calendar.mjs",
     "verify:calendar": "node --experimental-strip-types verify-calendar.mjs",
     "typecheck": "tsc -b --pretty false",
+    "verify:precise-signatures": "node --experimental-strip-types verify-precise-signature-blocking.mjs",
     "verify:default-signature": "node --experimental-strip-types verify-default-signature.mjs",
     "verify:floor-quotes": "node --experimental-strip-types verify-floor-quotes.mjs",
     "verify:grayscale-colors": "node --experimental-strip-types verify-grayscale-text-colors.mjs",

@@ -2,6 +2,7 @@ export const BACK_TO_TOP_ENABLED_STORAGE_KEY = 'capubbs-back-to-top-enabled';
 export const ASSISTIVE_BAR_ENABLED_STORAGE_KEY = 'capubbs-assistive-bar-enabled';
 export const AUTO_SAVE_ENABLED_STORAGE_KEY = 'capubbs-auto-save-enabled';
 export const SIGNATURE_TOGGLE_ENABLED_STORAGE_KEY = 'capubbs-signature-toggle-enabled';
+export const PRECISE_SIGNATURE_BLOCKING_STORAGE_KEY = 'capubbs-precise-signature-blocking';
 export const SIGNATURES_HIDDEN_STORAGE_KEY = 'capubbs-signatures-hidden';
 export const WATERFALL_FEED_ENABLED_STORAGE_KEY = 'capubbs-waterfall-feed-enabled';
 export const FLOOR_DECORATION_ENABLED_STORAGE_KEY = 'capubbs-floor-decoration-enabled';
@@ -63,6 +64,14 @@ export function saveSignatureToggleEnabled(enabled: boolean) {
   return saveBoolean(SIGNATURE_TOGGLE_ENABLED_STORAGE_KEY, enabled);
 }
 
+export function readPreciseSignatureBlocking() {
+  return readBoolean(PRECISE_SIGNATURE_BLOCKING_STORAGE_KEY);
+}
+
+export function savePreciseSignatureBlocking(enabled: boolean) {
+  return saveBoolean(PRECISE_SIGNATURE_BLOCKING_STORAGE_KEY, enabled);
+}
+
 export function readSignaturesHidden() {
   return readBoolean(SIGNATURES_HIDDEN_STORAGE_KEY);
 }
@@ -96,6 +105,7 @@ export function subscribeAssistiveFeatures(listener: () => void) {
       || event.key === AUTO_SAVE_ENABLED_STORAGE_KEY
       || event.key === BACK_TO_TOP_ENABLED_STORAGE_KEY
       || event.key === SIGNATURE_TOGGLE_ENABLED_STORAGE_KEY
+      || event.key === PRECISE_SIGNATURE_BLOCKING_STORAGE_KEY
       || event.key === SIGNATURES_HIDDEN_STORAGE_KEY
       || event.key === WATERFALL_FEED_ENABLED_STORAGE_KEY
       || event.key === FLOOR_DECORATION_ENABLED_STORAGE_KEY

@@ -2985,3 +2985,9 @@
   }
 
 }
+
+.thread-assistive-tools > button:disabled,
+.mobile-thread-assistive-tool:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}

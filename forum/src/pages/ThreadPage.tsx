@@ -15,6 +15,7 @@ import {
   useBackToTopEnabled,
   useFloorDecorationEnabled,
   useSignaturesHidden,
+  usePreciseSignatureBlocking,
   useSignatureToggleEnabled,
 } from '../hooks/useAssistiveFeatures';
 import { useAuthorProfileEnabled } from '../hooks/useAuthorProfile';
@@ -25,6 +26,8 @@ import { useThreadData } from '../hooks/useThreadData';
 import { useTagMedalDisplayEnabled } from '../hooks/useTagMedalDisplay';
 import { useTheme } from '../hooks/useTheme';
 import { useTopBarAutoHideEnabled } from '../hooks/useTopBarAutoHide';
+import { useBlockedSignatures } from '../hooks/useBlockedSignatures';
+import { getSignatureBlockKey, saveSignatureBlocked } from '../utils/preciseSignatureBlocking';
 import { saveSignaturesHidden } from '../utils/assistiveFeatures';
 import { getLoginPathWithReturnTo, getRegisterPathWithReturnTo } from '../utils/authRoutes';
 import { writeClipboardText } from '../utils/clipboard';
@@ -179,6 +182,9 @@ export function ThreadPage() {
   const titleRef = useRef<HTMLHeadingElement | null>(null);
   const threadTopBar = useThreadTopBar(titleRef, topBarAutoHideEnabled);
   const signaturesHidden = useSignaturesHidden();
+  const preciseSignatureBlocking = usePreciseSignatureBlocking();
+  const blockedSignatures = useBlockedSignatures();
+  const [signatureSaveError, setSignatureSaveError] = useState(false);
   const signatureToggleEnabled = useSignatureToggleEnabled();
   const inlineFloorAvatar = !authorProfileEnabled && avatarFollowDisabled && !assistiveBarEnabled;
   const threadPageShellClassName = [
@@ -409,8 +415,20 @@ export function ThreadPage() {
     window.scrollTo({ left: 0, top: 0 });
   }
 
+  const activeSignatureKey = getSignatureBlockKey(pageFloors.find((floor) => floor.floor === activeFloor));
+  const activeSignatureBlocked = activeSignatureKey !== null && blockedSignatures.has(activeSignatureKey);
+  const signatureButtonPressed = preciseSignatureBlocking ? activeSignatureBlocked : signaturesHidden;
+  const signatureButtonLabel = preciseSignatureBlocking
+    ? (activeSignatureBlocked ? '精确展示' : '精确屏蔽')
+    : (signaturesHidden ? '显示签名档' : '屏蔽签名档');
+
   function toggleSignatures() {
-    saveSignaturesHidden(!signaturesHidden);
+    if (preciseSignatureBlocking) {
+      if (activeSignatureKey === null) return;
+      setSignatureSaveError(!saveSignatureBlocked(activeSignatureKey, !activeSignatureBlocked));
+    } else {
+      setSignatureSaveError(!saveSignaturesHidden(!signaturesHidden));
+    }
   }
 
   if (!data) {
@@ -534,7 +552,8 @@ export function ThreadPage() {
                   decorationImageSrc={getFloorDecorationPath(floor.author.floorDecoration, theme)}
                   editHref={getThreadEditHref(data.bid, data.tid, floor.floor)}
                   floor={floor}
-                  hideSignature={assistiveBarEnabled && signatureToggleEnabled && signaturesHidden}
+                  hideSignature={blockedSignatures.has(getSignatureBlockKey(floor) ?? '')
+                    || (assistiveBarEnabled && signatureToggleEnabled && !preciseSignatureBlocking && signaturesHidden)}
                   isActivityThread={data.isActivity}
                   isMainPost={floor.floor === 1}
                   inlineAvatar={inlineFloorAvatar}
@@ -578,13 +597,14 @@ export function ThreadPage() {
                   )}
                   {signatureToggleEnabled && (
                     <button
-                      aria-pressed={signaturesHidden}
-                      className={signaturesHidden ? 'thread-assistive-tool-active' : ''}
+                      aria-pressed={signatureButtonPressed}
+                      disabled={preciseSignatureBlocking && activeSignatureKey === null}
+                      className={signatureButtonPressed ? 'thread-assistive-tool-active' : ''}
                       onClick={toggleSignatures}
                       type="button"
                     >
-                      {signaturesHidden ? <Eye size={15} /> : <EyeOff size={15} />}
-                      {signaturesHidden ? '显示签名档' : '屏蔽签名档'}
+                      {signatureButtonPressed ? <Eye size={15} /> : <EyeOff size={15} />}
+                      {signatureButtonLabel}
                     </button>
                   )}
                 </div>
@@ -651,17 +671,23 @@ export function ThreadPage() {
           )}
           {signatureToggleEnabled && (
             <button
-              aria-label={signaturesHidden ? '显示签名档' : '屏蔽签名档'}
-              aria-pressed={signaturesHidden}
-              className={`mobile-thread-assistive-tool ${signaturesHidden ? 'mobile-thread-assistive-tool-active' : ''}`}
+              aria-label={signatureButtonLabel}
+              aria-pressed={signatureButtonPressed}
+              disabled={preciseSignatureBlocking && activeSignatureKey === null}
+              className={`mobile-thread-assistive-tool ${signatureButtonPressed ? 'mobile-thread-assistive-tool-active' : ''}`}
               onClick={toggleSignatures}
-              title={signaturesHidden ? '显示签名档' : '屏蔽签名档'}
+              title={signatureButtonLabel}
               type="button"
             >
-              {signaturesHidden ? <Eye size={15} /> : <EyeOff size={15} />}
+              {signatureButtonPressed ? <Eye size={15} /> : <EyeOff size={15} />}
             </button>
           )}
           <MobileFloorNode activeFloor={activeFloor} floors={nodeFloors} />
+        </div>
+      )}
+      {signatureSaveError && (
+        <div className="copy-floor-toast" role="alert" onClick={() => setSignatureSaveError(false)}>
+          签名档设置未能保存，请检查浏览器本地存储权限
         </div>
       )}
       {copyNoticeOpen && (

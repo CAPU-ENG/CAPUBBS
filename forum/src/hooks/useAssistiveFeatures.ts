@@ -5,6 +5,7 @@ import {
   readBackToTopEnabled,
   readFloorDecorationEnabled,
   readSignaturesHidden,
+  readPreciseSignatureBlocking,
   readSignatureToggleEnabled,
   readWaterfallFeedEnabled,
   subscribeAssistiveFeatures,
@@ -36,4 +37,8 @@ export function useWaterfallFeedEnabled() {
 
 export function useFloorDecorationEnabled() {
   return useSyncExternalStore(subscribeAssistiveFeatures, readFloorDecorationEnabled, () => true);
+}
+
+export function usePreciseSignatureBlocking() {
+  return useSyncExternalStore(subscribeAssistiveFeatures, readPreciseSignatureBlocking, () => false);
 }
