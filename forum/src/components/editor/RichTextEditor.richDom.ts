@@ -57,6 +57,20 @@ export function createInactiveRichCommandStates(): RichToggleCommandStates {
   };
 }
 
+export function readRichHeading(editor: HTMLElement): string {
+  const selection = window.getSelection();
+  if (!selection || selection.rangeCount === 0) return 'p';
+  if (!editor.contains(selection.getRangeAt(0).commonAncestorContainer)) return 'p';
+
+  const node = selection.focusNode;
+  let element = node instanceof Element ? node : node?.parentElement;
+  while (element && element !== editor) {
+    if (/^H[1-6]$/.test(element.tagName)) return element.tagName.toLowerCase();
+    element = element.parentElement;
+  }
+  return 'p';
+}
+
 export function readRichCommandStates(editor: HTMLElement): RichToggleCommandStates {
   const selection = window.getSelection();
   if (!selection || selection.rangeCount === 0) return createInactiveRichCommandStates();

@@ -3,7 +3,7 @@ import { richTextHeadingOptions } from './RichTextEditor.constants';
 import {
   maxRecentTextColors, mergeFullySelectedChildRichSpansIntoWrapper,
   normalizeRedundantRichSpans, normalizeRichIndentation,
-  readRichCommandStates, removeOverriddenRichInlineStyles,
+  readRichCommandStates, readRichHeading, removeOverriddenRichInlineStyles,
   removeOverriddenRichInlineStylesFromFullySelectedAncestors,
   richTypingStyleAttribute, richTypingStyleMarker,
   toggleRichFirstLineIndentForRange,
@@ -145,10 +145,10 @@ export function createRichTextEditorRichActions({
       return;
     }
 
-    setHeadingSelectValue(headingTag);
     editorRef.current?.focus();
     restoreRichSelection();
     document.execCommand('formatBlock', false, headingTag);
+    setHeadingSelectValue(editorRef.current ? readRichHeading(editorRef.current) : 'p');
     updateContent(editorRef.current?.innerHTML ?? '');
     savedRangeRef.current = null;
   };

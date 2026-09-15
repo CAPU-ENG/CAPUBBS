@@ -44,6 +44,7 @@ import {
   normalizeRichTypingStylesAfterInput,
   readRecentTextColors,
   readRichCommandStates,
+  readRichHeading,
   storeRecentTextColors,
   type RichToggleCommandStates,
 } from './RichTextEditor.richDom';
@@ -202,12 +203,14 @@ export function RichTextEditor({
   useEffect(() => {
     if (isSourceMode) {
       setActiveRichCommands(createInactiveRichCommandStates());
+      setHeadingSelectValue('p');
       return undefined;
     }
 
     const syncCommandStates = () => {
       const editor = editorRef.current;
       setActiveRichCommands(editor ? readRichCommandStates(editor) : createInactiveRichCommandStates());
+      setHeadingSelectValue(editor ? readRichHeading(editor) : 'p');
     };
     const handleFocusIn = (event: FocusEvent) => {
       const editorShell = editorShellRef.current;
@@ -215,16 +218,20 @@ export function RichTextEditor({
         syncCommandStates();
       } else {
         setActiveRichCommands(createInactiveRichCommandStates());
+        setHeadingSelectValue('p');
       }
     };
 
     document.addEventListener('selectionchange', syncCommandStates);
     document.addEventListener('focusin', handleFocusIn);
+    const editor = editorRef.current;
+    editor?.addEventListener('input', syncCommandStates);
     syncCommandStates();
 
     return () => {
       document.removeEventListener('selectionchange', syncCommandStates);
       document.removeEventListener('focusin', handleFocusIn);
+      editor?.removeEventListener('input', syncCommandStates);
     };
   }, [isSourceMode]);
 
