@@ -1985,8 +1985,13 @@
       padding-bottom: 44px;
     }
 
-    .profile-overview {
+    .profile-overview,
+    .profile-content-menu {
       gap: 8px;
+    }
+
+    .profile-content-menu {
+      margin-top: 8px;
     }
 
     .profile-identity-card {
