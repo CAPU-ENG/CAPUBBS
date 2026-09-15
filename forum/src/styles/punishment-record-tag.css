@@ -3,7 +3,17 @@
   width: 100%;
 }
 
-.forum-markup .forum-punishment-table > caption {
+.forum-markup .forum-punishment-record {
+  min-width: 0;
+  max-width: 100%;
+}
+
+.forum-markup .forum-punishment-scroll {
+  max-width: 100%;
+  overflow-x: auto;
+}
+
+.forum-markup .forum-punishment-title {
   padding: 12px 14px;
   border-bottom: 1px solid var(--line);
   background: var(--surface-soft);
@@ -12,7 +22,7 @@
   font-size: var(--ui-font-size-lg, 14px);
   font-weight: 760;
   line-height: 1.5;
-  text-align: left;
+  text-align: center;
 }
 
 .forum-markup .forum-punishment-table .forum-punishment-empty {
