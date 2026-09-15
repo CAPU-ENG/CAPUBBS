@@ -573,6 +573,7 @@
 
     .board-title-copy h1 {
       font-size: var(--ui-font-size-feature-title);
+      text-align: right;
     }
 
     .board-title-copy,
@@ -598,6 +599,7 @@
     }
 
     .board-moderators {
+      justify-content: flex-end;
       gap: 6px;
       margin-top: 10px;
       font-size: var(--ui-font-size-sm);
