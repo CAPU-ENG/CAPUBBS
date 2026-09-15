@@ -2160,6 +2160,7 @@
       min-height: 56px;
       gap: 4px;
       padding: 8px 6px;
+      text-align: center;
     }
 
     .profile-stat-card span {
@@ -2167,6 +2168,11 @@
     }
 
     .profile-stat-card strong {
+      font-size: var(--ui-font-size-xs);
+    }
+
+    .profile-content-links a,
+    .profile-content-menu .profile-aside-link {
       font-size: var(--ui-font-size-xs);
     }
 
