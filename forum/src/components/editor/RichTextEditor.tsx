@@ -901,7 +901,7 @@ export function RichTextEditor({
           onPointerDown={handleRichImageResizePointerDown}
           onPointerMove={handleRichImageResizePointerMove}
           onPointerUp={finishRichImageResize}
-          className={`absolute z-20 flex h-5 w-5 -translate-x-1/2 -translate-y-1/2 ${richImageResizeHandle.wrap === 'right' ? 'cursor-nesw-resize' : 'cursor-nwse-resize'} items-center justify-center rounded-[1px] border border-[#174f38] bg-white shadow-md transition hover:bg-zinc-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#174f38] dark:border-emerald-200 dark:bg-zinc-950`}
+          className={`absolute z-20 flex h-5 w-5 -translate-x-1/2 -translate-y-1/2 touch-none ${richImageResizeHandle.wrap === 'right' ? 'cursor-nesw-resize' : 'cursor-nwse-resize'} items-center justify-center rounded-[1px] border border-[#174f38] bg-white shadow-md transition hover:bg-zinc-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#174f38] dark:border-emerald-200 dark:bg-zinc-950`}
           style={{
             left: `${richImageResizeHandle.left}px`,
             top: `${richImageResizeHandle.top}px`,
