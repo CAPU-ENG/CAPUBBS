@@ -419,7 +419,7 @@ export function ThreadPage() {
   const activeSignatureBlocked = activeSignatureKey !== null && blockedSignatures.has(activeSignatureKey);
   const signatureButtonPressed = preciseSignatureBlocking ? activeSignatureBlocked : signaturesHidden;
   const signatureButtonLabel = preciseSignatureBlocking
-    ? (activeSignatureBlocked ? '精确展示' : '精确屏蔽')
+    ? (activeSignatureBlocked ? '展示该签名档' : '屏蔽该签名档')
     : (signaturesHidden ? '显示签名档' : '屏蔽签名档');
 
   function toggleSignatures() {
