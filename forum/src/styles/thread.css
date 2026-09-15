@@ -2816,13 +2816,13 @@
       grid-column: 1 / -1;
       justify-content: flex-end;
       gap: 4px;
+      font-size: 0.6875rem;
       line-height: 1.35;
     }
 
     .thread-floor-time:has(> time:nth-of-type(2)) {
       flex-wrap: wrap;
       gap: 2px 6px;
-      font-size: 0.6875rem;
       text-align: right;
       white-space: normal;
     }
@@ -2837,8 +2837,14 @@
     }
 
     .thread-floor-index {
+      min-width: 0;
+      height: 22px;
       grid-row: 1;
       grid-column: 2;
+      justify-self: end;
+      justify-content: flex-end;
+      padding: 0;
+      text-align: right;
     }
 
     .thread-floor-body {
