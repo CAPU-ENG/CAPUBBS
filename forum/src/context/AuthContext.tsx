@@ -182,12 +182,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const updateViewerUnreadMessages = useCallback((count: number) => {
     unreadRevisionRef.current += 1;
     setAuth((current) => {
-      if (!current.viewer) return current;
+      if (!current.viewer || current.viewer.username !== activeUsername) return current;
       const viewer = { ...current.viewer, unreadMessages: Math.max(0, Math.floor(count)) };
       cacheViewer(viewer);
       return { ...current, viewer };
     });
-  }, []);
+  }, [activeUsername]);
 
   const value = useMemo(
     () => ({

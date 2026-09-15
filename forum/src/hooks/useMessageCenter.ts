@@ -29,6 +29,7 @@ export function useMessageCenter(onUnreadChange: (count: number) => void) {
   const [error, setError] = useState('');
   const [isLoadingMore, setIsLoadingMore] = useState(false);
   const [status, setStatus] = useState<MessageCenterStatus>('idle');
+  const dataRef = useRef(EMPTY_SUMMARY);
   const activeController = useRef<AbortController | null>(null);
   const loadingPromise = useRef<Promise<void> | null>(null);
   const onUnreadChangeRef = useRef(onUnreadChange);
@@ -40,12 +41,13 @@ export function useMessageCenter(onUnreadChange: (count: number) => void) {
   useEffect(() => () => activeController.current?.abort(), []);
 
   const commit = useCallback((update: (current: MessageSummary) => MessageSummary) => {
-    setData(update);
+    const next = update(dataRef.current);
+    dataRef.current = next;
+    setData(next);
+    // Opening a message can unmount this hook before its read request finishes.
+    // Publish the count here so the new page does not depend on another render.
+    onUnreadChangeRef.current(next.unread.total);
   }, []);
-
-  useEffect(() => {
-    if (data !== EMPTY_SUMMARY) onUnreadChangeRef.current(data.unread.total);
-  }, [data]);
 
   const load = useCallback(async () => {
     if (loadingPromise.current) return loadingPromise.current;
