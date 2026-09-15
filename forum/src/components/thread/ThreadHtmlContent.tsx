@@ -7,6 +7,7 @@ import {
   type SafeForumHtml,
 } from '../../utils/forumMarkup';
 import { useForumContentFontSize } from '../../hooks/useForumContentFontSize';
+import { usePunishmentRecordTags } from '../../hooks/usePunishmentRecordTags';
 import { FORUM_LOCATION_CHANGE_EVENT } from '../../utils/authRoutes';
 import { FORUM_BASE_PATH } from '../../utils/forumBasePath';
 import {
@@ -127,7 +128,8 @@ export function ThreadHtmlContent({
     () => variant === 'signature' ? replaceLegacySignatureFloorScripts(html) : html,
     [html, variant],
   );
-  const resolvedHtml = useSignaturePostReferences(signatureHtml, variant === 'signature');
+  const referencedHtml = useSignaturePostReferences(signatureHtml, variant === 'signature');
+  const resolvedHtml = usePunishmentRecordTags(referencedHtml, variant === 'floor');
   const shouldIsolate = requiresIsolatedForumHtml(resolvedHtml);
   const directHtml = useMemo<SafeForumHtml | null>(
     () => shouldIsolate ? null : renderForumMarkup(resolvedHtml, { normalizeLegacyLineBreaks: variant === 'signature' }),
