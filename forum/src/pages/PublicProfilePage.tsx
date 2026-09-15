@@ -1,6 +1,6 @@
 import { RefreshCw, UserRoundX } from 'lucide-react';
 import { useCallback, useState } from 'react';
-import { fetchPublicProfileActivities, fetchRemainingProfileRecords, sendProfilePrivateMessage } from '../api/profile';
+import { fetchProfileTabRecords, sendProfilePrivateMessage } from '../api/profile';
 import { AppBackground } from '../components/layout/AppBackground';
 import { LoadingState } from '../components/layout/LoadingState';
 import { TopBar } from '../components/layout/TopBar';
@@ -14,7 +14,7 @@ import { usePublicProfile } from '../hooks/useProfileData';
 import { useDocumentTitle } from '../hooks/useDocumentTitle';
 import { getPublicProfilePath } from '../utils/userRoutes';
 
-const PUBLIC_PROFILE_LAZY_TABS: ProfileTab[] = ['activities'];
+const PUBLIC_PROFILE_LAZY_TABS: ProfileTab[] = ['posts', 'replies', 'activities'];
 const PUBLIC_PROFILE_TABS: ProfileTab[] = ['posts', 'replies', 'activities'];
 const PUBLIC_PROFILE_GUEST_TABS: ProfileTab[] = ['posts', 'replies'];
 
@@ -26,16 +26,10 @@ export function PublicProfilePage({ profileName }: { profileName: string | null 
   const profileState = usePublicProfile(profileName);
   const [messageOpen, setMessageOpen] = useState(false);
   const loadedProfile = profileState.data;
-  const loadTab = useCallback((tab: ProfileTab) => {
-    if (tab === 'activities' && loadedProfile) return fetchPublicProfileActivities(loadedProfile.profile.id);
-    return Promise.resolve(loadedProfile?.profile.records[tab] ?? []);
-  }, [loadedProfile]);
-  const loadMore = useCallback((tab: ProfileTab, offset: number) => {
-    if ((tab === 'posts' || tab === 'replies') && loadedProfile) {
-      return fetchRemainingProfileRecords(loadedProfile.profile.id, tab, offset);
-    }
-    return Promise.resolve({ hasMore: false, records: [] });
-  }, [loadedProfile]);
+  const profileId = loadedProfile?.profile.id;
+  const loadTab = useCallback((tab: ProfileTab, signal?: AbortSignal) => profileId
+    ? fetchProfileTabRecords(profileId, tab, signal)
+    : Promise.resolve([]), [profileId]);
   const contentTitle = profileTabs.find((tab) => tab.key === contentNavigation.requestedTab)?.label;
   useDocumentTitle((loadedProfile && contentNavigation.isContentPage
     ? `${loadedProfile.profile.id}的${contentTitle}` : loadedProfile?.profile.id)
@@ -77,7 +71,6 @@ export function PublicProfilePage({ profileName }: { profileName: string | null 
           ownerLabel={profile.id}
           readOnly
           onLoadTab={loadTab}
-          onLoadMore={loadMore}
         />
       </main>
 

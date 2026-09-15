@@ -10,18 +10,21 @@ import type { ProfileViewData } from '../data/profile';
 type ProfileLoadState<T> = {
   data: T | null;
   error: string;
+  ownerKey: string | null;
   status: 'error' | 'loading' | 'ready';
 };
 
 const initialUserCenterState: ProfileLoadState<ProfileViewData> = {
   data: null,
   error: '',
+  ownerKey: null,
   status: 'loading',
 };
 
 const initialPublicProfileState: ProfileLoadState<LoadedPublicProfile> = {
   data: null,
   error: '',
+  ownerKey: null,
   status: 'loading',
 };
 
@@ -37,14 +40,17 @@ export function useUserCenterProfile(username: string | null) {
     }
 
     const controller = new AbortController();
-    setState((current) => ({ ...current, error: '', status: 'loading' }));
+    setState({ data: null, error: '', ownerKey: username, status: 'loading' });
     void fetchUserCenterProfile(controller.signal, username).then(
-      (data) => setState({ data, error: '', status: 'ready' }),
+      (data) => {
+        if (!controller.signal.aborted) setState({ data, error: '', ownerKey: username, status: 'ready' });
+      },
       (error: unknown) => {
-        if (!isProfileAbortError(error)) {
+        if (!controller.signal.aborted && !isProfileAbortError(error)) {
           setState({
             data: null,
             error: error instanceof Error ? error.message : '个人资料加载失败，请稍后重试。',
+            ownerKey: username,
             status: 'error',
           });
         }
@@ -54,10 +60,10 @@ export function useUserCenterProfile(username: string | null) {
   }, [requestVersion, username]);
 
   const replace = useCallback((data: ProfileViewData) => {
-    setState({ data, error: '', status: 'ready' });
-  }, []);
+    setState({ data, error: '', ownerKey: username, status: 'ready' });
+  }, [username]);
 
-  return { ...state, reload, replace };
+  return { ...(state.ownerKey === username ? state : initialUserCenterState), reload, replace };
 }
 
 export function usePublicProfile(profileName: string | null) {
@@ -68,18 +74,21 @@ export function usePublicProfile(profileName: string | null) {
   useEffect(() => {
     const controller = new AbortController();
     if (!profileName?.trim()) {
-      setState({ data: null, error: '用户不存在。', status: 'error' });
+      setState({ data: null, error: '用户不存在。', ownerKey: profileName, status: 'error' });
       return () => controller.abort();
     }
 
-    setState((current) => ({ ...current, error: '', status: 'loading' }));
+    setState({ data: null, error: '', ownerKey: profileName, status: 'loading' });
     void fetchPublicProfile(profileName, controller.signal).then(
-      (data) => setState({ data, error: '', status: 'ready' }),
+      (data) => {
+        if (!controller.signal.aborted) setState({ data, error: '', ownerKey: profileName, status: 'ready' });
+      },
       (error: unknown) => {
-        if (!isProfileAbortError(error)) {
+        if (!controller.signal.aborted && !isProfileAbortError(error)) {
           setState({
             data: null,
             error: error instanceof Error ? error.message : '个人主页加载失败，请稍后重试。',
+            ownerKey: profileName,
             status: 'error',
           });
         }
@@ -88,5 +97,5 @@ export function usePublicProfile(profileName: string | null) {
     return () => controller.abort();
   }, [profileName, requestVersion]);
 
-  return { ...state, reload };
+  return { ...(state.ownerKey === profileName ? state : initialPublicProfileState), reload };
 }

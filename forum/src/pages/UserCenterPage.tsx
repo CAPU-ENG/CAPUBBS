@@ -3,7 +3,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { createPortal } from 'react-dom';
 import {
   sendProfileEmailCode,
-  fetchRemainingProfileRecords,
+  fetchProfileTabRecords,
   updateProfileAvatar,
   updateProfileDetails,
   updateProfileEmailVisibility,
@@ -47,6 +47,7 @@ import { getThreadComposeHref, getThreadHref } from '../utils/threadRoutes';
 type OpenDialog = 'avatar' | 'email' | 'personalization' | 'security' | null;
 type PageNotice = { message: string; tone: 'error' | 'success' } | null;
 const USER_CENTER_TABS: ProfileTab[] = ['posts', 'replies', 'activities', 'bookmarks', 'drafts', 'signatures'];
+const USER_CENTER_LAZY_TABS: ProfileTab[] = ['posts', 'replies', 'activities', 'bookmarks'];
 
 export function UserCenterPage() {
   const contentNavigation = useProfileContentNavigation(USER_CENTER_TABS);
@@ -54,9 +55,9 @@ export function UserCenterPage() {
   const profileState = useUserCenterProfile(authStatus === 'authenticated' ? viewer?.username ?? null : null);
   const profile = authStatus === 'authenticated' ? profileState.data : null;
   const profileId = profile?.id;
-  const loadMore = useCallback((tab: ProfileTab, offset: number) => profileId && (tab === 'posts' || tab === 'replies')
-    ? fetchRemainingProfileRecords(profileId, tab, offset)
-    : Promise.resolve({ hasMore: false, records: [] }), [profileId]);
+  const loadTab = useCallback((tab: ProfileTab, signal?: AbortSignal) => profileId
+    ? fetchProfileTabRecords(profileId, tab, signal)
+    : Promise.resolve([]), [profileId]);
   const authPending = authStatus === 'loading' || authStatus === 'restoring';
   const loginRequired = authStatus === 'guest';
   const profileLoading = !loginRequired && (authPending || profileState.status === 'loading');
@@ -64,6 +65,7 @@ export function UserCenterPage() {
   useDocumentTitle((profile && contentNavigation.isContentPage ? `${contentTitle} - 个人中心` : profile?.id)
     ?? (profileLoading ? '正在确认登录状态' : loginRequired ? '请先登录' : '个人资料加载失败'));
   const draftOwnerKey = viewer?.username ?? null;
+  const loadDrafts = !contentNavigation.isMobile || contentNavigation.requestedTab === 'drafts';
   const [isEditing, setIsEditing] = useState(false);
   const [isSavingProfile, setIsSavingProfile] = useState(false);
   const [draft, setDraft] = useState<ProfileDraft>(emptyDraft);
@@ -100,6 +102,10 @@ export function UserCenterPage() {
   }, [notice]);
 
   useEffect(() => {
+    if (!loadDrafts || !draftOwnerKey) {
+      setReplyDrafts([]);
+      return;
+    }
     let active = true;
     const refreshReplyDrafts = () => {
       void readStoredReplyDrafts(draftOwnerKey).then((storedDrafts) => {
@@ -112,7 +118,7 @@ export function UserCenterPage() {
       active = false;
       unsubscribe();
     };
-  }, [draftOwnerKey]);
+  }, [draftOwnerKey, loadDrafts]);
 
   async function deleteDraft(recordId: string) {
     const replyDraft = replyDrafts.find((candidate) => candidate.id === recordId);
@@ -132,6 +138,10 @@ export function UserCenterPage() {
   }
 
   useEffect(() => {
+    if (!loadDrafts || !draftOwnerKey) {
+      setThreadComposeDrafts([]);
+      return;
+    }
     let active = true;
     const refreshThreadComposeDrafts = () => {
       void readStoredThreadComposeDrafts(draftOwnerKey).then((storedDrafts) => {
@@ -144,7 +154,7 @@ export function UserCenterPage() {
       active = false;
       unsubscribe();
     };
-  }, [draftOwnerKey]);
+  }, [draftOwnerKey, loadDrafts]);
 
   useEffect(() => {
     let active = true;
@@ -262,7 +272,8 @@ export function UserCenterPage() {
           asideLink={{ href: getPublicProfilePath(profile.id), label: '查看公开个人主页' }}
           initialHasMore={profile.recordHasMore}
           initialRecords={workspaceRecords ?? profile.records}
-          onLoadMore={loadMore}
+          lazyTabs={USER_CENTER_LAZY_TABS}
+          onLoadTab={loadTab}
           onDeleteDraft={deleteDraft}
           onSaveSignatures={async (signatures) => {
             const updatedProfile = await updateProfileSignatures(signatures);

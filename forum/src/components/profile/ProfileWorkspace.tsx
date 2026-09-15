@@ -42,8 +42,8 @@ export type ProfileWorkspaceProps = {
   initialRecords: ProfileRecordMap;
   lazyTabs?: ProfileTab[];
   onDeleteDraft?: (recordId: string) => Promise<void>;
-  onLoadTab?: (tab: ProfileTab) => Promise<ProfileRecord[]>;
-  onLoadMore?: (tab: ProfileTab, offset: number) => Promise<{ hasMore: boolean; records: ProfileRecord[] }>;
+  onLoadTab?: (tab: ProfileTab, signal?: AbortSignal) => Promise<ProfileRecord[]>;
+  onLoadMore?: (tab: ProfileTab, offset: number, signal?: AbortSignal) => Promise<{ hasMore: boolean; records: ProfileRecord[] }>;
   ownerLabel: string;
   onSaveSignatures?: (records: ProfileRecord[]) => Promise<void>;
   readOnly?: boolean;
@@ -106,14 +106,15 @@ export function ProfileWorkspace({
     if (!allowedTabs.includes(activeTab) || loadedTabs.includes(activeTab) || loadError?.tab === activeTab) return;
     const loadTab = lazyTabs.includes(activeTab) ? onLoadTab : undefined;
     if (!loadTab && (!hasMore[activeTab] || !onLoadMore)) return;
+    const controller = new AbortController();
     let active = true;
     setLoadingTab(activeTab);
     async function loadAllRecords() {
       try {
-        let loadedRecords = loadTab ? await loadTab(activeTab) : records[activeTab];
+        let loadedRecords = loadTab ? await loadTab(activeTab, controller.signal) : records[activeTab];
         let more = Boolean(hasMore[activeTab]);
         while (active && more && onLoadMore) {
-          const loadedPage = await onLoadMore(activeTab, loadedRecords.length);
+          const loadedPage = await onLoadMore(activeTab, loadedRecords.length, controller.signal);
           if (!active) return;
           const knownIds = new Set(loadedRecords.map((record) => record.id));
           const appended = loadedPage.records.filter((record) => {
@@ -140,7 +141,10 @@ export function ProfileWorkspace({
       }
     }
     void loadAllRecords();
-    return () => { active = false; };
+    return () => {
+      active = false;
+      controller.abort();
+    };
   }, [activeTab, allowedTabs, hasMore, lazyTabs, loadedTabs, loadError, onLoadMore, onLoadTab, records]);
 
   useEffect(() => {

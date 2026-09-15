@@ -14,7 +14,6 @@ import { normalizeLegacyAvatar } from '../utils/legacyAssets';
 import { md5LegacyStringHex } from '../utils/md5';
 
 const PROFILE_API_URL = import.meta.env.VITE_API_URL?.trim() || '/api/api.php';
-const PROFILE_RECORD_PAGE_SIZE = 15;
 
 type ApiEnvelope = {
   code: number;
@@ -81,23 +80,14 @@ async function fetchUserCenterProfileForUsername(
       }
       return row;
     });
-  const [profileRow, medals, postPage, replyPage, activityRows, favoriteRows] = await Promise.all([
+  const [profileRow, medals] = await Promise.all([
     profileRowPromise,
     existingMedals ?? fetchSelfMedals(signal),
-    requestProfileRecordRowsPage(username, 'posts', 0, signal),
-    requestProfileRecordRowsPage(username, 'replies', 0, signal),
-    requestRows({ ask: 'activity_signup_history', username }, signal),
-    requestRows({ ask: 'favorite_list', limit: 'all' }, signal),
   ]);
 
   return mapProfile(profileRow, {
-    activityRows,
-    favoriteRows,
     includeSignatures: true,
     medals,
-    postRows: postPage.rows,
-    recordHasMore: { posts: postPage.hasMore, replies: replyPage.hasMore },
-    replyRows: replyPage.rows,
   });
 }
 
@@ -105,22 +95,13 @@ export async function fetchPublicProfile(profileName: string, signal?: AbortSign
   const username = profileName.trim();
   if (!username) throw new ProfileApiError('用户不存在。');
 
-  const [profileRows, postPage, replyPage] = await Promise.all([
-    requestRows({ ask: 'user_profile', medal: 1, tag: 1, username }, signal),
-    requestProfileRecordRowsPage(username, 'posts', 0, signal),
-    requestProfileRecordRowsPage(username, 'replies', 0, signal),
-  ]);
+  const profileRows = await requestRows({ ask: 'user_profile', medal: 1, tag: 1, username }, signal);
   const profileRow = profileRows[0];
   if (!profileRow || !stringValue(profileRow.username)) throw new ProfileApiError('用户不存在。');
 
   return {
     profile: mapProfile(profileRow, {
-      activityRows: [],
-      favoriteRows: [],
       includeSignatures: false,
-      postRows: postPage.rows,
-      recordHasMore: { posts: postPage.hasMore, replies: replyPage.hasMore },
-      replyRows: replyPage.rows,
     }),
   };
 }
@@ -152,26 +133,20 @@ export async function fetchRemainingProfileRecords(
   };
 }
 
-async function requestProfileRecordRowsPage(
+export async function fetchProfileTabRecords(
   username: string,
-  tab: 'posts' | 'replies',
-  offset: number,
+  tab: ProfileTab,
   signal?: AbortSignal,
-) {
-  const rows = await requestRows({
-    ask: tab === 'posts' ? 'recentpost' : 'recentreply',
-    limit: PROFILE_RECORD_PAGE_SIZE + 1,
-    offset: Math.max(0, Math.floor(offset)),
-    ...(tab === 'replies' ? { replies_only: 1 } : {}),
-    view: username.trim(),
-  }, signal);
-  const contentRows = rows.filter((row) => numberValue(row.pid) >= (tab === 'posts' ? 1 : 2));
-  const hasMore = contentRows.length > PROFILE_RECORD_PAGE_SIZE;
-  const pageRows = contentRows.slice(0, PROFILE_RECORD_PAGE_SIZE);
-  return {
-    hasMore,
-    rows: pageRows,
-  };
+): Promise<ProfileRecord[]> {
+  if (tab === 'posts' || tab === 'replies') {
+    return (await fetchRemainingProfileRecords(username, tab, 0, signal)).records;
+  }
+  if (tab === 'activities') return fetchPublicProfileActivities(username, signal);
+  if (tab === 'bookmarks') {
+    const rows = await requestRows({ ask: 'favorite_list', limit: 'all' }, signal);
+    return rows.map((row) => mapRecord(row, 'bookmark')).filter(isProfileRecord);
+  }
+  return [];
 }
 
 export async function updateProfileDetails(details: EditUserOverrides['details']) {
@@ -376,37 +351,20 @@ async function requestData(params: Record<string, string | number>, signal?: Abo
 function mapProfile(
   row: ApiRow,
   {
-    activityRows,
-    favoriteRows,
     includeSignatures,
     medals,
-    postRows,
-    recordHasMore = {},
-    replyRows,
   }: {
-    activityRows: ApiRow[];
-    favoriteRows: ApiRow[];
     includeSignatures: boolean;
     medals?: UserMedal[];
-    postRows: ApiRow[];
-    recordHasMore?: Partial<Record<ProfileTab, boolean>>;
-    replyRows: ApiRow[];
   },
 ): ProfileViewData {
-  const posts = postRows.map((record) => mapRecord(record, 'post')).filter(isProfileRecord);
-  const replies = replyRows
-    .filter((record) => numberValue(record.pid) > 1)
-    .map((record) => mapRecord(record, 'reply'))
-    .filter(isProfileRecord);
-  const bookmarks = favoriteRows.map((record) => mapRecord(record, 'bookmark')).filter(isProfileRecord);
-  const activities = activityRows.map(mapActivityRecord).filter(isProfileRecord);
   const signatures = includeSignatures ? mapSignatures(row) : [];
   const records: ProfileRecordMap = {
-    activities,
-    bookmarks,
+    activities: [],
+    bookmarks: [],
     drafts: [],
-    posts,
-    replies,
+    posts: [],
+    replies: [],
     signatures,
   };
   const details: ProfileDetail[] = [
@@ -422,11 +380,9 @@ function mapProfile(
   return {
     avatarSrc: normalizeAvatar(row.icon),
     counts: {
-      activities: activities.length,
-      bookmarks: bookmarks.length,
       drafts: 0,
-      posts: posts.length,
-      replies: replies.length,
+      posts: postCount,
+      replies: replyCount,
       signatures: signatures.filter((signature) => signature.excerpt.trim()).length,
     },
     details,
@@ -435,7 +391,7 @@ function mapProfile(
     floorDecoration: mapFloorDecoration(row.floorDecoration),
     id: username,
     intro: stringValue(row.intro),
-    recordHasMore,
+    recordHasMore: {},
     medals: medals ?? (Array.isArray(row.medals) ? mapUserMedals(row.medals) : undefined),
     rating: Math.max(0, Math.min(9, numberValue(row.star))),
     starPostReplyCount: postCount + replyCount,
