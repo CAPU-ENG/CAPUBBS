@@ -157,13 +157,14 @@ export function ActivitySignupForm({
 
       <form onSubmit={(event) => { void handleSubmit(event); }}>
         <div className="activity-signup-fields">
-          {activity.questions.map((question) => (
+          {activity.questions.map((question, index) => (
             <ActivitySignupField
               disabled={!viewer || signupUnavailable || submitting}
               key={question.id}
               onMultiChoiceChange={updateMultiChoice}
               onValueChange={updateValue}
               question={question}
+              questionNumber={index + 1}
               value={values[question.id]}
             />
           ))}
@@ -378,16 +379,18 @@ function ActivitySignupField({
   onMultiChoiceChange,
   onValueChange,
   question,
+  questionNumber,
   value,
 }: {
   disabled: boolean;
   onMultiChoiceChange: (questionId: string, optionId: string, checked: boolean) => void;
   onValueChange: (questionId: string, value: ActivitySignupValue) => void;
   question: ThreadActivityQuestion;
+  questionNumber: number;
   value: ActivitySignupValue | undefined;
 }) {
   const label = (
-    <>{question.label}{question.required && <span aria-hidden="true">*</span>}</>
+    <>{questionNumber}. {question.label}{question.required && <span aria-hidden="true">*</span>}</>
   );
 
   if (question.type === 'choice') {

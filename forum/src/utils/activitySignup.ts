@@ -66,7 +66,7 @@ const defaultQuestions: ActivitySignupQuestion[] = [
     type: 'text',
   },
   { id: 'acceptAdjustment', label: '是否接受调剂', options: ['是', '否'], required: false, type: 'radio' },
-  { id: 'trainingCount', label: '参加过拉练的次数', required: false, type: 'number' },
+  { id: 'trainingCount', label: '参加过拉练的次数', required: false, type: 'text' },
   { id: 'hasMedicalQualification', label: '是否有队医资格', options: ['是', '否'], required: true, type: 'radio' },
   { id: 'hasSweepQualification', label: '是否有押后资格', options: ['是', '否'], required: true, type: 'radio' },
   { id: 'needsHelmet', label: '是否需要借头盔', options: ['是', '否'], required: true, type: 'radio' },

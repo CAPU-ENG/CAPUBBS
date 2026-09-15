@@ -119,8 +119,8 @@ export function ActivitySignupFormPreview({
       </header>
 
       <div className="activity-signup-fields">
-        {value.questions.map((question) => (
-          <ActivitySignupPreviewField key={question.id} question={question} viewerName={viewerName} />
+        {value.questions.map((question, index) => (
+          <ActivitySignupPreviewField key={question.id} question={question} questionNumber={index + 1} viewerName={viewerName} />
         ))}
       </div>
     </section>
@@ -379,13 +379,15 @@ function QuestionRuleEditor({
 
 function ActivitySignupPreviewField({
   question,
+  questionNumber,
   viewerName,
 }: {
   question: ActivitySignupQuestion;
+  questionNumber: number;
   viewerName: string;
 }) {
   const label = (
-    <>{question.label}{question.required ? <span aria-hidden="true">*</span> : null}</>
+    <>{questionNumber}. {question.label}{question.required ? <span aria-hidden="true">*</span> : null}</>
   );
   const choiceType = question.type === 'checkbox' || isActivitySignupChoiceType(question.type);
 
