@@ -300,7 +300,7 @@ export function SettingsPage() {
                   checked={preciseSignatureBlocking}
                   disabled={!assistiveBarEnabled}
                   disabledReason="请先开启辅助栏"
-                  help="按辅助栏当前楼层精确屏蔽签名档，屏蔽记录保存在本地，可在对应楼层恢复展示。"
+                  help="在楼层中精确屏蔽某人的某签名档，其他楼层中的该签名档也会一并屏蔽。"
                   helpId="precise-signature-blocking-help"
                   icon={<Signature size={15} />}
                   label="精确屏蔽"
