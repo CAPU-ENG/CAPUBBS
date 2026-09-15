@@ -547,7 +547,7 @@ else echo '
     <input type="hidden" name="attachs" id="fm_attachs">
     </form>
 <script type="text/javascript" src="../lib/nic.js"></script>
-<script type="text/javascript" src="../lib/content_shared.js"></script>
+<script type="text/javascript" src="../lib/content_shared.js?v=<?php echo filemtime(__DIR__ . '/../lib/content_shared.js'); ?>"></script>
 <script type="text/javascript">
 var myNicEditor = new nicEditor({fullPanel : true});
 myNicEditor.setPanel('edi_bar');
