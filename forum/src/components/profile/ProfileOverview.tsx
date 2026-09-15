@@ -82,6 +82,25 @@ export function ProfileOverview({
 
     return detail;
   });
+  const privateActions = (
+    <>
+      <button className="profile-primary-action" disabled={actionsDisabled} type="button" onClick={onEditToggle}>
+        <Edit3 size={16} />{actionsDisabled ? '保存中' : isEditing ? '保存资料' : '编辑资料'}
+      </button>
+      {isEditing ? (
+        <button className="profile-secondary-action" disabled={actionsDisabled} type="button" onClick={onCancelEdit}>取消</button>
+      ) : (
+        <>
+          <button className="profile-secondary-action" disabled={actionsDisabled} type="button" onClick={onOpenPersonalization}>
+            <Palette size={16} />个性化
+          </button>
+          <button className="profile-secondary-action" disabled={actionsDisabled} type="button" onClick={onOpenSecurity}>
+            <ShieldCheck size={16} />修改密码
+          </button>
+        </>
+      )}
+    </>
+  );
 
   return (
     <div className="profile-overview" aria-label={privateMode ? '个人资料' : `${profile.id}的公开资料`}>
@@ -136,26 +155,8 @@ export function ProfileOverview({
           </div>
         </div>
 
-        <div className="profile-identity-actions">
-          {privateMode ? (
-            <>
-              <button className="profile-primary-action" disabled={actionsDisabled} type="button" onClick={onEditToggle}>
-                <Edit3 size={16} />{actionsDisabled ? '保存中' : isEditing ? '保存资料' : '编辑资料'}
-              </button>
-              {isEditing ? (
-                <button className="profile-secondary-action" disabled={actionsDisabled} type="button" onClick={onCancelEdit}>取消</button>
-              ) : (
-                <>
-                  <button className="profile-secondary-action" disabled={actionsDisabled} type="button" onClick={onOpenPersonalization}>
-                    <Palette size={16} />个性化
-                  </button>
-                  <button className="profile-secondary-action" disabled={actionsDisabled} type="button" onClick={onOpenSecurity}>
-                    <ShieldCheck size={16} />修改密码
-                  </button>
-                </>
-              )}
-            </>
-          ) : isOwnPublicProfile ? (
+        <div className={`profile-identity-actions${privateMode ? ' profile-identity-actions-desktop' : ''}`}>
+          {privateMode ? privateActions : isOwnPublicProfile ? (
             <a className="profile-primary-action" href={USER_CENTER_HREF}>
               <ExternalLink size={16} />进入个人中心
             </a>
@@ -166,6 +167,12 @@ export function ProfileOverview({
           )}
         </div>
       </section>
+
+      {privateMode ? (
+        <div className="profile-identity-actions profile-identity-actions-mobile">
+          {privateActions}
+        </div>
+      ) : null}
 
       <div className="profile-detail-grid">
         {details.map((detail) => {
@@ -179,7 +186,7 @@ export function ProfileOverview({
                 <div className="profile-data-label"><Icon width={15} height={15} />{detail.label}</div>
                 {isEmail && privateMode ? (
                   <button className="profile-inline-action" type="button" onClick={onOpenEmail}>
-                    {emailVisible ? '已公开' : '私密'} · 管理
+                    管理
                   </button>
                 ) : null}
               </div>
@@ -192,6 +199,9 @@ export function ProfileOverview({
               ) : (
                 <div className={`profile-data-value ${detail.value === '未公开' ? 'profile-data-private' : ''}`}>
                   {detail.value || '未填写'}
+                  {isEmail && privateMode && detail.value.trim() ? (
+                    <span className="profile-email-visibility">{emailVisible ? '公开' : '私密'}</span>
+                  ) : null}
                 </div>
               )}
             </section>

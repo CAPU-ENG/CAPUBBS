@@ -298,6 +298,10 @@
     padding-top: 12px;
   }
 
+  .profile-identity-actions-mobile {
+    display: none;
+  }
+
   .profile-primary-action,
   .profile-secondary-action {
     display: inline-flex;
@@ -411,6 +415,15 @@
   .profile-data-private {
     color: var(--text-faint);
     font-weight: 600;
+  }
+
+  .profile-email-visibility {
+    display: inline-block;
+    margin-left: 8px;
+    color: var(--text-faint);
+    font-size: var(--ui-font-size-md);
+    font-weight: 600;
+    white-space: nowrap;
   }
 
   .profile-data-card input {
@@ -1918,6 +1931,15 @@
 
     .profile-identity-actions > :last-child:nth-child(odd) {
       grid-column: 1 / -1;
+    }
+
+    .profile-identity-actions-desktop {
+      display: none;
+    }
+
+    .profile-identity-actions-mobile {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr);
     }
 
     .profile-detail-grid,
