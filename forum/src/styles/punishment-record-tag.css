@@ -16,7 +16,7 @@
   background: var(--surface);
   color: var(--text-muted);
   font: inherit;
-  text-align: left;
+  text-align: center;
   white-space: nowrap;
 }
 
