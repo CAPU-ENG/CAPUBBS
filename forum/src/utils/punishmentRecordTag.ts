@@ -27,7 +27,10 @@ export function preparePunishmentRecordTags(html: string) {
           return;
         }
         const table = document.createElement('table');
-        table.setAttribute('aria-label', `${year - 1}-${year} 学年罚跑记录`);
+        const title = `${year - 1}-${year} 学年罚跑记录`;
+        table.className = 'forum-punishment-table';
+        table.setAttribute('aria-label', title);
+        table.createCaption().textContent = title;
         const header = table.createTHead().insertRow();
         ['姓名', 'ID', '原因', '长度', '职务加罚', '开始时间', '结束时间', '完成情况'].forEach((label) => {
           const cell = document.createElement('th');
@@ -55,6 +58,7 @@ export function preparePunishmentRecordTags(html: string) {
         if (selected.length === 0) {
           const cell = body.insertRow().insertCell();
           cell.colSpan = 8;
+          cell.className = 'forum-punishment-empty';
           cell.textContent = '暂无罚跑记录';
         }
         placeholder.style.overflowX = 'auto';

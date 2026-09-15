@@ -1,0 +1,25 @@
+.forum-markup .forum-punishment-table {
+  display: table;
+  width: 100%;
+}
+
+.forum-markup .forum-punishment-table > caption {
+  padding: 12px 14px;
+  border-bottom: 1px solid var(--line);
+  background: var(--surface-soft);
+  color: var(--text-strong);
+  font-family: inherit;
+  font-size: var(--ui-font-size-lg, 14px);
+  font-weight: 760;
+  line-height: 1.5;
+  text-align: left;
+}
+
+.forum-markup .forum-punishment-table .forum-punishment-empty {
+  text-align: center;
+}
+
+.forum-markup .forum-punishment-empty > .forum-table-cell-content {
+  width: auto;
+  max-width: none;
+}

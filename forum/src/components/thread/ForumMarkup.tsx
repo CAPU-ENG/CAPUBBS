@@ -5,6 +5,7 @@ import { syncForumGrayscaleTextColors } from '../../utils/forumGrayscaleTextColo
 import { preloadNearbyImages } from '../../utils/imagePreloading';
 import { prepareForumTables } from './forumTables';
 import '../../styles/forum-tables.css';
+import '../../styles/punishment-record-tag.css';
 import {
   ensureGalleryDisplayControls,
   getEditorGalleryAction,
