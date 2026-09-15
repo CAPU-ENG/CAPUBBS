@@ -352,6 +352,10 @@
     margin-left: auto;
   }
 
+  .thread-title-actions-mobile {
+    display: none;
+  }
+
   .thread-title-actions > button {
     display: inline-flex;
     min-height: 32px;
@@ -361,6 +365,7 @@
     border: 1px solid var(--line);
     border-radius: var(--control-radius);
     padding: 0 12px;
+    background: var(--surface);
     color: var(--text-muted);
     font-size: var(--ui-font-size-md);
     font-weight: 720;
@@ -2644,12 +2649,26 @@
       margin-top: 12px;
     }
 
-    .thread-title-actions {
-      margin-left: auto;
+    .thread-title-actions-desktop,
+    .thread-title-heading .thread-activity-management-link,
+    .thread-title-card > .thread-bookmark-error {
+      display: none;
     }
 
-    .thread-title-actions > button {
+    .thread-title-actions-mobile {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr);
+      gap: 8px;
+      margin: 8px 0 0;
+    }
+
+    .thread-title-actions > button,
+    .thread-title-actions-mobile > .thread-activity-management-link {
       min-height: 36px;
+    }
+
+    .thread-title-actions-mobile > .thread-bookmark-error {
+      margin: 0;
     }
 
     .thread-content-layout {

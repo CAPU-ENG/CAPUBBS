@@ -469,6 +469,34 @@ export function ThreadPage() {
     && (viewer?.rights ?? 0) <= 1
     && data.viewer.stars < data.requiredStars,
   );
+  const activityManagementLink = canManageActivity ? (
+    <a className="thread-activity-management-link" href={getActivityManagementHref(data.bid, data.tid)}>
+      <Settings size={15} />活动管理
+    </a>
+  ) : null;
+  const titleActionButtons = (
+    <>
+      <button
+        aria-pressed={data.authorOnly}
+        className={data.authorOnly ? 'thread-title-action-active' : ''}
+        onClick={toggleAuthorOnly}
+        type="button"
+      >
+        {data.authorOnly ? '查看全部' : '只看楼主'}
+      </button>
+      <button
+        aria-busy={bookmarkPending}
+        aria-pressed={bookmarked}
+        className={bookmarked ? 'thread-title-action-active' : ''}
+        disabled={bookmarkPending}
+        onClick={() => { void toggleBookmark(); }}
+        type="button"
+      >
+        {bookmarked ? <BookmarkCheck size={14} /> : <Bookmark size={14} />}
+        {bookmarkPending ? (bookmarked ? '取消中' : '收藏中') : bookmarked ? '取消收藏' : '收藏'}
+      </button>
+    </>
+  );
 
   return (
     <div className={`relative min-h-screen text-[var(--text)] transition-colors duration-200${avatarFollowDisabled ? ' thread-avatar-follow-disabled' : ''}`} ref={pageRef}>
@@ -496,40 +524,24 @@ export function ThreadPage() {
                 <Link2 aria-hidden="true" className="thread-title-copy-icon" size={18} />
               </button>
             </h1>
-            {canManageActivity && (
-              <a className="thread-activity-management-link" href={getActivityManagementHref(data.bid, data.tid)}>
-                <Settings size={15} />活动管理
-              </a>
-            )}
+            {activityManagementLink}
           </div>
           <div className="thread-title-meta">
             <a className="thread-board-card" href={boardHref}>{data.board}</a>
             <span><MessageCircle size={15} />{data.replies} 条回复</span>
             <span><Eye size={16} />{data.views} 次浏览</span>
-            <div className="thread-title-actions">
-              <button
-                aria-pressed={data.authorOnly}
-                className={data.authorOnly ? 'thread-title-action-active' : ''}
-                onClick={toggleAuthorOnly}
-                type="button"
-              >
-                {data.authorOnly ? '查看全部' : '只看楼主'}
-              </button>
-              <button
-                aria-busy={bookmarkPending}
-                aria-pressed={bookmarked}
-                className={bookmarked ? 'thread-title-action-active' : ''}
-                disabled={bookmarkPending}
-                onClick={() => { void toggleBookmark(); }}
-                type="button"
-              >
-                {bookmarked ? <BookmarkCheck size={14} /> : <Bookmark size={14} />}
-                {bookmarkPending ? (bookmarked ? '取消中' : '收藏中') : bookmarked ? '取消收藏' : '收藏'}
-              </button>
+            <div className="thread-title-actions thread-title-actions-desktop">
+              {titleActionButtons}
             </div>
           </div>
           {bookmarkError && <p className="thread-bookmark-error" role="alert">{bookmarkError}</p>}
         </header>
+
+        <div className="thread-title-actions thread-title-actions-mobile">
+          {titleActionButtons}
+          {activityManagementLink}
+          {bookmarkError && <p className="thread-bookmark-error" role="alert">{bookmarkError}</p>}
+        </div>
 
         <div className="thread-top-pagination">
           <ThreadPagination
