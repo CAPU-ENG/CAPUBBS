@@ -1,8 +1,24 @@
-import { toForumHref } from './forumBasePath.ts';
+import type { ProfileTab } from '../data/profile';
+import { stripForumBasePath, toForumHref } from './forumBasePath.ts';
 
 export const PUBLIC_PROFILE_PATH = '/users';
 export const USER_CENTER_PATH = '/home';
 export const USER_CENTER_HREF = toForumHref(USER_CENTER_PATH);
+
+export function getProfileTabHref(overviewHref: string, tab: ProfileTab) {
+  const url = new URL(overviewHref, 'http://capubbs.local');
+  url.searchParams.set('tab', tab);
+  url.searchParams.delete('page');
+  return `${url.pathname}${url.search}`;
+}
+
+export function getProfileTabFromLocation(pathname: string, search: string, allowedTabs: ProfileTab[]) {
+  const requested = new URLSearchParams(search).get('tab') as ProfileTab | null;
+  if (requested) return allowedTabs.includes(requested) ? requested : null;
+  const path = stripForumBasePath(pathname).replace(/\/+$/, '');
+  return (path === '/favorite' || path === '/favorite/index.php') && allowedTabs.includes('bookmarks')
+    ? 'bookmarks' : null;
+}
 
 export function getPublicProfilePath(userId: string | null | undefined) {
   const normalizedUserId = normalizeProfileName(userId);

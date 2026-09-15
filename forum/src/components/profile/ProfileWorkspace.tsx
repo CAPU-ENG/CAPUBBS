@@ -1,4 +1,5 @@
 import {
+  ArrowLeft,
   Bookmark,
   CalendarCheck2,
   ExternalLink,
@@ -29,7 +30,7 @@ import {
   type SignatureFloorReference,
 } from '../../utils/signatureFloorLink';
 import { getForumNavigationHref } from '../../utils/forumNavigation';
-import { stripForumBasePath } from '../../utils/forumBasePath';
+import { getProfileTabFromLocation } from '../../utils/userRoutes';
 import { getThreadTitleClassName } from '../../utils/threadTitleTypography';
 import {
   getRichTextEditorStorageValue,
@@ -37,9 +38,10 @@ import {
   type RichTextEditorValue,
 } from '../editor/RichTextEditor';
 
-type ProfileWorkspaceProps = {
+export type ProfileWorkspaceProps = {
   allowedTabs: ProfileTab[];
   asideLink?: { href: string; label: string };
+  backLink?: { href: string; label: string };
   initialHasMore?: Partial<Record<ProfileTab, boolean>>;
   initialRecords: ProfileRecordMap;
   lazyTabs?: ProfileTab[];
@@ -67,6 +69,7 @@ const PAGE_SIZE = 15;
 export function ProfileWorkspace({
   allowedTabs,
   asideLink,
+  backLink,
   initialHasMore = {},
   initialRecords,
   lazyTabs = [],
@@ -77,7 +80,8 @@ export function ProfileWorkspace({
   onSaveSignatures,
   readOnly = false,
 }: ProfileWorkspaceProps) {
-  const initialTab = getRequestedTab(allowedTabs);
+  const requestedTab = getProfileTabFromLocation(window.location.pathname, window.location.search, allowedTabs);
+  const initialTab = requestedTab ?? allowedTabs[0] ?? 'posts';
   const [activeTab, setActiveTab] = useState<ProfileTab>(initialTab);
   const [records, setRecords] = useState(initialRecords);
   const [keyword, setKeyword] = useState('');
@@ -93,6 +97,10 @@ export function ProfileWorkspace({
   const [loadedTabs, setLoadedTabs] = useState<ProfileTab[]>([]);
   const [hasMore, setHasMore] = useState(initialHasMore);
   const [savingRecordId, setSavingRecordId] = useState<string | null>(null);
+
+  useEffect(() => {
+    setActiveTab(initialTab);
+  }, [initialTab]);
 
   useEffect(() => {
     setRecords(initialRecords);
@@ -249,8 +257,13 @@ export function ProfileWorkspace({
   );
 
   return (
-    <section className="profile-workspace" aria-label={`${ownerLabel}的论坛内容`}>
-      <nav className="profile-tabs" aria-label="个人内容分类">
+    <section className={`profile-workspace${backLink ? ' profile-workspace-page' : ''}`} aria-label={`${ownerLabel}的论坛内容`}>
+      {backLink ? (
+        <header className="profile-content-page-header">
+          <a href={backLink.href}><ArrowLeft aria-hidden="true" size={17} />{backLink.label}</a>
+          <h1>{readOnly ? `${ownerLabel}的${activeTabMeta.label}` : activeTabMeta.label}</h1>
+        </header>
+      ) : <nav className="profile-tabs" aria-label="个人内容分类">
         {profileTabs.filter((tab) => allowedTabs.includes(tab.key)).map((tab) => (
           <button
             aria-current={tab.key === activeTab ? 'page' : undefined}
@@ -263,7 +276,7 @@ export function ProfileWorkspace({
             <span>{tab.label}</span>
           </button>
         ))}
-      </nav>
+      </nav>}
 
       {activeTab !== 'signatures' ? (
         <div className="profile-filter-toolbar">
@@ -606,15 +619,6 @@ function ProfilePagination({
       />
     </div>
   );
-}
-
-function getRequestedTab(allowedTabs: ProfileTab[]) {
-  const requested = new URLSearchParams(window.location.search).get('tab') as ProfileTab | null;
-  const pathname = stripForumBasePath(window.location.pathname).replace(/\/+$/, '');
-  if (!requested && (pathname === '/favorite' || pathname === '/favorite/index.php')) {
-    return allowedTabs.includes('bookmarks') ? 'bookmarks' : allowedTabs[0] ?? 'posts';
-  }
-  return requested && allowedTabs.includes(requested) ? requested : allowedTabs[0] ?? 'posts';
 }
 
 function updateTabInUrl(tab: ProfileTab) {

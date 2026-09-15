@@ -512,6 +512,82 @@
     animation: profile-rise 280ms 110ms cubic-bezier(.2,.8,.2,1) both;
   }
 
+  .profile-content-menu {
+    display: grid;
+    gap: 12px;
+    margin-top: 18px;
+  }
+
+  .profile-content-links {
+    display: grid;
+    overflow: hidden;
+    border: 1px solid var(--line);
+    border-radius: 2px;
+    background: var(--surface);
+    box-shadow: var(--shadow-card);
+  }
+
+  .profile-content-links a {
+    display: flex;
+    min-height: 50px;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    border-bottom: 1px solid var(--line);
+    padding: 12px 16px;
+    color: var(--text-strong);
+    font-size: var(--ui-font-size-lg);
+    font-weight: 700;
+  }
+
+  .profile-content-links a:last-child {
+    border-bottom: 0;
+  }
+
+  .profile-content-links a:hover {
+    background: var(--brand-faint);
+    color: var(--brand-strong);
+  }
+
+  .profile-content-links svg {
+    flex: none;
+    color: var(--text-faint);
+  }
+
+  .profile-content-links a:focus-visible,
+  .profile-content-page-header a:focus-visible {
+    outline: 2px solid var(--brand);
+    outline-offset: -2px;
+  }
+
+  .profile-workspace-page {
+    margin-top: 0;
+  }
+
+  .profile-content-page-header {
+    display: grid;
+    gap: 16px;
+  }
+
+  .profile-content-page-header a {
+    display: inline-flex;
+    min-height: 36px;
+    align-items: center;
+    justify-self: start;
+    gap: 6px;
+    color: var(--brand-strong);
+    font-size: var(--ui-font-size-lg);
+    font-weight: 650;
+  }
+
+  .profile-content-page-header h1 {
+    margin: 0;
+    color: var(--text-strong);
+    font-size: var(--ui-font-size-page-title);
+    font-weight: 750;
+    overflow-wrap: anywhere;
+  }
+
   .profile-tabs {
     display: flex;
     overflow-x: auto;

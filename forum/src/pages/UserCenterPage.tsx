@@ -16,10 +16,11 @@ import { LoadingState } from '../components/layout/LoadingState';
 import { TopBar } from '../components/layout/TopBar';
 import { AvatarDialog, EmailDialog, SecurityDialog } from '../components/profile/ProfileDialogs';
 import { ProfileOverview, type ProfileDraft, type ProfileTextDraftKey } from '../components/profile/ProfileOverview';
-import { ProfileWorkspace } from '../components/profile/ProfileWorkspace';
+import { ProfileContent } from '../components/profile/ProfileContent';
 import { ProfilePersonalizationDialog } from '../components/profile/ProfilePersonalizationDialog';
 import { useAuth } from '../context/AuthContext';
-import type { ProfileDetail, ProfileRecordMap } from '../data/profile';
+import { profileTabs, type ProfileDetail, type ProfileRecordMap, type ProfileTab } from '../data/profile';
+import { useProfileContentNavigation } from '../hooks/useProfileContentNavigation';
 import { useUserCenterProfile } from '../hooks/useProfileData';
 import { useDocumentTitle } from '../hooks/useDocumentTitle';
 import {
@@ -45,15 +46,18 @@ import { getThreadComposeHref, getThreadHref } from '../utils/threadRoutes';
 
 type OpenDialog = 'avatar' | 'email' | 'personalization' | 'security' | null;
 type PageNotice = { message: string; tone: 'error' | 'success' } | null;
+const USER_CENTER_TABS: ProfileTab[] = ['posts', 'replies', 'activities', 'bookmarks', 'drafts', 'signatures'];
 
 export function UserCenterPage() {
+  const contentNavigation = useProfileContentNavigation(USER_CENTER_TABS);
   const { logout, refreshViewer, status: authStatus, updateViewerAvatar, viewer } = useAuth();
   const profileState = useUserCenterProfile(authStatus === 'authenticated' ? viewer?.username ?? null : null);
   const profile = authStatus === 'authenticated' ? profileState.data : null;
   const authPending = authStatus === 'loading' || authStatus === 'restoring';
   const loginRequired = authStatus === 'guest';
   const profileLoading = !loginRequired && (authPending || profileState.status === 'loading');
-  useDocumentTitle(profile?.id
+  const contentTitle = profileTabs.find((tab) => tab.key === contentNavigation.requestedTab)?.label;
+  useDocumentTitle((profile && contentNavigation.isContentPage ? `${contentTitle} - 个人中心` : profile?.id)
     ?? (profileLoading ? '正在确认登录状态' : loginRequired ? '请先登录' : '个人资料加载失败'));
   const draftOwnerKey = viewer?.username ?? null;
   const [isEditing, setIsEditing] = useState(false);
@@ -211,8 +215,8 @@ export function UserCenterPage() {
       <ProfileLoadPage
         error={loginRequired ? '登录后才能查看和修改个人资料。' : profileState.error}
         loading={profileLoading}
-        loginHref={loginRequired ? getAuthPathWithReturnTo('/login', USER_CENTER_HREF) : undefined}
-        registerHref={loginRequired ? getAuthPathWithReturnTo('/register', USER_CENTER_HREF) : undefined}
+        loginHref={loginRequired ? getAuthPathWithReturnTo('/login', `${window.location.pathname}${window.location.search}`) : undefined}
+        registerHref={loginRequired ? getAuthPathWithReturnTo('/register', `${window.location.pathname}${window.location.search}`) : undefined}
         onRetry={profileState.reload}
       />
     );
@@ -223,7 +227,7 @@ export function UserCenterPage() {
       <AppBackground />
       <TopBar />
       <main className="profile-page-shell">
-        <ProfileOverview
+        {!contentNavigation.isContentPage ? <ProfileOverview
           actionsDisabled={isSavingProfile}
           avatarSrc={cachedAvatarSrc ?? profile.avatarSrc}
           draft={draft}
@@ -238,7 +242,7 @@ export function UserCenterPage() {
           onOpenEmail={() => setOpenDialog('email')}
           onOpenPersonalization={() => setOpenDialog('personalization')}
           onOpenSecurity={() => setOpenDialog('security')}
-        />
+        /> : null}
 
         {notice ? createPortal(
           <div className={`profile-toast ${notice.tone === 'error' ? 'profile-toast-error' : ''}`} role="status">
@@ -247,8 +251,10 @@ export function UserCenterPage() {
           document.body,
         ) : null}
 
-        <ProfileWorkspace
-          allowedTabs={['posts', 'replies', 'activities', 'bookmarks', 'drafts', 'signatures']}
+        <ProfileContent
+          allowedTabs={USER_CENTER_TABS}
+          navigation={contentNavigation}
+          overviewHref={USER_CENTER_HREF}
           asideLink={{ href: getPublicProfilePath(profile.id), label: '查看公开个人主页' }}
           initialHasMore={profile.recordHasMore}
           initialRecords={workspaceRecords ?? profile.records}
