@@ -554,6 +554,17 @@
     color: var(--text-faint);
   }
 
+  .profile-content-link-label {
+    display: inline-flex;
+    min-width: 0;
+    align-items: center;
+    gap: 9px;
+  }
+
+  .profile-content-link-label svg {
+    color: var(--brand-strong);
+  }
+
   .profile-content-links a:focus-visible,
   .profile-content-page-header a:focus-visible {
     outline: 2px solid var(--brand);
@@ -566,7 +577,12 @@
 
   .profile-content-page-header {
     display: grid;
-    gap: 16px;
+    gap: 12px;
+    border: 1px solid var(--line);
+    border-radius: 2px;
+    padding: 14px 16px 18px;
+    background: var(--surface);
+    box-shadow: var(--shadow-card);
   }
 
   .profile-content-page-header a {
@@ -581,11 +597,33 @@
   }
 
   .profile-content-page-header h1 {
+    min-width: 0;
+    flex: 1;
     margin: 0;
     color: var(--text-strong);
     font-size: var(--ui-font-size-page-title);
     font-weight: 750;
     overflow-wrap: anywhere;
+  }
+
+  .profile-content-page-heading {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .profile-content-page-heading > svg {
+    flex: none;
+    color: var(--brand-strong);
+  }
+
+  .profile-content-page-heading .profile-filter-toggle {
+    display: inline-flex;
+    flex: none;
+  }
+
+  .profile-workspace-page .profile-content-layout {
+    grid-template-columns: minmax(0, 1fr);
   }
 
   .profile-tabs {
@@ -901,12 +939,6 @@
     padding: 12px 16px;
   }
 
-  .profile-load-more-wrap {
-    display: flex;
-    justify-content: center;
-    padding: 12px 16px;
-  }
-
   .profile-workspace-aside {
     display: grid;
     min-width: 0;
@@ -1022,11 +1054,6 @@
     background: var(--brand-faint);
   }
 
-  .profile-mobile-filter {
-    display: none;
-    margin-bottom: 12px;
-  }
-
   .profile-dialog-backdrop {
     position: fixed;
     z-index: 100;
@@ -1055,6 +1082,27 @@
     background: var(--surface-raised);
     box-shadow: var(--shadow-float);
     animation: profile-dialog-in 180ms cubic-bezier(.2,.8,.2,1) both;
+  }
+
+  .profile-filter-dialog {
+    max-width: calc(100% - 24px);
+    max-height: calc(100dvh - 24px);
+    overflow-y: auto;
+    margin: auto;
+    padding: 0;
+    color: var(--text);
+    overscroll-behavior: contain;
+  }
+
+  .profile-filter-dialog::backdrop {
+    background: var(--overlay);
+    backdrop-filter: blur(4px);
+  }
+
+  .profile-filter-dialog .profile-filter-panel {
+    border: 0;
+    background: transparent;
+    box-shadow: none;
   }
 
   .profile-dialog > header {
@@ -1917,10 +1965,6 @@
       display: inline-flex;
     }
 
-    .profile-mobile-filter {
-      display: block;
-    }
-
     .profile-desktop-filter {
       display: none;
     }
@@ -2057,6 +2101,28 @@
       min-height: 48px;
       gap: 10px;
       padding: 0 12px;
+    }
+
+    .profile-draft-line {
+      display: grid;
+      grid-template-columns: auto minmax(0, 1fr);
+      gap: 10px 8px;
+      padding: 12px;
+    }
+
+    .profile-draft-line h3 {
+      grid-column: 1 / -1;
+    }
+
+    .profile-draft-actions {
+      min-width: 0;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+    }
+
+    .profile-draft-actions :is(a, button) {
+      min-height: 32px;
+      white-space: nowrap;
     }
 
     .profile-signature-floor-link {

@@ -1,22 +1,18 @@
 import {
   ArrowLeft,
-  Bookmark,
-  CalendarCheck2,
   ExternalLink,
-  FileText,
   Filter,
   Link2,
-  MessageSquareText,
-  PenLine,
-  Quote,
   RotateCcw,
   Search,
   Trash2,
   X,
 } from 'lucide-react';
-import { useEffect, useMemo, useState, type FormEvent, type ReactNode } from 'react';
+import { useEffect, useMemo, useRef, useState, type FormEvent } from 'react';
 import { createPortal } from 'react-dom';
 import { Pagination } from '../layout/Pagination';
+import { ProfileFilterDialog } from './ProfileFilterDialog';
+import { ProfileTabIcon } from './ProfileTabIcon';
 import {
   profileTabs,
   type ProfileRecord,
@@ -55,24 +51,17 @@ export type ProfileWorkspaceProps = {
 
 type WorkspaceNotice = { message: string; tone: 'error' | 'success' } | null;
 
-const tabIcons: Record<ProfileTab, ReactNode> = {
-  activities: <CalendarCheck2 size={15} />,
-  bookmarks: <Bookmark size={15} />,
-  drafts: <PenLine size={15} />,
-  posts: <FileText size={15} />,
-  replies: <MessageSquareText size={15} />,
-  signatures: <Quote size={15} />,
-};
-
 const PAGE_SIZE = 15;
+const EMPTY_HAS_MORE: Partial<Record<ProfileTab, boolean>> = {};
+const EMPTY_LAZY_TABS: ProfileTab[] = [];
 
 export function ProfileWorkspace({
   allowedTabs,
   asideLink,
   backLink,
-  initialHasMore = {},
+  initialHasMore = EMPTY_HAS_MORE,
   initialRecords,
-  lazyTabs = [],
+  lazyTabs = EMPTY_LAZY_TABS,
   onDeleteDraft,
   onLoadTab,
   onLoadMore,
@@ -93,44 +82,66 @@ export function ProfileWorkspace({
   const [deletingRecordId, setDeletingRecordId] = useState<string | null>(null);
   const [notice, setNotice] = useState<WorkspaceNotice>(null);
   const [loadingTab, setLoadingTab] = useState<ProfileTab | null>(null);
-  const [loadingMoreTab, setLoadingMoreTab] = useState<ProfileTab | null>(null);
+  const [loadError, setLoadError] = useState<{ message: string; tab: ProfileTab } | null>(null);
   const [loadedTabs, setLoadedTabs] = useState<ProfileTab[]>([]);
   const [hasMore, setHasMore] = useState(initialHasMore);
   const [savingRecordId, setSavingRecordId] = useState<string | null>(null);
+  const recordsSourceRef = useRef({ initialHasMore, initialRecords });
 
   useEffect(() => {
     setActiveTab(initialTab);
   }, [initialTab]);
 
   useEffect(() => {
+    const previous = recordsSourceRef.current;
+    if (previous.initialHasMore === initialHasMore && previous.initialRecords === initialRecords) return;
+    recordsSourceRef.current = { initialHasMore, initialRecords };
     setRecords(initialRecords);
     setHasMore(initialHasMore);
     setLoadedTabs([]);
+    setLoadError(null);
   }, [initialHasMore, initialRecords]);
 
   useEffect(() => {
-    if (!onLoadTab || !lazyTabs.includes(activeTab) || loadedTabs.includes(activeTab)) return;
+    if (!allowedTabs.includes(activeTab) || loadedTabs.includes(activeTab) || loadError?.tab === activeTab) return;
+    const loadTab = lazyTabs.includes(activeTab) ? onLoadTab : undefined;
+    if (!loadTab && (!hasMore[activeTab] || !onLoadMore)) return;
     let active = true;
     setLoadingTab(activeTab);
-    void onLoadTab(activeTab).then(
-      (loadedRecords) => {
+    async function loadAllRecords() {
+      try {
+        let loadedRecords = loadTab ? await loadTab(activeTab) : records[activeTab];
+        let more = Boolean(hasMore[activeTab]);
+        while (active && more && onLoadMore) {
+          const loadedPage = await onLoadMore(activeTab, loadedRecords.length);
+          if (!active) return;
+          const knownIds = new Set(loadedRecords.map((record) => record.id));
+          const appended = loadedPage.records.filter((record) => {
+            if (knownIds.has(record.id)) return false;
+            knownIds.add(record.id);
+            return true;
+          });
+          if (loadedPage.hasMore && !appended.length) throw new Error('内容加载未完成，请重试');
+          loadedRecords = [...loadedRecords, ...appended];
+          more = loadedPage.hasMore;
+        }
         if (!active) return;
         setRecords((current) => ({ ...current, [activeTab]: loadedRecords }));
+        setHasMore((current) => ({ ...current, [activeTab]: more }));
         setLoadedTabs((current) => current.includes(activeTab) ? current : [...current, activeTab]);
-        setLoadingTab(null);
-      },
-      (error: unknown) => {
+      } catch (error) {
         if (!active) return;
-        setNotice({
+        setLoadError({
           message: error instanceof Error ? error.message : '内容加载失败，请稍后重试',
-          tone: 'error',
+          tab: activeTab,
         });
-        setLoadedTabs((current) => current.includes(activeTab) ? current : [...current, activeTab]);
-        setLoadingTab(null);
-      },
-    );
+      } finally {
+        if (active) setLoadingTab(null);
+      }
+    }
+    void loadAllRecords();
     return () => { active = false; };
-  }, [activeTab, lazyTabs, loadedTabs, onLoadTab]);
+  }, [activeTab, allowedTabs, hasMore, lazyTabs, loadedTabs, loadError, onLoadMore, onLoadTab, records]);
 
   useEffect(() => {
     const requested = new URLSearchParams(window.location.search).get('tab');
@@ -222,46 +233,36 @@ export function ProfileWorkspace({
     }
   }
 
-  async function loadMore() {
-    if (!onLoadMore || !hasMore[activeTab] || loadingMoreTab) return;
-    try {
-      setLoadingMoreTab(activeTab);
-      const loadedPage = await onLoadMore(activeTab, records[activeTab].length);
-      setRecords((current) => {
-        const knownIds = new Set(current[activeTab].map((record) => record.id));
-        const appended = loadedPage.records.filter((record) => !knownIds.has(record.id));
-        return { ...current, [activeTab]: [...current[activeTab], ...appended] };
-      });
-      setHasMore((current) => ({ ...current, [activeTab]: loadedPage.hasMore }));
-    } catch (error) {
-      setNotice({
-        message: error instanceof Error ? error.message : '更多内容加载失败，请稍后重试',
-        tone: 'error',
-      });
-    } finally {
-      setLoadingMoreTab(null);
-    }
-  }
-
-  const filterPanel = (
-    <ProfileFilterPanel
-      endDate={endDate}
-      keyword={keyword}
-      matchedCount={filteredRecords.length}
-      startDate={startDate}
-      onEndDateChange={setEndDate}
-      onKeywordChange={setKeyword}
-      onReset={resetFilters}
-      onStartDateChange={setStartDate}
-    />
-  );
+  const filterPanelProps = {
+    endDate, keyword, matchedCount: filteredRecords.length, startDate,
+    onEndDateChange: setEndDate, onKeywordChange: setKeyword,
+    onReset: resetFilters, onStartDateChange: setStartDate,
+  };
+  const isLoading = loadingTab === activeTab;
+  const activeLoadError = loadError?.tab === activeTab ? loadError.message : null;
+  const filterButton = activeTab !== 'signatures' ? (
+    <button
+      aria-expanded={filtersOpen}
+      aria-haspopup="dialog"
+      className="profile-filter-toggle"
+      disabled={isLoading || Boolean(activeLoadError)}
+      onClick={() => setFiltersOpen(true)}
+      type="button"
+    >
+      <Filter size={15} />筛选{filterCount ? ` ${filterCount}` : ''}
+    </button>
+  ) : null;
 
   return (
     <section className={`profile-workspace${backLink ? ' profile-workspace-page' : ''}`} aria-label={`${ownerLabel}的论坛内容`}>
       {backLink ? (
         <header className="profile-content-page-header">
           <a href={backLink.href}><ArrowLeft aria-hidden="true" size={17} />{backLink.label}</a>
-          <h1>{readOnly ? `${ownerLabel}的${activeTabMeta.label}` : activeTabMeta.label}</h1>
+          <div className="profile-content-page-heading">
+            <ProfileTabIcon tab={activeTab} size={21} />
+            <h1>{readOnly ? `${ownerLabel}的${activeTabMeta.label}` : activeTabMeta.label}</h1>
+            {filterButton}
+          </div>
         </header>
       ) : <nav className="profile-tabs" aria-label="个人内容分类">
         {profileTabs.filter((tab) => allowedTabs.includes(tab.key)).map((tab) => (
@@ -272,26 +273,23 @@ export function ProfileWorkspace({
             onClick={() => changeTab(tab.key)}
             type="button"
           >
-            {tabIcons[tab.key]}
+            <ProfileTabIcon tab={tab.key} />
             <span>{tab.label}</span>
           </button>
         ))}
       </nav>}
 
-      {activeTab !== 'signatures' ? (
-        <div className="profile-filter-toolbar">
-          <button
-            aria-expanded={filtersOpen}
-            className="profile-filter-toggle"
-            onClick={() => setFiltersOpen((open) => !open)}
-            type="button"
-          >
-            <Filter size={15} />筛选{filterCount ? ` ${filterCount}` : ''}
-          </button>
-        </div>
-      ) : null}
+      {!backLink && filterButton ? <div className="profile-filter-toolbar">{filterButton}</div> : null}
 
-      {filtersOpen && activeTab !== 'signatures' ? <div className="profile-mobile-filter">{filterPanel}</div> : null}
+      {filtersOpen && activeTab !== 'signatures' ? (
+        <ProfileFilterDialog
+          invalidRange={Boolean(startDate && endDate && startDate > endDate)}
+          onClose={() => setFiltersOpen(false)}
+          onReset={resetFilters}
+        >
+          <ProfileFilterPanel {...filterPanelProps} showTitle={false} />
+        </ProfileFilterDialog>
+      ) : null}
 
       {notice ? createPortal(
         <div className={`profile-toast ${notice.tone === 'error' ? 'profile-toast-error' : ''}`} role="status">
@@ -302,10 +300,15 @@ export function ProfileWorkspace({
 
       <div className="profile-content-layout">
         <div className="profile-record-panel">
-          {loadingTab === activeTab ? (
+          {isLoading ? (
             <div className="profile-empty-state" role="status">
               <span><RotateCcw className="animate-spin" size={20} /></span>
               <h3>正在加载{activeTabMeta.label}</h3>
+            </div>
+          ) : activeLoadError ? (
+            <div className="profile-empty-state" role="alert">
+              <h3>{activeLoadError}</h3>
+              <button onClick={() => setLoadError(null)} type="button">重试</button>
             </div>
           ) : visibleRecords.length ? (
             <div className="profile-record-list">
@@ -326,38 +329,26 @@ export function ProfileWorkspace({
             </div>
           ) : (
             <div className="profile-empty-state">
-              <span>{tabIcons[activeTab]}</span>
+              <span><ProfileTabIcon tab={activeTab} /></span>
               <h3>{keyword || startDate || endDate ? '没有符合条件的记录' : `暂无${activeTabMeta.label}`}</h3>
               <p>{keyword || startDate || endDate ? '可以调整关键词或日期范围后再试。' : '这里会显示对应的论坛活动。'}</p>
               {keyword || startDate || endDate ? <button type="button" onClick={resetFilters}>重置筛选</button> : null}
             </div>
           )}
 
-          {pageCount > 1 ? (
+          {!isLoading && !activeLoadError && pageCount > 1 ? (
             <ProfilePagination currentPage={safePage} pageCount={pageCount} onPageChange={setPage} />
-          ) : null}
-          {hasMore[activeTab] && onLoadMore ? (
-            <div className="profile-load-more-wrap">
-              <button
-                className="profile-secondary-action"
-                disabled={Boolean(loadingMoreTab)}
-                type="button"
-                onClick={() => { void loadMore(); }}
-              >
-                {loadingMoreTab === activeTab ? '正在加载' : `加载更多${activeTabMeta.label}`}
-              </button>
-            </div>
           ) : null}
         </div>
 
-        <aside className="profile-workspace-aside">
-          {activeTab !== 'signatures' ? <div className="profile-desktop-filter">{filterPanel}</div> : null}
+        {!backLink ? <aside className="profile-workspace-aside">
+          {activeTab !== 'signatures' ? <div className="profile-desktop-filter"><ProfileFilterPanel {...filterPanelProps} /></div> : null}
           {asideLink ? (
             <a className="profile-aside-link" href={getForumNavigationHref(asideLink.href, window.location.href)}>
               <span>{asideLink.label}</span><ExternalLink size={15} />
             </a>
           ) : null}
-        </aside>
+        </aside> : null}
       </div>
     </section>
   );
@@ -371,6 +362,7 @@ function ProfileFilterPanel({
   onKeywordChange,
   onReset,
   onStartDateChange,
+  showTitle = true,
   startDate,
 }: {
   endDate: string;
@@ -380,19 +372,21 @@ function ProfileFilterPanel({
   onKeywordChange: (value: string) => void;
   onReset: () => void;
   onStartDateChange: (value: string) => void;
+  showTitle?: boolean;
   startDate: string;
 }) {
   const invalidRange = Boolean(startDate && endDate && startDate > endDate);
 
   return (
     <section className="profile-filter-panel" aria-label="筛选个人内容">
-      <div className="profile-filter-title">
+      {showTitle ? <div className="profile-filter-title">
         <div><Search size={16} /><strong>筛选</strong></div>
         <button type="button" onClick={onReset}><RotateCcw size={13} />重置</button>
-      </div>
+      </div> : null}
       <label>
         <span>关键词</span>
         <input
+          autoFocus={!showTitle}
           placeholder="搜索标题"
           type="search"
           value={keyword}
@@ -445,7 +439,7 @@ function ProfileRecordRow({
 
   return (
     <article className="profile-record">
-      <div className="profile-record-line">
+      <div className={`profile-record-line${activeTab === 'drafts' ? ' profile-draft-line' : ''}`}>
         <h3 className={activeTab === 'signatures' ? undefined : getThreadTitleClassName(record.title)}>
           {activeTab === 'signatures' ? record.title : <a href={getForumNavigationHref(record.href, window.location.href)}>{record.title}</a>}
         </h3>

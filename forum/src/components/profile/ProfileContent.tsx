@@ -3,6 +3,7 @@ import { profileTabs } from '../../data/profile';
 import type { useProfileContentNavigation } from '../../hooks/useProfileContentNavigation';
 import { getProfileTabHref } from '../../utils/userRoutes';
 import { ProfileWorkspace, type ProfileWorkspaceProps } from './ProfileWorkspace';
+import { ProfileTabIcon } from './ProfileTabIcon';
 
 type ProfileContentProps = ProfileWorkspaceProps & {
   navigation: ReturnType<typeof useProfileContentNavigation>;
@@ -17,7 +18,8 @@ export function ProfileContent({ navigation, overviewHref, ...workspaceProps }: 
         <nav className="profile-content-links" aria-label="个人内容分类">
           {profileTabs.filter((tab) => allowedTabs.includes(tab.key)).map((tab) => (
             <a href={getProfileTabHref(overviewHref, tab.key)} key={tab.key}>
-              <span>{tab.label}</span><ChevronRight aria-hidden="true" size={17} />
+              <span className="profile-content-link-label"><ProfileTabIcon tab={tab.key} size={17} />{tab.label}</span>
+              <ChevronRight aria-hidden="true" size={17} />
             </a>
           ))}
         </nav>

@@ -1,5 +1,5 @@
 import { RefreshCw } from 'lucide-react';
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { createPortal } from 'react-dom';
 import {
   sendProfileEmailCode,
@@ -53,6 +53,10 @@ export function UserCenterPage() {
   const { logout, refreshViewer, status: authStatus, updateViewerAvatar, viewer } = useAuth();
   const profileState = useUserCenterProfile(authStatus === 'authenticated' ? viewer?.username ?? null : null);
   const profile = authStatus === 'authenticated' ? profileState.data : null;
+  const profileId = profile?.id;
+  const loadMore = useCallback((tab: ProfileTab, offset: number) => profileId && (tab === 'posts' || tab === 'replies')
+    ? fetchRemainingProfileRecords(profileId, tab, offset)
+    : Promise.resolve({ hasMore: false, records: [] }), [profileId]);
   const authPending = authStatus === 'loading' || authStatus === 'restoring';
   const loginRequired = authStatus === 'guest';
   const profileLoading = !loginRequired && (authPending || profileState.status === 'loading');
@@ -258,9 +262,7 @@ export function UserCenterPage() {
           asideLink={{ href: getPublicProfilePath(profile.id), label: '查看公开个人主页' }}
           initialHasMore={profile.recordHasMore}
           initialRecords={workspaceRecords ?? profile.records}
-          onLoadMore={(tab, offset) => tab === 'posts' || tab === 'replies'
-            ? fetchRemainingProfileRecords(profile.id, tab, offset)
-            : Promise.resolve({ hasMore: false, records: [] })}
+          onLoadMore={loadMore}
           onDeleteDraft={deleteDraft}
           onSaveSignatures={async (signatures) => {
             const updatedProfile = await updateProfileSignatures(signatures);
