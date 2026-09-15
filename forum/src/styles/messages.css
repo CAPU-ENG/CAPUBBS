@@ -451,7 +451,6 @@
     display: flex;
     width: 100%;
     align-items: center;
-    gap: 9px;
     border: 1px solid transparent;
     border-radius: var(--control-radius);
     padding: 9px;
@@ -470,15 +469,6 @@
   .direct-conversation-list > .direct-conversation-active {
     border-color: color-mix(in srgb, var(--brand) 20%, var(--line));
     background: var(--brand-soft);
-  }
-
-  .direct-conversation-list img {
-    width: 36px;
-    height: 36px;
-    flex: 0 0 auto;
-    border: 1px solid var(--line);
-    border-radius: var(--control-radius);
-    object-fit: cover;
   }
 
   .direct-conversation-list > button > span {
@@ -713,7 +703,7 @@
 
     .direct-message-dialog {
       grid-template-columns: 1fr;
-      grid-template-rows: auto 92px minmax(0, 1fr);
+      grid-template-rows: auto auto minmax(0, 1fr);
     }
 
     .direct-message-header {
@@ -733,19 +723,13 @@
     .direct-conversation-list > button {
       width: 88px;
       min-width: 88px;
-      flex-direction: column;
-      gap: 4px;
+      min-height: 36px;
       padding: 5px;
       text-align: center;
     }
 
     .direct-conversation-list > button + button {
       margin-top: 0;
-    }
-
-    .direct-conversation-list img {
-      width: 34px;
-      height: 34px;
     }
 
     .direct-conversation-list > button > span > span:first-child {

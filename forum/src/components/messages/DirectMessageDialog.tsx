@@ -1,7 +1,6 @@
 import { Send, X } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
-import defaultAvatar from '../../assets/avatar/default-avatar.svg';
 import { LoadingSpinner as LoaderCircle } from '../layout/LoadingSpinner';
 import type { DirectChatMessage, DirectConversation } from '../../types/messages';
 
@@ -94,7 +93,6 @@ export function DirectMessageDialog({
               aria-pressed={conversation.id === activeConversation.id}
               onClick={() => onSelectConversation(conversation.id)}
             >
-              <img src={defaultAvatar} alt="" />
               <span>
                 <span><strong>{conversation.user}</strong><time>{conversation.lastTime}</time></span>
                 <span className="direct-conversation-preview">
