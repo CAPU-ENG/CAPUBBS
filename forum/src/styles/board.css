@@ -560,28 +560,37 @@
 
     .board-title-card {
       min-height: 0;
+      overflow: visible;
+      border: 0;
+      background: transparent;
+      box-shadow: none;
     }
 
-    .board-title-content {
-      display: block;
-      min-height: 0;
-      padding: 14px 12px 12px 100px;
-    }
-
+    .board-title-content,
     .board-title-card-secondary .board-title-content {
-      padding-left: 12px;
+      display: grid;
+      min-height: 0;
+      grid-template-columns: minmax(0, 1fr);
+      gap: 8px;
+      padding: 0;
     }
 
     .board-title-copy h1 {
       font-size: var(--ui-font-size-feature-title);
     }
 
-    .board-title-copy {
-      padding-left: 8px;
+    .board-title-copy,
+    .board-title-card-secondary .board-title-copy {
+      border: 1px solid var(--line);
+      border-radius: 2px;
+      padding: 16px;
+      background: var(--surface);
+      box-shadow: var(--shadow-card);
+      overflow-wrap: anywhere;
     }
 
     .board-title-artwork {
-      width: 148px;
+      display: none;
     }
 
     .board-moderators {
@@ -591,39 +600,54 @@
     }
 
     .board-title-side {
-      margin-top: 12px;
+      display: contents;
     }
 
     .board-stat-grid > div {
-      padding: 6px 3px 5px;
+      display: grid;
+      min-height: 56px;
+      align-content: center;
+      gap: 4px;
+      padding: 8px 6px;
     }
 
     .board-stat-grid {
       width: 100%;
+      overflow: hidden;
+      border: 1px solid var(--line);
+      border-radius: 2px;
+      background: var(--surface);
+      box-shadow: var(--shadow-card);
+      backdrop-filter: none;
     }
 
     .board-stat-grid dt {
-      font-size: var(--ui-font-size-xs);
+      font-size: 0.6875rem;
+      letter-spacing: normal;
     }
 
     .board-stat-grid dd {
-      margin-top: 2px;
-      font-size: var(--ui-font-size-md);
+      overflow: visible;
+      margin-top: 0;
+      font-family: "Noto Serif CJK SC", "Source Han Serif SC", "Songti SC", serif;
+      font-size: var(--ui-font-size-xs);
+      font-weight: 740;
+      line-height: 1.25;
+      overflow-wrap: anywhere;
     }
 
     .board-title-actions {
+      display: grid;
       width: 100%;
-      flex-wrap: nowrap;
-      gap: 5px;
-      margin-top: 9px;
-      margin-left: auto;
+      grid-template-columns: minmax(0, 1fr);
+      gap: 8px;
+      margin: 0;
     }
 
     .board-primary-action,
     .board-secondary-action,
     .board-activity-action {
       min-width: 0;
-      flex: 1 1 0;
       height: 34px;
       gap: 4px;
       padding-inline: 7px;
@@ -631,7 +655,7 @@
     }
 
     .board-thread-section {
-      margin-top: 9px;
+      margin-top: 8px;
     }
 
     .board-thread-table-wrap {
