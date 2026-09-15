@@ -1,5 +1,6 @@
 import { normalizeCssColor } from './RichTextEditor.richText';
 import { isRichFirstLineIndentActive } from './RichTextEditor.richIndent';
+import { defaultRichTextFontSize, richTextFontOptions } from './RichTextEditor.constants';
 import type { RichInlineStyle } from './RichTextEditor.types';
 
 const richToggleCommands = [
@@ -69,6 +70,39 @@ export function readRichHeading(editor: HTMLElement): string {
     element = element.parentElement;
   }
   return 'p';
+}
+
+export function readRichFontStyles(editor: HTMLElement) {
+  const defaults = { fontFamily: '', fontSize: defaultRichTextFontSize };
+  const selection = window.getSelection();
+  if (!selection || selection.rangeCount === 0) return defaults;
+  if (!editor.contains(selection.getRangeAt(0).commonAncestorContainer)) return defaults;
+
+  const node = selection.focusNode;
+  const element = node instanceof Element ? node : node?.parentElement;
+  if (!element) return defaults;
+
+  const style = window.getComputedStyle(element);
+  const editorStyle = window.getComputedStyle(editor);
+  const families = normalizeRichFontFamilies(style.fontFamily);
+  const defaultFamilies = normalizeRichFontFamilies(editorStyle.fontFamily);
+  const fontOption = richTextFontOptions.find((option) => {
+    const optionFamilies = normalizeRichFontFamilies(option.value);
+    // Match named aliases, without treating a shared serif/sans-serif fallback as the font.
+    const aliases = optionFamilies.length > 1 ? optionFamilies.slice(0, -1) : optionFamilies;
+    return aliases.includes(families[0]);
+  });
+
+  return {
+    fontFamily: families.join(',') === defaultFamilies.join(',')
+      ? ''
+      : fontOption?.value ?? style.fontFamily,
+    fontSize: style.fontSize || defaultRichTextFontSize,
+  };
+}
+
+function normalizeRichFontFamilies(fontFamily: string) {
+  return fontFamily.split(',').map((family) => family.trim().replace(/^['"]|['"]$/g, '').toLowerCase());
 }
 
 export function readRichCommandStates(editor: HTMLElement): RichToggleCommandStates {

@@ -3,7 +3,7 @@ import { richTextHeadingOptions } from './RichTextEditor.constants';
 import {
   maxRecentTextColors, mergeFullySelectedChildRichSpansIntoWrapper,
   normalizeRedundantRichSpans, normalizeRichIndentation,
-  readRichCommandStates, readRichHeading, removeOverriddenRichInlineStyles,
+  readRichCommandStates, readRichFontStyles, readRichHeading, removeOverriddenRichInlineStyles,
   removeOverriddenRichInlineStylesFromFullySelectedAncestors,
   richTypingStyleAttribute, richTypingStyleMarker,
   toggleRichFirstLineIndentForRange,
@@ -37,6 +37,14 @@ export function createRichTextEditorRichActions({
   setHeadingSelectValue, setHexSourceValue, setIsColorPickerOpen, setRecentTextColors,
   setSelectedTextColor, sourceRef, sourceSelectionRef, updateContent,
 }: Options) {
+  const syncRichFontStyles = () => {
+    const editor = editorRef.current;
+    if (!editor) return;
+    const fontStyles = readRichFontStyles(editor);
+    setFontSelectValue(fontStyles.fontFamily);
+    setFontSizeSelectValue(fontStyles.fontSize);
+  };
+
   const runRichCommand = (command: string, commandValue?: string) => {
     const editor = editorRef.current;
     editor?.focus();
@@ -46,6 +54,7 @@ export function createRichTextEditorRichActions({
     }
     updateContent(editor?.innerHTML ?? '');
     if (editor) setActiveRichCommands(readRichCommandStates(editor));
+    syncRichFontStyles();
   };
 
   const toggleRichFirstLineIndent = () => {
@@ -111,14 +120,13 @@ export function createRichTextEditorRichActions({
 
     selection.removeAllRanges();
     selection.addRange(nextRange);
+    syncRichFontStyles();
     updateContent(editor.innerHTML);
     savedRangeRef.current = null;
   };
 
   const handleRichFontChange = (event: ChangeEvent<HTMLSelectElement>) => {
     const fontName = event.target.value;
-
-    setFontSelectValue(fontName);
 
     if (!fontName) {
       return;
@@ -134,7 +142,6 @@ export function createRichTextEditorRichActions({
       return;
     }
 
-    setFontSizeSelectValue(fontSize);
     applyRichInlineStyle({ fontSize });
   };
 
@@ -149,6 +156,7 @@ export function createRichTextEditorRichActions({
     restoreRichSelection();
     document.execCommand('formatBlock', false, headingTag);
     setHeadingSelectValue(editorRef.current ? readRichHeading(editorRef.current) : 'p');
+    syncRichFontStyles();
     updateContent(editorRef.current?.innerHTML ?? '');
     savedRangeRef.current = null;
   };

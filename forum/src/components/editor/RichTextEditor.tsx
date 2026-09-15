@@ -44,6 +44,7 @@ import {
   normalizeRichTypingStylesAfterInput,
   readRecentTextColors,
   readRichCommandStates,
+  readRichFontStyles,
   readRichHeading,
   storeRecentTextColors,
   type RichToggleCommandStates,
@@ -204,6 +205,8 @@ export function RichTextEditor({
     if (isSourceMode) {
       setActiveRichCommands(createInactiveRichCommandStates());
       setHeadingSelectValue('p');
+      setFontSelectValue('');
+      setFontSizeSelectValue(defaultRichTextFontSize);
       return undefined;
     }
 
@@ -211,6 +214,9 @@ export function RichTextEditor({
       const editor = editorRef.current;
       setActiveRichCommands(editor ? readRichCommandStates(editor) : createInactiveRichCommandStates());
       setHeadingSelectValue(editor ? readRichHeading(editor) : 'p');
+      const fontStyles = editor ? readRichFontStyles(editor) : null;
+      setFontSelectValue(fontStyles?.fontFamily ?? '');
+      setFontSizeSelectValue(fontStyles?.fontSize ?? defaultRichTextFontSize);
     };
     const handleFocusIn = (event: FocusEvent) => {
       const editorShell = editorShellRef.current;
@@ -219,6 +225,8 @@ export function RichTextEditor({
       } else {
         setActiveRichCommands(createInactiveRichCommandStates());
         setHeadingSelectValue('p');
+        setFontSelectValue('');
+        setFontSizeSelectValue(defaultRichTextFontSize);
       }
     };
 

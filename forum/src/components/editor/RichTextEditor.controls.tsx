@@ -103,6 +103,11 @@ export function RichTextEditorControls(props: Props) {
                   aria-label="字体"
                 >
                   <option value="">字体</option>
+                  {fontSelectValue && !richTextFontOptions.some((option) => option.value === fontSelectValue) ? (
+                    <option value={fontSelectValue}>
+                      {fontSelectValue.split(',')[0].trim().replace(/^['"]|['"]$/g, '')}
+                    </option>
+                  ) : null}
                   {richTextFontOptions.map((fontOption) => (
                     <option key={fontOption.value} value={fontOption.value}>
                       {fontOption.label}
@@ -121,6 +126,9 @@ export function RichTextEditorControls(props: Props) {
                   aria-label="字号"
                 >
                   <option value="">字号</option>
+                  {fontSizeSelectValue && !richTextFontSizeOptions.some((option) => option.value === fontSizeSelectValue) ? (
+                    <option value={fontSizeSelectValue}>{fontSizeSelectValue.replace(/px$/, '')}</option>
+                  ) : null}
                   {richTextFontSizeOptions.map((fontSizeOption) => (
                     <option key={fontSizeOption.value} value={fontSizeOption.value}>
                       {fontSizeOption.label}
