@@ -2819,6 +2819,23 @@
       line-height: 1.35;
     }
 
+    .thread-floor-time:has(> time:nth-of-type(2)) {
+      flex-wrap: wrap;
+      gap: 2px 6px;
+      font-size: 0.6875rem;
+      text-align: right;
+      white-space: normal;
+    }
+
+    .thread-floor-time:has(> time:nth-of-type(2)) > time {
+      max-width: 100%;
+      overflow-wrap: anywhere;
+    }
+
+    .thread-floor-time:has(> time:nth-of-type(2)) > span {
+      display: none;
+    }
+
     .thread-floor-index {
       grid-row: 1;
       grid-column: 2;
