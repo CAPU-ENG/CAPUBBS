@@ -2614,6 +2614,7 @@
   @media (max-width: 640px) {
 
     .thread-page-shell {
+      --thread-mobile-card-gap: 8px;
       padding: calc(var(--topbar-height) + 10px) 9px 72px;
     }
 
@@ -2658,8 +2659,8 @@
     .thread-title-actions-mobile {
       display: flex;
       flex-wrap: wrap;
-      gap: 8px;
-      margin: 8px 0 0;
+      gap: var(--thread-mobile-card-gap);
+      margin: var(--thread-mobile-card-gap) 0 0;
     }
 
     .thread-title-actions-mobile > :is(button, a) {
@@ -2677,12 +2678,14 @@
       margin: 0;
     }
 
-    .thread-content-layout {
-      margin-top: 9px;
+    .thread-top-pagination,
+    .thread-content-layout,
+    .thread-page-shell > :is(.reply-editor, .thread-reply-loading, .thread-reply-unavailable) {
+      margin-top: var(--thread-mobile-card-gap);
     }
 
     .thread-floor-list {
-      gap: 9px;
+      gap: var(--thread-mobile-card-gap);
     }
 
     .activity-signup-card {
@@ -2911,7 +2914,7 @@
     }
 
     .thread-bottom-pagination {
-      margin-top: 14px;
+      margin-top: var(--thread-mobile-card-gap);
     }
 
     .thread-page-button,
