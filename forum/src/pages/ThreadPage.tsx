@@ -419,7 +419,7 @@ export function ThreadPage() {
   const activeSignatureBlocked = activeSignatureKey !== null && blockedSignatures.has(activeSignatureKey);
   const signatureButtonPressed = preciseSignatureBlocking ? activeSignatureBlocked : signaturesHidden;
   const signatureButtonLabel = preciseSignatureBlocking
-    ? (activeSignatureBlocked ? '展示该签名档' : '屏蔽该签名档')
+    ? (activeSignatureBlocked ? '展示签名档' : '屏蔽签名档')
     : (signaturesHidden ? '显示签名档' : '屏蔽签名档');
 
   function toggleSignatures() {
@@ -552,7 +552,7 @@ export function ThreadPage() {
                   decorationImageSrc={getFloorDecorationPath(floor.author.floorDecoration, theme)}
                   editHref={getThreadEditHref(data.bid, data.tid, floor.floor)}
                   floor={floor}
-                  hideSignature={blockedSignatures.has(getSignatureBlockKey(floor) ?? '')
+                  hideSignature={(preciseSignatureBlocking && blockedSignatures.has(getSignatureBlockKey(floor) ?? ''))
                     || (assistiveBarEnabled && signatureToggleEnabled && !preciseSignatureBlocking && signaturesHidden)}
                   isActivityThread={data.isActivity}
                   isMainPost={floor.floor === 1}
