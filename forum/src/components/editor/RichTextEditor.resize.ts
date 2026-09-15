@@ -1,5 +1,6 @@
 export type ActiveRichImageResize = {
   contentWidth: number;
+  direction: 1 | -1;
   image: HTMLImageElement;
   minWidthPercentage: number;
   pointerId: number;
@@ -20,7 +21,10 @@ export type ActiveGalleryResize = {
 export type RichImageResizeHandle = {
   left: number;
   top: number;
+  wrap: RichImageWrap;
 };
+
+export type RichImageWrap = 'none' | 'left' | 'right';
 
 export type ImageIntrinsicDimensions = {
   height: number;
@@ -52,6 +56,32 @@ export function applyImageWidthPercentage(image: HTMLImageElement, widthPercenta
   const width = `${normalizedWidth}%`;
   image.style.width = width;
   image.style.height = 'auto';
+}
+
+export function getRichImageWrap(image: HTMLImageElement): RichImageWrap {
+  const float = image.style.cssFloat || image.getAttribute('align');
+  return float === 'left' || float === 'right' ? float : 'none';
+}
+
+export function applyImageTextWrap(
+  image: HTMLImageElement,
+  wrap: RichImageWrap,
+  currentWidthPercentage: number,
+) {
+  const wasWrapped = getRichImageWrap(image) !== 'none';
+  image.style.cssFloat = wrap;
+  image.style.margin = wrap === 'left' ? '0 1em 0.75em 0'
+    : wrap === 'right' ? '0 0 0.75em 1em' : '';
+
+  if (wrap === 'none') {
+    image.style.removeProperty('max-width');
+    image.removeAttribute('data-capubbs-image-wrap');
+  } else {
+    image.setAttribute('data-capubbs-image-wrap', wrap);
+    image.style.maxWidth = 'calc(100% - 1em)';
+    // Leave room for multiple lines of text without enlarging smaller images.
+    applyImageWidthPercentage(image, wasWrapped ? currentWidthPercentage : Math.min(currentWidthPercentage, 50));
+  }
 }
 
 export function applyImageIntrinsicDimensions(

@@ -38,18 +38,21 @@ import { maxInlineImageBytes } from './RichTextEditor.constants';
 import {
   applyGalleryImageHeight,
   applyImageIntrinsicDimensions,
+  applyImageTextWrap,
   applyImageWidthPercentage,
   clampImageDimension,
   galleryResizeMaxHeight,
   galleryResizeMinHeight,
   getEditorContentWidth,
   getImageWidthPercentage,
+  getRichImageWrap,
   getResizedImageWidthPercentage,
   richImageResizeMinWidth,
   type ActiveGalleryResize,
   type ActiveRichImageResize,
   type ImageIntrinsicDimensions,
   type RichImageResizeHandle,
+  type RichImageWrap,
 } from './RichTextEditor.resize';
 import type { PastedImageState, RichTextEditorValue } from './RichTextEditor.types';
 import { escapeAttribute } from './RichTextEditor.html';
@@ -136,10 +139,28 @@ export function createRichTextEditorMediaActions({
       return;
     }
 
+    const wrap = getRichImageWrap(image);
     setRichImageResizeHandle({
-      left: imageBounds.right - shellBounds.left,
+      left: (wrap === 'right' ? imageBounds.left : imageBounds.right) - shellBounds.left,
       top: imageBounds.bottom - shellBounds.top,
+      wrap,
     });
+  };
+
+  const setRichImageWrap = (wrap: RichImageWrap) => {
+    const editor = editorRef.current;
+    const image = selectedRichImageRef.current;
+    if (!editor || !image || !editor.contains(image)) return;
+
+    const widthPercentage = getImageWidthPercentage(
+      image.getBoundingClientRect().width,
+      getEditorContentWidth(editor),
+    );
+    applyImageTextWrap(image, wrap, widthPercentage);
+    updateContent(editor.innerHTML);
+    editor.focus({ preventScroll: true });
+    saveSelection();
+    window.requestAnimationFrame(updateRichImageResizeHandle);
   };
 
   const selectRichImage = (image: HTMLImageElement) => {
@@ -246,6 +267,7 @@ export function createRichTextEditorMediaActions({
 
     activeRichImageResizeRef.current = {
       contentWidth,
+      direction: getRichImageWrap(image) === 'right' ? -1 : 1,
       image,
       minWidthPercentage: Math.min(100, richImageResizeMinWidth / contentWidth * 100),
       pointerId: event.pointerId,
@@ -264,7 +286,7 @@ export function createRichTextEditorMediaActions({
     event.preventDefault();
     const nextWidthPercentage = getResizedImageWidthPercentage(
       resizeState.startWidthPercentage,
-      event.clientX - resizeState.startX,
+      (event.clientX - resizeState.startX) * resizeState.direction,
       resizeState.contentWidth,
       resizeState.minWidthPercentage,
     );
@@ -662,6 +684,7 @@ export function createRichTextEditorMediaActions({
     openGalleryDialog,
     openEditorGalleryForEditing,
     selectRichImage,
+    setRichImageWrap,
     updateRichImageResizeHandle,
     uploadAndInsertGallery,
     uploadAndInsertPastedImage,

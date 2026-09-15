@@ -14,6 +14,7 @@ import {
 import { editorImageInputAccept } from './RichTextEditor.images';
 import { normalizeCssColor } from './RichTextEditor.richText';
 import type { RichToggleCommandStates } from './RichTextEditor.richDom';
+import type { RichImageWrap } from './RichTextEditor.resize';
 import type { EditorPopover } from './RichTextEditor.types';
 import { HexColorPanel } from '../HexColorPicker';
 
@@ -51,6 +52,8 @@ type Props = {
   runRichCommand: (command: string, commandValue?: string) => void;
   saveSelection: () => void;
   selectedTextColor: string;
+  selectedImageWrap: RichImageWrap | null;
+  setRichImageWrap: (wrap: RichImageWrap) => void;
   setPopoverTextValue: Dispatch<SetStateAction<string>>;
   setPopoverValue: Dispatch<SetStateAction<string>>;
   toggleColorPicker: () => void;
@@ -68,6 +71,7 @@ export function RichTextEditorControls(props: Props) {
     insertHorizontalRule,
     openGalleryDialog, openPopover, openQuotePopover, popoverConfig, popoverTextValue, popoverValue,
     recentTextColors, runRichCommand, saveSelection, selectedTextColor,
+    selectedImageWrap, setRichImageWrap,
     setPopoverTextValue, setPopoverValue,
     toggleColorPicker, toggleRichFirstLineIndent,
   } = props;
@@ -240,6 +244,33 @@ export function RichTextEditorControls(props: Props) {
                 />
               </button>
             </div>
+          </div>
+        ) : null}
+
+        {selectedImageWrap !== null && !isSourceMode ? (
+          <div role="group" aria-label="图片文字环绕" className="flex flex-wrap gap-1 border-b border-zinc-200/80 px-2 py-1 dark:border-white/10">
+            {([
+              { value: 'left', label: '居左环绕', title: '图片居左，文字环绕' },
+              { value: 'right', label: '居右环绕', title: '图片居右，文字环绕' },
+              { value: 'none', label: '取消环绕', title: '取消文字环绕' },
+            ] as const).map((option) => (
+              <button
+                key={option.value}
+                type="button"
+                aria-label={option.title}
+                aria-pressed={selectedImageWrap === option.value}
+                title={option.title}
+                onMouseDown={handleToolbarMouseDown}
+                onClick={() => setRichImageWrap(option.value)}
+                className={`h-6 rounded-[var(--control-radius)] border px-2 text-[length:var(--ui-font-size-md)] font-medium text-[#174f38] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#174f38] dark:text-white ${
+                  selectedImageWrap === option.value
+                    ? 'border-[#174f38]/30 bg-[#174f38]/10 dark:border-emerald-200/30 dark:bg-emerald-200/15'
+                    : 'border-transparent hover:border-zinc-200 hover:bg-zinc-100 dark:hover:border-white/10 dark:hover:bg-white/10'
+                }`}
+              >
+                {option.label}
+              </button>
+            ))}
           </div>
         ) : null}
 

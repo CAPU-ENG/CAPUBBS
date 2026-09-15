@@ -495,6 +495,7 @@ export function RichTextEditor({
     insertRichImage,
     openGalleryDialog,
     openEditorGalleryForEditing,
+    setRichImageWrap,
     updateRichImageResizeHandle,
     uploadAndInsertGallery,
     uploadAndInsertPastedImage,
@@ -523,6 +524,25 @@ export function RichTextEditor({
     setRichImageResizeHandle,
     updateContent,
   });
+
+  const hasRichImageSelection = richImageResizeHandle !== null;
+  useEffect(() => {
+    const editor = editorRef.current;
+    const shell = editorShellRef.current;
+    if (isSourceMode || !hasRichImageSelection || !editor || !shell) return;
+
+    // Opening the image toolbar and resizing the editor can move the image.
+    const observer = new ResizeObserver(updateRichImageResizeHandle);
+    observer.observe(editor);
+    observer.observe(shell);
+    window.addEventListener('resize', updateRichImageResizeHandle);
+    const frame = window.requestAnimationFrame(updateRichImageResizeHandle);
+    return () => {
+      observer.disconnect();
+      window.removeEventListener('resize', updateRichImageResizeHandle);
+      window.cancelAnimationFrame(frame);
+    };
+  }, [hasRichImageSelection, isSourceMode]);
 
   const handlePopoverSubmit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -730,6 +750,8 @@ export function RichTextEditor({
         runRichCommand={runRichCommand}
         saveSelection={saveSelection}
         selectedTextColor={selectedTextColor}
+        selectedImageWrap={richImageResizeHandle?.wrap ?? null}
+        setRichImageWrap={setRichImageWrap}
         setPopoverTextValue={setPopoverTextValue}
         setPopoverValue={setPopoverValue}
         toggleColorPicker={toggleColorPicker}
@@ -879,13 +901,13 @@ export function RichTextEditor({
           onPointerDown={handleRichImageResizePointerDown}
           onPointerMove={handleRichImageResizePointerMove}
           onPointerUp={finishRichImageResize}
-          className="absolute z-20 flex h-5 w-5 -translate-x-1/2 -translate-y-1/2 cursor-nwse-resize items-center justify-center rounded-[1px] border border-[#174f38] bg-white shadow-md transition hover:bg-zinc-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#174f38] dark:border-emerald-200 dark:bg-zinc-950"
+          className={`absolute z-20 flex h-5 w-5 -translate-x-1/2 -translate-y-1/2 ${richImageResizeHandle.wrap === 'right' ? 'cursor-nesw-resize' : 'cursor-nwse-resize'} items-center justify-center rounded-[1px] border border-[#174f38] bg-white shadow-md transition hover:bg-zinc-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#174f38] dark:border-emerald-200 dark:bg-zinc-950`}
           style={{
             left: `${richImageResizeHandle.left}px`,
             top: `${richImageResizeHandle.top}px`,
           }}
         >
-          <span className="h-2.5 w-2.5 border-b-2 border-r-2 border-[#174f38] dark:border-emerald-200" />
+          <span className={`h-2.5 w-2.5 border-b-2 ${richImageResizeHandle.wrap === 'right' ? 'border-l-2' : 'border-r-2'} border-[#174f38] dark:border-emerald-200`} />
         </button>
       ) : null}
 

@@ -76,6 +76,10 @@ export function buildHtmlPreviewDocument(
         word-break: break-word;
       }
 
+      body:has(img[data-capubbs-image-wrap]) {
+        display: flow-root;
+      }
+
       body > :first-child {
         margin-top: 0;
       }

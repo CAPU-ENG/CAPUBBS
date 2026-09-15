@@ -1417,6 +1417,10 @@
     text-decoration-thickness: 2px !important;
   }
 
+  .forum-markup[data-forum-markup="floor"]:has(img[data-capubbs-image-wrap]) {
+    display: flow-root;
+  }
+
   .forum-markup > :first-child {
     margin-top: 0;
   }
