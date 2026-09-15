@@ -2008,8 +2008,19 @@
     }
 
     .profile-identity-main {
-      align-items: flex-start;
-      gap: 15px;
+      display: grid;
+      grid-template-columns: 62px minmax(0, 1fr);
+      align-items: start;
+      gap: 0 15px;
+    }
+
+    .profile-identity-copy {
+      display: contents;
+    }
+
+    .profile-identity-copy > * {
+      min-width: 0;
+      grid-column: 1 / -1;
     }
 
     .profile-avatar-button,
@@ -2017,17 +2028,23 @@
       width: 62px;
       height: 62px;
       flex-basis: 62px;
+      grid-column: 1;
+      grid-row: 1;
       box-shadow: 4px 4px 0 var(--brand-soft);
     }
 
-    .profile-name-line {
+    .profile-identity-copy > .profile-name-line {
       display: grid;
+      grid-column: 2;
+      grid-row: 1;
+      align-self: center;
       gap: 5px;
-      margin-top: 5px;
+      margin-top: 0;
     }
 
     .profile-name-line h1 {
       font-size: var(--ui-font-size-page-title);
+      overflow-wrap: anywhere;
     }
 
     .profile-rating {
