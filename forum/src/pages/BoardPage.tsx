@@ -267,13 +267,13 @@ export function BoardPage({ boardId }: { boardId: number }) {
 
       <main className="board-page-shell">
         <header className={`board-title-card ${isSecondaryBoard ? 'board-title-card-secondary' : ''}`}>
-          {!isSecondaryBoard ? (
-            <div aria-hidden="true" className="board-title-artwork">
-              <img alt="" src={boardCover} />
-            </div>
-          ) : null}
           <div className="board-title-content">
             <div className="board-title-copy">
+              {!isSecondaryBoard ? (
+                <div aria-hidden="true" className="board-title-artwork">
+                  <img alt="" src={boardCover} />
+                </div>
+              ) : null}
               <h1 id="board-title" ref={titleRef}>{board.name}</h1>
               <div className="board-moderators">
                 <span>版主</span>
