@@ -4,6 +4,7 @@ import { useTheme } from '../../hooks/useTheme';
 import { syncForumGrayscaleTextColors } from '../../utils/forumGrayscaleTextColor';
 import { preloadNearbyImages } from '../../utils/imagePreloading';
 import { prepareForumTables } from './forumTables';
+import { preparePunishmentTableFit } from './punishmentTableFit';
 import '../../styles/forum-tables.css';
 import '../../styles/punishment-record-tag.css';
 import {
@@ -54,6 +55,11 @@ export function ForumMarkup({
   useLayoutEffect(() => {
     const container = containerRef.current;
     if (container && variant !== 'signature') return prepareForumTables(container);
+  }, [html, variant]);
+
+  useLayoutEffect(() => {
+    const container = containerRef.current;
+    if (container && variant !== 'signature') return preparePunishmentTableFit(container);
   }, [html, variant]);
 
   useLayoutEffect(() => {

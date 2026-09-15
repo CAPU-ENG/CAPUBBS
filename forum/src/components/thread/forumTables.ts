@@ -3,6 +3,7 @@ export function prepareForumTables(container: HTMLElement) {
   const cleanups: Array<() => void> = [];
 
   container.querySelectorAll<HTMLTableElement>('table').forEach((table) => {
+    if (table.classList.contains('forum-punishment-table')) return;
     // Nested/single-cell tables are often authored layouts, not data tables.
     if (table.parentElement?.closest('table') || table.querySelector('table')) return;
     if (table.rows.length < 2 || !Array.from(table.rows).some((row) => row.cells.length > 1)) return;

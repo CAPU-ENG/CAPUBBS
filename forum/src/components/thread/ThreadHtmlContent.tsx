@@ -37,6 +37,7 @@ import {
   refreshThreadImagePriorities,
 } from './threadImageResourceCache';
 import { getFrameImagePriority, type FrameImageBounds } from './threadImagePriority';
+import { preparePunishmentTableFit } from './punishmentTableFit';
 
 const MIN_SIGNATURE_FRAME_HEIGHT = 28;
 const MIN_FLOOR_FRAME_HEIGHT = 64;
@@ -558,6 +559,7 @@ function buildFrameBridgeScript(frameId: string, canOpenImages: boolean, needsJq
     var forumBasePath=${JSON.stringify(FORUM_BASE_PATH)};
     var canOpenImages=${JSON.stringify(canOpenImages)};
     var needsJquery=${JSON.stringify(needsJquery)};
+    var preparePunishmentTableFit=${preparePunishmentTableFit.toString()};
     var normalizeEmbeddedPlayerUrl=${normalizeEmbeddedPlayerUrl.toString()};
     var playerIds=new WeakMap();
     var nextPlayerId=0;
@@ -1100,6 +1102,10 @@ function buildFrameBridgeScript(frameId: string, canOpenImages: boolean, needsJq
     }
     function init(){
       var contentRoot=document.querySelector('.capubbs-html-frame-root');
+      if(contentRoot){
+        var disposePunishmentTableFit=preparePunishmentTableFit(contentRoot);
+        window.addEventListener('unload',disposePunishmentTableFit,{once:true});
+      }
       if(window.ResizeObserver&&contentRoot)new ResizeObserver(queueHeight).observe(contentRoot);
       if(window.MutationObserver&&contentRoot)new MutationObserver(function(){queueHeight();requestImageResources();prepareImages();prepareGalleries();syncGrayscaleTextColors(contentRoot);}).observe(contentRoot,{attributes:true,characterData:true,childList:true,subtree:true});
       window.addEventListener('load',queueHeight);

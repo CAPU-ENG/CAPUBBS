@@ -1,6 +1,28 @@
 .forum-markup .forum-punishment-table {
   display: table;
-  width: 100%;
+  width: max-content;
+  min-width: 100%;
+  max-width: none;
+  border-collapse: separate;
+  border-spacing: 0;
+  transform-origin: top left;
+}
+
+.forum-markup .forum-punishment-table :is(th, td) {
+  border: 0;
+  border-right: 1px solid var(--line);
+  border-bottom: 1px solid var(--line);
+  padding: 9px;
+  background: var(--surface);
+  color: var(--text-muted);
+  font: inherit;
+  white-space: nowrap;
+}
+
+.forum-markup .forum-punishment-table th {
+  background: var(--surface-soft);
+  color: var(--text-faint);
+  font-weight: 780;
 }
 
 .forum-markup .forum-punishment-record {
@@ -10,7 +32,7 @@
 
 .forum-markup .forum-punishment-scroll {
   max-width: 100%;
-  overflow-x: auto;
+  overflow: hidden;
 }
 
 .forum-markup .forum-punishment-title {
