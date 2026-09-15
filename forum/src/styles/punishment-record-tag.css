@@ -16,7 +16,12 @@
   background: var(--surface);
   color: var(--text-muted);
   font: inherit;
+  text-align: left;
   white-space: nowrap;
+}
+
+.forum-markup .forum-punishment-table tbody tr:hover > td {
+  background: var(--brand-faint, color-mix(in srgb, var(--brand) 8%, var(--surface)));
 }
 
 .forum-markup .forum-punishment-table th {
