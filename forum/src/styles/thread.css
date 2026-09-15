@@ -433,7 +433,7 @@
   }
 
   @media (min-width: 641px) {
-    .thread-page-shell-with-assistive-bar .thread-floor {
+    .thread-page-shell-with-assistive-bar .thread-floor-list .thread-floor {
       padding-right: 40px;
     }
 
@@ -442,7 +442,7 @@
       top: auto;
     }
 
-    .thread-page-shell-avatar-sticky.thread-page-shell-without-assistive-bar .thread-floor {
+    .thread-page-shell-avatar-sticky.thread-page-shell-without-assistive-bar .thread-floor-list .thread-floor {
       padding-right: 40px;
     }
 
@@ -451,14 +451,14 @@
       width: calc(100% - var(--thread-inline-avatar-main-reduction));
     }
 
-    .thread-page-shell-compact-author.thread-page-shell-avatar-static.thread-page-shell-without-assistive-bar .thread-floor {
+    .thread-page-shell-compact-author.thread-page-shell-avatar-static.thread-page-shell-without-assistive-bar .thread-floor-list .thread-floor {
       grid-template-columns: minmax(0, 1fr);
       gap: 0;
       padding-right: 30px;
       padding-left: 36px;
     }
 
-    .thread-page-shell-compact-author.thread-page-shell-avatar-static.thread-page-shell-without-assistive-bar .thread-floor-header {
+    .thread-page-shell-compact-author.thread-page-shell-avatar-static.thread-page-shell-without-assistive-bar .thread-floor-list .thread-floor-header {
       grid-template-columns: 44px auto minmax(0, 1fr) auto;
     }
 
