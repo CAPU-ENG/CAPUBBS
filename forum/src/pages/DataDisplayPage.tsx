@@ -7,7 +7,7 @@ import {
   Users,
   type LucideIcon,
 } from 'lucide-react';
-import { useEffect, useState, type ReactNode } from 'react';
+import { useEffect, useState, useSyncExternalStore, type ReactNode } from 'react';
 import {
   fetchDataDisplayPanel,
   type CheckinRankingRecord,
@@ -22,6 +22,7 @@ import { AppBackground } from '../components/layout/AppBackground';
 import { LoadingState } from '../components/layout/LoadingState';
 import { TopBar } from '../components/layout/TopBar';
 import { useDocumentTitle } from '../hooks/useDocumentTitle';
+import { FORUM_LOCATION_CHANGE_EVENT, replaceForumLocation } from '../utils/authRoutes';
 import { getForumNavigationHref } from '../utils/forumNavigation';
 
 type LoadState = {
@@ -45,7 +46,7 @@ const PANEL_ITEMS: Array<{
 ] satisfies Array<{ icon: LucideIcon; id: DisplayPanel; label: string }>;
 
 export function DataDisplayPage() {
-  const [activePanel, setActivePanel] = useState<DisplayPanel>(readPanelFromLocation);
+  const activePanel = useSyncExternalStore<DisplayPanel>(subscribeLocation, readPanelFromLocation, () => 'online');
   const [reloadToken, setReloadToken] = useState(0);
   const [state, setState] = useState<LoadState>({ data: null, error: '', status: 'loading' });
   useDocumentTitle(PANEL_ITEMS.find((panel) => panel.id === activePanel)?.label ?? '数据展示');
@@ -60,8 +61,11 @@ export function DataDisplayPage() {
     }
 
     void fetchDataDisplayPanel(activePanel, controller.signal).then(
-      (data) => setState({ data, error: '', status: 'ready' }),
+      (data) => {
+        if (!controller.signal.aborted) setState({ data, error: '', status: 'ready' });
+      },
       (error: unknown) => {
+        if (controller.signal.aborted) return;
         if (error instanceof DOMException && error.name === 'AbortError') return;
         setState({
           data: null,
@@ -76,10 +80,9 @@ export function DataDisplayPage() {
 
   function selectPanel(panel: DisplayPanel) {
     if (panel === activePanel) return;
-    setActivePanel(panel);
     const url = new URL(window.location.href);
     url.searchParams.set('panel', panel);
-    window.history.replaceState(null, '', `${url.pathname}${url.search}`);
+    replaceForumLocation(`${url.pathname}${url.search}${url.hash}`);
   }
 
   return (
@@ -232,4 +235,13 @@ function readPanelFromLocation(): DisplayPanel {
   const panel = new URLSearchParams(window.location.search).get('panel');
   if (panel === 'checkins' || panel === 'checkin-ranking' || panel === 'punishments' || panel === 'tags') return panel;
   return 'online';
+}
+
+function subscribeLocation(listener: () => void) {
+  window.addEventListener('popstate', listener);
+  window.addEventListener(FORUM_LOCATION_CHANGE_EVENT, listener);
+  return () => {
+    window.removeEventListener('popstate', listener);
+    window.removeEventListener(FORUM_LOCATION_CHANGE_EVENT, listener);
+  };
 }

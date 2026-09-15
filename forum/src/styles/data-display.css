@@ -30,7 +30,7 @@
     transition: border-color 150ms ease, background 150ms ease, color 150ms ease;
   }
 
-  .data-display-tabs button:hover {
+  .data-display-tabs button:hover:not(.data-display-tab-active) {
     border-color: var(--line-strong);
     background: var(--surface-soft);
     color: var(--text-strong);
