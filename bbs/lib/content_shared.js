@@ -484,13 +484,18 @@ function validateMultiChoice($form) {
 
     function date(value) {
         value = text(value);
-        return !value || value === '0000-00-00' ? '—' : value.replace(/-/g, '.');
+        if (!value || value === '0000-00-00') return '';
+        return value.replace(/^(\d{4})-0?(\d{1,2})-0?(\d{1,2})$/, '$1.$2.$3');
     }
 
     function renderTable(container, year, records) {
         var table = document.createElement('table');
-        table.className = 'capubbs-punishment-table';
+        table.className = 'contenttable capubbs-punishment-table';
         table.setAttribute('aria-label', (year - 1) + '-' + year + ' 学年罚跑记录');
+        var caption = table.createCaption();
+        var title = document.createElement('b');
+        title.textContent = '本年度罚跑名单记录：';
+        caption.appendChild(title);
         var header = table.createTHead().insertRow();
         ['姓名', 'ID', '原因', '长度', '职务加罚', '开始时间', '结束时间', '完成情况'].forEach(function (label) {
             var cell = document.createElement('th');
@@ -500,12 +505,12 @@ function validateMultiChoice($form) {
         });
         var body = table.createTBody();
         records.slice().sort(function (left, right) {
-            return text(right.start_date).localeCompare(text(left.start_date)) || Number(right.id) - Number(left.id);
+            return text(left.start_date).localeCompare(text(right.start_date)) || Number(left.id) - Number(right.id);
         }).forEach(function (record) {
             var row = body.insertRow();
             var distance = text(record.distance);
             var values = [text(record.name) || '—', text(record.username) || '—', text(record.reason) || '—',
-                !distance ? '—' : /公里|km/i.test(distance) ? distance : distance + ' km',
+                distance,
                 text(record.addition) === '1' ? '是' : '否', date(record.start_date), date(record.end_date),
                 text(record.is_end) === '1' ? '已完成' : '进行中'];
             values.forEach(function (value) { row.insertCell().textContent = value; });

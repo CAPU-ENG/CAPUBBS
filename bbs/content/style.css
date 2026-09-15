@@ -730,6 +730,11 @@ iframe.sigframe {
     border-collapse: collapse;
     font-size: inherit;
     color: inherit;
+    -webkit-text-size-adjust: 100%;
+}
+.textblock .capubbs-punishment-table caption {
+    font-family: SimSun, '宋体', serif;
+    -webkit-text-size-adjust: 100%;
 }
 .textblock .capubbs-punishment-table th,
 .textblock .capubbs-punishment-table td {
