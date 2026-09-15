@@ -24,6 +24,14 @@
   background: var(--brand-faint, color-mix(in srgb, var(--brand) 8%, var(--surface)));
 }
 
+.forum-markup .forum-punishment-table tr > :last-child {
+  border-right: 0;
+}
+
+.forum-markup .forum-punishment-table tbody tr:last-child > td {
+  border-bottom: 0;
+}
+
 .forum-markup .forum-punishment-table th {
   background: var(--surface-soft);
   color: var(--text-faint);
@@ -31,8 +39,10 @@
 }
 
 .forum-markup .forum-punishment-record {
+  box-sizing: border-box;
   min-width: 0;
   max-width: 100%;
+  border: 1px solid var(--line);
 }
 
 .forum-markup .forum-punishment-scroll {
