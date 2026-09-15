@@ -30,6 +30,7 @@ function serve_new_forum_file($requestPath, $urlPrefix, $fileRoot) {
         'js' => 'application/javascript; charset=UTF-8',
         'png' => 'image/png',
         'svg' => 'image/svg+xml',
+        'webmanifest' => 'application/manifest+json; charset=UTF-8',
         'webp' => 'image/webp',
         'woff2' => 'font/woff2'
     );

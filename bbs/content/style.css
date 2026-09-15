@@ -719,3 +719,37 @@ iframe.sigframe {
     display: block;
     background: transparent;
 }
+
+.textblock .capubbs-punishment-record {
+    max-width: 100%;
+    overflow-x: auto;
+}
+.textblock .capubbs-punishment-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: auto;
+    font-size: inherit;
+    color: inherit;
+    -webkit-text-size-adjust: 100%;
+}
+.textblock .capubbs-punishment-table caption {
+    font-family: SimSun, '宋体', serif;
+    -webkit-text-size-adjust: 100%;
+}
+.textblock .capubbs-punishment-table th,
+.textblock .capubbs-punishment-table td {
+    padding: 5pt;
+    border: 1pt outset windowtext;
+    text-align: center;
+    font-size: 10.5pt;
+}
+.textblock .capubbs-punishment-table th {
+    padding: 10pt 5pt;
+    background-color: #abc9b6;
+}
+.textblock .capubbs-punishment-table tr:nth-child(2n + 1) td {
+    background-color: #e6e6e6;
+}
+.textblock .capubbs-punishment-table tr:nth-child(2n) td {
+    background-color: #d5fbe3;
+}
