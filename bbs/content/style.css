@@ -719,3 +719,26 @@ iframe.sigframe {
     display: block;
     background: transparent;
 }
+
+.textblock .capubbs-punishment-record {
+    max-width: 100%;
+    overflow-x: auto;
+    margin: 10px 0;
+}
+.textblock .capubbs-punishment-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: inherit;
+    color: inherit;
+}
+.textblock .capubbs-punishment-table th,
+.textblock .capubbs-punishment-table td {
+    padding: 8px 10px;
+    border: 1px solid #ccc;
+    text-align: left;
+    vertical-align: top;
+}
+.textblock .capubbs-punishment-table th {
+    white-space: nowrap;
+    background: rgba(0, 0, 0, 0.04);
+}

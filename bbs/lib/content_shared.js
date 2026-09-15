@@ -473,3 +473,91 @@ function validateMultiChoice($form) {
     });
     return valid;
 }
+
+/* ---- academic-year punishment records embedded in post HTML ---- */
+(function ($) {
+    var requests = {};
+
+    function text(value) {
+        return typeof value === 'string' || typeof value === 'number' ? String(value).trim() : '';
+    }
+
+    function date(value) {
+        value = text(value);
+        return !value || value === '0000-00-00' ? '—' : value.replace(/-/g, '.');
+    }
+
+    function renderTable(container, year, records) {
+        var table = document.createElement('table');
+        table.className = 'capubbs-punishment-table';
+        table.setAttribute('aria-label', (year - 1) + '-' + year + ' 学年罚跑记录');
+        var header = table.createTHead().insertRow();
+        ['姓名', 'ID', '原因', '长度', '职务加罚', '开始时间', '结束时间', '完成情况'].forEach(function (label) {
+            var cell = document.createElement('th');
+            cell.scope = 'col';
+            cell.textContent = label;
+            header.appendChild(cell);
+        });
+        var body = table.createTBody();
+        records.slice().sort(function (left, right) {
+            return text(right.start_date).localeCompare(text(left.start_date)) || Number(right.id) - Number(left.id);
+        }).forEach(function (record) {
+            var row = body.insertRow();
+            var distance = text(record.distance);
+            var values = [text(record.name) || '—', text(record.username) || '—', text(record.reason) || '—',
+                !distance ? '—' : /公里|km/i.test(distance) ? distance : distance + ' km',
+                text(record.addition) === '1' ? '是' : '否', date(record.start_date), date(record.end_date),
+                text(record.is_end) === '1' ? '已完成' : '进行中'];
+            values.forEach(function (value) { row.insertCell().textContent = value; });
+        });
+        if (!records.length) {
+            var empty = body.insertRow().insertCell();
+            empty.colSpan = 8;
+            empty.textContent = '暂无罚跑记录';
+        }
+        container.textContent = '';
+        container.appendChild(table);
+        container.removeAttribute('aria-busy');
+    }
+
+    $(function () {
+        $('.textblock punishment_record').filter(function () {
+            return !$(this).closest('pre, code, textarea').length;
+        }).each(function () {
+            var tag = this;
+            var value = text(tag.getAttribute('year'));
+            var year = /^\d{4}$/.test(value) && Number(value) > 1 ? Number(value) : null;
+            var container = document.createElement('div');
+            container.className = 'capubbs-punishment-record';
+            tag.parentNode.insertBefore(container, tag);
+            // Move existing nodes: shorthand tags may contain the rest of the post.
+            // Do not reparse innerHTML or re-execute the post's scripts.
+            while (tag.firstChild) tag.parentNode.insertBefore(tag.firstChild, tag);
+            tag.parentNode.removeChild(tag);
+            if (year === null) {
+                container.textContent = '罚跑记录学年无效';
+                return;
+            }
+            container.setAttribute('aria-busy', 'true');
+            if (!requests[year]) {
+                requests[year] = $.ajax({
+                    url: '/api/bbs/punishment/get/',
+                    data: { year: year },
+                    dataType: 'json'
+                });
+            }
+            function fail() {
+                container.textContent = '罚跑记录加载失败';
+                container.removeAttribute('aria-busy');
+            }
+            requests[year].done(function (payload) {
+                if (!payload || !Array.isArray(payload.result)
+                    || !payload.result.every(function (row) { return row && typeof row === 'object' && !Array.isArray(row); })) {
+                    fail();
+                    return;
+                }
+                renderTable(container, year, payload.result);
+            }).fail(fail);
+        });
+    });
+}(jQuery));
