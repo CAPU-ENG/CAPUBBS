@@ -103,7 +103,7 @@ export function FeedSection({ autoLoadMore, compactMode, error, hasMore, items, 
   }, [compactMode, items]);
 
   useEffect(() => {
-    if (!autoLoadMore || !hasMore || loadingMore || loadMoreFailed) return;
+    if (!autoLoadMore || !hasMore || status !== 'ready' || items.length === 0) return;
 
     let triggered = false;
     let frame = 0;
@@ -126,15 +126,12 @@ export function FeedSection({ autoLoadMore, compactMode, error, hasMore, items, 
     }
 
     window.addEventListener('scroll', schedulePageBottomCheck, { passive: true });
-    window.addEventListener('resize', schedulePageBottomCheck);
-    schedulePageBottomCheck();
 
     return () => {
       window.removeEventListener('scroll', schedulePageBottomCheck);
-      window.removeEventListener('resize', schedulePageBottomCheck);
       if (frame) window.cancelAnimationFrame(frame);
     };
-  }, [autoLoadMore, hasMore, items.length, loadMoreFailed, loadingMore, onLoadMore]);
+  }, [autoLoadMore, hasMore, items.length, onLoadMore, status]);
 
   if (status === 'loading' && items.length === 0) {
     return (
