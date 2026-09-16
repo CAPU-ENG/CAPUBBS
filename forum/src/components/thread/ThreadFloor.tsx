@@ -398,7 +398,7 @@ export function ThreadFloor({
   const [nestedReplyError, setNestedReplyError] = useState('');
   const [nestedReplyPending, setNestedReplyPending] = useState(false);
   const [nestedReplyTarget, setNestedReplyTarget] = useState<string | null | undefined>(undefined);
-  const nestedReplyInputState = getNestedReplyInputState(nestedReplyContent, nestedReplyTarget);
+  const nestedReplyInputState = getNestedReplyInputState(nestedReplyContent);
   const nestedReplyCountId = `nested-reply-count-${floor.id}`;
   const [preview, setPreview] = useState<PreviewImageState | null>(null);
   const [authorCardOpen, setAuthorCardOpen] = useState(false);

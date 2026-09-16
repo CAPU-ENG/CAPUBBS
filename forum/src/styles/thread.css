@@ -1748,13 +1748,14 @@
 
   .nested-reply-character-count {
     position: absolute;
-    right: 18px;
+    right: 8px;
     bottom: 8px;
     background: var(--surface);
     color: var(--text-faint);
     font-size: var(--ui-font-size-xs);
     font-variant-numeric: tabular-nums;
     line-height: 1;
+    text-align: right;
     pointer-events: none;
   }
 
