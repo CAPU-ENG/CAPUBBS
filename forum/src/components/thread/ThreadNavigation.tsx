@@ -10,16 +10,18 @@ type PaginationProps = {
   threadId: number;
   authorOnly?: boolean;
   compact?: boolean;
+  randomMode?: boolean;
   showPageJump?: boolean;
 };
 
-function pageHref(boardId: number, threadId: number, page: number, authorOnly: boolean) {
+function pageHref(boardId: number, threadId: number, page: number, authorOnly: boolean, randomMode: boolean) {
   const params = new URLSearchParams({
     bid: String(boardId),
     p: String(page),
     tid: String(threadId),
   });
   if (authorOnly) params.set('see_lz', '1');
+  if (randomMode) params.set('random', '1');
   return toForumHref(`/?${params.toString()}`);
 }
 
@@ -29,6 +31,7 @@ export function ThreadPagination({
   compact = false,
   currentPage,
   pageCount,
+  randomMode = false,
   showPageJump = false,
   threadId,
 }: PaginationProps) {
@@ -39,7 +42,7 @@ export function ThreadPagination({
       compact={compact}
       currentPage={currentPage}
       pageCount={pageCount}
-      pageHref={(page) => pageHref(boardId, threadId, page, authorOnly)}
+      pageHref={(page) => pageHref(boardId, threadId, page, authorOnly, randomMode)}
       showPageJump={showPageJump}
     />
   );

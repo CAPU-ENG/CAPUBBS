@@ -6,11 +6,13 @@ import { LoadingSpinner as LoaderCircle } from './LoadingSpinner';
 
 type RandomThreadButtonProps = {
   className?: string;
+  iconOnly?: boolean;
   onNavigate?: () => void;
 };
 
 export function RandomThreadButton({
   className = 'supplement-link',
+  iconOnly = false,
   onNavigate,
 }: RandomThreadButtonProps) {
   const [loading, setLoading] = useState(false);
@@ -22,7 +24,7 @@ export function RandomThreadButton({
     try {
       const { bid, tid } = await fetchRandomThread();
       onNavigate?.();
-      window.location.assign(toForumHref(`/?bid=${bid}&tid=${tid}&p=1`));
+      window.location.assign(toForumHref(`/?bid=${bid}&tid=${tid}&p=1&random=1`));
     } catch (error) {
       window.alert(error instanceof Error ? error.message : '随机帖子加载失败，请稍后重试。');
     } finally {
@@ -33,13 +35,17 @@ export function RandomThreadButton({
   return (
     <button
       aria-busy={loading}
+      aria-label="试试手气"
       className={className}
       disabled={loading}
+      title={iconOnly ? '试试手气' : undefined}
       type="button"
       onClick={() => void navigateToRandomThread()}
     >
-      {loading ? <LoaderCircle className="animate-spin" size={15} /> : <Dices size={15} />}
-      试试手气
+      {loading
+        ? <LoaderCircle className="animate-spin" size={iconOnly ? 20 : 15} />
+        : <Dices aria-hidden="true" size={iconOnly ? 20 : 15} />}
+      {!iconOnly && '试试手气'}
     </button>
   );
 }

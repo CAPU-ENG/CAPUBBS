@@ -5,6 +5,7 @@ import { ThreadFloor } from '../components/thread/ThreadFloor';
 import { FloorNodes, MobileFloorNode, ThreadPagination } from '../components/thread/ThreadNavigation';
 import { AppBackground } from '../components/layout/AppBackground';
 import { LoadingState } from '../components/layout/LoadingState';
+import { RandomThreadButton } from '../components/layout/RandomThreadButton';
 import { TopBar } from '../components/layout/TopBar';
 import { setThreadBookmarked } from '../api/favorite';
 import { deleteNestedReply, deleteThreadFloor, postNestedReply } from '../api/thread';
@@ -154,6 +155,10 @@ export function ThreadPage() {
   const { status: authStatus, viewer } = useAuth();
   const { theme } = useTheme();
   const request = getThreadRequest();
+  const randomMode = new URLSearchParams(window.location.search).get('random') === '1';
+  const randomThreadButton = randomMode
+    ? <RandomThreadButton className="thread-random-button" iconOnly />
+    : null;
   const threadLocationHref = `${window.location.pathname}${window.location.search}${window.location.hash}`;
   const { data, error, retry, status } = useThreadData({
     ...request,
@@ -371,6 +376,7 @@ export function ThreadPage() {
       tid: String(data.tid),
     });
     if (!data.authorOnly) params.set('see_lz', '1');
+    if (randomMode) params.set('random', '1');
     window.location.href = toForumHref(`/?${params.toString()}`);
   }
 
@@ -448,6 +454,7 @@ export function ThreadPage() {
             </section>
           )}
         </main>
+        {randomThreadButton}
       </div>
     );
   }
@@ -550,6 +557,7 @@ export function ThreadPage() {
             boardId={data.bid}
             currentPage={data.currentPage}
             pageCount={data.pageCount}
+            randomMode={randomMode}
             showPageJump
             threadId={data.tid}
           />
@@ -632,6 +640,7 @@ export function ThreadPage() {
             boardId={data.bid}
             currentPage={data.currentPage}
             pageCount={data.pageCount}
+            randomMode={randomMode}
             showPageJump
             threadId={data.tid}
           />
@@ -698,6 +707,7 @@ export function ThreadPage() {
           <MobileFloorNode activeFloor={activeFloor} floors={nodeFloors} />
         </div>
       )}
+      {randomThreadButton}
       {signatureSaveError && (
         <div className="copy-floor-toast" role="alert" onClick={() => setSignatureSaveError(false)}>
           签名档设置未能保存，请检查浏览器本地存储权限

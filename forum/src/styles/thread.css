@@ -2527,9 +2527,51 @@
     display: none;
   }
 
+  .thread-random-button {
+    position: fixed;
+    z-index: 32;
+    right: calc(24px + env(safe-area-inset-right, 0px));
+    bottom: calc(24px + env(safe-area-inset-bottom, 0px));
+    display: inline-flex;
+    width: 44px;
+    height: 44px;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid var(--line-strong);
+    border-radius: var(--control-radius);
+    background: var(--surface-raised);
+    box-shadow: var(--shadow-float);
+    color: var(--brand-strong);
+    transition: border-color 140ms ease, background 140ms ease;
+  }
+
+  .thread-random-button:hover {
+    border-color: color-mix(in srgb, var(--brand) 45%, var(--line));
+    background: var(--brand-soft);
+  }
+
+  .thread-random-button:focus-visible {
+    outline: 2px solid var(--brand);
+    outline-offset: 2px;
+  }
+
+  .thread-random-button:disabled {
+    cursor: wait;
+    opacity: 0.65;
+  }
+
 }
 @layer utilities {
   @media (max-width: 1023px) {
+
+    .thread-random-button {
+      right: calc(12px + env(safe-area-inset-right, 0px));
+      bottom: calc(14px + env(safe-area-inset-bottom, 0px));
+    }
+
+    .mobile-thread-controls ~ .thread-random-button {
+      bottom: calc(60px + env(safe-area-inset-bottom, 0px));
+    }
 
     .thread-page-shell {
       max-width: 820px;
