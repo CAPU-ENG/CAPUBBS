@@ -2754,27 +2754,28 @@
 
     .thread-author-profile {
       position: absolute;
-      top: 14px;
+      top: 15px;
       left: 14px;
-      width: 34px;
-      height: 34px;
+      width: 44px;
+      height: 44px;
+      padding: 0;
     }
 
     .thread-author-profile-avatar {
-      width: 34px;
-      height: 34px;
+      width: 44px;
+      height: 44px;
     }
 
     .thread-avatar-rail {
       position: absolute;
-      top: 14px;
+      top: 15px;
       left: 14px;
-      height: 36px;
+      height: 44px;
     }
 
     .thread-avatar-button {
-      width: 34px;
-      height: 34px;
+      width: 44px;
+      height: 44px;
     }
 
     .author-hover-card {
@@ -2797,24 +2798,32 @@
 
     .thread-floor-header {
       display: grid;
-      min-height: 44px;
-      grid-template-columns: minmax(0, 1fr) auto;
-      gap: 4px 7px;
+      min-height: 55px;
+      grid-template-columns: 44px minmax(0, 1fr) auto;
+      gap: 4px 10px;
       padding-bottom: 10px;
-      padding-left: 44px;
+    }
+
+    .thread-floor-header > .thread-avatar-rail {
+      position: relative;
+      top: auto;
+      left: auto;
+      grid-row: 1 / span 2;
+      grid-column: 1;
+      align-self: center;
     }
 
     .thread-floor-author {
       grid-row: 1;
-      grid-column: 1;
+      grid-column: 2;
       min-height: 0;
       flex-wrap: nowrap;
     }
 
     .thread-floor-time {
       grid-row: 2;
-      grid-column: 1 / -1;
-      justify-content: flex-end;
+      grid-column: 2 / -1;
+      justify-content: flex-start;
       gap: 4px;
       font-size: 0.6875rem;
       line-height: 1.35;
@@ -2823,7 +2832,7 @@
     .thread-floor-time:has(> time:nth-of-type(2)) {
       flex-wrap: wrap;
       gap: 2px 6px;
-      text-align: right;
+      text-align: left;
       white-space: normal;
     }
 
@@ -2840,7 +2849,7 @@
       min-width: 0;
       height: 22px;
       grid-row: 1;
-      grid-column: 2;
+      grid-column: 3;
       justify-self: end;
       justify-content: flex-end;
       padding: 0;

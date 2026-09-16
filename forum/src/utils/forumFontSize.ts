@@ -4,14 +4,20 @@ export const FORUM_CONTENT_FONT_SIZE_OPTIONS = [13, 14, 15, 16, 17] as const;
 export type ForumContentFontSize = (typeof FORUM_CONTENT_FONT_SIZE_OPTIONS)[number];
 export const FORUM_DEFAULT_FONT_SIZE_PIXELS: ForumContentFontSize = 15;
 export const FORUM_DEFAULT_FONT_SIZE = `${FORUM_DEFAULT_FONT_SIZE_PIXELS}px`;
+const MOBILE_DEFAULT_FONT_SIZE_PIXELS: ForumContentFontSize = 14;
+const MOBILE_VIEWPORT_QUERY = '(max-width: 640px)';
 
 export function readForumContentFontSize(): ForumContentFontSize {
   if (typeof window === 'undefined') return FORUM_DEFAULT_FONT_SIZE_PIXELS;
 
+  const defaultFontSize = window.matchMedia?.(MOBILE_VIEWPORT_QUERY).matches
+    ? MOBILE_DEFAULT_FONT_SIZE_PIXELS
+    : FORUM_DEFAULT_FONT_SIZE_PIXELS;
+
   try {
-    return normalizeForumContentFontSize(window.localStorage.getItem(FORUM_CONTENT_FONT_SIZE_STORAGE_KEY));
+    return normalizeForumContentFontSize(window.localStorage.getItem(FORUM_CONTENT_FONT_SIZE_STORAGE_KEY), defaultFontSize);
   } catch {
-    return FORUM_DEFAULT_FONT_SIZE_PIXELS;
+    return defaultFontSize;
   }
 }
 
@@ -37,22 +43,28 @@ export function saveForumContentFontSize(fontSize: number) {
 export function subscribeForumContentFontSize(listener: () => void) {
   if (typeof window === 'undefined') return () => {};
 
+  const mobileViewport = window.matchMedia?.(MOBILE_VIEWPORT_QUERY);
   const handleStorage = (event: StorageEvent) => {
-    if (event.key === FORUM_CONTENT_FONT_SIZE_STORAGE_KEY) listener();
+    if (event.key === null || event.key === FORUM_CONTENT_FONT_SIZE_STORAGE_KEY) listener();
   };
 
+  mobileViewport?.addEventListener('change', listener);
   window.addEventListener(FORUM_CONTENT_FONT_SIZE_CHANGE_EVENT, listener);
   window.addEventListener('storage', handleStorage);
 
   return () => {
+    mobileViewport?.removeEventListener('change', listener);
     window.removeEventListener(FORUM_CONTENT_FONT_SIZE_CHANGE_EVENT, listener);
     window.removeEventListener('storage', handleStorage);
   };
 }
 
-export function normalizeForumContentFontSize(value: string | null): ForumContentFontSize {
+export function normalizeForumContentFontSize(
+  value: string | null,
+  defaultFontSize: ForumContentFontSize = FORUM_DEFAULT_FONT_SIZE_PIXELS,
+): ForumContentFontSize {
   const fontSize = Number(value);
-  return isForumContentFontSize(fontSize) ? fontSize : FORUM_DEFAULT_FONT_SIZE_PIXELS;
+  return isForumContentFontSize(fontSize) ? fontSize : defaultFontSize;
 }
 
 function isForumContentFontSize(value: number): value is ForumContentFontSize {
