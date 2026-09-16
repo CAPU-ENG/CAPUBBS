@@ -344,6 +344,28 @@ function jiekoufunc_validate_token_and_sign($con, $token, $ip) {
     return $username;
 }
 
+function jiekoufunc_presence($con, $token, $params) {
+    $user = jiekoufunc_token2user($con, $token);
+    if (!$user) return jiekoufunc_report('-2', '请先登录');
+
+    $onlinetype = isset($params['onlinetype']) ? $params['onlinetype'] : '';
+    if (!in_array($onlinetype, array('desktop', 'mobile'), true)) {
+        return jiekoufunc_report('1', '在线方式无效');
+    }
+    $browser = isset($params['browser']) ? $params['browser'] : '';
+    if (!is_string($browser)) return jiekoufunc_report('1', '浏览器信息无效');
+    $logininfo = mb_substr($browser, 0, 500, 'UTF-8');
+
+    $statement = mysqli_prepare($con, 'UPDATE userinfo SET onlinetype=?, logininfo=? WHERE username=? LIMIT 1');
+    if (!$statement) return jiekoufunc_report('1', '在线状态更新失败');
+    mysqli_stmt_bind_param($statement, 'sss', $onlinetype, $logininfo, $user['username']);
+    $updated = mysqli_stmt_execute($statement);
+    mysqli_stmt_close($statement);
+    if (!$updated) return jiekoufunc_report('1', '在线状态更新失败');
+
+    return jiekoufunc_report('0', '');
+}
+
 function jiekoufunc_checkDelayTime($time, $star, $rights, $lastpost, $ip) {
     $inschool = true;
     $delta = 180;

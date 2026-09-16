@@ -78,6 +78,7 @@ function _dispatch_build_routes() {
         'medal_preferences_update' => array('handler' => 'jiekoufunc_medal_preferences_update', 'check_login' => true, 'require_rights' => 0),
         'changepsd'        => array('handler' => 'jiekoufunc_changepsd',        'check_login' => true, 'require_rights' => 0),
         'currentUserInfo'  => array('handler' => 'jiekoufunc_currentUserInfo',  'check_login' => true, 'require_rights' => 0),
+        'presence'         => array('handler' => 'jiekoufunc_presence',         'check_login' => true, 'require_rights' => 0),
         'editpreview'      => array('handler' => 'jiekoufunc_editpreview',      'check_login' => true, 'require_rights' => 0),
         'msg'              => array('handler' => 'jiekoufunc_msg',              'check_login' => true, 'require_rights' => 0),
         'attach'           => array('handler' => 'jiekoufunc_attach',           'check_login' => true, 'require_rights' => 0),
@@ -383,6 +384,8 @@ function jiekoufunc_dispatch($con, $params) {
                 return jiekoufunc_admin_reset_password($con, $token, $params);
             case 'jiekoufunc_currentUserInfo':
                 return jiekoufunc_currentUserInfo($con, $token, $params);
+            case 'jiekoufunc_presence':
+                return jiekoufunc_presence($con, $token, $params);
             case 'jiekoufunc_searchByKeyword':
                 return jiekoufunc_searchByKeyword($con, $keyword, $token, $type, $bid, $params);
             case 'jiekoufunc_edituser':
