@@ -185,7 +185,7 @@ export function PunishmentRecords({
         </div>
       )}
 
-      <div className="data-table-scroll">
+      <div aria-label="罚跑记录表格" className="data-table-scroll punishment-table-scroll" role="region" tabIndex={0}>
         <table className="data-table data-table-punishments">
           <thead>
             <tr>
@@ -200,7 +200,7 @@ export function PunishmentRecords({
                 <tr key={record.id}>
                   <td>{record.name || '—'}</td>
                   <td>{record.username ? <a href={getForumNavigationHref(record.href, window.location.href)}>{record.username}</a> : '—'}</td>
-                  <td>{record.reason || '—'}</td>
+                  <td><span className="punishment-reason">{record.reason || '—'}</span></td>
                   <td>{formatDistance(record.distance)}</td>
                   <td>{record.addition ? '是' : '否'}</td>
                   <td>{formatDate(record.startDate)}</td>

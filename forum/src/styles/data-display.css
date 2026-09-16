@@ -118,6 +118,11 @@
     overflow-x: auto;
   }
 
+  .punishment-table-scroll:focus-visible {
+    outline: 2px solid var(--brand);
+    outline-offset: -2px;
+  }
+
   .data-table {
     width: 100%;
     border-collapse: collapse;
@@ -1141,8 +1146,7 @@
   }
 
   .tag-summary-date-filter-title,
-  .tag-summary-date-filter-bar label > span,
-  .tag-summary-date-filter-separator {
+  .tag-summary-date-filter-bar label > span {
     color: var(--text-faint);
     font-size: var(--ui-font-size-sm);
     font-weight: 700;
@@ -1377,16 +1381,46 @@
       overflow-wrap: anywhere;
     }
 
+    .punishment-table-scroll {
+      overscroll-behavior-inline: contain;
+    }
+
     .data-table-punishments {
+      width: max-content;
+      min-width: 100%;
+      border-collapse: separate;
+      border-spacing: 0;
       font-size: var(--ui-font-size-xs);
     }
 
-    .data-table-punishments th {
-      white-space: normal;
+    .data-table-punishments :is(th, td) {
+      overflow-wrap: normal;
+      white-space: nowrap;
     }
 
-    .data-table-punishments :is(th, td):nth-child(3) {
-      width: 24%;
+    .data-table-punishments td:nth-child(3) {
+      max-width: none;
+    }
+
+    .data-table-punishments :is(th, td):first-child:not([colspan]) {
+      position: sticky;
+      left: 0;
+      z-index: 1;
+      background: var(--surface);
+      box-shadow: 1px 0 0 var(--line);
+    }
+
+    .data-table-punishments thead th:first-child:not([colspan]),
+    .data-table-punishments tbody tr:hover td:first-child {
+      background: var(--surface-soft);
+    }
+
+    .data-table-punishments .punishment-reason {
+      display: block;
+      width: max-content;
+      max-width: min(36ch, 60vw);
+      overflow-wrap: anywhere;
+      white-space: normal;
     }
 
     .data-rank {
@@ -1472,17 +1506,40 @@
     }
 
     .tag-summary-date-filter-bar {
-      align-items: stretch;
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) auto;
+      align-items: center;
+      gap: 6px;
       padding-inline: 14px;
     }
 
+    .tag-summary-date-filter-title {
+      display: none;
+    }
+
     .tag-summary-date-filter-bar label {
-      flex: 1 1 0;
+      min-width: 0;
+      gap: 4px;
+    }
+
+    .tag-summary-date-filter-bar label > span {
+      flex-shrink: 0;
     }
 
     .tag-summary-date-filter-bar input {
       min-width: 0;
       width: 100%;
+      height: 28px;
+      padding-inline: 4px;
+      font-size: var(--ui-font-size-xs);
+    }
+
+    .tag-summary-date-filter-clear {
+      width: 24px;
+    }
+
+    .tag-summary-date-filter-error {
+      grid-column: 1 / -1;
     }
 
     .tag-summary-sort-bar button {

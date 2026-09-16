@@ -224,7 +224,6 @@ export function TagSummaryPanel() {
           <div className="tag-summary-date-filter-bar">
             <span className="tag-summary-date-filter-title">获取时间</span>
             <label><span>从</span><input aria-label="获取时间开始日期" max={endDate || undefined} onChange={(event) => setStartDate(event.target.value)} type="date" value={startDate} /></label>
-            <span className="tag-summary-date-filter-separator">至</span>
             <label><span>到</span><input aria-label="获取时间结束日期" min={startDate || undefined} onChange={(event) => setEndDate(event.target.value)} type="date" value={endDate} /></label>
             {(startDate || endDate) && <button aria-label="清除获取时间筛选" className="tag-summary-date-filter-clear" onClick={() => { setStartDate(''); setEndDate(''); }} title="清除日期筛选" type="button"><X size={14} /></button>}
             {dateRangeError && <span aria-live="polite" className="tag-summary-date-filter-error">{dateRangeError}</span>}
