@@ -453,8 +453,8 @@ export function ThreadPage() {
               <button onClick={retry} type="button"><RotateCw size={15} />重新加载</button>
             </section>
           )}
+          {randomThreadButton}
         </main>
-        {randomThreadButton}
       </div>
     );
   }
@@ -676,6 +676,7 @@ export function ThreadPage() {
             )}
           </section>
         ))}
+        {randomThreadButton}
       </main>
 
       {assistiveBarEnabled && nodeFloors.length > 0 && (
@@ -707,7 +708,6 @@ export function ThreadPage() {
           <MobileFloorNode activeFloor={activeFloor} floors={nodeFloors} />
         </div>
       )}
-      {randomThreadButton}
       {signatureSaveError && (
         <div className="copy-floor-toast" role="alert" onClick={() => setSignatureSaveError(false)}>
           签名档设置未能保存，请检查浏览器本地存储权限
