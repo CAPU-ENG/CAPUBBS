@@ -1287,14 +1287,17 @@
 
   .thread-floor-index {
     display: inline-flex;
-    min-width: 34px;
-    height: 28px;
+    min-width: 0;
+    height: 22px;
     align-items: center;
-    justify-content: center;
+    justify-self: end;
+    justify-content: flex-end;
     border-radius: var(--control-radius);
+    padding: 0;
     color: var(--brand-strong);
     font-size: var(--ui-font-size-md);
     font-weight: 760;
+    text-align: right;
     transition: background 140ms ease, color 140ms ease;
   }
 
@@ -2947,14 +2950,8 @@
     }
 
     .thread-floor-index {
-      min-width: 0;
-      height: 22px;
       grid-row: 1;
       grid-column: 3;
-      justify-self: end;
-      justify-content: flex-end;
-      padding: 0;
-      text-align: right;
     }
 
     .thread-floor-body {
