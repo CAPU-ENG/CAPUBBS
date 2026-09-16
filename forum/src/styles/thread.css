@@ -1426,6 +1426,22 @@
     display: flow-root;
   }
 
+  /* Pasted post layouts can retain fixed widths and margins from the old forum.
+     Cap the margin box so nested text reflows within the current floor width. */
+  .forum-markup[data-forum-markup="floor"] :where(
+    div, p, blockquote, pre, section, article, figure, figcaption,
+    ul, ol, li, dl, dt, dd, h1, h2, h3, h4, h5, h6
+  ):not(.forum-table-cell-content) {
+    box-sizing: border-box;
+    min-width: 0 !important;
+    max-width: 100% !important;
+    max-width: -moz-available !important;
+    max-width: -webkit-fill-available !important;
+    max-width: stretch !important;
+    overflow-wrap: anywhere !important;
+    word-break: break-word;
+  }
+
   .forum-markup > :first-child {
     margin-top: 0;
   }
