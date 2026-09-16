@@ -1643,8 +1643,9 @@
 
   .nested-reply-identity {
     min-width: 0;
+    padding-top: 2px;
     font-size: var(--ui-font-size-md);
-    line-height: 1;
+    line-height: 1.2;
     overflow-wrap: anywhere;
   }
 
