@@ -1,6 +1,14 @@
 @layer components {
-  /* 标题缩进：使用标题自身的字号，统一悬挂半个字宽。 */
+  /* 为首行标点留出空间，避免被 overflow: hidden 裁切；后续行回到正常左边界。 */
   .title-indentation {
     margin-left: -0.5em;
+    padding-left: 0.5em;
+    text-indent: -0.5em;
+  }
+
+  /* 行内元素的左外边距只作用于首个片段，不需要块级首行缩进。 */
+  .title-indentation-inline {
+    padding-left: 0;
+    text-indent: 0;
   }
 }

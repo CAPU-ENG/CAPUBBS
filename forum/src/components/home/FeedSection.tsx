@@ -26,7 +26,7 @@ function FeedItem({ compactMode, item }: { compactMode: boolean; item: HomeThrea
       <article className="feed-item feed-item-compact">
         <div className="feed-item-compact-row">
           <h2>
-            <a className={getTitleIndentationClassName(item.title, 'feed-item-compact-title')} href={threadHref}>
+            <a className={getTitleIndentationClassName(item.title, 'feed-item-compact-title', 'inline')} href={threadHref}>
               {item.title}
             </a>
           </h2>

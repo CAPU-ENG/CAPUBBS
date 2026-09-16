@@ -135,7 +135,7 @@ function ThreadRow({
       <td className="board-thread-title-cell">
         <div className="board-thread-title-line">
           <PinnedStatus thread={thread} />
-          <a className={getTitleIndentationClassName(thread.title)} href={threadHref(thread)}>{thread.title}</a>
+          <a className={getTitleIndentationClassName(thread.title, undefined, 'inline')} href={threadHref(thread)}>{thread.title}</a>
           <TrailingThreadStatuses thread={thread} />
         </div>
       </td>

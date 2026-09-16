@@ -18,9 +18,11 @@ Vite proxies `/api`, `/assets`, `/bbs`, `/bbsimg`, and `/config` to that server;
 
 ## 标题缩进
 
-左对齐的标题统一使用“标题缩进”模组：[`src/utils/titleIndentation.ts`](src/utils/titleIndentation.ts) 负责判断首字符，[`src/styles/title-indentation.css`](src/styles/title-indentation.css) 负责偏移。沿用首页规则，以 `《`、`【`、`（`、`“` 开头时设置 `margin-left: -0.5em`，偏移随标题字号变化；其他标题不添加缩进类，也不修改标题内容或空白。
+左对齐的标题统一使用“标题缩进”模组：[`src/utils/titleIndentation.ts`](src/utils/titleIndentation.ts) 负责判断首字符，[`src/styles/title-indentation.css`](src/styles/title-indentation.css) 负责偏移。以 `《`、`【`、`（`、`“` 开头时，仅第一行向左悬挂半个字宽，换行后的文字保持正常左对齐，偏移随标题字号变化；其他标题不添加缩进类，也不修改标题内容或空白。
 
-调用 `getTitleIndentationClassName(title, baseClassName?)`，将返回值赋给直接承载标题的元素。同一标题只调用一次；带关键词高亮的标题传入原始字符串判断。标题元素的页面样式如需重置上下外边距，使用 `margin-block`，避免用 `margin: 0` 覆盖模组的左外边距。
+默认调用 `getTitleIndentationClassName(title, baseClassName?)`，使用 `text-indent: -0.5em` 控制首行，并以相反的左外边距和左内边距为标点留出空间，避免被单行省略样式裁切。行内标题使用第三个参数 `'inline'`，仅通过行内元素首个片段的左外边距悬挂标点；首页紧凑列表和移动端版面列表使用此方式，版面列表桌面端保持单行显示。
+
+同一标题只调用一次；带关键词高亮的标题传入原始字符串判断。标题元素的页面样式不要覆盖模组的左外边距、左内边距和首行缩进；重置上下外边距可使用 `margin-block`。详情页的复制标题按钮显式继承标题的 `text-indent`，使按钮内换行同样保持对齐。
 
 当前共 18 处调用，集中在以下位置：
 
