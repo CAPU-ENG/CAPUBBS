@@ -1269,6 +1269,10 @@
     flex: 0 1 auto;
   }
 
+  .thread-floor-author > .user-displayed-tag-list > :is(.user-tag, .user-tag-overflow) {
+    font-size: 10px;
+  }
+
   .thread-floor-time {
     display: flex;
     min-width: 0;
@@ -2911,10 +2915,6 @@
 
     .thread-floor-author > a {
       font-size: var(--ui-font-size-md);
-    }
-
-    .thread-floor-author > .user-displayed-tag-list > :is(.user-tag, .user-tag-overflow) {
-      font-size: 10px;
     }
 
     .thread-floor-time {
