@@ -1,6 +1,6 @@
 import { useEffect } from 'react';
 import { syncOnlinePresence } from '../api/auth';
-import { getForumClientType, PWA_DISPLAY_MODE_QUERY } from '../utils/forumClientType';
+import { FORUM_PRESENCE_CHANGE_EVENT, getForumClientType, PWA_DISPLAY_MODE_QUERY } from '../utils/forumClientType';
 
 export function useOnlinePresence(username: string | null) {
   useEffect(() => {
@@ -21,6 +21,9 @@ export function useOnlinePresence(username: string | null) {
       activeRequest = controller;
       try {
         await syncOnlinePresence(getForumClientType(), controller.signal);
+        if (!disposed && !controller.signal.aborted) {
+          window.dispatchEvent(new Event(FORUM_PRESENCE_CHANGE_EVENT));
+        }
       } catch {
         // Presence reporting must not interrupt login or browsing.
       } finally {

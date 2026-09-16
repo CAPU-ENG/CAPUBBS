@@ -23,6 +23,7 @@ import { LoadingState } from '../components/layout/LoadingState';
 import { TopBar } from '../components/layout/TopBar';
 import { useDocumentTitle } from '../hooks/useDocumentTitle';
 import { FORUM_LOCATION_CHANGE_EVENT, replaceForumLocation } from '../utils/authRoutes';
+import { FORUM_PRESENCE_CHANGE_EVENT } from '../utils/forumClientType';
 import { getForumNavigationHref } from '../utils/forumNavigation';
 
 type LoadState = {
@@ -50,6 +51,13 @@ export function DataDisplayPage() {
   const [reloadToken, setReloadToken] = useState(0);
   const [state, setState] = useState<LoadState>({ data: null, error: '', status: 'loading' });
   useDocumentTitle(PANEL_ITEMS.find((panel) => panel.id === activePanel)?.label ?? '数据展示');
+
+  useEffect(() => {
+    if (activePanel !== 'online') return;
+    const refreshPresence = () => setReloadToken((token) => token + 1);
+    window.addEventListener(FORUM_PRESENCE_CHANGE_EVENT, refreshPresence);
+    return () => window.removeEventListener(FORUM_PRESENCE_CHANGE_EVENT, refreshPresence);
+  }, [activePanel]);
 
   useEffect(() => {
     const controller = new AbortController();
