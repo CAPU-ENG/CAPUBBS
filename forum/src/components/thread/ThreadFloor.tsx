@@ -626,7 +626,7 @@ export function ThreadFloor({
                   {reply.target && (
                     <span className="nested-reply-target">
                       {' '}回复{' '}
-                      <a href={getPublicProfilePath(reply.target)}>{reply.target}</a>
+                      <a className="nested-reply-author" href={getPublicProfilePath(reply.target)}>{reply.target}</a>
                     </span>
                   )}
                 </div>

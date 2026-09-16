@@ -1620,6 +1620,7 @@
   .nested-replies > article {
     display: grid;
     grid-template-columns: 42px minmax(0, 1fr);
+    align-items: start;
     gap: 10px;
     padding: 11px 12px;
   }
@@ -1642,6 +1643,8 @@
 
   .nested-reply-identity {
     min-width: 0;
+    font-size: var(--ui-font-size-md);
+    line-height: 1;
     overflow-wrap: anywhere;
   }
 
@@ -1653,11 +1656,6 @@
   .nested-reply-target {
     color: var(--text-faint);
     font-size: var(--ui-font-size-md);
-  }
-
-  .nested-reply-target a {
-    color: var(--brand-strong);
-    font-weight: 720;
   }
 
   .nested-replies p,
@@ -2910,6 +2908,7 @@
       height: 28px;
     }
 
+    .nested-reply-identity,
     .nested-reply-author,
     .nested-reply-target {
       font-size: var(--ui-font-size-xs);
