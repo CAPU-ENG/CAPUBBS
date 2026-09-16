@@ -37,7 +37,7 @@ import { useAuthorProfileEnabled } from '../hooks/useAuthorProfile';
 import { useAvatarFollowEnabled } from '../hooks/useAvatarFollow';
 import { useCompactMode } from '../hooks/useCompactMode';
 import { useDocumentTitle } from '../hooks/useDocumentTitle';
-import { useForumContentFontSize } from '../hooks/useForumContentFontSize';
+import { useForumContentFontSize, useForumContentFontSizeOptions } from '../hooks/useForumContentFontSize';
 import { usePinnedBoardIds } from '../hooks/usePinnedBoards';
 import { useTagMedalDisplayEnabled } from '../hooks/useTagMedalDisplay';
 import { useTheme } from '../hooks/useTheme';
@@ -54,10 +54,7 @@ import {
 import { saveAuthorProfileEnabled } from '../utils/authorProfile';
 import { saveAvatarFollowEnabled } from '../utils/avatarFollow';
 import { saveCompactMode } from '../utils/compactMode';
-import {
-  FORUM_CONTENT_FONT_SIZE_OPTIONS,
-  saveForumContentFontSize,
-} from '../utils/forumFontSize';
+import { saveForumContentFontSize } from '../utils/forumFontSize';
 import { MAX_PINNED_BOARDS, savePinnedBoardIds } from '../utils/localSettings';
 import { saveTagMedalDisplayEnabled } from '../utils/tagMedalDisplay';
 import { saveThemeFollowsSystem } from '../utils/theme';
@@ -72,6 +69,9 @@ export function SettingsPage() {
   const backToTopEnabled = useBackToTopEnabled();
   const compactMode = useCompactMode();
   const forumContentFontSize = useForumContentFontSize();
+  const forumContentFontSizeOptions = useForumContentFontSizeOptions();
+  const displayedFontSizeOptions = [...new Set([...forumContentFontSizeOptions, forumContentFontSize])]
+    .sort((left, right) => left - right);
   const floorDecorationEnabled = useFloorDecorationEnabled();
   const pinnedBoardIds = usePinnedBoardIds();
   const { followsSystem } = useTheme();
@@ -221,7 +221,7 @@ export function SettingsPage() {
                 className="settings-font-size-options"
                 role="group"
               >
-                {FORUM_CONTENT_FONT_SIZE_OPTIONS.map((fontSize) => (
+                {displayedFontSizeOptions.map((fontSize) => (
                   <button
                     aria-pressed={fontSize === forumContentFontSize}
                     className={fontSize === forumContentFontSize ? 'settings-font-size-option-active' : ''}

@@ -8,6 +8,7 @@ import {
   normalizeAbsoluteCssFontSize,
   normalizeLegacyFontSizeAttribute,
   readForumContentFontSize,
+  readForumContentFontSizeOptions,
   saveForumContentFontSize,
   subscribeForumContentFontSize,
 } from './src/utils/forumFontSize.ts';
@@ -15,10 +16,12 @@ import {
 assert.equal(FORUM_DEFAULT_FONT_SIZE, '15px');
 assert.equal(FORUM_DEFAULT_FONT_SIZE_PIXELS, 15);
 assert.deepEqual(FORUM_CONTENT_FONT_SIZE_OPTIONS, [13, 14, 15, 16, 17]);
+assert.deepEqual(readForumContentFontSizeOptions(), [13, 14, 15, 16, 17]);
 assert.equal(normalizeForumContentFontSize(null), 15);
 assert.equal(normalizeForumContentFontSize('13'), 13);
 assert.equal(normalizeForumContentFontSize('17'), 17);
-assert.equal(normalizeForumContentFontSize('12'), 15);
+assert.equal(normalizeForumContentFontSize('12'), 12);
+assert.equal(normalizeForumContentFontSize('11'), 15);
 assert.equal(normalizeForumContentFontSize('16px'), 15);
 
 const storedValues = new Map();
@@ -50,19 +53,32 @@ window.matchMedia = () => mobileViewport;
 window.addEventListener = windowEvents.addEventListener.bind(windowEvents);
 window.removeEventListener = windowEvents.removeEventListener.bind(windowEvents);
 
+assert.deepEqual(readForumContentFontSizeOptions(), [12, 13, 14, 15, 16], 'mobile offers sizes centered on 14px');
+assert.equal(readForumContentFontSizeOptions(), readForumContentFontSizeOptions(), 'option snapshots remain stable');
 assert.equal(readForumContentFontSize(), 16, 'mobile preserves the saved font size');
+assert.equal(saveForumContentFontSize(12), true, 'the smallest mobile option can be saved');
+assert.equal(readForumContentFontSize(), 12);
+mobileViewport.matches = false;
+assert.deepEqual(readForumContentFontSizeOptions(), [13, 14, 15, 16, 17]);
+assert.equal(readForumContentFontSize(), 12, 'desktop preserves a saved mobile size');
+mobileViewport.matches = true;
 storedValues.clear();
 assert.equal(readForumContentFontSize(), 14, 'mobile uses the smaller default');
 storedValues.set(FORUM_CONTENT_FONT_SIZE_STORAGE_KEY, 'invalid');
 assert.equal(readForumContentFontSize(), 14, 'invalid preferences use the mobile default');
 
 const observedFontSizes = [];
-const unsubscribe = subscribeForumContentFontSize(() => observedFontSizes.push(readForumContentFontSize()));
+const observedFontSizeOptions = [];
+const unsubscribe = subscribeForumContentFontSize(() => {
+  observedFontSizes.push(readForumContentFontSize());
+  observedFontSizeOptions.push(readForumContentFontSizeOptions());
+});
 mobileViewport.matches = false;
 mobileViewport.dispatchEvent(new Event('change'));
 mobileViewport.matches = true;
 mobileViewport.dispatchEvent(new Event('change'));
 assert.deepEqual(observedFontSizes, [15, 14], 'the default follows viewport changes');
+assert.deepEqual(observedFontSizeOptions, [[13, 14, 15, 16, 17], [12, 13, 14, 15, 16]], 'settings options follow viewport changes');
 
 storedValues.set(FORUM_CONTENT_FONT_SIZE_STORAGE_KEY, '17');
 mobileViewport.matches = false;
@@ -115,4 +131,4 @@ for (const [source, expected] of keywordCases) {
 assert.equal(normalizeLegacyFontSizeAttribute('18px'), null);
 assert.equal(normalizeAbsoluteCssFontSize('18px'), null);
 
-console.log('forum font size verification passed (responsive defaults, saved preferences and legacy sizes)');
+console.log('forum font size verification passed (responsive options and defaults, saved preferences and legacy sizes)');

@@ -1,11 +1,19 @@
 export const FORUM_CONTENT_FONT_SIZE_STORAGE_KEY = 'capubbs-forum-content-font-size';
 export const FORUM_CONTENT_FONT_SIZE_CHANGE_EVENT = 'capubbs-forum-content-font-size-change';
 export const FORUM_CONTENT_FONT_SIZE_OPTIONS = [13, 14, 15, 16, 17] as const;
-export type ForumContentFontSize = (typeof FORUM_CONTENT_FONT_SIZE_OPTIONS)[number];
+const MOBILE_CONTENT_FONT_SIZE_OPTIONS = [12, 13, 14, 15, 16] as const;
+export type ForumContentFontSize = (typeof FORUM_CONTENT_FONT_SIZE_OPTIONS)[number]
+  | (typeof MOBILE_CONTENT_FONT_SIZE_OPTIONS)[number];
 export const FORUM_DEFAULT_FONT_SIZE_PIXELS: ForumContentFontSize = 15;
 export const FORUM_DEFAULT_FONT_SIZE = `${FORUM_DEFAULT_FONT_SIZE_PIXELS}px`;
 const MOBILE_DEFAULT_FONT_SIZE_PIXELS: ForumContentFontSize = 14;
 const MOBILE_VIEWPORT_QUERY = '(max-width: 640px)';
+
+export function readForumContentFontSizeOptions(): readonly ForumContentFontSize[] {
+  return typeof window !== 'undefined' && window.matchMedia?.(MOBILE_VIEWPORT_QUERY).matches
+    ? MOBILE_CONTENT_FONT_SIZE_OPTIONS
+    : FORUM_CONTENT_FONT_SIZE_OPTIONS;
+}
 
 export function readForumContentFontSize(): ForumContentFontSize {
   if (typeof window === 'undefined') return FORUM_DEFAULT_FONT_SIZE_PIXELS;
@@ -68,7 +76,8 @@ export function normalizeForumContentFontSize(
 }
 
 function isForumContentFontSize(value: number): value is ForumContentFontSize {
-  return FORUM_CONTENT_FONT_SIZE_OPTIONS.some((fontSize) => fontSize === value);
+  return FORUM_CONTENT_FONT_SIZE_OPTIONS.some((fontSize) => fontSize === value)
+    || MOBILE_CONTENT_FONT_SIZE_OPTIONS.some((fontSize) => fontSize === value);
 }
 
 const LEGACY_FONT_SIZE_PIXELS = [11, 13, 15, 17, 19, 21, 23] as const;
