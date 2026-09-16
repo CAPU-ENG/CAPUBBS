@@ -289,11 +289,11 @@ function nonNegativeInteger(value: unknown) {
 function formatLoginType(value: unknown, browser: unknown) {
   const type = stringValue(value).toLocaleLowerCase();
   if (type === 'web') return '网页端';
-  if (type === 'desktop') return '桌面端';
-  if (type === 'mobile') return '移动端';
+  if (type === 'desktop') return '桌面端网页';
+  if (type === 'mobile') return '移动端网页';
   if (type === 'pwa') {
     const userAgent = stringValue(browser);
-    return userAgent ? (getForumClientType({ userAgent }) === 'mobile' ? '移动端' : '桌面端') : '网页端';
+    return userAgent ? (getForumClientType({ userAgent }) === 'mobile' ? '移动端网页' : '桌面端网页') : '网页端';
   }
   if (type === 'android') return 'Android 客户端';
   if (type === 'ios') return 'iOS 客户端';
