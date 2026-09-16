@@ -9,6 +9,7 @@ import {
 } from '../api/auth';
 import { fetchUnreadMessageCounts } from '../api/messages';
 import { refreshClientConfig } from '../api/clientConfig';
+import { useOnlinePresence } from '../hooks/useOnlinePresence';
 
 type AuthStatus = 'authenticated' | 'guest' | 'loading' | 'restoring';
 const SESSION_VIEWER_COOKIE_KEY = 'capubbs-session-viewer';
@@ -42,6 +43,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const unreadRequestRef = useRef<{ promise: Promise<void>; username: string } | null>(null);
   const unreadRevisionRef = useRef(0);
   const activeUsername = auth.status === 'authenticated' ? auth.viewer?.username ?? null : null;
+
+  useOnlinePresence(activeUsername);
 
   const refreshUnreadMessagesFor = useCallback((username: string) => {
     const activeRequest = unreadRequestRef.current;

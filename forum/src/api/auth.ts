@@ -1,4 +1,5 @@
 import { normalizeLegacyAvatar } from '../utils/legacyAssets';
+import type { ForumClientType } from '../utils/forumClientType';
 
 const AUTH_API_URL = import.meta.env.VITE_API_URL?.trim() || '/api/api.php';
 const TOKEN_MAX_AGE_SECONDS = 999999;
@@ -107,6 +108,14 @@ export async function loginSession(username: string, passwordHash: string) {
 
   clearTokenCookie();
   throw new AuthApiError('登录成功，但浏览器未能建立有效会话，请重新登录。', 1000);
+}
+
+export async function syncOnlinePresence(clientType: ForumClientType, signal?: AbortSignal) {
+  await requestAuthApi({
+    ask: 'presence',
+    browser: navigator.userAgent,
+    onlinetype: clientType,
+  }, signal);
 }
 
 export async function registerSession(draft: RegisterDraft) {

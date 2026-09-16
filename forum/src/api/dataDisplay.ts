@@ -288,6 +288,7 @@ function nonNegativeInteger(value: unknown) {
 function formatLoginType(value: unknown) {
   const type = stringValue(value).toLocaleLowerCase();
   if (type === 'web') return '网页版';
+  if (type === 'pwa') return 'PWA';
   if (type === 'android') return 'Android 客户端';
   if (type === 'ios') return 'iOS 客户端';
   return type || '未知';
