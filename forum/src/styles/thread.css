@@ -2833,6 +2833,10 @@
       grid-column: 2 / -1;
       justify-content: flex-start;
       gap: 4px;
+    }
+
+    .thread-floor-time,
+    .nested-reply-footer time {
       font-size: 0.6875rem;
       line-height: 1.35;
     }
@@ -2877,14 +2881,16 @@
 
     .thread-floor-actions > button,
     .thread-floor-actions > a,
-    .thread-floor-actions > div > button {
+    .thread-floor-actions > div > button,
+    .nested-reply-footer button {
       min-height: 26px;
       gap: 3px;
       padding-inline: 5px;
       font-size: var(--ui-font-size-xs);
     }
 
-    .thread-floor-actions svg {
+    .thread-floor-actions svg,
+    .nested-reply-footer button svg {
       width: 12px;
       height: 12px;
     }
@@ -2919,11 +2925,6 @@
     .nested-reply-footer {
       gap: 6px;
       margin-top: 4px;
-    }
-
-    .nested-reply-footer button {
-      gap: 2px;
-      font-size: var(--ui-font-size-xs);
     }
 
     .nested-reply-composer {
