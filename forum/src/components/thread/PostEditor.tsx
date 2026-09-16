@@ -95,7 +95,6 @@ export function PostEditor({
   signatureIndex,
   status,
   statusIsError = false,
-  submitCompactLabel,
   submitDisabled = false,
   submitIcon,
   submitLabel,
@@ -129,7 +128,6 @@ export function PostEditor({
   signatureIndex: number;
   status?: string;
   statusIsError?: boolean;
-  submitCompactLabel?: string;
   submitDisabled?: boolean;
   submitIcon: ReactNode;
   submitLabel: string;
@@ -206,8 +204,7 @@ export function PostEditor({
           type="button"
         >
           <Paperclip size={15} />
-          <span className="reply-action-label-full">添加附件</span>
-          <span className="reply-action-label-compact">附件</span>
+          添加附件
           {attachments.length > 0 && <span className="reply-attachment-count">{attachments.length}</span>}
         </button>
         {status && (
@@ -227,8 +224,7 @@ export function PostEditor({
           {secondaryActions}
           <button className="reply-publish-button" disabled={submitDisabled} onClick={onSubmit} type="button">
             {submitIcon}
-            <span className="reply-action-label-full">{submitLabel}</span>
-            <span className="reply-action-label-compact">{submitCompactLabel ?? submitLabel}</span>
+            {submitLabel}
           </button>
         </div>
       </footer>

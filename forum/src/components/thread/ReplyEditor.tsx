@@ -321,14 +321,12 @@ export function ReplyEditor({
         secondaryActions={(
           <button className="reply-secondary-button" disabled={isSavingDraft || isPublishing} onClick={() => void saveDraft()} type="button">
             {isSavingDraft ? <LoaderCircle size={15} /> : <Save size={15} />}
-            <span className="reply-action-label-full">{isSavingDraft ? "保存中" : "存入草稿"}</span>
-            <span className="reply-action-label-compact">{isSavingDraft ? "保存中" : "草稿"}</span>
+            {isSavingDraft ? "保存中" : "保存草稿"}
           </button>
         )}
         signatureIndex={signatureIndex}
         status={status}
         statusIsError={statusIsError}
-        submitCompactLabel={isPublishing ? "发布中" : "发布"}
         submitDisabled={isPublishing || isUploadingAttachments}
         submitIcon={isPublishing ? <LoaderCircle size={15} /> : <Send size={15} />}
         submitLabel={isPublishing ? "正在发布" : "发布回复"}

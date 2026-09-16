@@ -628,14 +628,12 @@ export function ThreadComposePage() {
                   type="button"
                 >
                   {isSavingDraft ? <LoaderCircle size={15} /> : <Save size={15} />}
-                  <span className="reply-action-label-full">{isSavingDraft ? '保存中' : isReply ? '保存草稿' : '存入草稿'}</span>
-                  <span className="reply-action-label-compact">{isSavingDraft ? '保存中' : '草稿'}</span>
+                  {isSavingDraft ? '保存中' : '保存草稿'}
                 </button>
               )}
               signatureIndex={signatureIndex}
               status={status}
               statusIsError={statusIsError}
-              submitCompactLabel={isPublishing ? '发表中' : isReply ? '回复' : isActivity ? '发布活动' : '发表'}
               submitDisabled={!canPublish}
               submitIcon={isPublishing ? <LoaderCircle size={15} /> : <Send size={15} />}
               submitLabel={isPublishing ? '正在发表' : isReply ? '发布回复' : isActivity ? '发布活动' : '发表主题'}

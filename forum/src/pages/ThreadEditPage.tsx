@@ -269,7 +269,6 @@ export function ThreadEditPage() {
               signatureIndex={signatureIndex}
               status={saveError || attachmentStatus}
               statusIsError={Boolean(saveError)}
-              submitCompactLabel={isSaving ? '保存中' : '保存'}
               submitDisabled={!canSave}
               submitIcon={isSaving ? <LoaderCircle size={15} /> : <Save size={15} />}
               submitLabel={isSaving ? '保存中' : '保存修改'}
