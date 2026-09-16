@@ -3,7 +3,7 @@ import { Bike, CalendarDays, ChevronDown, ChevronRight, Pin } from 'lucide-react
 import type { HomeCalendarEvent, HomeSignupActivity, HomeThread } from '../../api/home';
 import type { HomeDataStatus } from '../../hooks/useHomeData';
 import { getForumNavigationHref } from '../../utils/forumNavigation';
-import { getThreadTitleClassName } from '../../utils/threadTitleTypography';
+import { getTitleIndentationClassName } from '../../utils/titleIndentation';
 import { ActivityCalendar, ActivitySignupList } from './HomeAside';
 
 type ExpandedPanel = 'pinned' | 'signup' | 'calendar' | null;
@@ -143,7 +143,7 @@ export function MobileActivityBar({
               <li key={thread.id}>
                 <a href={getForumNavigationHref(thread.href, window.location.href)}>
                   {!readThreadIds.has(thread.id) && <span>新</span>}
-                  <strong className={getThreadTitleClassName(thread.title)}>{thread.title}</strong>
+                  <strong className={getTitleIndentationClassName(thread.title)}>{thread.title}</strong>
                   <ChevronRight size={14} />
                 </a>
               </li>

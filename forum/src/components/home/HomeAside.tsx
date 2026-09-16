@@ -7,7 +7,7 @@ import { calendarEventOccursOn, calendarHomeTimeLabel } from '../../utils/calend
 import { canManageCalendar } from '../../utils/calendarManagement';
 import { toForumHref } from '../../utils/forumBasePath';
 import { getForumNavigationHref } from '../../utils/forumNavigation';
-import { getThreadTitleClassName } from '../../utils/threadTitleTypography';
+import { getTitleIndentationClassName } from '../../utils/titleIndentation';
 
 const HOME_CALENDAR_MIN_YEAR = 1995;
 const HOME_CALENDAR_MONTHS = Array.from({ length: 12 }, (_item, month) => ({
@@ -74,7 +74,7 @@ function PinnedPanel({ items, readThreadIds }: PinnedProps) {
           <li key={thread.id}>
             <a href={getForumNavigationHref(thread.href, window.location.href)}>
               {!readThreadIds.has(thread.id) && <span>新</span>}
-              <strong className={getThreadTitleClassName(thread.title)}>{thread.title}</strong>
+              <strong className={getTitleIndentationClassName(thread.title)}>{thread.title}</strong>
               <ChevronRight size={14} />
             </a>
           </li>
@@ -109,7 +109,7 @@ export function ActivitySignupList({
               <span>{formatActivityDateRange(activity.activityStartsOn, activity.activityEndsOn)}</span>
               <em>{upcoming ? '即将开始' : '报名中'}</em>
             </div>
-            <h3>{activity.title}</h3>
+            <h3 className={getTitleIndentationClassName(activity.title)}>{activity.title}</h3>
             <div className="signup-card-footer">
               <time className="signup-card-countdown" dateTime={countdownTarget}>
                 <Clock3 size={13} />
@@ -357,7 +357,7 @@ export function ActivityCalendar({ compact = false, error, items, onVisibleDateC
             {selectedActivities.length === 0 ? <p className="calendar-agenda-label">最近活动</p> : null}
             {displayedActivities.map((activity) => (
               <article key={activity.id}>
-                <strong className="calendar-agenda-title">
+                <strong className={getTitleIndentationClassName(activity.title, 'calendar-agenda-title')}>
                   {activity.url ? (
                     <a href={getForumNavigationHref(activity.url, window.location.href)}>
                       {activity.title}<Link2 aria-hidden="true" size={12} />

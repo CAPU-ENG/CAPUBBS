@@ -46,6 +46,7 @@ import {
 } from '../utils/threadRoutes';
 import { markThreadRead } from '../utils/threadReadState';
 import { getThreadCacheScope } from '../utils/threadContentCache';
+import { getTitleIndentationClassName } from '../utils/titleIndentation';
 import { invalidateLoadedThread } from '../utils/threadContentLoader';
 import { isActivityPhoneQuestion, maskActivitySignupFloor } from '../utils/activityPhonePrivacy';
 import { getPublicProfilePath } from '../utils/userRoutes';
@@ -520,7 +521,7 @@ export function ThreadPage() {
       <main className={threadPageShellClassName}>
         <header className="thread-title-card">
           <div className="thread-title-heading">
-            <h1 id="thread-title" ref={titleRef}>
+            <h1 className={getTitleIndentationClassName(data.title)} id="thread-title" ref={titleRef}>
               <button
                 aria-label="复制帖子链接"
                 className="thread-title-copy-button"

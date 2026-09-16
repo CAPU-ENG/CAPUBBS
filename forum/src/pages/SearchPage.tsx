@@ -17,6 +17,7 @@ import { useSearchData, type SearchField, type SearchRequest, type SearchResult 
 import { useDocumentTitle } from '../hooks/useDocumentTitle';
 import { toForumHref } from '../utils/forumBasePath';
 import { getThreadFloorHref, getThreadHref } from '../utils/threadRoutes';
+import { getTitleIndentationClassName } from '../utils/titleIndentation';
 import { getPublicProfilePath } from '../utils/userRoutes';
 import { ALL_BOARDS } from '../data/boards';
 
@@ -326,7 +327,7 @@ function SearchResultRow({
           <a href={getPublicProfilePath(result.author)}>{result.author}</a>
           {field === 'body' ? <><span>·</span><em>{result.pid} 楼</em></> : null}
         </div>
-        <h3><a href={href}><HighlightedText keyword={keyword} text={result.title} /></a></h3>
+        <h3 className={getTitleIndentationClassName(result.title)}><a href={href}><HighlightedText keyword={keyword} text={result.title} /></a></h3>
         <div className="search-result-footer">
           <span>{keyword ? field === 'body' ? '正文命中' : '标题命中' : field === 'body' ? '帖子' : '主题'}</span>
           <time dateTime={result.timestamp}>{formatSearchTime(result.timestamp)}</time>

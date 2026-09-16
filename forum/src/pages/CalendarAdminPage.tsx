@@ -18,6 +18,7 @@ import { useAuth } from '../context/AuthContext';
 import { useDocumentTitle } from '../hooks/useDocumentTitle';
 import { calendarEventOccursOn, calendarEventTimeLabel } from '../utils/calendarEvents';
 import { getForumNavigationHref } from '../utils/forumNavigation';
+import { getTitleIndentationClassName } from '../utils/titleIndentation';
 import { canManageCalendar, saveCalendarEvent, deleteCalendarEvent } from '../utils/calendarManagement';
 import { getLoginPathWithReturnTo, getRegisterPathWithReturnTo } from '../utils/authRoutes';
 
@@ -382,7 +383,7 @@ export function CalendarAdminPage() {
                     ) : selectedEvents.map((event) => (
                       <article className={editingId === event.id ? 'calendar-admin-event-editing' : ''} key={event.id}>
                         <div>
-                          <strong>{event.url ? <a href={getForumNavigationHref(event.url, window.location.href)}>{event.title}</a> : event.title}</strong>
+                          <strong className={getTitleIndentationClassName(event.title)}>{event.url ? <a href={getForumNavigationHref(event.url, window.location.href)}>{event.title}</a> : event.title}</strong>
                           <span><Clock3 size={13} />{calendarEventTimeLabel(event)}</span>
                           {event.description ? <p>{event.description}</p> : null}
                         </div>

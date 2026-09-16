@@ -13,6 +13,7 @@ import type { ThreadAttachment, ThreadAuthor } from '../../data/thread';
 import { useFloorDecorationEnabled } from '../../hooks/useAssistiveFeatures';
 import { useAuthorProfileEnabled } from '../../hooks/useAuthorProfile';
 import { useTheme } from '../../hooks/useTheme';
+import { getTitleIndentationClassName } from '../../utils/titleIndentation';
 import {
   getRichTextEditorHtmlValue,
   hasRichTextEditorHtmlContent,
@@ -310,7 +311,7 @@ export function PostEditorPreviewDialog({
         <header>
           <div>
             <span>{label}</span>
-            <h2 id="post-editor-preview-title">{title}</h2>
+            <h2 className={getTitleIndentationClassName(title)} id="post-editor-preview-title">{title}</h2>
           </div>
           <button aria-label="关闭内容预览" onClick={onClose} type="button"><X size={18} /></button>
         </header>

@@ -27,7 +27,7 @@ import {
 } from '../../utils/signatureFloorLink';
 import { getForumNavigationHref } from '../../utils/forumNavigation';
 import { getProfileTabFromLocation } from '../../utils/userRoutes';
-import { getThreadTitleClassName } from '../../utils/threadTitleTypography';
+import { getTitleIndentationClassName } from '../../utils/titleIndentation';
 import {
   getRichTextEditorStorageValue,
   RichTextEditor,
@@ -444,7 +444,7 @@ function ProfileRecordRow({
   return (
     <article className="profile-record">
       <div className={`profile-record-line${activeTab === 'drafts' ? ' profile-draft-line' : ''}`}>
-        <h3 className={activeTab === 'signatures' ? undefined : getThreadTitleClassName(record.title)}>
+        <h3 className={activeTab === 'signatures' ? undefined : getTitleIndentationClassName(record.title)}>
           {activeTab === 'signatures' ? record.title : <a href={getForumNavigationHref(record.href, window.location.href)}>{record.title}</a>}
         </h3>
         {activeTab === 'activities' && record.status ? (

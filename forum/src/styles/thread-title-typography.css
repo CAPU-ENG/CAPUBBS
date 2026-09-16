@@ -1,6 +1,0 @@
-@layer components {
-  .thread-title-hanging-punctuation,
-  .profile-record h3.thread-title-hanging-punctuation {
-    margin-left: -0.5em;
-  }
-}

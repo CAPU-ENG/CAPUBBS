@@ -20,6 +20,7 @@ import { useAuth } from '../../context/AuthContext';
 import { getLoginPathWithReturnTo, getRegisterPathWithReturnTo } from '../../utils/authRoutes';
 import { stripForumBasePath, toForumHref } from '../../utils/forumBasePath';
 import { USER_CENTER_HREF } from '../../utils/userRoutes';
+import { getTitleIndentationClassName } from '../../utils/titleIndentation';
 import { MessageCenter } from '../messages/MessageCenter';
 import { getBoardById } from '../../data/boards';
 import { usePinnedBoardIds } from '../../hooks/usePinnedBoards';
@@ -382,7 +383,7 @@ export function TopBar({
                 tabIndex={contextTitleVisible ? undefined : -1}
                 title={contextTitle}
               >
-                <span>{contextTitle}</span>
+                <span className={getTitleIndentationClassName(contextTitle)}>{contextTitle}</span>
               </a>
             )}
           </div>

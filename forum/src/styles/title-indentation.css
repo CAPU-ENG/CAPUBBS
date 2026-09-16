@@ -1,0 +1,6 @@
+@layer components {
+  /* 标题缩进：使用标题自身的字号，统一悬挂半个字宽。 */
+  .title-indentation {
+    margin-left: -0.5em;
+  }
+}

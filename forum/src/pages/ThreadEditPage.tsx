@@ -33,6 +33,7 @@ import { getLoginPathWithReturnTo, getRegisterPathWithReturnTo } from '../utils/
 import { normalizeFloorQuotesForLegacyStorage } from '../utils/floorQuote';
 import { getThreadFloorHref } from '../utils/threadRoutes';
 import { getThreadCacheScope } from '../utils/threadContentCache';
+import { getTitleIndentationClassName } from '../utils/titleIndentation';
 import { invalidateLoadedThread } from '../utils/threadContentLoader';
 
 type EditRequest = {
@@ -226,7 +227,7 @@ export function ThreadEditPage() {
               </button>
               <div className="thread-edit-heading-copy">
                 <span>{isMainPost ? '编辑帖子' : '编辑楼层'}</span>
-                <h1 id="edit-page-title">{displayTitle}</h1>
+                <h1 className={getTitleIndentationClassName(displayTitle)} id="edit-page-title">{displayTitle}</h1>
               </div>
             </header>
 

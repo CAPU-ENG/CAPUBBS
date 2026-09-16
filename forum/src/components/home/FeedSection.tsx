@@ -8,7 +8,7 @@ import { LoadingSpinner } from '../layout/LoadingSpinner';
 import { LoadingState } from '../layout/LoadingState';
 import { RandomThreadButton } from '../layout/RandomThreadButton';
 import { getForumNavigationHref } from '../../utils/forumNavigation';
-import { getThreadTitleClassName } from '../../utils/threadTitleTypography';
+import { getTitleIndentationClassName } from '../../utils/titleIndentation';
 import { preloadNearbyImages } from '../../utils/imagePreloading';
 
 function FeedItem({ compactMode, item }: { compactMode: boolean; item: HomeThread }) {
@@ -26,7 +26,7 @@ function FeedItem({ compactMode, item }: { compactMode: boolean; item: HomeThrea
       <article className="feed-item feed-item-compact">
         <div className="feed-item-compact-row">
           <h2>
-            <a className={getThreadTitleClassName(item.title, 'feed-item-compact-title')} href={threadHref}>
+            <a className={getTitleIndentationClassName(item.title, 'feed-item-compact-title')} href={threadHref}>
               {item.title}
             </a>
           </h2>
@@ -49,7 +49,7 @@ function FeedItem({ compactMode, item }: { compactMode: boolean; item: HomeThrea
   return (
     <article className="feed-item">
       <a className="feed-item-content" href={threadHref}>
-        <h2 className={getThreadTitleClassName(item.title)}>
+        <h2 className={getTitleIndentationClassName(item.title)}>
           {item.title}
         </h2>
         <p>{item.summary}</p>

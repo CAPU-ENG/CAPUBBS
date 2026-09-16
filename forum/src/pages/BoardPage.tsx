@@ -17,7 +17,7 @@ import { useScrollContextTitle } from '../hooks/useScrollContextTitle';
 import { toForumHref } from '../utils/forumBasePath';
 import { getPublicProfilePath } from '../utils/userRoutes';
 import { getThreadComposeHref } from '../utils/threadRoutes';
-import { getThreadTitleClassName } from '../utils/threadTitleTypography';
+import { getTitleIndentationClassName } from '../utils/titleIndentation';
 import { useEffect, useRef, useState } from 'react';
 
 function getRequestedPage() {
@@ -135,7 +135,7 @@ function ThreadRow({
       <td className="board-thread-title-cell">
         <div className="board-thread-title-line">
           <PinnedStatus thread={thread} />
-          <a className={getThreadTitleClassName(thread.title)} href={threadHref(thread)}>{thread.title}</a>
+          <a className={getTitleIndentationClassName(thread.title)} href={threadHref(thread)}>{thread.title}</a>
           <TrailingThreadStatuses thread={thread} />
         </div>
       </td>

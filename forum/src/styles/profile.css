@@ -757,7 +757,7 @@
     min-width: 0;
     flex: 1;
     overflow: hidden;
-    margin: 0;
+    margin-block: 0;
     color: var(--text-strong);
     font-size: 0.84rem;
     font-weight: 680;
