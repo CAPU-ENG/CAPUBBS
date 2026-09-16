@@ -33,6 +33,7 @@ import { getLoginPathWithReturnTo, getRegisterPathWithReturnTo } from '../utils/
 import { writeClipboardText } from '../utils/clipboard';
 import { toForumHref } from '../utils/forumBasePath';
 import { resolveForumAppRoute } from '../utils/forumNavigation';
+import { formatNestedReplyText } from '../utils/nestedReply';
 import {
   getActivityManagementHref,
   getThreadEditHref,
@@ -332,7 +333,7 @@ export function ThreadPage() {
   }
 
   async function submitNestedReply(floor: ThreadFloorData, targetName: string | null, content: string) {
-    const text = targetName ? `回复 @${targetName}：${content}` : content;
+    const text = formatNestedReplyText(content, targetName);
     const replyId = await postNestedReply({ fid: floor.fid, text });
     await invalidateLoadedThread(getThreadCacheScope(viewer?.username), data?.bid ?? request.bid, data?.tid ?? request.tid);
     return replyId;

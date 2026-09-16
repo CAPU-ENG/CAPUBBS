@@ -1721,12 +1721,19 @@
     background: var(--surface-soft);
   }
 
+  .nested-reply-input-field {
+    position: relative;
+    min-width: 0;
+  }
+
   .nested-reply-composer textarea {
+    display: block;
+    width: 100%;
     min-height: 64px;
     resize: vertical;
     border: 1px solid var(--line-strong);
     border-radius: var(--control-radius);
-    padding: 8px 10px;
+    padding: 8px 10px 26px;
     background: var(--surface);
     color: var(--text);
     font-size: 0.75rem;
@@ -1737,6 +1744,22 @@
   .nested-reply-composer textarea:focus {
     border-color: var(--brand);
     box-shadow: 0 0 0 2px color-mix(in srgb, var(--brand) 18%, transparent);
+  }
+
+  .nested-reply-character-count {
+    position: absolute;
+    right: 18px;
+    bottom: 8px;
+    background: var(--surface);
+    color: var(--text-faint);
+    font-size: var(--ui-font-size-xs);
+    font-variant-numeric: tabular-nums;
+    line-height: 1;
+    pointer-events: none;
+  }
+
+  .nested-reply-character-count-error {
+    color: var(--danger);
   }
 
   .nested-reply-composer-actions {
@@ -2936,7 +2959,7 @@
 
     .nested-reply-composer textarea {
       min-height: 52px;
-      padding: 6px 8px;
+      padding: 6px 8px 24px;
     }
 
     .nested-reply-composer-actions {

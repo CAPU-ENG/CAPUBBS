@@ -24,6 +24,7 @@ import type { NestedReply, ThreadAuthor, ThreadFloorData } from '../../data/thre
 import { getDisplayedTags } from '../../data/tags';
 import { writeClipboardText } from '../../utils/clipboard';
 import { getScopedFloorQuoteSelection } from '../../utils/floorQuote';
+import { getNestedReplyInputState } from '../../utils/nestedReply';
 import { getPublicProfilePath } from '../../utils/userRoutes';
 import {
   ForumMarkup,
@@ -397,6 +398,8 @@ export function ThreadFloor({
   const [nestedReplyError, setNestedReplyError] = useState('');
   const [nestedReplyPending, setNestedReplyPending] = useState(false);
   const [nestedReplyTarget, setNestedReplyTarget] = useState<string | null | undefined>(undefined);
+  const nestedReplyInputState = getNestedReplyInputState(nestedReplyContent, nestedReplyTarget);
+  const nestedReplyCountId = `nested-reply-count-${floor.id}`;
   const [preview, setPreview] = useState<PreviewImageState | null>(null);
   const [authorCardOpen, setAuthorCardOpen] = useState(false);
   const avatarRailRef = useRef<HTMLDivElement | null>(null);
@@ -470,7 +473,7 @@ export function ThreadFloor({
   async function submitNestedReply(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     const content = nestedReplyContent.trim();
-    if (!content || !viewer || nestedReplyPending) return;
+    if (!nestedReplyInputState.canSubmit || !viewer || !canReply || nestedReplyPending) return;
 
     setNestedReplyPending(true);
     setNestedReplyError('');
@@ -676,18 +679,28 @@ export function ThreadFloor({
       )}
       {nestedReplyTarget !== undefined && canReply && (
         <form className="nested-reply-composer" onSubmit={submitNestedReply}>
-          <textarea
-            aria-label={nestedReplyTarget ? `回复 @${nestedReplyTarget}` : `回复第 ${floor.floor} 楼`}
-            maxLength={500}
-            onChange={(event) => {
-              setNestedReplyContent(event.target.value);
-              setNestedReplyError('');
-            }}
-            placeholder={nestedReplyTarget ? `回复 @${nestedReplyTarget}` : '写一条楼中楼回复'}
-            ref={nestedReplyInputRef}
-            rows={2}
-            value={nestedReplyContent}
-          />
+          <div className="nested-reply-input-field">
+            <textarea
+              aria-describedby={nestedReplyCountId}
+              aria-invalid={nestedReplyInputState.isOverLimit || undefined}
+              aria-label={nestedReplyTarget ? `回复 @${nestedReplyTarget}` : `回复第 ${floor.floor} 楼`}
+              onChange={(event) => {
+                setNestedReplyContent(event.target.value);
+                setNestedReplyError('');
+              }}
+              placeholder={nestedReplyTarget ? `回复 @${nestedReplyTarget}` : '写一条楼中楼回复'}
+              ref={nestedReplyInputRef}
+              rows={2}
+              value={nestedReplyContent}
+            />
+            <small
+              aria-label={`已输入 ${nestedReplyInputState.length} 字，最多 ${nestedReplyInputState.limit} 字`}
+              className={`nested-reply-character-count${nestedReplyInputState.isOverLimit ? ' nested-reply-character-count-error' : ''}`}
+              id={nestedReplyCountId}
+            >
+              {nestedReplyInputState.length} / {nestedReplyInputState.limit}
+            </small>
+          </div>
           <div className="nested-reply-composer-actions">
             <button
               aria-label="取消楼中楼回复"
@@ -700,7 +713,7 @@ export function ThreadFloor({
             </button>
             <button
               className="nested-reply-submit"
-              disabled={!nestedReplyContent.trim() || nestedReplyPending}
+              disabled={!nestedReplyInputState.canSubmit || nestedReplyPending}
               type="submit"
             >
               <Send size={14} />

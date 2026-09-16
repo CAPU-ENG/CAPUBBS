@@ -15,6 +15,7 @@
     "verify:floor-quotes": "node --experimental-strip-types verify-floor-quotes.mjs",
     "verify:grayscale-colors": "node --experimental-strip-types verify-grayscale-text-colors.mjs",
     "verify:font-sizes": "node --experimental-strip-types verify-forum-font-sizes.mjs",
+    "verify:nested-reply": "node --experimental-strip-types verify-nested-reply.mjs",
     "verify:forum-mode": "node --experimental-strip-types verify-forum-mode.mjs",
     "verify:gallery-grouping": "node --experimental-strip-types verify-gallery-grouping.mjs",
     "verify:gallery-files": "node --experimental-strip-types verify-gallery-files.mjs",
