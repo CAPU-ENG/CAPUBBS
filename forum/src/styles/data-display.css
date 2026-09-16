@@ -1287,42 +1287,139 @@
     .data-display-tabs {
       display: grid;
       grid-template-columns: repeat(2, minmax(0, 1fr));
-      margin: 10px 0;
+      gap: 5px;
+      margin: 8px 0;
     }
 
     .data-display-tabs button {
+      height: 32px;
       justify-content: center;
+      gap: 5px;
+      padding-inline: 8px;
+      font-size: var(--ui-font-size-sm);
     }
 
     .data-display-card-header {
-      min-height: 54px;
-      padding: 0 14px;
+      min-height: 46px;
+      gap: 7px;
+      padding: 0 10px;
+    }
+
+    .data-display-card-icon {
+      width: 26px;
+      height: 26px;
+    }
+
+    .data-display-card-icon svg {
+      width: 15px;
+      height: 15px;
+    }
+
+    .data-display-card-header h1 {
+      font-size: var(--ui-font-size-md);
+    }
+
+    .data-display-card-count {
+      font-size: var(--ui-font-size-xs);
     }
 
     .punishment-card-header {
       align-items: flex-start;
-      padding-top: 12px;
-      padding-bottom: 12px;
+      padding-top: 8px;
+      padding-bottom: 8px;
     }
 
     .punishment-controls {
       width: 100%;
       justify-content: flex-start;
+      gap: 5px;
       margin-left: 0;
     }
 
     .punishment-control {
       flex: 1 1 auto;
+      min-height: 28px;
       justify-content: center;
+      gap: 4px;
+      padding-inline: 6px;
+      font-size: var(--ui-font-size-xs);
+    }
+
+    .punishment-control select {
+      padding-left: 4px;
+      font-size: inherit;
+    }
+
+    .punishment-checkbox-mark {
+      width: 16px;
+      height: 16px;
     }
 
     .punishment-controls .data-display-card-count {
       flex: 0 0 auto;
+      min-height: 28px;
+      padding-inline: 6px;
+    }
+
+    .data-table {
+      min-width: 0;
+      font-size: var(--ui-font-size-sm);
+      line-height: 1.45;
+    }
+
+    .data-table thead {
+      font-size: var(--ui-font-size-xs);
     }
 
     .data-table th,
     .data-table td {
-      padding: 12px 14px;
+      padding: 8px 6px;
+      overflow-wrap: anywhere;
+    }
+
+    .data-table-punishments {
+      font-size: var(--ui-font-size-xs);
+    }
+
+    .data-table-punishments th {
+      white-space: normal;
+    }
+
+    .data-table-punishments :is(th, td):nth-child(3) {
+      width: 24%;
+    }
+
+    .data-rank {
+      min-width: 26px;
+      height: 20px;
+      font-size: var(--ui-font-size-xs);
+    }
+
+    .data-status {
+      padding: 2px 4px;
+      font-size: var(--ui-font-size-xs);
+    }
+
+    .punishment-finish-trigger {
+      height: 26px;
+      gap: 4px;
+      padding-inline: 5px;
+      font-size: var(--ui-font-size-xs);
+    }
+
+    .punishment-finish-form {
+      width: 140px;
+      gap: 4px;
+    }
+
+    .punishment-finish-form > div {
+      gap: 4px;
+    }
+
+    .punishment-finish-form > input,
+    .punishment-finish-form button {
+      height: 28px;
+      font-size: var(--ui-font-size-xs);
     }
 
     .data-display-state {
