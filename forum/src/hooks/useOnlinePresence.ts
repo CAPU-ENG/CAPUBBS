@@ -1,5 +1,6 @@
 import { useEffect } from 'react';
 import { syncOnlinePresence } from '../api/auth';
+import { isForumForeground } from '../utils/forumActivity';
 import { FORUM_PRESENCE_CHANGE_EVENT, getForumClientType } from '../utils/forumClientType';
 
 export function useOnlinePresence(username: string | null) {
@@ -10,11 +11,10 @@ export function useOnlinePresence(username: string | null) {
     let pending = false;
     let timer: number | null = null;
     let activeRequest: AbortController | null = null;
-    const isForeground = () => document.visibilityState === 'visible' && document.hasFocus();
 
     async function flush() {
       timer = null;
-      if (disposed || !pending || !isForeground()) return;
+      if (disposed || !pending || !isForumForeground()) return;
       pending = false;
       const controller = new AbortController();
       activeRequest = controller;
@@ -32,7 +32,7 @@ export function useOnlinePresence(username: string | null) {
     }
 
     function scheduleSync() {
-      if (disposed || !isForeground()) return;
+      if (disposed || !isForumForeground()) return;
       pending = true;
       if (timer === null && !activeRequest) timer = window.setTimeout(() => void flush(), 0);
     }

@@ -5,6 +5,7 @@ import {
   type ThreadDetailRequest,
 } from '../api/thread';
 import { resolveForumAppRoute } from './forumNavigation';
+import { isForumForeground } from './forumActivity';
 import { getThreadFloorFromHash, getThreadPageForFloor } from './threadRoutes';
 import {
   getThreadContentCacheKey,
@@ -251,17 +252,19 @@ function listenForBackgroundResume() {
   const resume = () => {
     if (!allowsQueuedBackgroundRequest()) return;
     window.removeEventListener('online', resume);
+    window.removeEventListener('focus', resume);
     document.removeEventListener('visibilitychange', resume);
     listeningForBackgroundResume = false;
     runBackgroundQueue();
   };
   window.addEventListener('online', resume);
+  window.addEventListener('focus', resume);
   document.addEventListener('visibilitychange', resume);
 }
 
 function allowsQueuedBackgroundRequest() {
   return typeof document === 'undefined'
-    || (document.visibilityState === 'visible' && (typeof navigator === 'undefined' || navigator.onLine));
+    || (isForumForeground() && (typeof navigator === 'undefined' || navigator.onLine));
 }
 
 function sortBackgroundQueue() {

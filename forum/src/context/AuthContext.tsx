@@ -10,6 +10,7 @@ import {
 import { fetchUnreadMessageCounts } from '../api/messages';
 import { refreshClientConfig } from '../api/clientConfig';
 import { useOnlinePresence } from '../hooks/useOnlinePresence';
+import { isForumForeground } from '../utils/forumActivity';
 
 type AuthStatus = 'authenticated' | 'guest' | 'loading' | 'restoring';
 const SESSION_VIEWER_COOKIE_KEY = 'capubbs-session-viewer';
@@ -47,6 +48,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   useOnlinePresence(activeUsername);
 
   const refreshUnreadMessagesFor = useCallback((username: string) => {
+    if (!isForumForeground()) return Promise.resolve();
     const activeRequest = unreadRequestRef.current;
     if (activeRequest?.username === username) return activeRequest.promise;
 
@@ -81,11 +83,29 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     if (!activeUsername) return;
-    void refreshUnreadMessagesFor(activeUsername);
-    const interval = window.setInterval(() => {
+    let wasForeground = false;
+    const refresh = () => {
       void refreshUnreadMessagesFor(activeUsername);
-    }, UNREAD_MESSAGE_REFRESH_INTERVAL_MS);
-    return () => window.clearInterval(interval);
+    };
+    const syncActivity = () => {
+      const foreground = isForumForeground();
+      if (foreground && !wasForeground) refresh();
+      wasForeground = foreground;
+    };
+
+    syncActivity();
+    const interval = window.setInterval(refresh, UNREAD_MESSAGE_REFRESH_INTERVAL_MS);
+    window.addEventListener('focus', syncActivity);
+    window.addEventListener('blur', syncActivity);
+    window.addEventListener('pageshow', syncActivity);
+    document.addEventListener('visibilitychange', syncActivity);
+    return () => {
+      window.clearInterval(interval);
+      window.removeEventListener('focus', syncActivity);
+      window.removeEventListener('blur', syncActivity);
+      window.removeEventListener('pageshow', syncActivity);
+      document.removeEventListener('visibilitychange', syncActivity);
+    };
   }, [activeUsername, refreshUnreadMessagesFor]);
 
   useEffect(() => {
