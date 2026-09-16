@@ -907,7 +907,7 @@
   }
 
   .activity-calendar-compact {
-    max-width: 360px;
+    max-width: 320px;
     margin: 0 auto;
     border: 0;
     border-radius: 0;
@@ -915,7 +915,51 @@
   }
 
   .activity-calendar-compact .calendar-month-nav {
-    margin-top: 12px;
+    grid-template-columns: 28px 1fr 28px;
+    margin: 8px 12px;
+  }
+
+  .activity-calendar-compact .calendar-month-arrow {
+    width: 28px;
+    height: 28px;
+  }
+
+  .activity-calendar-compact .calendar-month-arrow svg {
+    width: 14px;
+    height: 14px;
+  }
+
+  .activity-calendar-compact .calendar-period-title {
+    font-size: var(--ui-font-size-md);
+  }
+
+  .activity-calendar-compact .calendar-grid {
+    margin-inline: 12px;
+  }
+
+  .activity-calendar-compact .calendar-weekdays {
+    font-size: var(--ui-font-size-xs);
+  }
+
+  .activity-calendar-compact .calendar-grid button {
+    font-size: var(--ui-font-size-sm);
+  }
+
+  .activity-calendar-compact .calendar-agenda {
+    margin: 10px 12px;
+  }
+
+  .activity-calendar-compact .calendar-agenda article {
+    gap: 4px;
+    padding: 8px;
+  }
+
+  .activity-calendar-compact .calendar-agenda p {
+    padding: 10px 8px;
+  }
+
+  .activity-calendar-compact .calendar-agenda .calendar-agenda-label {
+    padding: 7px 8px 0;
   }
 
 }
