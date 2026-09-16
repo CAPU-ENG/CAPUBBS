@@ -532,7 +532,12 @@ export function ThreadPage() {
                 <Link2 aria-hidden="true" className="thread-title-copy-icon" size={18} />
               </button>
             </h1>
-            {activityManagementLink}
+            {(activityManagementLink || randomThreadButton) && (
+              <div className="thread-title-heading-actions">
+                {activityManagementLink}
+                {randomThreadButton}
+              </div>
+            )}
           </div>
           <div className="thread-title-meta">
             <a className="thread-board-card" href={boardHref}>{data.board}</a>
@@ -676,7 +681,6 @@ export function ThreadPage() {
             )}
           </section>
         ))}
-        {randomThreadButton}
       </main>
 
       {assistiveBarEnabled && nodeFloors.length > 0 && (

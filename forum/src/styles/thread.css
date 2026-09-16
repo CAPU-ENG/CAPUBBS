@@ -243,6 +243,13 @@
     min-width: 0;
   }
 
+  .thread-title-heading-actions {
+    display: flex;
+    flex: 0 0 auto;
+    align-items: center;
+    gap: 8px;
+  }
+
   .thread-title-copy-button {
     display: block;
     width: 100%;
@@ -2544,28 +2551,17 @@
   }
 
   .thread-random-button {
-    position: fixed;
-    z-index: 32;
-    left: min(
-      calc(50% + (var(--thread-page-main-column) - var(--thread-random-side-width, 0px)) / 2 + 8px),
-      calc(100% - 56px - env(safe-area-inset-right, 0px))
-    );
-    bottom: calc(24px + env(safe-area-inset-bottom, 0px));
     display: inline-flex;
-    width: 44px;
-    height: 44px;
+    width: 36px;
+    height: 36px;
+    flex: 0 0 auto;
     align-items: center;
     justify-content: center;
     border: 1px solid var(--line-strong);
     border-radius: var(--control-radius);
     background: var(--surface-raised);
-    box-shadow: var(--shadow-float);
     color: var(--brand-strong);
     transition: border-color 140ms ease, background 140ms ease;
-  }
-
-  .thread-page-shell-compact-author.thread-page-shell-with-assistive-bar .thread-random-button {
-    --thread-random-side-width: calc(var(--thread-rail-column) + var(--thread-column-gap));
   }
 
   .thread-random-button:hover {
@@ -2587,9 +2583,18 @@
 @layer utilities {
   @media (max-width: 1023px) {
 
+    .thread-title-heading-actions {
+      display: contents;
+    }
+
     .thread-random-button {
+      position: fixed;
+      z-index: 32;
       left: calc(12px + env(safe-area-inset-left, 0px));
       bottom: calc(14px + env(safe-area-inset-bottom, 0px));
+      width: 44px;
+      height: 44px;
+      box-shadow: var(--shadow-float);
     }
 
     .thread-page-shell {
