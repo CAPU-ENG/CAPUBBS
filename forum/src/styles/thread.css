@@ -2756,26 +2756,26 @@
       position: absolute;
       top: 15px;
       left: 14px;
-      width: 44px;
-      height: 44px;
+      width: 40px;
+      height: 40px;
       padding: 0;
     }
 
     .thread-author-profile-avatar {
-      width: 44px;
-      height: 44px;
+      width: 40px;
+      height: 40px;
     }
 
     .thread-avatar-rail {
       position: absolute;
       top: 15px;
       left: 14px;
-      height: 44px;
+      height: 40px;
     }
 
     .thread-avatar-button {
-      width: 44px;
-      height: 44px;
+      width: 40px;
+      height: 40px;
     }
 
     .author-hover-card {
@@ -2798,9 +2798,9 @@
 
     .thread-floor-header {
       display: grid;
-      min-height: 55px;
-      grid-template-columns: 44px minmax(0, 1fr) auto;
-      gap: 4px 10px;
+      min-height: 51px;
+      grid-template-columns: 40px minmax(0, 1fr) auto;
+      gap: 2px 10px;
       padding-bottom: 10px;
     }
 
@@ -2818,6 +2818,14 @@
       grid-column: 2;
       min-height: 0;
       flex-wrap: nowrap;
+    }
+
+    .thread-floor-author > a {
+      font-size: var(--ui-font-size-md);
+    }
+
+    .thread-floor-author > .user-displayed-tag-list > :is(.user-tag, .user-tag-overflow) {
+      font-size: 10px;
     }
 
     .thread-floor-time {
