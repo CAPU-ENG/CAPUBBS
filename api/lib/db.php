@@ -349,7 +349,7 @@ function jiekoufunc_presence($con, $token, $params) {
     if (!$user) return jiekoufunc_report('-2', '请先登录');
 
     $onlinetype = isset($params['onlinetype']) ? $params['onlinetype'] : '';
-    if (!in_array($onlinetype, array('web', 'pwa'), true)) {
+    if (!in_array($onlinetype, array('desktop', 'mobile'), true)) {
         return jiekoufunc_report('1', '在线方式无效');
     }
     $browser = isset($params['browser']) ? $params['browser'] : '';

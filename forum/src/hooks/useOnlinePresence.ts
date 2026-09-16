@@ -1,6 +1,6 @@
 import { useEffect } from 'react';
 import { syncOnlinePresence } from '../api/auth';
-import { FORUM_PRESENCE_CHANGE_EVENT, getForumClientType, PWA_DISPLAY_MODE_QUERY } from '../utils/forumClientType';
+import { FORUM_PRESENCE_CHANGE_EVENT, getForumClientType } from '../utils/forumClientType';
 
 export function useOnlinePresence(username: string | null) {
   useEffect(() => {
@@ -10,7 +10,6 @@ export function useOnlinePresence(username: string | null) {
     let pending = false;
     let timer: number | null = null;
     let activeRequest: AbortController | null = null;
-    const displayMode = window.matchMedia?.(PWA_DISPLAY_MODE_QUERY);
     const isForeground = () => document.visibilityState === 'visible' && document.hasFocus();
 
     async function flush() {
@@ -42,7 +41,6 @@ export function useOnlinePresence(username: string | null) {
     window.addEventListener('focus', scheduleSync);
     window.addEventListener('pageshow', scheduleSync);
     document.addEventListener('visibilitychange', scheduleSync);
-    displayMode?.addEventListener('change', scheduleSync);
 
     return () => {
       disposed = true;
@@ -51,7 +49,6 @@ export function useOnlinePresence(username: string | null) {
       window.removeEventListener('focus', scheduleSync);
       window.removeEventListener('pageshow', scheduleSync);
       document.removeEventListener('visibilitychange', scheduleSync);
-      displayMode?.removeEventListener('change', scheduleSync);
     };
   }, [username]);
 }

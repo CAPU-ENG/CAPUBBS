@@ -1,4 +1,5 @@
 import { getBoardById } from '../data/boards';
+import { getForumClientType } from '../utils/forumClientType';
 import { getPublicProfilePath } from '../utils/userRoutes';
 
 const DATA_API_URL = import.meta.env.VITE_API_URL?.trim() || '/api/api.php';
@@ -205,7 +206,7 @@ function mapOnlineUser(row: ApiRow): OnlineUser | null {
     boardId,
     href: getPublicProfilePath(username),
     location: boardId ? getBoardById(boardId)?.label ?? `版面 ${boardId}` : '论坛在线',
-    loginType: formatLoginType(row.onlinetype),
+    loginType: formatLoginType(row.onlinetype, row.logininfo),
     recentActiveAt: formatOnlineTime(row.tokentime),
     username,
   };
@@ -285,10 +286,15 @@ function nonNegativeInteger(value: unknown) {
   return Number.isFinite(number) ? Math.max(0, Math.floor(number)) : 0;
 }
 
-function formatLoginType(value: unknown) {
+function formatLoginType(value: unknown, browser: unknown) {
   const type = stringValue(value).toLocaleLowerCase();
-  if (type === 'web') return '网页版';
-  if (type === 'pwa') return 'PWA';
+  if (type === 'web') return '网页端';
+  if (type === 'desktop') return '桌面端';
+  if (type === 'mobile') return '移动端';
+  if (type === 'pwa') {
+    const userAgent = stringValue(browser);
+    return userAgent ? (getForumClientType({ userAgent }) === 'mobile' ? '移动端' : '桌面端') : '网页端';
+  }
   if (type === 'android') return 'Android 客户端';
   if (type === 'ios') return 'iOS 客户端';
   return type || '未知';
