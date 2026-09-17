@@ -18,7 +18,8 @@ import { toForumHref } from '../utils/forumBasePath';
 import { getPublicProfilePath } from '../utils/userRoutes';
 import { getThreadComposeHref } from '../utils/threadRoutes';
 import { getTitleIndentationClassName } from '../utils/titleIndentation';
-import { useEffect, useRef, useState } from 'react';
+import { staggerEntrance } from '../utils/staggerEntrance';
+import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 
 function getRequestedPage() {
   const params = new URLSearchParams(window.location.search);
@@ -161,6 +162,7 @@ function ThreadRow({
 }
 
 export function BoardPage({ boardId }: { boardId: number }) {
+  const pageRef = useRef<HTMLElement | null>(null);
   const titleRef = useRef<HTMLHeadingElement | null>(null);
   const digestOnly = getDigestOnly();
   const requestedPage = getRequestedPage();
@@ -195,6 +197,11 @@ export function BoardPage({ boardId }: { boardId: number }) {
     && viewer.stars < data.board.requiredStars,
   );
   useDocumentTitle(data?.board.name ?? (status === 'loading' ? '正在读取版面' : '版面暂时无法打开'));
+
+  useLayoutEffect(() => {
+    const rows = pageRef.current?.querySelectorAll<HTMLElement>('.board-thread-table > tbody > .board-thread-row');
+    if (rows) staggerEntrance(rows);
+  }, [data?.threads]);
 
   useEffect(() => {
     if (!canManage) setManagementMode(false);
@@ -265,7 +272,7 @@ export function BoardPage({ boardId }: { boardId: number }) {
         showContextTitle={showTitleInTopBar}
       />
 
-      <main className="board-page-shell">
+      <main className="board-page-shell" ref={pageRef}>
         <header className={`board-title-card ${isSecondaryBoard ? 'board-title-card-secondary' : ''}`}>
           <div className="board-title-content">
             <div className="board-title-copy">

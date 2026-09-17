@@ -1,4 +1,58 @@
 @layer utilities {
+  @keyframes forum-content-enter {
+    from {
+      opacity: 0;
+      transform: translateY(8px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  @keyframes forum-content-fade {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+
+  @keyframes forum-card-enter {
+    0% {
+      opacity: 0;
+      transform: translateY(10px) scale(0.985);
+    }
+    65% {
+      opacity: 1;
+      transform: translateY(-2px) scale(1.003);
+    }
+    100% {
+      opacity: 1;
+      transform: translateY(0) scale(1);
+    }
+  }
+
+  @media (min-width: 1024px) and (prefers-reduced-motion: no-preference) {
+    .feed-section .feed-item[data-forum-entered],
+    .board-thread-table > tbody > .board-thread-row[data-forum-entered],
+    .thread-page-shell > .thread-title-card {
+      animation: forum-content-enter 260ms cubic-bezier(0.2, 0.7, 0.2, 1) backwards;
+      animation-delay: var(--forum-enter-delay, 0ms);
+    }
+
+    .thread-floor-list > .thread-floor[data-forum-entered] {
+      /* Preserve floor anchor geometry and embedded content's positioning. */
+      animation: forum-content-fade 260ms ease-out backwards;
+      animation-delay: var(--forum-enter-delay, 0ms);
+    }
+
+    .home-aside > .aside-card,
+    .board-page-shell > .board-title-card,
+    .thread-side-rail > .floor-node-rail,
+    .thread-side-rail > .thread-assistive-tools {
+      animation: forum-card-enter 380ms cubic-bezier(0.22, 0.7, 0.3, 1) backwards;
+      transform-origin: center top;
+    }
+  }
+
   @keyframes overlay-in {
     from { opacity: 0; }
     to { opacity: 1; }

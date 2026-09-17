@@ -52,6 +52,7 @@ import { invalidateLoadedThread } from '../utils/threadContentLoader';
 import { isActivityPhoneQuestion, maskActivitySignupFloor } from '../utils/activityPhonePrivacy';
 import { getPublicProfilePath } from '../utils/userRoutes';
 import { getFloorDecorationPath } from '../data/floorDecoration';
+import { staggerEntrance } from '../utils/staggerEntrance';
 
 const ActivitySignupForm = lazy(() => import('../components/thread/ActivitySignupForm')
   .then((module) => ({ default: module.ActivitySignupForm })));
@@ -222,6 +223,11 @@ export function ThreadPage() {
       return canViewPhone ? floor : maskActivitySignupFloor(floor, phoneFieldLabels, fieldLabels);
     });
   }, [data, viewer?.username]);
+
+  useLayoutEffect(() => {
+    const floors = pageRef.current?.querySelectorAll<HTMLElement>('.thread-content-layout > .thread-floor-list > .thread-floor');
+    if (floors) staggerEntrance(floors);
+  }, [pageFloors]);
 
   useEffect(() => {
     if (!data) return;

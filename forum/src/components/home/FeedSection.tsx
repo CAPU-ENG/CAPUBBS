@@ -10,6 +10,7 @@ import { RandomThreadButton } from '../layout/RandomThreadButton';
 import { getForumNavigationHref } from '../../utils/forumNavigation';
 import { getTitleIndentationClassName } from '../../utils/titleIndentation';
 import { preloadNearbyImages } from '../../utils/imagePreloading';
+import { staggerEntrance } from '../../utils/staggerEntrance';
 
 function FeedItem({ compactMode, item }: { compactMode: boolean; item: HomeThread }) {
   const authorHref = getForumNavigationHref(item.authorHref, window.location.href);
@@ -101,12 +102,7 @@ export function FeedSection({ autoLoadMore, compactMode, error, hasMore, items, 
     const container = feedRef.current;
     if (!container) return;
 
-    // Stagger only newly mounted rows, so each appended batch starts immediately.
-    container.querySelectorAll<HTMLElement>('.feed-item:not([data-home-feed-entered])').forEach((element, index) => {
-      element.style.setProperty('--home-feed-enter-delay', `${Math.min(index, 10) * 24}ms`);
-      element.dataset.homeFeedEntered = 'true';
-    });
-
+    staggerEntrance(container.querySelectorAll<HTMLElement>('.feed-item'));
     return preloadNearbyImages(container);
   }, [compactMode, items]);
 
