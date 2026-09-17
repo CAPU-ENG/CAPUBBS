@@ -30,6 +30,7 @@ export function ProfilePersonalizationDialog({
   profile: ProfileViewData;
 }) {
   const tagsRef = useStaggerEntrance<HTMLDivElement>(':scope > button');
+  const medalsRef = useStaggerEntrance<HTMLDivElement>(':scope > .profile-medal-preference');
   const [selectedTagIds, setSelectedTagIds] = useState<string[]>([]);
   const [displayMedalIds, setDisplayMedalIds] = useState<string[]>([]);
   const [hiddenMedalIds, setHiddenMedalIds] = useState<string[]>([]);
@@ -227,7 +228,7 @@ export function ProfilePersonalizationDialog({
                   可以最多选择 3 枚勋章在楼层中展示，可选任意枚勋章进行隐藏。
                 </p>
               </div>
-              <div className="profile-medal-preference-list">
+              <div className="profile-medal-preference-list" ref={medalsRef}>
                 {medals.map((medal) => {
                   const state = getMedalState(
                     medal.id,

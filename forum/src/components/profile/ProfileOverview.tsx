@@ -63,7 +63,10 @@ export function ProfileOverview({
   onPrivateMessage,
   profile,
 }: ProfileOverviewProps) {
-  const tagsRef = useStaggerEntrance<HTMLDivElement>(':scope > .user-tag-list > .user-tag');
+  const badgesRef = useStaggerEntrance<HTMLDivElement>([
+    ':scope > .user-tag-list > .user-tag',
+    ':scope > .profile-identity-medals > .profile-identity-medal-button',
+  ].join(', '));
   const privateMode = mode === 'private';
   const [starRulesOpen, setStarRulesOpen] = useState(false);
   const { theme } = useTheme();
@@ -126,7 +129,7 @@ export function ProfileOverview({
             </div>
           )}
 
-          <div className="profile-identity-copy" ref={tagsRef}>
+          <div className="profile-identity-copy" ref={badgesRef}>
             <div className="profile-name-line">
               <h1>{profile.id}</h1>
               <button
