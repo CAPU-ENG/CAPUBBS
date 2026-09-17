@@ -45,7 +45,28 @@
     to { opacity: 0; }
   }
 
+  @keyframes forum-theme-fade-in {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+
   @media (min-width: 1024px) and (prefers-reduced-motion: no-preference) {
+    :root[data-forum-theme-transition]::view-transition {
+      pointer-events: none;
+    }
+
+    :root[data-forum-theme-transition]::view-transition-group(root) {
+      animation-duration: 240ms;
+    }
+
+    :root[data-forum-theme-transition]::view-transition-old(root) {
+      animation: forum-theme-fade-in 240ms ease-in-out reverse both;
+    }
+
+    :root[data-forum-theme-transition]::view-transition-new(root) {
+      animation: forum-theme-fade-in 240ms ease-in-out both;
+    }
+
     body:has([data-forum-dialog-layer="true"]) {
       overflow: hidden;
     }
