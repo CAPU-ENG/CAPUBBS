@@ -2,7 +2,7 @@ import { flushSync } from 'react-dom';
 
 let finishActiveTransition: (() => void) | null = null;
 
-export function runThemeTransition(update: () => void, origin?: { x: number; y: number }) {
+export function runThemeTransition(update: () => void) {
   // Commit a pending toggle before accepting another one, even before its snapshot is ready.
   finishActiveTransition?.();
 
@@ -13,13 +13,6 @@ export function runThemeTransition(update: () => void, origin?: { x: number; y: 
   }
 
   const root = document.documentElement;
-  const x = Math.max(0, Math.min(window.innerWidth, origin?.x ?? window.innerWidth / 2));
-  const y = Math.max(0, Math.min(window.innerHeight, origin?.y ?? window.innerHeight / 2));
-  // Reach the farthest viewport corner, with a pixel to spare for the clipped edge.
-  const radius = Math.ceil(Math.hypot(
-    Math.max(x, window.innerWidth - x),
-    Math.max(y, window.innerHeight - y),
-  )) + 1;
   let applied = false;
   let transition: ViewTransition | undefined;
   const applyOnce = () => {
@@ -30,13 +23,9 @@ export function runThemeTransition(update: () => void, origin?: { x: number; y: 
   };
   const cleanup = () => {
     media.removeEventListener('change', onMotionChange);
-    window.removeEventListener('resize', finish);
     if (finishActiveTransition !== finish) return;
     finishActiveTransition = null;
     delete root.dataset.forumThemeTransition;
-    root.style.removeProperty('--forum-theme-origin-x');
-    root.style.removeProperty('--forum-theme-origin-y');
-    root.style.removeProperty('--forum-theme-radius');
   };
   const finish = () => {
     transition?.skipTransition();
@@ -48,12 +37,8 @@ export function runThemeTransition(update: () => void, origin?: { x: number; y: 
   };
 
   finishActiveTransition = finish;
-  root.style.setProperty('--forum-theme-origin-x', `${x}px`);
-  root.style.setProperty('--forum-theme-origin-y', `${y}px`);
-  root.style.setProperty('--forum-theme-radius', `${radius}px`);
   root.dataset.forumThemeTransition = 'true';
   media.addEventListener('change', onMotionChange);
-  window.addEventListener('resize', finish);
 
   try {
     transition = document.startViewTransition(applyOnce);
