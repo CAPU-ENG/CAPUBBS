@@ -7,7 +7,7 @@ import {
   Users,
   type LucideIcon,
 } from 'lucide-react';
-import { useEffect, useState, useSyncExternalStore, type ReactNode } from 'react';
+import { useEffect, useLayoutEffect, useRef, useState, useSyncExternalStore, type ReactNode } from 'react';
 import {
   fetchDataDisplayPanel,
   type CheckinRankingRecord,
@@ -25,6 +25,7 @@ import { useDocumentTitle } from '../hooks/useDocumentTitle';
 import { FORUM_LOCATION_CHANGE_EVENT, replaceForumLocation } from '../utils/authRoutes';
 import { FORUM_PRESENCE_CHANGE_EVENT } from '../utils/forumClientType';
 import { getForumNavigationHref } from '../utils/forumNavigation';
+import { staggerEntrance } from '../utils/staggerEntrance';
 
 type LoadState = {
   data: DataDisplayResult | null;
@@ -215,6 +216,13 @@ function DataTable({
   title: string;
   tone?: 'danger' | 'default';
 }) {
+  const tableRef = useRef<HTMLDivElement | null>(null);
+
+  useLayoutEffect(() => {
+    const rows = tableRef.current?.querySelectorAll<HTMLElement>('.data-table > tbody > tr');
+    if (rows) staggerEntrance(rows);
+  }, [children]);
+
   return (
     <section className={`data-display-card ${tone === 'danger' ? 'data-display-card-danger' : ''}`}>
       <header className="data-display-card-header">
@@ -222,7 +230,7 @@ function DataTable({
         <h1>{title}</h1>
         <span className="data-display-card-count">{count}</span>
       </header>
-      <div className="data-table-scroll">{children}</div>
+      <div className="data-table-scroll" ref={tableRef}>{children}</div>
     </section>
   );
 }

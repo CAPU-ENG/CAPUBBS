@@ -8,7 +8,7 @@ import {
   ShieldCheck,
   X,
 } from 'lucide-react';
-import { useEffect, useMemo, useState, type FormEvent } from 'react';
+import { useEffect, useLayoutEffect, useMemo, useRef, useState, type FormEvent } from 'react';
 import {
   addPunishmentRecord,
   finishPunishmentRecord,
@@ -17,6 +17,7 @@ import {
 } from '../../api/dataDisplay';
 import { useAuth } from '../../context/AuthContext';
 import { getForumNavigationHref } from '../../utils/forumNavigation';
+import { staggerEntrance } from '../../utils/staggerEntrance';
 
 type AcademicYearGroup = {
   key: string;
@@ -60,6 +61,7 @@ export function PunishmentRecords({
   const [pendingFinish, setPendingFinish] = useState<PendingFinish | null>(null);
   const [showOnlyUnfinished, setShowOnlyUnfinished] = useState(false);
   const [sortMode, setSortMode] = useState<SortMode>('time');
+  const rowsRef = useRef<HTMLTableSectionElement | null>(null);
   const canManage = authStatus === 'authenticated' && viewer?.username.trim() === '组织部';
   const currentStartYear = getAcademicStartYear(getTodayDate())!;
   const groups = useMemo(() => buildAcademicYearGroups(records, currentStartYear), [records, currentStartYear]);
@@ -70,6 +72,11 @@ export function PunishmentRecords({
     () => getVisibleRecords(activeGroup?.records ?? [], showOnlyUnfinished, sortMode),
     [activeGroup, showOnlyUnfinished, sortMode],
   );
+
+  useLayoutEffect(() => {
+    const rows = rowsRef.current?.querySelectorAll<HTMLElement>(':scope > tr');
+    if (rows) staggerEntrance(rows);
+  }, [visibleRecords]);
 
   useEffect(() => {
     setActiveGroupIndex(null);
@@ -193,7 +200,7 @@ export function PunishmentRecords({
               <th>开始时间</th><th>结束时间</th><th>完成情况</th>
             </tr>
           </thead>
-          <tbody>
+          <tbody ref={rowsRef}>
             {visibleRecords.map((record) => {
               const activePending = pendingFinish?.recordId === record.id ? pendingFinish : null;
               return (

@@ -9,11 +9,12 @@ import {
   X,
   type LucideIcon,
 } from 'lucide-react';
-import { useRef, useState } from 'react';
+import { useLayoutEffect, useRef, useState } from 'react';
 import { AppBackground } from '../components/layout/AppBackground';
 import { LoadingSpinner as LoaderCircle } from '../components/layout/LoadingSpinner';
 import { TopBar } from '../components/layout/TopBar';
 import { useDocumentTitle } from '../hooks/useDocumentTitle';
+import { staggerEntrance } from '../utils/staggerEntrance';
 import {
   convertTableToVcf,
   getVCardDisplayName,
@@ -209,11 +210,18 @@ function ToolExamples() {
 }
 
 function ContactPreview({ rows }: { rows: ContactRow[] }) {
+  const rowsRef = useRef<HTMLTableSectionElement | null>(null);
+
+  useLayoutEffect(() => {
+    const elements = rowsRef.current?.querySelectorAll<HTMLElement>(':scope > tr');
+    if (elements) staggerEntrance(elements);
+  }, [rows]);
+
   return (
     <div className="toolbox-table-scroll">
       <table className="toolbox-table toolbox-contact-table">
         <thead><tr><th>ID</th><th>姓名</th><th>职务</th><th>电话</th><th>VCF 姓名</th></tr></thead>
-        <tbody>
+        <tbody ref={rowsRef}>
           {rows.map((contact, index) => (
             <tr key={`${contact.username}-${index}`}>
               <td>{contact.username}</td>
