@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useState, type MouseEvent } from 'react';
 import {
   applyTheme,
   readThemeSnapshot,
@@ -21,8 +21,10 @@ export function useTheme() {
     return subscribeThemePreference(refresh);
   }, []);
 
-  const toggleTheme = useCallback(() => {
+  const toggleTheme = useCallback((event?: MouseEvent<HTMLElement>) => {
     const scrollPosition = { left: window.scrollX, top: window.scrollY };
+    const bounds = event?.currentTarget.getBoundingClientRect();
+    const origin = bounds ? { x: bounds.left + bounds.width / 2, y: bounds.top + bounds.height / 2 } : undefined;
     runThemeTransition(() => {
       const currentTheme = readThemeSnapshot().theme;
       if (!saveExplicitTheme(currentTheme === 'light' ? 'dark' : 'light')) return;
@@ -32,7 +34,7 @@ export function useTheme() {
         window.scrollTo(scrollPosition);
         window.requestAnimationFrame(() => window.scrollTo(scrollPosition));
       });
-    });
+    }, origin);
   }, []);
 
   return { ...snapshot, toggleTheme };
