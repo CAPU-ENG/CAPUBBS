@@ -13,6 +13,7 @@ import {
   type TagMember,
 } from '../../api/tags';
 import type { TagDefinition } from '../../data/tags';
+import { useStaggerEntrance } from '../../hooks/useStaggerEntrance';
 import { getForumNavigationHref } from '../../utils/forumNavigation';
 import { HexColorPicker, isHexColor } from '../HexColorPicker';
 import { TagBadge } from '../tags/TagBadge';
@@ -28,6 +29,7 @@ type DeleteTarget =
   | { kind: 'member'; username: string };
 
 export function TagManagementWorkspace() {
+  const workspaceRef = useStaggerEntrance<HTMLDivElement>('.management-tag-definition-list > button, .management-member-list > button');
   const [definitions, setDefinitions] = useState<TagDefinition[]>([]);
   const [members, setMembers] = useState<TagMember[]>([]);
   const [memberSelectedTagId, setMemberSelectedTagId] = useState('');
@@ -313,7 +315,7 @@ export function TagManagementWorkspace() {
   }
 
   return (
-    <div className="management-tags-workspace">
+    <div className="management-tags-workspace" ref={workspaceRef}>
       <section className="management-card" aria-labelledby="tag-definitions-title">
         <header className="management-card-heading">
           <div><h2 id="tag-definitions-title">已有标签</h2></div>

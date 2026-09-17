@@ -29,6 +29,7 @@ import {
 } from '../components/thread/ActivitySignupEditor';
 import { useAuth } from '../context/AuthContext';
 import { useDocumentTitle } from '../hooks/useDocumentTitle';
+import { useStaggerEntrance } from '../hooks/useStaggerEntrance';
 import { useThreadData } from '../hooks/useThreadData';
 import { getThreadCacheScope } from '../utils/threadContentCache';
 import { invalidateLoadedThread } from '../utils/threadContentLoader';
@@ -345,6 +346,7 @@ function SignupSummaryPanel({
   const [sortBy, setSortBy] = useState<ActivitySignupSort>('joinedAt');
   const [sortDirection, setSortDirection] = useState<ActivitySignupSortDirection>('asc');
   const controlsRef = useRef<HTMLDivElement>(null);
+  const recordsRef = useStaggerEntrance<HTMLTableSectionElement>(':scope > tr');
   const displayedQuestions = useMemo(
     () => questions.filter((question) => question.label.trim().toLocaleUpperCase() !== 'ID'),
     [questions],
@@ -469,7 +471,7 @@ function SignupSummaryPanel({
                   {displayedQuestions.map((question) => <th key={question.id}>{question.label}</th>)}
                 </tr>
               </thead>
-              <tbody>
+              <tbody ref={recordsRef}>
                 {displayedRecords.map((record) => (
                   <tr key={record.id}>
                     <td className="activity-summary-id-column"><strong>{record.username}</strong></td>

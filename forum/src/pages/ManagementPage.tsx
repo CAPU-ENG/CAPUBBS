@@ -50,6 +50,7 @@ import { TagManagementWorkspace } from '../components/management/TagManagementWo
 import { TopBar } from '../components/layout/TopBar';
 import { useAuth } from '../context/AuthContext';
 import { useDocumentTitle } from '../hooks/useDocumentTitle';
+import { useStaggerEntrance } from '../hooks/useStaggerEntrance';
 import { ALL_BOARDS, PRIMARY_BOARDS, SECONDARY_BOARDS } from '../data/boards';
 import { getLoginPathWithReturnTo, getRegisterPathWithReturnTo } from '../utils/authRoutes';
 import { toForumHref } from '../utils/forumBasePath';
@@ -193,6 +194,7 @@ function MobileManagementWarning() {
 }
 
 function GlobalPinsPanel() {
+  const listRef = useStaggerEntrance<HTMLDivElement>(':scope > article');
   const [pins, setPins] = useState<ManagementThread[]>([]);
   const [pinsStatus, setPinsStatus] = useState<'error' | 'loading' | 'ready'>('loading');
   const [threadUrl, setThreadUrl] = useState('');
@@ -319,7 +321,7 @@ function GlobalPinsPanel() {
           <div><h2 id="global-pins-title">当前全局置顶</h2></div>
           <span>{pins.length} 篇</span>
         </header>
-        <div className="management-thread-list">
+        <div className="management-thread-list" ref={listRef}>
           {pinsStatus === 'loading' ? (
             <EmptyState icon={<LoaderCircle className="animate-spin" size={19} />}>正在加载全局置顶。</EmptyState>
           ) : pinsStatus === 'error' ? (
@@ -459,6 +461,7 @@ function MoveThreadPanel() {
 }
 
 function MemberManagementPanel() {
+  const listsRef = useStaggerEntrance<HTMLDivElement>('.management-member-list > button, .management-mute-list > article');
   const memberSearchRef = useRef<HTMLElement>(null);
   const [members, setMembers] = useState<ManagementMember[]>([]);
   const [membersStatus, setMembersStatus] = useState<'error' | 'loading' | 'ready'>('loading');
@@ -698,7 +701,7 @@ function MemberManagementPanel() {
         {notice && <ManagementNotice kind={notice.kind}>{notice.text}</ManagementNotice>}
       </section>
 
-      <div className="management-member-display">
+      <div className="management-member-display" ref={listsRef}>
         <section className="management-card management-list-card" aria-labelledby="elevated-members-title">
           <header className="management-card-heading">
             <div><h2 id="elevated-members-title">当前权限会员</h2></div>
@@ -778,6 +781,7 @@ function MemberManagementPanel() {
 }
 
 function ModeratorManagementPanel() {
+  const listsRef = useStaggerEntrance<HTMLElement>('.management-board-moderator-row');
   const [boards, setBoards] = useState<ManagementBoardModerators[]>([]);
   const [boardsStatus, setBoardsStatus] = useState<'error' | 'loading' | 'ready'>('loading');
   const [query, setQuery] = useState('');
@@ -978,7 +982,7 @@ function ModeratorManagementPanel() {
         {notice && <ManagementNotice kind={notice.kind}>{notice.text}</ManagementNotice>}
       </section>
 
-      <section className="management-card management-list-card" aria-labelledby="moderators-title">
+      <section className="management-card management-list-card" aria-labelledby="moderators-title" ref={listsRef}>
         <header className="management-card-heading">
           <div><h2 id="moderators-title">当前版主</h2></div>
           <span>{moderatorCount} 人</span>

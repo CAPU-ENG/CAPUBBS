@@ -16,6 +16,7 @@ import { LoadingState } from '../components/layout/LoadingState';
 import { TopBar } from '../components/layout/TopBar';
 import { useAuth } from '../context/AuthContext';
 import { useDocumentTitle } from '../hooks/useDocumentTitle';
+import { useStaggerEntrance } from '../hooks/useStaggerEntrance';
 import { calendarEventOccursOn, calendarEventTimeLabel } from '../utils/calendarEvents';
 import { getForumNavigationHref } from '../utils/forumNavigation';
 import { getTitleIndentationClassName } from '../utils/titleIndentation';
@@ -40,6 +41,7 @@ const TITLE_LIMIT = 20;
 const MONTH_OPTIONS = Array.from({ length: 12 }, (_item, month) => month);
 
 export function CalendarAdminPage() {
+  const eventsRef = useStaggerEntrance<HTMLDivElement>(':scope > article');
   const { status: authStatus, viewer } = useAuth();
   const periodPickerId = useId();
   const periodPickerRef = useRef<HTMLDivElement | null>(null);
@@ -373,7 +375,7 @@ export function CalendarAdminPage() {
                     <h2 id="calendar-admin-day-title"><CalendarDays size={16} />{formatDateLabel(selectedDate)}</h2>
                     <span>{loadStatus === 'loading' ? '读取中' : `${selectedEvents.length} 项`}</span>
                   </header>
-                  <div className="calendar-admin-event-list">
+                  <div className="calendar-admin-event-list" key={selectedDateKey} ref={eventsRef}>
                     {loadStatus === 'loading' ? (
                       <p className="calendar-admin-empty"><LoaderCircle className="animate-spin" size={17} />正在读取活动…</p>
                     ) : loadStatus === 'error' && events.length === 0 ? (

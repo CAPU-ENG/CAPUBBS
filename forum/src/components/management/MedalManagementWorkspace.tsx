@@ -29,6 +29,7 @@ import {
   type MedalMember,
   type MedalMemberCheck,
 } from '../../api/medals';
+import { useStaggerEntrance } from '../../hooks/useStaggerEntrance';
 import { getPublicProfilePath } from '../../utils/userRoutes';
 import { getForumNavigationHref } from '../../utils/forumNavigation';
 import { MedalDesignerPanel } from './MedalDesignerPanel';
@@ -38,6 +39,11 @@ type LoadState = 'error' | 'loading' | 'ready';
 type Notice = { kind: 'error' | 'success'; text: string } | null;
 
 export function MedalManagementWorkspace() {
+  const workspaceRef = useStaggerEntrance<HTMLElement>([
+    '.management-medal-catalog-list > button',
+    '.management-medal-member-table > tbody > tr',
+    '.management-medal-batch-table:not(.management-medal-example-table) > tbody > tr',
+  ].join(', '));
   const [medals, setMedals] = useState<MedalDefinition[]>([]);
   const [members, setMembers] = useState<MedalMember[]>([]);
   const [memberCounts, setMemberCounts] = useState<Record<string, number | null>>({});
@@ -300,7 +306,7 @@ export function MedalManagementWorkspace() {
 
   return (
     <>
-      <section className="management-card management-medal-workspace">
+      <section className="management-card management-medal-workspace" ref={workspaceRef}>
         <header className="management-card-heading">
           <h2>勋章管理</h2>
           <button

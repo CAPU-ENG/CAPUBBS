@@ -40,12 +40,23 @@
     .data-display-card .data-table > tbody > tr[data-forum-entered],
     .toolbox-contact-table > tbody > tr[data-forum-entered],
     .archive-room-list > tbody > tr[data-forum-entered],
+    .management-thread-list > article[data-forum-entered],
+    .management-member-list > button[data-forum-entered],
+    .management-mute-list > article[data-forum-entered],
+    .management-board-moderator-list > .management-board-moderator-row[data-forum-entered],
+    .management-tag-definition-list > button[data-forum-entered],
+    .management-medal-catalog-list > button[data-forum-entered],
+    .management-medal-member-table > tbody > tr[data-forum-entered],
+    .management-medal-batch-table > tbody > tr[data-forum-entered],
+    .calendar-admin-event-list > article[data-forum-entered],
+    .activity-summary-table-wrap > table > tbody > tr[data-forum-entered],
     .thread-page-shell > .thread-title-card {
       animation: forum-content-enter 260ms cubic-bezier(0.2, 0.7, 0.2, 1) backwards;
       animation-delay: var(--forum-enter-delay, 0ms);
     }
 
-    .thread-floor-list > .thread-floor {
+    .thread-floor-list > .thread-floor,
+    .thread-floor-list > .activity-signup-card {
       /* Keep the floor's top edge stable for jump links while it springs in. */
       animation: forum-floor-enter 380ms cubic-bezier(0.22, 0.7, 0.3, 1) backwards;
       transform-origin: center top;
@@ -82,7 +93,33 @@
     .archive-room-shell > .archive-room-panel,
     .archive-room-grid > .archive-room-grid-item,
     .archive-room-dialog-backdrop > .archive-room-dialog,
-    .archive-room-dialog-backdrop > .archive-room-delete-dialog {
+    .archive-room-dialog-backdrop > .archive-room-delete-dialog,
+    .auth-page-shell > .auth-card,
+    .register-page-shell > .register-card,
+    .management-workspace > .management-tabs,
+    .management-tabpanel .management-card,
+    .management-member-grid > .management-member-card,
+    .management-shell > .management-state,
+    .calendar-admin-shell > .calendar-admin-panel,
+    .calendar-admin-shell > .calendar-admin-state,
+    .activity-management-workspace > .activity-management-heading,
+    .activity-management-workspace > .activity-management-metrics,
+    .activity-management-workspace > .activity-management-tabs,
+    .activity-management-questionnaire > .activity-management-panel-heading,
+    .activity-management-tabpanel > .activity-summary-panel,
+    .activity-management-shell > .activity-management-state,
+    .thread-edit-page-shell > .thread-edit-heading-card,
+    .thread-edit-page-shell > .thread-edit-request-state,
+    .not-found-shell > .not-found-panel,
+    .profile-dialog-backdrop > .profile-dialog,
+    dialog.profile-filter-dialog[open],
+    .profile-medal-lightbox-backdrop > .profile-medal-lightbox,
+    .management-dialog-backdrop > .management-dialog,
+    .activity-summary-value-overlay > .activity-summary-value-dialog,
+    .thread-delete-dialog-backdrop > .thread-delete-dialog,
+    .reply-preview-backdrop > .reply-preview-dialog,
+    .attachment-dialog-backdrop > .attachment-dialog,
+    .gallery-dialog-backdrop > .gallery-dialog {
       animation: forum-card-enter 380ms cubic-bezier(0.22, 0.7, 0.3, 1) backwards;
       transform-origin: center top;
     }
@@ -96,7 +133,16 @@
     .message-overlay > .direct-message-dialog,
     .punishment-dialog-backdrop > .punishment-dialog,
     .archive-room-dialog-backdrop > .archive-room-dialog,
-    .archive-room-dialog-backdrop > .archive-room-delete-dialog {
+    .archive-room-dialog-backdrop > .archive-room-delete-dialog,
+    .profile-dialog-backdrop > .profile-dialog,
+    dialog.profile-filter-dialog[open],
+    .profile-medal-lightbox-backdrop > .profile-medal-lightbox,
+    .management-dialog-backdrop > .management-dialog,
+    .activity-summary-value-overlay > .activity-summary-value-dialog,
+    .thread-delete-dialog-backdrop > .thread-delete-dialog,
+    .reply-preview-backdrop > .reply-preview-dialog,
+    .attachment-dialog-backdrop > .attachment-dialog,
+    .gallery-dialog-backdrop > .gallery-dialog {
       transform-origin: center;
     }
   }
