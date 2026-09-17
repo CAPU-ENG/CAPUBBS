@@ -29,6 +29,7 @@ export function ProfilePersonalizationDialog({
   open: boolean;
   profile: ProfileViewData;
 }) {
+  const decorationsRef = useStaggerEntrance<HTMLDivElement>(':scope > .profile-decoration-column');
   const tagsRef = useStaggerEntrance<HTMLDivElement>(':scope > button');
   const medalsRef = useStaggerEntrance<HTMLDivElement>(':scope > .profile-medal-preference');
   const [selectedTagIds, setSelectedTagIds] = useState<string[]>([]);
@@ -162,7 +163,7 @@ export function ProfilePersonalizationDialog({
           </header>
 
           <div className="profile-personalization-body">
-            <div className="profile-decoration-columns">
+            <div className="profile-decoration-columns" ref={decorationsRef}>
               <DecorationColumn
                 description="上传一张图片用于在日间模式下装饰你的楼层卡片的左上角。"
                 icon={<Sun size={17} />}

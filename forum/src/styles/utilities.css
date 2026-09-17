@@ -37,6 +37,7 @@
     .profile-record-list > .profile-record[data-forum-entered],
     .profile-identity-copy > .user-tag-list > .user-tag[data-forum-entered],
     .profile-identity-medals > .profile-identity-medal-button[data-forum-entered],
+    .profile-decoration-columns > .profile-decoration-column[data-forum-entered],
     .profile-tag-selector > button[data-forum-entered],
     .profile-medal-preference-list > .profile-medal-preference[data-forum-entered],
     .message-list .message-card[data-forum-entered],

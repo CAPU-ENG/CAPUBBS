@@ -1156,11 +1156,32 @@
   }
 
   .profile-personalization-dialog {
+    position: relative;
     width: min(720px, 100%);
   }
 
   .profile-personalization-body {
     display: grid;
+  }
+
+  @media (min-width: 1024px) {
+    .profile-personalization-dialog {
+      display: flex;
+      max-height: min(720px, 82dvh, calc(100dvh - 48px));
+      flex-direction: column;
+    }
+
+    .profile-personalization-dialog > header,
+    .profile-personalization-dialog > footer {
+      flex: none;
+    }
+
+    .profile-personalization-body {
+      min-height: 0;
+      overflow-y: auto;
+      overscroll-behavior: contain;
+      scrollbar-gutter: stable;
+    }
   }
 
   .profile-decoration-columns {
