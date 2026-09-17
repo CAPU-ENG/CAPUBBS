@@ -4,11 +4,6 @@
     to { opacity: 1; transform: translateY(0); }
   }
 
-  @keyframes forum-mobile-floor-fade {
-    from { opacity: 0; }
-    to { opacity: 1; }
-  }
-
   @keyframes forum-mobile-panel-enter {
     from { opacity: 0; transform: translateY(-6px); }
     to { opacity: 1; transform: translateY(0); }
@@ -54,10 +49,6 @@
     .nested-replies > article[data-forum-entered] {
       animation: forum-mobile-content-enter 180ms cubic-bezier(0.2, 0.7, 0.2, 1) backwards;
       animation-delay: var(--forum-enter-mobile-delay, 0ms);
-    }
-
-    .thread-floor-list > .thread-floor[data-forum-viewport-entrance="entering"] {
-      animation: forum-mobile-floor-fade 180ms ease-out backwards;
     }
 
     .thread-page-shell > .thread-top-pagination,
