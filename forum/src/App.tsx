@@ -226,7 +226,7 @@ function ForumRouter() {
   }
   const boardId = Number(params.get('bid') ?? params.get('board'));
   if (isBoardRoutePath(pathname) && Number.isInteger(boardId) && boardId > 0) {
-    return <BoardPage boardId={boardId} />;
+    return <BoardPage boardId={boardId} key={boardId} />;
   }
   if (isHomeRoutePath(pathname)) return <HomeRoute />;
   return <NotFoundPage />;
