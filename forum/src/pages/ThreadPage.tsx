@@ -458,7 +458,6 @@ export function ThreadPage() {
               <button onClick={retry} type="button"><RotateCw size={15} />重新加载</button>
             </section>
           )}
-          {randomThreadButton}
         </main>
       </div>
     );
