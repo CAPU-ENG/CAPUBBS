@@ -24,6 +24,12 @@
     100% { transform: scale(1); }
   }
 
+  @keyframes forum-mobile-card-enter {
+    0% { opacity: 0; transform: translateY(4px) scale(0.985); }
+    65% { opacity: 1; transform: translateY(0) scale(1.002); }
+    100% { opacity: 1; transform: translateY(0) scale(1); }
+  }
+
   @keyframes forum-mobile-dialog-enter {
     from { transform: translateY(10px); }
     to { transform: translateY(0); }
@@ -98,7 +104,6 @@
       animation-delay: var(--forum-enter-mobile-delay, 0ms);
     }
 
-    .board-page-shell > .board-title-card,
     .profile-identity-main > .profile-avatar-button,
     .profile-identity-copy > .profile-name-line,
     .profile-identity-copy > .profile-intro,
@@ -136,6 +141,11 @@
     .not-found-shell > .not-found-panel,
     .browser-recommendation-layer > .browser-recommendation-dialog {
       animation: forum-mobile-content-enter 180ms cubic-bezier(0.2, 0.7, 0.2, 1) backwards;
+    }
+
+    .board-page-shell > .board-title-card {
+      animation: forum-mobile-card-enter 260ms cubic-bezier(0.22, 0.7, 0.3, 1) backwards;
+      transform-origin: center top;
     }
 
     .board-page-shell .board-pagination-footer,
