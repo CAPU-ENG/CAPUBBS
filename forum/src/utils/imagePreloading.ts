@@ -1,3 +1,5 @@
+import { preloadVisibleGalleryImages } from './galleryImageLoading.ts';
+
 // Keep native lazy loading as a fallback, but start nearby images early enough
 // to download while the reader is still scrolling towards them.
 const pendingImages = new Map<Element, Set<HTMLImageElement>>();
@@ -18,17 +20,19 @@ function loadImages(target: Element) {
 }
 
 export function preloadNearbyImages(container: HTMLElement) {
+  const cleanupGalleries = preloadVisibleGalleryImages(container);
   // Include images already promoted to eager on earlier renders: they still
   // need priority updates after a jump or a feed refresh.
-  const images = Array.from(container.querySelectorAll<HTMLImageElement>('img'));
-  if (!images.length) return () => {};
+  const images = Array.from(container.querySelectorAll<HTMLImageElement>('img'))
+    .filter((image) => !image.closest('.capubbs-gallery'));
+  if (!images.length) return cleanupGalleries;
 
   if (typeof IntersectionObserver === 'undefined') {
     images.forEach((image) => {
       setImagePriority(image, isInViewport(image.getBoundingClientRect()));
       image.loading = 'eager';
     });
-    return () => {};
+    return cleanupGalleries;
   }
 
   if (!observer) {
@@ -58,9 +62,7 @@ export function preloadNearbyImages(container: HTMLElement) {
   });
   images.forEach((image) => {
     if (image.complete && image.naturalWidth > 0) return;
-    // Hidden slides cannot intersect the viewport; preload the whole gallery
-    // when its visible container approaches instead.
-    const target = image.closest('.capubbs-gallery') ?? image;
+    const target = image;
     const pending = pendingImages.get(target) ?? new Set<HTMLImageElement>();
     pending.add(image);
     pendingImages.set(target, pending);
@@ -83,6 +85,7 @@ export function preloadNearbyImages(container: HTMLElement) {
   });
 
   return () => {
+    cleanupGalleries();
     images.forEach((image) => {
       trackedImages.delete(image);
       viewportObserver?.unobserve(image);

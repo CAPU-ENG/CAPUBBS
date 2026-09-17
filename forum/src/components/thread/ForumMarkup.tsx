@@ -3,6 +3,7 @@ import { useEffect, useLayoutEffect, useMemo, useRef, type KeyboardEvent, type M
 import { useTheme } from '../../hooks/useTheme';
 import { syncForumGrayscaleTextColors } from '../../utils/forumGrayscaleTextColor';
 import { preloadNearbyImages } from '../../utils/imagePreloading';
+import { deferGalleryImageSources } from '../../utils/galleryImageLoading';
 import { prepareForumTables } from './forumTables';
 import { preparePunishmentTableFit } from './punishmentTableFit';
 import '../../styles/forum-tables.css';
@@ -21,6 +22,7 @@ export type ForumMarkupImage = {
   elementIndex?: number;
   galleryId?: number;
   galleryIndex?: number;
+  loadSource?: () => Promise<string>;
   src: string;
 };
 export type ForumMarkupImageChangeHandler = (imageIndex: number) => void;
@@ -50,7 +52,7 @@ export function ForumMarkup({
 }) {
   const containerRef = useRef<HTMLDivElement>(null);
   const { theme } = useTheme();
-  const dangerousHtml = useMemo(() => ({ __html: html }), [html]);
+  const dangerousHtml = useMemo(() => ({ __html: deferGalleryImageSources(html) }), [html]);
 
   useLayoutEffect(() => {
     const container = containerRef.current;
@@ -84,7 +86,7 @@ export function ForumMarkup({
       image.dataset.capubbsImageLoaded = 'true';
     };
     const listeners = images.map((image) => {
-      if (image.complete) {
+      if (image.complete && image.getAttribute('src')) {
         markLoaded(image);
         return null;
       }
@@ -126,7 +128,7 @@ export function ForumMarkup({
       return {
         alt: candidate.alt.trim(),
         element: candidate,
-        src: candidate.currentSrc || candidate.src,
+        src: candidate.currentSrc || candidate.getAttribute('src') || candidate.dataset.capubbsGallerySrc || '',
         ...(location ? {
           galleryId: location.galleryId,
           galleryIndex: location.galleryIndex,

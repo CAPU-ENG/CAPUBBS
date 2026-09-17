@@ -27,7 +27,7 @@ function imageAt(top, gallery = null) {
   };
 }
 function container(...images) {
-  return { querySelectorAll: () => images };
+  return { querySelectorAll: (selector) => selector === 'img' ? images : [] };
 }
 
 const visible = imageAt(0);
@@ -56,22 +56,7 @@ assert.equal(visible.fetchPriority, 'low', 'leaving the viewport must lower the 
 assert.equal(distant.fetchPriority, 'high', 'jumping to a preloaded image must upgrade its priority');
 assert.equal(observers[1].targets.has(distant), true, 'eager images must remain observed for priority changes');
 
-const gallery = imageAt(8000);
-const firstSlide = imageAt(8000, gallery);
-const hiddenSlide = imageAt(0, gallery);
-hiddenSlide.getBoundingClientRect = () => ({ top: 0, bottom: 0, left: 0, right: 0, width: 0, height: 0 });
-const cleanupGallery = preloadNearbyImages(container(firstSlide, hiddenSlide));
-assert.equal(observers.length, 2, 'multiple floors must share the preload and priority observers');
-assert.equal(hiddenSlide.loading, 'lazy', 'hidden slides in a distant gallery must wait for the gallery');
 cleanup();
-assert.equal(observers[0].targets.has(gallery), true, 'unmounting another floor must not cancel gallery observation');
-observers[0].intersect(gallery);
-assert.equal(firstSlide.loading, 'eager');
-assert.equal(hiddenSlide.loading, 'eager', 'nearby galleries must preload hidden slides for switching');
-assert.equal(hiddenSlide.fetchPriority, 'low', 'hidden gallery slides must remain low priority');
-observers[1].intersect(firstSlide);
-assert.equal(firstSlide.fetchPriority, 'high', 'the visible gallery slide must be promoted independently');
-cleanupGallery();
 assert.equal(observers[0].disconnected, true, 'the observer must be released when no work remains');
 assert.equal(observers[1].disconnected, true, 'the priority observer must also be released');
 

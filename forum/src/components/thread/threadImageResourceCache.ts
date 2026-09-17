@@ -1,3 +1,5 @@
+import type { ThreadImagePriority } from './threadImagePriority';
+
 const MAX_THREAD_IMAGE_BYTES = 64 * 1024 * 1024;
 
 type ThreadImageResource = {
@@ -9,7 +11,7 @@ type ThreadImageResource = {
 const resourcePromises = new Map<string, Promise<ThreadImageResource>>();
 const resolvedResources = new Map<string, ThreadImageResource>();
 type ImagePriority = 'high' | 'low';
-type ImagePriorityReader = () => ImagePriority | null;
+type ImagePriorityReader = () => ThreadImagePriority | null;
 type QueuedImage = {
   priorities: ImagePriorityReader[];
   reject: (reason: Error) => void;
@@ -36,7 +38,11 @@ export function refreshThreadImagePriorities() {
         request.reject(new DOMException('图片所在内容已卸载', 'AbortError'));
         return;
       }
-      waiting.push({ source, request, priority: priorities.includes('high') ? 'high' : 'low' });
+      // A mounted gallery may be offscreen or on another slide. Keep its
+      // request pending so scrolling/switching can resume it without a retry.
+      if (priorities.includes('high') || priorities.includes('low')) {
+        waiting.push({ source, request, priority: priorities.includes('high') ? 'high' : 'low' });
+      }
     });
     waiting.sort((a, b) => Number(b.priority === 'high') - Number(a.priority === 'high'));
     for (const { source, request, priority } of waiting) {
@@ -56,13 +62,6 @@ export function resolveThreadImageUrl(source: string) {
 
 export function loadThreadImageResource(source: string, getPriority: ImagePriorityReader = () => 'high') {
   const sourceUrl = resolveThreadImageUrl(source);
-  const url = new URL(sourceUrl);
-  if (
-    url.origin !== window.location.origin
-    || (!url.pathname.startsWith('/bbs/images/') && !url.pathname.startsWith('/bbsimg/'))
-  ) {
-    return Promise.reject(new Error('仅代理论坛图片目录'));
-  }
   const cached = resourcePromises.get(sourceUrl);
   if (cached) {
     queuedResources.get(sourceUrl)?.priorities.push(getPriority);
@@ -89,6 +88,16 @@ export function loadThreadImageResource(source: string, getPriority: ImagePriori
 }
 
 function fetchThreadImageResource(sourceUrl: string, priority: ImagePriority) {
+  // Defer native fallbacks too: an external gallery image must not start just
+  // because the broker cannot fetch its origin.
+  const url = new URL(sourceUrl);
+  if (
+    url.origin !== window.location.origin
+    || (!url.pathname.startsWith('/bbs/images/') && !url.pathname.startsWith('/bbsimg/'))
+  ) {
+    resourcePromises.delete(sourceUrl);
+    return Promise.reject(new Error('仅代理论坛图片目录'));
+  }
   return fetch(sourceUrl, {
     credentials: 'same-origin',
     referrerPolicy: 'no-referrer',

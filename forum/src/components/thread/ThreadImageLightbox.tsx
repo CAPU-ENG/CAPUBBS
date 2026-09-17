@@ -2,6 +2,7 @@ import { useEffect, useLayoutEffect, useRef, useState, type MutableRefObject } f
 import { createPortal } from 'react-dom';
 import { ChevronLeft, ChevronRight, Minus, Plus, RotateCcw, X } from 'lucide-react';
 import type { ForumMarkupImage } from './ForumMarkup';
+import { loadGalleryImage } from '../../utils/galleryImageLoading';
 
 const MIN_IMAGE_SCALE = 1;
 const MAX_IMAGE_SCALE = 4;
@@ -512,12 +513,25 @@ function SharedLightboxImage({
   const markerRef = useRef<HTMLSpanElement | null>(null);
   const onReadyRef = useRef(onReady);
   onReadyRef.current = onReady;
+  const [loadedSource, setLoadedSource] = useState<{ image: ForumMarkupImage; src: string } | null>(null);
+
+  useEffect(() => {
+    if (image.element || !image.loadSource) return;
+    let active = true;
+    void image.loadSource().then((src) => {
+      if (active) setLoadedSource({ image, src });
+    });
+    return () => { active = false; };
+  }, [image]);
 
   useLayoutEffect(() => {
     const element = image.element;
     const marker = markerRef.current;
     const originalParent = element?.parentNode;
     if (!element || !marker?.parentNode || !originalParent) return undefined;
+
+    // A lightbox jump can select a slide that has never entered the preload window.
+    loadGalleryImage(element);
 
     const placeholder = element.ownerDocument.createComment('capubbs-lightbox-image');
     const originalStyle = element.getAttribute('style');
@@ -554,7 +568,9 @@ function SharedLightboxImage({
         draggable="false"
         onLoad={onReady}
         ref={imageRef}
-        src={image.src}
+        src={image.loadSource && !image.src.startsWith('blob:')
+          ? loadedSource?.image === image ? loadedSource.src : undefined
+          : image.src}
         style={{ transform }}
       />
     );

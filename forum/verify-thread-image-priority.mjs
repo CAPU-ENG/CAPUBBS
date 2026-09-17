@@ -11,6 +11,11 @@ assert.equal(getFrameImagePriority(frame, [bounds(0, 200)], viewport), 'low');
 assert.equal(getFrameImagePriority(frame, [bounds(2200, 2200)], viewport), 'low', 'hidden slides must not be treated as visible');
 assert.equal(getFrameImagePriority(frame, [bounds(5000, 5200), bounds(2200, 2400)], viewport), 'high', 'a shared image must use its visible occurrence');
 assert.equal(getFrameImagePriority({ ...frame, bottom: 100 }, [bounds(2200, 2400)], viewport), 'low', 'frame clipping must be respected');
+assert.equal(getFrameImagePriority(frame, [{ ...bounds(2200, 2600), gallery: 'current' }], viewport), 'high');
+assert.equal(getFrameImagePriority(frame, [{ ...bounds(2200, 2600), gallery: 'adjacent' }], viewport), 'low');
+assert.equal(getFrameImagePriority(frame, [{ ...bounds(2200, 2600), gallery: 'deferred' }], viewport), 'deferred', 'other slides in a visible gallery must not download');
+assert.equal(getFrameImagePriority(frame, [{ ...bounds(5000, 5400), gallery: 'current' }], viewport), 'deferred', 'a visible tall frame must not load distant galleries');
+assert.equal(getFrameImagePriority(frame, [{ ...bounds(5000, 5400), gallery: 'adjacent' }, { ...bounds(2200, 2600), gallery: 'current' }], viewport), 'high', 'a shared URL must use its visible gallery occurrence');
 
 const listeners = new Map();
 globalThis.window = {
@@ -86,5 +91,29 @@ await tick();
 downloads.at(-1).resolve(okResponse());
 resources.push(await retry);
 assert.equal(downloads.filter((download) => nameOf(download) === 'retry').length, 2, 'a failed download must release its slot and allow a retry');
+
+const galleryStart = downloads.length;
+let galleryPriority = 'deferred';
+const galleryPending = loadThreadImageResource(imageUrl('gallery-paused'), () => galleryPriority);
+await tick();
+assert.equal(downloads.length, galleryStart, 'offscreen galleries must stay paused even when the network is idle');
+galleryPriority = 'high';
+listeners.get('scroll')();
+await waitFor(() => downloads.length === galleryStart + 1);
+assert.equal(downloads.at(-1).priority, 'high', 'entering the viewport must resume the gallery at high priority');
+downloads.at(-1).resolve(okResponse());
+resources.push(await galleryPending);
+
+let fallbackPriority = 'deferred';
+let fallbackRejected = false;
+const fallback = loadThreadImageResource('https://images.example.com/gallery.jpg', () => fallbackPriority)
+  .catch(() => { fallbackRejected = true; });
+await tick();
+assert.equal(fallbackRejected, false, 'an external gallery must not trigger native fallback while offscreen');
+fallbackPriority = 'high';
+refreshThreadImagePriorities();
+await fallback;
+assert.equal(fallbackRejected, true);
+assert.equal(downloads.length, galleryStart + 1, 'external fallbacks must not fetch through the same-origin broker');
 resources.forEach((resource) => URL.revokeObjectURL(resource.objectUrl));
 console.log('thread image priority verification passed');

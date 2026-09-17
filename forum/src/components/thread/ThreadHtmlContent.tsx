@@ -38,6 +38,7 @@ import {
 } from './threadImageResourceCache';
 import { getFrameImagePriority, type FrameImageBounds } from './threadImagePriority';
 import { preparePunishmentTableFit } from './punishmentTableFit';
+import { getGalleryImageState } from '../../utils/galleryImageLoading';
 
 const MIN_SIGNATURE_FRAME_HEIGHT = 28;
 const MIN_FLOOR_FRAME_HEIGHT = 64;
@@ -374,6 +375,8 @@ function ThreadSandboxedHtmlFrame({
           ...image,
           element: typeof image.elementIndex === 'number' ? frameImages[image.elementIndex] : undefined,
           src: getCachedThreadImageObjectUrl(image.src) ?? image.src,
+          loadSource: () => loadThreadImageResource(image.src)
+            .then((resource) => resource.objectUrl, () => image.src),
         }));
         const syncImage: ForumMarkupImageChangeHandler = (imageIndex) => {
           const image = sharedImages[imageIndex];
@@ -560,6 +563,7 @@ function buildFrameBridgeScript(frameId: string, canOpenImages: boolean, needsJq
     var canOpenImages=${JSON.stringify(canOpenImages)};
     var needsJquery=${JSON.stringify(needsJquery)};
     var preparePunishmentTableFit=${preparePunishmentTableFit.toString()};
+    var getGalleryImageState=${getGalleryImageState.toString()};
     var normalizeEmbeddedPlayerUrl=${normalizeEmbeddedPlayerUrl.toString()};
     var playerIds=new WeakMap();
     var nextPlayerId=0;
@@ -898,8 +902,11 @@ function buildFrameBridgeScript(frameId: string, canOpenImages: boolean, needsJq
     }
     function getImageResourceBounds(images){
       return images.map(function(image){
-        var bounds=image.getBoundingClientRect();
-        return {top:bounds.top,bottom:bounds.bottom,left:bounds.left,right:bounds.right};
+        var state=getGalleryImageState(image);
+        var bounds=(state?state.gallery:image).getBoundingClientRect();
+        var result={top:bounds.top,bottom:bounds.bottom,left:bounds.left,right:bounds.right};
+        if(state)result.gallery=state.role;
+        return result;
       });
     }
     function reportImageResourceLayout(requestId){
@@ -1125,9 +1132,9 @@ function buildFrameBridgeScript(frameId: string, canOpenImages: boolean, needsJq
       if(document.fonts&&document.fonts.ready)document.fonts.ready.then(queueHeight);
       if(needsJquery)window.parent.postMessage({source:'${HTML_FRAME_MESSAGE_SOURCE}',type:'jquery-request',frameId:frameId},'*');
       else executeUserScripts();
-      requestImageResources();
       prepareImages();
       prepareGalleries();
+      requestImageResources();
       syncGrayscaleTextColors(contentRoot);
       queueHeight();
     }
@@ -1225,7 +1232,9 @@ function isHtmlFrameMessage(value: unknown): value is HtmlFrameMessage {
     return typeof message.requestId === 'string'
       && message.requestId.length > 0
       && Array.isArray(message.bounds)
-      && message.bounds.every((bounds) => bounds && ['top', 'bottom', 'left', 'right'].every(
+      && message.bounds.every((bounds) => bounds
+        && (bounds.gallery === undefined || ['current', 'adjacent', 'deferred'].includes(bounds.gallery))
+        && ['top', 'bottom', 'left', 'right'].every(
         (key) => typeof bounds[key as keyof FrameImageBounds] === 'number'
           && Number.isFinite(bounds[key as keyof FrameImageBounds]),
       ))
