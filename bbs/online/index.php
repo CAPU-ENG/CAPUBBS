@@ -63,12 +63,16 @@ a:hover#top{font-weight:bold}
         }
         echo '<td>'.$board.'</td>';
         $type=$nowonlines[$i]['onlinetype'];
-        if ($type=="web") {
+        if (in_array($type, array('web', 'desktop', 'mobile', 'pwa'), true)) {
             $logininfo=$nowonlines[$i]['logininfo'];
             if (is_array($logininfo)) $logininfo=implode(' ',$logininfo);
             $logininfo=strval($logininfo);
             $infos=getBrowser($logininfo);
-            echo '<td>web版登录</td>';
+            $loginlabels=array('web'=>'网页端', 'desktop'=>'桌面端网页', 'mobile'=>'移动端网页');
+            if ($type=='pwa') {
+                $type=trim($logininfo)==='' ? 'web' : (preg_match('/Android|iPhone|iPad|iPod|Mobile/i', $logininfo) ? 'mobile' : 'desktop');
+            }
+            echo '<td>'.$loginlabels[$type].'</td>';
             $systeminfo=$infos['platform'];
             $browserinfo=$infos['name']." ".$infos['version'];
             if ($cansee) echo "<td>$systeminfo<br>$browserinfo</td>";
