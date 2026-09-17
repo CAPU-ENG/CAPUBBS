@@ -690,13 +690,15 @@ function jiekoufunc_lzl($con, $method, $fid, $token, $ip, $params) {
             $statement = "update userinfo set lastpost=$time, tokentime=$time where username='$username'";
             mysqli_query($con, $statement);
 
-            if ($pidauthor != $username) jiekoufunc_insertmsg($con, "system", $pidauthor, "replylzl", $lzl_bid, $lzl_tid, $lzl_pid, $username, $tidtitle);
-            if ($tidauthor != $username && $tidauthor != $pidauthor) jiekoufunc_insertmsg($con, "system", $tidauthor, "reply", $lzl_bid, $lzl_tid, $lzl_pid, $username, $tidtitle);
+            // 同一接收人只保留最高优先级：楼中楼回复对象 > 楼层作者 > 帖子作者。
+            $replied = '';
             $matches = array();
             if (preg_match('/^回复 @(.*)(:|：).*/s', $text, $matches)) {
                 $replied = $matches[1];
-                if ($replied != $username && $replied != $pidauthor && $replied != $tidauthor) jiekoufunc_insertmsg($con, "system", $replied, "replylzlreply", $lzl_bid, $lzl_tid, $lzl_pid, $username, $tidtitle);
+                if ($replied != $username) jiekoufunc_insertmsg($con, "system", $replied, "replylzlreply", $lzl_bid, $lzl_tid, $lzl_pid, $username, $tidtitle);
             }
+            if ($pidauthor != $username && $pidauthor != $replied) jiekoufunc_insertmsg($con, "system", $pidauthor, "replylzl", $lzl_bid, $lzl_tid, $lzl_pid, $username, $tidtitle);
+            if ($tidauthor != $username && $tidauthor != $pidauthor && $tidauthor != $replied) jiekoufunc_insertmsg($con, "system", $tidauthor, "reply", $lzl_bid, $lzl_tid, $lzl_pid, $username, $tidtitle);
             return array(array('code' => '0'));
         } else {
             return array(array('code' => '2', 'msg' => mysqli_error($con)));
