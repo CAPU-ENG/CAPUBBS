@@ -8,7 +8,7 @@ import {
   UserRound,
   X,
 } from 'lucide-react';
-import { useMemo, useState, type FormEvent, type ReactNode } from 'react';
+import { useLayoutEffect, useMemo, useRef, useState, type FormEvent, type ReactNode } from 'react';
 import { AppBackground } from '../components/layout/AppBackground';
 import { LoadingState } from '../components/layout/LoadingState';
 import { Pagination } from '../components/layout/Pagination';
@@ -20,6 +20,7 @@ import { getThreadFloorHref, getThreadHref } from '../utils/threadRoutes';
 import { getTitleIndentationClassName } from '../utils/titleIndentation';
 import { getPublicProfilePath } from '../utils/userRoutes';
 import { ALL_BOARDS } from '../data/boards';
+import { staggerEntrance } from '../utils/staggerEntrance';
 
 type SearchRange = 'all' | 'custom' | 'year';
 
@@ -39,6 +40,7 @@ const SEARCH_HISTORY_KEY = 'capubbs-search-history:v1';
 const boards = ALL_BOARDS;
 
 export function SearchPage() {
+  const resultListRef = useRef<HTMLDivElement | null>(null);
   const initialOptions = useMemo(readOptionsFromLocation, []);
   const [draft, setDraft] = useState<SearchOptions>(initialOptions);
   const [applied, setApplied] = useState<SearchOptions>(initialOptions);
@@ -62,6 +64,11 @@ export function SearchPage() {
   const safePage = Math.min(currentPage, pageCount);
   const visibleResults = results.slice((safePage - 1) * SEARCH_PAGE_SIZE, safePage * SEARCH_PAGE_SIZE);
   useDocumentTitle(applied.keyword ? `“${applied.keyword}”` : hasSearch ? '筛选结果' : '等待搜索');
+
+  useLayoutEffect(() => {
+    const rows = resultListRef.current?.querySelectorAll<HTMLElement>(':scope > .search-result-row');
+    if (rows) staggerEntrance(rows);
+  }, [hasSearch, results, safePage, status]);
 
   function applySearch(options: SearchOptions) {
     const normalized = { ...options, author: options.author.trim(), keyword: options.keyword.trim() };
@@ -140,7 +147,7 @@ export function SearchPage() {
             ) : visibleResults.length === 0 ? (
               <SearchEmpty field={applied.field} keyword={applied.keyword} />
             ) : (
-              <div className="search-result-list">
+              <div className="search-result-list" ref={resultListRef}>
                 {visibleResults.map((result) => (
                   <SearchResultRow
                     field={applied.field}

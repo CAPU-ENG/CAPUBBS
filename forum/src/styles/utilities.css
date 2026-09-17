@@ -34,6 +34,9 @@
   @media (min-width: 1024px) and (prefers-reduced-motion: no-preference) {
     .feed-section .feed-item[data-forum-entered],
     .board-thread-table > tbody > .board-thread-row[data-forum-entered],
+    .profile-record-list > .profile-record[data-forum-entered],
+    .message-list .message-card[data-forum-entered],
+    .search-result-list > .search-result-row[data-forum-entered],
     .thread-page-shell > .thread-title-card {
       animation: forum-content-enter 260ms cubic-bezier(0.2, 0.7, 0.2, 1) backwards;
       animation-delay: var(--forum-enter-delay, 0ms);
@@ -51,9 +54,33 @@
     .thread-page-shell > .thread-top-pagination,
     .thread-page-shell > .thread-bottom-pagination,
     .thread-side-rail > .floor-node-rail,
-    .thread-side-rail > .thread-assistive-tools {
+    .thread-side-rail > .thread-assistive-tools,
+    .profile-overview > .profile-identity-card,
+    .profile-detail-grid > .profile-data-card,
+    .profile-overview > .profile-stat-grid,
+    .profile-workspace > .profile-tabs,
+    .profile-workspace > .profile-content-page-header,
+    .profile-workspace-aside > .profile-desktop-filter,
+    .profile-workspace-aside > .profile-aside-link,
+    .profile-workspace .profile-pagination,
+    .message-overlay > .message-dialog,
+    .message-overlay > .direct-message-dialog,
+    .search-page-shell > .search-hero,
+    .search-layout > .search-results,
+    .search-filter-aside > .search-filter-card,
+    .search-results > .search-pagination-wrap {
       animation: forum-card-enter 380ms cubic-bezier(0.22, 0.7, 0.3, 1) backwards;
       transform-origin: center top;
+    }
+
+    .profile-page-shell > .profile-workspace {
+      /* Child cards and records enter independently on desktop. */
+      animation: none;
+    }
+
+    .message-overlay > .message-dialog,
+    .message-overlay > .direct-message-dialog {
+      transform-origin: center;
     }
   }
 

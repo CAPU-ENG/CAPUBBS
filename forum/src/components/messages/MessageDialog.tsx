@@ -6,12 +6,13 @@ import {
   RotateCw,
   X,
 } from 'lucide-react';
-import { useMemo, useState, type ReactNode } from 'react';
+import { useLayoutEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { createPortal } from 'react-dom';
 import { LoadingSpinner as LoaderCircle } from '../layout/LoadingSpinner';
 import type { ForumMessage, MessageCategory, MessageSummary } from '../../types/messages';
 import { getForumNavigationHref } from '../../utils/forumNavigation';
 import { getPublicProfilePath, USER_CENTER_HREF } from '../../utils/userRoutes';
+import { staggerEntrance } from '../../utils/staggerEntrance';
 
 const MESSAGE_TABS: Array<{ icon: ReactNode; key: MessageCategory; label: string }> = [
   { icon: <MessageCircleReply size={16} />, key: 'replies', label: '回复' },
@@ -43,9 +44,15 @@ export function MessageDialog({
 }) {
   const [activeCategory, setActiveCategory] = useState<MessageCategory>('replies');
   const [isMarkingRead, setIsMarkingRead] = useState(false);
+  const messageListRef = useRef<HTMLDivElement | null>(null);
   const activeMessages = data.messages.filter((message) => message.category === activeCategory);
   const groupedMessages = useMemo(() => groupMessages(activeMessages), [activeMessages]);
   const activeUnread = data.unread[activeCategory];
+
+  useLayoutEffect(() => {
+    const cards = messageListRef.current?.querySelectorAll<HTMLElement>('.message-group > div > .message-card');
+    if (cards) staggerEntrance(cards);
+  }, [activeCategory, data.messages, isLoading]);
 
   async function markCategoryRead() {
     setIsMarkingRead(true);
@@ -93,7 +100,7 @@ export function MessageDialog({
         </nav>
 
         <div className="message-dialog-main">
-          <div className="message-list">
+          <div className="message-list" key={activeCategory} ref={messageListRef}>
             {isLoading ? (
               <MessageState icon={<LoaderCircle className="animate-spin" size={21} />} text="正在加载消息" />
             ) : error && data.messages.length === 0 ? (

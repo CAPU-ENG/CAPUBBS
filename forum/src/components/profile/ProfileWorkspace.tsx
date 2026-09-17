@@ -8,7 +8,7 @@ import {
   Trash2,
   X,
 } from 'lucide-react';
-import { useEffect, useMemo, useRef, useState, type FormEvent } from 'react';
+import { useEffect, useLayoutEffect, useMemo, useRef, useState, type FormEvent } from 'react';
 import { createPortal } from 'react-dom';
 import { Pagination } from '../layout/Pagination';
 import { ProfileFilterDialog } from './ProfileFilterDialog';
@@ -28,6 +28,7 @@ import {
 import { getForumNavigationHref } from '../../utils/forumNavigation';
 import { getProfileTabFromLocation } from '../../utils/userRoutes';
 import { getTitleIndentationClassName } from '../../utils/titleIndentation';
+import { staggerEntrance } from '../../utils/staggerEntrance';
 import {
   getRichTextEditorStorageValue,
   RichTextEditor,
@@ -87,6 +88,7 @@ export function ProfileWorkspace({
   const [hasMore, setHasMore] = useState(initialHasMore);
   const [savingRecordId, setSavingRecordId] = useState<string | null>(null);
   const recordsSourceRef = useRef({ initialHasMore, initialRecords });
+  const recordListRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
     setActiveTab(initialTab);
@@ -244,6 +246,13 @@ export function ProfileWorkspace({
   };
   const isLoading = loadingTab === activeTab;
   const activeLoadError = loadError?.tab === activeTab ? loadError.message : null;
+
+  useLayoutEffect(() => {
+    if (activeTab === 'signatures') return;
+    const rows = recordListRef.current?.querySelectorAll<HTMLElement>(':scope > .profile-record');
+    if (rows) staggerEntrance(rows);
+  }, [activeTab, activeLoadError, filteredRecords, isLoading, safePage]);
+
   const filterButton = activeTab !== 'signatures' ? (
     <button
       aria-expanded={filtersOpen}
@@ -315,7 +324,7 @@ export function ProfileWorkspace({
               <button onClick={() => setLoadError(null)} type="button">重试</button>
             </div>
           ) : visibleRecords.length ? (
-            <div className="profile-record-list">
+            <div className="profile-record-list" key={activeTab} ref={recordListRef}>
               {visibleRecords.map((record) => (
                 <ProfileRecordRow
                   activeTab={activeTab}
