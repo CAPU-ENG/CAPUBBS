@@ -1,3 +1,11 @@
+import {
+  getRichImageLayout,
+  getRichImageWidthTarget,
+  removeRichImageLayout,
+  syncRichImageLayout,
+  type RichImageTextAlign,
+} from './RichTextEditor.imageLayout.ts';
+
 export type ActiveRichImageResize = {
   contentWidth: number;
   direction: 1 | -1;
@@ -22,6 +30,7 @@ export type RichImageResizeHandle = {
   left: number;
   top: number;
   wrap: RichImageWrap;
+  textAlign: RichImageTextAlign;
 };
 
 export type RichImageWrap = 'none' | 'left' | 'right';
@@ -54,12 +63,13 @@ export function applyGalleryImageHeight(
 export function applyImageWidthPercentage(image: HTMLImageElement, widthPercentage: number) {
   const normalizedWidth = Math.round(widthPercentage * 100) / 100;
   const width = `${normalizedWidth}%`;
-  image.style.width = width;
+  getRichImageWidthTarget(image).style.width = width;
   image.style.height = 'auto';
 }
 
 export function getRichImageWrap(image: HTMLImageElement): RichImageWrap {
-  const float = image.style.cssFloat || image.getAttribute('align');
+  const float = getRichImageLayout(image) ? image.getAttribute('data-capubbs-image-wrap')
+    : image.style.cssFloat || image.getAttribute('align');
   return float === 'left' || float === 'right' ? float : 'none';
 }
 
@@ -69,6 +79,14 @@ export function applyImageTextWrap(
   currentWidthPercentage: number,
 ) {
   const wasWrapped = getRichImageWrap(image) !== 'none';
+  if (getRichImageLayout(image)) {
+    if (wrap === 'none') removeRichImageLayout(image);
+    else {
+      applyImageWidthPercentage(image, currentWidthPercentage);
+      syncRichImageLayout(image, wrap);
+      return;
+    }
+  }
   image.style.cssFloat = wrap;
   image.style.margin = wrap === 'left' ? '0 1em 0.75em 0'
     : wrap === 'right' ? '0 0 0.75em 1em' : '';

@@ -497,6 +497,7 @@ export function RichTextEditor({
     openGalleryDialog,
     openEditorGalleryForEditing,
     setRichImageWrap,
+    setRichImageTextAlign,
     updateRichImageResizeHandle,
     uploadAndInsertGallery,
     uploadAndInsertPastedImage,
@@ -752,6 +753,8 @@ export function RichTextEditor({
         saveSelection={saveSelection}
         selectedTextColor={selectedTextColor}
         selectedImageWrap={richImageResizeHandle?.wrap ?? null}
+        selectedImageTextAlign={richImageResizeHandle?.textAlign ?? 'top'}
+        setRichImageTextAlign={setRichImageTextAlign}
         setRichImageWrap={setRichImageWrap}
         setPopoverTextValue={setPopoverTextValue}
         setPopoverValue={setPopoverValue}

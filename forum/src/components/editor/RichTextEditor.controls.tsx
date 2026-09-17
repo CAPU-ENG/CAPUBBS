@@ -15,6 +15,7 @@ import { editorImageInputAccept } from './RichTextEditor.images';
 import { normalizeCssColor } from './RichTextEditor.richText';
 import type { RichToggleCommandStates } from './RichTextEditor.richDom';
 import type { RichImageWrap } from './RichTextEditor.resize';
+import type { RichImageTextAlign } from './RichTextEditor.imageLayout';
 import type { EditorPopover } from './RichTextEditor.types';
 import { HexColorPanel } from '../HexColorPicker';
 
@@ -53,6 +54,8 @@ type Props = {
   saveSelection: () => void;
   selectedTextColor: string;
   selectedImageWrap: RichImageWrap | null;
+  selectedImageTextAlign: RichImageTextAlign;
+  setRichImageTextAlign: (alignment: RichImageTextAlign) => void;
   setRichImageWrap: (wrap: RichImageWrap) => void;
   setPopoverTextValue: Dispatch<SetStateAction<string>>;
   setPopoverValue: Dispatch<SetStateAction<string>>;
@@ -72,6 +75,7 @@ export function RichTextEditorControls(props: Props) {
     openGalleryDialog, openPopover, openQuotePopover, popoverConfig, popoverTextValue, popoverValue,
     recentTextColors, runRichCommand, saveSelection, selectedTextColor,
     selectedImageWrap, setRichImageWrap,
+    selectedImageTextAlign, setRichImageTextAlign,
     setPopoverTextValue, setPopoverValue,
     toggleColorPicker, toggleRichFirstLineIndent,
   } = props;
@@ -271,6 +275,21 @@ export function RichTextEditorControls(props: Props) {
                 {option.label}
               </button>
             ))}
+            {selectedImageWrap !== 'none' ? (
+              <label className="ml-1 flex h-6 items-center gap-1 text-[length:var(--ui-font-size-md)] text-zinc-600 dark:text-zinc-300">
+                侧边文字
+                <select
+                  aria-label="侧边文字对齐"
+                  value={selectedImageTextAlign}
+                  onChange={(event) => setRichImageTextAlign(event.target.value as RichImageTextAlign)}
+                  className="h-6 rounded-[var(--control-radius)] border border-zinc-200 bg-white px-1 text-[length:var(--ui-font-size-md)] dark:border-white/10 dark:bg-zinc-950"
+                >
+                  <option value="top">顶端对齐</option>
+                  <option value="center">居中对齐</option>
+                  <option value="bottom">底端对齐</option>
+                </select>
+              </label>
+            ) : null}
           </div>
         ) : null}
 

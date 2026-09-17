@@ -57,6 +57,13 @@ import {
 import type { PastedImageState, RichTextEditorValue } from './RichTextEditor.types';
 import { escapeAttribute } from './RichTextEditor.html';
 import { escapeMarkdownLinkText } from './RichTextEditor.content';
+import {
+  applyRichImageTextAlign,
+  getRichImageLayout,
+  getRichImageLayoutScope,
+  getRichImageTextAlign,
+  type RichImageTextAlign,
+} from './RichTextEditor.imageLayout';
 
 export type GalleryDialogState = {
   images: Array<{ alt: string; caption: string; url: string }>;
@@ -144,6 +151,7 @@ export function createRichTextEditorMediaActions({
       left: (wrap === 'right' ? imageBounds.left : imageBounds.right) - shellBounds.left,
       top: imageBounds.bottom - shellBounds.top,
       wrap,
+      textAlign: getRichImageTextAlign(image),
     });
   };
 
@@ -154,11 +162,41 @@ export function createRichTextEditorMediaActions({
 
     const widthPercentage = getImageWidthPercentage(
       image.getBoundingClientRect().width,
-      getEditorContentWidth(editor),
+      getEditorContentWidth(getRichImageLayoutScope(editor, image)),
     );
     applyImageTextWrap(image, wrap, widthPercentage);
     updateContent(editor.innerHTML);
     editor.focus({ preventScroll: true });
+    saveSelection();
+    window.requestAnimationFrame(updateRichImageResizeHandle);
+  };
+
+  const setRichImageTextAlign = (alignment: RichImageTextAlign) => {
+    const editor = editorRef.current;
+    const image = selectedRichImageRef.current;
+    if (!editor || !image || !editor.contains(image)) return;
+    const wrap = getRichImageWrap(image);
+    if (wrap === 'none' || getRichImageTextAlign(image) === alignment) return;
+    const widthPercentage = getImageWidthPercentage(
+      image.getBoundingClientRect().width,
+      getEditorContentWidth(getRichImageLayoutScope(editor, image)),
+    );
+    applyRichImageTextAlign(editor, image, alignment, wrap, widthPercentage);
+    if (alignment === 'top') applyImageTextWrap(image, wrap, widthPercentage);
+    updateContent(editor.innerHTML);
+    editor.focus({ preventScroll: true });
+    const caret = document.createRange();
+    const text = getRichImageLayout(image)?.querySelector('[data-capubbs-image-text]');
+    if (text) {
+      caret.selectNodeContents(text);
+      caret.collapse(false);
+    } else {
+      caret.setStartAfter(image);
+      caret.collapse(true);
+    }
+    const selection = window.getSelection();
+    selection?.removeAllRanges();
+    selection?.addRange(caret);
     saveSelection();
     window.requestAnimationFrame(updateRichImageResizeHandle);
   };
@@ -191,6 +229,7 @@ export function createRichTextEditorMediaActions({
         return;
       }
 
+      event.preventDefault();
       selectRichImage(event.target);
       return;
     }
@@ -263,7 +302,7 @@ export function createRichTextEditorMediaActions({
     event.currentTarget.setPointerCapture(event.pointerId);
 
     const imageBounds = image.getBoundingClientRect();
-    const contentWidth = getEditorContentWidth(editor);
+    const contentWidth = getEditorContentWidth(getRichImageLayoutScope(editor, image));
 
     activeRichImageResizeRef.current = {
       contentWidth,
@@ -685,6 +724,7 @@ export function createRichTextEditorMediaActions({
     openEditorGalleryForEditing,
     selectRichImage,
     setRichImageWrap,
+    setRichImageTextAlign,
     updateRichImageResizeHandle,
     uploadAndInsertGallery,
     uploadAndInsertPastedImage,
