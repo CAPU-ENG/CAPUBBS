@@ -46,6 +46,10 @@
 
     .home-aside > .aside-card,
     .board-page-shell > .board-title-card,
+    .board-page-shell .board-pagination-footer,
+    .thread-page-shell > .thread-top-pagination,
+    .thread-page-shell > .thread-bottom-pagination,
+    .thread-page-shell > .reply-editor,
     .thread-side-rail > .floor-node-rail,
     .thread-side-rail > .thread-assistive-tools {
       animation: forum-card-enter 380ms cubic-bezier(0.22, 0.7, 0.3, 1) backwards;
