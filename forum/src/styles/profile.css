@@ -1156,6 +1156,13 @@
     width: min(720px, 100%);
   }
 
+  .profile-personalization-dialog > header {
+    position: sticky;
+    z-index: 2;
+    top: 0;
+    background: var(--surface-raised);
+  }
+
   .profile-personalization-body {
     display: grid;
   }
@@ -1177,6 +1184,14 @@
       overflow-y: auto;
       overscroll-behavior: contain;
       scrollbar-gutter: stable;
+    }
+  }
+
+  @media (max-width: 1023px) {
+    .profile-personalization-dialog {
+      max-height: calc(100dvh - 48px);
+      overflow-y: auto;
+      overscroll-behavior: contain;
     }
   }
 
@@ -2277,6 +2292,10 @@
       width: 100%;
       max-height: calc(100vh - 24px);
       overflow-y: auto;
+    }
+
+    .profile-personalization-dialog {
+      max-height: calc(100dvh - 24px);
     }
 
     .profile-decoration-columns {
