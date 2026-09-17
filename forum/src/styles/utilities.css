@@ -34,7 +34,10 @@
   @media (min-width: 1024px) and (prefers-reduced-motion: no-preference) {
     .feed-section .feed-item[data-forum-entered],
     .board-thread-table > tbody > .board-thread-row[data-forum-entered],
+    .board-thread-management-cell > .board-thread-management-actions,
     .profile-record-list > .profile-record[data-forum-entered],
+    .profile-identity-copy > .profile-intro-editor,
+    .profile-detail-grid > .profile-data-card > input,
     .profile-identity-copy > .user-tag-list > .user-tag[data-forum-entered],
     .profile-identity-medals > .profile-identity-medal-button[data-forum-entered],
     .profile-decoration-columns > .profile-decoration-column[data-forum-entered],
