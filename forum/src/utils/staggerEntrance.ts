@@ -6,6 +6,7 @@ export function staggerEntrance(elements: Iterable<HTMLElement>) {
 
     // Keep long lists quick and start each new batch without replaying existing rows.
     element.style.setProperty('--forum-enter-delay', `${Math.min(index, 10) * 24}ms`);
+    element.style.setProperty('--forum-enter-mobile-delay', `${Math.min(index, 6) * 15}ms`);
     element.dataset.forumEntered = 'true';
     index += 1;
   }

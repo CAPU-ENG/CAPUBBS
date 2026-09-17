@@ -1,7 +1,8 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { Bike, CalendarDays, ChevronDown, ChevronRight, Pin } from 'lucide-react';
 import type { HomeCalendarEvent, HomeSignupActivity, HomeThread } from '../../api/home';
 import type { HomeDataStatus } from '../../hooks/useHomeData';
+import { useMobilePresence } from '../../hooks/useMobilePresence';
 import { getForumNavigationHref } from '../../utils/forumNavigation';
 import { getTitleIndentationClassName } from '../../utils/titleIndentation';
 import { ActivityCalendar, ActivitySignupList } from './HomeAside';
@@ -34,6 +35,15 @@ export function MobileActivityBar({
   const hasUnreadPinnedThreads = pinnedItems.some((thread) => !readThreadIds.has(thread.id));
   const hasSignupActivities = signupItems.length > 0;
   const tabCount = Number(hasPinnedThreads) + Number(hasSignupActivities) + 1;
+  const activePanel = (expandedPanel === 'pinned' && !hasPinnedThreads)
+    || (expandedPanel === 'signup' && !hasSignupActivities) ? null : expandedPanel;
+  const retainedPanel = useRef(activePanel);
+  const { present, closing } = useMobilePresence(activePanel !== null, 120);
+  const displayedPanel = activePanel ?? retainedPanel.current;
+
+  useLayoutEffect(() => {
+    if (activePanel) retainedPanel.current = activePanel;
+  }, [activePanel]);
 
   useEffect(() => {
     const mobileQuery = window.matchMedia('(max-width: 1023px)');
@@ -68,6 +78,7 @@ export function MobileActivityBar({
       lastScrollY = Math.max(window.scrollY, 0);
       currentOffset = 0;
       setHideOffset(0);
+      setExpandedPanel(null);
     }
 
     window.addEventListener('scroll', onScroll, { passive: true });
@@ -136,37 +147,38 @@ export function MobileActivityBar({
         </button>
       </div>
 
-      {hasPinnedThreads && expandedPanel === 'pinned' && (
-        <div className="mobile-overview-panel" id="mobile-pinned-panel">
-          <ul className="mobile-pinned-list">
-            {pinnedItems.map((thread) => (
-              <li key={thread.id}>
-                <a href={getForumNavigationHref(thread.href, window.location.href)}>
-                  {!readThreadIds.has(thread.id) && <span>新</span>}
-                  <strong className={getTitleIndentationClassName(thread.title)}>{thread.title}</strong>
-                  <ChevronRight size={14} />
-                </a>
-              </li>
-            ))}
-          </ul>
-        </div>
-      )}
-
-      {hasSignupActivities && expandedPanel === 'signup' && (
-        <div className="mobile-overview-panel" id="mobile-signup-panel">
-          <ActivitySignupList className="mobile-signup-list" items={signupItems} />
-        </div>
-      )}
-
-      {expandedPanel === 'calendar' && (
-        <div className="mobile-overview-panel" id="mobile-calendar-panel">
-          <ActivityCalendar
-            compact
-            error={calendarError}
-            items={calendarItems}
-            onVisibleDateChange={onCalendarVisibleDateChange}
-            status={calendarStatus}
-          />
+      {present && displayedPanel && (
+        <div
+          aria-hidden={closing || undefined}
+          className="mobile-overview-panel"
+          data-mobile-closing={closing || undefined}
+          id={`mobile-${displayedPanel}-panel`}
+          inert={closing}
+          key={displayedPanel}
+        >
+          {displayedPanel === 'pinned' && (
+            <ul className="mobile-pinned-list">
+              {pinnedItems.map((thread) => (
+                <li key={thread.id}>
+                  <a href={getForumNavigationHref(thread.href, window.location.href)}>
+                    {!readThreadIds.has(thread.id) && <span>新</span>}
+                    <strong className={getTitleIndentationClassName(thread.title)}>{thread.title}</strong>
+                    <ChevronRight size={14} />
+                  </a>
+                </li>
+              ))}
+            </ul>
+          )}
+          {displayedPanel === 'signup' && <ActivitySignupList className="mobile-signup-list" items={signupItems} />}
+          {displayedPanel === 'calendar' && (
+            <ActivityCalendar
+              compact
+              error={calendarError}
+              items={calendarItems}
+              onVisibleDateChange={onCalendarVisibleDateChange}
+              status={calendarStatus}
+            />
+          )}
         </div>
       )}
     </section>

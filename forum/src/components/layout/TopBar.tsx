@@ -25,6 +25,7 @@ import { MessageCenter } from '../messages/MessageCenter';
 import { getBoardById } from '../../data/boards';
 import { usePinnedBoardIds } from '../../hooks/usePinnedBoards';
 import { useTheme } from '../../hooks/useTheme';
+import { useMobilePresence } from '../../hooks/useMobilePresence';
 
 export function TopBar({
   autoHidden = false,
@@ -61,6 +62,7 @@ export function TopBar({
   const { theme, toggleTheme } = useTheme();
   const [boardsOpen, setBoardsOpen] = useState(false);
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
+  const { present: mobileSidebarPresent, closing: mobileSidebarClosing } = useMobilePresence(mobileSidebarOpen, 180);
   const [profileOpen, setProfileOpen] = useState(false);
   const [boardDrawerCenter, setBoardDrawerCenter] = useState<number | null>(null);
   const closeTimer = useRef<number | null>(null);
@@ -83,10 +85,10 @@ export function TopBar({
   }, [authStatus]);
 
   useEffect(() => {
-    const layerOpen = boardsOpen || mobileSidebarOpen;
+    const layerOpen = boardsOpen || mobileSidebarPresent;
     document.body.classList.toggle('layer-open', layerOpen);
     return () => document.body.classList.remove('layer-open');
-  }, [boardsOpen, mobileSidebarOpen]);
+  }, [boardsOpen, mobileSidebarPresent]);
 
   const contextTitleVisible = Boolean(showContextTitle && contextTitle);
 
@@ -273,7 +275,8 @@ export function TopBar({
     );
   }
 
-  const anyOverlayOpen = boardsOpen || mobileSidebarOpen;
+  const anyOverlayOpen = boardsOpen || mobileSidebarPresent;
+  const overlayClosing = mobileSidebarClosing && !boardsOpen;
 
   return (
     <>
@@ -506,7 +509,17 @@ export function TopBar({
         )}
       </header>
 
-      {anyOverlayOpen && <button className="page-overlay" type="button" aria-label="关闭当前面板" onClick={closeAllLayers} />}
+      {anyOverlayOpen && (
+        <button
+          aria-hidden={overlayClosing || undefined}
+          aria-label="关闭当前面板"
+          className={`page-overlay${mobileSidebarPresent ? ' mobile-sidebar-overlay' : ''}`}
+          data-mobile-closing={overlayClosing || undefined}
+          inert={overlayClosing}
+          onClick={closeAllLayers}
+          type="button"
+        />
+      )}
 
       <MobileBoardSidebar
         open={mobileSidebarOpen}

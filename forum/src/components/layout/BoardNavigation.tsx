@@ -108,6 +108,7 @@ export function MobileBoardSidebar({
       aria-hidden={!open}
       aria-label="移动端左侧栏"
       className={`mobile-sidebar ${open ? 'mobile-sidebar-open' : ''}`}
+      inert={!open}
     >
       <div className="flex h-16 items-center border-b border-[var(--line)] px-4">
         <a className="flex min-w-0 items-center gap-0.5" href={toForumHref('/')} onClick={onClose}>
