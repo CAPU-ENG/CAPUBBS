@@ -69,7 +69,7 @@ export function StarRulesDialog({
   open: boolean;
 }) {
   return (
-    <DialogPresence>{open && (<DialogFrame icon={<Star size={18} />} onClose={onClose} open={open} title="星级规则">
+    <DialogPresence mobileSize="compact">{open && (<DialogFrame icon={<Star size={18} />} onClose={onClose} open={open} title="星级规则">
       <div className="profile-dialog-body profile-star-rules">
         <div className="profile-star-current">
           <span>当前星级</span>
@@ -284,7 +284,7 @@ export function SecurityDialog({
   }, [open]);
 
   return (
-    <DialogPresence>{open && (<DialogFrame icon={<LockKeyhole size={18} />} onClose={onClose} open={open} title="修改密码">
+    <DialogPresence mobileSize="compact">{open && (<DialogFrame icon={<LockKeyhole size={18} />} onClose={onClose} open={open} title="修改密码">
       <div className="profile-dialog-body profile-security-fields">
         <label className="profile-dialog-field"><span>当前密码</span><input type="password" value={currentPassword} onChange={(event) => setCurrentPassword(event.target.value)} /></label>
         <label className="profile-dialog-field"><span>新密码</span><input type="password" value={newPassword} onChange={(event) => setNewPassword(event.target.value)} /></label>

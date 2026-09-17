@@ -219,7 +219,7 @@ export function HtmlSnippetDialog({
         )}
       </section>
 
-      <DialogPresence>{deleteTarget ? (
+      <DialogPresence mobileSize="compact">{deleteTarget ? (
         <DialogLayer
           className="absolute inset-0 z-10 grid place-items-center bg-black/55 p-4"
           onMouseDown={() => setDeleteTarget(null)}

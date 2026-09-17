@@ -751,7 +751,7 @@ export function ThreadFloor({
           onClose={closeImagePreview}
         />
       )}</DialogPresence>
-      <DialogPresence>{deleteDialogTarget && (
+      <DialogPresence mobileSize="compact">{deleteDialogTarget && (
         <DeleteReplyDialog
           floor={floor}
           isMainPost={isMainPost}

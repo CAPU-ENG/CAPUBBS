@@ -255,7 +255,7 @@ export function ActivitySignupForm({
           title={`Re: ${threadTitle}`}
         />
       )}</DialogPresence>
-      <DialogPresence>{cancelDialogOpen && (
+      <DialogPresence mobileSize="compact">{cancelDialogOpen && (
         <ActivitySignupCancelDialog
           isConfirming={submitting}
           onCancel={() => {
@@ -264,7 +264,7 @@ export function ActivitySignupForm({
           onConfirm={() => { void cancelSignup(); }}
         />
       )}</DialogPresence>
-      <DialogPresence>{punishmentReminderOpen && (
+      <DialogPresence mobileSize="compact">{punishmentReminderOpen && (
         <ActivitySignupPunishmentReminder onClose={() => window.location.reload()} />
       )}</DialogPresence>
     </section>

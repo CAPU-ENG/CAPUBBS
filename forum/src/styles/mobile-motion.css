@@ -13,10 +13,124 @@
     to { opacity: 0; transform: translateY(-4px); }
   }
 
+  @keyframes forum-mobile-floor-enter {
+    0% { transform: scale(0.994); }
+    65% { transform: scale(1.001); }
+    100% { transform: scale(1); }
+  }
+
+  @keyframes forum-mobile-dialog-enter {
+    from { transform: translateY(10px); }
+    to { transform: translateY(0); }
+  }
+
+  @keyframes forum-mobile-dialog-exit {
+    to { transform: translateY(6px); }
+  }
+
+  @keyframes forum-mobile-compact-dialog-enter {
+    from { transform: translateY(4px) scale(0.985); }
+    to { transform: translateY(0) scale(1); }
+  }
+
+  @keyframes forum-mobile-compact-dialog-exit {
+    to { transform: translateY(2px) scale(0.99); }
+  }
+
+  @media (max-width: 1023px) {
+    body:has([data-forum-dialog-layer="true"]) {
+      overflow: hidden;
+    }
+  }
+
   @media (max-width: 1023px) and (prefers-reduced-motion: no-preference) {
-    .feed-section .feed-item[data-forum-entered] {
+    .feed-section .feed-item[data-forum-entered],
+    .thread-page-shell > .thread-title-card,
+    .nested-replies > article[data-forum-entered] {
       animation: forum-mobile-content-enter 180ms cubic-bezier(0.2, 0.7, 0.2, 1) backwards;
       animation-delay: var(--forum-enter-mobile-delay, 0ms);
+    }
+
+    .thread-floor-list > .thread-floor[data-forum-viewport-entrance="entering"],
+    .thread-page-shell > .thread-top-pagination,
+    .thread-page-shell > .thread-bottom-pagination {
+      /* Leave content readable and keep the top edge stable for floor jump links. */
+      animation: forum-mobile-floor-enter 220ms cubic-bezier(0.22, 0.7, 0.3, 1) backwards;
+      transform-origin: center top;
+    }
+
+    .thread-page-jump details[open] > .thread-page-jump-menu {
+      animation: forum-mobile-content-enter 160ms ease-out backwards;
+    }
+
+    [data-forum-mobile-dialog],
+    dialog[data-forum-mobile-dialog]::backdrop {
+      --forum-mobile-dialog-enter-duration: 220ms;
+      --forum-mobile-dialog-exit-duration: 160ms;
+      --forum-mobile-dialog-enter-name: forum-mobile-dialog-enter;
+      --forum-mobile-dialog-exit-name: forum-mobile-dialog-exit;
+    }
+
+    [data-forum-mobile-dialog="compact"],
+    dialog[data-forum-mobile-dialog="compact"]::backdrop {
+      --forum-mobile-dialog-enter-duration: 180ms;
+      --forum-mobile-dialog-exit-duration: 120ms;
+      --forum-mobile-dialog-enter-name: forum-mobile-compact-dialog-enter;
+      --forum-mobile-dialog-exit-name: forum-mobile-compact-dialog-exit;
+    }
+
+    [data-forum-dialog-layer="true"] {
+      animation: overlay-in var(--forum-mobile-dialog-enter-duration) ease-out backwards;
+    }
+
+    /* Animate dialog shells only; image lightboxes keep their own pan/zoom transforms. */
+    [data-forum-dialog-layer="true"] > :is(
+      .message-dialog, .direct-message-dialog, .punishment-dialog,
+      .archive-room-dialog, .archive-room-delete-dialog,
+      .profile-dialog, .profile-medal-lightbox, .management-dialog,
+      .activity-summary-value-dialog, .thread-delete-dialog,
+      .reply-preview-dialog, .attachment-dialog, .gallery-dialog,
+      .html-snippet-dialog, .html-snippet-delete-dialog, .pasted-image-dialog
+    ) {
+      animation: var(--forum-mobile-dialog-enter-name) var(--forum-mobile-dialog-enter-duration)
+        cubic-bezier(0.2, 0.8, 0.2, 1) backwards;
+      transform-origin: center;
+    }
+
+    [data-forum-dialog-layer="true"][data-forum-closing="true"] {
+      animation: forum-dialog-exit var(--forum-mobile-dialog-exit-duration) ease-in forwards;
+      pointer-events: none;
+    }
+
+    [data-forum-dialog-layer="true"][data-forum-closing="true"] > :is(
+      .message-dialog, .direct-message-dialog, .punishment-dialog,
+      .archive-room-dialog, .archive-room-delete-dialog,
+      .profile-dialog, .profile-medal-lightbox, .management-dialog,
+      .activity-summary-value-dialog, .thread-delete-dialog,
+      .reply-preview-dialog, .attachment-dialog, .gallery-dialog,
+      .html-snippet-dialog, .html-snippet-delete-dialog, .pasted-image-dialog
+    ) {
+      animation: var(--forum-mobile-dialog-exit-name) var(--forum-mobile-dialog-exit-duration) ease-in forwards;
+    }
+
+    dialog[data-forum-mobile-dialog][open] {
+      animation: overlay-in var(--forum-mobile-dialog-enter-duration) ease-out backwards,
+        var(--forum-mobile-dialog-enter-name) var(--forum-mobile-dialog-enter-duration)
+        cubic-bezier(0.2, 0.8, 0.2, 1) backwards;
+    }
+
+    dialog[data-forum-mobile-dialog][open]::backdrop {
+      animation: overlay-in var(--forum-mobile-dialog-enter-duration) ease-out backwards;
+    }
+
+    dialog[data-forum-mobile-dialog][data-forum-closing="true"] {
+      animation: forum-dialog-exit var(--forum-mobile-dialog-exit-duration) ease-in forwards,
+        var(--forum-mobile-dialog-exit-name) var(--forum-mobile-dialog-exit-duration) ease-in forwards;
+      pointer-events: none;
+    }
+
+    dialog[data-forum-mobile-dialog][data-forum-closing="true"]::backdrop {
+      animation: forum-dialog-exit var(--forum-mobile-dialog-exit-duration) ease-in forwards;
     }
 
     .mobile-overview-panel {
