@@ -1,3 +1,4 @@
+import { DialogPresence } from '../layout/DialogPresence';
 import { Crop, Save, X } from 'lucide-react';
 import { useRef, useState, type CSSProperties } from 'react';
 import { AvatarDialog } from '../profile/AvatarEditorDialog';
@@ -124,14 +125,14 @@ export function MedalDesignerPanel({ initialDraft, mode, onCancel, onSave, savin
           </section>
         </div>
       </section>
-      <AvatarDialog
+      <DialogPresence>{cropOpen && (<AvatarDialog
         avatarSrc={imageSource}
         mode="medal"
         onClose={() => setCropOpen(false)}
         onSave={(src) => setImageSource(src)}
         open={cropOpen}
         showDefaultOption={false}
-      />
+      />)}</DialogPresence>
     </>
   );
 }

@@ -1,3 +1,4 @@
+import { DialogLayer, DialogPresence } from '../layout/DialogPresence';
 import {
   ArrowLeft,
   ExternalLink,
@@ -294,7 +295,7 @@ export function ProfileWorkspace({
 
       {!backLink && filterButton ? <div className="profile-filter-toolbar">{filterButton}</div> : null}
 
-      {filtersOpen && activeTab !== 'signatures' ? (
+      <DialogPresence>{filtersOpen && activeTab !== 'signatures' ? (
         <ProfileFilterDialog
           invalidRange={Boolean(startDate && endDate && startDate > endDate)}
           onClose={() => setFiltersOpen(false)}
@@ -302,7 +303,7 @@ export function ProfileWorkspace({
         >
           <ProfileFilterPanel {...filterPanelProps} showTitle={false} />
         </ProfileFilterDialog>
-      ) : null}
+      ) : null}</DialogPresence>
 
       {notice ? createPortal(
         <div className={`profile-toast ${notice.tone === 'error' ? 'profile-toast-error' : ''}`} role="status">
@@ -517,7 +518,7 @@ function ProfileRecordRow({
         ) : <p className="profile-signature-content">{toPlainText(record.excerpt, record.contentMode)}</p>
       ) : null}
 
-      {floorLinkOpen ? (
+      <DialogPresence>{floorLinkOpen ? (
         <SignatureFloorLinkDialog
           initialValue={draftFloorReference ? buildSignatureFloorHref(draftFloorReference) : ''}
           onClose={() => setFloorLinkOpen(false)}
@@ -526,7 +527,7 @@ function ProfileRecordRow({
             setFloorLinkOpen(false);
           }}
         />
-      ) : null}
+      ) : null}</DialogPresence>
     </article>
   );
 }
@@ -563,7 +564,7 @@ function SignatureFloorLinkDialog({
   }
 
   return createPortal(
-    <div className="profile-dialog-backdrop" role="presentation" onMouseDown={onClose}>
+    <DialogLayer className="profile-dialog-backdrop" role="presentation" onMouseDown={onClose}>
       <form
         aria-modal="true"
         className="profile-dialog profile-floor-link-dialog"
@@ -601,7 +602,7 @@ function SignatureFloorLinkDialog({
           <button className="profile-dialog-confirm" type="submit">转换并链接</button>
         </footer>
       </form>
-    </div>,
+    </DialogLayer>,
     document.body,
   );
 }

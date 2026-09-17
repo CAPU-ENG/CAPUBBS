@@ -1,3 +1,4 @@
+import { DialogLayer } from '../layout/DialogPresence';
 import { Check, ImagePlus, RotateCcw, Scissors, Upload, X } from 'lucide-react';
 import {
   useEffect,
@@ -314,7 +315,7 @@ export function AvatarDialog({ avatarSrc, mode = 'avatar', onClose, onSave, open
   }
 
   return createPortal(
-    <div className="profile-dialog-backdrop" role="presentation">
+    <DialogLayer className="profile-dialog-backdrop" role="presentation">
       {isMedal ? (
         <svg aria-hidden="true" height="0" width="0">
           <defs>
@@ -428,7 +429,7 @@ export function AvatarDialog({ avatarSrc, mode = 'avatar', onClose, onSave, open
           </button>
         </footer>
       </section>
-    </div>,
+    </DialogLayer>,
     document.body,
   );
 }

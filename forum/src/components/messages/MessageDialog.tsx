@@ -1,3 +1,4 @@
+import { DialogLayer } from '../layout/DialogPresence';
 import {
   CheckCheck,
   Mail,
@@ -66,7 +67,7 @@ export function MessageDialog({
   }
 
   return createPortal(
-    <div className="message-overlay" onMouseDown={onClose}>
+    <DialogLayer className="message-overlay" onMouseDown={onClose}>
       <section
         aria-label="消息"
         aria-modal="true"
@@ -158,7 +159,7 @@ export function MessageDialog({
           </footer>
         </div>
       </section>
-    </div>,
+    </DialogLayer>,
     document.body,
   );
 }

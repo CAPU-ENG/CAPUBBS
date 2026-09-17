@@ -1,3 +1,4 @@
+import { DialogPresence } from '../components/layout/DialogPresence';
 import { ArrowLeft, Save, Send } from 'lucide-react';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { fetchBoardPage, isAbortError, type BoardInfo } from '../api/board';
@@ -644,7 +645,7 @@ export function ThreadComposePage() {
         ) : null}
       </main>
 
-      {previewOpen && boardName && editorViewer && (
+      <DialogPresence>{previewOpen && boardName && editorViewer && (
         <PostEditorPreviewDialog
           attachments={attachments}
           editorValue={editorValue}
@@ -659,7 +660,7 @@ export function ThreadComposePage() {
           previewedAt={previewedAt}
           title={isReply ? `Re: ${title}` : title.trim() || '未命名主题'}
         />
-      )}
+      )}</DialogPresence>
     </div>
   );
 }

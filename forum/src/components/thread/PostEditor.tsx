@@ -1,3 +1,4 @@
+import { DialogLayer, DialogPresence } from '../layout/DialogPresence';
 import { Eye, Paperclip, Trash2, UploadCloud, X } from 'lucide-react';
 import {
   useEffect,
@@ -230,7 +231,7 @@ export function PostEditor({
         </div>
       </footer>
 
-      {attachmentDialogOpen && (
+      <DialogPresence>{attachmentDialogOpen && (
         <PostEditorAttachmentDialog
           attachments={attachments}
           description={attachmentDialogDescription}
@@ -241,7 +242,7 @@ export function PostEditor({
           uploading={uploadingAttachments}
           progress={attachmentUploadProgress}
         />
-      )}
+      )}</DialogPresence>
     </section>
   );
 }
@@ -300,7 +301,7 @@ export function PostEditorPreviewDialog({
   }, [onClose]);
 
   return (
-    <div className="reply-preview-backdrop" onClick={onClose} role="presentation">
+    <DialogLayer className="reply-preview-backdrop" onClick={onClose} role="presentation">
       <section
         aria-labelledby="post-editor-preview-title"
         aria-modal="true"
@@ -346,7 +347,7 @@ export function PostEditorPreviewDialog({
           <button className="reply-secondary-button" onClick={onClose} type="button">返回编辑</button>
         </footer>
       </section>
-    </div>
+    </DialogLayer>
   );
 }
 
@@ -385,7 +386,7 @@ function PostEditorAttachmentDialog({
   }
 
   return (
-    <div className="attachment-dialog-backdrop" onClick={onClose} role="presentation">
+    <DialogLayer className="attachment-dialog-backdrop" onClick={onClose} role="presentation">
       <section
         aria-labelledby="post-editor-attachment-dialog-title"
         aria-modal="true"
@@ -441,7 +442,7 @@ function PostEditorAttachmentDialog({
         )}
         <footer><button className="reply-publish-button" onClick={onClose} type="button">完成</button></footer>
       </section>
-    </div>
+    </DialogLayer>
   );
 }
 

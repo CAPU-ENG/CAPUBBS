@@ -1,3 +1,4 @@
+import { DialogPresence } from '../components/layout/DialogPresence';
 import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties, type FormEvent } from 'react';
 import {
   ArrowRight,
@@ -584,13 +585,13 @@ export function RegisterPage() {
           </form>
         </section>
       </main>
-      <AvatarDialog
+      <DialogPresence>{avatarDialogOpen && (<AvatarDialog
         avatarSrc={customAvatar?.src ?? ''}
         onClose={closeAvatarDialog}
         onSave={uploadAvatar}
         open={avatarDialogOpen}
         showDefaultOption={false}
-      />
+      />)}</DialogPresence>
     </div>
   );
 }

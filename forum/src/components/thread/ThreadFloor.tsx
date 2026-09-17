@@ -1,3 +1,4 @@
+import { DialogLayer, DialogPresence } from '../layout/DialogPresence';
 import {
   useEffect,
   useLayoutEffect,
@@ -22,6 +23,7 @@ import {
 } from 'lucide-react';
 import type { NestedReply, ThreadAuthor, ThreadFloorData } from '../../data/thread';
 import { getDisplayedTags } from '../../data/tags';
+import { useStaggerEntrance } from '../../hooks/useStaggerEntrance';
 import { writeClipboardText } from '../../utils/clipboard';
 import { getScopedFloorQuoteSelection } from '../../utils/floorQuote';
 import { getNestedReplyInputState } from '../../utils/nestedReply';
@@ -399,6 +401,7 @@ export function ThreadFloor({
   const [nestedReplyPending, setNestedReplyPending] = useState(false);
   const [nestedReplyTarget, setNestedReplyTarget] = useState<string | null | undefined>(undefined);
   const nestedReplyInputState = getNestedReplyInputState(nestedReplyContent);
+  const nestedRepliesRef = useStaggerEntrance<HTMLElement>(':scope > article');
   const nestedReplyCountId = `nested-reply-count-${floor.id}`;
   const [preview, setPreview] = useState<PreviewImageState | null>(null);
   const [authorCardOpen, setAuthorCardOpen] = useState(false);
@@ -616,6 +619,7 @@ export function ThreadFloor({
       {nestedReplies.length > 0 && (
         <section
           className="nested-replies"
+          ref={nestedRepliesRef}
           aria-label={`${floor.floor} 楼的楼中楼回复`}
         >
           {nestedReplies.map((reply) => (
@@ -733,15 +737,15 @@ export function ThreadFloor({
           已复制楼层链接
         </div>
       )}
-      {preview && (
+      <DialogPresence>{preview && (
         <ThreadImageLightbox
           images={preview.images}
           initialImageIndex={preview.imageIndex}
           onImageChange={preview.onImageChange}
           onClose={closeImagePreview}
         />
-      )}
-      {deleteDialogTarget && (
+      )}</DialogPresence>
+      <DialogPresence>{deleteDialogTarget && (
         <DeleteReplyDialog
           floor={floor}
           isMainPost={isMainPost}
@@ -749,7 +753,7 @@ export function ThreadFloor({
           onConfirm={confirmDelete}
           target={deleteDialogTarget}
         />
-      )}
+      )}</DialogPresence>
     </>
   );
 
@@ -819,7 +823,7 @@ function DeleteReplyDialog({
   }, [onCancel]);
 
   return (
-    <div
+    <DialogLayer
       className="thread-delete-dialog-backdrop"
       onMouseDown={(event) => {
         if (event.currentTarget === event.target) onCancel();
@@ -857,7 +861,7 @@ function DeleteReplyDialog({
           </button>
         </footer>
       </section>
-    </div>
+    </DialogLayer>
   );
 }
 

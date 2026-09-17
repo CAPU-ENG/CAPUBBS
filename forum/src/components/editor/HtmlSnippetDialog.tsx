@@ -1,3 +1,4 @@
+import { DialogLayer, DialogPresence } from '../layout/DialogPresence';
 import { Braces, Pencil, Plus, Trash2, X } from 'lucide-react';
 import { useEffect, useRef, useState, type FormEvent } from 'react';
 import { createPortal } from 'react-dom';
@@ -92,7 +93,7 @@ export function HtmlSnippetDialog({
   const dialogTitle = draft ? (draft.id ? '编辑代码片段' : '新增代码片段') : '代码片段';
 
   return createPortal(
-    <div
+    <DialogLayer
       className="fixed inset-0 z-[1100] grid place-items-center bg-black/65 p-[18px] backdrop-blur-sm dark:bg-black/75"
       onMouseDown={onCancel}
       role="presentation"
@@ -100,7 +101,7 @@ export function HtmlSnippetDialog({
       <section
         aria-labelledby="html-snippet-dialog-title"
         aria-modal="true"
-        className="flex max-h-[min(780px,calc(100dvh-36px))] w-[min(760px,100%)] flex-col overflow-hidden rounded-[2px] border border-zinc-200 bg-white text-zinc-950 shadow-2xl dark:border-white/10 dark:bg-zinc-950 dark:text-white"
+        className="html-snippet-dialog flex max-h-[min(780px,calc(100dvh-36px))] w-[min(760px,100%)] flex-col overflow-hidden rounded-[2px] border border-zinc-200 bg-white text-zinc-950 shadow-2xl dark:border-white/10 dark:bg-zinc-950 dark:text-white"
         onMouseDown={(event) => event.stopPropagation()}
         role="dialog"
       >
@@ -218,8 +219,8 @@ export function HtmlSnippetDialog({
         )}
       </section>
 
-      {deleteTarget ? (
-        <div
+      <DialogPresence>{deleteTarget ? (
+        <DialogLayer
           className="absolute inset-0 z-10 grid place-items-center bg-black/55 p-4"
           onMouseDown={() => setDeleteTarget(null)}
           role="presentation"
@@ -227,7 +228,7 @@ export function HtmlSnippetDialog({
           <section
             aria-labelledby="html-snippet-delete-title"
             aria-modal="true"
-            className="w-[min(28rem,100%)] rounded-[2px] border border-zinc-200 bg-white p-4 text-zinc-950 shadow-2xl dark:border-white/10 dark:bg-zinc-950 dark:text-white"
+            className="html-snippet-delete-dialog w-[min(28rem,100%)] rounded-[2px] border border-zinc-200 bg-white p-4 text-zinc-950 shadow-2xl dark:border-white/10 dark:bg-zinc-950 dark:text-white"
             onMouseDown={(event) => event.stopPropagation()}
             role="dialog"
           >
@@ -238,9 +239,9 @@ export function HtmlSnippetDialog({
               <button autoFocus className="h-9 rounded-[1px] bg-rose-700 px-3 font-bold text-white hover:bg-rose-800" onClick={confirmDelete} type="button">删除</button>
             </div>
           </section>
-        </div>
-      ) : null}
-    </div>,
+        </DialogLayer>
+      ) : null}</DialogPresence>
+    </DialogLayer>,
     document.body,
   );
 }

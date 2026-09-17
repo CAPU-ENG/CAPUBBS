@@ -1,3 +1,4 @@
+import { DialogLayer } from '../layout/DialogPresence';
 import { ArrowDown, ArrowUp, Images, Trash2, UploadCloud, X } from 'lucide-react';
 import {
   useCallback,
@@ -214,7 +215,7 @@ export function GalleryDialog({
   }
 
   return createPortal(
-    <div className="gallery-dialog-backdrop" onClick={isBusy ? undefined : onCancel} role="presentation">
+    <DialogLayer className="gallery-dialog-backdrop" onClick={isBusy ? undefined : onCancel} role="presentation">
       <section
         aria-labelledby="gallery-dialog-title"
         aria-modal="true"
@@ -339,7 +340,7 @@ export function GalleryDialog({
           </button>
         </footer>
       </section>
-    </div>,
+    </DialogLayer>,
     document.body,
   );
 }

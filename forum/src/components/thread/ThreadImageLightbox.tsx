@@ -1,3 +1,4 @@
+import { DialogLayer } from '../layout/DialogPresence';
 import { useEffect, useLayoutEffect, useRef, useState, type MutableRefObject } from 'react';
 import { createPortal } from 'react-dom';
 import { ChevronLeft, ChevronRight, Minus, Plus, RotateCcw, X } from 'lucide-react';
@@ -386,7 +387,7 @@ export function ThreadImageLightbox({
   if (!image) return null;
 
   return createPortal(
-    <div
+    <DialogLayer
       className="thread-image-lightbox-backdrop"
       data-can-pan={scale > MIN_IMAGE_SCALE}
       data-dragging={isDragging}
@@ -494,7 +495,7 @@ export function ThreadImageLightbox({
           </button>
         </div>
       </figure>
-    </div>,
+    </DialogLayer>,
     document.body,
   );
 }

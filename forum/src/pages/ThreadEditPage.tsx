@@ -1,3 +1,4 @@
+import { DialogPresence } from '../components/layout/DialogPresence';
 import { ArrowLeft, Save } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 import {
@@ -280,7 +281,7 @@ export function ThreadEditPage() {
         )}
       </main>
 
-      {previewOpen && floor && (
+      <DialogPresence>{previewOpen && floor && (
         <PostEditorPreviewDialog
           attachments={attachments}
           editorValue={editorValue}
@@ -292,7 +293,7 @@ export function ThreadEditPage() {
           previewedAt={formatPostTime(floor.updatedAt || floor.createdAt)}
           title={displayTitle}
         />
-      )}
+      )}</DialogPresence>
     </div>
   );
 }

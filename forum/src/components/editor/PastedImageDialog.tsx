@@ -1,3 +1,4 @@
+import { DialogLayer } from '../layout/DialogPresence';
 import { Image as ImageIcon } from 'lucide-react';
 import { maxInlineImageBytes } from './RichTextEditor.constants';
 import { formatBytes } from './RichTextEditor.images';
@@ -38,7 +39,7 @@ export function PastedImageDialog({
   const isBusy = image.isCompressing || image.isUploading;
 
   return (
-    <div
+    <DialogLayer
       role="dialog"
       aria-modal="true"
       aria-labelledby="pasted-image-dialog-title"
@@ -46,7 +47,7 @@ export function PastedImageDialog({
       onClick={image.isUploading ? undefined : onCancel}
     >
       <section
-        className="w-[min(calc(100vw-1.5rem),34rem)] overflow-hidden rounded-[2px] border border-zinc-200 bg-white text-zinc-950 shadow-2xl dark:border-zinc-800 dark:bg-zinc-950 dark:text-white"
+        className="pasted-image-dialog w-[min(calc(100vw-1.5rem),34rem)] overflow-hidden rounded-[2px] border border-zinc-200 bg-white text-zinc-950 shadow-2xl dark:border-zinc-800 dark:bg-zinc-950 dark:text-white"
         onClick={(event) => event.stopPropagation()}
       >
         <header className="flex items-center gap-2 border-b border-zinc-200 px-4 py-3 dark:border-white/10">
@@ -109,6 +110,6 @@ export function PastedImageDialog({
           </button>
         </footer>
       </section>
-    </div>
+    </DialogLayer>
   );
 }

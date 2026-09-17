@@ -1,3 +1,4 @@
+import { DialogLayer, DialogPresence } from '../layout/DialogPresence';
 import { ChevronLeft, ChevronRight, X } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
@@ -138,8 +139,8 @@ export function ProfileMedalGallery({
         ))}
       </div>
 
-      {activeMedal ? createPortal(
-        <div
+      <DialogPresence>{activeMedal ? createPortal(
+        <DialogLayer
           className="profile-medal-lightbox-backdrop"
           onMouseDown={(event) => {
             if (event.target === event.currentTarget) setActiveIndex(null);
@@ -197,9 +198,9 @@ export function ProfileMedalGallery({
               <ChevronRight size={28} />
             </button>
           </section>
-        </div>,
+        </DialogLayer>,
         document.body,
-      ) : null}
+      ) : null}</DialogPresence>
     </>
   );
 }

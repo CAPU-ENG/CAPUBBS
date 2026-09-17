@@ -1,3 +1,4 @@
+import { DialogLayer, DialogPresence } from '../layout/DialogPresence';
 import { CheckCircle2, LockKeyhole, Mail, MessageCircle, Send, Star, X } from 'lucide-react';
 import { useEffect, useState, type ReactNode } from 'react';
 import { createPortal } from 'react-dom';
@@ -26,7 +27,7 @@ function DialogFrame({ children, hideCloseButton = false, icon, onClose, open, t
   if (!open) return null;
 
   return createPortal(
-    <div className="profile-dialog-backdrop" role="presentation" onMouseDown={onClose}>
+    <DialogLayer className="profile-dialog-backdrop" role="presentation" onMouseDown={onClose}>
       <section
         aria-modal="true"
         className={`profile-dialog ${hideCloseButton ? 'profile-dialog-no-close' : ''}`}
@@ -40,7 +41,7 @@ function DialogFrame({ children, hideCloseButton = false, icon, onClose, open, t
         </header>
         {children}
       </section>
-    </div>,
+    </DialogLayer>,
     document.body,
   );
 }
@@ -69,7 +70,7 @@ export function StarRulesDialog({
   open: boolean;
 }) {
   return (
-    <DialogFrame hideCloseButton icon={<Star size={18} />} onClose={onClose} open={open} title="星级规则">
+    <DialogPresence>{open && (<DialogFrame hideCloseButton icon={<Star size={18} />} onClose={onClose} open={open} title="星级规则">
       <div className="profile-dialog-body profile-star-rules">
         <div className="profile-star-current">
           <span>当前星级</span>
@@ -92,7 +93,7 @@ export function StarRulesDialog({
         </table>
         <p className="profile-dialog-copy">灌水版内容单独计入灌水数，不参与星级计算。</p>
       </div>
-    </DialogFrame>
+    </DialogFrame>)}</DialogPresence>
   );
 }
 
@@ -185,7 +186,7 @@ export function EmailDialog({
   }
 
   return (
-    <DialogFrame icon={<Mail size={18} />} onClose={onClose} open={open} title="邮箱管理">
+    <DialogPresence>{open && (<DialogFrame icon={<Mail size={18} />} onClose={onClose} open={open} title="邮箱管理">
       <div className="profile-dialog-body">
         <label className="profile-dialog-field">
           <span>当前邮箱</span>
@@ -250,7 +251,7 @@ export function EmailDialog({
           }
         }}
       />
-    </DialogFrame>
+    </DialogFrame>)}</DialogPresence>
   );
 }
 
@@ -284,7 +285,7 @@ export function SecurityDialog({
   }, [open]);
 
   return (
-    <DialogFrame icon={<LockKeyhole size={18} />} onClose={onClose} open={open} title="修改密码">
+    <DialogPresence>{open && (<DialogFrame icon={<LockKeyhole size={18} />} onClose={onClose} open={open} title="修改密码">
       <div className="profile-dialog-body profile-security-fields">
         <label className="profile-dialog-field"><span>当前密码</span><input type="password" value={currentPassword} onChange={(event) => setCurrentPassword(event.target.value)} /></label>
         <label className="profile-dialog-field"><span>新密码</span><input type="password" value={newPassword} onChange={(event) => setNewPassword(event.target.value)} /></label>
@@ -309,7 +310,7 @@ export function SecurityDialog({
           }
         }}
       />
-    </DialogFrame>
+    </DialogFrame>)}</DialogPresence>
   );
 }
 
@@ -338,7 +339,7 @@ export function PrivateMessageDialog({
   }, [open]);
 
   return (
-    <DialogFrame icon={<MessageCircle size={18} />} onClose={onClose} open={open} title={`私信 ${recipient}`}>
+    <DialogPresence>{open && (<DialogFrame icon={<MessageCircle size={18} />} onClose={onClose} open={open} title={`私信 ${recipient}`}>
       <div className="profile-dialog-body">
         {sent ? (
           <div className="profile-message-sent"><CheckCircle2 size={28} /><strong>私信已发送</strong><p>对方可以在论坛消息中查看。</p></div>
@@ -372,7 +373,7 @@ export function PrivateMessageDialog({
           }}
         />
       )}
-    </DialogFrame>
+    </DialogFrame>)}</DialogPresence>
   );
 }
 

@@ -1,3 +1,4 @@
+import { DialogLayer, DialogPresence } from '../layout/DialogPresence';
 import { AlertTriangle, Ban, Check, ClipboardList, Eye, LogIn, RotateCcw, Send, X } from 'lucide-react';
 import { useEffect, useState, type FormEvent } from 'react';
 import { fetchDataDisplayPanel } from '../../api/dataDisplay';
@@ -238,7 +239,7 @@ export function ActivitySignupForm({
         </footer>
       </form>
 
-      {previewOpen && viewer && (
+      <DialogPresence>{previewOpen && viewer && (
         <PostEditorPreviewDialog
           attachments={[]}
           editorValue={{
@@ -253,8 +254,8 @@ export function ActivitySignupForm({
           previewedAt={previewedAt}
           title={`Re: ${threadTitle}`}
         />
-      )}
-      {cancelDialogOpen && (
+      )}</DialogPresence>
+      <DialogPresence>{cancelDialogOpen && (
         <ActivitySignupCancelDialog
           isConfirming={submitting}
           onCancel={() => {
@@ -262,10 +263,10 @@ export function ActivitySignupForm({
           }}
           onConfirm={() => { void cancelSignup(); }}
         />
-      )}
-      {punishmentReminderOpen && (
+      )}</DialogPresence>
+      <DialogPresence>{punishmentReminderOpen && (
         <ActivitySignupPunishmentReminder onClose={() => window.location.reload()} />
-      )}
+      )}</DialogPresence>
     </section>
   );
 }
@@ -286,7 +287,7 @@ function ActivitySignupPunishmentReminder({ onClose }: { onClose: () => void }) 
   }, [onClose]);
 
   return (
-    <div
+    <DialogLayer
       className="thread-delete-dialog-backdrop"
       onMouseDown={(event) => {
         if (event.currentTarget === event.target) onClose();
@@ -312,7 +313,7 @@ function ActivitySignupPunishmentReminder({ onClose }: { onClose: () => void }) 
           <button autoFocus className="thread-delete-dialog-confirm" onClick={onClose} type="button">我知道了</button>
         </footer>
       </section>
-    </div>
+    </DialogLayer>
   );
 }
 
@@ -340,7 +341,7 @@ function ActivitySignupCancelDialog({
   }, [isConfirming, onCancel]);
 
   return (
-    <div
+    <DialogLayer
       className="thread-delete-dialog-backdrop"
       onMouseDown={(event) => {
         if (event.currentTarget === event.target && !isConfirming) onCancel();
@@ -370,7 +371,7 @@ function ActivitySignupCancelDialog({
           </button>
         </footer>
       </section>
-    </div>
+    </DialogLayer>
   );
 }
 

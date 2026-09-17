@@ -309,7 +309,7 @@ export function RichTextEditorControls(props: Props) {
         {popoverConfig ? (
           <form
             onSubmit={handlePopoverSubmit}
-            className="flex flex-wrap items-center gap-2 border-t border-zinc-200/80 px-2 py-2 dark:border-white/10"
+            className="capubbs-editor-insert-panel flex flex-wrap items-center gap-2 border-t border-zinc-200/80 px-2 py-2 dark:border-white/10"
           >
             {activePopover === 'link' ? (
               <>

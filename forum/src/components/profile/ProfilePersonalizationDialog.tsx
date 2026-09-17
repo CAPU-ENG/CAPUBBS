@@ -1,3 +1,4 @@
+import { DialogLayer, DialogPresence } from '../layout/DialogPresence';
 import { Check, ImagePlus, Moon, Palette, Sun, Trash2, Upload, X } from 'lucide-react';
 import { useEffect, useState, type ReactNode } from 'react';
 import { createPortal } from 'react-dom';
@@ -134,7 +135,7 @@ export function ProfilePersonalizationDialog({
 
   return createPortal(
     <>
-      <div className="profile-dialog-backdrop" role="presentation">
+      <DialogLayer className="profile-dialog-backdrop" role="presentation">
         <button
           className="profile-dialog-dismiss"
           type="button"
@@ -305,9 +306,9 @@ export function ProfilePersonalizationDialog({
             </button>
           </footer>
         </section>
-      </div>
+      </DialogLayer>
 
-      <AvatarDialog
+      <DialogPresence>{cropVariant !== null && (<AvatarDialog
         avatarSrc={cropSource}
         mode="decoration"
         onClose={() => setCropVariant(null)}
@@ -326,7 +327,7 @@ export function ProfilePersonalizationDialog({
         }}
         open={cropVariant !== null}
         showDefaultOption={false}
-      />
+      />)}</DialogPresence>
     </>,
     document.body,
   );

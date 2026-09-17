@@ -1,8 +1,10 @@
+import { DialogLayer } from '../layout/DialogPresence';
 import { Send, X } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { LoadingSpinner as LoaderCircle } from '../layout/LoadingSpinner';
 import type { DirectChatMessage, DirectConversation } from '../../types/messages';
+import { useStaggerEntrance } from '../../hooks/useStaggerEntrance';
 
 export function DirectMessageDialog({
   activeConversationId,
@@ -19,6 +21,7 @@ export function DirectMessageDialog({
   onSelectConversation: (conversationId: string) => void;
   onSendMessage: (conversationId: string, text: string) => Promise<void>;
 }) {
+  const conversationsRef = useStaggerEntrance<HTMLElement>(':scope > button');
   const [draft, setDraft] = useState('');
   const [isSending, setIsSending] = useState(false);
   const [loadingConversationId, setLoadingConversationId] = useState<string | null>(null);
@@ -66,7 +69,7 @@ export function DirectMessageDialog({
   }
 
   return createPortal(
-    <div className="message-overlay" onMouseDown={onClose}>
+    <DialogLayer className="message-overlay" onMouseDown={onClose}>
       <section
         aria-label={`私信：${activeConversation.user}`}
         aria-modal="true"
@@ -84,7 +87,7 @@ export function DirectMessageDialog({
           </button>
         </header>
 
-        <aside className="direct-conversation-list">
+        <aside className="direct-conversation-list" ref={conversationsRef}>
           {conversations.map((conversation) => (
             <button
               className={conversation.id === activeConversation.id ? 'direct-conversation-active' : ''}
@@ -111,7 +114,7 @@ export function DirectMessageDialog({
             ) : loadError ? (
               <MessageTimelineState text={loadError} tone="error" />
             ) : activeConversation.messages.length > 0 ? (
-              <MessageTimeline conversation={activeConversation} messages={activeConversation.messages} />
+              <MessageTimeline conversation={activeConversation} key={activeConversation.id} messages={activeConversation.messages} />
             ) : (
               <MessageTimelineState text="还没有历史私信" />
             )}
@@ -139,7 +142,7 @@ export function DirectMessageDialog({
           </div>
         </div>
       </section>
-    </div>,
+    </DialogLayer>,
     document.body,
   );
 }

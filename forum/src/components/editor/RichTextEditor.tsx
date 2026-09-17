@@ -1,3 +1,4 @@
+import { DialogPresence } from '../layout/DialogPresence';
 import { Braces, PanelRightOpen, X } from 'lucide-react';
 import {
   useEffect,
@@ -970,28 +971,28 @@ export function RichTextEditor({
         </div>
       </footer>
     </section>
-    <PastedImageDialog
+    <DialogPresence>{pastedImage && (<PastedImageDialog
       image={pastedImage}
       previewAlt={pastedImage?.source === 'file' ? '本地图片预览' : undefined}
       title={pastedImage?.source === 'file' ? '插入本地图片' : undefined}
       onCancel={closePastedImageDialog}
       onCompress={compressPastedImage}
       onUpload={uploadAndInsertPastedImage}
-    />
-    {galleryDialogState ? (
+    />)}</DialogPresence>
+    <DialogPresence>{galleryDialogState ? (
       <GalleryDialog
         initialImages={galleryDialogState.images}
         initialTitle={galleryDialogState.title}
         onCancel={() => setGalleryDialogState(null)}
         onInsert={uploadAndInsertGallery}
       />
-    ) : null}
-    {isHtmlSnippetDialogOpen ? (
+    ) : null}</DialogPresence>
+    <DialogPresence>{isHtmlSnippetDialogOpen ? (
       <HtmlSnippetDialog
         onCancel={closeHtmlSnippetDialog}
         onInsert={insertHtmlSnippet}
       />
-    ) : null}
+    ) : null}</DialogPresence>
     </>
   );
 }

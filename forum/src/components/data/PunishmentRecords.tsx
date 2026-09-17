@@ -1,3 +1,4 @@
+import { DialogLayer, DialogPresence } from '../layout/DialogPresence';
 import {
   AlertCircle,
   Check,
@@ -242,7 +243,7 @@ export function PunishmentRecords({
         </table>
       </div>
 
-      <AddPunishmentDialog onCancel={() => setAddDialogOpen(false)} onSubmit={addRecord} open={addDialogOpen} />
+      <DialogPresence>{addDialogOpen && (<AddPunishmentDialog onCancel={() => setAddDialogOpen(false)} onSubmit={addRecord} open={addDialogOpen} />)}</DialogPresence>
     </section>
   );
 }
@@ -347,7 +348,7 @@ function AddPunishmentDialog({
   }
 
   return (
-    <div className="punishment-dialog-backdrop" onMouseDown={submitting ? undefined : onCancel} role="presentation">
+    <DialogLayer className="punishment-dialog-backdrop" onMouseDown={submitting ? undefined : onCancel} role="presentation">
       <section
         aria-labelledby="punishment-dialog-title"
         aria-modal="true"
@@ -399,7 +400,7 @@ function AddPunishmentDialog({
           </footer>
         </form>
       </section>
-    </div>
+    </DialogLayer>
   );
 }
 

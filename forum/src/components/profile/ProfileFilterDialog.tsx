@@ -1,3 +1,4 @@
+import { DialogNativeLayer } from '../layout/DialogPresence';
 import { Filter, X } from 'lucide-react';
 import { useEffect, useId, useRef, type ReactNode } from 'react';
 import { createPortal } from 'react-dom';
@@ -24,7 +25,7 @@ export function ProfileFilterDialog({ children, invalidRange, onClose, onReset }
   }, []);
 
   return createPortal(
-    <dialog
+    <DialogNativeLayer
       aria-labelledby={titleId}
       className="profile-dialog profile-filter-dialog"
       onCancel={(event) => { event.preventDefault(); onClose(); }}
@@ -41,7 +42,7 @@ export function ProfileFilterDialog({ children, invalidRange, onClose, onReset }
         <button className="profile-dialog-cancel" onClick={onReset} type="button">重置</button>
         <button className="profile-dialog-confirm" disabled={invalidRange} onClick={onClose} type="button">查看结果</button>
       </footer>
-    </dialog>,
+    </DialogNativeLayer>,
     document.body,
   );
 }

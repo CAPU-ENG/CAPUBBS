@@ -1,3 +1,4 @@
+import { DialogPresence } from '../layout/DialogPresence';
 import { Save, Send } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { LoadingSpinner as LoaderCircle } from '../layout/LoadingSpinner';
@@ -333,7 +334,7 @@ export function ReplyEditor({
         attachmentUploadProgress={attachmentUploadProgress}
         uploadingAttachments={isUploadingAttachments}
       />
-      {previewOpen && (
+      <DialogPresence>{previewOpen && (
         <PostEditorPreviewDialog
           attachments={attachments}
           editorValue={editorValue}
@@ -345,7 +346,7 @@ export function ReplyEditor({
           previewedAt={previewedAt}
           title={`Re: ${threadTitle}`}
         />
-      )}
+      )}</DialogPresence>
     </>
   );
 }

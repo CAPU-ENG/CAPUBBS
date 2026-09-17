@@ -1,3 +1,4 @@
+import { DialogLayer, DialogPresence } from '../layout/DialogPresence';
 import {
   BadgeCheck,
   CircleAlert,
@@ -420,8 +421,8 @@ export function MedalManagementWorkspace() {
 
       {notice ? <ManagementNotice kind={notice.kind}>{notice.text}</ManagementNotice> : null}
 
-      {deleteOpen && selectedMedal ? (
-        <div className="management-dialog-backdrop" role="presentation">
+      <DialogPresence>{deleteOpen && selectedMedal ? (
+        <DialogLayer className="management-dialog-backdrop" role="presentation">
           <section aria-labelledby="delete-medal-title" aria-modal="true" className="management-dialog management-confirm-dialog" role="dialog">
             <header><h2 id="delete-medal-title">删除勋章</h2></header>
             <p className="management-dialog-copy">确定删除“{selectedMedal.name}”？对应的 {members.length} 条成员记录将一并删除。</p>
@@ -430,11 +431,11 @@ export function MedalManagementWorkspace() {
               <button className="management-danger-button" disabled={pendingAction === 'medal-delete'} onClick={() => { void deleteSelectedMedal(); }} type="button"><Trash2 size={15} />{pendingAction === 'medal-delete' ? '删除中' : '删除'}</button>
             </footer>
           </section>
-        </div>
-      ) : null}
+        </DialogLayer>
+      ) : null}</DialogPresence>
 
-      {removeMemberTarget && selectedMedal ? (
-        <div className="management-dialog-backdrop" role="presentation">
+      <DialogPresence>{removeMemberTarget && selectedMedal ? (
+        <DialogLayer className="management-dialog-backdrop" role="presentation">
           <section aria-labelledby="remove-medal-member-title" aria-modal="true" className="management-dialog management-confirm-dialog" role="dialog">
             <header>
               <h2 id="remove-medal-member-title">移除成员</h2>
@@ -446,8 +447,8 @@ export function MedalManagementWorkspace() {
               <button className="management-danger-button" disabled={Boolean(pendingAction)} onClick={() => { void removeSelectedMember(); }} type="button"><Trash2 size={14} />{pendingAction?.startsWith('member-remove-') ? '移除中' : '确认移除'}</button>
             </footer>
           </section>
-        </div>
-      ) : null}
+        </DialogLayer>
+      ) : null}</DialogPresence>
     </>
   );
 }

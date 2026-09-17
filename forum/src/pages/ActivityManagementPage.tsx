@@ -1,3 +1,4 @@
+import { DialogLayer, DialogPresence } from '../components/layout/DialogPresence';
 import {
   ArrowLeft,
   Check,
@@ -504,8 +505,8 @@ function SignupSummaryPanel({
             </table>
           </div>
 
-          {expandedValue && (
-            <div
+          <DialogPresence>{expandedValue && (
+            <DialogLayer
               className="activity-summary-value-overlay"
               onClick={() => setExpandedValue(null)}
               role="presentation"
@@ -525,8 +526,8 @@ function SignupSummaryPanel({
                 </header>
                 <div>{expandedValue.value}</div>
               </section>
-            </div>
-          )}
+            </DialogLayer>
+          )}</DialogPresence>
         </>
       )}
     </section>

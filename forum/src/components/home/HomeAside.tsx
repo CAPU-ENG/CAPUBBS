@@ -3,6 +3,7 @@ import { Bike, CalendarDays, ChevronLeft, ChevronRight, Clock3, Info, Link2, Pin
 import type { HomeCalendarEvent, HomeSignupActivity, HomeThread } from '../../api/home';
 import { useAuth } from '../../context/AuthContext';
 import type { HomeDataStatus } from '../../hooks/useHomeData';
+import { useStaggerEntrance } from '../../hooks/useStaggerEntrance';
 import { calendarEventOccursOn, calendarHomeTimeLabel } from '../../utils/calendarEvents';
 import { canManageCalendar } from '../../utils/calendarManagement';
 import { toForumHref } from '../../utils/forumBasePath';
@@ -139,6 +140,7 @@ function ActivitySignupPanel({ items }: { items: HomeSignupActivity[] }) {
 }
 
 export function ActivityCalendar({ compact = false, error, items, onVisibleDateChange, status }: CalendarProps) {
+  const agendaRef = useStaggerEntrance<HTMLDivElement>(':scope > article');
   const { status: authStatus, viewer } = useAuth();
   const periodPickerId = useId();
   const periodPickerRef = useRef<HTMLDivElement | null>(null);
@@ -347,7 +349,7 @@ export function ActivityCalendar({ compact = false, error, items, onVisibleDateC
         })}
       </div>
 
-      <div className="calendar-agenda">
+      <div className="calendar-agenda" key={selectedKey} ref={agendaRef}>
         {status === 'loading' ? (
           <p>活动加载中…</p>
         ) : status === 'error' ? (

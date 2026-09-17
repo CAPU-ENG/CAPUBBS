@@ -1,3 +1,4 @@
+import { DialogPresence } from '../components/layout/DialogPresence';
 import { RefreshCw } from 'lucide-react';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { createPortal } from 'react-dom';
@@ -284,7 +285,7 @@ export function UserCenterPage() {
         />
       </main>
 
-      <AvatarDialog
+      <DialogPresence>{openDialog === 'avatar' && (<AvatarDialog
         avatarSrc={cachedAvatarSrc ?? profile.avatarSrc}
         onClose={closeDialog}
         onSave={async (src) => {
@@ -303,7 +304,7 @@ export function UserCenterPage() {
           setNotice({ message: '头像修改成功', tone: 'success' });
         }}
         open={openDialog === 'avatar'}
-      />
+      />)}</DialogPresence>
       <EmailDialog
         email={email}
         onClose={closeDialog}
@@ -322,7 +323,7 @@ export function UserCenterPage() {
         verified={profile.emailVerified}
         visible={profile.emailVisible}
       />
-      <ProfilePersonalizationDialog
+      <DialogPresence>{openDialog === 'personalization' && (<ProfilePersonalizationDialog
         onClose={closeDialog}
         onSave={(updatedProfile) => {
           profileState.replace(updatedProfile);
@@ -331,7 +332,7 @@ export function UserCenterPage() {
         }}
         open={openDialog === 'personalization'}
         profile={profile}
-      />
+      />)}</DialogPresence>
       <SecurityDialog
         onClose={closeDialog}
         onNotify={(message, tone) => setNotice({ message, tone })}

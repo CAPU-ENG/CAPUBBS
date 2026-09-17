@@ -1,3 +1,4 @@
+import { DialogPresence } from '../layout/DialogPresence';
 import { Bell } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { useMessageCenter } from '../../hooks/useMessageCenter';
@@ -74,7 +75,7 @@ export function MessageCenter({
         )}
       </button>
 
-      {messagesOpen && (
+      <DialogPresence>{messagesOpen && (
         <MessageDialog
           data={messageCenter.data}
           error={messageCenter.error}
@@ -87,9 +88,9 @@ export function MessageCenter({
           onOpenConversation={openConversation}
           onRetry={messageCenter.load}
         />
-      )}
+      )}</DialogPresence>
 
-      {activeConversationId && (
+      <DialogPresence>{activeConversationId && (
         <DirectMessageDialog
           activeConversationId={activeConversationId}
           conversations={messageCenter.data.conversations}
@@ -98,7 +99,7 @@ export function MessageCenter({
           onSelectConversation={openConversation}
           onSendMessage={messageCenter.sendDirectMessage}
         />
-      )}
+      )}</DialogPresence>
     </>
   );
 }
