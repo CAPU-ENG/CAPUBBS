@@ -1156,13 +1156,6 @@
     width: min(720px, 100%);
   }
 
-  .profile-personalization-dialog > header {
-    position: sticky;
-    z-index: 2;
-    top: 0;
-    background: var(--surface-raised);
-  }
-
   .profile-personalization-body {
     display: grid;
   }

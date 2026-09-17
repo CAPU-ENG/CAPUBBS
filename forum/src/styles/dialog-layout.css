@@ -1,0 +1,76 @@
+@layer components {
+  /* Shared by framed dialogs; scrollable content must not hide the title or close control. */
+  [data-forum-dialog-layer="true"] > [role="dialog"] > header,
+  [data-forum-dialog-layer="true"] > .pasted-image-dialog > header,
+  dialog.profile-filter-dialog > header {
+    position: sticky;
+    z-index: 5;
+    top: 0;
+    flex-shrink: 0;
+    background: inherit;
+  }
+
+  /* These dialogs scroll as a whole. Panels with their own body scroller keep that layout. */
+  .profile-dialog:not(.profile-personalization-dialog),
+  .attachment-dialog,
+  .archive-room-dialog,
+  .archive-room-delete-dialog,
+  .thread-delete-dialog,
+  [data-forum-dialog-layer="true"] > .pasted-image-dialog {
+    max-height: calc(100dvh - var(--forum-dialog-viewport-gap, 48px));
+    overflow-y: auto;
+    overscroll-behavior: contain;
+  }
+
+  .profile-filter-dialog {
+    --forum-dialog-viewport-gap: 24px;
+  }
+
+  .attachment-dialog {
+    --forum-dialog-viewport-gap: 32px;
+  }
+
+  .archive-room-dialog,
+  .archive-room-delete-dialog {
+    --forum-dialog-viewport-gap: 40px;
+  }
+
+  .thread-delete-dialog {
+    --forum-dialog-viewport-gap: 36px;
+  }
+
+  .pasted-image-dialog {
+    --forum-dialog-viewport-gap: 24px;
+  }
+
+  .management-dialog {
+    max-height: min(640px, calc(100dvh - 36px));
+    overscroll-behavior: contain;
+  }
+
+  .punishment-dialog {
+    overscroll-behavior: contain;
+  }
+
+  .reply-preview-dialog {
+    grid-template-rows: auto minmax(0, 1fr) auto;
+  }
+
+  .activity-summary-value-dialog {
+    display: flex;
+    max-height: min(70dvh, 620px);
+    flex-direction: column;
+  }
+
+  .activity-summary-value-dialog > div {
+    min-height: 0;
+    max-height: none;
+    overscroll-behavior: contain;
+  }
+
+  @media (max-width: 680px) {
+    .profile-dialog {
+      --forum-dialog-viewport-gap: 24px;
+    }
+  }
+}
