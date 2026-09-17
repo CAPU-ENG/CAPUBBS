@@ -32,7 +32,11 @@ const MEMBER_ID_COLLATOR = new Intl.Collator('zh-CN', { numeric: true, sensitivi
 const TAG_NAME_COLLATOR = new Intl.Collator('zh-CN', { sensitivity: 'base' });
 
 export function TagSummaryPanel() {
-  const tagsRef = useStaggerEntrance<HTMLElement>('.tag-summary-filter-list > button, .tag-expression-tag-palette > button');
+  const tagsRef = useStaggerEntrance<HTMLElement>([
+    '.tag-summary-filter-list > button',
+    '.tag-expression-tag-palette > button',
+    '.tag-summary-member-grid > .tag-summary-member-card',
+  ].join(', '));
   const [definitions, setDefinitions] = useState<TagDefinition[]>([]);
   const [definitionsStatus, setDefinitionsStatus] = useState<LoadStatus>('loading');
   const [queryMode, setQueryMode] = useState<QueryMode>('basic');

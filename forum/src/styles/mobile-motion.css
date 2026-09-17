@@ -4,6 +4,11 @@
     to { opacity: 1; transform: translateY(0); }
   }
 
+  @keyframes forum-mobile-row-enter {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+
   @keyframes forum-mobile-panel-enter {
     from { opacity: 0; transform: translateY(-6px); }
     to { opacity: 1; transform: translateY(0); }
@@ -44,21 +49,119 @@
   }
 
   @media (max-width: 1023px) and (prefers-reduced-motion: no-preference) {
+    /* Keep large profile containers still while their contents enter independently. */
+    .profile-overview > .profile-identity-card,
+    .profile-detail-grid > .profile-data-card,
+    .profile-page-shell > .profile-workspace {
+      animation: none;
+    }
+
     .feed-section .feed-item[data-forum-entered],
+    .board-thread-table > tbody > .board-thread-row[data-forum-entered],
+    .profile-record-list > .profile-record[data-forum-entered],
+    .profile-content-links > a[data-forum-entered],
+    .profile-identity-copy > .user-tag-list > .user-tag[data-forum-entered],
+    .profile-identity-medals > .profile-identity-medal-button[data-forum-entered],
+    .profile-decoration-columns > .profile-decoration-column[data-forum-entered],
+    .profile-tag-selector > button[data-forum-entered],
+    .profile-medal-preference-list > .profile-medal-preference[data-forum-entered],
+    .message-list .message-card[data-forum-entered],
+    .direct-conversation-list > button[data-forum-entered],
+    .search-result-list > .search-result-row[data-forum-entered],
+    .tag-summary-filter-list > .tag-summary-filter[data-forum-entered],
+    .tag-expression-tag-palette > button[data-forum-entered],
+    .tag-summary-member-grid > .tag-summary-member-card[data-forum-entered],
+    .archive-room-grid > .archive-room-grid-item,
+    .management-thread-list > article[data-forum-entered],
+    .management-member-list > button[data-forum-entered],
+    .management-mute-list > article[data-forum-entered],
+    .management-board-moderator-list > .management-board-moderator-row[data-forum-entered],
+    .management-tag-definition-list > button[data-forum-entered],
+    .management-medal-catalog-list > button[data-forum-entered],
+    .calendar-admin-event-list > article[data-forum-entered],
+    .calendar-agenda > article[data-forum-entered],
     .thread-page-shell > .thread-title-card,
     .nested-replies > article[data-forum-entered] {
       animation: forum-mobile-content-enter 180ms cubic-bezier(0.2, 0.7, 0.2, 1) backwards;
       animation-delay: var(--forum-enter-mobile-delay, 0ms);
     }
 
+    /* Table rows and chat messages fade without shifting their reading position. */
+    .data-display-card .data-table > tbody > tr[data-forum-entered],
+    .toolbox-contact-table > tbody > tr[data-forum-entered],
+    .archive-room-list > tbody > tr[data-forum-entered],
+    .management-medal-member-table > tbody > tr[data-forum-entered],
+    .management-medal-batch-table > tbody > tr[data-forum-entered],
+    .activity-summary-table-wrap > table > tbody > tr[data-forum-entered],
+    .direct-message-bubbles > .direct-message-entry {
+      animation: forum-mobile-row-enter 160ms ease-out backwards;
+      animation-delay: var(--forum-enter-mobile-delay, 0ms);
+    }
+
+    .board-page-shell > .board-title-card,
+    .profile-identity-main > .profile-avatar-button,
+    .profile-identity-copy > .profile-name-line,
+    .profile-identity-copy > .profile-intro,
+    .profile-overview > .profile-identity-actions-mobile,
+    .profile-overview > .profile-detail-grid,
+    .profile-overview > .profile-stat-grid,
+    .profile-workspace > .profile-tabs,
+    .profile-workspace > .profile-content-page-header,
+    .profile-content-menu > .profile-aside-link,
+    .search-page-shell > .search-hero,
+    .search-page-shell > .search-mobile-filters,
+    .settings-options-column > .settings-panel,
+    .data-display-shell > .data-display-tabs,
+    .data-display-card > .data-display-card-header,
+    .toolbox-shell > .toolbox-tabs,
+    .toolbox-shell > [role="tabpanel"] > .toolbox-workspace,
+    .archive-room-panel > .archive-room-heading,
+    .archive-room-panel > .archive-room-toolbar,
+    .archive-room-panel > .archive-room-subtoolbar,
+    .auth-page-shell > .auth-card,
+    .register-page-shell > .register-card,
+    .management-workspace > .management-tabs,
+    .management-card > .management-card-heading,
+    .management-member-grid > .management-member-card,
+    .management-shell > .management-state,
+    .calendar-admin-panel > .calendar-admin-heading,
+    .calendar-admin-shell > .calendar-admin-state,
+    .activity-management-workspace > .activity-management-heading,
+    .activity-management-workspace > .activity-management-metrics,
+    .activity-management-workspace > .activity-management-tabs,
+    .activity-management-panel > .activity-management-panel-heading,
+    .activity-management-shell > .activity-management-state,
+    .thread-edit-page-shell > .thread-edit-heading-card,
+    .thread-edit-page-shell > .thread-edit-request-state,
+    .not-found-shell > .not-found-panel,
+    .browser-recommendation-layer > .browser-recommendation-dialog {
+      animation: forum-mobile-content-enter 180ms cubic-bezier(0.2, 0.7, 0.2, 1) backwards;
+    }
+
+    .board-page-shell .board-pagination-footer,
+    .profile-workspace .profile-pagination,
+    .search-results > .search-pagination-wrap,
     .thread-page-shell > .thread-top-pagination,
     .thread-page-shell > .thread-bottom-pagination {
       animation: forum-mobile-pagination-enter 220ms cubic-bezier(0.22, 0.7, 0.3, 1) backwards;
       transform-origin: center top;
     }
 
-    .thread-page-jump details[open] > .thread-page-jump-menu {
+    .thread-page-jump details[open] > .thread-page-jump-menu,
+    .search-mobile-filters details[open] > .search-filter-groups,
+    .settings-board-disclosure[open] > .settings-board-group,
+    .board-thread-management-cell > .board-thread-management-actions,
+    .management-thread-confirmation,
+    .management-member-confirmation,
+    .hex-color-popover,
+    .activity-summary-select-menu,
+    .capubbs-editor-color-panel,
+    .capubbs-editor-insert-panel {
       animation: forum-mobile-content-enter 160ms ease-out backwards;
+    }
+
+    .calendar-period-popover {
+      animation: forum-centered-popover-enter 160ms ease-out backwards;
     }
 
     [data-forum-mobile-dialog],

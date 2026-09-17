@@ -1,6 +1,7 @@
 import { ChevronRight, ExternalLink } from 'lucide-react';
 import { profileTabs } from '../../data/profile';
 import type { useProfileContentNavigation } from '../../hooks/useProfileContentNavigation';
+import { useStaggerEntrance } from '../../hooks/useStaggerEntrance';
 import { getProfileTabHref } from '../../utils/userRoutes';
 import { ProfileWorkspace, type ProfileWorkspaceProps } from './ProfileWorkspace';
 import { ProfileTabIcon } from './ProfileTabIcon';
@@ -11,11 +12,12 @@ type ProfileContentProps = ProfileWorkspaceProps & {
 };
 
 export function ProfileContent({ navigation, overviewHref, ...workspaceProps }: ProfileContentProps) {
+  const linksRef = useStaggerEntrance<HTMLElement>(':scope > a');
   const { allowedTabs, asideLink, readOnly } = workspaceProps;
   if (navigation.isMobile && !navigation.isContentPage) {
     return (
       <div className="profile-content-menu">
-        <nav className="profile-content-links" aria-label="个人内容分类">
+        <nav className="profile-content-links" aria-label="个人内容分类" ref={linksRef}>
           {profileTabs.filter((tab) => allowedTabs.includes(tab.key)).map((tab) => (
             <a href={getProfileTabHref(overviewHref, tab.key)} key={tab.key}>
               <span className="profile-content-link-label"><ProfileTabIcon tab={tab.key} size={17} />{tab.label}</span>
