@@ -71,8 +71,13 @@ export function preloadVisibleGalleryImages(container: HTMLElement) {
         && bounds.right > 0 && bounds.left < window.innerWidth;
       gallery.querySelectorAll<HTMLImageElement>('img').forEach((image) => {
         image.fetchPriority = 'low';
-        if (!visible) return;
         const state = getGalleryImageState(image);
+        if (!visible || state?.role === 'deferred') {
+          // Native gallery requests also need to yield when the viewport or
+          // selected slide changes. Keep completed images for instant revisits.
+          if (!image.complete && image.hasAttribute('src')) deferGalleryImage(image);
+          return;
+        }
         if (state?.role === 'current') current.push(image);
         else if (state?.role === 'adjacent') adjacent.push(image);
       });

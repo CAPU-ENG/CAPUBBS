@@ -22,7 +22,7 @@ export type ForumMarkupImage = {
   elementIndex?: number;
   galleryId?: number;
   galleryIndex?: number;
-  loadSource?: () => Promise<string>;
+  loadSource?: (signal: AbortSignal) => Promise<string>;
   src: string;
 };
 export type ForumMarkupImageChangeHandler = (imageIndex: number) => void;

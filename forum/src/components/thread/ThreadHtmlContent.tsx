@@ -375,8 +375,12 @@ function ThreadSandboxedHtmlFrame({
           ...image,
           element: typeof image.elementIndex === 'number' ? frameImages[image.elementIndex] : undefined,
           src: getCachedThreadImageObjectUrl(image.src) ?? image.src,
-          loadSource: () => loadThreadImageResource(image.src)
-            .then((resource) => resource.objectUrl, () => image.src),
+          loadSource: (signal: AbortSignal) => {
+            signal.addEventListener('abort', refreshThreadImagePriorities, { once: true });
+            return loadThreadImageResource(image.src, () => signal.aborted ? null : 'high')
+              .then((resource) => resource.objectUrl, () => image.src)
+              .finally(() => signal.removeEventListener('abort', refreshThreadImagePriorities));
+          },
         }));
         const syncImage: ForumMarkupImageChangeHandler = (imageIndex) => {
           const image = sharedImages[imageIndex];

@@ -34,6 +34,7 @@ function makeGallery(count, top) {
     const attrs = new Map([['src', `/bbs/images/${index}.jpg`]]);
     return {
       dataset: {},
+      complete: false,
       getAttribute: (name) => attrs.get(name) ?? null,
       setAttribute: (name, value) => attrs.set(name, value),
       hasAttribute: (name) => attrs.has(name),
@@ -56,14 +57,17 @@ assert.deepEqual(loadedIndices(), [0, 1, 39], 'a 40-image gallery must load only
 assert.equal(images[0].fetchPriority, 'high');
 assert.equal(images[1].fetchPriority, 'low');
 assert.equal(images[39].fetchPriority, 'low');
+images[0].complete = true;
 gallery.current = 20;
 mutations[0].callback();
-assert.deepEqual(loadedIndices(), [0, 1, 19, 20, 21, 39], 'jumping must load the new neighborhood, not intermediate slides');
+assert.deepEqual(loadedIndices(), [0, 19, 20, 21], 'jumping must release old incomplete native requests and load the new neighborhood');
+assert.equal(images[1].dataset.capubbsGallerySrc, '/bbs/images/1.jpg', 'interrupted native images must retain their source for a later revisit');
 assert.equal(images[0].fetchPriority, 'low');
 assert.equal(images[20].fetchPriority, 'high');
 gallery.top = -1000;
 gallery.current = 30;
 mutations[0].callback();
+assert.deepEqual(loadedIndices(), [0], 'leaving the viewport must release incomplete downloads but retain completed images');
 assert.equal(images[30].hasAttribute('src'), false, 'offscreen script-driven changes must stay paused');
 loadGalleryImage(images[30]);
 assert.equal(images[30].getAttribute('src'), '/bbs/images/30.jpg', 'lightbox jumps must activate unloaded images explicitly');

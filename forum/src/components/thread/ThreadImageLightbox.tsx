@@ -517,11 +517,11 @@ function SharedLightboxImage({
 
   useEffect(() => {
     if (image.element || !image.loadSource) return;
-    let active = true;
-    void image.loadSource().then((src) => {
-      if (active) setLoadedSource({ image, src });
+    const controller = new AbortController();
+    void image.loadSource(controller.signal).then((src) => {
+      if (!controller.signal.aborted) setLoadedSource({ image, src });
     });
-    return () => { active = false; };
+    return () => controller.abort();
   }, [image]);
 
   useLayoutEffect(() => {
