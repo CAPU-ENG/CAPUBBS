@@ -347,6 +347,25 @@
 }
 
 @layer utilities {
+  @media (min-width: 1024px) {
+    .toolbox-example-table {
+      min-width: 0;
+    }
+
+    .toolbox-example-table th,
+    .toolbox-example-table td {
+      padding: 8px;
+      font-size: var(--ui-font-size-xs);
+      overflow-wrap: anywhere;
+      white-space: normal;
+    }
+
+    .toolbox-example-table th:first-child { width: 38%; }
+    .toolbox-example-table th:nth-child(2),
+    .toolbox-example-table th:nth-child(3) { width: 16%; }
+    .toolbox-example-table th:last-child { width: 30%; }
+  }
+
   @media (max-width: 940px) {
     .toolbox-example-grid {
       grid-template-columns: minmax(0, 1fr);
