@@ -920,6 +920,44 @@
 
 }
 @layer utilities {
+  @keyframes home-feed-enter {
+    from {
+      opacity: 0;
+      transform: translateY(8px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  @keyframes home-aside-enter {
+    0% {
+      opacity: 0;
+      transform: translateY(10px) scale(0.985);
+    }
+    65% {
+      opacity: 1;
+      transform: translateY(-2px) scale(1.003);
+    }
+    100% {
+      opacity: 1;
+      transform: translateY(0) scale(1);
+    }
+  }
+
+  @media (min-width: 1024px) and (prefers-reduced-motion: no-preference) {
+    .feed-section .feed-item[data-home-feed-entered] {
+      animation: home-feed-enter 260ms cubic-bezier(0.2, 0.7, 0.2, 1) backwards;
+      animation-delay: var(--home-feed-enter-delay, 0ms);
+    }
+
+    .home-aside > .aside-card {
+      animation: home-aside-enter 380ms cubic-bezier(0.22, 0.7, 0.3, 1) backwards;
+      transform-origin: center top;
+    }
+  }
+
   @media (min-width: 1024px) {
     .page-shell {
       display: grid;

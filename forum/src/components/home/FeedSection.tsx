@@ -99,7 +99,15 @@ export function FeedSection({ autoLoadMore, compactMode, error, hasMore, items, 
 
   useLayoutEffect(() => {
     const container = feedRef.current;
-    if (container) return preloadNearbyImages(container);
+    if (!container) return;
+
+    // Stagger only newly mounted rows, so each appended batch starts immediately.
+    container.querySelectorAll<HTMLElement>('.feed-item:not([data-home-feed-entered])').forEach((element, index) => {
+      element.style.setProperty('--home-feed-enter-delay', `${Math.min(index, 10) * 24}ms`);
+      element.dataset.homeFeedEntered = 'true';
+    });
+
+    return preloadNearbyImages(container);
   }, [compactMode, items]);
 
   useEffect(() => {
