@@ -7,6 +7,7 @@ import { StarRulesDialog } from './ProfileDialogs';
 import { ProfileMedalGallery } from '../medals/ProfileMedalGallery';
 import { TagList } from '../tags/TagBadge';
 import { useTheme } from '../../hooks/useTheme';
+import { useStaggerEntrance } from '../../hooks/useStaggerEntrance';
 import { getFloorDecorationPath } from '../../data/floorDecoration';
 
 export type ProfileDraft = {
@@ -62,6 +63,7 @@ export function ProfileOverview({
   onPrivateMessage,
   profile,
 }: ProfileOverviewProps) {
+  const tagsRef = useStaggerEntrance<HTMLDivElement>(':scope > .user-tag-list > .user-tag');
   const privateMode = mode === 'private';
   const [starRulesOpen, setStarRulesOpen] = useState(false);
   const { theme } = useTheme();
@@ -124,7 +126,7 @@ export function ProfileOverview({
             </div>
           )}
 
-          <div className="profile-identity-copy">
+          <div className="profile-identity-copy" ref={tagsRef}>
             <div className="profile-name-line">
               <h1>{profile.id}</h1>
               <button

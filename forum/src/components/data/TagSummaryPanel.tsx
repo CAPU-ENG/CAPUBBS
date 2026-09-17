@@ -8,6 +8,7 @@ import {
   type TagMember,
 } from '../../api/tags';
 import type { TagDefinition } from '../../data/tags';
+import { useStaggerEntrance } from '../../hooks/useStaggerEntrance';
 import { getForumNavigationHref } from '../../utils/forumNavigation';
 import {
   createTagExpressionFromFilters,
@@ -31,6 +32,7 @@ const MEMBER_ID_COLLATOR = new Intl.Collator('zh-CN', { numeric: true, sensitivi
 const TAG_NAME_COLLATOR = new Intl.Collator('zh-CN', { sensitivity: 'base' });
 
 export function TagSummaryPanel() {
+  const tagsRef = useStaggerEntrance<HTMLElement>('.tag-summary-filter-list > button, .tag-expression-tag-palette > button');
   const [definitions, setDefinitions] = useState<TagDefinition[]>([]);
   const [definitionsStatus, setDefinitionsStatus] = useState<LoadStatus>('loading');
   const [queryMode, setQueryMode] = useState<QueryMode>('basic');
@@ -148,7 +150,7 @@ export function TagSummaryPanel() {
   }
 
   return (
-    <section className="data-display-card tag-summary-card">
+    <section className="data-display-card tag-summary-card" ref={tagsRef}>
       <header className="data-display-card-header tag-summary-card-header">
         <span className="data-display-card-icon"><Tags size={17} /></span>
         <h1>标签查询</h1>

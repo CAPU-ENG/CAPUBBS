@@ -10,6 +10,7 @@ import type { ProfileViewData } from '../../data/profile';
 import type { FloorDecorationVariant } from '../../data/floorDecoration';
 import type { MedalDisplayState } from '../../data/medals';
 import { getDisplayedTags } from '../../data/tags';
+import { useStaggerEntrance } from '../../hooks/useStaggerEntrance';
 import { createFloorDecorationFile } from '../../utils/floorDecorationImage';
 import { MedalBadge } from '../medals/MedalBadge';
 import { TagList } from '../tags/TagBadge';
@@ -28,6 +29,7 @@ export function ProfilePersonalizationDialog({
   open: boolean;
   profile: ProfileViewData;
 }) {
+  const tagsRef = useStaggerEntrance<HTMLDivElement>(':scope > button');
   const [selectedTagIds, setSelectedTagIds] = useState<string[]>([]);
   const [displayMedalIds, setDisplayMedalIds] = useState<string[]>([]);
   const [hiddenMedalIds, setHiddenMedalIds] = useState<string[]>([]);
@@ -188,7 +190,7 @@ export function ProfilePersonalizationDialog({
               <p className="profile-personalization-copy">
                 点击选择标签进行展示，最多选 2 个。
               </p>
-              <div className="profile-tag-selector">
+              <div className="profile-tag-selector" ref={tagsRef}>
                 {tags.map((tag) => {
                   const selected = selectedTagIds.includes(tag.id);
                   return (
