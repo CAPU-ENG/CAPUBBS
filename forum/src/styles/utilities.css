@@ -71,6 +71,7 @@
       animation: forum-dialog-exit 140ms ease-out forwards;
     }
 
+    .feed-section .feed-item[data-forum-entered],
     .board-thread-table > tbody > .board-thread-row[data-forum-entered],
     .board-thread-management-cell > .board-thread-management-actions,
     .profile-record-list > .profile-record[data-forum-entered],
@@ -118,7 +119,6 @@
       transform-origin: center top;
     }
 
-    .feed-section .feed-item[data-forum-entered],
     .home-aside > .aside-card,
     .board-page-shell > .board-title-card,
     .board-page-shell .board-pagination-footer,
@@ -182,10 +182,6 @@
     .pasted-image-dialog {
       animation: forum-card-enter 380ms cubic-bezier(0.22, 0.7, 0.3, 1) backwards;
       transform-origin: center top;
-    }
-
-    .feed-section .feed-item[data-forum-entered] {
-      animation-delay: var(--forum-enter-delay, 0ms);
     }
 
     .profile-page-shell > .profile-workspace {
