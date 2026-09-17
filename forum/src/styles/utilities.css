@@ -10,7 +10,7 @@
     }
   }
 
-  @keyframes forum-floor-enter {
+  @keyframes forum-signup-enter {
     0% { transform: scale(0.985); }
     65% { transform: scale(1.003); }
     100% { transform: scale(1); }
@@ -133,10 +133,8 @@
       animation-delay: var(--forum-enter-delay, 0ms);
     }
 
-    .thread-floor-list > .thread-floor[data-forum-viewport-entrance="entering"],
     .thread-floor-list > .activity-signup-card {
-      /* Keep the floor's top edge stable for jump links while it springs in. */
-      animation: forum-floor-enter 380ms cubic-bezier(0.22, 0.7, 0.3, 1) backwards;
+      animation: forum-signup-enter 380ms cubic-bezier(0.22, 0.7, 0.3, 1) backwards;
       transform-origin: center top;
     }
 

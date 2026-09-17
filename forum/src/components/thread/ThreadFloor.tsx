@@ -9,7 +9,6 @@ import {
   type ClipboardEventHandler,
   type FormEvent,
   type ReactNode,
-  type Ref,
 } from 'react';
 import {
   AlertTriangle,
@@ -25,7 +24,6 @@ import {
 import type { NestedReply, ThreadAuthor, ThreadFloorData } from '../../data/thread';
 import { getDisplayedTags } from '../../data/tags';
 import { useStaggerEntrance } from '../../hooks/useStaggerEntrance';
-import { useViewportEntrance } from '../../hooks/useViewportEntrance';
 import { writeClipboardText } from '../../utils/clipboard';
 import { getScopedFloorQuoteSelection } from '../../utils/floorQuote';
 import { getNestedReplyInputState } from '../../utils/nestedReply';
@@ -189,7 +187,6 @@ function copyAsPlainText(event: ClipboardEvent<HTMLElement>) {
 
 export function ThreadFloorPresentation({
   articleAfterContent,
-  articleRef,
   author,
   avatarRail,
   className = '',
@@ -206,7 +203,6 @@ export function ThreadFloorPresentation({
   showAuthorProfile,
 }: {
   articleAfterContent?: ReactNode;
-  articleRef?: Ref<HTMLElement>;
   author: ThreadAuthor;
   avatarRail: ReactNode;
   className?: string;
@@ -231,7 +227,6 @@ export function ThreadFloorPresentation({
       data-floor={floor}
       id={id}
       onCopy={onCopy}
-      ref={articleRef}
     >
       {decorationImageSrc && (
         <span aria-hidden="true" className="thread-floor-decoration">
@@ -406,7 +401,6 @@ export function ThreadFloor({
   const [nestedReplyPending, setNestedReplyPending] = useState(false);
   const [nestedReplyTarget, setNestedReplyTarget] = useState<string | null | undefined>(undefined);
   const nestedReplyInputState = getNestedReplyInputState(nestedReplyContent);
-  const floorRef = useViewportEntrance<HTMLElement>();
   const nestedRepliesRef = useStaggerEntrance<HTMLElement>(':scope > article');
   const nestedReplyCountId = `nested-reply-count-${floor.id}`;
   const [preview, setPreview] = useState<PreviewImageState | null>(null);
@@ -766,7 +760,6 @@ export function ThreadFloor({
   return (
     <ThreadFloorPresentation
       articleAfterContent={articleAfterContent}
-      articleRef={floorRef}
       author={floor.author}
       avatarRail={avatarRail}
       content={postContent}
