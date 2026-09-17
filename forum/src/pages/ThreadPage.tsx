@@ -47,6 +47,7 @@ import {
 import { markThreadRead } from '../utils/threadReadState';
 import { getThreadCacheScope } from '../utils/threadContentCache';
 import { getTitleIndentationClassName } from '../utils/titleIndentation';
+import { observeThreadTitleCopyLayout } from '../utils/threadTitleCopyLayout';
 import { invalidateLoadedThread } from '../utils/threadContentLoader';
 import { isActivityPhoneQuestion, maskActivitySignupFloor } from '../utils/activityPhonePrivacy';
 import { getPublicProfilePath } from '../utils/userRoutes';
@@ -188,6 +189,9 @@ export function ThreadPage() {
   const pageRef = useRef<HTMLDivElement | null>(null);
   const titleRef = useRef<HTMLHeadingElement | null>(null);
   const threadTopBar = useThreadTopBar(titleRef, topBarAutoHideEnabled);
+  useLayoutEffect(() => {
+    if (titleRef.current) return observeThreadTitleCopyLayout(titleRef.current);
+  }, [data?.title]);
   const signaturesHidden = useSignaturesHidden();
   const preciseSignatureBlocking = usePreciseSignatureBlocking();
   const blockedSignatures = useBlockedSignatures();
@@ -529,7 +533,7 @@ export function ThreadPage() {
                 title="复制帖子链接"
                 type="button"
               >
-                {data.title}
+                <span className="thread-title-copy-text">{data.title}</span>
                 <Link2 aria-hidden="true" className="thread-title-copy-icon" size={18} />
               </button>
             </h1>

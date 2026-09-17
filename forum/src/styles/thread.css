@@ -251,6 +251,7 @@
   }
 
   .thread-title-copy-button {
+    position: relative;
     display: block;
     width: 100%;
     max-width: 100%;
@@ -283,6 +284,15 @@
     vertical-align: -0.12em;
     transform: translateX(-3px);
     transition: opacity 140ms ease, transform 140ms ease;
+  }
+
+  .thread-title-copy-button[data-copy-icon-floating="true"] .thread-title-copy-icon {
+    position: absolute;
+    top: var(--thread-title-copy-icon-top);
+    left: var(--thread-title-copy-icon-left);
+    width: 12px;
+    height: 12px;
+    margin-left: 0;
   }
 
   .thread-title-copy-button:hover .thread-title-copy-icon,
