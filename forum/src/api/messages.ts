@@ -189,9 +189,9 @@ function getSystemMessageAction(type: string) {
     case 'quote':
       return '引用了你的文章';
     case 'replylzl':
-      return '评论了你的回复';
+      return '回复了你的楼层';
     case 'replylzlreply':
-      return '评论了你的楼中楼';
+      return '回复了你的楼中楼';
     default:
       return '发来系统消息';
   }
@@ -207,9 +207,9 @@ function getSystemMessageExcerpt(type: string, sender: string, subject: string) 
     case 'quote':
       return `${sender} 在帖子中引用了你的文章${context}`;
     case 'replylzl':
-      return `${sender} 评论了你在帖子中的回复${context}`;
+      return `${sender} 回复了你的楼层${context}`;
     case 'replylzlreply':
-      return `${sender} 评论了你的楼中楼${context}`;
+      return `${sender} 回复了你的楼中楼${context}`;
     default:
       return subject || `${sender} 发来系统消息`;
   }

@@ -260,11 +260,13 @@
     white-space: nowrap;
   }
 
-  .message-card header strong.message-card-tag-grant {
+  .message-card header strong.message-card-tag-grant,
+  .message-card header strong.message-card-notification-title {
     overflow: visible;
     line-height: 1.5;
     text-overflow: clip;
     white-space: normal;
+    overflow-wrap: anywhere;
   }
 
   .message-card-tag-grant a {

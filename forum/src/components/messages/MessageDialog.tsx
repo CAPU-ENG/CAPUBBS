@@ -199,7 +199,9 @@ function MessageCard({
               查看。
             </strong>
           ) : (
-            <strong>{isDirect ? message.title : `${message.sender} ${message.title}`}</strong>
+            <strong className={isDirect ? undefined : 'message-card-notification-title'}>
+              {isDirect ? message.title : `${message.sender} ${message.title}`}
+            </strong>
           )}
           <time>{message.time}</time>
         </header>
