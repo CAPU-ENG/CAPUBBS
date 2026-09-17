@@ -64,8 +64,10 @@ export function HomePage() {
             calendarStatus={calendar.status}
             onCalendarVisibleDateChange={loadFullCalendarForDate}
             items={pinned.items}
+            pinnedStatus={pinned.status}
             readThreadIds={readThreadIds}
             signupItems={signup.items}
+            signupStatus={signup.status}
           />
         </div>
       </main>

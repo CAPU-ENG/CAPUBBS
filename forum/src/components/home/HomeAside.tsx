@@ -60,7 +60,9 @@ type DesktopHomeAsideProps = PinnedProps & {
   calendarItems: HomeCalendarEvent[];
   calendarStatus: HomeDataStatus;
   onCalendarVisibleDateChange: (date: string) => void;
+  pinnedStatus: HomeDataStatus;
   signupItems: HomeSignupActivity[];
+  signupStatus: HomeDataStatus;
 };
 
 function PinnedPanel({ items, readThreadIds }: PinnedProps) {
@@ -389,10 +391,31 @@ export function DesktopHomeAside({
   calendarStatus,
   items,
   onCalendarVisibleDateChange,
+  pinnedStatus,
   readThreadIds,
   signupItems,
+  signupStatus,
 }: DesktopHomeAsideProps) {
   const asideRef = useRef<HTMLElement | null>(null);
+  const [shownPanelCount, setShownPanelCount] = useState(0);
+  const nextPanelStatus = [pinnedStatus, signupStatus, calendarStatus][shownPanelCount];
+  const previousPanelHasContent = shownPanelCount === 1 ? items.length > 0
+    : shownPanelCount === 2 ? signupItems.length > 0 : false;
+
+  useEffect(() => {
+    if (!nextPanelStatus || nextPanelStatus === 'loading') return;
+
+    // Fetches stay parallel; reveal each card in order without blocking on empty/error results.
+    const stagger = previousPanelHasContent
+      && window.matchMedia('(min-width: 1024px) and (prefers-reduced-motion: no-preference)').matches;
+    if (!stagger) {
+      setShownPanelCount(shownPanelCount + 1);
+      return;
+    }
+
+    const timer = window.setTimeout(() => setShownPanelCount(shownPanelCount + 1), 90);
+    return () => window.clearTimeout(timer);
+  }, [nextPanelStatus, previousPanelHasContent, shownPanelCount]);
 
   useLayoutEffect(() => {
     const aside = asideRef.current;
@@ -481,14 +504,16 @@ export function DesktopHomeAside({
 
   return (
     <aside className="home-aside" ref={asideRef}>
-      {items.length > 0 && <PinnedPanel items={items} readThreadIds={readThreadIds} />}
-      {signupItems.length > 0 && <ActivitySignupPanel items={signupItems} />}
-      <ActivityCalendar
-        error={calendarError}
-        items={calendarItems}
-        onVisibleDateChange={onCalendarVisibleDateChange}
-        status={calendarStatus}
-      />
+      {shownPanelCount >= 1 && items.length > 0 && <PinnedPanel items={items} readThreadIds={readThreadIds} />}
+      {shownPanelCount >= 2 && signupItems.length > 0 && <ActivitySignupPanel items={signupItems} />}
+      {shownPanelCount >= 3 && (
+        <ActivityCalendar
+          error={calendarError}
+          items={calendarItems}
+          onVisibleDateChange={onCalendarVisibleDateChange}
+          status={calendarStatus}
+        />
+      )}
     </aside>
   );
 }
