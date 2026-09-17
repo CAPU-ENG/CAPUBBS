@@ -5,7 +5,9 @@ import { getDisplayedTags } from '../../data/tags';
 import { USER_CENTER_HREF } from '../../utils/userRoutes';
 import { StarRulesDialog } from './ProfileDialogs';
 import { ProfileMedalGallery } from '../medals/ProfileMedalGallery';
+import { DialogPresence } from '../layout/DialogPresence';
 import { TagList } from '../tags/TagBadge';
+import { ThreadImageLightbox } from '../thread/ThreadImageLightbox';
 import { useTheme } from '../../hooks/useTheme';
 import { useStaggerEntrance } from '../../hooks/useStaggerEntrance';
 import { getFloorDecorationPath } from '../../data/floorDecoration';
@@ -68,6 +70,7 @@ export function ProfileOverview({
     ':scope > .profile-identity-medals > .profile-identity-medal-button',
   ].join(', '));
   const privateMode = mode === 'private';
+  const [avatarPreviewOpen, setAvatarPreviewOpen] = useState(false);
   const [starRulesOpen, setStarRulesOpen] = useState(false);
   const { theme } = useTheme();
   const decorationImageSrc = getFloorDecorationPath(profile.floorDecoration, theme);
@@ -124,9 +127,15 @@ export function ProfileOverview({
               <img src={avatarSrc ?? profile.avatarSrc} alt={`${profile.id}的头像`} />
             </button>
           ) : (
-            <div className="profile-avatar-static">
+            <button
+              aria-label="查看头像大图"
+              aria-haspopup="dialog"
+              className="profile-avatar-button"
+              onClick={() => setAvatarPreviewOpen(true)}
+              type="button"
+            >
               <img src={avatarSrc ?? profile.avatarSrc} alt={`${profile.id}的头像`} />
-            </div>
+            </button>
           )}
 
           <div className="profile-identity-copy" ref={badgesRef}>
@@ -222,6 +231,14 @@ export function ProfileOverview({
           </section>
         ))}
       </div>
+
+      <DialogPresence>{!privateMode && avatarPreviewOpen && (
+        <ThreadImageLightbox
+          images={[{ alt: '', src: avatarSrc ?? profile.avatarSrc }]}
+          initialImageIndex={0}
+          onClose={() => setAvatarPreviewOpen(false)}
+        />
+      )}</DialogPresence>
 
       <StarRulesDialog
         currentPostReplyCount={profile.starPostReplyCount}
