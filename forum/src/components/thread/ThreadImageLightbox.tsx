@@ -4,9 +4,9 @@ import { createPortal } from 'react-dom';
 import { ChevronLeft, ChevronRight, Minus, Plus, RotateCcw, X } from 'lucide-react';
 import type { ForumMarkupImage } from './ForumMarkup';
 import { loadGalleryImage } from '../../utils/galleryImageLoading';
+import { getLightboxImageMetrics } from './threadImageLightboxGeometry';
 
 const MIN_IMAGE_SCALE = 1;
-const MAX_IMAGE_SCALE = 4;
 const IMAGE_SCALE_STEP = 0.25;
 
 type ImageOffset = { x: number; y: number };
@@ -18,10 +18,6 @@ type DragState = {
   originX: number;
   originY: number;
 };
-
-function clampImageScale(scale: number) {
-  return Math.min(MAX_IMAGE_SCALE, Math.max(MIN_IMAGE_SCALE, scale));
-}
 
 function getPointerDistance(
   points: Map<number, { x: number; y: number }>,
@@ -50,7 +46,12 @@ export function ThreadImageLightbox({
   const [scale, setScale] = useState(MIN_IMAGE_SCALE);
   const [offset, setOffset] = useState<ImageOffset>({ x: 0, y: 0 });
   const [isDragging, setIsDragging] = useState(false);
+  const [imageMetrics, setImageMetrics] = useState(() => getLightboxImageMetrics(
+    { width: 0, height: 0 }, { width: 0, height: 0 },
+  ));
+  const imageMetricsRef = useRef(imageMetrics);
   const backdropRef = useRef<HTMLDivElement | null>(null);
+  const stageRef = useRef<HTMLDivElement | null>(null);
   const dialogRef = useRef<HTMLElement | null>(null);
   const imageRef = useRef<HTMLImageElement | null>(null);
   const closeButtonRef = useRef<HTMLButtonElement | null>(null);
@@ -70,19 +71,18 @@ export function ThreadImageLightbox({
   onCloseRef.current = onClose;
 
   function clampOffset(nextOffset: ImageOffset, nextScale = scaleRef.current) {
-    const backdrop = backdropRef.current;
-    const imageElement = imageRef.current;
-    if (!backdrop || !imageElement || nextScale <= MIN_IMAGE_SCALE) {
+    const stage = stageRef.current;
+    if (!stage || nextScale <= MIN_IMAGE_SCALE) {
       return { x: 0, y: 0 };
     }
 
     const maxX = Math.max(
       0,
-      (imageElement.clientWidth * nextScale - backdrop.clientWidth) / 2,
+      (imageMetricsRef.current.width * nextScale - stage.clientWidth) / 2,
     );
     const maxY = Math.max(
       0,
-      (imageElement.clientHeight * nextScale - backdrop.clientHeight) / 2,
+      (imageMetricsRef.current.height * nextScale - stage.clientHeight) / 2,
     );
 
     return {
@@ -98,11 +98,33 @@ export function ThreadImageLightbox({
   }
 
   function updateScale(nextScale: number) {
-    const clampedScale = Math.round(clampImageScale(nextScale) * 100) / 100;
+    const clampedScale = Math.min(imageMetricsRef.current.maxScale, Math.max(MIN_IMAGE_SCALE, nextScale));
     scaleRef.current = clampedScale;
     setScale(clampedScale);
     updateOffset(offsetRef.current, clampedScale);
   }
+
+  function updateImageMetrics() {
+    const imageElement = imageRef.current;
+    const stage = stageRef.current;
+    if (!imageElement || !stage) return;
+    const metrics = getLightboxImageMetrics(
+      { width: imageElement.naturalWidth, height: imageElement.naturalHeight },
+      { width: stage.clientWidth, height: stage.clientHeight },
+    );
+    imageMetricsRef.current = metrics;
+    setImageMetrics(metrics);
+    updateScale(scaleRef.current);
+  }
+
+  useLayoutEffect(() => {
+    updateImageMetrics();
+    const stage = stageRef.current;
+    if (!stage || typeof ResizeObserver === 'undefined') return;
+    const observer = new ResizeObserver(updateImageMetrics);
+    observer.observe(stage);
+    return () => observer.disconnect();
+  }, []);
 
   function resetImageView() {
     scaleRef.current = MIN_IMAGE_SCALE;
@@ -232,7 +254,7 @@ export function ThreadImageLightbox({
     }
 
     function keepImageWithinViewport() {
-      updateOffset(offsetRef.current, scaleRef.current);
+      updateImageMetrics();
     }
 
     document.addEventListener('keydown', handleKeyDown, { capture: true });
@@ -451,12 +473,16 @@ export function ThreadImageLightbox({
             </button>
           </>
         )}
-        <SharedLightboxImage
-          image={image}
-          imageRef={imageRef}
-          onReady={() => updateOffset(offsetRef.current, scaleRef.current)}
-          transform={`translate3d(${offset.x}px, ${offset.y}px, 0) scale(${scale})`}
-        />
+        <div className="thread-image-lightbox-stage" ref={stageRef}>
+          <SharedLightboxImage
+            image={image}
+            imageRef={imageRef}
+            onReady={updateImageMetrics}
+            width={imageMetrics.width * scale}
+            height={imageMetrics.height * scale}
+            transform={`translate(${offset.x}px, ${offset.y}px)`}
+          />
+        </div>
         {image.alt && <figcaption>{image.alt}</figcaption>}
         <div
           aria-label="图片缩放"
@@ -477,7 +503,7 @@ export function ThreadImageLightbox({
           </output>
           <button
             aria-label="放大图片"
-            disabled={scale >= MAX_IMAGE_SCALE}
+            disabled={scale >= imageMetrics.maxScale}
             onClick={() => updateScale(scale + IMAGE_SCALE_STEP)}
             title="放大（+）"
             type="button"
@@ -504,11 +530,15 @@ function SharedLightboxImage({
   image,
   imageRef,
   onReady,
+  width,
+  height,
   transform,
 }: {
   image: ForumMarkupImage;
   imageRef: MutableRefObject<HTMLImageElement | null>;
   onReady: () => void;
+  width: number;
+  height: number;
   transform: string;
 }) {
   const markerRef = useRef<HTMLSpanElement | null>(null);
@@ -538,6 +568,9 @@ function SharedLightboxImage({
     const originalStyle = element.getAttribute('style');
     const originalDraggable = element.getAttribute('draggable');
     originalParent.insertBefore(placeholder, element);
+    // Post percentages, floats and aspect ratios only belong to the inline view.
+    // Restore them verbatim when returning this same resource to the post.
+    element.removeAttribute('style');
     marker.parentNode.insertBefore(element, marker);
     element.draggable = false;
     imageRef.current = element;
@@ -559,8 +592,15 @@ function SharedLightboxImage({
   }, [image, imageRef]);
 
   useLayoutEffect(() => {
-    if (image.element) image.element.style.transform = transform;
-  }, [image, transform]);
+    if (!image.element) return;
+    image.element.style.width = `${width}px`;
+    image.element.style.height = `${height}px`;
+    image.element.style.transform = transform;
+  }, [image, width, height, transform]);
+
+  useLayoutEffect(() => {
+    if (!image.element && imageRef.current?.complete) onReadyRef.current();
+  }, [image, imageRef]);
 
   if (!image.element) {
     return (
@@ -572,7 +612,7 @@ function SharedLightboxImage({
         src={image.loadSource && !image.src.startsWith('blob:')
           ? loadedSource?.image === image ? loadedSource.src : undefined
           : image.src}
-        style={{ transform }}
+        style={{ width, height, transform }}
       />
     );
   }
