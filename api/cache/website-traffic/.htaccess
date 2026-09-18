@@ -1,0 +1,20 @@
+Options -Indexes
+
+<FilesMatch "\.lock$|\.tmp-">
+    Require all denied
+</FilesMatch>
+
+<IfModule mod_deflate.c>
+    <FilesMatch "\.json$">
+        SetOutputFilter DEFLATE
+    </FilesMatch>
+</IfModule>
+
+<IfModule mod_headers.c>
+    <Files "current.json">
+        Header set Cache-Control "no-cache, must-revalidate"
+    </Files>
+    <FilesMatch "^(week|month|year)\.json$">
+        Header set Cache-Control "public, max-age=31536000, immutable"
+    </FilesMatch>
+</IfModule>

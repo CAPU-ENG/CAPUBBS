@@ -24,6 +24,8 @@ require_once __DIR__.'/lib/TagHandlers.php';
 require_once __DIR__.'/lib/MedalHandlers.php';
 require_once __DIR__.'/lib/ThreadDetailQuery.php';
 require_once __DIR__.'/lib/BrowsingHistoryHandlers.php';
+require_once __DIR__.'/lib/UserActivityHandlers.php';
+require_once __DIR__.'/lib/WebsiteTrafficHandlers.php';
 
 function _dispatch_build_routes() {
     return array(
@@ -48,6 +50,8 @@ function _dispatch_build_routes() {
         'sign_user'       => array('handler' => 'jiekoufunc_sign_user',       'check_login' => false, 'require_rights' => 0),
         'getuser'         => array('handler' => 'jiekoufunc_getuser',         'check_login' => false, 'require_rights' => 0),
         'user_profile'    => array('handler' => 'jiekoufunc_user_profile',    'check_login' => false, 'require_rights' => 0),
+        'user_activity'   => array('handler' => 'jiekoufunc_user_activity',   'check_login' => false, 'require_rights' => 0),
+        'website_traffic' => array('handler' => 'jiekoufunc_website_traffic', 'check_login' => false, 'require_rights' => 0),
         'tag_list'        => array('handler' => 'jiekoufunc_tag_list',        'check_login' => false, 'require_rights' => 0),
         'tag_user_tags'   => array('handler' => 'jiekoufunc_tag_user_tags',   'check_login' => false, 'require_rights' => 0),
         'tag_summary'     => array('handler' => 'jiekoufunc_tag_summary',     'check_login' => false, 'require_rights' => 0),
@@ -349,6 +353,10 @@ function jiekoufunc_dispatch($con, $params) {
                 return jiekoufunc_thread_view($con, $bid, $tid, $token, $ip);
             case 'jiekoufunc_browsing_history':
                 return jiekoufunc_browsing_history($con, $token);
+            case 'jiekoufunc_user_activity':
+                return jiekoufunc_user_activity($con, $params);
+            case 'jiekoufunc_website_traffic':
+                return jiekoufunc_website_traffic($con, $params);
             case 'jiekoufunc_recentpost':
                 return jiekoufunc_recentpost(
                     $con,
