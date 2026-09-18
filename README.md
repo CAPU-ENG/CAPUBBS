@@ -3,6 +3,44 @@ CAPUBBS
 
 APIs and web for CAPUBBS.
 
+## 网站流量每日快照
+
+网站流量页面读取 `api/cache/website-traffic/current.json` 指向的周、月、年静态 JSON 文件。统计分别包含截至昨日的 7、30、365 个上海时区自然日。页面访问和兼容 API 均不会触发实时汇总；结算失败时继续提供上一次成功发布的数据。
+
+部署时需单独上传本地 `tool/refresh-website-traffic.php`（依仓库规范不纳入 Git），并先上传 `api/lib/WebsiteTrafficSnapshot.php`。使用未来执行定时任务的用户，在项目根目录初始化历史数据：
+
+```bash
+php tool/refresh-website-traffic.php --initialize
+```
+
+初始化成功后再部署其余 API 与前端改动。缓存目录须允许任务用户写入、Web 服务读取。此过程不修改数据库表或索引；首次初始化查询最近 365 个已结束日期，正常每日任务只查询昨天，漏跑后一次补齐缺失日期。原始明细没有日期索引时，后台结算仍可能扫描较多记录，但不会由访客请求触发。
+
+在服务器 **cron 使用 Asia/Shanghai 时区** 的前提下，配置每日 0:00 执行（替换项目、PHP 和日志绝对路径）：
+
+```cron
+0 0 * * * cd /path/to/CAPUBBS && /usr/bin/php tool/refresh-website-traffic.php >> /path/to/website-traffic.log 2>&1
+```
+
+若服务器 cron 使用 UTC，改用 `0 16 * * *`，对应上海时区次日 0:00。脚本始终按上海日期结算；同日重复运行直接跳过，文件锁避免任务重叠。`--initialize` 也可用于手动重建历史快照，重建期间现有结果仍可读取。
+
+Apache 可使用缓存目录内的 `.htaccess`。Nginx 可在现有站点配置中加入以下静态文件规则（缓存目录不应转交 PHP）：
+
+```nginx
+location = /api/cache/website-traffic/current.json {
+    add_header Cache-Control "no-cache, must-revalidate";
+    try_files $uri =404;
+}
+location ~ "^/api/cache/website-traffic/snapshots/[0-9]{14}-[a-f0-9]{10}/(week|month|year)\\.json$" {
+    add_header Cache-Control "public, max-age=31536000, immutable";
+    try_files $uri =404;
+}
+location /api/cache/website-traffic/ {
+    return 404;
+}
+```
+
+刷新按钮只重新读取发布版本。缺少初始快照时不会回退到数据库现场计算，也没有公开的 HTTP 结算入口。
+
 ## 本地开发
 
 在仓库根目录启动 PHP 服务。必须加载仓库内的 `php.ini`，否则档案室上传仍会使用 PHP 默认的 2M/8M 限制：
