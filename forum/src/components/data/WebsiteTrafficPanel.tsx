@@ -1,7 +1,8 @@
 import { ChartColumnStacked, Check, ChevronRight, RefreshCw } from 'lucide-react';
-import { memo, useEffect, useId, useLayoutEffect, useMemo, useRef, useState, type CSSProperties, type KeyboardEvent, type PointerEvent } from 'react';
+import { memo, useEffect, useId, useLayoutEffect, useMemo, useRef, useState, type CSSProperties, type Dispatch, type KeyboardEvent, type PointerEvent, type SetStateAction } from 'react';
 import { fetchWebsiteTraffic } from '../../api/websiteTraffic';
-import { TRAFFIC_PERIODS, buildTrafficBars, groupTrafficSeries, trafficAxis, trafficDateTicks, type TrafficBars, type TrafficPeriod, type TrafficSeries, type WebsiteTraffic } from '../../utils/websiteTraffic';
+import { TRAFFIC_PERIODS, buildTrafficBars, groupTrafficSeries, trafficAxis, trafficDateTicks, trafficPeriodForDate, trafficYearStart, type TrafficBars, type TrafficPeriod, type TrafficSeries, type WebsiteTraffic } from '../../utils/websiteTraffic';
+import { readTrafficSeriesSelection, saveTrafficSeriesSelection } from '../../utils/websiteTrafficPreferences';
 import { LoadingState } from '../layout/LoadingState';
 import { StatisticsDataNotice } from './StatisticsDataNotice';
 
@@ -9,10 +10,14 @@ const numberFormat = new Intl.NumberFormat('zh-CN');
 
 export function WebsiteTrafficPanel() {
   const [period, setPeriod] = useState<TrafficPeriod>('week');
+  const [visibleIds, setVisibleIds] = useState(readTrafficSeriesSelection);
+  const [selectedDate, setSelectedDate] = useState<string | null>(null);
   const [revision, setRevision] = useState(0);
   const [state, setState] = useState<{ period: TrafficPeriod; data: WebsiteTraffic | null; error: string }>({ period, data: null, error: '' });
   const data = state.period === period ? state.data : null;
   const error = state.period === period ? state.error : '';
+
+  useEffect(() => { saveTrafficSeriesSelection(visibleIds); }, [visibleIds]);
 
   useEffect(() => {
     const controller = new AbortController();
@@ -26,6 +31,14 @@ export function WebsiteTrafficPanel() {
     });
     return () => controller.abort();
   }, [period, revision]);
+
+  function selectDate(date: string) {
+    if (!data) return;
+    const nextPeriod = trafficPeriodForDate(date, data.endDate, period);
+    if (!nextPeriod) return;
+    setSelectedDate(date);
+    setPeriod(nextPeriod);
+  }
 
   return (
     <section className="data-display-card website-traffic-panel">
@@ -46,14 +59,22 @@ export function WebsiteTrafficPanel() {
           <p>{error}</p>
           <button onClick={() => setRevision((value) => value + 1)} type="button"><RefreshCw aria-hidden="true" size={15} />重试</button>
         </div>
-      ) : data ? <TrafficChart data={data} /> : <LoadingState className="website-traffic-state" label="正在读取网站流量" variant="panel" />}
+      ) : data ? (
+        <TrafficChart data={data} onSelectDate={selectDate} selectedDate={selectedDate} setVisibleIds={setVisibleIds} visibleIds={visibleIds} />
+      ) : <LoadingState className="website-traffic-state" label="正在读取网站流量" variant="panel" />}
     </section>
   );
 }
 
-function TrafficChart({ data }: { data: WebsiteTraffic }) {
-  const [visibleIds, setVisibleIds] = useState(['total']);
-  const [selectedIndex, setSelectedIndex] = useState(data.dates.length - 1);
+function TrafficChart({ data, onSelectDate, selectedDate, setVisibleIds, visibleIds }: {
+  data: WebsiteTraffic;
+  onSelectDate: (date: string) => void;
+  selectedDate: string | null;
+  setVisibleIds: Dispatch<SetStateAction<string[]>>;
+  visibleIds: string[];
+}) {
+  const dateIndex = selectedDate ? data.dates.indexOf(selectedDate) : -1;
+  const selectedIndex = dateIndex < 0 ? data.dates.length - 1 : dateIndex;
   const [width, setWidth] = useState(800);
   const plotRef = useRef<HTMLDivElement>(null);
   const readoutId = useId();
@@ -87,7 +108,7 @@ function TrafficChart({ data }: { data: WebsiteTraffic }) {
     if (!bounds.width) return;
     const plotX = (event.clientX - bounds.left) / bounds.width * width;
     const index = Math.floor((plotX - left) / plotWidth * data.dates.length);
-    setSelectedIndex(Math.max(0, Math.min(data.dates.length - 1, index)));
+    onSelectDate(data.dates[Math.max(0, Math.min(data.dates.length - 1, index))]);
   }
 
   function moveDate(event: KeyboardEvent<HTMLDivElement>) {
@@ -98,7 +119,7 @@ function TrafficChart({ data }: { data: WebsiteTraffic }) {
     else if (event.key === 'End') index = data.dates.length - 1;
     else return;
     event.preventDefault();
-    setSelectedIndex(Math.max(0, Math.min(data.dates.length - 1, index)));
+    onSelectDate(data.dates[Math.max(0, Math.min(data.dates.length - 1, index))]);
   }
 
   function toggleSeries(id: string) {
@@ -152,9 +173,9 @@ function TrafficChart({ data }: { data: WebsiteTraffic }) {
         {visible.length === 0 && <span className="website-traffic-no-series">选择要显示的统计范围</span>}
       </div>
       <div className="website-traffic-readout-heading">
-        <output aria-live="polite" id={readoutId}>
-          <time dateTime={data.dates[selectedIndex]}>{data.dates[selectedIndex]}</time>
-          <span className="sr-only">{visible.map((series) => `，${series.label} ${series.values[selectedIndex]} 次`).join('')}</span>
+        <TrafficDatePicker date={data.dates[selectedIndex]} max={data.endDate} min={trafficYearStart(data.endDate)} onSelectDate={onSelectDate} />
+        <output aria-live="polite" className="sr-only" id={readoutId}>
+          {data.dates[selectedIndex]}{visible.map((series) => `，${series.label} ${series.values[selectedIndex]} 次`).join('')}
         </output>
         <div aria-label="统计范围" className="website-traffic-selection" role="group">
           <button onClick={() => setVisibleIds(['total'])} type="button">仅全站</button>
@@ -176,6 +197,34 @@ function TrafficChart({ data }: { data: WebsiteTraffic }) {
         </details>
       )}
     </div>
+  );
+}
+
+function TrafficDatePicker({ date, min, max, onSelectDate }: {
+  date: string;
+  min: string;
+  max: string;
+  onSelectDate: (date: string) => void;
+}) {
+  const [draft, setDraft] = useState(date);
+  useEffect(() => { setDraft(date); }, [date]);
+  return (
+    <label className="website-traffic-date-picker">
+      <span>日期</span>
+      <input
+        aria-label="查看指定日期的浏览量"
+        max={max}
+        min={min}
+        onBlur={() => setDraft(date)}
+        onChange={(event) => {
+          const value = event.currentTarget.value;
+          setDraft(value);
+          if (value && event.currentTarget.validity.valid) onSelectDate(value);
+        }}
+        type="date"
+        value={draft}
+      />
+    </label>
   );
 }
 

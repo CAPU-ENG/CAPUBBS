@@ -105,6 +105,18 @@ export function trafficDateTicks(length: number, width: number) {
   return Array.from({ length: intervals + 1 }, (_, index) => Math.round(index * (length - 1) / intervals));
 }
 
+export function trafficYearStart(endDate: string) {
+  return new Date(activityDate(endDate)! - 364 * 86400000).toISOString().slice(0, 10);
+}
+
+export function trafficPeriodForDate(date: string, endDate: string, period: TrafficPeriod): TrafficPeriod | null {
+  const timestamp = activityDate(date);
+  const end = activityDate(endDate);
+  if (timestamp === null || end === null || timestamp > end || end - timestamp > 364 * 86400000) return null;
+  const days = TRAFFIC_PERIODS.find((item) => item.id === period)!.days;
+  return end - timestamp < days * 86400000 ? period : 'year';
+}
+
 function asRow(value: unknown): Record<string, unknown> {
   return value !== null && typeof value === 'object' && !Array.isArray(value) ? value as Record<string, unknown> : {};
 }

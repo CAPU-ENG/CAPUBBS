@@ -96,6 +96,18 @@
   }
 
   .website-traffic-selection { display: flex; gap: 6px; }
+  .website-traffic-date-picker { display: inline-flex; align-items: center; gap: 8px; }
+  .website-traffic-date-picker input {
+    min-width: 0;
+    border: 1px solid var(--line);
+    border-radius: 2px;
+    padding: 3px 7px;
+    background: var(--surface);
+    color: var(--text-strong);
+    font: inherit;
+  }
+  .website-traffic-date-picker input:focus-visible { outline: 2px solid var(--brand); outline-offset: 1px; }
+
   .website-traffic-selection button {
     border: 1px solid var(--line);
     border-radius: 2px;
