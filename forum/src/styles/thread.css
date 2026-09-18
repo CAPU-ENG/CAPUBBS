@@ -2196,6 +2196,39 @@
     margin-top: 18px;
   }
 
+  .thread-activity-signup-prompt {
+    display: flex;
+    min-height: 88px;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    margin-top: 18px;
+    border: 1px solid color-mix(in srgb, var(--brand) 24%, var(--line));
+    border-radius: 2px;
+    padding: 20px;
+    background: var(--surface);
+    box-shadow: var(--shadow-card);
+    color: var(--brand-strong);
+    font-size: var(--ui-font-size-lg);
+    font-weight: 720;
+    text-align: center;
+    transition: border-color 140ms ease, background 140ms ease;
+  }
+
+  .thread-activity-signup-prompt > svg {
+    flex-shrink: 0;
+  }
+
+  .thread-activity-signup-prompt:hover {
+    border-color: color-mix(in srgb, var(--brand) 45%, var(--line));
+    background: var(--brand-soft);
+  }
+
+  .thread-activity-signup-prompt:focus-visible {
+    outline: 2px solid var(--brand);
+    outline-offset: 2px;
+  }
+
   .thread-floor-actions {
     display: flex;
     align-items: center;
@@ -2814,7 +2847,7 @@
 
     .thread-top-pagination,
     .thread-content-layout,
-    .thread-page-shell > :is(.reply-editor, .thread-reply-loading, .thread-reply-unavailable) {
+    .thread-page-shell > :is(.reply-editor, .thread-reply-loading, .thread-reply-unavailable, .thread-activity-signup-prompt) {
       margin-top: var(--thread-mobile-card-gap);
     }
 

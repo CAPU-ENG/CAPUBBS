@@ -655,7 +655,12 @@ export function ThreadPage() {
           />
         </div>
 
-        {!data.isActivity && (data.canReply && data.viewer ? (
+        {data.isActivity ? (
+          <a className="thread-activity-signup-prompt" href={getThreadFloorHref(data.bid, data.tid, 1)}>
+            <ArrowUpToLine aria-hidden="true" size={18} />
+            <span>想要报名？点击前往主楼</span>
+          </a>
+        ) : (data.canReply && data.viewer ? (
           <Suspense fallback={<LoadingState className="thread-reply-loading" label="正在准备回复编辑器" variant="panel" />}>
             <ReplyEditor
               bid={data.bid}
