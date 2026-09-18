@@ -9,6 +9,7 @@ import { StatisticsDataNotice } from '../data/StatisticsDataNotice';
 
 export function ProfileActivityDialog({ username, onClose }: { username: string; onClose: () => void }) {
   const dialogRef = useRef<HTMLDialogElement>(null);
+  const closeButtonRef = useRef<HTMLButtonElement>(null);
   const titleId = useId();
   const [revision, setRevision] = useState(0);
   const [state, setState] = useState<{ data: UserActivity | null; error: string }>({ data: null, error: '' });
@@ -18,6 +19,8 @@ export function ProfileActivityDialog({ username, onClose }: { username: string;
     if (!dialog) return;
     const previousOverflow = document.body.style.overflow;
     dialog.showModal();
+    // React autoFocus runs before showModal; explicitly focus after the dialog opens.
+    closeButtonRef.current?.focus({ preventScroll: true });
     document.body.style.overflow = 'hidden';
     return () => {
       dialog.close();
@@ -53,7 +56,7 @@ export function ProfileActivityDialog({ username, onClose }: { username: string;
       <header>
         <span><Activity aria-hidden="true" size={18} /></span>
         <div className="statistics-title"><h2 id={titleId}>{username}的活跃度</h2><StatisticsDataNotice /></div>
-        <button aria-label="关闭活跃度" autoFocus onClick={onClose} type="button"><X size={18} /></button>
+        <button aria-label="关闭活跃度" onClick={onClose} ref={closeButtonRef} type="button"><X size={18} /></button>
       </header>
       <div className="profile-dialog-body profile-activity-body">
         {state.error ? (
