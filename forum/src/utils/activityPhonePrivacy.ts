@@ -1,6 +1,6 @@
 import type { ThreadFloorData } from '../data/thread';
 
-const PHONE_LABEL_PATTERN = /电话|手机|联系电话|mobile|phone|tel/i;
+const PHONE_LABEL_PATTERN = /电话|手机|联系电话|联系方式|mobile|phone|tel/i;
 const MASKED_PHONE_VALUE = '***********';
 const PHONE_VALUE_PATTERN = '(?:1\\d{10}|0\\d{2,3}[ -]?\\d{7,8})';
 const PHONE_FIELD_HTML_VALUE_PATTERN = '[^<\\r\\n]*';
