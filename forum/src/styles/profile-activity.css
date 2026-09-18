@@ -1,19 +1,18 @@
 @layer components {
   .profile-stat-activity {
-    display: inline;
-    margin: 0;
-    border: 0;
-    padding: 0;
-    background: none;
-    color: inherit;
-    font: inherit;
-    text-align: inherit;
+    text-align: left;
     cursor: pointer;
   }
 
   .profile-stat-activity:focus-visible {
     outline: 2px solid var(--brand);
-    outline-offset: 4px;
+    outline-offset: -2px;
+  }
+
+  .profile-stat-activity-icon {
+    display: inline-block;
+    margin-left: 4px;
+    vertical-align: -2px;
   }
 
   .profile-activity-dialog {
@@ -70,7 +69,15 @@
   }
 
   .profile-activity-chart {
+    --activity-cell: 12px;
+    --activity-gap: 3px;
+    --activity-month-height: 18px;
+    --activity-row-gap: 5px;
+    --activity-top-padding: 4px;
     position: relative;
+    display: grid;
+    grid-template-columns: minmax(0, max-content) 14px;
+    column-gap: 6px;
     min-width: 0;
   }
 
@@ -92,20 +99,20 @@
   }
 
   .profile-activity-scroller {
+    grid-column: 1;
+    grid-row: 1;
     min-width: 0;
     overflow-x: auto;
-    padding: 4px 4px 10px;
+    padding: var(--activity-top-padding) 4px 10px;
     overscroll-behavior-x: contain;
   }
 
   .profile-activity-calendar {
-    --activity-cell: 12px;
-    --activity-gap: 3px;
     display: grid;
     width: max-content;
-    grid-template-columns: max-content 14px;
-    grid-template-rows: 18px auto;
-    gap: 5px 6px;
+    grid-template-columns: max-content;
+    grid-template-rows: var(--activity-month-height) auto;
+    row-gap: var(--activity-row-gap);
     font-size: var(--ui-font-size-xs);
     color: var(--text-muted);
   }
@@ -139,8 +146,12 @@
 
   .profile-activity-weekdays {
     grid-column: 2;
-    grid-row: 2;
+    grid-row: 1;
+    align-self: start;
     align-items: center;
+    margin-top: calc(var(--activity-top-padding) + var(--activity-month-height) + var(--activity-row-gap));
+    color: var(--text-muted);
+    font-size: var(--ui-font-size-xs);
     text-align: center;
   }
 
@@ -190,6 +201,10 @@
   }
 
   @media (max-width: 680px) {
+    .profile-stat-activity {
+      text-align: center;
+    }
+
     .profile-activity-body {
       padding: 16px;
     }

@@ -1,4 +1,4 @@
-import { AtSign, Bike, Edit3, ExternalLink, Mail, MapPin, MessageCircle, Palette, ShieldCheck } from 'lucide-react';
+import { AtSign, Bike, ChartColumnIncreasing, Edit3, ExternalLink, Mail, MapPin, MessageCircle, Palette, ShieldCheck } from 'lucide-react';
 import { useState, type ComponentType, type SVGProps } from 'react';
 import type { ProfileDetailKey, ProfileViewData } from '../../data/profile';
 import { getDisplayedTags } from '../../data/tags';
@@ -226,18 +226,22 @@ export function ProfileOverview({
       </div>
 
       <div className="profile-stat-grid">
-        {profile.stats.map((stat) => (
+        {profile.stats.map((stat) => stat.label === '签到数' ? (
+          <button
+            aria-haspopup="dialog"
+            aria-label={`签到 ${stat.value} 次，查看活跃度`}
+            className="profile-stat-card profile-stat-activity"
+            key={stat.label}
+            onClick={() => setActivityOpen(true)}
+            type="button"
+          >
+            <span>{stat.label}<ChartColumnIncreasing aria-hidden="true" className="profile-stat-activity-icon" size={12} /></span>
+            <strong>{stat.value}</strong>
+          </button>
+        ) : (
           <section className="profile-stat-card" key={stat.label}>
             <span>{stat.label}</span>
-            <strong>{stat.label === '签到数' ? (
-              <button
-                aria-haspopup="dialog"
-                aria-label={`签到 ${stat.value} 次，查看活跃度`}
-                className="profile-stat-activity"
-                onClick={() => setActivityOpen(true)}
-                type="button"
-              >{stat.value}</button>
-            ) : stat.value}</strong>
+            <strong>{stat.value}</strong>
           </section>
         ))}
       </div>

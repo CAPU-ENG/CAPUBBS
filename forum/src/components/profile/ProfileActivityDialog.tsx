@@ -139,9 +139,6 @@ function ActivityHeatmap({ activity }: { activity: UserActivity }) {
             <div aria-hidden="true" className="profile-activity-months">
               {calendar.months.map((month) => <span key={month.key} style={{ gridColumn: month.column + 1 }}>{month.label}</span>)}
             </div>
-            <div aria-hidden="true" className="profile-activity-weekdays">
-              {'SMTWTFS'.split('').map((label, index) => <span key={index}>{label}</span>)}
-            </div>
             <div aria-label="每日活跃度" className="profile-activity-grid" role="group">
               {calendar.weeks.map((week, index) => (
                 <div className="profile-activity-week" key={index}>
@@ -166,6 +163,9 @@ function ActivityHeatmap({ activity }: { activity: UserActivity }) {
               ))}
             </div>
           </div>
+        </div>
+        <div aria-hidden="true" className="profile-activity-weekdays">
+          {'SMTWTFS'.split('').map((label, index) => <span key={index}>{label}</span>)}
         </div>
         {activeDay && (
           <div
