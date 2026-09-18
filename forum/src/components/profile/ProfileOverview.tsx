@@ -4,6 +4,7 @@ import type { ProfileDetailKey, ProfileViewData } from '../../data/profile';
 import { getDisplayedTags } from '../../data/tags';
 import { USER_CENTER_HREF } from '../../utils/userRoutes';
 import { StarRulesDialog } from './ProfileDialogs';
+import { ProfileActivityDialog } from './ProfileActivityDialog';
 import { ProfileMedalGallery } from '../medals/ProfileMedalGallery';
 import { DialogPresence } from '../layout/DialogPresence';
 import { TagList } from '../tags/TagBadge';
@@ -72,6 +73,7 @@ export function ProfileOverview({
   const privateMode = mode === 'private';
   const [avatarPreviewOpen, setAvatarPreviewOpen] = useState(false);
   const [starRulesOpen, setStarRulesOpen] = useState(false);
+  const [activityOpen, setActivityOpen] = useState(false);
   const { theme } = useTheme();
   const decorationImageSrc = getFloorDecorationPath(profile.floorDecoration, theme);
   const visibleIntro = isEditing && draft ? draft.intro : profile.intro;
@@ -227,7 +229,15 @@ export function ProfileOverview({
         {profile.stats.map((stat) => (
           <section className="profile-stat-card" key={stat.label}>
             <span>{stat.label}</span>
-            <strong>{stat.value}</strong>
+            {stat.label === '签到数' ? (
+              <button
+                aria-haspopup="dialog"
+                aria-label={`签到 ${stat.value} 次，查看活跃度`}
+                className="profile-stat-activity"
+                onClick={() => setActivityOpen(true)}
+                type="button"
+              ><strong>{stat.value}</strong></button>
+            ) : <strong>{stat.value}</strong>}
           </section>
         ))}
       </div>
@@ -246,6 +256,9 @@ export function ProfileOverview({
         onClose={() => setStarRulesOpen(false)}
         open={starRulesOpen}
       />
+      <DialogPresence mobileSize="compact">{activityOpen && (
+        <ProfileActivityDialog key={profile.id} onClose={() => setActivityOpen(false)} username={profile.id} />
+      )}</DialogPresence>
     </div>
   );
 }
