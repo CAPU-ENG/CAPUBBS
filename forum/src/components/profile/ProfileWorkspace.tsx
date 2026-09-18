@@ -249,7 +249,6 @@ export function ProfileWorkspace({
   const activeLoadError = loadError?.tab === activeTab ? loadError.message : null;
 
   useLayoutEffect(() => {
-    if (activeTab === 'signatures') return;
     const rows = recordListRef.current?.querySelectorAll<HTMLElement>(':scope > .profile-record');
     if (rows) staggerEntrance(rows);
   }, [activeTab, activeLoadError, filteredRecords, isLoading, safePage]);
