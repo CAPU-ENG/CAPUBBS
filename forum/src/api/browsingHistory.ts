@@ -9,6 +9,7 @@ export type BrowsingHistoryThread = {
   lastViewedAt: number | null;
   tid: number;
   title: string;
+  viewTimes: number | null;
 };
 
 export type BrowsingHistoryDay = {
@@ -79,6 +80,7 @@ export async function fetchBrowsingHistory(signal?: AbortSignal): Promise<Browsi
         const thread = asRow(value);
         const bid = Number(thread.bid);
         const tid = Number(thread.tid);
+        const viewTimes = Number(thread.viewTimes);
         if (!Number.isSafeInteger(bid) || bid <= 0 || !Number.isSafeInteger(tid) || tid <= 0) {
           throw new BrowsingHistoryApiError('论坛服务返回了无法识别的数据。');
         }
@@ -89,6 +91,7 @@ export async function fetchBrowsingHistory(signal?: AbortSignal): Promise<Browsi
           lastViewedAt: visitTimestamp(thread.lastViewedAt),
           tid,
           title: plainText(thread.title) || '无标题',
+          viewTimes: Number.isSafeInteger(viewTimes) && viewTimes > 0 ? viewTimes : null,
         };
       }),
     };

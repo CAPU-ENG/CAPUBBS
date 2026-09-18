@@ -128,7 +128,8 @@
   }
 
   .browsing-history-board { color: var(--brand-strong); }
-  .browsing-history-visit-time { font-variant-numeric: tabular-nums; white-space: nowrap; }
+  .browsing-history-visit-time,
+  .browsing-history-view-times { font-variant-numeric: tabular-nums; white-space: nowrap; }
   .browsing-history-thread-arrow { flex-shrink: 0; color: var(--text-faint); }
   .browsing-history-thread:hover .browsing-history-thread-title,
   .browsing-history-thread:hover .browsing-history-thread-arrow { color: var(--brand-strong); }

@@ -137,6 +137,7 @@ function HistoryDay({ day, today }: { day: BrowsingHistoryDay; today: string }) 
                 <span className="browsing-history-thread-meta">
                   <span className="browsing-history-board">{thread.board}</span>
                   {thread.author && <span>{thread.author}</span>}
+                  {thread.viewTimes !== null && <span className="browsing-history-view-times">浏览 {thread.viewTimes} 次</span>}
                   {thread.lastViewedAt !== null && (
                     <time
                       className="browsing-history-visit-time"
