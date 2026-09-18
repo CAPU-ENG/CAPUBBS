@@ -1,6 +1,12 @@
 @layer components {
-  .website-traffic-panel { --website-traffic-color-lightness: 43%; }
-  .dark .website-traffic-panel { --website-traffic-color-lightness: 65%; }
+  .website-traffic-panel {
+    --website-traffic-color-lightness: 67%;
+    --website-traffic-color-chroma: 0.065;
+  }
+  .dark .website-traffic-panel {
+    --website-traffic-color-lightness: 73%;
+    --website-traffic-color-chroma: 0.055;
+  }
 
   .website-traffic-periods {
     display: flex;

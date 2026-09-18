@@ -1,7 +1,7 @@
 import { ChartColumnStacked, Check, ChevronRight, RefreshCw } from 'lucide-react';
 import { memo, useEffect, useId, useLayoutEffect, useMemo, useRef, useState, type CSSProperties, type Dispatch, type KeyboardEvent, type PointerEvent, type SetStateAction } from 'react';
 import { fetchWebsiteTraffic } from '../../api/websiteTraffic';
-import { TRAFFIC_PERIODS, buildTrafficBars, groupTrafficSeries, trafficAxis, trafficDateTicks, trafficPeriodForDate, trafficYearStart, type TrafficBars, type TrafficPeriod, type TrafficSeries, type WebsiteTraffic } from '../../utils/websiteTraffic';
+import { TRAFFIC_PERIODS, buildTrafficBars, groupTrafficSeries, isTrafficDateInPeriod, trafficAxis, trafficDateTicks, type TrafficBars, type TrafficPeriod, type TrafficSeries, type WebsiteTraffic } from '../../utils/websiteTraffic';
 import { readTrafficSeriesSelection, saveTrafficSeriesSelection } from '../../utils/websiteTrafficPreferences';
 import { LoadingState } from '../layout/LoadingState';
 import { StatisticsDataNotice } from './StatisticsDataNotice';
@@ -33,11 +33,8 @@ export function WebsiteTrafficPanel() {
   }, [period, revision]);
 
   function selectDate(date: string) {
-    if (!data) return;
-    const nextPeriod = trafficPeriodForDate(date, data.endDate, period);
-    if (!nextPeriod) return;
+    if (!data || !isTrafficDateInPeriod(date, data.endDate, period)) return;
     setSelectedDate(date);
-    setPeriod(nextPeriod);
   }
 
   return (
@@ -173,7 +170,7 @@ function TrafficChart({ data, onSelectDate, selectedDate, setVisibleIds, visible
         {visible.length === 0 && <span className="website-traffic-no-series">选择要显示的统计范围</span>}
       </div>
       <div className="website-traffic-readout-heading">
-        <TrafficDatePicker date={data.dates[selectedIndex]} max={data.endDate} min={trafficYearStart(data.endDate)} onSelectDate={onSelectDate} />
+        <TrafficDatePicker date={data.dates[selectedIndex]} max={data.endDate} min={data.startDate} onSelectDate={onSelectDate} />
         <output aria-live="polite" className="sr-only" id={readoutId}>
           {data.dates[selectedIndex]}{visible.map((series) => `，${series.label} ${series.values[selectedIndex]} 次`).join('')}
         </output>
@@ -279,8 +276,17 @@ const TrafficBarMarks = memo(function TrafficBarMarks({ bars, left, slotWidth, t
   );
 });
 
+// Spread the nine primary boards across the hue wheel, then interleave the
+// secondary boards. Equal OKLCH lightness/chroma keeps their visual weight close.
+const boardHues: Readonly<Record<number, number>> = {
+  1: 145, 2: 265, 3: 65, 4: 185, 5: 25, 6: 305, 7: 105, 9: 345, 28: 225,
+  8: 45, 10: 85, 11: 125, 12: 165, 13: 205, 16: 245, 20: 285, 30: 325, 31: 5,
+};
+
 function seriesColor(series: TrafficSeries) {
-  return series.bid === null ? 'var(--brand-strong)' : `hsl(${(series.bid * 137.508) % 360} 58% var(--website-traffic-color-lightness))`;
+  if (series.bid === null) return 'var(--brand-strong)';
+  const hue = boardHues[series.bid] ?? (series.bid * 137.508) % 360;
+  return `oklch(var(--website-traffic-color-lightness) var(--website-traffic-color-chroma) ${hue})`;
 }
 
 function formatAxisCount(value: number) {
