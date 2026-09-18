@@ -915,6 +915,7 @@ CREATE TABLE `username_view` (
   `tid` int(11) NOT NULL,
   `ip` varchar(60) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '',
   `last_viewed_at` bigint(20) unsigned DEFAULT NULL,
+  `view_times` int(10) unsigned NOT NULL DEFAULT '1',
   PRIMARY KEY (`username`,`date`,`bid`,`tid`,`ip`),
   KEY `thread_date` (`bid`,`tid`,`date`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;

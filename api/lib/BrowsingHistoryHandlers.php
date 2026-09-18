@@ -15,10 +15,11 @@ function jiekoufunc_browsing_history($con, $token) {
     // Different IPs are one daily visit in this view; source rows remain intact.
     // Historical rows keep NULL timestamps; known visits sort before unknown times.
     $statement = "
-        select visits.date, visits.last_viewed_at, threads.bid, threads.tid, threads.title, threads.author,
+        select visits.date, visits.last_viewed_at, visits.view_times,
+            threads.bid, threads.tid, threads.title, threads.author,
             boardinfo.name as board_name
         from (
-            select date, bid, tid, max(last_viewed_at) as last_viewed_at
+            select date, bid, tid, max(last_viewed_at) as last_viewed_at, sum(view_times) as view_times
             from username_view
             where username='$username' and date>='$start_date' and date<='$end_date'
             group by date, bid, tid
@@ -44,6 +45,7 @@ function jiekoufunc_browsing_history($con, $token) {
             'author' => strval($row['author']),
             'board' => strval($row['board_name']),
             'lastViewedAt' => isset($row['last_viewed_at']) ? intval($row['last_viewed_at']) : null,
+            'viewTimes' => intval($row['view_times']),
         );
     }
 
