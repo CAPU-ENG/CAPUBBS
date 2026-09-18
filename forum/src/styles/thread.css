@@ -2657,6 +2657,10 @@
     opacity: 0.65;
   }
 
+  .thread-random-button-mobile {
+    display: none;
+  }
+
 }
 @layer utilities {
   @media (max-width: 1023px) {
@@ -2665,11 +2669,16 @@
       display: contents;
     }
 
-    .thread-random-button {
+    .thread-random-button-desktop {
+      display: none;
+    }
+
+    .thread-random-button-mobile {
       position: fixed;
       z-index: 32;
       left: calc(12px + env(safe-area-inset-left, 0px));
       bottom: calc(14px + env(safe-area-inset-bottom, 0px));
+      display: inline-flex;
       width: 44px;
       height: 44px;
       box-shadow: var(--shadow-float);

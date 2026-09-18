@@ -159,7 +159,7 @@ export function ThreadPage() {
   const request = getThreadRequest();
   const randomMode = new URLSearchParams(window.location.search).get('random') === '1';
   const randomThreadButton = randomMode
-    ? <RandomThreadButton className="thread-random-button" iconOnly />
+    ? <RandomThreadButton className="thread-random-button thread-random-button-desktop" iconOnly />
     : null;
   const threadLocationHref = `${window.location.pathname}${window.location.search}${window.location.hash}`;
   const { data, error, retry, status } = useThreadData({
@@ -691,6 +691,9 @@ export function ThreadPage() {
           </section>
         ))}
       </main>
+
+      {/* Keep the fixed control outside the title card's transform animation. */}
+      {randomMode && <RandomThreadButton className="thread-random-button thread-random-button-mobile" iconOnly />}
 
       {assistiveBarEnabled && nodeFloors.length > 0 && (
         <div className="mobile-thread-controls" aria-label="移动端帖子工具" role="group">
