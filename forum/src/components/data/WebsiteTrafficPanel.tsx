@@ -41,7 +41,7 @@ export function WebsiteTrafficPanel() {
     <section className="data-display-card website-traffic-panel">
       <header className="data-display-card-header website-traffic-header">
         <span className="data-display-card-icon"><ChartColumnStacked aria-hidden="true" size={17} /></span>
-        <div className="statistics-title"><h1>网站流量</h1><StatisticsDataNotice /></div>
+        <div className="statistics-title"><h1>网站流量</h1><StatisticsDataNotice dailyUpdate /></div>
         <div aria-label="统计时段" className="website-traffic-periods" role="group">
           {TRAFFIC_PERIODS.map((item) => (
             <button aria-pressed={period === item.id} key={item.id} onClick={() => setPeriod(item.id)} type="button">{item.label}</button>

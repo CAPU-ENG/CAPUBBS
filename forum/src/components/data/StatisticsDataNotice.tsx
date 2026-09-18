@@ -3,7 +3,7 @@ import { useEffect, useId, useState } from 'react';
 
 const EXPIRES_AT = Date.parse('2027-09-20T00:00:00+08:00');
 
-export function StatisticsDataNotice() {
+export function StatisticsDataNotice({ dailyUpdate = false }: { dailyUpdate?: boolean }) {
   const tooltipId = useId();
   const [visible, setVisible] = useState(() => Date.now() < EXPIRES_AT);
 
@@ -34,7 +34,10 @@ export function StatisticsDataNotice() {
         <CircleHelp aria-hidden="true" size={15} />
       </button>
       <span className="statistics-data-notice-tooltip" id={tooltipId} role="tooltip">
-        <span>2026 年 9 月 19 日前的数据有失真，仅供参考</span>
+        <span>
+          2026 年 9 月 19 日前的数据有失真，仅供参考
+          {dailyUpdate && <><br />每日 0:00 更新数据</>}
+        </span>
       </span>
     </span>
   );
