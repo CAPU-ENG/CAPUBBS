@@ -35,7 +35,7 @@
     transition: border-color 150ms ease, background 150ms ease, color 150ms ease;
   }
 
-  .toolbox-tabs button:hover {
+  .toolbox-tabs button:hover:not(.toolbox-tab-active) {
     border-color: var(--line-strong);
     background: var(--surface-soft);
     color: var(--text-strong);
