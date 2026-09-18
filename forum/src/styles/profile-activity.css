@@ -2,6 +2,13 @@
   .profile-stat-activity {
     text-align: left;
     cursor: pointer;
+    transition: background-color 150ms ease;
+  }
+
+  @media (hover: hover) {
+    .profile-stat-activity:hover {
+      background-color: var(--brand-faint);
+    }
   }
 
   .profile-stat-activity:focus-visible {
