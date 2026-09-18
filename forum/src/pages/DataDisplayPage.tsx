@@ -2,7 +2,6 @@ import {
   AlertCircle,
   CalendarCheck2,
   RefreshCw,
-  Tags,
   Trophy,
   Users,
   type LucideIcon,
@@ -17,7 +16,6 @@ import {
   type OnlineUser,
 } from '../api/dataDisplay';
 import { PunishmentRecords } from '../components/data/PunishmentRecords';
-import { TagSummaryPanel } from '../components/data/TagSummaryPanel';
 import { AppBackground } from '../components/layout/AppBackground';
 import { LoadingState } from '../components/layout/LoadingState';
 import { TopBar } from '../components/layout/TopBar';
@@ -33,22 +31,19 @@ type LoadState = {
   status: 'error' | 'loading' | 'ready';
 };
 
-type DisplayPanel = DataDisplayPanel | 'tags';
-
 const PANEL_ITEMS: Array<{
   icon: LucideIcon;
-  id: DisplayPanel;
+  id: DataDisplayPanel;
   label: string;
 }> = [
   { icon: Users, id: 'online', label: '当前在线' },
   { icon: CalendarCheck2, id: 'checkins', label: '今日签到' },
   { icon: Trophy, id: 'checkin-ranking', label: '签到排行' },
-  { icon: Tags, id: 'tags', label: '标签查询' },
   { icon: AlertCircle, id: 'punishments', label: '罚跑记录' },
-] satisfies Array<{ icon: LucideIcon; id: DisplayPanel; label: string }>;
+] satisfies Array<{ icon: LucideIcon; id: DataDisplayPanel; label: string }>;
 
 export function DataDisplayPage() {
-  const activePanel = useSyncExternalStore<DisplayPanel>(subscribeLocation, readPanelFromLocation, () => 'online');
+  const activePanel = useSyncExternalStore<DataDisplayPanel>(subscribeLocation, readPanelFromLocation, () => 'online');
   const [reloadToken, setReloadToken] = useState(0);
   const [state, setState] = useState<LoadState>({ data: null, error: '', status: 'loading' });
   useDocumentTitle(PANEL_ITEMS.find((panel) => panel.id === activePanel)?.label ?? '数据展示');
@@ -63,11 +58,6 @@ export function DataDisplayPage() {
   useEffect(() => {
     const controller = new AbortController();
     setState({ data: null, error: '', status: 'loading' });
-
-    if (activePanel === 'tags') {
-      setState({ data: null, error: '', status: 'ready' });
-      return () => controller.abort();
-    }
 
     void fetchDataDisplayPanel(activePanel, controller.signal).then(
       (data) => {
@@ -87,7 +77,7 @@ export function DataDisplayPage() {
     return () => controller.abort();
   }, [activePanel, reloadToken]);
 
-  function selectPanel(panel: DisplayPanel) {
+  function selectPanel(panel: DataDisplayPanel) {
     if (panel === activePanel) return;
     const url = new URL(window.location.href);
     url.searchParams.set('panel', panel);
@@ -124,8 +114,6 @@ export function DataDisplayPage() {
               <RefreshCw size={15} /> 重试
             </button>
           </DataState>
-        ) : activePanel === 'tags' ? (
-          <TagSummaryPanel />
         ) : activePanel === 'online' ? (
           <OnlineTable records={state.data?.onlineUsers ?? []} />
         ) : activePanel === 'checkins' ? (
@@ -254,9 +242,9 @@ function RankNumber({ rank }: { rank: number }) {
   return <span className={rank <= 3 ? `data-rank data-rank-${rank}` : 'data-rank'}>#{rank}</span>;
 }
 
-function readPanelFromLocation(): DisplayPanel {
+function readPanelFromLocation(): DataDisplayPanel {
   const panel = new URLSearchParams(window.location.search).get('panel');
-  if (panel === 'checkins' || panel === 'checkin-ranking' || panel === 'punishments' || panel === 'tags') return panel;
+  if (panel === 'checkins' || panel === 'checkin-ranking' || panel === 'punishments') return panel;
   return 'online';
 }
 

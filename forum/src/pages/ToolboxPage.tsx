@@ -4,16 +4,19 @@ import {
   Download,
   FileCode2,
   FileSpreadsheet,
+  Tags,
   Upload,
   Wrench,
   X,
   type LucideIcon,
 } from 'lucide-react';
-import { useLayoutEffect, useRef, useState } from 'react';
+import { useLayoutEffect, useRef, useState, useSyncExternalStore } from 'react';
+import { TagSummaryPanel } from '../components/data/TagSummaryPanel';
 import { AppBackground } from '../components/layout/AppBackground';
 import { LoadingSpinner as LoaderCircle } from '../components/layout/LoadingSpinner';
 import { TopBar } from '../components/layout/TopBar';
 import { useDocumentTitle } from '../hooks/useDocumentTitle';
+import { FORUM_LOCATION_CHANGE_EVENT, replaceForumLocation } from '../utils/authRoutes';
 import { staggerEntrance } from '../utils/staggerEntrance';
 import {
   convertTableToVcf,
@@ -23,10 +26,11 @@ import {
   type ContactTable,
 } from '../utils/tableToVcf';
 
-type ToolTab = 'table-vcf';
+type ToolTab = 'table-vcf' | 'tags';
 
 const TOOL_TABS: Array<{ icon: LucideIcon; id: ToolTab; label: string }> = [
   { icon: ContactRound, id: 'table-vcf', label: '表格转 VCF' },
+  { icon: Tags, id: 'tags', label: '标签查询' },
 ];
 
 const EXAMPLE_CONTACTS: ContactRow[] = [
@@ -36,15 +40,14 @@ const EXAMPLE_CONTACTS: ContactRow[] = [
 const EXAMPLE_VCF = convertTableToVcf(EXAMPLE_CONTACTS).content;
 
 export function ToolboxPage() {
-  const [activeTab, setActiveTab] = useState<ToolTab>(readTabFromLocation);
+  const activeTab = useSyncExternalStore<ToolTab>(subscribeLocation, readTabFromLocation, () => 'table-vcf');
   useDocumentTitle(TOOL_TABS.find((tab) => tab.id === activeTab)?.label ?? '工具箱');
 
   function selectTab(tab: ToolTab) {
     if (tab === activeTab) return;
-    setActiveTab(tab);
     const url = new URL(window.location.href);
     url.searchParams.set('tab', tab);
-    window.history.replaceState(null, '', `${url.pathname}${url.search}`);
+    replaceForumLocation(`${url.pathname}${url.search}${url.hash}`);
   }
 
   return (
@@ -76,7 +79,7 @@ export function ToolboxPage() {
           id={`toolbox-panel-${activeTab}`}
           role="tabpanel"
         >
-          {activeTab === 'table-vcf' ? <TableToVcfTool /> : null}
+          {activeTab === 'table-vcf' ? <TableToVcfTool /> : <TagSummaryPanel />}
         </div>
       </main>
     </div>
@@ -285,4 +288,13 @@ function fileBaseName(fileName: string) {
 function readTabFromLocation(): ToolTab {
   const tab = new URLSearchParams(window.location.search).get('tab');
   return TOOL_TABS.some((item) => item.id === tab) ? tab as ToolTab : 'table-vcf';
+}
+
+function subscribeLocation(listener: () => void) {
+  window.addEventListener('popstate', listener);
+  window.addEventListener(FORUM_LOCATION_CHANGE_EVENT, listener);
+  return () => {
+    window.removeEventListener('popstate', listener);
+    window.removeEventListener(FORUM_LOCATION_CHANGE_EVENT, listener);
+  };
 }
