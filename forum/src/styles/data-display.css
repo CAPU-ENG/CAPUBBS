@@ -217,7 +217,7 @@
     height: 100%;
     align-items: center;
     gap: 8px;
-    padding: 10px 6px;
+    padding: 8px 6px;
     border-radius: 2px;
     color: var(--text-strong);
     font-size: var(--ui-font-size-lg);
@@ -236,12 +236,28 @@
   }
 
   .data-checkin-member .data-rank {
+    align-self: flex-start;
     flex-shrink: 0;
+  }
+
+  .data-checkin-details {
+    display: grid;
+    min-width: 0;
+    gap: 2px;
+    line-height: 1.35;
   }
 
   .data-checkin-username {
     min-width: 0;
     overflow-wrap: anywhere;
+  }
+
+  .data-checkin-time {
+    color: var(--text-faint);
+    font-size: var(--ui-font-size-xs);
+    font-weight: 500;
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
   }
 
   .data-checkin-empty {

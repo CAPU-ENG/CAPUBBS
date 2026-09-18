@@ -175,7 +175,12 @@ function CheckinList({ records }: { records: CheckinRecord[] }) {
             <li key={record.username}>
               <a className="data-checkin-member" href={getForumNavigationHref(record.href, window.location.href)}>
                 <RankNumber rank={record.rank} />
-                <span className="data-checkin-username">{record.username}</span>
+                <span className="data-checkin-details">
+                  <span className="data-checkin-username">{record.username}</span>
+                  {record.checkinTime && (
+                    <time className="data-checkin-time" dateTime={record.checkinTime}>{record.checkinTime}</time>
+                  )}
+                </span>
               </a>
             </li>
           ))}

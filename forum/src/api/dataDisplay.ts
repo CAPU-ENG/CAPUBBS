@@ -24,6 +24,7 @@ export type OnlineUser = {
 };
 
 export type CheckinRecord = {
+  checkinTime?: string;
   href: string;
   rank: number;
   username: string;
@@ -221,8 +222,10 @@ function mapCheckinRecords(rows: ApiRow[]) {
     const key = username.toLocaleLowerCase();
     if (!username || usernames.has(key)) return;
 
+    const checkinTime = stringValue(row.checkin_time);
     usernames.add(key);
     records.push({
+      checkinTime: /^(?:[01]\d|2[0-3]):[0-5]\d:[0-5]\d$/.test(checkinTime) ? checkinTime : undefined,
       href: getPublicProfilePath(username),
       rank: records.length + 1,
       username,
