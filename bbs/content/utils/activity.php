@@ -31,6 +31,7 @@ $is_leader = ($currentuser == $activity["leader_username"] || $currentuser == "ç
     <link rel="stylesheet" href="/bbs/lib/general.css">
     <link rel="stylesheet" href="/bbs/content/style.css?v=<?php echo filemtime(__DIR__ . '/../style.css'); ?>">
     <link rel="shortcut icon" href="/assets/images/capu.jpg">
+<script type="module" src="/bbs/lib/gallery-tag-legacy.js?v=<?php echo filemtime(__DIR__ . '/../../lib/gallery-tag-legacy.js'); ?>"></script>
 </head>
 <body>
 <div class="content">

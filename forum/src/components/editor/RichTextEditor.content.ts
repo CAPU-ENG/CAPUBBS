@@ -1,3 +1,4 @@
+import { expandGalleryTags, serializeGalleryTags } from '../../utils/galleryTag';
 import { renderForumMarkup } from '../../utils/forumMarkup';
 import { readForumContentFontSize } from '../../utils/forumFontSize';
 import { translateLegacyBbcode } from '../../utils/legacyBbcode';
@@ -17,7 +18,7 @@ export function getRichTextEditorStorageValue(value: RichTextEditorValue): RichT
   return {
     ...value,
     content: compactHtmlForStorage(
-      value.mode === 'rich' ? translateRichTextBbcode(value.content) : value.content,
+      serializeGalleryTags(value.mode === 'rich' ? translateRichTextBbcode(value.content) : value.content),
     ),
   };
 }
@@ -28,7 +29,7 @@ export function getRichTextEditorHtmlValue(value: RichTextEditorValue) {
     : value.mode === 'rich'
       ? translateRichTextBbcode(value.content)
       : value.content;
-  return compactHtmlForStorage(html);
+  return compactHtmlForStorage(serializeGalleryTags(html));
 }
 
 export function getRichTextEditorPreviewDocument(
@@ -64,11 +65,11 @@ export function convertEditorContent(
 ) {
   if (from === to) return content;
   if (to === 'rich') {
-    return from === 'markdown' ? renderMarkdownToHtml(content) : compactHtmlForStorage(content);
+    return expandGalleryTags(from === 'markdown' ? renderMarkdownToHtml(content) : compactHtmlForStorage(content));
   }
   if (to === 'markdown') return htmlToMarkdown(content);
   if (from === 'markdown') return formatHtmlForSource(renderMarkdownToHtml(content));
-  return formatHtmlForSource(from === 'rich' ? translateRichTextBbcode(content) : content);
+  return formatHtmlForSource(serializeGalleryTags(from === 'rich' ? translateRichTextBbcode(content) : content));
 }
 
 export function translateRichTextBbcode(content: string) {

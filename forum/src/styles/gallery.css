@@ -570,3 +570,14 @@
     }
   }
 }
+
+/* Declarative galleries share controls with historical galleries. */
+:is(.forum-markup, .capubbs-editor-prose) .capubbs-gallery[data-capubbs-gallery-tag] > .capubbs-gallery-header[hidden] {
+  display: none;
+}
+@media (max-width: 640px) {
+  :is(.forum-markup, .capubbs-editor-prose) .capubbs-gallery[data-capubbs-gallery-tag] .capubbs-gallery-stage,
+  :is(.forum-markup, .capubbs-editor-prose) .capubbs-gallery[data-capubbs-gallery-tag] .capubbs-gallery-slide > img {
+    height: min(var(--capubbs-gallery-image-height, 420px), 72vw);
+  }
+}

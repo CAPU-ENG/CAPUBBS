@@ -1,3 +1,4 @@
+import { expandGalleryTags } from './galleryTag';
 import { getPublicProfilePath } from './userRoutes';
 import { getForumNavigationHref } from './forumNavigation';
 import { normalizeForumContentLinks } from './forumContentLinks';
@@ -33,7 +34,7 @@ export function renderForumMarkup(
 
   const parser = new DOMParser();
   const source = options.normalizeLegacyLineBreaks ? normalizeLegacyLineBreaks(value) : value;
-  const document = parser.parseFromString(translateLegacyBbcode(source), 'text/html');
+  const document = parser.parseFromString(expandGalleryTags(translateLegacyBbcode(source)), 'text/html');
   const elements = Array.from(document.body.querySelectorAll('*'));
 
   normalizeForumFontSizeElements(document.body);
@@ -43,7 +44,7 @@ export function renderForumMarkup(
 
 export function translateLegacyForumMarkup(value: string) {
   return normalizeForumContentLinks(normalizeForumFontSizeMarkup(
-    localizeChexieImageRequests(translateLegacyBbcode(value)),
+    localizeChexieImageRequests(expandGalleryTags(translateLegacyBbcode(value))),
   ));
 }
 

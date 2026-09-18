@@ -1,3 +1,4 @@
+import { serializeGalleryTags } from '../../utils/galleryTag';
 import type {
   ChangeEvent,
   ClipboardEvent,
@@ -532,7 +533,7 @@ export function createRichTextEditorMediaActions({
       ensureEditorGalleryEditControls(editorRef.current);
       updateContent(editorRef.current.innerHTML);
     } else if (editorMode === 'markdown' || editorMode === 'html') {
-      insertSourceBlock(galleryHtml);
+      insertSourceBlock(serializeGalleryTags(galleryHtml));
     } else {
       insertRichHtml(`${galleryHtml}<p><br></p>`);
     }

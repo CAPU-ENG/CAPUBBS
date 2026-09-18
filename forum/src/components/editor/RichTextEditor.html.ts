@@ -1,3 +1,4 @@
+import { expandGalleryTags } from '../../utils/galleryTag';
 import { FORUM_DEFAULT_FONT_SIZE } from '../../utils/forumFontSize';
 import { translateLegacyBbcode } from '../../utils/legacyBbcode';
 import galleryStyles from '../../styles/gallery.css?raw';
@@ -8,7 +9,7 @@ export function buildHtmlPreviewDocument(
   embedded = false,
   fontSize = FORUM_DEFAULT_FONT_SIZE,
 ) {
-  const renderedHtml = translateLegacyBbcode(html);
+  const renderedHtml = expandGalleryTags(translateLegacyBbcode(html));
   const theme = isDarkTheme
     ? {
         background: '#171d19',
@@ -339,7 +340,7 @@ export function formatHtmlForSource(html: string) {
     return '';
   }
 
-  const tokens = trimmedHtml.match(/<!--[\s\S]*?-->|<!\[CDATA\[[\s\S]*?\]\]>|<!doctype[^>]*>|<\/?[a-zA-Z][^<>]*?>|[^<]+/gi);
+  const tokens = trimmedHtml.match(/<!--[\s\S]*?-->|<!\[CDATA\[[\s\S]*?\]\]>|<!doctype[^>]*>|<\/?[a-zA-Z](?:[^"'<>]|"[^"]*"|'[^']*')*>|[^<]+/gi);
   if (!tokens) {
     return trimmedHtml;
   }

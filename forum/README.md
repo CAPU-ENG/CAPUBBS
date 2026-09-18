@@ -42,3 +42,20 @@ Vite proxies `/api`, `/assets`, `/bbs`, `/bbsimg`, and `/config` to that server;
 | 档案室 | `ArchiveRoomPage` | 列表、网格中的帖子条目名称 |
 
 移动端顶栏采用居中标题，不应用左对齐补偿。标题输入框、签名档名称、档案室文件与文件夹名称，以及带“编辑：”“Re:”等前缀的文字，不额外调整内部标点。
+
+## 正文图廊标签
+
+新旧论坛正文均支持以下声明式 HTML；新论坛富文本编辑器创建图廊后，也会以此格式保存或切换到 HTML 源码：
+
+```html
+<gallery title="秋季拉练" height="420">
+  <img src="/bbs/images/first.jpg" caption="集合出发" alt="队员在校门口集合">
+  <img src="/bbs/images/second.jpg" caption="抵达山顶">
+</gallery>
+```
+
+`title`、`height`、`caption` 和 `alt` 均可省略；`height` 为正数像素高度，移动端会限制展示高度。图廊宽度跟随正文，图片保持比例完整显示。未填写标题时隐藏标题栏；单张图片隐藏切图箭头，不自动播放。同一正文内多个图廊独立切换，图片可点击放大。
+
+必须使用结束标签 `</gallery>`，内部只写 `img`，允许空白、换行和 `br`。属性包含引号、`&`、`<` 等字符时使用 HTML 实体。嵌套图廊或包含其他正文节点的标签不展开，以保留原内容。空图片地址不会成为图廊项目。历史 `.capubbs-gallery` HTML 继续兼容；新图廊保存时不会附带控件、样式或脚本。
+
+解析与结构生成在 `../bbs/lib/gallery-tag.js` 共用，新论坛通过 `src/utils/galleryTag.ts` 引入；旧论坛普通帖、活动帖通过 `gallery-tag-legacy.js` 初始化。编辑器在简洁标签和现有图廊编辑控件之间转换，不修改 API 或数据库结构。

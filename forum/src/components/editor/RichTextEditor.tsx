@@ -1,3 +1,4 @@
+import { expandGalleryTags } from '../../utils/galleryTag';
 import { DialogPresence } from '../layout/DialogPresence';
 import { Braces, PanelRightOpen, X } from 'lucide-react';
 import {
@@ -183,8 +184,9 @@ export function RichTextEditor({
       return;
     }
 
-    if (editor.innerHTML !== value.content) {
-      editor.innerHTML = value.content;
+    const editorHtml = expandGalleryTags(value.content);
+    if (editor.innerHTML !== editorHtml) {
+      editor.innerHTML = editorHtml;
       selectedRichImageRef.current = null;
       setRichImageResizeHandle(null);
     }
