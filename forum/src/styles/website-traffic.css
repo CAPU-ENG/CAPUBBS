@@ -49,7 +49,7 @@
   }
 
   .website-traffic-grid-line { stroke: var(--line); stroke-width: 1; stroke-dasharray: 3 4; }
-  .website-traffic-cursor { stroke: var(--text-faint); stroke-width: 1; stroke-dasharray: 4 4; }
+  .website-traffic-selection-band { fill: var(--brand); fill-opacity: 0.07; }
   .website-traffic-no-series {
     position: absolute;
     inset: 0;
@@ -125,6 +125,28 @@
     font-size: var(--ui-font-size-sm);
     font-variant-numeric: tabular-nums;
   }
+
+  .website-traffic-secondary {
+    margin-top: 12px;
+    border-top: 1px solid var(--line);
+  }
+
+  .website-traffic-secondary summary {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 0;
+    color: var(--text-muted);
+    font-size: var(--ui-font-size-sm);
+    list-style: none;
+    cursor: pointer;
+  }
+
+  .website-traffic-secondary summary::-webkit-details-marker { display: none; }
+  .website-traffic-secondary summary:focus-visible { outline: 2px solid var(--brand); outline-offset: -2px; }
+  .website-traffic-secondary summary:hover { color: var(--text-strong); }
+  .website-traffic-secondary[open] summary > svg { transform: rotate(90deg); }
+  .website-traffic-secondary small { margin-left: 8px; font-size: var(--ui-font-size-xs); }
 
   .website-traffic-state {
     display: grid;

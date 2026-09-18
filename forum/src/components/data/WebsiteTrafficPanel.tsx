@@ -1,7 +1,7 @@
-import { ChartNoAxesCombined, Check, RefreshCw } from 'lucide-react';
-import { useEffect, useId, useLayoutEffect, useMemo, useRef, useState, type CSSProperties, type KeyboardEvent, type PointerEvent } from 'react';
+import { ChartColumnStacked, Check, ChevronRight, RefreshCw } from 'lucide-react';
+import { memo, useEffect, useId, useLayoutEffect, useMemo, useRef, useState, type CSSProperties, type KeyboardEvent, type PointerEvent } from 'react';
 import { fetchWebsiteTraffic } from '../../api/websiteTraffic';
-import { TRAFFIC_PERIODS, trafficAxis, trafficDateTicks, type TrafficPeriod, type TrafficSeries, type WebsiteTraffic } from '../../utils/websiteTraffic';
+import { TRAFFIC_PERIODS, buildTrafficBars, groupTrafficSeries, trafficAxis, trafficDateTicks, type TrafficBars, type TrafficPeriod, type TrafficSeries, type WebsiteTraffic } from '../../utils/websiteTraffic';
 import { LoadingState } from '../layout/LoadingState';
 
 const numberFormat = new Intl.NumberFormat('zh-CN');
@@ -29,7 +29,7 @@ export function WebsiteTrafficPanel() {
   return (
     <section className="data-display-card website-traffic-panel">
       <header className="data-display-card-header website-traffic-header">
-        <span className="data-display-card-icon"><ChartNoAxesCombined aria-hidden="true" size={17} /></span>
+        <span className="data-display-card-icon"><ChartColumnStacked aria-hidden="true" size={17} /></span>
         <h1>网站流量</h1>
         <div aria-label="统计时段" className="website-traffic-periods" role="group">
           {TRAFFIC_PERIODS.map((item) => (
@@ -57,16 +57,19 @@ function TrafficChart({ data }: { data: WebsiteTraffic }) {
   const plotRef = useRef<HTMLDivElement>(null);
   const readoutId = useId();
   const visible = useMemo(() => data.series.filter((series) => visibleIds.includes(series.id)), [data.series, visibleIds]);
+  const groups = useMemo(() => groupTrafficSeries(data.series), [data.series]);
+  const bars = useMemo(() => buildTrafficBars(visible), [visible]);
   const axis = useMemo(() => trafficAxis(visible), [visible]);
+  const secondarySelected = groups.secondary.filter((series) => visibleIds.includes(series.id)).length;
   const height = 280;
   const left = 52;
   const right = 14;
   const top = 30;
   const bottom = height - 32;
   const plotWidth = width - left - right;
-  const x = (index: number) => left + index / (data.dates.length - 1) * plotWidth;
+  const slotWidth = plotWidth / data.dates.length;
+  const x = (index: number) => left + (index + 0.5) * slotWidth;
   const y = (value: number) => bottom - value / axis.maximum * (bottom - top);
-  const pathFor = (series: TrafficSeries) => series.values.map((value, index) => `${index ? 'L' : 'M'}${x(index).toFixed(2)},${y(value).toFixed(2)}`).join(' ');
 
   useLayoutEffect(() => {
     const plot = plotRef.current;
@@ -82,7 +85,7 @@ function TrafficChart({ data }: { data: WebsiteTraffic }) {
     const bounds = event.currentTarget.getBoundingClientRect();
     if (!bounds.width) return;
     const plotX = (event.clientX - bounds.left) / bounds.width * width;
-    const index = Math.round((plotX - left) / plotWidth * (data.dates.length - 1));
+    const index = Math.floor((plotX - left) / plotWidth * data.dates.length);
     setSelectedIndex(Math.max(0, Math.min(data.dates.length - 1, index)));
   }
 
@@ -101,11 +104,28 @@ function TrafficChart({ data }: { data: WebsiteTraffic }) {
     setVisibleIds((current) => current.includes(id) ? current.filter((value) => value !== id) : [...current, id]);
   }
 
+  function seriesButton(series: TrafficSeries) {
+    return (
+      <button
+        aria-label={`${series.label}，${data.dates[selectedIndex]} 浏览 ${series.values[selectedIndex]} 次`}
+        aria-pressed={visibleIds.includes(series.id)}
+        key={series.id}
+        onClick={() => toggleSeries(series.id)}
+        style={{ '--series-color': seriesColor(series) } as CSSProperties}
+        type="button"
+      >
+        <span aria-hidden="true" className="website-traffic-series-marker"><Check size={10} /></span>
+        <span className="website-traffic-series-name">{series.label}</span>
+        <strong>{numberFormat.format(series.values[selectedIndex])}</strong>
+      </button>
+    );
+  }
+
   return (
     <div className="website-traffic-content">
       <div
         aria-describedby={readoutId}
-        aria-label="每日浏览量折线图，左右方向键选择日期"
+        aria-label="每日浏览量堆叠柱形图，左右方向键选择日期"
         className="website-traffic-plot"
         onKeyDown={moveDate}
         ref={plotRef}
@@ -125,44 +145,65 @@ function TrafficChart({ data }: { data: WebsiteTraffic }) {
               {data.period === 'year' ? data.dates[index].slice(0, 7).replace('-', '/') : data.dates[index].slice(5).replace('-', '/')}
             </text>
           ))}
-          {visible.length === 1 && <path d={`${pathFor(visible[0])} L${x(data.dates.length - 1)},${bottom} L${left},${bottom} Z`} fill={seriesColor(visible[0])} fillOpacity="0.08" />}
-          {visible.map((series) => (
-            <path d={pathFor(series)} fill="none" key={series.id} stroke={seriesColor(series)} strokeLinecap="round" strokeLinejoin="round" strokeWidth={series.bid === null ? 2.5 : 1.8} vectorEffect="non-scaling-stroke" />
-          ))}
-          {visible.length > 0 && <line className="website-traffic-cursor" x1={x(selectedIndex)} x2={x(selectedIndex)} y1={top} y2={bottom} />}
-          {visible.map((series) => <circle cx={x(selectedIndex)} cy={y(series.values[selectedIndex])} fill={seriesColor(series)} key={series.id} r={3.5} stroke="var(--surface)" strokeWidth={1.5} />)}
+          {visible.length > 0 && <rect className="website-traffic-selection-band" height={bottom - top} width={slotWidth} x={left + selectedIndex * slotWidth} y={top} />}
+          <TrafficBarMarks bars={bars} bottom={bottom} left={left} maximum={axis.maximum} slotWidth={slotWidth} top={top} />
         </svg>
-        {visible.length === 0 && <span className="website-traffic-no-series">选择要显示的曲线</span>}
+        {visible.length === 0 && <span className="website-traffic-no-series">选择要显示的统计范围</span>}
       </div>
       <div className="website-traffic-readout-heading">
         <output aria-live="polite" id={readoutId}>
           <time dateTime={data.dates[selectedIndex]}>{data.dates[selectedIndex]}</time>
           <span className="sr-only">{visible.map((series) => `，${series.label} ${series.values[selectedIndex]} 次`).join('')}</span>
         </output>
-        <div aria-label="曲线选择" className="website-traffic-selection" role="group">
+        <div aria-label="统计范围" className="website-traffic-selection" role="group">
           <button onClick={() => setVisibleIds(['total'])} type="button">仅全站</button>
-          <button onClick={() => setVisibleIds(data.series.filter((series) => series.bid !== null).map((series) => series.id))} type="button">各版块</button>
+          <button onClick={() => setVisibleIds(groups.primary.filter((series) => series.bid !== null).map((series) => series.id))} type="button">主要版块</button>
         </div>
       </div>
-      <div aria-label="当日浏览量与曲线显示" className="website-traffic-series">
-        {data.series.map((series) => (
-          <button
-            aria-label={`${series.label}，${data.dates[selectedIndex]} 浏览 ${series.values[selectedIndex]} 次`}
-            aria-pressed={visibleIds.includes(series.id)}
-            key={series.id}
-            onClick={() => toggleSeries(series.id)}
-            style={{ '--series-color': seriesColor(series) } as CSSProperties}
-            type="button"
-          >
-            <span aria-hidden="true" className="website-traffic-series-marker"><Check size={10} /></span>
-            <span className="website-traffic-series-name">{series.label}</span>
-            <strong>{numberFormat.format(series.values[selectedIndex])}</strong>
-          </button>
-        ))}
+      <div aria-label="全站与主要版块当日浏览量" className="website-traffic-series">
+        {groups.primary.map(seriesButton)}
       </div>
+      {groups.secondary.length > 0 && (
+        <details className="website-traffic-secondary">
+          <summary>
+            <span>其他版块{secondarySelected > 0 && <small>{secondarySelected} 已选</small>}</span>
+            <ChevronRight aria-hidden="true" size={15} />
+          </summary>
+          <div aria-label="其他版块当日浏览量" className="website-traffic-series">
+            {groups.secondary.map(seriesButton)}
+          </div>
+        </details>
+      )}
     </div>
   );
 }
+
+const TrafficBarMarks = memo(function TrafficBarMarks({ bars, left, slotWidth, top, bottom, maximum }: {
+  bars: TrafficBars;
+  left: number;
+  slotWidth: number;
+  top: number;
+  bottom: number;
+  maximum: number;
+}) {
+  const barWidth = Math.min(40, slotWidth * 0.78);
+  const x = (index: number) => left + (index + 0.5) * slotWidth - barWidth / 2;
+  const y = (value: number) => bottom - value / maximum * (bottom - top);
+  return (
+    <g>
+      {bars.total && (
+        <g fill={seriesColor(bars.total)} fillOpacity={bars.layers.length ? 0.24 : 0.8}>
+          {bars.total.values.map((value, index) => value > 0 && <rect height={bottom - y(value)} key={index} width={barWidth} x={x(index)} y={y(value)} />)}
+        </g>
+      )}
+      {bars.layers.map(({ series, starts, ends }) => (
+        <g fill={seriesColor(series)} key={series.id}>
+          {series.values.map((value, index) => value > 0 && <rect height={y(starts[index]) - y(ends[index])} key={index} width={barWidth} x={x(index)} y={y(ends[index])} />)}
+        </g>
+      ))}
+    </g>
+  );
+});
 
 function seriesColor(series: TrafficSeries) {
   return series.bid === null ? 'var(--brand-strong)' : `hsl(${(series.bid * 137.508) % 360} 58% var(--website-traffic-color-lightness))`;

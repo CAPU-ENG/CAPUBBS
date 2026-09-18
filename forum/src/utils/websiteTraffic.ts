@@ -1,4 +1,4 @@
-import { getBoardById } from '../data/boards.ts';
+import { getBoardById, PRIMARY_BOARDS } from '../data/boards.ts';
 import { activityDate } from './userActivity.ts';
 
 export const TRAFFIC_PERIODS = [
@@ -9,6 +9,11 @@ export const TRAFFIC_PERIODS = [
 
 export type TrafficPeriod = typeof TRAFFIC_PERIODS[number]['id'];
 export type TrafficSeries = { id: string; label: string; bid: number | null; values: number[] };
+export type TrafficBars = {
+  total: TrafficSeries | undefined;
+  layers: Array<{ series: TrafficSeries; starts: number[]; ends: number[] }>;
+  maximum: number;
+};
 export type WebsiteTraffic = {
   period: TrafficPeriod;
   startDate: string;
@@ -64,8 +69,30 @@ export function parseWebsiteTraffic(value: unknown, period: TrafficPeriod): Webs
   };
 }
 
+export function groupTrafficSeries(series: TrafficSeries[]) {
+  const primaryIds = new Set(PRIMARY_BOARDS.map((board) => board.id));
+  const total = series.find((item) => item.bid === null);
+  const primary = PRIMARY_BOARDS.map((board) => series.find((item) => item.bid === board.id))
+    .filter((item): item is TrafficSeries => item !== undefined);
+  const secondary = series.filter((item) => item.bid !== null && !primaryIds.has(item.bid));
+  return { primary: total ? [total, ...primary] : primary, secondary };
+}
+
+export function buildTrafficBars(series: TrafficSeries[]): TrafficBars {
+  const total = series.find((item) => item.bid === null);
+  const sums = Array<number>(series[0]?.values.length ?? 0).fill(0);
+  const layers = series.filter((item) => item.bid !== null).map((item) => {
+    const starts = [...sums];
+    item.values.forEach((value, index) => { sums[index] += value; });
+    return { series: item, starts, ends: [...sums] };
+  });
+  // The site total already includes every board; it is a backdrop, never an extra layer.
+  const maximum = (total?.values ?? sums).reduce((peak, value) => Math.max(peak, value), 0);
+  return { total, layers, maximum };
+}
+
 export function trafficAxis(series: TrafficSeries[]) {
-  const maximum = series.reduce((peak, item) => item.values.reduce((value, count) => Math.max(value, count), peak), 0);
+  const { maximum } = buildTrafficBars(series);
   const rawStep = Math.max(1, maximum / 4);
   const magnitude = 10 ** Math.floor(Math.log10(rawStep));
   const factor = [1, 2, 5, 10].find((value) => value * magnitude >= rawStep)!;
