@@ -94,6 +94,7 @@
 
     /* Table rows and chat messages fade without shifting their reading position. */
     .data-display-card .data-table > tbody > tr[data-forum-entered],
+    .data-checkin-list > li[data-forum-entered],
     .toolbox-contact-table > tbody > tr[data-forum-entered],
     .archive-room-list > tbody > tr[data-forum-entered],
     .management-medal-member-table > tbody > tr[data-forum-entered],

@@ -129,7 +129,7 @@ export function DataDisplayPage() {
         ) : activePanel === 'online' ? (
           <OnlineTable records={state.data?.onlineUsers ?? []} />
         ) : activePanel === 'checkins' ? (
-          <CheckinTable records={state.data?.checkinRecords ?? []} />
+          <CheckinList records={state.data?.checkinRecords ?? []} />
         ) : activePanel === 'checkin-ranking' ? (
           <RankingTable records={state.data?.checkinRankingRecords ?? []} />
         ) : (
@@ -164,21 +164,23 @@ function OnlineTable({ records }: { records: OnlineUser[] }) {
   );
 }
 
-function CheckinTable({ records }: { records: CheckinRecord[] }) {
+function CheckinList({ records }: { records: CheckinRecord[] }) {
   return (
     <DataTable count={`${records.length} 人`} icon={<CalendarCheck2 size={17} />} title="今日签到">
-      <table className="data-table data-table-checkins">
-        <thead><tr><th>今日顺序</th><th>ID</th></tr></thead>
-        <tbody>
+      {records.length === 0 ? (
+        <div className="data-checkin-empty">暂无签到记录</div>
+      ) : (
+        <ol aria-label="今日签到顺序" className="data-checkin-list" role="list">
           {records.map((record) => (
-            <tr key={record.username}>
-              <td><RankNumber rank={record.rank} /></td>
-              <td><a href={getForumNavigationHref(record.href, window.location.href)}>{record.username}</a></td>
-            </tr>
+            <li key={record.username}>
+              <a className="data-checkin-member" href={getForumNavigationHref(record.href, window.location.href)}>
+                <RankNumber rank={record.rank} />
+                <span className="data-checkin-username">{record.username}</span>
+              </a>
+            </li>
           ))}
-          {records.length === 0 && <EmptyRow columns={2}>暂无签到记录</EmptyRow>}
-        </tbody>
-      </table>
+        </ol>
+      )}
     </DataTable>
   );
 }
@@ -219,7 +221,7 @@ function DataTable({
   const tableRef = useRef<HTMLDivElement | null>(null);
 
   useLayoutEffect(() => {
-    const rows = tableRef.current?.querySelectorAll<HTMLElement>('.data-table > tbody > tr');
+    const rows = tableRef.current?.querySelectorAll<HTMLElement>('.data-table > tbody > tr, .data-checkin-list > li');
     if (rows) staggerEntrance(rows);
   }, [children]);
 
