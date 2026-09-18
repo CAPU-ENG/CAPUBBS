@@ -34,7 +34,7 @@ export function buildGalleryHtml(spec) {
     const captions = spec.images.map((image, index) =>
         `<span class="capubbs-gallery-caption" data-capubbs-gallery-caption="true" data-capubbs-gallery-active="${index === 0}" aria-hidden="${index !== 0}">${escapeHtml(image.caption)}</span>`).join('');
     return `<figure class="capubbs-gallery" data-capubbs-gallery-tag="true" data-capubbs-gallery-index="0" contenteditable="false" role="region" tabindex="0" aria-label="${title ? '图廊：' + title : '图廊'}"${height ? ` style="--capubbs-gallery-image-height: ${height}px"` : ''}>`
-        + `<header class="capubbs-gallery-header"${title ? '' : ' hidden'}><figcaption class="capubbs-gallery-title">${title}</figcaption></header>`
+        + `<header class="capubbs-gallery-header"><figcaption class="capubbs-gallery-title">${title}</figcaption></header>`
         + `<div class="capubbs-gallery-stage">${slides}${controls}</div>`
         + `<footer class="capubbs-gallery-footer"><div class="capubbs-gallery-captions">${captions}</div>`
         + `<span class="capubbs-gallery-count" data-capubbs-gallery-current="1" data-capubbs-gallery-total="${spec.images.length}" aria-label="第 1 张，共 ${spec.images.length} 张图片"></span></footer></figure>`;
