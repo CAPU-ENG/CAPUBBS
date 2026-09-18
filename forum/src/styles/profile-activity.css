@@ -207,6 +207,14 @@
     gap: 14px;
   }
 
+  @media (prefers-reduced-motion: no-preference) {
+    .profile-activity-body > .profile-activity-chart,
+    .profile-activity-body > .profile-activity-footer,
+    .profile-activity-body > .profile-activity-state {
+      animation: overlay-in 180ms ease-out backwards;
+    }
+  }
+
   @media (max-width: 680px) {
     .profile-stat-activity {
       text-align: center;

@@ -83,6 +83,10 @@
       animation: forum-centered-popover-enter 160ms ease-out backwards;
     }
 
+    dialog.profile-activity-dialog[open]:not([data-forum-closing="true"])::backdrop {
+      animation: overlay-in 150ms ease-out backwards;
+    }
+
     [data-forum-closing="true"] {
       animation: forum-dialog-exit 140ms ease-out forwards !important;
       pointer-events: none;
@@ -194,6 +198,7 @@
     .not-found-shell > .not-found-panel,
     .profile-dialog-backdrop > .profile-dialog,
     dialog.profile-filter-dialog[open],
+    dialog.profile-activity-dialog[open],
     .profile-medal-lightbox-backdrop > .profile-medal-lightbox,
     .management-dialog-backdrop > .management-dialog,
     .activity-summary-value-overlay > .activity-summary-value-dialog,
@@ -220,6 +225,7 @@
     .archive-room-dialog-backdrop > .archive-room-delete-dialog,
     .profile-dialog-backdrop > .profile-dialog,
     dialog.profile-filter-dialog[open],
+    dialog.profile-activity-dialog[open],
     .profile-medal-lightbox-backdrop > .profile-medal-lightbox,
     .management-dialog-backdrop > .management-dialog,
     .activity-summary-value-overlay > .activity-summary-value-dialog,
