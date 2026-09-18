@@ -1,6 +1,7 @@
 import {
   AlertCircle,
   CalendarCheck2,
+  ChartNoAxesCombined,
   RefreshCw,
   Trophy,
   Users,
@@ -16,6 +17,7 @@ import {
   type OnlineUser,
 } from '../api/dataDisplay';
 import { PunishmentRecords } from '../components/data/PunishmentRecords';
+import { WebsiteTrafficPanel } from '../components/data/WebsiteTrafficPanel';
 import { AppBackground } from '../components/layout/AppBackground';
 import { LoadingState } from '../components/layout/LoadingState';
 import { TopBar } from '../components/layout/TopBar';
@@ -31,19 +33,22 @@ type LoadState = {
   status: 'error' | 'loading' | 'ready';
 };
 
+type DisplayPanel = DataDisplayPanel | 'traffic';
+
 const PANEL_ITEMS: Array<{
   icon: LucideIcon;
-  id: DataDisplayPanel;
+  id: DisplayPanel;
   label: string;
 }> = [
   { icon: Users, id: 'online', label: '当前在线' },
   { icon: CalendarCheck2, id: 'checkins', label: '今日签到' },
   { icon: Trophy, id: 'checkin-ranking', label: '签到排行' },
+  { icon: ChartNoAxesCombined, id: 'traffic', label: '网站流量' },
   { icon: AlertCircle, id: 'punishments', label: '罚跑记录' },
-] satisfies Array<{ icon: LucideIcon; id: DataDisplayPanel; label: string }>;
+] satisfies Array<{ icon: LucideIcon; id: DisplayPanel; label: string }>;
 
 export function DataDisplayPage() {
-  const activePanel = useSyncExternalStore<DataDisplayPanel>(subscribeLocation, readPanelFromLocation, () => 'online');
+  const activePanel = useSyncExternalStore<DisplayPanel>(subscribeLocation, readPanelFromLocation, () => 'online');
   const [reloadToken, setReloadToken] = useState(0);
   const [state, setState] = useState<LoadState>({ data: null, error: '', status: 'loading' });
   useDocumentTitle(PANEL_ITEMS.find((panel) => panel.id === activePanel)?.label ?? '数据展示');
@@ -58,6 +63,11 @@ export function DataDisplayPage() {
   useEffect(() => {
     const controller = new AbortController();
     setState({ data: null, error: '', status: 'loading' });
+
+    if (activePanel === 'traffic') {
+      setState({ data: null, error: '', status: 'ready' });
+      return () => controller.abort();
+    }
 
     void fetchDataDisplayPanel(activePanel, controller.signal).then(
       (data) => {
@@ -77,7 +87,7 @@ export function DataDisplayPage() {
     return () => controller.abort();
   }, [activePanel, reloadToken]);
 
-  function selectPanel(panel: DataDisplayPanel) {
+  function selectPanel(panel: DisplayPanel) {
     if (panel === activePanel) return;
     const url = new URL(window.location.href);
     url.searchParams.set('panel', panel);
@@ -105,7 +115,9 @@ export function DataDisplayPage() {
           ))}
         </nav>
 
-        {state.status === 'loading' ? (
+        {activePanel === 'traffic' ? (
+          <WebsiteTrafficPanel />
+        ) : state.status === 'loading' ? (
           <LoadingState className="data-display-state" label="正在加载数据" variant="panel" />
         ) : state.status === 'error' ? (
           <DataState icon={<AlertCircle size={20} />}>
@@ -242,9 +254,9 @@ function RankNumber({ rank }: { rank: number }) {
   return <span className={rank <= 3 ? `data-rank data-rank-${rank}` : 'data-rank'}>#{rank}</span>;
 }
 
-function readPanelFromLocation(): DataDisplayPanel {
+function readPanelFromLocation(): DisplayPanel {
   const panel = new URLSearchParams(window.location.search).get('panel');
-  if (panel === 'checkins' || panel === 'checkin-ranking' || panel === 'punishments') return panel;
+  if (panel === 'checkins' || panel === 'checkin-ranking' || panel === 'punishments' || panel === 'traffic') return panel;
   return 'online';
 }
 
