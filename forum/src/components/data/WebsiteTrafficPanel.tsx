@@ -147,7 +147,7 @@ function TrafficChart({ data }: { data: WebsiteTraffic }) {
             </text>
           ))}
           {visible.length > 0 && <rect className="website-traffic-selection-band" height={bottom - top} width={slotWidth} x={left + selectedIndex * slotWidth} y={top} />}
-          <TrafficBarMarks bars={bars} bottom={bottom} left={left} maximum={axis.maximum} slotWidth={slotWidth} top={top} />
+          <TrafficBarMarks bars={bars} bottom={bottom} key={visible.map((series) => series.id).join(',')} left={left} maximum={axis.maximum} slotWidth={slotWidth} top={top} />
         </svg>
         {visible.length === 0 && <span className="website-traffic-no-series">选择要显示的统计范围</span>}
       </div>
@@ -190,16 +190,40 @@ const TrafficBarMarks = memo(function TrafficBarMarks({ bars, left, slotWidth, t
   const barWidth = Math.min(40, slotWidth * 0.78);
   const x = (index: number) => left + (index + 0.5) * slotWidth - barWidth / 2;
   const y = (value: number) => bottom - value / maximum * (bottom - top);
+  const dayCount = bars.total?.values.length ?? bars.layers[0]?.series.values.length ?? 0;
+  const lastIndex = Math.max(1, dayCount - 1);
   return (
     <g>
-      {bars.total && (
-        <g fill={seriesColor(bars.total)} fillOpacity={bars.layers.length ? 0.24 : 0.8}>
-          {bars.total.values.map((value, index) => value > 0 && <rect height={bottom - y(value)} key={index} width={barWidth} x={x(index)} y={y(value)} />)}
-        </g>
-      )}
-      {bars.layers.map(({ series, starts, ends }) => (
-        <g fill={seriesColor(series)} key={series.id}>
-          {series.values.map((value, index) => value > 0 && <rect height={y(starts[index]) - y(ends[index])} key={index} width={barWidth} x={x(index)} y={y(ends[index])} />)}
+      {Array.from({ length: dayCount }, (_, index) => (
+        <g
+          className="website-traffic-bar-column"
+          key={index}
+          style={{
+            '--traffic-bar-baseline': `${bottom}px`,
+            '--traffic-bar-delay': `${Math.round(index / lastIndex * Math.min(lastIndex * 24, 180))}ms`,
+            '--traffic-bar-mobile-delay': `${Math.round(index / lastIndex * Math.min(lastIndex * 15, 120))}ms`,
+          } as CSSProperties}
+        >
+          {bars.total && bars.total.values[index] > 0 && (
+            <rect
+              fill={seriesColor(bars.total)}
+              fillOpacity={bars.layers.length ? 0.24 : 0.8}
+              height={bottom - y(bars.total.values[index])}
+              width={barWidth}
+              x={x(index)}
+              y={y(bars.total.values[index])}
+            />
+          )}
+          {bars.layers.map(({ series, starts, ends }) => series.values[index] > 0 && (
+            <rect
+              fill={seriesColor(series)}
+              height={y(starts[index]) - y(ends[index])}
+              key={series.id}
+              width={barWidth}
+              x={x(index)}
+              y={y(ends[index])}
+            />
+          ))}
         </g>
       ))}
     </g>

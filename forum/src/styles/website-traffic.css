@@ -50,6 +50,29 @@
 
   .website-traffic-grid-line { stroke: var(--line); stroke-width: 1; stroke-dasharray: 3 4; }
   .website-traffic-selection-band { fill: var(--brand); fill-opacity: 0.07; }
+
+  @keyframes website-traffic-bar-enter {
+    from { transform: scaleY(0); }
+    to { transform: scaleY(1); }
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    .website-traffic-bar-column {
+      animation: website-traffic-bar-enter 420ms cubic-bezier(0.2, 0.7, 0.2, 1) backwards;
+      animation-delay: var(--traffic-bar-delay);
+      /* Scale every layer of a day together from the shared chart baseline. */
+      transform-box: view-box;
+      transform-origin: 0 var(--traffic-bar-baseline);
+    }
+  }
+
+  @media (max-width: 1023px) and (prefers-reduced-motion: no-preference) {
+    .website-traffic-bar-column {
+      animation-duration: 300ms;
+      animation-delay: var(--traffic-bar-mobile-delay);
+    }
+  }
+
   .website-traffic-no-series {
     position: absolute;
     inset: 0;
