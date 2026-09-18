@@ -275,8 +275,9 @@ function thread_detail_query_record_view($con, $bid, $tid, $username, $ip) {
         mysqli_query($con, $statement);
     }
 
-    $statement = "insert ignore into username_view (username, date, bid, tid, ip)
-        values ('$username_escaped', '$today', $bid, $tid, '$ip_escaped')";
+    $statement = "insert into username_view (username, date, bid, tid, ip, last_viewed_at)
+        values ('$username_escaped', '$today', $bid, $tid, '$ip_escaped', $nowtime)
+        on duplicate key update last_viewed_at=greatest(coalesce(last_viewed_at, 0), $nowtime)";
     mysqli_query($con, $statement);
     mysqli_query($con, "update threads set click=click+1 where bid=$bid and tid=$tid");
 }

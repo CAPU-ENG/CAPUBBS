@@ -23,6 +23,11 @@ type HistoryState = {
   owner: string;
 };
 
+const visitTimeFormatter = new Intl.DateTimeFormat('zh-CN', {
+  timeZone: 'Asia/Shanghai',
+  hour: '2-digit', minute: '2-digit', second: '2-digit', hourCycle: 'h23',
+});
+
 export function BrowsingHistoryPage() {
   useDocumentTitle('浏览记录');
   const { status, viewer } = useAuth();
@@ -132,6 +137,15 @@ function HistoryDay({ day, today }: { day: BrowsingHistoryDay; today: string }) 
                 <span className="browsing-history-thread-meta">
                   <span className="browsing-history-board">{thread.board}</span>
                   {thread.author && <span>{thread.author}</span>}
+                  {thread.lastViewedAt !== null && (
+                    <time
+                      className="browsing-history-visit-time"
+                      dateTime={new Date(thread.lastViewedAt * 1000).toISOString()}
+                      title="最后访问时间（北京时间）"
+                    >
+                      {visitTimeFormatter.format(new Date(thread.lastViewedAt * 1000))}
+                    </time>
+                  )}
                 </span>
               </span>
               <ChevronRight aria-hidden="true" className="browsing-history-thread-arrow" size={17} />

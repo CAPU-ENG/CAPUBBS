@@ -6,6 +6,7 @@ export type BrowsingHistoryThread = {
   author: string;
   bid: number;
   board: string;
+  lastViewedAt: number | null;
   tid: number;
   title: string;
 };
@@ -85,6 +86,7 @@ export async function fetchBrowsingHistory(signal?: AbortSignal): Promise<Browsi
           author: plainText(thread.author),
           bid,
           board: getBoardById(bid)?.label ?? (plainText(thread.board) || `版块 ${bid}`),
+          lastViewedAt: visitTimestamp(thread.lastViewedAt),
           tid,
           title: plainText(thread.title) || '无标题',
         };
@@ -102,6 +104,12 @@ function asRow(value: unknown): Record<string, unknown> {
 
 function isDate(value: unknown): value is string {
   return typeof value === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(value);
+}
+
+function visitTimestamp(value: unknown) {
+  const timestamp = Number(value);
+  return Number.isSafeInteger(timestamp) && timestamp > 0
+    && Number.isFinite(new Date(timestamp * 1000).getTime()) ? timestamp : null;
 }
 
 function plainText(value: unknown) {
