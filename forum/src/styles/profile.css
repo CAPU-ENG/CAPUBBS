@@ -1311,6 +1311,10 @@
     gap: 12px;
   }
 
+  .profile-star-label {
+    display: none;
+  }
+
   .profile-star-rules > p:not(.profile-dialog-copy) {
     margin: 0;
     color: var(--text-muted);
@@ -1397,6 +1401,22 @@
     background: color-mix(in srgb, #b67a17 8%, var(--surface-raised));
     color: var(--text-strong);
     font-weight: 760;
+  }
+
+  @media (max-width: 1023px) {
+    .profile-star-symbols {
+      display: none;
+    }
+
+    .profile-star-label {
+      display: inline;
+    }
+
+    .profile-star-rules tbody th {
+      width: 1%;
+      letter-spacing: 0;
+      white-space: nowrap;
+    }
   }
 
   .profile-avatar-editor {
