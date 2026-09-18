@@ -73,7 +73,7 @@ export function StarRulesDialog({
       <div className="profile-dialog-body profile-star-rules">
         <div className="profile-star-current">
           <span>当前星级</span>
-          <strong><span className="profile-star-symbols">{'★'.repeat(currentRating)}</span><small>{currentRating} 星</small></strong>
+          <strong>{'★'.repeat(currentRating)}<small>{currentRating} 星</small></strong>
         </div>
         <p>星级通常按普通版块的发帖数与回复数之和计算。</p>
         <table>
