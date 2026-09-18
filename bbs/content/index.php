@@ -91,6 +91,7 @@
 <link rel="stylesheet" href="../lib/general.css">
 <link rel="stylesheet" href="style.css?v=<?php echo filemtime(__DIR__ . '/style.css'); ?>">
 <link rel="shortcut icon" href="/assets/images/capu.jpg">
+<script type="module" src="/bbs/lib/gallery-tag-legacy.js?v=<?php echo filemtime(__DIR__ . '/../lib/gallery-tag-legacy.js'); ?>"></script>
 <script>
 // 监听签名档 iframe 发来的高度消息，校验来源后更新 iframe 高度
 window.addEventListener('message', function(e) {

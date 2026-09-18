@@ -753,3 +753,33 @@ iframe.sigframe {
 .textblock .capubbs-punishment-table tr:nth-child(2n) td {
     background-color: #d5fbe3;
 }
+
+.textblock .capubbs-gallery[data-capubbs-gallery-tag] .capubbs-gallery-header[hidden] {
+    display: none;
+}
+.textblock .capubbs-gallery[data-capubbs-gallery-tag] .capubbs-gallery-slide > img {
+    cursor: zoom-in;
+}
+@media (max-width: 600px) {
+    .textblock .capubbs-gallery[data-capubbs-gallery-tag] .capubbs-gallery-stage {
+        height: min(var(--capubbs-gallery-image-height, 280px), 72vw);
+    }
+}
+.capubbs-gallery-lightbox {
+    position: fixed;
+    box-sizing: border-box;
+    max-width: 96vw;
+    max-height: 96vh;
+    margin: auto;
+    padding: 42px;
+    border: 0;
+    background: #171717;
+    color: #fff;
+    text-align: center;
+}
+.capubbs-gallery-lightbox::backdrop { background: rgba(0, 0, 0, 0.85); }
+.capubbs-gallery-lightbox img { display: block; max-width: 80vw; max-height: 76vh; margin: auto; object-fit: contain; }
+.capubbs-gallery-lightbox button { position: absolute; border: 0; background: #333; color: #fff; font-size: 28px; cursor: pointer; }
+.capubbs-gallery-lightbox-close { right: 8px; top: 4px; }
+.capubbs-gallery-lightbox-prev { left: 4px; top: 50%; }
+.capubbs-gallery-lightbox-next { right: 4px; top: 50%; }
