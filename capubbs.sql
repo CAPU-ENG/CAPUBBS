@@ -917,8 +917,7 @@ CREATE TABLE `username_view` (
   `last_viewed_at` bigint(20) unsigned DEFAULT NULL,
   `view_times` int(10) unsigned NOT NULL DEFAULT '1',
   PRIMARY KEY (`username`,`date`,`bid`,`tid`,`ip`),
-  KEY `thread_date` (`bid`,`tid`,`date`),
-  KEY `view_date_board` (`date`,`bid`)
+  KEY `thread_date` (`bid`,`tid`,`date`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
