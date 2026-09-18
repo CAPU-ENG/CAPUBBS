@@ -23,6 +23,7 @@ require_once __DIR__.'/lib/FloorDecorationHandlers.php';
 require_once __DIR__.'/lib/TagHandlers.php';
 require_once __DIR__.'/lib/MedalHandlers.php';
 require_once __DIR__.'/lib/ThreadDetailQuery.php';
+require_once __DIR__.'/lib/BrowsingHistoryHandlers.php';
 
 function _dispatch_build_routes() {
     return array(
@@ -79,6 +80,7 @@ function _dispatch_build_routes() {
         'changepsd'        => array('handler' => 'jiekoufunc_changepsd',        'check_login' => true, 'require_rights' => 0),
         'currentUserInfo'  => array('handler' => 'jiekoufunc_currentUserInfo',  'check_login' => true, 'require_rights' => 0),
         'presence'         => array('handler' => 'jiekoufunc_presence',         'check_login' => true, 'require_rights' => 0),
+        'browsing_history' => array('handler' => 'jiekoufunc_browsing_history', 'check_login' => true, 'require_rights' => 0),
         'editpreview'      => array('handler' => 'jiekoufunc_editpreview',      'check_login' => true, 'require_rights' => 0),
         'msg'              => array('handler' => 'jiekoufunc_msg',              'check_login' => true, 'require_rights' => 0),
         'attach'           => array('handler' => 'jiekoufunc_attach',           'check_login' => true, 'require_rights' => 0),
@@ -345,6 +347,8 @@ function jiekoufunc_dispatch($con, $params) {
                 return jiekoufunc_thread_detail($con, $bid, $tid, $params, $token, $ip);
             case 'jiekoufunc_thread_view':
                 return jiekoufunc_thread_view($con, $bid, $tid, $token, $ip);
+            case 'jiekoufunc_browsing_history':
+                return jiekoufunc_browsing_history($con, $token);
             case 'jiekoufunc_recentpost':
                 return jiekoufunc_recentpost(
                     $con,
