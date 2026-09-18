@@ -5,6 +5,7 @@ import { fetchUserActivity } from '../../api/userActivity';
 import { activityLevel, buildActivityCalendar, type UserActivity } from '../../utils/userActivity';
 import { DialogNativeLayer } from '../layout/DialogPresence';
 import { LoadingState } from '../layout/LoadingState';
+import { StatisticsDataNotice } from '../data/StatisticsDataNotice';
 
 export function ProfileActivityDialog({ username, onClose }: { username: string; onClose: () => void }) {
   const dialogRef = useRef<HTMLDialogElement>(null);
@@ -51,7 +52,7 @@ export function ProfileActivityDialog({ username, onClose }: { username: string;
     >
       <header>
         <span><Activity aria-hidden="true" size={18} /></span>
-        <h2 id={titleId}>{username}的活跃度</h2>
+        <div className="statistics-title"><h2 id={titleId}>{username}的活跃度</h2><StatisticsDataNotice /></div>
         <button aria-label="关闭活跃度" autoFocus onClick={onClose} type="button"><X size={18} /></button>
       </header>
       <div className="profile-dialog-body profile-activity-body">
