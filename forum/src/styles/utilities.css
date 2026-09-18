@@ -96,6 +96,9 @@
     .board-thread-table > tbody > .board-thread-row[data-forum-entered],
     .board-thread-management-cell > .board-thread-management-actions,
     .profile-record-list > .profile-record[data-forum-entered],
+    .browsing-history-day > .browsing-history-day-heading[data-forum-entered],
+    .browsing-history-list > li[data-forum-entered],
+    .browsing-history-panel > .browsing-history-state,
     .profile-identity-copy > .profile-intro-editor,
     .profile-detail-grid > .profile-data-card > input,
     .profile-identity-copy > .user-tag-list > .user-tag[data-forum-entered],
@@ -141,6 +144,7 @@
 
     .home-aside > .aside-card,
     .board-page-shell > .board-title-card,
+    .browsing-history-panel > .browsing-history-heading,
     .board-page-shell .board-pagination-footer,
     .thread-page-shell > .thread-top-pagination,
     .thread-page-shell > .thread-bottom-pagination,

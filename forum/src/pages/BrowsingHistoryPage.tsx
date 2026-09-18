@@ -11,6 +11,7 @@ import { LoadingState } from '../components/layout/LoadingState';
 import { TopBar } from '../components/layout/TopBar';
 import { useAuth } from '../context/AuthContext';
 import { useDocumentTitle } from '../hooks/useDocumentTitle';
+import { useStaggerEntrance } from '../hooks/useStaggerEntrance';
 import { getLoginPathWithReturnTo } from '../utils/authRoutes';
 import { getThreadHref } from '../utils/threadRoutes';
 import { getTitleIndentationClassName } from '../utils/titleIndentation';
@@ -25,6 +26,7 @@ type HistoryState = {
 
 export function BrowsingHistoryPage() {
   useDocumentTitle('浏览记录');
+  const historyRef = useStaggerEntrance<HTMLElement>('.browsing-history-day-heading, .browsing-history-list > li');
   const { status, viewer } = useAuth();
   const username = status === 'authenticated' ? viewer?.username ?? '' : '';
   const [revision, setRevision] = useState(0);
@@ -62,7 +64,7 @@ export function BrowsingHistoryPage() {
     <div className="browsing-history-page relative min-h-screen text-[var(--text)] transition-colors duration-200">
       <AppBackground />
       <TopBar contextHref="#browsing-history" contextTitle="浏览记录" />
-      <main className="browsing-history-shell" id="browsing-history">
+      <main className="browsing-history-shell" id="browsing-history" ref={historyRef}>
         <section aria-labelledby="browsing-history-title" className="browsing-history-panel">
           <header className="browsing-history-heading">
             <div className="browsing-history-title">
