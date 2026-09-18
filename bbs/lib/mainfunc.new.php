@@ -69,10 +69,10 @@
 
         $token = mysqli_real_escape_string($con, isset($token) ? $token : '');
         $ip    = mysqli_real_escape_string($con, $ip);
+        $nowtime=time();
 
         $user="";
         if ($token!="") {
-            $nowtime=time();
             $statement="select username from userinfo where token='$token' && $nowtime-tokentime<={$GLOBALS['validtime']}";
             $result = mysqli_query($con, $statement);
             while ($res=mysqli_fetch_array($result)) {
@@ -95,9 +95,13 @@
                 $author=$result[0];
             }
         }
-        $today=date("Y-m-d");
+        $visit_date = new DateTimeImmutable('@' . $nowtime);
+        $today = $visit_date->setTimezone(new DateTimeZone('Asia/Shanghai'))->format('Y-m-d');
         $user_escaped = mysqli_real_escape_string($con, $user);
-        $statement="insert ignore into username_view (username, date, bid, tid, ip) values ('$user_escaped', '$today', $bid, $tid, '$ip')";
+        $statement="insert into username_view (username, date, bid, tid, ip, last_viewed_at, view_times)
+            values ('$user_escaped', '$today', $bid, $tid, '$ip', $nowtime, 1)
+            on duplicate key update last_viewed_at=greatest(coalesce(last_viewed_at, 0), $nowtime),
+                view_times=view_times+1";
         mysqli_query($con, $statement);
         $start=($page-1)*12;
         if ($author!="")
