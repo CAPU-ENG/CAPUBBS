@@ -8,6 +8,7 @@ import {
   Footprints,
   Globe2,
   House,
+  History,
   Megaphone,
   ServerCog,
   Settings,
@@ -76,6 +77,9 @@ export function DesktopBoardDrawer({ onNavigate }: { onNavigate: () => void }) {
         <RandomThreadButton onNavigate={onNavigate} />
         <a className="supplement-link" href={toForumHref('/archive-room')} onClick={onNavigate}>
           <Archive size={15} /> 档案室
+        </a>
+        <a className="supplement-link" href={toForumHref('/browsing-history')} onClick={onNavigate}>
+          <History size={15} /> 浏览记录
         </a>
         <a className="supplement-link" href="https://www.chexie.space/" onClick={onNavigate}>
           <House size={15} /> 车协家园
@@ -153,6 +157,9 @@ export function MobileBoardSidebar({
           <RandomThreadButton onNavigate={onClose} />
           <a className="supplement-link" href={toForumHref('/archive-room')} onClick={onClose}>
             <Archive size={16} /> 档案室
+          </a>
+          <a className="supplement-link" href={toForumHref('/browsing-history')} onClick={onClose}>
+            <History size={16} /> 浏览记录
           </a>
           <a className="supplement-link" href="https://www.chexie.space/" onClick={onClose}>
             <House size={16} /> 车协家园

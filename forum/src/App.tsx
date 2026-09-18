@@ -29,6 +29,7 @@ import { getPublicProfileNameFromLocation, USER_CENTER_PATH } from './utils/user
 const loadActivityManagementPage = () => import('./pages/ActivityManagementPage');
 const loadArchiveRoomPage = () => import('./pages/ArchiveRoomPage');
 const loadBoardPage = () => import('./pages/BoardPage');
+const loadBrowsingHistoryPage = () => import('./pages/BrowsingHistoryPage');
 const loadCalendarAdminPage = () => import('./pages/CalendarAdminPage');
 const loadDataDisplayPage = () => import('./pages/DataDisplayPage');
 const loadForgotPasswordPage = () => import('./pages/ForgotPasswordPage');
@@ -45,6 +46,7 @@ const remainingForumPageLoaders = [
   loadActivityManagementPage,
   loadArchiveRoomPage,
   loadBoardPage,
+  loadBrowsingHistoryPage,
   loadCalendarAdminPage,
   loadDataDisplayPage,
   loadForgotPasswordPage,
@@ -65,6 +67,8 @@ const ArchiveRoomPage = lazy(() => loadArchiveRoomPage()
   .then((module) => ({ default: module.ArchiveRoomPage })));
 const BoardPage = lazy(() => loadBoardPage()
   .then((module) => ({ default: module.BoardPage })));
+const BrowsingHistoryPage = lazy(() => loadBrowsingHistoryPage()
+  .then((module) => ({ default: module.BrowsingHistoryPage })));
 const CalendarAdminPage = lazy(() => loadCalendarAdminPage()
   .then((module) => ({ default: module.CalendarAdminPage })));
 const DataDisplayPage = lazy(() => loadDataDisplayPage()
@@ -208,6 +212,7 @@ function ForumRouter() {
     );
   }
   if (pathname === '/toolbox') return <ToolboxPage />;
+  if (pathname === '/browsing-history') return <BrowsingHistoryPage />;
   if (isThreadComposePath(pathname)) return <ThreadComposePage />;
   if (isThreadEditPath(pathname)) return <ThreadEditPage />;
   if (
