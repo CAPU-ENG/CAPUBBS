@@ -450,11 +450,14 @@ function jiekoufunc_sign_today($con, $params) {
     $year = date("Y", $time);
     $month = date("m", $time);
     $day = date("d", $time);
-    $statement = "select username from capubbs.sign where year=$year && month=$month && day=$day order by hour, minute, second";
+    $statement = "select username, hour, minute, second from capubbs.sign where year=$year && month=$month && day=$day order by hour, minute, second";
     $todays = mysqli_query($con, $statement);
     $infos = array();
     while (($res = mysqli_fetch_row($todays)) != null) {
-        $infos[] = array('username' => $res[0]);
+        $infos[] = array(
+            'username' => $res[0],
+            'checkin_time' => sprintf('%02d:%02d:%02d', intval($res[1]), intval($res[2]), intval($res[3]))
+        );
     }
     return $infos;
 }
