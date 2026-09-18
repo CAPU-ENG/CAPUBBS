@@ -229,15 +229,15 @@ export function ProfileOverview({
         {profile.stats.map((stat) => (
           <section className="profile-stat-card" key={stat.label}>
             <span>{stat.label}</span>
-            {stat.label === '签到数' ? (
+            <strong>{stat.label === '签到数' ? (
               <button
                 aria-haspopup="dialog"
                 aria-label={`签到 ${stat.value} 次，查看活跃度`}
                 className="profile-stat-activity"
                 onClick={() => setActivityOpen(true)}
                 type="button"
-              ><strong>{stat.value}</strong></button>
-            ) : <strong>{stat.value}</strong>}
+              >{stat.value}</button>
+            ) : stat.value}</strong>
           </section>
         ))}
       </div>
