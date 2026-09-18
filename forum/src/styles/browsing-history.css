@@ -81,7 +81,16 @@
     background: var(--surface-soft);
     font-size: var(--ui-font-size-sm);
     font-variant-numeric: tabular-nums;
+    cursor: pointer;
+    list-style: none;
   }
+
+  .browsing-history-day-heading::-webkit-details-marker { display: none; }
+  .browsing-history-day-heading:hover { background: var(--brand-faint); }
+  .browsing-history-day-heading:focus-visible { outline: 2px solid var(--brand); outline-offset: -2px; }
+  .browsing-history-day-tools { display: inline-flex; align-items: center; gap: 10px; }
+  .browsing-history-day-toggle { flex-shrink: 0; }
+  .browsing-history-day[open] .browsing-history-day-toggle { transform: rotate(90deg); }
 
   .browsing-history-day-heading h2 { gap: 10px; font-weight: 650; }
   .browsing-history-day-heading h2 span { color: var(--brand-strong); }

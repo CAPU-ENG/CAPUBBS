@@ -115,11 +115,14 @@ function HistoryDay({ day, today }: { day: BrowsingHistoryDay; today: string }) 
   const headingId = `browsing-history-day-${day.date}`;
 
   return (
-    <section aria-labelledby={headingId} className="browsing-history-day">
-      <header className="browsing-history-day-heading">
+    <details aria-labelledby={headingId} className="browsing-history-day" open>
+      <summary className="browsing-history-day-heading">
         <h2 id={headingId}>{relativeDay && <span>{relativeDay}</span>}<time dateTime={day.date}>{day.date}</time></h2>
-        <span>{day.threads.length} 帖</span>
-      </header>
+        <span className="browsing-history-day-tools">
+          <span>{day.threads.length} 帖</span>
+          <ChevronRight aria-hidden="true" className="browsing-history-day-toggle" size={16} />
+        </span>
+      </summary>
       <ul className="browsing-history-list">
         {day.threads.map((thread) => (
           <li key={`${thread.bid}-${thread.tid}`}>
@@ -136,6 +139,6 @@ function HistoryDay({ day, today }: { day: BrowsingHistoryDay; today: string }) 
           </li>
         ))}
       </ul>
-    </section>
+    </details>
   );
 }

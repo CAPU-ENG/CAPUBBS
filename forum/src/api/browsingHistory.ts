@@ -1,3 +1,5 @@
+import { getBoardById } from '../data/boards';
+
 const HISTORY_API_URL = import.meta.env.VITE_API_URL?.trim() || '/api/api.php';
 
 export type BrowsingHistoryThread = {
@@ -82,7 +84,7 @@ export async function fetchBrowsingHistory(signal?: AbortSignal): Promise<Browsi
         return {
           author: plainText(thread.author),
           bid,
-          board: plainText(thread.board) || `版块 ${bid}`,
+          board: getBoardById(bid)?.label ?? (plainText(thread.board) || `版块 ${bid}`),
           tid,
           title: plainText(thread.title) || '无标题',
         };
