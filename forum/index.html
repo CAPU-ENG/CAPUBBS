@@ -11,10 +11,109 @@
     <link rel="apple-touch-icon" sizes="180x180" href="/bbs/new-assets/pwa/apple-touch-icon.png" />
     <meta name="theme-color" content="#ffffff" />
     <title>车协论坛</title>
-    <script type="module" crossorigin src="/bbs/new-assets/index-Dkrc3xVt.js"></script>
-    <link rel="stylesheet" crossorigin href="/bbs/new-assets/index-B6xcqce9.css">
+    <style id="forum-startup-style">
+      #forum-startup {
+        --startup-page: #f3f5f1;
+        --startup-text: #20231f;
+        --startup-line: #e1e6df;
+        --startup-brand: #236b4c;
+        position: fixed;
+        inset: 0;
+        z-index: 2147483647;
+        display: grid;
+        place-items: center;
+        padding: 24px;
+        background: var(--startup-page);
+        color: var(--startup-text);
+        font: 14px/1.5 "PingFang SC", "Microsoft YaHei", sans-serif;
+      }
+      #forum-startup[data-theme="dark"] {
+        --startup-page: #111613;
+        --startup-text: #dde5de;
+        --startup-line: #2c362f;
+        --startup-brand: #69b98d;
+        color-scheme: dark;
+      }
+      #forum-startup .startup-content { width: min(100%, 280px); }
+      #forum-startup h1 { margin: 0 0 24px; font-size: 22px; font-weight: 600; }
+      #forum-startup .startup-status { display: flex; justify-content: space-between; gap: 12px; }
+      #forum-startup-percent { font-variant-numeric: tabular-nums; }
+      #forum-startup progress {
+        display: block;
+        width: 100%;
+        height: 4px;
+        margin-top: 12px;
+        border: 0;
+        border-radius: 2px;
+        overflow: hidden;
+        -webkit-appearance: none;
+           -moz-appearance: none;
+                appearance: none;
+        background: var(--startup-line);
+        accent-color: var(--startup-brand);
+      }
+      #forum-startup progress::-webkit-progress-bar { background: var(--startup-line); }
+      #forum-startup progress::-webkit-progress-value { background: var(--startup-brand); }
+      #forum-startup progress::-moz-progress-bar { background: var(--startup-brand); }
+      #forum-startup-indeterminate {
+        height: 4px;
+        margin-top: 12px;
+        border-radius: 2px;
+        overflow: hidden;
+        background: var(--startup-line);
+      }
+      #forum-startup-indeterminate span {
+        display: block;
+        width: 30%;
+        height: 100%;
+        background: var(--startup-brand);
+        animation: forum-startup-indeterminate 1.2s linear infinite;
+      }
+      @keyframes forum-startup-indeterminate {
+        from { transform: translateX(-100%); }
+        to { transform: translateX(334%); }
+      }
+      @media (prefers-reduced-motion: reduce) {
+        #forum-startup-indeterminate span {
+          width: 100%;
+          opacity: 0.6;
+          animation: none;
+        }
+      }
+      #forum-startup-retry {
+        margin-top: 20px;
+        padding: 6px 14px;
+        border: 1px solid var(--startup-brand);
+        border-radius: 2px;
+        color: var(--startup-brand);
+        background: transparent;
+        font: inherit;
+        cursor: pointer;
+      }
+      #forum-startup [hidden] { display: none; }
+    </style>
+
+
   </head>
   <body>
+    <div id="forum-startup" aria-busy="true" aria-labelledby="forum-startup-title">
+      <div class="startup-content">
+        <h1 id="forum-startup-title">车协论坛</h1>
+        <div class="startup-status">
+          <span id="forum-startup-status" role="status">正在下载资源</span>
+          <span id="forum-startup-percent" aria-hidden="true">0%</span>
+        </div>
+        <progress id="forum-startup-progress" max="100" value="0" aria-label="资源下载进度"></progress>
+        <div id="forum-startup-indeterminate" role="progressbar" aria-label="资源加载中" hidden><span></span></div>
+        <button id="forum-startup-retry" type="button" hidden>重新加载</button>
+        <noscript>
+          <style>#forum-startup .startup-status, #forum-startup progress { display: none; }</style>
+          <p>请启用 JavaScript 后重新加载。</p>
+        </noscript>
+      </div>
+    </div>
     <div id="root"></div>
+    <script id="forum-startup-script">(function(n){var c=document.getElementById("forum-startup"),d=document.getElementById("forum-startup-status"),y=document.getElementById("forum-startup-percent"),m=document.getElementById("forum-startup-progress"),p=document.getElementById("forum-startup-indeterminate"),w=document.getElementById("forum-startup-retry"),f=!1,o=!1,u,g=new AbortController,b="force-cache",v="capubbs-startup-retry";try{sessionStorage.getItem(v)==="true"&&(b="reload"),sessionStorage.removeItem(v)}catch{}var E=window.matchMedia("(prefers-color-scheme: dark)").matches?"dark":"light";try{if(localStorage.getItem("capubbs-theme-follows-system")==="false"){var h=localStorage.getItem("capubbs-theme");(h==="dark"||h==="light")&&(E=h)}}catch{}c.dataset.theme=E;function i(){f||o||(o=!0,clearTimeout(u),g.abort(),d.textContent="\u52A0\u8F7D\u5931\u8D25",p.hidden=!0,c.setAttribute("aria-busy","false"),w.hidden=!1)}function I(){clearTimeout(u),u=setTimeout(i,6e4)}function M(){f||o||(f=!0,clearTimeout(u),window.removeEventListener("vite:preloadError",i),c.remove(),document.getElementById("forum-startup-style").remove())}if(window.__forumStartup={ready:M,fail:i},window.addEventListener("vite:preloadError",i),w.addEventListener("click",function(){try{sessionStorage.setItem(v,"true")}catch{}window.location.reload()}),I(),!n){d.textContent="\u6B63\u5728\u52A0\u8F7D",y.textContent="",m.hidden=!0,m.removeAttribute("value"),p.hidden=!1;return}var _=window.location.pathname.slice(n.base.length).split("/")[0],A=Object.prototype.hasOwnProperty.call(n.pages,_)?n.pages[_]:[],x=Array.from(new Set(n.common.concat(A))),l=x.map(function(e){return n.assets[e]}),L=l.reduce(function(e,t){return e+t.size},0),S=new Map,k=0;function C(e,t){if(!o){S.set(e.url,Math.min(t,e.size));var a=0;S.forEach(function(s){a+=s});var r=k===l.length?100:Math.min(99,Math.floor(a*100/L));m.value=r,y.textContent=r+"%",I()}}async function O(e){var t=await fetch(e.url,{cache:b,mode:"cors",credentials:"same-origin",signal:g.signal}),a=t.headers.get("content-type")||"";if(!t.ok||!(e.css?/text\/css/i:/(?:java|ecma)script/i).test(a))throw new Error("Startup resource unavailable: "+e.url);var r=0;if(t.body&&t.body.getReader){var s=t.body.getReader();try{for(;;){var B=await s.read();if(B.done)break;r+=B.value.byteLength,C(e,r)}}finally{s.releaseLock()}}else r=(await t.arrayBuffer()).byteLength;if(r!==e.size)throw new Error("Incomplete startup resource: "+e.url);k+=1,C(e,e.size)}function P(e){return new Promise(function(t,a){var r=document.createElement("link");r.rel="stylesheet",r.crossOrigin="anonymous",r.href=e.url,r.onload=t,r.onerror=a,document.head.appendChild(r)})}async function T(){try{var e=0;async function a(){for(;!o&&e<l.length;)await O(l[e++])}if(await Promise.all(Array.from({length:Math.min(4,l.length)},a)),o||(d.textContent="\u6B63\u5728\u6253\u5F00\u9875\u9762",await Promise.all(l.filter(function(r){return r.css}).map(P)),o))return;var t=document.createElement("script");t.type="module",t.crossOrigin="anonymous",t.src=n.entry,t.onerror=i,document.head.appendChild(t)}catch{i()}}setTimeout(T,0)})({"base":"/bbs/","entry":"/bbs/new-assets/index-DyABm6C4.js","assets":[{"url":"/bbs/new-assets/index-B6xcqce9.css","size":448889,"css":true},{"url":"/bbs/new-assets/index-DyABm6C4.js","size":460888,"css":false},{"url":"/bbs/new-assets/arrow-right-_xyJAEYX.js","size":166,"css":false},{"url":"/bbs/new-assets/plus-CscopBAM.js","size":154,"css":false},{"url":"/bbs/new-assets/lock-keyhole-BqUouJmz.js","size":256,"css":false},{"url":"/bbs/new-assets/arrow-up-CFxGqM8O.js","size":163,"css":false},{"url":"/bbs/new-assets/clipboard-list-BxLCFfcn.js","size":412,"css":false},{"url":"/bbs/new-assets/ActivitySignupEditor-B2xGnK2I.js","size":13358,"css":false},{"url":"/bbs/new-assets/useThreadData-aYAJgSB4.js","size":853,"css":false},{"url":"/bbs/new-assets/shield-alert-Bk4qR21L.js","size":354,"css":false},{"url":"/bbs/new-assets/ActivityManagementPage-CxSRSofM.js","size":16320,"css":false},{"url":"/bbs/new-assets/management-oTJ6BxPW.js","size":4722,"css":false},{"url":"/bbs/new-assets/list-DYW1zw3t.js","size":303,"css":false},{"url":"/bbs/new-assets/external-link-DTvW-9Np.js","size":252,"css":false},{"url":"/bbs/new-assets/shield-check--m2o985Q.js","size":321,"css":false},{"url":"/bbs/new-assets/file-text-DHbS_qQW.js","size":386,"css":false},{"url":"/bbs/new-assets/pencil-CvhMrLLj.js","size":277,"css":false},{"url":"/bbs/new-assets/triangle-alert-DxfvKnc3.js","size":266,"css":false},{"url":"/bbs/new-assets/ArchiveRoomPage-DJ4tmpn4.js","size":30701,"css":false},{"url":"/bbs/new-assets/board-C_3w10kx.js","size":2978,"css":false},{"url":"/bbs/new-assets/pen-line-DeNJgbGU.js","size":278,"css":false},{"url":"/bbs/new-assets/BoardPage-C_O6VrHJ.js","size":11755,"css":false},{"url":"/bbs/new-assets/BrowsingHistoryPage-57uF8jk5.js","size":6297,"css":false},{"url":"/bbs/new-assets/CalendarAdminPage-CfWi2vcR.js","size":12345,"css":false},{"url":"/bbs/new-assets/dataDisplay-BkCH3IJb.js","size":4180,"css":false},{"url":"/bbs/new-assets/users-CMbnH3LU.js","size":509,"css":false},{"url":"/bbs/new-assets/StatisticsDataNotice-C9vwXGYT.js","size":2335,"css":false},{"url":"/bbs/new-assets/DataDisplayPage-DKSloUok.js","size":27452,"css":false},{"url":"/bbs/new-assets/ForgotPasswordPage-UTGIlBMV.js","size":3735,"css":false},{"url":"/bbs/new-assets/md5-ZIXNWvOX.js","size":3231,"css":false},{"url":"/bbs/new-assets/LoginPage-Bi1ecnCh.js","size":2388,"css":false},{"url":"/bbs/new-assets/papaparse.min-DX2SMnoj.js","size":19850,"css":false},{"url":"/bbs/new-assets/rotate-ccw-DJl6m0WX.js","size":201,"css":false},{"url":"/bbs/new-assets/AvatarEditorDialog-GI7_UvaF.js","size":10012,"css":false},{"url":"/bbs/new-assets/medalDesign-DTQdlERf.js","size":5377,"css":false},{"url":"/bbs/new-assets/index-BqqU-t3H.js","size":64559,"css":false},{"url":"/bbs/new-assets/HexColorPicker-CHRpQRbx.js","size":4845,"css":false},{"url":"/bbs/new-assets/ManagementPage-cq9Z0gQc.js","size":62103,"css":false},{"url":"/bbs/new-assets/RichTextEditor.gallery-CkpWVwRZ.js","size":25064,"css":false},{"url":"/bbs/new-assets/at-sign-CgKqvVqC.js","size":200,"css":false},{"url":"/bbs/new-assets/RichTextEditor-_EIDKePe.js","size":244943,"css":false},{"url":"/bbs/new-assets/bookmark-BXSgCa8Y.js","size":164,"css":false},{"url":"/bbs/new-assets/useProfileData-CwrgQvIP.js","size":47266,"css":false},{"url":"/bbs/new-assets/PublicProfilePage-GNUraaKV.js","size":2818,"css":false},{"url":"/bbs/new-assets/RegisterPage-Dkv_xu5q.js","size":15992,"css":false},{"url":"/bbs/new-assets/threadPublishing-DHxsoPRV.js","size":2441,"css":false},{"url":"/bbs/new-assets/ThreadFloor-BbM6ZSnb.css","size":4243,"css":true},{"url":"/bbs/new-assets/ThreadFloor-BjoN-m8w.js","size":89058,"css":false},{"url":"/bbs/new-assets/PostEditor-xU9B_Lb0.js","size":8300,"css":false},{"url":"/bbs/new-assets/defaultSignature-y_5Hem3W.js","size":529,"css":false},{"url":"/bbs/new-assets/ThreadComposePage-Bq9Pnn8X.js","size":13720,"css":false},{"url":"/bbs/new-assets/ThreadEditPage-B9FIcGwx.js","size":7110,"css":false},{"url":"/bbs/new-assets/ThreadPage-DdiXtwlo.js","size":22564,"css":false},{"url":"/bbs/new-assets/UserCenterPage-B-ByE2ta.js","size":15153,"css":false}],"common":[0,1],"pages":{"activity-management":[2,3,4,5,6,7,8,9,10],"archive-room":[11,12,13,14,15,16,17,18],"main":[19,20,4,21],"browsing-history":[22],"calendar-admin":[9,16,23],"data":[24,25,14,3,26,27],"forgot-password":[2,28],"login":[29,4,2,30],"manage":[11,31,32,33,34,3,16,25,35,36,9,13,2,14,37],"user":[34,3,32,38,4,26,13,39,20,29,5,16,36,12,40,14,15,41,42,43],"users":[34,3,32,38,4,26,13,39,20,29,5,16,36,12,40,14,15,41,42,43],"register":[32,33,29,39,14,4,2,44],"post":[19,45,29,5,3,16,36,12,39,34,32,38,40,24,13,17,46,47,48,2,4,6,7,49,50],"editpid":[29,5,3,16,36,12,39,34,32,38,40,24,13,17,46,47,48,51],"content":[34,3,32,38,24,16,13,17,46,47,8,41,52],"thread.php":[34,3,32,38,24,16,13,17,46,47,8,41,52],"home":[34,3,32,38,4,26,13,39,20,29,5,16,36,12,40,14,15,41,42,33,53],"favorite":[34,3,32,38,4,26,13,39,20,29,5,16,36,12,40,14,15,41,42,33,53]}});
+</script>
   </body>
 </html>
