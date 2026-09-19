@@ -111,6 +111,13 @@ export function App() {
   );
 }
 
+function StartupReady() {
+  useEffect(() => {
+    window.__forumStartup?.ready();
+  }, []);
+  return null;
+}
+
 function PendingDraftCleanup() {
   const { status, viewer } = useAuth();
   const ownerKey = viewer?.username ?? '';
@@ -189,6 +196,16 @@ function ForumRouter() {
 
   const pathname = normalizePathname(stripForumBasePath(window.location.pathname));
   const params = new URLSearchParams(window.location.search);
+  const hasNestedLoadingBoundary = matchesPagePath(pathname, '/data') || pathname === '/archive-room';
+  return (
+    <>
+      {resolveForumPage(pathname, params)}
+      {!hasNestedLoadingBoundary && <StartupReady />}
+    </>
+  );
+}
+
+function resolveForumPage(pathname: string, params: URLSearchParams) {
   if (matchesPagePath(pathname, '/forgot-password')) return <ForgotPasswordPage />;
   if (matchesPagePath(pathname, '/login')) return <LoginPage />;
   if (matchesPagePath(pathname, '/register')) return <RegisterPage />;
@@ -200,6 +217,7 @@ function ForumRouter() {
     return (
       <Suspense fallback={<DataDisplayRouteLoading />}>
         <DataDisplayPage />
+        <StartupReady />
       </Suspense>
     );
   }
@@ -208,6 +226,7 @@ function ForumRouter() {
     return (
       <Suspense fallback={<ArchiveRoomRouteLoading />}>
         <ArchiveRoomPage />
+        <StartupReady />
       </Suspense>
     );
   }

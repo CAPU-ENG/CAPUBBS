@@ -16,6 +16,14 @@ npm run typecheck
 
 Vite proxies `/api`, `/assets`, `/bbs`, `/bbsimg`, and `/config` to that server; `/bbs/...` page requests carrying `capubbs_forum_mode=legacy` are sent to the legacy PHP forum, while `new` mode stays in the React app. When the mode Cookie is absent, all visitors default to the new forum regardless of their login `token` or device. An explicitly saved mode remains effective on all devices. Avatar and post image paths are always normalized to the local `/bbsimg` and `/bbs/images` directories. Set `CAPUBBS_PHP_ORIGIN` to use a different PHP origin, `VITE_API_URL` to override the browser forum API endpoint, or `VITE_CALENDAR_API_URL` to override the calendar endpoint. Change `CAPUBBS_BROWSER_DOWNLOAD_URL` in the repository root `config.php` to update the browser recommendation download link.
 
+## 首次进入时的资源加载
+
+`index.html` 内嵌独立加载界面和样式，`bootstrap/startup.js` 由 `build/startupLoading.ts` 内联到构建后的 HTML；加载界面不依赖 React、外部 CSS、图片或字体。构建时生成公共模块与各路由模块的依赖、文件大小清单，并移除自动插入的外部样式和入口脚本标签，避免它们阻塞加载界面的显示。
+
+首次打开任意新论坛页面时，最多并行下载四个公共或当前页面所需的 JS/CSS 文件，按收到的解压后字节数显示进度。下载完成后从原始 URL 应用样式、启动入口模块，利用带内容哈希文件的 HTTP 缓存复用下载结果；静态资源服务器需继续保留现有长期缓存策略。页面组件首次提交后移除加载界面，站内导航不再显示它；刷新或新开页面仍经过同一入口，缓存命中时无需人为等待。接口数据、用户图片、附件与后续按需资源不计入这个启动进度。
+
+资源请求失败或连续 60 秒没有进展时提供重新加载按钮。开发模式显示不带百分比的加载状态，因为源码模块没有构建后的固定字节清单。增加或修改 `App.tsx` 中的懒加载页面时，同步维护 `build/startupLoading.ts` 的 `pageRoutes`；使用内层 Suspense 的页面需在该边界内保留 `StartupReady`，以免加载界面过早退出。
+
 ## 标题缩进
 
 左对齐的标题统一使用“标题缩进”模组：[`src/utils/titleIndentation.ts`](src/utils/titleIndentation.ts) 负责判断首字符，[`src/styles/title-indentation.css`](src/styles/title-indentation.css) 负责偏移。以 `《`、`【`、`（`、`“` 开头时，仅第一行向左悬挂半个字宽，换行后的文字保持正常左对齐，偏移随标题字号变化；其他标题不添加缩进类，也不修改标题内容或空白。

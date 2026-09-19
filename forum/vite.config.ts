@@ -3,6 +3,7 @@ import type { IncomingMessage, ServerResponse } from 'node:http';
 import { request as createHttpsRequest } from 'node:https';
 import { defineConfig, type Plugin } from 'vite';
 import react from '@vitejs/plugin-react';
+import { startupLoading } from './build/startupLoading';
 import { FORUM_BASE_PATH, FORUM_BASE_URL } from './src/utils/forumBasePath';
 import { resolveForumMode } from './src/utils/forumModeCookie.ts';
 import { canonicalizeForumPageRoute } from './src/utils/forumCanonicalRoute';
@@ -99,7 +100,7 @@ export default defineConfig({
   build: {
     assetsDir: 'new-assets',
   },
-  plugins: [forumBasePathFallback(), legacyForumCookieProxy(), react()],
+  plugins: [forumBasePathFallback(), legacyForumCookieProxy(), react(), startupLoading()],
   server: {
     proxy: {
       '/api': { target: PHP_ORIGIN },

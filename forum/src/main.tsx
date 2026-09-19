@@ -9,6 +9,11 @@ replaceAliasedForumLocation(window.location, window.history);
 applyTheme(readThemeSnapshot().theme);
 applyForumContentFontSize(readForumContentFontSize());
 
-createRoot(document.getElementById('root')!).render(
+createRoot(document.getElementById('root')!, {
+  onUncaughtError(error) {
+    window.__forumStartup?.fail();
+    console.error(error);
+  },
+}).render(
   <App />,
 );

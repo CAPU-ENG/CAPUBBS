@@ -11,9 +11,79 @@
     <link rel="apple-touch-icon" sizes="180x180" href="%BASE_URL%new-assets/pwa/apple-touch-icon.png" />
     <meta name="theme-color" content="#ffffff" />
     <title>车协论坛</title>
+    <style id="forum-startup-style">
+      #forum-startup {
+        --startup-page: #f3f5f1;
+        --startup-text: #20231f;
+        --startup-line: #e1e6df;
+        --startup-brand: #236b4c;
+        position: fixed;
+        inset: 0;
+        z-index: 2147483647;
+        display: grid;
+        place-items: center;
+        padding: 24px;
+        background: var(--startup-page);
+        color: var(--startup-text);
+        font: 14px/1.5 "PingFang SC", "Microsoft YaHei", sans-serif;
+      }
+      #forum-startup[data-theme="dark"] {
+        --startup-page: #111613;
+        --startup-text: #dde5de;
+        --startup-line: #2c362f;
+        --startup-brand: #69b98d;
+        color-scheme: dark;
+      }
+      #forum-startup .startup-content { width: min(100%, 280px); }
+      #forum-startup h1 { margin: 0 0 24px; font-size: 22px; font-weight: 600; }
+      #forum-startup .startup-status { display: flex; justify-content: space-between; gap: 12px; }
+      #forum-startup-percent { font-variant-numeric: tabular-nums; }
+      #forum-startup progress {
+        display: block;
+        width: 100%;
+        height: 4px;
+        margin-top: 12px;
+        border: 0;
+        border-radius: 2px;
+        overflow: hidden;
+        appearance: none;
+        background: var(--startup-line);
+        accent-color: var(--startup-brand);
+      }
+      #forum-startup progress::-webkit-progress-bar { background: var(--startup-line); }
+      #forum-startup progress::-webkit-progress-value { background: var(--startup-brand); }
+      #forum-startup progress::-moz-progress-bar { background: var(--startup-brand); }
+      #forum-startup-retry {
+        margin-top: 20px;
+        padding: 6px 14px;
+        border: 1px solid var(--startup-brand);
+        border-radius: 2px;
+        color: var(--startup-brand);
+        background: transparent;
+        font: inherit;
+        cursor: pointer;
+      }
+      #forum-startup [hidden] { display: none; }
+    </style>
   </head>
   <body>
+    <div id="forum-startup" aria-busy="true" aria-labelledby="forum-startup-title">
+      <div class="startup-content">
+        <h1 id="forum-startup-title">车协论坛</h1>
+        <div class="startup-status">
+          <span id="forum-startup-status" role="status">正在下载资源</span>
+          <span id="forum-startup-percent" aria-hidden="true">0%</span>
+        </div>
+        <progress id="forum-startup-progress" max="100" value="0" aria-label="资源下载进度"></progress>
+        <button id="forum-startup-retry" type="button" hidden>重新加载</button>
+        <noscript>
+          <style>#forum-startup .startup-status, #forum-startup progress { display: none; }</style>
+          <p>请启用 JavaScript 后重新加载。</p>
+        </noscript>
+      </div>
+    </div>
     <div id="root"></div>
+    <!-- forum-startup-script -->
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>
