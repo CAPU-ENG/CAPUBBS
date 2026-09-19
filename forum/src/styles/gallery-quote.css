@@ -1,5 +1,8 @@
 .forum-markup-floor .capubbs-gallery-quote {
   position: absolute;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
   z-index: 5;
   top: 10px;
   right: 10px;
