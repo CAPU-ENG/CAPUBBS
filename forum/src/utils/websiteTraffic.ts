@@ -1,4 +1,4 @@
-import { getBoardById, PRIMARY_BOARDS } from '../data/boards.ts';
+import { getBoardById, PRIMARY_BOARDS, SECONDARY_BOARDS } from '../data/boards.ts';
 import { activityDate } from './userActivity.ts';
 
 export const TRAFFIC_PERIODS = [
@@ -70,11 +70,11 @@ export function parseWebsiteTraffic(value: unknown, period: TrafficPeriod): Webs
 }
 
 export function groupTrafficSeries(series: TrafficSeries[]) {
-  const primaryIds = new Set(PRIMARY_BOARDS.map((board) => board.id));
   const total = series.find((item) => item.bid === null);
   const primary = PRIMARY_BOARDS.map((board) => series.find((item) => item.bid === board.id))
     .filter((item): item is TrafficSeries => item !== undefined);
-  const secondary = series.filter((item) => item.bid !== null && !primaryIds.has(item.bid));
+  const secondary = SECONDARY_BOARDS.map((board) => series.find((item) => item.bid === board.id))
+    .filter((item): item is TrafficSeries => item !== undefined);
   return { primary: total ? [total, ...primary] : primary, secondary };
 }
 

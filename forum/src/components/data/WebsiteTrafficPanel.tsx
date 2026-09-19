@@ -75,8 +75,8 @@ function TrafficChart({ data, onSelectDate, selectedDate, setVisibleIds, visible
   const [width, setWidth] = useState(800);
   const plotRef = useRef<HTMLDivElement>(null);
   const readoutId = useId();
-  const visible = useMemo(() => data.series.filter((series) => visibleIds.includes(series.id)), [data.series, visibleIds]);
   const groups = useMemo(() => groupTrafficSeries(data.series), [data.series]);
+  const visible = useMemo(() => [...groups.primary, ...groups.secondary].filter((series) => visibleIds.includes(series.id)), [groups, visibleIds]);
   const bars = useMemo(() => buildTrafficBars(visible), [visible]);
   const axis = useMemo(() => trafficAxis(visible), [visible]);
   const secondarySelected = groups.secondary.filter((series) => visibleIds.includes(series.id)).length;
