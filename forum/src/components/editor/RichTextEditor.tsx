@@ -1,4 +1,5 @@
 import { expandGalleryTags } from '../../utils/galleryTag';
+import { observeEditorImageLoading } from './RichTextEditor.imageLoading';
 import { DialogPresence } from '../layout/DialogPresence';
 import { Braces, PanelRightOpen, X } from 'lucide-react';
 import {
@@ -194,6 +195,11 @@ export function RichTextEditor({
 
     ensureEditorGalleryEditControls(editor);
   }, [isSourceMode, value.content]);
+
+  useEffect(() => {
+    const editor = editorRef.current;
+    if (!isSourceMode && editor) return observeEditorImageLoading(editor);
+  }, [isSourceMode]);
 
   useEffect(() => {
     if (!isSourceMode) {
