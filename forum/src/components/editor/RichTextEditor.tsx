@@ -44,6 +44,7 @@ import {
   isRichFirstLineIndentActive,
   isSelectionInsideStructuredRichBlock,
   normalizeRichTypingStylesAfterInput,
+  removeRichQuoteAtCaret,
   readRecentTextColors,
   readRichCommandStates,
   readRichFontStyles,
@@ -280,6 +281,18 @@ export function RichTextEditor({
     const galleryToEdit = getEditorGalleryEditTarget(event.target);
     const galleryAction = getEditorGalleryAction(event.target);
     const galleryResize = getEditorGalleryResizeTarget(event.target);
+
+    if (
+      !event.nativeEvent.isComposing
+      && !event.ctrlKey && !event.metaKey && !event.altKey && !event.shiftKey
+      && event.target === editor
+      && selection && removeRichQuoteAtCaret(editor, selection, event.key)
+    ) {
+      event.preventDefault();
+      savedRangeRef.current = null;
+      updateContent(editor.innerHTML);
+      return;
+    }
 
     if (galleryResize && ['ArrowDown', 'ArrowUp'].includes(event.key)) {
       event.preventDefault();

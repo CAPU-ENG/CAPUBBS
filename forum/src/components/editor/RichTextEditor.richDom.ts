@@ -354,3 +354,47 @@ export function isSelectionInsideStructuredRichBlock(editor: HTMLElement, node: 
   }
   return false;
 }
+
+export function removeRichQuoteAtCaret(editor: HTMLElement, selection: Selection, key: string) {
+  if (!['Backspace', 'Delete'].includes(key) || selection.rangeCount === 0 || !selection.isCollapsed) return false;
+  const range = selection.getRangeAt(0);
+  if (!editor.contains(range.startContainer)) return false;
+  const element = range.startContainer.nodeType === 1
+    ? range.startContainer as Element
+    : range.startContainer.parentElement;
+  const quote = element?.closest<HTMLElement>('blockquote.forum-quote, blockquote.forum-legacy-quote');
+  if (!quote || !editor.contains(quote)) return false;
+  const body = quote.querySelector<HTMLElement>('.capubbs-manual-quote-body')
+    ?? (quote.classList.contains('forum-quote') ? quote : null);
+  if (!body || !body.contains(range.startContainer)) return false;
+
+  // Only placeholders and empty formatting wrappers count as empty. Media,
+  // embedded HTML and nested structured blocks must keep their contents.
+  const hasContent = (root: ParentNode) => Array.from(root.childNodes).some(function occupied(node): boolean {
+    if (node.nodeType === 3) return Boolean(node.textContent?.replace(/\u200B/g, ''));
+    if (node.nodeType !== 1) return false;
+    const child = node as Element;
+    if (child.tagName === 'BR') return false;
+    if (!/^(P|DIV|SPAN|B|STRONG|I|EM|U|S|STRIKE|FONT|SUB|SUP)$/.test(child.tagName)) return true;
+    return Array.from(child.childNodes).some(occupied);
+  });
+  const empty = !hasContent(body);
+  if (!empty) {
+    if (key !== 'Backspace') return false;
+    const before = range.cloneRange();
+    before.selectNodeContents(body);
+    before.setEnd(range.startContainer, range.startOffset);
+    const preceding = before.cloneContents();
+    if (hasContent(preceding) || preceding.querySelector('br')) return false;
+  }
+
+  const replacement = editor.ownerDocument.createElement('div');
+  if (empty) replacement.append(editor.ownerDocument.createElement('br'));
+  else replacement.append(...Array.from(body.childNodes));
+  quote.replaceWith(replacement);
+  range.selectNodeContents(replacement);
+  range.collapse(true);
+  selection.removeAllRanges();
+  selection.addRange(range);
+  return true;
+}
