@@ -1,5 +1,6 @@
 import { RelationGraph, RGProvider, type RGNodeSlotProps, type RGOptions, type RelationGraphInstance } from '@relation-graph/react';
 import '@relation-graph/react/style.css';
+import '../../styles/yahou-overview.css';
 import { BadgeCheck, Check, Circle, Download, Maximize, Minus, Pause, Play, Plus, RotateCcw, Search, SlidersHorizontal, X } from 'lucide-react';
 import { useEffect, useId, useMemo, useRef, useState, type CSSProperties, type KeyboardEvent } from 'react';
 import { YAHOU_STATUS_LABELS, type YahouLineage } from '../../data/yahouLineage';

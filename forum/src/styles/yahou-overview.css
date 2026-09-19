@@ -1,236 +1,173 @@
-@layer components {
-  .yahou-overview-dialog {
-    width: calc(100vw - 32px);
-    max-width: 1800px;
-    height: calc(100dvh - 32px);
-    max-height: none;
-    margin: auto;
-    padding: 0;
-    overflow: hidden;
-    border: 1px solid var(--line-strong);
-    border-radius: 2px;
-    background: var(--surface);
-    color: var(--text);
-    box-shadow: 0 20px 80px #0004;
-  }
+/* This stylesheet is loaded only with the lazy graph component. */
+.yahou-overview-toolbar {
+  display: flex;
+  flex-shrink: 0;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px 20px;
+  padding: 10px 16px;
+  border-bottom: 1px solid var(--line);
+}
 
-  .yahou-overview-dialog[open] {
-    display: flex;
-    flex-direction: column;
-  }
+.yahou-overview-toolbar .yahou-legend {
+  padding: 0;
+}
 
-  .yahou-overview-dialog::backdrop {
-    background: #0009;
-  }
+.yahou-overview-count {
+  color: var(--text-muted);
+  font-size: var(--ui-font-size-sm);
+  font-variant-numeric: tabular-nums;
+}
 
-  .yahou-overview-header {
-    display: flex;
-    flex-shrink: 0;
-    align-items: center;
-    justify-content: space-between;
-    gap: 12px;
-    padding: 10px 16px;
-    border-bottom: 1px solid var(--line);
-  }
+.yahou-overview-controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  margin-left: auto;
+}
 
-  .yahou-overview-header h2 {
-    margin: 0;
-    color: var(--text-strong);
-    font-size: var(--ui-font-size-xl);
-    font-weight: 760;
-  }
+.yahou-overview-controls output {
+  min-width: 52px;
+  color: var(--text-muted);
+  font-size: var(--ui-font-size-sm);
+  font-variant-numeric: tabular-nums;
+  text-align: center;
+}
 
+.yahou-overview-body {
+  display: flex;
+  flex: 1;
+  min-height: 0;
+  position: relative;
+}
+
+.yahou-overview-canvas {
+  position: relative;
+  flex: 1;
+  min-width: 0;
+  min-height: 0;
+  overflow: hidden;
+  background: var(--page);
+}
+
+.yahou-graph-settings {
+  z-index: 2;
+  width: 230px;
+  flex-shrink: 0;
+  overflow: auto;
+  padding: 18px;
+  border-left: 1px solid var(--line);
+  background: var(--surface);
+  font-size: var(--ui-font-size-sm);
+}
+
+.yahou-graph-search label,
+.yahou-force-control > span,
+.yahou-graph-pin {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+
+.yahou-graph-search input {
+  width: 100%;
+  margin-top: 8px;
+  padding: 7px 9px;
+  border: 1px solid var(--line-strong);
+  border-radius: 3px;
+  background: var(--surface);
+  color: var(--text);
+}
+
+.yahou-graph-results {
+  display: grid;
+  max-height: 180px;
+  overflow: auto;
+  padding-top: 6px;
+}
+
+.yahou-graph-results button {
+  padding: 6px;
+  overflow-wrap: anywhere;
+  text-align: left;
+  color: var(--text);
+}
+
+.yahou-graph-results button:hover {
+  background: var(--surface-soft);
+}
+
+.yahou-force-controls {
+  display: grid;
+  gap: 22px;
+  margin-top: 26px;
+}
+
+.yahou-force-control > span { justify-content: space-between; }
+.yahou-force-control output { color: var(--text-muted); font-variant-numeric: tabular-nums; }
+.yahou-force-control input { width: 100%; margin-top: 10px; accent-color: var(--brand); }
+.yahou-graph-pin input { accent-color: var(--brand); }
+
+.yahou-graph-loading {
+  position: absolute;
+  inset: 40% 0 auto;
+  text-align: center;
+  color: var(--text-muted);
+  pointer-events: none;
+}
+
+.yahou-graph-selection {
+  position: absolute;
+  bottom: 16px;
+  left: 16px;
+  display: grid;
+  gap: 5px;
+  max-width: min(360px, calc(100% - 32px));
+  padding: 12px 40px 12px 14px;
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  background: var(--surface);
+  box-shadow: 0 4px 18px #0001;
+  overflow-wrap: anywhere;
+  font-size: var(--ui-font-size-sm);
+}
+
+.yahou-graph-selection span { color: var(--text-muted); }
+.yahou-graph-selection button { position: absolute; top: 7px; right: 7px; }
+
+.yahou-overview-error {
+  margin: 0;
+  padding: 6px 16px;
+  color: var(--danger);
+}
+
+@media (max-width: 640px) {
   .yahou-overview-toolbar {
-    display: flex;
-    flex-shrink: 0;
-    flex-wrap: wrap;
-    align-items: center;
-    gap: 10px 20px;
-    padding: 10px 16px;
-    border-bottom: 1px solid var(--line);
-  }
-
-  .yahou-overview-toolbar .yahou-legend {
-    padding: 0;
+    gap: 8px;
+    padding: 10px;
   }
 
   .yahou-overview-count {
-    color: var(--text-muted);
-    font-size: var(--ui-font-size-sm);
-    font-variant-numeric: tabular-nums;
-  }
-
-  .yahou-overview-controls {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    gap: 6px;
     margin-left: auto;
   }
 
-  .yahou-overview-controls output {
-    min-width: 52px;
-    color: var(--text-muted);
-    font-size: var(--ui-font-size-sm);
-    font-variant-numeric: tabular-nums;
-    text-align: center;
-  }
-
-  .yahou-overview-body {
-    display: flex;
-    flex: 1;
-    min-height: 0;
-    position: relative;
-  }
-
-  .yahou-overview-canvas {
-    position: relative;
-    flex: 1;
-    min-width: 0;
-    min-height: 0;
-    overflow: hidden;
-    background: var(--page);
-  }
-
   .yahou-graph-settings {
-    z-index: 2;
-    width: 230px;
-    flex-shrink: 0;
-    overflow: auto;
-    padding: 18px;
-    border-left: 1px solid var(--line);
-    background: var(--surface);
-    font-size: var(--ui-font-size-sm);
-  }
-
-  .yahou-graph-search label,
-  .yahou-force-control > span,
-  .yahou-graph-pin {
-    display: flex;
-    align-items: center;
-    gap: 7px;
-  }
-
-  .yahou-graph-search input {
-    width: 100%;
-    margin-top: 8px;
-    padding: 7px 9px;
-    border: 1px solid var(--line-strong);
-    border-radius: 3px;
-    background: var(--surface);
-    color: var(--text);
-  }
-
-  .yahou-graph-results {
-    display: grid;
-    max-height: 180px;
-    overflow: auto;
-    padding-top: 6px;
-  }
-
-  .yahou-graph-results button {
-    padding: 6px;
-    overflow-wrap: anywhere;
-    text-align: left;
-    color: var(--text);
-  }
-
-  .yahou-graph-results button:hover {
-    background: var(--surface-soft);
-  }
-
-  .yahou-force-controls {
-    display: grid;
-    gap: 22px;
-    margin-top: 26px;
-  }
-
-  .yahou-force-control > span { justify-content: space-between; }
-  .yahou-force-control output { color: var(--text-muted); font-variant-numeric: tabular-nums; }
-  .yahou-force-control input { width: 100%; margin-top: 10px; accent-color: var(--brand); }
-  .yahou-graph-pin input { accent-color: var(--brand); }
-
-  .yahou-graph-loading {
     position: absolute;
-    inset: 40% 0 auto;
-    text-align: center;
-    color: var(--text-muted);
-    pointer-events: none;
-  }
-
-  .yahou-graph-selection {
-    position: absolute;
-    bottom: 16px;
-    left: 16px;
-    display: grid;
-    gap: 5px;
-    max-width: min(360px, calc(100% - 32px));
-    padding: 12px 40px 12px 14px;
+    inset: 8px 8px auto auto;
+    max-height: calc(100% - 16px);
+    width: 210px;
+    padding: 14px;
     border: 1px solid var(--line);
     border-radius: 4px;
-    background: var(--surface);
-    box-shadow: 0 4px 18px #0001;
-    overflow-wrap: anywhere;
-    font-size: var(--ui-font-size-sm);
+    box-shadow: 0 4px 18px #0002;
   }
 
-  .yahou-graph-selection span { color: var(--text-muted); }
-  .yahou-graph-selection button { position: absolute; top: 7px; right: 7px; }
+  .yahou-force-controls { gap: 15px; margin-top: 18px; }
 
-  .yahou-overview-failure {
-    display: flex;
-    flex: 1;
-    flex-direction: column;
-    align-items: center;
+  .yahou-overview-controls {
     justify-content: center;
-    gap: 12px;
-  }
-
-  .yahou-overview-error {
-    margin: 0;
-    padding: 6px 16px;
-    color: var(--danger);
-  }
-
-  @media (max-width: 640px) {
-    .yahou-overview-dialog {
-      width: 100vw;
-      max-width: 100vw;
-      height: 100dvh;
-      border: 0;
-      border-radius: 0;
-    }
-
-    .yahou-overview-header {
-      padding-top: max(10px, env(safe-area-inset-top));
-    }
-
-    .yahou-overview-toolbar {
-      gap: 8px;
-      padding: 10px;
-    }
-
-    .yahou-overview-count {
-      margin-left: auto;
-    }
-
-    .yahou-graph-settings {
-      position: absolute;
-      inset: 8px 8px auto auto;
-      max-height: calc(100% - 16px);
-      width: 210px;
-      padding: 14px;
-      border: 1px solid var(--line);
-      border-radius: 4px;
-      box-shadow: 0 4px 18px #0002;
-    }
-
-    .yahou-force-controls { gap: 15px; margin-top: 18px; }
-
-    .yahou-overview-controls {
-      justify-content: center;
-      width: 100%;
-    }
+    width: 100%;
   }
 }
 
