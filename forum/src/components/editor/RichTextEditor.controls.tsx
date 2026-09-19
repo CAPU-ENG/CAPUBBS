@@ -353,7 +353,7 @@ export function RichTextEditorControls(props: Props) {
                 </label>
               </>
             ) : (
-              <label className={activePopover === 'quote' ? 'min-w-0 basis-full' : 'min-w-0 flex-1'}>
+              <label className={activePopover === 'quote' ? 'min-w-[10rem] flex-1' : 'min-w-0 flex-1'}>
                 <span className="sr-only">{popoverConfig.label}</span>
                 <input
                   autoFocus
@@ -365,7 +365,7 @@ export function RichTextEditorControls(props: Props) {
               </label>
             )}
             {activePopover === 'quote' ? (
-              <label className="min-w-0 basis-full">
+              <label className="min-w-[12rem] flex-[1.4]">
                 <span className="sr-only">引文链接</span>
                 <input
                   value={popoverTextValue}
