@@ -6,11 +6,11 @@
   "start_url": "/bbs/index/",
   "scope": "/bbs/",
   "display": "standalone",
-  "background_color": "#f3f5f1",
-  "theme_color": "#f3f5f1",
+  "background_color": "#174f38",
+  "theme_color": "#174f38",
   "color_scheme_dark": {
-    "background_color": "#111613",
-    "theme_color": "#111613"
+    "background_color": "#174f38",
+    "theme_color": "#174f38"
   },
   "icons": [
     {
