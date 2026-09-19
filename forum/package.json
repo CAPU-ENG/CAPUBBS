@@ -47,7 +47,8 @@
     "verify:thread-image-priority": "node --experimental-strip-types verify-thread-image-priority.mjs",
     "verify:thread-content-cache": "node --experimental-strip-types verify-thread-content-cache.mjs",
     "verify:thread-publishing": "node --experimental-strip-types verify-thread-publishing.mjs",
-    "postinstall": "patch-package"
+    "postinstall": "patch-package",
+    "verify:yahou-overview-dom": "node verify-yahou-overview-dom.mjs"
   },
   "dependencies": {
     "@relation-graph/react": "3.1.2",
@@ -67,6 +68,8 @@
     "@types/react-dom": "^19.0.0",
     "@vitejs/plugin-react": "5.2.0",
     "autoprefixer": "^10.4.0",
+    "esbuild": "0.27.7",
+    "jsdom": "27.0.1",
     "patch-package": "8.0.1",
     "postcss": "^8.4.0",
     "tailwindcss": "^3.4.0",

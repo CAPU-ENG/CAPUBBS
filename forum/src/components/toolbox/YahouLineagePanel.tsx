@@ -1,5 +1,5 @@
 import { BadgeCheck, Check, ChevronDown, ChevronRight, Circle, ExternalLink, Focus, GitBranch, Home, Network, Plus, RefreshCw, Search, X } from 'lucide-react';
-import { lazy, Suspense, useEffect, useMemo, useRef, useState, type FormEvent } from 'react';
+import { useEffect, useMemo, useRef, useState, type FormEvent } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import { fetchYahouLineage, saveYahouLineage } from '../../api/yahouLineage';
 import {
@@ -10,8 +10,7 @@ import {
 import { getForumNavigationHref } from '../../utils/forumNavigation';
 import { LoadingSpinner } from '../layout/LoadingSpinner';
 import { DialogPresence } from '../layout/DialogPresence';
-
-const YahouLineageOverview = lazy(() => import('./YahouLineageOverview').then((module) => ({ default: module.YahouLineageOverview })));
+import { YahouLineageOverview } from './YahouLineageOverview';
 
 export function YahouLineagePanel() {
   const { status: authStatus, viewer } = useAuth();
@@ -53,9 +52,7 @@ export function YahouLineagePanel() {
       )}
       <DialogPresence>
         {overviewOpen && data ? (
-          <Suspense fallback={<p className="yahou-load-state" role="status"><LoadingSpinner size={18} />正在加载总览</p>}>
-            <YahouLineageOverview data={data} onClose={() => setOverviewOpen(false)} />
-          </Suspense>
+          <YahouLineageOverview data={data} onClose={() => setOverviewOpen(false)} />
         ) : null}
       </DialogPresence>
     </section>

@@ -177,6 +177,15 @@
   .yahou-graph-selection span { color: var(--text-muted); }
   .yahou-graph-selection button { position: absolute; top: 7px; right: 7px; }
 
+  .yahou-overview-failure {
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+  }
+
   .yahou-overview-error {
     margin: 0;
     padding: 6px 16px;
