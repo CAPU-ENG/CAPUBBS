@@ -7,7 +7,7 @@ APIs and web for CAPUBBS.
 
 新论坛工具箱入口为 `/bbs/toolbox?tab=yahou-lineage`。所有人可查看、搜索和聚焦师门；权限值不低于 3 的登录会员可选中节点添加徒弟或更新状态，选中“实践部”可添加直属 ID。页面和接口都不提供删除关系或更换师傅的操作。
 
-右上角“谱系总览”使用 [cactuz](https://cactuz.spren9er.de/) 的 `CactusLayout` 将当前完整谱系绘成静态 SVG，保留所有 ID 和状态。支持拖动、滚轮或按钮缩放、适应窗口及下载完整 SVG；键盘方向键平移、加减键缩放、Home 复位。总览直接使用当前 JSON 数据，不另存图形数据。
+右上角“谱系总览”使用 [cactuz](https://cactuz.spren9er.de/) 的 `CactusLayout` 将当前完整谱系绘成静态 SVG，保留所有 ID 和状态。同一代的圆大小和字号一致，长 ID 分行显示，绘制前进行节点碰撞避让，连线置于节点下方。支持拖动、滚轮或按钮缩放、适应窗口及下载完整 SVG；键盘方向键平移、加减键缩放、Home 复位。总览直接使用当前 JSON 数据，不另存图形数据。
 
 唯一主数据是 `forum/data/yahou-lineage.json`，以 `parentId: null` 表示直属“实践部”，其余节点的 `parentId` 为师傅 ID。状态为 `pending`（学徒：未过押后）、`passed`（押后：已过押后）、`qualified`（师父：已过押后且具备收徒资格）。已有后代的 ID 必须保持 `qualified`。初始 734 个 ID 及关系来自[师徒制谱系首楼](https://chexie.net/bbs/content/?bid=5&p=1&tid=1533#1)：无状态标记的 ID 视为已过押后，所有已有后代的 ID 及原帖明确标记的师傅视为具备收徒资格。
 
@@ -18,7 +18,7 @@ APIs and web for CAPUBBS.
 数据通过 `/api/api.php` 读取，不应直接公开数据目录。Apache 使用该目录内的 `.htaccess`；Nginx 在站点配置中加入 `location ^~ /forum/data/ { return 404; }`。这不影响新论坛 `/bbs/` 入口。
 
 在本地 PHP 测试环境已启动的前提下，运行 `npm --prefix forum run verify:yahou-lineage` 验证树结构、资格约束、祖先定位和搜索。
-运行 `npm --prefix forum run verify:yahou-overview` 验证全量总览节点和关系、布局边界、源数据不被改写、同数量关系修正后的刷新及缩放计算。
+运行 `npm --prefix forum run verify:yahou-overview` 验证全量总览节点和关系、同代尺寸与字号、标签完整性和节点间距、布局边界、源数据不被改写、同数量关系修正后的刷新及缩放计算。
 
 ## 网站流量每日快照
 

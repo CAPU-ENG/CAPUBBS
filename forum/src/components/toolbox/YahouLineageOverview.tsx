@@ -3,7 +3,7 @@ import { memo, useEffect, useId, useMemo, useRef, useState, type KeyboardEvent, 
 import { createPortal } from 'react-dom';
 import { YAHOU_STATUS_LABELS, type YahouLineage, type YahouStatus } from '../../data/yahouLineage';
 import {
-  layoutYahouOverview, yahouOverviewFontSize, zoomYahouViewBox,
+  layoutYahouOverview, zoomYahouViewBox,
   type YahouOverviewLayout, type YahouViewBox,
 } from '../../utils/yahouOverview';
 import { DialogNativeLayer } from '../layout/DialogPresence';
@@ -195,15 +195,19 @@ const OverviewDrawing = memo(function OverviewDrawing({ layout }: { layout: Yaho
   return (
     <g fontFamily="'PingFang SC', 'Microsoft YaHei', sans-serif">
       <rect fill="#fbfcfa" height={layout.bounds.height} width={layout.bounds.width} x={layout.bounds.x} y={layout.bounds.y} />
+      <g fill="none" opacity={0.24} stroke="#496353" strokeWidth={0.8}>
+        {layout.links.map(({ parent, child }) => <line key={child.id} vectorEffect="non-scaling-stroke" x1={parent.x} x2={child.x} y1={parent.y} y2={child.y} />)}
+      </g>
       {layout.nodes.map((node) => {
         const colors = node.status === null ? { fill: '#e9edeb', stroke: '#75867d' } : NODE_COLORS[node.status];
         return <circle cx={node.x} cy={node.y} fill={colors.fill} key={node.id === null ? 'root' : `member:${node.id}`} r={node.radius} stroke={colors.stroke} strokeWidth={0.7} vectorEffect="non-scaling-stroke"><title>{node.label}{node.status === null ? '' : ` · ${YAHOU_STATUS_LABELS[node.status]}`}</title></circle>;
       })}
-      <g fill="none" opacity={0.24} stroke="#496353" strokeWidth={0.8}>
-        {layout.links.map(({ parent, child }) => <line key={child.id} vectorEffect="non-scaling-stroke" x1={parent.x} x2={child.x} y1={parent.y} y2={child.y} />)}
-      </g>
       <g dominantBaseline="central" fill="#25352b" pointerEvents="none" textAnchor="middle">
-        {layout.nodes.map((node) => <text fontSize={yahouOverviewFontSize(node)} fontWeight={node.status === 'qualified' || node.id === null ? 650 : 450} key={node.id === null ? 'root' : `member:${node.id}`} x={node.x} y={node.y}>{node.label}</text>)}
+        {layout.nodes.map((node) => (
+          <text aria-label={node.label} fontSize={node.fontSize} fontWeight={node.status === 'qualified' || node.id === null ? 650 : 450} key={node.id === null ? 'root' : `member:${node.id}`}>
+            {node.labelLines.map((line, index) => <tspan key={index} x={node.x} y={node.y + (index - (node.labelLines.length - 1) / 2) * node.fontSize * 1.2}>{line}</tspan>)}
+          </text>
+        ))}
       </g>
     </g>
   );

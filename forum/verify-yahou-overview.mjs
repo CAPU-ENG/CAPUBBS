@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import { buildYahouIndex, parseYahouLineage } from './src/data/yahouLineage.ts';
-import { layoutYahouOverview, yahouOverviewFontSize, zoomYahouViewBox } from './src/utils/yahouOverview.ts';
+import { layoutYahouOverview, zoomYahouViewBox } from './src/utils/yahouOverview.ts';
 
 function verifyLayout(data) {
   const original = structuredClone(data);
@@ -25,6 +25,7 @@ function verifyLayout(data) {
     assert.equal(parent.id, index.members.get(child.id).parentId);
     assert.equal(parent.generation + 1, child.generation);
   }
+  const generations = new Map();
   for (const node of layout.nodes) {
     assert.ok([node.x, node.y, node.radius].every(Number.isFinite));
     assert.ok(node.radius > 0);
@@ -32,8 +33,24 @@ function verifyLayout(data) {
     assert.ok(node.y - node.radius >= layout.bounds.y);
     assert.ok(node.x + node.radius <= layout.bounds.x + layout.bounds.width);
     assert.ok(node.y + node.radius <= layout.bounds.y + layout.bounds.height);
-    const size = yahouOverviewFontSize(node);
+    const size = node.fontSize;
     assert.ok(Number.isFinite(size) && size > 0 && size <= node.radius);
+    assert.equal(node.labelLines.join(''), node.label, 'Wrapping must preserve the entire ID.');
+    const sameGeneration = generations.get(node.generation);
+    if (sameGeneration) {
+      assert.equal(node.radius, sameGeneration.radius, 'A generation must have identical node sizes.');
+      assert.equal(size, sameGeneration.fontSize, 'A generation must have identical font sizes.');
+    } else generations.set(node.generation, node);
+    const halfWidth = Math.max(...node.labelLines.map((line) => [...new Intl.Segmenter('zh', { granularity: 'grapheme' }).segment(line)].length)) * size * 1.1 / 2;
+    const halfHeight = node.labelLines.length * size * 1.2 / 2;
+    assert.ok(Math.hypot(halfWidth, halfHeight) < node.radius, 'The full text box must fit inside the circle.');
+  }
+  for (let i = 0; i < layout.nodes.length; i += 1) {
+    for (const other of layout.nodes.slice(i + 1)) {
+      const node = layout.nodes[i];
+      assert.ok(Math.hypot(node.x - other.x, node.y - other.y) >= node.radius + other.radius + 5.99,
+        `Circles and their enclosed ID labels must not overlap: ${node.label}, ${other.label}`);
+    }
   }
   assert.deepEqual(layoutYahouOverview(data), layout, 'The static overview should be deterministic.');
   return layout;
@@ -59,6 +76,15 @@ assert.notDeepEqual(after.nodes, before.nodes, 'Manual corrections with the same
 verifyLayout({ ...fixture, nodes: [] });
 verifyLayout({ ...fixture, nodes: Array.from({ length: 100 }, (_, i) => ({ id: `chain-${i}`, parentId: i ? `chain-${i - 1}` : null, status: 'qualified' })) });
 verifyLayout({ ...fixture, nodes: Array.from({ length: 100 }, (_, i) => ({ id: `sibling-${i}`, parentId: null, status: 'passed' })) });
+verifyLayout({
+  ...fixture,
+  nodes: [
+    { id: '大家庭', parentId: null, status: 'qualified' },
+    { id: '小家庭', parentId: null, status: 'passed' },
+    ...Array.from({ length: 80 }, (_, i) => ({ id: `孩子-${i}`, parentId: '大家庭', status: 'passed' })),
+    { id: '长 ID 与 e\u0301 🚲 均完整保留而且不能丢字', parentId: '大家庭', status: 'pending' },
+  ],
+});
 
 const bounds = layout.bounds;
 const anchor = { x: bounds.x + bounds.width * 0.25, y: bounds.y + bounds.height * 0.7 };
@@ -72,4 +98,4 @@ for (const key of ['x', 'y', 'width', 'height']) close(restored[key], bounds[key
 close(zoomYahouViewBox(bounds, bounds, 0.0001).width, bounds.width / 64);
 close(zoomYahouViewBox(bounds, bounds, 100).width, bounds.width);
 
-console.log(`Yahou overview verification passed: ${data.nodes.length} members, ${layout.generations} generations; complete geometry, relationships, immutable input, cache refresh, ID collisions, and anchored zoom.`);
+console.log(`Yahou overview verification passed: ${data.nodes.length} members, ${layout.generations} generations; equal generation sizes, no circle/label collisions, complete IDs and relationships, immutable input, cache refresh, and anchored zoom.`);
