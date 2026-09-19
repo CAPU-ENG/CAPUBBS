@@ -26,6 +26,7 @@ require_once __DIR__.'/lib/ThreadDetailQuery.php';
 require_once __DIR__.'/lib/BrowsingHistoryHandlers.php';
 require_once __DIR__.'/lib/UserActivityHandlers.php';
 require_once __DIR__.'/lib/WebsiteTrafficHandlers.php';
+require_once __DIR__.'/lib/YahouLineageHandlers.php';
 
 function _dispatch_build_routes() {
     return array(
@@ -55,6 +56,7 @@ function _dispatch_build_routes() {
         'tag_list'        => array('handler' => 'jiekoufunc_tag_list',        'check_login' => false, 'require_rights' => 0),
         'tag_user_tags'   => array('handler' => 'jiekoufunc_tag_user_tags',   'check_login' => false, 'require_rights' => 0),
         'tag_summary'     => array('handler' => 'jiekoufunc_tag_summary',     'check_login' => false, 'require_rights' => 0),
+        'yahou_lineage'   => array('handler' => 'jiekoufunc_yahou_lineage',   'check_login' => false, 'require_rights' => 0),
         'userexists'      => array('handler' => 'jiekoufunc_userexists',      'check_login' => false, 'require_rights' => 0),
         'rights'          => array('handler' => 'jiekoufunc_rights',          'check_login' => false, 'require_rights' => 0),
         'recentpost'      => array('handler' => 'jiekoufunc_recentpost',      'check_login' => false, 'require_rights' => 0),
@@ -119,6 +121,8 @@ function _dispatch_build_routes() {
         'unmuteEmail'      => array('handler' => null, 'check_login' => true,  'require_rights' => 1, 'check_board_mod' => true),
         'listEmailMutes'   => array('handler' => null, 'check_login' => true,  'require_rights' => 1, 'check_board_mod' => true),
         'management_member_lookup' => array('handler' => 'jiekoufunc_management_member_lookup', 'check_login' => true, 'require_rights' => 3),
+        'yahou_lineage_add' => array('handler' => 'jiekoufunc_yahou_lineage_add', 'check_login' => true, 'require_rights' => 3),
+        'yahou_lineage_status' => array('handler' => 'jiekoufunc_yahou_lineage_status', 'check_login' => true, 'require_rights' => 3),
         'management_elevated_members' => array('handler' => 'jiekoufunc_management_elevated_members', 'check_login' => true, 'require_rights' => 3),
         'management_member_rights' => array('handler' => 'jiekoufunc_management_member_rights', 'check_login' => true, 'require_rights' => 3),
         'management_board_moderator' => array('handler' => 'jiekoufunc_management_board_moderator', 'check_login' => true, 'require_rights' => 3),
@@ -271,6 +275,12 @@ function jiekoufunc_dispatch($con, $params) {
                 return jiekoufunc_tag_user_tags($con, $params);
             case 'jiekoufunc_tag_summary':
                 return jiekoufunc_tag_summary($con, $params);
+            case 'jiekoufunc_yahou_lineage':
+                return jiekoufunc_yahou_lineage($con, $params);
+            case 'jiekoufunc_yahou_lineage_add':
+                return jiekoufunc_yahou_lineage_add($con, $params);
+            case 'jiekoufunc_yahou_lineage_status':
+                return jiekoufunc_yahou_lineage_status($con, $params);
             case 'jiekoufunc_management_member_lookup':
                 return jiekoufunc_management_member_lookup($con, $params);
             case 'jiekoufunc_management_elevated_members':
