@@ -38,6 +38,7 @@
     "verify:table-to-vcf": "node --experimental-strip-types verify-table-to-vcf.mjs",
     "verify:tag-expression": "node --experimental-strip-types verify-tag-expression.mjs",
     "verify:yahou-lineage": "node --experimental-strip-types verify-yahou-lineage.mjs",
+    "verify:yahou-overview": "node --experimental-strip-types verify-yahou-overview.mjs",
     "verify:thread-html-frame": "node --experimental-strip-types verify-thread-html-frame.mjs",
     "verify:thread-html-bootstrap": "node --experimental-strip-types verify-thread-html-bootstrap.mjs",
     "verify:media-playback": "node --experimental-strip-types verify-media-playback.mjs",
@@ -48,6 +49,7 @@
     "verify:thread-publishing": "node --experimental-strip-types verify-thread-publishing.mjs"
   },
   "dependencies": {
+    "cactuz": "0.4.7",
     "lucide-react": "^0.561.0",
     "markdown-it": "^15.0.1",
     "papaparse": "^5.5.3",

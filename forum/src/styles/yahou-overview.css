@@ -1,0 +1,137 @@
+@layer components {
+  .yahou-overview-dialog {
+    width: calc(100vw - 32px);
+    max-width: 1800px;
+    height: calc(100dvh - 32px);
+    max-height: none;
+    margin: auto;
+    padding: 0;
+    overflow: hidden;
+    border: 1px solid var(--line-strong);
+    border-radius: 2px;
+    background: var(--surface);
+    color: var(--text);
+    box-shadow: 0 20px 80px #0004;
+  }
+
+  .yahou-overview-dialog[open] {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .yahou-overview-dialog::backdrop {
+    background: #0009;
+  }
+
+  .yahou-overview-header {
+    display: flex;
+    flex-shrink: 0;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 10px 16px;
+    border-bottom: 1px solid var(--line);
+  }
+
+  .yahou-overview-header h2 {
+    margin: 0;
+    color: var(--text-strong);
+    font-size: var(--ui-font-size-xl);
+    font-weight: 760;
+  }
+
+  .yahou-overview-toolbar {
+    display: flex;
+    flex-shrink: 0;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 10px 20px;
+    padding: 10px 16px;
+    border-bottom: 1px solid var(--line);
+  }
+
+  .yahou-overview-toolbar .yahou-legend {
+    padding: 0;
+  }
+
+  .yahou-overview-count {
+    color: var(--text-muted);
+    font-size: var(--ui-font-size-sm);
+    font-variant-numeric: tabular-nums;
+  }
+
+  .yahou-overview-controls {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 6px;
+    margin-left: auto;
+  }
+
+  .yahou-overview-controls output {
+    min-width: 52px;
+    color: var(--text-muted);
+    font-size: var(--ui-font-size-sm);
+    font-variant-numeric: tabular-nums;
+    text-align: center;
+  }
+
+  .yahou-overview-canvas {
+    flex: 1;
+    min-height: 0;
+    overflow: hidden;
+    background: #fbfcfa;
+  }
+
+  .yahou-overview-canvas svg {
+    display: block;
+    width: 100%;
+    height: 100%;
+    touch-action: none;
+    user-select: none;
+    cursor: grab;
+  }
+
+  .yahou-overview-canvas svg.is-dragging {
+    cursor: grabbing;
+  }
+
+  .yahou-overview-canvas svg:focus-visible {
+    outline: 2px solid var(--brand);
+    outline-offset: -3px;
+  }
+
+  .yahou-overview-error {
+    margin: 0;
+    padding: 6px 16px;
+    color: var(--danger);
+  }
+
+  @media (max-width: 640px) {
+    .yahou-overview-dialog {
+      width: 100vw;
+      max-width: 100vw;
+      height: 100dvh;
+      border: 0;
+      border-radius: 0;
+    }
+
+    .yahou-overview-header {
+      padding-top: max(10px, env(safe-area-inset-top));
+    }
+
+    .yahou-overview-toolbar {
+      gap: 8px;
+      padding: 10px;
+    }
+
+    .yahou-overview-count {
+      margin-left: auto;
+    }
+
+    .yahou-overview-controls {
+      justify-content: center;
+      width: 100%;
+    }
+  }
+}

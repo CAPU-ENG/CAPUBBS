@@ -13,7 +13,8 @@
   .yahou-pending { --yahou-status: var(--yahou-pending); }
   .yahou-passed { --yahou-status: var(--yahou-passed); }
   .yahou-qualified { --yahou-status: var(--yahou-qualified); }
-  .yahou-refresh { margin-left: auto; }
+  .yahou-header-actions { display: flex; align-items: center; gap: 6px; margin-left: auto; }
+  .yahou-workspace > .toolbox-workspace-header { flex-wrap: wrap; padding-top: 10px; padding-bottom: 10px; }
   .yahou-body { padding: 16px; }
   .yahou-load-state { display: flex; align-items: center; justify-content: center; gap: 8px; padding: 40px 16px; }
   .yahou-toolbar, .yahou-toolbar-actions { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; }

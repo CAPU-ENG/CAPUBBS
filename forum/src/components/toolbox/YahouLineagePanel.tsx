@@ -1,5 +1,5 @@
-import { BadgeCheck, Check, ChevronDown, ChevronRight, Circle, ExternalLink, Focus, GitBranch, Home, Plus, RefreshCw, Search, X } from 'lucide-react';
-import { useEffect, useMemo, useRef, useState, type FormEvent } from 'react';
+import { BadgeCheck, Check, ChevronDown, ChevronRight, Circle, ExternalLink, Focus, GitBranch, Home, Network, Plus, RefreshCw, Search, X } from 'lucide-react';
+import { lazy, Suspense, useEffect, useMemo, useRef, useState, type FormEvent } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import { fetchYahouLineage, saveYahouLineage } from '../../api/yahouLineage';
 import {
@@ -9,6 +9,9 @@ import {
 } from '../../data/yahouLineage';
 import { getForumNavigationHref } from '../../utils/forumNavigation';
 import { LoadingSpinner } from '../layout/LoadingSpinner';
+import { DialogPresence } from '../layout/DialogPresence';
+
+const YahouLineageOverview = lazy(() => import('./YahouLineageOverview').then((module) => ({ default: module.YahouLineageOverview })));
 
 export function YahouLineagePanel() {
   const { status: authStatus, viewer } = useAuth();
@@ -17,6 +20,7 @@ export function YahouLineagePanel() {
   const [loadError, setLoadError] = useState('');
   const [reload, setReload] = useState(0);
   const [saving, setSaving] = useState(false);
+  const [overviewOpen, setOverviewOpen] = useState(false);
 
   useEffect(() => {
     const controller = new AbortController();
@@ -35,7 +39,10 @@ export function YahouLineagePanel() {
       <header className="toolbox-workspace-header">
         <span className="toolbox-workspace-icon"><GitBranch size={17} /></span>
         <h1 id="yahou-lineage-title">押后谱系</h1>
-        <button aria-label="刷新押后谱系" className="toolbox-icon-button yahou-refresh" disabled={saving} onClick={() => setReload((value) => value + 1)} type="button"><RefreshCw size={16} /></button>
+        <div className="yahou-header-actions">
+          <button aria-expanded={overviewOpen} aria-haspopup="dialog" className="toolbox-secondary-button" disabled={!data} onClick={() => setOverviewOpen(true)} type="button"><Network size={16} />谱系总览</button>
+          <button aria-label="刷新押后谱系" className="toolbox-icon-button" disabled={saving} onClick={() => setReload((value) => value + 1)} type="button"><RefreshCw size={16} /></button>
+        </div>
       </header>
       {loadError ? (
         <p className="yahou-load-state toolbox-feedback-error" role="alert">{loadError}</p>
@@ -44,6 +51,13 @@ export function YahouLineagePanel() {
       ) : (
         <YahouTree canEdit={canEdit} data={data} key={reload} onData={setData} onSaving={setSaving} />
       )}
+      <DialogPresence>
+        {overviewOpen && data ? (
+          <Suspense fallback={<p className="yahou-load-state" role="status"><LoadingSpinner size={18} />正在加载总览</p>}>
+            <YahouLineageOverview data={data} onClose={() => setOverviewOpen(false)} />
+          </Suspense>
+        ) : null}
+      </DialogPresence>
     </section>
   );
 }
