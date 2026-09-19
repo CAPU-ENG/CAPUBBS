@@ -3,6 +3,20 @@ CAPUBBS
 
 APIs and web for CAPUBBS.
 
+## 押后谱系
+
+新论坛工具箱入口为 `/bbs/toolbox?tab=yahou-lineage`。所有人可查看、搜索和聚焦师门；权限值不低于 3 的登录会员可选中节点添加徒弟或更新状态，选中“实践部”可添加直属 ID。页面和接口都不提供删除关系或更换师傅的操作。
+
+唯一主数据是 `forum/data/yahou-lineage.json`，以 `parentId: null` 表示直属“实践部”，其余节点的 `parentId` 为师傅 ID。状态为 `pending`（未过押后）、`passed`（已过押后）、`qualified`（具备收徒资格，包含已过押后）。已有后代的 ID 必须保持 `qualified`。初始 734 个 ID 及关系来自[师徒制谱系首楼](https://chexie.net/bbs/content/?bid=5&p=1&tid=1533#1)：无状态标记的 ID 视为已过押后，所有已有后代的 ID 及原帖明确标记的师傅视为具备收徒资格。
+
+首次部署时上传主 JSON，并允许 PHP 运行用户读写 `forum/data/`。后续部署须保留服务器上已维护的主文件。每次成功修改将操作前的原文件写入唯一的 `yahou-lineage.backup.json`；无变化或失败请求不滚动备份。运行时使用 `yahou-lineage.lock` 串行化修改，并以同目录临时文件及原子替换避免写出半份 JSON；客户端版本过期时拒绝覆盖，需刷新重试。备份、锁和临时文件均不纳入 Git。
+
+人工修正关系应在服务器上进行，并与 Web 写入共用 `yahou-lineage.lock` 的排他锁。修改后递增 `revision`，保证 ID 唯一、师傅存在、关系无环、已有后代者具备收徒资格。主文件缺失或损坏时接口报错，不会自动用初始数据覆盖。直接恢复备份时也应递增版本。
+
+数据通过 `/api/api.php` 读取，不应直接公开数据目录。Apache 使用该目录内的 `.htaccess`；Nginx 在站点配置中加入 `location ^~ /forum/data/ { return 404; }`。这不影响新论坛 `/bbs/` 入口。
+
+在本地 PHP 测试环境已启动的前提下，运行 `npm --prefix forum run verify:yahou-lineage` 验证树结构、资格约束、祖先定位和搜索。
+
 ## 网站流量每日快照
 
 网站流量页面读取 `api/cache/website-traffic/current.json` 指向的周、月、年静态 JSON 文件。统计分别包含截至昨日的 7、30、365 个上海时区自然日。页面访问和兼容 API 均不会触发实时汇总；结算失败时继续提供上一次成功发布的数据。
