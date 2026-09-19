@@ -71,7 +71,7 @@ export function layoutYahouOverview(data: YahouLineage): YahouOverviewLayout {
     heights[generation] = Math.max(heights[generation], heights[generation + 1]);
   }
   const sizes = heights.map((height, generation) => {
-    const scale = 1 + 0.7 * (1 - generation / Math.max(1, generations));
+    const scale = 1 + 2 * (1 - generation / Math.max(1, generations));
     return { width: NODE_WIDTH * scale, height: height * scale, fontSize: FONT_SIZE * scale, lineHeight: LABEL_LINE_HEIGHT * scale, x: 0 };
   });
   for (let generation = 1; generation <= generations; generation += 1) {
