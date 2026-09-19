@@ -12,6 +12,7 @@ export type FloorQuoteTarget = {
 };
 
 type FloorQuoteMetadata = {
+  customHref?: string;
   floor?: number;
   href?: string;
 };
@@ -84,16 +85,18 @@ export function appendFloorQuote(
 export function buildLegacyFloorQuoteStorage({
   author,
   content,
+  customHref,
   floor,
   href,
 }: {
   author: string;
   content: string;
+  customHref?: string;
   floor?: number;
   href?: string;
 }) {
   const quote = `[quote=${sanitizeLegacyQuoteAuthor(author)}]${normalizeLegacyQuoteContent(content)}[/quote]`;
-  const metadata = buildFloorQuoteMetadata({ floor, href });
+  const metadata = buildFloorQuoteMetadata({ customHref, floor, href });
   return metadata ? `${quote}<!--${FLOOR_QUOTE_COMMENT_PREFIX}${metadata}-->` : quote;
 }
 
@@ -117,6 +120,9 @@ export function normalizeFloorQuotesForLegacyStorage(html: string) {
     const storage = buildLegacyFloorQuoteStorage({
       author: manualQuoteAuthor || getFloorQuoteAuthor(quote),
       content: getFloorQuoteContentHtml(quote),
+      customHref: jump?.hasAttribute('data-custom-quote-link')
+        ? jump.getAttribute('href') ?? undefined
+        : existingMetadata.customHref,
       floor: getFloorNumberFromHref(href) ?? existingMetadata.floor,
       href,
     });
@@ -138,7 +144,7 @@ export function restoreLegacyFloorQuoteLinks(html: string) {
   template.innerHTML = html;
   getCommentNodes(template.content).forEach((comment) => {
     const metadata = parseFloorQuoteMetadata(comment.data);
-    const href = normalizeFloorQuoteHref(metadata.href);
+    const href = normalizeCustomQuoteHref(metadata.customHref) ?? normalizeFloorQuoteHref(metadata.href);
     const quote = getPreviousElementSibling(comment);
     if (!href || !quote || !quote.matches('.quotel, blockquote.forum-legacy-quote')) return;
 
@@ -149,6 +155,7 @@ export function restoreLegacyFloorQuoteLinks(html: string) {
     const jump = document.createElement('a');
     jump.className = 'capubbs-floor-quote-jump';
     jump.setAttribute('href', href);
+    if (metadata.customHref) jump.setAttribute('data-custom-quote-link', 'true');
     jump.textContent = '>>';
     authorLink.after(jump);
   });
@@ -227,7 +234,11 @@ function buildFloorQuoteMetadata(metadata: FloorQuoteMetadata) {
   const payload: FloorQuoteMetadata = {};
   if (href) payload.href = href;
   if (floor) payload.floor = floor;
-  return Object.keys(payload).length > 0 ? JSON.stringify(payload) : '';
+  const customHref = normalizeCustomQuoteHref(metadata.customHref);
+  if (customHref) payload.customHref = customHref;
+  return Object.keys(payload).length > 0
+    ? JSON.stringify(payload).replaceAll('<', '\\u003c').replaceAll('>', '\\u003e')
+    : '';
 }
 
 function parseFloorQuoteMetadata(value: string | undefined): FloorQuoteMetadata {
@@ -237,11 +248,23 @@ function parseFloorQuoteMetadata(value: string | undefined): FloorQuoteMetadata 
   try {
     const parsed = JSON.parse(text.slice(FLOOR_QUOTE_COMMENT_PREFIX.length)) as FloorQuoteMetadata;
     return {
+      customHref: normalizeCustomQuoteHref(parsed.customHref),
       floor: normalizeFloorNumber(parsed.floor),
       href: normalizeFloorQuoteHref(parsed.href),
     };
   } catch {
     return {};
+  }
+}
+
+function normalizeCustomQuoteHref(value: string | undefined) {
+  if (typeof value !== 'string' || !value.trim()) return undefined;
+  const href = value.trim();
+  try {
+    const url = new URL(href, 'https://chexie.net/');
+    return /^(https?:|mailto:)$/.test(url.protocol) ? href : undefined;
+  } catch {
+    return undefined;
   }
 }
 

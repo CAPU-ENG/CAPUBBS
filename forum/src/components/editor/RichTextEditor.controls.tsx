@@ -353,7 +353,7 @@ export function RichTextEditorControls(props: Props) {
                 </label>
               </>
             ) : (
-              <label className="min-w-0 flex-1">
+              <label className={activePopover === 'quote' ? 'min-w-0 basis-full' : 'min-w-0 flex-1'}>
                 <span className="sr-only">{popoverConfig.label}</span>
                 <input
                   autoFocus
@@ -364,6 +364,17 @@ export function RichTextEditorControls(props: Props) {
                 />
               </label>
             )}
+            {activePopover === 'quote' ? (
+              <label className="min-w-0 basis-full">
+                <span className="sr-only">引文链接</span>
+                <input
+                  value={popoverTextValue}
+                  onChange={(event) => setPopoverTextValue(event.target.value)}
+                  placeholder="引文链接（可留空）"
+                  className="h-9 w-full rounded-[1px] border border-zinc-200 bg-white/80 px-3 text-[length:var(--ui-font-size-lg)] font-semibold text-zinc-800 outline-none transition placeholder:text-zinc-400 focus:border-[#174f38] focus:ring-2 focus:ring-[#174f38] dark:border-white/10 dark:bg-white/[0.06] dark:text-white dark:placeholder:text-zinc-500"
+                />
+              </label>
+            ) : null}
             {activePopover === 'image' ? (
               <>
                 <input

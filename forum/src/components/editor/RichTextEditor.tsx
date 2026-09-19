@@ -608,10 +608,11 @@ export function RichTextEditor({
       }
     } else if (activePopover === 'quote') {
       const submittedValue = popoverValue.trim();
+      const quoteHref = popoverTextValue.trim();
       const quote = pendingQuoteRef.current;
       let quoteFocusTarget = quote;
 
-      if (quote && editorRef.current?.contains(quote) && submittedValue) {
+      if (quote && editorRef.current?.contains(quote) && (submittedValue || quoteHref)) {
         const quoteContent = quote.innerHTML;
         const profileHref = getPublicProfileAppPath(submittedValue);
         quote.className = 'forum-legacy-quote';
@@ -619,7 +620,12 @@ export function RichTextEditor({
         quote.innerHTML = [
           '<div class="forum-legacy-quote-content">',
           '<div class="capubbs-manual-quote-author" contenteditable="false">',
-          `引用自 <a class="forum-mention" href="${escapeAttribute(profileHref)}">${escapeHtml(submittedValue)}</a>：`,
+          submittedValue
+            ? `引用自 <a class="forum-mention" href="${escapeAttribute(profileHref)}">${escapeHtml(submittedValue)}</a>：`
+            : '',
+          quoteHref
+            ? `<a class="capubbs-floor-quote-jump" data-custom-quote-link="true" href="${escapeAttribute(safeUrl(quoteHref))}">&gt;&gt;</a>`
+            : '',
           '</div>',
           `<div class="capubbs-manual-quote-body">${quoteContent}</div>`,
           '</div>',
