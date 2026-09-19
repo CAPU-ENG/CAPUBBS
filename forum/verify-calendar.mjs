@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import { calendarEventOccursOn, calendarEventTimeLabel, calendarHomeTimeLabel } from './src/utils/calendarEvents.ts';
+import { calendarEventOccursOn, calendarEventTimeLabel, calendarHomeTimeLabel, getCalendarHomeAgenda } from './src/utils/calendarEvents.ts';
 const event = { id: '42', date: '2026-12-31', time: '09:00', title: '跨年', description: '', url: '', end: '2027-01-02T18:00' };
 assert.deepEqual(['2026-12-30','2026-12-31','2027-01-01','2027-01-02','2027-01-03'].map(date => calendarEventOccursOn(event, date)), [false,true,true,true,false]);
 assert.equal(calendarEventTimeLabel(event), '2026-12-31 09:00 – 2027-01-02 18:00');
@@ -22,3 +22,30 @@ assert.equal(calendarHomeTimeLabel({ ...event, end: '2026-12-31T12:30' }, 2026),
 assert.equal(calendarHomeTimeLabel({ ...event, date: '2026-09-13', end: '2026-09-15T18:00' }, 2026), '9月13日 09:00 – 9月15日 18:00');
 assert.equal(calendarHomeTimeLabel(event, 2026), '12月31日 09:00 – 2027年1月2日 18:00');
 console.log('Homepage calendar current-year, other-year, same-day and multi-day time labels passed.');
+
+const sameDay = { ...single, id: '43', date: '2027-01-01' };
+const nextMorning = { ...single, id: '44', date: '2027-01-03' };
+const nextAfternoon = { ...nextMorning, id: '45', time: '14:00' };
+const later = { ...nextMorning, id: '46', date: '2027-01-04' };
+const beyondLimit = { ...nextMorning, id: '47', date: '2027-01-05' };
+const agendaItems = [beyondLimit, nextAfternoon, event, nextMorning, { ...nextMorning }, sameDay, later, { ...event }];
+const originalOrder = [...agendaItems];
+assert.deepEqual(getCalendarHomeAgenda(agendaItems, '2027-01-01'), {
+  selectedActivities: [event, sameDay],
+  nextActivities: [nextMorning, nextAfternoon, later],
+}, 'show all selected-day events and the next three unique events, including distinct events with the same title');
+assert.deepEqual(agendaItems, originalOrder, 'agenda selection must not reorder the shared calendar data');
+assert.deepEqual(getCalendarHomeAgenda(agendaItems, '2027-01-02'), {
+  selectedActivities: [event],
+  nextActivities: [nextMorning, nextAfternoon, later],
+}, 'ongoing multi-day events appear once alongside future events');
+assert.deepEqual(getCalendarHomeAgenda(agendaItems, '2027-01-05'), {
+  selectedActivities: [beyondLimit],
+  nextActivities: [],
+}, 'keep selected-day events when no future activities remain');
+assert.deepEqual(getCalendarHomeAgenda([nextMorning, { ...nextMorning }, nextAfternoon], '2027-01-01'), {
+  selectedActivities: [],
+  nextActivities: [nextMorning, nextAfternoon],
+}, 'deduplicate future events even when the selected day is empty');
+assert.deepEqual(getCalendarHomeAgenda(agendaItems, '2027-01-06'), { selectedActivities: [], nextActivities: [] });
+console.log('Homepage calendar combined agenda, unique-event limit, chronological order and empty states passed.');

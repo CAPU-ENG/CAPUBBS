@@ -4,6 +4,28 @@ export function calendarEventOccursOn(event: HomeCalendarEvent, date: string) {
   return event.date <= date && date <= (event.end ? event.end.slice(0, 10) : event.date);
 }
 
+export function getCalendarHomeAgenda(items: HomeCalendarEvent[], selectedDate: string) {
+  const seenIds = new Set<string>();
+  function isUniqueActivity(activity: HomeCalendarEvent) {
+    if (seenIds.has(activity.id)) return false;
+    seenIds.add(activity.id);
+    return true;
+  }
+
+  const selectedActivities = items
+    .filter((activity) => calendarEventOccursOn(activity, selectedDate))
+    .filter(isUniqueActivity);
+  const nextActivities = items
+    .filter((activity) => activity.date > selectedDate)
+    .sort((left, right) => (
+      left.date.localeCompare(right.date) || left.time.localeCompare(right.time)
+    ))
+    .filter(isUniqueActivity)
+    .slice(0, 3);
+
+  return { selectedActivities, nextActivities };
+}
+
 export function calendarEventTimeLabel(event: HomeCalendarEvent) {
   if (!event.end) return event.time;
   const endDate = event.end.slice(0, 10);

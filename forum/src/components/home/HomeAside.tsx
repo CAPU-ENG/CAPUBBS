@@ -1,10 +1,10 @@
-import { useEffect, useId, useLayoutEffect, useMemo, useRef, useState } from 'react';
+import { Fragment, useEffect, useId, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { Bike, CalendarDays, ChevronLeft, ChevronRight, Clock3, Info, Link2, Pin, Settings } from 'lucide-react';
 import type { HomeCalendarEvent, HomeSignupActivity, HomeThread } from '../../api/home';
 import { useAuth } from '../../context/AuthContext';
 import type { HomeDataStatus } from '../../hooks/useHomeData';
 import { useStaggerEntrance } from '../../hooks/useStaggerEntrance';
-import { calendarEventOccursOn, calendarHomeTimeLabel } from '../../utils/calendarEvents';
+import { calendarEventOccursOn, calendarHomeTimeLabel, getCalendarHomeAgenda } from '../../utils/calendarEvents';
 import { canManageCalendar } from '../../utils/calendarManagement';
 import { toForumHref } from '../../utils/forumBasePath';
 import { getForumNavigationHref } from '../../utils/forumNavigation';
@@ -204,18 +204,11 @@ export function ActivityCalendar({ compact = false, error, items, onVisibleDateC
     });
   }, [month, year]);
 
-  const selectedActivities = items.filter((activity) => calendarEventOccursOn(activity, selectedKey));
-  const nextActivities = useMemo(() => (
-    items
-      .filter((activity) => activity.date > selectedKey)
-      .sort((left, right) => (
-        left.date.localeCompare(right.date) || left.time.localeCompare(right.time)
-      ))
-      .slice(0, 3)
-  ), [items, selectedKey]);
-  const displayedActivities = selectedActivities.length > 0
-    ? selectedActivities
-    : nextActivities;
+  const { selectedActivities, nextActivities } = useMemo(
+    () => getCalendarHomeAgenda(items, selectedKey),
+    [items, selectedKey],
+  );
+  const displayedActivities = [...selectedActivities, ...nextActivities];
 
   function moveMonth(delta: number) {
     const next = new Date(year, month + delta, 1);
@@ -358,23 +351,25 @@ export function ActivityCalendar({ compact = false, error, items, onVisibleDateC
           <p>{error}</p>
         ) : displayedActivities.length > 0 ? (
           <>
-            {selectedActivities.length === 0 ? <p className="calendar-agenda-label">最近活动</p> : null}
-            {displayedActivities.map((activity) => (
-              <article key={activity.id}>
-                <strong className={getTitleIndentationClassName(activity.title, 'calendar-agenda-title')}>
-                  {activity.url ? (
-                    <a href={getForumNavigationHref(activity.url, window.location.href)}>
-                      {activity.title}<Link2 aria-hidden="true" size={12} />
-                    </a>
-                  ) : activity.title}
-                </strong>
-                <div className="calendar-agenda-details">
-                  <span className="calendar-agenda-time"><Clock3 aria-hidden="true" size={13} />{calendarHomeTimeLabel(activity, today.getFullYear())}</span>
-                  {activity.description && (
-                    <span className="calendar-agenda-description"><Info aria-hidden="true" size={13} /><span>{activity.description}</span></span>
-                  )}
-                </div>
-              </article>
+            {displayedActivities.map((activity, index) => (
+              <Fragment key={activity.id}>
+                {index === selectedActivities.length ? <p className="calendar-agenda-label">最近活动</p> : null}
+                <article>
+                  <strong className={getTitleIndentationClassName(activity.title, 'calendar-agenda-title')}>
+                    {activity.url ? (
+                      <a href={getForumNavigationHref(activity.url, window.location.href)}>
+                        {activity.title}<Link2 aria-hidden="true" size={12} />
+                      </a>
+                    ) : activity.title}
+                  </strong>
+                  <div className="calendar-agenda-details">
+                    <span className="calendar-agenda-time"><Clock3 aria-hidden="true" size={13} />{calendarHomeTimeLabel(activity, today.getFullYear())}</span>
+                    {activity.description && (
+                      <span className="calendar-agenda-description"><Info aria-hidden="true" size={13} /><span>{activity.description}</span></span>
+                    )}
+                  </div>
+                </article>
+              </Fragment>
             ))}
           </>
         ) : (
