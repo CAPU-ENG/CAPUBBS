@@ -80,7 +80,7 @@
     flex: 1;
     min-height: 0;
     overflow: hidden;
-    background: #fbfcfa;
+    background: var(--page);
   }
 
   .yahou-overview-canvas svg {

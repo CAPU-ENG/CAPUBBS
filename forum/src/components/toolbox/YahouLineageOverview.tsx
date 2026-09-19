@@ -1,18 +1,14 @@
 import { BadgeCheck, Check, Circle, Download, Maximize, Minus, Plus, X } from 'lucide-react';
 import { memo, useEffect, useId, useMemo, useRef, useState, type KeyboardEvent, type PointerEvent } from 'react';
 import { createPortal } from 'react-dom';
-import { YAHOU_STATUS_LABELS, type YahouLineage, type YahouStatus } from '../../data/yahouLineage';
+import { YAHOU_STATUS_LABELS, type YahouLineage } from '../../data/yahouLineage';
+import { useTheme } from '../../hooks/useTheme';
 import {
-  layoutYahouOverview, YAHOU_LABEL_LINE_HEIGHT, zoomYahouViewBox,
+  layoutYahouOverview, zoomYahouViewBox,
   type YahouOverviewLayout, type YahouViewBox,
 } from '../../utils/yahouOverview';
 import { DialogNativeLayer } from '../layout/DialogPresence';
-
-const NODE_COLORS: Record<YahouStatus, { fill: string; stroke: string }> = {
-  qualified: { fill: '#dfece4', stroke: '#39724e' },
-  passed: { fill: '#e4eff8', stroke: '#36779f' },
-  pending: { fill: '#f9efd8', stroke: '#a27b37' },
-};
+import { YAHOU_OVERVIEW_PALETTES, type YahouOverviewPalette } from '../../utils/yahouOverviewTheme';
 
 export function YahouLineageOverview({ data, onClose }: { data: YahouLineage; onClose: () => void }) {
   const dialogRef = useRef<HTMLDialogElement>(null);
@@ -52,6 +48,8 @@ export function YahouLineageOverview({ data, onClose }: { data: YahouLineage; on
 }
 
 function OverviewCanvas({ layout }: { layout: YahouOverviewLayout }) {
+  const { theme } = useTheme();
+  const palette = YAHOU_OVERVIEW_PALETTES[theme];
   const svgRef = useRef<SVGSVGElement>(null);
   const [view, setView] = useState(layout.bounds);
   const viewRef = useRef(view);
@@ -164,7 +162,7 @@ function OverviewCanvas({ layout }: { layout: YahouOverviewLayout }) {
         </div>
       </div>
       {downloadError ? <p className="yahou-overview-error" role="alert">{downloadError}</p> : null}
-      <div className="yahou-overview-canvas">
+      <div className="yahou-overview-canvas" style={{ background: palette.background }}>
         <svg
           aria-describedby={descriptionId}
           aria-labelledby={titleId}
@@ -184,28 +182,28 @@ function OverviewCanvas({ layout }: { layout: YahouOverviewLayout }) {
         >
           <title id={titleId}>押后谱系总览</title>
           <desc id={descriptionId}>从左向右展示师徒关系，根节点实践部，共 {layout.nodes.length - 1} 位会员，{layout.generations} 代。绿色为师父，蓝色为押后，金色为学徒。</desc>
-          <OverviewDrawing layout={layout} />
+          <OverviewDrawing layout={layout} palette={palette} />
         </svg>
       </div>
     </>
   );
 }
 
-const OverviewDrawing = memo(function OverviewDrawing({ layout }: { layout: YahouOverviewLayout }) {
+const OverviewDrawing = memo(function OverviewDrawing({ layout, palette }: { layout: YahouOverviewLayout; palette: YahouOverviewPalette }) {
   return (
     <g fontFamily="'PingFang SC', 'Microsoft YaHei', sans-serif">
-      <rect fill="#fbfcfa" height={layout.bounds.height} width={layout.bounds.width} x={layout.bounds.x} y={layout.bounds.y} />
-      <g fill="none" opacity={0.6} stroke="#496353" strokeWidth={1}>
+      <rect fill={palette.background} height={layout.bounds.height} width={layout.bounds.width} x={layout.bounds.x} y={layout.bounds.y} />
+      <g fill="none" stroke={palette.link} strokeWidth={1}>
         {layout.links.map(({ child, path }) => <path d={path} key={child.id} vectorEffect="non-scaling-stroke" />)}
       </g>
       {layout.nodes.map((node) => {
-        const colors = node.status === null ? { fill: '#e9edeb', stroke: '#75867d' } : NODE_COLORS[node.status];
+        const colors = node.status === null ? palette.root : palette.nodes[node.status];
         return <rect fill={colors.fill} height={node.height} key={node.id === null ? 'root' : `member:${node.id}`} rx={3} stroke={colors.stroke} strokeWidth={0.8} vectorEffect="non-scaling-stroke" width={node.width} x={node.x - node.width / 2} y={node.y - node.height / 2}><title>{node.label}{node.status === null ? '' : ` · ${YAHOU_STATUS_LABELS[node.status]}`}</title></rect>;
       })}
-      <g dominantBaseline="central" fill="#25352b" pointerEvents="none" textAnchor="middle">
+      <g dominantBaseline="central" fill={palette.text} pointerEvents="none" textAnchor="middle">
         {layout.nodes.map((node) => (
           <text aria-label={node.label} fontSize={node.fontSize} fontWeight={node.status === 'qualified' || node.id === null ? 650 : 450} key={node.id === null ? 'root' : `member:${node.id}`}>
-            {node.labelLines.map((line, index) => <tspan key={index} x={node.x} y={node.y + (index - (node.labelLines.length - 1) / 2) * YAHOU_LABEL_LINE_HEIGHT}>{line}</tspan>)}
+            {node.labelLines.map((line, index) => <tspan key={index} x={node.x} y={node.y + (index - (node.labelLines.length - 1) / 2) * node.lineHeight}>{line}</tspan>)}
           </text>
         ))}
       </g>
