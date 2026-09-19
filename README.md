@@ -7,7 +7,7 @@ APIs and web for CAPUBBS.
 
 新论坛工具箱入口为 `/bbs/toolbox?tab=yahou-lineage`。所有人可查看、搜索和聚焦师门；权限值不低于 3 的登录会员可选中节点添加徒弟或更新状态，选中“实践部”可添加直属 ID。页面和接口都不提供删除关系或更换师傅的操作。
 
-唯一主数据是 `forum/data/yahou-lineage.json`，以 `parentId: null` 表示直属“实践部”，其余节点的 `parentId` 为师傅 ID。状态为 `pending`（未过押后）、`passed`（已过押后）、`qualified`（具备收徒资格，包含已过押后）。已有后代的 ID 必须保持 `qualified`。初始 734 个 ID 及关系来自[师徒制谱系首楼](https://chexie.net/bbs/content/?bid=5&p=1&tid=1533#1)：无状态标记的 ID 视为已过押后，所有已有后代的 ID 及原帖明确标记的师傅视为具备收徒资格。
+唯一主数据是 `forum/data/yahou-lineage.json`，以 `parentId: null` 表示直属“实践部”，其余节点的 `parentId` 为师傅 ID。状态为 `pending`（学徒：未过押后）、`passed`（押后：已过押后）、`qualified`（师父：已过押后且具备收徒资格）。已有后代的 ID 必须保持 `qualified`。初始 734 个 ID 及关系来自[师徒制谱系首楼](https://chexie.net/bbs/content/?bid=5&p=1&tid=1533#1)：无状态标记的 ID 视为已过押后，所有已有后代的 ID 及原帖明确标记的师傅视为具备收徒资格。
 
 首次部署时上传主 JSON，并允许 PHP 运行用户读写 `forum/data/`。后续部署须保留服务器上已维护的主文件。每次成功修改将操作前的原文件写入唯一的 `yahou-lineage.backup.json`；无变化或失败请求不滚动备份。运行时使用 `yahou-lineage.lock` 串行化修改，并以同目录临时文件及原子替换避免写出半份 JSON；客户端版本过期时拒绝覆盖，需刷新重试。备份、锁和临时文件均不纳入 Git。
 

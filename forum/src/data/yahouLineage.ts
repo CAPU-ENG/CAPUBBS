@@ -2,9 +2,9 @@ export const YAHOU_STATUSES = ['pending', 'passed', 'qualified'] as const;
 export type YahouStatus = typeof YAHOU_STATUSES[number];
 
 export const YAHOU_STATUS_LABELS: Record<YahouStatus, string> = {
-  pending: '未过押后',
-  passed: '已过押后',
-  qualified: '具备收徒资格',
+  pending: '学徒',
+  passed: '押后',
+  qualified: '师父',
 };
 
 export type YahouMember = { id: string; parentId: string | null; status: YahouStatus };
