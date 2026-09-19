@@ -2,8 +2,10 @@ import { DialogLayer, DialogPresence } from '../layout/DialogPresence';
 import { AlertTriangle, Ban, Check, ClipboardList, Eye, LogIn, RotateCcw, Send, X } from 'lucide-react';
 import { useEffect, useRef, useState, type FormEvent } from 'react';
 import { fetchDataDisplayPanel } from '../../api/dataDisplay';
+import { fetchPublicProfileActivities } from '../../api/profile';
 import { LoadingSpinner } from '../layout/LoadingSpinner';
 import {
+  fetchThreadDetail,
   publishActivitySignup,
   type ActivitySignupValue,
   type ThreadActivity,
@@ -20,6 +22,7 @@ import {
 } from './PostEditor';
 import { getThreadCacheScope } from '../../utils/threadContentCache';
 import { invalidateLoadedThread } from '../../utils/threadContentLoader';
+import { getThreadFloorFromHash, getThreadPageForFloor } from '../../utils/threadRoutes';
 
 const signatureOptions = [
   { label: '不使用签名档', value: 0 },
@@ -42,11 +45,105 @@ type ActivitySignupFormProps = {
   viewer: ThreadAuthor | null;
 };
 
-export function ActivitySignupForm({
+export function ActivitySignupForm(props: ActivitySignupFormProps) {
+  return (
+    <ActivitySignupFormLoader
+      {...props}
+      key={`${props.bid}:${props.tid}:${props.activity.id}:${props.viewer?.name ?? ''}`}
+    />
+  );
+}
+
+function ActivitySignupFormLoader(props: ActivitySignupFormProps) {
+  const { activity, bid, focusRequest = 0, locked, tid, viewer } = props;
+  const username = viewer?.name ?? '';
+  const [existingSignup, setExistingSignup] = useState<ThreadFloorData | null>();
+  const [loadError, setLoadError] = useState('');
+  const [loadRequest, setLoadRequest] = useState(0);
+  const formRef = useRef<HTMLElement>(null);
+
+  useEffect(() => {
+    if (!focusRequest) return;
+    formRef.current?.scrollIntoView({ block: 'start' });
+    formRef.current?.focus({ preventScroll: true });
+  }, [focusRequest]);
+
+  useEffect(() => {
+    if (!username) return;
+    const controller = new AbortController();
+    setExistingSignup(undefined);
+    setLoadError('');
+    void loadCurrentActivitySignup(bid, tid, username, controller.signal).then(
+      (signup) => {
+        if (!controller.signal.aborted) setExistingSignup(signup);
+      },
+      (error: unknown) => {
+        if (!controller.signal.aborted) {
+          setLoadError(error instanceof Error ? error.message : '报名信息读取失败，请重试。');
+        }
+      },
+    );
+    return () => controller.abort();
+  }, [bid, tid, username, loadRequest]);
+
+  const loading = Boolean(username) && existingSignup === undefined;
+  return (
+    <section aria-labelledby="activity-signup-title" className="activity-signup-card" ref={formRef} tabIndex={-1}>
+      <header className="activity-signup-header">
+        <div>
+          <ClipboardList aria-hidden="true" size={18} />
+          <h2 id="activity-signup-title">报名表单</h2>
+        </div>
+        <ActivitySignupWindow activity={activity} locked={locked} />
+      </header>
+      {loading ? (
+        <div className="activity-signup-actions">
+          {loadError ? (
+            <>
+              <span className="activity-signup-status-error" role="alert">{loadError}</span>
+              <button className="reply-secondary-button activity-signup-preview-button" onClick={() => setLoadRequest((current) => current + 1)} type="button">
+                <RotateCcw size={15} />重试
+              </button>
+            </>
+          ) : (
+            <span role="status"><LoadingSpinner size={14} />正在读取报名信息</span>
+          )}
+        </div>
+      ) : <ActivitySignupFormFields {...props} existingSignup={existingSignup ?? null} />}
+    </section>
+  );
+}
+
+async function loadCurrentActivitySignup(bid: number, tid: number, username: string, signal: AbortSignal) {
+  const records = await fetchPublicProfileActivities(username, signal);
+  const record = records.find((candidate) => {
+    const url = new URL(candidate.href, window.location.origin);
+    return Number(url.searchParams.get('bid')) === bid && Number(url.searchParams.get('tid')) === tid;
+  });
+  if (!record) return null;
+
+  const floorNumber = getThreadFloorFromHash(new URL(record.href, window.location.origin).hash);
+  if (floorNumber <= 1) throw new Error('报名楼层不存在，请刷新后重试。');
+  const detail = await fetchThreadDetail({
+    authorOnly: false,
+    bid,
+    decoration: false,
+    page: getThreadPageForFloor(floorNumber),
+    prefetch: true,
+    signal,
+    tagMedalDisplay: false,
+    tid,
+  });
+  const signup = detail.floors.find((floor) => floor.floor === floorNumber && floor.isOwn && floor.author.name === username);
+  if (detail.viewer?.name !== username || !signup) throw new Error('无法读取当前用户的报名信息，请刷新后重试。');
+  return signup;
+}
+
+function ActivitySignupFormFields({
   activity,
   bid,
+  existingSignup,
   floors,
-  focusRequest = 0,
   locked,
   loginHref,
   registerHref,
@@ -54,15 +151,7 @@ export function ActivitySignupForm({
   threadTitle,
   tid,
   viewer,
-}: ActivitySignupFormProps) {
-  const formRef = useRef<HTMLElement>(null);
-  useEffect(() => {
-    if (!focusRequest) return;
-    formRef.current?.scrollIntoView({ block: 'start' });
-    formRef.current?.focus({ preventScroll: true });
-  }, [focusRequest]);
-
-  const existingSignup = floors.find((floor) => floor.floor > 1 && floor.isOwn) ?? null;
+}: ActivitySignupFormProps & { existingSignup: ThreadFloorData | null }) {
   const signupCanceled = Boolean(existingSignup && (
     existingSignup.paragraphs.some((paragraph) => paragraph.includes('报名状态：已取消'))
     || /<\s*(?:s|strike)\b/i.test(existingSignup.contentHtml ?? '')
@@ -156,15 +245,7 @@ export function ActivitySignupForm({
   }
 
   return (
-    <section aria-labelledby="activity-signup-title" className="activity-signup-card" ref={formRef} tabIndex={-1}>
-      <header className="activity-signup-header">
-        <div>
-          <ClipboardList aria-hidden="true" size={18} />
-          <h2 id="activity-signup-title">报名表单</h2>
-        </div>
-        <ActivitySignupWindow activity={activity} locked={locked} />
-      </header>
-
+    <>
       <form onSubmit={(event) => { void handleSubmit(event); }}>
         <div className="activity-signup-fields">
           {activity.questions.map((question, index) => (
@@ -276,7 +357,7 @@ export function ActivitySignupForm({
       <DialogPresence mobileSize="compact">{punishmentReminderOpen && (
         <ActivitySignupPunishmentReminder onClose={() => window.location.reload()} />
       )}</DialogPresence>
-    </section>
+    </>
   );
 }
 

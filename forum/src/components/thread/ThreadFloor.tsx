@@ -321,6 +321,12 @@ export function ThreadFloorActions({
           引用
         </button>
       )}
+      {onEditSignup && !decorative && (
+        <button onClick={onEditSignup} type="button">
+          <Pencil size={15} />
+          编辑报名
+        </button>
+      )}
       {canReply && (
         <button onClick={onReply} tabIndex={tabIndex} type="button">
           <Reply size={15} />
@@ -338,12 +344,6 @@ export function ThreadFloorActions({
           编辑
         </a>
       ))}
-      {onEditSignup && !decorative && (
-        <button onClick={onEditSignup} type="button">
-          <Pencil size={15} />
-          编辑报名
-        </button>
-      )}
       {canDelete && (
         <button
           aria-busy={deleting || undefined}
