@@ -114,7 +114,7 @@ export function ReplyEditor({
 
     if (quoteRequest.image) {
       const image = quoteRequest.image;
-      setEditorValue((current) => appendGalleryImageQuote(current, image));
+      setEditorValue((current) => appendGalleryImageQuote(current, image, quoteRequest));
     } else if (quoteRequest.quote) {
       setEditorValue((current) => appendFloorQuote(current, quoteRequest));
     }

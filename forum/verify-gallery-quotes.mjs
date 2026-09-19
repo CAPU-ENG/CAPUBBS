@@ -3,17 +3,26 @@ import { runInNewContext } from 'node:vm';
 import { appendGalleryImageQuote, ensureGalleryQuoteControls } from './src/utils/galleryQuote.ts';
 import { renderMarkdownToHtml } from './src/components/editor/RichTextEditor.markdownRender.ts';
 
+const target = { author: '图片作者', authorHref: '/new/users/author', floor: 3, floorHref: '/new/?bid=1&tid=2#3' };
+
 for (const mode of ['rich', 'html', 'markdown']) {
   for (const [title, caption, expected] of [
     ['相册', '第一张', '【相册-第一张】'],
     ['相册', '', '【相册】'], ['', '第一张', '【第一张】'], ['', '', ''],
     ['<标题>', '*图注* & [文字]', '【&lt;标题&gt;-*图注* &amp; [文字]】'],
   ]) {
-    const next = appendGalleryImageQuote({ mode, content: '已有内容' }, { src: 'https://example.com/a(b).jpg?a=1&b=2', title, caption });
+    const next = appendGalleryImageQuote({ mode, content: '已有内容' }, { src: 'https://example.com/a(b).jpg?a=1&b=2', title, caption }, target);
     const html = mode === 'markdown' ? renderMarkdownToHtml(next.content) : next.content;
     assert.ok(html.includes('已有内容'));
     assert.match(html, /<img src="https:\/\/example.com\/a\(b\).jpg\?a=1&amp;b=2"/);
-    assert.ok(html.includes(expected));
+    const quote = html.match(/<blockquote class="capubbs-floor-quote">([\s\S]*?)<\/blockquote>/)?.[1];
+    assert.ok(quote, 'the image must be inside a floor quote box');
+    assert.match(quote, /引用自 <a[^>]*>图片作者<\/a>/);
+    assert.match(quote, /class="capubbs-floor-quote-jump" href="\/new\/\?bid=1&amp;tid=2#3"/);
+    assert.ok(quote.includes('<img'));
+    assert.ok(quote.includes(expected), 'the caption must also stay inside the quote box');
+    assert.ok(!quote.includes('已有内容'));
+    assert.ok(html.indexOf('已有内容') < html.indexOf('<blockquote'));
     if (expected) assert.ok(html.indexOf(expected) > html.indexOf('<img'));
     else assert.ok(!html.includes('【'));
     assert.equal(next.mode, mode);
@@ -21,7 +30,7 @@ for (const mode of ['rich', 'html', 'markdown']) {
 }
 const current = { mode: 'rich', content: '保留' };
 for (const src of ['javascript:alert(1)', 'blob:https://example.com/local']) {
-  assert.equal(appendGalleryImageQuote(current, { src, title: '', caption: '' }), current);
+  assert.equal(appendGalleryImageQuote(current, { src, title: '', caption: '' }, target), current);
 }
 
 // Exercise both direct rendering and the serialized isolated-frame function.

@@ -38,9 +38,10 @@ export function getScopedFloorQuoteSelection(
 export function appendFloorQuote(
   current: RichTextEditorValue,
   target: FloorQuoteTarget,
+  content?: { html: string; markdown: string },
 ): RichTextEditorValue {
   const quote = target.quote?.trim();
-  if (!quote) return current;
+  if (!quote && !content) return current;
 
   const separator = current.content.trim()
     ? current.mode === 'rich'
@@ -49,7 +50,7 @@ export function appendFloorQuote(
     : '';
 
   if (current.mode === 'markdown') {
-    const quoteLines = splitQuoteParagraphs(quote)
+    const quoteLines = splitQuoteParagraphs(content?.markdown ?? quote ?? '')
       .flatMap((paragraph, index) => (index === 0 ? [paragraph] : ['', paragraph]))
       .map((line) => `> ${line}`);
     const quoteMarkup = [
@@ -65,7 +66,7 @@ export function appendFloorQuote(
     };
   }
 
-  const quoteParagraphs = splitQuoteParagraphs(quote)
+  const quoteParagraphs = content?.html ?? splitQuoteParagraphs(quote ?? '')
     .map((paragraph) => `<p class="capubbs-floor-quote-content">${escapeHtml(paragraph)}</p>`)
     .join('');
   const quoteMarkup = [

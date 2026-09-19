@@ -1,3 +1,4 @@
+import { appendFloorQuote, type FloorQuoteTarget } from './floorQuote.ts';
 import type { RichTextEditorValue } from '../components/editor/RichTextEditor';
 
 export type GalleryImageQuote = { src: string; title: string; caption: string };
@@ -37,21 +38,22 @@ export function ensureGalleryQuoteControls(container: ParentNode, onQuote: (imag
   });
 }
 
-export function appendGalleryImageQuote(current: RichTextEditorValue, image: GalleryImageQuote): RichTextEditorValue {
+export function appendGalleryImageQuote(
+  current: RichTextEditorValue,
+  image: GalleryImageQuote,
+  target: FloorQuoteTarget,
+): RichTextEditorValue {
   let url: URL;
   try { url = new URL(image.src); } catch { return current; }
   if (!['http:', 'https:'].includes(url.protocol)) return current;
   const label = [image.title.trim(), image.caption.trim()].filter(Boolean).join('-');
   const text = label ? `【${label}】` : '';
   const escapeHtml = (value: string) => value.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
-  const markup = `<p><img src="${escapeHtml(url.href)}" alt=""></p>${text ? `<p>${escapeHtml(text)}</p>` : ''}`;
-  if (current.mode === 'markdown') {
-    const source = url.href.replace(/[<>\\]/g, (character) => encodeURIComponent(character));
-    const caption = text.replace(/([\\`*_{}\[\]()#+.!|>~-])/g, '\\$1');
-    const separator = current.content.trim() ? '\n\n' : '';
-    return { ...current, content: `${current.content}${separator}![](<${source}>)${caption ? `\n\n${caption}` : ''}\n\n` };
-  }
-  const suffix = current.mode === 'rich' ? '<p><br></p>' : '\n\n';
-  const separator = current.content.trim() ? suffix : '';
-  return { ...current, content: `${current.content}${separator}${markup}${suffix}` };
+  const html = `<p class="capubbs-floor-quote-content"><img src="${escapeHtml(url.href)}" alt=""></p>${text ? `<p class="capubbs-floor-quote-content">${escapeHtml(text)}</p>` : ''}`;
+  const source = url.href.replace(/[<>\\]/g, (character) => encodeURIComponent(character));
+  const caption = text.replace(/([\\`*_{}\[\]()#+.!|>~-])/g, '\\$1');
+  return appendFloorQuote(current, target, {
+    html,
+    markdown: `![](<${source}>)${caption ? `\n\n${caption}` : ''}`,
+  });
 }
