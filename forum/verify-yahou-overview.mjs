@@ -43,15 +43,27 @@ const fixture = parseYahouLineage({ schemaVersion: 1, revision: 1, root: '实践
 ] });
 const specialGraph = buildYahouGraph(fixture);
 assert.equal(new Set(specialGraph.nodes.map((node) => node.id)).size, 5);
-const highlighted = getYahouHighlight(specialGraph, yahouGraphId('__proto__'));
+const highlighted = getYahouHighlight(specialGraph, new Set([yahouGraphId('__proto__')]));
 assert.deepEqual(highlighted.nodeIds, new Set([YAHOU_GRAPH_ROOT, yahouGraphId('yahou:root'), yahouGraphId('__proto__'), yahouGraphId('实践部')]));
 assert.deepEqual(highlighted.linkIds, new Set(['link:yahou:root', 'link:__proto__', 'link:实践部']), 'Include every ancestor edge and immediate children, excluding other root branches.');
-const firstGeneration = getYahouHighlight(specialGraph, yahouGraphId('yahou:root'));
+const firstGeneration = getYahouHighlight(specialGraph, new Set([yahouGraphId('yahou:root')]));
 assert.deepEqual(firstGeneration.nodeIds, new Set([YAHOU_GRAPH_ROOT, yahouGraphId('yahou:root'), yahouGraphId('__proto__')]));
 assert.deepEqual(firstGeneration.linkIds, new Set(['link:yahou:root', 'link:__proto__']), 'Do not expand beyond immediate children.');
-assert.deepEqual(getYahouHighlight(specialGraph, YAHOU_GRAPH_ROOT).nodeIds,
+assert.deepEqual(getYahouHighlight(specialGraph, new Set([YAHOU_GRAPH_ROOT])).nodeIds,
   new Set([YAHOU_GRAPH_ROOT, yahouGraphId('yahou:root'), yahouGraphId('<script>&"🚲')]));
-for (const selected of [null, 'missing']) assert.deepEqual(getYahouHighlight(specialGraph, selected), { nodeIds: new Set(), linkIds: new Set() });
+for (const selected of [[], ['missing']]) assert.deepEqual(getYahouHighlight(specialGraph, new Set(selected)), { nodeIds: new Set(), linkIds: new Set() });
+const comparisonGraph = buildYahouGraph(parseYahouLineage({ ...fixture, nodes: [...fixture.nodes,
+  { id: 'peer', parentId: '__proto__', status: 'passed' },
+] }));
+const comparison = getYahouHighlight(comparisonGraph, new Set([yahouGraphId('实践部'), yahouGraphId('peer')]));
+assert.deepEqual(comparison.nodeIds, new Set([...highlighted.nodeIds, yahouGraphId('peer')]));
+assert.deepEqual(comparison.linkIds, new Set([...highlighted.linkIds, 'link:peer']), 'Merge shared ancestry without losing either branch.');
+const remaining = getYahouHighlight(comparisonGraph, new Set([yahouGraphId('peer')]));
+assert.deepEqual(remaining.nodeIds, new Set([YAHOU_GRAPH_ROOT, yahouGraphId('yahou:root'), yahouGraphId('__proto__'), yahouGraphId('peer')]));
+assert.deepEqual(remaining.linkIds, new Set(['link:yahou:root', 'link:__proto__', 'link:peer']), 'Removing one ID keeps shared ancestors and removes only its exclusive branch.');
+for (const selection of [['yahou:root', '实践部'], ['实践部', 'yahou:root']]) {
+  assert.deepEqual(getYahouHighlight(specialGraph, new Set(selection.map(yahouGraphId))), highlighted, 'Selecting an ancestor and descendant works in either order.');
+}
 const corrected = structuredClone(fixture);
 corrected.nodes[2].parentId = 'yahou:root';
 assert.notDeepEqual(buildYahouGraph(corrected).links, specialGraph.links);
@@ -98,7 +110,9 @@ lifecycle.run(true); await delay(70); assert.deepEqual(lifecycle.nodes, disposed
 const crowded = pair.nodes.map((node) => ({ ...node, x: 0, y: 0, generation: 5, radius: 10 }));
 assert.equal(visibleYahouLabels(crowded, 100).size, 1, 'Overlapping labels should be culled.');
 assert.equal(visibleYahouLabels(crowded, 30).size, 0, 'Distant labels should be hidden when zoomed out.');
-assert.ok(visibleYahouLabels(crowded, 30, crowded[1].id).has(crowded[1].id), 'Selected ID has label priority.');
+assert.ok(visibleYahouLabels(crowded, 30, new Set([crowded[1].id])).has(crowded[1].id), 'Selected ID has label priority.');
+const separated = crowded.map((node, i) => ({ ...node, x: i * 1000 }));
+assert.equal(visibleYahouLabels(separated, 30, new Set(separated.map((node) => node.id))).size, 2, 'Every selected ID has label priority at low zoom.');
 assert.equal(visibleYahouLabels(crowded.map((node, i) => ({ ...node, x: i * 250 })), 100).size, 2);
 for (const palette of Object.values(YAHOU_OVERVIEW_PALETTES)) {
   const svg = exportYahouGraphSvg(specialGraph, specialGraph.nodes, palette);

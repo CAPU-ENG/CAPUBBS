@@ -52,17 +52,18 @@ function OverviewNetwork({ graph }: { graph: YahouGraph }) {
   const [settingsOpen, setSettingsOpen] = useState(true);
   const [zoom, setZoom] = useState(100);
   const [query, setQuery] = useState('');
-  const [selected, setSelected] = useState<string | null>(null);
+  const [selected, setSelected] = useState<ReadonlySet<string>>(() => new Set());
   const highlighted = useMemo(() => getYahouHighlight(graph, selected), [graph, selected]);
   const [pageVisible, setPageVisible] = useState(() => !document.hidden);
-  const selectedRef = useRef<string | null>(null);
+  const selectedRef = useRef(selected);
   const current = useRef({ running, settings, rootPinned, palette });
   current.current = { running, settings, rootPinned, palette };
   selectedRef.current = selected;
   const [error, setError] = useState('');
   const controlsId = useId();
   const searchId = useId();
-  const selectedNode = graph.nodes.find((node) => node.id === selected);
+  const nodeIndex = useMemo(() => new Map(graph.nodes.map((node) => [node.id, node])), [graph]);
+  const selectedNodes = [...selected].flatMap((id) => nodeIndex.get(id) ?? []);
   const results = useMemo(() => {
     const normalized = query.trim().toLocaleLowerCase();
     return normalized ? graph.nodes.filter((node) => node.label.toLocaleLowerCase().includes(normalized))
@@ -151,15 +152,16 @@ function OverviewNetwork({ graph }: { graph: YahouGraph }) {
     instance.updateOptions({ backgroundColor: palette.background, defaultLineColor: palette.link });
     for (const node of graph.nodes) instance.updateNode(node.id, {
       color: node.status === null ? palette.root.stroke : palette.nodes[node.status].stroke,
-      fontColor: palette.text, opacity: selected && !highlighted.nodeIds.has(node.id) ? 0.2 : 1,
-      zIndex: node.id === selected ? 20 : 1,
+      fontColor: palette.text, opacity: selected.size && !highlighted.nodeIds.has(node.id) ? 0.2 : 1,
+      className: selected.has(node.id) ? 'yahou-network-dot yahou-network-selected' : 'yahou-network-dot',
+      zIndex: selected.has(node.id) ? 20 : 1,
     });
     for (const link of graph.links) instance.updateLine(link.id, {
-      color: palette.link, opacity: !selected ? 0.5 : highlighted.linkIds.has(link.id) ? 0.95 : 0.08,
+      color: palette.link, opacity: !selected.size ? 0.5 : highlighted.linkIds.has(link.id) ? 0.95 : 0.08,
       lineWidth: highlighted.linkIds.has(link.id) ? 2 : 1,
       data: { highlighted: highlighted.linkIds.has(link.id) },
     });
-    instance.setCheckedNode(selected ?? '');
+    instance.setCheckedNode('');
     syncRef.current();
   }, [instance, ready, graph, palette, selected, highlighted]);
 
@@ -173,8 +175,18 @@ function OverviewNetwork({ graph }: { graph: YahouGraph }) {
     instance.setZoom(instance.getOptions().canvasZoom * factor);
     setZoom(instance.getOptions().canvasZoom); syncRef.current();
   }
+  function selectNode(id: string) {
+    setSelected((current) => current.has(id) ? current : new Set([...current, id]));
+  }
+  function removeNode(id: string) {
+    setSelected((current) => {
+      const next = new Set(current);
+      next.delete(id);
+      return next;
+    });
+  }
   function locate(id: string) {
-    setSelected(id); setQuery('');
+    selectNode(id); setQuery('');
     const node = engine.current?.byId.get(id);
     if (instance && node) { instance.setZoom(120); instance.setCanvasCenter(node.x, node.y); setZoom(120); }
   }
@@ -220,25 +232,30 @@ function OverviewNetwork({ graph }: { graph: YahouGraph }) {
       <div aria-label="押后谱系关系网" className="yahou-overview-canvas" data-flowing={running && pageVisible} onKeyDownCapture={onKeyboard}
         style={{ background: palette.background, '--yahou-graph-label-size': `${13 / Math.max(0.02, zoom / 100)}px`, '--yahou-graph-label-width': `${156 / Math.max(0.02, zoom / 100)}px`, '--yahou-graph-background': palette.background } as CSSProperties}>
         <RelationGraph options={GRAPH_OPTIONS} nodeSlot={GraphNode} lineSlot={GraphLine} onReady={setInstance}
-          onNodeClick={(node) => setSelected(node.id)} onCanvasClick={() => setSelected(null)}
+          onNodeClick={(node) => selectNode(node.id)}
           onZoomEnd={() => { const graphInstance = graphRef.current; if (graphInstance) setZoom(graphInstance.getOptions().canvasZoom); syncRef.current(); }}
           onNodeDragStart={(node) => { const point = engine.current?.byId.get(node.id); if (point) engine.current?.drag(node.id, node.x + point.radius, node.y + point.radius); }}
           onNodeDragging={(node, x, y) => { const point = engine.current?.byId.get(node.id); if (point) { engine.current?.drag(node.id, x + point.radius, y + point.radius); syncRef.current(); } }}
           onNodeDragEnd={(node) => { engine.current?.release(node.id); syncRef.current(); }} />
         {!ready && !error ? <p className="yahou-graph-loading" role="status">正在加载关系网</p> : null}
-        {selectedNode ? <div className="yahou-graph-selection">
-          <strong>{selectedNode.label}</strong>
-          <span>第 {selectedNode.generation} 代</span>
-          {selectedNode.status !== null ? <span>师父：{selectedNode.parentId ?? '实践部'}</span> : null}
-          <button aria-label="取消选中" className="toolbox-icon-button" onClick={() => setSelected(null)} type="button"><X size={15} /></button>
-        </div> : null}
+        {selectedNodes.length ? <section aria-label="已选 ID" className="yahou-graph-selection">
+          <header><strong>已选 {selectedNodes.length}</strong><button className="toolbox-secondary-button" onClick={() => setSelected(new Set())} type="button">清空</button></header>
+          <ul>
+            {selectedNodes.map((node) => <li data-selected-id={node.id} key={node.id}>
+              <button aria-label={`定位 ${node.label}`} className="yahou-selection-name" onClick={() => locate(node.id)} type="button">{node.label}</button>
+              <span>第 {node.generation} 代</span>
+              {node.status !== null ? <span>师父：{node.parentId ?? '实践部'}</span> : null}
+              <button aria-label={`取消选中 ${node.label}`} className="toolbox-icon-button yahou-selection-remove" onClick={() => removeNode(node.id)} type="button"><X size={15} /></button>
+            </li>)}
+          </ul>
+        </section> : null}
       </div>
       {settingsOpen ? <aside aria-label="关系网调节" className="yahou-graph-settings" id={controlsId}>
         <form className="yahou-graph-search" onSubmit={(event) => { event.preventDefault(); if (results[0]) locate(results[0].id); }}>
           <label htmlFor={searchId}><Search size={15} />搜索 ID</label>
           <input autoComplete="off" disabled={!ready} id={searchId} onChange={(event) => setQuery(event.target.value)} type="search" value={query} />
           {query.trim() ? <div aria-label="搜索结果" className="yahou-graph-results">
-            {results.length ? results.map((node) => <button key={node.id} onClick={() => locate(node.id)} type="button">{node.label}</button>) : <span role="status">未找到 ID</span>}
+            {results.length ? results.map((node) => <button aria-pressed={selected.has(node.id)} key={node.id} onClick={() => locate(node.id)} type="button"><span>{node.label}</span>{selected.has(node.id) ? <Check aria-hidden="true" size={14} /> : null}</button>) : <span role="status">未找到 ID</span>}
           </div> : null}
         </form>
         <div className="yahou-force-controls">

@@ -97,8 +97,10 @@ try {
   assert.equal(document.getElementById('forum-sentinel').style.color, 'rgb(1, 2, 3)');
   assert.equal(document.querySelectorAll('.yahou-line-flow').length, 0, 'No flow overlays before a node is selected.');
   const members = new Map(data.nodes.map((node) => [node.id, node]));
-  const member = data.nodes.find((node) => node.parentId && members.get(node.parentId)?.parentId && data.nodes.some((child) => child.parentId === node.id));
-  assert.ok(member, 'Use a member with multiple ancestors and children.');
+  const member = data.nodes.find((node) => node.parentId && members.get(node.parentId)?.parentId
+    && data.nodes.some((child) => child.parentId === node.id)
+    && data.nodes.some((peer) => peer.parentId === node.parentId && peer.id !== node.id));
+  assert.ok(member, 'Use a member with multiple ancestors, children and a sibling.');
   const path = [];
   for (let node = member; node; node = members.get(node.parentId)) path.push(node.id);
   const children = data.nodes.filter((node) => node.parentId === member.id).map((node) => node.id);
@@ -118,10 +120,41 @@ try {
     assert.equal(line.getAttribute('d'), line.parentElement.querySelector('.rg-line').getAttribute('d'), 'Glow must track the actual connection path.');
     assert.equal(line.style.animationDirection, 'normal', 'Tree connections point from parent to child.');
   }
-  assert.equal(document.querySelector('.yahou-graph-selection > span').textContent, `第 ${path.length} 代`);
+  assert.equal(document.querySelector('.yahou-graph-selection li > span').textContent, `第 ${path.length} 代`);
   assert.equal(document.querySelector('.yahou-overview-canvas').dataset.flowing, 'false', 'Reduced-motion starts with flow paused.');
-  await act(async () => document.querySelector('[aria-label="取消选中"]').click());
+  async function addBySearch(label) {
+    const input = document.querySelector('.yahou-graph-search input');
+    await act(async () => {
+      Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype, 'value').set.call(input, label);
+      input.dispatchEvent(new Event('input', { bubbles: true }));
+    });
+    await waitFor(() => [...document.querySelectorAll('.yahou-graph-results button')].some((button) => button.textContent === label), 'Search must find the requested ID.');
+    await act(async () => document.querySelector('.yahou-graph-search').dispatchEvent(new Event('submit', { bubbles: true, cancelable: true })));
+  }
+  const peer = data.nodes.find((node) => node.parentId === member.parentId && node.id !== member.id);
+  const peerPath = [];
+  for (let node = peer; node; node = members.get(node.parentId)) peerPath.push(node.id);
+  const peerChildren = data.nodes.filter((node) => node.parentId === peer.id).map((node) => node.id);
+  const peerNodeIds = new Set(['yahou:root', ...[...peerPath, ...peerChildren].map((id) => `member:${id}`)]);
+  const peerLineIds = new Set([...peerPath, ...peerChildren].map((id) => `link:${id}`));
+  await addBySearch(peer.id);
+  const unionLines = new Set([...lineIds, ...peerLineIds]);
+  const unionNodes = new Set([...nodeIds, ...peerNodeIds]);
+  await waitFor(() => document.querySelectorAll('.yahou-line-flow').length === unionLines.size, 'Both selected branches must be highlighted.');
+  assert.deepEqual([...document.querySelectorAll('[data-selected-id]')].map((row) => row.dataset.selectedId), [`member:${member.id}`, `member:${peer.id}`]);
+  for (const node of document.querySelectorAll('.rg-node-peel')) assert.equal(Number(node.style.getPropertyValue('--rg-node-opacity')), unionNodes.has(node.dataset.id) ? 1 : 0.2);
+  assert.equal(document.querySelectorAll('.yahou-network-selected').length, 2, 'Both selected nodes have selection markers.');
+  await addBySearch(peer.id);
+  assert.equal(document.querySelectorAll('[data-selected-id]').length, 2, 'Adding the same ID again must not duplicate it.');
+  await act(async () => [...document.querySelectorAll('.yahou-selection-remove')].find((button) => button.getAttribute('aria-label') === `取消选中 ${member.id}`).click());
+  await waitFor(() => document.querySelectorAll('.yahou-line-flow').length === peerLineIds.size, 'Removing one ID preserves the remaining ancestry.');
+  assert.deepEqual(new Set([...document.querySelectorAll('.yahou-line-flow')].map((line) => line.closest('[data-id]').dataset.id)), peerLineIds);
+  for (const node of document.querySelectorAll('.rg-node-peel')) assert.equal(Number(node.style.getPropertyValue('--rg-node-opacity')), peerNodeIds.has(node.dataset.id) ? 1 : 0.2);
+  await addBySearch(member.id);
+  assert.equal(document.querySelectorAll('[data-selected-id]').length, 2);
+  await act(async () => document.querySelector('.yahou-graph-selection header button').click());
   await waitFor(() => document.querySelectorAll('.yahou-line-flow').length === 0, 'Clearing selection removes flow overlays.');
+  assert.equal(document.querySelectorAll('[data-selected-id]').length, 0);
   for (const node of document.querySelectorAll('.rg-node-peel')) assert.equal(Number(node.style.getPropertyValue('--rg-node-opacity')), 1);
   await act(async () => document.querySelector('[aria-label="关闭谱系总览"]').click());
   assert.equal(document.querySelector('dialog'), null);
@@ -152,7 +185,7 @@ try {
   assert.ok(document.getElementById('forum-sentinel'));
   assert.equal(errors.length, 0);
   assert.ok(caught.some((error) => error.message.includes('Injected missing chunk')));
-  console.log(`Yahou DOM verification passed: correct JS/CSS responses, ${data.nodes.length + 1} rendered nodes, ${data.nodes.length} lines, ancestor highlighting, directional flow, selection cleanup, open-before-measure, and isolated render/import failures.`);
+  console.log(`Yahou DOM verification passed: correct JS/CSS responses, ${data.nodes.length + 1} rendered nodes, ${data.nodes.length} lines, cumulative click/search selection, deduplication, shared ancestry after removal, directional flow, selection cleanup, open-before-measure, and isolated render/import failures.`);
 } finally {
   await act(async () => root.unmount());
   dom.window.close();

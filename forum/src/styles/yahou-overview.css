@@ -88,11 +88,16 @@
 }
 
 .yahou-graph-results button {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
   padding: 6px;
   overflow-wrap: anywhere;
   text-align: left;
   color: var(--text);
 }
+.yahou-graph-results button svg { flex-shrink: 0; color: var(--brand); }
 
 .yahou-graph-results button:hover {
   background: var(--surface-soft);
@@ -120,11 +125,13 @@
 .yahou-graph-selection {
   position: absolute;
   bottom: 16px;
-  left: 16px;
-  display: grid;
-  gap: 5px;
+  right: 16px;
+  z-index: 3;
+  display: flex;
+  flex-direction: column;
+  width: 280px;
   max-width: min(360px, calc(100% - 32px));
-  padding: 12px 40px 12px 14px;
+  max-height: min(360px, calc(100% - 32px));
   border: 1px solid var(--line);
   border-radius: 4px;
   background: var(--surface);
@@ -133,8 +140,14 @@
   font-size: var(--ui-font-size-sm);
 }
 
+.yahou-graph-selection header { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 8px 12px; border-bottom: 1px solid var(--line); }
+.yahou-graph-selection ul { min-height: 0; overflow: auto; overscroll-behavior: contain; list-style: none; margin: 0; padding: 0; }
+.yahou-graph-selection li { position: relative; display: grid; gap: 5px; padding: 10px 42px 10px 12px; }
+.yahou-graph-selection li + li { border-top: 1px solid var(--line); }
 .yahou-graph-selection span { color: var(--text-muted); }
-.yahou-graph-selection button { position: absolute; top: 7px; right: 7px; }
+.yahou-graph-selection .yahou-selection-name { text-align: left; font-weight: 700; color: var(--text-strong); }
+.yahou-graph-selection .yahou-selection-name:hover { color: var(--brand-strong); }
+.yahou-graph-selection .yahou-selection-remove { position: absolute; top: 7px; right: 7px; }
 
 .yahou-overview-error {
   margin: 0;
@@ -175,7 +188,7 @@
 .yahou-overview-canvas .relation-graph { touch-action: none; }
 .yahou-overview-canvas .rg-node { overflow: visible; cursor: grab; }
 .yahou-overview-canvas .rg-node-dragging .rg-node { cursor: grabbing; }
-.yahou-overview-canvas .rg-node-checked .rg-node { outline: 3px solid var(--text); outline-offset: 4px; }
+.yahou-overview-canvas .yahou-network-selected .rg-node { outline: 3px solid var(--text); outline-offset: 4px; }
 .yahou-overview-canvas .rg-node::before,
 .yahou-overview-canvas .rg-node::after { display: none; }
 .yahou-overview-canvas .yahou-line-flow {

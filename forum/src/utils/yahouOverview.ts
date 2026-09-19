@@ -50,24 +50,28 @@ export function buildYahouGraph(data: YahouLineage): YahouGraph {
   return { nodes, generations, links: data.nodes.map((node) => ({ id: `link:${node.id}`, source: node.parentId === null ? YAHOU_GRAPH_ROOT : yahouGraphId(node.parentId), target: yahouGraphId(node.id) })) };
 }
 
-export function getYahouHighlight(graph: YahouGraph, selected: string | null) {
-  const nodeIds = new Set<string>();
+export function getYahouHighlight(graph: YahouGraph, selected: ReadonlySet<string>) {
+  const selectedIds = new Set(graph.nodes.filter((node) => selected.has(node.id)).map((node) => node.id));
+  const nodeIds = new Set(selectedIds);
   const linkIds = new Set<string>();
-  if (!selected || !graph.nodes.some((node) => node.id === selected)) return { nodeIds, linkIds };
-  nodeIds.add(selected);
+  if (!selectedIds.size) return { nodeIds, linkIds };
   const parents = new Map(graph.links.map((link) => [link.target, link]));
-  // Keep the selected member's children, without expanding the ancestors' other branches.
-  for (const link of graph.links) if (link.source === selected) {
+  // Include each selected member's immediate children and complete ancestry.
+  for (const link of graph.links) if (selectedIds.has(link.source)) {
     nodeIds.add(link.target);
     linkIds.add(link.id);
   }
-  let current = selected;
-  while (current !== YAHOU_GRAPH_ROOT) {
-    const link = parents.get(current);
-    if (!link || nodeIds.has(link.source)) break;
-    linkIds.add(link.id);
-    nodeIds.add(link.source);
-    current = link.source;
+  const traced = new Set<string>();
+  for (const id of selectedIds) {
+    let current = id;
+    while (current !== YAHOU_GRAPH_ROOT && !traced.has(current)) {
+      traced.add(current);
+      const link = parents.get(current);
+      if (!link) break;
+      linkIds.add(link.id);
+      nodeIds.add(link.source);
+      current = link.source;
+    }
   }
   return { nodeIds, linkIds };
 }
@@ -135,13 +139,13 @@ export function createYahouSimulation(graph: YahouGraph, settings = DEFAULT_YAHO
 export type YahouSimulation = ReturnType<typeof createYahouSimulation>;
 
 // Label rectangles are measured conservatively in screen pixels, independent of zoom.
-export function visibleYahouLabels(nodes: YahouGraphNode[], zoom: number, focus: string | null = null): Set<string> {
+export function visibleYahouLabels(nodes: YahouGraphNode[], zoom: number, focus: ReadonlySet<string> = new Set()): Set<string> {
   const scale = Math.max(0.02, zoom / 100);
   const occupied: Array<{ x: number; y: number; w: number }> = [];
   const result = new Set<string>();
-  const ordered = [...nodes].sort((a, b) => Number(b.id === focus) - Number(a.id === focus) || a.generation - b.generation);
+  const ordered = [...nodes].sort((a, b) => Number(focus.has(b.id)) - Number(focus.has(a.id)) || a.generation - b.generation);
   for (const node of ordered) {
-    if (zoom < 55 && node.generation > 2 && node.id !== focus) continue;
+    if (zoom < 55 && node.generation > 2 && !focus.has(node.id)) continue;
     const box = { x: node.x * scale, y: (node.y + node.radius) * scale + 7, w: Math.min(156, [...node.label].length * 14) + 12 };
     if (occupied.some((other) => Math.abs(other.x - box.x) < (other.w + box.w) / 2 && Math.abs(other.y - box.y) < 22)) continue;
     occupied.push(box);
