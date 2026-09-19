@@ -1,0 +1,15 @@
+diff --git a/node_modules/@relation-graph/react/types/packages/types.ts b/node_modules/@relation-graph/react/types/packages/types.ts
+index 9a0ca45..7a7682d 100644
+--- a/node_modules/@relation-graph/react/types/packages/types.ts
++++ b/node_modules/@relation-graph/react/types/packages/types.ts
+@@ -10,8 +10,8 @@
+  */
+ 
+ import {RelationGraphCore} from './relation-graph-models/models/RelationGraphCore';
+-import {RGLinePathCommands} from "./relation-graph-models/utils/line/RGLinePath";
+-import {RGNetworkAnalyzer} from "./relation-graph-models/RGObjectsForExport";
++import type {RGLinePathCommands} from "./relation-graph-models/utils/line/RGLinePath";
++import type {RGNetworkAnalyzer} from "./relation-graph-models/RGObjectsForExport";
+ 
+ /**
+  * A zero-runtime-cost readonly view used by public query APIs and events.

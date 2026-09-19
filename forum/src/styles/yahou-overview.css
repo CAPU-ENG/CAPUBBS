@@ -76,30 +76,106 @@
     text-align: center;
   }
 
-  .yahou-overview-canvas {
+  .yahou-overview-body {
+    display: flex;
     flex: 1;
+    min-height: 0;
+    position: relative;
+  }
+
+  .yahou-overview-canvas {
+    position: relative;
+    flex: 1;
+    min-width: 0;
     min-height: 0;
     overflow: hidden;
     background: var(--page);
   }
 
-  .yahou-overview-canvas svg {
-    display: block;
+  .yahou-graph-settings {
+    z-index: 2;
+    width: 230px;
+    flex-shrink: 0;
+    overflow: auto;
+    padding: 18px;
+    border-left: 1px solid var(--line);
+    background: var(--surface);
+    font-size: var(--ui-font-size-sm);
+  }
+
+  .yahou-graph-search label,
+  .yahou-force-control > span,
+  .yahou-graph-pin {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+  }
+
+  .yahou-graph-search input {
     width: 100%;
-    height: 100%;
-    touch-action: none;
-    user-select: none;
-    cursor: grab;
+    margin-top: 8px;
+    padding: 7px 9px;
+    border: 1px solid var(--line-strong);
+    border-radius: 3px;
+    background: var(--surface);
+    color: var(--text);
   }
 
-  .yahou-overview-canvas svg.is-dragging {
-    cursor: grabbing;
+  .yahou-graph-results {
+    display: grid;
+    max-height: 180px;
+    overflow: auto;
+    padding-top: 6px;
   }
 
-  .yahou-overview-canvas svg:focus-visible {
-    outline: 2px solid var(--brand);
-    outline-offset: -3px;
+  .yahou-graph-results button {
+    padding: 6px;
+    overflow-wrap: anywhere;
+    text-align: left;
+    color: var(--text);
   }
+
+  .yahou-graph-results button:hover {
+    background: var(--surface-soft);
+  }
+
+  .yahou-force-controls {
+    display: grid;
+    gap: 22px;
+    margin-top: 26px;
+  }
+
+  .yahou-force-control > span { justify-content: space-between; }
+  .yahou-force-control output { color: var(--text-muted); font-variant-numeric: tabular-nums; }
+  .yahou-force-control input { width: 100%; margin-top: 10px; accent-color: var(--brand); }
+  .yahou-graph-pin input { accent-color: var(--brand); }
+
+  .yahou-graph-loading {
+    position: absolute;
+    inset: 40% 0 auto;
+    text-align: center;
+    color: var(--text-muted);
+    pointer-events: none;
+  }
+
+  .yahou-graph-selection {
+    position: absolute;
+    bottom: 16px;
+    left: 16px;
+    display: grid;
+    gap: 5px;
+    max-width: min(360px, calc(100% - 32px));
+    padding: 12px 40px 12px 14px;
+    border: 1px solid var(--line);
+    border-radius: 4px;
+    background: var(--surface);
+    box-shadow: 0 4px 18px #0001;
+    overflow-wrap: anywhere;
+    font-size: var(--ui-font-size-sm);
+  }
+
+  .yahou-graph-selection span { color: var(--text-muted); }
+  .yahou-graph-selection button { position: absolute; top: 7px; right: 7px; }
 
   .yahou-overview-error {
     margin: 0;
@@ -129,9 +205,49 @@
       margin-left: auto;
     }
 
+    .yahou-graph-settings {
+      position: absolute;
+      inset: 8px 8px auto auto;
+      max-height: calc(100% - 16px);
+      width: 210px;
+      padding: 14px;
+      border: 1px solid var(--line);
+      border-radius: 4px;
+      box-shadow: 0 4px 18px #0002;
+    }
+
+    .yahou-force-controls { gap: 15px; margin-top: 18px; }
+
     .yahou-overview-controls {
       justify-content: center;
       width: 100%;
     }
   }
 }
+
+/* The library ships unlayered styles; keep these overrides scoped to this graph. */
+.yahou-overview-canvas .relation-graph { touch-action: none; }
+.yahou-overview-canvas .rg-node { overflow: visible; cursor: grab; }
+.yahou-overview-canvas .rg-node-dragging .rg-node { cursor: grabbing; }
+.yahou-overview-canvas .rg-node-checked .rg-node { outline: 3px solid var(--text); outline-offset: 4px; }
+.yahou-overview-canvas .rg-node::before,
+.yahou-overview-canvas .rg-node::after { display: none; }
+.yahou-graph-node { position: relative; display: block; width: 100%; height: 100%; }
+.yahou-graph-label {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 50%;
+  transform: translateX(-50%);
+  max-width: var(--yahou-graph-label-width);
+  font-size: var(--yahou-graph-label-size);
+  line-height: 1.3;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  color: var(--text);
+  text-shadow: 0 0 3px var(--yahou-graph-background), 0 0 6px var(--yahou-graph-background);
+  pointer-events: none;
+  user-select: none;
+}
+.yahou-graph-label[hidden] { display: none; }
+.yahou-overview-canvas .rg-node-peel:hover .yahou-graph-label { display: block; }

@@ -7,7 +7,7 @@ APIs and web for CAPUBBS.
 
 新论坛工具箱入口为 `/bbs/toolbox?tab=yahou-lineage`。所有人可查看、搜索和聚焦师门；权限值不低于 3 的登录会员可选中节点添加徒弟或更新状态，选中“实践部”可添加直属 ID。页面和接口都不提供删除关系或更换师傅的操作。
 
-右上角“谱系总览”将当前完整谱系绘成从左向右展开的普通树状 SVG，保留所有 ID 和状态。同一代按列对齐，使用相同大小的矩形节点和字号；越靠近根节点，矩形和字号越大。长 ID 分行显示，师徒之间使用直角连线，布局按师门顺序压缩空白，确保节点与文字不重叠。画布、节点、文字与连线跟随论坛的昼夜模式设置，下载的 SVG 保留当时的配色。支持拖动、滚轮或按钮缩放、适应窗口及下载完整 SVG；键盘方向键平移、加减键缩放、Home 复位。总览直接使用当前 JSON 数据，不另存图形数据。
+右上角“谱系总览”使用 relation-graph 展示可拖动、缩放的圆点关系网，由 D3 力导向模拟提供持续漂浮、节点碰撞避让及中心力、排斥力、连线力度、连线长度调节。可暂停/继续漂浮、固定或释放实践部、恢复默认力度、搜索定位 ID、选中高亮相邻师徒关系、适应窗口及下载当前布局 SVG。同代圆点大小一致，靠近根节点的圆点更大；标签随缩放和碰撞检测自动取舍，完整 ID 可通过悬停、搜索和选中查看。画布、节点、文字与连线跟随论坛昼夜模式，下载保留当时配色。键盘加减键缩放、Home 适应窗口、空格暂停/继续；系统偏好减少动态时默认暂停。关闭总览即停止模拟，页面隐藏时暂停计算。总览直接使用当前 JSON，拖动和力度调整仅改变本次展示，不修改师徒关系或另存图形数据。
 
 唯一主数据是 `forum/data/yahou-lineage.json`，以 `parentId: null` 表示直属“实践部”，其余节点的 `parentId` 为师傅 ID。状态为 `pending`（学徒：未过押后）、`passed`（押后：已过押后）、`qualified`（师父：已过押后且具备收徒资格）。已有后代的 ID 必须保持 `qualified`。初始 734 个 ID 及关系来自[师徒制谱系首楼](https://chexie.net/bbs/content/?bid=5&p=1&tid=1533#1)：无状态标记的 ID 视为已过押后，所有已有后代的 ID 及原帖明确标记的师傅视为具备收徒资格。
 
@@ -18,7 +18,9 @@ APIs and web for CAPUBBS.
 数据通过 `/api/api.php` 读取，不应直接公开数据目录。Apache 使用该目录内的 `.htaccess`；Nginx 在站点配置中加入 `location ^~ /forum/data/ { return 404; }`。这不影响新论坛 `/bbs/` 入口。
 
 在本地 PHP 测试环境已启动的前提下，运行 `npm --prefix forum run verify:yahou-lineage` 验证树结构、资格约束、祖先定位和搜索。
-运行 `npm --prefix forum run verify:yahou-overview` 验证全量总览节点和关系、同代尺寸与字号、逐代缩小、标签完整性和节点间距、布局边界、源数据不被改写、同数量关系修正后的刷新、缩放计算及昼夜配色对比度。
+运行 `npm --prefix forum run verify:yahou-overview` 验证全量节点与关系、源数据隔离、ID 命名空间、四项力度的实际效果、拖动固定与释放、暂停和清理、标签避让、SVG 转义及昼夜配色。
+
+relation-graph 与 D3 仅在打开总览时加载。`forum/patches/@relation-graph+react+3.1.2.patch` 修正该版本发布的 TypeScript 源类型中两处缺少 `import type` 的声明，避免与项目的 `verbatimModuleSyntax` 冲突；`npm install` / `npm ci` 的 `postinstall` 自动应用，升级该依赖时需检查补丁是否仍需要。
 
 ## 网站流量每日快照
 

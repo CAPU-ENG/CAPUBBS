@@ -1,144 +1,149 @@
+import { forceCollide, forceLink, forceManyBody, forceSimulation, forceX, forceY, type SimulationNodeDatum } from 'd3-force';
 import { buildYahouIndex, type YahouLineage, type YahouStatus } from '../data/yahouLineage.ts';
+import type { YahouOverviewPalette } from './yahouOverviewTheme.ts';
 
-export type YahouOverviewNode = {
-  id: string | null;
-  parentId: string | null;
-  label: string;
-  labelLines: string[];
-  fontSize: number;
-  lineHeight: number;
-  status: YahouStatus | null;
-  generation: number;
-  width: number;
-  height: number;
-  x: number;
-  y: number;
+export const YAHOU_GRAPH_ROOT = 'yahou:root';
+export const yahouGraphId = (id: string) => `member:${id}`;
+export type YahouGraphNode = SimulationNodeDatum & {
+  id: string; label: string; parentId: string | null; status: YahouStatus | null;
+  generation: number; radius: number; x: number; y: number;
 };
-
-export type YahouViewBox = { x: number; y: number; width: number; height: number };
-export type YahouOverviewLayout = {
-  nodes: YahouOverviewNode[];
-  links: Array<{ parent: YahouOverviewNode; child: YahouOverviewNode; path: string }>;
-  bounds: YahouViewBox;
+export type YahouGraph = {
+  nodes: YahouGraphNode[];
+  links: Array<{ id: string; source: string; target: string }>;
   generations: number;
 };
+export const YAHOU_FORCE_CONTROLS = [
+  { key: 'center', label: '中心力', min: 0, max: 100, step: 1 },
+  { key: 'repulsion', label: '排斥力', min: 0, max: 100, step: 1 },
+  { key: 'elasticity', label: '连线力度', min: 0, max: 100, step: 1 },
+  { key: 'distance', label: '连线长度', min: 30, max: 240, step: 5 },
+] as const;
+export type YahouForceSettings = Record<typeof YAHOU_FORCE_CONTROLS[number]['key'], number>;
+export const DEFAULT_YAHOU_FORCES: YahouForceSettings = { center: 12, repulsion: 35, elasticity: 65, distance: 90 };
 
-const LABEL_LINE_HEIGHT = 18;
-const NODE_WIDTH = 168;
-const COLUMN_GAP = 56;
-const ROW_GAP = 16;
-const FONT_SIZE = 13;
-const LABEL_COLUMNS = 10;
-const segmenter = new Intl.Segmenter('zh', { granularity: 'grapheme' });
-
-function wrapLabel(label: string) {
-  const characters = Array.from(segmenter.segment(label), (part) => part.segment);
-  const lines: string[] = [];
-  for (let offset = 0; offset < characters.length; offset += LABEL_COLUMNS) {
-    lines.push(characters.slice(offset, offset + LABEL_COLUMNS).join(''));
-  }
-  return lines;
-}
-
-/** A tidy left-to-right tree: generations share columns, families keep their order. */
-export function layoutYahouOverview(data: YahouLineage): YahouOverviewLayout {
+export function buildYahouGraph(data: YahouLineage): YahouGraph {
   const index = buildYahouIndex(data);
-  const makeNode = (id: string | null): YahouOverviewNode => {
-    const member = id === null ? undefined : index.members.get(id)!;
-    const generation = id === null ? 0 : index.generations.get(id)!;
-    const label = id ?? data.root;
-    return {
-      id, parentId: member?.parentId ?? null, label, labelLines: wrapLabel(label), fontSize: FONT_SIZE, lineHeight: LABEL_LINE_HEIGHT,
-      status: member?.status ?? null, generation,
-      width: NODE_WIDTH, height: 36, x: 0, y: 0,
-    };
-  };
-  const nodes = [makeNode(null)];
-  // Breadth-first order also gives an iterative postorder when reversed. Long
-  // chains therefore do not consume the JavaScript call stack.
-  for (let cursor = 0; cursor < nodes.length; cursor += 1) {
-    for (const child of index.children.get(nodes[cursor].id) ?? []) nodes.push(makeNode(child.id));
-  }
-  const byId = new Map(nodes.map((node) => [node.id, node]));
-  const generations = nodes[nodes.length - 1].generation;
-  const heights = Array<number>(generations + 1).fill(36);
-  for (const node of nodes) {
-    heights[node.generation] = Math.max(heights[node.generation], node.labelLines.length * LABEL_LINE_HEIGHT + 16);
-  }
-  // Reserve enough height for long IDs without ever making descendants larger
-  // than their ancestors. Every member in one generation uses the same metrics.
-  for (let generation = generations - 1; generation >= 0; generation -= 1) {
-    heights[generation] = Math.max(heights[generation], heights[generation + 1]);
-  }
-  const sizes = heights.map((height, generation) => {
-    const scale = 1 + 2 * (1 - generation / Math.max(1, generations));
-    return { width: NODE_WIDTH * scale, height: height * scale, fontSize: FONT_SIZE * scale, lineHeight: LABEL_LINE_HEIGHT * scale, x: 0 };
-  });
-  for (let generation = 1; generation <= generations; generation += 1) {
-    const previous = sizes[generation - 1];
-    sizes[generation].x = previous.x + previous.width / 2 + COLUMN_GAP + sizes[generation].width / 2;
-  }
-  for (const node of nodes) Object.assign(node, sizes[node.generation]);
-
-  // Compare subtree contours at each generation instead of reserving an entire
-  // rectangular area for every family. Empty rows can be reused without making
-  // nodes overlap, while parents remain centered on their direct children.
-  type Contour = { top: number[]; bottom: number[] };
-  const contours = new Map<string | null, Contour>();
-  const offsets = new Map<string, number>();
-  for (let cursor = nodes.length - 1; cursor >= 0; cursor -= 1) {
-    const node = nodes[cursor];
-    const children = index.children.get(node.id) ?? [];
-    const top: number[] = [];
-    const bottom: number[] = [];
+  const generations = Math.max(0, ...index.generations.values());
+  const nodes: YahouGraphNode[] = [{ id: YAHOU_GRAPH_ROOT, label: data.root, parentId: null, status: null, generation: 0, radius: 22, x: 0, y: 0 }];
+  const sectors = new Map<string | null, { start: number; end: number }>([[null, { start: 0, end: Math.PI * 2 }]]);
+  // Seed related branches in adjacent sectors before allowing the forces to settle.
+  const parents: Array<string | null> = [null];
+  for (let cursor = 0; cursor < parents.length; cursor += 1) {
+    const parentId = parents[cursor];
+    const sector = sectors.get(parentId)!;
+    const children = index.children.get(parentId) ?? [];
+    const total = children.reduce((sum, child) => sum + 1 + index.descendants.get(child.id)!, 0);
+    let start = sector.start;
     for (const child of children) {
-      const contour = contours.get(child.id)!;
-      let offset = 0;
-      for (let depth = 0; depth < Math.min(bottom.length, contour.top.length); depth += 1) {
-        offset = Math.max(offset, bottom[depth] + ROW_GAP - contour.top[depth]);
-      }
-      offsets.set(child.id, offset);
-      for (let depth = 0; depth < contour.top.length; depth += 1) {
-        top[depth] = Math.min(top[depth] ?? Infinity, contour.top[depth] + offset);
-        bottom[depth] = Math.max(bottom[depth] ?? -Infinity, contour.bottom[depth] + offset);
-      }
-      contours.delete(child.id);
+      const end = start + (sector.end - sector.start) * (1 + index.descendants.get(child.id)!) / total;
+      const generation = index.generations.get(child.id)!;
+      const angle = (start + end) / 2;
+      nodes.push({ id: yahouGraphId(child.id), label: child.id, parentId, status: child.status, generation,
+        radius: 7 + 9 * (1 - generation / Math.max(1, generations)),
+        x: Math.cos(angle) * generation * 110, y: Math.sin(angle) * generation * 110 });
+      sectors.set(child.id, { start, end });
+      parents.push(child.id);
+      start = end;
     }
-    const center = children.length ? (offsets.get(children[0].id)! + offsets.get(children[children.length - 1].id)!) / 2 : 0;
-    for (const child of children) offsets.set(child.id, offsets.get(child.id)! - center);
-    contours.set(node.id, {
-      top: [-node.height / 2, ...top.map((value) => value - center)],
-      bottom: [node.height / 2, ...bottom.map((value) => value - center)],
-    });
   }
-  for (const node of nodes) {
-    if (node.id !== null) node.y = byId.get(node.parentId)!.y + offsets.get(node.id)!;
-  }
-  const links = nodes.filter((node) => node.id !== null).map((child) => {
-    const parent = byId.get(child.parentId)!;
-    const startX = parent.x + parent.width / 2;
-    const endX = child.x - child.width / 2;
-    return { parent, child, path: `M ${startX} ${parent.y} H ${(startX + endX) / 2} V ${child.y} H ${endX}` };
-  });
-  let left = Infinity;
-  let top = Infinity;
-  let right = -Infinity;
-  let bottom = -Infinity;
-  for (const node of nodes) {
-    left = Math.min(left, node.x - node.width / 2);
-    top = Math.min(top, node.y - node.height / 2);
-    right = Math.max(right, node.x + node.width / 2);
-    bottom = Math.max(bottom, node.y + node.height / 2);
-  }
-  return {
-    nodes, links, generations,
-    bounds: { x: left - 32, y: top - 32, width: right - left + 64, height: bottom - top + 64 },
-  };
+  return { nodes, generations, links: data.nodes.map((node) => ({ id: `link:${node.id}`, source: node.parentId === null ? YAHOU_GRAPH_ROOT : yahouGraphId(node.parentId), target: yahouGraphId(node.id) })) };
 }
 
-export function zoomYahouViewBox(view: YahouViewBox, bounds: YahouViewBox, factor: number, anchor?: { x: number; y: number }): YahouViewBox {
-  const width = Math.max(bounds.width / 64, Math.min(bounds.width, view.width * factor));
-  const scale = width / view.width;
-  const point = anchor ?? { x: view.x + view.width / 2, y: view.y + view.height / 2 };
-  return { x: point.x + (view.x - point.x) * scale, y: point.y + (view.y - point.y) * scale, width, height: view.height * scale };
+/** D3 mutates nodes and links; only disposable presentation copies enter the simulation. */
+export function createYahouSimulation(graph: YahouGraph, settings = DEFAULT_YAHOU_FORCES) {
+  const nodes = graph.nodes.map((node) => ({ ...node }));
+  const byId = new Map(nodes.map((node) => [node.id, node]));
+  const links = forceLink<YahouGraphNode, { source: string | YahouGraphNode; target: string | YahouGraphNode }>(graph.links.map((link) => ({ ...link }))).id((node) => node.id);
+  const charge = forceManyBody<YahouGraphNode>().distanceMax(1800);
+  const centerX = forceX<YahouGraphNode>(0);
+  const centerY = forceY<YahouGraphNode>(0);
+  const simulation = forceSimulation(nodes).stop().velocityDecay(0.5).alphaTarget(0.035)
+    .force('links', links).force('repulsion', charge).force('centerX', centerX).force('centerY', centerY)
+    .force('collision', forceCollide<YahouGraphNode>((node) => node.radius + 12).iterations(2));
+  let running = false;
+  let disposed = false;
+  let rootPinned = true;
+  const dragging = new Set<string>();
+  function configure(next: YahouForceSettings) {
+    const clamped = { ...next };
+    for (const control of YAHOU_FORCE_CONTROLS) {
+      const value = next[control.key];
+      clamped[control.key] = Number.isFinite(value) ? Math.max(control.min, Math.min(control.max, value)) : DEFAULT_YAHOU_FORCES[control.key];
+    }
+    centerX.strength(clamped.center * 0.0003);
+    centerY.strength(clamped.center * 0.0003);
+    charge.strength(-clamped.repulsion * 8);
+    links.distance(clamped.distance).strength(clamped.elasticity / 100);
+    simulation.alpha(0.6);
+  }
+  function pinRoot(pinned: boolean) {
+    rootPinned = pinned;
+    const root = byId.get(YAHOU_GRAPH_ROOT)!;
+    root.fx = pinned ? root.x : null;
+    root.fy = pinned ? root.y : null;
+  }
+  configure(settings);
+  pinRoot(true);
+  return {
+    nodes, byId, simulation, configure, pinRoot,
+    run(value: boolean) {
+      if (disposed) return;
+      running = value;
+      if (value) simulation.alpha(Math.max(0.25, simulation.alpha())).restart();
+      else simulation.stop();
+    },
+    drag(id: string, x: number, y: number) {
+      const node = byId.get(id);
+      if (!node || !Number.isFinite(x) || !Number.isFinite(y) || disposed) return;
+      dragging.add(id);
+      node.x = node.fx = x; node.y = node.fy = y;
+      node.vx = node.vy = 0;
+      if (running) simulation.alpha(0.3);
+    },
+    release(id: string) {
+      const node = byId.get(id);
+      dragging.delete(id);
+      if (node && !(rootPinned && id === YAHOU_GRAPH_ROOT)) { node.fx = null; node.fy = null; }
+    },
+    releaseAll() { for (const id of dragging) this.release(id); },
+    dispose() { disposed = true; running = false; simulation.stop().on('tick', null); },
+  };
+}
+export type YahouSimulation = ReturnType<typeof createYahouSimulation>;
+
+// Label rectangles are measured conservatively in screen pixels, independent of zoom.
+export function visibleYahouLabels(nodes: YahouGraphNode[], zoom: number, focus: string | null = null): Set<string> {
+  const scale = Math.max(0.02, zoom / 100);
+  const occupied: Array<{ x: number; y: number; w: number }> = [];
+  const result = new Set<string>();
+  const ordered = [...nodes].sort((a, b) => Number(b.id === focus) - Number(a.id === focus) || a.generation - b.generation);
+  for (const node of ordered) {
+    if (zoom < 55 && node.generation > 2 && node.id !== focus) continue;
+    const box = { x: node.x * scale, y: (node.y + node.radius) * scale + 7, w: Math.min(156, [...node.label].length * 14) + 12 };
+    if (occupied.some((other) => Math.abs(other.x - box.x) < (other.w + box.w) / 2 && Math.abs(other.y - box.y) < 22)) continue;
+    occupied.push(box);
+    result.add(node.id);
+  }
+  return result;
+}
+
+const escapeXml = (text: string) => text.replace(/[&<>"']/g, (char) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&apos;' })[char]!);
+export function exportYahouGraphSvg(graph: YahouGraph, nodes: YahouGraphNode[], palette: YahouOverviewPalette): string {
+  const byId = new Map(nodes.map((node) => [node.id, node]));
+  const minX = Math.min(...nodes.map((node) => node.x - 100)) - 24;
+  const minY = Math.min(...nodes.map((node) => node.y - node.radius)) - 24;
+  const width = Math.max(...nodes.map((node) => node.x + 100)) - minX + 24;
+  const height = Math.max(...nodes.map((node) => node.y + node.radius + 30)) - minY + 24;
+  const labels = visibleYahouLabels(nodes, 100);
+  const lines = graph.links.map((link) => {
+    const from = byId.get(link.source)!; const to = byId.get(link.target)!;
+    return `<line x1="${from.x}" y1="${from.y}" x2="${to.x}" y2="${to.y}"/>`;
+  }).join('');
+  const circles = nodes.map((node) => {
+    const color = node.status === null ? palette.root.stroke : palette.nodes[node.status].stroke;
+    const shortLabel = [...node.label].length > 11 ? [...node.label].slice(0, 10).join('') + '…' : node.label;
+    return `<g><title>${escapeXml(node.label)}</title><circle cx="${node.x}" cy="${node.y}" r="${node.radius}" fill="${color}"/>${labels.has(node.id) ? `<text x="${node.x}" y="${node.y + node.radius + 18}">${escapeXml(shortLabel)}</text>` : ''}</g>`;
+  }).join('');
+  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="${minX} ${minY} ${width} ${height}" width="${Math.ceil(width)}" height="${Math.ceil(height)}"><title>押后谱系总览</title><rect x="${minX}" y="${minY}" width="${width}" height="${height}" fill="${palette.background}"/><g stroke="${palette.link}" stroke-width="1" opacity="0.6">${lines}</g><g fill="${palette.text}" font-size="13" font-family="sans-serif" text-anchor="middle">${circles}</g></svg>`;
 }

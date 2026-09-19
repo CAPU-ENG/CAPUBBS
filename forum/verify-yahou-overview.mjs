@@ -1,145 +1,114 @@
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
-import { buildYahouIndex, parseYahouLineage } from './src/data/yahouLineage.ts';
-import { layoutYahouOverview, zoomYahouViewBox } from './src/utils/yahouOverview.ts';
+import { setTimeout as delay } from 'node:timers/promises';
+import { parseYahouLineage } from './src/data/yahouLineage.ts';
+import { buildYahouGraph, createYahouSimulation, DEFAULT_YAHOU_FORCES, exportYahouGraphSvg, visibleYahouLabels, YAHOU_GRAPH_ROOT, yahouGraphId } from './src/utils/yahouOverview.ts';
 import { YAHOU_OVERVIEW_PALETTES } from './src/utils/yahouOverviewTheme.ts';
 
-function close(actual, expected) {
-  assert.ok(Math.abs(actual - expected) < 1e-8, `${actual} != ${expected}`);
-}
-
-function verifyLayout(data) {
-  const original = structuredClone(data);
-  const layout = layoutYahouOverview(data);
-  assert.deepEqual(data, original, 'Drawing the overview must not mutate shared lineage data.');
-  assert.equal(layout.nodes.length, data.nodes.length + 1);
-  assert.equal(new Set(layout.nodes.map((node) => node.id)).size, layout.nodes.length);
-  assert.equal(layout.links.length, data.nodes.length);
-  const index = buildYahouIndex(data);
-  const byId = new Map(layout.nodes.map((node) => [node.id, node]));
-  assert.equal(byId.get(null).label, '实践部');
-  assert.equal(byId.get(null).generation, 0);
-  for (const member of data.nodes) {
-    const node = byId.get(member.id);
-    assert.equal(node.label, member.id);
-    assert.equal(node.parentId, member.parentId);
-    assert.equal(node.status, member.status);
-    assert.equal(node.generation, index.generations.get(member.id));
-  }
-  for (const { parent, child, path } of layout.links) {
-    assert.equal(parent.id, index.members.get(child.id).parentId);
-    assert.equal(parent.generation + 1, child.generation);
-    assert.ok(parent.width > child.width && parent.height > child.height, 'Each generation must be smaller than the one closer to the root.');
-    assert.ok(parent.x + parent.width / 2 < child.x - child.width / 2, 'Descendants must appear to the right.');
-    const coordinates = path.match(/^M ([-\d.]+) ([-\d.]+) H ([-\d.]+) V ([-\d.]+) H ([-\d.]+)$/);
-    assert.ok(coordinates, 'Relationships use orthogonal connectors.');
-    const [startX, startY, middleX, endY, endX] = coordinates.slice(1).map(Number);
-    assert.equal(startX, parent.x + parent.width / 2);
-    assert.equal(startY, parent.y);
-    assert.equal(endX, child.x - child.width / 2);
-    assert.equal(endY, child.y);
-    assert.ok(startX < middleX && middleX < endX);
-  }
-  for (const [parentId, children] of index.children) {
-    const parent = byId.get(parentId);
-    const ordered = children.map((child) => byId.get(child.id));
-    close(parent.y, (ordered[0].y + ordered.at(-1).y) / 2);
-    for (let i = 1; i < ordered.length; i += 1) assert.ok(ordered[i].y > ordered[i - 1].y, 'Sibling order must remain stable.');
-  }
-  const generations = new Map();
-  for (const node of layout.nodes) {
-    assert.ok([node.x, node.y, node.width, node.height].every(Number.isFinite));
-    assert.ok(node.width > 0 && node.height > 0);
-    assert.ok(node.x - node.width / 2 >= layout.bounds.x);
-    assert.ok(node.y - node.height / 2 >= layout.bounds.y);
-    assert.ok(node.x + node.width / 2 <= layout.bounds.x + layout.bounds.width);
-    assert.ok(node.y + node.height / 2 <= layout.bounds.y + layout.bounds.height);
-    const size = node.fontSize;
-    assert.ok(Number.isFinite(size) && size > 0 && size < node.height);
-    assert.equal(node.labelLines.join(''), node.label, 'Wrapping must preserve the entire ID.');
-    const sameGeneration = generations.get(node.generation);
-    if (sameGeneration) {
-      assert.equal(node.width, sameGeneration.width, 'A generation must have identical node widths.');
-      assert.equal(node.height, sameGeneration.height, 'A generation must have identical node heights.');
-      assert.equal(node.x, sameGeneration.x, 'A generation must align in one column.');
-      assert.equal(size, sameGeneration.fontSize, 'A generation must have identical font sizes.');
-      assert.equal(node.lineHeight, sameGeneration.lineHeight, 'A generation must use consistent line spacing.');
-    } else generations.set(node.generation, node);
-    const halfWidth = Math.max(...node.labelLines.map((line) => [...new Intl.Segmenter('zh', { granularity: 'grapheme' }).segment(line)].length)) * size * 1.1 / 2;
-    const halfHeight = node.labelLines.length * node.lineHeight / 2;
-    assert.ok(halfWidth + 8 <= node.width / 2 && halfHeight + 8 <= node.height / 2, 'The full ID must fit inside its node with padding.');
-  }
-  for (let i = 0; i < layout.nodes.length; i += 1) {
-    for (const other of layout.nodes.slice(i + 1)) {
-      const node = layout.nodes[i];
-      assert.ok(Math.abs(node.x - other.x) >= (node.width + other.width) / 2 + 16 - 1e-8
-        || Math.abs(node.y - other.y) >= (node.height + other.height) / 2 + 16 - 1e-8,
-      `Nodes and their ID labels must not overlap: ${node.label}, ${other.label}`);
-    }
-  }
-  assert.deepEqual(layoutYahouOverview(data), layout, 'The static overview should be deterministic.');
-  return layout;
-}
-
 const data = parseYahouLineage(JSON.parse(await readFile(new URL('./data/yahou-lineage.json', import.meta.url), 'utf8')));
-const layout = verifyLayout(data);
-const fixture = parseYahouLineage({
-  schemaVersion: 1, revision: 1, root: '实践部',
-  nodes: [
-    { id: 'yahou:root', parentId: null, status: 'qualified' },
-    { id: '__proto__', parentId: 'yahou:root', status: 'qualified' },
-    { id: '0', parentId: '__proto__', status: 'passed' },
-    { id: '实践部', parentId: 'yahou:root', status: 'pending' },
-    { id: '含有 <>& 字符的很长很长的会员 ID', parentId: 'yahou:root', status: 'pending' },
-  ],
-});
-const before = verifyLayout(fixture);
+const original = structuredClone(data);
+const graph = buildYahouGraph(data);
+assert.equal(graph.nodes.length, data.nodes.length + 1);
+assert.equal(graph.links.length, data.nodes.length);
+assert.equal(new Set(graph.nodes.map((node) => node.id)).size, graph.nodes.length);
+const byId = new Map(graph.nodes.map((node) => [node.id, node]));
+for (const member of data.nodes) {
+  const node = byId.get(yahouGraphId(member.id));
+  assert.equal(node.label, member.id);
+  assert.equal(node.status, member.status);
+  const parentId = member.parentId === null ? YAHOU_GRAPH_ROOT : yahouGraphId(member.parentId);
+  assert.equal(graph.links.find((link) => link.target === node.id).source, parentId);
+  assert.equal(byId.get(parentId).generation + 1, node.generation);
+  assert.ok(byId.get(parentId).radius > node.radius);
+}
+const radii = new Map();
+for (const node of graph.nodes) {
+  if (radii.has(node.generation)) assert.equal(radii.get(node.generation), node.radius);
+  radii.set(node.generation, node.radius);
+}
+const graphBefore = structuredClone(graph);
+const engine = createYahouSimulation(graph);
+engine.simulation.tick(160);
+for (const node of engine.nodes) assert.ok([node.x, node.y, node.vx, node.vy].every(Number.isFinite));
+assert.deepEqual(graph, graphBefore, 'Simulation must not mutate graph input.');
+assert.deepEqual(data, original, 'Drawing must never change shared JSON.');
+assert.equal(engine.byId.get(YAHOU_GRAPH_ROOT).x, 0);
+assert.equal(engine.byId.get(YAHOU_GRAPH_ROOT).y, 0);
+
+const fixture = parseYahouLineage({ schemaVersion: 1, revision: 1, root: '实践部', nodes: [
+  { id: 'yahou:root', parentId: null, status: 'qualified' },
+  { id: '__proto__', parentId: 'yahou:root', status: 'qualified' },
+  { id: '实践部', parentId: '__proto__', status: 'passed' },
+  { id: '<script>&"🚲', parentId: null, status: 'pending' },
+] });
+const specialGraph = buildYahouGraph(fixture);
+assert.equal(new Set(specialGraph.nodes.map((node) => node.id)).size, 5);
 const corrected = structuredClone(fixture);
 corrected.nodes[2].parentId = 'yahou:root';
-const after = verifyLayout(corrected);
-assert.notDeepEqual(after.nodes, before.nodes, 'Manual relationship corrections must update the layout even at the same member count.');
-verifyLayout({ ...fixture, nodes: [] });
-verifyLayout({ ...fixture, nodes: Array.from({ length: 100 }, (_, i) => ({ id: `chain-${i}`, parentId: i ? `chain-${i - 1}` : null, status: 'qualified' })) });
-verifyLayout({ ...fixture, nodes: Array.from({ length: 100 }, (_, i) => ({ id: `sibling-${i}`, parentId: null, status: 'passed' })) });
-verifyLayout({
-  ...fixture,
-  nodes: [
-    { id: '大家庭', parentId: null, status: 'qualified' },
-    { id: '小家庭', parentId: null, status: 'passed' },
-    ...Array.from({ length: 80 }, (_, i) => ({ id: `孩子-${i}`, parentId: '大家庭', status: 'passed' })),
-    { id: '长 ID 与 e\u0301 🚲 均完整保留而且不能丢字', parentId: '大家庭', status: 'pending' },
-  ],
-});
+assert.notDeepEqual(buildYahouGraph(corrected).links, specialGraph.links);
+const empty = createYahouSimulation(buildYahouGraph({ ...fixture, nodes: [] }));
+empty.simulation.tick(20); assert.equal(empty.nodes.length, 1); empty.dispose();
 
-const bounds = layout.bounds;
-const anchor = { x: bounds.x + bounds.width * 0.25, y: bounds.y + bounds.height * 0.7 };
-const zoomed = zoomYahouViewBox(bounds, bounds, 0.5, anchor);
-close((anchor.x - zoomed.x) / zoomed.width, 0.25);
-close((anchor.y - zoomed.y) / zoomed.height, 0.7);
-close(zoomed.width / zoomed.height, bounds.width / bounds.height);
-const restored = zoomYahouViewBox(zoomed, bounds, 2, anchor);
-for (const key of ['x', 'y', 'width', 'height']) close(restored[key], bounds[key]);
-close(zoomYahouViewBox(bounds, bounds, 0.0001).width, bounds.width / 64);
-close(zoomYahouViewBox(bounds, bounds, 100).width, bounds.width);
+const pair = buildYahouGraph({ ...fixture, nodes: [{ id: 'child', parentId: null, status: 'passed' }] });
+function simulatedDistance(settings) {
+  const model = createYahouSimulation(pair, { ...DEFAULT_YAHOU_FORCES, ...settings });
+  model.simulation.tick(400);
+  const child = model.nodes[1];
+  const distance = Math.hypot(child.x, child.y);
+  model.dispose();
+  return distance;
+}
+assert.ok(simulatedDistance({ center: 100 }) < simulatedDistance({ center: 0 }), 'Center force must pull nodes inward.');
+assert.ok(simulatedDistance({ repulsion: 100 }) > simulatedDistance({ repulsion: 0 }), 'Repulsion must spread nodes apart.');
+assert.ok(simulatedDistance({ elasticity: 100 }) < simulatedDistance({ elasticity: 0 }), 'Stronger links must resist separation.');
+assert.ok(simulatedDistance({ distance: 240 }) > simulatedDistance({ distance: 30 }), 'Link length must change equilibrium distance.');
+engine.configure({ center: NaN, repulsion: -1000, elasticity: Infinity, distance: 10000 });
+engine.simulation.tick(50);
+assert.ok(engine.nodes.every((node) => Number.isFinite(node.x) && Number.isFinite(node.y)), 'Out-of-range settings must remain finite.');
+const childId = graph.nodes[1].id;
+engine.drag(childId, 200, 100); engine.simulation.tick(10);
+assert.equal(engine.byId.get(childId).x, 200); assert.equal(engine.byId.get(childId).y, 100);
+engine.release(childId); assert.equal(engine.byId.get(childId).fx, null);
+engine.simulation.tick(10); assert.notEqual(engine.byId.get(childId).x, 200);
+engine.drag(YAHOU_GRAPH_ROOT, 100, 50); engine.release(YAHOU_GRAPH_ROOT); engine.simulation.tick(10);
+assert.equal(engine.nodes[0].x, 100); assert.equal(engine.nodes[0].y, 50);
+engine.pinRoot(false); assert.equal(engine.nodes[0].fx, null);
+engine.drag(childId, 80, 30); engine.releaseAll(); assert.equal(engine.byId.get(childId).fx, null);
+engine.dispose();
 
+const lifecycle = createYahouSimulation(pair);
+lifecycle.run(true); await delay(70); lifecycle.run(false);
+const paused = structuredClone(lifecycle.nodes);
+await delay(70); assert.deepEqual(lifecycle.nodes, paused, 'Pause must stop every simulation tick.');
+lifecycle.configure({ ...DEFAULT_YAHOU_FORCES, repulsion: 100 });
+await delay(40); assert.deepEqual(lifecycle.nodes, paused, 'Changing settings must respect pause.');
+lifecycle.run(true); await delay(70); assert.notDeepEqual(lifecycle.nodes, paused, 'Resume must restart simulation.');
+lifecycle.dispose(); const disposed = structuredClone(lifecycle.nodes);
+lifecycle.run(true); await delay(70); assert.deepEqual(lifecycle.nodes, disposed, 'Closing must dispose and prevent restarts.');
+
+const crowded = pair.nodes.map((node) => ({ ...node, x: 0, y: 0, generation: 5, radius: 10 }));
+assert.equal(visibleYahouLabels(crowded, 100).size, 1, 'Overlapping labels should be culled.');
+assert.equal(visibleYahouLabels(crowded, 30).size, 0, 'Distant labels should be hidden when zoomed out.');
+assert.ok(visibleYahouLabels(crowded, 30, crowded[1].id).has(crowded[1].id), 'Selected ID has label priority.');
+assert.equal(visibleYahouLabels(crowded.map((node, i) => ({ ...node, x: i * 250 })), 100).size, 2);
+for (const palette of Object.values(YAHOU_OVERVIEW_PALETTES)) {
+  const svg = exportYahouGraphSvg(specialGraph, specialGraph.nodes, palette);
+  assert.equal((svg.match(/<circle /g) ?? []).length, specialGraph.nodes.length);
+  assert.equal((svg.match(/<line /g) ?? []).length, specialGraph.links.length);
+  assert.ok(svg.includes('&lt;script&gt;&amp;&quot;🚲'));
+  assert.ok(!svg.includes('<script>'));
+  assert.ok(svg.includes(palette.background));
+  for (const member of specialGraph.nodes) assert.ok(svg.includes(`<title>${member.label.replace(/[&<>"']/g, (char) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&apos;' })[char])}</title>`));
+}
 function luminance(color) {
-  const channels = color.slice(1).match(/../g).map((value) => parseInt(value, 16) / 255)
+  const c = color.slice(1).match(/../g).map((value) => parseInt(value, 16) / 255)
     .map((value) => value <= 0.04045 ? value / 12.92 : ((value + 0.055) / 1.055) ** 2.4);
-  return channels[0] * 0.2126 + channels[1] * 0.7152 + channels[2] * 0.0722;
+  return c[0] * 0.2126 + c[1] * 0.7152 + c[2] * 0.0722;
 }
-function contrast(first, second) {
-  const a = luminance(first);
-  const b = luminance(second);
-  return (Math.max(a, b) + 0.05) / (Math.min(a, b) + 0.05);
+function contrast(a, b) { const x = luminance(a), y = luminance(b); return (Math.max(x, y) + 0.05) / (Math.min(x, y) + 0.05); }
+for (const palette of Object.values(YAHOU_OVERVIEW_PALETTES)) {
+  assert.ok(contrast(palette.text, palette.background) >= 4.5);
+  assert.ok(contrast(palette.link, palette.background) >= 3);
+  for (const color of [palette.root, ...Object.values(palette.nodes)]) assert.ok(contrast(color.stroke, palette.background) >= 3);
 }
-for (const [theme, palette] of Object.entries(YAHOU_OVERVIEW_PALETTES)) {
-  for (const colors of [palette.root, ...Object.values(palette.nodes)]) {
-    assert.ok(contrast(palette.text, colors.fill) >= 4.5, `ID text must remain legible in ${theme} mode.`);
-    assert.ok(contrast(colors.stroke, colors.fill) >= 3, `Node borders must remain distinguishable in ${theme} mode.`);
-  }
-  assert.ok(contrast(palette.link, palette.background) >= 3, `Relationship links must remain visible in ${theme} mode.`);
-}
-assert.ok(luminance(YAHOU_OVERVIEW_PALETTES.dark.background) < 0.03);
-assert.ok(luminance(YAHOU_OVERVIEW_PALETTES.light.background) > 0.9);
-
-console.log(`Yahou horizontal overview verification passed: ${data.nodes.length} members, ${layout.generations} generations; equal generation sizes, larger ancestors, no label collisions, complete relationships, anchored zoom, and light/dark contrast.`);
+console.log(`Yahou force overview verification passed: ${data.nodes.length} members, ${graph.generations} generations; complete links, isolated data, force effects, drag/pause/disposal, label culling, SVG escaping and light/dark contrast.`);
