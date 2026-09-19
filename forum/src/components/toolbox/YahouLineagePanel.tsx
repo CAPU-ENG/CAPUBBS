@@ -12,6 +12,8 @@ import { LoadingSpinner } from '../layout/LoadingSpinner';
 import { DialogPresence } from '../layout/DialogPresence';
 import { YahouLineageOverview } from './YahouLineageOverview';
 
+const OVERVIEW_DESKTOP_QUERY = '(min-width: 1024px)';
+
 export function YahouLineagePanel() {
   const { status: authStatus, viewer } = useAuth();
   const canEdit = authStatus === 'authenticated' && (viewer?.rights ?? 0) >= 3;
@@ -20,6 +22,19 @@ export function YahouLineagePanel() {
   const [reload, setReload] = useState(0);
   const [saving, setSaving] = useState(false);
   const [overviewOpen, setOverviewOpen] = useState(false);
+  const [isDesktop, setIsDesktop] = useState(() => Boolean(window.matchMedia?.(OVERVIEW_DESKTOP_QUERY).matches));
+
+  useEffect(() => {
+    const viewport = window.matchMedia?.(OVERVIEW_DESKTOP_QUERY);
+    if (!viewport) return;
+    const syncViewport = () => {
+      setIsDesktop(viewport.matches);
+      if (!viewport.matches) setOverviewOpen(false);
+    };
+    syncViewport();
+    viewport.addEventListener('change', syncViewport);
+    return () => viewport.removeEventListener('change', syncViewport);
+  }, []);
 
   useEffect(() => {
     const controller = new AbortController();
@@ -39,7 +54,9 @@ export function YahouLineagePanel() {
         <span className="toolbox-workspace-icon"><GitBranch size={17} /></span>
         <h1 id="yahou-lineage-title">押后谱系</h1>
         <div className="yahou-header-actions">
-          <button aria-expanded={overviewOpen} aria-haspopup="dialog" className="toolbox-secondary-button" disabled={!data} onClick={() => setOverviewOpen(true)} type="button"><Network size={16} />谱系总览</button>
+          {isDesktop ? (
+            <button aria-expanded={overviewOpen} aria-haspopup="dialog" className="toolbox-secondary-button" disabled={!data} onClick={() => setOverviewOpen(true)} type="button"><Network size={16} />谱系总览</button>
+          ) : null}
           <button aria-label="刷新押后谱系" className="toolbox-icon-button" disabled={saving} onClick={() => setReload((value) => value + 1)} type="button"><RefreshCw size={16} /></button>
         </div>
       </header>
@@ -50,11 +67,13 @@ export function YahouLineagePanel() {
       ) : (
         <YahouTree canEdit={canEdit} data={data} key={reload} onData={setData} onSaving={setSaving} />
       )}
-      <DialogPresence>
-        {overviewOpen && data ? (
-          <YahouLineageOverview data={data} onClose={() => setOverviewOpen(false)} />
-        ) : null}
-      </DialogPresence>
+      {isDesktop ? (
+        <DialogPresence>
+          {overviewOpen && data ? (
+            <YahouLineageOverview data={data} onClose={() => setOverviewOpen(false)} />
+          ) : null}
+        </DialogPresence>
+      ) : null}
     </section>
   );
 }
