@@ -3,7 +3,7 @@ import { memo, useEffect, useId, useMemo, useRef, useState, type KeyboardEvent, 
 import { createPortal } from 'react-dom';
 import { YAHOU_STATUS_LABELS, type YahouLineage, type YahouStatus } from '../../data/yahouLineage';
 import {
-  layoutYahouOverview, zoomYahouViewBox,
+  layoutYahouOverview, YAHOU_LABEL_LINE_HEIGHT, zoomYahouViewBox,
   type YahouOverviewLayout, type YahouViewBox,
 } from '../../utils/yahouOverview';
 import { DialogNativeLayer } from '../layout/DialogPresence';
@@ -183,7 +183,7 @@ function OverviewCanvas({ layout }: { layout: YahouOverviewLayout }) {
           xmlns="http://www.w3.org/2000/svg"
         >
           <title id={titleId}>押后谱系总览</title>
-          <desc id={descriptionId}>根节点实践部，共 {layout.nodes.length - 1} 位会员，{layout.generations} 代。绿色为师父，蓝色为押后，金色为学徒。</desc>
+          <desc id={descriptionId}>从左向右展示师徒关系，根节点实践部，共 {layout.nodes.length - 1} 位会员，{layout.generations} 代。绿色为师父，蓝色为押后，金色为学徒。</desc>
           <OverviewDrawing layout={layout} />
         </svg>
       </div>
@@ -195,17 +195,17 @@ const OverviewDrawing = memo(function OverviewDrawing({ layout }: { layout: Yaho
   return (
     <g fontFamily="'PingFang SC', 'Microsoft YaHei', sans-serif">
       <rect fill="#fbfcfa" height={layout.bounds.height} width={layout.bounds.width} x={layout.bounds.x} y={layout.bounds.y} />
-      <g fill="none" opacity={0.24} stroke="#496353" strokeWidth={0.8}>
-        {layout.links.map(({ parent, child }) => <line key={child.id} vectorEffect="non-scaling-stroke" x1={parent.x} x2={child.x} y1={parent.y} y2={child.y} />)}
+      <g fill="none" opacity={0.6} stroke="#496353" strokeWidth={1}>
+        {layout.links.map(({ child, path }) => <path d={path} key={child.id} vectorEffect="non-scaling-stroke" />)}
       </g>
       {layout.nodes.map((node) => {
         const colors = node.status === null ? { fill: '#e9edeb', stroke: '#75867d' } : NODE_COLORS[node.status];
-        return <circle cx={node.x} cy={node.y} fill={colors.fill} key={node.id === null ? 'root' : `member:${node.id}`} r={node.radius} stroke={colors.stroke} strokeWidth={0.7} vectorEffect="non-scaling-stroke"><title>{node.label}{node.status === null ? '' : ` · ${YAHOU_STATUS_LABELS[node.status]}`}</title></circle>;
+        return <rect fill={colors.fill} height={node.height} key={node.id === null ? 'root' : `member:${node.id}`} rx={3} stroke={colors.stroke} strokeWidth={0.8} vectorEffect="non-scaling-stroke" width={node.width} x={node.x - node.width / 2} y={node.y - node.height / 2}><title>{node.label}{node.status === null ? '' : ` · ${YAHOU_STATUS_LABELS[node.status]}`}</title></rect>;
       })}
       <g dominantBaseline="central" fill="#25352b" pointerEvents="none" textAnchor="middle">
         {layout.nodes.map((node) => (
           <text aria-label={node.label} fontSize={node.fontSize} fontWeight={node.status === 'qualified' || node.id === null ? 650 : 450} key={node.id === null ? 'root' : `member:${node.id}`}>
-            {node.labelLines.map((line, index) => <tspan key={index} x={node.x} y={node.y + (index - (node.labelLines.length - 1) / 2) * node.fontSize * 1.2}>{line}</tspan>)}
+            {node.labelLines.map((line, index) => <tspan key={index} x={node.x} y={node.y + (index - (node.labelLines.length - 1) / 2) * YAHOU_LABEL_LINE_HEIGHT}>{line}</tspan>)}
           </text>
         ))}
       </g>

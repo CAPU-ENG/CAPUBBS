@@ -49,7 +49,6 @@
     "verify:thread-publishing": "node --experimental-strip-types verify-thread-publishing.mjs"
   },
   "dependencies": {
-    "cactuz": "0.4.7",
     "lucide-react": "^0.561.0",
     "markdown-it": "^15.0.1",
     "papaparse": "^5.5.3",

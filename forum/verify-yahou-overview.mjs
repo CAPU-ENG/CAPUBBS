@@ -1,12 +1,12 @@
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import { buildYahouIndex, parseYahouLineage } from './src/data/yahouLineage.ts';
-import { layoutYahouOverview, zoomYahouViewBox } from './src/utils/yahouOverview.ts';
+import { layoutYahouOverview, YAHOU_LABEL_LINE_HEIGHT, zoomYahouViewBox } from './src/utils/yahouOverview.ts';
 
 function verifyLayout(data) {
   const original = structuredClone(data);
   const layout = layoutYahouOverview(data);
-  assert.deepEqual(data, original, 'The layout library must not mutate shared lineage data.');
+  assert.deepEqual(data, original, 'Drawing the overview must not mutate shared lineage data.');
   assert.equal(layout.nodes.length, data.nodes.length + 1);
   assert.equal(new Set(layout.nodes.map((node) => node.id)).size, layout.nodes.length);
   assert.equal(layout.links.length, data.nodes.length);
@@ -21,35 +21,53 @@ function verifyLayout(data) {
     assert.equal(node.status, member.status);
     assert.equal(node.generation, index.generations.get(member.id));
   }
-  for (const { parent, child } of layout.links) {
+  for (const { parent, child, path } of layout.links) {
     assert.equal(parent.id, index.members.get(child.id).parentId);
     assert.equal(parent.generation + 1, child.generation);
+    assert.ok(parent.x + parent.width / 2 < child.x - child.width / 2, 'Descendants must appear to the right.');
+    const coordinates = path.match(/^M ([-\d.]+) ([-\d.]+) H ([-\d.]+) V ([-\d.]+) H ([-\d.]+)$/);
+    assert.ok(coordinates, 'Relationships use orthogonal connectors.');
+    const [startX, startY, middleX, endY, endX] = coordinates.slice(1).map(Number);
+    assert.equal(startX, parent.x + parent.width / 2);
+    assert.equal(startY, parent.y);
+    assert.equal(endX, child.x - child.width / 2);
+    assert.equal(endY, child.y);
+    assert.ok(startX < middleX && middleX < endX);
+  }
+  for (const [parentId, children] of index.children) {
+    const parent = byId.get(parentId);
+    const ordered = children.map((child) => byId.get(child.id));
+    assert.equal(parent.y, (ordered[0].y + ordered.at(-1).y) / 2, 'Parents should be centered on their direct children.');
+    for (let i = 1; i < ordered.length; i += 1) assert.ok(ordered[i].y > ordered[i - 1].y, 'Sibling order must remain stable.');
   }
   const generations = new Map();
   for (const node of layout.nodes) {
-    assert.ok([node.x, node.y, node.radius].every(Number.isFinite));
-    assert.ok(node.radius > 0);
-    assert.ok(node.x - node.radius >= layout.bounds.x);
-    assert.ok(node.y - node.radius >= layout.bounds.y);
-    assert.ok(node.x + node.radius <= layout.bounds.x + layout.bounds.width);
-    assert.ok(node.y + node.radius <= layout.bounds.y + layout.bounds.height);
+    assert.ok([node.x, node.y, node.width, node.height].every(Number.isFinite));
+    assert.ok(node.width > 0 && node.height > 0);
+    assert.ok(node.x - node.width / 2 >= layout.bounds.x);
+    assert.ok(node.y - node.height / 2 >= layout.bounds.y);
+    assert.ok(node.x + node.width / 2 <= layout.bounds.x + layout.bounds.width);
+    assert.ok(node.y + node.height / 2 <= layout.bounds.y + layout.bounds.height);
     const size = node.fontSize;
-    assert.ok(Number.isFinite(size) && size > 0 && size <= node.radius);
+    assert.ok(Number.isFinite(size) && size > 0 && size < node.height);
     assert.equal(node.labelLines.join(''), node.label, 'Wrapping must preserve the entire ID.');
     const sameGeneration = generations.get(node.generation);
     if (sameGeneration) {
-      assert.equal(node.radius, sameGeneration.radius, 'A generation must have identical node sizes.');
+      assert.equal(node.width, sameGeneration.width, 'A generation must have identical node widths.');
+      assert.equal(node.height, sameGeneration.height, 'A generation must have identical node heights.');
+      assert.equal(node.x, sameGeneration.x, 'A generation must align in one column.');
       assert.equal(size, sameGeneration.fontSize, 'A generation must have identical font sizes.');
     } else generations.set(node.generation, node);
     const halfWidth = Math.max(...node.labelLines.map((line) => [...new Intl.Segmenter('zh', { granularity: 'grapheme' }).segment(line)].length)) * size * 1.1 / 2;
-    const halfHeight = node.labelLines.length * size * 1.2 / 2;
-    assert.ok(Math.hypot(halfWidth, halfHeight) < node.radius, 'The full text box must fit inside the circle.');
+    const halfHeight = node.labelLines.length * YAHOU_LABEL_LINE_HEIGHT / 2;
+    assert.ok(halfWidth + 8 <= node.width / 2 && halfHeight + 8 <= node.height / 2, 'The full ID must fit inside its node with padding.');
   }
   for (let i = 0; i < layout.nodes.length; i += 1) {
     for (const other of layout.nodes.slice(i + 1)) {
       const node = layout.nodes[i];
-      assert.ok(Math.hypot(node.x - other.x, node.y - other.y) >= node.radius + other.radius + 5.99,
-        `Circles and their enclosed ID labels must not overlap: ${node.label}, ${other.label}`);
+      assert.ok(Math.abs(node.x - other.x) >= (node.width + other.width) / 2 + 16
+        || Math.abs(node.y - other.y) >= (node.height + other.height) / 2 + 16,
+      `Nodes and their ID labels must not overlap: ${node.label}, ${other.label}`);
     }
   }
   assert.deepEqual(layoutYahouOverview(data), layout, 'The static overview should be deterministic.');
@@ -72,7 +90,7 @@ const before = verifyLayout(fixture);
 const corrected = structuredClone(fixture);
 corrected.nodes[2].parentId = 'yahou:root';
 const after = verifyLayout(corrected);
-assert.notDeepEqual(after.nodes, before.nodes, 'Manual corrections with the same member count must invalidate layout caches.');
+assert.notDeepEqual(after.nodes, before.nodes, 'Manual relationship corrections must update the layout even at the same member count.');
 verifyLayout({ ...fixture, nodes: [] });
 verifyLayout({ ...fixture, nodes: Array.from({ length: 100 }, (_, i) => ({ id: `chain-${i}`, parentId: i ? `chain-${i - 1}` : null, status: 'qualified' })) });
 verifyLayout({ ...fixture, nodes: Array.from({ length: 100 }, (_, i) => ({ id: `sibling-${i}`, parentId: null, status: 'passed' })) });
@@ -98,4 +116,4 @@ for (const key of ['x', 'y', 'width', 'height']) close(restored[key], bounds[key
 close(zoomYahouViewBox(bounds, bounds, 0.0001).width, bounds.width / 64);
 close(zoomYahouViewBox(bounds, bounds, 100).width, bounds.width);
 
-console.log(`Yahou overview verification passed: ${data.nodes.length} members, ${layout.generations} generations; equal generation sizes, no circle/label collisions, complete IDs and relationships, immutable input, cache refresh, and anchored zoom.`);
+console.log(`Yahou horizontal overview verification passed: ${data.nodes.length} members, ${layout.generations} generations; aligned columns, centered parents, stable family order, orthogonal links, equal node sizes, no label collisions, and anchored zoom.`);
