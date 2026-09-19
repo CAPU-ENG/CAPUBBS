@@ -1,6 +1,6 @@
 {
     "schemaVersion": 1,
-    "revision": 3,
+    "revision": 4,
     "root": "实践部",
     "nodes": [
         {
@@ -3672,16 +3672,6 @@
             "id": "YETI雪人",
             "parentId": "丙酮",
             "status": "passed"
-        },
-        {
-            "id": "主席团",
-            "parentId": "冰苎",
-            "status": "pending"
-        },
-        {
-            "id": "蓝毛仔",
-            "parentId": null,
-            "status": "qualified"
         }
     ]
 }
