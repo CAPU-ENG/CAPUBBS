@@ -9,6 +9,7 @@ import {
 } from '../api/auth';
 import { fetchUnreadMessageCounts } from '../api/messages';
 import { refreshClientConfig } from '../api/clientConfig';
+import { fetchPublicProfile } from '../api/profile';
 import { useOnlinePresence } from '../hooks/useOnlinePresence';
 import { isForumForeground } from '../utils/forumActivity';
 
@@ -19,6 +20,7 @@ const LEGACY_SESSION_VIEWER_REFRESHED_AT_STORAGE_KEY = 'capubbs-session-viewer-r
 const SESSION_VIEWER_COOKIE_MAX_AGE_SECONDS = 999999;
 const PRODUCTION_COOKIE_DOMAIN = 'chexie.net';
 const UNREAD_MESSAGE_REFRESH_INTERVAL_MS = 5 * 60 * 1000;
+const VIEWER_AVATAR_REFRESH_INTERVAL_MS = 60 * 1000;
 
 type AuthState = {
   status: AuthStatus;
@@ -43,9 +45,56 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [auth, setAuth] = useState<AuthState>(restoreCachedAuth);
   const unreadRequestRef = useRef<{ promise: Promise<void>; username: string } | null>(null);
   const unreadRevisionRef = useRef(0);
+  const avatarRevisionRef = useRef(0);
   const activeUsername = auth.status === 'authenticated' ? auth.viewer?.username ?? null : null;
 
   useOnlinePresence(activeUsername);
+
+  useEffect(() => {
+    if (!activeUsername) return;
+    let disposed = false;
+    let activeRequest: AbortController | null = null;
+
+    const refreshAvatar = async () => {
+      if (!isForumForeground() || activeRequest) return;
+      const controller = new AbortController();
+      activeRequest = controller;
+      const token = readTokenCookie();
+      const revision = avatarRevisionRef.current;
+      try {
+        // Read the profile directly: session verification can return an empty
+        // fallback avatar when the profile service is temporarily unavailable.
+        const { profile } = await fetchPublicProfile(activeUsername, controller.signal);
+        setAuth((current) => {
+          if (disposed || controller.signal.aborted || !token || readTokenCookie() !== token
+            || avatarRevisionRef.current !== revision
+            || current.status !== 'authenticated' || current.viewer?.username !== activeUsername
+            || current.viewer.avatar === profile.avatarSrc) return current;
+          const viewer = { ...current.viewer, avatar: profile.avatarSrc };
+          cacheViewer(viewer);
+          return { ...current, viewer };
+        });
+      } catch {
+        // Keep the last known avatar and retry on the next foreground refresh.
+      } finally {
+        activeRequest = null;
+      }
+    };
+
+    void refreshAvatar();
+    const interval = window.setInterval(refreshAvatar, VIEWER_AVATAR_REFRESH_INTERVAL_MS);
+    window.addEventListener('focus', refreshAvatar);
+    window.addEventListener('pageshow', refreshAvatar);
+    document.addEventListener('visibilitychange', refreshAvatar);
+    return () => {
+      disposed = true;
+      activeRequest?.abort();
+      window.clearInterval(interval);
+      window.removeEventListener('focus', refreshAvatar);
+      window.removeEventListener('pageshow', refreshAvatar);
+      document.removeEventListener('visibilitychange', refreshAvatar);
+    };
+  }, [activeUsername]);
 
   const refreshUnreadMessagesFor = useCallback((username: string) => {
     if (!isForumForeground()) return Promise.resolve();
@@ -194,6 +243,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const updateViewerAvatar = useCallback((avatar: string) => {
+    avatarRevisionRef.current += 1;
     setAuth((current) => {
       if (!current.viewer) return current;
       const viewer = { ...current.viewer, avatar };
@@ -318,8 +368,10 @@ function sameViewer(left: SessionViewer | null, right: SessionViewer) {
 }
 
 function hasTokenCookie() {
-  return document.cookie.split(';').some((cookie) => {
-    const [name, value = ''] = cookie.trim().split('=', 2);
-    return name === 'token' && Boolean(value) && value !== 'invalid';
-  });
+  const token = readTokenCookie();
+  return Boolean(token) && token !== 'invalid';
+}
+
+function readTokenCookie() {
+  return document.cookie.split(';').find((cookie) => cookie.trim().startsWith('token='))?.trim().slice(6) ?? '';
 }
