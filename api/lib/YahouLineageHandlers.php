@@ -205,6 +205,10 @@ class YahouLineageStore {
             }
             if (!fflush($handle) || (function_exists('fsync') && !fsync($handle))) throw new RuntimeException('谱系文件同步失败。');
             if (!@chmod($temporary, 0600)) throw new RuntimeException('无法设置谱系文件权限。');
+        } catch (Exception $error) {
+            // PHP 5 exceptions do not implement Throwable.
+            @unlink($temporary);
+            throw $error;
         } catch (Throwable $error) {
             @unlink($temporary);
             throw $error;
@@ -220,6 +224,8 @@ function jiekoufunc_yahou_lineage($con, $params) {
     try {
         $store = new YahouLineageStore();
         return array(array('code' => '0', 'count' => '1'), $store->read());
+    } catch (Exception $error) {
+        return array(array('code' => '4000', 'msg' => '押后谱系读取失败，请联系管理员检查数据文件。'));
     } catch (Throwable $error) {
         return array(array('code' => '4000', 'msg' => '押后谱系读取失败，请联系管理员检查数据文件。'));
     }
@@ -268,6 +274,8 @@ function jiekoufunc_yahou_lineage_write($con, $params, $action) {
         return array(array('code' => '0', 'count' => '1'), $store->mutate($revision, $mutation));
     } catch (InvalidArgumentException $error) {
         return array(array('code' => '2100', 'msg' => $error->getMessage()));
+    } catch (Exception $error) {
+        return array(array('code' => '4000', 'msg' => '谱系保存失败，请联系管理员检查数据和目录权限。'));
     } catch (Throwable $error) {
         return array(array('code' => '4000', 'msg' => '谱系保存失败，请联系管理员检查数据和目录权限。'));
     }
