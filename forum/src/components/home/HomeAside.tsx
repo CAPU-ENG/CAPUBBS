@@ -351,6 +351,7 @@ export function ActivityCalendar({ compact = false, error, items, onVisibleDateC
           <p>{error}</p>
         ) : displayedActivities.length > 0 ? (
           <>
+            {selectedActivities.length > 0 ? <p className="calendar-agenda-label">当日活动</p> : null}
             {displayedActivities.map((activity, index) => (
               <Fragment key={activity.id}>
                 {index === selectedActivities.length ? <p className="calendar-agenda-label">最近活动</p> : null}
