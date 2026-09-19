@@ -1,6 +1,6 @@
 import { DialogLayer, DialogPresence } from '../layout/DialogPresence';
 import { AlertTriangle, Ban, Check, ClipboardList, Eye, LogIn, RotateCcw, Send, X } from 'lucide-react';
-import { useEffect, useState, type FormEvent } from 'react';
+import { useEffect, useRef, useState, type FormEvent } from 'react';
 import { fetchDataDisplayPanel } from '../../api/dataDisplay';
 import { LoadingSpinner } from '../layout/LoadingSpinner';
 import {
@@ -32,6 +32,7 @@ type ActivitySignupFormProps = {
   activity: ThreadActivity;
   bid: number;
   floors: ThreadFloorData[];
+  focusRequest?: number;
   locked: boolean;
   loginHref: string;
   registerHref: string;
@@ -45,6 +46,7 @@ export function ActivitySignupForm({
   activity,
   bid,
   floors,
+  focusRequest = 0,
   locked,
   loginHref,
   registerHref,
@@ -53,6 +55,13 @@ export function ActivitySignupForm({
   tid,
   viewer,
 }: ActivitySignupFormProps) {
+  const formRef = useRef<HTMLElement>(null);
+  useEffect(() => {
+    if (!focusRequest) return;
+    formRef.current?.scrollIntoView({ block: 'start' });
+    formRef.current?.focus({ preventScroll: true });
+  }, [focusRequest]);
+
   const existingSignup = floors.find((floor) => floor.floor > 1 && floor.isOwn) ?? null;
   const signupCanceled = Boolean(existingSignup && (
     existingSignup.paragraphs.some((paragraph) => paragraph.includes('报名状态：已取消'))
@@ -147,7 +156,7 @@ export function ActivitySignupForm({
   }
 
   return (
-    <section aria-labelledby="activity-signup-title" className="activity-signup-card">
+    <section aria-labelledby="activity-signup-title" className="activity-signup-card" ref={formRef} tabIndex={-1}>
       <header className="activity-signup-header">
         <div>
           <ClipboardList aria-hidden="true" size={18} />

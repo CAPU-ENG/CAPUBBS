@@ -276,6 +276,7 @@ export function ThreadFloorActions({
   deleting = false,
   editHref = '',
   onDelete,
+  onEditSignup,
   onQuote,
   onReply,
 }: {
@@ -287,6 +288,7 @@ export function ThreadFloorActions({
   deleting?: boolean;
   editHref?: string;
   onDelete?: (trigger: HTMLButtonElement) => void;
+  onEditSignup?: () => void;
   onQuote?: (selectedText?: string) => void;
   onReply?: () => void;
 }) {
@@ -336,6 +338,12 @@ export function ThreadFloorActions({
           编辑
         </a>
       ))}
+      {onEditSignup && !decorative && (
+        <button onClick={onEditSignup} type="button">
+          <Pencil size={15} />
+          编辑报名
+        </button>
+      )}
       {canDelete && (
         <button
           aria-busy={deleting || undefined}
@@ -366,6 +374,7 @@ export function ThreadFloor({
   hideSignature,
   onDeleteFloor,
   onDeleteNestedReply,
+  onEditSignup,
   onIsolatedTextSelection,
   onQuote,
   onSubmitNestedReply,
@@ -383,6 +392,7 @@ export function ThreadFloor({
   hideSignature: boolean;
   onDeleteFloor: (floor: ThreadFloorData) => Promise<void>;
   onDeleteNestedReply: (floor: ThreadFloorData, reply: NestedReply) => Promise<void>;
+  onEditSignup?: () => void;
   onIsolatedTextSelection: (floor: ThreadFloorData, text: string) => void;
   onQuote: (floor: ThreadFloorData, selectedText?: string) => void;
   onSubmitNestedReply: (floor: ThreadFloorData, targetName: string | null, content: string) => Promise<number>;
@@ -603,6 +613,7 @@ export function ThreadFloor({
         canReply={canReply}
         deleting={floorDeletePending}
         editHref={editHref}
+        onEditSignup={isActivityThread && !isMainPost && floor.isOwn ? onEditSignup : undefined}
         onDelete={(trigger) => {
           deleteTriggerRef.current = trigger;
           setFloorDeleteError('');

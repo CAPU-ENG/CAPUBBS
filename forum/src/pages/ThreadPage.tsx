@@ -172,6 +172,7 @@ export function ThreadPage() {
     ? resolveForumAppRoute(data.boardHref, window.location.href) ?? toForumHref('/')
     : toForumHref('/');
   const [quoteRequest, setQuoteRequest] = useState<QuoteRequest | null>(null);
+  const [signupEditRequest, setSignupEditRequest] = useState({ scope: '', id: 0 });
   const quoteRequestIdRef = useRef(0);
   const isolatedFloorSelectionRef = useRef<{
     bid: number;
@@ -470,6 +471,26 @@ export function ThreadPage() {
   }));
   const loginHref = getLoginPathWithReturnTo();
   const registerHref = getRegisterPathWithReturnTo();
+  const signupScope = `${data.id}:${data.currentPage}:${data.authorOnly}:${data.viewer?.name ?? ''}`;
+  const signupFocusRequest = signupEditRequest.scope === signupScope ? signupEditRequest.id : 0;
+  const signupForm = data.activity ? (
+    <Suspense fallback={<LoadingState label="正在准备报名表单" variant="panel" />}>
+      <ActivitySignupForm
+        activity={data.activity}
+        bid={data.bid}
+        floors={pageFloors}
+        focusRequest={signupFocusRequest}
+        key={signupScope}
+        locked={data.locked}
+        loginHref={loginHref}
+        registerHref={registerHref}
+        signatures={data.viewerSignatures}
+        threadTitle={data.title}
+        tid={data.tid}
+        viewer={data.viewer}
+      />
+    </Suspense>
+  ) : null;
   const canManageActivity = Boolean(
     data.isActivity
     && viewer
@@ -574,6 +595,7 @@ export function ThreadPage() {
 
         <div className="thread-content-layout">
           <section className="thread-floor-list" aria-label={`第 ${data.currentPage} 页楼层`}>
+            {data.currentPage > 1 && signupFocusRequest > 0 && signupForm}
             {pageFloors.map((floor) => (
               <Fragment key={floor.id}>
                 <ThreadFloor
@@ -590,27 +612,16 @@ export function ThreadPage() {
                   showAuthorProfile={authorProfileEnabled}
                   onDeleteFloor={removeFloor}
                   onDeleteNestedReply={removeNestedReply}
+                  onEditSignup={data.activity ? () => setSignupEditRequest((current) => ({
+                    scope: signupScope,
+                    id: current.id + 1,
+                  })) : undefined}
                   onIsolatedTextSelection={rememberIsolatedFloorSelection}
                   onQuote={quoteFloor}
                   onSubmitNestedReply={submitNestedReply}
                   viewer={data.viewer}
                 />
-                {floor.floor === 1 && data.activity && (
-                  <Suspense fallback={<LoadingState label="正在准备报名表单" variant="panel" />}>
-                    <ActivitySignupForm
-                      activity={data.activity}
-                      bid={data.bid}
-                      floors={pageFloors}
-                      locked={data.locked}
-                      loginHref={loginHref}
-                      registerHref={registerHref}
-                      signatures={data.viewerSignatures}
-                      threadTitle={data.title}
-                      tid={data.tid}
-                      viewer={data.viewer}
-                    />
-                  </Suspense>
-                )}
+                {floor.floor === 1 && signupForm}
               </Fragment>
             ))}
           </section>

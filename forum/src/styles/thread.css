@@ -543,6 +543,7 @@
 
   .activity-signup-card {
     min-width: 0;
+    scroll-margin-top: calc(var(--topbar-height) + 16px);
     border: 1px solid color-mix(in srgb, var(--brand) 24%, var(--line));
     border-radius: 2px;
     padding: 0 22px 20px;
