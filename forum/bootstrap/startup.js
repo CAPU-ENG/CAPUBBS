@@ -4,6 +4,7 @@
   var status = document.getElementById('forum-startup-status');
   var percent = document.getElementById('forum-startup-percent');
   var progress = document.getElementById('forum-startup-progress');
+  var indeterminate = document.getElementById('forum-startup-indeterminate');
   var retry = document.getElementById('forum-startup-retry');
   var finished = false;
   var failed = false;
@@ -32,6 +33,7 @@
     clearTimeout(timer);
     controller.abort();
     status.textContent = '加载失败';
+    indeterminate.hidden = true;
     overlay.setAttribute('aria-busy', 'false');
     retry.hidden = false;
   }
@@ -63,7 +65,9 @@
     // Vite development serves source modules without a fixed byte manifest.
     status.textContent = '正在加载';
     percent.textContent = '';
+    progress.hidden = true;
     progress.removeAttribute('value');
+    indeterminate.hidden = false;
     return;
   }
 

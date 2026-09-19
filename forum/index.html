@@ -53,6 +53,31 @@
       #forum-startup progress::-webkit-progress-bar { background: var(--startup-line); }
       #forum-startup progress::-webkit-progress-value { background: var(--startup-brand); }
       #forum-startup progress::-moz-progress-bar { background: var(--startup-brand); }
+      #forum-startup-indeterminate {
+        height: 4px;
+        margin-top: 12px;
+        border-radius: 2px;
+        overflow: hidden;
+        background: var(--startup-line);
+      }
+      #forum-startup-indeterminate span {
+        display: block;
+        width: 30%;
+        height: 100%;
+        background: var(--startup-brand);
+        animation: forum-startup-indeterminate 1.2s linear infinite;
+      }
+      @keyframes forum-startup-indeterminate {
+        from { transform: translateX(-100%); }
+        to { transform: translateX(334%); }
+      }
+      @media (prefers-reduced-motion: reduce) {
+        #forum-startup-indeterminate span {
+          width: 100%;
+          opacity: 0.6;
+          animation: none;
+        }
+      }
       #forum-startup-retry {
         margin-top: 20px;
         padding: 6px 14px;
@@ -75,6 +100,7 @@
           <span id="forum-startup-percent" aria-hidden="true">0%</span>
         </div>
         <progress id="forum-startup-progress" max="100" value="0" aria-label="资源下载进度"></progress>
+        <div id="forum-startup-indeterminate" role="progressbar" aria-label="资源加载中" hidden><span></span></div>
         <button id="forum-startup-retry" type="button" hidden>重新加载</button>
         <noscript>
           <style>#forum-startup .startup-status, #forum-startup progress { display: none; }</style>
