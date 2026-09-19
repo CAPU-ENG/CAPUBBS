@@ -95,6 +95,34 @@ try {
   assert.equal(closedMeasurements.length, 0, 'The graph must not measure a hidden dialog.');
   assert.equal(document.body.style.overflow, 'hidden');
   assert.equal(document.getElementById('forum-sentinel').style.color, 'rgb(1, 2, 3)');
+  assert.equal(document.querySelectorAll('.yahou-line-flow').length, 0, 'No flow overlays before a node is selected.');
+  const members = new Map(data.nodes.map((node) => [node.id, node]));
+  const member = data.nodes.find((node) => node.parentId && members.get(node.parentId)?.parentId && data.nodes.some((child) => child.parentId === node.id));
+  assert.ok(member, 'Use a member with multiple ancestors and children.');
+  const path = [];
+  for (let node = member; node; node = members.get(node.parentId)) path.push(node.id);
+  const children = data.nodes.filter((node) => node.parentId === member.id).map((node) => node.id);
+  const nodeIds = new Set(['yahou:root', ...[...path, ...children].map((id) => `member:${id}`)]);
+  const lineIds = new Set([...path, ...children].map((id) => `link:${id}`));
+  const nodeElement = [...document.querySelectorAll('.rg-node-peel')].find((node) => node.dataset.id === `member:${member.id}`).querySelector('.rg-node');
+  await act(async () => nodeElement.dispatchEvent(new MouseEvent('mousedown', { bubbles: true, button: 0, clientX: 100, clientY: 100 })));
+  await act(async () => nodeElement.dispatchEvent(new MouseEvent('mouseup', { bubbles: true, button: 0, clientX: 100, clientY: 100 })));
+  await waitFor(() => document.querySelector('.yahou-graph-selection'), 'Clicking a node must select it.');
+  await waitFor(() => document.querySelectorAll('.yahou-line-flow').length === lineIds.size, 'The renderer must apply selection styles and flow overlays.');
+  for (const node of document.querySelectorAll('.rg-node-peel')) {
+    assert.equal(Number(node.style.getPropertyValue('--rg-node-opacity')), nodeIds.has(node.dataset.id) ? 1 : 0.2, node.dataset.id);
+  }
+  const flowingLines = [...document.querySelectorAll('.yahou-line-flow')];
+  assert.deepEqual(new Set(flowingLines.map((line) => line.closest('[data-id]').dataset.id)), lineIds, 'Flow follows only the ancestry and immediate children.');
+  for (const line of flowingLines) {
+    assert.equal(line.getAttribute('d'), line.parentElement.querySelector('.rg-line').getAttribute('d'), 'Glow must track the actual connection path.');
+    assert.equal(line.style.animationDirection, 'normal', 'Tree connections point from parent to child.');
+  }
+  assert.equal(document.querySelector('.yahou-graph-selection > span').textContent, `第 ${path.length} 代`);
+  assert.equal(document.querySelector('.yahou-overview-canvas').dataset.flowing, 'false', 'Reduced-motion starts with flow paused.');
+  await act(async () => document.querySelector('[aria-label="取消选中"]').click());
+  await waitFor(() => document.querySelectorAll('.yahou-line-flow').length === 0, 'Clearing selection removes flow overlays.');
+  for (const node of document.querySelectorAll('.rg-node-peel')) assert.equal(Number(node.style.getPropertyValue('--rg-node-opacity')), 1);
   await act(async () => document.querySelector('[aria-label="关闭谱系总览"]').click());
   assert.equal(document.querySelector('dialog'), null);
   assert.equal(document.querySelector('.relation-graph'), null);
@@ -124,7 +152,7 @@ try {
   assert.ok(document.getElementById('forum-sentinel'));
   assert.equal(errors.length, 0);
   assert.ok(caught.some((error) => error.message.includes('Injected missing chunk')));
-  console.log(`Yahou DOM verification passed: correct JS/CSS responses, ${data.nodes.length + 1} rendered nodes, ${data.nodes.length} lines, open-before-measure, cleanup, and isolated render/import failures.`);
+  console.log(`Yahou DOM verification passed: correct JS/CSS responses, ${data.nodes.length + 1} rendered nodes, ${data.nodes.length} lines, ancestor highlighting, directional flow, selection cleanup, open-before-measure, and isolated render/import failures.`);
 } finally {
   await act(async () => root.unmount());
   dom.window.close();

@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import { setTimeout as delay } from 'node:timers/promises';
 import { parseYahouLineage } from './src/data/yahouLineage.ts';
-import { buildYahouGraph, createYahouSimulation, DEFAULT_YAHOU_FORCES, exportYahouGraphSvg, visibleYahouLabels, YAHOU_GRAPH_ROOT, yahouGraphId } from './src/utils/yahouOverview.ts';
+import { buildYahouGraph, createYahouSimulation, DEFAULT_YAHOU_FORCES, exportYahouGraphSvg, getYahouHighlight, visibleYahouLabels, YAHOU_GRAPH_ROOT, yahouGraphId } from './src/utils/yahouOverview.ts';
 import { YAHOU_OVERVIEW_PALETTES } from './src/utils/yahouOverviewTheme.ts';
 
 const data = parseYahouLineage(JSON.parse(await readFile(new URL('./data/yahou-lineage.json', import.meta.url), 'utf8')));
@@ -43,6 +43,15 @@ const fixture = parseYahouLineage({ schemaVersion: 1, revision: 1, root: '实践
 ] });
 const specialGraph = buildYahouGraph(fixture);
 assert.equal(new Set(specialGraph.nodes.map((node) => node.id)).size, 5);
+const highlighted = getYahouHighlight(specialGraph, yahouGraphId('__proto__'));
+assert.deepEqual(highlighted.nodeIds, new Set([YAHOU_GRAPH_ROOT, yahouGraphId('yahou:root'), yahouGraphId('__proto__'), yahouGraphId('实践部')]));
+assert.deepEqual(highlighted.linkIds, new Set(['link:yahou:root', 'link:__proto__', 'link:实践部']), 'Include every ancestor edge and immediate children, excluding other root branches.');
+const firstGeneration = getYahouHighlight(specialGraph, yahouGraphId('yahou:root'));
+assert.deepEqual(firstGeneration.nodeIds, new Set([YAHOU_GRAPH_ROOT, yahouGraphId('yahou:root'), yahouGraphId('__proto__')]));
+assert.deepEqual(firstGeneration.linkIds, new Set(['link:yahou:root', 'link:__proto__']), 'Do not expand beyond immediate children.');
+assert.deepEqual(getYahouHighlight(specialGraph, YAHOU_GRAPH_ROOT).nodeIds,
+  new Set([YAHOU_GRAPH_ROOT, yahouGraphId('yahou:root'), yahouGraphId('<script>&"🚲')]));
+for (const selected of [null, 'missing']) assert.deepEqual(getYahouHighlight(specialGraph, selected), { nodeIds: new Set(), linkIds: new Set() });
 const corrected = structuredClone(fixture);
 corrected.nodes[2].parentId = 'yahou:root';
 assert.notDeepEqual(buildYahouGraph(corrected).links, specialGraph.links);
@@ -111,4 +120,4 @@ for (const palette of Object.values(YAHOU_OVERVIEW_PALETTES)) {
   assert.ok(contrast(palette.link, palette.background) >= 3);
   for (const color of [palette.root, ...Object.values(palette.nodes)]) assert.ok(contrast(color.stroke, palette.background) >= 3);
 }
-console.log(`Yahou force overview verification passed: ${data.nodes.length} members, ${graph.generations} generations; complete links, isolated data, force effects, drag/pause/disposal, label culling, SVG escaping and light/dark contrast.`);
+console.log(`Yahou force overview verification passed: ${data.nodes.length} members, ${graph.generations} generations; ancestor/neighbor highlighting, complete links, isolated data, force effects, drag/pause/disposal, label culling, SVG escaping and light/dark contrast.`);

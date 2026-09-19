@@ -50,6 +50,28 @@ export function buildYahouGraph(data: YahouLineage): YahouGraph {
   return { nodes, generations, links: data.nodes.map((node) => ({ id: `link:${node.id}`, source: node.parentId === null ? YAHOU_GRAPH_ROOT : yahouGraphId(node.parentId), target: yahouGraphId(node.id) })) };
 }
 
+export function getYahouHighlight(graph: YahouGraph, selected: string | null) {
+  const nodeIds = new Set<string>();
+  const linkIds = new Set<string>();
+  if (!selected || !graph.nodes.some((node) => node.id === selected)) return { nodeIds, linkIds };
+  nodeIds.add(selected);
+  const parents = new Map(graph.links.map((link) => [link.target, link]));
+  // Keep the selected member's children, without expanding the ancestors' other branches.
+  for (const link of graph.links) if (link.source === selected) {
+    nodeIds.add(link.target);
+    linkIds.add(link.id);
+  }
+  let current = selected;
+  while (current !== YAHOU_GRAPH_ROOT) {
+    const link = parents.get(current);
+    if (!link || nodeIds.has(link.source)) break;
+    linkIds.add(link.id);
+    nodeIds.add(link.source);
+    current = link.source;
+  }
+  return { nodeIds, linkIds };
+}
+
 /** D3 mutates nodes and links; only disposable presentation copies enter the simulation. */
 export function createYahouSimulation(graph: YahouGraph, settings = DEFAULT_YAHOU_FORCES) {
   const nodes = graph.nodes.map((node) => ({ ...node }));

@@ -1,11 +1,11 @@
-import { RelationGraph, RGProvider, type RGNodeSlotProps, type RGOptions, type RelationGraphInstance } from '@relation-graph/react';
+import { RelationGraph, RGHooks, RGLinePath, RGProvider, type RGLineSlotProps, type RGNodeSlotProps, type RGOptions, type RelationGraphInstance } from '@relation-graph/react';
 import '@relation-graph/react/style.css';
 import '../../styles/yahou-overview.css';
 import { BadgeCheck, Check, Circle, Download, Maximize, Minus, Pause, Play, Plus, RotateCcw, Search, SlidersHorizontal, X } from 'lucide-react';
 import { useEffect, useId, useMemo, useRef, useState, type CSSProperties, type KeyboardEvent } from 'react';
-import { YAHOU_STATUS_LABELS, type YahouLineage } from '../../data/yahouLineage';
+import type { YahouLineage } from '../../data/yahouLineage';
 import { useTheme } from '../../hooks/useTheme';
-import { buildYahouGraph, createYahouSimulation, DEFAULT_YAHOU_FORCES, exportYahouGraphSvg, visibleYahouLabels, YAHOU_FORCE_CONTROLS, YAHOU_GRAPH_ROOT, type YahouGraph, type YahouSimulation } from '../../utils/yahouOverview';
+import { buildYahouGraph, createYahouSimulation, DEFAULT_YAHOU_FORCES, exportYahouGraphSvg, getYahouHighlight, visibleYahouLabels, YAHOU_FORCE_CONTROLS, YAHOU_GRAPH_ROOT, type YahouGraph, type YahouSimulation } from '../../utils/yahouOverview';
 import { YAHOU_OVERVIEW_PALETTES } from '../../utils/yahouOverviewTheme';
 
 const GRAPH_OPTIONS: RGOptions = {
@@ -26,6 +26,18 @@ function GraphNode({ node }: RGNodeSlotProps) {
   </span>;
 }
 
+function GraphLine({ lineConfig, graphInstanceId, checked }: RGLineSlotProps) {
+  const instance = RGHooks.useGraphInstance();
+  const path = instance.generateLinePath(lineConfig);
+  // The renderer may reverse path endpoints; flow must always follow parent -> child.
+  const direction = lineConfig.from?.id === lineConfig.line.from ? 'normal' : 'reverse';
+  return <RGLinePath lineConfig={lineConfig} linePathInfo={path} graphInstanceId={graphInstanceId} checked={checked}
+    onLineClick={(event) => instance.onLineClick(lineConfig.line, event.nativeEvent)}>
+    {lineConfig.line.data?.highlighted ? <path aria-hidden="true" className="yahou-line-flow" d={path.pathData}
+      pathLength={100} style={{ animationDirection: direction }} /> : null}
+  </RGLinePath>;
+}
+
 function OverviewNetwork({ graph }: { graph: YahouGraph }) {
   const { theme } = useTheme();
   const palette = YAHOU_OVERVIEW_PALETTES[theme];
@@ -41,6 +53,8 @@ function OverviewNetwork({ graph }: { graph: YahouGraph }) {
   const [zoom, setZoom] = useState(100);
   const [query, setQuery] = useState('');
   const [selected, setSelected] = useState<string | null>(null);
+  const highlighted = useMemo(() => getYahouHighlight(graph, selected), [graph, selected]);
+  const [pageVisible, setPageVisible] = useState(() => !document.hidden);
   const selectedRef = useRef<string | null>(null);
   const current = useRef({ running, settings, rootPinned, palette });
   current.current = { running, settings, rootPinned, palette };
@@ -107,6 +121,7 @@ function OverviewNetwork({ graph }: { graph: YahouGraph }) {
     };
     void initialize();
     const onVisibility = () => {
+      setPageVisible(!document.hidden);
       simulation.releaseAll();
       simulation.run(current.current.running && !document.hidden);
     };
@@ -133,23 +148,20 @@ function OverviewNetwork({ graph }: { graph: YahouGraph }) {
 
   useEffect(() => {
     if (!instance || !ready) return;
-    const neighbors = new Set<string>(selected ? [selected] : []);
-    for (const link of graph.links) if (link.source === selected || link.target === selected) {
-      neighbors.add(link.source); neighbors.add(link.target);
-    }
     instance.updateOptions({ backgroundColor: palette.background, defaultLineColor: palette.link });
     for (const node of graph.nodes) instance.updateNode(node.id, {
       color: node.status === null ? palette.root.stroke : palette.nodes[node.status].stroke,
-      fontColor: palette.text, opacity: selected && !neighbors.has(node.id) ? 0.2 : 1,
+      fontColor: palette.text, opacity: selected && !highlighted.nodeIds.has(node.id) ? 0.2 : 1,
       zIndex: node.id === selected ? 20 : 1,
     });
     for (const link of graph.links) instance.updateLine(link.id, {
-      color: palette.link, opacity: !selected ? 0.5 : link.source === selected || link.target === selected ? 0.95 : 0.08,
-      lineWidth: selected && (link.source === selected || link.target === selected) ? 2 : 1,
+      color: palette.link, opacity: !selected ? 0.5 : highlighted.linkIds.has(link.id) ? 0.95 : 0.08,
+      lineWidth: highlighted.linkIds.has(link.id) ? 2 : 1,
+      data: { highlighted: highlighted.linkIds.has(link.id) },
     });
     instance.setCheckedNode(selected ?? '');
     syncRef.current();
-  }, [instance, ready, graph, palette, selected]);
+  }, [instance, ready, graph, palette, selected, highlighted]);
 
   function fit() {
     if (!instance || !ready) return;
@@ -205,9 +217,9 @@ function OverviewNetwork({ graph }: { graph: YahouGraph }) {
     </div>
     {error ? <p className="yahou-overview-error" role="alert">{error}</p> : null}
     <div className="yahou-overview-body">
-      <div aria-label="押后谱系关系网" className="yahou-overview-canvas" onKeyDownCapture={onKeyboard}
+      <div aria-label="押后谱系关系网" className="yahou-overview-canvas" data-flowing={running && pageVisible} onKeyDownCapture={onKeyboard}
         style={{ background: palette.background, '--yahou-graph-label-size': `${13 / Math.max(0.02, zoom / 100)}px`, '--yahou-graph-label-width': `${156 / Math.max(0.02, zoom / 100)}px`, '--yahou-graph-background': palette.background } as CSSProperties}>
-        <RelationGraph options={GRAPH_OPTIONS} nodeSlot={GraphNode} onReady={setInstance}
+        <RelationGraph options={GRAPH_OPTIONS} nodeSlot={GraphNode} lineSlot={GraphLine} onReady={setInstance}
           onNodeClick={(node) => setSelected(node.id)} onCanvasClick={() => setSelected(null)}
           onZoomEnd={() => { const graphInstance = graphRef.current; if (graphInstance) setZoom(graphInstance.getOptions().canvasZoom); syncRef.current(); }}
           onNodeDragStart={(node) => { const point = engine.current?.byId.get(node.id); if (point) engine.current?.drag(node.id, node.x + point.radius, node.y + point.radius); }}
@@ -216,7 +228,7 @@ function OverviewNetwork({ graph }: { graph: YahouGraph }) {
         {!ready && !error ? <p className="yahou-graph-loading" role="status">正在加载关系网</p> : null}
         {selectedNode ? <div className="yahou-graph-selection">
           <strong>{selectedNode.label}</strong>
-          <span>{selectedNode.status === null ? '实践部' : `${YAHOU_STATUS_LABELS[selectedNode.status]} · 第 ${selectedNode.generation} 代`}</span>
+          <span>第 {selectedNode.generation} 代</span>
           {selectedNode.status !== null ? <span>师父：{selectedNode.parentId ?? '实践部'}</span> : null}
           <button aria-label="取消选中" className="toolbox-icon-button" onClick={() => setSelected(null)} type="button"><X size={15} /></button>
         </div> : null}

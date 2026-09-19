@@ -178,6 +178,25 @@
 .yahou-overview-canvas .rg-node-checked .rg-node { outline: 3px solid var(--text); outline-offset: 4px; }
 .yahou-overview-canvas .rg-node::before,
 .yahou-overview-canvas .rg-node::after { display: none; }
+.yahou-overview-canvas .yahou-line-flow {
+  fill: none;
+  stroke: var(--text);
+  stroke-width: 3;
+  stroke-linecap: round;
+  stroke-dasharray: 6 94;
+  filter: drop-shadow(0 0 2px var(--brand));
+  pointer-events: none;
+  animation: yahou-line-flow 2.4s linear infinite;
+  animation-play-state: paused;
+}
+.yahou-overview-canvas[data-flowing="true"] .yahou-line-flow { animation-play-state: running; }
+@keyframes yahou-line-flow {
+  from { stroke-dashoffset: 0; }
+  to { stroke-dashoffset: -100; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .yahou-overview-canvas .yahou-line-flow { display: none; animation: none; }
+}
 .yahou-graph-node { position: relative; display: block; width: 100%; height: 100%; }
 .yahou-graph-label {
   position: absolute;
