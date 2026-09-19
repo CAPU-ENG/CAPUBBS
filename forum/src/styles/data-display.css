@@ -1453,6 +1453,7 @@
 
     .data-checkin-member {
       min-height: 42px;
+      align-items: flex-start;
       gap: 6px;
       padding: 8px 0;
       font-size: var(--ui-font-size-sm);
@@ -1471,6 +1472,12 @@
     .data-table td {
       padding: 8px 6px;
       overflow-wrap: anywhere;
+    }
+
+    .data-table-online :is(th, td):nth-child(n + 2) {
+      width: 1%;
+      overflow-wrap: normal;
+      white-space: nowrap;
     }
 
     .punishment-table-scroll {
