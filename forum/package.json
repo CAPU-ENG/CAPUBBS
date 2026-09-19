@@ -48,7 +48,8 @@
     "verify:thread-content-cache": "node --experimental-strip-types verify-thread-content-cache.mjs",
     "verify:thread-publishing": "node --experimental-strip-types verify-thread-publishing.mjs",
     "postinstall": "patch-package",
-    "verify:yahou-overview-dom": "node verify-yahou-overview-dom.mjs"
+    "verify:yahou-overview-dom": "node verify-yahou-overview-dom.mjs",
+    "verify:yahou-overview-dev": "node verify-yahou-overview-dev.mjs"
   },
   "dependencies": {
     "@relation-graph/react": "3.1.2",

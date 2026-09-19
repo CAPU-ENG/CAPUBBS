@@ -97,6 +97,10 @@ function proxyToPhp(request: IncomingMessage, response: ServerResponse) {
 
 export default defineConfig({
   base: FORUM_BASE_URL,
+  optimizeDeps: {
+    // Prepare the lazy overview's dependencies before the first graph is opened.
+    include: ['@relation-graph/react', 'd3-force'],
+  },
   build: {
     assetsDir: 'new-assets',
   },

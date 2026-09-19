@@ -20,6 +20,7 @@ APIs and web for CAPUBBS.
 在本地 PHP 测试环境已启动的前提下，运行 `npm --prefix forum run verify:yahou-lineage` 验证树结构、资格约束、祖先定位和搜索。
 运行 `npm --prefix forum run verify:yahou-overview` 验证全量节点与关系、源数据隔离、ID 命名空间、四项力度的实际效果、拖动固定与释放、暂停和清理、标签避让、SVG 转义及昼夜配色。
 构建后运行 `npm --prefix forum run verify:yahou-overview-dom` 进行无浏览器的 DOM 回归检查，验证真实图形组件挂载、节点与连线数量、弹窗打开后再测量、关闭清理及模块加载/渲染异常隔离。该检查默认连接 `http://127.0.0.1:8081`，可用 `CAPUBBS_PHP_ORIGIN` 指定其他本地 PHP 地址；服务必须通过 `php -c php.ini -S 127.0.0.1:8081 router.php` 启动。检查会校验资源的实际内容及 JS/CSS MIME，防止未启用路由的 PHP 服务将资源请求作为 HTML 返回。
+开发服务启动后运行 `npm --prefix forum run verify:yahou-overview-dev`，检查 5173 上实际返回的总览模块及其全部依赖（可用 `CAPUBBS_VITE_ORIGIN` 修改本地地址）。安装或重装依赖后，应重启仍在运行的 Vite 服务：`npm --prefix forum run dev -- --force`，并刷新已打开的页面，避免旧优化缓存导致 `504 Outdated Optimize Dep`。关系图库与 D3 已加入启动预构建。
 
 relation-graph 与 D3 仅在打开总览时加载。`forum/patches/@relation-graph+react+3.1.2.patch` 修正该版本发布的 TypeScript 源类型中两处缺少 `import type` 的声明，避免与项目的 `verbatimModuleSyntax` 冲突；`npm install` / `npm ci` 的 `postinstall` 自动应用，升级该依赖时需检查补丁是否仍需要。
 
