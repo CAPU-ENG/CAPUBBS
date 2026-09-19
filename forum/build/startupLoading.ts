@@ -1,10 +1,27 @@
 import { readFileSync } from 'node:fs';
+import { createHash } from 'node:crypto';
 import { fileURLToPath } from 'node:url';
 import { transformWithEsbuild, type Plugin } from 'vite';
 import type { OutputBundle, OutputChunk } from 'rollup';
 
 const runtimePath = fileURLToPath(new URL('../bootstrap/startup.js', import.meta.url));
 const marker = '<!-- forum-startup-script -->';
+
+// These immutable URLs were historically served with CRLF on production. Keep
+// accepting those exact cached bytes without rewriting URLs or weakening other assets.
+const legacyCrlfAssets = new Set([
+  'new-assets/board-C_3w10kx.js',
+  'new-assets/md5-ZIXNWvOX.js',
+  'new-assets/papaparse.min-DX2SMnoj.js',
+  'new-assets/index-BqqU-t3H.js',
+  'new-assets/defaultSignature-y_5Hem3W.js',
+]);
+type StartupAsset = {
+  url: string;
+  size: number;
+  css: boolean;
+  variants?: { size: number; sha256: string }[];
+};
 
 // These are the lazy route modules in App.tsx. Eager routes only need the common assets.
 const pageRoutes: Record<string, string[]> = {
@@ -58,7 +75,7 @@ export function startupLoading(): Plugin {
         if (scripts.length !== 1) this.error('Expected one forum entry module');
         const entryUrl = scripts[0][1];
         const entryFile = entryUrl.slice(base.length);
-        const assets: { url: string; size: number; css: boolean }[] = [];
+        const assets: StartupAsset[] = [];
         const assetIndexes = new Map<string, number>();
 
         function addAsset(fileName: string) {
@@ -68,7 +85,16 @@ export function startupLoading(): Plugin {
           if (!output) throw new Error(`Missing startup asset: ${fileName}`);
           const content = output.type === 'chunk' ? output.code : output.source;
           const index = assets.length;
-          assets.push({ url: base + fileName, size: Buffer.byteLength(content), css: fileName.endsWith('.css') });
+          const asset: StartupAsset = { url: base + fileName, size: Buffer.byteLength(content), css: fileName.endsWith('.css') };
+          if (legacyCrlfAssets.has(fileName)) {
+            const lf = Buffer.from(content);
+            const crlf = Buffer.from(lf.toString('utf8').replace(/\r?\n/g, '\r\n'));
+            asset.variants = [lf, crlf].map((bytes) => ({
+              size: bytes.byteLength,
+              sha256: createHash('sha256').update(bytes).digest('hex'),
+            }));
+          }
+          assets.push(asset);
           assetIndexes.set(fileName, index);
           return index;
         }
@@ -94,7 +120,8 @@ export function startupLoading(): Plugin {
         html = html.replace(scripts[0][0], '')
           .replace(/<link\b[^>]*rel="(?:stylesheet|modulepreload)"[^>]*>/g, '');
         if (!html.includes(marker)) this.error('Missing startup runtime placeholder');
-        htmlAsset.source = html.replace(marker, inlineRuntime(runtime, { base, entry: entryUrl, assets, common, pages }));
+        htmlAsset.source = html.replace(marker, inlineRuntime(runtime, { base, entry: entryUrl, assets, common, pages }))
+          .replace(/[\t ]+$/gm, '');
       },
     },
   };

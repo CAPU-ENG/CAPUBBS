@@ -91,6 +91,70 @@
     touch();
   }
 
+  function hex(bytes) {
+    var result = '';
+    for (var i = 0; i < bytes.length; i++) result += ('0' + bytes[i].toString(16)).slice(-2);
+    return result;
+  }
+
+  // Only the small, explicitly listed historical files use this fallback. It
+  // needs neither a secure context nor TextEncoder or another network request.
+  function sha256Fallback(bytes) {
+    var constants = [
+      0x428a2f98, 0x71374491, 0xb5c0fbcf, 0xe9b5dba5, 0x3956c25b, 0x59f111f1, 0x923f82a4, 0xab1c5ed5,
+      0xd807aa98, 0x12835b01, 0x243185be, 0x550c7dc3, 0x72be5d74, 0x80deb1fe, 0x9bdc06a7, 0xc19bf174,
+      0xe49b69c1, 0xefbe4786, 0x0fc19dc6, 0x240ca1cc, 0x2de92c6f, 0x4a7484aa, 0x5cb0a9dc, 0x76f988da,
+      0x983e5152, 0xa831c66d, 0xb00327c8, 0xbf597fc7, 0xc6e00bf3, 0xd5a79147, 0x06ca6351, 0x14292967,
+      0x27b70a85, 0x2e1b2138, 0x4d2c6dfc, 0x53380d13, 0x650a7354, 0x766a0abb, 0x81c2c92e, 0x92722c85,
+      0xa2bfe8a1, 0xa81a664b, 0xc24b8b70, 0xc76c51a3, 0xd192e819, 0xd6990624, 0xf40e3585, 0x106aa070,
+      0x19a4c116, 0x1e376c08, 0x2748774c, 0x34b0bcb5, 0x391c0cb3, 0x4ed8aa4a, 0x5b9cca4f, 0x682e6ff3,
+      0x748f82ee, 0x78a5636f, 0x84c87814, 0x8cc70208, 0x90befffa, 0xa4506ceb, 0xbef9a3f7, 0xc67178f2,
+    ];
+    var state = [0x6a09e667, 0xbb67ae85, 0x3c6ef372, 0xa54ff53a, 0x510e527f, 0x9b05688c, 0x1f83d9ab, 0x5be0cd19];
+    var padded = new Uint8Array(Math.ceil((bytes.length + 9) / 64) * 64);
+    padded.set(bytes);
+    padded[bytes.length] = 0x80;
+    var view = new DataView(padded.buffer);
+    view.setUint32(padded.length - 8, Math.floor(bytes.length / 0x20000000));
+    view.setUint32(padded.length - 4, bytes.length * 8);
+    var words = new Uint32Array(64);
+    function rotate(value, bits) { return (value >>> bits) | (value << (32 - bits)); }
+    for (var offset = 0; offset < padded.length; offset += 64) {
+      var i;
+      for (i = 0; i < 16; i++) words[i] = view.getUint32(offset + i * 4);
+      for (i = 16; i < 64; i++) {
+        var x = words[i - 15];
+        var y = words[i - 2];
+        words[i] = words[i - 16] + (rotate(x, 7) ^ rotate(x, 18) ^ (x >>> 3))
+          + words[i - 7] + (rotate(y, 17) ^ rotate(y, 19) ^ (y >>> 10));
+      }
+      var a = state[0], b = state[1], c = state[2], d = state[3];
+      var e = state[4], f = state[5], g = state[6], h = state[7];
+      for (i = 0; i < 64; i++) {
+        var t1 = h + (rotate(e, 6) ^ rotate(e, 11) ^ rotate(e, 25))
+          + ((e & f) ^ (~e & g)) + constants[i] + words[i];
+        var t2 = (rotate(a, 2) ^ rotate(a, 13) ^ rotate(a, 22)) + ((a & b) ^ (a & c) ^ (b & c));
+        h = g; g = f; f = e; e = (d + t1) | 0;
+        d = c; c = b; b = a; a = (t1 + t2) | 0;
+      }
+      var next = [a, b, c, d, e, f, g, h];
+      for (i = 0; i < 8; i++) state[i] = (state[i] + next[i]) | 0;
+    }
+    var result = new Uint8Array(32);
+    var resultView = new DataView(result.buffer);
+    for (var j = 0; j < 8; j++) resultView.setUint32(j * 4, state[j]);
+    return hex(result);
+  }
+
+  async function sha256(bytes) {
+    try {
+      if (window.crypto && window.crypto.subtle) {
+        return hex(new Uint8Array(await window.crypto.subtle.digest('SHA-256', bytes)));
+      }
+    } catch (_) { /* Disabled or restricted Web Crypto must not prevent startup. */ }
+    return sha256Fallback(bytes);
+  }
+
   async function download(asset) {
     var response = await fetch(asset.url, {
       cache: cacheMode,
@@ -103,22 +167,39 @@
       throw new Error('Startup resource unavailable: ' + asset.url);
     }
     var received = 0;
+    var variants = asset.variants;
+    var maximum = variants ? Math.max.apply(null, variants.map(function (variant) { return variant.size; })) : asset.size;
+    // Preallocate a bounded buffer, avoiding per-chunk allocations even for tiny streams.
+    var bytes = variants ? new Uint8Array(maximum) : null;
+    function receive(chunk) {
+      if (failed || received + chunk.byteLength > maximum) throw new Error('Invalid startup resource: ' + asset.url);
+      if (bytes) bytes.set(chunk, received);
+      received += chunk.byteLength;
+      update(asset, received);
+    }
     if (response.body && response.body.getReader) {
       var reader = response.body.getReader();
       try {
         while (true) {
           var chunk = await reader.read();
           if (chunk.done) break;
-          received += chunk.value.byteLength;
-          update(asset, received);
+          receive(chunk.value);
         }
       } finally {
         reader.releaseLock();
       }
     } else {
-      received = (await response.arrayBuffer()).byteLength;
+      receive(new Uint8Array(await response.arrayBuffer()));
     }
-    if (received !== asset.size) throw new Error('Incomplete startup resource: ' + asset.url);
+    if (variants) {
+      var candidates = variants.filter(function (variant) { return variant.size === received; });
+      if (!candidates.length) throw new Error('Incomplete startup resource: ' + asset.url);
+      var digest = await sha256(bytes.subarray(0, received));
+      if (!candidates.some(function (variant) { return variant.sha256 === digest; })) {
+        throw new Error('Corrupt startup resource: ' + asset.url);
+      }
+    } else if (received !== asset.size) throw new Error('Incomplete startup resource: ' + asset.url);
+    if (failed) return;
     completed += 1;
     update(asset, asset.size);
   }
