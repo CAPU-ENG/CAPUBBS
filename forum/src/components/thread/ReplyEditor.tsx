@@ -1,3 +1,4 @@
+import { appendGalleryImageQuote, type GalleryImageQuote } from '../../utils/galleryQuote';
 import { DialogPresence } from '../layout/DialogPresence';
 import { Save, Send } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
@@ -47,6 +48,7 @@ export type QuoteRequest = {
   floor: number;
   floorHref: string;
   quote?: string;
+  image?: GalleryImageQuote;
   requestId: number;
 };
 
@@ -110,7 +112,10 @@ export function ReplyEditor({
     if (!quoteRequest || appliedQuoteRequestRef.current === quoteRequest.requestId) return;
     appliedQuoteRequestRef.current = quoteRequest.requestId;
 
-    if (quoteRequest.quote) {
+    if (quoteRequest.image) {
+      const image = quoteRequest.image;
+      setEditorValue((current) => appendGalleryImageQuote(current, image));
+    } else if (quoteRequest.quote) {
       setEditorValue((current) => appendFloorQuote(current, quoteRequest));
     }
     setFocusRequest((request) => request + 1);

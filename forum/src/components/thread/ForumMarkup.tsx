@@ -1,3 +1,4 @@
+import { ensureGalleryQuoteControls, type GalleryImageQuote } from '../../utils/galleryQuote';
 import type { SafeForumHtml } from '../../utils/forumMarkup';
 import { useEffect, useLayoutEffect, useMemo, useRef, type KeyboardEvent, type MouseEvent } from 'react';
 import { useTheme } from '../../hooks/useTheme';
@@ -43,14 +44,18 @@ export function ForumMarkup({
   className = '',
   html,
   onImageOpen,
+  onImageQuote,
   variant,
 }: {
   className?: string;
   html: SafeForumHtml;
   onImageOpen?: ForumMarkupImageOpenHandler;
+  onImageQuote?: (image: GalleryImageQuote) => void;
   variant: ForumMarkupVariant;
 }) {
   const containerRef = useRef<HTMLDivElement>(null);
+  const onImageQuoteRef = useRef(onImageQuote);
+  onImageQuoteRef.current = onImageQuote;
   const { theme } = useTheme();
   const dangerousHtml = useMemo(() => ({ __html: deferGalleryImageSources(html) }), [html]);
 
@@ -68,9 +73,14 @@ export function ForumMarkup({
     const container = containerRef.current;
     if (container) {
       ensureGalleryDisplayControls(container);
+      if (onImageQuote && variant === 'floor') {
+        ensureGalleryQuoteControls(container, (image) => onImageQuoteRef.current?.(image));
+      } else {
+        container.querySelectorAll('.capubbs-gallery-quote').forEach((button) => button.remove());
+      }
       syncForumGrayscaleTextColors(container, theme);
     }
-  }, [html, theme]);
+  }, [html, theme, Boolean(onImageQuote), variant]);
 
   useLayoutEffect(() => {
     const container = containerRef.current;

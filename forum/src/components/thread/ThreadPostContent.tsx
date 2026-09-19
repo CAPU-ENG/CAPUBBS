@@ -1,3 +1,4 @@
+import type { GalleryImageQuote } from '../../utils/galleryQuote';
 import { Download, Paperclip } from 'lucide-react';
 import type { ReactNode } from 'react';
 import type { ThreadAttachment } from '../../data/thread';
@@ -15,6 +16,7 @@ export function ThreadPostContent({
   floor,
   isActivitySignupCanceled = false,
   onImageOpen,
+  onImageQuote,
   onIsolatedTextSelection,
   signatureClassName = 'thread-signature',
   signatureHtml,
@@ -27,6 +29,7 @@ export function ThreadPostContent({
   floor: number;
   isActivitySignupCanceled?: boolean;
   onImageOpen?: ForumMarkupImageOpenHandler;
+  onImageQuote?: (image: GalleryImageQuote) => void;
   onIsolatedTextSelection?: (text: string) => void;
   signatureClassName?: string;
   signatureHtml?: string;
@@ -53,6 +56,7 @@ export function ThreadPostContent({
           html={bodyHtml}
           isActivitySignupCanceled={isActivitySignupCanceled}
           onImageOpen={onImageOpen}
+          onImageQuote={onImageQuote}
           onIsolatedTextSelection={onIsolatedTextSelection}
           variant="floor"
         />

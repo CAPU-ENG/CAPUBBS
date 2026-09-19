@@ -1,3 +1,4 @@
+import type { GalleryImageQuote } from '../../utils/galleryQuote';
 import { DialogLayer, DialogPresence } from '../layout/DialogPresence';
 import {
   useEffect,
@@ -394,7 +395,7 @@ export function ThreadFloor({
   onDeleteNestedReply: (floor: ThreadFloorData, reply: NestedReply) => Promise<void>;
   onEditSignup?: () => void;
   onIsolatedTextSelection: (floor: ThreadFloorData, text: string) => void;
-  onQuote: (floor: ThreadFloorData, selectedText?: string) => void;
+  onQuote: (floor: ThreadFloorData, selectedText?: string, image?: GalleryImageQuote) => void;
   onSubmitNestedReply: (floor: ThreadFloorData, targetName: string | null, content: string) => Promise<number>;
   viewer: ThreadAuthor | null;
 }) {
@@ -587,6 +588,7 @@ export function ThreadFloor({
       floor={floor.floor}
       isActivitySignupCanceled={isActivitySignupCanceled}
       onImageOpen={openImagePreview}
+      onImageQuote={canQuote ? (image) => onQuote(floor, undefined, image) : undefined}
       onIsolatedTextSelection={(text) => onIsolatedTextSelection(floor, text)}
       signatureHtml={hideSignature ? undefined : floor.signatureHtml}
       signatureText={hideSignature ? undefined : floor.signature}

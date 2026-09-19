@@ -18,6 +18,7 @@
     "verify:font-sizes": "node --experimental-strip-types verify-forum-font-sizes.mjs",
     "verify:nested-reply": "node --experimental-strip-types verify-nested-reply.mjs",
     "verify:forum-mode": "node --experimental-strip-types verify-forum-mode.mjs",
+    "verify:gallery-quotes": "node --experimental-strip-types verify-gallery-quotes.mjs",
     "verify:gallery-grouping": "node --experimental-strip-types verify-gallery-grouping.mjs",
     "verify:gallery-files": "node --experimental-strip-types verify-gallery-files.mjs",
     "verify:home-hot-snapshot": "node --experimental-strip-types verify-home-hot-snapshot.mjs",

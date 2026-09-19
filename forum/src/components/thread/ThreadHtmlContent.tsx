@@ -1,3 +1,4 @@
+import { ensureGalleryQuoteControls, type GalleryImageQuote } from '../../utils/galleryQuote';
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, type CSSProperties } from 'react';
 import { fetchSignatureReferencedFloorHtml } from '../../api/thread';
 import {
@@ -107,6 +108,11 @@ type HtmlFrameMessage = {
   images: ForumMarkupImage[];
   source: typeof HTML_FRAME_MESSAGE_SOURCE;
   type: 'image-open';
+} | {
+  frameId: string;
+  source: typeof HTML_FRAME_MESSAGE_SOURCE;
+  type: 'image-quote';
+  image: GalleryImageQuote;
 };
 
 export function ThreadHtmlContent({
@@ -115,6 +121,7 @@ export function ThreadHtmlContent({
   html,
   isActivitySignupCanceled = false,
   onImageOpen,
+  onImageQuote,
   onIsolatedTextSelection,
   variant,
 }: {
@@ -123,6 +130,7 @@ export function ThreadHtmlContent({
   html: string;
   isActivitySignupCanceled?: boolean;
   onImageOpen?: ForumMarkupImageOpenHandler;
+  onImageQuote?: (image: GalleryImageQuote) => void;
   onIsolatedTextSelection?: (text: string) => void;
   variant: ThreadHtmlVariant;
 }) {
@@ -148,6 +156,7 @@ export function ThreadHtmlContent({
         className={className}
         html={directHtml}
         onImageOpen={onImageOpen}
+        onImageQuote={onImageQuote}
         variant={variant}
       />
     );
@@ -160,6 +169,7 @@ export function ThreadHtmlContent({
       html={isolatedHtml}
       isActivitySignupCanceled={isActivitySignupCanceled}
       onImageOpen={onImageOpen}
+      onImageQuote={onImageQuote}
       onTextSelection={onIsolatedTextSelection}
       variant={variant}
     />
@@ -172,6 +182,7 @@ function ThreadSandboxedHtmlFrame({
   html,
   isActivitySignupCanceled,
   onImageOpen,
+  onImageQuote,
   onTextSelection,
   variant,
 }: {
@@ -180,11 +191,15 @@ function ThreadSandboxedHtmlFrame({
   html: string;
   isActivitySignupCanceled: boolean;
   onImageOpen?: ForumMarkupImageOpenHandler;
+  onImageQuote?: (image: GalleryImageQuote) => void;
   onTextSelection?: (text: string) => void;
   variant: ThreadHtmlVariant;
 }) {
   const iframeRef = useRef<HTMLIFrameElement>(null);
   const frameIdRef = useRef(`${variant}-${floor}-${Math.random().toString(36).slice(2)}`);
+  const onImageQuoteRef = useRef(onImageQuote);
+  onImageQuoteRef.current = onImageQuote;
+  const canQuoteImages = variant === 'floor' && Boolean(onImageQuote);
   const onImageOpenRef = useRef(onImageOpen);
   onImageOpenRef.current = onImageOpen;
   const onTextSelectionRef = useRef(onTextSelection);
@@ -205,6 +220,7 @@ function ThreadSandboxedHtmlFrame({
     || INLINE_EVENT_ATTRIBUTE_PATTERN.test(deferredHtml);
   const frameDocument = useMemo(() => buildHtmlFrameDocument({
     canOpenImages,
+    canQuoteImages,
     frameId: frameIdRef.current,
     needsJquery,
     html: deferredHtml,
@@ -212,7 +228,7 @@ function ThreadSandboxedHtmlFrame({
     isDarkTheme: initialDarkThemeRef.current,
     fontSize: frameFontSize,
     variant,
-  }), [canOpenImages, deferredHtml, frameFontSize, isActivitySignupCanceled, needsJquery, variant]);
+  }), [canOpenImages, canQuoteImages, deferredHtml, frameFontSize, isActivitySignupCanceled, needsJquery, variant]);
   const documentToken = useMemo(() => Math.random().toString(36).slice(2), [frameDocument]);
   const frameSource = useMemo(
     () => `${frameBootstrapUrl}#${new URLSearchParams({ frameId: frameIdRef.current, token: documentToken })}`,
@@ -367,6 +383,11 @@ function ThreadSandboxedHtmlFrame({
         return;
       }
 
+      if (event.data.type === 'image-quote') {
+        onImageQuoteRef.current?.(event.data.image);
+        return;
+      }
+
       if (event.data.type === 'image-open') {
         const frame = iframeRef.current;
         if (!frame) return;
@@ -511,6 +532,7 @@ function useSignaturePostReferences(html: string, enabled: boolean) {
 
 function buildHtmlFrameDocument({
   canOpenImages,
+  canQuoteImages,
   frameId,
   fontSize,
   needsJquery,
@@ -520,6 +542,7 @@ function buildHtmlFrameDocument({
   variant,
 }: {
   canOpenImages: boolean;
+  canQuoteImages: boolean;
   frameId: string;
   fontSize: number;
   needsJquery: boolean;
@@ -553,18 +576,20 @@ function buildHtmlFrameDocument({
     html,body{margin:0;padding:0;min-width:0;min-height:0;overflow:hidden;background:transparent!important;color:var(--capubbs-frame-text-color);font-family:${fontFamily};font-size:${fontSize}px;line-height:1.6;overflow-wrap:anywhere;word-break:break-word}
     .capubbs-html-frame-root{display:flow-root;width:calc(100% - ${FRAME_WIDTH_ALLOWANCE}px);${signatureRootStyle}}.capubbs-html-frame-root iframe{display:inline-block;vertical-align:baseline}
   </style>
-  <script>${buildFrameBridgeScript(frameId, canOpenImages, needsJquery)}</script>
+  <script>${buildFrameBridgeScript(frameId, canOpenImages, needsJquery, canQuoteImages)}</script>
 </head>
 <body><main class="capubbs-html-frame-root forum-markup forum-markup-${variant}${canceledClassName}">${html}</main></body>
 </html>`;
 }
 
-function buildFrameBridgeScript(frameId: string, canOpenImages: boolean, needsJquery: boolean) {
+function buildFrameBridgeScript(frameId: string, canOpenImages: boolean, needsJquery: boolean, canQuoteImages = false) {
   return `(function(){
     var frameId=${JSON.stringify(frameId)};
     var forumOrigin=${JSON.stringify(window.location.origin)};
     var forumBasePath=${JSON.stringify(FORUM_BASE_PATH)};
     var canOpenImages=${JSON.stringify(canOpenImages)};
+    var canQuoteImages=${JSON.stringify(canQuoteImages)};
+    var ensureGalleryQuoteControls=${ensureGalleryQuoteControls.toString()};
     var needsJquery=${JSON.stringify(needsJquery)};
     var preparePunishmentTableFit=${preparePunishmentTableFit.toString()};
     var getGalleryImageState=${getGalleryImageState.toString()};
@@ -978,6 +1003,9 @@ function buildFrameBridgeScript(frameId: string, canOpenImages: boolean, needsJq
       setGalleryAttribute(item,'aria-hidden',active?'false':'true');
     }
     function prepareGalleries(){
+      if(canQuoteImages)ensureGalleryQuoteControls(document,function(image){
+        window.parent.postMessage({source:'${HTML_FRAME_MESSAGE_SOURCE}',type:'image-quote',frameId:frameId,image:image},'*');
+      });
       Array.prototype.forEach.call(document.querySelectorAll('.capubbs-html-frame-root .capubbs-gallery'),function(gallery){
         var stage=gallery.querySelector('.capubbs-gallery-stage');
         var slides=Array.prototype.slice.call(gallery.querySelectorAll('[data-capubbs-gallery-slide="true"]'));
@@ -1223,6 +1251,11 @@ function isHtmlFrameMessage(value: unknown): value is HtmlFrameMessage {
   if (!value || typeof value !== 'object') return false;
   const message = value as Partial<HtmlFrameMessage>;
   if (message.source !== HTML_FRAME_MESSAGE_SOURCE || typeof message.frameId !== 'string') return false;
+  if (message.type === 'image-quote') {
+    const image = message.image;
+    if (!image || typeof image.src !== 'string' || typeof image.title !== 'string' || typeof image.caption !== 'string') return false;
+    try { return ['http:', 'https:'].includes(new URL(image.src).protocol); } catch { return false; }
+  }
   if (message.type === 'embedded-player-layout') return Array.isArray(message.players) && message.players.every(isEmbeddedPlayerLayout);
   if (message.type === 'document-request') return typeof message.token === 'string';
   if (message.type === 'anchor') {

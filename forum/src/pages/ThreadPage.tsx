@@ -1,3 +1,4 @@
+import type { GalleryImageQuote } from '../utils/galleryQuote';
 import { Fragment, lazy, Suspense, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { ArrowUpToLine, Bookmark, BookmarkCheck, Check, Eye, EyeOff, Link2, MessageCircle, RotateCw, Settings } from 'lucide-react';
 import type { QuoteRequest } from '../components/thread/ReplyEditor';
@@ -321,7 +322,7 @@ export function ThreadPage() {
     }
   }
 
-  function quoteFloor(floor: ThreadFloorData, selectedText?: string) {
+  function quoteFloor(floor: ThreadFloorData, selectedText?: string, image?: GalleryImageQuote) {
     if (!data) return;
     const isolatedSelection = selectedText === undefined
       && isolatedFloorSelectionRef.current?.bid === data.bid
@@ -337,6 +338,7 @@ export function ThreadPage() {
       floorHref: getThreadFloorHref(data.bid, data.tid, floor.floor),
       quote: selectedText || isolatedSelection || (floor.quoteText || floor.paragraphs[0] || '').slice(0, 90),
       requestId: quoteRequestIdRef.current,
+      image,
     });
     window.requestAnimationFrame(() => {
       window.scrollTo({ behavior: 'smooth', top: document.documentElement.scrollHeight });
