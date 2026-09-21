@@ -8,20 +8,22 @@
     --website-traffic-color-chroma: 0.055;
   }
 
-  .website-traffic-periods {
+  .website-traffic-controls {
     display: flex;
+    flex: 0 0 auto;
+    align-items: center;
+    gap: 8px;
     margin-left: auto;
-    border: 1px solid var(--line);
-    border-radius: 2px;
-    overflow: hidden;
   }
 
+  .website-traffic-periods,
   .website-traffic-metrics {
     display: flex;
-    margin-left: auto;
+    flex-shrink: 0;
     border: 1px solid var(--line);
     border-radius: 2px;
     overflow: hidden;
+    white-space: nowrap;
   }
 
   .website-traffic-metrics button {
@@ -247,8 +249,10 @@
 
   @media (max-width: 640px) {
     .website-traffic-header { flex-wrap: wrap; padding-block: 8px; }
-    .website-traffic-metrics { margin-left: 0; }
-    .website-traffic-periods button { padding: 4px 8px; font-size: var(--ui-font-size-xs); }
+    .website-traffic-controls { gap: 4px; }
+    .website-traffic-metrics button,
+    .website-traffic-periods button { padding: 4px; font-size: var(--ui-font-size-xs); }
+    .website-traffic-refresh { width: 24px; height: 26px; }
     .website-traffic-content { padding: 14px 10px; }
     .website-traffic-series { grid-template-columns: repeat(2, minmax(0, 1fr)); }
     .website-traffic-series > button { gap: 5px; padding: 7px; font-size: var(--ui-font-size-xs); }

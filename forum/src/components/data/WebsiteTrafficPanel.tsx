@@ -43,19 +43,21 @@ export function WebsiteTrafficPanel() {
       <header className="data-display-card-header website-traffic-header">
         <span className="data-display-card-icon"><ChartColumnStacked aria-hidden="true" size={17} /></span>
         <div className="statistics-title"><h1>网站流量</h1><StatisticsDataNotice dailyUpdate /></div>
-        <div aria-label="统计数据" className="website-traffic-metrics" role="group">
-          {TRAFFIC_METRICS.map((item) => (
-            <button aria-pressed={metric === item.id} key={item.id} onClick={() => setMetric(item.id)} type="button">{item.label}</button>
-          ))}
+        <div className="website-traffic-controls">
+          <div aria-label="统计数据" className="website-traffic-metrics" role="group">
+            {TRAFFIC_METRICS.map((item) => (
+              <button aria-pressed={metric === item.id} key={item.id} onClick={() => setMetric(item.id)} type="button">{item.label}</button>
+            ))}
+          </div>
+          <div aria-label="统计时段" className="website-traffic-periods" role="group">
+            {TRAFFIC_PERIODS.map((item) => (
+              <button aria-pressed={period === item.id} key={item.id} onClick={() => setPeriod(item.id)} type="button">{item.label}</button>
+            ))}
+          </div>
+          <button aria-label="刷新网站流量" className="website-traffic-refresh" disabled={!data && !error} onClick={() => setRevision((value) => value + 1)} title="刷新" type="button">
+            <RefreshCw aria-hidden="true" size={16} />
+          </button>
         </div>
-        <div aria-label="统计时段" className="website-traffic-periods" role="group">
-          {TRAFFIC_PERIODS.map((item) => (
-            <button aria-pressed={period === item.id} key={item.id} onClick={() => setPeriod(item.id)} type="button">{item.label}</button>
-          ))}
-        </div>
-        <button aria-label="刷新网站流量" className="website-traffic-refresh" disabled={!data && !error} onClick={() => setRevision((value) => value + 1)} title="刷新" type="button">
-          <RefreshCw aria-hidden="true" size={16} />
-        </button>
       </header>
       {error ? (
         <div className="website-traffic-state" role="alert">
