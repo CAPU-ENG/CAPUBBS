@@ -2176,6 +2176,9 @@ function jiekoufunc_sendVerifyCode($con, $token, $params) {
         if (empty($target_email)) {
             return jiekoufunc_report('3', '缺少新邮箱地址。');
         }
+        if ($target_email === $user['mail']) {
+            return jiekoufunc_report('3', '新邮箱与当前邮箱相同，无需更换。');
+        }
     } else {
         $username_esc = mysqli_real_escape_string($con, $username);
         $res = mysqli_fetch_array(mysqli_query($con,
