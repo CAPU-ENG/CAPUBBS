@@ -2,6 +2,7 @@ import {
   AlertCircle,
   CalendarCheck2,
   ChartColumnStacked,
+  CircleHelp,
   Flame,
   RefreshCw,
   Trophy,
@@ -198,39 +199,52 @@ function CheckinList({ records }: { records: CheckinRecord[] }) {
 function RankingTable({ records }: { records: CheckinRankingRecord[] }) {
   return (
     <DataTable count={`${records.length} 人`} icon={<Trophy size={17} />} title="签到排行">
-      <table className="data-table data-table-ranking">
-        <thead><tr><th>排名</th><th>ID</th><th>累计签到</th></tr></thead>
-        <tbody>
+      {records.length === 0 ? (
+        <div className="data-checkin-empty">暂无签到排行</div>
+      ) : (
+        <ol aria-label="签到排行顺序" className="data-checkin-list" role="list">
           {records.map((record) => (
-            <tr key={`${record.rank}-${record.username}`}>
-              <td><RankNumber rank={record.rank} /></td>
-              <td><a href={getForumNavigationHref(record.href, window.location.href)}>{record.username}</a></td>
-              <td>{record.totalCheckins} 次</td>
-            </tr>
+            <li key={`${record.rank}-${record.username}`}>
+              <a className="data-checkin-member" href={getForumNavigationHref(record.href, window.location.href)}>
+                <RankNumber rank={record.rank} />
+                <span className="data-checkin-details">
+                  <span className="data-checkin-username">{record.username}</span>
+                  <span className="data-checkin-stat">签到 {record.totalCheckins} 次</span>
+                </span>
+              </a>
+            </li>
           ))}
-          {records.length === 0 && <EmptyRow columns={3}>暂无签到排行</EmptyRow>}
-        </tbody>
-      </table>
+        </ol>
+      )}
     </DataTable>
   );
 }
 
 function ActivityRankingTable({ records }: { records: ActivityRankingRecord[] }) {
   return (
-    <DataTable count={`${records.length} 人`} icon={<Flame size={17} />} title="活跃排行">
-      <table className="data-table data-table-ranking">
-        <thead><tr><th>排名</th><th>ID</th><th>累计活跃度</th></tr></thead>
-        <tbody>
+    <DataTable
+      count={`${records.length} 人`}
+      helpText="按最近 90 个已结束的自然日累计活跃度排行，每日最多计 50 分，仅显示前 100 名。"
+      icon={<Flame size={17} />}
+      title="活跃排行"
+    >
+      {records.length === 0 ? (
+        <div className="data-checkin-empty">暂无活跃排行</div>
+      ) : (
+        <ol aria-label="活跃排行顺序" className="data-checkin-list" role="list">
           {records.map((record) => (
-            <tr key={`${record.rank}-${record.username}`}>
-              <td><RankNumber rank={record.rank} /></td>
-              <td><a href={getForumNavigationHref(record.href, window.location.href)}>{record.username}</a></td>
-              <td>{record.activity} 分</td>
-            </tr>
+            <li key={`${record.rank}-${record.username}`}>
+              <a className="data-checkin-member" href={getForumNavigationHref(record.href, window.location.href)}>
+                <RankNumber rank={record.rank} />
+                <span className="data-checkin-details">
+                  <span className="data-checkin-username">{record.username}</span>
+                  <span className="data-checkin-stat">活跃度 {record.activity} 分</span>
+                </span>
+              </a>
+            </li>
           ))}
-          {records.length === 0 && <EmptyRow columns={3}>暂无活跃排行</EmptyRow>}
-        </tbody>
-      </table>
+        </ol>
+      )}
     </DataTable>
   );
 }
@@ -238,12 +252,14 @@ function ActivityRankingTable({ records }: { records: ActivityRankingRecord[] })
 function DataTable({
   children,
   count,
+  helpText,
   icon,
   title,
   tone = 'default',
 }: {
   children: ReactNode;
   count: string;
+  helpText?: string;
   icon: ReactNode;
   title: string;
   tone?: 'danger' | 'default';
@@ -260,6 +276,18 @@ function DataTable({
       <header className="data-display-card-header">
         <span className="data-display-card-icon">{icon}</span>
         <h1>{title}</h1>
+        {helpText && (
+          <span
+            aria-label="查看排行规则"
+            className="data-display-card-help"
+            data-tooltip={helpText}
+            role="img"
+            tabIndex={0}
+            title={helpText}
+          >
+            <CircleHelp aria-hidden="true" size={15} />
+          </span>
+        )}
         <span className="data-display-card-count">{count}</span>
       </header>
       <div className="data-table-scroll" ref={tableRef}>{children}</div>

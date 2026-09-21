@@ -67,11 +67,18 @@
 
   .data-display-card,
   .data-display-state {
-    overflow: hidden;
     border: 1px solid var(--line);
     border-radius: 2px;
     background: var(--surface);
     box-shadow: var(--shadow-card);
+  }
+
+  .data-display-card {
+    position: relative;
+  }
+
+  .data-display-state {
+    overflow: hidden;
   }
 
   .data-display-card-header {
@@ -105,6 +112,57 @@
     color: var(--text-strong);
     font-size: var(--ui-font-size-xl);
     font-weight: 760;
+  }
+
+  .data-display-card-help {
+    position: relative;
+    z-index: 2;
+    display: inline-flex;
+    width: 20px;
+    height: 20px;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    border-radius: 50%;
+    color: var(--text-faint);
+    cursor: help;
+    outline: none;
+    transition: background 140ms ease, color 140ms ease;
+  }
+
+  .data-display-card-help:hover,
+  .data-display-card-help:focus-visible {
+    background: var(--brand-faint);
+    color: var(--brand-strong);
+  }
+
+  .data-display-card-help::after {
+    position: absolute;
+    top: calc(100% + 8px);
+    left: 50%;
+    width: max-content;
+    max-width: min(320px, calc(100vw - 36px));
+    padding: 8px 10px;
+    border: 1px solid var(--line-strong);
+    border-radius: 3px;
+    background: var(--surface-raised);
+    box-shadow: var(--shadow-float);
+    color: var(--text-muted);
+    content: attr(data-tooltip);
+    font-size: var(--ui-font-size-sm);
+    font-weight: 560;
+    line-height: 1.5;
+    opacity: 0;
+    pointer-events: none;
+    transform: translate(-50%, -4px);
+    transition: opacity 140ms ease, transform 140ms ease;
+    white-space: normal;
+  }
+
+  .data-display-card-help:hover::after,
+  .data-display-card-help:focus-visible::after {
+    opacity: 1;
+    transform: translate(-50%, 0);
   }
 
   .data-display-card-count {
@@ -252,7 +310,8 @@
     overflow-wrap: anywhere;
   }
 
-  .data-checkin-time {
+  .data-checkin-time,
+  .data-checkin-stat {
     color: var(--text-faint);
     font-size: var(--ui-font-size-xs);
     font-weight: 500;
