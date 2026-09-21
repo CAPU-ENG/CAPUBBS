@@ -209,7 +209,7 @@ function RankingTable({ records }: { records: CheckinRankingRecord[] }) {
                 <RankNumber rank={record.rank} />
                 <span className="data-checkin-details">
                   <span className="data-checkin-username">{record.username}</span>
-                  <span className="data-checkin-stat">签到 {record.totalCheckins} 次</span>
+                  <span className="data-checkin-stat">{record.totalCheckins} 次</span>
                 </span>
               </a>
             </li>
@@ -238,7 +238,7 @@ function ActivityRankingTable({ records }: { records: ActivityRankingRecord[] })
                 <RankNumber rank={record.rank} />
                 <span className="data-checkin-details">
                   <span className="data-checkin-username">{record.username}</span>
-                  <span className="data-checkin-stat">活跃度 {record.activity} 分</span>
+                  <span className="data-checkin-stat">{record.activity} 分</span>
                 </span>
               </a>
             </li>
