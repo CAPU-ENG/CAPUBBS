@@ -156,7 +156,7 @@
     pointer-events: none;
     transform: translate(-50%, -4px);
     transition: opacity 140ms ease, transform 140ms ease;
-    white-space: normal;
+    white-space: pre-line;
   }
 
   .data-display-card-help:hover::after,

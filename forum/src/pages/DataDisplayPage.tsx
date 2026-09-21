@@ -224,7 +224,7 @@ function ActivityRankingTable({ records }: { records: ActivityRankingRecord[] })
   return (
     <DataTable
       count={`${records.length} 人`}
-      helpText="按最近 90 个已结束的自然日累计活跃度排行，每日最多计 50 分，仅显示前 100 名。"
+      helpText={'按最近 90 个已结束的自然日累计活跃度排行，每日最多计 50 分，仅显示前 100 名。\n每日活跃度=单日内浏览帖子总次数，可在【个人中心】里点击【签到】查看相关数据'}
       icon={<Flame size={17} />}
       title="活跃排行"
     >
