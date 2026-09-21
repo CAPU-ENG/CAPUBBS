@@ -428,19 +428,46 @@ function jiekoufunc_activity_signup_history($con, $token, $params) {
             activity_join.join_id,
             activity_join.activity_id,
             activity_join.cancel,
+            1 as has_signup,
+            (activity.leader_username='$username_escaped') as is_initiator,
             activity.bid,
             activity.tid,
             threads.title,
             coalesce(boardinfo.bbstitle, boardinfo.name, '') as board,
             coalesce(posts.pid, 0) as pid,
-            coalesce(posts.replytime, 0) as joined_at
+            coalesce(posts.replytime, 0) as joined_at,
+            coalesce(posts.replytime, 0) as record_at
         from season_activity_join activity_join
         inner join season_threads_activity activity on activity.activity_id=activity_join.activity_id
         inner join threads on threads.bid=activity.bid and threads.tid=activity.tid
         left join boardinfo on boardinfo.bid=activity.bid
         left join posts on posts.fid=activity_join.post_fid
         where activity_join.username='$username_escaped'
-        order by coalesce(posts.replytime, 0) desc, activity_join.join_id desc";
+        union all
+        select
+            0 as join_id,
+            activity.activity_id,
+            null as cancel,
+            0 as has_signup,
+            1 as is_initiator,
+            activity.bid,
+            activity.tid,
+            threads.title,
+            coalesce(boardinfo.bbstitle, boardinfo.name, '') as board,
+            1 as pid,
+            null as joined_at,
+            coalesce(posts.replytime, 0) as record_at
+        from season_threads_activity activity
+        inner join threads on threads.bid=activity.bid and threads.tid=activity.tid
+        left join boardinfo on boardinfo.bid=activity.bid
+        left join posts on posts.bid=activity.bid and posts.tid=activity.tid and posts.pid=1
+        where activity.leader_username='$username_escaped'
+            and not exists (
+                select 1 from season_activity_join activity_join
+                where activity_join.activity_id=activity.activity_id
+                    and activity_join.username='$username_escaped'
+            )
+        order by record_at desc, activity_id desc, join_id desc";
     $result = mysqli_query($con, $statement);
     if (!$result) {
         return activity_handler_error('8', '报名历史读取失败');
@@ -456,8 +483,11 @@ function jiekoufunc_activity_signup_history($con, $token, $params) {
             'pid' => intval($row['pid']),
             'title' => $row['title'],
             'board' => $row['board'],
-            'joined_at' => intval($row['joined_at']),
-            'cancel' => intval($row['cancel']),
+            'joined_at' => $row['joined_at'] === null ? null : intval($row['joined_at']),
+            'record_at' => intval($row['record_at']),
+            'has_signup' => intval($row['has_signup']),
+            'is_initiator' => intval($row['is_initiator']),
+            'cancel' => $row['cancel'] === null ? null : intval($row['cancel']),
         );
     }
     return $rows;
