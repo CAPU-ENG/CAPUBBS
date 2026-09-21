@@ -2,6 +2,7 @@ import { DialogLayer, DialogPresence } from '../layout/DialogPresence';
 import { CheckCircle2, LockKeyhole, Mail, MessageCircle, Send, Star, X } from 'lucide-react';
 import { useEffect, useState, type ReactNode } from 'react';
 import { createPortal } from 'react-dom';
+import type { EmailVerificationType } from '../../api/profile';
 
 export { AvatarDialog } from './AvatarEditorDialog';
 
@@ -113,14 +114,14 @@ export function EmailDialog({
   email: string;
   onClose: () => void;
   onNotify: (message: string, tone: 'error' | 'success') => void;
-  onSendCode: (email: string) => Promise<void>;
+  onSendCode: (email: string, type: EmailVerificationType) => Promise<void>;
   onSave: (visible: boolean) => Promise<void>;
-  onVerify: (code: string) => Promise<void>;
+  onVerify: (code: string, type: EmailVerificationType) => Promise<void>;
   open: boolean;
   verified: boolean;
   visible: boolean;
 }) {
-  const [changeOpen, setChangeOpen] = useState(false);
+  const [verificationType, setVerificationType] = useState<EmailVerificationType | null>(null);
   const [code, setCode] = useState('');
   const [codeSent, setCodeSent] = useState(false);
   const [newEmail, setNewEmail] = useState('');
@@ -130,7 +131,7 @@ export function EmailDialog({
   const [isVerifying, setIsVerifying] = useState(false);
 
   useEffect(() => {
-    setChangeOpen(false);
+    setVerificationType(null);
     setCode('');
     setCodeSent(false);
     setNewEmail('');
@@ -140,16 +141,28 @@ export function EmailDialog({
     setIsVerifying(false);
   }, [email, open, visible]);
 
+  function toggleVerification(type: EmailVerificationType) {
+    setVerificationType((current) => current === type ? null : type);
+    setCode('');
+    setCodeSent(false);
+    setNewEmail('');
+  }
+
   async function sendCode() {
-    const normalizedEmail = newEmail.trim();
+    if (!verificationType) return;
+    const normalizedEmail = (verificationType === 'verify_existing' ? email : newEmail).trim();
     if (!isPkuEmail(normalizedEmail)) {
       onNotify('请输入有效的 PKU 邮箱（10 位学号）', 'error');
+      return;
+    }
+    if (verificationType === 'change_email' && normalizedEmail.toLowerCase() === email.trim().toLowerCase()) {
+      onNotify('新邮箱不能与当前邮箱相同', 'error');
       return;
     }
 
     try {
       setIsSending(true);
-      await onSendCode(normalizedEmail);
+      await onSendCode(normalizedEmail, verificationType);
       setCodeSent(true);
       onNotify('验证码已发送，请检查邮箱', 'success');
     } catch (error) {
@@ -160,6 +173,7 @@ export function EmailDialog({
   }
 
   async function verifyCode() {
+    if (!verificationType) return;
     if (!codeSent) {
       onNotify('请先发送验证码', 'error');
       return;
@@ -170,8 +184,8 @@ export function EmailDialog({
     }
     try {
       setIsVerifying(true);
-      await onVerify(code.trim());
-      setChangeOpen(false);
+      await onVerify(code.trim(), verificationType);
+      setVerificationType(null);
       setCode('');
       setCodeSent(false);
       setNewEmail('');
@@ -192,21 +206,29 @@ export function EmailDialog({
         </label>
         <div className="profile-email-status-line">
           <div className="profile-verification-line"><CheckCircle2 size={15} />{verified ? '已验证' : '未验证'}</div>
-          <button type="button" onClick={() => setChangeOpen((current) => !current)}>
-            {changeOpen ? '取消更换' : '更换邮箱'}
-          </button>
+          <div className="profile-email-controls">
+            {!verified && (
+              <button disabled={isSending || isVerifying} type="button" onClick={() => toggleVerification('verify_existing')}>
+                {verificationType === 'verify_existing' ? '取消验证' : '验证邮箱'}
+              </button>
+            )}
+            <button disabled={isSending || isVerifying} type="button" onClick={() => toggleVerification('change_email')}>
+              {verificationType === 'change_email' ? '取消更换' : '更换邮箱'}
+            </button>
+          </div>
         </div>
-        {changeOpen ? (
-          <section className="profile-email-change-panel" aria-label="更换邮箱">
+        {verificationType ? (
+          <section className="profile-email-change-panel" aria-label={verificationType === 'verify_existing' ? '验证邮箱' : '更换邮箱'}>
             <div className="profile-email-action-row">
-              <input
+              {verificationType === 'change_email' && (<input
                 aria-label="输入 PKU 邮箱"
                 autoComplete="email"
                 placeholder="输入 PKU 邮箱"
                 type="email"
                 value={newEmail}
-                onChange={(event) => { setNewEmail(event.target.value); setCodeSent(false); }}
-              />
+                disabled={isSending || isVerifying}
+                onChange={(event) => { setNewEmail(event.target.value); setCode(''); setCodeSent(false); }}
+              />)}
               <button disabled={isSending || isVerifying} type="button" onClick={sendCode}>
                 {isSending ? '发送中' : codeSent ? '重新发送' : '发送验证码'}
               </button>

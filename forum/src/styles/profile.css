@@ -1752,7 +1752,14 @@
     gap: 12px;
   }
 
-  .profile-email-status-line > button {
+  .profile-email-controls {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    gap: 8px;
+  }
+
+  .profile-email-controls > button {
     min-height: 30px;
     border: 1px solid var(--line-strong);
     padding: 0 9px;
@@ -1761,7 +1768,7 @@
     font-weight: 710;
   }
 
-  .profile-email-status-line > button:hover {
+  .profile-email-controls > button:hover {
     border-color: var(--brand);
     background: var(--brand-faint);
   }
@@ -1802,6 +1809,10 @@
     border-color: var(--brand);
     background: var(--brand-faint);
     color: var(--brand-strong);
+  }
+
+  .profile-email-action-row button:only-child {
+    grid-column: 1 / -1;
   }
 
   .profile-email-action-row .profile-email-verify {

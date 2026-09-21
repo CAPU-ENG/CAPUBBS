@@ -203,12 +203,18 @@ export async function updateProfileAvatar(avatarSrc: string) {
   return fetchUserCenterProfile();
 }
 
-export async function sendProfileEmailCode(newEmail: string) {
-  await requestData({ ask: 'sendVerifyCode', new_email: newEmail.trim(), type: 'change_email' });
+export type EmailVerificationType = 'change_email' | 'verify_existing';
+
+export async function sendProfileEmailCode(newEmail: string, type: EmailVerificationType = 'change_email') {
+  await requestData({
+    ask: 'sendVerifyCode',
+    type,
+    ...(type === 'change_email' ? { new_email: newEmail.trim() } : {}),
+  });
 }
 
-export async function verifyProfileEmail(code: string) {
-  await requestData({ ask: 'verifyEmail', code: code.trim(), type: 'change_email' });
+export async function verifyProfileEmail(code: string, type: EmailVerificationType = 'change_email') {
+  await requestData({ ask: 'verifyEmail', code: code.trim(), type });
   return fetchUserCenterProfile();
 }
 

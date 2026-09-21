@@ -315,8 +315,8 @@ export function UserCenterPage() {
           refreshViewer();
         }}
         onSendCode={sendProfileEmailCode}
-        onVerify={async (code) => {
-          profileState.replace(await verifyProfileEmail(code));
+        onVerify={async (code, type) => {
+          profileState.replace(await verifyProfileEmail(code, type));
           refreshViewer();
         }}
         open={openDialog === 'email'}
