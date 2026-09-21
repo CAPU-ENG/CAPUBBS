@@ -95,6 +95,7 @@ async function fetchSearchResults(request: SearchRequest, signal: AbortSignal) {
     ? new URLSearchParams({ ask: 'user_profile', username: request.keyword.trim() })
     : new URLSearchParams({
         ask: 'search',
+        mode: 'forum',
         author: request.author.trim(),
         bid: String(request.boardId ?? -1),
         endtime: request.endDate,

@@ -574,7 +574,21 @@ function jiekoufunc_unusedattachinfo($con, $token) {
 }
 
 function jiekoufunc_searchByKeyword($con, $keyword, $token, $type, $bid, $params) {
-    $keyword = mysqli_real_escape_string($con, $keyword);
+    // The new forum opts in; legacy callers retain whole-phrase matching.
+    $keywords = array($keyword);
+    if (isset($params['mode']) && $params['mode'] === 'forum') {
+        $terms = preg_split('/[\s\p{Z}\x{FEFF}]+/u', $keyword, -1, PREG_SPLIT_NO_EMPTY);
+        if ($terms !== false) {
+            $keywords = $terms ? array_unique($terms) : array('');
+        }
+    }
+    $column = $type === 'post' ? 'text' : 'title';
+    $conditions = array();
+    foreach ($keywords as $term) {
+        $term = mysqli_real_escape_string($con, $term);
+        $conditions[] = "$column like '%$term%'";
+    }
+    $keyword_condition = implode(' and ', $conditions);
     $starttime = isset($params['starttime']) ? mysqli_real_escape_string($con, $params['starttime']) : '';
     $endtime = isset($params['endtime']) ? mysqli_real_escape_string($con, $params['endtime']) : '';
     $author = isset($params['author']) ? mysqli_real_escape_string($con, $params['author']) : '';
@@ -592,14 +606,14 @@ function jiekoufunc_searchByKeyword($con, $keyword, $token, $type, $bid, $params
         $bid_str = " bid=$bid and ";
     if ($type == "thread") {
         if ($author == "")
-            $statement = "select title,bid,tid,author,replytime from posts where $bid_str replytime>=$start && replytime<=$end and pid=1 and title like '%$keyword%' order by replytime desc limit 100";
+            $statement = "select title,bid,tid,author,replytime from posts where $bid_str replytime>=$start && replytime<=$end and pid=1 and $keyword_condition order by replytime desc limit 100";
         else
-            $statement = "select title,bid,tid,author,replytime from posts where $bid_str replytime>=$start && replytime<=$end and pid=1 and author='$author' and title like '%$keyword%' order by replytime desc limit 100";
+            $statement = "select title,bid,tid,author,replytime from posts where $bid_str replytime>=$start && replytime<=$end and pid=1 and author='$author' and $keyword_condition order by replytime desc limit 100";
     } elseif ($type == "post") {
         if ($author == "")
-            $statement = "select title,bid,tid,pid,author,updatetime from posts where $bid_str updatetime>=$start && updatetime<=$end and text like '%$keyword%' order by updatetime desc limit 100";
+            $statement = "select title,bid,tid,pid,author,updatetime from posts where $bid_str updatetime>=$start && updatetime<=$end and $keyword_condition order by updatetime desc limit 100";
         else
-            $statement = "select title,bid,tid,pid,author,updatetime from posts where $bid_str updatetime>=$start && updatetime<=$end and author='$author' and text like '%$keyword%' order by updatetime desc limit 100";
+            $statement = "select title,bid,tid,pid,author,updatetime from posts where $bid_str updatetime>=$start && updatetime<=$end and author='$author' and $keyword_condition order by updatetime desc limit 100";
     } else {
         return jiekoufunc_report('6', '缺少搜索类型参数（thread 或 post）');
     }
