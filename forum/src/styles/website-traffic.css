@@ -249,7 +249,8 @@
 
   @media (max-width: 640px) {
     .website-traffic-header { flex-wrap: wrap; padding-block: 8px; }
-    .website-traffic-controls { gap: 4px; }
+    .website-traffic-controls { flex-basis: 100%; gap: 4px; margin-left: 0; }
+    .website-traffic-periods { margin-left: auto; }
     .website-traffic-metrics button,
     .website-traffic-periods button { padding: 4px; font-size: var(--ui-font-size-xs); }
     .website-traffic-refresh { width: 24px; height: 26px; }
