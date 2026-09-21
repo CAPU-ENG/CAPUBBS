@@ -12,7 +12,7 @@ type ApiEnvelope = {
 
 type ApiRow = Record<string, unknown>;
 
-export type DataDisplayPanel = 'checkin-ranking' | 'checkins' | 'online' | 'punishments';
+export type DataDisplayPanel = 'activity-ranking' | 'checkin-ranking' | 'checkins' | 'online' | 'punishments';
 
 export type OnlineUser = {
   boardId: number | null;
@@ -32,6 +32,10 @@ export type CheckinRecord = {
 
 export type CheckinRankingRecord = CheckinRecord & {
   totalCheckins: number;
+};
+
+export type ActivityRankingRecord = CheckinRecord & {
+  activity: number;
 };
 
 export type PunishmentRecord = {
@@ -57,6 +61,7 @@ export type PunishmentDraft = {
 };
 
 export type DataDisplayResult = {
+  activityRankingRecords: ActivityRankingRecord[];
   checkinRankingRecords: CheckinRankingRecord[];
   checkinRecords: CheckinRecord[];
   onlineUsers: OnlineUser[];
@@ -75,6 +80,7 @@ export async function fetchDataDisplayPanel(
   signal?: AbortSignal,
 ): Promise<DataDisplayResult> {
   const result: DataDisplayResult = {
+    activityRankingRecords: [],
     checkinRankingRecords: [],
     checkinRecords: [],
     onlineUsers: [],
@@ -92,11 +98,71 @@ export async function fetchDataDisplayPanel(
     result.checkinRankingRecords = rows
       .map(mapCheckinRankingRecord)
       .filter((row): row is CheckinRankingRecord => row !== null);
+  } else if (panel === 'activity-ranking') {
+    result.activityRankingRecords = await requestActivityRanking(signal);
   } else {
     result.punishmentRecords = await requestPunishmentRecords(signal);
   }
 
   return result;
+}
+
+async function requestActivityRanking(signal?: AbortSignal): Promise<ActivityRankingRecord[]> {
+  const url = new URL('cache/activity-ranking/current.json', new URL(DATA_API_URL, window.location.origin));
+  let response: Response;
+  try {
+    response = await fetch(url.href, {
+      cache: 'no-store',
+      credentials: 'omit',
+      headers: { Accept: 'application/json' },
+      signal,
+    });
+  } catch (error) {
+    if (isAbortError(error)) throw error;
+    throw new DataDisplayApiError('暂时无法连接活跃排行服务，请稍后重试。');
+  }
+
+  if (!response.ok) throw new DataDisplayApiError('活跃排行数据暂不可用，请稍后重试。');
+  let value: unknown;
+  try {
+    value = await response.json();
+  } catch {
+    throw new DataDisplayApiError('活跃排行服务返回了无法识别的内容。');
+  }
+  const snapshot = asRow(value);
+  const rawRecords = Array.isArray(snapshot.records) ? snapshot.records as unknown[] : null;
+  if (snapshot.version !== 1 || !isSafeInteger(snapshot.generatedAt)
+    || !isDateValue(snapshot.startDate) || !isDateValue(snapshot.endDate)
+    || rawRecords === null || rawRecords.length > 100) {
+    throw new DataDisplayApiError('活跃排行数据暂不可用，请稍后重试。');
+  }
+  const startTimestamp = Date.parse(`${snapshot.startDate}T00:00:00Z`);
+  const endTimestamp = Date.parse(`${snapshot.endDate}T00:00:00Z`);
+  if (endTimestamp - startTimestamp !== 89 * 86400000) {
+    throw new DataDisplayApiError('活跃排行数据暂不可用，请稍后重试。');
+  }
+
+  const usernames = new Set<string>();
+  const records: ActivityRankingRecord[] = [];
+  let expectedRank = 0;
+  let lastActivity: number | null = null;
+  rawRecords.forEach((value, index) => {
+    const row = asRow(value);
+    const username = stringValue(row.username);
+    const rank = positiveInteger(row.rank);
+    const activity = nonNegativeInteger(row.activity);
+    if (!username || usernames.has(username.toLocaleLowerCase()) || rank === null || rank > 100
+      || activity > 4500 || (lastActivity !== null && activity > lastActivity)) return;
+    if (lastActivity === null || activity !== lastActivity) expectedRank = index + 1;
+    if (rank !== expectedRank) return;
+    usernames.add(username.toLocaleLowerCase());
+    records.push({ activity, href: getPublicProfilePath(username), rank, username });
+    lastActivity = activity;
+  });
+  if (records.length !== rawRecords.length) {
+    throw new DataDisplayApiError('活跃排行数据暂不可用，请稍后重试。');
+  }
+  return records;
 }
 
 export async function addPunishmentRecord(draft: PunishmentDraft) {
@@ -271,6 +337,10 @@ function asRows(value: unknown): ApiRow[] {
   return isRow(value) ? [value] : [];
 }
 
+function asRow(value: unknown): ApiRow {
+  return isRow(value) ? value : {};
+}
+
 function isRow(value: unknown): value is ApiRow {
   return Boolean(value) && typeof value === 'object' && !Array.isArray(value);
 }
@@ -287,6 +357,15 @@ function positiveInteger(value: unknown) {
 function nonNegativeInteger(value: unknown) {
   const number = Number(value);
   return Number.isFinite(number) ? Math.max(0, Math.floor(number)) : 0;
+}
+
+function isSafeInteger(value: unknown): value is number {
+  return typeof value === 'number' && Number.isSafeInteger(value);
+}
+
+function isDateValue(value: unknown) {
+  return typeof value === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(value)
+    && Number.isFinite(Date.parse(`${value}T00:00:00Z`));
 }
 
 function formatLoginType(value: unknown, browser: unknown) {

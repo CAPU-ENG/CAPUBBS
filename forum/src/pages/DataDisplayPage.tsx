@@ -2,6 +2,7 @@ import {
   AlertCircle,
   CalendarCheck2,
   ChartColumnStacked,
+  Flame,
   RefreshCw,
   Trophy,
   Users,
@@ -10,6 +11,7 @@ import {
 import { useEffect, useLayoutEffect, useRef, useState, useSyncExternalStore, type ReactNode } from 'react';
 import {
   fetchDataDisplayPanel,
+  type ActivityRankingRecord,
   type CheckinRankingRecord,
   type CheckinRecord,
   type DataDisplayPanel,
@@ -43,6 +45,7 @@ const PANEL_ITEMS: Array<{
   { icon: Users, id: 'online', label: '当前在线' },
   { icon: CalendarCheck2, id: 'checkins', label: '今日签到' },
   { icon: Trophy, id: 'checkin-ranking', label: '签到排行' },
+  { icon: Flame, id: 'activity-ranking', label: '活跃排行' },
   { icon: ChartColumnStacked, id: 'traffic', label: '网站流量' },
   { icon: AlertCircle, id: 'punishments', label: '罚跑记录' },
 ] satisfies Array<{ icon: LucideIcon; id: DisplayPanel; label: string }>;
@@ -130,6 +133,8 @@ export function DataDisplayPage() {
           <OnlineTable records={state.data?.onlineUsers ?? []} />
         ) : activePanel === 'checkins' ? (
           <CheckinList records={state.data?.checkinRecords ?? []} />
+        ) : activePanel === 'activity-ranking' ? (
+          <ActivityRankingTable records={state.data?.activityRankingRecords ?? []} />
         ) : activePanel === 'checkin-ranking' ? (
           <RankingTable records={state.data?.checkinRankingRecords ?? []} />
         ) : (
@@ -210,6 +215,26 @@ function RankingTable({ records }: { records: CheckinRankingRecord[] }) {
   );
 }
 
+function ActivityRankingTable({ records }: { records: ActivityRankingRecord[] }) {
+  return (
+    <DataTable count={`${records.length} 人`} icon={<Flame size={17} />} title="活跃排行">
+      <table className="data-table data-table-ranking">
+        <thead><tr><th>排名</th><th>ID</th><th>累计活跃度</th></tr></thead>
+        <tbody>
+          {records.map((record) => (
+            <tr key={`${record.rank}-${record.username}`}>
+              <td><RankNumber rank={record.rank} /></td>
+              <td><a href={getForumNavigationHref(record.href, window.location.href)}>{record.username}</a></td>
+              <td>{record.activity} 分</td>
+            </tr>
+          ))}
+          {records.length === 0 && <EmptyRow columns={3}>暂无活跃排行</EmptyRow>}
+        </tbody>
+      </table>
+    </DataTable>
+  );
+}
+
 function DataTable({
   children,
   count,
@@ -256,7 +281,8 @@ function RankNumber({ rank }: { rank: number }) {
 
 function readPanelFromLocation(): DisplayPanel {
   const panel = new URLSearchParams(window.location.search).get('panel');
-  if (panel === 'checkins' || panel === 'checkin-ranking' || panel === 'punishments' || panel === 'traffic') return panel;
+  if (panel === 'activity-ranking' || panel === 'checkins' || panel === 'checkin-ranking'
+    || panel === 'punishments' || panel === 'traffic') return panel;
   return 'online';
 }
 
