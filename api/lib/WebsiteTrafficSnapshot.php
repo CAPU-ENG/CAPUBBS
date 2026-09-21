@@ -45,6 +45,10 @@ function website_traffic_snapshot_valid_data($data, $period) {
     if (!$start || !$end || $start->modify('+' . ($length - 1) . ' days')->format('Y-m-d') !== $data['endDate']
         || !is_array($data['dates']) || !is_array($data['total']) || !is_array($data['boards'])
         || count($data['dates']) !== $length || count($data['total']) !== $length) return false;
+    // Older generations did not contain check-in totals. They remain readable
+    // so the first post-deploy refresh can rebuild the full year in one pass.
+    $has_checkins = array_key_exists('checkins', $data);
+    if ($has_checkins && (!is_array($data['checkins']) || count($data['checkins']) !== $length)) return false;
     $totals = array_fill(0, $length, 0);
     $seen = array();
     foreach ($data['boards'] as $board) {
@@ -62,6 +66,8 @@ function website_traffic_snapshot_valid_data($data, $period) {
         if (!isset($data['dates'][$index], $data['total'][$index])
             || $data['dates'][$index] !== $start->modify('+' . $index . ' days')->format('Y-m-d')
             || !is_int($data['total'][$index]) || $data['total'][$index] !== $totals[$index]) return false;
+        if ($has_checkins && (!isset($data['checkins'][$index]) || !is_int($data['checkins'][$index])
+            || $data['checkins'][$index] < 0 || $data['checkins'][$index] > 9007199254740991)) return false;
     }
     return true;
 }
@@ -103,6 +109,7 @@ function website_traffic_snapshot_build_year($con, $previous, $start, $end, $que
     for ($index = 0; $index < 365; $index++) $dates[] = $start->modify('+' . $index . ' days')->format('Y-m-d');
     $indexes = array_flip($dates);
     $boards = array();
+    $checkins = array_fill(0, 365, 0);
     if ($previous) {
         foreach ($previous['boards'] as $board) {
             $values = array_fill(0, 365, 0);
@@ -110,6 +117,11 @@ function website_traffic_snapshot_build_year($con, $previous, $start, $end, $que
                 if (isset($indexes[$date]) && $date < $query_start->format('Y-m-d')) $values[$indexes[$date]] = $board['views'][$index];
             }
             $boards[$board['bid']] = array('bid' => $board['bid'], 'name' => $board['name'], 'views' => $values);
+        }
+        if (isset($previous['checkins']) && is_array($previous['checkins'])) {
+            foreach ($previous['dates'] as $index => $date) {
+                if (isset($indexes[$date]) && $date < $query_start->format('Y-m-d')) $checkins[$indexes[$date]] = $previous['checkins'][$index];
+            }
         }
     }
     if ($query_start <= $end) {
@@ -139,6 +151,23 @@ function website_traffic_snapshot_build_year($con, $previous, $start, $end, $que
             $boards[$bid]['views'][$indexes[$row['date']]] += intval($count);
         }
         mysqli_free_result($result);
+        $from_key = intval($query_start->format('Ymd'));
+        $through_key = intval($end->format('Ymd'));
+        $result = website_traffic_snapshot_query($con, "SELECT year, month, day, COUNT(*) AS checkins
+            FROM capubbs.sign
+            WHERE (year * 10000 + month * 100 + day)>=$from_key
+              AND (year * 10000 + month * 100 + day)<=$through_key
+            GROUP BY year, month, day ORDER BY year, month, day");
+        while ($row = mysqli_fetch_assoc($result)) {
+            $date = sprintf('%04d-%02d-%02d', intval($row['year']), intval($row['month']), intval($row['day']));
+            if (!isset($indexes[$date])) continue;
+            $count = $row['checkins'];
+            if (!is_numeric($count) || $count < 0 || $count > 9007199254740991 || floor(floatval($count)) != $count) {
+                throw new RuntimeException('签到人数超出有效范围。');
+            }
+            $checkins[$indexes[$date]] = intval($count);
+        }
+        mysqli_free_result($result);
         foreach ($boards as $bid => $board) {
             if (!isset($known[$bid]) && array_sum($board['views']) === 0) unset($boards[$bid]);
         }
@@ -147,7 +176,7 @@ function website_traffic_snapshot_build_year($con, $previous, $start, $end, $que
     $total = array_fill(0, 365, 0);
     foreach ($boards as $board) foreach ($board['views'] as $index => $count) $total[$index] += $count;
     return array('period' => 'year', 'startDate' => $dates[0], 'endDate' => $dates[364],
-        'dates' => $dates, 'total' => $total, 'boards' => array_values($boards));
+        'dates' => $dates, 'total' => $total, 'checkins' => $checkins, 'boards' => array_values($boards));
 }
 
 function website_traffic_snapshot_publish($year, $now) {
@@ -158,7 +187,8 @@ function website_traffic_snapshot_publish($year, $now) {
     if (!@mkdir($directory, 0775, true) && !is_dir($directory)) throw new RuntimeException('无法创建流量快照目录。');
     foreach (website_traffic_snapshot_periods() as $period => $length) {
         $data = array('period' => $period, 'startDate' => $year['dates'][365 - $length], 'endDate' => $year['endDate'],
-            'dates' => array_slice($year['dates'], -$length), 'total' => array_slice($year['total'], -$length), 'boards' => array());
+            'dates' => array_slice($year['dates'], -$length), 'total' => array_slice($year['total'], -$length),
+            'checkins' => array_slice($year['checkins'], -$length), 'boards' => array());
         foreach ($year['boards'] as $board) {
             $data['boards'][] = array('bid' => $board['bid'], 'name' => $board['name'], 'views' => array_slice($board['views'], -$length));
         }
@@ -205,15 +235,18 @@ function website_traffic_snapshot_refresh($initialize = false, $now = null, $con
         $previous = website_traffic_snapshot_read('year', $manifest);
         if (!$previous && !$initialize) throw new RuntimeException('请先执行 --initialize 生成历史快照。');
         if ($previous && $previous['endDate'] > $end->format('Y-m-d')) throw new RuntimeException('已有快照晚于结算日期，请检查服务器时间。');
-        if (!$initialize && $previous['endDate'] === $end->format('Y-m-d')
-            && website_traffic_snapshot_read('week', $manifest) && website_traffic_snapshot_read('month', $manifest)) {
+        $needs_checkin_rebuild = $previous && !isset($previous['checkins']);
+        if (!$initialize && !$needs_checkin_rebuild && $previous['endDate'] === $end->format('Y-m-d')
+            && website_traffic_snapshot_has_checkins('week', $manifest)
+            && website_traffic_snapshot_has_checkins('month', $manifest)) {
             return array('status' => 'fresh', 'endDate' => $previous['endDate']);
         }
-        $query_start = !$initialize && $previous ? website_traffic_snapshot_date($previous['endDate'])->modify('+1 day') : $start;
+        $query_start = !$initialize && $previous && !$needs_checkin_rebuild
+            ? website_traffic_snapshot_date($previous['endDate'])->modify('+1 day') : $start;
         if ($query_start < $start) $query_start = $start;
         if ($query_start <= $end && !$con) { $con = dbconnect_mysqli(); $owns_connection = true; }
         if ($query_start <= $end && !$con) throw new RuntimeException('无法连接流量结算数据库。');
-        $year = website_traffic_snapshot_build_year($con, $initialize ? null : $previous, $start, $end, $query_start);
+        $year = website_traffic_snapshot_build_year($con, $initialize || $needs_checkin_rebuild ? null : $previous, $start, $end, $query_start);
         $generation = website_traffic_snapshot_publish($year, $now);
         return array('status' => 'refreshed', 'endDate' => $year['endDate'], 'generation' => $generation,
             'queryStart' => $query_start <= $end ? $query_start->format('Y-m-d') : null);
@@ -226,4 +259,9 @@ function website_traffic_snapshot_refresh($initialize = false, $now = null, $con
         flock($lock, LOCK_UN);
         fclose($lock);
     }
+}
+
+function website_traffic_snapshot_has_checkins($period, $manifest) {
+    $data = website_traffic_snapshot_read($period, $manifest);
+    return $data !== null && isset($data['checkins']) && is_array($data['checkins']);
 }

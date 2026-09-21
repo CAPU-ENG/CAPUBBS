@@ -8,6 +8,11 @@ export const TRAFFIC_PERIODS = [
 ] as const;
 
 export type TrafficPeriod = typeof TRAFFIC_PERIODS[number]['id'];
+export const TRAFFIC_METRICS = [
+  { id: 'views', label: '浏览次数' },
+  { id: 'checkins', label: '签到人数' },
+] as const;
+export type TrafficMetric = typeof TRAFFIC_METRICS[number]['id'];
 export type TrafficSeries = { id: string; label: string; bid: number | null; values: number[] };
 export type TrafficBars = {
   total: TrafficSeries | undefined;
@@ -19,6 +24,7 @@ export type WebsiteTraffic = {
   startDate: string;
   endDate: string;
   dates: string[];
+  checkins: number[] | null;
   series: TrafficSeries[];
 };
 
@@ -45,6 +51,7 @@ export function parseWebsiteTraffic(value: unknown, period: TrafficPeriod): Webs
     return values as number[];
   };
   const total = readValues(data.total);
+  const checkins = Object.hasOwn(data, 'checkins') ? readValues(data.checkins) : null;
   const seen = new Set<number>();
   const boards = data.boards.map((value): TrafficSeries => {
     const board = asRow(value);
@@ -64,7 +71,7 @@ export function parseWebsiteTraffic(value: unknown, period: TrafficPeriod): Webs
     if (!Number.isSafeInteger(sum) || sum !== total[index]) throw new Error(INVALID_DATA);
   }
   return {
-    period, startDate: data.startDate as string, endDate: data.endDate as string, dates,
+    period, startDate: data.startDate as string, endDate: data.endDate as string, dates, checkins,
     series: [{ id: 'total', label: '全站', bid: null, values: total }, ...boards],
   };
 }

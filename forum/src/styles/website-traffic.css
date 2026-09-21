@@ -16,6 +16,27 @@
     overflow: hidden;
   }
 
+  .website-traffic-metrics {
+    display: flex;
+    margin-left: auto;
+    border: 1px solid var(--line);
+    border-radius: 2px;
+    overflow: hidden;
+  }
+
+  .website-traffic-metrics button {
+    padding: 5px 11px;
+    color: var(--text-muted);
+    font-size: var(--ui-font-size-sm);
+    font-weight: 650;
+  }
+
+  .website-traffic-metrics button + button { border-left: 1px solid var(--line); }
+  .website-traffic-metrics button[aria-pressed="true"] {
+    background: var(--brand-soft);
+    color: var(--brand-strong);
+  }
+
   .website-traffic-periods button {
     padding: 5px 13px;
     color: var(--text-muted);
@@ -140,6 +161,22 @@
     text-align: left;
   }
 
+  .website-traffic-series-value {
+    display: flex;
+    min-width: 0;
+    align-items: center;
+    gap: 7px;
+    border: 1px solid var(--line);
+    border-radius: 2px;
+    padding: 8px 9px;
+    color: var(--text-strong);
+    font-size: var(--ui-font-size-sm);
+  }
+
+  .website-traffic-series-value .website-traffic-series-marker {
+    background: var(--brand-strong);
+  }
+
   .website-traffic-series > button[aria-pressed="true"] {
     border-color: color-mix(in srgb, var(--series-color) 50%, var(--line));
     background: color-mix(in srgb, var(--series-color) 7%, var(--surface));
@@ -210,6 +247,7 @@
 
   @media (max-width: 640px) {
     .website-traffic-header { flex-wrap: wrap; padding-block: 8px; }
+    .website-traffic-metrics { margin-left: 0; }
     .website-traffic-periods button { padding: 4px 8px; font-size: var(--ui-font-size-xs); }
     .website-traffic-content { padding: 14px 10px; }
     .website-traffic-series { grid-template-columns: repeat(2, minmax(0, 1fr)); }

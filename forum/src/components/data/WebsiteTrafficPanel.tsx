@@ -1,7 +1,7 @@
 import { ChartColumnStacked, Check, ChevronRight, RefreshCw } from 'lucide-react';
 import { memo, useEffect, useId, useLayoutEffect, useMemo, useRef, useState, type CSSProperties, type Dispatch, type KeyboardEvent, type PointerEvent, type SetStateAction } from 'react';
 import { fetchWebsiteTraffic } from '../../api/websiteTraffic';
-import { TRAFFIC_PERIODS, buildTrafficBars, groupTrafficSeries, isTrafficDateInPeriod, trafficAxis, trafficDateTicks, type TrafficBars, type TrafficPeriod, type TrafficSeries, type WebsiteTraffic } from '../../utils/websiteTraffic';
+import { TRAFFIC_METRICS, TRAFFIC_PERIODS, buildTrafficBars, groupTrafficSeries, isTrafficDateInPeriod, trafficAxis, trafficDateTicks, type TrafficBars, type TrafficMetric, type TrafficPeriod, type TrafficSeries, type WebsiteTraffic } from '../../utils/websiteTraffic';
 import { readTrafficSeriesSelection, saveTrafficSeriesSelection } from '../../utils/websiteTrafficPreferences';
 import { LoadingState } from '../layout/LoadingState';
 import { StatisticsDataNotice } from './StatisticsDataNotice';
@@ -9,6 +9,7 @@ import { StatisticsDataNotice } from './StatisticsDataNotice';
 const numberFormat = new Intl.NumberFormat('zh-CN');
 
 export function WebsiteTrafficPanel() {
+  const [metric, setMetric] = useState<TrafficMetric>('views');
   const [period, setPeriod] = useState<TrafficPeriod>('week');
   const [visibleIds, setVisibleIds] = useState(readTrafficSeriesSelection);
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
@@ -42,6 +43,11 @@ export function WebsiteTrafficPanel() {
       <header className="data-display-card-header website-traffic-header">
         <span className="data-display-card-icon"><ChartColumnStacked aria-hidden="true" size={17} /></span>
         <div className="statistics-title"><h1>网站流量</h1><StatisticsDataNotice dailyUpdate /></div>
+        <div aria-label="统计数据" className="website-traffic-metrics" role="group">
+          {TRAFFIC_METRICS.map((item) => (
+            <button aria-pressed={metric === item.id} key={item.id} onClick={() => setMetric(item.id)} type="button">{item.label}</button>
+          ))}
+        </div>
         <div aria-label="统计时段" className="website-traffic-periods" role="group">
           {TRAFFIC_PERIODS.map((item) => (
             <button aria-pressed={period === item.id} key={item.id} onClick={() => setPeriod(item.id)} type="button">{item.label}</button>
@@ -56,15 +62,18 @@ export function WebsiteTrafficPanel() {
           <p>{error}</p>
           <button onClick={() => setRevision((value) => value + 1)} type="button"><RefreshCw aria-hidden="true" size={15} />重试</button>
         </div>
+      ) : data && metric === 'checkins' && data.checkins === null ? (
+        <div className="website-traffic-state" role="status">签到数据暂不可用</div>
       ) : data ? (
-        <TrafficChart data={data} onSelectDate={selectDate} selectedDate={selectedDate} setVisibleIds={setVisibleIds} visibleIds={visibleIds} />
+        <TrafficChart data={data} metric={metric} onSelectDate={selectDate} selectedDate={selectedDate} setVisibleIds={setVisibleIds} visibleIds={visibleIds} />
       ) : <LoadingState className="website-traffic-state" label="正在读取网站流量" variant="panel" />}
     </section>
   );
 }
 
-function TrafficChart({ data, onSelectDate, selectedDate, setVisibleIds, visibleIds }: {
+function TrafficChart({ data, metric, onSelectDate, selectedDate, setVisibleIds, visibleIds }: {
   data: WebsiteTraffic;
+  metric: TrafficMetric;
   onSelectDate: (date: string) => void;
   selectedDate: string | null;
   setVisibleIds: Dispatch<SetStateAction<string[]>>;
@@ -75,11 +84,19 @@ function TrafficChart({ data, onSelectDate, selectedDate, setVisibleIds, visible
   const [width, setWidth] = useState(800);
   const plotRef = useRef<HTMLDivElement>(null);
   const readoutId = useId();
-  const groups = useMemo(() => groupTrafficSeries(data.series), [data.series]);
-  const visible = useMemo(() => [...groups.primary, ...groups.secondary].filter((series) => visibleIds.includes(series.id)), [groups, visibleIds]);
+  const metricSeries = useMemo(() => metric === 'checkins'
+    ? [{ id: 'total', label: '签到人数', bid: null, values: data.checkins ?? [] }]
+    : data.series, [data.checkins, data.series, metric]);
+  const groups = useMemo(() => groupTrafficSeries(metricSeries), [metricSeries]);
+  const visible = useMemo(() => metric === 'checkins'
+    ? metricSeries
+    : [...groups.primary, ...groups.secondary].filter((series) => visibleIds.includes(series.id)), [groups, metric, metricSeries, visibleIds]);
   const bars = useMemo(() => buildTrafficBars(visible), [visible]);
   const axis = useMemo(() => trafficAxis(visible), [visible]);
   const secondarySelected = groups.secondary.filter((series) => visibleIds.includes(series.id)).length;
+  const metricLabel = metric === 'checkins' ? '签到人数' : '浏览次数';
+  const metricVerb = metric === 'checkins' ? '签到' : '浏览';
+  const metricUnit = metric === 'checkins' ? '人' : '次';
   const height = 280;
   const left = 52;
   const right = 14;
@@ -126,7 +143,7 @@ function TrafficChart({ data, onSelectDate, selectedDate, setVisibleIds, visible
   function seriesButton(series: TrafficSeries) {
     return (
       <button
-        aria-label={`${series.label}，${data.dates[selectedIndex]} 浏览 ${series.values[selectedIndex]} 次`}
+        aria-label={`${series.label}，${data.dates[selectedIndex]} ${metricVerb} ${series.values[selectedIndex]} ${metricUnit}`}
         aria-pressed={visibleIds.includes(series.id)}
         key={series.id}
         onClick={() => toggleSeries(series.id)}
@@ -144,7 +161,7 @@ function TrafficChart({ data, onSelectDate, selectedDate, setVisibleIds, visible
     <div className="website-traffic-content">
       <div
         aria-describedby={readoutId}
-        aria-label="每日浏览量堆叠柱形图，左右方向键选择日期"
+        aria-label={`每日${metricLabel}柱形图，左右方向键选择日期`}
         className="website-traffic-plot"
         onKeyDown={moveDate}
         ref={plotRef}
@@ -152,7 +169,7 @@ function TrafficChart({ data, onSelectDate, selectedDate, setVisibleIds, visible
         tabIndex={0}
       >
         <svg aria-hidden="true" onPointerDown={selectFromPointer} onPointerMove={selectFromPointer} viewBox={`0 0 ${width} ${height}`}>
-          <text className="website-traffic-axis-label" x={left} y={14}>浏览次数</text>
+          <text className="website-traffic-axis-label" x={left} y={14}>{metricLabel}</text>
           {axis.ticks.map((tick) => (
             <g key={tick}>
               <line className="website-traffic-grid-line" x1={left} x2={width - right} y1={y(tick)} y2={y(tick)} />
@@ -165,24 +182,32 @@ function TrafficChart({ data, onSelectDate, selectedDate, setVisibleIds, visible
             </text>
           ))}
           {visible.length > 0 && <rect className="website-traffic-selection-band" height={bottom - top} width={slotWidth} x={left + selectedIndex * slotWidth} y={top} />}
-          <TrafficBarMarks bars={bars} bottom={bottom} key={visible.map((series) => series.id).join(',')} left={left} maximum={axis.maximum} slotWidth={slotWidth} top={top} />
+          <TrafficBarMarks bars={bars} bottom={bottom} key={`${metric}:${visible.map((series) => series.id).join(',')}`} left={left} maximum={axis.maximum} slotWidth={slotWidth} top={top} />
         </svg>
         {visible.length === 0 && <span className="website-traffic-no-series">选择要显示的统计范围</span>}
       </div>
       <div className="website-traffic-readout-heading">
-        <TrafficDatePicker date={data.dates[selectedIndex]} max={data.endDate} min={data.startDate} onSelectDate={onSelectDate} />
+        <TrafficDatePicker date={data.dates[selectedIndex]} label={metricLabel} max={data.endDate} min={data.startDate} onSelectDate={onSelectDate} />
         <output aria-live="polite" className="sr-only" id={readoutId}>
-          {data.dates[selectedIndex]}{visible.map((series) => `，${series.label} ${series.values[selectedIndex]} 次`).join('')}
+          {data.dates[selectedIndex]}{visible.map((series) => `，${series.label} ${series.values[selectedIndex]} ${metricUnit}`).join('')}
         </output>
-        <div aria-label="统计范围" className="website-traffic-selection" role="group">
+        {metric === 'views' && <div aria-label="统计范围" className="website-traffic-selection" role="group">
           <button onClick={() => setVisibleIds(['total'])} type="button">仅全站</button>
           <button onClick={() => setVisibleIds(groups.primary.filter((series) => series.bid !== null).map((series) => series.id))} type="button">主要版块</button>
+        </div>}
+      </div>
+      {metric === 'checkins' ? (
+        <div aria-label="当日签到人数" className="website-traffic-series">
+          <div className="website-traffic-series-value">
+            <span aria-hidden="true" className="website-traffic-series-marker" />
+            <span className="website-traffic-series-name">签到人数</span>
+            <strong>{numberFormat.format(data.checkins?.[selectedIndex] ?? 0)}</strong>
+          </div>
         </div>
-      </div>
-      <div aria-label="全站与主要版块当日浏览量" className="website-traffic-series">
+      ) : <div aria-label="全站与主要版块当日浏览量" className="website-traffic-series">
         {groups.primary.map(seriesButton)}
-      </div>
-      {groups.secondary.length > 0 && (
+      </div>}
+      {metric === 'views' && groups.secondary.length > 0 && (
         <details className="website-traffic-secondary">
           <summary>
             <span>其他版块{secondarySelected > 0 && <small>{secondarySelected} 已选</small>}</span>
@@ -197,8 +222,9 @@ function TrafficChart({ data, onSelectDate, selectedDate, setVisibleIds, visible
   );
 }
 
-function TrafficDatePicker({ date, min, max, onSelectDate }: {
+function TrafficDatePicker({ date, label, min, max, onSelectDate }: {
   date: string;
+  label: string;
   min: string;
   max: string;
   onSelectDate: (date: string) => void;
@@ -209,7 +235,7 @@ function TrafficDatePicker({ date, min, max, onSelectDate }: {
     <label className="website-traffic-date-picker">
       <span>日期</span>
       <input
-        aria-label="查看指定日期的浏览量"
+        aria-label={`查看指定日期的${label}`}
         max={max}
         min={min}
         onBlur={() => setDraft(date)}
