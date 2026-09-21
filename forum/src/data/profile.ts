@@ -25,6 +25,7 @@ export type ProfileRecord = {
   draftHref?: string;
   excerpt: string;
   href: string;
+  hasSignup?: boolean;
   id: string;
   metrics?: Array<{ label: string; value: number }>;
   status?: string;

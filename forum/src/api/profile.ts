@@ -477,11 +477,14 @@ function mapActivityRecord(row: ApiRow): ProfileRecord | null {
   const page = pid > 0 ? Math.max(1, Math.ceil(pid / 12)) : 1;
   return {
     board: stringValue(row.board) || `版块 ${bid}`,
-    date: formatRecordDate(row.joined_at),
+    date: formatRecordDate(row.record_at ?? row.joined_at),
     excerpt: '',
+    hasSignup: row.has_signup === undefined ? true : numberValue(row.has_signup) === 1,
     href: `/?bid=${bid}&tid=${tid}&p=${page}${pid > 0 ? `#${pid}` : ''}`,
-    id: `activity-${numberValue(row.join_id) || `${bid}-${tid}`}`,
-    status: numberValue(row.cancel) === 1 ? '已取消报名' : '已报名',
+    id: `activity-${numberValue(row.activity_id) || `${bid}-${tid}`}`,
+    status: numberValue(row.is_initiator) === 1
+      ? '发起者'
+      : numberValue(row.cancel) === 1 ? '已取消报名' : '已报名',
     title,
   };
 }

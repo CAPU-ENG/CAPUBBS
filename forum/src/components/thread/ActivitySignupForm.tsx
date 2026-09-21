@@ -117,6 +117,7 @@ function ActivitySignupFormLoader(props: ActivitySignupFormProps) {
 async function loadCurrentActivitySignup(bid: number, tid: number, username: string, signal: AbortSignal) {
   const records = await fetchPublicProfileActivities(username, signal);
   const record = records.find((candidate) => {
+    if (candidate.hasSignup === false) return false;
     const url = new URL(candidate.href, window.location.origin);
     return Number(url.searchParams.get('bid')) === bid && Number(url.searchParams.get('tid')) === tid;
   });

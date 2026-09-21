@@ -457,7 +457,11 @@ function ProfileRecordRow({
           {activeTab === 'signatures' ? record.title : <a href={getForumNavigationHref(record.href, window.location.href)}>{record.title}</a>}
         </h3>
         {activeTab === 'activities' && record.status ? (
-          <span className="profile-record-status" data-canceled={record.status === '已取消报名' ? 'true' : undefined}>
+          <span
+            className="profile-record-status"
+            data-canceled={record.status === '已取消报名' ? 'true' : undefined}
+            data-initiator={record.status === '发起者' ? 'true' : undefined}
+          >
             {record.status}
           </span>
         ) : null}

@@ -793,6 +793,16 @@
     color: var(--text-faint);
   }
 
+  .profile-record-status[data-initiator="true"] {
+    border-color: color-mix(in srgb, #f97316 35%, var(--line));
+    background: color-mix(in srgb, #f97316 12%, var(--surface-raised));
+    color: #c2410c;
+  }
+
+  .dark .profile-record-status[data-initiator="true"] {
+    color: #fb923c;
+  }
+
   .profile-record-actions {
     display: flex;
     align-items: center;
