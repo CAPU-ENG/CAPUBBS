@@ -152,7 +152,7 @@ function activity_ranking_snapshot_refresh($now = null, $con = null) {
             throw new RuntimeException('已有活跃排行快照晚于结算日期，请检查服务器时间。');
         }
         if (!$con) {
-            require_once dirname(__DIR__, 2) . '/lib.php';
+            require_once dirname(dirname(__DIR__)) . '/lib.php';
             $con = dbconnect_mysqli();
             $owns_connection = true;
         }
