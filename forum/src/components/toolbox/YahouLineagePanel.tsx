@@ -85,7 +85,7 @@ function YahouTree({ canEdit, data, onData, onSaving }: {
   onSaving: (saving: boolean) => void;
 }) {
   const index = useMemo(() => buildYahouIndex(data), [data]);
-  const [opened, setOpened] = useState(() => new Set(index.children.get(null)?.map((member) => member.id)));
+  const [opened, setOpened] = useState(() => new Set<string>());
   const [focusId, setFocusId] = useState<string | null>(null);
   const [selectedId, setSelectedId] = useState<string | null | undefined>();
   const [query, setQuery] = useState('');
