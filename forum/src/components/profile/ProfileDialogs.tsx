@@ -146,10 +146,6 @@ export function EmailDialog({
       onNotify('请输入有效的 PKU 邮箱（10 位学号）', 'error');
       return;
     }
-    if (normalizedEmail.toLowerCase() === email.trim().toLowerCase()) {
-      onNotify('新邮箱不能与当前邮箱相同', 'error');
-      return;
-    }
 
     try {
       setIsSending(true);
