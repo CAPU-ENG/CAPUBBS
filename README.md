@@ -28,7 +28,9 @@ relation-graph、D3、图库及总览画布的专用样式仅在打开总览时�
 
 ## 网站流量每日快照
 
-网站流量页面读取 `api/cache/website-traffic/current.json` 指向的周、月、年静态 JSON 文件。统计分别包含截至昨日的 7、30、365 个上海时区自然日。页面访问和兼容 API 均不会触发实时汇总；结算失败时继续提供上一次成功发布的数据。
+网站流量页面读取 `api/cache/website-traffic/current.json` 指向的周、月、年静态 JSON 文件。统计分别包含截至昨日的 7、30、365 个上海时区自然日；每份文件同时保存浏览次数和签到人数两组日数据。页面访问和兼容 API 均不会触发实时汇总；结算失败时继续提供上一次成功发布的数据。
+
+旧快照仍可用于显示浏览次数；缺少签到字段时，页面显示“签到数据暂不可用”。更新结算脚本后，首次运行会自动补齐过去一年的签到数据，随后恢复按日增量结算。
 
 部署时需单独上传本地 `tool/refresh-website-traffic.php`（依仓库规范不纳入 Git），并先上传 `api/lib/WebsiteTrafficSnapshot.php`。使用未来执行定时任务的用户，在项目根目录初始化历史数据：
 
@@ -63,6 +65,36 @@ location /api/cache/website-traffic/ {
 ```
 
 刷新按钮只重新读取发布版本。缺少初始快照时不会回退到数据库现场计算，也没有公开的 HTTP 结算入口。
+
+## 活跃排行每日快照
+
+数据展示页的“活跃排行”读取 `api/cache/activity-ranking/current.json`。快照统计最近 90 个已结束的上海时区自然日；每个用户每天的 `username_view.view_times` 合计最多计 50 分，按累计分数降序取前 100 名。快照仅在后台任务中生成，页面请求不会现场查询数据库。
+
+部署时需单独上传本地 `tool/refresh-activity-ranking.php`（依仓库规范不纳入 Git），并先上传 `api/lib/ActivityRankingSnapshot.php` 及缓存目录规则。首次运行和每日更新使用同一条命令：
+
+```bash
+php tool/refresh-activity-ranking.php
+```
+
+缓存目录须允许任务用户写入、Web 服务读取。建议在 **cron 使用 Asia/Shanghai 时区** 的服务器上配置每日 0:00 执行：
+
+```cron
+0 0 * * * cd /path/to/CAPUBBS && /usr/bin/php tool/refresh-activity-ranking.php >> /path/to/activity-ranking.log 2>&1
+```
+
+若服务器 cron 使用 UTC，改用 `0 16 * * *`。任务使用文件锁避免并发运行，并通过临时文件原子替换 `current.json`；统计失败时继续保留上一次成功的快照。
+
+Apache 可直接使用缓存目录内的 `.htaccess`。Nginx 可加入以下规则，仅公开当前快照并阻止锁文件、临时文件和目录中的其他文件：
+
+```nginx
+location = /api/cache/activity-ranking/current.json {
+    add_header Cache-Control "no-cache, must-revalidate";
+    try_files $uri =404;
+}
+location /api/cache/activity-ranking/ {
+    return 404;
+}
+```
 
 ## 本地开发
 
