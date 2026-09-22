@@ -20,7 +20,8 @@ rsort($years, SORT_NUMERIC);
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="color-scheme" content="light dark">
-    <title>年刊 · 北大车协</title>
+    <title>车协年刊</title>
+    <link rel="icon" type="image/png" href="/bbs/favicon.png">
     <link rel="stylesheet" href="/annual/style.css">
 </head>
 <body>
@@ -34,7 +35,7 @@ rsort($years, SORT_NUMERIC);
         </header>
         <main>
             <div class="annual-heading">
-                <h1>年刊</h1>
+                <h1 class="annual-title" aria-label="年刊"><span aria-hidden="true">年</span><span aria-hidden="true">刊</span></h1>
                 <div class="annual-book-mark" aria-hidden="true"><span></span><span></span><span></span></div>
             </div>
 <?php if (count($years) === 0): ?>

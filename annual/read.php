@@ -67,7 +67,8 @@ $canLoad = $error === '';
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="color-scheme" content="light dark">
-    <title><?php echo $year === '' ? '年刊' : $year . ' 年刊'; ?> · 加载</title>
+    <title>车协年刊</title>
+    <link rel="icon" type="image/png" href="/bbs/favicon.png">
     <link rel="stylesheet" href="/annual/style.css">
 <?php if ($canLoad): ?>
     <script src="/annual/loader.js" defer></script>

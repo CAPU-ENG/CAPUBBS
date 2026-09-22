@@ -65,6 +65,36 @@ h1 {
     line-height: 1.2;
 }
 
+.annual-title {
+    position: relative;
+    display: flex;
+    align-items: flex-start;
+    gap: 0.025em;
+    padding: 0.04em 0.06em 0.2em;
+    font-family: "Kaiti SC", "STKaiti", "KaiTi", "Songti SC", "Noto Serif CJK SC", serif;
+    font-size: clamp(100px, 18vw, 184px);
+    font-weight: 900;
+    letter-spacing: -0.045em;
+    line-height: 1;
+}
+
+.annual-title span { display: block; -webkit-text-stroke: 0.008em currentColor; }
+.annual-title span:first-child { transform: rotate(-9deg) translateY(-0.02em); }
+.annual-title span:last-child { color: var(--accent); transform: rotate(6deg) translateY(0.13em); }
+.annual-title::after {
+    content: "";
+    position: absolute;
+    left: 0.2em;
+    bottom: 0.055em;
+    width: 1.5em;
+    height: 0.045em;
+    background: var(--ink);
+    opacity: 0.25;
+    transform: rotate(-6deg);
+    clip-path: polygon(0 44%, 96% 0, 100% 30%, 5% 100%);
+    pointer-events: none;
+}
+
 .annual-book-mark { display: flex; align-items: flex-end; gap: 5px; padding: 10px 12px; border: 1px solid var(--accent); color: var(--accent); transform: rotate(-5deg); opacity: 0.7; }
 .annual-book-mark span { display: block; width: 9px; height: 30px; border: 1px solid currentColor; border-bottom-width: 4px; }
 .annual-book-mark span:nth-child(2) { height: 35px; }
@@ -120,7 +150,10 @@ h1 {
     .annual-header { min-height: 76px; gap: 16px; }
     .annual-header nav { gap: 18px; }
     main { padding: 48px 0 64px; }
-    .annual-heading { margin-bottom: 32px; }
+    .annual-heading { margin-bottom: 32px; gap: 16px; }
+    .annual-heading .annual-book-mark { padding: 7px; gap: 4px; }
+    .annual-heading .annual-book-mark span { width: 7px; height: 24px; }
+    .annual-heading .annual-book-mark span:nth-child(2) { height: 28px; }
     .annual-issue { padding: 24px 8px; gap: 16px; }
     .annual-issue::before { padding-right: 16px; }
 }
