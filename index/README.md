@@ -14,7 +14,7 @@
 
 `ask=homepage_images` 通过 `/api/api.php` 公开读取 `mainpage` 表 `id=0` 的记录，按 `number` 排序，返回 `data.images` 数组；每项为 `{img, imgthumb, title}`。0 项、1 项或多项时返回结构一致。只读接口不改变数据、顺序或权限，不增加数据库结构。
 
-首页调用既有接口加载图片，缩略图优先、失败时尝试原图。宣传图容器最大宽度 1536px，图片居中裁切铺满，点击可查看完整原图；支持按钮与方向键切换，不自动播放。标题按纯文本输出，链接只允许 HTTP/HTTPS 或站内路径。首页重新取得焦点时刷新宣传图和视频；视频初始内容同时由 PHP 渲染。
+首页调用既有接口加载图片，优先展示原图，失败时尝试缩略图。宣传图容器最大宽度 1536px，桌面展示高度固定为 480px，窄屏（<=760px）固定为 280px；图片按比例居中缩放、完整显示，不裁切，点击可查看原图。多图时每 5 秒自动切换，提供暂停/继续按钮，支持前后按钮与方向键；鼠标悬停、焦点位于轮播区域或页面隐藏时暂停，恢复后重新计时，手动切换也重新计时。单图时隐藏控件并停止计时。标题按纯文本输出，链接只允许 HTTP/HTTPS 或站内路径。首页重新取得焦点时刷新宣传图和视频；视频初始内容同时由 PHP 渲染。
 
 排版阶段的暂存图片与链接位于 `index/data/homepage-media.default.json`：首次 HTML 渲染和接口返回空列表时展示 `home-demo/images/` 的三张既有照片；接口有记录时替换为真实宣传图。接口异常保留已显示内容，并提供重试。暂存图片不会写入数据库。正式接入前应移除这项临时回退，否则清空管理列表后仍会显示暂存图片。
 
@@ -34,7 +34,7 @@
 
 页脚保留洛克兄弟赞助标识、北京大学、北大未名BBS、隐私政策、版权和备案号，已移除“原车协主页”入口。页脚按照原站 `/assets/css/style.css` 使用 `#bbbbbb` 背景、`#777` 文字和上下 30px 留白；按新要求移除页脚顶边框及版权区白色分隔线。赞助图片 `assets/images/static/homepage/rockbros.png` 与原站 `/bbs/images/a56e5ca6707358f21ba8f1bb1cc583858068c921.png` 字节一致，宽度恢复为原站 320px，高度按原图比例自适应，不加底板或滤镜。Favicon 与导航图标复用 `/bbs/favicon.png`。
 
-底栏新增微信公众号、Android 客户端、iOS 客户端三个二维码入口，复用原首页 `index/main.php` 引用的图片，存放在 `assets/images/static/homepage/`：
+相关链接与版权、备案行归为一组，行间距为 6px。底栏新增微信公众号、Android 客户端、iOS 客户端三个二维码入口，复用原首页 `index/main.php` 引用的图片，存放在 `assets/images/static/homepage/`：
 
 - `qrcode-wechat.jpg`：来自 `/assets/images/qrcode_wechat.jpg`，原二维码指向 `http://weixin.qq.com/r/NUOIkFPEzw6wrRfz9xYn`。
 - `qrcode-android.png`：来自 `/assets/images/qrcode_android.png`，原二维码指向 `http://pan.baidu.com/s/1dE8rStz`。

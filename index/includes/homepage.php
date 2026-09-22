@@ -57,8 +57,9 @@ $homepageLoginModal = true;
             <a class="promotion-manage" href="/index/images.php">管理宣传图</a>
 <?php } ?>
             <div class="promotion-controls" data-image-controls hidden>
+              <button type="button" data-image-autoplay aria-label="暂停自动轮播" title="暂停自动轮播" aria-controls="promotion-slides"><span aria-hidden="true">Ⅱ</span></button>
               <button type="button" data-image-step="-1" aria-label="上一张宣传图" aria-controls="promotion-slides">←</button>
-              <span class="promotion-count" aria-live="polite" aria-atomic="true"><span data-image-number>01</span><span aria-hidden="true"> / </span><span data-image-total></span></span>
+              <span class="promotion-count" aria-live="off" aria-atomic="true"><span data-image-number>01</span><span aria-hidden="true"> / </span><span data-image-total></span></span>
               <button type="button" data-image-step="1" aria-label="下一张宣传图" aria-controls="promotion-slides">→</button>
             </div>
           </div>
@@ -132,12 +133,14 @@ $homepageLoginModal = true;
         </details>
 <?php } ?>
       </div>
-      <nav class="footer-links" aria-label="页脚导航">
-        <a href="https://www.pku.edu.cn/" target="_blank" rel="noopener noreferrer">北京大学</a>
-        <a href="https://bbs.pku.edu.cn/" target="_blank" rel="noopener noreferrer">北大未名BBS</a>
-        <a href="/privacy/">隐私政策</a>
-      </nav>
-      <div class="footer-bottom"><span>© 2001–<?php echo date('Y'); ?> <?php echo homepage_escape($homepageContent['name']); ?></span><a href="https://beian.miit.gov.cn/" target="_blank" rel="noopener noreferrer"><?php echo homepage_escape($homepageContent['registration']); ?></a></div>
+      <div class="footer-meta">
+        <nav class="footer-links" aria-label="页脚导航">
+          <a href="https://www.pku.edu.cn/" target="_blank" rel="noopener noreferrer">北京大学</a>
+          <a href="https://bbs.pku.edu.cn/" target="_blank" rel="noopener noreferrer">北大未名BBS</a>
+          <a href="/privacy/">隐私政策</a>
+        </nav>
+        <div class="footer-bottom"><span>© 2001–<?php echo date('Y'); ?> <?php echo homepage_escape($homepageContent['name']); ?></span><a href="https://beian.miit.gov.cn/" target="_blank" rel="noopener noreferrer"><?php echo homepage_escape($homepageContent['registration']); ?></a></div>
+      </div>
     </div>
   </footer>
 

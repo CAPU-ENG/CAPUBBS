@@ -56,10 +56,10 @@ fieldset { padding: 0; margin: 0; min-width: 0; }
 .homepage-main > .videos { grid-column: 1 / -1; }
 .promotion { min-width: 0; padding-bottom: 24px; background: var(--deep-green); color: var(--on-green); }
 .promotion-frame { position: relative; width: calc(100% - 2 * var(--gutter)); max-width: 1536px; margin-inline: auto; overflow: hidden; border-radius: var(--card-radius); background: #2b493c; }
-.promotion-stage { position: relative; aspect-ratio: 8 / 3; min-height: 300px; }
+.promotion-stage { position: relative; height: 480px; }
 .promotion-slide { display: flex; position: absolute; inset: 0; justify-content: center; align-items: center; }
 .promotion-slide a { width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; }
-.promotion-slide img { width: 100%; height: 100%; object-fit: cover; object-position: center; }
+.promotion-slide img { width: 100%; height: 100%; object-fit: contain; object-position: center; }
 .image-error { padding: 24px; color: var(--on-green-muted); font-size: 14px; text-align: center; }
 .promotion-empty { position: absolute; inset: 0 0 64px; display: grid; place-items: center; padding: 24px; color: var(--on-green-muted); background: #2b493c; font-size: 14px; }
 .promotion-bar { display: flex; align-items: center; justify-content: space-between; min-height: 64px; gap: 16px; padding: 8px 20px; background: var(--deep-green); }
@@ -70,6 +70,7 @@ fieldset { padding: 0; margin: 0; min-width: 0; }
 .promotion-count > span:first-child { color: var(--on-green); }
 .promotion-controls button { background: transparent; width: 40px; height: 44px; padding: 0; font-size: 22px; border-radius: var(--control-radius); }
 .promotion-controls button:hover { background: #3b594a; }
+.promotion-controls [data-image-autoplay] { font-size: 16px; }
 .promotion-manage { display: inline-flex; align-items: center; min-height: 44px; font-size: 12px; color: var(--on-green-muted); }
 .section-frame { padding: clamp(22px, 3vw, 36px); border: 1px solid var(--line); border-radius: var(--card-radius); background: var(--surface); box-shadow: var(--shadow-card); min-width: 0; }
 .section-heading { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px 24px; margin-bottom: 24px; }
@@ -123,6 +124,7 @@ h2 { font-size: 23px; font-weight: 600; letter-spacing: .03em; line-height: 1.4;
 /* Match chexie.net/assets/css/style.css and its original 320px sponsor image. */
 .site-footer { margin-top: 0; padding: 30px 0; background: #bbbbbb; color: #777; text-align: center; }
 .footer-inner { display: grid; gap: 24px; padding-block: 0; }
+.footer-meta { display: grid; gap: 6px; }
 .sponsors { display: flex; align-items: center; justify-content: center; }
 .sponsors img { width: 320px; height: auto; }
 .footer-qr-list { position: relative; display: flex; align-items: center; justify-content: center; flex-wrap: wrap; gap: 10px 20px; }
@@ -135,7 +137,7 @@ h2 { font-size: 23px; font-weight: 600; letter-spacing: .03em; line-height: 1.4;
 .footer-qr-popover img { width: 200px; height: 200px; object-fit: contain; background: #fff; }
 .footer-links { display: flex; justify-content: center; flex-wrap: wrap; gap: 8px 30px; font-size: 13px; }
 .footer-links a { display: inline-flex; align-items: center; min-height: 36px; }
-.footer-bottom { display: flex; justify-content: center; flex-wrap: wrap; gap: 6px 24px; padding-top: 22px; font-size: 12px; line-height: 1.8; text-align: center; }
+.footer-bottom { display: flex; justify-content: center; flex-wrap: wrap; gap: 6px 24px; font-size: 12px; line-height: 1.8; text-align: center; }
 .login-dialog { width: min(440px, calc(100% - 32px)); border: 0; border-radius: var(--card-radius); padding: 38px; color: var(--ink); background: var(--surface); max-height: calc(100dvh - 32px); overflow-y: auto; }
 .login-dialog::backdrop { background: #14282099; }
 .dialog-close { position: absolute; top: 10px; right: 12px; width: 44px; height: 44px; background: transparent; font-size: 30px; }
@@ -155,7 +157,7 @@ h2 { font-size: 23px; font-weight: 600; letter-spacing: .03em; line-height: 1.4;
   .forum-link { gap: 18px; padding-inline: 16px; }
   .homepage-main { row-gap: 24px; padding-bottom: 32px; }
   .videos { padding-block: 32px 36px; }
-  .promotion-stage { aspect-ratio: 16 / 9; min-height: 0; }
+  .promotion-stage { height: 280px; }
   .promotion-bar { padding: 8px 12px; gap: 6px 14px; flex-wrap: wrap; }
   .promotion-caption { font-size: 12px; }
   .promotion-actions { margin-left: auto; }
