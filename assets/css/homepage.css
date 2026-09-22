@@ -116,7 +116,7 @@ h2 { font-size: 23px; font-weight: 600; letter-spacing: .03em; line-height: 1.4;
 .video-caption h3 { font-size: 15px; font-weight: 500; line-height: 1.6; overflow-wrap: anywhere; }
 .section-status { color: var(--muted); font-size: 14px; line-height: 1.7; padding-top: 16px; }
 .text-button { background: transparent; text-decoration: underline; text-underline-offset: 5px; min-height: 44px; padding: 0 2px; font-size: 13px; }
-.contact { position: relative; border: 0; border-radius: 0; padding: clamp(32px, 4vw, 46px); box-shadow: none; }
+.contact { position: relative; width: fit-content; max-width: 100%; justify-self: center; border: 0; border-radius: 0; padding: clamp(32px, 4vw, 46px); box-shadow: none; }
 /* Semicircular cutouts repeat along all four edges, like a perforated stamp. */
 .contact::before { content: ""; position: absolute; inset: 0; pointer-events: none; background: radial-gradient(circle at 9px 0, var(--paper) 4px, transparent 4.5px) top left / 18px 10px repeat-x, radial-gradient(circle at 9px 10px, var(--paper) 4px, transparent 4.5px) bottom left / 18px 10px repeat-x, radial-gradient(circle at 0 9px, var(--paper) 4px, transparent 4.5px) top left / 10px 18px repeat-y, radial-gradient(circle at 10px 9px, var(--paper) 4px, transparent 4.5px) top right / 10px 18px repeat-y; }
 .contact::after { content: ""; position: absolute; inset: 13px; border: 1px solid #d5dfd1; pointer-events: none; }
