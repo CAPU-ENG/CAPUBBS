@@ -1,0 +1,7 @@
+.image-row { padding: 24px 0; border-bottom: 1px solid #d5d9cc; display: grid; grid-template-columns: minmax(100px, .6fr) minmax(180px, 1fr) minmax(180px, 1fr); gap: 16px; }
+.image-row .row-actions { grid-column: 1 / -1; }
+#image-add { margin-top: 22px; }
+#image-editor .editor-actions { margin-top: 32px; }
+#image-status { line-height: 1.7; }
+#image-status[data-error="true"] { color: #b5372c; }
+@media (max-width: 800px) { .image-row { grid-template-columns: 1fr; } }

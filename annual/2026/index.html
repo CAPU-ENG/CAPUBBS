@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>2026 年刊 · Demo</title>
+    <link rel="stylesheet" href="./style.css">
+    <script src="./script.js" defer></script>
+</head>
+<body>
+    <main>
+        <header class="landscape-cover">
+            <div class="cover-heading">
+                <h1><span>2026</span> 年刊</h1>
+                <span class="demo-mark">DEMO</span>
+            </div>
+            <img src="./assets/cover.svg" alt="绿色山野之间延伸的骑行公路" width="1200" height="560">
+        </header>
+        <div class="field-notes">
+            <section aria-labelledby="departure-title">
+                <span class="chapter-number" aria-hidden="true">01</span>
+                <h2 id="departure-title">一起出发</h2>
+                <p>从校园门口集合，到迎着晨光驶向远处。把这一年的风景与同行的人，留在这一页。</p>
+            </section>
+            <section aria-labelledby="journey-title">
+                <span class="chapter-number" aria-hidden="true">02</span>
+                <h2 id="journey-title">山野之间</h2>
+                <p>上坡时慢一点，转弯后再看远一点。路很长，我们一起骑。</p>
+                <button class="story-toggle" type="button" aria-controls="journey-note" aria-expanded="false" hidden>展开札记</button>
+                <p id="journey-note" hidden>记住的不只是终点，还有途中一起等过的红灯、分过的补给，以及回程时并排的车轮声。</p>
+            </section>
+        </div>
+    </main>
+</body>
+</html>

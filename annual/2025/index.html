@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>2025 年刊 · Demo</title>
+    <link rel="stylesheet" href="./style.css">
+    <script src="./script.js" defer></script>
+</head>
+<body>
+    <main class="coastal-journal">
+        <header class="journal-title">
+            <span class="demo-mark">DEMO</span>
+            <h1><span>2025</span> 年刊</h1>
+        </header>
+        <figure class="coastal-scene">
+            <img src="./assets/cover.svg" alt="落日下沿着海岸延伸的骑行公路" width="1200" height="560">
+        </figure>
+        <article class="journal-stories">
+            <section aria-labelledby="wind-title">
+                <span class="chapter-number" aria-hidden="true">01</span>
+                <h2 id="wind-title">追着风走</h2>
+                <p>车轮转过四季，把熟悉的街道骑成新的风景。那些平常的周末，也值得好好收藏。</p>
+            </section>
+            <section aria-labelledby="sunset-title">
+                <span class="chapter-number" aria-hidden="true">02</span>
+                <h2 id="sunset-title">日落之前</h2>
+                <p>沿着弯曲的海岸，骑到天色渐晚。停下来拍一张合照，再一起踏上归途。</p>
+                <button class="story-toggle" type="button" aria-controls="sunset-note" aria-expanded="false" hidden>展开札记</button>
+                <p id="sunset-note" hidden>风把衣角吹得鼓起来，夕阳把影子拉得很长。下一次出发时，希望身边仍有这些熟悉的身影。</p>
+            </section>
+        </article>
+    </main>
+</body>
+</html>

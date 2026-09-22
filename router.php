@@ -7,8 +7,40 @@ if (PHP_SAPI !== 'cli-server') {
 $requestPath = parse_url(@$_SERVER['REQUEST_URI'], PHP_URL_PATH);
 if (!is_string($requestPath)) return false;
 
+// Homepage metadata is exposed by its read API, never as raw files or backups.
+$homepageDataRoot = realpath(__DIR__.'/index/data');
+$homepageRequestPath = parse_url('/'.ltrim(@$_SERVER['REQUEST_URI'], '/'), PHP_URL_PATH);
+$homepageRequestedFile = realpath(__DIR__.'/'.ltrim(rawurldecode($homepageRequestPath), '/'));
+if ($homepageRequestPath === '/index/data' || strpos($homepageRequestPath, '/index/data/') === 0
+    || ($homepageDataRoot !== false && $homepageRequestedFile !== false
+        && ($homepageRequestedFile === $homepageDataRoot || strpos($homepageRequestedFile, $homepageDataRoot.'/') === 0))) {
+    http_response_code(404);
+    exit;
+}
+
 function capubbs_router_starts_with($value, $prefix) {
     return $prefix === '' || strncmp($value, $prefix, strlen($prefix)) === 0;
+}
+
+// Mirror real-directory hosting for annuals, including relative asset URLs.
+// PHP's development server otherwise falls back to a parent's index.php on 404.
+if ($requestPath === '/annual' || capubbs_router_starts_with($requestPath, '/annual/')) {
+    $annualRoot = realpath(__DIR__ . '/annual');
+    $annualPath = realpath(__DIR__ . rawurldecode($requestPath));
+    if ($annualRoot === false || $annualPath === false
+        || ($annualPath !== $annualRoot && !capubbs_router_starts_with($annualPath, $annualRoot . '/'))
+        || (is_dir($annualPath) && !is_file($annualPath . '/index.html') && !is_file($annualPath . '/index.php'))) {
+        http_response_code(404);
+        header('Content-Type: text/plain; charset=UTF-8');
+        echo 'Not Found';
+        exit;
+    }
+    if (is_dir($annualPath) && substr($requestPath, -1) !== '/') {
+        $query = isset($_SERVER['QUERY_STRING']) && $_SERVER['QUERY_STRING'] !== '' ? '?' . $_SERVER['QUERY_STRING'] : '';
+        header('Location: ' . $requestPath . '/' . $query, true, 308);
+        exit;
+    }
+    return false;
 }
 
 function serve_new_forum_file($requestPath, $urlPrefix, $fileRoot) {
