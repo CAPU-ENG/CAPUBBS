@@ -107,16 +107,20 @@ $homepageLoginModal = true;
       </div>
     </section>
 
-    <section class="section-frame contact" id="contact" aria-labelledby="contact-title">
-      <div class="section-heading">
-        <h2 id="contact-title">联系方式</h2>
+    <section class="contact-row" id="contact" aria-labelledby="contact-title">
+      <div class="contact-ornament" aria-hidden="true"><span class="contact-symbol"><span class="contact-icon contact-icon-bicycle"></span></span></div>
+      <div class="section-frame contact">
+        <div class="section-heading">
+          <h2 id="contact-title">联系方式</h2>
 <?php if ($rights >= 3) { ?>
-        <a class="text-link" href="/index/contacts.php">管理联系方式</a>
+          <a class="text-link" href="/index/contacts.php">管理联系方式</a>
 <?php } ?>
+        </div>
+        <div class="contact-text" data-contact-text><?php echo homepage_escape($homepageContacts['text']); ?></div>
+        <p class="section-status" role="status" data-contact-status<?php if (!$homepageContactsError) echo ' hidden'; ?>>联系方式暂时无法加载。</p>
+        <button class="text-button" type="button" data-contact-retry<?php if (!$homepageContactsError) echo ' hidden'; ?>>重新加载</button>
       </div>
-      <div class="contact-text" data-contact-text><?php echo homepage_escape($homepageContacts['text']); ?></div>
-      <p class="section-status" role="status" data-contact-status<?php if (!$homepageContactsError) echo ' hidden'; ?>>联系方式暂时无法加载。</p>
-      <button class="text-button" type="button" data-contact-retry<?php if (!$homepageContactsError) echo ' hidden'; ?>>重新加载</button>
+      <div class="contact-ornament" aria-hidden="true"><span class="contact-symbol"><span class="contact-icon contact-icon-tools"></span></span></div>
     </section>
   </main>
 

@@ -116,6 +116,12 @@ h2 { font-size: 23px; font-weight: 600; letter-spacing: .03em; line-height: 1.4;
 .video-caption h3 { font-size: 15px; font-weight: 500; line-height: 1.6; overflow-wrap: anywhere; }
 .section-status { color: var(--muted); font-size: 14px; line-height: 1.7; padding-top: 16px; }
 .text-button { background: transparent; text-decoration: underline; text-underline-offset: 5px; min-height: 44px; padding: 0 2px; font-size: 13px; }
+.contact-row { display: grid; grid-template-columns: minmax(64px, 1fr) fit-content(680px) minmax(64px, 1fr); gap: clamp(20px, 3vw, 36px); min-width: 0; }
+.contact-ornament { display: grid; place-items: center; width: min(100%, 160px); justify-self: center; pointer-events: none; background-image: radial-gradient(circle, #b4c5b7 1.25px, transparent 1.5px); background-size: 18px 18px; background-position: center; }
+.contact-symbol { display: grid; place-items: center; width: min(100%, 104px); aspect-ratio: 1; background: var(--paper); }
+.contact-icon { display: block; width: 72%; height: 72%; background: #718d78; -webkit-mask: var(--contact-icon) center / contain no-repeat; mask: var(--contact-icon) center / contain no-repeat; }
+.contact-icon-bicycle { --contact-icon: url('/assets/images/static/homepage/bicycle.svg'); }
+.contact-icon-tools { --contact-icon: url('/assets/images/static/homepage/screw.svg'); }
 .contact { position: relative; width: fit-content; max-width: 100%; justify-self: center; border: 0; border-radius: 0; padding: clamp(32px, 4vw, 46px); box-shadow: none; }
 /* Semicircular cutouts repeat along all four edges, like a perforated stamp. */
 .contact::before { content: ""; position: absolute; inset: 0; pointer-events: none; background: radial-gradient(circle at 9px 0, var(--paper) 4px, transparent 4.5px) top left / 18px 10px repeat-x, radial-gradient(circle at 9px 10px, var(--paper) 4px, transparent 4.5px) bottom left / 18px 10px repeat-x, radial-gradient(circle at 0 9px, var(--paper) 4px, transparent 4.5px) top left / 10px 18px repeat-y, radial-gradient(circle at 10px 9px, var(--paper) 4px, transparent 4.5px) top right / 10px 18px repeat-y; }
@@ -147,6 +153,10 @@ h2 { font-size: 23px; font-weight: 600; letter-spacing: .03em; line-height: 1.4;
 .login-submit { display: flex; justify-content: space-between; width: 100%; padding: 16px 20px; color: white; background: var(--accent); border-radius: var(--control-radius); }
 .login-error { color: #9c3325; margin-bottom: 20px; line-height: 1.5; font-size: 14px; }
 .login-links { display: flex; justify-content: space-between; gap: 16px; margin-top: 24px; font-size: 13px; }
+@media (max-width: 900px) {
+  .contact-row { grid-template-columns: minmax(0, 1fr); gap: 0; }
+  .contact-ornament { display: none; }
+}
 @media (max-width: 760px) {
   .header-inner { gap: 14px; flex-wrap: wrap; padding-block: 18px; }
   .brand h1 { font-size: 17px; }
