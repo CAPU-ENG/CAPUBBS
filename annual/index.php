@@ -23,8 +23,9 @@ rsort($years, SORT_NUMERIC);
     <title>车协年刊</title>
     <link rel="icon" type="image/png" href="/bbs/favicon.png">
     <link rel="stylesheet" href="/annual/style.css">
+    <script src="/annual/background.js" defer></script>
 </head>
-<body>
+<body class="annual-directory-page">
     <div class="annual-shell">
         <header class="annual-header">
             <a class="annual-brand" href="/">北大车协</a>

@@ -6,6 +6,8 @@
     --line: #d5c7ae;
     --accent: #8e4b37;
     --hover: #ece2cd;
+    --spotlight-wash: #fffbe9b3;
+    --spotlight-dot: #af835f80;
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
     background: var(--paper);
     color: var(--ink);
@@ -20,6 +22,24 @@ body {
         radial-gradient(#85633c12 0.6px, transparent 0.8px);
     background-size: 100% 100%, 5px 5px;
 }
+
+.annual-directory-page { background-attachment: fixed; }
+.annual-directory-page::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    z-index: 0;
+    pointer-events: none;
+    background-color: var(--spotlight-wash);
+    background-image: radial-gradient(var(--spotlight-dot) 0.7px, transparent 1px);
+    background-size: 5px 5px;
+    -webkit-mask-image: radial-gradient(circle clamp(180px, 26vw, 360px) at var(--spotlight-x, 50%) var(--spotlight-y, 30%), #000 0%, #0009 42%, transparent 100%);
+    mask-image: radial-gradient(circle clamp(180px, 26vw, 360px) at var(--spotlight-x, 50%) var(--spotlight-y, 30%), #000 0%, #0009 42%, transparent 100%);
+    opacity: 0;
+    transition: opacity 240ms ease;
+}
+.annual-directory-page.is-spotlight-active::before { opacity: 1; }
+.annual-directory-page .annual-shell { position: relative; z-index: 1; }
 
 [hidden] { display: none !important; }
 
@@ -159,5 +179,11 @@ h1 {
         --line: #544a3a;
         --accent: #d19b78;
         --hover: #302a22;
+        --spotlight-wash: #dfb47812;
+        --spotlight-dot: #e3bb8280;
     }
+}
+
+@media (prefers-reduced-motion: reduce), (forced-colors: active) {
+    .annual-directory-page::before { display: none; transition: none; }
 }
