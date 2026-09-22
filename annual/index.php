@@ -6,6 +6,8 @@ $years = array();
 foreach (scandir(__DIR__) as $entry) {
     if (preg_match('/^[0-9]{4}$/D', $entry)
         && is_dir(__DIR__ . '/' . $entry)
+        && !is_link(__DIR__ . '/' . $entry)
+        && !is_link(__DIR__ . '/' . $entry . '/index.html')
         && is_file(__DIR__ . '/' . $entry . '/index.html')) {
         $years[] = $entry;
     }
@@ -31,14 +33,17 @@ rsort($years, SORT_NUMERIC);
             </nav>
         </header>
         <main>
-            <h1>年刊</h1>
+            <div class="annual-heading">
+                <h1>年刊</h1>
+                <div class="annual-book-mark" aria-hidden="true"><span></span><span></span><span></span></div>
+            </div>
 <?php if (count($years) === 0): ?>
             <p class="annual-empty">暂无年刊</p>
 <?php else: ?>
             <ul class="annual-list" aria-label="历年年刊">
 <?php foreach ($years as $year): ?>
                 <li>
-                    <a class="annual-issue" href="/annual/<?php echo $year; ?>/" aria-label="阅读 <?php echo $year; ?> 年刊">
+                    <a class="annual-issue" href="/annual/read.php?year=<?php echo $year; ?>" aria-label="阅读 <?php echo $year; ?> 年刊">
                         <span class="annual-year"><?php echo $year; ?></span>
                         <span class="annual-issue-label">年刊</span>
                         <span class="annual-arrow" aria-hidden="true">↗</span>

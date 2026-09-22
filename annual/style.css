@@ -1,11 +1,11 @@
 :root {
     color-scheme: light dark;
-    --paper: #f7f5ef;
-    --ink: #242c28;
-    --muted: #647069;
-    --line: #d6dbd2;
-    --accent: #38614a;
-    --hover: #eeeee5;
+    --paper: #f5efdf;
+    --ink: #443b30;
+    --muted: #85735d;
+    --line: #d5c7ae;
+    --accent: #8e4b37;
+    --hover: #ece2cd;
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
     background: var(--paper);
     color: var(--ink);
@@ -13,11 +13,19 @@
 
 * { box-sizing: border-box; }
 
-body { margin: 0; }
+body {
+    margin: 0;
+    min-height: 100vh;
+    background-image: radial-gradient(ellipse at 50% 0, transparent 25%, #8463330b 100%),
+        radial-gradient(#85633c12 0.6px, transparent 0.8px);
+    background-size: 100% 100%, 5px 5px;
+}
+
+[hidden] { display: none !important; }
 
 a { color: inherit; text-decoration: none; }
 
-a:focus-visible {
+a:focus-visible, button:focus-visible {
     outline: 2px solid var(--accent);
     outline-offset: 6px;
 }
@@ -33,10 +41,10 @@ a:focus-visible {
     align-items: center;
     justify-content: space-between;
     gap: 24px;
-    border-bottom: 1px solid var(--line);
+    border-bottom: 3px double var(--line);
 }
 
-.annual-brand { font-weight: 650; letter-spacing: 0.08em; }
+.annual-brand { font-family: "Songti SC", "STSong", serif; font-weight: 650; letter-spacing: 0.12em; }
 
 .annual-header nav { display: flex; gap: 24px; font-size: 14px; }
 
@@ -46,14 +54,21 @@ a:focus-visible {
 
 main { padding: 72px 0 96px; }
 
+.annual-heading { display: flex; align-items: center; justify-content: space-between; gap: 24px; margin-bottom: 48px; }
+
 h1 {
-    margin: 0 0 48px;
+    margin: 0;
     font-family: "Songti SC", "STSong", "Noto Serif CJK SC", serif;
     font-size: clamp(40px, 6vw, 64px);
     font-weight: 500;
     letter-spacing: 0.12em;
     line-height: 1.2;
 }
+
+.annual-book-mark { display: flex; align-items: flex-end; gap: 5px; padding: 10px 12px; border: 1px solid var(--accent); color: var(--accent); transform: rotate(-5deg); opacity: 0.7; }
+.annual-book-mark span { display: block; width: 9px; height: 30px; border: 1px solid currentColor; border-bottom-width: 4px; }
+.annual-book-mark span:nth-child(2) { height: 35px; }
+.annual-book-mark span:nth-child(3) { transform: rotate(-10deg); transform-origin: bottom; }
 
 .annual-empty {
     margin: 0;
@@ -62,16 +77,18 @@ h1 {
     color: var(--muted);
 }
 
-.annual-list { margin: 0; padding: 0; list-style: none; border-top: 1px solid var(--line); }
+.annual-list { margin: 0; padding: 0; list-style: none; border-top: 3px double var(--line); border-bottom: 1px solid var(--line); counter-reset: annual-volume; }
+.annual-list li { counter-increment: annual-volume; }
 
 .annual-issue {
     display: flex;
     align-items: baseline;
-    gap: 28px;
-    padding: 28px 16px;
+    gap: 32px;
+    padding: 32px 16px;
     border-bottom: 1px solid var(--line);
 }
 
+.annual-issue::before { content: counter(annual-volume, decimal-leading-zero); align-self: center; padding-right: 24px; border-right: 1px solid var(--line); color: var(--muted); font-family: Georgia, "Times New Roman", serif; font-size: 13px; letter-spacing: 0.08em; }
 .annual-issue:hover { background: var(--hover); }
 
 .annual-year {
@@ -81,26 +98,40 @@ h1 {
     font-variant-numeric: lining-nums tabular-nums;
 }
 
-.annual-issue-label { color: var(--muted); }
+.annual-issue-label { color: var(--muted); font-family: "Songti SC", "STSong", serif; letter-spacing: 0.15em; }
 
 .annual-arrow { margin-left: auto; color: var(--accent); font-size: 28px; }
+
+.annual-loading-page { display: grid; place-items: center; }
+.annual-loading { width: min(400px, calc(100% - 48px)); margin: 48px auto; padding: 48px 0; text-align: center; }
+.annual-loading .annual-book-mark { width: max-content; margin: 0 auto 40px; }
+.annual-loading h1 { font-size: clamp(30px, 6vw, 42px); letter-spacing: 0.04em; }
+#loading-status { min-height: 1.7em; margin: 28px 0 24px; color: var(--muted); line-height: 1.7; }
+#loading-progress { display: block; width: 100%; height: 5px; appearance: none; border: 0; background: var(--line); color: var(--accent); }
+#loading-progress::-webkit-progress-bar { background: var(--line); }
+#loading-progress::-webkit-progress-value { background: var(--accent); }
+#loading-progress::-moz-progress-bar { background: var(--accent); }
+.annual-loading-detail { display: flex; justify-content: space-between; gap: 16px; margin-top: 14px; color: var(--muted); font-size: 13px; font-variant-numeric: tabular-nums; }
+.annual-loading-actions { display: flex; justify-content: center; gap: 28px; margin-top: 36px; font-size: 14px; }
+.annual-loading-actions a, .annual-loading-actions button { padding: 6px 0; border: 0; border-bottom: 1px solid var(--line); background: none; color: var(--ink); font: inherit; cursor: pointer; }
 
 @media (max-width: 600px) {
     .annual-shell { width: calc(100% - 40px); }
     .annual-header { min-height: 76px; gap: 16px; }
     .annual-header nav { gap: 18px; }
     main { padding: 48px 0 64px; }
-    h1 { margin-bottom: 32px; }
-    .annual-issue { padding: 24px 8px; gap: 20px; }
+    .annual-heading { margin-bottom: 32px; }
+    .annual-issue { padding: 24px 8px; gap: 16px; }
+    .annual-issue::before { padding-right: 16px; }
 }
 
 @media (prefers-color-scheme: dark) {
     :root {
-        --paper: #1b211e;
-        --ink: #e7e9e1;
-        --muted: #a5b2a8;
-        --line: #3c4940;
-        --accent: #a4c8ac;
-        --hover: #263029;
+        --paper: #25221d;
+        --ink: #e8ddc9;
+        --muted: #b4a48b;
+        --line: #544a3a;
+        --accent: #d19b78;
+        --hover: #302a22;
     }
 }
