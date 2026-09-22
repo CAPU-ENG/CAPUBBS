@@ -10,6 +10,9 @@
   --deep-green: #203c32;
   --on-green: #f6f8f4;
   --on-green-muted: #c6d5c9;
+  --background-dot: #5f806812;
+  --spotlight-wash: #fbfff8b3;
+  --spotlight-dot: #63856880;
   /* Match forum/src/styles/base.css. */
   --card-radius: 2px;
   --control-radius: .5px;
@@ -23,6 +26,11 @@
 * { box-sizing: border-box; }
 html { scroll-behavior: smooth; scroll-padding-top: 24px; }
 body { margin: 0; }
+/* Match annual's fine dot texture and pointer spotlight, below opaque sections. */
+.home-dotted-background { position: relative; isolation: isolate; background-color: var(--paper); background-image: radial-gradient(var(--background-dot) .6px, transparent .8px); background-size: 5px 5px; background-attachment: fixed; }
+.home-dotted-background::before { content: ""; position: absolute; inset: 0; z-index: -1; pointer-events: none; background-color: var(--spotlight-wash); background-image: radial-gradient(var(--spotlight-dot) .7px, transparent 1px); background-size: 5px 5px; background-attachment: fixed; -webkit-mask-image: radial-gradient(circle clamp(180px, 26vw, 360px) at var(--spotlight-x, 50%) var(--spotlight-y, 30%), #000 0%, #0009 42%, transparent 100%); mask-image: radial-gradient(circle clamp(180px, 26vw, 360px) at var(--spotlight-x, 50%) var(--spotlight-y, 30%), #000 0%, #0009 42%, transparent 100%); opacity: 0; transition: opacity 240ms ease; }
+.home-dotted-background.is-spotlight-active::before { opacity: 1; }
+.home-dotted-dark { --background-dot: #b8d7bd26; --spotlight-wash: #b6dca814; --spotlight-dot: #d6edbd99; background-color: var(--deep-green); }
 a { color: inherit; text-decoration: none; }
 button, input { font: inherit; }
 button { cursor: pointer; color: inherit; }
@@ -37,7 +45,7 @@ fieldset { padding: 0; margin: 0; min-width: 0; }
 .page-width { width: min(100%, 1216px); padding-inline: var(--gutter); margin-inline: auto; }
 .skip-link { position: fixed; z-index: 20; top: 12px; left: 16px; padding: 14px 20px; color: white; background: var(--accent); transform: translateY(-160%); }
 .skip-link:focus { transform: translateY(0); }
-.site-header { background: var(--deep-green); color: var(--on-green); }
+.site-header { background-color: var(--deep-green); color: var(--on-green); }
 .header-inner { min-height: 96px; display: flex; justify-content: space-between; align-items: center; gap: 24px; padding-block: 20px; }
 .site-header :focus-visible, .promotion :focus-visible { outline-color: #d5ebbb; }
 .brand { display: flex; align-items: center; gap: 12px; min-width: 0; }
@@ -54,15 +62,15 @@ fieldset { padding: 0; margin: 0; min-width: 0; }
 .homepage-main > section { grid-column: 2; }
 .homepage-main > .promotion { grid-column: 1 / -1; }
 .homepage-main > .videos { grid-column: 1 / -1; }
-.promotion { min-width: 0; padding-bottom: 24px; background: var(--deep-green); color: var(--on-green); }
-.promotion-frame { position: relative; width: calc(100% - 2 * var(--gutter)); max-width: 1536px; margin-inline: auto; overflow: hidden; border-radius: var(--card-radius); background: #2b493c; }
-.promotion-stage { position: relative; aspect-ratio: 8 / 3; min-height: 300px; }
+.promotion { min-width: 0; padding-bottom: 24px; background-color: var(--deep-green); color: var(--on-green); }
+.promotion-frame { position: relative; width: calc(100% - 2 * var(--gutter)); max-width: 1536px; margin-inline: auto; overflow: hidden; border-radius: var(--card-radius); }
+.promotion-stage { position: relative; height: 480px; }
 .promotion-slide { display: flex; position: absolute; inset: 0; justify-content: center; align-items: center; }
 .promotion-slide a { width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; }
-.promotion-slide img { width: 100%; height: 100%; object-fit: cover; object-position: center; }
+.promotion-slide img { width: 100%; height: 100%; object-fit: contain; object-position: center; }
 .image-error { padding: 24px; color: var(--on-green-muted); font-size: 14px; text-align: center; }
 .promotion-empty { position: absolute; inset: 0 0 64px; display: grid; place-items: center; padding: 24px; color: var(--on-green-muted); background: #2b493c; font-size: 14px; }
-.promotion-bar { display: flex; align-items: center; justify-content: space-between; min-height: 64px; gap: 16px; padding: 8px 20px; background: var(--deep-green); }
+.promotion-bar { display: flex; align-items: center; justify-content: space-between; min-height: 64px; gap: 16px; padding: 8px 20px; }
 .promotion-caption { min-width: 0; font-size: 14px; line-height: 1.6; overflow-wrap: anywhere; }
 .promotion-actions { display: flex; align-items: center; flex-wrap: wrap; justify-content: flex-end; gap: 12px; flex-shrink: 0; }
 .promotion-controls { display: flex; align-items: center; gap: 6px; }
@@ -70,6 +78,7 @@ fieldset { padding: 0; margin: 0; min-width: 0; }
 .promotion-count > span:first-child { color: var(--on-green); }
 .promotion-controls button { background: transparent; width: 40px; height: 44px; padding: 0; font-size: 22px; border-radius: var(--control-radius); }
 .promotion-controls button:hover { background: #3b594a; }
+.promotion-controls [data-image-autoplay] { font-size: 16px; }
 .promotion-manage { display: inline-flex; align-items: center; min-height: 44px; font-size: 12px; color: var(--on-green-muted); }
 .section-frame { padding: clamp(22px, 3vw, 36px); border: 1px solid var(--line); border-radius: var(--card-radius); background: var(--surface); box-shadow: var(--shadow-card); min-width: 0; }
 .section-heading { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px 24px; margin-bottom: 24px; }
@@ -101,7 +110,7 @@ h2 { font-size: 23px; font-weight: 600; letter-spacing: .03em; line-height: 1.4;
 .about-panel .about-training li { margin-block: 16px; }
 .about-panel .about-group { text-indent: 0; }
 .about-group > strong:first-child { color: var(--accent); }
-.videos { padding-block: 52px 60px; background: var(--deep-green); color: var(--on-green); }
+.videos { padding-block: 52px 60px; background-color: var(--deep-green); color: var(--on-green); }
 .videos :focus-visible { outline-color: #d5ebbb; }
 .videos .text-link { color: #d7e3d8; }
 .videos .section-status { color: #c6d5c9; }
@@ -115,7 +124,7 @@ h2 { font-size: 23px; font-weight: 600; letter-spacing: .03em; line-height: 1.4;
 .video-caption h3 { font-size: 15px; font-weight: 500; line-height: 1.6; overflow-wrap: anywhere; }
 .section-status { color: var(--muted); font-size: 14px; line-height: 1.7; padding-top: 16px; }
 .text-button { background: transparent; text-decoration: underline; text-underline-offset: 5px; min-height: 44px; padding: 0 2px; font-size: 13px; }
-.contact { position: relative; border: 0; border-radius: 0; padding: clamp(32px, 4vw, 46px); box-shadow: none; }
+.contact { position: relative; width: fit-content; max-width: 100%; justify-self: center; border: 0; border-radius: 0; padding: clamp(32px, 4vw, 46px); box-shadow: none; }
 /* Semicircular cutouts repeat along all four edges, like a perforated stamp. */
 .contact::before { content: ""; position: absolute; inset: 0; pointer-events: none; background: radial-gradient(circle at 9px 0, var(--paper) 4px, transparent 4.5px) top left / 18px 10px repeat-x, radial-gradient(circle at 9px 10px, var(--paper) 4px, transparent 4.5px) bottom left / 18px 10px repeat-x, radial-gradient(circle at 0 9px, var(--paper) 4px, transparent 4.5px) top left / 10px 18px repeat-y, radial-gradient(circle at 10px 9px, var(--paper) 4px, transparent 4.5px) top right / 10px 18px repeat-y; }
 .contact::after { content: ""; position: absolute; inset: 13px; border: 1px solid #d5dfd1; pointer-events: none; }
@@ -123,6 +132,7 @@ h2 { font-size: 23px; font-weight: 600; letter-spacing: .03em; line-height: 1.4;
 /* Match chexie.net/assets/css/style.css and its original 320px sponsor image. */
 .site-footer { margin-top: 0; padding: 30px 0; background: #bbbbbb; color: #777; text-align: center; }
 .footer-inner { display: grid; gap: 24px; padding-block: 0; }
+.footer-meta { display: grid; gap: 6px; }
 .sponsors { display: flex; align-items: center; justify-content: center; }
 .sponsors img { width: 320px; height: auto; }
 .footer-qr-list { position: relative; display: flex; align-items: center; justify-content: center; flex-wrap: wrap; gap: 10px 20px; }
@@ -135,7 +145,7 @@ h2 { font-size: 23px; font-weight: 600; letter-spacing: .03em; line-height: 1.4;
 .footer-qr-popover img { width: 200px; height: 200px; object-fit: contain; background: #fff; }
 .footer-links { display: flex; justify-content: center; flex-wrap: wrap; gap: 8px 30px; font-size: 13px; }
 .footer-links a { display: inline-flex; align-items: center; min-height: 36px; }
-.footer-bottom { display: flex; justify-content: center; flex-wrap: wrap; gap: 6px 24px; padding-top: 22px; font-size: 12px; line-height: 1.8; text-align: center; }
+.footer-bottom { display: flex; justify-content: center; flex-wrap: wrap; gap: 6px 24px; font-size: 12px; line-height: 1.8; text-align: center; }
 .login-dialog { width: min(440px, calc(100% - 32px)); border: 0; border-radius: var(--card-radius); padding: 38px; color: var(--ink); background: var(--surface); max-height: calc(100dvh - 32px); overflow-y: auto; }
 .login-dialog::backdrop { background: #14282099; }
 .dialog-close { position: absolute; top: 10px; right: 12px; width: 44px; height: 44px; background: transparent; font-size: 30px; }
@@ -155,7 +165,7 @@ h2 { font-size: 23px; font-weight: 600; letter-spacing: .03em; line-height: 1.4;
   .forum-link { gap: 18px; padding-inline: 16px; }
   .homepage-main { row-gap: 24px; padding-bottom: 32px; }
   .videos { padding-block: 32px 36px; }
-  .promotion-stage { aspect-ratio: 16 / 9; min-height: 0; }
+  .promotion-stage { height: 280px; }
   .promotion-bar { padding: 8px 12px; gap: 6px 14px; flex-wrap: wrap; }
   .promotion-caption { font-size: 12px; }
   .promotion-actions { margin-left: auto; }
@@ -188,6 +198,9 @@ h2 { font-size: 23px; font-weight: 600; letter-spacing: .03em; line-height: 1.4;
   .about-tabs a { flex: 1; padding-inline: 8px; }
   .contact-text { font-size: 14px; }
   .login-dialog { padding: 28px; }
+}
+@media (prefers-reduced-motion: reduce), (forced-colors: active) {
+  .home-dotted-background::before { display: none; transition: none; }
 }
 @media (prefers-reduced-motion: reduce) {
   html { scroll-behavior: auto; }

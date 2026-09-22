@@ -76,20 +76,42 @@
   const imageStatus = document.querySelector('[data-image-status]');
   const imageRetry = document.querySelector('[data-image-retry]');
   const imageControls = document.querySelector('[data-image-controls]');
+  const imageAutoplay = document.querySelector('[data-image-autoplay]');
+  const imageCount = document.querySelector('.promotion-count');
   const caption = document.querySelector('[data-image-caption]');
   let images = [];
   let imageSignature = '';
   let currentImage = 0;
   let imageLoading = false;
+  let imageTimer = null;
+  let imagePaused = false;
+  let imageHovered = false;
+  let imageFocusPaused = false;
+  let imagePageActive = true;
+
+  function scheduleImageRotation() {
+    window.clearTimeout(imageTimer);
+    imageTimer = null;
+    const rotating = images.length > 1 && !imagePaused && !imageHovered && imagePageActive
+      && !document.hidden && !(imageFocusPaused && promotion.contains(document.activeElement));
+    imageCount.setAttribute('aria-live', rotating ? 'off' : 'polite');
+    imageAutoplay.setAttribute('aria-label', imagePaused ? '开始自动轮播' : '暂停自动轮播');
+    imageAutoplay.title = imageAutoplay.getAttribute('aria-label');
+    imageAutoplay.querySelector('span').textContent = imagePaused ? '▶' : 'Ⅱ';
+    if (rotating) imageTimer = window.setTimeout(() => showImage(currentImage + 1), 5000);
+  }
 
   function showImage(index) {
-    if (!images.length) return;
+    if (!images.length) { scheduleImageRotation(); return; }
     const restoreFocus = slides.contains(document.activeElement);
     currentImage = (index + images.length) % images.length;
     Array.from(slides.children).forEach((slide, offset) => { slide.hidden = offset !== currentImage; });
     caption.textContent = images[currentImage].title || '宣传图';
     document.querySelector('[data-image-number]').textContent = String(currentImage + 1).padStart(2, '0');
+    const nextImage = slides.children[(currentImage + 1) % images.length].querySelector('img');
+    if (nextImage) nextImage.loading = 'eager';
     if (restoreFocus) slides.children[currentImage].querySelector('a').focus({ preventScroll: true });
+    scheduleImageRotation();
   }
 
   function renderImages(rows) {
@@ -123,9 +145,9 @@
       image.loading = index === 0 ? 'eager' : 'lazy';
       image.decoding = 'async';
       if (index === 0) image.setAttribute('fetchpriority', 'high');
-      image.src = row.imgthumb || row.img;
+      image.src = row.img || row.imgthumb;
       image.addEventListener('error', () => {
-        if (row.img && image.src !== row.img) { image.src = row.img; return; }
+        if (row.imgthumb && image.src !== row.imgthumb) { image.src = row.imgthumb; return; }
         const error = document.createElement('span');
         error.className = 'image-error';
         error.textContent = '图片无法加载，点击查看原图';
@@ -156,6 +178,21 @@
     }
   }
   imageRetry.addEventListener('click', () => { void loadImages(); });
+  imageAutoplay.addEventListener('click', () => {
+    imagePaused = !imagePaused;
+    if (!imagePaused) imageFocusPaused = false;
+    scheduleImageRotation();
+  });
+  promotion.addEventListener('pointerenter', event => {
+    if (event.pointerType === 'touch') return;
+    imageHovered = true;
+    scheduleImageRotation();
+  });
+  promotion.addEventListener('pointerleave', () => { imageHovered = false; scheduleImageRotation(); });
+  promotion.addEventListener('focusin', () => { imageFocusPaused = true; scheduleImageRotation(); });
+  promotion.addEventListener('focusout', () => { queueMicrotask(scheduleImageRotation); });
+  document.addEventListener('visibilitychange', scheduleImageRotation);
+  window.addEventListener('pagehide', () => { imagePageActive = false; scheduleImageRotation(); });
   promotion.addEventListener('click', event => {
     const button = event.target.closest('[data-image-step]');
     if (button) showImage(currentImage + Number(button.dataset.imageStep));
@@ -247,6 +284,8 @@
   }
   contactRetry.addEventListener('click', () => { void loadContacts(); });
   window.addEventListener('pageshow', event => {
+    imagePageActive = true;
+    scheduleImageRotation();
     if (event.persisted) { void loadImages(); void loadVideos(); void loadContacts(); }
   });
   window.addEventListener('focus', () => { void loadImages(); void loadVideos(); void loadContacts(); });
