@@ -33,9 +33,10 @@ rsort($years, SORT_NUMERIC);
                 <a href="/bbs/archive-room">档案室</a>
             </nav>
         </header>
-        <main>
+        <main class="annual-catalog">
             <div class="annual-heading">
                 <h1 class="annual-title" aria-label="年刊"><span aria-hidden="true">年</span><span aria-hidden="true">刊</span></h1>
+                <p class="annual-subtitle" lang="en">CAPU YEARBOOK</p>
                 <div class="annual-book-mark" aria-hidden="true"><span></span><span></span><span></span></div>
             </div>
 <?php if (count($years) === 0): ?>
