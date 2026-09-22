@@ -21,6 +21,7 @@ $homepageLoginModal = true;
   <script src="/assets/js/home-session.js" defer></script>
   <script src="/assets/js/home-video-covers.js" defer></script>
   <script src="/assets/js/home-footer.js" defer></script>
+  <script src="/assets/js/home-background.js" defer></script>
   <script src="/assets/js/homepage.js" defer></script>
 </head>
 <body id="top">
@@ -38,7 +39,7 @@ $homepageLoginModal = true;
     </div>
   </header>
 
-  <main class="homepage-main" id="main">
+  <main class="homepage-main home-dotted-background" id="main">
     <section class="promotion" role="region" aria-label="宣传图" aria-roledescription="轮播图" data-promotion>
       <div class="promotion-frame">
         <div class="promotion-stage" id="promotion-slides">
@@ -107,24 +108,20 @@ $homepageLoginModal = true;
       </div>
     </section>
 
-    <section class="contact-row" id="contact" aria-labelledby="contact-title">
-      <div class="contact-ornament" aria-hidden="true"><span class="contact-symbol"><span class="contact-icon contact-icon-bicycle"></span></span></div>
-      <div class="section-frame contact">
-        <div class="section-heading">
-          <h2 id="contact-title">联系方式</h2>
+    <section class="section-frame contact" id="contact" aria-labelledby="contact-title">
+      <div class="section-heading">
+        <h2 id="contact-title">联系方式</h2>
 <?php if ($rights >= 3) { ?>
-          <a class="text-link" href="/index/contacts.php">管理联系方式</a>
+        <a class="text-link" href="/index/contacts.php">管理联系方式</a>
 <?php } ?>
-        </div>
-        <div class="contact-text" data-contact-text><?php echo homepage_escape($homepageContacts['text']); ?></div>
-        <p class="section-status" role="status" data-contact-status<?php if (!$homepageContactsError) echo ' hidden'; ?>>联系方式暂时无法加载。</p>
-        <button class="text-button" type="button" data-contact-retry<?php if (!$homepageContactsError) echo ' hidden'; ?>>重新加载</button>
       </div>
-      <div class="contact-ornament" aria-hidden="true"><span class="contact-symbol"><span class="contact-icon contact-icon-tools"></span></span></div>
+      <div class="contact-text" data-contact-text><?php echo homepage_escape($homepageContacts['text']); ?></div>
+      <p class="section-status" role="status" data-contact-status<?php if (!$homepageContactsError) echo ' hidden'; ?>>联系方式暂时无法加载。</p>
+      <button class="text-button" type="button" data-contact-retry<?php if (!$homepageContactsError) echo ' hidden'; ?>>重新加载</button>
     </section>
   </main>
 
-  <footer class="site-footer">
+  <footer class="site-footer home-dotted-background">
     <div class="page-width footer-inner">
       <div class="sponsors" aria-label="赞助标识"><img src="/assets/images/static/homepage/rockbros.png" alt="洛克兄弟" title="洛克兄弟" width="320" loading="lazy" decoding="async"></div>
       <div class="footer-qr-list" aria-label="公众号和客户端二维码">
