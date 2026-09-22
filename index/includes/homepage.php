@@ -19,6 +19,7 @@ $homepageLoginModal = true;
   <link rel="stylesheet" href="/assets/css/homepage.css">
   <script src="/bbs/lib/md5.js" defer></script>
   <script src="/assets/js/home-session.js" defer></script>
+  <script src="/assets/js/home-video-covers.js" defer></script>
   <script src="/assets/js/homepage.js" defer></script>
 </head>
 <body id="top">
@@ -29,12 +30,12 @@ $homepageLoginModal = true;
       <h1><?php echo homepage_escape($homepageContent['name']); ?></h1>
     </a>
     <nav class="navigation" aria-label="主导航">
-      <a class="forum-link" href="/bbs/">进入论坛 <span aria-hidden="true">↗</span></a>
+      <a class="forum-link" href="/bbs/">进入论坛</a>
       <?php require __DIR__.'/session-links.php'; ?>
     </nav>
   </header>
 
-  <main class="page-width homepage-main" id="main">
+  <main class="homepage-main" id="main">
     <section class="promotion" role="region" aria-label="宣传图" aria-roledescription="轮播图" data-promotion>
       <div class="promotion-stage" id="promotion-slides">
 <?php foreach ($homepageMedia['images'] as $number => $image) { ?>
@@ -74,32 +75,30 @@ $homepageLoginModal = true;
 <?php } ?>
     </section>
 
-    <section class="section-frame videos" id="videos" aria-labelledby="videos-title">
-      <div class="section-heading">
-        <h2 id="videos-title">视频资料</h2>
-        <div class="section-actions">
-          <a class="text-link" data-video-more href="<?php echo homepage_escape($homepageVideos['moreUrl']); ?>" target="_blank" rel="noopener noreferrer"<?php if ($homepageVideos['moreUrl'] === '') echo ' hidden'; ?>>全部视频 <span aria-hidden="true">↗</span></a>
+    <section class="videos" id="videos" aria-labelledby="videos-title">
+      <div class="page-width videos-inner">
+        <div class="section-heading">
+          <h2 id="videos-title">视频资料</h2>
+          <div class="section-actions">
+            <a class="text-link" data-video-more href="<?php echo homepage_escape($homepageVideos['moreUrl']); ?>" target="_blank" rel="noopener noreferrer"<?php if ($homepageVideos['moreUrl'] === '') echo ' hidden'; ?>>全部视频</a>
 <?php if ($rights >= 3) { ?>
-          <a class="text-link" href="/index/videos.php">管理视频</a>
+            <a class="text-link" href="/index/videos.php">管理视频</a>
+<?php } ?>
+          </div>
+        </div>
+        <div class="video-grid" data-video-list>
+<?php foreach ($homepageVideos['videos'] as $video) { ?>
+          <a class="video-link" href="<?php echo homepage_escape($video['url']); ?>" target="_blank" rel="noopener noreferrer">
+            <span class="video-cover" aria-hidden="true">
+              <span class="video-play">▶</span>
+            </span>
+            <div class="video-caption"><h3><?php echo homepage_escape($video['title']); ?></h3></div>
+          </a>
 <?php } ?>
         </div>
+        <div class="section-status" role="status" data-video-status<?php if (!$homepageVideosError && count($homepageVideos['videos']) > 0) echo ' hidden'; ?>><?php echo $homepageVideosError ? '视频暂时无法加载。' : '暂无视频资料。'; ?></div>
+        <button class="text-button" type="button" data-video-retry hidden>重新加载</button>
       </div>
-      <div class="video-grid" data-video-list>
-<?php foreach ($homepageVideos['videos'] as $video) {
-    $cover = homepage_video_cover($video['url'], $homepageMedia['videoCovers']); ?>
-        <a class="video-link" href="<?php echo homepage_escape($video['url']); ?>" target="_blank" rel="noopener noreferrer">
-          <span class="video-cover" aria-hidden="true">
-<?php if ($cover !== '') { ?>
-            <img src="<?php echo homepage_escape($cover); ?>" alt="" loading="lazy" decoding="async" referrerpolicy="no-referrer">
-<?php } ?>
-            <span class="video-play">▶</span>
-          </span>
-          <div class="video-caption"><h3><?php echo homepage_escape($video['title']); ?></h3><span aria-hidden="true">↗</span></div>
-        </a>
-<?php } ?>
-      </div>
-      <div class="section-status" role="status" data-video-status<?php if (!$homepageVideosError && count($homepageVideos['videos']) > 0) echo ' hidden'; ?>><?php echo $homepageVideosError ? '视频暂时无法加载。' : '暂无视频资料。'; ?></div>
-      <button class="text-button" type="button" data-video-retry hidden>重新加载</button>
     </section>
 
     <section class="section-frame contact" id="contact" aria-labelledby="contact-title">
@@ -130,7 +129,7 @@ $homepageLoginModal = true;
         <label for="home-username">用户名</label><input id="home-username" name="username" autocomplete="username" required maxlength="100">
         <label for="home-password">密码</label><input id="home-password" name="password" type="password" autocomplete="current-password" required>
         <p class="login-error" role="alert" data-login-error hidden></p>
-        <button class="login-submit" type="submit">登录 <span aria-hidden="true">↗</span></button>
+        <button class="login-submit" type="submit">登录</button>
       </fieldset>
       <div class="login-links"><a href="/bbs/register/">注册账号</a><a href="/bbs/login">前往论坛登录</a></div>
     </form>

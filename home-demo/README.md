@@ -4,8 +4,10 @@
 
 在仓库根目录执行 `php -c php.ini -S 127.0.0.1:8094 router.php`，访问 <http://127.0.0.1:8094/>。页面无需构建。视觉验收由仓库维护者进行。
 
-正文依次为宣传图、协会介绍（三页签）、视频资料、联系方式；论坛入口和登录态在顶部，页脚保留赞助标识。布局与交互在 `assets/css/homepage.css`、`assets/js/homepage.js`，PHP 模板在 `index/includes/homepage.php`。素材来源、暂存配置及既有接口见 `index/README.md`。本轮仅完成排版，联系方式编辑和新增视频自动抓取封面的 API 尚未接入。
+正文依次为加宽铺满的宣传图、协会介绍（三页签）、全宽深绿色视频资料、联系方式；论坛入口和登录态在顶部，页脚保留赞助标识。卡片与控件风格参考新论坛。布局与交互在 `assets/css/homepage.css`、`assets/js/homepage.js`，PHP 模板在 `index/includes/homepage.php`。素材来源、暂存配置及既有接口见 `index/README.md`。联系方式编辑接口尚未接入。
 
-`images/` 的三张照片用于本轮暂存宣传图：首页初始显示，图片接口有记录时替换，没有记录时继续显示。不会自动写入数据库。暂存映射及两条已获取的 Bilibili 封面记录位于 `index/data/homepage-media.default.json`。
+`images/` 的三张照片用于暂存宣传图：首页初始显示，图片接口有记录时替换，没有记录时继续显示。不会自动写入数据库。暂存映射位于 `index/data/homepage-media.default.json`。
+
+Bilibili 单视频封面由 `assets/js/home-video-covers.js` 在前端通过 JSONP 获取，直接展示 B 站 CDN 图片；不在服务器保存封面。请求失败和暂不支持的链接保留播放占位。
 
 保留素材来自仓库已归档帖子《【甘南之行】雨中划过一弯彩虹》（版面 2，帖子 9096）：`gannan.webp` 对应 `/bbs/images/483532495.jpg`，`road.webp` 对应 `/bbs/images/635541616.jpg`，`riders.webp` 对应 `/bbs/images/36983029.jpg`；`capu.png` 为 `forum/public/favicon.png` 的副本。

@@ -128,7 +128,7 @@
         if (row.img && image.src !== row.img) { image.src = row.img; return; }
         const error = document.createElement('span');
         error.className = 'image-error';
-        error.textContent = '图片无法加载，点击查看原图 ↗';
+        error.textContent = '图片无法加载，点击查看原图';
         link.replaceChildren(error);
       });
       link.append(image); slide.append(link); fragment.append(slide);
@@ -175,36 +175,16 @@
     videos: Array.from(videoList.querySelectorAll('.video-link')).map(link => ({ title: link.querySelector('h3').textContent, url: link.href })),
     moreUrl: videoMore.hidden ? '' : videoMore.href,
   });
-  function coverFor(url) {
-    const parsed = new URL(url);
-    if (!['bilibili.com', 'www.bilibili.com', 'm.bilibili.com'].includes(parsed.hostname)) return '';
-    const match = parsed.pathname.match(/^\/video\/(BV[a-zA-Z0-9]{10})\/?$/);
-    return match ? safeUrl(media.videoCovers[match[1]]?.image) : '';
-  }
-  function watchCover(image) {
-    image.addEventListener('error', () => image.remove(), { once: true });
-    if (image.complete && !image.naturalWidth) image.remove();
-  }
-  videoList.querySelectorAll('.video-cover img').forEach(watchCover);
   function videoCard(item) {
     const link = document.createElement('a');
     link.className = 'video-link'; link.href = item.url; link.target = '_blank'; link.rel = 'noopener noreferrer';
     const cover = document.createElement('span');
     cover.className = 'video-cover'; cover.setAttribute('aria-hidden', 'true');
-    const imageUrl = coverFor(item.url);
-    if (imageUrl) {
-      const image = document.createElement('img');
-      image.alt = ''; image.loading = 'lazy'; image.decoding = 'async'; image.referrerPolicy = 'no-referrer';
-      image.src = imageUrl;
-      cover.append(image);
-      watchCover(image);
-    }
     const play = document.createElement('span'); play.className = 'video-play'; play.textContent = '▶';
     cover.append(play);
     const caption = document.createElement('div'); caption.className = 'video-caption';
     const title = document.createElement('h3'); title.textContent = item.title;
-    const arrow = document.createElement('span'); arrow.textContent = '↗'; arrow.setAttribute('aria-hidden', 'true');
-    caption.append(title, arrow); link.append(cover, caption);
+    caption.append(title); link.append(cover, caption);
     return link;
   }
   async function loadVideos() {
@@ -230,6 +210,7 @@
       videoStatus.textContent = next.length ? '' : '暂无视频资料。';
       videoStatus.hidden = next.length > 0;
       videoRetry.hidden = true;
+      window.CapuHomeVideoCovers?.update(videoList);
     } catch (_) {
       videoStatus.textContent = videoList.children.length ? '视频列表更新失败，请重试。' : '视频暂时无法加载。';
       videoStatus.hidden = false;
@@ -244,6 +225,7 @@
     if (event.persisted) { void loadImages(); void loadVideos(); }
   });
   window.addEventListener('focus', () => { void loadImages(); void loadVideos(); });
+  window.CapuHomeVideoCovers?.update(videoList);
   renderImages(media.images);
   void loadImages();
   void loadVideos();
