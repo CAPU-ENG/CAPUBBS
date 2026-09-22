@@ -5,7 +5,7 @@
     --muted: #85735d;
     --line: #d5c7ae;
     --accent: #8e4b37;
-    --hover: #ece2cd;
+    --hover: #e0cfac80;
     --spotlight-wash: #fffbe9b3;
     --spotlight-dot: #af835f80;
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
@@ -118,6 +118,8 @@ h1 {
 .annual-list li { counter-increment: annual-volume; }
 
 .annual-issue {
+    position: relative;
+    isolation: isolate;
     display: flex;
     align-items: baseline;
     gap: 32px;
@@ -126,7 +128,18 @@ h1 {
 }
 
 .annual-issue::before { content: counter(annual-volume, decimal-leading-zero); align-self: center; padding-right: 24px; border-right: 1px solid var(--line); color: var(--muted); font-family: Georgia, "Times New Roman", serif; font-size: 13px; letter-spacing: 0.08em; }
-.annual-issue:hover { background: var(--hover); }
+.annual-issue::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    pointer-events: none;
+    background: var(--hover);
+    transform: scaleX(0);
+    transform-origin: left center;
+    transition: transform 320ms cubic-bezier(0.2, 0.7, 0.2, 1);
+}
+.annual-issue:hover::after, .annual-issue:focus-visible::after { transform: scaleX(1); }
 
 .annual-year {
     font-family: Georgia, "Times New Roman", serif;
@@ -178,7 +191,7 @@ h1 {
         --muted: #b4a48b;
         --line: #544a3a;
         --accent: #d19b78;
-        --hover: #302a22;
+        --hover: #66533766;
         --spotlight-wash: #dfb47812;
         --spotlight-dot: #e3bb8280;
     }
@@ -186,4 +199,5 @@ h1 {
 
 @media (prefers-reduced-motion: reduce), (forced-colors: active) {
     .annual-directory-page::before { display: none; transition: none; }
+    .annual-issue::after { transition: none; }
 }
