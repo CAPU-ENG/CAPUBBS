@@ -353,6 +353,7 @@ export function ThreadPage() {
   }
 
   async function removeNestedReply(floor: ThreadFloorData, reply: NestedReply) {
+    if (data?.locked) throw new Error('主题已锁定。');
     const text = reply.target ? `回复 @${reply.target}：${reply.content}` : reply.content;
     await deleteNestedReply({ fid: floor.fid, id: Number(reply.id), text });
     await invalidateLoadedThread(getThreadCacheScope(viewer?.username), data?.bid ?? request.bid, data?.tid ?? request.tid);
@@ -361,6 +362,7 @@ export function ThreadPage() {
 
   async function removeFloor(floor: ThreadFloorData) {
     if (!data) return;
+    if (data.locked) throw new Error('主题已锁定。');
     await deleteThreadFloor({
       bid: data.bid,
       pid: floor.floor,
@@ -610,6 +612,7 @@ export function ThreadPage() {
                     || (assistiveBarEnabled && signatureToggleEnabled && !preciseSignatureBlocking && signaturesHidden)}
                   isActivityThread={data.isActivity}
                   isMainPost={floor.floor === 1}
+                  locked={data.locked}
                   inlineAvatar={inlineFloorAvatar}
                   showAuthorProfile={authorProfileEnabled}
                   onDeleteFloor={removeFloor}

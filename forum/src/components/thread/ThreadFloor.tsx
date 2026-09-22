@@ -370,6 +370,7 @@ export function ThreadFloor({
   floor,
   isActivityThread,
   isMainPost,
+  locked,
   inlineAvatar,
   showAuthorProfile,
   hideSignature,
@@ -388,6 +389,7 @@ export function ThreadFloor({
   floor: ThreadFloorData;
   isActivityThread: boolean;
   isMainPost: boolean;
+  locked: boolean;
   inlineAvatar: boolean;
   showAuthorProfile: boolean;
   hideSignature: boolean;
@@ -548,7 +550,7 @@ export function ThreadFloor({
   }
 
   function confirmDelete() {
-    if (!deleteDialogTarget) return;
+    if (locked || !deleteDialogTarget) return;
     const target = deleteDialogTarget;
     setDeleteDialogTarget(null);
     if (target.kind === 'floor') void removeFloor();
@@ -609,13 +611,13 @@ export function ThreadFloor({
   const mainAfterContent = (
     <>
       <ThreadFloorActions
-        canDelete={(!isActivityThread || isMainPost) && (floor.canDelete ?? floor.isOwn ?? false)}
-        canEdit={(!isActivityThread || isMainPost) && Boolean(floor.isOwn)}
+        canDelete={!locked && (!isActivityThread || isMainPost) && (floor.canDelete ?? floor.isOwn ?? false)}
+        canEdit={!locked && (!isActivityThread || isMainPost) && Boolean(floor.isOwn)}
         canQuote={canQuote}
         canReply={canReply}
         deleting={floorDeletePending}
         editHref={editHref}
-        onEditSignup={isActivityThread && !isMainPost && floor.isOwn ? onEditSignup : undefined}
+        onEditSignup={!locked && isActivityThread && !isMainPost && floor.isOwn ? onEditSignup : undefined}
         onDelete={(trigger) => {
           deleteTriggerRef.current = trigger;
           setFloorDeleteError('');
@@ -670,7 +672,7 @@ export function ThreadFloor({
                       回复
                     </button>
                   )}
-                  {reply.canDelete && (
+                  {!locked && reply.canDelete && (
                     <button
                       className="nested-reply-delete"
                       disabled={nestedReplyDeletingId === reply.id}
@@ -758,7 +760,7 @@ export function ThreadFloor({
           onClose={closeImagePreview}
         />
       )}</DialogPresence>
-      <DialogPresence mobileSize="compact">{deleteDialogTarget && (
+      <DialogPresence mobileSize="compact">{!locked && deleteDialogTarget && (
         <DeleteReplyDialog
           floor={floor}
           isMainPost={isMainPost}

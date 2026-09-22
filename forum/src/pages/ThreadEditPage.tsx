@@ -19,6 +19,7 @@ import {
 import {
   fetchEditableThreadFloor,
   fetchThreadAttachmentInfo,
+  fetchThreadDetail,
   isAbortError,
   ThreadApiError,
   uploadThreadAttachments,
@@ -32,7 +33,7 @@ import { useDocumentTitle } from '../hooks/useDocumentTitle';
 import { toForumHref } from '../utils/forumBasePath';
 import { getLoginPathWithReturnTo, getRegisterPathWithReturnTo } from '../utils/authRoutes';
 import { normalizeFloorQuotesForLegacyStorage } from '../utils/floorQuote';
-import { getThreadFloorHref } from '../utils/threadRoutes';
+import { getThreadFloorHref, getThreadPageForFloor } from '../utils/threadRoutes';
 import { getThreadCacheScope } from '../utils/threadContentCache';
 import { getTitleIndentationClassName } from '../utils/titleIndentation';
 import { invalidateLoadedThread } from '../utils/threadContentLoader';
@@ -69,8 +70,21 @@ export function ThreadEditPage() {
 
     const controller = new AbortController();
     setLoadError('');
+    setFloor(null);
 
-    void fetchEditableThreadFloor({ ...request, signal: controller.signal }).then(
+    void fetchThreadDetail({
+      authorOnly: false,
+      bid: request.bid,
+      decoration: false,
+      page: getThreadPageForFloor(request.pid),
+      prefetch: true,
+      signal: controller.signal,
+      tagMedalDisplay: false,
+      tid: request.tid,
+    }).then((thread) => {
+      if (thread.locked) throw new ThreadApiError('主题已锁定。');
+      return fetchEditableThreadFloor({ ...request, signal: controller.signal });
+    }).then(
       (editableFloor) => {
         const attachmentIds = getAttachmentIds(editableFloor.attachments);
         setFloor(editableFloor);
