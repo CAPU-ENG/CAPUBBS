@@ -22,11 +22,19 @@
 
 ## 协会介绍、联系方式与页脚
 
-`index/homepage-content.php` 配置名称、页签和备案号；`index/content/about.html`、`summer.html`、`activities.html` 分别存放协会简介、暑期介绍、日常活动的完整静态正文。正文按要求复制自 `https://www.chexie.net/index/about.php`，保留原文的历史年份和介绍内容，只调整 HTML 结构。页签支持鼠标、方向键、Home/End 和 `#summer`、`#activities` 直达；无 JavaScript 时三篇正文依次显示。
+`index/homepage-content.php` 配置名称、页签、底栏二维码和备案号；`index/content/about.html`、`summer.html`、`activities.html` 分别存放协会简介、暑期介绍、日常活动的完整静态正文。正文按要求复制自 `https://www.chexie.net/index/about.php`，保留原文的历史年份和介绍内容。正文行宽、首段、小标题、段落缩进和列表分层排版，暑期成果整理为列表，活动按既有四个主题分组；没有改写或删减原文。页签支持鼠标、方向键、Home/End 和 `#summer`、`#activities` 直达；无 JavaScript 时三篇正文依次显示。
 
 `index/data/contacts.default.json` 的 `text` 保存原“关于协会 → 联系我们”的完整联系方式，包含负责人、电话、28号楼B107室地址与线下活动信息；模板以纯文本转义输出并保留换行。当前仅展示，没有在线编辑入口或保存接口。后续在线编辑仍须权限 >= 3。
 
-页脚保留洛克兄弟赞助标识、北京大学、北大未名BBS、原车协主页、隐私政策、版权和备案号。赞助图片暂存为 `assets/images/static/homepage/rockbros.png`，来源是原页脚的 `/bbs/images/a56e5ca6707358f21ba8f1bb1cc583858068c921.png`。原车协主页链接指向既有 `/old/index/`，其内容不属于本次修改。Favicon 与导航图标复用 `/bbs/favicon.png`。
+页脚保留洛克兄弟赞助标识、北京大学、北大未名BBS、隐私政策、版权和备案号，已移除“原车协主页”入口。页脚按照原站 `/assets/css/style.css` 使用 `#bbbbbb` 背景、`#777` 文字、`#e0e0e0` 顶边框和上下 30px 留白。赞助图片 `assets/images/static/homepage/rockbros.png` 与原站 `/bbs/images/a56e5ca6707358f21ba8f1bb1cc583858068c921.png` 字节一致，宽度恢复为原站 320px，高度按原图比例自适应，不加底板或滤镜。Favicon 与导航图标复用 `/bbs/favicon.png`。
+
+底栏新增微信公众号、Android 客户端、iOS 客户端三个二维码入口，复用原首页 `index/main.php` 引用的图片，存放在 `assets/images/static/homepage/`：
+
+- `qrcode-wechat.jpg`：来自 `/assets/images/qrcode_wechat.jpg`，原二维码指向 `http://weixin.qq.com/r/NUOIkFPEzw6wrRfz9xYn`。
+- `qrcode-android.png`：来自 `/assets/images/qrcode_android.png`，原二维码指向 `http://pan.baidu.com/s/1dE8rStz`。
+- `qrcode-ios.png`：来自 `/assets/images/qrcode_ios.gif`，其实际文件格式为 PNG，仅纠正扩展名，图片内容未改动；原二维码指向 `http://itunes.apple.com/cn/app/capubbs/id826386033`。
+
+这些是原站已有二维码，未更换为新的客户端安装渠道。`assets/js/home-footer.js` 支持鼠标悬停、点击固定或收起、键盘焦点展开、Esc/点击外部/焦点离开关闭；同一时间只展开一个。移动端点击展开，弹层居中避免横向溢出。无 JavaScript 时由原生 `details/summary` 提供点击展开功能。
 
 ## 视频
 

@@ -20,6 +20,7 @@ $homepageLoginModal = true;
   <script src="/bbs/lib/md5.js" defer></script>
   <script src="/assets/js/home-session.js" defer></script>
   <script src="/assets/js/home-video-covers.js" defer></script>
+  <script src="/assets/js/home-footer.js" defer></script>
   <script src="/assets/js/homepage.js" defer></script>
 </head>
 <body id="top">
@@ -109,11 +110,20 @@ $homepageLoginModal = true;
 
   <footer class="site-footer">
     <div class="page-width footer-inner">
-      <div class="sponsors" aria-label="赞助标识"><img src="/assets/images/static/homepage/rockbros.png" alt="洛克兄弟 ROCKBROS" loading="lazy" decoding="async"></div>
+      <div class="sponsors" aria-label="赞助标识"><img src="/assets/images/static/homepage/rockbros.png" alt="洛克兄弟" title="洛克兄弟" width="320" loading="lazy" decoding="async"></div>
+      <div class="footer-qr-list" aria-label="公众号和客户端二维码">
+<?php foreach ($homepageContent['qrCodes'] as $qrCode) { ?>
+        <details class="footer-qr" data-footer-qr>
+          <summary id="qr-trigger-<?php echo $qrCode['id']; ?>" aria-controls="qr-panel-<?php echo $qrCode['id']; ?>"><?php echo homepage_escape($qrCode['label']); ?></summary>
+          <div class="footer-qr-popover" id="qr-panel-<?php echo $qrCode['id']; ?>" role="region" aria-labelledby="qr-trigger-<?php echo $qrCode['id']; ?>">
+            <img src="/assets/images/static/homepage/<?php echo homepage_escape($qrCode['image']); ?>" width="200" height="200" alt="<?php echo homepage_escape($qrCode['alt']); ?>" loading="lazy" decoding="async">
+          </div>
+        </details>
+<?php } ?>
+      </div>
       <nav class="footer-links" aria-label="页脚导航">
         <a href="https://www.pku.edu.cn/" target="_blank" rel="noopener noreferrer">北京大学</a>
         <a href="https://bbs.pku.edu.cn/" target="_blank" rel="noopener noreferrer">北大未名BBS</a>
-        <a href="/old/index/">原车协主页</a>
         <a href="/privacy/">隐私政策</a>
       </nav>
       <div class="footer-bottom"><span>© 2001–<?php echo date('Y'); ?> <?php echo homepage_escape($homepageContent['name']); ?></span><a href="https://beian.miit.gov.cn/" target="_blank" rel="noopener noreferrer"><?php echo homepage_escape($homepageContent['registration']); ?></a></div>
