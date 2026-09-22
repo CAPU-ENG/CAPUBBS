@@ -11,6 +11,27 @@ function capubbs_router_starts_with($value, $prefix) {
     return $prefix === '' || strncmp($value, $prefix, strlen($prefix)) === 0;
 }
 
+// Mirror real-directory hosting for annuals, including relative asset URLs.
+// PHP's development server otherwise falls back to a parent's index.php on 404.
+if ($requestPath === '/annual' || capubbs_router_starts_with($requestPath, '/annual/')) {
+    $annualRoot = realpath(__DIR__ . '/annual');
+    $annualPath = realpath(__DIR__ . rawurldecode($requestPath));
+    if ($annualRoot === false || $annualPath === false
+        || ($annualPath !== $annualRoot && !capubbs_router_starts_with($annualPath, $annualRoot . '/'))
+        || (is_dir($annualPath) && !is_file($annualPath . '/index.html') && !is_file($annualPath . '/index.php'))) {
+        http_response_code(404);
+        header('Content-Type: text/plain; charset=UTF-8');
+        echo 'Not Found';
+        exit;
+    }
+    if (is_dir($annualPath) && substr($requestPath, -1) !== '/') {
+        $query = isset($_SERVER['QUERY_STRING']) && $_SERVER['QUERY_STRING'] !== '' ? '?' . $_SERVER['QUERY_STRING'] : '';
+        header('Location: ' . $requestPath . '/' . $query, true, 308);
+        exit;
+    }
+    return false;
+}
+
 function serve_new_forum_file($requestPath, $urlPrefix, $fileRoot) {
     if (!capubbs_router_starts_with($requestPath, $urlPrefix)) return false;
 

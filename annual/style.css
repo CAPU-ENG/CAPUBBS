@@ -1,0 +1,106 @@
+:root {
+    color-scheme: light dark;
+    --paper: #f7f5ef;
+    --ink: #242c28;
+    --muted: #647069;
+    --line: #d6dbd2;
+    --accent: #38614a;
+    --hover: #eeeee5;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+    background: var(--paper);
+    color: var(--ink);
+}
+
+* { box-sizing: border-box; }
+
+body { margin: 0; }
+
+a { color: inherit; text-decoration: none; }
+
+a:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 6px;
+}
+
+.annual-shell {
+    width: min(960px, calc(100% - 80px));
+    margin: 0 auto;
+}
+
+.annual-header {
+    min-height: 96px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 24px;
+    border-bottom: 1px solid var(--line);
+}
+
+.annual-brand { font-weight: 650; letter-spacing: 0.08em; }
+
+.annual-header nav { display: flex; gap: 24px; font-size: 14px; }
+
+.annual-header nav a { color: var(--muted); }
+
+.annual-header a:hover { color: var(--accent); }
+
+main { padding: 72px 0 96px; }
+
+h1 {
+    margin: 0 0 48px;
+    font-family: "Songti SC", "STSong", "Noto Serif CJK SC", serif;
+    font-size: clamp(40px, 6vw, 64px);
+    font-weight: 500;
+    letter-spacing: 0.12em;
+    line-height: 1.2;
+}
+
+.annual-empty {
+    margin: 0;
+    padding: 32px 0;
+    border-top: 1px solid var(--line);
+    color: var(--muted);
+}
+
+.annual-list { margin: 0; padding: 0; list-style: none; border-top: 1px solid var(--line); }
+
+.annual-issue {
+    display: flex;
+    align-items: baseline;
+    gap: 28px;
+    padding: 28px 16px;
+    border-bottom: 1px solid var(--line);
+}
+
+.annual-issue:hover { background: var(--hover); }
+
+.annual-year {
+    font-family: Georgia, "Times New Roman", serif;
+    font-size: clamp(40px, 6vw, 64px);
+    line-height: 1.2;
+    font-variant-numeric: lining-nums tabular-nums;
+}
+
+.annual-issue-label { color: var(--muted); }
+
+.annual-arrow { margin-left: auto; color: var(--accent); font-size: 28px; }
+
+@media (max-width: 600px) {
+    .annual-shell { width: calc(100% - 40px); }
+    .annual-header { min-height: 76px; gap: 16px; }
+    .annual-header nav { gap: 18px; }
+    main { padding: 48px 0 64px; }
+    h1 { margin-bottom: 32px; }
+    .annual-issue { padding: 24px 8px; gap: 20px; }
+}
+
+@media (prefers-color-scheme: dark) {
+    :root {
+        --paper: #1b211e;
+        --ink: #e7e9e1;
+        --muted: #a5b2a8;
+        --line: #3c4940;
+        --accent: #a4c8ac;
+        --hover: #263029;
+    }
+}

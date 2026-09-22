@@ -107,6 +107,7 @@ export default defineConfig({
   plugins: [forumBasePathFallback(), legacyForumCookieProxy(), react(), startupLoading()],
   server: {
     proxy: {
+      '/annual': { target: PHP_ORIGIN },
       '/api': { target: PHP_ORIGIN },
       '/assets': { target: PHP_ORIGIN },
       '/bbs/assets': { target: PHP_ORIGIN },

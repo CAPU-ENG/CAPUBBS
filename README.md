@@ -3,6 +3,10 @@ CAPUBBS
 
 APIs and web for CAPUBBS.
 
+## 电子年刊
+
+独立入口为 `/annual/`，自动按年份倒序列出 `annual/年份/index.html`。每年使用自己的 HTML、CSS、JS 和 `assets/` 目录，无需修改论坛或目录清单。新增年刊的文件结构、资源引用和档案室收录方法见 [annual/README.md](annual/README.md)。
+
 ## 押后谱系
 
 新论坛工具箱入口为 `/bbs/toolbox?tab=yahou-lineage`。所有人可查看、搜索和聚焦师门；权限值不低于 3 的登录会员可选中节点添加徒弟或更新状态，选中“实践部”可添加直属 ID。页面和接口都不提供删除关系或更换师傅的操作。
