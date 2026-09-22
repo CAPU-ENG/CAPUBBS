@@ -1,7 +1,6 @@
 <?php
 header('Content-Type: text/html; charset=UTF-8');
 header('Cache-Control: no-store');
-header('Referrer-Policy: same-origin');
 
 // The manifest describes the published static files, never the document layout.
 function annual_collect_files($directory, $urlPrefix, &$files) {
@@ -17,9 +16,8 @@ function annual_collect_files($directory, $urlPrefix, &$files) {
             $extension = strtolower(pathinfo($entry, PATHINFO_EXTENSION));
             if (in_array($extension, array('php', 'php3', 'php4', 'php5', 'php7', 'php8', 'phtml', 'phar', 'inc', 'sql', 'ini', 'md', 'log', 'bak', 'dump', 'sh', 'env'), true)) continue;
             $size = filesize($path);
-            $hash = hash_file('sha256', $path);
-            if ($size === false || $hash === false) throw new RuntimeException('Cannot read annual file.');
-            $files[] = array('url' => $url, 'size' => $size, 'hash' => $hash);
+            if ($size === false) throw new RuntimeException('Cannot read annual file.');
+            $files[] = array('url' => $url, 'size' => $size);
         }
     }
 }
@@ -39,12 +37,9 @@ if (!preg_match('/^[0-9]{4}$/D', $year)
     try {
         $files = array();
         annual_collect_files(__DIR__ . '/' . $year, '/annual/' . $year . '/', $files);
-        $filesJson = json_encode($files, JSON_UNESCAPED_SLASHES);
-        if ($filesJson === false) throw new RuntimeException('Cannot encode annual manifest.');
         $manifest = array(
             'year' => $year,
             'entry' => '/annual/' . $year . '/',
-            'version' => hash('sha256', $filesJson),
             'files' => $files,
             'totalBytes' => array_sum(array_map(function ($file) { return $file['size']; }, $files))
         );

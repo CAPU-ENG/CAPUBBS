@@ -9,9 +9,10 @@
     const percent = document.getElementById('loading-percent');
     const size = document.getElementById('loading-size');
     const retry = document.getElementById('loading-retry');
-    let channel;
-    let finished = false;
-    let timeout;
+    const activeRequests = new Set();
+    let leaving = false;
+    let loadedBytes = 0;
+    let lastProgress = 0;
 
     function loadingError(message) {
         const error = new Error(message);
@@ -25,82 +26,128 @@
         return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
     }
 
-    function showProgress(loaded, complete) {
-        const value = complete ? 100 : Math.min(99, Math.floor(loaded / Math.max(1, manifest.totalBytes) * 100));
-        progress.value = value;
-        percent.textContent = value + '%';
-        size.textContent = formatBytes(Math.min(loaded, manifest.totalBytes)) + ' / ' + formatBytes(manifest.totalBytes);
+    function showProgress(complete) {
+        progress.value = complete ? 100 : Math.min(99, Math.floor(loadedBytes / Math.max(1, manifest.totalBytes) * 100));
+        percent.textContent = progress.value + '%';
+        size.textContent = formatBytes(Math.min(loadedBytes, manifest.totalBytes)) + ' / ' + formatBytes(manifest.totalBytes);
+        lastProgress = Date.now();
     }
 
-    function withTimeout(promise, milliseconds) {
-        return new Promise(function (resolve, reject) {
-            const timer = setTimeout(function () { reject(loadingError('加载超时，请重试。')); }, milliseconds);
-            promise.then(resolve, reject).finally(function () { clearTimeout(timer); });
+    function abortRequests() {
+        for (const controller of activeRequests) controller.abort();
+    }
+
+    async function fetchResource(url, cache, consume) {
+        if (leaving) throw new Error('Cancelled');
+        const controller = new AbortController();
+        activeRequests.add(controller);
+        let timer;
+        let timedOut = false;
+        function keepAlive() {
+            clearTimeout(timer);
+            timer = setTimeout(function () { timedOut = true; controller.abort(); }, 60000);
+        }
+        keepAlive();
+        try {
+            const response = await fetch(url, { cache: cache, credentials: 'same-origin', redirect: 'error', signal: controller.signal });
+            if (!response.ok) throw loadingError('加载失败，请重试。');
+            keepAlive();
+            return await consume(response, keepAlive);
+        } catch (error) {
+            if (timedOut) throw loadingError('加载超时，请重试。');
+            throw error;
+        } finally {
+            clearTimeout(timer);
+            controller.abort();
+            activeRequests.delete(controller);
+        }
+    }
+
+    function validateManifest() {
+        const prefix = '/annual/' + request.year + '/';
+        if (!manifest || manifest.year !== request.year || manifest.entry !== prefix
+            || !Array.isArray(manifest.files) || manifest.files.length === 0) throw new Error('Invalid manifest');
+        const seen = new Set();
+        let total = 0;
+        for (const file of manifest.files) {
+            const url = new URL(file.url, window.location.origin);
+            if (url.origin !== window.location.origin || !url.pathname.startsWith(prefix)
+                || url.search || url.hash || seen.has(url.href)
+                || !Number.isSafeInteger(file.size) || file.size < 0) throw new Error('Invalid annual resource');
+            seen.add(url.href);
+            total += file.size;
+        }
+        if (!Number.isSafeInteger(total) || total !== manifest.totalBytes
+            || !seen.has(window.location.origin + prefix + 'index.html')) throw new Error('Incomplete manifest');
+    }
+
+    async function downloadFile(file) {
+        // Revalidate normal HTTP cache entries; do not create a separate cache.
+        await fetchResource(file.url, 'no-cache', async function (response, keepAlive) {
+            let received = 0;
+            function countBytes(bytes) {
+                received += bytes;
+                if (received > file.size) throw loadingError('年刊文件已更新，请重新加载。');
+                loadedBytes += bytes;
+                if (Date.now() - lastProgress > 100) showProgress(false);
+            }
+            if (response.body && typeof response.body.getReader === 'function') {
+                const reader = response.body.getReader();
+                try {
+                    while (true) {
+                        const chunk = await reader.read();
+                        if (chunk.done) break;
+                        keepAlive();
+                        countBytes(chunk.value.byteLength);
+                    }
+                } finally {
+                    reader.releaseLock();
+                }
+            } else {
+                countBytes((await response.arrayBuffer()).byteLength);
+            }
+            if (received !== file.size) throw loadingError('年刊文件未完整下载，请重试。');
+            showProgress(false);
         });
     }
 
     retry.addEventListener('click', function () { window.location.reload(); });
-    window.addEventListener('pagehide', function () {
-        clearTimeout(timeout);
-        if (channel && !finished) channel.port1.postMessage({ type: 'CANCEL' });
-        if (channel) channel.port1.close();
-    });
-
-    // A BFCache return cannot reuse a cancelled worker subscription.
+    window.addEventListener('pagehide', function () { leaving = true; abortRequests(); });
     window.addEventListener('pageshow', function (event) {
         if (event.persisted) window.location.reload();
     });
 
     try {
-        if (!('serviceWorker' in navigator) || !window.isSecureContext) {
-            throw loadingError('当前浏览器无法预加载年刊，请使用支持此功能的浏览器及 HTTPS 地址。');
-        }
-        // Render the loading page before the server hashes a potentially large annual.
-        const manifestResponse = await withTimeout(fetch('/annual/read.php?year=' + encodeURIComponent(request.year) + '&manifest=1', { cache: 'no-store' }), 60000);
-        if (!manifestResponse.ok) throw loadingError('年刊暂时无法读取，请重试。');
-        manifest = await withTimeout(manifestResponse.json(), 60000);
-        showProgress(0, false);
-        await withTimeout(navigator.serviceWorker.register('/annual/sw.js', { scope: '/annual/', updateViaCache: 'none' }), 30000);
-        const registration = await withTimeout(navigator.serviceWorker.ready, 30000);
-
-        // This identifies the exact prepared edition to the worker on navigation.
-        // The annual's own URL and HTML remain unchanged.
-        const loaderUrl = new URL(window.location.href);
-        loaderUrl.searchParams.set('v', manifest.version);
-        window.history.replaceState(null, '', loaderUrl.href);
-
-        status.textContent = '正在加载';
-        channel = new MessageChannel();
-        await new Promise(function (resolve, reject) {
-            function resetTimeout() {
-                clearTimeout(timeout);
-                timeout = setTimeout(function () { reject(loadingError('加载超时，请重试。')); }, 90000);
-            }
-            resetTimeout();
-            channel.port1.onmessage = function (event) {
-                resetTimeout();
-                const message = event.data;
-                if (message.type === 'PROGRESS') showProgress(message.loadedBytes, false);
-                if (message.type === 'READY') resolve();
-                if (message.type === 'ERROR') reject(loadingError('加载失败，请重试。'));
-            };
-            registration.active.postMessage({ type: 'PRELOAD', manifest: manifest }, [channel.port2]);
+        manifest = await fetchResource('/annual/read.php?year=' + encodeURIComponent(request.year) + '&manifest=1', 'no-store', function (response) {
+            return response.json();
         });
-        clearTimeout(timeout);
-        finished = true;
-        showProgress(manifest.totalBytes, true);
+        validateManifest();
+        showProgress(false);
+        status.textContent = '正在加载';
+        let next = 0;
+        let failure;
+        async function downloadNext() {
+            try {
+                while (!leaving && !failure && next < manifest.files.length) {
+                    await downloadFile(manifest.files[next++]);
+                }
+            } catch (error) {
+                if (!failure) failure = error;
+                abortRequests();
+            }
+        }
+        await Promise.all(Array.from({ length: Math.min(4, manifest.files.length) }, downloadNext));
+        if (leaving) return;
+        if (failure) throw failure;
+        showProgress(true);
         status.textContent = '加载完成';
         panel.setAttribute('aria-busy', 'false');
         window.location.replace(manifest.entry);
     } catch (error) {
-        clearTimeout(timeout);
-        finished = true;
+        abortRequests();
+        if (leaving) return;
         panel.setAttribute('aria-busy', 'false');
         status.textContent = error.userMessage || '加载失败，请重试。';
         retry.hidden = false;
-        if (channel) {
-            channel.port1.postMessage({ type: 'CANCEL' });
-            channel.port1.close();
-        }
     }
 }());
