@@ -221,14 +221,40 @@
     }
   }
   videoRetry.addEventListener('click', () => { void loadVideos(); });
+
+  const contactText = document.querySelector('[data-contact-text]');
+  const contactStatus = document.querySelector('[data-contact-status]');
+  const contactRetry = document.querySelector('[data-contact-retry]');
+  let contactLoading = false;
+  async function loadContacts() {
+    if (contactLoading) return;
+    contactLoading = true;
+    contactRetry.disabled = true;
+    try {
+      const data = await readApi('homepage_contacts');
+      if (typeof data?.text !== 'string' || !data.text.trim()) throw new Error('联系方式无效');
+      contactText.textContent = data.text;
+      contactStatus.hidden = true;
+      contactRetry.hidden = true;
+    } catch (_) {
+      contactStatus.textContent = contactText.textContent ? '联系方式更新失败，请重试。' : '联系方式暂时无法加载。';
+      contactStatus.hidden = false;
+      contactRetry.hidden = false;
+    } finally {
+      contactLoading = false;
+      contactRetry.disabled = false;
+    }
+  }
+  contactRetry.addEventListener('click', () => { void loadContacts(); });
   window.addEventListener('pageshow', event => {
-    if (event.persisted) { void loadImages(); void loadVideos(); }
+    if (event.persisted) { void loadImages(); void loadVideos(); void loadContacts(); }
   });
-  window.addEventListener('focus', () => { void loadImages(); void loadVideos(); });
+  window.addEventListener('focus', () => { void loadImages(); void loadVideos(); void loadContacts(); });
   window.CapuHomeVideoCovers?.update(videoList);
   renderImages(media.images);
   void loadImages();
   void loadVideos();
+  if (!contactStatus.hidden) void loadContacts();
 
   const dialog = document.querySelector('#home-login');
   const form = document.querySelector('#home-login-form');

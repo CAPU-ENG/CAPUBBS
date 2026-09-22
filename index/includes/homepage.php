@@ -9,7 +9,7 @@ $homepageLoginModal = true;
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="theme-color" content="#27483e">
+  <meta name="theme-color" content="#203c32">
 <?php if (!empty($homepagePreview)) { ?>
   <meta name="robots" content="noindex, nofollow">
 <?php } ?>
@@ -25,38 +25,42 @@ $homepageLoginModal = true;
 </head>
 <body id="top">
   <a class="skip-link" href="#main">跳转到正文</a>
-  <header class="site-header page-width">
-    <a class="brand" href="/">
-      <img src="/bbs/favicon.png" width="42" height="42" alt="">
-      <h1><?php echo homepage_escape($homepageContent['name']); ?></h1>
-    </a>
-    <nav class="navigation" aria-label="主导航">
-      <a class="forum-link" href="/bbs/">进入论坛</a>
-      <?php require __DIR__.'/session-links.php'; ?>
-    </nav>
+  <header class="site-header">
+    <div class="page-width header-inner">
+      <a class="brand" href="/">
+        <img src="/bbs/favicon.png" width="42" height="42" alt="">
+        <h1><?php echo homepage_escape($homepageContent['name']); ?></h1>
+      </a>
+      <nav class="navigation" aria-label="主导航">
+        <a class="forum-link" href="/bbs/">进入论坛</a>
+        <?php require __DIR__.'/session-links.php'; ?>
+      </nav>
+    </div>
   </header>
 
   <main class="homepage-main" id="main">
     <section class="promotion" role="region" aria-label="宣传图" aria-roledescription="轮播图" data-promotion>
-      <div class="promotion-stage" id="promotion-slides">
+      <div class="promotion-frame">
+        <div class="promotion-stage" id="promotion-slides">
 <?php foreach ($homepageMedia['images'] as $number => $image) { ?>
-        <div class="promotion-slide" role="group" aria-roledescription="幻灯片" aria-label="<?php echo ($number + 1).' / '.count($homepageMedia['images']); ?>"<?php if ($number > 0) echo ' hidden'; ?>>
-          <a href="<?php echo homepage_escape($image['img']); ?>" target="_blank" rel="noopener noreferrer"><img src="<?php echo homepage_escape($image['img']); ?>" alt="<?php echo homepage_escape($image['title']); ?>" decoding="async" <?php echo $number === 0 ? 'fetchpriority="high"' : 'loading="lazy"'; ?>></a>
+          <div class="promotion-slide" role="group" aria-roledescription="幻灯片" aria-label="<?php echo ($number + 1).' / '.count($homepageMedia['images']); ?>"<?php if ($number > 0) echo ' hidden'; ?>>
+            <a href="<?php echo homepage_escape($image['img']); ?>" target="_blank" rel="noopener noreferrer"><img src="<?php echo homepage_escape($image['img']); ?>" alt="<?php echo homepage_escape($image['title']); ?>" decoding="async" <?php echo $number === 0 ? 'fetchpriority="high"' : 'loading="lazy"'; ?>></a>
+          </div>
+<?php } ?>
         </div>
-<?php } ?>
-      </div>
-      <div class="promotion-empty" data-image-state hidden><p data-image-status role="status"></p></div>
-      <div class="promotion-bar">
-        <span class="promotion-caption" data-image-caption><?php echo homepage_escape($homepageMedia['images'][0]['title']); ?></span>
-        <div class="promotion-actions">
-          <button class="text-button" type="button" data-image-retry hidden>重新加载</button>
+        <div class="promotion-empty" data-image-state hidden><p data-image-status role="status"></p></div>
+        <div class="promotion-bar">
+          <span class="promotion-caption" data-image-caption><?php echo homepage_escape($homepageMedia['images'][0]['title']); ?></span>
+          <div class="promotion-actions">
+            <button class="text-button" type="button" data-image-retry hidden>重新加载</button>
 <?php if ($rights >= 3) { ?>
-          <a class="promotion-manage" href="/index/images.php">管理宣传图</a>
+            <a class="promotion-manage" href="/index/images.php">管理宣传图</a>
 <?php } ?>
-          <div class="promotion-controls" data-image-controls hidden>
-            <button type="button" data-image-step="-1" aria-label="上一张宣传图" aria-controls="promotion-slides">←</button>
-            <span class="promotion-count" aria-live="polite" aria-atomic="true"><span data-image-number>01</span><span aria-hidden="true"> / </span><span data-image-total></span></span>
-            <button type="button" data-image-step="1" aria-label="下一张宣传图" aria-controls="promotion-slides">→</button>
+            <div class="promotion-controls" data-image-controls hidden>
+              <button type="button" data-image-step="-1" aria-label="上一张宣传图" aria-controls="promotion-slides">←</button>
+              <span class="promotion-count" aria-live="polite" aria-atomic="true"><span data-image-number>01</span><span aria-hidden="true"> / </span><span data-image-total></span></span>
+              <button type="button" data-image-step="1" aria-label="下一张宣传图" aria-controls="promotion-slides">→</button>
+            </div>
           </div>
         </div>
       </div>
@@ -103,8 +107,15 @@ $homepageLoginModal = true;
     </section>
 
     <section class="section-frame contact" id="contact" aria-labelledby="contact-title">
-      <div class="section-heading"><h2 id="contact-title">联系方式</h2></div>
-      <div class="contact-text"><?php echo homepage_escape($homepageContacts['text']); ?></div>
+      <div class="section-heading">
+        <h2 id="contact-title">联系方式</h2>
+<?php if ($rights >= 3) { ?>
+        <a class="text-link" href="/index/contacts.php">管理联系方式</a>
+<?php } ?>
+      </div>
+      <div class="contact-text" data-contact-text><?php echo homepage_escape($homepageContacts['text']); ?></div>
+      <p class="section-status" role="status" data-contact-status<?php if (!$homepageContactsError) echo ' hidden'; ?>>联系方式暂时无法加载。</p>
+      <button class="text-button" type="button" data-contact-retry<?php if (!$homepageContactsError) echo ' hidden'; ?>>重新加载</button>
     </section>
   </main>
 

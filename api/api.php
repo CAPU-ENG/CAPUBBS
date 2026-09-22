@@ -45,7 +45,11 @@ $params['pid']   = intval(isset($_REQUEST['pid']) ? $_REQUEST['pid'] : 0);
 $params['token'] = isset($_COOKIE['token'])  ? $_COOKIE['token']  : '';
 $params['ip']    = $_SERVER['REMOTE_ADDR'];
 
-// Video reads and retired download operations must not open a database connection.
+// Homepage JSON reads and retired download operations must not open a database connection.
+if (in_array($params['ask'], array('homepage_contacts', 'save_homepage_contacts'), true)) {
+    require_once __DIR__ . '/lib/HomepageContacts.php';
+    homepage_contacts_response($params['ask'], $_POST)->send();
+}
 if (in_array($params['ask'], array('homepage_videos', 'save_homepage_videos'), true)) {
     require_once __DIR__ . '/lib/HomepageVideos.php';
     homepage_videos_response($params['ask'], $_POST)->send();

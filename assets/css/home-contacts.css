@@ -1,0 +1,7 @@
+#contact-editor textarea { display: block; width: 100%; min-height: 280px; margin: 12px 0 24px; padding: 16px; resize: vertical; border: 1px solid #a9b6a1; border-radius: 2px; background: #fffefa; color: #203a2f; font: inherit; line-height: 1.9; }
+#contact-editor textarea:focus-visible { outline: 2px solid #236b4c; outline-offset: 3px; }
+#contact-editor .editor-actions { align-items: center; gap: 12px; }
+#contact-editor .editor-actions a { display: inline-flex; align-items: center; min-height: 44px; margin-left: auto; font-size: 14px; }
+#contact-editor .editor-actions a:hover { text-decoration: underline; text-underline-offset: 4px; }
+#contact-status { line-height: 1.7; }
+#contact-status[data-error="true"] { color: #b5372c; }
