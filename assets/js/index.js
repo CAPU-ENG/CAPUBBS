@@ -33,38 +33,14 @@ function login() {
         else $('#password').focus();
         return;
     }
-    var user=username;
-    var pass=hex_md5(password);
-    $.post("/assets/api/main.php",{
-        ask:"login",
-        username: user,
-        password: pass
-    },function(data){
-        var x=parseInt(data);
-        if (x==1) {
-            $('#alert').html("用户不存在！");
-            $('#username').focus();
-            $('#alert').show();
-            return;
-        }
-        if (x==2) {
-            $('#alert').html("密码错误！");
-            $('#password').focus();
-            $('#alert').show();
-            return;
-        }
-        window.location.hash="#main";
+    window.CapuHomeSession.login(username, hex_md5(password)).then(function () {
         window.location.reload();
+    }).catch(function (error) {
+        $('#alert').text(error.message || '登录失败，请重试。').show();
     });
-
-}
-function logout(){
-    window.open("/bbs/logout/?from=/","_self");
 }
 function setActive(tag) {    
         $("#navbar-home,#navbar-timeline,#navbar-about").removeClass("active");
-    var cache=getCookie("token");
-    if (cache=="") $('#login_li').html('<li><a href="javascript:showlogin()" id="login">登录</a></li><li id="navbar-register"><a href="/bbs/register/" target="_blank">注册</a></li>');
     if (tag=="#timeline") {
         $('#navbar-timeline').addClass("active");
         $('#mainframe').attr("src","/index/timeline.php");
@@ -100,14 +76,4 @@ function setSize(hei) {
     if (hei==-1)
         mainheight=$("#mainframe").contents().find("html").height()+40;
     $("#mainframe").height(Math.max(mainheight,std));
-}
-
-function getCookie(name){
-    var strcookie=document.cookie;
-    var arrcookie=strcookie.split("; ");
-    for(var i=0;i<arrcookie.length;i++){
-        var arr=arrcookie[i].split("=");
-        if(arr[0]==name)return arr[1];
-    }
-    return "";
 }

@@ -1247,8 +1247,12 @@
 
     function news($con,$token) {
         echo '<capu><info>';
+        if (!is_string($token) || preg_match('/^[a-z0-9_-]{1,256}$/iD', $token) !== 1) {
+            echo '<code>-1</code><msg>您的权限不足！</msg></info></capu>';
+            exit;
+        }
         $a=getrights($con, 0, $token);
-        if (intval($a[3]) < 1) {
+        if (intval($a[3]) < 3) {
             echo '<code>-1</code><msg>您的权限不足！</msg></info></capu>';
             exit;
         }

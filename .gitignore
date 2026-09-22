@@ -54,3 +54,9 @@ bbs/images
 *debug*
 *test*
 /pan/
+
+# Homepage video content maintained at runtime; keep the shipped seed separate.
+/index/data/videos.json
+/index/data/videos.json.backup
+/index/data/videos.json.lock
+/index/data/.home-videos-*

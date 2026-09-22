@@ -119,6 +119,7 @@ img { display: block; max-width: 100%; }
 .journal-list h3 { font-size: clamp(17px, 1.8vw, 23px); font-weight: 500; line-height: 1.6; }
 .journal-list > a > span:last-child { font-size: 26px; text-align: right; }
 .films { padding-top: 55px; padding-bottom: 86px; }
+.film-actions { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 8px 20px; }
 .film-links { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 18px; }
 .film-links > a { display: flex; align-items: center; gap: 18px; padding: 27px 22px; min-height: 105px; background: #eaecdf; transition: background 160ms; }
 .film-links > a:hover { background: #dfe6c9; }
@@ -147,6 +148,8 @@ img { display: block; max-width: 100%; }
   .journey { padding-inline: max(var(--gutter), calc((100vw - 1280px) / 2)); }
 }
 @media (max-width: 1100px) {
+  .site-header { flex-wrap: wrap; }
+  .navigation { gap: 16px; }
   .brand-name { display: none; }
   .hero { margin-inline: 22px; }
   .quick-links a { padding-inline: 20px; gap: 14px; }

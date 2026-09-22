@@ -1,3 +1,7 @@
+<?php
+require __DIR__.'/includes/session.php';
+require __DIR__.'/includes/videos.php';
+?>
 <!DOCTYPE html>
 <html>
 <!--
@@ -57,10 +61,7 @@
 </head>
 <body>
 <?php
-    require_once '../lib.php';
-    $res=checkuser_mysqli();
-    $username=$res[0];
-    $rights=intval($res[1]);
+
 
 
     date_default_timezone_set("Asia/Shanghai");
@@ -88,22 +89,6 @@
         array_push($informtimes,intval($res[4]));
         }
         $informnum=count($informs);
-
-    $statement="select * from capubbs.mainpage where id=2";
-    $results=mysqli_query($con, $statement);
-    $video=array();
-    $video_title=array();
-    $video_word=array();
-    $video_poster=array();
-    $video_link=array();
-    while ($res=mysqli_fetch_array($results)) {
-        array_push($video,$res[2]);
-        array_push($video_title,$res[3]);
-        array_push($video_word,$res[4]);
-        array_push($video_poster,$res[5]);
-        array_push($video_link,$res[6]);
-    }
-
 
 ?>
 <div class="container" style="margin-top:90px">
@@ -180,13 +165,16 @@
 </ul>
 </div><br>
 <h4 style="padding-left:20px"><b>协会视频</b></h4>
-<hr style="border-top:1px solid #aaaaaa"/><p>
-  <a type="button" target="_blank" class="btn btn-primary" href="http://v.youku.com/v_show/id_XMTc5NzYwMzU2.html">协会会歌</a>
-  <a type="button" target="_blank" class="btn btn-primary" href="http://v.youku.com/v_show/id_XMTc4NDE2OTky.html">尘埃</a>
-  <a type="button" target="_blank" class="btn btn-primary" href="https://www.bilibili.com/video/BV1qK411A7yV">20暑期视频</a>
-  <a type="button" target="_blank" class="btn btn-primary" href="https://www.bilibili.com/video/BV19v411T7qC">21暑期视频</a>
-  <a type="button" target="_blank" class="btn btn-primary" href="https://space.bilibili.com/238139020/channel/collectiondetail?sid=832279">22暑期视频</a>
-<p class="text-right"><a target="_blank" href="https://space.bilibili.com/238139020/video"><span class="label label-success">more</span></a></p>
+<hr style="border-top:1px solid #aaaaaa">
+<?php if ($homepageVideosError) { ?>
+<p>视频暂时无法加载。</p>
+<?php } else { foreach ($homepageVideos['videos'] as $item) { ?>
+  <a class="btn btn-primary" target="_blank" rel="noopener noreferrer" href="<?php echo homepage_escape($item['url']); ?>"><?php echo homepage_escape($item['title']); ?></a>
+<?php } if ($homepageVideos['moreUrl'] !== '') { ?>
+<p class="text-right"><a target="_blank" rel="noopener noreferrer" href="<?php echo homepage_escape($homepageVideos['moreUrl']); ?>">全部视频</a></p>
+<?php } } if ($rights >= 3) { ?>
+<p class="text-right"><a href="/index/videos.php" target="_top">管理视频</a></p>
+<?php } ?>
 </div>
 </div>
 <div class="col-md-3">
@@ -311,67 +299,6 @@ echo '
   </div>
 </div>
 
-<div class="modal fade" aria-labelledby="myModalLabel" tab-index="-1" id="huige_dialog"  role="dialog"  aria-hidden="true">
-  <div class="modal-dialog" style="width:670px">
-    <div class="modal-content">
-      <div class="modal-header">
-        <button type="button" class="close" onclick="closevideo('huige')"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
-        <h4 class="modal-title">北京大学自行车协会会歌 - 跋涉梦想</h4>
-      </div>
-      <div class="modal-body" style="background:black">
-        <video id="huige_video" preload="none" src="/assets/downloads/anthem.mp4" controls="controls" width="640" height="360" poster="/assets/images/huige.jpg" aria-describedby="full-descript">
-      <p class="text-center"><b>很遗憾，你的浏览器不支持视频播放:（<br>请换用 IE9+/chrome/safari 观看视频，或者直接<a href="/assets/downloads/CAPU_anthem.rmvb" target="_blank">下载观看</a>。</b></p>
-    </video>
-      </div>
-      <div class="modal-footer">
-        <a href="/assets/downloads/CAPU_anthem.rmvb" target="_blank" type="button" class="btn btn-primary">下载高清版观看</a>
-    <a href="/assets/downloads/CAPU_anthem.mp3" target="_blank" type="button" class="btn btn-primary">MP3格式</a>
-    <a href="/assets/downloads/CAPU_anthem_lyrics.gif" target="_blank" type="button" class="btn btn-primary">歌曲简谱</a>
-        <button type="button" class="btn btn-default" onclick="closevideo('huige')">关闭</button>
-      </div>
-    </div>
-  </div>
-</div>
-
-<div class="modal fade" aria-labelledby="myModalLabel" tab-index="-1" id="chenai_dialog"  role="dialog"  aria-hidden="true">
-  <div class="modal-dialog" style="width:670px">
-    <div class="modal-content">
-      <div class="modal-header">
-        <button type="button" class="close" onclick="closevideo('chenai')"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
-        <h4 class="modal-title">北大车协经典歌曲 - 尘埃</h4>
-      </div>
-      <div class="modal-body" style="background:black">
-        <video controls="controls" preload="none" src="/assets/downloads/dust.mp4" width="640" height="360" poster="/assets/images/chenai.jpg" aria-describedby="full-descript" id="chenai_video">
-      <p class="text-center"><b>很遗憾，你的浏览器不支持视频播放:（<br>请换
-用 IE9+/chrome/safari 观看视频，或者直接<a href="/assets/downloads/CAPU_dust.rmvb" target="_blank">下载观看</a>。</b></p>
-        </video> 
-      </div>
-      <div class="modal-footer">
-        <a href="/assets/downloads/CAPU_dust.rmvb" target="_blank" type="button" class="btn btn-primary">下载高清版观看</a>
-    <a href="/assets/downloads/CAPU_dust.mp3" target="_blank" type="button" class="btn btn-primary">MP3格式</a>
-        <button type="button" class="btn btn-default" onclick="closevideo('chenai')">关闭
-</button>
-      </div>
-    </div>
-  </div>
-</div>
-<?php
-    for ($i=0;$i<=2;$i++) {
-echo '<div class="modal fade" aria-labelledby="myModalLabel" tab-index="-1" id="video_dialog_'.$i.'"  role="dialog"  aria-hidden="true">';
-echo '<div class="modal-dialog" style="width:670px">';
-echo '<div class="modal-content">';
-echo '<div class="modal-header">';
-echo '    <button type="button" class="close" onclick="closevideo('."'$i'".')"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>';
-echo '        <h4 class="modal-title">'.$video_title[$i].'</h4>';
-echo '      </div>';
-echo '      <div class="modal-body" style="background:black">';
-echo '      <video id="video_'.$i.'" src="'.$video[$i].'" poster="'.$video_poster[$i].'" controls="controls" preload="none" width="640" height="360" aria-describedby="full-descript">';
-echo '    <p class="text-center"><b>很遗憾，你的浏览器不支持视频播放:（<br>请换用 IE9+/chrome/safari 观看视频，或者直接下载高清版观看。</b></p></video></div>';echo '    <div class="modal-footer">';
-echo '        <a id="video_src_'.$i.'" href="'.$video_link[$i].'" target="_blank" type="button" class="btn btn-primary">下载高清版观看</a>';
-echo '        <button type="button" class="btn btn-default" onclick="closevideo('."'$i'".')">关闭</button></div> </div></div></div>';
-echo "\n";
-}
-?>
 <div class="modal fade" aria-labelledby="myModalLabel" tab-index="-1" id="inform_add_dialog"  role="dialog"  aria-hidden="true">
   <div class="modal-dialog">
     <div class="modal-content">

@@ -7,6 +7,17 @@ if (PHP_SAPI !== 'cli-server') {
 $requestPath = parse_url(@$_SERVER['REQUEST_URI'], PHP_URL_PATH);
 if (!is_string($requestPath)) return false;
 
+// Homepage metadata is exposed by its read API, never as raw files or backups.
+$homepageDataRoot = realpath(__DIR__.'/index/data');
+$homepageRequestPath = parse_url('/'.ltrim(@$_SERVER['REQUEST_URI'], '/'), PHP_URL_PATH);
+$homepageRequestedFile = realpath(__DIR__.'/'.ltrim(rawurldecode($homepageRequestPath), '/'));
+if ($homepageRequestPath === '/index/data' || strpos($homepageRequestPath, '/index/data/') === 0
+    || ($homepageDataRoot !== false && $homepageRequestedFile !== false
+        && ($homepageRequestedFile === $homepageDataRoot || strpos($homepageRequestedFile, $homepageDataRoot.'/') === 0))) {
+    http_response_code(404);
+    exit;
+}
+
 function capubbs_router_starts_with($value, $prefix) {
     return $prefix === '' || strncmp($value, $prefix, strlen($prefix)) === 0;
 }

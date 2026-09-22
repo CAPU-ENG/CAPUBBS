@@ -9,10 +9,10 @@ type ApiEnvelope = {
 };
 
 export function canManageCalendar(
-  username: string | null | undefined,
+  _username: string | null | undefined,
   rights: number | null | undefined,
 ) {
-  return username?.trim() === '组织部' || (rights ?? 0) >= 3;
+  return (rights ?? 0) >= 3;
 }
 
 export async function saveCalendarEvent(event: HomeCalendarEvent, existingId?: string) {

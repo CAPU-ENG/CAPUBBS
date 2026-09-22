@@ -262,7 +262,7 @@ export function CalendarAdminPage() {
           <LoadingState label="正在确认管理权限" />
         ) : !isAuthorized ? (
           <CalendarAdminState authStatus={authStatus} icon={<ShieldAlert size={22} />} title="无法进入日历管理">
-            此页面仅供 ID 为“组织部”或权限值不低于 3 的会员使用。
+            此页面仅供权限值不低于 3 的会员使用。
           </CalendarAdminState>
         ) : (
           <section className="calendar-admin-panel" aria-labelledby="calendar-admin-title">

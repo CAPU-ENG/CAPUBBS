@@ -1,3 +1,7 @@
+<?php
+require __DIR__.'/../index/includes/session.php';
+require __DIR__.'/../index/includes/videos.php';
+?>
 <!doctype html>
 <html lang="zh-CN">
 <head>
@@ -9,6 +13,8 @@
   <link rel="icon" type="image/png" href="/bbs/favicon.png">
   <link rel="preload" as="image" href="./images/gannan.webp">
   <link rel="stylesheet" href="./home.css">
+  <link rel="stylesheet" href="/assets/css/home-session.css">
+  <script src="/assets/js/home-session.js" defer></script>
   <script src="./home.js" defer></script>
 </head>
 <body>
@@ -27,6 +33,7 @@
       <a href="#journey">暑期远征</a>
       <a href="#about">关于协会</a>
       <a class="nav-forum" href="/bbs/">进入论坛 <span aria-hidden="true">↗</span></a>
+      <?php require __DIR__.'/../index/includes/session-links.php'; ?>
     </nav>
   </header>
 
@@ -135,13 +142,23 @@
     <section class="films section" id="films" aria-labelledby="films-title">
       <div class="section-heading">
         <h2 id="films-title">协会影像<span class="heading-dot" aria-hidden="true">.</span></h2>
-        <a class="text-link" href="https://space.bilibili.com/238139020/video" target="_blank" rel="noopener noreferrer">全部视频 <span aria-hidden="true">↗</span></a>
+        <div class="film-actions">
+          <?php if ($homepageVideos['moreUrl'] !== '') { ?>
+          <a class="text-link" href="<?php echo homepage_escape($homepageVideos['moreUrl']); ?>" target="_blank" rel="noopener noreferrer">全部视频 <span aria-hidden="true">↗</span></a>
+          <?php } if ($rights >= 3) { ?>
+          <a class="text-link" href="/index/videos.php">管理视频 <span aria-hidden="true">↗</span></a>
+          <?php } ?>
+        </div>
       </div>
+      <?php if ($homepageVideosError) { ?>
+      <p role="status">视频暂时无法加载。</p>
+      <?php } else { ?>
       <div class="film-links">
-        <a href="https://www.bilibili.com/video/BV1qK411A7yV" target="_blank" rel="noopener noreferrer"><span class="play-icon" aria-hidden="true">▷</span><h3>2020 暑期视频</h3><span aria-hidden="true">↗</span></a>
-        <a href="https://www.bilibili.com/video/BV19v411T7qC" target="_blank" rel="noopener noreferrer"><span class="play-icon" aria-hidden="true">▷</span><h3>2021 暑期视频</h3><span aria-hidden="true">↗</span></a>
-        <a href="https://space.bilibili.com/238139020/channel/collectiondetail?sid=832279" target="_blank" rel="noopener noreferrer"><span class="play-icon" aria-hidden="true">▷</span><h3>2022 暑期视频</h3><span aria-hidden="true">↗</span></a>
+        <?php foreach ($homepageVideos['videos'] as $item) { ?>
+        <a href="<?php echo homepage_escape($item['url']); ?>" target="_blank" rel="noopener noreferrer"><span class="play-icon" aria-hidden="true">▷</span><h3><?php echo homepage_escape($item['title']); ?></h3><span aria-hidden="true">↗</span></a>
+        <?php } ?>
       </div>
+      <?php } ?>
     </section>
 
     <section class="about section" id="about" aria-labelledby="about-title">

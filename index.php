@@ -6,15 +6,7 @@
     }
 
 
-    require 'lib.php';
-    $res=checkuser_mysqli();
-    $username=$res[0];$rights=$res[1];
-    if ($username=="" && @$_COOKIE['token']) {
-        date_default_timezone_set("Asia/Shanghai");
-        $time=time()-999999;
-        $date=date("D, d M Y H:i:s",$time)." GMT";
-        header('Set-cookie: token=invalid; expires='.$date.'; path=/'."\n");
-    }
+    require __DIR__.'/index/includes/session.php';
 
 ?>
 <!DOCTYPE html>
@@ -70,6 +62,7 @@
 <meta name="apple-itunes-app" content="app-id=826386033">
 <link href="/assets/css/bootstrap.min.css" rel="stylesheet">
 <link href="/assets/css/style.css" rel="stylesheet">
+<link href="/assets/css/home-session.css" rel="stylesheet">
 <link rel="icon" type="image/png" href="/bbs/favicon.png">
 <title>北京大学自行车协会</title>
 </head>
@@ -115,15 +108,7 @@
     <li id="navbar-timeline"><a href="javascript:setActive('#timeline')">时间轴</a></li>
       </ul>
       <ul class="nav navbar-nav navbar-right" id="login_li">
-     <?php
-
-    if ($username=="") {
-     echo '<li><a href="javascript:showlogin()" id="login">登录</a></li>';
-        echo '<li id="navbar-register"><a href="/bbs/register/">注册</a></li>';}
-    else {
-        echo '<li><a href="javascript:void(0)" style="color:#8db6cd">欢迎您，'.$username.'</a></li><li><a href="javascript:logout()">注销</a>';
-    }
-    ?>
+        <li><?php $homepageLoginModal = true; require __DIR__.'/index/includes/session-links.php'; ?></li>
       </ul>
     </div>
    </nav>
@@ -194,6 +179,7 @@
 <script src="/assets/js/jquery.min.js"></script>
 <script src="/assets/js/bootstrap.min.js"></script>
 <script src="/bbs/lib/md5.js"></script>
+<script src="/assets/js/home-session.js"></script>
 <script src="/assets/js/index.js"></script>
 </body>
 </html>

@@ -45,6 +45,15 @@ $params['pid']   = intval(isset($_REQUEST['pid']) ? $_REQUEST['pid'] : 0);
 $params['token'] = isset($_COOKIE['token'])  ? $_COOKIE['token']  : '';
 $params['ip']    = $_SERVER['REMOTE_ADDR'];
 
+// Video reads and retired download operations must not open a database connection.
+if (in_array($params['ask'], array('homepage_videos', 'save_homepage_videos'), true)) {
+    require_once __DIR__ . '/lib/HomepageVideos.php';
+    homepage_videos_response($params['ask'], $_POST)->send();
+}
+if (in_array($params['ask'], array('add_download', 'edit_download', 'del_download'), true)) {
+    ApiResponse::error(ApiError::FEATURE_DISABLED, '下载资料功能已停用。')->send();
+}
+
 $con = dbconnect_mysqli();
 
 // Route mainpage-specific operations (originally in /assets/api/main.php)
@@ -52,7 +61,6 @@ $con = dbconnect_mysqli();
 $mainpage_asks = array(
     'getfilesize', 'loadcalendar', 'savecalendar',
     'addinform', 'delinform', 'saveimg',
-    'add_download', 'edit_download', 'del_download',
 );
 if (in_array($params['ask'], $mainpage_asks, true)) {
     require_once __DIR__ . '/lib/MainpageHandlers.php';
