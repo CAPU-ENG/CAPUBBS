@@ -60,7 +60,7 @@ $con = dbconnect_mysqli();
 // to their new handlers. Everything else goes through jiekoufunc_dispatch.
 $mainpage_asks = array(
     'getfilesize', 'loadcalendar', 'savecalendar',
-    'addinform', 'delinform', 'saveimg',
+    'addinform', 'delinform', 'saveimg', 'homepage_images',
 );
 if (in_array($params['ask'], $mainpage_asks, true)) {
     require_once __DIR__ . '/lib/MainpageHandlers.php';

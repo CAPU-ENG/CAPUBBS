@@ -1,22 +1,11 @@
-# 根目录首页 Demo
+# 根目录首页预览
 
-在仓库根目录运行 `php -c php.ini -S 127.0.0.1:8086 router.php`，访问 <http://127.0.0.1:8086/home-demo/>。
+`/` 已使用新版入口；`/home-demo/` 使用同一份页面模板，并带 `noindex` 标记。两处的宣传图、视频和登录态一致，不再保留两套内容。
 
-此目录是独立的 PHP 首页方案，不替换根目录 `index.php`。无需安装依赖或构建；页面与图片均使用本地资源。包括响应式导航、手动切换照片、原生可展开活动介绍、远征历史、游记和视频入口。禁用 JavaScript 时仍能阅读页面、展开活动内容和使用导航。下载中心入口已移除；favicon 直接复用 `/bbs/favicon.png`。
+在仓库根目录执行 `php -c php.ini -S 127.0.0.1:8091 router.php`，访问 <http://127.0.0.1:8091/>。页面无需构建。视觉验收由仓库维护者进行。
 
-公告入口指向工作区，尚未接入实时公告和活动日历。本页游记是选录的历史帖子，不表示最新动态。论坛链接沿用 `/bbs/` 及其兼容路由，由现有论坛设置决定显示版本。
+新版包含宣传图、视频资料、论坛入口、协会介绍、联系方式和底部信息。布局与交互在 `assets/css/homepage.css`、`assets/js/homepage.js`，PHP 模板在 `index/includes/homepage.php`。接口、维护入口及内容配置见 `index/README.md`。
 
-登录态已接入论坛 Cookie 并由服务端验证，显示用户名、个人中心入口及退出；返回页面时重新核验。视频与原主页共用 JSON 列表，权限 >= 3 可从视频区进入 `/index/videos.php` 维护。详细接口、数据保存及部署约定见 `index/README.md`。
+原 demo 的 `images/` 保留为已有素材，首页不会把它们自动写入宣传图列表。宣传图以现有数据库内容为准；没有记录时显示空状态。
 
-## 内容与素材来源
-
-- 协会介绍、活动介绍、协会口号及历年远征路线：仓库 `index/about.php`。
-- 视频初始链接：原 `index/main.php`，已迁入 `index/data/videos.default.json`；联系邮箱、备案号：原首页及其脚本。
-- 游记标题：本地已归档的论坛帖子（版面 2，帖子 9096、8847、9111）。
-- 三张照片：论坛帖子《【甘南之行】雨中划过一弯彩虹》（版面 2，帖子 9096）的本地图片副本；页面图片链接回原帖。
-  - `images/gannan.webp`：原文件 `/bbs/images/483532495.jpg`，红山口观景台远景。
-  - `images/road.webp`：原文件 `/bbs/images/635541616.jpg`，洛克之路途中。
-  - `images/riders.webp`：原文件 `/bbs/images/36983029.jpg`，草原途中休息。
-- `images/capu.png`：仓库 `forum/public/favicon.png` 的副本。
-
-照片保留原始构图，以 WebP 压缩副本供此 Demo 使用；原始文件未改动。界面视觉验收由仓库维护者进行。
+保留素材来自仓库已归档帖子《【甘南之行】雨中划过一弯彩虹》（版面 2，帖子 9096）：`gannan.webp` 对应 `/bbs/images/483532495.jpg`，`road.webp` 对应 `/bbs/images/635541616.jpg`，`riders.webp` 对应 `/bbs/images/36983029.jpg`；`capu.png` 为 `forum/public/favicon.png` 的副本。

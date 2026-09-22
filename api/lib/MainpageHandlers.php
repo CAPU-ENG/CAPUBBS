@@ -1,6 +1,6 @@
 <?php
 /**
- * Handler functions for mainpage admin operations originally in
+ * Public image reads and mainpage admin operations originally in
  * /assets/api/main.php. These mirror the original behaviour but
  * return dispatch-format arrays so api.php can wrap them in the
  * standard JSON envelope via ApiResponse::fromDispatchResult().
@@ -14,6 +14,10 @@
  */
 function mainpage_dispatch($con, $params) {
     $ask = isset($params['ask']) ? $params['ask'] : '';
+    if ($ask === 'homepage_images') {
+        header('Cache-Control: no-store');
+        return mainpage_loadimages($con);
+    }
 
     if ($ask === 'getfilesize')    return mainpage_getfilesize($params);
     if ($ask === 'loadcalendar')   return mainpage_loadcalendar($con, $params);
@@ -54,6 +58,24 @@ function mainpage_check_auth($con) {
 // ---------------------------------------------------------------------------
 // Handlers
 // ---------------------------------------------------------------------------
+
+function mainpage_loadimages($con) {
+    try {
+        $result = mysqli_query($con, 'SELECT field1, field2, field3 FROM capubbs.mainpage WHERE id=0 ORDER BY number');
+        if ($result === false) throw new RuntimeException('Image query failed');
+        $images = array();
+        while ($row = mysqli_fetch_assoc($result)) {
+            $images[] = array('img' => strval($row['field1']), 'imgthumb' => strval($row['field2']), 'title' => strval($row['field3']));
+        }
+        mysqli_free_result($result);
+        // Nest the list so the unified envelope keeps the same shape for 0, 1 or many images.
+        return array(array('code' => '0'), array('images' => $images));
+    } catch (Exception $error) {
+        return array(array('code' => '8', 'msg' => '宣传图暂时无法加载。'));
+    } catch (Throwable $error) {
+        return array(array('code' => '8', 'msg' => '宣传图暂时无法加载。'));
+    }
+}
 
 function mainpage_getfilesize($params) {
     $url = isset($params['url']) ? $params['url'] : '';
