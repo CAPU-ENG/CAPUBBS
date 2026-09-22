@@ -142,15 +142,16 @@ h1 {
 .annual-issue:hover::after, .annual-issue:focus-visible::after { transform: scaleX(1); }
 
 .annual-year {
+    flex-shrink: 0;
     font-family: Georgia, "Times New Roman", serif;
     font-size: clamp(40px, 6vw, 64px);
     line-height: 1.2;
     font-variant-numeric: lining-nums tabular-nums;
 }
 
-.annual-issue-label { color: var(--muted); font-family: "Songti SC", "STSong", serif; letter-spacing: 0.15em; }
+.annual-issue-title { min-width: 0; color: var(--muted); font-family: "Songti SC", "STSong", serif; letter-spacing: 0.15em; line-height: 1.6; overflow-wrap: anywhere; }
 
-.annual-arrow { margin-left: auto; color: var(--accent); font-size: 28px; }
+.annual-arrow { flex-shrink: 0; margin-left: auto; color: var(--accent); font-size: 28px; }
 
 .annual-loading-page { display: grid; place-items: center; }
 .annual-loading { width: min(400px, calc(100% - 48px)); margin: 48px auto; padding: 48px 0; text-align: center; }
@@ -180,8 +181,9 @@ h1 {
     .annual-issue { display: grid; grid-template-columns: minmax(0, 1fr) auto; padding: 20px 4px; gap: 8px; }
     .annual-issue::before { display: none; }
     .annual-year { grid-column: 1; font-size: clamp(32px, 8vw, 44px); }
-    .annual-issue-label { grid-column: 1; font-size: 14px; }
-    .annual-arrow { grid-column: 2; grid-row: 1 / 3; align-self: center; font-size: 24px; }
+    .annual-issue-title { grid-column: 1; font-size: 14px; }
+    .annual-arrow { grid-column: 2; grid-row: 1; align-self: center; font-size: 24px; }
+    .annual-issue-title ~ .annual-arrow { grid-row: 1 / 3; }
 }
 
 @media (prefers-color-scheme: dark) {

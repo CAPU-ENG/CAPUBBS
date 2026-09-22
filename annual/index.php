@@ -13,6 +13,10 @@ foreach (scandir(__DIR__) as $entry) {
     }
 }
 rsort($years, SORT_NUMERIC);
+
+$titlesJson = @file_get_contents(__DIR__ . '/titles.json');
+$titles = $titlesJson === false ? array() : json_decode($titlesJson, true);
+if (!is_array($titles)) $titles = array();
 ?>
 <!doctype html>
 <html lang="zh-CN">
@@ -44,11 +48,15 @@ rsort($years, SORT_NUMERIC);
             <p class="annual-empty">暂无年刊</p>
 <?php else: ?>
             <ul class="annual-list" aria-label="历年年刊">
-<?php foreach ($years as $year): ?>
+<?php foreach ($years as $year):
+    $title = isset($titles[$year]) && is_string($titles[$year]) ? trim($titles[$year]) : '';
+?>
                 <li>
-                    <a class="annual-issue" href="/annual/read.php?year=<?php echo $year; ?>" aria-label="阅读 <?php echo $year; ?> 年刊">
+                    <a class="annual-issue" href="/annual/read.php?year=<?php echo $year; ?>">
                         <span class="annual-year"><?php echo $year; ?></span>
-                        <span class="annual-issue-label">年刊</span>
+<?php if ($title !== ''): ?>
+                        <span class="annual-issue-title"><?php echo htmlspecialchars($title, ENT_QUOTES, 'UTF-8'); ?></span>
+<?php endif; ?>
                         <span class="annual-arrow" aria-hidden="true">↗</span>
                     </a>
                 </li>
