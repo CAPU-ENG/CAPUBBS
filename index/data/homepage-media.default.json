@@ -1,0 +1,19 @@
+{
+    "images": [
+        { "img": "/home-demo/images/gannan.webp", "imgthumb": "", "title": "【甘南之行】雨中划过一弯彩虹" },
+        { "img": "/home-demo/images/road.webp", "imgthumb": "", "title": "【甘南之行】雨中划过一弯彩虹" },
+        { "img": "/home-demo/images/riders.webp", "imgthumb": "", "title": "【甘南之行】雨中划过一弯彩虹" }
+    ],
+    "videoCovers": {
+        "BV1qK411A7yV": {
+            "image": "/assets/images/static/homepage/video-2020.jpg",
+            "source": "https://i1.hdslb.com/bfs/archive/f507427ec2d33a2c0f089f0f800383d76b85dca5.jpg",
+            "fetchedAt": "2026-09-22"
+        },
+        "BV19v411T7qC": {
+            "image": "/assets/images/static/homepage/video-2021.jpg",
+            "source": "https://i2.hdslb.com/bfs/archive/b2f1b1e5c31e878ed6114b2009613aa759dcb53e.jpg",
+            "fetchedAt": "2026-09-22"
+        }
+    }
+}

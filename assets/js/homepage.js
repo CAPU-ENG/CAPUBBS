@@ -1,30 +1,50 @@
 (() => {
   'use strict';
-  const menu = document.querySelector('.menu-toggle');
-  const navigation = document.querySelector('#navigation');
-  const mobileLayout = window.matchMedia('(max-width: 760px)');
-  function closeMenu(restoreFocus = false) {
-    menu.setAttribute('aria-expanded', 'false');
-    navigation.classList.remove('is-open');
-    if (restoreFocus) menu.focus();
-  }
-  menu.hidden = false;
   document.documentElement.classList.add('has-js');
-  menu.addEventListener('click', () => {
-    const open = menu.getAttribute('aria-expanded') !== 'true';
-    menu.setAttribute('aria-expanded', String(open));
-    navigation.classList.toggle('is-open', open);
+  const media = JSON.parse(document.querySelector('#homepage-media').textContent);
+  const tabs = Array.from(document.querySelectorAll('[data-about-tab]'));
+  const panels = Array.from(document.querySelectorAll('[data-about-panel]'));
+  document.querySelector('[data-about-tabs]').setAttribute('role', 'tablist');
+  tabs.forEach(tab => {
+    tab.setAttribute('role', 'tab');
+    tab.setAttribute('aria-controls', tab.dataset.aboutTab);
   });
-  navigation.addEventListener('click', event => {
-    if (event.target.closest('a') && !event.target.closest('[data-home-login]')) closeMenu();
+  panels.forEach(panel => { panel.setAttribute('role', 'tabpanel'); panel.tabIndex = 0; });
+  function selectTab(id, focus = false) {
+    const selected = tabs.find(tab => tab.dataset.aboutTab === id);
+    if (!selected) return;
+    tabs.forEach(tab => {
+      const active = tab === selected;
+      tab.setAttribute('aria-selected', String(active));
+      tab.tabIndex = active ? 0 : -1;
+    });
+    panels.forEach(panel => { panel.hidden = panel.id !== id; });
+    if (focus) selected.focus({ preventScroll: true });
+  }
+  function tabFromHash() {
+    const id = window.location.hash.slice(1);
+    return id === 'about' || !id ? 'introduction' : id;
+  }
+  function activateTab(tab) {
+    selectTab(tab.dataset.aboutTab, true);
+    window.history.replaceState(null, '', '#' + tab.dataset.aboutTab);
+  }
+  tabs.forEach((tab, index) => {
+    tab.addEventListener('click', event => { event.preventDefault(); activateTab(tab); });
+    tab.addEventListener('keydown', event => {
+      let next = index;
+      if (event.key === 'ArrowRight') next = (index + 1) % tabs.length;
+      else if (event.key === 'ArrowLeft') next = (index + tabs.length - 1) % tabs.length;
+      else if (event.key === 'Home') next = 0;
+      else if (event.key === 'End') next = tabs.length - 1;
+      else if (event.key !== ' ') return;
+      event.preventDefault();
+      activateTab(tabs[next]);
+    });
   });
-  document.addEventListener('keydown', event => {
-    if (event.key === 'Escape' && menu.getAttribute('aria-expanded') === 'true') closeMenu(true);
-  });
-  document.addEventListener('click', event => {
-    if (!event.target.closest('.site-header')) closeMenu();
-  });
-  mobileLayout.addEventListener('change', () => closeMenu(mobileLayout.matches && navigation.contains(document.activeElement)));
+  selectTab('introduction');
+  selectTab(tabFromHash());
+  window.addEventListener('hashchange', () => selectTab(tabFromHash()));
 
   async function readApi(ask) {
     const controller = new AbortController();
@@ -124,9 +144,10 @@
     imageRetry.disabled = true;
     if (!imageSignature) imageStatus.textContent = '正在加载宣传图…';
     try {
-      renderImages((await readApi('homepage_images'))?.images);
+      const rows = (await readApi('homepage_images'))?.images;
+      renderImages(Array.isArray(rows) && !rows.length ? media.images : rows);
     } catch (_) {
-      imageState.hidden = false;
+      imageState.hidden = images.length > 0;
       imageStatus.textContent = '宣传图暂时无法加载';
       imageRetry.hidden = false;
     } finally {
@@ -150,11 +171,41 @@
   const videoStatus = document.querySelector('[data-video-status]');
   const videoRetry = document.querySelector('[data-video-retry]');
   let videoLoading = false;
-  let videoSignature = '';
-  function videoSpan(className, text) {
-    const span = document.createElement('span');
-    span.className = className; span.textContent = text; span.setAttribute('aria-hidden', 'true');
-    return span;
+  let videoSignature = JSON.stringify({
+    videos: Array.from(videoList.querySelectorAll('.video-link')).map(link => ({ title: link.querySelector('h3').textContent, url: link.href })),
+    moreUrl: videoMore.hidden ? '' : videoMore.href,
+  });
+  function coverFor(url) {
+    const parsed = new URL(url);
+    if (!['bilibili.com', 'www.bilibili.com', 'm.bilibili.com'].includes(parsed.hostname)) return '';
+    const match = parsed.pathname.match(/^\/video\/(BV[a-zA-Z0-9]{10})\/?$/);
+    return match ? safeUrl(media.videoCovers[match[1]]?.image) : '';
+  }
+  function watchCover(image) {
+    image.addEventListener('error', () => image.remove(), { once: true });
+    if (image.complete && !image.naturalWidth) image.remove();
+  }
+  videoList.querySelectorAll('.video-cover img').forEach(watchCover);
+  function videoCard(item) {
+    const link = document.createElement('a');
+    link.className = 'video-link'; link.href = item.url; link.target = '_blank'; link.rel = 'noopener noreferrer';
+    const cover = document.createElement('span');
+    cover.className = 'video-cover'; cover.setAttribute('aria-hidden', 'true');
+    const imageUrl = coverFor(item.url);
+    if (imageUrl) {
+      const image = document.createElement('img');
+      image.alt = ''; image.loading = 'lazy'; image.decoding = 'async'; image.referrerPolicy = 'no-referrer';
+      image.src = imageUrl;
+      cover.append(image);
+      watchCover(image);
+    }
+    const play = document.createElement('span'); play.className = 'video-play'; play.textContent = '▶';
+    cover.append(play);
+    const caption = document.createElement('div'); caption.className = 'video-caption';
+    const title = document.createElement('h3'); title.textContent = item.title;
+    const arrow = document.createElement('span'); arrow.textContent = '↗'; arrow.setAttribute('aria-hidden', 'true');
+    caption.append(title, arrow); link.append(cover, caption);
+    return link;
   }
   async function loadVideos() {
     if (videoLoading) return;
@@ -165,20 +216,14 @@
       if (!Array.isArray(data?.videos)) throw new Error('视频数据无效');
       const next = data.videos.map(item => ({ title: typeof item?.title === 'string' ? item.title : '', url: safeUrl(item?.url) }));
       if (next.some(item => !item.url || !item.title)) throw new Error('视频链接无效');
-      const signature = JSON.stringify(data);
+      const moreUrl = safeUrl(data.moreUrl);
+      const signature = JSON.stringify({ videos: next, moreUrl });
       if (signature !== videoSignature) {
-        const fragment = document.createDocumentFragment();
-        next.forEach((item, index) => {
-          const link = document.createElement('a');
-          link.className = 'video-link'; link.href = item.url; link.target = '_blank'; link.rel = 'noopener noreferrer';
-          const title = document.createElement('h3'); title.textContent = item.title;
-          link.append(videoSpan('video-number', String(index + 1).padStart(2, '0')), videoSpan('video-play', '▷'), title, videoSpan('video-arrow', '↗'));
-          fragment.append(link);
-        });
-        videoList.replaceChildren(fragment);
+        const focusedUrl = videoList.contains(document.activeElement) ? document.activeElement.href : '';
+        videoList.replaceChildren(...next.map(videoCard));
+        if (focusedUrl) Array.from(videoList.children).find(link => link.href === focusedUrl)?.focus({ preventScroll: true });
         videoSignature = signature;
       }
-      const moreUrl = safeUrl(data.moreUrl);
       videoMore.hidden = !moreUrl;
       if (moreUrl) videoMore.href = moreUrl;
       else videoMore.removeAttribute('href');
@@ -199,6 +244,7 @@
     if (event.persisted) { void loadImages(); void loadVideos(); }
   });
   window.addEventListener('focus', () => { void loadImages(); void loadVideos(); });
+  renderImages(media.images);
   void loadImages();
   void loadVideos();
 
@@ -219,8 +265,7 @@
   dialog.addEventListener('close', () => {
     password.value = '';
     const opener = document.querySelector('[data-home-login]');
-    if (mobileLayout.matches && !navigation.classList.contains('is-open')) menu.focus();
-    else if (opener) opener.focus();
+    if (opener) opener.focus();
   });
   form.addEventListener('submit', async event => {
     event.preventDefault();
@@ -238,16 +283,4 @@
     }
   });
 
-  document.querySelector('[data-copy-wechat]').addEventListener('click', async event => {
-    const button = event.currentTarget;
-    const status = document.querySelector('[data-copy-status]');
-    try {
-      await navigator.clipboard.writeText(button.dataset.copyWechat);
-      status.textContent = '已复制';
-    } catch (_) {
-      const range = document.createRange(); range.selectNodeContents(button.firstChild);
-      const selection = window.getSelection(); selection.removeAllRanges(); selection.addRange(range);
-      status.textContent = '请复制选中的公众号名称';
-    }
-  });
 })();
