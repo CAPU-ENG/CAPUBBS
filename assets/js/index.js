@@ -62,15 +62,10 @@ function logout(){
     window.open("/bbs/logout/?from=/","_self");
 }
 function setActive(tag) {    
-        $("#navbar-home,#navbar-download,#navbar-timeline,#navbar-about").removeClass("active");
+        $("#navbar-home,#navbar-timeline,#navbar-about").removeClass("active");
     var cache=getCookie("token");
     if (cache=="") $('#login_li').html('<li><a href="javascript:showlogin()" id="login">登录</a></li><li id="navbar-register"><a href="/bbs/register/" target="_blank">注册</a></li>');
-        if (tag=="#download")
-        {
-                $("#navbar-download").addClass("active");
-        $("#mainframe").attr("src","/index/download.php");
-        }
-    else if (tag=="#timeline") {
+    if (tag=="#timeline") {
         $('#navbar-timeline').addClass("active");
         $('#mainframe').attr("src","/index/timeline.php");
     }

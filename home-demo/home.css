@@ -63,7 +63,7 @@ img { display: block; max-width: 100%; }
 .photo-controls button { width: 44px; height: 44px; border: 1px solid rgb(255 255 255 / 55%); background: transparent; color: white; border-radius: 50%; font-size: 21px; transition: background 160ms; }
 .photo-controls button:hover { background: rgb(255 255 255 / 20%); }
 
-.quick-links { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); max-width: 1600px; margin: auto; padding: 36px var(--gutter); }
+.quick-links { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); max-width: 1600px; margin: auto; padding: 36px var(--gutter); }
 .quick-links a { min-height: 40px; display: flex; align-items: center; gap: 20px; padding: 0 30px; border-right: 1px solid var(--line); font-size: 15px; }
 .quick-links a:first-child { padding-left: 0; }
 .quick-links a:last-child { padding-right: 0; border: 0; }
@@ -180,6 +180,7 @@ img { display: block; max-width: 100%; }
   .quick-links a:nth-child(odd) { padding-right: 24px; }
   .quick-links a:nth-child(even) { padding-left: 24px; border-left: 1px solid var(--line); }
   .quick-links a:nth-child(-n+2) { border-bottom: 1px solid var(--line); }
+  .quick-links a:last-child { grid-column: 1 / -1; padding-right: 0; }
   .section { padding-block: 52px; }
   .section-heading { margin-bottom: 27px; gap: 15px; }
   .section-heading h2 { font-size: 30px; white-space: nowrap; }

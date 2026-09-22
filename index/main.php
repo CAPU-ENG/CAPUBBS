@@ -53,7 +53,7 @@
 <link href="/assets/css/eventCalendar_theme_responsive.css" rel="stylesheet">
 <link href="/assets/css/lightbox.css" rel="stylesheet">
 <link href="/assets/css/style.css" rel="stylesheet">
-<link rel="shortcut icon" href="/assets/images/capu.jpg">
+<link rel="icon" type="image/png" href="/bbs/favicon.png">
 </head>
 <body>
 <?php
@@ -193,7 +193,7 @@
         <div id="calendar"></div>
 
 <?php 
-if ($rights!=0)
+if ($rights>=3)
 echo '
 <div class="row">
     <div class="col-md-6" style="padding:0;text-align:center">

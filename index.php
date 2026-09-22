@@ -70,7 +70,7 @@
 <meta name="apple-itunes-app" content="app-id=826386033">
 <link href="/assets/css/bootstrap.min.css" rel="stylesheet">
 <link href="/assets/css/style.css" rel="stylesheet">
-<link rel="shortcut icon" href="/assets/images/capu.jpg">
+<link rel="icon" type="image/png" href="/bbs/favicon.png">
 <title>北京大学自行车协会</title>
 </head>
 
@@ -92,8 +92,6 @@
         <li id="navbar-home"><a href="javascript:setActive('#main')">首页</a></li>
     <li class="devider"></li>
         <li><a href="/bbs/" target="_blank">进入论坛</a></li>
-        <li class="devider"></li>
-    <li><a href="https://pan.chexie.net" target="_blank">下载中心</a></li>
         <li class="devider"></li>
     <!-- <li><a href="https://race.chexie.net" target="_blank">交流赛官网</a></li> -->
     <li class="devider"></li>
