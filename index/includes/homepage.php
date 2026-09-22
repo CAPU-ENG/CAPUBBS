@@ -26,7 +26,7 @@ $homepageLoginModal = true;
 </head>
 <body id="top">
   <a class="skip-link" href="#main">跳转到正文</a>
-  <header class="site-header">
+  <header class="site-header home-dotted-background home-dotted-dark">
     <div class="page-width header-inner">
       <a class="brand" href="/">
         <img src="/bbs/favicon.png" width="42" height="42" alt="">
@@ -40,7 +40,7 @@ $homepageLoginModal = true;
   </header>
 
   <main class="homepage-main home-dotted-background" id="main">
-    <section class="promotion" role="region" aria-label="宣传图" aria-roledescription="轮播图" data-promotion>
+    <section class="promotion home-dotted-background home-dotted-dark" role="region" aria-label="宣传图" aria-roledescription="轮播图" data-promotion>
       <div class="promotion-frame">
         <div class="promotion-stage" id="promotion-slides">
 <?php foreach ($homepageMedia['images'] as $number => $image) { ?>
@@ -82,7 +82,7 @@ $homepageLoginModal = true;
 <?php } ?>
     </section>
 
-    <section class="videos" id="videos" aria-labelledby="videos-title">
+    <section class="videos home-dotted-background home-dotted-dark" id="videos" aria-labelledby="videos-title">
       <div class="page-width videos-inner">
         <div class="section-heading">
           <h2 id="videos-title">视频资料</h2>
@@ -121,7 +121,7 @@ $homepageLoginModal = true;
     </section>
   </main>
 
-  <footer class="site-footer home-dotted-background">
+  <footer class="site-footer">
     <div class="page-width footer-inner">
       <div class="sponsors" aria-label="赞助标识"><img src="/assets/images/static/homepage/rockbros.png" alt="洛克兄弟" title="洛克兄弟" width="320" loading="lazy" decoding="async"></div>
       <div class="footer-qr-list" aria-label="公众号和客户端二维码">

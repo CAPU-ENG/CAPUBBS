@@ -1,6 +1,6 @@
 (() => {
   'use strict';
-  // Adapt annual/background.js to the homepage's separate light-background areas.
+  // Adapt annual/background.js to the homepage's separate background areas.
   const areas = Array.from(document.querySelectorAll('.home-dotted-background'));
   if (!areas.length) return;
   const pointer = window.matchMedia('(any-hover: hover) and (any-pointer: fine)');
