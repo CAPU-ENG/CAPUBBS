@@ -71,16 +71,15 @@ h1 {
     display: flex;
     flex-direction: column;
     align-items: flex-start;
-    gap: 0.06em;
-    font-family: "Kaiti SC", "STKaiti", "KaiTi", "Songti SC", "Noto Serif CJK SC", serif;
+    gap: 0.1em;
+    font-family: "Songti SC", "STSong", "Noto Serif CJK SC", "Source Han Serif SC", "SimSun", serif;
     font-size: clamp(96px, 12vw, 144px);
     font-weight: 900;
     letter-spacing: 0;
     line-height: 1;
 }
 
-.annual-title span { display: block; -webkit-text-stroke: 0.008em currentColor; }
-.annual-title span:last-child { color: var(--accent); }
+.annual-title span { display: block; color: var(--ink); }
 
 .annual-book-mark { display: flex; align-items: flex-end; gap: 5px; padding: 10px 12px; border: 1px solid var(--accent); color: var(--accent); transform: rotate(-5deg); opacity: 0.7; }
 .annual-book-mark span { display: block; width: 9px; height: 30px; border: 1px solid currentColor; border-bottom-width: 4px; }
