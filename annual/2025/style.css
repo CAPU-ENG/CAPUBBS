@@ -1,0 +1,36 @@
+:root {
+    color-scheme: light;
+    --paper: #faf2e7;
+    --ink: #713c30;
+    --muted: #8b7063;
+    --line: #e6d5c4;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+    color: var(--ink);
+    background: var(--paper);
+}
+
+* { box-sizing: border-box; }
+body { margin: 0; }
+button:focus-visible { outline: 2px solid currentColor; outline-offset: 5px; }
+[hidden] { display: none !important; }
+
+.coastal-journal { width: min(1120px, calc(100% - 80px)); margin: 80px auto; display: grid; grid-template-columns: 1.1fr 1fr; grid-template-rows: auto 1fr; column-gap: 64px; row-gap: 40px; }
+.journal-title { grid-column: 1; }
+.demo-mark { font-size: 11px; letter-spacing: 0.2em; }
+
+h1 { margin: 24px 0 0; font-family: "Songti SC", "STSong", serif; font-size: 30px; font-weight: 500; letter-spacing: 0.15em; }
+h1 span { display: block; margin-bottom: 16px; font-family: Georgia, "Times New Roman", serif; font-size: clamp(88px, 13vw, 160px); line-height: 1; letter-spacing: -0.06em; }
+.coastal-scene { grid-column: 1; margin: 0; }
+.coastal-scene img { display: block; width: 100%; height: auto; }
+.journal-stories { grid-column: 2; grid-row: 1 / 3; align-self: start; padding-left: 48px; border-left: 1px solid var(--line); }
+.journal-stories section + section { margin-top: 48px; padding-top: 32px; border-top: 1px solid var(--line); }
+.chapter-number { font-family: Georgia, "Times New Roman", serif; font-size: 20px; color: var(--muted); }
+h2 { margin: 16px 0; font-size: 23px; font-weight: 500; }
+p { margin: 12px 0 0; line-height: 1.9; color: var(--muted); }
+.story-toggle { margin-top: 18px; padding: 6px 0; font: inherit; font-size: 14px; color: var(--ink); background: none; border: 0; border-bottom: 1px solid var(--ink); cursor: pointer; }
+
+@media (max-width: 760px) {
+    .coastal-journal { width: calc(100% - 40px); margin: 40px auto; grid-template-columns: 1fr; gap: 32px; }
+    .journal-stories { grid-column: 1; grid-row: auto; padding: 32px 0 0; border-left: 0; border-top: 1px solid var(--line); }
+    .journal-stories section + section { margin-top: 32px; }
+}

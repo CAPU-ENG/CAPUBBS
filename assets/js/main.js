@@ -210,21 +210,6 @@ function additem() {
     $('#calendar_add').before(txt);
 }
 
-function closevideo(id) {
-    if (id == "huige") {
-        document.getElementById("huige_video").pause();
-        $('#huige_dialog').modal('hide');
-        return;
-    }
-    if (id == "chenai") {
-        document.getElementById("chenai_video").pause();
-        $('#chenai_dialog').modal('hide');
-        return;
-    }
-    document.getElementById("video_" + id).pause();
-    $('#video_dialog_' + id).modal('hide');
-}
-
 function loadcalendar() {
     $('#alert_error,#alert_success').hide();
     var table_title = "<table class='table table-hover'><tr><th>时间</th><th>标题</th><th>描述</th><th>操作</th></tr>";

@@ -1,0 +1,10 @@
+.home-session { display: inline-flex; align-items: center; flex-wrap: wrap; gap: 16px; font-size: 14px; max-width: 100%; }
+.home-session button { border: 0; padding: 0; background: transparent; color: inherit; font: inherit; cursor: pointer; min-height: 44px; }
+.home-session a { display: inline-flex; align-items: center; min-height: 44px; }
+.home-session-name { max-width: 160px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; display: inline-block !important; line-height: 44px; }
+.home-session-error { color: #b94a48; flex-basis: 100%; font-size: 12px; }
+.home-session [hidden] { display: none !important; }
+.home-session :focus-visible { outline: 2px solid currentColor; outline-offset: 4px; }
+.navbar .home-session { padding: 3px 15px; color: #ddd; }
+.navbar .home-session a { color: #ddd; }
+.navbar .home-session a:hover { color: #fff; }

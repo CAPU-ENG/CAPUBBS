@@ -11,9 +11,11 @@
     if ($ask == "delinform") delinform();
     if ($ask == "saveimg") saveimg();
     if ($ask == "login") login();
-    if ($ask == "add_download") adddownload();
-    if ($ask == "edit_download") editdownload();
-    if ($ask == "del_download") deldownload();
+    if (in_array($ask, array("add_download", "edit_download", "del_download"), true)) {
+        http_response_code(410);
+        echo '2206';
+        exit;
+    }
 
     function trans($x) {
         return "<![CDATA[".$x."]]>";
@@ -44,9 +46,11 @@
 
     function saveimg() {
         $con = dbconnect_mysqli();
+        if (!isset($_COOKIE['token']) || !is_string($_COOKIE['token'])
+            || preg_match('/^[a-z0-9_-]{1,256}$/iD', $_COOKIE['token']) !== 1) { echo '-18'; exit; }
         $res = checkuser_con($con);
         $rights = (int)$res[1];
-        if ($rights == 0) { echo '-18'; exit; }
+        if ($rights < 3) { echo '-18'; exit; }
         mysqli_query($con, "delete from capubbs.mainpage where id=0");
         $json = @$_POST['json'];
         $de_json = json_decode($json, true);
@@ -77,9 +81,11 @@
 
     function addinform() {
         $con = dbconnect_mysqli();
+        if (!isset($_COOKIE['token']) || !is_string($_COOKIE['token'])
+            || preg_match('/^[a-z0-9_-]{1,256}$/iD', $_COOKIE['token']) !== 1) { echo '-18'; exit; }
         $res = checkuser_con($con);
         $rights = (int)$res[1];
-        if ($rights == 0) { echo '-18'; exit; }
+        if ($rights < 3) { echo '-18'; exit; }
         $title = mysqli_real_escape_string($con, @$_POST['title']);
         $url = mysqli_real_escape_string($con, @$_POST['url']);
         $time = time();
@@ -92,9 +98,11 @@
 
     function delinform() {
         $con = dbconnect_mysqli();
+        if (!isset($_COOKIE['token']) || !is_string($_COOKIE['token'])
+            || preg_match('/^[a-z0-9_-]{1,256}$/iD', $_COOKIE['token']) !== 1) { echo '-18'; exit; }
         $res = checkuser_con($con);
         $rights = (int)$res[1];
-        if ($rights == 0) { echo '-18'; exit; }
+        if ($rights < 3) { echo '-18'; exit; }
         $time = (int)@$_POST['time'];
         mysqli_query($con, "delete from capubbs.mainpage where id=1 && field3='$time'");
         echo mysqli_errno($con);
@@ -124,44 +132,3 @@
         echo $code;
         exit;
     }
-
-
-    function adddownload() {
-        $con = dbconnect_mysqli();
-        $res = checkuser_con($con);
-        $rights = (int)$res[1];
-        if ($rights == 0) { echo '-18'; exit; }
-        $title = mysqli_real_escape_string($con, @$_POST['title']);
-        $url = mysqli_real_escape_string($con, @$_POST['url']);
-        $statement = "insert into capubbs.downloads values (null,'$title','$url',0)";
-        mysqli_query($con, $statement);
-        echo mysqli_errno($con);
-        exit;
-    }
-
-    function editdownload() {
-        $con = dbconnect_mysqli();
-        $res = checkuser_con($con);
-        $rights = (int)$res[1];
-        if ($rights == 0) { echo '-18'; exit; }
-        $title = mysqli_real_escape_string($con, @$_POST['title']);
-        $url = mysqli_real_escape_string($con, @$_POST['url']);
-        $id = mysqli_real_escape_string($con, @$_POST['id']);
-        $statement = "update capubbs.downloads set name='$title', url='$url' where id=$id";
-        mysqli_query($con, $statement);
-        echo mysqli_errno($con);
-        exit;
-    }
-
-    function deldownload() {
-        $con = dbconnect_mysqli();
-        $res = checkuser_con($con);
-        $rights = (int)$res[1];
-        if ($rights == 0) { echo '-18'; exit; }
-        $id = @$_POST['id'];
-        $statement = "delete from capubbs.downloads where id=$id";
-        mysqli_query($con, $statement);
-        echo mysqli_errno($con);
-        exit;
-    }
-?>

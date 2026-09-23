@@ -1098,8 +1098,11 @@ function jiekoufunc_boardcast($con, $token, $text) {
 }
 
 function jiekoufunc_news($con, $token, $params) {
+    if (!is_string($token) || preg_match('/^[a-z0-9_-]{1,256}$/iD', $token) !== 1) {
+        return array(array('code' => '-1', 'msg' => '您的权限不足！'));
+    }
     $a = jiekoufunc_getrights($con, 0, $token);
-    if (intval($a[3]) < 1) {
+    if (intval($a[3]) < 3) {
         return array(array('code' => '-1', 'msg' => '您的权限不足！'));
     }
     $method = isset($params['method']) ? $params['method'] : '';
