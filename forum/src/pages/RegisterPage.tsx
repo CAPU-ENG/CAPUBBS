@@ -142,7 +142,7 @@ export function RegisterPage() {
   async function sendEmailCode() {
     const normalizedEmail = email.trim();
     if (!PKU_EMAIL_PATTERN.test(normalizedEmail)) {
-      setFieldErrors((current) => ({ ...current, email: '请输入允许的 PKU 学号邮箱。' }));
+      setFieldErrors((current) => ({ ...current, email: '请输入允许的 PKU 学号邮箱，例如：1234567890@stu.pku.edu.cn' }));
       setNotice(null);
       return;
     }
@@ -629,7 +629,7 @@ function validateRegistration(values: {
 }) {
   const errors: FieldErrors = {};
   if (!values.username || values.username.includes("'")) errors.username = '请填写有效的论坛 ID。';
-  if (!PKU_EMAIL_PATTERN.test(values.email)) errors.email = '请输入允许的 PKU 学号邮箱。';
+  if (!PKU_EMAIL_PATTERN.test(values.email)) errors.email = '请输入允许的 PKU 学号邮箱，例如：1234567890@stu.pku.edu.cn';
   if (!/^\d{6}$/.test(values.emailCode)) errors.emailCode = '邮箱验证码应为 6 位数字。';
   if (values.password.length < 6 || values.password.length > 18) errors.password = '密码长度应为 6–18 位。';
   if (values.password !== values.confirmPassword) errors.confirmPassword = '两次输入的密码不一致。';
