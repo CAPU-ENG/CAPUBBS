@@ -190,13 +190,95 @@ function home_hot_snapshot_query_rows($connection, $limit) {
 
     $rows = array();
     while ($row = mysqli_fetch_assoc($result)) {
-        if (isset($row['text']) && is_string($row['text']) && mb_strlen($row['text'], 'UTF-8') > 4000) {
-            $row['text'] = mb_substr($row['text'], 0, 4000, 'UTF-8');
+        if (isset($row['text']) && is_string($row['text'])) {
+            $row['text'] = home_hot_snapshot_excerpt($row['text']);
         }
         $rows[] = $row;
     }
     mysqli_free_result($result);
     return $rows;
+}
+
+function home_hot_snapshot_excerpt($html) {
+    if (preg_match('~\A[\s\x{FEFF}]*\z~u', $html)) return '';
+
+    // Match the homepage's exclusions before counting text, not HTML attributes.
+    $html = preg_replace('~\[quote(?:=[^\]]*)?\][\s\S]*?\[/quote\]~i', ' ', $html);
+    $html = preg_replace('~\[img(?:=[^\]]*)?\][\s\S]*?\[/img\]~i', ' ', $html);
+
+    // Keep the existing signup masking while field boundaries still exist.
+    $phoneLabel = '(?:电话|手机|联系电话|联系方式|mobile|phone|tel)';
+    $phoneValue = preg_match('~<(?:div|p|li)\b~i', $html)
+        ? '[^<\r\n]*(?=</(?:div|p|li)>|$)'
+        : '(?:1\d{10}|0\d{2,3}[ -]?\d{7,8})';
+    $html = preg_replace('~(' . $phoneLabel . '\s*[：:]\s*)' . $phoneValue . '~iu', '$1***********', $html);
+
+    // Tokenize complete tags (including quoted > characters). This also works
+    // on PHP 5.6 installations without the optional DOM extension.
+    $tagAttributes = '(?:[^>\'\"]+|\"[^\"]*\"|\'[^\']*\')*';
+    $rawElements = array();
+    foreach (array('script', 'style', 'title') as $tag) {
+        // Consume raw contents together so a JS comparison such as i<items.length
+        // cannot be mistaken for a tag and swallow the closing script element.
+        $rawElements[] = '<' . $tag . '\b' . $tagAttributes . '>[\s\S]*?(?:</' . $tag . '\s*>|$)';
+    }
+    $tokens = preg_split(
+        '~(<!--[\s\S]*?(?:-->|$)|' . implode('|', $rawElements)
+            . '|</?[a-z][a-z0-9:-]*\b' . $tagAttributes . '(?:>|$)|<![^>]*(?:>|$))~i',
+        $html, -1, PREG_SPLIT_DELIM_CAPTURE | PREG_SPLIT_NO_EMPTY
+    );
+    $text = '';
+    $excludedTag = '';
+    $excludedDepth = 0;
+    foreach ($tokens as $token) {
+        if (preg_match('~^</?([a-z][a-z0-9:-]*)\b~i', $token, $tagMatch)) {
+            $tag = strtolower($tagMatch[1]);
+            $closing = strpos($token, '</') === 0;
+            if (!$closing && in_array($tag, array('script', 'style', 'title'), true)) {
+                continue;
+            }
+            if ($excludedTag !== '') {
+                if ($tag === $excludedTag) {
+                    $excludedDepth += $closing ? -1 : 1;
+                    if ($excludedDepth === 0) $excludedTag = '';
+                }
+                continue;
+            }
+            if (!$closing) {
+                $gallery = false;
+                preg_match_all('~\s([^\s=/>]+)\s*=\s*(?:"([^"]*)"|\'([^\']*)\'|([^\s>]+))~', $token, $attributes, PREG_SET_ORDER);
+                foreach ($attributes as $attribute) {
+                    if (strtolower($attribute[1]) !== 'class') continue;
+                    $classes = html_entity_decode(implode(' ', array_slice($attribute, 2)), ENT_QUOTES | ENT_HTML5, 'UTF-8');
+                    $gallery = preg_match('~(?:^|\s)capubbs-gallery(?:\s|$)~', $classes);
+                    break;
+                }
+                if ($gallery || in_array($tag, array('blockquote', 'template', 'noscript', 'head'), true)) {
+                    // HTML void elements have no contents to exclude.
+                    if (!in_array($tag, array('area', 'base', 'br', 'col', 'embed', 'hr', 'img', 'input', 'link', 'meta', 'param', 'source', 'track', 'wbr'), true)) {
+                        $excludedTag = $tag;
+                        $excludedDepth = 1;
+                    }
+                    $text .= ' ';
+                    continue;
+                }
+            }
+            if ($tag === 'br' || ($closing && in_array($tag, array('div', 'p', 'li'), true))) $text .= ' ';
+        } elseif ($excludedTag === '' && strpos($token, '<!') !== 0) {
+            $text .= html_entity_decode($token, ENT_QUOTES | ENT_HTML5, 'UTF-8');
+        }
+    }
+    $text = preg_replace('~\[at\]\s*~i', '@', $text);
+    $text = preg_replace('~\[/at\]~i', '', $text);
+    $text = preg_replace('~\[(?:/?[a-z][^\]]*)\]~i', ' ', $text);
+    $text = trim(preg_replace('~[\s\x{FEFF}]+~u', ' ', $text));
+
+    // Preserve the frontend's non-text fallback for image/quote-only posts.
+    if ($text === '') return '<span></span>';
+    preg_match('~\A.{0,4000}~us', $text, $excerpt);
+    // The text field is still consumed as HTML; escape once after truncation so
+    // literal <...> and entities survive the frontend's single decoding pass.
+    return htmlspecialchars($excerpt[0], ENT_NOQUOTES | ENT_SUBSTITUTE, 'UTF-8');
 }
 
 function home_hot_snapshot_publish($rows, $dirtyAtStart) {
