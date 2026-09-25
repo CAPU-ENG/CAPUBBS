@@ -9,6 +9,17 @@
   var finished = false;
   var failed = false;
   var timer;
+  var statusTimer;
+  var messages = [
+    '正在检查快拆碗组……',
+    '正在清点队医箱药物……',
+    '正在佩戴头盔……',
+    '正在记录行者足音……',
+    '正在坡顶合影留念……',
+    '正在五四操场为你竖起大拇指……',
+    '正在讨论下次拉练的路线……',
+  ];
+  var messageIndex = 0;
   var controller = new AbortController();
   var cacheMode = 'force-cache';
   var retryKey = 'capubbs-startup-retry';
@@ -27,10 +38,26 @@
   } catch (_) { /* Storage restrictions must not prevent startup. */ }
   overlay.dataset.theme = theme;
 
+  function rotateStatus() {
+    if (finished || failed) return;
+    var previous = document.createElement('span');
+    previous.className = 'startup-message-out';
+    previous.setAttribute('aria-hidden', 'true');
+    previous.textContent = messages[messageIndex];
+    messageIndex = (messageIndex + 1) % messages.length;
+    var current = document.createElement('span');
+    current.className = 'startup-message-in';
+    current.textContent = messages[messageIndex];
+    status.textContent = '';
+    status.appendChild(previous);
+    status.appendChild(current);
+  }
+
   function fail() {
     if (finished || failed) return;
     failed = true;
     clearTimeout(timer);
+    clearInterval(statusTimer);
     controller.abort();
     status.textContent = '加载失败';
     indeterminate.hidden = true;
@@ -48,6 +75,7 @@
     if (finished || failed) return;
     finished = true;
     clearTimeout(timer);
+    clearInterval(statusTimer);
     window.removeEventListener('vite:preloadError', fail);
     overlay.remove();
     document.getElementById('forum-startup-style').remove();
@@ -60,10 +88,11 @@
     window.location.reload();
   });
   touch();
+  status.textContent = messages[messageIndex];
+  statusTimer = setInterval(rotateStatus, 1000);
 
   if (!config) {
     // Vite development serves source modules without a fixed byte manifest.
-    status.textContent = '正在加载';
     percent.textContent = '';
     progress.hidden = true;
     progress.removeAttribute('value');
@@ -225,7 +254,6 @@
       }
       await Promise.all(Array.from({ length: Math.min(4, assets.length) }, worker));
       if (failed) return;
-      status.textContent = '正在打开页面';
       await Promise.all(assets.filter(function (asset) { return asset.css; }).map(installStyle));
       if (failed) return;
       // Load from the original URLs so relative imports, CSS URLs and the HTTP cache keep working.

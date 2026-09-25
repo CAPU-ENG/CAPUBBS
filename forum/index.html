@@ -37,7 +37,31 @@
       #forum-startup .startup-content { width: min(100%, 280px); }
       #forum-startup h1 { margin: 0 0 24px; font-size: 22px; font-weight: 600; }
       #forum-startup .startup-status { display: flex; justify-content: space-between; gap: 12px; }
-      #forum-startup-percent { font-variant-numeric: tabular-nums; }
+      #forum-startup-status {
+        position: relative;
+        flex: 1;
+        height: 1.5em;
+        overflow: hidden;
+        white-space: nowrap;
+      }
+      #forum-startup-status .startup-message-in {
+        display: block;
+        animation: forum-startup-message-in 0.3s ease-out both;
+      }
+      #forum-startup-status .startup-message-out {
+        position: absolute;
+        inset: 0;
+        animation: forum-startup-message-out 0.3s ease-out both;
+      }
+      @keyframes forum-startup-message-in {
+        from { transform: translateY(100%); }
+        to { transform: translateY(0); }
+      }
+      @keyframes forum-startup-message-out {
+        from { transform: translateY(0); }
+        to { transform: translateY(-100%); }
+      }
+      #forum-startup-percent { flex-shrink: 0; font-variant-numeric: tabular-nums; }
       #forum-startup progress {
         display: block;
         width: 100%;
@@ -72,6 +96,8 @@
         to { transform: translateX(334%); }
       }
       @media (prefers-reduced-motion: reduce) {
+        #forum-startup-status .startup-message-in { animation: none; }
+        #forum-startup-status .startup-message-out { display: none; }
         #forum-startup-indeterminate span {
           width: 100%;
           opacity: 0.6;
@@ -96,7 +122,7 @@
       <div class="startup-content">
         <h1 id="forum-startup-title">车协论坛</h1>
         <div class="startup-status">
-          <span id="forum-startup-status" role="status">正在下载资源</span>
+          <span id="forum-startup-status" role="status">正在检查快拆碗组……</span>
           <span id="forum-startup-percent" aria-hidden="true">0%</span>
         </div>
         <progress id="forum-startup-progress" max="100" value="0" aria-label="资源下载进度"></progress>

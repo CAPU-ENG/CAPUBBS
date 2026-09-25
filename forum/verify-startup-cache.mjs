@@ -22,7 +22,9 @@ const legacyHashes = new Map([
 ]);
 const payloads = new Map();
 const legacy = config.assets.filter((asset) => asset.variants);
-assert.equal(legacy.length, 5, 'Compatibility must remain limited to the known immutable assets');
+assert.deepEqual(legacy.map((asset) => asset.url), config.assets
+  .filter((asset) => legacyHashes.has(asset.url.split('/').at(-1)))
+  .map((asset) => asset.url), 'Compatibility must match the known immutable assets still present in this build');
 for (const asset of config.assets) {
   const result = await fetch(origin + asset.url);
   assert.equal(result.status, 200, asset.url);
@@ -37,7 +39,7 @@ for (const asset of config.assets) {
 
 function run(options = {}) {
   const elements = new Map();
-  const values = [], requests = [], installed = [], idle = new Map();
+  const values = [], requests = [], installed = [], idle = new Map(), intervals = new Map();
   let resolveOutcome;
   const outcome = new Promise((resolve) => { resolveOutcome = resolve; });
   const element = (id) => ({
@@ -62,6 +64,8 @@ function run(options = {}) {
     },
     setTimeout(fn, ms) { if (!ms) { queueMicrotask(fn); return; } const id = {}; idle.set(id, fn); return id; },
     clearTimeout(id) { idle.delete(id); },
+    setInterval(fn) { const id = {}; intervals.set(id, fn); return id; },
+    clearInterval(id) { intervals.delete(id); },
     async fetch(url, init) {
       requests.push(url);
       assert.equal(init.cache, 'force-cache');
@@ -164,4 +168,4 @@ finishDigest(await webcrypto.subtle.digest('SHA-256', payloads.get(legacy[0].url
 await new Promise((resolve) => setImmediate(resolve));
 assert.equal(pending.values.includes(100), false);
 assert.equal(pending.installed.length, 0);
-console.log(`PASS: ${checks} cache compatibility cases, exact five-asset allowlist, SHA-256 vectors, and late-digest timeout.`);
+console.log(`PASS: ${checks} cache compatibility cases, shipped-asset allowlist, SHA-256 vectors, and late-digest timeout.`);
