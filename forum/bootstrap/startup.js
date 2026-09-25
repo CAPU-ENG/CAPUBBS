@@ -38,13 +38,30 @@
   } catch (_) { /* Storage restrictions must not prevent startup. */ }
   overlay.dataset.theme = theme;
 
+  function shuffleMessages(lastMessage) {
+    for (var i = messages.length - 1; i > 0; i--) {
+      var j = Math.floor(Math.random() * (i + 1));
+      var message = messages[i];
+      messages[i] = messages[j];
+      messages[j] = message;
+    }
+    // Keep the first message of a new round different from the last one shown.
+    if (messages[0] === lastMessage) {
+      var next = 1 + Math.floor(Math.random() * (messages.length - 1));
+      messages[0] = messages[next];
+      messages[next] = lastMessage;
+    }
+    messageIndex = 0;
+  }
+
   function rotateStatus() {
     if (finished || failed) return;
     var previous = document.createElement('span');
     previous.className = 'startup-message-out';
     previous.setAttribute('aria-hidden', 'true');
     previous.textContent = messages[messageIndex];
-    messageIndex = (messageIndex + 1) % messages.length;
+    messageIndex += 1;
+    if (messageIndex === messages.length) shuffleMessages(previous.textContent);
     var current = document.createElement('span');
     current.className = 'startup-message-in';
     current.textContent = messages[messageIndex];
@@ -88,6 +105,7 @@
     window.location.reload();
   });
   touch();
+  shuffleMessages();
   status.textContent = messages[messageIndex];
   statusTimer = setInterval(rotateStatus, 1000);
 
