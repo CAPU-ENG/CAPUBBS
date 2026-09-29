@@ -171,6 +171,9 @@ function home_hot_snapshot_query_rows($connection, $limit) {
         from threads
         order by threads.timestamp desc
         limit 0,$limit";
+    // Only a truly empty replyer falls back to the author; preserve username bytes.
+    $avatarUsername = "case when octet_length(recent_threads.replyer)>0
+        then recent_threads.replyer else recent_threads.author end";
     $query = "
         select recent_threads.bid,recent_threads.tid,recent_threads.title,recent_threads.author,
         recent_threads.replyer,recent_threads.click,recent_threads.reply,recent_threads.extr,
@@ -182,7 +185,8 @@ function home_hot_snapshot_query_rows($connection, $limit) {
         left join thread_global_top
             on recent_threads.bid=thread_global_top.bid and recent_threads.tid=thread_global_top.tid
         left join userinfo as home_author
-            on home_author.username=coalesce(nullif(recent_threads.replyer,''),recent_threads.author)
+            on home_author.username=($avatarUsername)
+            and cast(home_author.username as binary)=cast(($avatarUsername) as binary)
         order by recent_threads.timestamp desc";
 
     $result = @mysqli_query($connection, $query);
