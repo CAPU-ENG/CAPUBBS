@@ -63,7 +63,9 @@ function jiekoufunc_avatar_update($con, $token, $params, $file) {
     $target_escaped = mysqli_real_escape_string($con, $target_icon);
     $updated = mysqli_query(
         $con,
-        "UPDATE userinfo SET icon='$target_escaped' WHERE username='$username_escaped' LIMIT 1"
+        "UPDATE userinfo SET icon='$target_escaped'
+         WHERE username='$username_escaped'
+         AND CAST(username AS BINARY)=CAST('$username_escaped' AS BINARY) LIMIT 1"
     );
     if (!$updated) {
         if ($stored && $stored['created']) {
@@ -231,9 +233,11 @@ function avatar_image_store($username, $encoded) {
 
 function avatar_current_icon($con, $username) {
     $username_escaped = mysqli_real_escape_string($con, $username);
+    // The ordinary comparison uses the index; binary equality preserves identity.
     $result = mysqli_query(
         $con,
-        "SELECT icon FROM userinfo WHERE username='$username_escaped' LIMIT 1"
+        "SELECT icon FROM userinfo WHERE username='$username_escaped'
+         AND CAST(username AS BINARY)=CAST('$username_escaped' AS BINARY) LIMIT 1"
     );
     if (!$result) {
         return false;

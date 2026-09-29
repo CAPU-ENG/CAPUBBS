@@ -225,6 +225,9 @@ function jiekoufunc_hot($con, $token, $params) {
         order by threads.timestamp desc
         limit 0,$hotnum";
 
+    // Keep the indexed comparison, then reject case/space-equivalent usernames.
+    $avatarUsername = "case when octet_length(recent_threads.replyer)>0
+        then recent_threads.replyer else recent_threads.author end";
     $results = mysqli_query($con, "
         select recent_threads.bid,recent_threads.tid,recent_threads.title,recent_threads.author,
         recent_threads.replyer,recent_threads.click,recent_threads.reply,recent_threads.extr,
@@ -233,7 +236,8 @@ function jiekoufunc_hot($con, $token, $params) {
         recent_threads.global_top
         from ($recent_threads) as recent_threads
         left join userinfo as home_author
-            on home_author.username=coalesce(nullif(recent_threads.replyer,''),recent_threads.author)
+            on home_author.username=($avatarUsername)
+            and cast(home_author.username as binary)=cast(($avatarUsername) as binary)
         order by recent_threads.timestamp desc");
     while ($res = mysqli_fetch_array($results)) {
         $info = array();
