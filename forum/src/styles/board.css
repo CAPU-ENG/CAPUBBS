@@ -806,8 +806,10 @@
     }
 
     .board-pagination-footer {
+      position: relative;
+      z-index: 1;
       justify-content: flex-start;
-      overflow-x: auto;
+      overflow: visible;
       padding: 10px 8px;
     }
 
