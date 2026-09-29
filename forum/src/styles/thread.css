@@ -31,6 +31,19 @@
     max-width: calc(var(--thread-page-main-column) + 32px);
   }
 
+  .forum-pagination-card,
+  .thread-top-pagination,
+  .thread-bottom-pagination {
+    position: relative;
+  }
+
+  /* Raise the animated container, not just the menu inside its stacking context. */
+  .forum-pagination-card:has(.thread-page-jump details[open]),
+  .thread-top-pagination:has(.thread-page-jump details[open]),
+  .thread-bottom-pagination:has(.thread-page-jump details[open]) {
+    z-index: 31;
+  }
+
   .thread-pagination {
     display: flex;
     flex-shrink: 0;

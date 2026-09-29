@@ -288,6 +288,10 @@
     box-shadow: var(--shadow-card);
   }
 
+  .board-thread-section:has(.board-pagination-footer .thread-page-jump details[open]) {
+    overflow: visible;
+  }
+
   .board-management-feedback {
     border-bottom: 1px solid var(--line);
     padding: 9px 15px;
@@ -806,8 +810,6 @@
     }
 
     .board-pagination-footer {
-      position: relative;
-      z-index: 1;
       justify-content: flex-start;
       overflow: visible;
       padding: 10px 8px;

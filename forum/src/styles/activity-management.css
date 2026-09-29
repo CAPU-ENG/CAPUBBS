@@ -173,6 +173,15 @@
     overflow: hidden;
   }
 
+  .activity-summary-panel:has(.activity-summary-select-menu) {
+    overflow: visible;
+  }
+
+  .activity-summary-panel > .activity-management-panel-heading:has(.activity-summary-select-menu) {
+    position: relative;
+    z-index: 20;
+  }
+
   .activity-management-panel-heading {
     display: flex;
     min-height: 58px;

@@ -118,6 +118,7 @@
   }
 
   .search-results { min-width: 0; overflow: hidden; }
+  .search-results:has(.search-pagination-wrap .thread-page-jump details[open]) { overflow: visible; }
   .search-filter-aside { position: sticky; top: calc(var(--topbar-height) + 14px); }
   .search-filter-card { padding: 18px; }
 

@@ -729,6 +729,10 @@
     display: grid;
   }
 
+  .profile-record-panel:has(.profile-pagination .thread-page-jump details[open]) {
+    overflow: visible;
+  }
+
   .profile-record {
     position: relative;
     min-width: 0;
