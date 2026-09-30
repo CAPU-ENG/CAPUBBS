@@ -1479,6 +1479,65 @@ ol { padding: 0; list-style: none; }
     line-height: 1;
 }
 
+/* ---------- 人物志 ---------- */
+.people-head { margin-bottom: clamp(28px, 4vw, 44px); }
+.people-head img, .people-group img { width: 100%; border-radius: var(--radius); }
+.roster { margin-bottom: clamp(48px, 7vw, 88px); }
+.roster ol {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(84px, 1fr));
+    gap: 14px 12px;
+}
+.roster a {
+    display: grid;
+    gap: 6px;
+    justify-items: center;
+    color: var(--ink);
+    text-decoration: none;
+}
+.roster img {
+    width: 100%;
+    aspect-ratio: 1;
+    object-fit: cover;
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    transition: border-color .2s, opacity .2s;
+}
+.roster span { font-size: 15px; font-weight: 700; letter-spacing: .1em; }
+.roster a:hover img { border-color: var(--cyan-strong); opacity: .88; }
+.roster a:hover span { color: var(--cyan-ink); }
+
+.people { display: grid; gap: clamp(56px, 7vw, 96px); max-width: 1040px; margin: 0 auto; }
+.person {
+    display: grid;
+    grid-template-columns: 340px minmax(0, 1fr);
+    gap: clamp(24px, 4vw, 48px);
+    align-items: start;
+    scroll-margin-top: 84px;
+}
+.person.is-flip { grid-template-columns: minmax(0, 1fr) 340px; }
+.person.is-flip .person-photo { order: 2; }
+.person.is-tall .person-photo { width: 280px; justify-self: center; }
+.person-photo {
+    position: sticky;
+    top: 84px;
+    overflow: hidden;
+    border-radius: var(--radius);
+    background: var(--accent-soft);
+}
+.person-photo img { width: 100%; }
+.person-name { margin-bottom: 18px; line-height: 0; }
+.person-name img { width: auto; height: 60px; }
+.person-name.is-vertical img { height: 120px; }
+.person-bio p {
+    margin-bottom: .9em;
+    font-size: 17px;
+    line-height: 1.95;
+    text-align: justify;
+    text-indent: 2em;
+}
+.people-group { margin-top: clamp(56px, 7vw, 96px); }
+
 @media (max-width: 1023px) {
     .traces { grid-template-columns: minmax(0, 1fr); gap: 0; }
     .traces-map {
@@ -1493,6 +1552,15 @@ ol { padding: 0; list-style: none; }
 }
 @media (max-width: 759px) {
     .traces-map { top: 65px; }
+    .person, .person.is-flip { grid-template-columns: minmax(0, 1fr); }
+    .person.is-flip .person-photo { order: 0; }
+    .person-photo, .person.is-tall .person-photo { position: static; width: 100%; }
+    .person.is-tall .person-photo img { max-height: 70vh; object-fit: cover; }
+    .person-name img { height: 48px; }
+    .person-name.is-vertical img { height: 92px; }
+    .person-bio p { font-size: 16px; }
+    .roster ol { grid-template-columns: repeat(auto-fill, minmax(64px, 1fr)); gap: 12px 8px; }
+    .roster span { font-size: 13px; }
     .traces-frame { width: min(100%, calc(38vh * 1000 / 846)); }
     .trace-node b { font-size: 13px; }
     .traces-inset { width: 16%; }
