@@ -347,3 +347,87 @@
         if (event.key === 'Escape') close();
     });
 })();
+
+// play the curtain only when moving between annual pages; the first page load stays still
+(function () {
+    if (!document.body) return;
+
+    var navigating = false;
+    var reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+    function destinationFor(link, event) {
+        if (navigating || event.defaultPrevented) return null;
+        if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey || event.button !== 0) return null;
+        if (link.classList.contains('colophon-cover')) return null;
+        var parent = link.parentElement;
+        while (parent && parent !== document.body) {
+            if (parent.classList.contains('figure')) return null;
+            parent = parent.parentElement;
+        }
+        if (link.hasAttribute('download')) return null;
+
+        var target = (link.getAttribute('target') || '').toLowerCase();
+        if (target && target !== '_self') return null;
+
+        var href = link.getAttribute('href');
+        if (!href || href.charAt(0) === '#') return null;
+
+        var url;
+        try {
+            url = new window.URL(href, window.location.href);
+        } catch (error) {
+            return null;
+        }
+        if (url.protocol !== 'http:' && url.protocol !== 'https:') return null;
+        if (url.origin !== window.location.origin) return null;
+        if (url.pathname === window.location.pathname && url.search === window.location.search) return null;
+        return url;
+    }
+
+    function buildWipe() {
+        var wipe = document.createElement('div');
+        wipe.className = 'page-wipe';
+        wipe.setAttribute('aria-hidden', 'true');
+        for (var i = 0; i < 8; i += 1) {
+            var bar = document.createElement('i');
+            bar.style.setProperty('--wipe-i', i);
+            wipe.appendChild(bar);
+        }
+        document.body.appendChild(wipe);
+        return wipe;
+    }
+
+    function transitionTo(url) {
+        buildWipe();
+
+        function go() {
+            window.location.assign(url.href);
+        }
+
+        if (reduce) {
+            go();
+            return;
+        }
+
+        // Give the newly inserted curtain one paint, then start navigation immediately.
+        // The request runs while the outgoing curtain continues its animation.
+        if (window.requestAnimationFrame) {
+            window.requestAnimationFrame(function () { window.setTimeout(go, 0); });
+        } else {
+            window.setTimeout(go, 0);
+        }
+    }
+
+    document.addEventListener('click', function (event) {
+        var link = event.target;
+        if (link && link.nodeType !== 1) link = link.parentElement;
+        while (link && link.tagName && link.tagName.toLowerCase() !== 'a') link = link.parentElement;
+        if (!link) return;
+
+        var url = destinationFor(link, event);
+        if (!url) return;
+        event.preventDefault();
+        navigating = true;
+        transitionTo(url);
+    });
+})();

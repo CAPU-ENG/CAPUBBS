@@ -119,7 +119,7 @@ ol { padding: 0; list-style: none; }
 }
 .skip:focus { top: 12px; }
 
-/* homepage curtain: a short editorial transition made from staggered horizontal bars */
+/* page transition: a short editorial curtain made from staggered horizontal bars */
 .page-wipe {
     position: fixed;
     inset: 0;
