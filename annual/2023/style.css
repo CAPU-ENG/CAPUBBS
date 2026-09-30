@@ -992,7 +992,7 @@ ol { padding: 0; list-style: none; }
     text-indent: 2em;
 }
 .prose > p:first-child { text-indent: 0; }
-.prose > p:first-child::first-letter {
+.prose > p:first-child:not(.verse)::first-letter {
     float: left;
     margin: .1em .14em 0 0;
     color: var(--accent-ink);
@@ -1001,6 +1001,36 @@ ol { padding: 0; list-style: none; }
     line-height: 1;
 }
 .figure { margin: 2.2em 0; }
+.figure.is-tall { max-width: 420px; margin-inline: auto; }
+.figure-pair { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; align-items: start; }
+.figure-pair a { display: block; overflow: hidden; border-radius: var(--radius); }
+.figure-pair img { width: 100%; height: min(70vh, 620px); object-fit: cover; }
+.prose-sub {
+    margin: 2.2em 0 .9em;
+    color: var(--accent-ink);
+    font-size: 21px;
+    font-weight: 900;
+    letter-spacing: .1em;
+}
+.prose-sub::before { content: "【"; }
+.prose-sub::after { content: "】"; }
+.prose .verse {
+    margin: 0 0 2em;
+    padding-left: 1.2em;
+    border-left: 3px solid var(--accent);
+    font-size: 20px;
+    font-weight: 700;
+    line-height: 2;
+    text-align: left;
+    text-indent: 0;
+}
+.pull {
+    margin: 1.8em 0;
+    padding: 4px 0 4px 1.2em;
+    border-left: 3px solid var(--accent);
+    color: var(--ink-soft);
+}
+.prose .pull p { margin: 0; text-indent: 0; font-size: 17px; line-height: 2; }
 .figure a { display: block; overflow: hidden; border-radius: var(--radius); }
 .figure img { width: 100%; }
 .prose .author-note {
