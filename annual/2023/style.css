@@ -1482,12 +1482,15 @@ ol { padding: 0; list-style: none; }
 /* ---------- 人物志 ---------- */
 .people-head { margin-bottom: clamp(28px, 4vw, 44px); }
 .people-head img, .people-group img { width: 100%; border-radius: var(--radius); }
-.roster { margin-bottom: clamp(48px, 7vw, 88px); }
+.roster { max-width: 640px; margin: 0 auto clamp(48px, 7vw, 88px); }
+/* 13 people as 4 / 5 / 4: ten half-columns, each person spans two, rows 1 and 3 start one half-column in */
 .roster ol {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(84px, 1fr));
-    gap: 14px 12px;
+    grid-template-columns: repeat(10, minmax(0, 1fr));
+    gap: 16px 12px;
 }
+.roster li { grid-column: span 2; }
+.roster li:nth-child(1), .roster li:nth-child(10) { grid-column: 2 / span 2; }
 .roster a {
     display: grid;
     gap: 6px;
@@ -1559,7 +1562,7 @@ ol { padding: 0; list-style: none; }
     .person-name img { height: 48px; }
     .person-name.is-vertical img { height: 92px; }
     .person-bio p { font-size: 16px; }
-    .roster ol { grid-template-columns: repeat(auto-fill, minmax(64px, 1fr)); gap: 12px 8px; }
+    .roster ol { gap: 12px 6px; }
     .roster span { font-size: 13px; }
     .traces-frame { width: min(100%, calc(38vh * 1000 / 846)); }
     .trace-node b { font-size: 13px; }
