@@ -1076,6 +1076,7 @@ ol { padding: 0; list-style: none; }
 .figure-pair { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; align-items: start; }
 .figure-pair a { display: block; overflow: hidden; border-radius: var(--radius); }
 .figure-pair img { width: 100%; height: min(70vh, 620px); object-fit: cover; }
+.figure-pair.is-original img { height: auto; object-fit: contain; }
 .prose-sub {
     margin: 2.2em 0 .9em;
     color: var(--accent-ink);
