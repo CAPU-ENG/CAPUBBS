@@ -1,0 +1,68 @@
+{
+  "year": "2023",
+  "prefix": "https://capu-annuals.oss-cn-beijing.aliyuncs.com/2023/assets/",
+  "files": [
+    {
+      "path": "brush.webp",
+      "size": 45784
+    },
+    {
+      "path": "cover.webp",
+      "size": 962382
+    },
+    {
+      "path": "cycling.webp",
+      "size": 986846
+    },
+    {
+      "path": "flying.webp",
+      "size": 891164
+    },
+    {
+      "path": "fonts/annual-sans-Bold.woff2",
+      "size": 583956
+    },
+    {
+      "path": "fonts/annual-sans-Regular.woff2",
+      "size": 547932
+    },
+    {
+      "path": "fonts/annual-serif-Bold.woff2",
+      "size": 764268
+    },
+    {
+      "path": "fonts/annual-serif-Regular.woff2",
+      "size": 723192
+    },
+    {
+      "path": "footsteps.webp",
+      "size": 993918
+    },
+    {
+      "path": "mountain.webp",
+      "size": 988716
+    },
+    {
+      "path": "pic-22-3.webp",
+      "size": 480788
+    },
+    {
+      "path": "practice.webp",
+      "size": 965438
+    },
+    {
+      "path": "ridge.webp",
+      "size": 819476
+    },
+    {
+      "path": "shore.webp",
+      "size": 957774
+    },
+    {
+      "path": "summer.webp",
+      "size": 992442
+    }
+  ],
+  "totalBytes": 11704076,
+  "scope": "homepage"
+}
