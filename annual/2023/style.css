@@ -1,28 +1,28 @@
 /* Local subsets keep the printed issue's Chinese typography consistent across devices. */
 @font-face {
     font-family: "Annual Serif";
-    src: url("./assets/fonts/annual-serif-Regular.woff2") format("woff2");
+    src: url("https://capu-annuals.oss-cn-beijing.aliyuncs.com/2023/assets/fonts/annual-serif-Regular.woff2") format("woff2");
     font-style: normal;
     font-weight: 400;
     font-display: swap;
 }
 @font-face {
     font-family: "Annual Serif";
-    src: url("./assets/fonts/annual-serif-Bold.woff2") format("woff2");
+    src: url("https://capu-annuals.oss-cn-beijing.aliyuncs.com/2023/assets/fonts/annual-serif-Bold.woff2") format("woff2");
     font-style: normal;
     font-weight: 700;
     font-display: swap;
 }
 @font-face {
     font-family: "Annual Sans";
-    src: url("./assets/fonts/annual-sans-Regular.woff2") format("woff2");
+    src: url("https://capu-annuals.oss-cn-beijing.aliyuncs.com/2023/assets/fonts/annual-sans-Regular.woff2") format("woff2");
     font-style: normal;
     font-weight: 400;
     font-display: swap;
 }
 @font-face {
     font-family: "Annual Sans";
-    src: url("./assets/fonts/annual-sans-Bold.woff2") format("woff2");
+    src: url("https://capu-annuals.oss-cn-beijing.aliyuncs.com/2023/assets/fonts/annual-sans-Bold.woff2") format("woff2");
     font-style: normal;
     font-weight: 700;
     font-display: swap;
@@ -638,7 +638,7 @@ ol { padding: 0; list-style: none; }
     bottom: -60px;
     width: 280px;
     height: 330px;
-    background: url("./assets/brush.webp") center / contain no-repeat;
+    background: url("https://capu-annuals.oss-cn-beijing.aliyuncs.com/2023/assets/brush.webp") center / contain no-repeat;
     opacity: .1;
     pointer-events: none;
 }
