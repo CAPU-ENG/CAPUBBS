@@ -1336,16 +1336,20 @@ ol { padding: 0; list-style: none; }
 .route-pair {
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: clamp(8px, 1.5vw, 20px);
+    gap: 0;
     width: 100%;
+    overflow: hidden;
+    border-radius: var(--radius);
+    box-shadow: var(--shadow-card);
 }
-.route-pair .route-sheet { margin: 0; }
+.route-pair .route-sheet { margin: 0; overflow: hidden; }
+.route-pair .route-sheet:first-child { border-radius: var(--radius) 0 0 var(--radius); }
+.route-pair .route-sheet:last-child { border-radius: 0 var(--radius) var(--radius) 0; }
 .route-pair img {
     display: block;
     width: 100%;
     height: auto;
-    border-radius: var(--radius);
-    box-shadow: var(--shadow-card);
+    border-radius: 0;
 }
 
 .traces {
@@ -1934,7 +1938,17 @@ ol { padding: 0; list-style: none; }
         grid-template-columns: repeat(2, minmax(0, 1fr));
         gap: 8px 16px;
     }
-    .route-pair { grid-template-columns: minmax(0, 1fr); gap: 16px; }
+    .route-pair {
+        grid-template-columns: minmax(0, 1fr);
+        gap: 16px;
+        overflow: visible;
+        border-radius: 0;
+        box-shadow: none;
+    }
+    .route-pair .route-sheet,
+    .route-pair .route-sheet:first-child,
+    .route-pair .route-sheet:last-child { border-radius: var(--radius); }
+    .route-pair img { border-radius: var(--radius); box-shadow: var(--shadow-card); }
 }
 
 @media (prefers-reduced-motion: reduce) {
