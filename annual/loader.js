@@ -2,6 +2,9 @@
 
 (async function () {
     const request = JSON.parse(document.getElementById('annual-request').textContent);
+    const remoteManifestPaths = {
+        '2023': '/annual/remote-manifests/2023.json'
+    };
     let manifest;
     const panel = document.querySelector('.annual-loading');
     const status = document.getElementById('loading-status');
@@ -81,9 +84,43 @@
             || !seen.has(window.location.origin + prefix + 'index.html')) throw new Error('Incomplete manifest');
     }
 
+    function validateRemoteManifest(remoteManifest) {
+        if (!remoteManifest || remoteManifest.year !== request.year
+            || typeof remoteManifest.prefix !== 'string'
+            || !remoteManifest.prefix.endsWith('/')
+            || !Array.isArray(remoteManifest.files) || remoteManifest.files.length === 0) {
+            throw new Error('Invalid remote manifest');
+        }
+        const prefix = new URL(remoteManifest.prefix);
+        if (prefix.href !== 'https://capu-annuals.oss-cn-beijing.aliyuncs.com/2023/assets/') {
+            throw new Error('Invalid remote prefix');
+        }
+        const seen = new Set();
+        let total = 0;
+        const files = remoteManifest.files.map(function (file) {
+            if (!file || typeof file.path !== 'string' || file.path === ''
+                || file.path.charAt(0) === '/' || file.path.indexOf('..') !== -1
+                || !Number.isSafeInteger(file.size) || file.size < 0) {
+                throw new Error('Invalid remote resource');
+            }
+            const url = new URL(file.path, prefix.href);
+            if (url.origin !== prefix.origin || !url.pathname.startsWith(prefix.pathname)
+                || url.search || url.hash || seen.has(url.href)) {
+                throw new Error('Invalid remote resource');
+            }
+            seen.add(url.href);
+            total += file.size;
+            return { url: url.href, size: file.size, cache: 'default' };
+        });
+        if (!Number.isSafeInteger(total) || total !== remoteManifest.totalBytes) {
+            throw new Error('Incomplete remote manifest');
+        }
+        return files;
+    }
+
     async function downloadFile(file) {
-        // Revalidate normal HTTP cache entries; do not create a separate cache.
-        await fetchResource(file.url, 'no-cache', async function (response, keepAlive) {
+        // Revalidate local files and reuse normal HTTP cache entries for OSS assets.
+        await fetchResource(file.url, file.cache || 'no-cache', async function (response, keepAlive) {
             let received = 0;
             function countBytes(bytes) {
                 received += bytes;
@@ -122,6 +159,19 @@
             return response.json();
         });
         validateManifest();
+        if (remoteManifestPaths[request.year]) {
+            status.textContent = '正在准备资源';
+            const remoteManifest = await fetchResource(remoteManifestPaths[request.year], 'no-store', function (response) {
+                return response.json();
+            });
+            const localUrls = new Set(manifest.files.map(function (file) { return file.url; }));
+            const remoteFiles = validateRemoteManifest(remoteManifest);
+            for (const file of remoteFiles) {
+                if (localUrls.has(file.url)) throw new Error('Duplicate annual resource');
+            }
+            manifest.files = manifest.files.concat(remoteFiles);
+            manifest.totalBytes += remoteManifest.totalBytes;
+        }
         showProgress(false);
         status.textContent = '正在加载';
         let next = 0;
