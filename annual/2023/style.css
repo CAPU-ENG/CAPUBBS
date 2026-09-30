@@ -1,3 +1,33 @@
+/* Local subsets keep the printed issue's Chinese typography consistent across devices. */
+@font-face {
+    font-family: "Annual Serif";
+    src: url("./assets/fonts/annual-serif-Regular.woff2") format("woff2");
+    font-style: normal;
+    font-weight: 400;
+    font-display: swap;
+}
+@font-face {
+    font-family: "Annual Serif";
+    src: url("./assets/fonts/annual-serif-Bold.woff2") format("woff2");
+    font-style: normal;
+    font-weight: 700;
+    font-display: swap;
+}
+@font-face {
+    font-family: "Annual Sans";
+    src: url("./assets/fonts/annual-sans-Regular.woff2") format("woff2");
+    font-style: normal;
+    font-weight: 400;
+    font-display: swap;
+}
+@font-face {
+    font-family: "Annual Sans";
+    src: url("./assets/fonts/annual-sans-Bold.woff2") format("woff2");
+    font-style: normal;
+    font-weight: 700;
+    font-display: swap;
+}
+
 /* 行者 2023 · 总第二十五期 — palette sampled from the printed issue */
 :root {
     --ink: #16243a;
@@ -25,8 +55,8 @@
     --dusk: #21212a;
     --sand: #efdfcc;
 
-    --serif: "Source Han Serif SC", "Noto Serif SC", "Noto Serif CJK SC", "Songti SC", "STSong", "SimSun", serif;
-    --sans: "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", "Noto Sans SC", sans-serif;
+    --serif: "Annual Serif", "Source Han Serif SC", "Noto Serif SC", "Noto Serif CJK SC", "Songti SC", "STSong", "SimSun", serif;
+    --sans: "Annual Sans", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", "Noto Sans SC", sans-serif;
     --numeral: "Didot", "Bodoni 72", "Bodoni MT", "Georgia", "Times New Roman", serif;
     --latin: "Helvetica Neue", "Arial", sans-serif;
 
@@ -1184,6 +1214,49 @@ ol { padding: 0; list-style: none; }
 /* ---------- 骑迹 28 年: interactive route map ---------- */
 .article-wide { max-width: calc(1200px + var(--gutter) * 2); }
 
+.article.has-side-toc { max-width: calc(1040px + var(--gutter) * 2); }
+.article-reading-layout {
+    display: grid;
+    grid-template-columns: minmax(150px, 190px) minmax(0, 1fr);
+    gap: clamp(28px, 4vw, 52px);
+    align-items: start;
+}
+.article-side-toc {
+    position: sticky;
+    top: 84px;
+    max-height: calc(100vh - 116px);
+    overflow: auto;
+    padding: 4px 0 4px 16px;
+    border-left: 1px solid var(--line);
+    scrollbar-width: thin;
+}
+.article-side-toc-title {
+    margin: 0 0 12px;
+    color: var(--accent-ink);
+    font-family: var(--sans);
+    font-size: 12px;
+    font-weight: 800;
+    letter-spacing: .16em;
+}
+.article-side-toc ol {
+    display: grid;
+    gap: 7px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+.article-side-toc li { margin: 0; }
+.article-side-toc a {
+    display: block;
+    color: var(--ink-soft);
+    font-family: var(--sans);
+    font-size: 13px;
+    line-height: 1.4;
+    text-decoration: none;
+}
+.article-side-toc a:hover { color: var(--accent-ink); }
+.article-reading-layout .prose-sub { scroll-margin-top: 84px; }
+
 .traces {
     display: grid;
     grid-template-columns: minmax(0, 1fr) 300px;
@@ -1592,6 +1665,20 @@ ol { padding: 0; list-style: none; }
 .roster a:hover img { border-color: var(--cyan-strong); opacity: .88; }
 .roster a:hover span { color: var(--cyan-ink); }
 
+/* The flying group has 11 people arranged as 4 / 3 / 4. */
+.read-flying-people .roster ol {
+    grid-template-columns: repeat(12, minmax(0, 1fr));
+}
+.read-flying-people .roster li { grid-column: span 3; }
+.read-flying-people .roster li:nth-child(-n + 4) { grid-row: 1; }
+.read-flying-people .roster li:nth-child(5) { grid-column: 2 / span 3; grid-row: 2; }
+.read-flying-people .roster li:nth-child(6) { grid-column: 5 / span 3; grid-row: 2; }
+.read-flying-people .roster li:nth-child(7) { grid-column: 8 / span 3; grid-row: 2; }
+.read-flying-people .roster li:nth-child(8) { grid-column: 1 / span 3; grid-row: 3; }
+.read-flying-people .roster li:nth-child(9) { grid-column: 4 / span 3; grid-row: 3; }
+.read-flying-people .roster li:nth-child(10) { grid-column: 7 / span 3; grid-row: 3; }
+.read-flying-people .roster li:nth-child(11) { grid-column: 10 / span 3; grid-row: 3; }
+
 .people { display: grid; gap: clamp(56px, 7vw, 96px); max-width: 1040px; margin: 0 auto; }
 .person {
     display: grid;
@@ -1622,6 +1709,47 @@ ol { padding: 0; list-style: none; }
     text-indent: 2em;
 }
 .people-group { margin-top: clamp(56px, 7vw, 96px); }
+
+.summer-video {
+    max-width: 960px;
+    margin: clamp(56px, 8vw, 104px) auto 0;
+    padding: clamp(18px, 3vw, 32px);
+    border: 1px solid var(--line);
+    border-top: 3px solid var(--accent);
+    border-radius: var(--radius);
+    background: linear-gradient(145deg, var(--accent-soft), var(--white) 62%);
+    box-shadow: var(--shadow-card);
+}
+.summer-video-title {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 16px;
+    color: var(--accent-ink);
+    font-family: var(--sans);
+    font-size: 14px;
+    font-weight: 800;
+    letter-spacing: .16em;
+}
+.summer-video-title::after {
+    content: "";
+    flex: 1;
+    height: 1px;
+    background: var(--line);
+}
+.summer-video-frame {
+    aspect-ratio: 16 / 9;
+    overflow: hidden;
+    border-radius: var(--radius);
+    background: #101a28;
+    box-shadow: 0 8px 24px rgba(20, 32, 48, .14);
+}
+.summer-video-frame iframe {
+    display: block;
+    width: 100%;
+    height: 100%;
+    border: 0;
+}
 
 .traces-all {
     display: none;
@@ -1700,6 +1828,21 @@ ol { padding: 0; list-style: none; }
     .chron-card p { font-size: 14px; line-height: 1.6; }
     .is-major .chron-card p { font-size: 15px; }
     .chron-scroller { margin-inline: calc(var(--gutter) * -1); }
+
+    .article-reading-layout { display: block; }
+    .article-side-toc {
+        position: static;
+        max-height: none;
+        margin-bottom: 32px;
+        padding: 12px;
+        border: 1px solid var(--line);
+        border-radius: var(--radius);
+        background: var(--paper);
+    }
+    .article-side-toc ol {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 8px 16px;
+    }
 }
 
 @media (prefers-reduced-motion: reduce) {
