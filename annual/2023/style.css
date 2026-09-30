@@ -1298,6 +1298,56 @@ ol { padding: 0; list-style: none; }
 .article-side-toc a:hover { color: var(--accent-ink); }
 .article-reading-layout .prose-sub { scroll-margin-top: 84px; }
 
+.appendix-summary .article-reading-layout {
+    grid-template-columns: minmax(170px, 210px) minmax(0, 760px);
+}
+.appendix-summary .article-side-toc {
+    padding: 14px 16px;
+    border: 1px solid rgba(154, 166, 182, .5);
+    border-left: 4px solid var(--accent-ink);
+    border-radius: var(--radius);
+    background: linear-gradient(160deg, var(--accent-soft), var(--white));
+}
+.appendix-summary .article-side-toc a {
+    color: var(--ink);
+    font-weight: 600;
+}
+.appendix-summary .appendix-section-title {
+    margin-top: clamp(42px, 6vw, 72px);
+    padding: 14px 16px 12px;
+    border-top: 2px solid var(--accent-ink);
+    border-bottom: 1px solid rgba(154, 166, 182, .42);
+    background: linear-gradient(90deg, var(--accent-soft), transparent 78%);
+    font-size: clamp(25px, 3vw, 34px);
+    letter-spacing: .08em;
+    scroll-margin-top: 84px;
+}
+.appendix-summary .appendix-section-title:first-child { margin-top: 0; }
+.appendix-summary .prose-sub:not(.appendix-section-title) {
+    margin-top: 2.1em;
+    padding-bottom: 4px;
+    border-bottom: 1px dashed rgba(154, 166, 182, .5);
+    font-size: 19px;
+}
+
+.article.appendix-route { max-width: calc(1400px + var(--gutter) * 2); }
+.appendix-route .prose { max-width: none; }
+.route-gallery { margin-top: clamp(40px, 6vw, 72px); }
+.route-pair {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: clamp(8px, 1.5vw, 20px);
+    width: 100%;
+}
+.route-pair .route-sheet { margin: 0; }
+.route-pair img {
+    display: block;
+    width: 100%;
+    height: auto;
+    border-radius: var(--radius);
+    box-shadow: var(--shadow-card);
+}
+
 .traces {
     display: grid;
     grid-template-columns: minmax(0, 1fr) 300px;
@@ -1884,6 +1934,7 @@ ol { padding: 0; list-style: none; }
         grid-template-columns: repeat(2, minmax(0, 1fr));
         gap: 8px 16px;
     }
+    .route-pair { grid-template-columns: minmax(0, 1fr); gap: 16px; }
 }
 
 @media (prefers-reduced-motion: reduce) {

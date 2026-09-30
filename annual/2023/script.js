@@ -370,6 +370,7 @@ initAnnualPage();
         && window.CSS.supports('view-transition-name: root');
     var busy = false;
     var activePath = window.location.pathname + window.location.search;
+    if ('scrollRestoration' in window.history) window.history.scrollRestoration = 'manual';
 
     function isAnnualPage(url) {
         return !!annualRoot
@@ -435,16 +436,26 @@ initAnnualPage();
         }
     }
 
+    function scrollToTop() {
+        var root = document.documentElement;
+        var previous = root.style.scrollBehavior;
+        root.style.scrollBehavior = 'auto';
+        window.scrollTo(0, 0);
+        root.scrollTop = 0;
+        document.body.scrollTop = 0;
+        root.style.scrollBehavior = previous;
+    }
+
     function scrollToRoute(url) {
         if (!url.hash) {
-            window.scrollTo(0, 0);
+            scrollToTop();
             return;
         }
         var id;
         try { id = decodeURIComponent(url.hash.slice(1)); } catch (error) { id = url.hash.slice(1); }
         var target = document.getElementById(id);
         if (target) target.scrollIntoView();
-        else window.scrollTo(0, 0);
+        else scrollToTop();
     }
 
     function applyPage(nextDocument, url) {
