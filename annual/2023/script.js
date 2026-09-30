@@ -217,3 +217,85 @@
     root.classList.add('is-ready');
     select('2023', true);
 })();
+
+(function () {
+    var root = document.querySelector('[data-chronicle]');
+    if (!root) return;
+    var scroller = root.querySelector('.chron-scroller');
+    var steps = Array.prototype.slice.call(root.querySelectorAll('.chron-step'));
+    var reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    var drag = null;
+    var glide = 0;
+
+    function max() { return scroller.scrollWidth - scroller.clientWidth; }
+
+    function sync() {
+        steps[0].disabled = scroller.scrollLeft <= 1;
+        steps[1].disabled = scroller.scrollLeft >= max() - 1;
+    }
+
+    function stopGlide() {
+        if (glide) cancelAnimationFrame(glide);
+        glide = 0;
+    }
+
+    // mouse drag with a little momentum; touch and pen keep the browser's native scrolling
+    scroller.addEventListener('pointerdown', function (event) {
+        if (event.pointerType !== 'mouse' || event.button !== 0) return;
+        stopGlide();
+        drag = { x: event.clientX, left: scroller.scrollLeft, lastX: event.clientX, lastT: event.timeStamp, v: 0, moved: false };
+        scroller.setPointerCapture(event.pointerId);
+    });
+    scroller.addEventListener('pointermove', function (event) {
+        if (!drag) return;
+        var dx = event.clientX - drag.x;
+        if (Math.abs(dx) > 3 && !drag.moved) {
+            drag.moved = true;
+            root.classList.add('is-dragging');
+        }
+        scroller.scrollLeft = drag.left - dx;
+        var dt = event.timeStamp - drag.lastT;
+        if (dt > 0) drag.v = (event.clientX - drag.lastX) / dt;
+        drag.lastX = event.clientX;
+        drag.lastT = event.timeStamp;
+    });
+    function release(event) {
+        if (!drag) return;
+        var v = drag.v * 16;
+        var moved = drag.moved;
+        drag = null;
+        root.classList.remove('is-dragging');
+        if (scroller.hasPointerCapture && scroller.hasPointerCapture(event.pointerId)) scroller.releasePointerCapture(event.pointerId);
+        if (!moved || reduce || Math.abs(v) < 1) return;
+        (function step() {
+            scroller.scrollLeft -= v;
+            v *= 0.94;
+            glide = Math.abs(v) > 0.5 ? requestAnimationFrame(step) : 0;
+        })();
+    }
+    scroller.addEventListener('pointerup', release);
+    scroller.addEventListener('pointercancel', release);
+
+    // a vertical mouse wheel moves the timeline sideways until it reaches either end
+    scroller.addEventListener('wheel', function (event) {
+        if (event.ctrlKey || Math.abs(event.deltaY) <= Math.abs(event.deltaX)) return;
+        var delta = event.deltaMode === 1 ? event.deltaY * 32 : event.deltaY;
+        if ((delta < 0 && scroller.scrollLeft <= 0) || (delta > 0 && scroller.scrollLeft >= max() - 1)) return;
+        event.preventDefault();
+        stopGlide();
+        scroller.scrollLeft += delta;
+    }, { passive: false });
+
+    steps.forEach(function (button) {
+        button.addEventListener('click', function () {
+            stopGlide();
+            var by = Number(button.getAttribute('data-step')) * scroller.clientWidth * 0.8;
+            scroller.scrollBy({ left: by, behavior: reduce ? 'auto' : 'smooth' });
+        });
+    });
+
+    scroller.addEventListener('scroll', sync, { passive: true });
+    window.addEventListener('resize', sync);
+    root.classList.add('is-ready');
+    sync();
+})();

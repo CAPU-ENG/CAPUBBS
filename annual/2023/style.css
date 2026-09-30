@@ -1313,67 +1313,170 @@ ol { padding: 0; list-style: none; }
 .traces-notes h2 { margin-bottom: 6px; color: var(--ink); font-size: 15px; letter-spacing: .12em; }
 .traces-notes ol { padding-left: 1.4em; list-style: decimal; }
 
-/* ---------- 大事记: timeline ---------- */
-.chronicle { --date-w: 9.2em; --rail-w: 26px; }
-.p0 { --phase: #e0612b; --phase-ink: #b0461a; }
-.p1 { --phase: #3d9b55; --phase-ink: #2b7440; }
-.p2 { --phase: #d7ae2c; --phase-ink: #86680c; }
-.p3 { --phase: #2f86c0; --phase-ink: #22679a; }
-.p4 { --phase: #4b4fa6; --phase-ink: #3c408c; }
+/* ---------- 大事记: horizontal timeline ---------- */
+.p0 { --phase: #e0612b; --phase-ink: #a8431a; --phase-soft: #fbe8df; --phase-line: #f0c3ae; }
+.p1 { --phase: #3d9b55; --phase-ink: #2b7440; --phase-soft: #e4f2e7; --phase-line: #b9dcc2; }
+.p2 { --phase: #d7ae2c; --phase-ink: #7d610b; --phase-soft: #fbf3d7; --phase-line: #ecd892; }
+.p3 { --phase: #2f86c0; --phase-ink: #22679a; --phase-soft: #e1eef8; --phase-line: #b3d2ea; }
+.p4 { --phase: #4b4fa6; --phase-ink: #3c408c; --phase-soft: #e8e8f6; --phase-line: #c4c5e8; }
+
+.chron {
+    --h: 510px;
+    --col: 150px;
+    --col-major: 176px;
+    --card: 250px;
+    --card-major: 300px;
+    --band: 12px;
+    --near: 26px;
+    --far: 92px;
+    position: relative;
+}
+.chron-controls {
+    display: flex;
+    justify-content: flex-end;
+    gap: 6px;
+    margin-bottom: 12px;
+}
+.chron-step {
+    display: none;
+    width: 40px;
+    height: 36px;
+    border: 1px solid var(--line);
+    border-radius: var(--radius-sm);
+    background: var(--white);
+    color: var(--ink);
+    font-family: var(--sans);
+    font-size: 17px;
+    cursor: pointer;
+    transition: border-color .2s, background-color .2s, opacity .2s;
+}
+.chron.is-ready .chron-step { display: inline-flex; align-items: center; justify-content: center; }
+.chron-step:hover { border-color: var(--sky-mid); background: var(--paper); }
+.chron-step:disabled { opacity: .35; cursor: default; }
+
+.chron-scroller {
+    overflow-x: auto;
+    overflow-y: hidden;
+    overscroll-behavior-x: contain;
+    border-block: 1px solid var(--line);
+    background: linear-gradient(180deg, var(--white), var(--paper));
+    scrollbar-width: thin;
+    scrollbar-color: #b9c6d4 transparent;
+    -webkit-mask-image: linear-gradient(90deg, transparent 0, #000 36px, #000 calc(100% - 36px), transparent);
+    mask-image: linear-gradient(90deg, transparent 0, #000 36px, #000 calc(100% - 36px), transparent);
+}
+.chron.is-ready .chron-scroller { cursor: grab; }
+.chron.is-dragging .chron-scroller { cursor: grabbing; user-select: none; -webkit-user-select: none; }
+.chron-scroller:focus-visible { outline-offset: -2px; }
+.chron-track {
+    display: flex;
+    width: max-content;
+    height: var(--h);
+    padding: 0 96px;
+}
 .chron-item, .chron-year {
     position: relative;
-    display: grid;
-    grid-template-columns: var(--date-w) var(--rail-w) minmax(0, 1fr);
-    column-gap: 16px;
+    flex: none;
+    width: var(--col);
+    height: 100%;
 }
+.chron-item.is-major { width: var(--col-major); }
+.chron-year { width: 120px; }
+
+/* the ribbon: each column paints its own stretch of road in its phase colour */
 .chron-item::before, .chron-year::before {
     content: "";
     position: absolute;
-    left: calc(var(--date-w) + 16px + var(--rail-w) / 2 - 3px);
-    top: 0;
-    bottom: 0;
-    width: 6px;
+    left: 0;
+    right: 0;
+    top: calc(50% - var(--band) / 2);
+    height: var(--band);
     background:
-        linear-gradient(180deg, rgba(255, 255, 255, .9) 0 6px, transparent 6px 12px) 50% 0 / 1.5px 12px repeat-y,
+        linear-gradient(90deg, rgba(255, 255, 255, .92) 0 10px, transparent 10px 20px) 0 50% / 20px 2px repeat-x,
         var(--phase);
 }
-.chron-item { padding: 12px 0; }
-.chron-item::after {
-    content: "";
+.chron-track > :first-child::before { border-radius: var(--band) 0 0 var(--band); }
+.chron-track > :last-child::before { border-radius: 0 var(--band) var(--band) 0; }
+
+.chron-dot {
     position: absolute;
-    left: calc(var(--date-w) + 16px + var(--rail-w) / 2 - 7px);
-    top: 1.35em;
-    width: 14px;
-    height: 14px;
-    border: 2.5px solid var(--phase);
+    left: 50%;
+    top: 50%;
+    z-index: 2;
+    width: 16px;
+    height: 16px;
+    margin: -8px 0 0 -8px;
+    border: 3px solid var(--phase);
     border-radius: 50%;
     background: var(--white);
 }
-.chron-item time {
-    grid-column: 1;
+.chron-item.is-major .chron-dot { width: 20px; height: 20px; margin: -10px 0 0 -10px; border-width: 4px; }
+/* dashed connector from the ribbon to the card */
+.chron-dot::after {
+    content: "";
+    position: absolute;
+    left: 50%;
+    width: 0;
+    margin-left: -.5px;
+    border-left: 1px dashed var(--phase-ink);
+    opacity: .6;
+}
+.is-up .chron-dot::after { bottom: 100%; height: calc(var(--near) - 4px); }
+.is-down .chron-dot::after { top: 100%; height: calc(var(--near) - 4px); }
+.is-up.is-far .chron-dot::after, .is-down.is-far .chron-dot::after { height: calc(var(--far) - 4px); }
+
+.chron-card {
+    position: absolute;
+    left: 50%;
+    z-index: 1;
+    width: var(--card);
+    padding: 12px 14px 13px;
+    border: 1px solid var(--phase-line);
+    border-top: 3px solid var(--phase);
+    border-radius: var(--radius);
+    background: var(--phase-soft);
+    transform: translateX(-50%);
+}
+.is-major .chron-card { width: var(--card-major); padding: 14px 16px 15px; }
+.is-up .chron-card { bottom: calc(50% + var(--band) / 2 + var(--near)); }
+.is-down .chron-card { top: calc(50% + var(--band) / 2 + var(--near)); }
+.is-up.is-far .chron-card { bottom: calc(50% + var(--band) / 2 + var(--far)); }
+.is-down.is-far .chron-card { top: calc(50% + var(--band) / 2 + var(--far)); }
+.chron-card time {
+    display: block;
+    margin-bottom: 4px;
     color: var(--phase-ink);
     font-family: var(--numeral);
     font-size: 17px;
-    font-variant-numeric: tabular-nums;
-    line-height: 1.75;
-    text-align: right;
-    white-space: nowrap;
-}
-.chron-item p { grid-column: 3; font-size: 17px; line-height: 1.75; }
-.chron-item.is-major { padding: 20px 0; }
-.chron-item.is-major::after { width: 18px; height: 18px; left: calc(var(--date-w) + 16px + var(--rail-w) / 2 - 9px); top: 1.75em; border-width: 3px; }
-.chron-item.is-major time { font-size: 19px; font-weight: 700; line-height: 1.9; }
-.chron-item.is-major p { font-size: 20px; font-weight: 700; line-height: 1.7; }
-.chron-year { padding: 20px 0 8px; }
-.chron-year:first-child { padding-top: 0; }
-.chron-year span {
-    grid-column: 1;
-    color: var(--ink);
-    font-family: var(--numeral);
-    font-size: clamp(36px, 5vw, 52px);
     font-weight: 700;
+    font-variant-numeric: tabular-nums;
+    line-height: 1.3;
+}
+.chron-card p { color: var(--ink); font-size: 15px; line-height: 1.65; }
+.is-major .chron-card time { font-size: 19px; }
+.is-major .chron-card p { font-size: 16.5px; font-weight: 700; line-height: 1.6; }
+
+/* year post standing on the ribbon, same shape as the page-number marker */
+.chron-post {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    z-index: 2;
+    display: grid;
+    width: 84px;
+    overflow: hidden;
+    border: 2px solid var(--ink);
+    border-radius: 7px 7px var(--radius-sm) var(--radius-sm);
+    background: var(--white);
+    text-align: center;
+    transform: translate(-50%, -50%);
+}
+.chron-post i { height: 10px; background: var(--phase); }
+.chron-post b {
+    padding: 6px 0 8px;
+    font-family: var(--numeral);
+    font-size: 26px;
     line-height: 1;
-    text-align: right;
 }
 
 @media (max-width: 1023px) {
@@ -1393,16 +1496,19 @@ ol { padding: 0; list-style: none; }
     .traces-frame { width: min(100%, calc(38vh * 1000 / 846)); }
     .trace-node b { font-size: 13px; }
     .traces-inset { width: 16%; }
-    .chronicle { --rail-w: 22px; }
-    .chron-item, .chron-year { grid-template-columns: var(--rail-w) minmax(0, 1fr); column-gap: 12px; }
-    .chron-item::before, .chron-year::before { left: calc(var(--rail-w) / 2 - 3px); }
-    .chron-item::after { left: calc(var(--rail-w) / 2 - 7px); top: 1.1em; }
-    .chron-item.is-major::after { left: calc(var(--rail-w) / 2 - 9px); top: 1.5em; }
-    .chron-item time, .chron-item p { grid-column: 2; text-align: left; }
-    .chron-item time { line-height: 1.5; }
-    .chron-item p { font-size: 16px; }
-    .chron-item.is-major p { font-size: 18px; }
-    .chron-year span { grid-column: 2; text-align: left; }
+    .chron {
+        --h: 470px;
+        --col: 124px;
+        --col-major: 146px;
+        --card: 212px;
+        --card-major: 252px;
+        --near: 22px;
+        --far: 70px;
+    }
+    .chron-track { padding: 0 64px; }
+    .chron-card p { font-size: 14px; line-height: 1.6; }
+    .is-major .chron-card p { font-size: 15px; }
+    .chron-scroller { margin-inline: calc(var(--gutter) * -1); }
 }
 
 @media (prefers-reduced-motion: reduce) {
