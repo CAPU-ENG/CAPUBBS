@@ -38,6 +38,7 @@
     var routes = {};
     var groups = {};
     var marks = [];
+    var trail = [];
     var current = null;
     var request = 0;
 
@@ -50,12 +51,12 @@
     function fit(box) {
         var bw = box[2] - box[0];
         var bh = box[3] - box[1];
-        var pad = Math.max(bw, bh) * 0.22 + 24;
+        var pad = Math.max(bw, bh) * 0.28 + 6;
         var x = box[0] - pad;
         var y = box[1] - pad;
         var w = bw + pad * 2;
         var h = bh + pad * 2;
-        var minW = W * 0.28;
+        var minW = W * 0.09;
         var aspect = W / H;
         if (w < minW) { x -= (minW - w) / 2; w = minW; }
         if (w / h > aspect) { y -= (w / aspect - h) / 2; h = w / aspect; }
@@ -73,7 +74,8 @@
 
     function animateTo(target) {
         cancelAnimationFrame(request);
-        if (reduce) { apply(target); return; }
+        // animation frames don't run in hidden tabs; jump straight to the target there
+        if (reduce || document.hidden) { apply(target); return; }
         var from = view.slice();
         var start = null;
         function step(t) {
@@ -102,35 +104,49 @@
         });
     }
 
-    // put each place name on the first side (right, left, above, below) that stays clear of earlier names
+    // put each place name on the side (right, left, above, below, diagonals) that covers the least of
+    // the drawn road, the other stops and the names already placed
     function placeLabels() {
         if (!marks.length) return;
         var pw = frame.clientWidth;
         var ph = frame.clientHeight;
         var sx = pw / view[2];
         var sy = ph / view[3];
-        var gap = 9;
+        var gap = 10;
         var placed = [];
-        marks.forEach(function (m) {
-            var x = (m.x - view[0]) * sx;
-            var y = (m.y - view[1]) * sy;
+        var road = trail.map(function (p) { return [(p[0] - view[0]) * sx, (p[1] - view[1]) * sy]; });
+        var dots = marks.map(function (m) { return [(m.x - view[0]) * sx, (m.y - view[1]) * sy]; });
+        marks.forEach(function (m, index) {
+            var x = dots[index][0];
+            var y = dots[index][1];
             var options = [
                 ['right', x + gap, y - m.h / 2],
                 ['left', x - gap - m.w, y - m.h / 2],
                 ['above', x - m.w / 2, y - gap - m.h],
-                ['below', x - m.w / 2, y + gap]
+                ['below', x - m.w / 2, y + gap],
+                ['above-right', x + gap * 0.6, y - gap * 0.6 - m.h],
+                ['below-right', x + gap * 0.6, y + gap * 0.6],
+                ['above-left', x - gap * 0.6 - m.w, y - gap * 0.6 - m.h],
+                ['below-left', x - gap * 0.6 - m.w, y + gap * 0.6]
             ];
-            var pick = options[0];
-            for (var i = 0; i < options.length; i++) {
-                var o = options[i];
-                if (o[1] < 2 || o[1] + m.w > pw - 2 || o[2] < 2 || o[2] + m.h > ph - 2) continue;
-                var clear = placed.every(function (p) {
-                    return o[1] >= p[0] + p[2] || o[1] + m.w <= p[0] || o[2] >= p[1] + p[3] || o[2] + m.h <= p[1];
+            var best = null;
+            options.forEach(function (o, order) {
+                var l = o[1] - 3, t = o[2] - 2, r = o[1] + m.w + 3, b = o[2] + m.h + 2;
+                var score = order * 0.01;
+                if (l < 2 || r > pw - 2 || t < 2 || b > ph - 2) score += 1000;
+                placed.forEach(function (p) {
+                    if (l < p[0] + p[2] && r > p[0] && t < p[1] + p[3] && b > p[1]) score += 500;
                 });
-                if (clear) { pick = o; break; }
-            }
-            placed.push([pick[1], pick[2], m.w, m.h]);
-            m.el.setAttribute('data-side', pick[0]);
+                dots.forEach(function (d, j) {
+                    if (j !== index && d[0] > l - 6 && d[0] < r + 6 && d[1] > t - 6 && d[1] < b + 6) score += 300;
+                });
+                road.forEach(function (p) {
+                    if (p[0] > l && p[0] < r && p[1] > t && p[1] < b) score += 1;
+                });
+                if (!best || score < best[0]) best = [score, o];
+            });
+            placed.push([best[1][1], best[1][2], m.w, m.h]);
+            m.el.setAttribute('data-side', best[1][0]);
             m.el.style.transform = 'translate(' + x.toFixed(1) + 'px, ' + y.toFixed(1) + 'px)';
         });
     }
@@ -145,6 +161,14 @@
             if (cls === 'trace-casing') path.setAttribute('pathLength', '1');
             layer.appendChild(path);
         });
+        // sample the road so labels can keep off it
+        var probe = layer.lastChild;
+        var total = probe.getTotalLength ? probe.getTotalLength() : 0;
+        trail = [];
+        for (var i = 0, n = 240; total && i <= n; i++) {
+            var pt = probe.getPointAtLength(total * i / n);
+            trail.push([pt.x, pt.y]);
+        }
     }
 
     function select(id, overview) {
@@ -158,6 +182,7 @@
             layer.textContent = '';
             labels.textContent = '';
             marks = [];
+            trail = [];
             animateTo(full);
             return;
         }
