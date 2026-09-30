@@ -29,6 +29,7 @@
     var layer = root.querySelector('.trace-active');
     var labels = root.querySelector('.traces-labels');
     var buttons = Array.prototype.slice.call(root.querySelectorAll('.trace'));
+    var allButton = root.querySelector('.traces-all');
     var NS = 'http://www.w3.org/2000/svg';
     var reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     var W = data.view[0];
@@ -178,6 +179,7 @@
         });
         Object.keys(groups).forEach(function (k) { groups[k].classList.toggle('is-active', k === id); });
         root.classList.toggle('has-active', !!id);
+        if (allButton) allButton.setAttribute('aria-pressed', String(!id));
         if (!id) {
             layer.textContent = '';
             labels.textContent = '';
@@ -207,8 +209,10 @@
         });
     });
 
+    if (allButton) allButton.addEventListener('click', function () { if (current) select(null); });
+
     document.addEventListener('keydown', function (event) {
-        if (event.key === 'Escape' && current) select(null);
+        if (event.key === 'Escape' && current && !document.querySelector('.lightbox')) select(null);
     });
 
     if (window.ResizeObserver) new ResizeObserver(function () { apply(view); }).observe(frame);
@@ -298,4 +302,48 @@
     window.addEventListener('resize', sync);
     root.classList.add('is-ready');
     sync();
+})();
+
+// click a photo to see it full screen; click again (or press Esc) to go back
+(function () {
+    var links = document.querySelectorAll('.figure a, .colophon-cover');
+    if (!links.length) return;
+    var box = null;
+    var opener = null;
+
+    function close() {
+        if (!box) return;
+        box.remove();
+        box = null;
+        document.documentElement.classList.remove('has-lightbox');
+        if (opener) opener.focus();
+    }
+
+    Array.prototype.forEach.call(links, function (link) {
+        link.addEventListener('click', function (event) {
+            if (event.metaKey || event.ctrlKey || event.shiftKey || event.button !== 0) return;
+            var source = link.querySelector('img');
+            if (!source) return;
+            event.preventDefault();
+            opener = link;
+            box = document.createElement('div');
+            box.className = 'lightbox';
+            box.setAttribute('role', 'dialog');
+            box.setAttribute('aria-modal', 'true');
+            box.setAttribute('aria-label', source.alt || '图片');
+            box.tabIndex = -1;
+            var img = document.createElement('img');
+            img.src = link.getAttribute('href');
+            img.alt = source.alt;
+            box.appendChild(img);
+            box.addEventListener('click', close);
+            document.body.appendChild(box);
+            document.documentElement.classList.add('has-lightbox');
+            box.focus();
+        });
+    });
+
+    document.addEventListener('keydown', function (event) {
+        if (event.key === 'Escape') close();
+    });
 })();

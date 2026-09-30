@@ -1571,6 +1571,44 @@ ol { padding: 0; list-style: none; }
 }
 .people-group { margin-top: clamp(56px, 7vw, 96px); }
 
+.traces-all {
+    display: none;
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    z-index: 3;
+    padding: 6px 12px;
+    border: 1px solid #c9d6e3;
+    border-radius: var(--radius-sm);
+    background: rgba(255, 255, 255, .94);
+    color: var(--ink);
+    font-family: var(--sans);
+    font-size: 13px;
+    letter-spacing: .08em;
+    cursor: pointer;
+    transition: border-color .2s, background-color .2s, color .2s;
+}
+.traces.is-ready .traces-all { display: block; }
+.traces-all:hover { border-color: var(--sky-mid); }
+.traces-all[aria-pressed="true"] { border-color: var(--sky-deep); background: var(--sky-deep); color: var(--white); cursor: default; }
+
+/* full-screen photo view */
+.has-lightbox { overflow: hidden; }
+.lightbox {
+    position: fixed;
+    inset: 0;
+    z-index: 100;
+    display: grid;
+    place-items: center;
+    padding: clamp(12px, 3vw, 40px);
+    background: rgba(12, 18, 28, .92);
+    cursor: zoom-out;
+    animation: map-fade .2s ease-out both;
+}
+.lightbox img { width: auto; max-width: 94vw; max-height: 92vh; max-height: 92dvh; object-fit: contain; }
+.lightbox:focus { outline: none; }
+.figure a, .colophon-cover { cursor: zoom-in; }
+
 @media (max-width: 1023px) {
     .traces { grid-template-columns: minmax(0, 1fr); gap: 0; }
     .traces-map {
