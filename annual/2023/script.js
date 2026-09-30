@@ -353,6 +353,19 @@
     if (!document.body) return;
 
     var wipeKey = 'annual-page-wipe';
+    var nativeViewTransition = typeof document.startViewTransition === 'function'
+        && window.CSS
+        && window.CSS.supports
+        && window.CSS.supports('view-transition-name: root');
+    if (nativeViewTransition) {
+        try {
+            window.sessionStorage.removeItem(wipeKey);
+        } catch (error) {
+            // Private browsing modes may deny storage.
+        }
+        return;
+    }
+
     var navigating = false;
     var reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
