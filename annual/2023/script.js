@@ -1,4 +1,5 @@
-(function () {
+function initAnnualPage() {
+    (function () {
     var map = document.querySelector('[data-route-map]');
     if (!map || !('IntersectionObserver' in window)) return;
     if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
@@ -16,7 +17,7 @@
     }, { threshold: 0.4 });
 
     observer.observe(map);
-})();
+    })();
 
 (function () {
     var root = document.querySelector('[data-traces]');
@@ -220,7 +221,7 @@
 
     root.classList.add('is-ready');
     select('2023', true);
-})();
+    })();
 
 (function () {
     var root = document.querySelector('[data-chronicle]');
@@ -302,7 +303,7 @@
     window.addEventListener('resize', sync);
     root.classList.add('is-ready');
     sync();
-})();
+    })();
 
 // click a photo to see it full screen; click again (or press Esc) to go back
 (function () {
@@ -346,31 +347,39 @@
     document.addEventListener('keydown', function (event) {
         if (event.key === 'Escape') close();
     });
-})();
+    })();
 
-// play the curtain only when moving between annual pages; the first page load stays still
+}
+
+window.initAnnualPage = initAnnualPage;
+initAnnualPage();
+
+// bridge annual pages inside one document so the old and new route can share a transition
 (function () {
-    if (!document.body) return;
+    if (!document.body || !window.fetch || !window.DOMParser) return;
 
-    var wipeKey = 'annual-page-wipe';
+    var script = document.querySelector('script[src$="/script.js"], script[src$="script.js"]');
+    var annualRoot = '';
+    if (script) {
+        try { annualRoot = new window.URL(script.src, window.location.href).pathname.replace(/script\.js$/, ''); } catch (error) { annualRoot = ''; }
+    }
+    var reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     var nativeViewTransition = typeof document.startViewTransition === 'function'
         && window.CSS
         && window.CSS.supports
         && window.CSS.supports('view-transition-name: root');
-    if (nativeViewTransition) {
-        try {
-            window.sessionStorage.removeItem(wipeKey);
-        } catch (error) {
-            // Private browsing modes may deny storage.
-        }
-        return;
+    var busy = false;
+    var activePath = window.location.pathname + window.location.search;
+
+    function isAnnualPage(url) {
+        return !!annualRoot
+            && url.origin === window.location.origin
+            && url.pathname.indexOf(annualRoot) === 0
+            && /(?:\/|\.html)$/.test(url.pathname);
     }
 
-    var navigating = false;
-    var reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-
     function destinationFor(link, event) {
-        if (navigating || event.defaultPrevented) return null;
+        if (busy || event.defaultPrevented) return null;
         if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey || event.button !== 0) return null;
         if (link.classList.contains('colophon-cover')) return null;
         var parent = link.parentElement;
@@ -387,13 +396,9 @@
         if (!href || href.charAt(0) === '#') return null;
 
         var url;
-        try {
-            url = new window.URL(href, window.location.href);
-        } catch (error) {
-            return null;
-        }
+        try { url = new window.URL(href, window.location.href); } catch (error) { return null; }
         if (url.protocol !== 'http:' && url.protocol !== 'https:') return null;
-        if (url.origin !== window.location.origin) return null;
+        if (!isAnnualPage(url)) return null;
         if (url.pathname === window.location.pathname && url.search === window.location.search) return null;
         return url;
     }
@@ -407,46 +412,91 @@
             bar.style.setProperty('--wipe-i', i);
             wipe.appendChild(bar);
         }
-        document.body.appendChild(wipe);
+        document.documentElement.appendChild(wipe);
         return wipe;
     }
 
-    function transitionTo(url) {
-        buildWipe();
-
+    function copyBody(nextBody, url) {
+        var body = document.body;
+        while (body.attributes.length) body.removeAttribute(body.attributes[0].name);
+        Array.prototype.forEach.call(nextBody.attributes, function (attribute) {
+            body.setAttribute(attribute.name, attribute.value);
+        });
+        while (body.firstChild) body.removeChild(body.firstChild);
+        var base = document.createElement('base');
+        base.href = url.href;
+        document.head.appendChild(base);
         try {
-            window.sessionStorage.setItem(wipeKey, '1');
-        } catch (error) {
-            // Private browsing modes may deny storage; the outgoing curtain still works.
-        }
-
-        function go() {
-            window.location.assign(url.href);
-        }
-
-        if (reduce) {
-            go();
-            return;
-        }
-
-        // Give the newly inserted curtain one paint, then start navigation immediately.
-        // The request runs while the outgoing curtain continues its animation.
-        if (window.requestAnimationFrame) {
-            window.requestAnimationFrame(function () { window.setTimeout(go, 0); });
-        } else {
-            window.setTimeout(go, 0);
+            Array.prototype.forEach.call(nextBody.childNodes, function (node) {
+                body.appendChild(document.importNode(node, true));
+            });
+        } finally {
+            base.parentNode.removeChild(base);
         }
     }
 
-    function playIncomingWipe() {
-        var pending = false;
-        try {
-            pending = window.sessionStorage.getItem(wipeKey) === '1';
-            if (pending) window.sessionStorage.removeItem(wipeKey);
-        } catch (error) {
+    function scrollToRoute(url) {
+        if (!url.hash) {
+            window.scrollTo(0, 0);
             return;
         }
-        if (pending && !reduce) buildWipe();
+        var id;
+        try { id = decodeURIComponent(url.hash.slice(1)); } catch (error) { id = url.hash.slice(1); }
+        var target = document.getElementById(id);
+        if (target) target.scrollIntoView();
+        else window.scrollTo(0, 0);
+    }
+
+    function applyPage(nextDocument, url) {
+        document.title = nextDocument.title;
+        if (nextDocument.documentElement.lang) document.documentElement.lang = nextDocument.documentElement.lang;
+        document.documentElement.className = nextDocument.documentElement.className;
+        copyBody(nextDocument.body, url);
+        window.initAnnualPage();
+        scrollToRoute(url);
+        activePath = url.pathname + url.search;
+    }
+
+    function loadPage(url, replace) {
+        if (busy) return;
+        busy = true;
+        fetch(url.href, { credentials: 'same-origin' })
+            .then(function (response) {
+                if (!response.ok) throw new Error('Annual page request failed: ' + response.status);
+                return response.text();
+            })
+            .then(function (html) {
+                var nextDocument = new window.DOMParser().parseFromString(html, 'text/html');
+                if (!nextDocument.body) throw new Error('Annual page has no body');
+
+                function update() {
+                    window.history[replace ? 'replaceState' : 'pushState']({}, '', url.href);
+                    applyPage(nextDocument, url);
+                }
+
+                if (reduce) {
+                    update();
+                    busy = false;
+                    return;
+                }
+
+                if (nativeViewTransition) {
+                    var transition = document.startViewTransition(update);
+                    transition.finished.then(function () { busy = false; }, function () { busy = false; });
+                    return;
+                }
+
+                var wipe = buildWipe();
+                window.setTimeout(update, 420);
+                window.setTimeout(function () {
+                    if (wipe.parentNode) wipe.parentNode.removeChild(wipe);
+                    busy = false;
+                }, 1700);
+            })
+            .catch(function () {
+                busy = false;
+                window.location.assign(url.href);
+            });
     }
 
     document.addEventListener('click', function (event) {
@@ -454,13 +504,19 @@
         if (link && link.nodeType !== 1) link = link.parentElement;
         while (link && link.tagName && link.tagName.toLowerCase() !== 'a') link = link.parentElement;
         if (!link) return;
-
         var url = destinationFor(link, event);
         if (!url) return;
         event.preventDefault();
-        navigating = true;
-        transitionTo(url);
+        loadPage(url, false);
     });
 
-    playIncomingWipe();
+    window.addEventListener('popstate', function () {
+        var url = new window.URL(window.location.href);
+        if (!isAnnualPage(url)) return;
+        if (url.pathname + url.search === activePath) {
+            scrollToRoute(url);
+            return;
+        }
+        loadPage(url, true);
+    });
 })();

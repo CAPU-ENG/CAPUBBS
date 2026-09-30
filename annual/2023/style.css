@@ -119,7 +119,7 @@ ol { padding: 0; list-style: none; }
 }
 .skip:focus { top: 12px; }
 
-/* native multi-page view transition; it keeps the old and new route snapshots together */
+/* route transition snapshots; same-document navigation uses the API, full navigation uses the CSS opt-in */
 @view-transition { navigation: auto; }
 ::view-transition-old(root) {
     animation: annual-route-out .86s cubic-bezier(.76, 0, .24, 1) both;
