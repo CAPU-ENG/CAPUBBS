@@ -352,6 +352,7 @@
 (function () {
     if (!document.body) return;
 
+    var wipeKey = 'annual-page-wipe';
     var navigating = false;
     var reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
@@ -400,6 +401,12 @@
     function transitionTo(url) {
         buildWipe();
 
+        try {
+            window.sessionStorage.setItem(wipeKey, '1');
+        } catch (error) {
+            // Private browsing modes may deny storage; the outgoing curtain still works.
+        }
+
         function go() {
             window.location.assign(url.href);
         }
@@ -418,6 +425,17 @@
         }
     }
 
+    function playIncomingWipe() {
+        var pending = false;
+        try {
+            pending = window.sessionStorage.getItem(wipeKey) === '1';
+            if (pending) window.sessionStorage.removeItem(wipeKey);
+        } catch (error) {
+            return;
+        }
+        if (pending && !reduce) buildWipe();
+    }
+
     document.addEventListener('click', function (event) {
         var link = event.target;
         if (link && link.nodeType !== 1) link = link.parentElement;
@@ -430,4 +448,6 @@
         navigating = true;
         transitionTo(url);
     });
+
+    playIncomingWipe();
 })();
