@@ -564,7 +564,11 @@ function SharedLightboxImage({
     // A lightbox jump can select a slide that has never entered the preload window.
     loadGalleryImage(element);
 
-    const placeholder = element.ownerDocument.createComment('capubbs-lightbox-image');
+    // Keep an inert copy in the post so floats and surrounding text stay put behind the backdrop.
+    const placeholder = element.cloneNode(false) as HTMLImageElement;
+    placeholder.removeAttribute('id');
+    placeholder.setAttribute('aria-hidden', 'true');
+    placeholder.dataset.capubbsLightboxPlaceholder = 'true';
     const originalStyle = element.getAttribute('style');
     const originalDraggable = element.getAttribute('draggable');
     originalParent.insertBefore(placeholder, element);
