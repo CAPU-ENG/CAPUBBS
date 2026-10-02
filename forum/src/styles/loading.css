@@ -73,7 +73,7 @@
     to { transform: rotate(360deg); }
   }
 
-  @media (max-width: 760px) {
+  @media (max-width: 640px) {
     .forum-loading-state-page {
       min-height: 250px;
       padding: var(--space-32) var(--space-18);

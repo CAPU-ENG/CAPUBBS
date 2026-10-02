@@ -286,7 +286,7 @@
   .search-pagination-wrap { position: relative; display: flex; justify-content: center; border-top: 1px solid var(--line); padding: var(--space-16) var(--space-20); }
   .search-pagination-wrap button:disabled { pointer-events: none; opacity: 0.38; }
 
-  @media (max-width: 860px) {
+  @media (max-width: 1023px) {
     .search-filter-aside { display: none; }
     .search-layout { grid-template-columns: minmax(0, 1fr); }
     .search-mobile-filters { display: block; }

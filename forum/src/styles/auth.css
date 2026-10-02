@@ -796,7 +796,7 @@
     opacity: 0.58;
   }
 
-  @media (max-width: 760px) {
+  @media (max-width: 640px) {
     .register-page-shell {
       align-items: flex-start;
       padding: calc(var(--topbar-height) + 18px) 10px 24px;
@@ -830,7 +830,7 @@
     }
   }
 
-  @media (max-width: 430px) {
+  @media (max-width: 640px) {
     .register-inline-field,
     .register-captcha-row {
       grid-template-columns: 1fr;

@@ -46,7 +46,7 @@ export const richTextHeadingOptions = [
 
 export const defaultRichTextFontSize = FORUM_DEFAULT_FONT_SIZE;
 export const defaultTextColor = '#111827';
-export const mobileViewportQuery = '(max-width: 767px)';
+export const mobileViewportQuery = '(max-width: 640px)';
 
 export const htmlVoidTags = new Set([
   'area',

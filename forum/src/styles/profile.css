@@ -1993,7 +1993,7 @@
     color: var(--brand-strong);
   }
 
-  @media (max-width: 980px) {
+  @media (max-width: 1023px) {
     .profile-page-shell {
       width: min(880px, calc(100% - 32px));
     }
@@ -2036,7 +2036,7 @@
     }
   }
 
-  @media (max-width: 680px) {
+  @media (max-width: 640px) {
     .profile-pagination {
       padding: var(--space-8) var(--space-6);
     }

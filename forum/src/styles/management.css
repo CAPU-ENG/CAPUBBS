@@ -1586,7 +1586,7 @@
 }
 
 @layer utilities {
-  @media (max-width: 940px) {
+  @media (max-width: 1023px) {
     .management-grid {
       grid-template-columns: 1fr;
     }

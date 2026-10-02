@@ -635,7 +635,7 @@
     font-weight: var(--font-weight-bold);
   }
 
-  @media (max-width: 720px) {
+  @media (max-width: 640px) {
     .activity-management-shell {
       width: calc(100% - 18px);
       padding-top: calc(var(--topbar-height) + 10px);

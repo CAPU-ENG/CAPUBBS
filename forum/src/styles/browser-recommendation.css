@@ -71,7 +71,7 @@
   background: var(--brand-strong);
 }
 
-@media (min-width: 768px) {
+@media (min-width: 641px) {
   .browser-recommendation-layer {
     display: none;
   }

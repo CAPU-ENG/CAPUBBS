@@ -555,7 +555,7 @@
 }
 
 @layer utilities {
-  @media (max-width: 680px) {
+  @media (max-width: 640px) {
     .profile-medal-lightbox-backdrop {
       padding: var(--space-10);
     }

@@ -151,7 +151,7 @@ function MobileManagementWarning() {
   const [open, setOpen] = useState(true);
 
   useEffect(() => {
-    const mediaQuery = window.matchMedia('(max-width: 767px)');
+    const mediaQuery = window.matchMedia('(max-width: 640px)');
     const updateViewport = () => setMobileViewport(mediaQuery.matches);
     updateViewport();
     mediaQuery.addEventListener('change', updateViewport);

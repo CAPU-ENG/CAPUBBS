@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useClientConfig } from '../../hooks/useClientConfig';
 
-const MOBILE_VIEWPORT_QUERY = '(max-width: 767px)';
+const MOBILE_VIEWPORT_QUERY = '(max-width: 640px)';
 const DISMISSED_STORAGE_KEY = 'capubbs-browser-recommendation-dismissed';
 const FALLBACK_BROWSER_DOWNLOAD_URL = 'https://frostember.lanzoup.com/b00oe4ba4j';
 

@@ -904,7 +904,7 @@
 }
 
 @layer utilities {
-  @media (max-width: 940px) {
+  @media (max-width: 1023px) {
     .management-medal-workspace-body {
       grid-template-columns: 220px minmax(0, 1fr);
     }
@@ -932,7 +932,7 @@
     }
   }
 
-  @media (max-width: 720px) {
+  @media (max-width: 640px) {
     .management-medal-workspace-body {
       grid-template-columns: 1fr;
     }

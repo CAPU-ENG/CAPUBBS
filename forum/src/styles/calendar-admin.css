@@ -548,7 +548,7 @@
 }
 
 @layer utilities {
-  @media (max-width: 880px) {
+  @media (max-width: 1023px) {
     .calendar-admin-content {
       grid-template-columns: 1fr;
     }

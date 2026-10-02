@@ -323,7 +323,7 @@
     font-weight: var(--font-weight-semibold);
   }
 
-  @media (min-width: 960px) {
+  @media (min-width: 1024px) {
     .data-checkin-list {
       grid-template-columns: repeat(4, minmax(0, 1fr));
     }

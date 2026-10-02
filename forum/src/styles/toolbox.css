@@ -308,13 +308,13 @@
     .toolbox-example-table th:last-child { width: 30%; }
   }
 
-  @media (max-width: 940px) {
+  @media (max-width: 1023px) {
     .toolbox-example-grid {
       grid-template-columns: minmax(0, 1fr);
     }
   }
 
-  @media (max-width: 720px) {
+  @media (max-width: 640px) {
     .toolbox-shell {
       padding-right: var(--space-10);
       padding-left: var(--space-10);

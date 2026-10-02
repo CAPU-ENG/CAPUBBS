@@ -68,7 +68,7 @@
     overscroll-behavior: contain;
   }
 
-  @media (max-width: 680px) {
+  @media (max-width: 640px) {
     .profile-dialog {
       --forum-dialog-viewport-gap: 24px;
     }

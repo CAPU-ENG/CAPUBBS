@@ -898,13 +898,13 @@
     white-space: nowrap;
   }
 
-  @media (max-width: 900px) {
+  @media (max-width: 1023px) {
     .archive-room-grid {
       grid-template-columns: repeat(3, minmax(0, 1fr));
     }
   }
 
-  @media (max-width: 720px) {
+  @media (max-width: 640px) {
     .archive-room-heading {
       align-items: flex-start;
       flex-direction: column;

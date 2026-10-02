@@ -541,7 +541,7 @@
     color: var(--brand-strong);
   }
 
-  @media (max-width: 760px) {
+  @media (max-width: 640px) {
     .thread-edit-page-shell {
       width: min(100% - 20px, 1080px);
       padding-top: calc(var(--topbar-height) + 10px);
