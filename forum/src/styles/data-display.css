@@ -44,12 +44,9 @@
   .data-display-tabs .data-display-tab-active {
     border-color: var(--brand);
     background: var(--brand);
-    color: #fff;
+    color: var(--on-brand);
   }
 
-  .dark .data-display-tabs .data-display-tab-active {
-    color: #0d2116;
-  }
 
   .data-display-tabs button:last-child:not(.data-display-tab-active) {
     border-color: color-mix(in srgb, var(--danger) 25%, var(--line));
@@ -59,11 +56,9 @@
   .data-display-tabs button:last-child.data-display-tab-active {
     border-color: var(--danger);
     background: var(--danger);
+    color: var(--on-danger);
   }
 
-  .dark .data-display-tabs button:last-child.data-display-tab-active {
-    color: #2b0c0a;
-  }
 
   .data-display-card,
   .data-display-state {
@@ -422,12 +417,9 @@
   button.punishment-control-active {
     border-color: var(--danger);
     background: var(--danger);
-    color: #fff;
+    color: var(--on-danger);
   }
 
-  .dark button.punishment-control-active {
-    color: #2b0c0a;
-  }
 
   .punishment-control input[type="checkbox"] {
     position: absolute;
@@ -455,12 +447,9 @@
   .punishment-control input:checked + .punishment-checkbox-mark {
     border-color: var(--danger);
     background: var(--danger);
-    color: #fff;
+    color: var(--on-danger);
   }
 
-  .dark .punishment-control input:checked + .punishment-checkbox-mark {
-    color: #2b0c0a;
-  }
 
   .punishment-control input:focus-visible + .punishment-checkbox-mark {
     outline: 2px solid var(--danger);
@@ -515,16 +504,12 @@
     border: 1px solid var(--danger);
     border-radius: var(--card-radius);
     background: var(--danger);
-    color: #fff;
+    color: var(--on-danger);
     font-size: var(--ui-font-size-lg);
     font-weight: 740;
     transition: filter 150ms ease, opacity 150ms ease;
   }
 
-  .dark .punishment-management-bar button,
-  .dark .punishment-submit-button {
-    color: #2b0c0a;
-  }
 
   .punishment-management-bar button:hover,
   .punishment-submit-button:hover {
@@ -583,12 +568,9 @@
   .punishment-finish-form button:first-child {
     border-color: var(--danger);
     background: var(--danger);
-    color: #fff;
+    color: var(--on-danger);
   }
 
-  .dark .punishment-finish-form button:first-child {
-    color: #2b0c0a;
-  }
 
   .punishment-finish-form p {
     margin: 0;
@@ -810,12 +792,9 @@
   .punishment-dialog footer .punishment-submit-button {
     border-color: var(--danger);
     background: var(--danger);
-    color: #fff;
+    color: var(--on-danger);
   }
 
-  .dark .punishment-dialog footer .punishment-submit-button {
-    color: #2b0c0a;
-  }
 
   .data-display-state {
     display: flex;

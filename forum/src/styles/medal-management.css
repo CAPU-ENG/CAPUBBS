@@ -507,7 +507,7 @@
   }
 
   .management-medal-batch-id span[data-state='already-owned'] {
-    color: #9a6815;
+    color: var(--warning);
   }
 
   .management-medal-batch-id span[data-state='not-found'] {

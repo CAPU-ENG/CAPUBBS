@@ -1294,10 +1294,6 @@
     flex: 0 1 auto;
   }
 
-  .thread-floor-author > .user-displayed-tag-list > :is(.user-tag, .user-tag-overflow) {
-    font-size: 10px;
-  }
-
   .thread-floor-time {
     display: flex;
     min-width: 0;
@@ -1868,12 +1864,9 @@
     align-self: stretch;
     padding: 0 12px;
     background: var(--brand);
-    color: white;
+    color: var(--on-brand);
   }
 
-  .dark .nested-reply-submit {
-    color: #0d1711;
-  }
 
   .nested-reply-submit:disabled,
   .nested-reply-cancel:disabled {

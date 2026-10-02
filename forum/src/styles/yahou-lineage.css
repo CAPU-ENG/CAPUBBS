@@ -1,13 +1,8 @@
 @layer components {
   .yahou-workspace {
-    --yahou-pending: #93611c;
-    --yahou-passed: #2b6f99;
+    --yahou-pending: var(--warning);
+    --yahou-passed: var(--info);
     --yahou-qualified: var(--brand-strong);
-  }
-
-  .dark .yahou-workspace {
-    --yahou-pending: #deb778;
-    --yahou-passed: #8bbdda;
   }
 
   .yahou-pending { --yahou-status: var(--yahou-pending); }

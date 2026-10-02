@@ -21,7 +21,7 @@
     --text: #20231f;
     --text-strong: #111411;
     --text-muted: #687068;
-    --text-faint: #919991;
+    --text-faint: #707870;
     --line: #e1e6df;
     --line-strong: #cdd5cc;
     --brand: #236b4c;
@@ -29,7 +29,9 @@
     --brand-soft: #e6f0e9;
     --brand-faint: #f0f6f1;
     --danger: #b8473f;
-    --warning: #b67a17;
+    --on-danger: #ffffff;
+    --warning: #9a6815;
+    --info: #2b6f99;
     --on-brand: #ffffff;
     --app-background: #a4c1ac;
     --overlay: rgb(20 27 22 / 0.46);
@@ -46,7 +48,7 @@
     --text: #dde5de;
     --text-strong: #f6faf6;
     --text-muted: #a0aca2;
-    --text-faint: #748078;
+    --text-faint: #849086;
     --line: #2c362f;
     --line-strong: #3c493f;
     --brand: #69b98d;
@@ -54,6 +56,9 @@
     --brand-soft: #203c2d;
     --brand-faint: #1b2b22;
     --danger: #ef8178;
+    --on-danger: #2b0c0a;
+    --warning: #e5ae66;
+    --info: #8bbdda;
     --on-brand: #101713;
     --app-background: #183225;
     --overlay: rgb(2 7 4 / 0.68);

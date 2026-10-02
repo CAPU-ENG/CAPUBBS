@@ -49,12 +49,9 @@
   .toolbox-tabs .toolbox-tab-active {
     border-color: var(--brand);
     background: var(--brand);
-    color: #fff;
+    color: var(--on-brand);
   }
 
-  .dark .toolbox-tabs .toolbox-tab-active {
-    color: #0d2116;
-  }
 
   .toolbox-workspace {
     overflow: hidden;

@@ -199,7 +199,7 @@
 
   .profile-rating:hover {
     background: color-mix(in srgb, var(--warning) 10%, transparent);
-    color: #945f0d;
+    color: color-mix(in srgb, var(--warning) 82%, var(--text-strong));
   }
 
   .profile-rating:focus-visible {

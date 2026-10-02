@@ -181,7 +181,7 @@
   .board-primary-action {
     border-color: var(--brand-strong);
     background: var(--brand-strong);
-    color: var(--surface-raised);
+    color: var(--on-brand);
   }
 
   .board-activity-action {
@@ -202,9 +202,6 @@
     color: #f3c58e;
   }
 
-  .dark .board-primary-action {
-    color: #0d1711;
-  }
 
   .board-secondary-action:hover:not([aria-pressed="true"]) {
     border-color: var(--brand);
@@ -305,8 +302,8 @@
   }
 
   .board-management-feedback-error {
-    background: color-mix(in srgb, #c84d4d 9%, var(--surface));
-    color: #ad3434;
+    background: color-mix(in srgb, var(--danger) 9%, var(--surface));
+    color: var(--danger);
   }
 
   .board-thread-table-wrap {
@@ -521,8 +518,8 @@
   }
 
   .board-thread-management-actions .board-thread-management-danger {
-    border-color: color-mix(in srgb, #c84d4d 36%, var(--line));
-    color: #b43b3b;
+    border-color: color-mix(in srgb, var(--danger) 36%, var(--line));
+    color: var(--danger);
   }
 
   .board-pagination-footer {

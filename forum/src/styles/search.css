@@ -89,14 +89,12 @@
     border-radius: var(--control-radius);
     padding: 0 20px;
     background: var(--brand-strong);
-    color: var(--surface-raised);
+    color: var(--on-brand);
     font-size: var(--ui-font-size-lg);
     font-weight: 760;
     transition: 150ms ease;
   }
 
-  .dark .search-submit,
-  .dark .search-filter-apply { color: #0d1711; }
   .search-submit:hover,
   .search-filter-apply:hover { background: color-mix(in srgb, var(--brand-strong) 88%, black); }
 

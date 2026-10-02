@@ -211,12 +211,9 @@
   .not-found-home-link {
     border-color: var(--brand);
     background: var(--brand);
-    color: #fff;
+    color: var(--on-brand);
   }
 
-  .dark .not-found-home-link {
-    color: #0d2116;
-  }
 
   .not-found-actions button:focus-visible,
   .not-found-home-link:focus-visible {

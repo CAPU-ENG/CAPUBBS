@@ -184,12 +184,9 @@
   .settings-checkbox-option input:checked ~ .settings-checkbox-mark {
     border-color: var(--brand-strong);
     background: var(--brand-strong);
-    color: var(--surface-raised);
+    color: var(--on-brand);
   }
 
-  .dark .settings-checkbox-option input:checked ~ .settings-checkbox-mark {
-    color: #0d1711;
-  }
 
   .settings-checkbox-option input:focus-visible ~ .settings-checkbox-mark {
     outline: 2px solid var(--brand);
@@ -266,21 +263,15 @@
   .settings-font-size-options .settings-font-size-option-active {
     border-color: var(--brand-strong);
     background: var(--brand-strong);
-    color: var(--surface-raised);
+    color: var(--on-brand);
   }
 
-  .dark .settings-font-size-options .settings-font-size-option-active {
-    color: #0d1711;
-  }
 
   .settings-font-size-options .settings-font-size-option-active:hover {
     border-color: var(--brand-strong);
-    color: var(--surface-raised);
+    color: var(--on-brand);
   }
 
-  .dark .settings-font-size-options .settings-font-size-option-active:hover {
-    color: #0d1711;
-  }
 
   .settings-font-size-preview {
     display: grid;

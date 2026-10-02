@@ -21,7 +21,7 @@ export function buildHtmlPreviewDocument(
         surfaceRaised: '#1c241f',
         surfaceSoft: '#1f2822',
         text: '#dde5de',
-        textFaint: '#748078',
+        textFaint: '#849086',
         textMuted: '#a0aca2',
         textStrong: '#f6faf6',
       }
@@ -35,7 +35,7 @@ export function buildHtmlPreviewDocument(
         surfaceRaised: '#ffffff',
         surfaceSoft: '#f6f8f4',
         text: '#20231f',
-        textFaint: '#919991',
+        textFaint: '#707870',
         textMuted: '#687068',
         textStrong: '#111411',
       };

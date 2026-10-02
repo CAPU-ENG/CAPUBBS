@@ -130,12 +130,9 @@
   }
 
   .activity-management-metrics [data-tone="warning"] strong {
-    color: #a86a1e;
+    color: var(--warning);
   }
 
-  .dark .activity-management-metrics [data-tone="warning"] strong {
-    color: #e5ae66;
-  }
 
   .activity-management-tabs {
     display: flex;
@@ -503,14 +500,11 @@
   }
 
   .activity-record-status[data-status="已取消"] {
-    border-color: color-mix(in srgb, #ba751f 38%, var(--line));
-    background: color-mix(in srgb, #f3b55d 13%, var(--surface));
-    color: #945913;
+    border-color: color-mix(in srgb, var(--warning) 38%, var(--line));
+    background: color-mix(in srgb, var(--warning) 10%, var(--surface));
+    color: var(--warning);
   }
 
-  .dark .activity-record-status[data-status="已取消"] {
-    color: #f0bf7e;
-  }
 
   .activity-summary-value-overlay {
     position: fixed;

@@ -56,12 +56,9 @@
   .management-tabs .management-tab-active {
     border-color: var(--brand);
     background: var(--brand);
-    color: #fff;
+    color: var(--on-brand);
   }
 
-  .dark .management-tabs .management-tab-active {
-    color: #0d2116;
-  }
 
   .management-tabpanel {
     min-width: 0;

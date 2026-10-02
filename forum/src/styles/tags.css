@@ -42,7 +42,7 @@
     overflow: hidden;
     border-radius: var(--small-card-radius);
     padding: 1px 3px;
-    font-size: 8px;
+    font-size: 10px;
     text-overflow: ellipsis;
   }
 
@@ -68,7 +68,7 @@
   .user-tag-overflow {
     flex: 0 0 auto;
     color: var(--text-faint);
-    font-size: 8px;
+    font-size: 10px;
     font-weight: 760;
     line-height: 1.1;
     white-space: nowrap;

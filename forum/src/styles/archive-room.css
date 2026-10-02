@@ -451,16 +451,12 @@
   .archive-room-error {
     margin: 14px 24px 0;
     padding: 9px 12px;
-    border-left: 2px solid #b95757;
-    background: color-mix(in srgb, #b95757 9%, var(--surface));
-    color: #a34848;
+    border-left: 2px solid var(--danger);
+    background: color-mix(in srgb, var(--danger) 9%, var(--surface));
+    color: var(--danger);
     font-size: var(--ui-font-size-lg);
   }
 
-  .dark .archive-room-error {
-    color: #e9a3a3;
-    background: color-mix(in srgb, #b95757 18%, var(--surface));
-  }
 
   .archive-room-state {
     display: flex;
@@ -535,13 +531,12 @@
     align-items: center;
     justify-content: center;
     border-radius: var(--control-radius);
-    background: color-mix(in srgb, #b95757 12%, var(--surface));
-    color: #b95757;
+    background: color-mix(in srgb, var(--danger) 12%, var(--surface));
+    color: var(--danger);
   }
 
   .dark .archive-room-delete-icon {
-    background: color-mix(in srgb, #b95757 22%, var(--surface));
-    color: #e9a3a3;
+    background: color-mix(in srgb, var(--danger) 22%, var(--surface));
   }
 
   .archive-room-delete-header h2 {
@@ -577,9 +572,9 @@
   }
 
   .archive-room-dialog-actions .archive-room-delete-confirm {
-    border-color: #b95757;
-    background: #b95757;
-    color: #fff;
+    border-color: var(--danger);
+    background: var(--danger);
+    color: var(--on-danger);
   }
 
   .archive-room-dialog > header {
