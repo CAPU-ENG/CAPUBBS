@@ -1,4 +1,13 @@
+// document/window listeners, observers and frames outlive a page body swap; release them first
+var annualPageCleanups = [];
+
+function onAnnualPageLeave(cleanup) {
+    annualPageCleanups.push(cleanup);
+}
+
 function initAnnualPage() {
+    annualPageCleanups.splice(0).forEach(function (cleanup) { cleanup(); });
+
     (function () {
     var map = document.querySelector('[data-route-map]');
     if (!map || !('IntersectionObserver' in window)) return;
@@ -17,6 +26,7 @@ function initAnnualPage() {
     }, { threshold: 0.4 });
 
     observer.observe(map);
+    onAnnualPageLeave(function () { observer.disconnect(); });
     })();
 
 (function () {
@@ -212,12 +222,20 @@ function initAnnualPage() {
 
     if (allButton) allButton.addEventListener('click', function () { if (current) select(null); });
 
-    document.addEventListener('keydown', function (event) {
+    function onKey(event) {
         if (event.key === 'Escape' && current && !document.querySelector('.lightbox')) select(null);
+    }
+    function onResize() { apply(view); }
+    var resizer = window.ResizeObserver ? new ResizeObserver(onResize) : null;
+    document.addEventListener('keydown', onKey);
+    if (resizer) resizer.observe(frame);
+    else window.addEventListener('resize', onResize);
+    onAnnualPageLeave(function () {
+        cancelAnimationFrame(request);
+        document.removeEventListener('keydown', onKey);
+        if (resizer) resizer.disconnect();
+        else window.removeEventListener('resize', onResize);
     });
-
-    if (window.ResizeObserver) new ResizeObserver(function () { apply(view); }).observe(frame);
-    else window.addEventListener('resize', function () { apply(view); });
 
     root.classList.add('is-ready');
     select('2023', true);
@@ -301,23 +319,29 @@ function initAnnualPage() {
 
     scroller.addEventListener('scroll', sync, { passive: true });
     window.addEventListener('resize', sync);
+    onAnnualPageLeave(function () {
+        stopGlide();
+        window.removeEventListener('resize', sync);
+    });
     root.classList.add('is-ready');
     sync();
     })();
 
-// click a photo to see it full screen; click again (or press Esc) to go back
+// click a photo to see it full screen; click again, press Esc or use the close button to go back
 (function () {
     var links = document.querySelectorAll('.figure a, .colophon-cover');
     if (!links.length) return;
     var box = null;
+    var closer = null;
     var opener = null;
 
     function close() {
         if (!box) return;
         box.remove();
         box = null;
+        closer = null;
         document.documentElement.classList.remove('has-lightbox');
-        if (opener) opener.focus();
+        if (opener && opener.isConnected) opener.focus();
     }
 
     Array.prototype.forEach.call(links, function (link) {
@@ -332,20 +356,37 @@ function initAnnualPage() {
             box.setAttribute('role', 'dialog');
             box.setAttribute('aria-modal', 'true');
             box.setAttribute('aria-label', source.alt || '图片');
-            box.tabIndex = -1;
             var img = document.createElement('img');
             img.src = link.getAttribute('href');
             img.alt = source.alt;
+            closer = document.createElement('button');
+            closer.type = 'button';
+            closer.className = 'lightbox-close';
+            closer.setAttribute('aria-label', '关闭');
+            closer.textContent = '×';
             box.appendChild(img);
+            box.appendChild(closer);
             box.addEventListener('click', close);
             document.body.appendChild(box);
             document.documentElement.classList.add('has-lightbox');
-            box.focus();
+            closer.focus();
         });
     });
 
-    document.addEventListener('keydown', function (event) {
+    function onKey(event) {
+        if (!box) return;
         if (event.key === 'Escape') close();
+        // the close button is the only control in the dialog, so Tab stays on it
+        else if (event.key === 'Tab') {
+            event.preventDefault();
+            closer.focus();
+        }
+    }
+    document.addEventListener('keydown', onKey);
+    onAnnualPageLeave(function () {
+        opener = null;
+        close();
+        document.removeEventListener('keydown', onKey);
     });
     })();
 
@@ -370,7 +411,20 @@ initAnnualPage();
         && window.CSS.supports('view-transition-name: root');
     var busy = false;
     var activePath = window.location.pathname + window.location.search;
+    var saveTimer = 0;
     if ('scrollRestoration' in window.history) window.history.scrollRestoration = 'manual';
+
+    // each history entry keeps its own scroll position so Back returns to the same place
+    function savedScroll() {
+        var state = window.history.state;
+        return state && typeof state.annualScroll === 'number' ? state.annualScroll : null;
+    }
+
+    function rememberScroll() {
+        window.clearTimeout(saveTimer);
+        saveTimer = 0;
+        try { window.history.replaceState({ annualScroll: window.scrollY }, ''); } catch (error) { /* state is optional */ }
+    }
 
     function isAnnualPage(url) {
         return !!annualRoot
@@ -380,7 +434,7 @@ initAnnualPage();
     }
 
     function destinationFor(link, event) {
-        if (busy || event.defaultPrevented) return null;
+        if (event.defaultPrevented) return null;
         if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey || event.button !== 0) return null;
         if (link.classList.contains('colophon-cover')) return null;
         var parent = link.parentElement;
@@ -404,7 +458,8 @@ initAnnualPage();
         return url;
     }
 
-    function buildWipe() {
+    // fallback transition: bars cover the page while the next page loads, then slide away
+    function startWipe() {
         var wipe = document.createElement('div');
         wipe.className = 'page-wipe';
         wipe.setAttribute('aria-hidden', 'true');
@@ -414,7 +469,15 @@ initAnnualPage();
             wipe.appendChild(bar);
         }
         document.documentElement.appendChild(wipe);
-        return wipe;
+        return {
+            covered: new Promise(function (resolve) { window.setTimeout(resolve, 460); }),
+            reveal: function () {
+                wipe.classList.add('is-out');
+                window.setTimeout(function () {
+                    if (wipe.parentNode) wipe.parentNode.removeChild(wipe);
+                }, 620);
+            }
+        };
     }
 
     function copyBody(nextBody, url) {
@@ -436,14 +499,21 @@ initAnnualPage();
         }
     }
 
-    function scrollToTop() {
+    // jump without the stylesheet's smooth scrolling
+    function jumpTo(y) {
         var root = document.documentElement;
         var previous = root.style.scrollBehavior;
         root.style.scrollBehavior = 'auto';
-        window.scrollTo(0, 0);
-        root.scrollTop = 0;
-        document.body.scrollTop = 0;
+        window.scrollTo(0, y);
+        if (!y) {
+            root.scrollTop = 0;
+            document.body.scrollTop = 0;
+        }
         root.style.scrollBehavior = previous;
+    }
+
+    function scrollToTop() {
+        jumpTo(0);
     }
 
     function scrollToRoute(url) {
@@ -458,20 +528,46 @@ initAnnualPage();
         else scrollToTop();
     }
 
-    function applyPage(nextDocument, url) {
+    // move focus to the new page so keyboard and screen reader users start from its heading
+    function focusPage(url) {
+        var target = null;
+        if (url.hash) {
+            try { target = document.getElementById(decodeURIComponent(url.hash.slice(1))); } catch (error) { target = null; }
+        }
+        target = target || document.querySelector('main h1') || document.querySelector('main');
+        if (!target) return;
+        if (!target.hasAttribute('tabindex')) {
+            target.setAttribute('tabindex', '-1');
+            target.setAttribute('data-route-focus', '');
+        }
+        try { target.focus({ preventScroll: true }); } catch (error) { target.focus(); }
+    }
+
+    function applyPage(nextDocument, url, scrollY) {
         document.title = nextDocument.title;
         if (nextDocument.documentElement.lang) document.documentElement.lang = nextDocument.documentElement.lang;
         document.documentElement.className = nextDocument.documentElement.className;
         copyBody(nextDocument.body, url);
         window.initAnnualPage();
-        scrollToRoute(url);
+        focusPage(url);
+        if (scrollY === null) scrollToRoute(url);
+        else jumpTo(scrollY);
         activePath = url.pathname + url.search;
     }
 
-    function loadPage(url, replace) {
-        if (busy) return;
+    function finish() {
+        busy = false;
+        document.documentElement.classList.remove('is-routing');
+        // Back or Forward pressed during a transition: catch up with the address bar
+        var here = new window.URL(window.location.href);
+        if (here.pathname + here.search !== activePath && isAnnualPage(here)) loadPage(here, false, savedScroll());
+    }
+
+    function loadPage(url, push, scrollY) {
         busy = true;
-        fetch(url.href, { credentials: 'same-origin' })
+        document.documentElement.classList.add('is-routing');
+        var wipe = !reduce && !nativeViewTransition ? startWipe() : null;
+        var request = fetch(url.href, { credentials: 'same-origin' })
             .then(function (response) {
                 if (!response.ok) throw new Error('Annual page request failed: ' + response.status);
                 return response.text();
@@ -479,34 +575,31 @@ initAnnualPage();
             .then(function (html) {
                 var nextDocument = new window.DOMParser().parseFromString(html, 'text/html');
                 if (!nextDocument.body) throw new Error('Annual page has no body');
+                return nextDocument;
+            });
 
+        Promise.all([request, wipe ? wipe.covered : null])
+            .then(function (results) {
+                var nextDocument = results[0];
                 function update() {
-                    window.history[replace ? 'replaceState' : 'pushState']({}, '', url.href);
-                    applyPage(nextDocument, url);
+                    if (push) window.history.pushState({ annualScroll: 0 }, '', url.href);
+                    applyPage(nextDocument, url, scrollY);
                 }
 
-                if (reduce) {
-                    update();
-                    busy = false;
-                    return;
-                }
-
-                if (nativeViewTransition) {
+                if (!reduce && nativeViewTransition) {
                     var transition = document.startViewTransition(update);
-                    transition.finished.then(function () { busy = false; }, function () { busy = false; });
+                    (transition.updateCallbackDone || transition.finished).then(finish, finish);
                     return;
                 }
 
-                var wipe = buildWipe();
-                window.setTimeout(update, 420);
-                window.setTimeout(function () {
-                    if (wipe.parentNode) wipe.parentNode.removeChild(wipe);
-                    busy = false;
-                }, 1700);
+                update();
+                if (wipe) wipe.reveal();
+                finish();
             })
             .catch(function () {
                 busy = false;
-                window.location.assign(url.href);
+                if (push) window.location.assign(url.href);
+                else window.location.replace(url.href);
             });
     }
 
@@ -518,16 +611,33 @@ initAnnualPage();
         var url = destinationFor(link, event);
         if (!url) return;
         event.preventDefault();
-        loadPage(url, false);
+        if (busy) return;
+        rememberScroll();
+        loadPage(url, true, null);
     });
 
+    window.addEventListener('scroll', function () {
+        if (busy) return;
+        window.clearTimeout(saveTimer);
+        saveTimer = window.setTimeout(rememberScroll, 200);
+    }, { passive: true });
+
     window.addEventListener('popstate', function () {
+        // the entry has already changed; a pending save would write the old page's position into it
+        window.clearTimeout(saveTimer);
+        saveTimer = 0;
+        if (busy) return;
         var url = new window.URL(window.location.href);
         if (!isAnnualPage(url)) return;
+        var scrollY = savedScroll();
         if (url.pathname + url.search === activePath) {
-            scrollToRoute(url);
+            if (scrollY === null) scrollToRoute(url);
+            else jumpTo(scrollY);
             return;
         }
-        loadPage(url, true);
+        loadPage(url, false, scrollY);
     });
+
+    // a reload keeps the position this entry was left at
+    if (savedScroll() !== null && !window.location.hash) jumpTo(savedScroll());
 })();
