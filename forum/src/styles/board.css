@@ -820,4 +820,10 @@
       justify-content: center;
     }
   }
+
+  @media (pointer: coarse) {
+    .board-thread-management-actions button {
+      height: 32px;
+    }
+  }
 }

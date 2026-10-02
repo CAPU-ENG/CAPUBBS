@@ -1700,4 +1700,16 @@
       max-height: calc(100dvh - 16px);
     }
   }
+
+  @media (pointer: coarse) {
+    .tag-summary-help > button {
+      position: relative;
+    }
+
+    .tag-summary-help > button::before {
+      position: absolute;
+      inset: -7px;
+      content: "";
+    }
+  }
 }

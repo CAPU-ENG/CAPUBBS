@@ -629,4 +629,19 @@
       transition: none;
     }
   }
+
+  @media (pointer: coarse) {
+    /* Larger hit area without enlarging the medal artwork. */
+    .user-medal-list-button,
+    .profile-identity-medal-button {
+      position: relative;
+    }
+
+    .user-medal-list-button::before,
+    .profile-identity-medal-button::before {
+      position: absolute;
+      inset: -6px;
+      content: "";
+    }
+  }
 }

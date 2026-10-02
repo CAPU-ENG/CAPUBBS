@@ -973,4 +973,11 @@
       padding: var(--space-28) var(--space-16);
     }
   }
+
+  @media (pointer: coarse) {
+    .archive-room-view-switch button {
+      width: 36px;
+      height: 32px;
+    }
+  }
 }

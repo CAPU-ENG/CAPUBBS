@@ -3312,4 +3312,26 @@
 .mobile-thread-assistive-tool:disabled {
   opacity: 0.35;
   cursor: not-allowed;
+
+  @media (pointer: coarse) {
+    .thread-page-button,
+    .thread-page-number {
+      min-width: 32px;
+      height: 32px;
+    }
+
+    .thread-page-button {
+      width: 32px;
+    }
+
+    .thread-page-button > svg {
+      width: 14px;
+      height: 14px;
+    }
+
+    .thread-page-jump summary {
+      min-width: 40px;
+      height: 32px;
+    }
+  }
 }

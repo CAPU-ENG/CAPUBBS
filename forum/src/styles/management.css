@@ -1711,4 +1711,16 @@
       min-width: 100%;
     }
   }
+
+  @media (pointer: coarse) {
+    .management-pending-member button {
+      position: relative;
+    }
+
+    .management-pending-member button::before {
+      position: absolute;
+      inset: -6px;
+      content: "";
+    }
+  }
 }

@@ -63,4 +63,10 @@
   .forum-button:disabled:hover {
     filter: none;
   }
+
+  @media (pointer: coarse) {
+    .forum-button-primary {
+      min-height: 40px;
+    }
+  }
 }
