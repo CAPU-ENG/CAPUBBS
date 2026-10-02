@@ -35,7 +35,7 @@ export function buildHtmlPreviewDocument(
         surfaceRaised: '#ffffff',
         surfaceSoft: '#f6f8f4',
         text: '#20231f',
-        textFaint: '#707870',
+        textFaint: '#6c746c',
         textMuted: '#687068',
         textStrong: '#111411',
       };
