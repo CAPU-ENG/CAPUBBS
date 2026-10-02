@@ -1095,6 +1095,9 @@ html.is-routing body, html.is-routing a { cursor: progress; }
     margin-inline: auto;
 }
 .figure-row a { flex: var(--ar) 1 0; min-width: 0; }
+/* halves of one photo split across the original spread */
+.figure-row.is-tight { gap: 0; overflow: hidden; border-radius: var(--radius); }
+.figure-row.is-tight a { border-radius: 0; }
 .prose .verse, .prose .pull { display: flow-root; }
 .prose .author-note { clear: both; }
 @media (max-width: 559px) {
