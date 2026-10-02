@@ -64,6 +64,7 @@ $canLoad = $error === '';
     <meta name="color-scheme" content="light dark">
     <title>车协年刊</title>
     <link rel="icon" type="image/png" href="/bbs/favicon.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="/bbs/new-assets/pwa/apple-touch-icon.png">
     <link rel="stylesheet" href="/annual/style.css">
 <?php if ($canLoad): ?>
     <script src="/annual/loader.js" defer></script>
