@@ -4,10 +4,6 @@
     max-width: var(--thread-main-column);
     margin-top: var(--space-18);
     overflow: hidden;
-    border: 1px solid var(--line);
-    border-radius: var(--card-radius);
-    background: var(--surface);
-    box-shadow: var(--shadow-card);
   }
 
   .reply-editor:has(.capubbs-rich-text-editor[data-auto-height="true"]) {

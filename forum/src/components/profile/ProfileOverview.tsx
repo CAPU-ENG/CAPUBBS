@@ -197,7 +197,7 @@ export function ProfileOverview({
           const isEmail = detail.key === 'email';
 
           return (
-            <section className="profile-data-card" key={detail.key}>
+            <section className="forum-card profile-data-card" key={detail.key}>
               <div className="profile-data-card-head">
                 <div className="profile-data-label"><Icon width={15} height={15} />{detail.label}</div>
                 {isEmail && privateMode ? (
@@ -225,12 +225,12 @@ export function ProfileOverview({
         })}
       </div>
 
-      <div className="profile-stat-grid">
+      <div className="forum-card profile-stat-grid">
         {profile.stats.map((stat) => stat.label === '签到数' ? (
           <button
             aria-haspopup="dialog"
             aria-label={`签到 ${stat.value} 次，查看活跃度`}
-            className="profile-stat-card profile-stat-activity"
+            className="forum-card profile-stat-card profile-stat-activity"
             key={stat.label}
             onClick={() => setActivityOpen(true)}
             type="button"
@@ -239,7 +239,7 @@ export function ProfileOverview({
             <strong>{stat.value}</strong>
           </button>
         ) : (
-          <section className="profile-stat-card" key={stat.label}>
+          <section className="forum-card profile-stat-card" key={stat.label}>
             <span>{stat.label}</span>
             <strong>{stat.value}</strong>
           </section>

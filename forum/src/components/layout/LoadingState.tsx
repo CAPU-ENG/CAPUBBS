@@ -14,7 +14,7 @@ export function LoadingState({ ariaLabel, className = '', id, label, variant = '
   const variantClassName = variant === 'page'
     ? 'forum-loading-state-page'
     : 'forum-loading-state-panel';
-  const classes = `forum-loading-state forum-loading-state-card ${variantClassName}${className ? ` ${className}` : ''}`;
+  const classes = `forum-loading-state forum-card forum-loading-state-card ${variantClassName}${className ? ` ${className}` : ''}`;
 
   return (
     <section aria-busy="true" aria-label={ariaLabel} aria-live="polite" className={classes} id={id} role="status">

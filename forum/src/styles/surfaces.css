@@ -1,0 +1,9 @@
+@layer components {
+  /* The forum's one container: page and panel cards share this surface. */
+  .forum-card {
+    border: 1px solid var(--line);
+    border-radius: var(--card-radius);
+    background: var(--surface);
+    box-shadow: var(--shadow-card);
+  }
+}

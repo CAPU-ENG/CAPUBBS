@@ -228,11 +228,7 @@
 
   .thread-title-card {
     width: 100%;
-    border: 1px solid var(--line);
-    border-radius: var(--card-radius);
     padding: var(--space-24) 26px var(--space-18);
-    background: var(--surface);
-    box-shadow: var(--shadow-card);
   }
 
   .thread-title-card h1 {
@@ -425,11 +421,7 @@
   .thread-top-pagination,
   .thread-bottom-pagination {
     width: 100%;
-    border: 1px solid var(--line);
-    border-radius: var(--card-radius);
     padding: var(--space-12) 0;
-    background: var(--surface);
-    box-shadow: var(--shadow-card);
   }
 
   .thread-top-pagination .thread-pagination,
@@ -861,11 +853,7 @@
     grid-template-columns: 58px minmax(0, 1fr);
     gap: var(--space-14);
     scroll-margin-top: calc(var(--topbar-height) + 16px);
-    border: 1px solid var(--line);
-    border-radius: var(--card-radius);
     padding: var(--space-20) var(--space-22) var(--space-18) var(--space-16);
-    background: var(--surface);
-    box-shadow: var(--shadow-card);
   }
 
   .thread-floor-decoration {
@@ -2152,11 +2140,7 @@
     justify-content: center;
     flex-direction: column;
     gap: var(--space-8);
-    border: 1px solid var(--line);
-    border-radius: var(--card-radius);
     padding: var(--space-28);
-    background: var(--surface);
-    box-shadow: var(--shadow-card);
     text-align: center;
   }
 

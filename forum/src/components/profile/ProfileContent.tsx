@@ -17,7 +17,7 @@ export function ProfileContent({ navigation, overviewHref, ...workspaceProps }: 
   if (navigation.isMobile && !navigation.isContentPage) {
     return (
       <div className="profile-content-menu">
-        <nav className="profile-content-links" aria-label="个人内容分类" ref={linksRef}>
+        <nav className="forum-card profile-content-links" aria-label="个人内容分类" ref={linksRef}>
           {profileTabs.filter((tab) => allowedTabs.includes(tab.key)).map((tab) => (
             <a href={getProfileTabHref(overviewHref, tab.key)} key={tab.key}>
               <span className="profile-content-link-label"><ProfileTabIcon tab={tab.key} size={17} />{tab.label}</span>
@@ -26,7 +26,7 @@ export function ProfileContent({ navigation, overviewHref, ...workspaceProps }: 
           ))}
         </nav>
         {asideLink ? (
-          <a className="profile-aside-link" href={asideLink.href}>
+          <a className="forum-card profile-aside-link" href={asideLink.href}>
             <span>{asideLink.label}</span><ExternalLink aria-hidden="true" size={15} />
           </a>
         ) : null}

@@ -53,6 +53,7 @@ export function MedalDesignerPanel({ initialDraft, mode, onCancel, onSave, savin
             <label className="management-medal-field">
               <span>勋章名称</span>
               <input
+                className="forum-input"
                 maxLength={24}
                 onChange={(event) => setName(event.target.value)}
                 type="text"

@@ -968,7 +968,7 @@ function ModeratorManagementPanel() {
             <div className="management-moderator-assignment">
               <label>
                 <span>目标版块</span>
-                <select onChange={(event) => setSelectedBoardId(event.target.value)} value={selectedBoardId}>
+                <select className="forum-input" onChange={(event) => setSelectedBoardId(event.target.value)} value={selectedBoardId}>
                   <option value="">请选择版块</option>
                   {boards.map((board) => <option key={board.boardId} value={board.boardId}>{board.boardName}</option>)}
                 </select>
@@ -1072,7 +1072,7 @@ function ManagementState({ children, icon, loginHref, registerHref, title }: {
   title: string;
 }) {
   return (
-    <section className="management-state">
+    <section className="forum-card management-state">
       <span>{icon}</span>
       <h1>{title}</h1>
       {children ? <p>{children}</p> : null}

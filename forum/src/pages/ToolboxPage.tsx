@@ -133,7 +133,7 @@ function TableToVcfTool() {
   }
 
   return (
-    <section className="toolbox-workspace" aria-labelledby="table-vcf-title">
+    <section className="forum-card toolbox-workspace" aria-labelledby="table-vcf-title">
       <header className="toolbox-workspace-header">
         <span className="toolbox-workspace-icon"><Wrench size={17} /></span>
         <h1 id="table-vcf-title">表格转 VCF</h1>

@@ -457,7 +457,7 @@ export function ThreadPage() {
           {status === 'loading' ? (
             <LoadingState label="正在读取帖子" />
           ) : (
-            <section className="thread-request-state" aria-live="polite">
+            <section className="forum-card thread-request-state" aria-live="polite">
               <h1>帖子暂时无法打开</h1>
               <p>{error}</p>
               <button onClick={retry} type="button"><RotateCw size={15} />重新加载</button>
@@ -547,7 +547,7 @@ export function ThreadPage() {
       />
 
       <main className={threadPageShellClassName}>
-        <header className="thread-title-card">
+        <header className="forum-card thread-title-card">
           <div className="thread-title-heading">
             <h1 className={getTitleIndentationClassName(data.title)} id="thread-title" ref={titleRef}>
               <button
@@ -585,7 +585,7 @@ export function ThreadPage() {
           {bookmarkError && <p className="thread-bookmark-error" role="alert">{bookmarkError}</p>}
         </div>
 
-        <div className="thread-top-pagination">
+        <div className="forum-card thread-top-pagination">
           <ThreadPagination
             authorOnly={data.authorOnly}
             boardId={data.bid}
@@ -659,7 +659,7 @@ export function ThreadPage() {
           )}
         </div>
 
-        <div className="thread-bottom-pagination">
+        <div className="forum-card thread-bottom-pagination">
           <ThreadPagination
             authorOnly={data.authorOnly}
             boardId={data.bid}
@@ -693,7 +693,7 @@ export function ThreadPage() {
             />
           </Suspense>
         ) : (
-          <section className="thread-reply-unavailable">
+          <section className="forum-card thread-reply-unavailable">
             <strong>{data.locked ? '本主题已锁定' : starRestricted ? `本版回复至少需要 ${data.requiredStars} 星` : '登录后参与回复'}</strong>
             {(data.locked || starRestricted) && (
               <p>{data.locked ? '当前主题暂不接受新的楼层回复。' : `你当前为 ${data.viewer?.stars ?? 0} 星，暂时无法回复。`}</p>

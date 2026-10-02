@@ -106,15 +106,6 @@
     margin-top: var(--space-12);
   }
 
-  .search-results,
-  .search-filter-card,
-  .search-mobile-filters {
-    border: 1px solid var(--line);
-    border-radius: var(--card-radius);
-    background: var(--surface);
-    box-shadow: var(--shadow-card);
-  }
-
   .search-results { min-width: 0; overflow: hidden; }
   .search-results:has(.search-pagination-wrap .thread-page-jump details[open]) { overflow: visible; }
   .search-filter-aside { position: sticky; top: calc(var(--topbar-height) + 14px); }

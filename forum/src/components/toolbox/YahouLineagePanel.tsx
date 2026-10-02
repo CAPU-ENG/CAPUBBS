@@ -51,7 +51,7 @@ export function YahouLineagePanel() {
   }, [reload]);
 
   return (
-    <section className="toolbox-workspace yahou-workspace" aria-labelledby="yahou-lineage-title">
+    <section className="forum-card toolbox-workspace yahou-workspace" aria-labelledby="yahou-lineage-title">
       <header className="toolbox-workspace-header">
         <span className="toolbox-workspace-icon"><GitBranch size={17} /></span>
         <h1 id="yahou-lineage-title">押后谱系</h1>

@@ -143,7 +143,7 @@ export function PostEditor({
   return (
     <section
       aria-labelledby={headingId}
-      className={`reply-editor ${className}`.trim()}
+      className={`forum-card reply-editor ${className}`.trim()}
       id={id}
       ref={editorRef}
     >

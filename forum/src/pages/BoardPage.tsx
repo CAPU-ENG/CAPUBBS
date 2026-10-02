@@ -252,7 +252,7 @@ export function BoardPage({ boardId }: { boardId: number }) {
           {status === 'loading' ? (
             <LoadingState label="正在读取版面" />
           ) : (
-            <section className="board-data-state" aria-live="polite">
+            <section className="forum-card board-data-state" aria-live="polite">
               <h1>版面暂时无法打开</h1>
               <p>{error}</p>
               <button onClick={retry} type="button"><RefreshCw size={15} />重新加载</button>
@@ -275,7 +275,7 @@ export function BoardPage({ boardId }: { boardId: number }) {
       />
 
       <main className="board-page-shell" ref={pageRef}>
-        <header className={`board-title-card ${isSecondaryBoard ? 'board-title-card-secondary' : ''}`}>
+        <header className={`forum-card board-title-card ${isSecondaryBoard ? 'board-title-card-secondary' : ''}`}>
           <div className="board-title-content">
             <div className="board-title-copy">
               {!isSecondaryBoard ? (
@@ -347,7 +347,7 @@ export function BoardPage({ boardId }: { boardId: number }) {
           </div>
         </header>
 
-        <section className="board-thread-section" aria-label="主题列表">
+        <section className="forum-card board-thread-section" aria-label="主题列表">
           {managementMode && managementFeedback ? (
             <div
               className={`board-management-feedback board-management-feedback-${managementFeedback.kind}`}

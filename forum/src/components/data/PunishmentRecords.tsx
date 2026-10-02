@@ -132,7 +132,7 @@ export function PunishmentRecords({
   }
 
   return (
-    <section className="data-display-card data-display-card-danger punishment-card">
+    <section className="forum-card data-display-card data-display-card-danger punishment-card">
       <header className="data-display-card-header punishment-card-header">
         <span className="data-display-card-icon"><AlertCircle size={17} /></span>
         <nav aria-label="罚跑记录学年" className="punishment-year-navigation">

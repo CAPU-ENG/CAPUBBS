@@ -15,10 +15,6 @@
 
   .browsing-history-panel {
     overflow: hidden;
-    border: 1px solid var(--line);
-    border-radius: var(--card-radius);
-    background: var(--surface);
-    box-shadow: var(--shadow-card);
   }
 
   .browsing-history-heading,

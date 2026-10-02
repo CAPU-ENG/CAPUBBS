@@ -154,7 +154,7 @@ export function TagSummaryPanel() {
   }
 
   return (
-    <section className="data-display-card tag-summary-card" ref={tagsRef}>
+    <section className="forum-card data-display-card tag-summary-card" ref={tagsRef}>
       <header className="data-display-card-header tag-summary-card-header">
         <span className="data-display-card-icon"><Tags size={17} /></span>
         <h1>标签查询</h1>

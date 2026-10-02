@@ -265,7 +265,7 @@ export function CalendarAdminPage() {
             此页面仅供权限值不低于 3 的会员使用。
           </CalendarAdminState>
         ) : (
-          <section className="calendar-admin-panel" aria-labelledby="calendar-admin-title">
+          <section className="forum-card calendar-admin-panel" aria-labelledby="calendar-admin-title">
             <header className="calendar-admin-heading">
               <div>
                 <div className="calendar-admin-title-line">
@@ -471,7 +471,7 @@ function CalendarAdminState({
   title: string;
 }) {
   return (
-    <section className="calendar-admin-state">
+    <section className="forum-card calendar-admin-state">
       <span>{icon}</span>
       <h1>{title}</h1>
       {children ? <p>{children}</p> : null}

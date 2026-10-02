@@ -39,7 +39,7 @@ export function WebsiteTrafficPanel() {
   }
 
   return (
-    <section className="data-display-card website-traffic-panel">
+    <section className="forum-card data-display-card website-traffic-panel">
       <header className="data-display-card-header website-traffic-header">
         <span className="data-display-card-icon"><ChartColumnStacked aria-hidden="true" size={17} /></span>
         <div className="statistics-title"><h1>网站流量</h1><StatisticsDataNotice dailyUpdate /></div>

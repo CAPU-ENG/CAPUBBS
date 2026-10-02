@@ -224,7 +224,7 @@ export function ThreadFloorPresentation({
 
   return (
     <article
-      className={`thread-floor${showAuthorProfile ? ' thread-floor-with-author-profile' : ''}${className ? ` ${className}` : ''}`}
+      className={`forum-card thread-floor${showAuthorProfile ? ' thread-floor-with-author-profile' : ''}${className ? ` ${className}` : ''}`}
       data-floor={floor}
       id={id}
       onCopy={onCopy}

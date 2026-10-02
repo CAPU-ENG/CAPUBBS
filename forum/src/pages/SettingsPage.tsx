@@ -138,7 +138,7 @@ export function SettingsPage() {
 
       <main className="settings-page-shell">
         <div className="settings-options-column">
-          <section className="settings-panel" aria-labelledby="appearance-settings-title">
+          <section className="forum-card settings-panel" aria-labelledby="appearance-settings-title">
             <div className="settings-panel-heading">
               <span className="settings-panel-icon"><MonitorCog size={17} /></span>
               <div>
@@ -242,7 +242,7 @@ export function SettingsPage() {
             </div>
           </section>
 
-          <section className="settings-panel" aria-labelledby="assistive-settings-title">
+          <section className="forum-card settings-panel" aria-labelledby="assistive-settings-title">
             <div className="settings-panel-heading">
               <span className="settings-panel-icon"><Accessibility size={17} /></span>
               <div>
@@ -310,7 +310,7 @@ export function SettingsPage() {
             </div>
           </section>
 
-          <section className="settings-panel settings-pinned-board-panel" aria-labelledby="pinned-boards-title">
+          <section className="forum-card settings-panel settings-pinned-board-panel" aria-labelledby="pinned-boards-title">
             <div className="settings-panel-heading">
               <span className="settings-panel-icon"><Pin size={17} /></span>
               <div>

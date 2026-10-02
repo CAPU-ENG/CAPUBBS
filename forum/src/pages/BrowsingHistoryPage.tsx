@@ -65,7 +65,7 @@ export function BrowsingHistoryPage() {
       <AppBackground />
       <TopBar contextHref="#browsing-history" contextTitle="浏览记录" />
       <main className="browsing-history-shell" id="browsing-history" ref={historyRef}>
-        <section aria-labelledby="browsing-history-title" className="browsing-history-panel">
+        <section aria-labelledby="browsing-history-title" className="forum-card browsing-history-panel">
           <header className="browsing-history-heading">
             <div className="browsing-history-title">
               <span aria-hidden="true" className="browsing-history-title-icon"><History size={20} /></span>

@@ -70,7 +70,7 @@ type DesktopHomeAsideProps = PinnedProps & {
 
 function PinnedPanel({ items, readThreadIds }: PinnedProps) {
   return (
-    <section className="aside-card" aria-labelledby="pinned-title">
+    <section className="forum-card aside-card" aria-labelledby="pinned-title">
       <header className="aside-card-header">
         <span className="aside-card-icon"><Pin size={15} /></span>
         <h2 id="pinned-title">全局置顶</h2>
@@ -134,7 +134,7 @@ export function ActivitySignupList({
 
 function ActivitySignupPanel({ items }: { items: HomeSignupActivity[] }) {
   return (
-    <section className="aside-card" aria-labelledby="signup-title">
+    <section className="forum-card aside-card" aria-labelledby="signup-title">
       <header className="aside-card-header">
         <span className="aside-card-icon"><Bike size={16} /></span>
         <h2 id="signup-title">活动报名</h2>
@@ -228,7 +228,7 @@ export function ActivityCalendar({ compact = false, error, items, onRetry, onVis
 
   return (
     <section
-      className={`aside-card activity-calendar ${compact ? 'activity-calendar-compact' : ''}`}
+      className={`forum-card aside-card activity-calendar ${compact ? 'activity-calendar-compact' : ''}`}
       id={compact ? 'mobile-activity-calendar' : 'activity-calendar'}
       aria-label={compact ? '活动日历' : undefined}
       aria-labelledby={compact ? undefined : 'calendar-title'}

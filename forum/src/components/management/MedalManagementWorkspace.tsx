@@ -527,8 +527,8 @@ function SingleImportPanel({
   return (
     <div className="management-medal-single-import">
       <form onSubmit={onImport}>
-        <label><span>会员 ID</span><input onChange={(event) => onMemberIdChange(event.target.value)} placeholder="输入完整会员 ID" type="search" value={memberId} /></label>
-        <label><span>职务（选填）</span><input maxLength={50} onChange={(event) => onRoleChange(event.target.value)} placeholder="例如：队长" type="text" value={role} /></label>
+        <label><span>会员 ID</span><input className="forum-input" onChange={(event) => onMemberIdChange(event.target.value)} placeholder="输入完整会员 ID" type="search" value={memberId} /></label>
+        <label><span>职务（选填）</span><input className="forum-input" maxLength={50} onChange={(event) => onRoleChange(event.target.value)} placeholder="例如：队长" type="text" value={role} /></label>
         <Button variant="primary" disabled={!memberId.trim() || importing} type="submit"><UserPlus size={15} />{importing ? '导入中' : '确认导入'}</Button>
       </form>
       {check ? (

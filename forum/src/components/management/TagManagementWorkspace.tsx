@@ -328,7 +328,7 @@ export function TagManagementWorkspace() {
         <div className="management-tag-editor-wrap">
           {editingId && (
             <form className="management-tag-editor" onSubmit={saveTag}>
-              <label><span>名称</span><input autoFocus maxLength={50} onChange={(event) => setDraftName(event.target.value)} value={draftName} /></label>
+              <label><span>名称</span><input autoFocus className="forum-input" maxLength={50} onChange={(event) => setDraftName(event.target.value)} value={draftName} /></label>
               <div className="management-tag-color-field">
                 <span>颜色</span>
                 <HexColorPicker ariaLabel="标签颜色" onChange={setDraftColor} value={draftColor} />

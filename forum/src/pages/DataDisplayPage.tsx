@@ -272,7 +272,7 @@ function DataTable({
   }, [children]);
 
   return (
-    <section className={`data-display-card ${tone === 'danger' ? 'data-display-card-danger' : ''}`}>
+    <section className={`forum-card data-display-card ${tone === 'danger' ? 'data-display-card-danger' : ''}`}>
       <header className="data-display-card-header">
         <span className="data-display-card-icon">{icon}</span>
         <h1>{title}</h1>
@@ -296,7 +296,7 @@ function DataTable({
 }
 
 function DataState({ children, icon }: { children: ReactNode; icon: ReactNode }) {
-  return <section className="data-display-state">{icon}<div>{children}</div></section>;
+  return <section className="forum-card data-display-state">{icon}<div>{children}</div></section>;
 }
 
 function EmptyRow({ children, columns }: { children: ReactNode; columns: number }) {

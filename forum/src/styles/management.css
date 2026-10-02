@@ -13,13 +13,6 @@
     padding: calc(var(--topbar-height) + 24px) 14px 64px;
   }
 
-  .management-state {
-    border: 1px solid var(--line);
-    border-radius: var(--card-radius);
-    background: var(--surface);
-    box-shadow: var(--shadow-card);
-  }
-
   .management-tabs {
     display: flex;
     flex-wrap: wrap;
@@ -59,7 +52,6 @@
     color: var(--on-brand);
   }
 
-
   .management-tabpanel {
     min-width: 0;
   }
@@ -91,24 +83,6 @@
     color: var(--text-muted);
     font-size: var(--ui-font-size-sm);
     font-weight: var(--font-weight-bold);
-  }
-
-  .management-tag-editor > label > input {
-    width: 100%;
-    height: 34px;
-    border: 1px solid var(--line);
-    border-radius: var(--control-radius);
-    padding: 0 var(--space-8);
-    background: var(--surface-soft);
-    color: var(--text-strong);
-    font-size: var(--ui-font-size-md);
-    outline: none;
-    transition: var(--duration-fast) ease;
-  }
-
-  .management-tag-editor > label > input:focus {
-    border-color: var(--brand);
-    box-shadow: var(--focus-glow);
   }
 
   .management-tag-editor-actions {
@@ -449,7 +423,6 @@
     font-weight: var(--font-weight-bold);
   }
 
-
   .management-thread-confirmation,
   .management-member-confirmation {
     display: grid;
@@ -575,7 +548,6 @@
     background: var(--brand-strong);
     color: var(--on-brand);
   }
-
 
   .management-move-confirm {
     display: grid;
@@ -909,12 +881,6 @@
 
   .management-moderator-assignment select {
     width: min(100%, 320px);
-    height: 36px;
-    border: 1px solid var(--line);
-    border-radius: var(--control-radius);
-    padding: 0 var(--space-8);
-    background: var(--surface-soft);
-    color: var(--text-strong);
     font-size: var(--ui-font-size-sm);
   }
 

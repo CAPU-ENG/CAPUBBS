@@ -127,7 +127,7 @@ export function SearchPage() {
           </form>
         </header>
 
-        <div className="search-mobile-filters">
+        <div className="forum-card search-mobile-filters">
           <details>
             <summary><SlidersHorizontal size={16} />筛选搜索范围</summary>
             <SearchFilters draft={draft} onChange={setDraft} />
@@ -135,7 +135,7 @@ export function SearchPage() {
         </div>
 
         <div className="search-layout">
-          <section className="search-results" aria-live="polite">
+          <section className="forum-card search-results" aria-live="polite">
             <SearchResultHeader applied={applied} count={results.length} hasSearch={hasSearch} status={status} />
 
             {!hasSearch ? (
@@ -173,7 +173,7 @@ export function SearchPage() {
           </section>
 
           <aside className="search-filter-aside">
-            <div className="search-filter-card">
+            <div className="forum-card search-filter-card">
               <div className="search-filter-title"><SlidersHorizontal size={16} /><h2>筛选</h2></div>
               <SearchFilters draft={draft} onChange={setDraft} />
               <button className="search-filter-apply" onClick={() => applySearch(draft)} type="button">

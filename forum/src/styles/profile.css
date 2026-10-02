@@ -365,10 +365,6 @@
   .profile-stat-card {
     position: relative;
     min-width: 0;
-    border: 1px solid var(--line);
-    border-radius: var(--card-radius);
-    background: var(--surface);
-    box-shadow: var(--shadow-card);
   }
 
   .profile-data-card {
@@ -444,10 +440,6 @@
     display: grid;
     grid-template-columns: repeat(8, minmax(0, 1fr));
     overflow: hidden;
-    border: 1px solid var(--line);
-    border-radius: var(--card-radius);
-    background: var(--surface);
-    box-shadow: var(--shadow-card);
     animation: profile-rise 260ms 85ms cubic-bezier(.2,.8,.2,1) both;
   }
 
@@ -518,10 +510,6 @@
   .profile-content-links {
     display: grid;
     overflow: hidden;
-    border: 1px solid var(--line);
-    border-radius: var(--card-radius);
-    background: var(--surface);
-    box-shadow: var(--shadow-card);
   }
 
   .profile-content-links a {
@@ -575,11 +563,7 @@
   .profile-content-page-header {
     display: grid;
     gap: var(--space-12);
-    border: 1px solid var(--line);
-    border-radius: var(--card-radius);
     padding: var(--space-14) var(--space-16) var(--space-18);
-    background: var(--surface);
-    box-shadow: var(--shadow-card);
   }
 
   .profile-content-page-header a {
@@ -628,10 +612,6 @@
     overflow-x: auto;
     overflow-y: hidden;
     overscroll-behavior: contain;
-    border: 1px solid var(--line);
-    border-radius: var(--card-radius);
-    background: var(--surface);
-    box-shadow: var(--shadow-card);
     scrollbar-width: thin;
   }
 
@@ -716,10 +696,6 @@
   .profile-record-panel {
     min-width: 0;
     overflow: hidden;
-    border: 1px solid var(--line);
-    border-radius: var(--card-radius);
-    background: var(--surface);
-    box-shadow: var(--shadow-card);
   }
 
   .profile-record-list {
@@ -962,14 +938,6 @@
   .profile-date-fields,
   .profile-date-fields input {
     min-width: 0;
-  }
-
-  .profile-filter-panel,
-  .profile-aside-link {
-    border: 1px solid var(--line);
-    border-radius: var(--card-radius);
-    background: var(--surface);
-    box-shadow: var(--shadow-card);
   }
 
   .profile-filter-panel {

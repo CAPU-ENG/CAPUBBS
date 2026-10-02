@@ -13,10 +13,6 @@
   .feed-section {
     min-width: 0;
     overflow: hidden;
-    border: 1px solid var(--line);
-    border-radius: var(--card-radius);
-    background: var(--surface);
-    box-shadow: var(--shadow-card);
   }
 
   .feed-item {
@@ -317,10 +313,6 @@
 
   .aside-card {
     overflow: hidden;
-    border: 1px solid var(--line);
-    border-radius: var(--card-radius);
-    background: var(--surface);
-    box-shadow: var(--shadow-card);
   }
 
   .aside-card-header {

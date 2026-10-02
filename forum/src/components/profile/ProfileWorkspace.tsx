@@ -271,7 +271,7 @@ export function ProfileWorkspace({
   return (
     <section className={`profile-workspace${backLink ? ' profile-workspace-page' : ''}`} aria-label={`${ownerLabel}的论坛内容`}>
       {backLink ? (
-        <header className="profile-content-page-header">
+        <header className="forum-card profile-content-page-header">
           <a href={backLink.href}><ArrowLeft aria-hidden="true" size={17} />{backLink.label}</a>
           <div className="profile-content-page-heading">
             <ProfileTabIcon tab={activeTab} size={21} />
@@ -279,7 +279,7 @@ export function ProfileWorkspace({
             {filterButton}
           </div>
         </header>
-      ) : <nav className="profile-tabs" aria-label="个人内容分类">
+      ) : <nav className="forum-card profile-tabs" aria-label="个人内容分类">
         {profileTabs.filter((tab) => allowedTabs.includes(tab.key)).map((tab) => (
           <button
             aria-current={tab.key === activeTab ? 'page' : undefined}
@@ -314,7 +314,7 @@ export function ProfileWorkspace({
       ) : null}
 
       <div className="profile-content-layout">
-        <div className="profile-record-panel">
+        <div className="forum-card profile-record-panel">
           {isLoading ? (
             <div className="profile-empty-state" role="status">
               <span><RotateCcw className="animate-spin" size={20} /></span>
@@ -359,7 +359,7 @@ export function ProfileWorkspace({
         {!backLink ? <aside className="profile-workspace-aside">
           {activeTab !== 'signatures' ? <div className="profile-desktop-filter"><ProfileFilterPanel {...filterPanelProps} /></div> : null}
           {asideLink ? (
-            <a className="profile-aside-link" href={getForumNavigationHref(asideLink.href, window.location.href)}>
+            <a className="forum-card profile-aside-link" href={getForumNavigationHref(asideLink.href, window.location.href)}>
               <span>{asideLink.label}</span><ExternalLink size={15} />
             </a>
           ) : null}
@@ -394,7 +394,7 @@ function ProfileFilterPanel({
   const invalidRange = Boolean(startDate && endDate && startDate > endDate);
 
   return (
-    <section className="profile-filter-panel" aria-label="筛选个人内容">
+    <section className="forum-card profile-filter-panel" aria-label="筛选个人内容">
       {showTitle ? <div className="profile-filter-title">
         <div><Search size={16} /><strong>筛选</strong></div>
         <button type="button" onClick={onReset}><RotateCcw size={13} />重置</button>

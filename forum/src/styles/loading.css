@@ -9,13 +9,6 @@
     text-align: center;
   }
 
-  .forum-loading-state-card {
-    border: 1px solid var(--line);
-    border-radius: var(--card-radius);
-    background: var(--surface);
-    box-shadow: var(--shadow-card);
-  }
-
   .forum-loading-state-page {
     min-height: clamp(260px, 52vh, 440px);
     padding: var(--space-40) var(--space-24);

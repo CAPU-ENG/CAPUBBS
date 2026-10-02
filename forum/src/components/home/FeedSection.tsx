@@ -150,7 +150,7 @@ export function FeedSection({ autoLoadMore, compactMode, error, hasMore, items, 
   }
 
   return (
-    <section ref={feedRef} className="feed-section" id="feed" aria-label="论坛帖子">
+    <section ref={feedRef} className="forum-card feed-section" id="feed" aria-label="论坛帖子">
       {status === 'error' && items.length === 0 ? (
         <div className="home-data-state home-data-error" role="alert">
           <p>{error}</p>
