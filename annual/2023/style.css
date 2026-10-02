@@ -936,7 +936,9 @@ html.is-routing body, html.is-routing a { cursor: progress; }
     border: 1px solid var(--line);
     border-radius: var(--radius);
     box-shadow: var(--shadow-card);
+    transition: transform .25s;
 }
+.colophon-cover:hover, .colophon-cover:focus-visible { transform: rotate(-1.5deg) translateY(-2px); }
 .credits {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
