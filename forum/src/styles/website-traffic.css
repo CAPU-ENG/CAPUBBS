@@ -21,7 +21,7 @@
     display: flex;
     flex-shrink: 0;
     border: 1px solid var(--line);
-    border-radius: 2px;
+    border-radius: var(--card-radius);
     overflow: hidden;
     white-space: nowrap;
   }
@@ -69,7 +69,7 @@
   }
 
   .website-traffic-content { padding: 20px 18px 18px; }
-  .website-traffic-plot { position: relative; min-width: 0; border-radius: 2px; }
+  .website-traffic-plot { position: relative; min-width: 0; border-radius: var(--card-radius); }
   .website-traffic-plot svg { display: block; width: 100%; touch-action: pan-y; }
   .website-traffic-axis-label {
     fill: var(--text-muted);
@@ -129,7 +129,7 @@
   .website-traffic-date-picker input {
     min-width: 0;
     border: 1px solid var(--line);
-    border-radius: 2px;
+    border-radius: var(--card-radius);
     padding: 3px 7px;
     background: var(--surface);
     color: var(--text-strong);
@@ -139,7 +139,7 @@
 
   .website-traffic-selection button {
     border: 1px solid var(--line);
-    border-radius: 2px;
+    border-radius: var(--card-radius);
     padding: 3px 9px;
     color: var(--text-muted);
   }
@@ -156,7 +156,7 @@
     align-items: center;
     gap: 7px;
     border: 1px solid var(--line);
-    border-radius: 2px;
+    border-radius: var(--card-radius);
     padding: 8px 9px;
     color: var(--text-muted);
     font-size: var(--ui-font-size-sm);
@@ -169,7 +169,7 @@
     align-items: center;
     gap: 7px;
     border: 1px solid var(--line);
-    border-radius: 2px;
+    border-radius: var(--card-radius);
     padding: 8px 9px;
     color: var(--text-strong);
     font-size: var(--ui-font-size-sm);
@@ -192,7 +192,7 @@
     flex-shrink: 0;
     place-items: center;
     border: 1px solid var(--series-color);
-    border-radius: 2px;
+    border-radius: var(--card-radius);
     color: var(--surface);
   }
 
@@ -244,7 +244,7 @@
     gap: 6px;
     padding: 6px 12px;
     border: 1px solid var(--line);
-    border-radius: 2px;
+    border-radius: var(--card-radius);
   }
 
   @media (max-width: 640px) {

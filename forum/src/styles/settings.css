@@ -19,7 +19,7 @@
   .settings-panel {
     overflow: visible;
     border: 1px solid var(--line);
-    border-radius: 2px;
+    border-radius: var(--card-radius);
     background: var(--surface);
     box-shadow: var(--shadow-card);
   }
@@ -89,7 +89,7 @@
     width: max-content;
     max-width: min(220px, calc(100vw - 32px));
     border: 1px solid var(--line-strong);
-    border-radius: 2px;
+    border-radius: var(--card-radius);
     padding: 7px 9px;
     background: var(--surface-raised);
     box-shadow: var(--shadow-float);

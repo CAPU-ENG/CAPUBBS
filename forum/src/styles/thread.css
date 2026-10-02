@@ -284,7 +284,7 @@
   }
 
   .thread-title-copy-button:focus-visible {
-    border-radius: 2px;
+    border-radius: var(--card-radius);
     outline: 2px solid var(--brand);
     outline-offset: 4px;
   }
@@ -344,7 +344,7 @@
     align-items: center;
     justify-content: center;
     border: 1px solid color-mix(in srgb, var(--brand) 28%, var(--line));
-    border-radius: 2px;
+    border-radius: var(--card-radius);
     padding: 0 10px;
     background: var(--brand-soft);
     color: var(--brand-strong);
@@ -426,7 +426,7 @@
   .thread-bottom-pagination {
     width: 100%;
     border: 1px solid var(--line);
-    border-radius: 2px;
+    border-radius: var(--card-radius);
     padding: 12px 0;
     background: var(--surface);
     box-shadow: var(--shadow-card);
@@ -558,7 +558,7 @@
     min-width: 0;
     scroll-margin-top: calc(var(--topbar-height) + 16px);
     border: 1px solid color-mix(in srgb, var(--brand) 24%, var(--line));
-    border-radius: 2px;
+    border-radius: var(--card-radius);
     padding: 0 22px 20px;
     background:
       linear-gradient(135deg, color-mix(in srgb, var(--brand-soft) 38%, transparent), transparent 34%),
@@ -945,7 +945,7 @@
     width: 44px;
     height: 44px;
     border: 1px solid var(--line);
-    border-radius: 2px;
+    border-radius: var(--card-radius);
     background: var(--surface-soft);
     box-shadow: 0 3px 10px rgb(20 32 24 / 0.08);
   }
@@ -984,7 +984,7 @@
     height: 90px;
     flex: 0 0 auto;
     border: 1px solid var(--line);
-    border-radius: 2px;
+    border-radius: var(--card-radius);
     background: var(--surface-soft);
     box-shadow: 0 4px 14px rgb(20 32 24 / 0.08);
   }
@@ -1148,7 +1148,7 @@
     width: 48px;
     height: 48px;
     border: 1px solid var(--line);
-    border-radius: 2px;
+    border-radius: var(--card-radius);
     object-fit: cover;
   }
 
@@ -1345,7 +1345,7 @@
     align-items: center;
     gap: 7px;
     border: 1px solid color-mix(in srgb, var(--brand) 30%, var(--line));
-    border-radius: 2px;
+    border-radius: var(--card-radius);
     padding: 0 13px;
     background: color-mix(in srgb, var(--surface-raised) 96%, transparent);
     box-shadow: var(--shadow-float);
@@ -1585,7 +1585,7 @@
     max-width: 100%;
     overflow-x: auto;
     margin: 0.75em 0;
-    border-radius: 2px;
+    border-radius: var(--card-radius);
     padding: 0.75em;
     background: #182531;
     color: #f8fafc;
@@ -1594,7 +1594,7 @@
 
   .forum-markup code,
   .forum-markup kbd {
-    border-radius: 2px;
+    border-radius: var(--card-radius);
     padding: 0.08em 0.25em;
     background: color-mix(in srgb, var(--surface-soft) 75%, var(--line));
     font-family: "SFMono-Regular", "Cascadia Code", Consolas, monospace;
@@ -1687,7 +1687,7 @@
   .nested-replies {
     margin: 14px 0 10px;
     border: 1px solid var(--line);
-    border-radius: 2px;
+    border-radius: var(--card-radius);
     background: var(--surface-soft);
   }
 
@@ -1707,7 +1707,7 @@
     width: 42px;
     height: 42px;
     border: 1px solid var(--line);
-    border-radius: 2px;
+    border-radius: var(--card-radius);
     object-fit: cover;
   }
 
@@ -1790,7 +1790,7 @@
     gap: 8px;
     margin-top: 12px;
     border: 1px solid var(--line);
-    border-radius: 2px;
+    border-radius: var(--card-radius);
     padding: 9px;
     background: var(--surface-soft);
   }
@@ -2011,7 +2011,7 @@
     display: block;
     max-width: none;
     max-height: none;
-    border-radius: 2px;
+    border-radius: var(--card-radius);
     box-shadow: 0 18px 70px rgb(0 0 0 / 0.48);
     object-fit: contain;
     transform-origin: center;
@@ -2160,7 +2160,7 @@
     flex-direction: column;
     gap: 9px;
     border: 1px solid var(--line);
-    border-radius: 2px;
+    border-radius: var(--card-radius);
     padding: 28px;
     background: var(--surface);
     box-shadow: var(--shadow-card);
@@ -2218,7 +2218,7 @@
     gap: 10px;
     margin-top: 18px;
     border: 1px solid color-mix(in srgb, var(--brand) 24%, var(--line));
-    border-radius: 2px;
+    border-radius: var(--card-radius);
     padding: 20px;
     background: var(--surface);
     box-shadow: var(--shadow-card);
@@ -2468,7 +2468,7 @@
     align-items: center;
     justify-content: space-around;
     border: 1px solid var(--line);
-    border-radius: 2px;
+    border-radius: var(--card-radius);
     padding: 16px 0;
     background: color-mix(in srgb, var(--surface) 92%, transparent);
     box-shadow: var(--shadow-card);
@@ -2486,7 +2486,7 @@
     justify-content: center;
     gap: 6px;
     border: 1px solid var(--line);
-    border-radius: 2px;
+    border-radius: var(--card-radius);
     padding: 7px 8px;
     background: color-mix(in srgb, var(--surface) 92%, transparent);
     box-shadow: var(--shadow-card);
@@ -2750,7 +2750,7 @@
       align-items: center;
       overflow: hidden;
       border: 1px solid var(--line-strong);
-      border-radius: 2px;
+      border-radius: var(--card-radius);
       background: color-mix(in srgb, var(--surface-raised) 94%, transparent);
       box-shadow: var(--shadow-float);
       backdrop-filter: blur(14px);

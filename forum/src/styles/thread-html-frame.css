@@ -2,6 +2,7 @@
 @import './punishment-record-tag.css';
 
 :root {
+  --card-radius: 2px;
   --surface: #fffefa;
   --surface-raised: #ffffff;
   --surface-soft: #f6f8f4;
@@ -256,7 +257,7 @@ table {
   max-width: 100%;
   overflow-x: auto;
   margin: 0.75em 0;
-  border-radius: 2px;
+  border-radius: var(--card-radius);
   padding: 0.75em;
   background: #182531;
   color: #f8fafc;
@@ -265,7 +266,7 @@ table {
 
 .forum-markup code,
 .forum-markup kbd {
-  border-radius: 2px;
+  border-radius: var(--card-radius);
   padding: 0.08em 0.25em;
   background: color-mix(in srgb, var(--surface-soft) 75%, var(--line));
   font-family: "SFMono-Regular", "Cascadia Code", Consolas, monospace;
@@ -362,7 +363,7 @@ table {
   margin: 0.9rem 0;
   overflow: hidden;
   border: 1px solid var(--line);
-  border-radius: 2px;
+  border-radius: var(--card-radius);
   background: transparent;
   color: var(--text);
 }
@@ -483,7 +484,7 @@ table {
   padding: 0;
   transform: translateY(-50%);
   border: 1px solid rgb(255 255 255 / 0.25);
-  border-radius: 2px;
+  border-radius: var(--card-radius);
   background: rgb(0 0 0 / 0.5);
   color: #fff;
   cursor: pointer;

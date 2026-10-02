@@ -44,7 +44,7 @@
   .yahou-edit { display: flex; flex-wrap: wrap; gap: 16px 24px; margin-top: 12px; border-top: 1px solid var(--line); padding-top: 12px; }
   .yahou-form { display: flex; align-items: flex-end; flex-wrap: wrap; gap: 8px; }
   .yahou-form label { display: grid; gap: 5px; color: var(--text-muted); font-size: var(--ui-font-size-sm); }
-  .yahou-form input, .yahou-form select { max-width: 200px; min-width: 130px; height: 34px; border: 1px solid var(--line); border-radius: 2px; padding: 4px 8px; background: var(--surface); color: var(--text); font-size: var(--ui-font-size-md); }
+  .yahou-form input, .yahou-form select { max-width: 200px; min-width: 130px; height: 34px; border: 1px solid var(--line); border-radius: var(--card-radius); padding: 4px 8px; background: var(--surface); color: var(--text); font-size: var(--ui-font-size-md); }
   .yahou-detail .toolbox-feedback { margin-top: 10px; }
   .yahou-path { display: flex; align-items: center; flex-wrap: wrap; gap: 3px; border-top: 1px solid var(--line); padding: 12px 0; }
   .yahou-path > span { display: inline-flex; align-items: center; gap: 3px; min-width: 0; color: var(--text-faint); }
@@ -58,10 +58,10 @@
   .yahou-branch { min-width: 0; }
   .yahou-branch + .yahou-branch { margin-top: 4px; }
   .yahou-branch-head { display: flex; align-items: center; gap: 3px; }
-  .yahou-toggle { display: inline-flex; width: 24px; height: 30px; flex: 0 0 24px; align-items: center; justify-content: center; border-radius: 2px; color: var(--text-muted); }
+  .yahou-toggle { display: inline-flex; width: 24px; height: 30px; flex: 0 0 24px; align-items: center; justify-content: center; border-radius: var(--card-radius); color: var(--text-muted); }
   .yahou-toggle:hover { background: var(--surface-soft); color: var(--text-strong); }
   .yahou-toggle-space { flex: 0 0 24px; }
-  .yahou-member { display: inline-flex; align-items: center; gap: 5px; max-width: 100%; min-height: 30px; padding: 4px 7px; border: 1px solid transparent; border-radius: 2px; color: var(--text); font-size: var(--ui-font-size-md); text-align: left; line-height: 1.4; }
+  .yahou-member { display: inline-flex; align-items: center; gap: 5px; max-width: 100%; min-height: 30px; padding: 4px 7px; border: 1px solid transparent; border-radius: var(--card-radius); color: var(--text); font-size: var(--ui-font-size-md); text-align: left; line-height: 1.4; }
   .yahou-member > svg { flex: 0 0 14px; color: var(--yahou-status); }
   .yahou-member > span:not(.sr-only) { overflow-wrap: anywhere; min-width: 0; }
   .yahou-member:hover { background: var(--surface-soft); border-color: var(--line); }

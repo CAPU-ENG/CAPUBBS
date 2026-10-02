@@ -41,7 +41,7 @@
     height: min(608px, calc(100dvh - var(--topbar-height) - 32px));
     overflow: hidden;
     border: 1px solid var(--line-strong);
-    border-radius: 2px;
+    border-radius: var(--card-radius);
     background: var(--surface-raised);
     box-shadow: var(--shadow-float);
     animation: local-panel-in 160ms ease both;
@@ -212,7 +212,7 @@
     grid-template-columns: 8px minmax(0, 1fr);
     gap: 9px;
     border: 1px solid var(--line);
-    border-radius: 2px;
+    border-radius: var(--card-radius);
     padding: 11px;
     background: var(--surface);
     transition: border-color 150ms ease, background 150ms ease;
@@ -290,7 +290,7 @@
     display: block;
     overflow: hidden;
     margin-top: 5px;
-    border-radius: 2px;
+    border-radius: var(--card-radius);
     color: var(--text);
     font-size: 0.78rem;
     font-weight: 650;

@@ -15,7 +15,7 @@
   .archive-room-panel {
     overflow: hidden;
     border: 1px solid var(--line);
-    border-radius: 2px;
+    border-radius: var(--card-radius);
     background: var(--surface);
     box-shadow: var(--shadow-card);
   }

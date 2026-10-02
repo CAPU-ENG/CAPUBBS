@@ -29,6 +29,9 @@
     --brand-soft: #e6f0e9;
     --brand-faint: #f0f6f1;
     --danger: #b8473f;
+    --warning: #b67a17;
+    --on-brand: #ffffff;
+    --app-background: #a4c1ac;
     --overlay: rgb(20 27 22 / 0.46);
     --shadow-card: 0 1px 2px rgb(20 32 24 / 0.04), 0 12px 32px rgb(20 32 24 / 0.05);
     --shadow-float: 0 24px 70px rgb(11 23 16 / 0.2), 0 2px 8px rgb(11 23 16 / 0.1);
@@ -51,6 +54,8 @@
     --brand-soft: #203c2d;
     --brand-faint: #1b2b22;
     --danger: #ef8178;
+    --on-brand: #101713;
+    --app-background: #183225;
     --overlay: rgb(2 7 4 / 0.68);
     --shadow-card: 0 1px 2px rgb(0 0 0 / 0.2), 0 14px 34px rgb(0 0 0 / 0.18);
     --shadow-float: 0 28px 80px rgb(0 0 0 / 0.55), 0 2px 8px rgb(0 0 0 / 0.4);

@@ -28,7 +28,7 @@
     flex-direction: column;
     overflow: hidden;
     border: 1px solid var(--line-strong);
-    border-radius: 2px;
+    border-radius: var(--card-radius, 2px);
     background: var(--surface);
     box-shadow: 0 24px 70px rgb(0 0 0 / 0.28);
     color: var(--text);
@@ -48,7 +48,7 @@
     width: 34px;
     height: 34px;
     place-items: center;
-    border-radius: 2px;
+    border-radius: var(--card-radius, 2px);
     background: color-mix(in srgb, var(--brand) 12%, var(--surface));
     color: var(--brand-strong);
   }
@@ -154,7 +154,7 @@
     gap: 12px;
     padding: 10px;
     border: 1px solid var(--line);
-    border-radius: 2px;
+    border-radius: var(--card-radius, 2px);
     background: var(--surface-soft);
   }
 
@@ -168,7 +168,7 @@
     width: 92px;
     height: 66px;
     overflow: hidden;
-    border-radius: 2px;
+    border-radius: var(--card-radius, 2px);
     background: transparent;
   }
 
@@ -288,7 +288,7 @@
     margin: 0.9rem 0;
     overflow: hidden;
     border: 1px solid var(--line, rgb(212 212 216));
-    border-radius: 2px;
+    border-radius: var(--card-radius, 2px);
     background: transparent;
     color: var(--text, #3f3f46);
   }
@@ -453,7 +453,7 @@
     padding: 0;
     transform: translateY(-50%);
     border: 1px solid rgb(255 255 255 / 0.25);
-    border-radius: 2px;
+    border-radius: var(--card-radius, 2px);
     background: rgb(0 0 0 / 0.5);
     color: #fff;
     cursor: pointer;

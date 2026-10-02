@@ -26,7 +26,7 @@
     align-items: center;
     gap: 7px;
     border: 1px solid var(--line);
-    border-radius: 2px;
+    border-radius: var(--card-radius);
     padding: 0 13px;
     background: color-mix(in srgb, var(--surface) 92%, transparent);
     color: var(--text-muted);
@@ -59,7 +59,7 @@
   .toolbox-workspace {
     overflow: hidden;
     border: 1px solid var(--line);
-    border-radius: 2px;
+    border-radius: var(--card-radius);
     background: var(--surface);
     box-shadow: var(--shadow-card);
   }
@@ -80,7 +80,7 @@
     align-items: center;
     justify-content: center;
     border: 1px solid color-mix(in srgb, var(--brand) 18%, var(--line));
-    border-radius: 2px;
+    border-radius: var(--card-radius);
     background: var(--brand-faint);
     color: var(--brand-strong);
   }
@@ -183,12 +183,9 @@
   .toolbox-primary-button {
     border-color: var(--brand-strong);
     background: var(--brand-strong);
-    color: var(--surface-raised);
+    color: var(--on-brand);
   }
 
-  .dark .toolbox-primary-button {
-    color: #101713;
-  }
 
   .toolbox-primary-button:hover {
     background: color-mix(in srgb, var(--brand-strong) 88%, black);
@@ -315,7 +312,7 @@
 
   .toolbox-converter-footer span {
     border: 1px solid var(--line);
-    border-radius: 2px;
+    border-radius: var(--card-radius);
     padding: 3px 6px;
     background: var(--surface-soft);
     color: var(--text-faint);

@@ -14,7 +14,7 @@
     align-items: center;
     justify-content: center;
     border: 1px solid var(--line);
-    border-radius: 2px;
+    border-radius: var(--card-radius);
     padding: 24px 34px;
     background:
       linear-gradient(125deg, color-mix(in srgb, var(--brand-faint) 82%, var(--surface)) 0%, var(--surface) 54%),
@@ -112,7 +112,7 @@
   .search-filter-card,
   .search-mobile-filters {
     border: 1px solid var(--line);
-    border-radius: 2px;
+    border-radius: var(--card-radius);
     background: var(--surface);
     box-shadow: var(--shadow-card);
   }

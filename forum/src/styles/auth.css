@@ -13,7 +13,7 @@
     width: min(100%, 420px);
     overflow: hidden;
     border: 1px solid var(--line);
-    border-radius: 2px;
+    border-radius: var(--card-radius);
     background: var(--surface-raised);
     box-shadow: var(--shadow-float);
   }

@@ -37,7 +37,7 @@
   .calendar-admin-panel,
   .calendar-admin-state {
     border: 1px solid var(--line);
-    border-radius: 2px;
+    border-radius: var(--card-radius);
     background: var(--surface);
     box-shadow: var(--shadow-card);
   }
@@ -79,7 +79,7 @@
 
   .calendar-admin-title-line em {
     border: 1px solid color-mix(in srgb, var(--brand) 30%, var(--line));
-    border-radius: 2px;
+    border-radius: var(--card-radius);
     padding: 3px 7px;
     background: var(--brand-faint);
     color: var(--brand-strong);
@@ -115,12 +115,9 @@
   .calendar-admin-form footer .calendar-admin-save {
     border-color: var(--brand-strong);
     background: var(--brand-strong);
-    color: var(--surface-raised);
+    color: var(--on-brand);
   }
 
-  .dark .calendar-admin-form footer .calendar-admin-save {
-    color: #101713;
-  }
 
   .calendar-admin-heading-actions a:hover,
   .calendar-admin-form footer button:not(.calendar-admin-save):hover,
@@ -157,7 +154,7 @@
   .calendar-admin-day-events,
   .calendar-admin-form {
     border: 1px solid var(--line);
-    border-radius: 2px;
+    border-radius: var(--card-radius);
     background: var(--surface-soft);
   }
 
@@ -249,13 +246,9 @@
   .calendar-admin-grid .calendar-admin-day-selected:hover {
     border-color: var(--brand-strong);
     background: var(--brand-strong);
-    color: var(--surface-raised);
+    color: var(--on-brand);
   }
 
-  .dark .calendar-admin-grid .calendar-admin-day-selected,
-  .dark .calendar-admin-grid .calendar-admin-day-selected:hover {
-    color: #101713;
-  }
 
   .calendar-admin-grid button > span {
     position: absolute;
@@ -294,7 +287,7 @@
 
   .calendar-admin-day-events > header > span {
     border: 1px solid var(--line);
-    border-radius: 2px;
+    border-radius: var(--card-radius);
     padding: 3px 7px;
     background: var(--surface-raised);
     color: var(--text-muted);
@@ -314,7 +307,7 @@
     justify-content: space-between;
     gap: 12px;
     border: 1px solid var(--line);
-    border-radius: 2px;
+    border-radius: var(--card-radius);
     padding: 11px;
     background: var(--surface-raised);
   }

@@ -5,7 +5,7 @@
     margin-top: 18px;
     overflow: hidden;
     border: 1px solid var(--line);
-    border-radius: 2px;
+    border-radius: var(--card-radius);
     background: var(--surface);
     box-shadow: var(--shadow-card);
   }
@@ -93,7 +93,7 @@
 
   .rich-text-editor-field > section.capubbs-rich-text-editor {
     border-color: var(--line);
-    border-radius: 2px;
+    border-radius: var(--card-radius);
     background: var(--surface);
     box-shadow: none;
   }
@@ -430,7 +430,7 @@
     width: min(100%, 540px);
     overflow: hidden;
     border: 1px solid var(--line-strong);
-    border-radius: 2px;
+    border-radius: var(--card-radius);
     background: var(--surface-raised);
     box-shadow: var(--shadow-float);
     animation: local-panel-in 160ms ease both;
@@ -596,7 +596,7 @@
     grid-template-rows: auto minmax(260px, 1fr) auto;
     overflow: hidden;
     border: 1px solid var(--line-strong);
-    border-radius: 2px;
+    border-radius: var(--card-radius);
     background: var(--surface-raised);
     box-shadow: var(--shadow-float);
     animation: local-panel-in 160ms ease both;

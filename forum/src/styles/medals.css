@@ -37,7 +37,7 @@
     width: max-content;
     max-width: min(240px, calc(100vw - 24px));
     border: 1px solid var(--line-strong);
-    border-radius: 2px;
+    border-radius: var(--card-radius);
     padding: 5px 8px;
     background: var(--surface-raised);
     box-shadow: var(--shadow-float);
@@ -82,7 +82,7 @@
     height: 21px;
     place-items: center;
     border: 0;
-    border-radius: 2px;
+    border-radius: var(--card-radius);
     padding: 0;
     background: transparent;
     cursor: pointer;
@@ -276,7 +276,7 @@
     width: 25px;
     height: 25px;
     place-items: center;
-    border-radius: 2px;
+    border-radius: var(--card-radius);
     background: transparent;
     transition: background 140ms ease, transform 140ms ease;
   }

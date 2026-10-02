@@ -332,12 +332,9 @@
 
   .management-medal-issue-modes button.is-selected {
     background: var(--brand-strong);
-    color: var(--surface-raised);
+    color: var(--on-brand);
   }
 
-  .dark .management-medal-issue-modes button.is-selected {
-    color: #101713;
-  }
 
   .management-medal-single-import,
   .management-medal-batch-import {
@@ -412,7 +409,7 @@
   }
 
   .management-medal-check-result[data-state='already-owned'] > svg {
-    color: #b67a17;
+    color: var(--warning);
   }
 
   .management-medal-check-result[data-state='not-found'] > svg {
@@ -532,7 +529,7 @@
 
   .management-medal-batch-footer span {
     border: 1px solid var(--line);
-    border-radius: 2px;
+    border-radius: var(--card-radius);
     padding: 3px 6px;
     background: var(--surface-soft);
     color: var(--text-faint);

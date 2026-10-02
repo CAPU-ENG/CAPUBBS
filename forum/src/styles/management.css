@@ -15,7 +15,7 @@
 
   .management-state {
     border: 1px solid var(--line);
-    border-radius: 2px;
+    border-radius: var(--card-radius);
     background: var(--surface);
     box-shadow: var(--shadow-card);
   }
@@ -33,7 +33,7 @@
     align-items: center;
     gap: 7px;
     border: 1px solid var(--line);
-    border-radius: 2px;
+    border-radius: var(--card-radius);
     padding: 0 13px;
     background: color-mix(in srgb, var(--surface) 92%, transparent);
     color: var(--text-muted);
@@ -292,7 +292,7 @@
   .management-card {
     overflow: hidden;
     border: 1px solid var(--line);
-    border-radius: 2px;
+    border-radius: var(--card-radius);
     background: var(--surface);
   }
 
@@ -315,7 +315,7 @@
   .management-card-heading > span {
     flex: 0 0 auto;
     border: 1px solid var(--line);
-    border-radius: 2px;
+    border-radius: var(--card-radius);
     padding: 4px 7px;
     background: var(--surface-soft);
     color: var(--brand-strong);
@@ -426,12 +426,9 @@
   .management-primary-button {
     border-color: var(--brand-strong);
     background: var(--brand-strong);
-    color: var(--surface-raised);
+    color: var(--on-brand);
   }
 
-  .dark .management-primary-button {
-    color: #101713;
-  }
 
   .management-danger-button {
     color: var(--danger);
@@ -507,14 +504,11 @@
     border-radius: 0 var(--control-radius) var(--control-radius) 0;
     padding: 0 11px;
     background: var(--brand-strong);
-    color: var(--surface-raised);
+    color: var(--on-brand);
     font-size: var(--ui-font-size-sm);
     font-weight: 750;
   }
 
-  .dark .management-input-action button {
-    color: #101713;
-  }
 
   .management-thread-confirmation,
   .management-member-confirmation {
@@ -522,7 +516,7 @@
     gap: 12px;
     margin: 0 16px 16px;
     border: 1px solid color-mix(in srgb, var(--brand) 30%, var(--line));
-    border-radius: 2px;
+    border-radius: var(--card-radius);
     padding: 13px;
     background: var(--brand-faint);
   }
@@ -567,7 +561,7 @@
     gap: 6px;
     margin: 0 16px 16px;
     border: 1px solid var(--line);
-    border-radius: 2px;
+    border-radius: var(--card-radius);
     padding: 9px 10px;
     background: var(--surface-soft);
     color: var(--text-muted);
@@ -638,12 +632,9 @@
   .management-move-flow .is-current b {
     border-color: var(--brand-strong);
     background: var(--brand-strong);
-    color: var(--surface-raised);
+    color: var(--on-brand);
   }
 
-  .dark .management-move-flow .is-current b {
-    color: #101713;
-  }
 
   .management-move-confirm {
     display: grid;
@@ -774,7 +765,7 @@
     align-items: center;
     justify-content: center;
     border: 1px solid var(--line);
-    border-radius: 2px;
+    border-radius: var(--card-radius);
     padding: 6px 10px;
     background: var(--surface-soft);
     text-align: left;
@@ -893,7 +884,7 @@
   .management-member-email em,
   .management-mute-list em {
     border: 1px solid var(--line);
-    border-radius: 2px;
+    border-radius: var(--card-radius);
     padding: 3px 5px;
     background: var(--surface-soft);
     color: var(--text-muted);
@@ -1047,7 +1038,7 @@
     justify-content: space-between;
     gap: 6px;
     border: 1px solid var(--line);
-    border-radius: 2px;
+    border-radius: var(--card-radius);
     padding: 5px 5px 5px 8px;
     background: var(--surface-soft);
   }
@@ -1069,7 +1060,7 @@
     flex: 0 0 auto;
     align-items: center;
     justify-content: center;
-    border-radius: 2px;
+    border-radius: var(--card-radius);
     color: var(--danger);
   }
 
@@ -1348,7 +1339,7 @@
   }
 
   .management-member-card > .management-member-id:focus-visible {
-    border-radius: 2px;
+    border-radius: var(--card-radius);
     outline: 2px solid color-mix(in srgb, var(--brand) 48%, transparent);
     outline-offset: 2px;
   }
@@ -1545,7 +1536,7 @@
     display: grid;
     place-items: center;
     padding: 18px;
-    background: rgb(11 20 15 / 0.48);
+    background: var(--overlay);
   }
 
   .management-dialog {
@@ -1553,7 +1544,7 @@
     max-height: min(640px, calc(100vh - 36px));
     overflow: auto;
     border: 1px solid var(--line-strong);
-    border-radius: 2px;
+    border-radius: var(--card-radius);
     background: var(--surface-raised);
     box-shadow: var(--shadow-float);
   }
@@ -1608,14 +1599,14 @@
     display: grid;
     place-items: center;
     padding: 18px;
-    background: rgb(11 20 15 / 0.48);
+    background: var(--overlay);
   }
 
   .management-mobile-warning {
     position: relative;
     width: min(100%, 360px);
     border: 1px solid var(--line-strong);
-    border-radius: 2px;
+    border-radius: var(--card-radius);
     padding: 24px 48px 24px 24px;
     background: var(--surface-raised);
     box-shadow: var(--shadow-float);

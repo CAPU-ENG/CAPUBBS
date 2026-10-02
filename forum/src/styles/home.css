@@ -14,7 +14,7 @@
     min-width: 0;
     overflow: hidden;
     border: 1px solid var(--line);
-    border-radius: 2px;
+    border-radius: var(--card-radius);
     background: var(--surface);
     box-shadow: var(--shadow-card);
   }
@@ -318,7 +318,7 @@
   .aside-card {
     overflow: hidden;
     border: 1px solid var(--line);
-    border-radius: 2px;
+    border-radius: var(--card-radius);
     background: var(--surface);
     box-shadow: var(--shadow-card);
   }
@@ -403,7 +403,7 @@
   .signup-activity-card {
     display: block;
     border: 1px solid var(--line);
-    border-radius: 2px;
+    border-radius: var(--card-radius);
     padding: 11px;
     background: var(--surface-soft);
     transition: 150ms ease;
@@ -428,7 +428,7 @@
   }
 
   .signup-card-topline em {
-    border-radius: 2px;
+    border-radius: var(--card-radius);
     padding: 2px 5px;
     background: var(--brand-soft);
     color: var(--brand-strong);
@@ -585,13 +585,9 @@
   .calendar-period-popover .calendar-period-option-active:hover {
     border-color: var(--brand-strong);
     background: var(--brand-strong);
-    color: white;
+    color: var(--on-brand);
   }
 
-  .dark .calendar-period-popover .calendar-period-option-active,
-  .dark .calendar-period-popover .calendar-period-option-active:hover {
-    color: #101713;
-  }
 
   .calendar-period-popover button:focus-visible {
     outline: 2px solid color-mix(in srgb, var(--brand) 55%, transparent);
@@ -679,7 +675,7 @@
   .calendar-agenda {
     margin: 14px;
     border: 1px solid var(--line);
-    border-radius: 2px;
+    border-radius: var(--card-radius);
     background: var(--surface-soft);
   }
 

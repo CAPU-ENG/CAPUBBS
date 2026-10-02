@@ -52,12 +52,8 @@
     inset: 0;
     z-index: 0;
     overflow: hidden;
-    background: #a4c1ac;
+    background: var(--app-background);
     transition: background-color 200ms ease;
-  }
-
-  .dark .app-background {
-    background: #183225;
   }
 
   .app-background::after {
@@ -331,7 +327,7 @@
   .board-drawer {
     overflow: hidden;
     border: 1px solid var(--line);
-    border-radius: 2px;
+    border-radius: var(--card-radius);
     background: var(--surface-raised);
     box-shadow: var(--shadow-float);
   }
@@ -348,7 +344,7 @@
     gap: 7px;
     min-height: 44px;
     border: 1px solid var(--line);
-    border-radius: 2px;
+    border-radius: var(--card-radius);
     padding: 7px 8px;
     background: var(--surface);
     transition: 170ms ease;
@@ -442,7 +438,7 @@
     overflow-x: hidden;
     overflow-y: auto;
     border: 1px solid var(--line);
-    border-radius: 2px;
+    border-radius: var(--card-radius);
     padding: 4px;
     background: var(--surface-raised);
     box-shadow: var(--shadow-float);
@@ -526,7 +522,7 @@
     align-items: center;
     gap: 8px;
     border: 1px solid var(--line);
-    border-radius: 2px;
+    border-radius: var(--card-radius);
     padding: 0 10px;
     background: var(--surface);
     color: var(--text-muted);

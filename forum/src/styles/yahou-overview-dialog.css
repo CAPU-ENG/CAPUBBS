@@ -9,7 +9,7 @@
     padding: 0;
     overflow: hidden;
     border: 1px solid var(--line-strong);
-    border-radius: 2px;
+    border-radius: var(--card-radius);
     background: var(--surface);
     color: var(--text);
     box-shadow: 0 20px 80px #0004;
