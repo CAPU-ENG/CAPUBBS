@@ -20,6 +20,7 @@ import { getThreadComposeHref } from '../utils/threadRoutes';
 import { getTitleIndentationClassName } from '../utils/titleIndentation';
 import { staggerEntrance } from '../utils/staggerEntrance';
 import { useEffect, useLayoutEffect, useRef, useState } from 'react';
+import { useConfirmDialog } from '../components/ConfirmDialog';
 
 function getRequestedPage() {
   const params = new URLSearchParams(window.location.search);
@@ -162,6 +163,7 @@ function ThreadRow({
 }
 
 export function BoardPage({ boardId }: { boardId: number }) {
+  const { confirm, confirmDialog } = useConfirmDialog();
   const pageRef = useRef<HTMLElement | null>(null);
   const titleRef = useRef<HTMLHeadingElement | null>(null);
   const digestOnly = getDigestOnly();
@@ -213,7 +215,7 @@ export function BoardPage({ boardId }: { boardId: number }) {
 
   async function handleThreadAction(thread: BoardThreadData, action: BoardThreadAction) {
     if (!canManage || busyAction) return;
-    if (action === 'delete' && !window.confirm(`确定删除主题“${thread.title}”吗？删除后可在回收站恢复。`)) {
+    if (action === 'delete' && !(await confirm({ title: '删除主题', message: `确定删除主题“${thread.title}”吗？删除后可在回收站恢复。`, confirmLabel: '删除', danger: true }))) {
       return;
     }
 
@@ -400,6 +402,7 @@ export function BoardPage({ boardId }: { boardId: number }) {
           </footer>
         </section>
       </main>
+      {confirmDialog}
     </div>
   );
 }

@@ -1,6 +1,6 @@
 import { DialogPresence } from '../components/layout/DialogPresence';
 import { ArrowLeft, Save } from 'lucide-react';
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import {
   getRichTextEditorHtmlValue,
   type RichTextEditorValue,
@@ -37,6 +37,7 @@ import { getThreadFloorHref, getThreadPageForFloor } from '../utils/threadRoutes
 import { getThreadCacheScope } from '../utils/threadContentCache';
 import { getTitleIndentationClassName } from '../utils/titleIndentation';
 import { invalidateLoadedThread } from '../utils/threadContentLoader';
+import { useConfirmDialog } from '../components/ConfirmDialog';
 
 type EditRequest = {
   bid: number;
@@ -45,6 +46,8 @@ type EditRequest = {
 };
 
 export function ThreadEditPage() {
+  const { confirm, confirmDialog } = useConfirmDialog();
+  const leavingConfirmedRef = useRef(false);
   const locationSearch = window.location.search;
   const request = useMemo(getEditRequest, [locationSearch]);
   const { status: authStatus, viewer } = useAuth();
@@ -142,6 +145,7 @@ export function ThreadEditPage() {
   useEffect(() => {
     if (!isDirty || isSaving) return;
     const warnBeforeLeaving = (event: BeforeUnloadEvent) => {
+      if (leavingConfirmedRef.current) return;
       event.preventDefault();
       event.returnValue = '';
     };
@@ -149,10 +153,10 @@ export function ThreadEditPage() {
     return () => window.removeEventListener('beforeunload', warnBeforeLeaving);
   }, [isDirty, isSaving]);
 
-  function leaveEditor() {
-    if (!isDirty || window.confirm('放弃尚未保存的修改？')) {
-      window.location.href = backHref;
-    }
+  async function leaveEditor() {
+    if (isDirty && !(await confirm({ title: '放弃修改', message: '放弃尚未保存的修改？', confirmLabel: '放弃', danger: true }))) return;
+    leavingConfirmedRef.current = true;
+    window.location.href = backHref;
   }
 
   async function saveEdit() {
@@ -237,7 +241,7 @@ export function ThreadEditPage() {
         ) : (
           <>
             <header className="thread-edit-heading-card">
-              <button aria-label="返回帖子" className="thread-edit-back" onClick={leaveEditor} type="button">
+              <button aria-label="返回帖子" className="thread-edit-back" onClick={() => void leaveEditor()} type="button">
                 <ArrowLeft size={19} />
               </button>
               <div className="thread-edit-heading-copy">
@@ -308,6 +312,7 @@ export function ThreadEditPage() {
           title={displayTitle}
         />
       )}</DialogPresence>
+      {confirmDialog}
     </div>
   );
 }

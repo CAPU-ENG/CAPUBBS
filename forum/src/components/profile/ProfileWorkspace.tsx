@@ -35,6 +35,7 @@ import {
   RichTextEditor,
   type RichTextEditorValue,
 } from '../editor/RichTextEditor';
+import { useConfirmDialog } from '../ConfirmDialog';
 
 export type ProfileWorkspaceProps = {
   allowedTabs: ProfileTab[];
@@ -74,6 +75,7 @@ export function ProfileWorkspace({
   const requestedTab = getProfileTabFromLocation(window.location.pathname, window.location.search, allowedTabs);
   const initialTab = requestedTab ?? allowedTabs[0] ?? 'posts';
   const [activeTab, setActiveTab] = useState<ProfileTab>(initialTab);
+  const { confirm, confirmDialog } = useConfirmDialog();
   const [records, setRecords] = useState(initialRecords);
   const [keyword, setKeyword] = useState('');
   const [startDate, setStartDate] = useState('');
@@ -220,7 +222,7 @@ export function ProfileWorkspace({
   }
 
   async function deleteDraft(record: ProfileRecord) {
-    if (!window.confirm(`确认删除草稿“${record.title}”？`)) return;
+    if (!(await confirm({ title: '删除草稿', message: `确认删除草稿“${record.title}”？`, confirmLabel: '删除', danger: true }))) return;
 
     try {
       setDeletingRecordId(record.id);
@@ -363,6 +365,7 @@ export function ProfileWorkspace({
           ) : null}
         </aside> : null}
       </div>
+      {confirmDialog}
     </section>
   );
 }

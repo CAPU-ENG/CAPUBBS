@@ -69,6 +69,7 @@ import {
   type ActivitySignupSettings,
 } from '../utils/activitySignup';
 import { Button } from '../components/Button';
+import { useConfirmDialog } from '../components/ConfirmDialog';
 
 const THREAD_API_URL = import.meta.env.VITE_API_URL?.trim() || '/api/api.php';
 const AUTO_SAVE_DELAY_MS = 1_200;
@@ -76,6 +77,8 @@ const AUTO_SAVE_DELAY_MS = 1_200;
 type ComposeAttachment = ThreadAttachmentInfo & Pick<Partial<StoredReplyAttachment>, 'lastModified' | 'type'>;
 
 export function ThreadComposePage() {
+  const { confirm, confirmDialog } = useConfirmDialog();
+  const leavingConfirmedRef = useRef(false);
   const autoSaveEnabled = useAutoSaveEnabled();
   const locationSearch = window.location.search;
   const request = useMemo(getComposeRequest, [locationSearch]);
@@ -272,6 +275,7 @@ export function ThreadComposePage() {
   useEffect(() => {
     if (!isDirty || isPublishing) return;
     const warnBeforeLeaving = (event: BeforeUnloadEvent) => {
+      if (leavingConfirmedRef.current) return;
       event.preventDefault();
       event.returnValue = '';
     };
@@ -318,10 +322,10 @@ export function ThreadComposePage() {
     setStatusIsError(false);
   }
 
-  function leaveEditor() {
-    if (!isDirty || window.confirm(`放弃尚未保存的${isReply ? '回帖草稿修改' : '发帖内容'}？`)) {
-      window.location.href = backHref;
-    }
+  async function leaveEditor() {
+    if (isDirty && !(await confirm({ title: isReply ? '放弃回帖修改' : '放弃发帖', message: `放弃尚未保存的${isReply ? '回帖草稿修改' : '发帖内容'}？`, confirmLabel: '放弃', danger: true }))) return;
+    leavingConfirmedRef.current = true;
+    window.location.href = backHref;
   }
 
   async function addAttachments(files: File[]) {
@@ -547,7 +551,7 @@ export function ThreadComposePage() {
         ) : boardName ? (
           <>
             <header className="thread-edit-heading-card">
-              <button aria-label={isReply ? '返回帖子' : '返回版面'} className="thread-edit-back" onClick={leaveEditor} type="button">
+              <button aria-label={isReply ? '返回帖子' : '返回版面'} className="thread-edit-back" onClick={() => void leaveEditor()} type="button">
                 <ArrowLeft size={19} />
               </button>
               <div className="thread-edit-heading-copy">
@@ -661,6 +665,7 @@ export function ThreadComposePage() {
           title={isReply ? `Re: ${title}` : title.trim() || '未命名主题'}
         />
       )}</DialogPresence>
+      {confirmDialog}
     </div>
   );
 }

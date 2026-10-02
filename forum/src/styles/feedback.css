@@ -1,0 +1,36 @@
+@layer components {
+  .forum-toast {
+    position: fixed;
+    z-index: 1100;
+    right: 20px;
+    bottom: calc(20px + env(safe-area-inset-bottom, 0px));
+    display: inline-flex;
+    max-width: min(420px, calc(100vw - 40px));
+    min-height: 38px;
+    align-items: center;
+    border: 1px solid color-mix(in srgb, var(--brand) 30%, var(--line));
+    border-radius: var(--card-radius);
+    padding: var(--space-8) var(--space-12);
+    background: var(--surface-raised);
+    box-shadow: var(--shadow-float);
+    color: var(--brand-strong);
+    font-size: var(--ui-font-size-md);
+    font-weight: var(--font-weight-semibold);
+    line-height: 1.5;
+    animation: copy-toast-in var(--duration-base) ease-out;
+  }
+
+  .forum-toast-error {
+    border-color: color-mix(in srgb, var(--danger) 38%, var(--line));
+    color: var(--danger);
+  }
+
+  @media (max-width: 640px) {
+    .forum-toast {
+      right: 12px;
+      bottom: calc(62px + env(safe-area-inset-bottom, 0px));
+      left: 12px;
+      max-width: none;
+    }
+  }
+}
