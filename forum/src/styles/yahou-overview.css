@@ -145,7 +145,7 @@
 .yahou-graph-selection li { position: relative; display: grid; gap: 5px; padding: 10px 42px 10px 12px; }
 .yahou-graph-selection li + li { border-top: 1px solid var(--line); }
 .yahou-graph-selection span { color: var(--text-muted); }
-.yahou-graph-selection .yahou-selection-name { text-align: left; font-weight: 700; color: var(--text-strong); }
+.yahou-graph-selection .yahou-selection-name { text-align: left; font-weight: var(--font-weight-bold); color: var(--text-strong); }
 .yahou-graph-selection .yahou-selection-name:hover { color: var(--brand-strong); }
 .yahou-graph-selection .yahou-selection-remove { position: absolute; top: 7px; right: 7px; }
 

@@ -24,7 +24,7 @@
   margin: 0;
   color: var(--text-strong);
   font-size: var(--ui-font-size-md);
-  font-weight: 650;
+  font-weight: var(--font-weight-semibold);
   line-height: 1.4;
   text-align: center;
   white-space: normal;
@@ -51,7 +51,7 @@
   background: var(--surface-soft);
   color: var(--text-muted);
   font-size: var(--ui-font-size-md);
-  font-weight: 680;
+  font-weight: var(--font-weight-semibold);
 }
 
 .browser-recommendation-actions a {

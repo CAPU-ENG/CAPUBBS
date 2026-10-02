@@ -18,7 +18,7 @@
     background: var(--danger);
     color: #fff;
     font-size: var(--ui-font-size-xs);
-    font-weight: 800;
+    font-weight: var(--font-weight-bold);
     line-height: 1;
   }
 
@@ -71,7 +71,7 @@
     margin: 2px 0 0;
     color: var(--text-strong);
     font-size: var(--ui-font-size-xl);
-    font-weight: 740;
+    font-weight: var(--font-weight-bold);
     line-height: 1.2;
     text-overflow: ellipsis;
     white-space: nowrap;
@@ -81,7 +81,7 @@
     margin: 0;
     color: var(--brand-strong);
     font-size: var(--ui-font-size-sm);
-    font-weight: 760;
+    font-weight: var(--font-weight-bold);
     line-height: 1.2;
   }
 
@@ -95,7 +95,7 @@
     margin-left: auto;
     border-radius: var(--control-radius);
     color: var(--text-faint);
-    transition: 150ms ease;
+    transition: var(--duration-fast) ease;
   }
 
   .message-close-button:hover {
@@ -112,7 +112,7 @@
   .direct-conversation-list button:focus-visible,
   .direct-message-compose button:focus-visible,
   .direct-message-compose textarea:focus-visible {
-    outline: 2px solid color-mix(in srgb, var(--brand) 65%, transparent);
+    outline: var(--focus-ring);
     outline-offset: 2px;
   }
 
@@ -138,8 +138,8 @@
     padding: 0 10px;
     color: var(--text-muted);
     font-size: var(--ui-font-size-lg);
-    font-weight: 700;
-    transition: 150ms ease;
+    font-weight: var(--font-weight-bold);
+    transition: var(--duration-fast) ease;
   }
 
   .message-tab > span,
@@ -171,9 +171,9 @@
     padding: 0 5px;
     background: var(--brand-strong);
     color: var(--surface);
-    font-size: 0.62rem;
+    font-size: var(--ui-font-size-2xs);
     font-style: normal;
-    font-weight: 800;
+    font-weight: var(--font-weight-bold);
   }
 
   .message-dialog-main {
@@ -199,7 +199,7 @@
     margin: 0 0 7px 3px;
     color: var(--text-faint);
     font-size: var(--ui-font-size-md);
-    font-weight: 750;
+    font-weight: var(--font-weight-bold);
   }
 
   .message-group > div {
@@ -215,7 +215,7 @@
     border-radius: var(--card-radius);
     padding: 11px;
     background: var(--surface);
-    transition: border-color 150ms ease, background 150ms ease;
+    transition: border-color var(--duration-fast) ease, background var(--duration-fast) ease;
   }
 
   .message-card:hover {
@@ -254,8 +254,8 @@
     min-width: 0;
     overflow: hidden;
     color: var(--brand-strong);
-    font-size: 0.8rem;
-    font-weight: 750;
+    font-size: var(--ui-font-size-sm);
+    font-weight: var(--font-weight-bold);
     text-overflow: ellipsis;
     white-space: nowrap;
   }
@@ -292,8 +292,8 @@
     margin-top: 5px;
     border-radius: var(--card-radius);
     color: var(--text);
-    font-size: 0.78rem;
-    font-weight: 650;
+    font-size: var(--ui-font-size-xs);
+    font-weight: var(--font-weight-semibold);
     text-overflow: ellipsis;
     white-space: nowrap;
   }
@@ -308,7 +308,7 @@
     overflow: hidden;
     margin: 6px 0 0;
     color: var(--text-muted);
-    font-size: 0.76rem;
+    font-size: var(--ui-font-size-xs);
     line-height: 1.55;
     -webkit-box-orient: vertical;
     -webkit-line-clamp: 2;
@@ -326,7 +326,7 @@
     padding: 4px 7px;
     color: var(--brand-strong);
     font-size: var(--ui-font-size-md);
-    font-weight: 750;
+    font-weight: var(--font-weight-bold);
   }
 
   .message-card-actions a:hover,
@@ -362,7 +362,7 @@
     padding: 5px 9px;
     color: var(--text-muted);
     font-size: var(--ui-font-size-md);
-    font-weight: 700;
+    font-weight: var(--font-weight-bold);
   }
 
   .message-load-more {
@@ -377,7 +377,7 @@
     padding: 0 12px;
     color: var(--brand-strong);
     font-size: var(--ui-font-size-lg);
-    font-weight: 700;
+    font-weight: var(--font-weight-bold);
   }
 
   .message-load-more:hover {
@@ -413,7 +413,7 @@
     padding: 0 10px;
     color: var(--text-muted);
     font-size: var(--ui-font-size-lg);
-    font-weight: 700;
+    font-weight: var(--font-weight-bold);
   }
 
   .message-dialog-footer button:hover:not(:disabled) {
@@ -457,7 +457,7 @@
     border-radius: var(--control-radius);
     padding: 9px;
     text-align: left;
-    transition: 150ms ease;
+    transition: var(--duration-fast) ease;
   }
 
   .direct-conversation-list > button + button {
@@ -488,8 +488,8 @@
   .direct-conversation-list strong {
     overflow: hidden;
     color: var(--brand-strong);
-    font-size: 0.77rem;
-    font-weight: 750;
+    font-size: var(--ui-font-size-xs);
+    font-weight: var(--font-weight-bold);
     text-overflow: ellipsis;
     white-space: nowrap;
   }
@@ -504,7 +504,7 @@
   .direct-conversation-preview {
     margin-top: 4px;
     color: var(--text-faint);
-    font-size: 0.66rem;
+    font-size: var(--ui-font-size-2xs);
   }
 
   .direct-conversation-preview > span {
@@ -562,7 +562,7 @@
     margin-bottom: 8px;
     color: var(--text-faint);
     font-size: var(--ui-font-size-sm);
-    font-weight: 700;
+    font-weight: var(--font-weight-bold);
     text-align: center;
   }
 
@@ -570,7 +570,7 @@
     margin-bottom: 4px;
     color: var(--text-faint);
     font-size: var(--ui-font-size-sm);
-    font-weight: 700;
+    font-weight: var(--font-weight-bold);
   }
 
   .direct-message-entry > p {
@@ -581,7 +581,7 @@
     padding: 8px 10px;
     background: var(--surface);
     color: var(--text);
-    font-size: 0.77rem;
+    font-size: var(--ui-font-size-xs);
     line-height: 1.6;
     overflow-wrap: anywhere;
     white-space: pre-wrap;
@@ -615,7 +615,7 @@
     background: var(--surface-soft);
     color: var(--text);
     font: inherit;
-    font-size: 0.77rem;
+    font-size: var(--ui-font-size-xs);
     line-height: 1.55;
     outline: none;
   }
@@ -654,7 +654,7 @@
     background: var(--brand-strong);
     color: var(--surface);
     font-size: var(--ui-font-size-lg);
-    font-weight: 750;
+    font-weight: var(--font-weight-bold);
   }
 
   .direct-message-compose button:hover:not(:disabled) {

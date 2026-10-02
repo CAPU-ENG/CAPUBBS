@@ -44,7 +44,7 @@
     color: var(--text-strong);
     content: attr(data-tooltip);
     font-size: var(--ui-font-size-xs);
-    font-weight: 680;
+    font-weight: var(--font-weight-semibold);
     letter-spacing: 0;
     line-height: 1.4;
     opacity: 0;
@@ -52,7 +52,7 @@
     pointer-events: none;
     text-align: left;
     transform: translate(-50%, 3px);
-    transition: opacity 120ms ease, transform 120ms ease;
+    transition: opacity var(--duration-fast) ease, transform var(--duration-fast) ease;
     white-space: normal;
   }
 
@@ -89,7 +89,7 @@
   }
 
   .user-medal-list-button:focus-visible {
-    outline: 2px solid var(--brand);
+    outline: var(--focus-ring);
     outline-offset: 2px;
   }
 
@@ -278,7 +278,7 @@
     place-items: center;
     border-radius: var(--card-radius);
     background: transparent;
-    transition: background 140ms ease, transform 140ms ease;
+    transition: background var(--duration-fast) ease, transform var(--duration-fast) ease;
   }
 
   .profile-identity-medal-button:hover {
@@ -287,7 +287,7 @@
   }
 
   .profile-identity-medal-button:focus-visible {
-    outline: 2px solid var(--brand);
+    outline: var(--focus-ring);
     outline-offset: 2px;
   }
 
@@ -323,7 +323,7 @@
     border-radius: 50%;
     background: rgb(255 255 255 / 0.06);
     color: #f4f6f5;
-    transition: border-color 140ms ease, background 140ms ease;
+    transition: border-color var(--duration-fast) ease, background var(--duration-fast) ease;
   }
 
   .profile-medal-lightbox-close:hover,
@@ -400,7 +400,7 @@
     overflow-wrap: anywhere;
     color: #fff;
     font-size: var(--ui-font-size-page-title);
-    font-weight: 760;
+    font-weight: var(--font-weight-bold);
     letter-spacing: 0;
     line-height: 1.25;
   }
@@ -419,7 +419,7 @@
   .profile-medal-lightbox-copy dt {
     color: rgb(255 255 255 / 0.5);
     font-size: var(--ui-font-size-xs);
-    font-weight: 720;
+    font-weight: var(--font-weight-bold);
   }
 
   .profile-medal-lightbox-copy dd {
@@ -449,7 +449,7 @@
     margin: 0;
     color: var(--text-strong);
     font-size: var(--ui-font-size-lg);
-    font-weight: 730;
+    font-weight: var(--font-weight-bold);
   }
 
   .profile-personalization-medal-heading p {
@@ -517,7 +517,7 @@
     background: var(--surface-raised);
     color: var(--text-faint);
     font-size: var(--ui-font-size-sm);
-    font-weight: 710;
+    font-weight: var(--font-weight-bold);
   }
 
   .profile-medal-state-control button:last-child {

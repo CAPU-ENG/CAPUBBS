@@ -6,14 +6,22 @@
     --card-radius: 2px;
     --small-card-radius: 0.5px;
     --control-radius: var(--small-card-radius);
+    --ui-font-size-2xs: 0.6875rem;
     --ui-font-size-xs: 0.75rem;
     --ui-font-size-sm: 0.8125rem;
     --ui-font-size-md: 0.875rem;
     --ui-font-size-lg: 0.9375rem;
     --ui-font-size-xl: 1rem;
+    --ui-font-size-subtitle: 1.125rem;
     --ui-font-size-title: 1.25rem;
+    --ui-font-size-heading: 1.5rem;
     --ui-font-size-page-title: 2rem;
     --ui-font-size-feature-title: 2.5rem;
+    --font-weight-regular: 400;
+    --font-weight-semibold: 650;
+    --font-weight-bold: 760;
+    --duration-fast: 150ms;
+    --duration-base: 200ms;
     --page: #f3f5f1;
     --surface: #fffefa;
     --surface-raised: #ffffff;
@@ -37,6 +45,8 @@
     --overlay: rgb(20 27 22 / 0.46);
     --shadow-card: 0 1px 2px rgb(20 32 24 / 0.04), 0 12px 32px rgb(20 32 24 / 0.05);
     --shadow-float: 0 24px 70px rgb(11 23 16 / 0.2), 0 2px 8px rgb(11 23 16 / 0.1);
+    --focus-ring: 2px solid var(--brand);
+    --focus-glow: 0 0 0 3px color-mix(in srgb, var(--brand) 16%, transparent);
   }
 
   :root.dark {

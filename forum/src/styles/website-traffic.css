@@ -30,7 +30,7 @@
     padding: 5px 11px;
     color: var(--text-muted);
     font-size: var(--ui-font-size-sm);
-    font-weight: 650;
+    font-weight: var(--font-weight-semibold);
   }
 
   .website-traffic-metrics button + button { border-left: 1px solid var(--line); }
@@ -43,7 +43,7 @@
     padding: 5px 13px;
     color: var(--text-muted);
     font-size: var(--ui-font-size-sm);
-    font-weight: 650;
+    font-weight: var(--font-weight-semibold);
   }
 
   .website-traffic-periods button + button { border-left: 1px solid var(--line); }
@@ -64,7 +64,7 @@
   .website-traffic-panel button:disabled { cursor: default; opacity: 0.5; }
   .website-traffic-panel button:focus-visible,
   .website-traffic-plot:focus-visible {
-    outline: 2px solid var(--brand);
+    outline: var(--focus-ring);
     outline-offset: -2px;
   }
 
@@ -135,7 +135,7 @@
     color: var(--text-strong);
     font: inherit;
   }
-  .website-traffic-date-picker input:focus-visible { outline: 2px solid var(--brand); outline-offset: 1px; }
+  .website-traffic-date-picker input:focus-visible { outline: var(--focus-ring); outline-offset: 1px; }
 
   .website-traffic-selection button {
     border: 1px solid var(--line);
@@ -223,7 +223,7 @@
   }
 
   .website-traffic-secondary summary::-webkit-details-marker { display: none; }
-  .website-traffic-secondary summary:focus-visible { outline: 2px solid var(--brand); outline-offset: -2px; }
+  .website-traffic-secondary summary:focus-visible { outline: var(--focus-ring); outline-offset: -2px; }
   .website-traffic-secondary summary:hover { color: var(--text-strong); }
   .website-traffic-secondary[open] summary > svg { transform: rotate(90deg); }
   .website-traffic-secondary small { margin-left: 8px; font-size: var(--ui-font-size-xs); }

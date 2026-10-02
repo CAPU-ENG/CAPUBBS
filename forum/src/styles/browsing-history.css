@@ -57,7 +57,7 @@
   .browsing-history-title h1 {
     color: var(--text-strong);
     font-size: var(--ui-font-size-title);
-    font-weight: 780;
+    font-weight: var(--font-weight-bold);
     white-space: nowrap;
   }
 
@@ -87,12 +87,12 @@
 
   .browsing-history-day-heading::-webkit-details-marker { display: none; }
   .browsing-history-day-heading:hover { background: var(--brand-faint); }
-  .browsing-history-day-heading:focus-visible { outline: 2px solid var(--brand); outline-offset: -2px; }
+  .browsing-history-day-heading:focus-visible { outline: var(--focus-ring); outline-offset: -2px; }
   .browsing-history-day-tools { display: inline-flex; align-items: center; gap: 10px; }
   .browsing-history-day-toggle { flex-shrink: 0; }
   .browsing-history-day[open] .browsing-history-day-toggle { transform: rotate(90deg); }
 
-  .browsing-history-day-heading h2 { gap: 10px; font-weight: 650; }
+  .browsing-history-day-heading h2 { gap: 10px; font-weight: var(--font-weight-semibold); }
   .browsing-history-day-heading h2 span { color: var(--brand-strong); }
   .browsing-history-day-heading > span { color: var(--text-muted); white-space: nowrap; }
   .browsing-history-list { margin: 0; padding: 0 24px; list-style: none; }
@@ -113,7 +113,7 @@
     display: block;
     color: var(--text-strong);
     font-size: var(--forum-content-font-size, 15px);
-    font-weight: 650;
+    font-weight: var(--font-weight-semibold);
     line-height: 1.65;
     overflow-wrap: anywhere;
   }
@@ -134,7 +134,7 @@
   .browsing-history-thread:hover .browsing-history-thread-arrow { color: var(--brand-strong); }
 
   .browsing-history-thread:focus-visible {
-    outline: 2px solid var(--brand);
+    outline: var(--focus-ring);
     outline-offset: 3px;
     border-radius: var(--control-radius);
   }
@@ -176,7 +176,7 @@
   }
 
   @media (prefers-reduced-motion: no-preference) {
-    .browsing-history-day-toggle { transition: transform 180ms ease-out; }
+    .browsing-history-day-toggle { transition: transform var(--duration-base) ease-out; }
   }
 
   @media (max-width: 640px) {

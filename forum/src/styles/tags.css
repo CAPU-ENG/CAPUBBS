@@ -21,7 +21,7 @@
     background: color-mix(in srgb, var(--user-tag-color) 10%, var(--surface-raised));
     color: color-mix(in srgb, var(--user-tag-color) 86%, var(--text-strong));
     font-size: var(--ui-font-size-sm);
-    font-weight: 760;
+    font-weight: var(--font-weight-bold);
     line-height: 1.1;
     white-space: nowrap;
   }
@@ -69,7 +69,7 @@
     flex: 0 0 auto;
     color: var(--text-faint);
     font-size: 10px;
-    font-weight: 760;
+    font-weight: var(--font-weight-bold);
     line-height: 1.1;
     white-space: nowrap;
   }

@@ -17,11 +17,11 @@
   .yahou-search { display: flex; min-width: 180px; max-width: 360px; flex: 1; align-items: center; gap: 8px; border: 1px solid var(--line); background: var(--surface-soft); padding: 8px 10px; color: var(--text-muted); }
   .yahou-search input { width: 100%; min-width: 0; outline: none; background: transparent; color: var(--text); font-size: var(--ui-font-size-lg); }
   .yahou-search:focus-within { border-color: var(--brand); }
-  .yahou-workspace button:focus-visible, .yahou-workspace a:focus-visible, .yahou-workspace select:focus-visible, .yahou-form input:focus-visible { outline: 2px solid var(--brand); outline-offset: 2px; }
+  .yahou-workspace button:focus-visible, .yahou-workspace a:focus-visible, .yahou-workspace select:focus-visible, .yahou-form input:focus-visible { outline: var(--focus-ring); outline-offset: 2px; }
   .yahou-workspace button:disabled { cursor: not-allowed; opacity: .5; }
   .yahou-legend { display: flex; flex-wrap: wrap; gap: 8px 18px; padding: 14px 0; font-size: var(--ui-font-size-sm); }
   .yahou-legend > span, .yahou-status-label { display: inline-flex; align-items: center; gap: 5px; color: var(--yahou-status); }
-  .yahou-legend strong { color: var(--text-muted); font-variant-numeric: tabular-nums; font-weight: 500; }
+  .yahou-legend strong { color: var(--text-muted); font-variant-numeric: tabular-nums; font-weight: var(--font-weight-regular); }
   .yahou-results { margin-bottom: 12px; border: 1px solid var(--line); max-height: 320px; overflow-y: auto; }
   .yahou-results-heading { display: flex; align-items: center; justify-content: space-between; padding: 5px 12px; color: var(--text-muted); font-size: var(--ui-font-size-sm); }
   .yahou-result { display: flex; align-items: baseline; gap: 12px; width: 100%; text-align: left; padding: 8px 12px; border-top: 1px solid var(--line); }
@@ -45,7 +45,7 @@
   .yahou-path > span { display: inline-flex; align-items: center; gap: 3px; min-width: 0; color: var(--text-faint); }
   .yahou-path button { display: inline-flex; align-items: center; gap: 5px; padding: 3px 5px; color: var(--text-muted); font-size: var(--ui-font-size-md); overflow-wrap: anywhere; text-align: left; }
   .yahou-path button:hover, .yahou-path [aria-current] { color: var(--brand-strong); background: var(--brand-faint); }
-  .yahou-path > button { font-weight: 700; color: var(--text-strong); }
+  .yahou-path > button { font-weight: var(--font-weight-bold); color: var(--text-strong); }
   .yahou-tree { columns: 2 350px; column-gap: 12px; }
   .yahou-tree.is-focused { columns: 1; }
   .yahou-family { break-inside: avoid; margin: 0 0 12px; border: 1px solid var(--line); padding: 10px 8px; list-style: none; }
@@ -62,7 +62,7 @@
   .yahou-member:hover { background: var(--surface-soft); border-color: var(--line); }
   .yahou-member.is-selected { background: var(--brand-faint); border-color: var(--brand); color: var(--text-strong); }
   .yahou-count { font-variant-numeric: tabular-nums; color: var(--text-faint); font-size: var(--ui-font-size-xs); margin-left: 3px; }
-  .yahou-family > .yahou-branch > .yahou-branch-head .yahou-member { font-weight: 700; }
+  .yahou-family > .yahou-branch > .yahou-branch-head .yahou-member { font-weight: var(--font-weight-bold); }
   .yahou-children { margin: 4px 0 6px 12px; border-left: 1px solid var(--line-strong); padding-left: 10px; }
   .yahou-leaves { display: flex; align-items: flex-start; flex-wrap: wrap; gap: 3px 5px; padding: 2px 0 5px; }
   .yahou-leaves > li { max-width: 100%; }

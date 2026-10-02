@@ -63,7 +63,7 @@
   .archive-room-heading h1 {
     color: var(--text-strong);
     font-size: var(--ui-font-size-title);
-    font-weight: 780;
+    font-weight: var(--font-weight-bold);
   }
 
   .archive-room-cloud-drive {
@@ -81,7 +81,7 @@
     align-self: flex-start;
     color: var(--brand-strong);
     font-size: var(--ui-font-size-md);
-    font-weight: 700;
+    font-weight: var(--font-weight-bold);
   }
 
   .archive-room-cloud-drive a:hover {
@@ -105,7 +105,7 @@
     margin: 0;
     color: var(--text-strong);
     font-size: var(--ui-font-size-xl);
-    font-weight: 720;
+    font-weight: var(--font-weight-bold);
   }
 
   .archive-room-auth-actions {
@@ -154,7 +154,7 @@
   }
 
   .archive-room-breadcrumb button.is-current {
-    font-weight: 720;
+    font-weight: var(--font-weight-bold);
   }
 
   .archive-room-breadcrumb-segment {
@@ -186,7 +186,7 @@
 
   .archive-room-search:focus-within {
     border-color: var(--brand);
-    box-shadow: 0 0 0 2px color-mix(in srgb, var(--brand) 13%, transparent);
+    box-shadow: var(--focus-glow);
   }
 
   .archive-room-search input {
@@ -219,7 +219,7 @@
     padding: 0 10px;
     color: var(--text-muted);
     font-size: var(--ui-font-size-lg);
-    font-weight: 720;
+    font-weight: var(--font-weight-bold);
   }
 
   .archive-room-action-button:hover:not(:disabled) {
@@ -324,7 +324,7 @@
   .archive-room-list th {
     color: var(--text-faint);
     font-size: var(--ui-font-size-md);
-    font-weight: 720;
+    font-weight: var(--font-weight-bold);
     white-space: nowrap;
   }
 
@@ -346,7 +346,7 @@
     align-items: center;
     gap: 10px;
     color: var(--text-strong);
-    font-weight: 680;
+    font-weight: var(--font-weight-semibold);
     text-align: left;
   }
 
@@ -364,7 +364,7 @@
     flex-shrink: 0;
     color: var(--text-faint);
     font-size: var(--ui-font-size-md);
-    font-weight: 600;
+    font-weight: var(--font-weight-semibold);
   }
 
   .archive-room-file-icon,
@@ -473,7 +473,7 @@
     box-shadow: var(--shadow-card);
     color: var(--text-strong);
     font-size: var(--ui-font-size-lg);
-    font-weight: 760;
+    font-weight: var(--font-weight-bold);
     letter-spacing: 0.01em;
   }
 
@@ -543,7 +543,7 @@
     margin-top: 1px;
     color: var(--text-strong);
     font-size: var(--ui-font-size-xl);
-    font-weight: 750;
+    font-weight: var(--font-weight-bold);
   }
 
   .archive-room-delete-header p {
@@ -562,7 +562,7 @@
     overflow: hidden;
     color: var(--text-strong);
     font-size: var(--ui-font-size-lg);
-    font-weight: 720;
+    font-weight: var(--font-weight-bold);
     text-overflow: ellipsis;
     white-space: nowrap;
   }
@@ -589,7 +589,7 @@
   .archive-room-dialog h2 {
     color: var(--text-strong);
     font-size: var(--ui-font-size-xl);
-    font-weight: 750;
+    font-weight: var(--font-weight-bold);
   }
 
   .archive-room-dialog-close {
@@ -636,7 +636,7 @@
   .archive-room-dialog-body input:focus,
   .archive-room-dialog-body select:focus {
     border-color: var(--brand);
-    box-shadow: 0 0 0 2px color-mix(in srgb, var(--brand) 13%, transparent);
+    box-shadow: var(--focus-glow);
   }
 
   .archive-room-dialog-body .archive-room-upload-picker {
@@ -696,7 +696,7 @@
   .archive-room-upload-picker-main strong {
     color: var(--text-strong);
     font-size: var(--ui-font-size-lg);
-    font-weight: 720;
+    font-weight: var(--font-weight-bold);
   }
 
   .archive-room-upload-picker-main small {
@@ -708,7 +708,7 @@
     flex-shrink: 0;
     color: var(--brand-strong);
     font-size: var(--ui-font-size-md);
-    font-weight: 720;
+    font-weight: var(--font-weight-bold);
   }
 
   .archive-room-dialog-body .archive-room-link-input {
@@ -726,7 +726,7 @@
   .archive-room-dialog-body .archive-room-link-input:focus-within {
     border-color: var(--brand);
     color: var(--brand-strong);
-    box-shadow: 0 0 0 2px color-mix(in srgb, var(--brand) 13%, transparent);
+    box-shadow: var(--focus-glow);
   }
 
   .archive-room-dialog-body .archive-room-link-input input {
@@ -763,7 +763,7 @@
   .archive-room-upload-progress-label strong {
     color: var(--brand-strong);
     font-variant-numeric: tabular-nums;
-    font-weight: 750;
+    font-weight: var(--font-weight-bold);
   }
 
   .archive-room-upload-speed {
@@ -815,7 +815,7 @@
     padding: 0 12px;
     color: var(--text-muted);
     font-size: var(--ui-font-size-lg);
-    font-weight: 700;
+    font-weight: var(--font-weight-bold);
   }
 
   .archive-room-dialog-actions button:last-child {
@@ -874,7 +874,7 @@
     overflow: hidden;
     color: var(--text-strong);
     font-size: var(--ui-font-size-lg);
-    font-weight: 720;
+    font-weight: var(--font-weight-bold);
     text-overflow: ellipsis;
     white-space: nowrap;
   }

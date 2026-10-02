@@ -30,13 +30,13 @@
   .management-medal-detail-heading h3 {
     color: var(--text-strong);
     font-size: var(--ui-font-size-lg);
-    font-weight: 780;
+    font-weight: var(--font-weight-bold);
   }
 
   .management-medal-catalog > header span {
     color: var(--text-faint);
     font-size: var(--ui-font-size-xs);
-    font-weight: 720;
+    font-weight: var(--font-weight-bold);
   }
 
   .management-medal-catalog-list {
@@ -54,7 +54,7 @@
     padding: 8px 12px;
     color: var(--text-muted);
     text-align: left;
-    transition: background 140ms ease, color 140ms ease;
+    transition: background var(--duration-fast) ease, color var(--duration-fast) ease;
   }
 
   .management-medal-catalog-list > button:hover {
@@ -76,7 +76,7 @@
     min-width: 34px;
     color: var(--text-faint);
     font-size: var(--ui-font-size-xs);
-    font-weight: 720;
+    font-weight: var(--font-weight-bold);
     text-align: right;
     white-space: nowrap;
   }
@@ -89,7 +89,7 @@
     overflow: hidden;
     color: currentColor;
     font-size: var(--ui-font-size-md);
-    font-weight: 760;
+    font-weight: var(--font-weight-bold);
     text-overflow: ellipsis;
     white-space: nowrap;
   }
@@ -206,7 +206,7 @@
     border-bottom: 2px solid transparent;
     color: var(--text-faint);
     font-size: var(--ui-font-size-sm);
-    font-weight: 750;
+    font-weight: var(--font-weight-bold);
   }
 
   .management-medal-detail-tabs button:hover,
@@ -251,7 +251,7 @@
     background: var(--surface-soft);
     color: var(--text-faint);
     font-size: var(--ui-font-size-xs);
-    font-weight: 760;
+    font-weight: var(--font-weight-bold);
   }
 
   .management-medal-member-table th:first-child { width: 37%; }
@@ -286,7 +286,7 @@
     overflow: hidden;
     color: var(--text-strong);
     font-size: var(--ui-font-size-md);
-    font-weight: 750;
+    font-weight: var(--font-weight-bold);
     text-overflow: ellipsis;
     white-space: nowrap;
   }
@@ -323,7 +323,7 @@
     background: var(--surface-raised);
     color: var(--text-faint);
     font-size: var(--ui-font-size-sm);
-    font-weight: 730;
+    font-weight: var(--font-weight-bold);
   }
 
   .management-medal-issue-modes button:last-child {
@@ -359,7 +359,7 @@
   .management-medal-single-import form label > span {
     color: var(--text-muted);
     font-size: var(--ui-font-size-sm);
-    font-weight: 750;
+    font-weight: var(--font-weight-bold);
   }
 
   .management-medal-single-import input {
@@ -376,7 +376,7 @@
 
   .management-medal-single-import input:focus {
     border-color: var(--brand);
-    box-shadow: 0 0 0 3px color-mix(in srgb, var(--brand) 14%, transparent);
+    box-shadow: var(--focus-glow);
   }
 
   .management-medal-check-result {
@@ -468,7 +468,7 @@
     background: var(--surface-raised);
     color: var(--text-muted);
     font-size: var(--ui-font-size-sm);
-    font-weight: 750;
+    font-weight: var(--font-weight-bold);
     text-align: left;
   }
 
@@ -543,7 +543,7 @@
     margin: 0;
     color: var(--brand-strong);
     font-size: var(--ui-font-size-sm);
-    font-weight: 700;
+    font-weight: var(--font-weight-bold);
   }
 
   .management-medal-empty {
@@ -589,7 +589,7 @@
   .management-medal-preview-column h3 {
     color: var(--text-muted);
     font-size: var(--ui-font-size-sm);
-    font-weight: 750;
+    font-weight: var(--font-weight-bold);
   }
 
   .management-medal-field > input {
@@ -606,7 +606,7 @@
 
   .management-medal-field > input:focus {
     border-color: var(--brand);
-    box-shadow: 0 0 0 3px color-mix(in srgb, var(--brand) 14%, transparent);
+    box-shadow: var(--focus-glow);
   }
 
   .management-medal-image-button {
@@ -622,7 +622,7 @@
     background: var(--surface-raised);
     color: var(--text-muted);
     font-size: var(--ui-font-size-sm);
-    font-weight: 740;
+    font-weight: var(--font-weight-bold);
   }
 
   .management-medal-image-button:hover,
@@ -633,7 +633,7 @@
   }
 
   .management-medal-image-button:focus-visible {
-    outline: 3px solid color-mix(in srgb, var(--brand) 16%, transparent);
+    outline: var(--focus-ring);
     outline-offset: 1px;
   }
 
@@ -691,7 +691,7 @@
   }
 
   .management-medal-texture input:focus-visible + span {
-    outline: 2px solid var(--brand);
+    outline: var(--focus-ring);
     outline-offset: 2px;
   }
 
@@ -699,7 +699,7 @@
     overflow: hidden;
     color: var(--text-faint);
     font-size: var(--ui-font-size-xs);
-    font-weight: 650;
+    font-weight: var(--font-weight-semibold);
     text-overflow: ellipsis;
     white-space: nowrap;
   }

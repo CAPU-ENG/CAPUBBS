@@ -80,7 +80,7 @@
     color: var(--text-strong);
     font-family: "Noto Serif CJK SC", "Source Han Serif SC", "Songti SC", serif;
     font-size: var(--ui-font-size-feature-title);
-    font-weight: 760;
+    font-weight: var(--font-weight-bold);
     letter-spacing: -0.04em;
     line-height: 1.13;
   }
@@ -96,14 +96,14 @@
 
   .board-moderators > span {
     color: var(--text-faint);
-    font-weight: 700;
+    font-weight: var(--font-weight-bold);
     letter-spacing: 0.08em;
   }
 
   .board-moderators a {
     border-bottom: 1px solid color-mix(in srgb, var(--brand) 34%, transparent);
     color: var(--brand-strong);
-    font-weight: 690;
+    font-weight: var(--font-weight-semibold);
   }
 
   .board-title-side {
@@ -136,7 +136,7 @@
   .board-stat-grid dt {
     color: var(--text-faint);
     font-size: var(--ui-font-size-xs);
-    font-weight: 680;
+    font-weight: var(--font-weight-semibold);
     letter-spacing: 0.08em;
   }
 
@@ -146,7 +146,7 @@
     color: var(--text-strong);
     font-family: ui-monospace, "SFMono-Regular", Consolas, monospace;
     font-size: var(--ui-font-size-md);
-    font-weight: 760;
+    font-weight: var(--font-weight-bold);
     text-overflow: ellipsis;
   }
 
@@ -173,9 +173,9 @@
     background: color-mix(in srgb, var(--surface-raised) 88%, transparent);
     color: var(--text-muted);
     font-size: var(--ui-font-size-md);
-    font-weight: 720;
+    font-weight: var(--font-weight-bold);
     white-space: nowrap;
-    transition: 140ms ease;
+    transition: var(--duration-fast) ease;
   }
 
   .board-primary-action {
@@ -243,7 +243,7 @@
   .board-data-state h1 {
     color: var(--text-strong);
     font-size: var(--ui-font-size-xl);
-    font-weight: 760;
+    font-weight: var(--font-weight-bold);
   }
 
   .board-data-state p {
@@ -265,7 +265,7 @@
     background: var(--surface-raised);
     color: var(--text);
     font-size: var(--ui-font-size-md);
-    font-weight: 720;
+    font-weight: var(--font-weight-bold);
   }
 
   .board-thread-empty {
@@ -293,7 +293,7 @@
     border-bottom: 1px solid var(--line);
     padding: 9px 15px;
     font-size: var(--ui-font-size-md);
-    font-weight: 650;
+    font-weight: var(--font-weight-semibold);
   }
 
   .board-management-feedback-success {
@@ -351,12 +351,12 @@
     padding: 0 15px;
     color: var(--text-muted);
     font-size: var(--ui-font-size-md);
-    font-weight: 720;
+    font-weight: var(--font-weight-bold);
     text-align: center;
   }
 
   .board-thread-row {
-    transition: background-color 140ms ease;
+    transition: background-color var(--duration-fast) ease;
   }
 
   .board-thread-row:hover {
@@ -382,8 +382,8 @@
     min-width: 0;
     flex: 0 1 auto;
     color: var(--text-strong);
-    font-size: 0.82rem;
-    font-weight: 680;
+    font-size: var(--ui-font-size-sm);
+    font-weight: var(--font-weight-semibold);
     line-height: 1.55;
     text-overflow: ellipsis;
     white-space: nowrap;
@@ -410,7 +410,7 @@
     padding: 0 5px;
     color: var(--text-faint);
     font-size: var(--ui-font-size-xs);
-    font-weight: 740;
+    font-weight: var(--font-weight-bold);
     white-space: nowrap;
   }
 
@@ -434,8 +434,8 @@
     display: block;
     overflow: hidden;
     color: var(--text);
-    font-size: 0.68rem;
-    font-weight: 700;
+    font-size: var(--ui-font-size-2xs);
+    font-weight: var(--font-weight-bold);
     text-overflow: ellipsis;
     text-align: center;
     white-space: nowrap;
@@ -471,8 +471,8 @@
   .board-thread-counts {
     color: var(--text-faint);
     font-family: ui-monospace, "SFMono-Regular", Consolas, monospace;
-    font-size: 0.64rem;
-    font-weight: 680;
+    font-size: var(--ui-font-size-2xs);
+    font-weight: var(--font-weight-semibold);
     text-align: center;
     white-space: nowrap;
   }
@@ -502,9 +502,9 @@
     background: var(--surface-raised);
     color: var(--text-muted);
     font-size: var(--ui-font-size-xs);
-    font-weight: 700;
+    font-weight: var(--font-weight-bold);
     white-space: nowrap;
-    transition: 120ms ease;
+    transition: var(--duration-fast) ease;
   }
 
   .board-thread-management-actions button:hover:not(:disabled) {
@@ -629,7 +629,7 @@
     }
 
     .board-stat-grid dt {
-      font-size: 0.6875rem;
+      font-size: var(--ui-font-size-2xs);
       letter-spacing: normal;
     }
 
@@ -638,7 +638,7 @@
       margin-top: 0;
       font-family: "Noto Serif CJK SC", "Source Han Serif SC", "Songti SC", serif;
       font-size: var(--ui-font-size-xs);
-      font-weight: 740;
+      font-weight: var(--font-weight-bold);
       line-height: 1.25;
       overflow-wrap: anywhere;
     }
@@ -729,7 +729,7 @@
 
     .board-thread-title-line > a {
       display: inline;
-      font-size: 0.86rem;
+      font-size: var(--ui-font-size-md);
       line-height: 1.55;
       overflow-wrap: anywhere;
       white-space: normal;

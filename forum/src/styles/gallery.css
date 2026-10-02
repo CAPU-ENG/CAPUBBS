@@ -93,7 +93,7 @@
   .gallery-dialog-images label > span {
     color: var(--text-muted);
     font-size: var(--ui-font-size-md);
-    font-weight: 720;
+    font-weight: 760;
   }
 
   .gallery-dialog input {
@@ -191,14 +191,14 @@
     background: rgb(0 0 0 / 0.68);
     color: #fff;
     font-size: var(--ui-font-size-sm);
-    font-weight: 800;
+    font-weight: 760;
   }
 
   .gallery-dialog-error {
     margin: 12px 0 0;
     color: var(--danger);
     font-size: var(--ui-font-size-lg);
-    font-weight: 700;
+    font-weight: 760;
   }
 
   .gallery-dialog-upload-progress {
@@ -214,7 +214,7 @@
     gap: 12px;
     color: var(--text-muted);
     font-size: var(--ui-font-size-md);
-    font-weight: 700;
+    font-weight: 760;
   }
 
   .gallery-dialog-upload-progress strong {
@@ -255,7 +255,7 @@
     margin-right: auto;
     color: var(--text-faint);
     font-size: var(--ui-font-size-md);
-    font-weight: 700;
+    font-weight: 760;
   }
 
   .gallery-dialog > footer button {

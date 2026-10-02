@@ -16,7 +16,7 @@
   content: '';
   opacity: 0;
   pointer-events: none;
-  transition: opacity 140ms ease;
+  transition: opacity var(--duration-fast) ease;
 }
 
 .forum-markup .forum-table-more-right::after {
@@ -39,7 +39,7 @@
 }
 
 .forum-markup .forum-table-scroll:focus-visible {
-  outline: 2px solid var(--brand);
+  outline: var(--focus-ring);
   outline-offset: -2px;
 }
 
@@ -92,7 +92,7 @@
 .forum-markup .forum-data-table :is(th, .forum-table-heading) {
   background: var(--surface-soft) !important;
   color: var(--text-faint) !important;
-  font-weight: 780 !important;
+  font-weight: var(--font-weight-bold) !important;
 }
 
 .forum-markup .forum-table-cell-content {
@@ -121,7 +121,7 @@
   content: '';
   opacity: 0;
   pointer-events: none;
-  transition: opacity 140ms ease;
+  transition: opacity var(--duration-fast) ease;
 }
 
 .forum-markup .forum-table-scrolled .forum-table-first-column::after {

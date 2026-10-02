@@ -87,7 +87,7 @@
   .hex-color-input-label {
     color: var(--text-muted);
     font-size: var(--ui-font-size-sm);
-    font-weight: 750;
+    font-weight: var(--font-weight-bold);
   }
 
   .hex-color-input {
@@ -102,7 +102,7 @@
     color: var(--text-strong);
     font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
     font-size: var(--ui-font-size-md);
-    font-weight: 650;
+    font-weight: var(--font-weight-semibold);
     text-transform: uppercase;
     outline: none;
   }
@@ -120,7 +120,7 @@
     background: var(--brand);
     color: #fff;
     font-size: var(--ui-font-size-md);
-    font-weight: 750;
+    font-weight: var(--font-weight-bold);
   }
 
   .hex-color-apply:disabled {

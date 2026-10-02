@@ -41,7 +41,7 @@
     padding: 0 22px 0 26px;
     color: var(--text-muted);
     font-size: var(--ui-font-size-xs);
-    font-weight: 760;
+    font-weight: var(--font-weight-bold);
     letter-spacing: 0.12em;
   }
 
@@ -135,7 +135,7 @@
     color: color-mix(in srgb, var(--brand) 88%, var(--text-strong));
     font-size: clamp(5rem, 13vw, 8.5rem);
     font-variant-numeric: tabular-nums;
-    font-weight: 840;
+    font-weight: var(--font-weight-bold);
     letter-spacing: -0.09em;
     line-height: 0.82;
   }
@@ -151,7 +151,7 @@
     color: var(--text-strong);
     font-family: "Noto Serif CJK SC", "Source Han Serif SC", "Songti SC", serif;
     font-size: clamp(1.7rem, 4vw, 2.35rem);
-    font-weight: 720;
+    font-weight: var(--font-weight-bold);
     letter-spacing: -0.03em;
     line-height: 1.2;
   }
@@ -198,8 +198,8 @@
     background: var(--surface-raised);
     color: var(--text);
     font-size: var(--ui-font-size-md);
-    font-weight: 720;
-    transition: border-color 150ms ease, background 150ms ease, color 150ms ease;
+    font-weight: var(--font-weight-bold);
+    transition: border-color var(--duration-fast) ease, background var(--duration-fast) ease, color var(--duration-fast) ease;
   }
 
   .not-found-actions button:hover {
@@ -217,7 +217,7 @@
 
   .not-found-actions button:focus-visible,
   .not-found-home-link:focus-visible {
-    outline: 3px solid color-mix(in srgb, var(--brand) 22%, transparent);
+    outline: var(--focus-ring);
     outline-offset: 2px;
   }
 

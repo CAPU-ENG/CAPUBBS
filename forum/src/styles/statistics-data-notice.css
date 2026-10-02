@@ -33,7 +33,7 @@
   .statistics-data-notice > .statistics-data-notice-trigger:focus-visible { color: var(--brand-strong); }
 
   .statistics-data-notice > .statistics-data-notice-trigger:focus-visible {
-    outline: 2px solid var(--brand);
+    outline: var(--focus-ring);
     outline-offset: 1px;
   }
 
@@ -57,7 +57,7 @@
     box-shadow: var(--shadow-float);
     color: var(--text-muted);
     font-size: var(--ui-font-size-sm);
-    font-weight: 400;
+    font-weight: var(--font-weight-regular);
     line-height: 1.5;
     white-space: normal;
   }

@@ -37,8 +37,8 @@
   .capubbs-code-layer,
   .capubbs-code-editor {
     font-family: "SFMono-Regular", "Cascadia Code", "Fira Code", Consolas, "Liberation Mono", monospace;
-    font-size: 0.8125rem;
-    font-weight: 400;
+    font-size: var(--ui-font-size-sm);
+    font-weight: var(--font-weight-regular);
     font-style: normal;
     font-variant: normal;
     font-variant-ligatures: none;
@@ -92,7 +92,7 @@
 
   .capubbs-source-code-line-numbers {
     font-family: "SFMono-Regular", "Cascadia Code", "Fira Code", Consolas, "Liberation Mono", monospace;
-    font-size: 0.8125rem;
+    font-size: var(--ui-font-size-sm);
     line-height: 1.65;
     padding: 0.75rem 0.5rem;
     text-align: right;

@@ -2,7 +2,7 @@
   .eyebrow {
     color: var(--brand);
     font-size: var(--ui-font-size-md);
-    font-weight: 800;
+    font-weight: var(--font-weight-bold);
     letter-spacing: 0.17em;
     line-height: 1.2;
   }
@@ -10,7 +10,7 @@
   .section-title {
     color: var(--text-strong);
     font-family: "Noto Serif CJK SC", "Source Han Serif SC", "Songti SC", serif;
-    font-weight: 700;
+    font-weight: var(--font-weight-bold);
     letter-spacing: -0.025em;
     line-height: 1.25;
   }
@@ -27,9 +27,9 @@
     -webkit-backdrop-filter: blur(14px) saturate(155%);
     backdrop-filter: blur(14px) saturate(155%);
     transition:
-      background-color 200ms ease,
-      box-shadow 200ms ease,
-      transform 220ms cubic-bezier(0.22, 1, 0.36, 1);
+      background-color var(--duration-base) ease,
+      box-shadow var(--duration-base) ease,
+      transform var(--duration-base) cubic-bezier(0.22, 1, 0.36, 1);
   }
 
   .dark .topbar {
@@ -53,7 +53,7 @@
     z-index: 0;
     overflow: hidden;
     background: var(--app-background);
-    transition: background-color 200ms ease;
+    transition: background-color var(--duration-base) ease;
   }
 
   .app-background::after {
@@ -62,7 +62,7 @@
     background: rgb(246 247 245 / 0.4);
     content: "";
     pointer-events: none;
-    transition: background-color 200ms ease;
+    transition: background-color var(--duration-base) ease;
   }
 
   .dark .app-background::after {
@@ -97,7 +97,7 @@
   }
 
   .brand-link:focus-visible {
-    box-shadow: 0 0 0 3px color-mix(in srgb, var(--brand) 25%, transparent);
+    box-shadow: var(--focus-glow);
   }
 
   .brand-mark,
@@ -127,7 +127,7 @@
     border: 1px solid transparent;
     border-radius: var(--control-radius);
     color: var(--text-muted);
-    transition: 160ms ease;
+    transition: var(--duration-fast) ease;
   }
 
   .icon-button:hover,
@@ -140,7 +140,7 @@
   .icon-button:focus-visible,
   .profile-trigger:focus-visible,
   .top-nav-link:focus-visible {
-    outline: 2px solid color-mix(in srgb, var(--brand) 65%, transparent);
+    outline: var(--focus-ring);
     outline-offset: 2px;
   }
 
@@ -152,7 +152,7 @@
     border-radius: var(--control-radius);
     padding: 3px 5px 3px 3px;
     color: var(--text-muted);
-    transition: background 160ms ease, color 160ms ease;
+    transition: background var(--duration-fast) ease, color var(--duration-fast) ease;
   }
 
   .profile-trigger:hover {
@@ -177,8 +177,8 @@
     padding: 0 18px;
     color: var(--text-muted);
     font-size: var(--ui-font-size-xl);
-    font-weight: 650;
-    transition: color 160ms ease;
+    font-weight: var(--font-weight-semibold);
+    transition: color var(--duration-fast) ease;
   }
 
   .top-nav-link::after {
@@ -192,7 +192,7 @@
     content: "";
     opacity: 0;
     transform: scaleX(0.5);
-    transition: 160ms ease;
+    transition: var(--duration-fast) ease;
   }
 
   .top-nav-link:hover,
@@ -233,8 +233,8 @@
     visibility: visible;
     transform: translateY(0);
     transition:
-      opacity 170ms ease,
-      transform 220ms cubic-bezier(0.22, 1, 0.36, 1),
+      opacity var(--duration-fast) ease,
+      transform var(--duration-base) cubic-bezier(0.22, 1, 0.36, 1),
       visibility 0s linear;
   }
 
@@ -250,17 +250,17 @@
     color: var(--text-muted);
     font: inherit;
     font-size: var(--ui-font-size-xl);
-    font-weight: 650;
+    font-weight: var(--font-weight-semibold);
     line-height: 1.35;
     opacity: 0;
     pointer-events: none;
     visibility: hidden;
     transform: translateY(14px);
     transition:
-      color 160ms ease,
-      opacity 170ms ease,
-      transform 220ms cubic-bezier(0.22, 1, 0.36, 1),
-      visibility 0s linear 220ms;
+      color var(--duration-fast) ease,
+      opacity var(--duration-fast) ease,
+      transform var(--duration-base) cubic-bezier(0.22, 1, 0.36, 1),
+      visibility 0s linear var(--duration-base);
   }
 
   .topbar-context-title > span {
@@ -280,9 +280,9 @@
     visibility: hidden;
     transform: translateY(-14px);
     transition:
-      opacity 170ms ease,
-      transform 220ms cubic-bezier(0.22, 1, 0.36, 1),
-      visibility 0s linear 220ms;
+      opacity var(--duration-fast) ease,
+      transform var(--duration-base) cubic-bezier(0.22, 1, 0.36, 1),
+      visibility 0s linear var(--duration-base);
   }
 
   .topbar-primary-slot[data-context-title-visible="true"] .topbar-context-title {
@@ -291,15 +291,15 @@
     visibility: visible;
     transform: translateY(0);
     transition:
-      color 160ms ease,
-      opacity 170ms ease,
-      transform 220ms cubic-bezier(0.22, 1, 0.36, 1),
+      color var(--duration-fast) ease,
+      opacity var(--duration-fast) ease,
+      transform var(--duration-base) cubic-bezier(0.22, 1, 0.36, 1),
       visibility 0s linear;
   }
 
   .topbar-context-title:focus-visible {
     border-radius: var(--control-radius);
-    outline: 2px solid color-mix(in srgb, var(--brand) 65%, transparent);
+    outline: var(--focus-ring);
     outline-offset: 3px;
   }
 
@@ -347,7 +347,7 @@
     border-radius: var(--card-radius);
     padding: 7px 8px;
     background: var(--surface);
-    transition: 170ms ease;
+    transition: var(--duration-fast) ease;
   }
 
   .board-tile:hover,
@@ -377,7 +377,7 @@
     white-space: nowrap;
     color: var(--text-strong);
     font-size: var(--ui-font-size-lg);
-    font-weight: 700;
+    font-weight: var(--font-weight-bold);
   }
 
   .board-tile-arrow {
@@ -385,7 +385,7 @@
     right: 6px;
     color: var(--text-faint);
     opacity: 0;
-    transition: 160ms ease;
+    transition: var(--duration-fast) ease;
   }
 
   .board-tile:hover .board-tile-arrow {
@@ -405,8 +405,8 @@
     color: var(--text-muted);
     cursor: pointer;
     font-size: var(--ui-font-size-lg);
-    font-weight: 650;
-    transition: 150ms ease;
+    font-weight: var(--font-weight-semibold);
+    transition: var(--duration-fast) ease;
   }
 
   .board-drawer .supplement-link {
@@ -456,9 +456,9 @@
     padding: 0 8px;
     color: var(--text-muted);
     font-size: var(--ui-font-size-lg);
-    font-weight: 600;
+    font-weight: var(--font-weight-semibold);
     white-space: nowrap;
-    transition: 140ms ease;
+    transition: var(--duration-fast) ease;
   }
 
   .profile-menu > a:hover,
@@ -484,7 +484,7 @@
     opacity: 0;
     pointer-events: none;
     transform: translateX(-102%);
-    transition: transform 220ms cubic-bezier(.2,.8,.2,1), opacity 180ms ease;
+    transition: transform var(--duration-base) cubic-bezier(.2,.8,.2,1), opacity var(--duration-base) ease;
   }
 
   .mobile-sidebar-open {
@@ -527,7 +527,7 @@
     background: var(--surface);
     color: var(--text-muted);
     font-size: var(--ui-font-size-lg);
-    font-weight: 650;
+    font-weight: var(--font-weight-semibold);
   }
 
   .mobile-board-link:hover,
@@ -555,8 +555,8 @@
       -webkit-backdrop-filter: blur(18px) saturate(130%);
       backdrop-filter: blur(18px) saturate(130%);
       transition:
-        height 220ms cubic-bezier(0.22, 1, 0.36, 1),
-        transform 220ms cubic-bezier(0.22, 1, 0.36, 1);
+        height var(--duration-base) cubic-bezier(0.22, 1, 0.36, 1),
+        transform var(--duration-base) cubic-bezier(0.22, 1, 0.36, 1);
     }
 
     .topbar[data-context-title-visible="true"] {
@@ -565,8 +565,8 @@
 
     .topbar-shell > :not(.topbar-mobile-context-title) {
       transition:
-        opacity 170ms ease,
-        transform 220ms cubic-bezier(0.22, 1, 0.36, 1),
+        opacity var(--duration-fast) ease,
+        transform var(--duration-base) cubic-bezier(0.22, 1, 0.36, 1),
         visibility 0s linear;
     }
 
@@ -582,7 +582,7 @@
       padding: 0 20px;
       color: var(--text-strong);
       font-size: var(--ui-font-size-xl);
-      font-weight: 650;
+      font-weight: var(--font-weight-semibold);
       line-height: 1.35;
       opacity: 0;
       pointer-events: none;
@@ -590,10 +590,10 @@
       visibility: hidden;
       transform: translateY(14px);
       transition:
-        color 160ms ease,
-        opacity 170ms ease,
-        transform 220ms cubic-bezier(0.22, 1, 0.36, 1),
-        visibility 0s linear 220ms;
+        color var(--duration-fast) ease,
+        opacity var(--duration-fast) ease,
+        transform var(--duration-base) cubic-bezier(0.22, 1, 0.36, 1),
+        visibility 0s linear var(--duration-base);
     }
 
     .topbar-mobile-context-title > span {
@@ -605,7 +605,7 @@
 
     .topbar-mobile-context-title:focus-visible {
       border-radius: var(--control-radius);
-      outline: 2px solid color-mix(in srgb, var(--brand) 65%, transparent);
+      outline: var(--focus-ring);
       outline-offset: -4px;
     }
 
@@ -615,9 +615,9 @@
       visibility: hidden;
       transform: translateY(-14px);
       transition:
-        opacity 170ms ease,
-        transform 220ms cubic-bezier(0.22, 1, 0.36, 1),
-        visibility 0s linear 220ms;
+        opacity var(--duration-fast) ease,
+        transform var(--duration-base) cubic-bezier(0.22, 1, 0.36, 1),
+        visibility 0s linear var(--duration-base);
     }
 
     .topbar-shell[data-context-title-visible="true"] .topbar-mobile-context-title {
@@ -626,9 +626,9 @@
       visibility: visible;
       transform: translateY(0);
       transition:
-        color 160ms ease,
-        opacity 170ms ease,
-        transform 220ms cubic-bezier(0.22, 1, 0.36, 1),
+        color var(--duration-fast) ease,
+        opacity var(--duration-fast) ease,
+        transform var(--duration-base) cubic-bezier(0.22, 1, 0.36, 1),
         visibility 0s linear;
     }
 
