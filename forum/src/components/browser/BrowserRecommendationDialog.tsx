@@ -23,6 +23,15 @@ export function BrowserRecommendationDialog() {
     if (mobileViewport && !hasDismissedRecommendation()) setOpen(true);
   }, [mobileViewport]);
 
+  useEffect(() => {
+    if (!open) return undefined;
+    const closeWithEscape = (event: KeyboardEvent) => {
+      if (event.key === 'Escape' && !event.defaultPrevented) setOpen(false);
+    };
+    document.addEventListener('keydown', closeWithEscape);
+    return () => document.removeEventListener('keydown', closeWithEscape);
+  }, [open]);
+
   function dismiss() {
     setOpen(false);
     try {

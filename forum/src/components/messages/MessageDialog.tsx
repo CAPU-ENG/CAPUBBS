@@ -67,7 +67,7 @@ export function MessageDialog({
   }
 
   return createPortal(
-    <DialogLayer className="message-overlay" onMouseDown={onClose}>
+    <DialogLayer className="message-overlay" onDismiss={onClose} onMouseDown={onClose}>
       <section
         aria-label="消息"
         aria-modal="true"

@@ -385,7 +385,7 @@ export function TagManagementWorkspace() {
       </section>
       {notice && !memberDialogOpen && <ManagementNotice kind={notice.kind}>{notice.text}</ManagementNotice>}
       <DialogPresence>{deleteTarget && (
-        <DialogLayer className="management-dialog-backdrop" role="presentation">
+        <DialogLayer className="management-dialog-backdrop" onDismiss={pendingAction ? undefined : closeDeleteDialog} role="presentation">
           <section aria-labelledby="confirm-tag-delete-title" aria-modal="true" className="management-dialog management-confirm-dialog" role="dialog">
             <header><div><h2 id="confirm-tag-delete-title">{deleteTarget.kind === 'tag' ? '删除标签' : '移除会员'}</h2></div><Button aria-label="关闭" icon disabled={Boolean(pendingAction)} onClick={closeDeleteDialog} type="button"><X size={16} /></Button></header>
             <p className="management-dialog-copy">{deleteTarget.kind === 'tag' ? `确定删除“${deleteTarget.tag.name}”吗？已绑定会员的关系也会一并移除` : `确定从“${activeTag?.name ?? '标签'}”中移除 ${deleteTarget.username} 吗？`}</p>
@@ -404,7 +404,7 @@ export function TagManagementWorkspace() {
         </DialogLayer>
       )}</DialogPresence>
       <DialogPresence>{memberDialogOpen && (
-        <DialogLayer className="management-dialog-backdrop" role="presentation">
+        <DialogLayer className="management-dialog-backdrop" onDismiss={pendingAction || memberCheckLoading ? undefined : closeMemberDialog} role="presentation">
           <section aria-labelledby="add-tag-members-title" aria-modal="true" className="management-dialog" role="dialog">
             <header><div><span>批量绑定</span><h2 id="add-tag-members-title">添加到“{activeTag?.name ?? '标签'}”</h2></div><Button aria-label="关闭" icon disabled={Boolean(pendingAction) || memberCheckLoading} onClick={closeMemberDialog} type="button"><X size={16} /></Button></header>
             <form className="management-dialog-form" onSubmit={appendMember}>

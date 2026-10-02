@@ -45,6 +45,7 @@ export function PastedImageDialog({
       aria-labelledby="pasted-image-dialog-title"
       className="fixed inset-0 z-[1000] flex items-center justify-center bg-black/65 p-3 dark:bg-black/75"
       onClick={image.isUploading ? undefined : onCancel}
+      onDismiss={image.isUploading ? undefined : onCancel}
     >
       <section
         className="pasted-image-dialog w-[min(calc(100vw-1.5rem),34rem)] overflow-hidden rounded-[2px] border border-zinc-200 bg-white text-zinc-950 shadow-2xl dark:border-zinc-800 dark:bg-zinc-950 dark:text-white"

@@ -69,7 +69,7 @@ export function DirectMessageDialog({
   }
 
   return createPortal(
-    <DialogLayer className="message-overlay" onMouseDown={onClose}>
+    <DialogLayer className="message-overlay" onDismiss={onClose} onMouseDown={onClose}>
       <section
         aria-label={`私信：${activeConversation.user}`}
         aria-modal="true"

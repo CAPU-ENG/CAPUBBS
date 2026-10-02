@@ -57,6 +57,7 @@ import { toForumHref } from '../utils/forumBasePath';
 import { getForumNavigationHref } from '../utils/forumNavigation';
 import { getTitleIndentationClassName } from '../utils/titleIndentation';
 import { Button } from '../components/Button';
+import { useModalFocus } from '../components/layout/DialogPresence';
 
 type AdminTab = 'pins' | 'move' | 'members' | 'moderators' | 'tags' | 'medals';
 type NoticeKind = 'error' | 'info' | 'success';
@@ -160,22 +161,21 @@ function MobileManagementWarning() {
     if (mobileViewport) setOpen(true);
   }, [mobileViewport]);
 
-  useEffect(() => {
-    if (!mobileViewport || !open) return undefined;
-    const closeWithEscape = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') setOpen(false);
-    };
-    document.addEventListener('keydown', closeWithEscape);
-    return () => document.removeEventListener('keydown', closeWithEscape);
-  }, [mobileViewport, open]);
-
   if (!mobileViewport || !open) return null;
+
+  return <MobileManagementWarningLayer onClose={() => setOpen(false)} />;
+}
+
+function MobileManagementWarningLayer({ onClose }: { onClose: () => void }) {
+  const layerRef = useRef<HTMLDivElement>(null);
+  useModalFocus(layerRef, { onDismiss: onClose });
 
   return (
     <div
+      ref={layerRef}
       className="management-mobile-warning-backdrop"
       onMouseDown={(event) => {
-        if (event.currentTarget === event.target) setOpen(false);
+        if (event.currentTarget === event.target) onClose();
       }}
       role="presentation"
     >
@@ -186,7 +186,7 @@ function MobileManagementWarning() {
         role="dialog"
       >
         <h2 id="management-mobile-warning-title">建议在桌面端进行精确管理操作，避免误触</h2>
-        <button aria-label="关闭提示" onClick={() => setOpen(false)} type="button">
+        <button aria-label="关闭提示" onClick={onClose} type="button">
           <X size={17} />
         </button>
       </section>

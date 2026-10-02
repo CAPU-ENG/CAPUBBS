@@ -423,7 +423,7 @@ export function MedalManagementWorkspace() {
       {notice ? <ManagementNotice kind={notice.kind}>{notice.text}</ManagementNotice> : null}
 
       <DialogPresence>{deleteOpen && selectedMedal ? (
-        <DialogLayer className="management-dialog-backdrop" role="presentation">
+        <DialogLayer className="management-dialog-backdrop" onDismiss={pendingAction === 'medal-delete' ? undefined : () => setDeleteOpen(false)} role="presentation">
           <section aria-labelledby="delete-medal-title" aria-modal="true" className="management-dialog management-confirm-dialog" role="dialog">
             <header><h2 id="delete-medal-title">删除勋章</h2></header>
             <p className="management-dialog-copy">确定删除“{selectedMedal.name}”？对应的 {members.length} 条成员记录将一并删除。</p>
@@ -436,7 +436,7 @@ export function MedalManagementWorkspace() {
       ) : null}</DialogPresence>
 
       <DialogPresence>{removeMemberTarget && selectedMedal ? (
-        <DialogLayer className="management-dialog-backdrop" role="presentation">
+        <DialogLayer className="management-dialog-backdrop" onDismiss={pendingAction ? undefined : () => setRemoveMemberTarget(null)} role="presentation">
           <section aria-labelledby="remove-medal-member-title" aria-modal="true" className="management-dialog management-confirm-dialog" role="dialog">
             <header>
               <h2 id="remove-medal-member-title">移除成员</h2>
