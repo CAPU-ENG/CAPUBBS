@@ -10,11 +10,11 @@ require __DIR__.'/includes/homepage-content.php';
   <meta name="theme-color" content="#203c32">
   <title>协会介绍 · <?php echo homepage_escape($homepageContent['name']); ?></title>
   <link rel="icon" type="image/png" href="/bbs/favicon.png">
-  <link rel="stylesheet" href="/assets/css/home-session.css">
-  <link rel="stylesheet" href="/assets/css/homepage.css">
-  <script src="/bbs/lib/md5.js" defer></script>
-  <script src="/assets/js/home-session.js" defer></script>
-  <script src="/assets/js/home-background.js" defer></script>
+  <link rel="stylesheet" href="<?php echo homepage_asset('/assets/css/home-session.css'); ?>">
+  <link rel="stylesheet" href="<?php echo homepage_asset('/assets/css/homepage.css'); ?>">
+  <script src="<?php echo homepage_asset('/bbs/lib/md5.js'); ?>" defer></script>
+  <script src="<?php echo homepage_asset('/assets/js/home-session.js'); ?>" defer></script>
+  <script src="<?php echo homepage_asset('/assets/js/home-background.js'); ?>" defer></script>
 </head>
 <body id="top">
 <?php require __DIR__.'/includes/site-header.php'; ?>

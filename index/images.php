@@ -9,12 +9,12 @@ if ($rights < 3) http_response_code(403);
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>宣传图管理 · 北京大学自行车协会</title>
   <link rel="icon" type="image/png" href="/bbs/favicon.png">
-  <link rel="stylesheet" href="/assets/css/home-session.css">
-  <link rel="stylesheet" href="/assets/css/home-videos.css">
-  <link rel="stylesheet" href="/assets/css/home-images.css">
-  <script src="/assets/js/home-session.js" defer></script>
+  <link rel="stylesheet" href="<?php echo homepage_asset('/assets/css/home-session.css'); ?>">
+  <link rel="stylesheet" href="<?php echo homepage_asset('/assets/css/home-videos.css'); ?>">
+  <link rel="stylesheet" href="<?php echo homepage_asset('/assets/css/home-images.css'); ?>">
+  <script src="<?php echo homepage_asset('/assets/js/home-session.js'); ?>" defer></script>
 <?php if ($rights >= 3) { ?>
-  <script src="/assets/js/home-images.js" defer></script>
+  <script src="<?php echo homepage_asset('/assets/js/home-images.js'); ?>" defer></script>
 <?php } ?>
 </head>
 <body>
