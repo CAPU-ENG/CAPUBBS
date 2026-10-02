@@ -10,3 +10,9 @@ $rights = (int)$homepageSession[1];
 function homepage_escape($value) {
     return htmlspecialchars(strval($value), ENT_QUOTES, 'UTF-8');
 }
+
+// Assets are cached for days; the file time in the URL makes each deploy fetch fresh copies.
+function homepage_asset($path) {
+    $time = @filemtime(__DIR__.'/../..'.$path);
+    return homepage_escape($time === false ? $path : $path.'?v='.$time);
+}

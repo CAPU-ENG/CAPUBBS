@@ -16,14 +16,14 @@ $homepageAnnual = $homepageContent['annual'];
 <?php } ?>
   <title><?php echo homepage_escape($homepageContent['name']); ?> · CAPU</title>
   <link rel="icon" type="image/png" href="/bbs/favicon.png">
-  <link rel="stylesheet" href="/assets/css/home-session.css">
-  <link rel="stylesheet" href="/assets/css/homepage.css">
-  <script src="/bbs/lib/md5.js" defer></script>
-  <script src="/assets/js/home-session.js" defer></script>
-  <script src="/assets/js/home-video-covers.js" defer></script>
-  <script src="/assets/js/home-contacts-format.js" defer></script>
-  <script src="/assets/js/home-background.js" defer></script>
-  <script src="/assets/js/homepage.js" defer></script>
+  <link rel="stylesheet" href="<?php echo homepage_asset('/assets/css/home-session.css'); ?>">
+  <link rel="stylesheet" href="<?php echo homepage_asset('/assets/css/homepage.css'); ?>">
+  <script src="<?php echo homepage_asset('/bbs/lib/md5.js'); ?>" defer></script>
+  <script src="<?php echo homepage_asset('/assets/js/home-session.js'); ?>" defer></script>
+  <script src="<?php echo homepage_asset('/assets/js/home-video-covers.js'); ?>" defer></script>
+  <script src="<?php echo homepage_asset('/assets/js/home-contacts-format.js'); ?>" defer></script>
+  <script src="<?php echo homepage_asset('/assets/js/home-background.js'); ?>" defer></script>
+  <script src="<?php echo homepage_asset('/assets/js/homepage.js'); ?>" defer></script>
 </head>
 <body id="top">
 <?php require __DIR__.'/site-header.php'; ?>
