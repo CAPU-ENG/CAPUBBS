@@ -1,7 +1,21 @@
-#contact-editor textarea { display: block; width: 100%; min-height: 280px; margin: 12px 0 24px; padding: 16px; resize: vertical; border: 1px solid #a9b6a1; border-radius: 2px; background: #fffefa; color: #203a2f; font: inherit; line-height: 1.9; }
-#contact-editor textarea:focus-visible { outline: 2px solid #236b4c; outline-offset: 3px; }
+#contact-editor .contact-rows { width: 100%; border-collapse: collapse; margin-bottom: 16px; }
+#contact-editor .contact-rows th { padding: 0 12px 10px 0; font-size: 14px; font-weight: 500; text-align: left; color: #5d6c60; }
+#contact-editor .contact-rows th:first-child { width: 11em; }
+#contact-editor .contact-rows td { padding: 10px 12px 10px 0; vertical-align: top; border-top: 1px solid #d5d9cc; }
+#contact-editor .contact-rows td:last-child { padding-right: 0; width: 1%; white-space: nowrap; }
+#contact-editor .contact-rows textarea { min-height: 46px; margin: 0; padding: 11px 12px; resize: vertical; line-height: 1.6; }
+#contact-editor .contact-rows .row-actions { flex-wrap: nowrap; }
+#contact-editor textarea { display: block; width: 100%; min-height: 160px; margin: 12px 0 24px; padding: 16px; resize: vertical; border: 1px solid #a9b6a1; border-radius: 2px; background: #fffefa; color: #203a2f; font: inherit; line-height: 1.9; }
+#contact-editor input:focus-visible, #contact-editor textarea:focus-visible { outline: 2px solid #236b4c; outline-offset: 3px; }
+#contact-editor .contact-notes-field { margin-top: 32px; }
 #contact-editor .editor-actions { align-items: center; gap: 12px; }
 #contact-editor .editor-actions a { display: inline-flex; align-items: center; min-height: 44px; margin-left: auto; font-size: 14px; }
 #contact-editor .editor-actions a:hover { text-decoration: underline; text-underline-offset: 4px; }
 #contact-status { line-height: 1.7; }
 #contact-status[data-error="true"] { color: #b5372c; }
+.visually-hidden { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+@media (max-width: 700px) {
+  #contact-editor .contact-rows thead { display: none; }
+  #contact-editor .contact-rows tr { display: grid; gap: 8px; padding: 14px 0; border-top: 1px solid #d5d9cc; }
+  #contact-editor .contact-rows td { display: block; padding: 0; border: 0; width: auto !important; }
+}
