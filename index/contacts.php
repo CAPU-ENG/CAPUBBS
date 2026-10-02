@@ -14,6 +14,7 @@ if ($rights < 3) http_response_code(403);
   <link rel="stylesheet" href="/assets/css/home-contacts.css">
   <script src="/assets/js/home-session.js" defer></script>
 <?php if ($rights >= 3) { ?>
+  <script src="/assets/js/home-contacts-format.js" defer></script>
   <script src="/assets/js/home-contacts.js" defer></script>
 <?php } ?>
 </head>
@@ -26,8 +27,13 @@ if ($rights < 3) http_response_code(403);
 <?php } else { ?>
     <form id="contact-editor">
       <fieldset id="contact-fields" disabled>
-        <label for="contact-text">联系方式</label>
-        <textarea id="contact-text" name="text" rows="12" maxlength="5000" required></textarea>
+        <table class="contact-rows">
+          <thead><tr><th scope="col">名称</th><th scope="col">内容</th><th scope="col"><span class="visually-hidden">操作</span></th></tr></thead>
+          <tbody id="contact-rows"></tbody>
+        </table>
+        <button id="contact-add" type="button">添加一行</button>
+        <label class="contact-notes-field" for="contact-notes">补充说明</label>
+        <textarea id="contact-notes" name="notes" rows="6" maxlength="5000"></textarea>
         <div class="editor-actions"><button type="submit">保存</button><button id="contact-reload" type="button">重新加载</button><a href="/#contact">返回首页</a></div>
       </fieldset>
       <p id="contact-status" role="status" aria-live="polite">正在加载…</p>

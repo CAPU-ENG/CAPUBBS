@@ -1,10 +1,10 @@
 # 主页内容维护
 
-根目录 `/` 与 `/home-demo/` 共用模板。当前按确认的框线图排版：**宣传图 → 协会介绍 → 视频资料 → 联系方式**，论坛入口与登录态放在顶部，赞助标识与底部信息放在页脚。旧的 `/index/main.php` 仍可直接访问，不再通过 iframe 嵌入首页。
+根目录 `/` 与 `/home-demo/` 共用模板。页面顺序：**顶栏 → 宣传图首屏 → 协会介绍 → 年刊 → 视频资料 → 联系方式 → 赞助条 → 页脚**。顶栏固定在顶部（窄屏 ≤860px 不固定），含站名、页内导航（关于、年刊、视频、联系）、论坛入口与登录态；窄屏隐藏顶栏论坛按钮，由首屏按钮提供入口。顶栏与页脚由 `index/includes/site-header.php`、`site-footer.php` 提供，`/index/intro.php` 同样使用。旧的 `/index/main.php` 仍可直接访问，不再通过 iframe 嵌入首页。
 
-宣传图使用比正文更宽的容器，顶栏至宣传图区域连续使用与视频区相同的深绿色背景，搭配浅色文字和论坛按钮；卡片、控件圆角和基础配色参考 `forum/src/styles/base.css`。联系方式卡片按内容自适应宽度并居中，最大不超过正文区域，窄屏自动换行；使用四边齿孔与内框呈现邮票边缘。Bilibili 封面通过前端 JSONP 自动获取，不经过本站 API。
+首屏为全宽宣传图，叠加协会口号“深入社会，融于自然；挑战极限，超越自我”（`homepage-content.php` 的 `slogan`）和“进入论坛”“加入我们”（跳至联系方式）两个按钮；底部为图片标题（点击查看原图）与轮播控件。卡片、控件圆角和基础配色参考 `forum/src/styles/base.css`。Bilibili 封面通过前端 JSONP 自动获取，不经过本站 API。
 
-首页背景参考 `annual/style.css`、`annual/background.js`，使用 5px 间隔的静态点阵与鼠标附近的柔和高亮。浅色正文区使用灰绿色点阵；深绿顶栏、宣传图区和视频区使用浅绿色点阵与更明亮的高亮，宣传图留白及控件栏也沿用该背景。已移除联系方式两侧的点列与图标。`assets/js/home-background.js` 每帧合并指针更新，按各区域坐标定位高亮；不透明内容卡片遮住装饰层，背景不拦截点击。触屏、减少动态效果和强制配色时不显示动态高亮；滚动、离开窗口和页面隐藏时收起高亮。底栏恢复纯 `#bbbbbb` 背景，不含点阵或背景高亮，保留原赞助图片。
+年刊区使用参考 `annual/style.css`、`annual/background.js` 的 5px 静态点阵与鼠标附近的柔和高亮（深绿底、浅绿点阵）；其他区域为纯色。`assets/js/home-background.js` 每帧合并指针更新，按区域坐标定位高亮，背景不拦截点击。触屏、减少动态效果和强制配色时不显示动态高亮；滚动、离开窗口和页面隐藏时收起高亮。
 
 两处共用论坛登录会话。未登录显示登录、注册；已登录显示用户名（进入个人中心）和退出。首页登录弹窗调用现有统一 API；不支持弹窗的浏览器前往论坛登录页。页面返回时、窗口重新聚焦时会重新验证登录状态。用户名与权限由服务端读取，页面禁止共享缓存。
 
@@ -16,7 +16,7 @@
 
 `ask=homepage_images` 通过 `/api/api.php` 公开读取 `mainpage` 表 `id=0` 的记录，按 `number` 排序，返回 `data.images` 数组；每项为 `{img, imgthumb, title}`。0 项、1 项或多项时返回结构一致。只读接口不改变数据、顺序或权限，不增加数据库结构。
 
-首页调用既有接口加载图片，优先展示原图，失败时尝试缩略图。宣传图容器最大宽度 1536px，桌面展示高度固定为 480px，窄屏（<=760px）固定为 280px；图片按比例居中缩放、完整显示，不裁切，点击可查看原图。多图时每 5 秒自动切换，提供暂停/继续按钮，支持前后按钮与方向键；鼠标悬停、焦点位于轮播区域或页面隐藏时暂停，恢复后重新计时，手动切换也重新计时。单图时隐藏控件并停止计时。标题按纯文本输出，链接只允许 HTTP/HTTPS 或站内路径。首页重新取得焦点时刷新宣传图和视频；视频初始内容同时由 PHP 渲染。
+首页调用既有接口加载图片，优先展示原图，失败时尝试缩略图。首屏高度为视口高度减去顶栏（440–780px），窄屏（<=760px）为 420–620px；图片以 `object-fit: cover` 居中裁切铺满，上传前应将主体置于画面中部，叠字区域（左下）避免放置关键内容。点击图片标题可查看原图。多图时每 5 秒自动切换，提供暂停/继续按钮，支持前后按钮与方向键；鼠标悬停、焦点位于轮播区域或页面隐藏时暂停，恢复后重新计时，手动切换也重新计时。单图时隐藏控件并停止计时。标题按纯文本输出，链接只允许 HTTP/HTTPS 或站内路径。首页重新取得焦点时刷新宣传图和视频；视频初始内容同时由 PHP 渲染。
 
 排版阶段的暂存图片与链接位于 `index/data/homepage-media.default.json`：首次 HTML 渲染和接口返回空列表时展示 `home-demo/images/` 的三张既有照片；接口有记录时替换为真实宣传图。接口异常保留已显示内容，并提供重试。暂存图片不会写入数据库。正式接入前应移除这项临时回退，否则清空管理列表后仍会显示暂存图片。
 
@@ -24,25 +24,27 @@
 
 ## 协会介绍、联系方式与页脚
 
-`index/homepage-content.php` 配置名称、页签、底栏二维码和备案号；`index/content/about.html`、`summer.html`、`activities.html` 分别存放协会简介、暑期介绍、日常活动的完整静态正文。正文按要求复制自 `https://www.chexie.net/index/about.php`，保留原文的历史年份和介绍内容。正文行宽、首段、小标题、段落缩进和列表分层排版，暑期成果整理为列表，活动按既有四个主题分组；没有改写或删减原文。页签支持鼠标、方向键、Home/End 和 `#summer`、`#activities` 直达；无 JavaScript 时三篇正文依次显示。
+`index/homepage-content.php` 配置名称、口号、页内导航、介绍分类、推荐年刊、底栏二维码和备案号；`index/content/about.html`、`summer.html`、`activities.html` 分别存放协会简介、暑期介绍、日常活动的完整静态正文。正文按要求复制自 `https://www.chexie.net/index/about.php`，保留原文的历史年份和介绍内容；没有改写或删减原文。首页以三张卡片展示各篇首段（`<p class="about-lead">`，由 PHP 提取原文，不另写摘要），“阅读全文”进入 `/index/intro.php` 对应锚点；完整页左侧（窄屏为顶部）为目录。卡片保留 `#introduction`、`#summer`、`#activities` 锚点，旧链接仍可定位。
 
-`index/data/contacts.default.json` 保存原“关于协会 → 联系我们”的完整初始联系方式；文档为 `{schemaVersion: 1, revision, text}`，模板以纯文本转义输出并保留换行。首页返回或重新聚焦时刷新内容，读取失败保留当前文字并提供重试。
+年刊区展示 `homepage-content.php` 中 `annual` 配置的一期（当前为 2023《行者》，封面来自阿里云 OSS），提供“阅读”和“全部年刊”（`/annual/`）。2025、2026 仍为 Demo，未在首页展示。
 
-权限 >= 3 时，联系方式标题旁显示“管理联系方式”，进入 `/index/contacts.php`；管理页及保存接口均校验权限。文本长度为 1–5000 个字符，支持换行，不执行 HTML。保存失败或版本冲突保留编辑内容；离开页面或重新加载前会提醒尚未保存的修改。
+`index/data/contacts.default.json` 保存原“关于协会 → 联系我们”的完整初始联系方式；文档为 `{schemaVersion: 1, revision, text}`，接口与存储格式不变。文本约定：开头连续的 `名称：内容` 行（全角冒号，名称 1–16 字）显示为表格，不含冒号的行并入上一行内容；第一个空行之后为补充说明，按原文换行显示，不解析冒号。PHP（`index/includes/contacts.php`）与前端（`assets/js/home-contacts-format.js`）使用相同解析规则，均以纯文本转义输出。首页返回或重新聚焦时刷新内容，读取失败保留当前文字并提供重试。
+
+权限 >= 3 时，联系方式标题旁显示“管理联系方式”，进入 `/index/contacts.php`；管理页及保存接口均校验权限。管理页以表格编辑“名称/内容”（可添加、上移、下移、删除，内容可换行），下方“补充说明”为自由文本；保存时合并为上述文本格式。名称不能为空或含“：”，内容换行后的行不能以“名称：”开头。总长度 1–5000 个字符，不执行 HTML。保存失败或版本冲突保留编辑内容；离开页面或重新加载前会提醒尚未保存的修改。
 
 接口位于 `/api/api.php`：`ask=homepage_contacts` 公开返回完整文档，读取不连接数据库；`ask=save_homepage_contacts` 仅接受同源 POST，请求头须有 `X-Requested-With: XMLHttpRequest`，表单字段为 `revision` 与 `text`，使用论坛登录 Cookie 验证权限。成功返回新文档，权限不足为 403，旧版本冲突为 409。
 
 首次有效修改创建 `index/data/contacts.json`，原内容备份至 `contacts.json.backup`，锁文件为 `contacts.json.lock`，均不纳入 Git。通过文件锁、版本检查和同目录原子替换防止覆盖，内容不变不增加版本或轮换备份。已有运行文件损坏时返回错误，不自动恢复初始联系方式或覆盖文件。
 
-页脚保留洛克兄弟赞助标识、北京大学、北大未名BBS、隐私政策、版权和备案号，已移除“原车协主页”入口。页脚按照原站 `/assets/css/style.css` 使用 `#bbbbbb` 背景、`#777` 文字和上下 30px 留白；按新要求移除页脚顶边框及版权区白色分隔线。赞助图片 `assets/images/static/homepage/rockbros.png` 与原站 `/bbs/images/a56e5ca6707358f21ba8f1bb1cc583858068c921.png` 字节一致，宽度恢复为原站 320px，高度按原图比例自适应，不加底板或滤镜。Favicon 与导航图标复用 `/bbs/favicon.png`。
+赞助标识位于页脚上方的白色赞助条，宽 200px。`assets/images/static/homepage/rockbros-logo.png` 由 `rockbros.png`（与原站 `/bbs/images/a56e5ca6707358f21ba8f1bb1cc583858068c921.png` 字节一致）去除 `#bbbbbb` 底色、还原抗锯齿边缘并裁边得到，未改动标识颜色；原图保留作来源。页脚为深绿底，含站名、二维码、北京大学、北大未名BBS、隐私政策、版权和备案号。Favicon 与导航图标复用 `/bbs/favicon.png`。
 
-相关链接与版权、备案行归为一组，行间距为 6px。底栏新增微信公众号、Android 客户端、iOS 客户端三个二维码入口，复用原首页 `index/main.php` 引用的图片，存放在 `assets/images/static/homepage/`：
+页脚直接展示微信公众号、Android 客户端、iOS 客户端三个二维码（96px，窄屏 84px），复用原首页 `index/main.php` 引用的图片，存放在 `assets/images/static/homepage/`：
 
 - `qrcode-wechat.jpg`：来自 `/assets/images/qrcode_wechat.jpg`，原二维码指向 `http://weixin.qq.com/r/NUOIkFPEzw6wrRfz9xYn`。
 - `qrcode-android.png`：来自 `/assets/images/qrcode_android.png`，原二维码指向 `http://pan.baidu.com/s/1dE8rStz`。
 - `qrcode-ios.png`：来自 `/assets/images/qrcode_ios.gif`，其实际文件格式为 PNG，仅纠正扩展名，图片内容未改动；原二维码指向 `http://itunes.apple.com/cn/app/capubbs/id826386033`。
 
-这些是原站已有二维码，未更换为新的客户端安装渠道。`assets/js/home-footer.js` 支持鼠标悬停、点击固定或收起、键盘焦点展开、Esc/点击外部/焦点离开关闭；同一时间只展开一个。移动端点击展开，弹层居中避免横向溢出。无 JavaScript 时由原生 `details/summary` 提供点击展开功能。
+这些是原站已有二维码，未更换为新的客户端安装渠道。
 
 ## 视频
 
@@ -50,7 +52,7 @@
 
 视频内容存储不依赖数据库；保存时的登录和权限验证沿用论坛账号。原主页不再查询 `mainpage` 中 `id=2` 的视频记录，旧记录保留。
 
-视频使用等宽封面卡片，手机窄屏使用左侧封面、右侧标题的列表。前端 `assets/js/home-video-covers.js` 从 Bilibili 视频链接提取 BV/av 号，通过固定的 `https://api.bilibili.com/x/web-interface/view` JSONP 接口（`jsonp=jsonp`、独立 `callback`）读取 `data.pic`。随后由浏览器直接加载 HTTPS 的 B 站 `hdslb.com` 图片，使用 `referrerpolicy="no-referrer"`；不在服务器下载图片或写入封面元数据，已移除此前两张暂存封面。
+视频区第一项为大卡片（桌面占两列两行，平板占整行），其余为封面卡片；手机窄屏第一项保持大卡片，其余为左侧封面、右侧标题的列表。前端 `assets/js/home-video-covers.js` 从 Bilibili 视频链接提取 BV/av 号，通过固定的 `https://api.bilibili.com/x/web-interface/view` JSONP 接口（`jsonp=jsonp`、独立 `callback`）读取 `data.pic`。随后由浏览器直接加载 HTTPS 的 B 站 `hdslb.com` 图片，使用 `referrerpolicy="no-referrer"`；不在服务器下载图片或写入封面元数据，已移除此前两张暂存封面。
 
 支持 `www.bilibili.com`、`m.bilibili.com` 和 `bilibili.com` 的 `/video/BV...`、`/video/av...` 链接，允许查询参数和末尾斜线。仅接受匹配当前视频 ID 的响应，图片域名仅限 `hdslb.com` 及其子域，不把管理员填写的任意链接作为脚本地址。
 

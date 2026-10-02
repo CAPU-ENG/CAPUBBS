@@ -2,50 +2,6 @@
   'use strict';
   document.documentElement.classList.add('has-js');
   const media = JSON.parse(document.querySelector('#homepage-media').textContent);
-  const tabs = Array.from(document.querySelectorAll('[data-about-tab]'));
-  const panels = Array.from(document.querySelectorAll('[data-about-panel]'));
-  document.querySelector('[data-about-tabs]').setAttribute('role', 'tablist');
-  tabs.forEach(tab => {
-    tab.setAttribute('role', 'tab');
-    tab.setAttribute('aria-controls', tab.dataset.aboutTab);
-  });
-  panels.forEach(panel => { panel.setAttribute('role', 'tabpanel'); panel.tabIndex = 0; });
-  function selectTab(id, focus = false) {
-    const selected = tabs.find(tab => tab.dataset.aboutTab === id);
-    if (!selected) return;
-    tabs.forEach(tab => {
-      const active = tab === selected;
-      tab.setAttribute('aria-selected', String(active));
-      tab.tabIndex = active ? 0 : -1;
-    });
-    panels.forEach(panel => { panel.hidden = panel.id !== id; });
-    if (focus) selected.focus({ preventScroll: true });
-  }
-  function tabFromHash() {
-    const id = window.location.hash.slice(1);
-    return id === 'about' || !id ? 'introduction' : id;
-  }
-  function activateTab(tab) {
-    selectTab(tab.dataset.aboutTab, true);
-    window.history.replaceState(null, '', '#' + tab.dataset.aboutTab);
-  }
-  tabs.forEach((tab, index) => {
-    tab.addEventListener('click', event => { event.preventDefault(); activateTab(tab); });
-    tab.addEventListener('keydown', event => {
-      let next = index;
-      if (event.key === 'ArrowRight') next = (index + 1) % tabs.length;
-      else if (event.key === 'ArrowLeft') next = (index + tabs.length - 1) % tabs.length;
-      else if (event.key === 'Home') next = 0;
-      else if (event.key === 'End') next = tabs.length - 1;
-      else if (event.key !== ' ') return;
-      event.preventDefault();
-      activateTab(tabs[next]);
-    });
-  });
-  selectTab('introduction');
-  selectTab(tabFromHash());
-  window.addEventListener('hashchange', () => selectTab(tabFromHash()));
-
   async function readApi(ask) {
     const controller = new AbortController();
     const timeout = window.setTimeout(() => controller.abort(), 10000);
@@ -101,16 +57,19 @@
     if (rotating) imageTimer = window.setTimeout(() => showImage(currentImage + 1), 5000);
   }
 
+  function setCaption(row) {
+    caption.textContent = row?.title || '宣传图';
+    if (row) caption.href = row.img || row.imgthumb;
+  }
+
   function showImage(index) {
     if (!images.length) { scheduleImageRotation(); return; }
-    const restoreFocus = slides.contains(document.activeElement);
     currentImage = (index + images.length) % images.length;
     Array.from(slides.children).forEach((slide, offset) => { slide.hidden = offset !== currentImage; });
-    caption.textContent = images[currentImage].title || '宣传图';
+    setCaption(images[currentImage]);
     document.querySelector('[data-image-number]').textContent = String(currentImage + 1).padStart(2, '0');
     const nextImage = slides.children[(currentImage + 1) % images.length].querySelector('img');
     if (nextImage) nextImage.loading = 'eager';
-    if (restoreFocus) slides.children[currentImage].querySelector('a').focus({ preventScroll: true });
     scheduleImageRotation();
   }
 
@@ -137,9 +96,6 @@
       slide.setAttribute('role', 'group');
       slide.setAttribute('aria-roledescription', '幻灯片');
       slide.setAttribute('aria-label', `${index + 1} / ${images.length}`);
-      const link = document.createElement('a');
-      link.href = row.img || row.imgthumb;
-      link.target = '_blank'; link.rel = 'noopener noreferrer';
       const image = document.createElement('img');
       image.alt = row.title || `宣传图 ${index + 1}`;
       image.loading = index === 0 ? 'eager' : 'lazy';
@@ -150,13 +106,13 @@
         if (row.imgthumb && image.src !== row.imgthumb) { image.src = row.imgthumb; return; }
         const error = document.createElement('span');
         error.className = 'image-error';
-        error.textContent = '图片无法加载，点击查看原图';
-        link.replaceChildren(error);
+        error.textContent = '图片无法加载';
+        image.replaceWith(error);
       });
-      link.append(image); slide.append(link); fragment.append(slide);
+      slide.append(image); fragment.append(slide);
     });
     slides.replaceChildren(fragment);
-    caption.textContent = images.length ? images[0].title || '宣传图' : '宣传图';
+    setCaption(images[0]);
     showImage(0);
   }
 
@@ -259,7 +215,21 @@
   }
   videoRetry.addEventListener('click', () => { void loadVideos(); });
 
-  const contactText = document.querySelector('[data-contact-text]');
+  const contactTable = document.querySelector('[data-contact-table]');
+  const contactNotes = document.querySelector('[data-contact-notes]');
+  function renderContacts(text) {
+    const view = window.CapuHomeContacts.parse(text);
+    contactTable.replaceChildren(...view.rows.map(row => {
+      const item = document.createElement('div');
+      const term = document.createElement('dt'); term.textContent = row.label;
+      const value = document.createElement('dd'); value.textContent = row.value;
+      item.append(term, value);
+      return item;
+    }));
+    contactTable.hidden = !view.rows.length;
+    contactNotes.textContent = view.notes;
+    contactNotes.hidden = !view.notes;
+  }
   const contactStatus = document.querySelector('[data-contact-status]');
   const contactRetry = document.querySelector('[data-contact-retry]');
   let contactLoading = false;
@@ -270,11 +240,11 @@
     try {
       const data = await readApi('homepage_contacts');
       if (typeof data?.text !== 'string' || !data.text.trim()) throw new Error('联系方式无效');
-      contactText.textContent = data.text;
+      renderContacts(data.text);
       contactStatus.hidden = true;
       contactRetry.hidden = true;
     } catch (_) {
-      contactStatus.textContent = contactText.textContent ? '联系方式更新失败，请重试。' : '联系方式暂时无法加载。';
+      contactStatus.textContent = contactTable.children.length || contactNotes.textContent ? '联系方式更新失败，请重试。' : '联系方式暂时无法加载。';
       contactStatus.hidden = false;
       contactRetry.hidden = false;
     } finally {
