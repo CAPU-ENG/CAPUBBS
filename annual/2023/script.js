@@ -327,6 +327,44 @@ function initAnnualPage() {
     sync();
     })();
 
+// mark the side contents entry for the section being read
+(function () {
+    var links = Array.prototype.slice.call(document.querySelectorAll('.report-toc a[href^="#"]'));
+    if (!links.length) return;
+    var targets = links.map(function (link) {
+        return document.getElementById(decodeURIComponent(link.getAttribute('href').slice(1)));
+    });
+    var frame = 0;
+
+    function update() {
+        frame = 0;
+        var line = 120;
+        var chapter = -1;
+        var section = -1;
+        targets.forEach(function (target, i) {
+            if (!target || target.getBoundingClientRect().top > line) return;
+            if (links[i].parentElement.parentElement.parentElement.tagName === 'LI') section = i;
+            else { chapter = i; section = -1; }
+        });
+        links.forEach(function (link, i) {
+            if (i === chapter || i === section) link.setAttribute('aria-current', 'location');
+            else link.removeAttribute('aria-current');
+        });
+    }
+    function schedule() {
+        if (!frame) frame = window.requestAnimationFrame(update);
+    }
+
+    window.addEventListener('scroll', schedule, { passive: true });
+    window.addEventListener('resize', schedule);
+    onAnnualPageLeave(function () {
+        if (frame) window.cancelAnimationFrame(frame);
+        window.removeEventListener('scroll', schedule);
+        window.removeEventListener('resize', schedule);
+    });
+    update();
+    })();
+
 // click a photo to see it full screen; click again, press Esc or use the close button to go back
 (function () {
     var links = document.querySelectorAll('.figure a, .colophon-cover');
