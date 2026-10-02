@@ -201,7 +201,7 @@ export function PostEditor({
 
       <footer className="reply-editor-footer">
         <button
-          className="reply-secondary-button"
+          className="forum-button"
           onClick={() => setAttachmentDialogOpen(true)}
           type="button"
         >
@@ -219,12 +219,12 @@ export function PostEditor({
           </span>
         )}
         <div className="reply-editor-submit">
-          <button className="reply-secondary-button" disabled={previewDisabled} onClick={onPreview} type="button">
+          <button className="forum-button" disabled={previewDisabled} onClick={onPreview} type="button">
             <Eye size={15} />
             预览
           </button>
           {secondaryActions}
-          <button className="reply-publish-button" disabled={submitDisabled} onClick={onSubmit} type="button">
+          <button className="forum-button forum-button-primary" disabled={submitDisabled} onClick={onSubmit} type="button">
             {submitIcon}
             {submitLabel}
           </button>
@@ -344,7 +344,7 @@ export function PostEditorPreviewDialog({
           {previewExtra}
         </div>
         <footer>
-          <button className="reply-secondary-button" onClick={onClose} type="button">返回编辑</button>
+          <button className="forum-button" onClick={onClose} type="button">返回编辑</button>
         </footer>
       </section>
     </DialogLayer>
@@ -440,7 +440,7 @@ function PostEditorAttachmentDialog({
             ))}
           </ul>
         )}
-        <footer><button className="reply-publish-button" onClick={onClose} type="button">完成</button></footer>
+        <footer><button className="forum-button forum-button-primary" onClick={onClose} type="button">完成</button></footer>
       </section>
     </DialogLayer>
   );

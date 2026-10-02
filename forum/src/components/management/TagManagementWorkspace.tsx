@@ -320,7 +320,7 @@ export function TagManagementWorkspace() {
       <section className="management-card" aria-labelledby="tag-definitions-title">
         <header className="management-card-heading">
           <div><h2 id="tag-definitions-title">已有标签</h2></div>
-          <button className="management-primary-button" disabled={Boolean(pendingAction)} onClick={startCreate} type="button"><Plus size={15} />新建标签</button>
+          <button className="forum-button forum-button-primary" disabled={Boolean(pendingAction)} onClick={startCreate} type="button"><Plus size={15} />新建标签</button>
         </header>
         <div className="management-tag-editor-wrap">
           {editingId && (
@@ -330,7 +330,7 @@ export function TagManagementWorkspace() {
                 <span>颜色</span>
                 <HexColorPicker ariaLabel="标签颜色" onChange={setDraftColor} value={draftColor} />
               </div>
-              <div className="management-tag-editor-actions"><button className="management-primary-button" disabled={Boolean(pendingAction)} type="submit">保存</button><button className="management-secondary-button" disabled={Boolean(pendingAction)} onClick={cancelEdit} type="button">取消</button>{editingTag && <button className="management-danger-button" disabled={Boolean(pendingAction)} onClick={() => removeTag(editingTag)} type="button"><Trash2 size={14} />删除</button>}</div>
+              <div className="management-tag-editor-actions"><button className="forum-button forum-button-primary" disabled={Boolean(pendingAction)} type="submit">保存</button><button className="forum-button" disabled={Boolean(pendingAction)} onClick={cancelEdit} type="button">取消</button>{editingTag && <button className="forum-button forum-button-danger" disabled={Boolean(pendingAction)} onClick={() => removeTag(editingTag)} type="button"><Trash2 size={14} />删除</button>}</div>
             </form>
           )}
           <div className="management-tag-definition-list">
@@ -347,7 +347,7 @@ export function TagManagementWorkspace() {
       <section className="management-card" aria-labelledby="member-tags-title">
         <header className="management-card-heading">
           <div><h2 id="member-tags-title">已有标签会员</h2></div>
-          <button className="management-primary-button" disabled={!activeTagId || Boolean(pendingAction)} onClick={openMemberDialog} type="button"><UserPlus size={15} />添加会员</button>
+          <button className="forum-button forum-button-primary" disabled={!activeTagId || Boolean(pendingAction)} onClick={openMemberDialog} type="button"><UserPlus size={15} />添加会员</button>
         </header>
         <div className="management-member-tag-layout">
           <aside className="management-member-picker" aria-label="标签">
@@ -386,7 +386,7 @@ export function TagManagementWorkspace() {
       <DialogPresence>{deleteTarget && (
         <DialogLayer className="management-dialog-backdrop" role="presentation">
           <section aria-labelledby="confirm-tag-delete-title" aria-modal="true" className="management-dialog management-confirm-dialog" role="dialog">
-            <header><div><h2 id="confirm-tag-delete-title">{deleteTarget.kind === 'tag' ? '删除标签' : '移除会员'}</h2></div><button aria-label="关闭" className="management-icon-button" disabled={Boolean(pendingAction)} onClick={closeDeleteDialog} type="button"><X size={16} /></button></header>
+            <header><div><h2 id="confirm-tag-delete-title">{deleteTarget.kind === 'tag' ? '删除标签' : '移除会员'}</h2></div><button aria-label="关闭" className="forum-button forum-button-icon" disabled={Boolean(pendingAction)} onClick={closeDeleteDialog} type="button"><X size={16} /></button></header>
             <p className="management-dialog-copy">{deleteTarget.kind === 'tag' ? `确定删除“${deleteTarget.tag.name}”吗？已绑定会员的关系也会一并移除` : `确定从“${activeTag?.name ?? '标签'}”中移除 ${deleteTarget.username} 吗？`}</p>
             {deleteTarget.kind === 'tag' && (
               <div className="management-delete-tag-members">
@@ -398,14 +398,14 @@ export function TagManagementWorkspace() {
                 ) : <span>暂无会员</span>}
               </div>
             )}
-            <footer><button className="management-secondary-button" disabled={Boolean(pendingAction)} onClick={closeDeleteDialog} type="button">取消</button><button className="management-danger-button" disabled={Boolean(pendingAction)} onClick={confirmDelete} type="button"><Trash2 size={14} />确认删除</button></footer>
+            <footer><button className="forum-button" disabled={Boolean(pendingAction)} onClick={closeDeleteDialog} type="button">取消</button><button className="forum-button forum-button-danger" disabled={Boolean(pendingAction)} onClick={confirmDelete} type="button"><Trash2 size={14} />确认删除</button></footer>
           </section>
         </DialogLayer>
       )}</DialogPresence>
       <DialogPresence>{memberDialogOpen && (
         <DialogLayer className="management-dialog-backdrop" role="presentation">
           <section aria-labelledby="add-tag-members-title" aria-modal="true" className="management-dialog" role="dialog">
-            <header><div><span>批量绑定</span><h2 id="add-tag-members-title">添加到“{activeTag?.name ?? '标签'}”</h2></div><button aria-label="关闭" className="management-icon-button" disabled={Boolean(pendingAction) || memberCheckLoading} onClick={closeMemberDialog} type="button"><X size={16} /></button></header>
+            <header><div><span>批量绑定</span><h2 id="add-tag-members-title">添加到“{activeTag?.name ?? '标签'}”</h2></div><button aria-label="关闭" className="forum-button forum-button-icon" disabled={Boolean(pendingAction) || memberCheckLoading} onClick={closeMemberDialog} type="button"><X size={16} /></button></header>
             <form className="management-dialog-form" onSubmit={appendMember}>
               <label htmlFor="tag-member-input">会员 ID</label>
               <div className="management-input-action"><input autoFocus disabled={memberCheckLoading || Boolean(pendingAction)} id="tag-member-input" onChange={(event) => setMemberDraft(event.target.value)} placeholder="输入后按回车" ref={memberInputRef} value={memberDraft} /><button disabled={memberCheckLoading || Boolean(pendingAction)} type="submit"><Plus size={15} />{memberCheckLoading ? '查询中' : '加入列表'}</button></div>
@@ -415,7 +415,7 @@ export function TagManagementWorkspace() {
               {pendingMembers.map((username) => <div className="management-pending-member" key={username}><span>{username}</span><button aria-label={`移除${username}`} disabled={Boolean(pendingAction)} onClick={() => setPendingMembers((current) => current.filter((item) => item !== username))} type="button"><X size={13} /></button></div>)}
               {pendingMembers.length === 0 && <EmptyState icon={<UserPlus size={18} />}>输入会员 ID 后按回车</EmptyState>}
             </div>
-            <footer><button className="management-secondary-button" disabled={Boolean(pendingAction)} onClick={closeMemberDialog} type="button">取消</button><button className="management-primary-button" disabled={pendingMembers.length === 0 || Boolean(pendingAction)} onClick={confirmMembers} type="button"><Check size={15} />确认添加</button></footer>
+            <footer><button className="forum-button" disabled={Boolean(pendingAction)} onClick={closeMemberDialog} type="button">取消</button><button className="forum-button forum-button-primary" disabled={pendingMembers.length === 0 || Boolean(pendingAction)} onClick={confirmMembers} type="button"><Check size={15} />确认添加</button></footer>
           </section>
         </DialogLayer>
       )}</DialogPresence>

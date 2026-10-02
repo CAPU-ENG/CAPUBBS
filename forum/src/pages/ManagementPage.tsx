@@ -336,7 +336,7 @@ function GlobalPinsPanel() {
                 <p><span>{pin.board}</span><i />作者 {pin.author}</p>
               </div>
               <button
-                className="management-danger-button"
+                className="forum-button forum-button-danger"
                 disabled={pendingThreadKey !== null}
                 onClick={() => void removePin(pin)}
                 type="button"
@@ -449,7 +449,7 @@ function MoveThreadPanel() {
                 </select>
               </label>
             </div>
-            <button className="management-primary-button" disabled={!targetBoardId || isMoving} type="submit">
+            <button className="forum-button forum-button-primary" disabled={!targetBoardId || isMoving} type="submit">
               {isMoving ? <LoaderCircle className="animate-spin" size={15} /> : <FileInput size={15} />}确认迁移帖子
             </button>
           </form>
@@ -672,7 +672,7 @@ function MemberManagementPanel() {
                 <button disabled type="button"><ShieldCheck size={15} />高级权限受保护</button>
               ) : (
                 <button
-                  className={selectedMember.rights === 2 ? 'management-danger-button' : 'management-primary-button'}
+                  className={selectedMember.rights === 2 ? 'forum-button forum-button-danger' : 'forum-button forum-button-primary'}
                   disabled={pendingMemberId !== null}
                   onClick={() => void toggleLevelTwo(selectedMember)}
                   type="button"
@@ -685,7 +685,7 @@ function MemberManagementPanel() {
             <div className="management-mute-row">
               <div><span>禁言状态</span><strong>{selectedMember.muted ? '已禁言' : '未禁言'}</strong></div>
               <button
-                className={selectedMember.muted ? 'management-primary-button' : 'management-danger-button'}
+                className={selectedMember.muted ? 'forum-button forum-button-primary' : 'forum-button forum-button-danger'}
                 disabled={!selectedMember.email || pendingEmail !== null}
                 onClick={() => void toggleMemberMute(selectedMember)}
                 type="button"
@@ -763,7 +763,7 @@ function MemberManagementPanel() {
                   <span>{mute.ids.length > 0 ? mute.ids.map((id) => <em key={id}>{id}</em>) : <em>无关联 ID</em>}</span>
                 </div>
                 <button
-                  className="management-danger-button"
+                  className="forum-button forum-button-danger"
                   disabled={pendingEmail !== null}
                   onClick={() => void unmuteEntry(mute)}
                   type="button"
@@ -968,7 +968,7 @@ function ModeratorManagementPanel() {
                 </select>
               </label>
               <button
-                className="management-primary-button"
+                className="forum-button forum-button-primary"
                 disabled={!selectedBoard || alreadyModerator || pendingAction !== null}
                 onClick={() => void addModerator()}
                 type="button"
@@ -1025,7 +1025,7 @@ function ThreadConfirmation({ actionLabel, disabled, onConfirm, pending, thread 
   return (
     <div className="management-thread-confirmation">
       <ThreadIdentity thread={thread} />
-      <button className="management-primary-button" disabled={disabled} onClick={onConfirm} type="button">
+      <button className="forum-button forum-button-primary" disabled={disabled} onClick={onConfirm} type="button">
         {pending ? <LoaderCircle className="animate-spin" size={15} /> : <MapPin size={15} />}{actionLabel}
       </button>
     </div>

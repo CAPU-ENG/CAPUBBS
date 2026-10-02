@@ -101,7 +101,7 @@ function ActivitySignupFormLoader(props: ActivitySignupFormProps) {
           {loadError ? (
             <>
               <span className="activity-signup-status-error" role="alert">{loadError}</span>
-              <button className="reply-secondary-button activity-signup-preview-button" onClick={() => setLoadRequest((current) => current + 1)} type="button">
+              <button className="forum-button activity-signup-preview-button" onClick={() => setLoadRequest((current) => current + 1)} type="button">
                 <RotateCcw size={15} />重试
               </button>
             </>
@@ -290,7 +290,7 @@ function ActivitySignupFormFields({
             {viewer ? (
               <>
                 <button
-                  className="reply-secondary-button activity-signup-preview-button"
+                  className="forum-button activity-signup-preview-button"
                   disabled={submitting}
                   onClick={openPreview}
                   type="button"

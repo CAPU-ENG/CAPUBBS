@@ -33,11 +33,11 @@ export function MedalDesignerPanel({ initialDraft, mode, onCancel, onSave, savin
         <header className="management-medal-section-heading">
           <h3>{mode === 'create' ? '新建勋章' : '编辑勋章'}</h3>
           <div>
-            <button className="management-secondary-button" disabled={saving} onClick={onCancel} type="button">
+            <button className="forum-button" disabled={saving} onClick={onCancel} type="button">
               <X size={15} />取消
             </button>
             <button
-              className="management-primary-button"
+              className="forum-button forum-button-primary"
               disabled={saving || !name.trim() || !imageSource}
               onClick={() => onSave({ imageSource, name: name.trim(), textureId })}
               type="button"

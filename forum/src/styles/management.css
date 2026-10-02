@@ -119,39 +119,6 @@
     gap: 6px;
   }
 
-  .management-secondary-button,
-  .management-icon-button {
-    display: inline-flex;
-    min-height: 34px;
-    align-items: center;
-    justify-content: center;
-    gap: 5px;
-    border: 1px solid var(--line);
-    border-radius: var(--control-radius);
-    padding: 0 10px;
-    background: var(--surface-raised);
-    color: var(--text-muted);
-    font-size: var(--ui-font-size-sm);
-    font-weight: 740;
-  }
-
-  .management-icon-button {
-    width: 30px;
-    min-height: 30px;
-    padding: 0;
-  }
-
-  .management-icon-button:hover,
-  .management-secondary-button:hover {
-    border-color: var(--line-strong);
-    background: var(--surface-soft);
-    color: var(--brand-strong);
-  }
-
-  .management-icon-danger:hover {
-    color: var(--danger);
-  }
-
   .management-tag-definition-list {
     display: grid;
     gap: 7px;
@@ -404,8 +371,6 @@
     background: var(--line-strong);
   }
 
-  .management-primary-button,
-  .management-danger-button,
   .management-permission-row button,
   .management-mute-row button {
     display: inline-flex;
@@ -423,28 +388,6 @@
     transition: 140ms ease;
   }
 
-  .management-primary-button {
-    border-color: var(--brand-strong);
-    background: var(--brand-strong);
-    color: var(--on-brand);
-  }
-
-
-  .management-danger-button {
-    color: var(--danger);
-  }
-
-  .management-danger-button:hover {
-    border-color: color-mix(in srgb, var(--danger) 38%, var(--line));
-    background: color-mix(in srgb, var(--danger) 7%, var(--surface-raised));
-  }
-
-  .management-primary-button:hover {
-    filter: brightness(1.08);
-  }
-
-  .management-primary-button:disabled,
-  .management-danger-button:disabled,
   .management-input-action button:disabled,
   .management-permission-row button:disabled,
   .management-mute-row button:disabled {
@@ -1373,7 +1316,7 @@
     font-size: var(--ui-font-size-xs);
   }
 
-  .management-member-card .management-danger-button {
+  .management-member-card .forum-button-danger {
     justify-self: start;
     min-height: 28px;
     padding-inline: 8px;

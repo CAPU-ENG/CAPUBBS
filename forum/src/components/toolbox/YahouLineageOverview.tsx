@@ -15,7 +15,7 @@ export class YahouOverviewErrorBoundary extends Component<{ children: ReactNode 
   render() {
     if (this.state.failed) return <div className="yahou-overview-failure" role="alert">
       <p>总览加载失败</p>
-      <button className="toolbox-secondary-button" onClick={() => window.location.reload()} type="button">刷新页面</button>
+      <button className="forum-button" onClick={() => window.location.reload()} type="button">刷新页面</button>
     </div>;
     return this.props.children;
   }
@@ -42,7 +42,7 @@ export function YahouLineageOverview({ data, onClose }: { data: YahouLineage; on
       onCancel={(event) => { event.preventDefault(); onClose(); }} ref={dialogRef}>
       <header className="yahou-overview-header">
         <h2 id={titleId}>谱系总览</h2>
-        <button aria-label="关闭谱系总览" autoFocus className="toolbox-icon-button" onClick={onClose} type="button"><X size={19} /></button>
+        <button aria-label="关闭谱系总览" autoFocus className="forum-button forum-button-icon" onClick={onClose} type="button"><X size={19} /></button>
       </header>
       <YahouOverviewErrorBoundary key={data.revision}>
         <Suspense fallback={<p className="yahou-load-state" role="status"><LoadingSpinner size={18} />正在加载总览</p>}>

@@ -311,7 +311,7 @@ export function MedalManagementWorkspace() {
         <header className="management-card-heading">
           <h2>勋章管理</h2>
           <button
-            className="management-primary-button"
+            className="forum-button forum-button-primary"
             disabled={Boolean(pendingAction) || editorMode === 'create'}
             onClick={() => { setEditorMode('create'); setNotice(null); }}
             type="button"
@@ -411,7 +411,7 @@ export function MedalManagementWorkspace() {
               ) : (
                 <div className="management-medal-empty">
                   <Medal size={24} /><strong>暂无勋章</strong>
-                  <button className="management-primary-button" onClick={() => setEditorMode('create')} type="button"><Plus size={15} />新建勋章</button>
+                  <button className="forum-button forum-button-primary" onClick={() => setEditorMode('create')} type="button"><Plus size={15} />新建勋章</button>
                 </div>
               )}
             </div>
@@ -427,8 +427,8 @@ export function MedalManagementWorkspace() {
             <header><h2 id="delete-medal-title">删除勋章</h2></header>
             <p className="management-dialog-copy">确定删除“{selectedMedal.name}”？对应的 {members.length} 条成员记录将一并删除。</p>
             <footer>
-              <button className="management-secondary-button" disabled={pendingAction === 'medal-delete'} onClick={() => setDeleteOpen(false)} type="button">取消</button>
-              <button className="management-danger-button" disabled={pendingAction === 'medal-delete'} onClick={() => { void deleteSelectedMedal(); }} type="button"><Trash2 size={15} />{pendingAction === 'medal-delete' ? '删除中' : '删除'}</button>
+              <button className="forum-button" disabled={pendingAction === 'medal-delete'} onClick={() => setDeleteOpen(false)} type="button">取消</button>
+              <button className="forum-button forum-button-danger" disabled={pendingAction === 'medal-delete'} onClick={() => { void deleteSelectedMedal(); }} type="button"><Trash2 size={15} />{pendingAction === 'medal-delete' ? '删除中' : '删除'}</button>
             </footer>
           </section>
         </DialogLayer>
@@ -439,12 +439,12 @@ export function MedalManagementWorkspace() {
           <section aria-labelledby="remove-medal-member-title" aria-modal="true" className="management-dialog management-confirm-dialog" role="dialog">
             <header>
               <h2 id="remove-medal-member-title">移除成员</h2>
-              <button aria-label="关闭" className="management-icon-button" disabled={Boolean(pendingAction)} onClick={() => setRemoveMemberTarget(null)} type="button"><X size={16} /></button>
+              <button aria-label="关闭" className="forum-button forum-button-icon" disabled={Boolean(pendingAction)} onClick={() => setRemoveMemberTarget(null)} type="button"><X size={16} /></button>
             </header>
             <p className="management-dialog-copy">确定撤销 {removeMemberTarget.username} 的“{selectedMedal.name}”勋章吗？</p>
             <footer>
-              <button className="management-secondary-button" disabled={Boolean(pendingAction)} onClick={() => setRemoveMemberTarget(null)} type="button">取消</button>
-              <button className="management-danger-button" disabled={Boolean(pendingAction)} onClick={() => { void removeSelectedMember(); }} type="button"><Trash2 size={14} />{pendingAction?.startsWith('member-remove-') ? '移除中' : '确认移除'}</button>
+              <button className="forum-button" disabled={Boolean(pendingAction)} onClick={() => setRemoveMemberTarget(null)} type="button">取消</button>
+              <button className="forum-button forum-button-danger" disabled={Boolean(pendingAction)} onClick={() => { void removeSelectedMember(); }} type="button"><Trash2 size={14} />{pendingAction?.startsWith('member-remove-') ? '移除中' : '确认移除'}</button>
             </footer>
           </section>
         </DialogLayer>
@@ -522,7 +522,7 @@ function SingleImportPanel({
       <form onSubmit={onImport}>
         <label><span>会员 ID</span><input onChange={(event) => onMemberIdChange(event.target.value)} placeholder="输入完整会员 ID" type="search" value={memberId} /></label>
         <label><span>职务（选填）</span><input maxLength={50} onChange={(event) => onRoleChange(event.target.value)} placeholder="例如：队长" type="text" value={role} /></label>
-        <button className="management-primary-button" disabled={!memberId.trim() || importing} type="submit"><UserPlus size={15} />{importing ? '导入中' : '确认导入'}</button>
+        <button className="forum-button forum-button-primary" disabled={!memberId.trim() || importing} type="submit"><UserPlus size={15} />{importing ? '导入中' : '确认导入'}</button>
       </form>
       {check ? (
         <div className="management-medal-check-result" data-state={check.state.replace('_', '-')}>
@@ -572,7 +572,7 @@ function BatchImportPanel({
           ref={inputRef}
           type="file"
         />
-        <button className="management-secondary-button" disabled={checking || importing} onClick={() => inputRef.current?.click()} type="button"><Upload size={15} />{checking ? '读取中' : '选择表格'}</button>
+        <button className="forum-button" disabled={checking || importing} onClick={() => inputRef.current?.click()} type="button"><Upload size={15} />{checking ? '读取中' : '选择表格'}</button>
         {fileName ? <output><FileSpreadsheet size={15} />{fileName}</output> : null}
       </div>
 
@@ -614,7 +614,7 @@ function BatchImportPanel({
       {rows.length > 0 ? (
         <footer className="management-medal-batch-footer">
           <div><span>可导入 {availableCount}</span><span>已拥有 {alreadyCount}</span><span>未找到 {missingCount}</span></div>
-          <button className="management-primary-button" disabled={availableCount === 0 || importing} onClick={onImport} type="button"><UserPlus size={15} />{importing ? '导入中' : `导入 ${availableCount} 名成员`}</button>
+          <button className="forum-button forum-button-primary" disabled={availableCount === 0 || importing} onClick={onImport} type="button"><UserPlus size={15} />{importing ? '导入中' : `导入 ${availableCount} 名成员`}</button>
         </footer>
       ) : null}
     </div>

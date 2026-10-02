@@ -623,7 +623,7 @@ export function ThreadComposePage() {
               previewDisabled={!contentReady}
               secondaryActions={(
                 <button
-                  className="reply-secondary-button"
+                  className="forum-button"
                   disabled={isSavingDraft || isPublishing}
                   onClick={() => void saveDraft()}
                   type="button"

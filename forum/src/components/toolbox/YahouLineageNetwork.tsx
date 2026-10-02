@@ -218,13 +218,13 @@ function OverviewNetwork({ graph }: { graph: YahouGraph }) {
       </div>
       <span className="yahou-overview-count">{graph.nodes.length - 1} 人 · {graph.generations} 代</span>
       <div className="yahou-overview-controls">
-        <button className="toolbox-secondary-button" disabled={!ready} onClick={() => setRunning((value) => !value)} type="button">{running ? <Pause size={15} /> : <Play size={15} />}{running ? '暂停漂浮' : '继续漂浮'}</button>
-        <button aria-label="缩小总览" className="toolbox-icon-button" disabled={!ready || zoom <= 2} onClick={() => changeZoom(1 / 1.3)} type="button"><Minus size={16} /></button>
+        <button className="forum-button" disabled={!ready} onClick={() => setRunning((value) => !value)} type="button">{running ? <Pause size={15} /> : <Play size={15} />}{running ? '暂停漂浮' : '继续漂浮'}</button>
+        <button aria-label="缩小总览" className="forum-button forum-button-icon" disabled={!ready || zoom <= 2} onClick={() => changeZoom(1 / 1.3)} type="button"><Minus size={16} /></button>
         <output aria-label="缩放比例">{Math.round(zoom)}%</output>
-        <button aria-label="放大总览" className="toolbox-icon-button" disabled={!ready || zoom >= 400} onClick={() => changeZoom(1.3)} type="button"><Plus size={16} /></button>
-        <button className="toolbox-secondary-button" disabled={!ready} onClick={fit} type="button"><Maximize size={15} />适应窗口</button>
-        <button className="toolbox-secondary-button" disabled={!ready} onClick={download} type="button"><Download size={15} />下载 SVG</button>
-        <button aria-controls={controlsId} aria-expanded={settingsOpen} className="toolbox-secondary-button" onClick={() => setSettingsOpen((value) => !value)} type="button"><SlidersHorizontal size={15} />调节</button>
+        <button aria-label="放大总览" className="forum-button forum-button-icon" disabled={!ready || zoom >= 400} onClick={() => changeZoom(1.3)} type="button"><Plus size={16} /></button>
+        <button className="forum-button" disabled={!ready} onClick={fit} type="button"><Maximize size={15} />适应窗口</button>
+        <button className="forum-button" disabled={!ready} onClick={download} type="button"><Download size={15} />下载 SVG</button>
+        <button aria-controls={controlsId} aria-expanded={settingsOpen} className="forum-button" onClick={() => setSettingsOpen((value) => !value)} type="button"><SlidersHorizontal size={15} />调节</button>
       </div>
     </div>
     {error ? <p className="yahou-overview-error" role="alert">{error}</p> : null}
@@ -239,13 +239,13 @@ function OverviewNetwork({ graph }: { graph: YahouGraph }) {
           onNodeDragEnd={(node) => { engine.current?.release(node.id); syncRef.current(); }} />
         {!ready && !error ? <p className="yahou-graph-loading" role="status">正在加载关系网</p> : null}
         {selectedNodes.length ? <section aria-label="已选 ID" className="yahou-graph-selection">
-          <header><strong>已选 {selectedNodes.length}</strong><button className="toolbox-secondary-button" onClick={() => setSelected(new Set())} type="button">清空</button></header>
+          <header><strong>已选 {selectedNodes.length}</strong><button className="forum-button" onClick={() => setSelected(new Set())} type="button">清空</button></header>
           <ul>
             {selectedNodes.map((node) => <li data-selected-id={node.id} key={node.id}>
               <button aria-label={`定位 ${node.label}`} className="yahou-selection-name" onClick={() => locate(node.id)} type="button">{node.label}</button>
               <span>第 {node.generation} 代</span>
               {node.status !== null ? <span>师父：{node.parentId ?? '实践部'}</span> : null}
-              <button aria-label={`取消选中 ${node.label}`} className="toolbox-icon-button yahou-selection-remove" onClick={() => removeNode(node.id)} type="button"><X size={15} /></button>
+              <button aria-label={`取消选中 ${node.label}`} className="forum-button forum-button-icon forum-button-hover-danger yahou-selection-remove" onClick={() => removeNode(node.id)} type="button"><X size={15} /></button>
             </li>)}
           </ul>
         </section> : null}
@@ -264,7 +264,7 @@ function OverviewNetwork({ graph }: { graph: YahouGraph }) {
             <input disabled={!ready} max={control.max} min={control.min} onChange={(event) => setSettings((value) => ({ ...value, [control.key]: Number(event.target.value) }))} step={control.step} type="range" value={settings[control.key]} />
           </label>)}
           <label className="yahou-graph-pin"><input checked={rootPinned} disabled={!ready} onChange={(event) => setRootPinned(event.target.checked)} type="checkbox" />固定实践部</label>
-          <button className="toolbox-secondary-button" disabled={!ready} onClick={() => setSettings({ ...DEFAULT_YAHOU_FORCES })} type="button"><RotateCcw size={14} />恢复默认力度</button>
+          <button className="forum-button" disabled={!ready} onClick={() => setSettings({ ...DEFAULT_YAHOU_FORCES })} type="button"><RotateCcw size={14} />恢复默认力度</button>
         </div>
       </aside> : null}
     </div>

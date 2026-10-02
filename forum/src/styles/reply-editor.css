@@ -323,40 +323,6 @@
     font-size: var(--ui-font-size-md);
   }
 
-  .reply-secondary-button,
-  .reply-publish-button {
-    display: inline-flex;
-    min-height: 34px;
-    align-items: center;
-    justify-content: center;
-    gap: 6px;
-    border-radius: var(--control-radius);
-    padding: 0 10px;
-    font-size: var(--ui-font-size-md);
-    font-weight: 720;
-  }
-
-  .reply-secondary-button {
-    border: 1px solid var(--line);
-    background: var(--surface);
-    color: var(--text-muted);
-  }
-
-  .reply-secondary-button:hover {
-    border-color: var(--line-strong);
-    color: var(--brand-strong);
-  }
-
-  .reply-publish-button {
-    border: 1px solid var(--brand-strong);
-    background: var(--brand-strong);
-    color: white;
-  }
-
-  .dark .reply-publish-button {
-    color: #0d1711;
-  }
-
   .reply-editor-status {
     color: var(--brand-strong);
     font-size: var(--ui-font-size-sm);
@@ -817,8 +783,7 @@
       margin-left: 0;
     }
 
-    .reply-editor-footer .reply-secondary-button,
-    .reply-editor-footer .reply-publish-button {
+    .reply-editor-footer .forum-button {
       min-height: 30px;
       gap: 3px;
       padding-inline: 6px;
@@ -835,7 +800,7 @@
       height: 13px;
     }
 
-    .reply-editor-footer > .reply-secondary-button {
+    .reply-editor-footer > .forum-button {
       min-height: 28px;
       grid-row: 1;
       grid-column: 1;
@@ -844,7 +809,7 @@
       font-size: var(--ui-font-size-xs);
     }
 
-    .reply-editor-footer > .reply-secondary-button svg {
+    .reply-editor-footer > .forum-button svg {
       width: 12px;
       height: 12px;
     }

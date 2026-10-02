@@ -139,58 +139,6 @@
     white-space: nowrap;
   }
 
-  .toolbox-secondary-button,
-  .toolbox-primary-button,
-  .toolbox-icon-button {
-    display: inline-flex;
-    min-height: 34px;
-    flex: 0 0 auto;
-    align-items: center;
-    justify-content: center;
-    gap: 6px;
-    border: 1px solid var(--line);
-    border-radius: var(--control-radius);
-    padding: 0 10px;
-    background: var(--surface-raised);
-    color: var(--text-muted);
-    font-size: var(--ui-font-size-sm);
-    font-weight: 740;
-  }
-
-  .toolbox-icon-button {
-    width: 34px;
-    padding: 0;
-  }
-
-  .toolbox-secondary-button:hover,
-  .toolbox-icon-button:hover {
-    border-color: var(--brand);
-    background: var(--brand-faint);
-    color: var(--brand-strong);
-  }
-
-  .toolbox-icon-button:hover {
-    border-color: color-mix(in srgb, var(--danger) 38%, var(--line));
-    background: color-mix(in srgb, var(--danger) 7%, var(--surface-raised));
-    color: var(--danger);
-  }
-
-  .toolbox-secondary-button:disabled {
-    cursor: wait;
-    opacity: 0.58;
-  }
-
-  .toolbox-primary-button {
-    border-color: var(--brand-strong);
-    background: var(--brand-strong);
-    color: var(--on-brand);
-  }
-
-
-  .toolbox-primary-button:hover {
-    background: color-mix(in srgb, var(--brand-strong) 88%, black);
-  }
-
   .toolbox-example-grid {
     display: grid;
     grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);

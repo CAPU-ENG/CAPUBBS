@@ -325,7 +325,7 @@ export function ReplyEditor({
         placeholder="写下你的回复……"
         previewDisabled={!hasPostEditorContent(editorValue)}
         secondaryActions={(
-          <button className="reply-secondary-button" disabled={isSavingDraft || isPublishing} onClick={() => void saveDraft()} type="button">
+          <button className="forum-button" disabled={isSavingDraft || isPublishing} onClick={() => void saveDraft()} type="button">
             {isSavingDraft ? <LoaderCircle size={15} /> : <Save size={15} />}
             {isSavingDraft ? "保存中" : "保存草稿"}
           </button>
