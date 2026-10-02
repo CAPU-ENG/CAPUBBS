@@ -12,6 +12,7 @@ import { LoadingSpinner } from '../layout/LoadingSpinner';
 import { DialogPresence } from '../layout/DialogPresence';
 import { YahouLineageOverview } from './YahouLineageOverview';
 import { Button } from '../Button';
+import { ErrorState } from '../ErrorState';
 
 const OVERVIEW_DESKTOP_QUERY = '(min-width: 1024px)';
 
@@ -62,7 +63,7 @@ export function YahouLineagePanel() {
         </div>
       </header>
       {loadError ? (
-        <p className="yahou-load-state toolbox-feedback-error" role="alert">{loadError}</p>
+        <ErrorState className="yahou-load-state" message={loadError} onRetry={() => setReload((value) => value + 1)} />
       ) : !data ? (
         <p className="yahou-load-state" role="status"><LoadingSpinner size={18} />正在加载押后谱系</p>
       ) : (

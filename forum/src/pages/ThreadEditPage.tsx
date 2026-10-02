@@ -232,6 +232,7 @@ export function ThreadEditPage() {
           <EditRequestState
             backHref={backHref}
             description={loadError}
+            onRetry={() => window.location.reload()}
             loginHref={authStatus === 'guest' ? getLoginPathWithReturnTo() : undefined}
             registerHref={authStatus === 'guest' ? getRegisterPathWithReturnTo() : undefined}
             title="暂时无法进入编辑"
@@ -321,12 +322,14 @@ function EditRequestState({
   backHref,
   description,
   loginHref,
+  onRetry,
   registerHref,
   title,
 }: {
   backHref: string;
   description: string;
   loginHref?: string;
+  onRetry?: () => void;
   registerHref?: string;
   title: string;
 }) {
@@ -335,6 +338,7 @@ function EditRequestState({
       <h1>{title}</h1>
       <p>{description}</p>
       <div>
+        {onRetry && <button onClick={onRetry} type="button">重新加载</button>}
         <a href={backHref}>返回帖子</a>
         {loginHref && <a className="thread-edit-login-link" href={loginHref}>前往登录</a>}
         {registerHref && <a className="thread-edit-register-link" href={registerHref}>注册账号</a>}

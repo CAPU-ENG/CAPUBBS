@@ -821,7 +821,7 @@
   .archive-room-dialog-actions button:last-child {
     border-color: var(--brand);
     background: var(--brand);
-    color: #fff;
+    color: var(--on-brand);
   }
 
   .archive-room-dialog-actions button:disabled {

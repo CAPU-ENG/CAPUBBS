@@ -62,7 +62,7 @@ export function WebsiteTrafficPanel() {
       {error ? (
         <div className="website-traffic-state" role="alert">
           <p>{error}</p>
-          <button onClick={() => setRevision((value) => value + 1)} type="button"><RefreshCw aria-hidden="true" size={15} />重试</button>
+          <button onClick={() => setRevision((value) => value + 1)} type="button"><RefreshCw aria-hidden="true" size={15} />重新加载</button>
         </div>
       ) : data && metric === 'checkins' && data.checkins === null ? (
         <div className="website-traffic-state" role="status">签到数据暂不可用</div>

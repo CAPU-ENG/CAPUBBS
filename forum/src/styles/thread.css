@@ -798,7 +798,7 @@
     border-radius: var(--control-radius);
     padding: 0 var(--space-16);
     background: var(--brand);
-    color: white;
+    color: var(--on-brand);
     font-size: var(--ui-font-size-lg);
     font-weight: var(--font-weight-bold);
     box-shadow: 0 5px 14px color-mix(in srgb, var(--brand) 18%, transparent);
@@ -2430,7 +2430,7 @@
   .thread-delete-dialog > footer > .thread-delete-dialog-confirm {
     border-color: color-mix(in srgb, var(--danger) 55%, var(--line));
     background: var(--danger);
-    color: white;
+    color: var(--on-danger);
   }
 
   .thread-side-rail {

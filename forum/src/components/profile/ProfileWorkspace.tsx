@@ -323,7 +323,7 @@ export function ProfileWorkspace({
           ) : activeLoadError ? (
             <div className="profile-empty-state" role="alert">
               <h3>{activeLoadError}</h3>
-              <button onClick={() => setLoadError(null)} type="button">重试</button>
+              <button onClick={() => setLoadError(null)} type="button">重新加载</button>
             </div>
           ) : visibleRecords.length ? (
             <div className="profile-record-list" key={activeTab} ref={recordListRef}>

@@ -4,6 +4,7 @@ import {
   ChevronDown,
   CircleAlert,
   ExternalLink,
+  RefreshCw,
   FileInput,
   Mail,
   MapPin,
@@ -198,6 +199,7 @@ function GlobalPinsPanel() {
   const listRef = useStaggerEntrance<HTMLDivElement>(':scope > article');
   const [pins, setPins] = useState<ManagementThread[]>([]);
   const [pinsStatus, setPinsStatus] = useState<'error' | 'loading' | 'ready'>('loading');
+  const [pinsReload, setPinsReload] = useState(0);
   const [threadUrl, setThreadUrl] = useState('');
   const [candidate, setCandidate] = useState<ManagementThread | null>(null);
   const [isLookingUp, setIsLookingUp] = useState(false);
@@ -218,7 +220,7 @@ function GlobalPinsPanel() {
       },
     );
     return () => controller.abort();
-  }, []);
+  }, [pinsReload]);
 
   async function inspectThread(event: FormEvent) {
     event.preventDefault();
@@ -326,7 +328,7 @@ function GlobalPinsPanel() {
           {pinsStatus === 'loading' ? (
             <EmptyState icon={<LoaderCircle className="animate-spin" size={19} />}>正在加载全局置顶。</EmptyState>
           ) : pinsStatus === 'error' ? (
-            <EmptyState icon={<CircleAlert size={19} />}>全局置顶列表加载失败。</EmptyState>
+            <EmptyState action={<Button onClick={() => { setPinsStatus('loading'); setNotice(null); setPinsReload((value) => value + 1); }}><RefreshCw aria-hidden="true" size={15} />重新加载</Button>} icon={<CircleAlert size={19} />}>全局置顶列表加载失败。</EmptyState>
           ) : pins.length === 0 ? (
             <EmptyState icon={<PinOff size={19} />}>目前没有全局置顶帖。</EmptyState>
           ) : pins.map((pin) => (
@@ -466,8 +468,10 @@ function MemberManagementPanel() {
   const memberSearchRef = useRef<HTMLElement>(null);
   const [members, setMembers] = useState<ManagementMember[]>([]);
   const [membersStatus, setMembersStatus] = useState<'error' | 'loading' | 'ready'>('loading');
+  const [membersReload, setMembersReload] = useState(0);
   const [mutes, setMutes] = useState<ManagementMute[]>([]);
   const [mutesStatus, setMutesStatus] = useState<'error' | 'loading' | 'ready'>('loading');
+  const [mutesReload, setMutesReload] = useState(0);
   const [query, setQuery] = useState('');
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [isSearching, setIsSearching] = useState(false);
@@ -503,7 +507,7 @@ function MemberManagementPanel() {
       },
     );
     return () => controller.abort();
-  }, []);
+  }, [membersReload]);
 
   useEffect(() => {
     const controller = new AbortController();
@@ -519,7 +523,7 @@ function MemberManagementPanel() {
       },
     );
     return () => controller.abort();
-  }, []);
+  }, [mutesReload]);
 
   async function loadMember(memberId: string) {
     if (isSearching) return;
@@ -711,7 +715,7 @@ function MemberManagementPanel() {
           {membersStatus === 'loading' ? (
             <EmptyState icon={<LoaderCircle className="animate-spin" size={19} />}>正在加载权限会员。</EmptyState>
           ) : membersStatus === 'error' ? (
-            <EmptyState icon={<CircleAlert size={19} />}>权限会员列表加载失败。</EmptyState>
+            <EmptyState action={<Button onClick={() => { setMembersStatus('loading'); setNotice(null); setMembersReload((value) => value + 1); }}><RefreshCw aria-hidden="true" size={15} />重新加载</Button>} icon={<CircleAlert size={19} />}>权限会员列表加载失败。</EmptyState>
           ) : elevatedMembers.length === 0 ? (
             <EmptyState icon={<Users size={19} />}>当前没有权限会员。</EmptyState>
           ) : (
@@ -754,7 +758,7 @@ function MemberManagementPanel() {
             {mutesStatus === 'loading' ? (
               <EmptyState icon={<LoaderCircle className="animate-spin" size={19} />}>正在加载禁言会员。</EmptyState>
             ) : mutesStatus === 'error' ? (
-              <EmptyState icon={<CircleAlert size={19} />}>禁言会员列表加载失败。</EmptyState>
+              <EmptyState action={<Button onClick={() => { setMutesStatus('loading'); setNotice(null); setMutesReload((value) => value + 1); }}><RefreshCw aria-hidden="true" size={15} />重新加载</Button>} icon={<CircleAlert size={19} />}>禁言会员列表加载失败。</EmptyState>
             ) : mutes.length === 0 ? (
               <EmptyState icon={<Volume2 size={19} />}>当前没有禁言会员。</EmptyState>
             ) : mutes.map((mute) => (
@@ -785,6 +789,7 @@ function ModeratorManagementPanel() {
   const listsRef = useStaggerEntrance<HTMLElement>('.management-board-moderator-row');
   const [boards, setBoards] = useState<ManagementBoardModerators[]>([]);
   const [boardsStatus, setBoardsStatus] = useState<'error' | 'loading' | 'ready'>('loading');
+  const [boardsReload, setBoardsReload] = useState(0);
   const [query, setQuery] = useState('');
   const [selectedMember, setSelectedMember] = useState<ManagementMember | null>(null);
   const [selectedBoardId, setSelectedBoardId] = useState('');
@@ -826,7 +831,7 @@ function ModeratorManagementPanel() {
       },
     );
     return () => controller.abort();
-  }, []);
+  }, [boardsReload]);
 
   async function searchMember(event: FormEvent) {
     event.preventDefault();
@@ -991,7 +996,7 @@ function ModeratorManagementPanel() {
         {boardsStatus === 'loading' ? (
             <EmptyState icon={<LoaderCircle className="animate-spin" size={19} />}>正在加载版主。</EmptyState>
           ) : boardsStatus === 'error' ? (
-            <EmptyState icon={<CircleAlert size={19} />}>版主列表加载失败。</EmptyState>
+            <EmptyState action={<Button onClick={() => { setBoardsStatus('loading'); setNotice(null); setBoardsReload((value) => value + 1); }}><RefreshCw aria-hidden="true" size={15} />重新加载</Button>} icon={<CircleAlert size={19} />}>版主列表加载失败。</EmptyState>
           ) : (
             <div className="management-board-moderator-groups">
               <div className="management-board-moderator-list">
@@ -1055,8 +1060,8 @@ function ManagementNotice({ children, kind }: { children: ReactNode; kind: Notic
   );
 }
 
-function EmptyState({ children, icon }: { children: ReactNode; icon: ReactNode }) {
-  return <div className="management-empty"><span>{icon}</span>{children}</div>;
+function EmptyState({ action, children, icon }: { action?: ReactNode; children: ReactNode; icon: ReactNode }) {
+  return <div className="management-empty"><span>{icon}</span>{children}{action}</div>;
 }
 
 function ManagementState({ children, icon, loginHref, registerHref, title }: {

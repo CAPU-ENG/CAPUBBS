@@ -16,7 +16,7 @@
     border-radius: 999px;
     padding: 0 var(--space-4);
     background: var(--danger);
-    color: #fff;
+    color: var(--on-danger);
     font-size: var(--ui-font-size-xs);
     font-weight: var(--font-weight-bold);
     line-height: 1;

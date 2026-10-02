@@ -40,6 +40,7 @@ export function HomePage() {
         calendarError={calendar.error}
         calendarItems={calendar.items}
         calendarStatus={calendar.status}
+        onCalendarRetry={retry}
         onCalendarVisibleDateChange={loadFullCalendarForDate}
         pinnedItems={pinned.items}
         readThreadIds={readThreadIds}
@@ -62,6 +63,7 @@ export function HomePage() {
             calendarError={calendar.error}
             calendarItems={calendar.items}
             calendarStatus={calendar.status}
+            onCalendarRetry={retry}
             onCalendarVisibleDateChange={loadFullCalendarForDate}
             items={pinned.items}
             pinnedStatus={pinned.status}

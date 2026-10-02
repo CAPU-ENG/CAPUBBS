@@ -642,12 +642,12 @@
 
   .calendar-grid .calendar-day-selected {
     background: var(--brand-strong);
-    color: white;
+    color: var(--on-brand);
   }
 
   .calendar-grid .calendar-day-selected:hover {
     background: var(--brand-strong);
-    color: white;
+    color: var(--on-brand);
   }
 
   .calendar-event-dot {

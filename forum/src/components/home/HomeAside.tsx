@@ -9,6 +9,7 @@ import { canManageCalendar } from '../../utils/calendarManagement';
 import { toForumHref } from '../../utils/forumBasePath';
 import { getForumNavigationHref } from '../../utils/forumNavigation';
 import { getTitleIndentationClassName } from '../../utils/titleIndentation';
+import { ErrorState } from '../ErrorState';
 
 const HOME_CALENDAR_MIN_YEAR = 1995;
 const HOME_CALENDAR_MONTHS = Array.from({ length: 12 }, (_item, month) => ({
@@ -51,6 +52,7 @@ type CalendarProps = {
   compact?: boolean;
   error: string;
   items: HomeCalendarEvent[];
+  onRetry?: () => void;
   onVisibleDateChange: (date: string) => void;
   status: HomeDataStatus;
 };
@@ -59,6 +61,7 @@ type DesktopHomeAsideProps = PinnedProps & {
   calendarError: string;
   calendarItems: HomeCalendarEvent[];
   calendarStatus: HomeDataStatus;
+  onCalendarRetry?: () => void;
   onCalendarVisibleDateChange: (date: string) => void;
   pinnedStatus: HomeDataStatus;
   signupItems: HomeSignupActivity[];
@@ -141,7 +144,7 @@ function ActivitySignupPanel({ items }: { items: HomeSignupActivity[] }) {
   );
 }
 
-export function ActivityCalendar({ compact = false, error, items, onVisibleDateChange, status }: CalendarProps) {
+export function ActivityCalendar({ compact = false, error, items, onRetry, onVisibleDateChange, status }: CalendarProps) {
   const agendaRef = useStaggerEntrance<HTMLDivElement>(':scope > article');
   const { status: authStatus, viewer } = useAuth();
   const periodPickerId = useId();
@@ -348,7 +351,7 @@ export function ActivityCalendar({ compact = false, error, items, onVisibleDateC
         {status === 'loading' ? (
           <p>活动加载中…</p>
         ) : status === 'error' ? (
-          <p>{error}</p>
+          <ErrorState message={error} onRetry={onRetry} />
         ) : displayedActivities.length > 0 ? (
           <>
             {selectedActivities.length > 0 ? <p className="calendar-agenda-label">当日活动</p> : null}
@@ -385,6 +388,7 @@ export function DesktopHomeAside({
   calendarError,
   calendarItems,
   calendarStatus,
+  onCalendarRetry,
   items,
   onCalendarVisibleDateChange,
   pinnedStatus,
@@ -506,6 +510,7 @@ export function DesktopHomeAside({
         <ActivityCalendar
           error={calendarError}
           items={calendarItems}
+          onRetry={onCalendarRetry}
           onVisibleDateChange={onCalendarVisibleDateChange}
           status={calendarStatus}
         />

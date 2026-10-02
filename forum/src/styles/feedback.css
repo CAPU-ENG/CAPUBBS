@@ -20,6 +20,12 @@
     animation: copy-toast-in var(--duration-base) ease-out;
   }
 
+  .forum-offline-notice {
+    right: auto;
+    left: 50%;
+    translate: -50% 0;
+  }
+
   .forum-toast-error {
     border-color: color-mix(in srgb, var(--danger) 38%, var(--line));
     color: var(--danger);
@@ -32,5 +38,29 @@
       left: 12px;
       max-width: none;
     }
+
+    .forum-offline-notice {
+      right: 12px;
+      translate: none;
+    }
+  }
+}
+
+@layer components {
+  .forum-error-state {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: center;
+    gap: var(--space-10);
+    padding: var(--space-16);
+    color: var(--danger);
+    font-size: var(--ui-font-size-md);
+    line-height: 1.6;
+    text-align: center;
+  }
+
+  .forum-error-state > p {
+    margin: 0;
   }
 }

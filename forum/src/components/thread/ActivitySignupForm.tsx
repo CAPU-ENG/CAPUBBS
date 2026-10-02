@@ -103,7 +103,7 @@ function ActivitySignupFormLoader(props: ActivitySignupFormProps) {
             <>
               <span className="activity-signup-status-error" role="alert">{loadError}</span>
               <Button className="activity-signup-preview-button" onClick={() => setLoadRequest((current) => current + 1)} type="button">
-                <RotateCcw size={15} />重试
+                <RotateCcw size={15} />重新加载
               </Button>
             </>
           ) : (

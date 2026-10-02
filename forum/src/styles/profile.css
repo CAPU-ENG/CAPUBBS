@@ -1975,7 +1975,7 @@
     border: 1px solid var(--brand);
     padding: var(--space-8) var(--space-12);
     background: var(--brand);
-    color: #fff;
+    color: var(--on-brand);
     font-size: var(--ui-font-size-lg);
     font-weight: var(--font-weight-bold);
   }

@@ -520,6 +520,7 @@ export function ThreadComposePage() {
             backHref={backHref}
             backLabel={isReply ? '返回帖子' : '返回版面'}
             description={pageLoadError}
+            onRetry={() => window.location.reload()}
             title="暂时无法进入编辑页"
           />
         ) : authStatus === 'guest' ? (
@@ -675,6 +676,7 @@ function ComposeRequestState({
   backLabel = '返回版面',
   description,
   loginHref,
+  onRetry,
   registerHref,
   title,
 }: {
@@ -682,6 +684,7 @@ function ComposeRequestState({
   backLabel?: string;
   description: string;
   loginHref?: string;
+  onRetry?: () => void;
   registerHref?: string;
   title: string;
 }) {
@@ -690,6 +693,7 @@ function ComposeRequestState({
       <h1>{title}</h1>
       <p>{description}</p>
       <div>
+        {onRetry && <button onClick={onRetry} type="button">重新加载</button>}
         <a href={backHref}>{backLabel}</a>
         {loginHref && <a className="thread-edit-login-link" href={loginHref}>前往登录</a>}
         {registerHref && <a className="thread-edit-register-link" href={registerHref}>注册账号</a>}

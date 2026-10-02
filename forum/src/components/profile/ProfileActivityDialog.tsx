@@ -63,7 +63,7 @@ export function ProfileActivityDialog({ username, onClose }: { username: string;
           <div className="profile-activity-state" role="alert">
             <p>{state.error}</p>
             <button className="profile-secondary-action" onClick={() => setRevision((value) => value + 1)} type="button">
-              <RefreshCw aria-hidden="true" size={15} />重试
+              <RefreshCw aria-hidden="true" size={15} />重新加载
             </button>
           </div>
         ) : state.data ? <ActivityHeatmap activity={state.data} /> : (

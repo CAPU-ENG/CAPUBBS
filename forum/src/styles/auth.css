@@ -169,7 +169,7 @@
     gap: var(--space-6);
     border-radius: var(--control-radius);
     background: var(--brand-strong);
-    color: white;
+    color: var(--on-brand);
     font-weight: var(--font-weight-bold);
     transition: var(--duration-fast) ease;
   }
@@ -613,7 +613,7 @@
     border: 1px solid var(--surface);
     border-radius: 50%;
     background: var(--brand-strong);
-    color: white;
+    color: var(--on-brand);
   }
 
   .register-avatar-grid .register-avatar-upload {
@@ -781,7 +781,7 @@
     border-radius: var(--control-radius);
     padding: 0 var(--space-16);
     background: var(--brand-strong);
-    color: white;
+    color: var(--on-brand);
     font-size: var(--ui-font-size-lg);
     font-weight: var(--font-weight-bold);
     transition: var(--duration-fast) ease;

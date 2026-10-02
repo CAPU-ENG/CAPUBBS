@@ -526,6 +526,7 @@
 
   .management-empty {
     display: flex;
+    flex-wrap: wrap;
     min-height: 180px;
     align-items: center;
     justify-content: center;

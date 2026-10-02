@@ -92,7 +92,7 @@ export function BrowsingHistoryPage() {
           ) : state.error ? (
             <div className="browsing-history-state" role="alert">
               <p>{state.error}</p>
-              <button className="browsing-history-retry" onClick={retry} type="button"><RefreshCw size={15} />重试</button>
+              <button className="browsing-history-retry" onClick={retry} type="button"><RefreshCw size={15} />重新加载</button>
             </div>
           ) : data?.days.length ? (
             <div className="browsing-history-days">

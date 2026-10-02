@@ -127,7 +127,7 @@ export function DataDisplayPage() {
           <DataState icon={<AlertCircle size={20} />}>
             <span>{state.error}</span>
             <button onClick={() => setReloadToken((token) => token + 1)} type="button">
-              <RefreshCw size={15} /> 重试
+              <RefreshCw size={15} />重新加载
             </button>
           </DataState>
         ) : activePanel === 'online' ? (

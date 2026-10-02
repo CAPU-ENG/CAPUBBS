@@ -1,10 +1,11 @@
 import { DialogLayer } from '../layout/DialogPresence';
-import { Send, X } from 'lucide-react';
+import { RefreshCw, Send, X } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { LoadingSpinner as LoaderCircle } from '../layout/LoadingSpinner';
 import type { DirectChatMessage, DirectConversation } from '../../types/messages';
 import { useStaggerEntrance } from '../../hooks/useStaggerEntrance';
+import { Button } from '../Button';
 
 export function DirectMessageDialog({
   activeConversationId,
@@ -26,6 +27,7 @@ export function DirectMessageDialog({
   const [isSending, setIsSending] = useState(false);
   const [loadingConversationId, setLoadingConversationId] = useState<string | null>(null);
   const [loadError, setLoadError] = useState('');
+  const [loadReload, setLoadReload] = useState(0);
   const [sendError, setSendError] = useState('');
   const timelineRef = useRef<HTMLDivElement | null>(null);
   const activeConversation = conversations.find((conversation) => conversation.id === activeConversationId)
@@ -44,7 +46,7 @@ export function DirectMessageDialog({
         if (!stale) setLoadingConversationId(null);
       });
     return () => { stale = true; };
-  }, [activeConversation?.id, onLoadConversation]);
+  }, [activeConversation?.id, loadReload, onLoadConversation]);
 
   useEffect(() => {
     const timeline = timelineRef.current;
@@ -112,7 +114,7 @@ export function DirectMessageDialog({
             {loadingConversationId === activeConversation.id ? (
               <MessageTimelineState icon={<LoaderCircle className="animate-spin" size={21} />} text="正在读取私信记录" />
             ) : loadError ? (
-              <MessageTimelineState text={loadError} tone="error" />
+              <MessageTimelineState action={<Button onClick={() => setLoadReload((value) => value + 1)}><RefreshCw aria-hidden="true" size={15} />重新加载</Button>} text={loadError} tone="error" />
             ) : activeConversation.messages.length > 0 ? (
               <MessageTimeline conversation={activeConversation} key={activeConversation.id} messages={activeConversation.messages} />
             ) : (
@@ -180,10 +182,12 @@ function MessageTimeline({
 }
 
 function MessageTimelineState({
+  action,
   icon,
   text,
   tone = 'default',
 }: {
+  action?: React.ReactNode;
   icon?: React.ReactNode;
   text: string;
   tone?: 'default' | 'error';
@@ -191,7 +195,7 @@ function MessageTimelineState({
   const className = tone === 'error'
     ? 'direct-message-state direct-message-state-error'
     : 'direct-message-state direct-message-state-default';
-  return <div className={className}>{icon}<span>{text}</span></div>;
+  return <div className={className} role={tone === 'error' ? 'alert' : undefined}>{icon}<span>{text}</span>{action}</div>;
 }
 
 function getErrorMessage(error: unknown) {

@@ -1,5 +1,5 @@
 import { DialogLayer, DialogPresence } from '../layout/DialogPresence';
-import { ArrowDownAZ, Check, Clock3, Plus, Tags, Trash2, UserPlus, Users, X } from 'lucide-react';
+import { ArrowDownAZ, Check, Clock3, Plus, RefreshCw, Tags, Trash2, UserPlus, Users, X } from 'lucide-react';
 import { useEffect, useMemo, useRef, useState, type FormEvent, type ReactNode } from 'react';
 import {
   addTagMembers,
@@ -37,6 +37,8 @@ export function TagManagementWorkspace() {
   const [memberSelectedTagId, setMemberSelectedTagId] = useState('');
   const [definitionsStatus, setDefinitionsStatus] = useState<'error' | 'loading' | 'ready'>('loading');
   const [membersStatus, setMembersStatus] = useState<'error' | 'loading' | 'ready'>('ready');
+  const [definitionsReload, setDefinitionsReload] = useState(0);
+  const [membersReload, setMembersReload] = useState(0);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [draftName, setDraftName] = useState('');
   const [draftColor, setDraftColor] = useState(DEFAULT_TAG_COLOR);
@@ -82,7 +84,7 @@ export function TagManagementWorkspace() {
       },
     );
     return () => controller.abort();
-  }, []);
+  }, [definitionsReload]);
 
   useEffect(() => {
     setMemberSelectedTagId((current) => sortedDefinitions.some((tag) => tag.id === current)
@@ -110,7 +112,7 @@ export function TagManagementWorkspace() {
       },
     );
     return () => controller.abort();
-  }, [activeTagId]);
+  }, [activeTagId, membersReload]);
 
   useEffect(() => {
     if (memberDialogOpen && !memberCheckLoading && !pendingAction) {
@@ -340,7 +342,7 @@ export function TagManagementWorkspace() {
                 <TagBadge selected={editingId === tag.id} tag={tag} />
               </button>
             ))}
-            {definitions.length === 0 && <EmptyState icon={<Tags size={18} />}>{definitionsStatus === 'loading' ? '正在加载标签' : '还没有标签'}</EmptyState>}
+            {definitions.length === 0 && <EmptyState action={definitionsStatus === 'error' ? <RetryButton onClick={() => { setNotice(null); setDefinitionsStatus('loading'); setDefinitionsReload((value) => value + 1); }} /> : undefined} icon={<Tags size={18} />}>{definitionsStatus === 'loading' ? '正在加载标签' : definitionsStatus === 'error' ? '标签加载失败' : '还没有标签'}</EmptyState>}
           </div>
         </div>
       </section>
@@ -356,11 +358,11 @@ export function TagManagementWorkspace() {
               {sortedDefinitions.map((tag) => (
                 <button className={`management-member-filter-tag ${memberSelectedTagId === tag.id ? 'management-member-filter-tag-selected' : ''}`} disabled={Boolean(pendingAction)} key={tag.id} onClick={() => selectTag(tag.id)} type="button"><TagBadge selected={memberSelectedTagId === tag.id} tag={tag} /></button>
               ))}
-              {definitions.length === 0 && <EmptyState icon={<Tags size={18} />}>{definitionsStatus === 'loading' ? '正在加载标签' : '还没有标签'}</EmptyState>}
+              {definitions.length === 0 && <EmptyState action={definitionsStatus === 'error' ? <RetryButton onClick={() => { setNotice(null); setDefinitionsStatus('loading'); setDefinitionsReload((value) => value + 1); }} /> : undefined} icon={<Tags size={18} />}>{definitionsStatus === 'loading' ? '正在加载标签' : definitionsStatus === 'error' ? '标签加载失败' : '还没有标签'}</EmptyState>}
             </div>
           </aside>
           <div className="management-member-tag-editor">
-            {membersStatus === 'loading' ? <EmptyState icon={<Users size={18} />}>正在加载会员</EmptyState> : membersStatus === 'error' ? <EmptyState icon={<Users size={18} />}>会员加载失败</EmptyState> : (
+            {membersStatus === 'loading' ? <EmptyState icon={<Users size={18} />}>正在加载会员</EmptyState> : membersStatus === 'error' ? <EmptyState action={<RetryButton onClick={() => { setNotice(null); setMembersReload((value) => value + 1); }} />} icon={<Users size={18} />}>会员加载失败</EmptyState> : (
               <>
                 <div className="tag-summary-sort-bar management-member-sort-bar">
                   <button aria-pressed={memberSortOrder === 'acquiredAt'} className={memberSortOrder === 'acquiredAt' ? 'tag-summary-sort-active' : ''} onClick={() => setMemberSortOrder('acquiredAt')} type="button"><Clock3 size={14} />获取时间</button>
@@ -435,8 +437,12 @@ function formatTagAddedAt(value: number) {
   }).format(date);
 }
 
-function EmptyState({ children, icon }: { children: string; icon: ReactNode }) {
-  return <div className="management-empty-state"><span>{icon}</span>{children}</div>;
+function EmptyState({ action, children, icon }: { action?: ReactNode; children: string; icon: ReactNode }) {
+  return <div className="management-empty-state"><span>{icon}</span>{children}{action}</div>;
+}
+
+function RetryButton({ onClick }: { onClick: () => void }) {
+  return <Button onClick={onClick}><RefreshCw aria-hidden="true" size={15} />重新加载</Button>;
 }
 
 function ManagementNotice({ children, kind }: { children: string; kind: NoticeKind }) {

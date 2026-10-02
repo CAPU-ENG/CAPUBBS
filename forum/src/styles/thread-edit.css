@@ -516,7 +516,7 @@
     margin-top: var(--space-20);
   }
 
-  .thread-edit-request-state a {
+  .thread-edit-request-state :is(a, button) {
     display: inline-flex;
     min-height: 40px;
     align-items: center;
@@ -533,7 +533,7 @@
   .thread-edit-request-state .thread-edit-login-link {
     border-color: var(--brand);
     background: var(--brand);
-    color: white;
+    color: var(--on-brand);
   }
 
   .thread-edit-request-state .thread-edit-register-link {

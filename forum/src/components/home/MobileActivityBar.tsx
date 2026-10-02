@@ -13,6 +13,7 @@ type MobileActivityBarProps = {
   calendarError: string;
   calendarItems: HomeCalendarEvent[];
   calendarStatus: HomeDataStatus;
+  onCalendarRetry?: () => void;
   onCalendarVisibleDateChange: (date: string) => void;
   pinnedItems: HomeThread[];
   readThreadIds: ReadonlySet<string>;
@@ -23,6 +24,7 @@ export function MobileActivityBar({
   calendarError,
   calendarItems,
   calendarStatus,
+  onCalendarRetry,
   onCalendarVisibleDateChange,
   pinnedItems,
   readThreadIds,
@@ -175,6 +177,7 @@ export function MobileActivityBar({
               compact
               error={calendarError}
               items={calendarItems}
+              onRetry={onCalendarRetry}
               onVisibleDateChange={onCalendarVisibleDateChange}
               status={calendarStatus}
             />

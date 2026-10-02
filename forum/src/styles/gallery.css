@@ -272,7 +272,7 @@
   .gallery-dialog > footer button:last-child {
     border-color: var(--brand);
     background: var(--brand);
-    color: #fff;
+    color: var(--on-brand, #fff);
   }
 
   .gallery-dialog button:disabled,

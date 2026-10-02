@@ -6,6 +6,7 @@ import {
   Medal,
   Pencil,
   Plus,
+  RefreshCw,
   Trash2,
   Upload,
   UserPlus,
@@ -51,6 +52,8 @@ export function MedalManagementWorkspace() {
   const [memberCounts, setMemberCounts] = useState<Record<string, number | null>>({});
   const [selectedId, setSelectedId] = useState('');
   const [definitionsStatus, setDefinitionsStatus] = useState<LoadState>('loading');
+  const [definitionsReload, setDefinitionsReload] = useState(0);
+  const [membersReload, setMembersReload] = useState(0);
   const [membersStatus, setMembersStatus] = useState<LoadState>('ready');
   const [detailTab, setDetailTab] = useState<'issue' | 'members'>('members');
   const [issueMode, setIssueMode] = useState<'batch' | 'single'>('single');
@@ -92,7 +95,7 @@ export function MedalManagementWorkspace() {
       },
     );
     return () => controller.abort();
-  }, []);
+  }, [definitionsReload]);
 
   useEffect(() => {
     const controller = new AbortController();
@@ -131,7 +134,7 @@ export function MedalManagementWorkspace() {
       },
     );
     return () => controller.abort();
-  }, [selectedMedalId]);
+  }, [membersReload, selectedMedalId]);
 
   function selectMedal(id: string) {
     setSelectedId(id);
@@ -322,7 +325,7 @@ export function MedalManagementWorkspace() {
         </header>
 
         {loadMessage ? (
-          <div className="management-medal-empty"><Medal size={24} /><strong>{loadMessage}</strong></div>
+          <div className="management-medal-empty"><Medal size={24} /><strong>{loadMessage}</strong>{definitionsStatus === 'error' ? <Button onClick={() => { setNotice(null); setDefinitionsReload((value) => value + 1); }}><RefreshCw aria-hidden="true" size={15} />重新加载</Button> : null}</div>
         ) : (
           <div className="management-medal-workspace-body">
             <aside aria-label="勋章列表" className="management-medal-catalog">
@@ -377,6 +380,7 @@ export function MedalManagementWorkspace() {
                       disabled={Boolean(pendingAction)}
                       members={members}
                       onRemove={(member) => { setNotice(null); setRemoveMemberTarget(member); }}
+                      onRetry={() => { setNotice(null); setMembersReload((value) => value + 1); }}
                       status={membersStatus}
                     />
                   ) : (
@@ -469,11 +473,13 @@ function MemberList({
   disabled,
   members,
   onRemove,
+  onRetry,
   status,
 }: {
   disabled: boolean;
   members: MedalMember[];
   onRemove: (member: MedalMember) => void;
+  onRetry: () => void;
   status: LoadState;
 }) {
   return (
@@ -484,7 +490,7 @@ function MemberList({
           {status === 'loading' ? (
             <tr><td className="management-medal-table-empty" colSpan={4}>正在加载成员</td></tr>
           ) : status === 'error' ? (
-            <tr><td className="management-medal-table-empty" colSpan={4}>成员加载失败</td></tr>
+            <tr><td className="management-medal-table-empty" colSpan={4}>成员加载失败 <Button onClick={onRetry}><RefreshCw aria-hidden="true" size={15} />重新加载</Button></td></tr>
           ) : members.length > 0 ? members.map((member) => (
             <tr key={member.username}>
               <td><a href={getForumNavigationHref(member.href, window.location.href)}>{member.username}</a></td>
