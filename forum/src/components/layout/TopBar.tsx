@@ -249,6 +249,10 @@ export function TopBar({
     setProfileOpen(false);
   }
 
+  function cancelCloseBoards() {
+    if (closeTimer.current) window.clearTimeout(closeTimer.current);
+  }
+
   function scheduleCloseBoards() {
     closeTimer.current = window.setTimeout(() => setBoardsOpen(false), 150);
   }
@@ -328,6 +332,7 @@ export function TopBar({
               className="topbar-primary-nav"
             >
               <a
+                aria-current={isHomePage ? 'page' : undefined}
                 href={toForumHref('/')}
                 className={`top-nav-link ${isHomePage ? 'top-nav-link-active' : ''}`}
                 tabIndex={contextTitleVisible ? -1 : undefined}
@@ -336,9 +341,6 @@ export function TopBar({
               </a>
               <div
                 className="flex h-full items-stretch"
-                onMouseEnter={openBoards}
-                onMouseLeave={scheduleCloseBoards}
-                onFocus={openBoards}
                 onBlur={(event) => {
                   if (!event.currentTarget.contains(event.relatedTarget)) scheduleCloseBoards();
                 }}
@@ -349,7 +351,7 @@ export function TopBar({
                   ref={boardTriggerRef}
                   aria-haspopup="true"
                   aria-expanded={boardsOpen}
-                  onClick={() => setBoardsOpen((open) => !open)}
+                  onClick={() => (boardsOpen ? setBoardsOpen(false) : openBoards())}
                   tabIndex={contextTitleVisible ? -1 : undefined}
                 >
                   版块 <ChevronDown size={14} className={`transition-transform ${boardsOpen ? 'rotate-180' : ''}`} />
@@ -357,6 +359,7 @@ export function TopBar({
               </div>
               {canManageForum && (
                 <a
+                  aria-current={isManagePage ? 'page' : undefined}
                   href={toForumHref('/manage')}
                   className={`top-nav-link ${isManagePage ? 'top-nav-link-active' : ''}`}
                   tabIndex={contextTitleVisible ? -1 : undefined}
@@ -393,6 +396,7 @@ export function TopBar({
 
           <div className="ml-auto flex items-center gap-1.5 sm:gap-2">
             <a
+              aria-current={isSearchPage ? 'page' : undefined}
               className={`icon-button ${isSearchPage ? 'icon-button-active' : ''}`}
               href={toForumHref('/search')}
               aria-label="搜索"
@@ -429,6 +433,7 @@ export function TopBar({
             ) : authStatus === 'guest' ? (
               <>
                 <a
+                  aria-current={isSettingsPage ? 'page' : undefined}
                   className={`icon-button hidden lg:inline-flex ${isSettingsPage ? 'icon-button-active' : ''}`}
                   href={toForumHref('/settings')}
                   aria-label="设置"
@@ -497,9 +502,7 @@ export function TopBar({
           <div
             className="desktop-board-drawer-wrap"
             style={{ left: boardDrawerCenter === null ? '50%' : `${boardDrawerCenter}px` }}
-            onMouseEnter={openBoards}
-            onMouseLeave={scheduleCloseBoards}
-            onFocus={openBoards}
+            onFocus={cancelCloseBoards}
             onBlur={(event) => {
               if (!event.currentTarget.contains(event.relatedTarget)) scheduleCloseBoards();
             }}

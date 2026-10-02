@@ -853,4 +853,27 @@
       width: 100%;
     }
   }
+
+  .password-visibility-toggle {
+    display: inline-flex;
+    width: 32px;
+    height: 32px;
+    flex: 0 0 auto;
+    align-items: center;
+    justify-content: center;
+    margin-right: calc(var(--space-6) * -1);
+    border-radius: var(--control-radius);
+    color: var(--text-muted);
+    transition: color var(--duration-fast) ease, background var(--duration-fast) ease;
+  }
+
+  .password-visibility-toggle:hover {
+    background: var(--surface-soft);
+    color: var(--brand-strong);
+  }
+
+  .password-visibility-toggle:focus-visible {
+    outline: var(--focus-ring);
+    outline-offset: 0;
+  }
 }

@@ -7,12 +7,14 @@ import { useDocumentTitle } from '../hooks/useDocumentTitle';
 import { useAuth } from '../context/AuthContext';
 import { getAuthPathWithReturnTo, getAuthReturnTo, replaceForumLocation } from '../utils/authRoutes';
 import { md5LegacyStringHex } from '../utils/md5';
+import { PasswordVisibilityButton } from '../components/PasswordVisibilityButton';
 
 export function LoginPage() {
   useDocumentTitle('CAPUBBS');
   const { login, status } = useAuth();
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
+  const [passwordVisible, setPasswordVisible] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
   const returnTo = getAuthReturnTo(window.location.search);
@@ -80,9 +82,10 @@ export function LoginPage() {
                   name="password"
                   onChange={(event) => setPassword(event.currentTarget.value)}
                   placeholder="输入密码"
-                  type="password"
+                  type={passwordVisible ? 'text' : 'password'}
                   value={password}
                 />
+                <PasswordVisibilityButton onToggle={() => setPasswordVisible((visible) => !visible)} visible={passwordVisible} />
               </div>
             </label>
 

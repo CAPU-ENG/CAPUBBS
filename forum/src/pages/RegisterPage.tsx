@@ -30,6 +30,7 @@ import { getAuthPathWithReturnTo, getAuthReturnTo, replaceForumLocation } from '
 import { normalizeLegacyAvatar } from '../utils/legacyAssets';
 import { md5LegacyStringHex } from '../utils/md5';
 import { getThreadHref } from '../utils/threadRoutes';
+import { PasswordVisibilityButton } from '../components/PasswordVisibilityButton';
 
 const PKU_EMAIL_PATTERN = /^\d{10}@(?:(?:.+\.)?pku\.edu\.cn|bjmu\.edu\.cn)$/i;
 const AVATAR_OPTIONS = [
@@ -61,6 +62,7 @@ export function RegisterPage() {
   const [email, setEmail] = useState('');
   const [emailCode, setEmailCode] = useState('');
   const [password, setPassword] = useState('');
+  const [passwordVisible, setPasswordVisible] = useState(false);
   const [confirmPassword, setConfirmPassword] = useState('');
   const [sex, setSex] = useState('0');
   const [icon, setIcon] = useState(AVATAR_OPTIONS[0].src);
@@ -398,9 +400,10 @@ export function RegisterPage() {
                         clearFieldError('confirmPassword');
                       }}
                       placeholder="6–18 位密码"
-                      type="password"
+                      type={passwordVisible ? 'text' : 'password'}
                       value={password}
                     />
+                    <PasswordVisibilityButton onToggle={() => setPasswordVisible((visible) => !visible)} visible={passwordVisible} />
                   </div>
                   <div className="register-password-meter" data-strength={passwordStrength.level}>
                     <span /><span /><span />
@@ -424,7 +427,7 @@ export function RegisterPage() {
                         clearFieldError('confirmPassword');
                       }}
                       placeholder="再次输入密码"
-                      type="password"
+                      type={passwordVisible ? 'text' : 'password'}
                       value={confirmPassword}
                     />
                     {confirmPassword && password === confirmPassword && <Check className="register-valid-icon" size={16} />}
