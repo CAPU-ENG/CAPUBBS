@@ -4,7 +4,7 @@
     display: flex;
     min-width: 0;
     align-items: center;
-    gap: 6px;
+    gap: var(--space-6);
   }
 
   .statistics-title > h1,
@@ -44,7 +44,7 @@
     left: 0;
     width: max-content;
     max-width: min(320px, calc(100vw - 128px));
-    padding-top: 6px;
+    padding-top: var(--space-6);
     visibility: hidden;
   }
 
@@ -52,7 +52,7 @@
     display: block;
     border: 1px solid var(--line-strong);
     border-radius: var(--control-radius);
-    padding: 8px 10px;
+    padding: var(--space-8) var(--space-10);
     background: var(--surface-raised);
     box-shadow: var(--shadow-float);
     color: var(--text-muted);

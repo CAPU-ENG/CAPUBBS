@@ -60,16 +60,16 @@
     grid-template-columns: minmax(0, 1fr) max-content;
     align-items: center;
     gap: 30px;
-    padding: 16px 28px 16px 210px;
+    padding: var(--space-16) var(--space-28) var(--space-16) 210px;
   }
 
   .board-title-card-secondary .board-title-content {
-    padding-left: 28px;
+    padding-left: var(--space-28);
   }
 
   .board-title-copy {
     min-width: 0;
-    padding-left: 24px;
+    padding-left: var(--space-24);
   }
 
   .board-title-card-secondary .board-title-copy {
@@ -89,8 +89,8 @@
     display: flex;
     flex-wrap: wrap;
     align-items: center;
-    gap: 7px;
-    margin-top: 12px;
+    gap: var(--space-8);
+    margin-top: var(--space-12);
     font-size: var(--ui-font-size-md);
   }
 
@@ -125,7 +125,7 @@
 
   .board-stat-grid > div {
     min-width: 0;
-    padding: 6px 4px 5px;
+    padding: var(--space-6) var(--space-4) var(--space-4);
     text-align: center;
   }
 
@@ -142,7 +142,7 @@
 
   .board-stat-grid dd {
     overflow: hidden;
-    margin-top: 2px;
+    margin-top: var(--space-2);
     color: var(--text-strong);
     font-family: ui-monospace, "SFMono-Regular", Consolas, monospace;
     font-size: var(--ui-font-size-md);
@@ -155,8 +155,8 @@
     width: max-content;
     flex-wrap: nowrap;
     justify-content: flex-end;
-    gap: 8px;
-    margin-top: 10px;
+    gap: var(--space-8);
+    margin-top: var(--space-10);
   }
 
   .board-primary-action,
@@ -166,10 +166,10 @@
     height: 34px;
     align-items: center;
     justify-content: center;
-    gap: 6px;
+    gap: var(--space-6);
     border: 1px solid var(--line-strong);
     border-radius: var(--control-radius);
-    padding: 0 13px;
+    padding: 0 var(--space-12);
     background: color-mix(in srgb, var(--surface-raised) 88%, transparent);
     color: var(--text-muted);
     font-size: var(--ui-font-size-md);
@@ -230,10 +230,10 @@
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    gap: 9px;
+    gap: var(--space-8);
     border: 1px solid var(--line);
     border-radius: var(--card-radius);
-    padding: 36px 20px;
+    padding: var(--space-36) var(--space-20);
     background: var(--surface);
     box-shadow: var(--shadow-card);
     color: var(--text-muted);
@@ -257,11 +257,11 @@
     display: inline-flex;
     height: 34px;
     align-items: center;
-    gap: 6px;
-    margin-top: 5px;
+    gap: var(--space-6);
+    margin-top: var(--space-4);
     border: 1px solid var(--line-strong);
     border-radius: var(--control-radius);
-    padding: 0 13px;
+    padding: 0 var(--space-12);
     background: var(--surface-raised);
     color: var(--text);
     font-size: var(--ui-font-size-md);
@@ -270,7 +270,7 @@
 
   .board-thread-empty {
     border-top: 1px solid var(--line);
-    padding: 44px 20px;
+    padding: 44px var(--space-20);
     color: var(--text-faint);
     font-size: var(--ui-font-size-md);
     text-align: center;
@@ -278,7 +278,7 @@
 
   .board-thread-section {
     overflow: hidden;
-    margin-top: 12px;
+    margin-top: var(--space-12);
     border: 1px solid var(--line);
     border-radius: var(--card-radius);
     background: var(--surface);
@@ -291,7 +291,7 @@
 
   .board-management-feedback {
     border-bottom: 1px solid var(--line);
-    padding: 9px 15px;
+    padding: var(--space-8) var(--space-16);
     font-size: var(--ui-font-size-md);
     font-weight: var(--font-weight-semibold);
   }
@@ -348,7 +348,7 @@
   .board-thread-table th {
     height: 42px;
     border-bottom: 1px solid var(--line);
-    padding: 0 15px;
+    padding: 0 var(--space-16);
     color: var(--text-muted);
     font-size: var(--ui-font-size-md);
     font-weight: var(--font-weight-bold);
@@ -366,7 +366,7 @@
   .board-thread-row td {
     height: 54px;
     border-bottom: 1px solid var(--line);
-    padding: 6px 15px;
+    padding: var(--space-6) var(--space-16);
     vertical-align: middle;
   }
 
@@ -374,7 +374,7 @@
     display: flex;
     min-width: 0;
     align-items: center;
-    gap: 8px;
+    gap: var(--space-8);
   }
 
   .board-thread-title-line > a {
@@ -397,17 +397,17 @@
     display: inline-flex;
     flex-shrink: 0;
     align-items: center;
-    gap: 4px;
+    gap: var(--space-4);
   }
 
   .board-status {
     display: inline-flex;
     height: 19px;
     align-items: center;
-    gap: 3px;
+    gap: var(--space-4);
     border: 1px solid var(--line-strong);
     border-radius: var(--control-radius);
-    padding: 0 5px;
+    padding: 0 var(--space-4);
     color: var(--text-faint);
     font-size: var(--ui-font-size-xs);
     font-weight: var(--font-weight-bold);
@@ -451,7 +451,7 @@
 
   .board-thread-time {
     display: block;
-    margin-top: 3px;
+    margin-top: var(--space-4);
     color: var(--text-faint);
     font-family: ui-monospace, "SFMono-Regular", Consolas, monospace;
     font-size: 0.55rem;
@@ -465,7 +465,7 @@
   .board-thread-time time {
     display: flex;
     justify-content: center;
-    gap: 4px;
+    gap: var(--space-4);
   }
 
   .board-thread-counts {
@@ -478,7 +478,7 @@
   }
 
   .board-thread-counts i {
-    margin-inline: 3px;
+    margin-inline: var(--space-4);
     color: var(--text-faint);
     font-style: normal;
   }
@@ -491,14 +491,14 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 5px;
+    gap: var(--space-4);
   }
 
   .board-thread-management-actions button {
     height: 26px;
     border: 1px solid var(--line-strong);
     border-radius: var(--control-radius);
-    padding: 0 7px;
+    padding: 0 var(--space-8);
     background: var(--surface-raised);
     color: var(--text-muted);
     font-size: var(--ui-font-size-xs);
@@ -525,7 +525,7 @@
   .board-pagination-footer {
     display: flex;
     justify-content: flex-end;
-    padding: 16px 18px 18px;
+    padding: var(--space-16) var(--space-18) var(--space-18);
   }
 }
 @layer utilities {
@@ -538,7 +538,7 @@
     .board-title-content {
       grid-template-columns: minmax(0, 1fr) max-content;
       gap: 26px;
-      padding: 16px 26px 16px 170px;
+      padding: var(--space-16) 26px var(--space-16) 170px;
     }
 
     .board-title-card-secondary .board-title-content {
@@ -568,7 +568,7 @@
       display: grid;
       min-height: 0;
       grid-template-columns: minmax(0, 1fr);
-      gap: 8px;
+      gap: var(--space-8);
       padding: 0;
     }
 
@@ -584,7 +584,7 @@
       overflow: hidden;
       border: 1px solid var(--line);
       border-radius: var(--card-radius);
-      padding: 16px;
+      padding: var(--space-16);
       background: var(--surface);
       box-shadow: var(--shadow-card);
       overflow-wrap: anywhere;
@@ -601,8 +601,8 @@
 
     .board-moderators {
       justify-content: flex-end;
-      gap: 6px;
-      margin-top: 10px;
+      gap: var(--space-6);
+      margin-top: var(--space-10);
       font-size: var(--ui-font-size-sm);
     }
 
@@ -614,8 +614,8 @@
       display: grid;
       min-height: 56px;
       align-content: center;
-      gap: 4px;
-      padding: 8px 6px;
+      gap: var(--space-4);
+      padding: var(--space-8) var(--space-6);
     }
 
     .board-stat-grid {
@@ -647,7 +647,7 @@
       display: grid;
       width: 100%;
       grid-template-columns: minmax(0, 1fr);
-      gap: 8px;
+      gap: var(--space-8);
       margin: 0;
     }
 
@@ -656,13 +656,13 @@
     .board-activity-action {
       min-width: 0;
       height: 34px;
-      gap: 4px;
-      padding-inline: 7px;
+      gap: var(--space-4);
+      padding-inline: var(--space-8);
       font-size: var(--ui-font-size-sm);
     }
 
     .board-thread-section {
-      margin-top: 8px;
+      margin-top: var(--space-8);
     }
 
     .board-thread-table-wrap {
@@ -688,8 +688,8 @@
       min-width: 0;
       flex-wrap: wrap;
       align-items: baseline;
-      gap: 3px 14px;
-      padding: 11px 15px;
+      gap: var(--space-4) var(--space-14);
+      padding: var(--space-12) var(--space-16);
     }
 
     .board-thread-row td {
@@ -712,7 +712,7 @@
     .board-thread-title-line {
       position: relative;
       display: block;
-      padding-left: 12px;
+      padding-left: var(--space-12);
     }
 
     .board-thread-title-line::before {
@@ -740,7 +740,7 @@
       min-width: 0;
       flex: 0 0 auto;
       align-items: center;
-      gap: 5px;
+      gap: var(--space-4);
       margin-left: auto;
       padding: 0 !important;
       color: var(--text-faint);
@@ -756,12 +756,12 @@
     }
 
     .board-thread-title-line > .board-status {
-      margin-right: 7px;
+      margin-right: var(--space-8);
       vertical-align: middle;
     }
 
     .board-thread-statuses {
-      margin-left: 7px;
+      margin-left: var(--space-8);
       vertical-align: middle;
     }
 
@@ -787,7 +787,7 @@
     .board-thread-author-cell .board-thread-time time {
       display: inline-flex;
       justify-content: flex-start;
-      gap: 4px;
+      gap: var(--space-4);
     }
 
     .board-thread-management-cell {
@@ -809,7 +809,7 @@
     .board-pagination-footer {
       justify-content: flex-start;
       overflow: visible;
-      padding: 10px 8px;
+      padding: var(--space-10) var(--space-8);
     }
 
     .board-pagination-footer .thread-pagination {

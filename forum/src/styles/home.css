@@ -20,7 +20,7 @@
   }
 
   .feed-item {
-    padding: 22px;
+    padding: var(--space-22);
     transition: background var(--duration-fast) ease;
   }
 
@@ -70,7 +70,7 @@
   .feed-item-content > p {
     display: -webkit-box;
     overflow: hidden;
-    margin-top: 8px;
+    margin-top: var(--space-8);
     color: var(--text-muted);
     font-size: var(--ui-font-size-lg);
     line-height: 1.75;
@@ -79,7 +79,7 @@
   }
 
   .feed-item-compact {
-    padding: 12px 18px;
+    padding: var(--space-12) var(--space-18);
   }
 
   .feed-item-compact-row {
@@ -87,7 +87,7 @@
     min-width: 0;
     flex-wrap: wrap;
     align-items: baseline;
-    gap: 3px 14px;
+    gap: var(--space-4) var(--space-14);
   }
 
   .feed-item-compact-title,
@@ -105,7 +105,7 @@
     position: relative;
     max-width: 100%;
     flex: 0 0 auto;
-    padding-left: 12px;
+    padding-left: var(--space-12);
     overflow-wrap: anywhere;
     font-size: var(--ui-font-size-xl);
     line-height: 1.55;
@@ -119,7 +119,7 @@
     display: inline-flex;
     flex: 0 0 auto;
     align-items: center;
-    gap: 5px;
+    gap: var(--space-4);
     margin-left: auto;
     color: var(--text-faint);
     font-size: var(--ui-font-size-md);
@@ -142,7 +142,7 @@
     display: flex;
     min-width: 0;
     align-items: center;
-    margin-top: 16px;
+    margin-top: var(--space-16);
     color: var(--text-faint);
     font-size: var(--ui-font-size-md);
   }
@@ -151,7 +151,7 @@
     display: inline-flex;
     min-width: 0;
     align-items: center;
-    gap: 7px;
+    gap: var(--space-8);
     color: var(--text-muted);
   }
 
@@ -176,7 +176,7 @@
   }
 
   .feed-meta-separator {
-    margin: 0 7px;
+    margin: 0 var(--space-8);
   }
 
   .feed-item-meta time {
@@ -202,14 +202,14 @@
     display: inline-flex;
     flex-shrink: 0;
     align-items: center;
-    gap: 18px;
+    gap: var(--space-18);
     margin-left: auto;
   }
 
   .feed-stats > span {
     display: inline-flex;
     align-items: center;
-    gap: 5px;
+    gap: var(--space-4);
   }
 
   .load-more {
@@ -218,7 +218,7 @@
     height: 50px;
     align-items: center;
     justify-content: center;
-    gap: 7px;
+    gap: var(--space-8);
     border-top: 1px solid var(--line);
     color: var(--brand-strong);
     font-size: var(--ui-font-size-lg);
@@ -235,7 +235,7 @@
     min-height: 54px;
     align-items: center;
     justify-content: center;
-    gap: 8px;
+    gap: var(--space-8);
     border-top: 1px solid var(--line);
     color: var(--text-muted);
     font-size: var(--ui-font-size-lg);
@@ -246,10 +246,10 @@
     min-height: 32px;
     align-items: center;
     justify-content: center;
-    gap: 5px;
+    gap: var(--space-4);
     border: 1px solid var(--line-strong);
     border-radius: var(--control-radius);
-    padding: 0 10px;
+    padding: 0 var(--space-10);
     background: var(--surface-raised);
     color: var(--brand-strong);
     font-weight: var(--font-weight-bold);
@@ -276,8 +276,8 @@
     min-height: 180px;
     align-items: center;
     justify-content: center;
-    gap: 8px;
-    padding: 28px;
+    gap: var(--space-8);
+    padding: var(--space-28);
     color: var(--text-muted);
     font-size: var(--ui-font-size-lg);
     text-align: center;
@@ -285,14 +285,14 @@
 
   .home-data-error {
     flex-direction: column;
-    gap: 12px;
+    gap: var(--space-12);
   }
 
   .home-data-error button {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    gap: 5px;
+    gap: var(--space-4);
     border: 1px solid var(--line-strong);
     border-radius: var(--control-radius);
     color: var(--brand-strong);
@@ -301,7 +301,7 @@
 
   .home-data-error button {
     min-height: 32px;
-    padding: 0 11px;
+    padding: 0 var(--space-12);
   }
 
   .home-data-error button:hover {
@@ -312,7 +312,7 @@
     align-self: start;
     display: flex;
     flex-direction: column;
-    gap: 10px;
+    gap: var(--space-10);
   }
 
   .aside-card {
@@ -326,8 +326,8 @@
   .aside-card-header {
     display: flex;
     align-items: center;
-    gap: 9px;
-    padding: 17px 17px 12px;
+    gap: var(--space-8);
+    padding: var(--space-16) var(--space-16) var(--space-12);
   }
 
   .aside-card-header h2 {
@@ -349,7 +349,7 @@
   }
 
   .pinned-list {
-    padding: 0 12px 12px;
+    padding: 0 var(--space-12) var(--space-12);
   }
 
   .pinned-list a {
@@ -357,9 +357,9 @@
     grid-template-columns: auto minmax(0, 1fr) auto;
     min-height: 40px;
     align-items: center;
-    gap: 7px;
+    gap: var(--space-8);
     border-radius: var(--control-radius);
-    padding: 5px 6px;
+    padding: var(--space-4) var(--space-6);
     color: var(--text-muted);
     transition: var(--duration-fast) ease;
   }
@@ -371,7 +371,7 @@
 
   .pinned-list a > span {
     border-radius: 4px;
-    padding: 2px 4px;
+    padding: var(--space-2) var(--space-4);
     background: color-mix(in srgb, var(--danger) 12%, transparent);
     color: var(--danger);
     font-size: var(--ui-font-size-xs);
@@ -396,15 +396,15 @@
   .signup-list {
     display: flex;
     flex-direction: column;
-    gap: 8px;
-    padding: 0 12px 12px;
+    gap: var(--space-8);
+    padding: 0 var(--space-12) var(--space-12);
   }
 
   .signup-activity-card {
     display: block;
     border: 1px solid var(--line);
     border-radius: var(--card-radius);
-    padding: 11px;
+    padding: var(--space-12);
     background: var(--surface-soft);
     transition: var(--duration-fast) ease;
   }
@@ -418,7 +418,7 @@
     display: flex;
     align-items: center;
     justify-content: space-between;
-    gap: 10px;
+    gap: var(--space-10);
   }
 
   .signup-card-topline > span {
@@ -429,7 +429,7 @@
 
   .signup-card-topline em {
     border-radius: var(--card-radius);
-    padding: 2px 5px;
+    padding: var(--space-2) var(--space-4);
     background: var(--brand-soft);
     color: var(--brand-strong);
     font-size: var(--ui-font-size-xs);
@@ -438,7 +438,7 @@
   }
 
   .signup-activity-card h3 {
-    margin-top: 6px;
+    margin-top: var(--space-6);
     color: var(--text-strong);
     font-size: var(--ui-font-size-sm);
     font-weight: var(--font-weight-bold);
@@ -448,17 +448,17 @@
     display: flex;
     align-items: center;
     justify-content: space-between;
-    gap: 10px;
-    margin-top: 9px;
+    gap: var(--space-10);
+    margin-top: var(--space-8);
     border-top: 1px solid var(--line);
-    padding-top: 8px;
+    padding-top: var(--space-8);
   }
 
   .signup-card-countdown {
     display: inline-flex;
     min-width: 0;
     align-items: center;
-    gap: 4px;
+    gap: var(--space-4);
     color: var(--text-muted);
     font-size: var(--ui-font-size-sm);
   }
@@ -484,7 +484,7 @@
     display: grid;
     grid-template-columns: 32px 1fr 32px;
     align-items: center;
-    margin: 2px 14px 13px;
+    margin: var(--space-2) var(--space-14) var(--space-12);
   }
 
   .calendar-month-arrow {
@@ -516,7 +516,7 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 3px;
+    gap: var(--space-4);
     color: var(--text-strong);
     font-size: var(--ui-font-size-lg);
     font-weight: var(--font-weight-bold);
@@ -526,7 +526,7 @@
     min-width: 28px;
     min-height: 28px;
     border-radius: var(--control-radius);
-    padding: 0 5px;
+    padding: 0 var(--space-4);
     color: var(--brand-strong);
     font: inherit;
     transition: var(--duration-fast) ease;
@@ -550,10 +550,10 @@
     display: grid;
     width: 224px;
     grid-template-columns: repeat(3, minmax(0, 1fr));
-    gap: 4px;
+    gap: var(--space-4);
     border: 1px solid var(--line-strong);
     border-radius: 4px;
-    padding: 8px;
+    padding: var(--space-8);
     background: var(--surface-raised);
     box-shadow: var(--shadow-float);
     transform: translateX(-50%);
@@ -597,12 +597,12 @@
   .calendar-grid {
     display: grid;
     grid-template-columns: repeat(7, minmax(0, 1fr));
-    gap: 2px;
-    margin: 0 14px;
+    gap: var(--space-2);
+    margin: 0 var(--space-14);
   }
 
   .calendar-weekdays {
-    margin-bottom: 4px;
+    margin-bottom: var(--space-4);
     color: var(--text-faint);
     font-size: var(--ui-font-size-sm);
     text-align: center;
@@ -673,7 +673,7 @@
   }
 
   .calendar-agenda {
-    margin: 14px;
+    margin: var(--space-14);
     border: 1px solid var(--line);
     border-radius: var(--card-radius);
     background: var(--surface-soft);
@@ -681,9 +681,9 @@
 
   .calendar-agenda article {
     display: grid;
-    gap: 5px;
+    gap: var(--space-4);
     min-width: 0;
-    padding: 11px;
+    padding: var(--space-12);
   }
 
   .calendar-agenda-title {
@@ -704,7 +704,7 @@
 
   .calendar-agenda-title a svg {
     display: inline-block;
-    margin-left: 4px;
+    margin-left: var(--space-4);
     vertical-align: -1px;
   }
 
@@ -713,7 +713,7 @@
     justify-content: space-between;
     flex-wrap: wrap;
     align-items: flex-start;
-    gap: 5px 10px;
+    gap: var(--space-4) var(--space-10);
     min-width: 0;
     color: var(--text-muted);
     font-size: var(--ui-font-size-2xs);
@@ -723,7 +723,7 @@
   .calendar-agenda-description {
     display: flex;
     align-items: baseline;
-    gap: 4px;
+    gap: var(--space-4);
   }
 
   .calendar-agenda-details svg {
@@ -749,14 +749,14 @@
   }
 
   .calendar-agenda p {
-    padding: 13px 11px;
+    padding: var(--space-12) var(--space-12);
     color: var(--text-faint);
     font-size: var(--ui-font-size-2xs);
     text-align: center;
   }
 
   .calendar-agenda .calendar-agenda-label {
-    padding: 9px 11px 0;
+    padding: var(--space-8) var(--space-12) 0;
     text-align: left;
   }
 
@@ -776,9 +776,9 @@
     display: grid;
     max-width: 780px;
     grid-template-columns: repeat(3, minmax(0, 1fr));
-    gap: 4px;
+    gap: var(--space-4);
     margin: 0 auto;
-    padding: 4px 10px;
+    padding: var(--space-4) var(--space-10);
   }
 
   .mobile-overview-tabs > button {
@@ -788,7 +788,7 @@
     justify-content: space-between;
     border: 1px solid transparent;
     border-radius: var(--control-radius);
-    padding: 0 8px;
+    padding: 0 var(--space-8);
     color: var(--text-muted);
     font-size: var(--ui-font-size-md);
     font-weight: var(--font-weight-bold);
@@ -810,12 +810,12 @@
   .mobile-overview-tabs > button > span {
     display: inline-flex;
     align-items: center;
-    gap: 6px;
+    gap: var(--space-6);
   }
 
   .mobile-overview-tab-new {
     border-radius: var(--control-radius);
-    padding: 2px 4px;
+    padding: var(--space-2) var(--space-4);
     background: color-mix(in srgb, var(--danger) 12%, transparent);
     color: var(--danger);
     font-size: var(--ui-font-size-xs);
@@ -826,7 +826,7 @@
   .mobile-overview-tab-count {
     min-width: 18px;
     border-radius: var(--control-radius);
-    padding: 2px 5px;
+    padding: var(--space-2) var(--space-4);
     background: var(--brand-soft);
     color: var(--brand-strong);
     font-size: var(--ui-font-size-xs);
@@ -855,7 +855,7 @@
   }
 
   .mobile-pinned-list {
-    padding: 4px;
+    padding: var(--space-4);
   }
 
   .mobile-pinned-list li + li {
@@ -867,15 +867,15 @@
     min-height: 42px;
     grid-template-columns: auto minmax(0, 1fr) auto;
     align-items: center;
-    gap: 7px;
+    gap: var(--space-8);
     border-radius: var(--control-radius);
-    padding: 6px 9px;
+    padding: var(--space-6) var(--space-8);
     color: var(--text-muted);
   }
 
   .mobile-pinned-list a > span {
     border-radius: var(--control-radius);
-    padding: 2px 4px;
+    padding: var(--space-2) var(--space-4);
     background: color-mix(in srgb, var(--danger) 12%, transparent);
     color: var(--danger);
     font-size: var(--ui-font-size-xs);
@@ -899,7 +899,7 @@
   .mobile-signup-list {
     max-width: 440px;
     margin: 0 auto;
-    padding: 4px;
+    padding: var(--space-4);
   }
 
   .activity-calendar-compact {
@@ -911,7 +911,7 @@
   }
 
   .activity-calendar-compact .calendar-month-nav {
-    margin-top: 12px;
+    margin-top: var(--space-12);
   }
 
 }
@@ -920,7 +920,7 @@
     .page-shell {
       display: grid;
       grid-template-columns: minmax(0, 760px) 304px;
-      gap: 10px;
+      gap: var(--space-10);
       padding-top: calc(var(--topbar-height) + 10px);
     }
 
@@ -950,11 +950,11 @@
   @media (max-width: 640px) {
 
     .feed-item {
-      padding: 14px 15px;
+      padding: var(--space-14) var(--space-16);
     }
 
     .feed-item-compact {
-      padding: 10px 14px;
+      padding: var(--space-10) var(--space-14);
     }
 
     .feed-item h2 {
@@ -967,22 +967,22 @@
     }
 
     .feed-item-compact-row {
-      gap: 2px 10px;
+      gap: var(--space-2) var(--space-10);
     }
 
     .feed-item-compact-meta {
-      gap: 4px;
+      gap: var(--space-4);
       font-size: var(--ui-font-size-xs);
     }
 
     .feed-item-content > p {
-      margin-top: 6px;
+      margin-top: var(--space-6);
       font-size: var(--ui-font-size-sm);
       line-height: 1.6;
     }
 
     .feed-item-meta {
-      margin-top: 10px;
+      margin-top: var(--space-10);
       font-size: var(--ui-font-size-xs);
     }
 
@@ -991,11 +991,11 @@
     }
 
     .feed-stats {
-      gap: 8px;
+      gap: var(--space-8);
     }
 
     .feed-stats > span {
-      gap: 4px;
+      gap: var(--space-4);
     }
 
     .feed-stats svg {
@@ -1004,7 +1004,7 @@
     }
 
     .feed-author {
-      gap: 6px;
+      gap: var(--space-6);
     }
 
     .feed-author img {
@@ -1020,7 +1020,7 @@
     }
 
     .feed-meta-separator {
-      margin: 0 4px;
+      margin: 0 var(--space-4);
     }
 
   }

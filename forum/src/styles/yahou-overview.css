@@ -4,8 +4,8 @@
   flex-shrink: 0;
   flex-wrap: wrap;
   align-items: center;
-  gap: 10px 20px;
-  padding: 10px 16px;
+  gap: var(--space-10) var(--space-20);
+  padding: var(--space-10) var(--space-16);
   border-bottom: 1px solid var(--line);
 }
 
@@ -23,7 +23,7 @@
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: 6px;
+  gap: var(--space-6);
   margin-left: auto;
 }
 
@@ -56,7 +56,7 @@
   width: 230px;
   flex-shrink: 0;
   overflow: auto;
-  padding: 18px;
+  padding: var(--space-18);
   border-left: 1px solid var(--line);
   background: var(--surface);
   font-size: var(--ui-font-size-sm);
@@ -67,13 +67,13 @@
 .yahou-graph-pin {
   display: flex;
   align-items: center;
-  gap: 7px;
+  gap: var(--space-8);
 }
 
 .yahou-graph-search input {
   width: 100%;
-  margin-top: 8px;
-  padding: 7px 9px;
+  margin-top: var(--space-8);
+  padding: var(--space-8) var(--space-8);
   border: 1px solid var(--line-strong);
   border-radius: 3px;
   background: var(--surface);
@@ -84,15 +84,15 @@
   display: grid;
   max-height: 180px;
   overflow: auto;
-  padding-top: 6px;
+  padding-top: var(--space-6);
 }
 
 .yahou-graph-results button {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 8px;
-  padding: 6px;
+  gap: var(--space-8);
+  padding: var(--space-6);
   overflow-wrap: anywhere;
   text-align: left;
   color: var(--text);
@@ -105,13 +105,13 @@
 
 .yahou-force-controls {
   display: grid;
-  gap: 22px;
+  gap: var(--space-22);
   margin-top: 26px;
 }
 
 .yahou-force-control > span { justify-content: space-between; }
 .yahou-force-control output { color: var(--text-muted); font-variant-numeric: tabular-nums; }
-.yahou-force-control input { width: 100%; margin-top: 10px; accent-color: var(--brand); }
+.yahou-force-control input { width: 100%; margin-top: var(--space-10); accent-color: var(--brand); }
 .yahou-graph-pin input { accent-color: var(--brand); }
 
 .yahou-graph-loading {
@@ -140,9 +140,9 @@
   font-size: var(--ui-font-size-sm);
 }
 
-.yahou-graph-selection header { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 8px 12px; border-bottom: 1px solid var(--line); }
+.yahou-graph-selection header { display: flex; align-items: center; justify-content: space-between; gap: var(--space-12); padding: 8px 12px; border-bottom: 1px solid var(--line); }
 .yahou-graph-selection ul { min-height: 0; overflow: auto; overscroll-behavior: contain; list-style: none; margin: 0; padding: 0; }
-.yahou-graph-selection li { position: relative; display: grid; gap: 5px; padding: 10px 42px 10px 12px; }
+.yahou-graph-selection li { position: relative; display: grid; gap: var(--space-4); padding: 10px 42px 10px 12px; }
 .yahou-graph-selection li + li { border-top: 1px solid var(--line); }
 .yahou-graph-selection span { color: var(--text-muted); }
 .yahou-graph-selection .yahou-selection-name { text-align: left; font-weight: var(--font-weight-bold); color: var(--text-strong); }
@@ -151,14 +151,14 @@
 
 .yahou-overview-error {
   margin: 0;
-  padding: 6px 16px;
+  padding: var(--space-6) var(--space-16);
   color: var(--danger);
 }
 
 @media (max-width: 640px) {
   .yahou-overview-toolbar {
-    gap: 8px;
-    padding: 10px;
+    gap: var(--space-8);
+    padding: var(--space-10);
   }
 
   .yahou-overview-count {
@@ -170,13 +170,13 @@
     inset: 8px 8px auto auto;
     max-height: calc(100% - 16px);
     width: 210px;
-    padding: 14px;
+    padding: var(--space-14);
     border: 1px solid var(--line);
     border-radius: 4px;
     box-shadow: 0 4px 18px #0002;
   }
 
-  .yahou-force-controls { gap: 15px; margin-top: 18px; }
+  .yahou-force-controls { gap: var(--space-16); margin-top: 18px; }
 
   .yahou-overview-controls {
     justify-content: center;

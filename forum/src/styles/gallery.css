@@ -116,7 +116,7 @@
   .gallery-dialog-file-button {
     display: inline-flex;
     align-items: center;
-    gap: 7px;
+    gap: 8px;
     min-height: 38px;
     margin-top: 12px;
     padding: 0 12px;
@@ -186,7 +186,7 @@
     min-width: 20px;
     height: 20px;
     place-items: center;
-    padding: 0 5px;
+    padding: 0 4px;
     border-radius: 999px;
     background: rgb(0 0 0 / 0.68);
     color: #fff;
@@ -203,7 +203,7 @@
 
   .gallery-dialog-upload-progress {
     display: grid;
-    gap: 7px;
+    gap: 8px;
     margin-top: 14px;
   }
 
@@ -306,7 +306,7 @@
     justify-content: space-between;
     gap: 12px;
     margin: 0;
-    padding: 9px 12px;
+    padding: 8px 12px;
     border-bottom: 1px solid var(--line, rgb(212 212 216));
     background: var(--surface-soft, rgb(250 250 250));
   }
@@ -413,7 +413,7 @@
     align-items: center;
     justify-content: center;
     margin: 0;
-    padding: 9px 12px;
+    padding: 8px 12px;
     border-top: 1px solid var(--line, rgb(212 212 216));
     background: var(--surface-soft, rgb(250 250 250));
   }

@@ -5,10 +5,10 @@
     flex: 0 0 auto;
     align-items: center;
     justify-content: center;
-    gap: 5px;
+    gap: var(--space-4);
     border: 1px solid var(--line);
     border-radius: var(--control-radius);
-    padding: 0 10px;
+    padding: 0 var(--space-10);
     background: var(--surface-raised);
     color: var(--text-muted);
     font-size: var(--ui-font-size-sm);

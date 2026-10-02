@@ -36,9 +36,9 @@
     min-height: 48px;
     align-items: center;
     justify-content: space-between;
-    gap: 18px;
+    gap: var(--space-18);
     border-bottom: 1px solid var(--line);
-    padding: 0 22px 0 26px;
+    padding: 0 var(--space-22) 0 26px;
     color: var(--text-muted);
     font-size: var(--ui-font-size-xs);
     font-weight: var(--font-weight-bold);
@@ -48,7 +48,7 @@
   .not-found-status {
     display: inline-flex;
     align-items: center;
-    gap: 8px;
+    gap: var(--space-8);
   }
 
   .not-found-status > span {
@@ -127,7 +127,7 @@
     display: grid;
     grid-template-columns: minmax(180px, 0.72fr) minmax(280px, 1fr);
     align-items: center;
-    gap: 36px;
+    gap: var(--space-36);
     padding: 38px 44px 42px;
   }
 
@@ -143,7 +143,7 @@
   .not-found-copy {
     min-width: 0;
     border-left: 1px solid var(--line);
-    padding-left: 36px;
+    padding-left: var(--space-36);
   }
 
   .not-found-copy h1 {
@@ -160,8 +160,8 @@
     display: flex;
     min-width: 0;
     align-items: center;
-    gap: 8px;
-    margin-top: 15px;
+    gap: var(--space-8);
+    margin-top: var(--space-16);
     color: var(--text-muted);
   }
 
@@ -181,7 +181,7 @@
   .not-found-actions {
     display: flex;
     flex-wrap: wrap;
-    gap: 10px;
+    gap: var(--space-10);
     margin-top: 26px;
   }
 
@@ -191,10 +191,10 @@
     min-height: 42px;
     align-items: center;
     justify-content: center;
-    gap: 7px;
+    gap: var(--space-8);
     border: 1px solid var(--line-strong);
     border-radius: var(--control-radius);
-    padding: 0 15px;
+    padding: 0 var(--space-16);
     background: var(--surface-raised);
     color: var(--text);
     font-size: var(--ui-font-size-md);
@@ -232,7 +232,7 @@
     }
 
     .not-found-panel-header {
-      padding: 0 16px 0 20px;
+      padding: 0 var(--space-16) 0 var(--space-20);
     }
 
     .not-found-route {
@@ -266,8 +266,8 @@
 
     .not-found-content {
       grid-template-columns: 1fr;
-      gap: 24px;
-      padding: 32px 24px 28px;
+      gap: var(--space-24);
+      padding: var(--space-32) var(--space-24) var(--space-28);
     }
 
     .not-found-code {
@@ -277,7 +277,7 @@
     .not-found-copy {
       border-top: 1px solid var(--line);
       border-left: 0;
-      padding-top: 24px;
+      padding-top: var(--space-24);
       padding-left: 0;
     }
 

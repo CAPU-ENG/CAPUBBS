@@ -84,14 +84,14 @@
     height: 100%;
     max-width: 1080px;
     margin: 0 auto;
-    padding: 0 14px;
+    padding: 0 var(--space-14);
   }
 
   .brand-link {
     display: inline-flex;
     flex-shrink: 0;
     align-items: center;
-    gap: 2px;
+    gap: var(--space-2);
     border-radius: 6px;
     outline: none;
   }
@@ -148,9 +148,9 @@
     display: inline-flex;
     height: 42px;
     align-items: center;
-    gap: 5px;
+    gap: var(--space-4);
     border-radius: var(--control-radius);
-    padding: 3px 5px 3px 3px;
+    padding: var(--space-4) var(--space-4) var(--space-4) var(--space-4);
     color: var(--text-muted);
     transition: background var(--duration-fast) ease, color var(--duration-fast) ease;
   }
@@ -173,8 +173,8 @@
     display: inline-flex;
     height: 100%;
     align-items: center;
-    gap: 5px;
-    padding: 0 18px;
+    gap: var(--space-4);
+    padding: 0 var(--space-18);
     color: var(--text-muted);
     font-size: var(--ui-font-size-xl);
     font-weight: var(--font-weight-semibold);
@@ -245,8 +245,8 @@
     align-items: center;
     justify-content: flex-start;
     overflow: hidden;
-    margin-right: 24px;
-    padding: 0 18px;
+    margin-right: var(--space-24);
+    padding: 0 var(--space-18);
     color: var(--text-muted);
     font: inherit;
     font-size: var(--ui-font-size-xl);
@@ -320,7 +320,7 @@
     left: 50%;
     width: min(460px, calc(100vw - 32px));
     transform: translateX(-50%);
-    padding-top: 8px;
+    padding-top: var(--space-8);
     animation: panel-in 180ms cubic-bezier(.2,.8,.2,1) both;
   }
 
@@ -333,7 +333,7 @@
   }
 
   .board-drawer-section {
-    padding: 12px 14px;
+    padding: var(--space-12) var(--space-14);
   }
 
   .board-tile {
@@ -341,11 +341,11 @@
     display: grid;
     grid-template-columns: 26px minmax(0, 1fr);
     align-items: center;
-    gap: 7px;
+    gap: var(--space-8);
     min-height: 44px;
     border: 1px solid var(--line);
     border-radius: var(--card-radius);
-    padding: 7px 8px;
+    padding: var(--space-8) var(--space-8);
     background: var(--surface);
     transition: var(--duration-fast) ease;
   }
@@ -397,10 +397,10 @@
     display: inline-flex;
     min-height: 34px;
     align-items: center;
-    gap: 7px;
+    gap: var(--space-8);
     border: 1px solid var(--line);
     border-radius: 7px;
-    padding: 0 11px;
+    padding: 0 var(--space-12);
     background: transparent;
     color: var(--text-muted);
     cursor: pointer;
@@ -411,9 +411,9 @@
 
   .board-drawer .supplement-link {
     min-height: 30px;
-    gap: 6px;
+    gap: var(--space-6);
     border-radius: var(--control-radius);
-    padding: 0 9px;
+    padding: 0 var(--space-8);
     font-size: var(--ui-font-size-lg);
   }
 
@@ -439,7 +439,7 @@
     overflow-y: auto;
     border: 1px solid var(--line);
     border-radius: var(--card-radius);
-    padding: 4px;
+    padding: var(--space-4);
     background: var(--surface-raised);
     box-shadow: var(--shadow-float);
     animation: panel-in 160ms ease both;
@@ -451,9 +451,9 @@
     width: 100%;
     min-height: 34px;
     align-items: center;
-    gap: 7px;
+    gap: var(--space-8);
     border-radius: var(--control-radius);
-    padding: 0 8px;
+    padding: 0 var(--space-8);
     color: var(--text-muted);
     font-size: var(--ui-font-size-lg);
     font-weight: var(--font-weight-semibold);
@@ -499,31 +499,31 @@
     flex: 1;
     flex-direction: column;
     overflow-y: auto;
-    padding: 16px 14px 28px;
+    padding: var(--space-16) var(--space-14) var(--space-28);
   }
 
   .mobile-sidebar-guest-links {
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 8px;
+    gap: var(--space-8);
     margin-top: auto;
     border-top: 1px solid var(--line);
-    padding-top: 24px;
+    padding-top: var(--space-24);
   }
 
   .mobile-sidebar-guest-links .supplement-link {
     justify-content: center;
-    padding: 0 8px;
+    padding: 0 var(--space-8);
   }
 
   .mobile-board-link {
     display: flex;
     min-height: 42px;
     align-items: center;
-    gap: 8px;
+    gap: var(--space-8);
     border: 1px solid var(--line);
     border-radius: var(--card-radius);
-    padding: 0 10px;
+    padding: 0 var(--space-10);
     background: var(--surface);
     color: var(--text-muted);
     font-size: var(--ui-font-size-lg);
@@ -545,7 +545,7 @@
 
     .topbar-shell {
       position: relative;
-      padding: 0 12px;
+      padding: 0 var(--space-12);
     }
 
     .topbar {
@@ -579,7 +579,7 @@
       min-width: 0;
       place-items: center;
       overflow: hidden;
-      padding: 0 20px;
+      padding: 0 var(--space-20);
       color: var(--text-strong);
       font-size: var(--ui-font-size-xl);
       font-weight: var(--font-weight-semibold);
@@ -644,8 +644,8 @@
   }
   @media (max-width: 640px) {
     .topbar-shell {
-      gap: 6px;
-      padding: 0 10px;
+      gap: var(--space-6);
+      padding: 0 var(--space-10);
     }
 
     .icon-button {
@@ -655,7 +655,7 @@
 
     .profile-trigger {
       width: 38px;
-      padding: 2px;
+      padding: var(--space-2);
     }
 
     .profile-trigger img {

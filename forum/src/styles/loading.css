@@ -4,7 +4,7 @@
     width: 100%;
     place-items: center;
     align-content: center;
-    gap: 14px;
+    gap: var(--space-14);
     color: var(--text-muted);
     text-align: center;
   }
@@ -18,12 +18,12 @@
 
   .forum-loading-state-page {
     min-height: clamp(260px, 52vh, 440px);
-    padding: 40px 24px;
+    padding: var(--space-40) var(--space-24);
   }
 
   .forum-loading-state-panel {
     min-height: 220px;
-    padding: 32px 20px;
+    padding: var(--space-32) var(--space-20);
   }
 
   .forum-loading-visual {
@@ -76,7 +76,7 @@
   @media (max-width: 760px) {
     .forum-loading-state-page {
       min-height: 250px;
-      padding: 32px 18px;
+      padding: var(--space-32) var(--space-18);
     }
 
     .forum-route-loading-shell {

@@ -49,7 +49,7 @@
     flex-shrink: 0;
     align-items: center;
     justify-content: center;
-    gap: 4px;
+    gap: var(--space-4);
   }
 
   .thread-pagination-pages {
@@ -57,7 +57,7 @@
     min-width: 0;
     align-items: center;
     justify-content: center;
-    gap: 4px;
+    gap: var(--space-4);
   }
 
   .thread-page-button,
@@ -67,7 +67,7 @@
     height: 36px;
     align-items: center;
     justify-content: center;
-    gap: 5px;
+    gap: var(--space-4);
     border: 1px solid var(--line);
     border-radius: var(--control-radius);
     background: var(--surface);
@@ -128,8 +128,8 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 6px;
-    margin-left: 8px;
+    gap: var(--space-6);
+    margin-left: var(--space-8);
     color: var(--text-faint);
     font-size: var(--ui-font-size-md);
     font-weight: var(--font-weight-semibold);
@@ -146,10 +146,10 @@
     height: 36px;
     align-items: center;
     justify-content: center;
-    gap: 4px;
+    gap: var(--space-4);
     border: 1px solid var(--line);
     border-radius: var(--control-radius);
-    padding: 0 8px;
+    padding: 0 var(--space-8);
     background: var(--surface);
     color: var(--text-muted);
     font-size: var(--ui-font-size-md);
@@ -189,11 +189,11 @@
     width: 200px;
     max-height: 244px;
     grid-template-columns: repeat(5, minmax(0, 1fr));
-    gap: 4px;
+    gap: var(--space-4);
     overflow-y: auto;
     border: 1px solid var(--line-strong);
     border-radius: 3px;
-    padding: 8px;
+    padding: var(--space-8);
     background: var(--surface-raised);
     box-shadow: var(--shadow-float);
   }
@@ -230,7 +230,7 @@
     width: 100%;
     border: 1px solid var(--line);
     border-radius: var(--card-radius);
-    padding: 24px 26px 18px;
+    padding: var(--space-24) 26px var(--space-18);
     background: var(--surface);
     box-shadow: var(--shadow-card);
   }
@@ -249,7 +249,7 @@
     display: flex;
     align-items: flex-start;
     justify-content: space-between;
-    gap: 20px;
+    gap: var(--space-20);
   }
 
   .thread-title-heading h1 {
@@ -260,7 +260,7 @@
     display: flex;
     flex: 0 0 auto;
     align-items: center;
-    gap: 8px;
+    gap: var(--space-8);
   }
 
   .thread-title-copy-button {
@@ -291,7 +291,7 @@
 
   .thread-title-copy-icon {
     display: inline-block;
-    margin-left: 9px;
+    margin-left: var(--space-8);
     color: var(--brand-strong);
     opacity: 0;
     vertical-align: -0.12em;
@@ -320,10 +320,10 @@
     flex: 0 0 auto;
     align-items: center;
     justify-content: center;
-    gap: 6px;
+    gap: var(--space-6);
     border: 1px solid color-mix(in srgb, var(--brand) 38%, var(--line));
     border-radius: var(--control-radius);
-    padding: 0 13px;
+    padding: 0 var(--space-12);
     background: var(--brand-soft);
     color: var(--brand-strong);
     font-size: var(--ui-font-size-md);
@@ -345,7 +345,7 @@
     justify-content: center;
     border: 1px solid color-mix(in srgb, var(--brand) 28%, var(--line));
     border-radius: var(--card-radius);
-    padding: 0 10px;
+    padding: 0 var(--space-10);
     background: var(--brand-soft);
     color: var(--brand-strong);
     font-size: var(--ui-font-size-md);
@@ -364,8 +364,8 @@
   .thread-title-meta {
     display: flex;
     align-items: center;
-    gap: 18px;
-    margin-top: 16px;
+    gap: var(--space-18);
+    margin-top: var(--space-16);
     color: var(--text-faint);
     font-size: var(--ui-font-size-md);
   }
@@ -373,13 +373,13 @@
   .thread-title-meta > span {
     display: inline-flex;
     align-items: center;
-    gap: 5px;
+    gap: var(--space-4);
   }
 
   .thread-title-actions {
     display: flex;
     align-items: center;
-    gap: 7px;
+    gap: var(--space-8);
     margin-left: auto;
   }
 
@@ -392,10 +392,10 @@
     min-height: 32px;
     align-items: center;
     justify-content: center;
-    gap: 6px;
+    gap: var(--space-6);
     border: 1px solid var(--line);
     border-radius: var(--control-radius);
-    padding: 0 12px;
+    padding: 0 var(--space-12);
     background: var(--surface);
     color: var(--text-muted);
     font-size: var(--ui-font-size-md);
@@ -416,7 +416,7 @@
   }
 
   .thread-bookmark-error {
-    margin: 10px 0 0;
+    margin: var(--space-10) 0 0;
     color: var(--danger);
     font-size: var(--ui-font-size-md);
     text-align: right;
@@ -427,7 +427,7 @@
     width: 100%;
     border: 1px solid var(--line);
     border-radius: var(--card-radius);
-    padding: 12px 0;
+    padding: var(--space-12) 0;
     background: var(--surface);
     box-shadow: var(--shadow-card);
   }
@@ -470,7 +470,7 @@
 
   @media (min-width: 641px) {
     .thread-page-shell-with-assistive-bar .thread-floor-list .thread-floor {
-      padding-right: 40px;
+      padding-right: var(--space-40);
     }
 
     .thread-page-shell-avatar-static .thread-floor-list .thread-avatar-rail {
@@ -479,7 +479,7 @@
     }
 
     .thread-page-shell-avatar-sticky.thread-page-shell-without-assistive-bar .thread-floor-list .thread-floor {
-      padding-right: 40px;
+      padding-right: var(--space-40);
     }
 
     .thread-page-shell-compact-author.thread-page-shell-avatar-static.thread-page-shell-without-assistive-bar {
@@ -491,7 +491,7 @@
       grid-template-columns: minmax(0, 1fr);
       gap: 0;
       padding-right: 30px;
-      padding-left: 36px;
+      padding-left: var(--space-36);
     }
 
     .thread-page-shell-compact-author.thread-page-shell-avatar-static.thread-page-shell-without-assistive-bar .thread-floor-list .thread-floor-header {
@@ -514,13 +514,13 @@
 
   .forum-pagination-card > .thread-pagination-with-jump {
     grid-template-columns: minmax(0, 1fr) auto;
-    gap: 16px;
+    gap: var(--space-16);
   }
 
   .forum-pagination-card .thread-page-jump {
     margin-left: 0;
     border-left: 1px solid var(--line);
-    padding-left: 16px;
+    padding-left: var(--space-16);
   }
 
   .forum-pagination-card .thread-page-jump-menu {
@@ -529,14 +529,14 @@
   }
 
   .thread-top-pagination {
-    margin-top: 14px;
+    margin-top: var(--space-14);
   }
 
   .thread-content-layout {
     display: grid;
     grid-template-columns: minmax(0, var(--thread-page-main-column)) var(--thread-rail-column);
     gap: var(--thread-column-gap);
-    margin-top: 14px;
+    margin-top: var(--space-14);
   }
 
   .thread-page-shell-without-assistive-bar .thread-content-layout {
@@ -551,7 +551,7 @@
     display: flex;
     min-width: 0;
     flex-direction: column;
-    gap: 12px;
+    gap: var(--space-12);
   }
 
   .activity-signup-card {
@@ -559,7 +559,7 @@
     scroll-margin-top: calc(var(--topbar-height) + 16px);
     border: 1px solid color-mix(in srgb, var(--brand) 24%, var(--line));
     border-radius: var(--card-radius);
-    padding: 0 22px 20px;
+    padding: 0 var(--space-22) var(--space-20);
     background:
       linear-gradient(135deg, color-mix(in srgb, var(--brand-soft) 38%, transparent), transparent 34%),
       var(--surface);
@@ -571,14 +571,14 @@
     min-height: 64px;
     align-items: center;
     justify-content: space-between;
-    gap: 18px;
+    gap: var(--space-18);
     border-bottom: 1px solid var(--line);
   }
 
   .activity-signup-header > div:first-child {
     display: flex;
     align-items: center;
-    gap: 9px;
+    gap: var(--space-8);
     color: var(--brand-strong);
   }
 
@@ -594,7 +594,7 @@
     min-width: 0;
     align-items: center;
     justify-content: flex-end;
-    gap: 10px;
+    gap: var(--space-10);
     color: var(--text-faint);
     font-size: var(--ui-font-size-sm);
     font-weight: var(--font-weight-semibold);
@@ -610,7 +610,7 @@
     flex: 0 0 auto;
     border: 1px solid var(--line);
     border-radius: 999px;
-    padding: 4px 8px;
+    padding: var(--space-4) var(--space-8);
     background: var(--surface-soft);
     color: var(--text-muted);
   }
@@ -629,8 +629,8 @@
   .activity-signup-fields {
     display: grid;
     grid-template-columns: repeat(3, minmax(0, 1fr));
-    gap: 18px 20px;
-    padding: 22px 0 24px;
+    gap: var(--space-18) var(--space-20);
+    padding: var(--space-22) 0 var(--space-24);
   }
 
   .activity-signup-field,
@@ -649,12 +649,12 @@
   .activity-signup-field > span,
   .activity-signup-fields legend {
     display: block;
-    margin-bottom: 8px;
+    margin-bottom: var(--space-8);
   }
 
   .activity-signup-field > span > span,
   .activity-signup-fields legend > span {
-    margin-left: 3px;
+    margin-left: var(--space-4);
     color: var(--danger);
   }
 
@@ -673,13 +673,13 @@
 
   .activity-signup-field input {
     height: 40px;
-    padding: 0 11px;
+    padding: 0 var(--space-12);
   }
 
   .activity-signup-field textarea {
     min-height: 82px;
     resize: vertical;
-    padding: 10px 11px;
+    padding: var(--space-10) var(--space-12);
     line-height: 1.55;
   }
 
@@ -698,7 +698,7 @@
   .activity-signup-choices {
     display: flex;
     flex-wrap: wrap;
-    gap: 8px;
+    gap: var(--space-8);
   }
 
   .activity-signup-choices label {
@@ -709,7 +709,7 @@
     align-items: center;
     border: 1px solid var(--line);
     border-radius: var(--control-radius);
-    padding: 7px 12px;
+    padding: var(--space-8) var(--space-12);
     background: color-mix(in srgb, var(--surface-raised) 88%, transparent);
     color: var(--text-muted);
     font-size: var(--ui-font-size-lg);
@@ -754,9 +754,9 @@
     display: flex;
     align-items: center;
     justify-content: space-between;
-    gap: 18px;
+    gap: var(--space-18);
     border-top: 1px solid var(--line);
-    padding-top: 18px;
+    padding-top: var(--space-18);
   }
 
   .activity-signature-options.reply-signature-options {
@@ -770,7 +770,7 @@
     min-width: 0;
     align-items: center;
     justify-content: flex-end;
-    gap: 12px;
+    gap: var(--space-12);
   }
 
   .activity-signup-actions > span {
@@ -793,10 +793,10 @@
     flex: 0 0 auto;
     align-items: center;
     justify-content: center;
-    gap: 7px;
+    gap: var(--space-8);
     border: 1px solid var(--brand);
     border-radius: var(--control-radius);
-    padding: 0 16px;
+    padding: 0 var(--space-16);
     background: var(--brand);
     color: white;
     font-size: var(--ui-font-size-lg);
@@ -827,7 +827,7 @@
     min-width: 78px;
     height: 40px;
     flex: 0 0 auto;
-    padding-inline: 14px;
+    padding-inline: var(--space-14);
     font-size: var(--ui-font-size-lg);
   }
 
@@ -838,10 +838,10 @@
     flex: 0 0 auto;
     align-items: center;
     justify-content: center;
-    gap: 7px;
+    gap: var(--space-8);
     border: 1px solid color-mix(in srgb, var(--danger) 42%, var(--line));
     border-radius: var(--control-radius);
-    padding: 0 14px;
+    padding: 0 var(--space-14);
     background: color-mix(in srgb, var(--danger) 8%, var(--surface));
     color: var(--danger);
     font-size: var(--ui-font-size-lg);
@@ -859,11 +859,11 @@
     display: grid;
     min-width: 0;
     grid-template-columns: 58px minmax(0, 1fr);
-    gap: 14px;
+    gap: var(--space-14);
     scroll-margin-top: calc(var(--topbar-height) + 16px);
     border: 1px solid var(--line);
     border-radius: var(--card-radius);
-    padding: 20px 22px 18px 16px;
+    padding: var(--space-20) var(--space-22) var(--space-18) var(--space-16);
     background: var(--surface);
     box-shadow: var(--shadow-card);
   }
@@ -908,7 +908,7 @@
     .thread-floor-with-author-profile {
       grid-template-columns: var(--thread-author-profile-column, 136px) minmax(0, 1fr);
       gap: var(--thread-author-profile-gap, 18px);
-      padding: 20px 40px 18px 18px;
+      padding: var(--space-20) var(--space-40) var(--space-18) var(--space-18);
     }
 
     .thread-floor-with-author-profile .thread-floor-header {
@@ -974,7 +974,7 @@
     align-items: center;
     flex-direction: column;
     border-right: 1px solid var(--line);
-    padding: 2px 14px 4px 0;
+    padding: var(--space-2) var(--space-14) var(--space-4) 0;
     text-align: center;
   }
 
@@ -1008,8 +1008,8 @@
     align-items: center;
     justify-content: center;
     flex-wrap: wrap;
-    gap: 4px 6px;
-    margin-top: 9px;
+    gap: var(--space-4) var(--space-6);
+    margin-top: var(--space-8);
   }
 
   .thread-author-profile-identity > a {
@@ -1024,8 +1024,8 @@
     display: grid;
     min-width: 0;
     justify-items: center;
-    gap: 2px;
-    margin-top: 7px;
+    gap: var(--space-2);
+    margin-top: var(--space-8);
   }
 
   .thread-author-profile-status > span {
@@ -1045,22 +1045,22 @@
   .thread-author-profile > .user-tag-list {
     width: 100%;
     justify-content: center;
-    margin-top: 8px;
+    margin-top: var(--space-8);
   }
 
   .thread-author-profile > .user-displayed-tag-list {
     width: 100%;
     justify-content: center;
-    margin-top: 8px;
+    margin-top: var(--space-8);
   }
 
   .thread-author-profile-stats {
     display: grid;
     width: 100%;
     grid-template-columns: repeat(3, minmax(0, 1fr));
-    margin-top: 11px;
+    margin-top: var(--space-12);
     border-block: 1px solid var(--line);
-    padding: 8px 0;
+    padding: var(--space-8) 0;
   }
 
   .thread-author-profile-stats > div + div {
@@ -1078,7 +1078,7 @@
   }
 
   .thread-author-profile-stats dd {
-    margin-top: 2px;
+    margin-top: var(--space-2);
     color: var(--text-strong);
     font-size: var(--ui-font-size-md);
     font-variant-numeric: tabular-nums;
@@ -1090,8 +1090,8 @@
   .thread-author-profile-last-seen {
     display: grid;
     justify-items: center;
-    gap: 2px;
-    margin-top: 9px;
+    gap: var(--space-2);
+    margin-top: var(--space-8);
     color: var(--text-faint);
     font-size: var(--ui-font-size-xs);
     line-height: 1.4;
@@ -1114,7 +1114,7 @@
     width: 260px;
     border: 1px solid var(--line-strong);
     border-radius: var(--card-radius);
-    padding: 16px;
+    padding: var(--space-16);
     background: var(--surface-raised);
     box-shadow: var(--shadow-float);
     transform-origin: top left;
@@ -1141,7 +1141,7 @@
   .author-card-head {
     display: flex;
     align-items: flex-start;
-    gap: 12px;
+    gap: var(--space-12);
   }
 
   .author-card-head img {
@@ -1162,7 +1162,7 @@
     display: flex;
     align-items: center;
     flex-wrap: wrap;
-    gap: 4px 8px;
+    gap: var(--space-4) var(--space-8);
     min-width: 0;
   }
 
@@ -1186,16 +1186,16 @@
 
   .author-card-status {
     display: block;
-    margin-top: 3px;
+    margin-top: var(--space-4);
     color: var(--brand);
     font-size: var(--ui-font-size-sm);
     font-weight: var(--font-weight-semibold);
   }
 
   .author-card-tags-row {
-    margin-top: 12px;
+    margin-top: var(--space-12);
     border-top: 1px solid var(--line);
-    padding-top: 8px;
+    padding-top: var(--space-8);
   }
 
   .author-card-tag-width-measure {
@@ -1216,9 +1216,9 @@
   .author-hover-card dl {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
-    margin-top: 14px;
+    margin-top: var(--space-14);
     border-block: 1px solid var(--line);
-    padding: 10px 0;
+    padding: var(--space-10) 0;
   }
 
   .author-hover-card dl > div {
@@ -1235,14 +1235,14 @@
   }
 
   .author-hover-card dd {
-    margin-top: 2px;
+    margin-top: var(--space-2);
     color: var(--text-strong);
     font-size: var(--ui-font-size-lg);
     font-weight: var(--font-weight-bold);
   }
 
   .author-hover-card > p {
-    margin-top: 11px;
+    margin-top: var(--space-12);
     color: var(--text-faint);
     font-size: var(--ui-font-size-sm);
   }
@@ -1250,8 +1250,8 @@
   .author-hover-card > a {
     display: inline-flex;
     align-items: center;
-    gap: 5px;
-    margin-top: 10px;
+    gap: var(--space-4);
+    margin-top: var(--space-10);
     color: var(--brand-strong);
     font-size: var(--ui-font-size-md);
     font-weight: var(--font-weight-bold);
@@ -1266,9 +1266,9 @@
     min-height: 38px;
     grid-template-columns: auto minmax(0, 1fr) auto;
     align-items: center;
-    gap: 12px;
+    gap: var(--space-12);
     border-bottom: 1px solid var(--line);
-    padding-bottom: 10px;
+    padding-bottom: var(--space-10);
   }
 
   .thread-floor-author {
@@ -1276,7 +1276,7 @@
     min-width: 0;
     flex-wrap: nowrap;
     align-items: center;
-    gap: 6px;
+    gap: var(--space-6);
   }
 
   .thread-floor-author a {
@@ -1299,7 +1299,7 @@
     min-width: 0;
     align-items: center;
     justify-content: flex-end;
-    gap: 5px;
+    gap: var(--space-4);
     color: var(--text-faint);
     font-size: var(--ui-font-size-xs);
     font-variant-numeric: tabular-nums;
@@ -1339,10 +1339,10 @@
     display: inline-flex;
     min-height: 38px;
     align-items: center;
-    gap: 7px;
+    gap: var(--space-8);
     border: 1px solid color-mix(in srgb, var(--brand) 30%, var(--line));
     border-radius: var(--card-radius);
-    padding: 0 13px;
+    padding: 0 var(--space-12);
     background: color-mix(in srgb, var(--surface-raised) 96%, transparent);
     box-shadow: var(--shadow-float);
     color: var(--brand-strong);
@@ -1355,7 +1355,7 @@
   .thread-floor-body {
     width: 100%;
     max-width: none;
-    padding: 18px 0 8px;
+    padding: var(--space-18) 0 var(--space-8);
     color: var(--text);
     font-size: var(--forum-content-font-size, 15px);
     line-height: 1.6;
@@ -1365,16 +1365,16 @@
 
   .thread-attachments {
     display: grid;
-    gap: 8px;
-    margin-top: 12px;
+    gap: var(--space-8);
+    margin-top: var(--space-12);
     border-top: 1px solid var(--line);
-    padding-top: 12px;
+    padding-top: var(--space-12);
   }
 
   .thread-attachments-heading {
     display: flex;
     align-items: center;
-    gap: 6px;
+    gap: var(--space-6);
     color: var(--text-muted);
     font-size: var(--ui-font-size-sm);
     font-weight: var(--font-weight-bold);
@@ -1387,7 +1387,7 @@
     align-items: center;
     justify-content: center;
     border-radius: 9px;
-    padding: 0 5px;
+    padding: 0 var(--space-4);
     background: var(--surface-soft);
     color: var(--text-faint);
     font-size: var(--ui-font-size-2xs);
@@ -1395,7 +1395,7 @@
 
   .thread-attachments > ul {
     display: grid;
-    gap: 6px;
+    gap: var(--space-6);
     max-width: 440px;
   }
 
@@ -1403,11 +1403,11 @@
     display: grid;
     grid-template-columns: minmax(0, 1fr) auto auto;
     align-items: center;
-    gap: 10px;
+    gap: var(--space-10);
     min-height: 42px;
     border: 1px solid var(--line);
     border-radius: var(--control-radius);
-    padding: 8px 10px;
+    padding: var(--space-8) var(--space-10);
     background: var(--surface-soft);
     color: var(--text);
     text-decoration: none;
@@ -1681,7 +1681,7 @@
   }
 
   .nested-replies {
-    margin: 14px 0 10px;
+    margin: var(--space-14) 0 var(--space-10);
     border: 1px solid var(--line);
     border-radius: var(--card-radius);
     background: var(--surface-soft);
@@ -1691,8 +1691,8 @@
     display: grid;
     grid-template-columns: 42px minmax(0, 1fr);
     align-items: start;
-    gap: 10px;
-    padding: 11px 12px;
+    gap: var(--space-10);
+    padding: var(--space-12) var(--space-12);
   }
 
   .nested-replies > article + article {
@@ -1713,7 +1713,7 @@
 
   .nested-reply-identity {
     min-width: 0;
-    padding-top: 2px;
+    padding-top: var(--space-2);
     font-size: var(--ui-font-size-md);
     line-height: 1.2;
     overflow-wrap: anywhere;
@@ -1731,7 +1731,7 @@
 
   .nested-replies p,
   .nested-reply-content {
-    margin-top: 7px;
+    margin-top: var(--space-8);
     color: var(--text-muted);
     font-size: calc(var(--forum-content-font-size, 15px) - 1px);
     line-height: 1.55;
@@ -1745,8 +1745,8 @@
     display: flex;
     align-items: center;
     justify-content: flex-end;
-    gap: 10px;
-    margin-top: 7px;
+    gap: var(--space-10);
+    margin-top: var(--space-8);
   }
 
   .nested-reply-footer time {
@@ -1758,7 +1758,7 @@
   .nested-reply-footer button {
     display: inline-flex;
     align-items: center;
-    gap: 3px;
+    gap: var(--space-4);
     color: var(--brand-strong);
     font-size: var(--ui-font-size-sm);
     font-weight: var(--font-weight-bold);
@@ -1774,7 +1774,7 @@
   }
 
   .nested-reply-delete-error {
-    margin-top: 8px;
+    margin-top: var(--space-8);
     color: var(--danger);
     font-size: var(--ui-font-size-md);
     text-align: right;
@@ -1783,11 +1783,11 @@
   .nested-reply-composer {
     display: grid;
     grid-template-columns: minmax(0, 1fr) auto;
-    gap: 8px;
-    margin-top: 12px;
+    gap: var(--space-8);
+    margin-top: var(--space-12);
     border: 1px solid var(--line);
     border-radius: var(--card-radius);
-    padding: 9px;
+    padding: var(--space-8);
     background: var(--surface-soft);
   }
 
@@ -1803,7 +1803,7 @@
     resize: vertical;
     border: 1px solid var(--line-strong);
     border-radius: var(--control-radius);
-    padding: 8px 10px 26px;
+    padding: var(--space-8) var(--space-10) 26px;
     background: var(--surface);
     color: var(--text);
     font-size: var(--ui-font-size-xs);
@@ -1836,7 +1836,7 @@
   .nested-reply-composer-actions {
     display: flex;
     align-items: stretch;
-    gap: 6px;
+    gap: var(--space-6);
   }
 
   .nested-reply-composer-actions > button {
@@ -1844,7 +1844,7 @@
     min-height: 38px;
     align-items: center;
     justify-content: center;
-    gap: 5px;
+    gap: var(--space-4);
     border-radius: var(--control-radius);
     font-size: var(--ui-font-size-md);
     font-weight: var(--font-weight-bold);
@@ -1862,7 +1862,7 @@
 
   .nested-reply-submit {
     align-self: stretch;
-    padding: 0 12px;
+    padding: 0 var(--space-12);
     background: var(--brand);
     color: var(--on-brand);
   }
@@ -1881,9 +1881,9 @@
   }
 
   .thread-signature {
-    margin-top: 18px;
+    margin-top: var(--space-18);
     border-top: 1px dashed var(--line-strong);
-    padding-top: 10px;
+    padding-top: var(--space-10);
     overflow: hidden;
   }
 
@@ -1966,7 +1966,7 @@
     display: grid;
     overflow: hidden;
     place-items: center;
-    padding: 28px;
+    padding: var(--space-28);
     background: rgb(7 12 16 / 0.88);
     backdrop-filter: blur(5px);
     overscroll-behavior: none;
@@ -1985,7 +1985,7 @@
     align-items: center;
     justify-content: center;
     flex-direction: column;
-    gap: 10px;
+    gap: var(--space-10);
     margin: 0;
   }
 
@@ -2097,8 +2097,8 @@
     min-height: 40px;
     margin-top: 0;
     align-items: center;
-    gap: 4px;
-    padding: 4px;
+    gap: var(--space-4);
+    padding: var(--space-4);
     border: 1px solid rgb(255 255 255 / 0.22);
     border-radius: var(--control-radius);
     background: rgb(0 0 0 / 0.7);
@@ -2137,7 +2137,7 @@
 
   .thread-image-lightbox-controls > output {
     min-width: 50px;
-    padding: 0 4px;
+    padding: 0 var(--space-4);
     font-size: var(--ui-font-size-md);
     font-variant-numeric: tabular-nums;
     line-height: 1;
@@ -2151,10 +2151,10 @@
     align-items: center;
     justify-content: center;
     flex-direction: column;
-    gap: 9px;
+    gap: var(--space-8);
     border: 1px solid var(--line);
     border-radius: var(--card-radius);
-    padding: 28px;
+    padding: var(--space-28);
     background: var(--surface);
     box-shadow: var(--shadow-card);
     text-align: center;
@@ -2180,11 +2180,11 @@
     min-height: 34px;
     align-items: center;
     justify-content: center;
-    gap: 6px;
-    margin-top: 4px;
+    gap: var(--space-6);
+    margin-top: var(--space-4);
     border: 1px solid var(--line-strong);
     border-radius: var(--control-radius);
-    padding: 0 12px;
+    padding: 0 var(--space-12);
     color: var(--brand-strong);
     font-size: var(--ui-font-size-md);
     font-weight: var(--font-weight-bold);
@@ -2194,13 +2194,13 @@
     display: flex;
     flex-wrap: wrap;
     justify-content: center;
-    gap: 8px;
+    gap: var(--space-8);
   }
 
   .thread-reply-unavailable {
     max-width: 100%;
     min-height: 150px;
-    margin-top: 18px;
+    margin-top: var(--space-18);
   }
 
   .thread-activity-signup-prompt {
@@ -2208,11 +2208,11 @@
     min-height: 88px;
     align-items: center;
     justify-content: center;
-    gap: 10px;
-    margin-top: 18px;
+    gap: var(--space-10);
+    margin-top: var(--space-18);
     border: 1px solid color-mix(in srgb, var(--brand) 24%, var(--line));
     border-radius: var(--card-radius);
-    padding: 20px;
+    padding: var(--space-20);
     background: var(--surface);
     box-shadow: var(--shadow-card);
     color: var(--brand-strong);
@@ -2240,8 +2240,8 @@
     display: flex;
     align-items: center;
     justify-content: flex-end;
-    gap: 3px;
-    margin-top: 12px;
+    gap: var(--space-4);
+    margin-top: var(--space-12);
   }
 
   .thread-floor-actions > button,
@@ -2250,9 +2250,9 @@
     display: inline-flex;
     min-height: 32px;
     align-items: center;
-    gap: 5px;
+    gap: var(--space-4);
     border-radius: var(--control-radius);
-    padding: 0 8px;
+    padding: 0 var(--space-8);
     color: var(--text-faint);
     font-size: var(--ui-font-size-md);
     font-weight: var(--font-weight-semibold);
@@ -2281,7 +2281,7 @@
   }
 
   .thread-floor-delete-error {
-    margin-top: 8px;
+    margin-top: var(--space-8);
     color: var(--danger);
     font-size: var(--ui-font-size-md);
     text-align: right;
@@ -2298,7 +2298,7 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    padding: 18px;
+    padding: var(--space-18);
     background: rgb(10 18 13 / 0.68);
     backdrop-filter: blur(3px);
     animation: thread-delete-backdrop-in 140ms ease both;
@@ -2318,9 +2318,9 @@
     display: grid;
     grid-template-columns: 38px minmax(0, 1fr) 32px;
     align-items: center;
-    gap: 10px;
+    gap: var(--space-10);
     border-bottom: 1px solid var(--line);
-    padding: 14px 15px;
+    padding: var(--space-14) var(--space-16);
   }
 
   .thread-delete-dialog-icon {
@@ -2361,7 +2361,7 @@
   }
 
   .thread-delete-dialog-body {
-    padding: 18px 18px 16px;
+    padding: var(--space-18) var(--space-18) var(--space-16);
   }
 
   .thread-delete-dialog-body > p:first-child {
@@ -2371,9 +2371,9 @@
   }
 
   .thread-delete-dialog-target {
-    margin-top: 14px;
+    margin-top: var(--space-14);
     border-left: 3px solid color-mix(in srgb, var(--danger) 48%, var(--line));
-    padding: 10px 12px;
+    padding: var(--space-10) var(--space-12);
     background: var(--surface-soft);
   }
 
@@ -2383,7 +2383,7 @@
 
   .thread-delete-dialog-target > span {
     display: block;
-    margin-bottom: 5px;
+    margin-bottom: var(--space-4);
     color: var(--text-faint);
     font-size: var(--ui-font-size-sm);
     font-weight: var(--font-weight-bold);
@@ -2402,9 +2402,9 @@
   .thread-delete-dialog > footer {
     display: flex;
     justify-content: flex-end;
-    gap: 8px;
+    gap: var(--space-8);
     border-top: 1px solid var(--line);
-    padding: 11px 14px;
+    padding: var(--space-12) var(--space-14);
     background: var(--surface-soft);
   }
 
@@ -2414,10 +2414,10 @@
     min-height: 36px;
     align-items: center;
     justify-content: center;
-    gap: 6px;
+    gap: var(--space-6);
     border: 1px solid var(--line-strong);
     border-radius: var(--control-radius);
-    padding: 0 14px;
+    padding: 0 var(--space-14);
     font-size: var(--ui-font-size-md);
     font-weight: var(--font-weight-bold);
   }
@@ -2440,7 +2440,7 @@
     display: flex;
     align-self: start;
     flex-direction: column;
-    gap: 10px;
+    gap: var(--space-10);
   }
 
   @media (min-width: 1024px) {
@@ -2462,14 +2462,14 @@
     justify-content: space-around;
     border: 1px solid var(--line);
     border-radius: var(--card-radius);
-    padding: 16px 0;
+    padding: var(--space-16) 0;
     background: color-mix(in srgb, var(--surface) 92%, transparent);
     box-shadow: var(--shadow-card);
   }
 
   .thread-assistive-tools {
     display: grid;
-    gap: 6px;
+    gap: var(--space-6);
   }
 
   .thread-assistive-tools > button {
@@ -2477,10 +2477,10 @@
     min-height: 36px;
     align-items: center;
     justify-content: center;
-    gap: 6px;
+    gap: var(--space-6);
     border: 1px solid var(--line);
     border-radius: var(--card-radius);
-    padding: 7px 8px;
+    padding: var(--space-8) var(--space-8);
     background: color-mix(in srgb, var(--surface) 92%, transparent);
     box-shadow: var(--shadow-card);
     color: var(--text-muted);
@@ -2544,10 +2544,10 @@
     visibility: hidden;
     width: min(300px, calc(100vw - 180px));
     flex-direction: column;
-    gap: 9px;
+    gap: var(--space-8);
     border: 1px solid var(--line-strong);
     border-radius: 3px;
-    padding: 12px 14px;
+    padding: var(--space-12) var(--space-14);
     background: color-mix(in srgb, var(--surface-raised) 97%, transparent);
     box-shadow: var(--shadow-float);
     color: var(--text-muted);
@@ -2575,7 +2575,7 @@
     display: flex;
     min-width: 0;
     align-items: baseline;
-    gap: 7px;
+    gap: var(--space-8);
     font-size: var(--ui-font-size-md);
     line-height: 1.3;
   }
@@ -2627,7 +2627,7 @@
   }
 
   .thread-bottom-pagination {
-    margin-top: 20px;
+    margin-top: var(--space-20);
   }
 
   .mobile-thread-controls,
@@ -2705,9 +2705,9 @@
 
     .thread-floor-with-author-profile {
       grid-template-columns: 58px minmax(0, 1fr);
-      gap: 14px;
-      padding-right: 40px;
-      padding-left: 16px;
+      gap: var(--space-14);
+      padding-right: var(--space-40);
+      padding-left: var(--space-16);
     }
 
     .thread-author-profile {
@@ -2787,7 +2787,7 @@
 
     .mobile-floor-node > span {
       border-inline: 1px solid var(--line);
-      padding: 0 9px;
+      padding: 0 var(--space-8);
       color: var(--brand-strong);
       font-size: var(--ui-font-size-md);
       font-weight: var(--font-weight-bold);
@@ -2802,13 +2802,13 @@
     }
 
     .thread-title-card {
-      padding: 18px 16px 14px;
+      padding: var(--space-18) var(--space-16) var(--space-14);
     }
 
     .thread-board-card {
       max-width: min(55vw, 180px);
       min-height: 32px;
-      padding-inline: 9px;
+      padding-inline: var(--space-8);
     }
 
     .thread-title-card h1 {
@@ -2818,19 +2818,19 @@
 
     .thread-title-heading {
       align-items: center;
-      gap: 12px;
+      gap: var(--space-12);
     }
 
     .thread-activity-management-link {
       min-height: 34px;
-      padding-inline: 10px;
+      padding-inline: var(--space-10);
       white-space: nowrap;
     }
 
     .thread-title-meta {
       flex-wrap: wrap;
-      gap: 9px 14px;
-      margin-top: 12px;
+      gap: var(--space-8) var(--space-14);
+      margin-top: var(--space-12);
     }
 
     .thread-title-actions-desktop,
@@ -2850,8 +2850,8 @@
       min-width: 0;
       min-height: 36px;
       flex: 1 1 0;
-      gap: 4px;
-      padding-inline: 6px;
+      gap: var(--space-4);
+      padding-inline: var(--space-6);
       font-size: var(--ui-font-size-sm);
       white-space: nowrap;
     }
@@ -2872,15 +2872,15 @@
     }
 
     .activity-signup-card {
-      padding: 0 14px 16px;
+      padding: 0 var(--space-14) var(--space-16);
     }
 
     .activity-signup-header {
       min-height: 58px;
       align-items: flex-start;
       flex-direction: column;
-      gap: 6px;
-      padding: 13px 0;
+      gap: var(--space-6);
+      padding: var(--space-12) 0;
     }
 
     .activity-signup-window {
@@ -2890,8 +2890,8 @@
 
     .activity-signup-fields {
       grid-template-columns: minmax(0, 1fr);
-      gap: 16px;
-      padding: 18px 0 20px;
+      gap: var(--space-16);
+      padding: var(--space-18) 0 var(--space-20);
     }
 
     .activity-signup-field-wide {
@@ -2901,7 +2901,7 @@
     .activity-signup-footer {
       align-items: stretch;
       flex-direction: column;
-      gap: 14px;
+      gap: var(--space-14);
     }
 
     .activity-signature-options.reply-signature-options {
@@ -2927,7 +2927,7 @@
     .thread-floor {
       display: block;
       scroll-margin-top: calc(var(--topbar-height) + 9px);
-      padding: 15px 14px 14px;
+      padding: var(--space-16) var(--space-14) var(--space-14);
     }
 
     .thread-floor-decoration > img {
@@ -2983,8 +2983,8 @@
       display: grid;
       min-height: 51px;
       grid-template-columns: 40px minmax(0, 1fr) auto;
-      gap: 2px 10px;
-      padding-bottom: 10px;
+      gap: var(--space-2) var(--space-10);
+      padding-bottom: var(--space-10);
     }
 
     .thread-floor-header > .thread-avatar-rail {
@@ -3011,7 +3011,7 @@
       grid-row: 2;
       grid-column: 2 / -1;
       justify-content: flex-start;
-      gap: 4px;
+      gap: var(--space-4);
     }
 
     .thread-floor-time,
@@ -3022,7 +3022,7 @@
 
     .thread-floor-time:has(> time:nth-of-type(2)) {
       flex-wrap: wrap;
-      gap: 2px 6px;
+      gap: var(--space-2) var(--space-6);
       text-align: left;
       white-space: normal;
     }
@@ -3042,14 +3042,14 @@
     }
 
     .thread-floor-body {
-      padding-top: 14px;
+      padding-top: var(--space-14);
       font-size: var(--forum-content-font-size, 15px);
       line-height: 1.6;
     }
 
     .thread-floor-actions {
-      gap: 2px;
-      margin-top: 8px;
+      gap: var(--space-2);
+      margin-top: var(--space-8);
     }
 
     .thread-floor-actions > button,
@@ -3057,8 +3057,8 @@
     .thread-floor-actions > div > button,
     .nested-reply-footer button {
       min-height: 26px;
-      gap: 3px;
-      padding-inline: 5px;
+      gap: var(--space-4);
+      padding-inline: var(--space-4);
       font-size: var(--ui-font-size-xs);
     }
 
@@ -3069,13 +3069,13 @@
     }
 
     .nested-replies {
-      margin: 8px 0 6px;
+      margin: var(--space-8) 0 var(--space-6);
     }
 
     .nested-replies > article {
       grid-template-columns: 28px minmax(0, 1fr);
-      gap: 6px;
-      padding: 8px;
+      gap: var(--space-6);
+      padding: var(--space-8);
     }
 
     .nested-replies > article > img {
@@ -3091,36 +3091,36 @@
 
     .nested-replies p,
     .nested-reply-content {
-      margin-top: 4px;
+      margin-top: var(--space-4);
       font-size: max(12px, calc(var(--forum-content-font-size, 15px) - 2px));
       line-height: 1.45;
     }
 
     .nested-reply-footer {
-      gap: 6px;
-      margin-top: 4px;
+      gap: var(--space-6);
+      margin-top: var(--space-4);
     }
 
     .nested-reply-composer {
       grid-template-columns: minmax(0, 1fr);
-      gap: 6px;
-      margin-top: 8px;
-      padding: 7px;
+      gap: var(--space-6);
+      margin-top: var(--space-8);
+      padding: var(--space-8);
     }
 
     .nested-reply-composer textarea {
       min-height: 52px;
-      padding: 6px 8px 24px;
+      padding: var(--space-6) var(--space-8) var(--space-24);
     }
 
     .nested-reply-composer-actions {
       justify-content: flex-end;
-      gap: 4px;
+      gap: var(--space-4);
     }
 
     .nested-reply-composer-actions > button {
       min-height: 30px;
-      gap: 3px;
+      gap: var(--space-4);
       font-size: var(--ui-font-size-xs);
     }
 
@@ -3134,11 +3134,11 @@
     }
 
     .nested-reply-submit {
-      padding-inline: 8px;
+      padding-inline: var(--space-8);
     }
 
     .thread-signature {
-      margin-top: 14px;
+      margin-top: var(--space-14);
     }
 
     .thread-signature > p,
@@ -3148,7 +3148,7 @@
 
     .thread-top-pagination,
     .thread-bottom-pagination {
-      padding: 6px 0;
+      padding: var(--space-6) 0;
     }
 
     .thread-top-pagination .thread-pagination,
@@ -3157,7 +3157,7 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      gap: 2px;
+      gap: var(--space-2);
     }
 
     .thread-top-pagination .thread-pagination-pages,
@@ -3176,7 +3176,7 @@
     }
 
     .thread-pagination-pages {
-      gap: 2px;
+      gap: var(--space-2);
     }
 
     .thread-page-mobile-hidden,
@@ -3189,7 +3189,7 @@
     }
 
     .thread-pagination.thread-pagination-with-jump {
-      gap: 4px;
+      gap: var(--space-4);
     }
 
     .forum-pagination-card .thread-page-jump {
@@ -3228,15 +3228,15 @@
     }
 
     .thread-page-jump {
-      gap: 2px;
+      gap: var(--space-2);
       font-size: var(--ui-font-size-xs);
     }
 
     .thread-page-jump summary {
       min-width: 32px;
       height: 26px;
-      gap: 2px;
-      padding: 0 4px;
+      gap: var(--space-2);
+      padding: 0 var(--space-4);
       font-size: var(--ui-font-size-xs);
     }
 
@@ -3246,7 +3246,7 @@
     }
 
     .thread-image-lightbox-backdrop {
-      padding: 8px;
+      padding: var(--space-8);
     }
 
     .thread-image-lightbox {

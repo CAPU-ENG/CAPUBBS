@@ -3,11 +3,11 @@
     display: inline-flex;
     min-height: 28px;
     align-items: center;
-    gap: 4px;
+    gap: var(--space-4);
     margin-left: auto;
     border: 1px solid color-mix(in srgb, var(--brand) 28%, var(--line));
     border-radius: var(--control-radius);
-    padding: 0 8px;
+    padding: 0 var(--space-8);
     background: var(--brand-faint);
     color: var(--brand-strong);
     font-size: var(--ui-font-size-sm);
@@ -46,15 +46,15 @@
     display: flex;
     align-items: flex-start;
     justify-content: space-between;
-    gap: 24px;
+    gap: var(--space-24);
     border-bottom: 1px solid var(--line);
-    padding: 24px 26px;
+    padding: var(--space-24) 26px;
   }
 
   .calendar-admin-title-line {
     display: flex;
     align-items: center;
-    gap: 10px;
+    gap: var(--space-10);
   }
 
   .calendar-admin-title-icon {
@@ -80,7 +80,7 @@
   .calendar-admin-title-line em {
     border: 1px solid color-mix(in srgb, var(--brand) 30%, var(--line));
     border-radius: var(--card-radius);
-    padding: 3px 7px;
+    padding: var(--space-4) var(--space-8);
     background: var(--brand-faint);
     color: var(--brand-strong);
     font-size: var(--ui-font-size-sm);
@@ -91,7 +91,7 @@
   .calendar-admin-heading-actions {
     display: flex;
     flex-shrink: 0;
-    gap: 8px;
+    gap: var(--space-8);
   }
 
   .calendar-admin-heading-actions a,
@@ -101,10 +101,10 @@
     min-height: 38px;
     align-items: center;
     justify-content: center;
-    gap: 6px;
+    gap: var(--space-6);
     border: 1px solid var(--line);
     border-radius: var(--control-radius);
-    padding: 0 12px;
+    padding: 0 var(--space-12);
     background: var(--surface-raised);
     color: var(--text-muted);
     font-size: var(--ui-font-size-md);
@@ -140,14 +140,14 @@
   .calendar-admin-content {
     display: grid;
     grid-template-columns: minmax(0, 0.92fr) minmax(360px, 1.08fr);
-    gap: 18px;
-    padding: 18px;
+    gap: var(--space-18);
+    padding: var(--space-18);
   }
 
   .calendar-admin-overview {
     display: grid;
     align-content: start;
-    gap: 12px;
+    gap: var(--space-12);
   }
 
   .calendar-admin-calendar,
@@ -159,15 +159,15 @@
   }
 
   .calendar-admin-calendar {
-    padding: 14px;
+    padding: var(--space-14);
   }
 
   .calendar-admin-month-nav {
     display: grid;
     grid-template-columns: 36px 1fr 36px;
     align-items: center;
-    gap: 8px;
-    margin-bottom: 15px;
+    gap: var(--space-8);
+    margin-bottom: var(--space-16);
   }
 
   .calendar-admin-month-nav > button {
@@ -197,11 +197,11 @@
   .calendar-admin-grid {
     display: grid;
     grid-template-columns: repeat(7, minmax(0, 1fr));
-    gap: 4px;
+    gap: var(--space-4);
   }
 
   .calendar-admin-weekdays {
-    margin-bottom: 5px;
+    margin-bottom: var(--space-4);
     color: var(--text-faint);
     font-size: var(--ui-font-size-sm);
     font-weight: var(--font-weight-bold);
@@ -209,7 +209,7 @@
   }
 
   .calendar-admin-weekdays span {
-    padding: 4px 0;
+    padding: var(--space-4) 0;
   }
 
   .calendar-admin-grid button {
@@ -271,15 +271,15 @@
     display: flex;
     align-items: center;
     justify-content: space-between;
-    gap: 12px;
+    gap: var(--space-12);
     border-bottom: 1px solid var(--line);
-    padding: 13px 14px;
+    padding: var(--space-12) var(--space-14);
   }
 
   .calendar-admin-day-events h2 {
     display: inline-flex;
     align-items: center;
-    gap: 7px;
+    gap: var(--space-8);
     color: var(--text-strong);
     font-size: var(--ui-font-size-lg);
     font-weight: var(--font-weight-bold);
@@ -288,7 +288,7 @@
   .calendar-admin-day-events > header > span {
     border: 1px solid var(--line);
     border-radius: var(--card-radius);
-    padding: 3px 7px;
+    padding: var(--space-4) var(--space-8);
     background: var(--surface-raised);
     color: var(--text-muted);
     font-size: var(--ui-font-size-sm);
@@ -297,18 +297,18 @@
 
   .calendar-admin-event-list {
     display: grid;
-    gap: 7px;
-    padding: 10px;
+    gap: var(--space-8);
+    padding: var(--space-10);
   }
 
   .calendar-admin-event-list article {
     display: flex;
     align-items: flex-start;
     justify-content: space-between;
-    gap: 12px;
+    gap: var(--space-12);
     border: 1px solid var(--line);
     border-radius: var(--card-radius);
-    padding: 11px;
+    padding: var(--space-12);
     background: var(--surface-raised);
   }
 
@@ -334,15 +334,15 @@
   .calendar-admin-event-list article span {
     display: inline-flex;
     align-items: center;
-    gap: 4px;
-    margin-top: 5px;
+    gap: var(--space-4);
+    margin-top: var(--space-4);
     color: var(--brand-strong);
     font-size: var(--ui-font-size-sm);
     font-weight: var(--font-weight-bold);
   }
 
   .calendar-admin-event-list article p {
-    margin-top: 5px;
+    margin-top: var(--space-4);
     color: var(--text-muted);
     font-size: var(--ui-font-size-sm);
     line-height: 1.55;
@@ -351,7 +351,7 @@
   .calendar-admin-event-actions {
     display: flex;
     flex-shrink: 0;
-    gap: 5px;
+    gap: var(--space-4);
   }
 
   .calendar-admin-event-actions button {
@@ -380,7 +380,7 @@
     min-height: 70px;
     align-items: center;
     justify-content: center;
-    gap: 7px;
+    gap: var(--space-8);
     border: 1px dashed var(--line-strong);
     color: var(--text-faint);
     font-size: var(--ui-font-size-md);
@@ -394,13 +394,13 @@
 
   .calendar-admin-form-fields {
     display: grid;
-    gap: 16px;
-    padding: 22px;
+    gap: var(--space-16);
+    padding: var(--space-22);
   }
 
   .calendar-admin-form-fields label {
     display: grid;
-    gap: 7px;
+    gap: var(--space-8);
   }
 
   .calendar-admin-form-fields label > span {
@@ -418,7 +418,7 @@
   .calendar-admin-form-row {
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 12px;
+    gap: var(--space-12);
   }
 
   .calendar-admin-form-fields input,
@@ -426,7 +426,7 @@
     width: 100%;
     border: 1px solid var(--line);
     border-radius: var(--control-radius);
-    padding: 0 11px;
+    padding: 0 var(--space-12);
     background: var(--surface-soft);
     color: var(--text-strong);
     font-size: var(--ui-font-size-lg);
@@ -441,7 +441,7 @@
   .calendar-admin-form-fields textarea {
     min-height: 112px;
     resize: vertical;
-    padding-block: 10px;
+    padding-block: var(--space-10);
     line-height: 1.6;
   }
 
@@ -492,8 +492,8 @@
 
   .calendar-admin-form footer {
     display: flex;
-    gap: 8px;
-    padding: 16px 22px 22px;
+    gap: var(--space-8);
+    padding: var(--space-16) var(--space-22) var(--space-22);
   }
 
   .calendar-admin-form footer button {
@@ -506,7 +506,7 @@
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    padding: 40px 20px;
+    padding: var(--space-40) var(--space-20);
     text-align: center;
   }
 
@@ -522,7 +522,7 @@
   }
 
   .calendar-admin-state h1 {
-    margin-top: 16px;
+    margin-top: var(--space-16);
     color: var(--text-strong);
     font-family: "Noto Serif CJK SC", "Source Han Serif SC", "Songti SC", serif;
     font-size: var(--ui-font-size-title);
@@ -530,20 +530,20 @@
   }
 
   .calendar-admin-state p {
-    margin-top: 7px;
+    margin-top: var(--space-8);
     color: var(--text-muted);
     font-size: var(--ui-font-size-lg);
   }
 
   .calendar-admin-state a {
-    margin-top: 20px;
+    margin-top: var(--space-20);
   }
 
   .calendar-admin-state-actions {
     display: flex;
     flex-wrap: wrap;
     justify-content: center;
-    gap: 8px;
+    gap: var(--space-8);
   }
 }
 
@@ -565,8 +565,8 @@
 
     .calendar-admin-heading {
       flex-direction: column;
-      gap: 16px;
-      padding: 19px 17px;
+      gap: var(--space-16);
+      padding: var(--space-20) var(--space-16);
     }
 
     .calendar-admin-heading-actions {
@@ -578,16 +578,16 @@
     }
 
     .calendar-admin-content {
-      gap: 10px;
-      padding: 10px;
+      gap: var(--space-10);
+      padding: var(--space-10);
     }
 
     .calendar-admin-calendar {
-      padding: 10px;
+      padding: var(--space-10);
     }
 
     .calendar-admin-grid {
-      gap: 3px;
+      gap: var(--space-4);
     }
 
     .calendar-admin-grid button {
@@ -595,7 +595,7 @@
     }
 
     .calendar-admin-form-fields {
-      padding: 18px 16px;
+      padding: var(--space-18) var(--space-16);
     }
 
     .calendar-admin-form-row {
@@ -603,7 +603,7 @@
     }
 
     .calendar-admin-form footer {
-      padding: 14px 16px 18px;
+      padding: var(--space-14) var(--space-16) var(--space-18);
     }
   }
 }

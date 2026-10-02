@@ -12,7 +12,7 @@
   border: 0;
   border-right: 1px solid var(--line);
   border-bottom: 1px solid var(--line);
-  padding: 9px;
+  padding: 8px;
   background: var(--surface);
   color: var(--text-muted);
   font: inherit;

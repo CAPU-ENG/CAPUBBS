@@ -22,7 +22,7 @@
     align-items: center;
     justify-content: space-between;
     border-bottom: 1px solid var(--line);
-    padding: 0 13px;
+    padding: 0 var(--space-12);
   }
 
   .management-medal-catalog > header strong,
@@ -49,9 +49,9 @@
     min-width: 0;
     min-height: 40px;
     align-items: center;
-    gap: 8px;
+    gap: var(--space-8);
     border-bottom: 1px solid var(--line);
-    padding: 8px 12px;
+    padding: var(--space-8) var(--space-12);
     color: var(--text-muted);
     text-align: left;
     transition: background var(--duration-fast) ease, color var(--duration-fast) ease;
@@ -125,23 +125,23 @@
     min-height: 74px;
     align-items: center;
     justify-content: space-between;
-    gap: 14px;
+    gap: var(--space-14);
     border-bottom: 1px solid var(--line);
-    padding: 12px 16px;
+    padding: var(--space-12) var(--space-16);
   }
 
   .management-medal-detail-identity {
     display: flex;
     min-width: 0;
     align-items: center;
-    gap: 11px;
+    gap: var(--space-12);
   }
 
   .management-medal-detail-identity > div {
     display: flex;
     min-width: 0;
     align-items: baseline;
-    gap: 8px;
+    gap: var(--space-8);
   }
 
   .management-medal-detail-heading h3 {
@@ -162,7 +162,7 @@
   .management-medal-section-heading > div {
     display: flex;
     flex: 0 0 auto;
-    gap: 7px;
+    gap: var(--space-8);
   }
 
   .management-medal-detail-actions button {
@@ -191,18 +191,18 @@
 
   .management-medal-detail-tabs {
     display: flex;
-    gap: 18px;
+    gap: var(--space-18);
     min-height: 45px;
     align-items: end;
     border-bottom: 1px solid var(--line);
-    padding: 0 16px;
+    padding: 0 var(--space-16);
   }
 
   .management-medal-detail-tabs button {
     display: inline-flex;
     min-height: 44px;
     align-items: center;
-    gap: 6px;
+    gap: var(--space-6);
     border-bottom: 2px solid transparent;
     color: var(--text-faint);
     font-size: var(--ui-font-size-sm);
@@ -239,7 +239,7 @@
   .management-medal-batch-table th,
   .management-medal-batch-table td {
     border-bottom: 1px solid var(--line);
-    padding: 11px 14px;
+    padding: var(--space-12) var(--space-14);
     color: var(--text-muted);
     font-size: var(--ui-font-size-sm);
     text-align: left;
@@ -310,7 +310,7 @@
 
   .management-medal-issue-modes {
     display: inline-flex;
-    margin: 15px 16px 0;
+    margin: var(--space-16) var(--space-16) 0;
     border: 1px solid var(--line);
     border-radius: var(--control-radius);
     overflow: hidden;
@@ -319,7 +319,7 @@
   .management-medal-issue-modes button {
     min-height: 32px;
     border-right: 1px solid var(--line);
-    padding: 0 12px;
+    padding: 0 var(--space-12);
     background: var(--surface-raised);
     color: var(--text-faint);
     font-size: var(--ui-font-size-sm);
@@ -339,21 +339,21 @@
   .management-medal-single-import,
   .management-medal-batch-import {
     display: grid;
-    gap: 14px;
-    padding: 16px;
+    gap: var(--space-14);
+    padding: var(--space-16);
   }
 
   .management-medal-single-import form {
     display: grid;
     grid-template-columns: minmax(0, 1fr) minmax(0, 0.8fr) auto;
     align-items: end;
-    gap: 9px;
+    gap: var(--space-8);
   }
 
   .management-medal-single-import form label {
     display: grid;
     min-width: 0;
-    gap: 7px;
+    gap: var(--space-8);
   }
 
   .management-medal-single-import form label > span {
@@ -367,7 +367,7 @@
     height: 36px;
     border: 1px solid var(--line);
     border-radius: var(--control-radius);
-    padding: 0 9px;
+    padding: 0 var(--space-8);
     background: var(--surface-soft);
     color: var(--text-strong);
     font-size: var(--ui-font-size-md);
@@ -384,9 +384,9 @@
     grid-template-columns: 22px minmax(0, 1fr) auto;
     min-height: 66px;
     align-items: center;
-    gap: 9px;
+    gap: var(--space-8);
     border: 1px solid var(--line);
-    padding: 10px 12px;
+    padding: var(--space-10) var(--space-12);
     background: var(--surface-soft);
   }
 
@@ -394,7 +394,7 @@
     display: flex;
     min-width: 0;
     align-items: center;
-    gap: 8px;
+    gap: var(--space-8);
   }
 
   .management-medal-check-result span {
@@ -420,13 +420,13 @@
     display: flex;
     min-width: 0;
     align-items: center;
-    gap: 10px;
+    gap: var(--space-10);
   }
 
   .management-medal-file-format {
     display: flex;
     align-items: flex-start;
-    gap: 6px;
+    gap: var(--space-6);
     margin: 0;
     color: var(--text-faint);
     font-size: var(--ui-font-size-sm);
@@ -435,14 +435,14 @@
 
   .management-medal-file-format svg {
     flex: 0 0 auto;
-    margin-top: 2px;
+    margin-top: var(--space-2);
   }
 
   .management-medal-file-row output {
     display: inline-flex;
     min-width: 0;
     align-items: center;
-    gap: 6px;
+    gap: var(--space-6);
     overflow: hidden;
     color: var(--text-faint);
     font-size: var(--ui-font-size-sm);
@@ -464,7 +464,7 @@
   .management-medal-example-table caption {
     border: 1px solid var(--line);
     border-bottom: 0;
-    padding: 8px 14px;
+    padding: var(--space-8) var(--space-14);
     background: var(--surface-raised);
     color: var(--text-muted);
     font-size: var(--ui-font-size-sm);
@@ -485,7 +485,7 @@
     display: flex;
     min-width: 0;
     align-items: center;
-    gap: 8px;
+    gap: var(--space-8);
   }
 
   .management-medal-batch-id a {
@@ -496,7 +496,7 @@
     display: inline-flex;
     flex: 0 0 auto;
     align-items: center;
-    gap: 4px;
+    gap: var(--space-4);
     color: var(--text-faint);
     font-size: var(--ui-font-size-xs);
     white-space: nowrap;
@@ -518,19 +518,19 @@
     display: flex;
     align-items: center;
     justify-content: space-between;
-    gap: 12px;
+    gap: var(--space-12);
   }
 
   .management-medal-batch-footer > div {
     display: flex;
     flex-wrap: wrap;
-    gap: 6px;
+    gap: var(--space-6);
   }
 
   .management-medal-batch-footer span {
     border: 1px solid var(--line);
     border-radius: var(--card-radius);
-    padding: 3px 6px;
+    padding: var(--space-4) var(--space-6);
     background: var(--surface-soft);
     color: var(--text-faint);
     font-size: var(--ui-font-size-xs);
@@ -539,7 +539,7 @@
   .management-medal-import-notice {
     display: flex;
     align-items: center;
-    gap: 6px;
+    gap: var(--space-6);
     margin: 0;
     color: var(--brand-strong);
     font-size: var(--ui-font-size-sm);
@@ -551,7 +551,7 @@
     min-height: 430px;
     place-items: center;
     align-content: center;
-    gap: 10px;
+    gap: var(--space-10);
     color: var(--text-faint);
   }
 
@@ -573,14 +573,14 @@
   .management-medal-controls {
     display: grid;
     align-content: start;
-    gap: 18px;
+    gap: var(--space-18);
     border-right: 1px solid var(--line);
-    padding: 18px;
+    padding: var(--space-18);
   }
 
   .management-medal-field {
     display: grid;
-    gap: 7px;
+    gap: var(--space-8);
     min-width: 0;
   }
 
@@ -597,7 +597,7 @@
     height: 38px;
     border: 1px solid var(--line);
     border-radius: var(--control-radius);
-    padding: 0 10px;
+    padding: 0 var(--space-10);
     background: var(--surface-soft);
     color: var(--text-strong);
     font-size: var(--ui-font-size-md);
@@ -615,10 +615,10 @@
     min-height: 36px;
     align-items: center;
     justify-content: center;
-    gap: 6px;
+    gap: var(--space-6);
     border: 1px solid var(--line);
     border-radius: var(--control-radius);
-    padding: 0 10px;
+    padding: 0 var(--space-10);
     background: var(--surface-raised);
     color: var(--text-muted);
     font-size: var(--ui-font-size-sm);
@@ -641,23 +641,23 @@
     min-width: 0;
     margin: 0;
     border: 0;
-    padding: 2px 0 0;
+    padding: var(--space-2) 0 0;
   }
 
   .management-medal-textures legend {
-    margin-bottom: 7px;
+    margin-bottom: var(--space-8);
     padding: 0;
   }
 
   .management-medal-texture-grid {
     display: grid;
     grid-template-columns: repeat(4, minmax(0, 1fr));
-    gap: 9px 7px;
+    gap: var(--space-8) var(--space-8);
   }
 
   .management-medal-texture {
     display: grid;
-    gap: 5px;
+    gap: var(--space-4);
     min-width: 0;
     cursor: pointer;
     text-align: center;
@@ -712,8 +712,8 @@
     display: grid;
     grid-template-rows: auto 1fr;
     min-width: 0;
-    gap: 12px;
-    padding: 18px;
+    gap: var(--space-12);
+    padding: var(--space-18);
     background: color-mix(in srgb, var(--surface-soft) 55%, transparent);
   }
 
@@ -1012,12 +1012,12 @@
     .management-medal-preview-column,
     .management-medal-single-import,
     .management-medal-batch-import {
-      padding: 14px;
+      padding: var(--space-14);
     }
 
     .management-medal-preview-stage {
       min-height: 0;
-      padding: 24px;
+      padding: var(--space-24);
     }
 
     .management-medal-preview {

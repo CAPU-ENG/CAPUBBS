@@ -14,7 +14,7 @@
   width: min(292px, 100%);
   border: 1px solid var(--line);
   border-radius: 6px;
-  padding: 13px 15px 11px;
+  padding: var(--space-12) var(--space-16) var(--space-12);
   background: var(--surface);
   text-align: left;
   pointer-events: auto;
@@ -35,8 +35,8 @@
   display: flex;
   align-items: center;
   justify-content: flex-end;
-  gap: 8px;
-  margin-top: 11px;
+  gap: var(--space-8);
+  margin-top: var(--space-12);
 }
 
 .browser-recommendation-actions button,
@@ -46,7 +46,7 @@
   align-items: center;
   justify-content: center;
   border-radius: var(--control-radius);
-  padding: 0 10px;
+  padding: 0 var(--space-10);
   border: 1px solid var(--line-strong);
   background: var(--surface-soft);
   color: var(--text-muted);

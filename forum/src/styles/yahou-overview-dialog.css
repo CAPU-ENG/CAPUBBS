@@ -29,8 +29,8 @@
     flex-shrink: 0;
     align-items: center;
     justify-content: space-between;
-    gap: 12px;
-    padding: 10px 16px;
+    gap: var(--space-12);
+    padding: var(--space-10) var(--space-16);
     border-bottom: 1px solid var(--line);
   }
 
@@ -47,7 +47,7 @@
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    gap: 12px;
+    gap: var(--space-12);
   }
 
   @media (max-width: 640px) {

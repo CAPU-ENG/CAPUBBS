@@ -14,7 +14,7 @@
 
   .profile-overview {
     display: grid;
-    gap: 10px;
+    gap: var(--space-10);
   }
 
   .profile-identity-card {
@@ -23,11 +23,11 @@
     min-height: 164px;
     align-items: center;
     justify-content: space-between;
-    gap: 28px;
+    gap: var(--space-28);
     overflow: hidden;
     border: 1px solid var(--line);
     border-radius: var(--card-radius);
-    padding: 25px 28px;
+    padding: var(--space-24) var(--space-28);
     background:
       linear-gradient(90deg, color-mix(in srgb, var(--brand-faint) 78%, transparent), transparent 54%),
       var(--surface);
@@ -106,7 +106,7 @@
   }
 
   .profile-file-stamp small {
-    margin-top: 4px;
+    margin-top: var(--space-4);
     font-size: var(--ui-font-size-xs);
     font-weight: var(--font-weight-bold);
     letter-spacing: 0.22em;
@@ -119,7 +119,7 @@
     min-width: 0;
     flex: 1;
     align-items: flex-start;
-    gap: 22px;
+    gap: var(--space-22);
   }
 
   .profile-avatar-button,
@@ -167,8 +167,8 @@
     display: flex;
     flex-wrap: wrap;
     align-items: center;
-    gap: 10px 15px;
-    margin-top: 7px;
+    gap: var(--space-10) var(--space-16);
+    margin-top: var(--space-8);
   }
 
   .profile-name-line h1 {
@@ -186,7 +186,7 @@
     align-items: center;
     justify-self: start;
     border-radius: var(--card-radius);
-    padding: 2px 0;
+    padding: var(--space-2) 0;
     background: transparent;
     color: var(--warning);
     font-size: var(--ui-font-size-xl);
@@ -208,7 +208,7 @@
   }
 
   .profile-intro {
-    margin: 10px 0 0;
+    margin: var(--space-10) 0 0;
     color: var(--text-muted);
     font-size: var(--ui-font-size-lg);
     line-height: 1.75;
@@ -218,8 +218,8 @@
     display: flex;
     flex-wrap: wrap;
     align-items: center;
-    gap: 5px;
-    margin-top: 9px;
+    gap: var(--space-4);
+    margin-top: var(--space-8);
   }
 
   .profile-tag-selector button {
@@ -239,8 +239,8 @@
 
   .profile-intro-editor {
     display: grid;
-    gap: 6px;
-    margin-top: 10px;
+    gap: var(--space-6);
+    margin-top: var(--space-10);
   }
 
   .profile-intro-editor span,
@@ -273,7 +273,7 @@
 
   .profile-intro-editor textarea {
     min-width: min(500px, 46vw);
-    padding: 9px 11px;
+    padding: var(--space-8) var(--space-12);
     font-size: var(--ui-font-size-xl);
     line-height: 1.55;
   }
@@ -294,8 +294,8 @@
     flex: 0 0 auto;
     flex-wrap: wrap;
     justify-content: flex-end;
-    gap: 8px;
-    padding-top: 12px;
+    gap: var(--space-8);
+    padding-top: var(--space-12);
   }
 
   .profile-identity-actions-mobile {
@@ -308,10 +308,10 @@
     min-height: 38px;
     align-items: center;
     justify-content: center;
-    gap: 7px;
+    gap: var(--space-8);
     border: 1px solid;
     border-radius: var(--control-radius);
-    padding: 0 13px;
+    padding: 0 var(--space-12);
     font-size: var(--ui-font-size-lg);
     font-weight: var(--font-weight-bold);
     transition: var(--duration-fast) ease;
@@ -358,7 +358,7 @@
   .profile-detail-grid {
     display: grid;
     grid-template-columns: repeat(4, minmax(0, 1fr));
-    gap: 10px;
+    gap: var(--space-10);
   }
 
   .profile-data-card,
@@ -373,7 +373,7 @@
 
   .profile-data-card {
     min-height: 68px;
-    padding: 11px 13px;
+    padding: var(--space-12) var(--space-12);
     animation: profile-rise 260ms 45ms cubic-bezier(.2,.8,.2,1) both;
   }
 
@@ -381,13 +381,13 @@
     display: flex;
     align-items: center;
     justify-content: space-between;
-    gap: 8px;
+    gap: var(--space-8);
   }
 
   .profile-data-label {
     display: flex;
     align-items: center;
-    gap: 6px;
+    gap: var(--space-6);
     color: var(--text-faint);
     font-size: var(--ui-font-size-md);
     font-weight: var(--font-weight-bold);
@@ -401,7 +401,7 @@
 
   .profile-data-value {
     overflow: hidden;
-    margin-top: 7px;
+    margin-top: var(--space-8);
     color: var(--text-strong);
     font-size: var(--ui-font-size-md);
     font-weight: var(--font-weight-semibold);
@@ -416,7 +416,7 @@
 
   .profile-email-visibility {
     display: inline-block;
-    margin-left: 8px;
+    margin-left: var(--space-8);
     color: var(--text-faint);
     font-size: var(--ui-font-size-md);
     font-weight: var(--font-weight-semibold);
@@ -425,8 +425,8 @@
 
   .profile-data-card input {
     height: 30px;
-    margin-top: 6px;
-    padding: 0 8px;
+    margin-top: var(--space-6);
+    padding: 0 var(--space-8);
     font-size: var(--ui-font-size-lg);
   }
 
@@ -455,10 +455,10 @@
     display: grid;
     min-height: 72px;
     align-content: center;
-    gap: 7px;
+    gap: var(--space-8);
     border: 0;
     border-right: 1px solid var(--line);
-    padding: 11px 12px;
+    padding: var(--space-12) var(--space-12);
     box-shadow: none;
   }
 
@@ -488,7 +488,7 @@
     bottom: 24px;
     border: 1px solid color-mix(in srgb, var(--brand) 28%, var(--line));
     border-radius: var(--card-radius);
-    padding: 11px 14px;
+    padding: var(--space-12) var(--space-14);
     background: var(--surface-raised);
     color: var(--brand-strong);
     font-size: var(--ui-font-size-lg);
@@ -505,14 +505,14 @@
 
   .profile-workspace {
     min-width: 0;
-    margin-top: 18px;
+    margin-top: var(--space-18);
     animation: profile-rise 280ms 110ms cubic-bezier(.2,.8,.2,1) both;
   }
 
   .profile-content-menu {
     display: grid;
-    gap: 12px;
-    margin-top: 18px;
+    gap: var(--space-12);
+    margin-top: var(--space-18);
   }
 
   .profile-content-links {
@@ -529,9 +529,9 @@
     min-height: 50px;
     align-items: center;
     justify-content: space-between;
-    gap: 12px;
+    gap: var(--space-12);
     border-bottom: 1px solid var(--line);
-    padding: 12px 16px;
+    padding: var(--space-12) var(--space-16);
     color: var(--text-strong);
     font-size: var(--ui-font-size-lg);
     font-weight: var(--font-weight-bold);
@@ -555,7 +555,7 @@
     display: inline-flex;
     min-width: 0;
     align-items: center;
-    gap: 9px;
+    gap: var(--space-8);
   }
 
   .profile-content-link-label svg {
@@ -574,10 +574,10 @@
 
   .profile-content-page-header {
     display: grid;
-    gap: 12px;
+    gap: var(--space-12);
     border: 1px solid var(--line);
     border-radius: var(--card-radius);
-    padding: 14px 16px 18px;
+    padding: var(--space-14) var(--space-16) var(--space-18);
     background: var(--surface);
     box-shadow: var(--shadow-card);
   }
@@ -587,7 +587,7 @@
     min-height: 36px;
     align-items: center;
     justify-self: start;
-    gap: 6px;
+    gap: var(--space-6);
     color: var(--brand-strong);
     font-size: var(--ui-font-size-lg);
     font-weight: var(--font-weight-semibold);
@@ -606,7 +606,7 @@
   .profile-content-page-heading {
     display: flex;
     align-items: center;
-    gap: 10px;
+    gap: var(--space-10);
   }
 
   .profile-content-page-heading > svg {
@@ -642,9 +642,9 @@
     flex: 1 0 auto;
     align-items: center;
     justify-content: center;
-    gap: 7px;
+    gap: var(--space-8);
     border-right: 1px solid var(--line);
-    padding: 14px 18px;
+    padding: var(--space-14) var(--space-18);
     color: var(--text-muted);
     font-size: var(--ui-font-size-lg);
     font-weight: var(--font-weight-bold);
@@ -687,17 +687,17 @@
   .profile-filter-toolbar {
     display: none;
     justify-content: flex-end;
-    padding: 12px 0;
+    padding: var(--space-12) 0;
   }
 
   .profile-filter-toggle {
     display: none;
     min-height: 34px;
     align-items: center;
-    gap: 6px;
+    gap: var(--space-6);
     border: 1px solid var(--line-strong);
     border-radius: var(--control-radius);
-    padding: 0 10px;
+    padding: 0 var(--space-10);
     color: var(--text-muted);
     font-size: var(--ui-font-size-lg);
     font-weight: var(--font-weight-bold);
@@ -709,8 +709,8 @@
     min-width: 0;
     grid-template-columns: minmax(0, 1fr) 288px;
     align-items: start;
-    gap: 16px;
-    margin-top: 12px;
+    gap: var(--space-16);
+    margin-top: var(--space-12);
   }
 
   .profile-record-panel {
@@ -750,8 +750,8 @@
     min-width: 0;
     min-height: 52px;
     align-items: center;
-    gap: 16px;
-    padding: 0 18px;
+    gap: var(--space-16);
+    padding: 0 var(--space-18);
   }
 
   .profile-record h3 {
@@ -781,7 +781,7 @@
     flex: none;
     border: 1px solid color-mix(in srgb, var(--brand) 24%, var(--line));
     border-radius: var(--control-radius);
-    padding: 3px 7px;
+    padding: var(--space-4) var(--space-8);
     background: var(--brand-faint);
     color: var(--brand-strong);
     font-size: var(--ui-font-size-sm);
@@ -807,7 +807,7 @@
   .profile-record-actions {
     display: flex;
     align-items: center;
-    gap: 7px;
+    gap: var(--space-8);
     margin-left: auto;
   }
 
@@ -816,10 +816,10 @@
     display: inline-flex;
     min-height: 27px;
     align-items: center;
-    gap: 5px;
+    gap: var(--space-4);
     border: 1px solid var(--line);
     border-radius: var(--control-radius);
-    padding: 0 8px;
+    padding: 0 var(--space-8);
     background: var(--surface-raised);
     color: var(--text-muted);
     font-size: var(--ui-font-size-md);
@@ -853,14 +853,14 @@
   .profile-signature-editor {
     display: grid;
     min-width: 0;
-    gap: 8px;
-    padding: 0 18px 14px;
+    gap: var(--space-8);
+    padding: 0 var(--space-18) var(--space-14);
   }
 
   .profile-signature-content {
     margin: 0;
     border-top: 1px solid color-mix(in srgb, var(--line) 72%, transparent);
-    padding: 12px 18px 15px;
+    padding: var(--space-12) var(--space-18) var(--space-16);
     color: var(--text-muted);
     font-size: var(--ui-font-size-sm);
     line-height: 1.65;
@@ -869,9 +869,9 @@
   .profile-signature-floor-draft {
     display: flex;
     align-items: center;
-    gap: 7px;
+    gap: var(--space-8);
     border: 1px solid color-mix(in srgb, var(--brand) 24%, var(--line));
-    padding: 9px 11px;
+    padding: var(--space-8) var(--space-12);
     background: var(--brand-faint);
     color: var(--brand-strong);
     font-size: var(--ui-font-size-2xs);
@@ -883,9 +883,9 @@
     display: flex;
     min-height: 48px;
     align-items: center;
-    gap: 8px;
+    gap: var(--space-8);
     border-top: 1px solid color-mix(in srgb, var(--line) 72%, transparent);
-    padding: 10px 18px;
+    padding: var(--space-10) var(--space-18);
     color: var(--brand-strong);
     font-size: var(--ui-font-size-xs);
   }
@@ -912,7 +912,7 @@
     min-height: 260px;
     place-items: center;
     align-content: center;
-    padding: 32px;
+    padding: var(--space-32);
     text-align: center;
   }
 
@@ -926,20 +926,20 @@
   }
 
   .profile-empty-state h3 {
-    margin: 13px 0 0;
+    margin: var(--space-12) 0 0;
     color: var(--text-strong);
     font-family: "Noto Serif CJK SC", "Source Han Serif SC", "Songti SC", serif;
     font-size: var(--ui-font-size-xl);
   }
 
   .profile-empty-state p {
-    margin: 7px 0 0;
+    margin: var(--space-8) 0 0;
     color: var(--text-muted);
     font-size: var(--ui-font-size-lg);
   }
 
   .profile-empty-state button {
-    margin-top: 14px;
+    margin-top: var(--space-14);
     color: var(--brand);
     font-size: var(--ui-font-size-lg);
     font-weight: var(--font-weight-bold);
@@ -947,13 +947,13 @@
 
   .profile-pagination {
     border-top: 1px solid var(--line);
-    padding: 12px 16px;
+    padding: var(--space-12) var(--space-16);
   }
 
   .profile-workspace-aside {
     display: grid;
     min-width: 0;
-    gap: 12px;
+    gap: var(--space-12);
   }
 
   .profile-desktop-filter,
@@ -974,16 +974,16 @@
 
   .profile-filter-panel {
     display: grid;
-    gap: 13px;
-    padding: 16px;
+    gap: var(--space-12);
+    padding: var(--space-16);
   }
 
   .profile-filter-title {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    gap: 10px;
-    padding-bottom: 11px;
+    gap: var(--space-10);
+    padding-bottom: var(--space-12);
     border-bottom: 1px solid var(--line);
   }
 
@@ -991,7 +991,7 @@
   .profile-filter-title button {
     display: flex;
     align-items: center;
-    gap: 6px;
+    gap: var(--space-6);
   }
 
   .profile-filter-title > div {
@@ -1011,13 +1011,13 @@
 
   .profile-filter-panel label {
     display: grid;
-    gap: 6px;
+    gap: var(--space-6);
   }
 
   .profile-filter-panel input {
     width: 100%;
     height: 34px;
-    padding: 0 9px;
+    padding: 0 var(--space-8);
     color-scheme: inherit;
     font-size: var(--ui-font-size-lg);
   }
@@ -1025,7 +1025,7 @@
   .profile-date-fields {
     display: grid;
     grid-template-columns: 1fr 1fr;
-    gap: 8px;
+    gap: var(--space-8);
   }
 
   .profile-filter-result,
@@ -1052,8 +1052,8 @@
     min-height: 52px;
     align-items: center;
     justify-content: space-between;
-    gap: 10px;
-    padding: 0 15px;
+    gap: var(--space-10);
+    padding: 0 var(--space-16);
     color: var(--brand-strong);
     font-size: var(--ui-font-size-lg);
     font-weight: var(--font-weight-bold);
@@ -1073,7 +1073,7 @@
     align-items: center;
     justify-content: center;
     overflow-y: auto;
-    padding: 24px;
+    padding: var(--space-24);
     background: var(--overlay);
     backdrop-filter: blur(4px);
     animation: overlay-in 150ms ease both;
@@ -1122,10 +1122,10 @@
     display: grid;
     grid-template-columns: 34px minmax(0, 1fr) 32px;
     align-items: center;
-    gap: 9px;
+    gap: var(--space-8);
     min-height: 58px;
     border-bottom: 1px solid var(--line);
-    padding: 0 14px;
+    padding: 0 var(--space-14);
   }
 
   .profile-dialog > header > span {
@@ -1160,8 +1160,8 @@
 
   .profile-dialog-body {
     display: grid;
-    gap: 14px;
-    padding: 20px;
+    gap: var(--space-14);
+    padding: var(--space-20);
   }
 
   .profile-personalization-dialog {
@@ -1210,8 +1210,8 @@
   .profile-decoration-column {
     display: grid;
     min-width: 0;
-    gap: 12px;
-    padding: 20px;
+    gap: var(--space-12);
+    padding: var(--space-20);
   }
 
   .profile-decoration-column + .profile-decoration-column {
@@ -1222,7 +1222,7 @@
   .profile-personalization-tags h3 {
     display: flex;
     align-items: center;
-    gap: 7px;
+    gap: var(--space-8);
     margin: 0;
     color: var(--text-strong);
     font-size: var(--ui-font-size-lg);
@@ -1257,7 +1257,7 @@
   .profile-decoration-actions {
     display: flex;
     justify-content: center;
-    gap: 8px;
+    gap: var(--space-8);
   }
 
   .profile-decoration-actions button {
@@ -1265,9 +1265,9 @@
     min-height: 36px;
     align-items: center;
     justify-content: center;
-    gap: 6px;
+    gap: var(--space-6);
     border: 1px solid var(--line-strong);
-    padding: 0 12px;
+    padding: 0 var(--space-12);
     background: var(--surface-raised);
     color: var(--text-muted);
     font-size: var(--ui-font-size-lg);
@@ -1299,8 +1299,8 @@
 
   .profile-personalization-tags {
     display: grid;
-    gap: 10px;
-    padding: 18px 20px 20px;
+    gap: var(--space-10);
+    padding: var(--space-18) var(--space-20) var(--space-20);
   }
 
   .profile-personalization-empty-tags {
@@ -1309,7 +1309,7 @@
   }
 
   .profile-personalization-body > .profile-dialog-error {
-    padding: 0 20px 18px;
+    padding: 0 var(--space-20) var(--space-18);
     color: var(--danger);
   }
 
@@ -1321,7 +1321,7 @@
   }
 
   .profile-star-rules {
-    gap: 12px;
+    gap: var(--space-12);
   }
 
   .profile-star-label {
@@ -1339,9 +1339,9 @@
     display: flex;
     align-items: center;
     justify-content: space-between;
-    gap: 16px;
+    gap: var(--space-16);
     border: 1px solid color-mix(in srgb, var(--warning) 25%, var(--line));
-    padding: 11px 12px;
+    padding: var(--space-12) var(--space-12);
     background: color-mix(in srgb, var(--warning) 7%, var(--surface-raised));
   }
 
@@ -1354,7 +1354,7 @@
   .profile-star-current > strong {
     display: inline-flex;
     align-items: center;
-    gap: 9px;
+    gap: var(--space-8);
     color: var(--warning);
     font-size: var(--ui-font-size-lg);
     letter-spacing: 0.08em;
@@ -1376,7 +1376,7 @@
   .profile-star-rules th,
   .profile-star-rules td {
     border-bottom: 1px solid var(--line);
-    padding: 7px 10px;
+    padding: var(--space-8) var(--space-10);
     text-align: left;
   }
 
@@ -1441,14 +1441,14 @@
   .profile-avatar-editor-body {
     display: grid;
     grid-template-columns: minmax(0, 1fr) 170px;
-    gap: 16px;
-    padding: 18px;
+    gap: var(--space-16);
+    padding: var(--space-18);
   }
 
   .profile-avatar-workbench {
     min-width: 0;
     border: 1px solid var(--line);
-    padding: 12px;
+    padding: var(--space-12);
     background: var(--surface-soft);
   }
 
@@ -1478,7 +1478,7 @@
     color: var(--text-faint);
     font-size: var(--ui-font-size-md);
     font-weight: var(--font-weight-bold);
-    gap: 8px;
+    gap: var(--space-8);
   }
 
   .profile-avatar-empty-state {
@@ -1634,12 +1634,12 @@
     display: flex;
     min-width: 0;
     flex-direction: column;
-    gap: 9px;
+    gap: var(--space-8);
   }
 
   .profile-avatar-result {
     border: 1px solid var(--line);
-    padding: 10px;
+    padding: var(--space-10);
     background: var(--surface-soft);
   }
 
@@ -1671,9 +1671,9 @@
     min-height: 36px;
     align-items: center;
     justify-content: center;
-    gap: 6px;
+    gap: var(--space-6);
     border: 1px solid var(--line-strong);
-    padding: 0 9px;
+    padding: 0 var(--space-8);
     background: var(--surface-raised);
     color: var(--text-muted);
     font-size: var(--ui-font-size-md);
@@ -1687,7 +1687,7 @@
   }
 
   .profile-avatar-editor-aside > p {
-    margin: 2px 0 0;
+    margin: var(--space-2) 0 0;
     color: var(--text-faint);
     font-size: var(--ui-font-size-md);
     line-height: 1.55;
@@ -1700,9 +1700,9 @@
 
   .profile-floor-link-preview {
     display: grid;
-    gap: 6px;
+    gap: var(--space-6);
     border: 1px solid color-mix(in srgb, var(--brand) 24%, var(--line));
-    padding: 10px 11px;
+    padding: var(--space-10) var(--space-12);
     background: var(--brand-faint);
   }
 
@@ -1721,20 +1721,20 @@
 
   .profile-dialog-field {
     display: grid;
-    gap: 7px;
+    gap: var(--space-8);
   }
 
   .profile-dialog-field input,
   .profile-dialog-field textarea {
     min-height: 38px;
-    padding: 8px 10px;
+    padding: var(--space-8) var(--space-10);
     font-size: var(--ui-font-size-lg);
   }
 
   .profile-verification-line {
     display: inline-flex;
     align-items: center;
-    gap: 6px;
+    gap: var(--space-6);
     color: var(--brand-strong);
     font-size: var(--ui-font-size-md);
     font-weight: var(--font-weight-semibold);
@@ -1750,20 +1750,20 @@
     display: flex;
     align-items: center;
     justify-content: space-between;
-    gap: 12px;
+    gap: var(--space-12);
   }
 
   .profile-email-controls {
     display: flex;
     flex-wrap: wrap;
     justify-content: flex-end;
-    gap: 8px;
+    gap: var(--space-8);
   }
 
   .profile-email-controls > button {
     min-height: 30px;
     border: 1px solid var(--line-strong);
-    padding: 0 9px;
+    padding: 0 var(--space-8);
     color: var(--brand-strong);
     font-size: var(--ui-font-size-md);
     font-weight: var(--font-weight-bold);
@@ -1776,22 +1776,22 @@
 
   .profile-email-change-panel {
     display: grid;
-    gap: 9px;
+    gap: var(--space-8);
     border: 1px solid var(--line);
-    padding: 12px;
+    padding: var(--space-12);
     background: var(--surface-soft);
   }
 
   .profile-email-action-row {
     display: grid;
     grid-template-columns: minmax(0, 1fr) auto;
-    gap: 8px;
+    gap: var(--space-8);
   }
 
   .profile-email-action-row input {
     min-width: 0;
     min-height: 38px;
-    padding: 0 10px;
+    padding: 0 var(--space-10);
     font-size: var(--ui-font-size-lg);
   }
 
@@ -1799,7 +1799,7 @@
     min-width: 98px;
     min-height: 38px;
     border: 1px solid var(--line-strong);
-    padding: 0 10px;
+    padding: 0 var(--space-10);
     background: var(--surface-raised);
     color: var(--text-muted);
     font-size: var(--ui-font-size-md);
@@ -1832,20 +1832,20 @@
   .profile-switch-field {
     display: flex;
     align-items: flex-start;
-    gap: 10px;
+    gap: var(--space-10);
     border: 1px solid var(--line);
-    padding: 12px;
+    padding: var(--space-12);
     background: var(--surface-soft);
   }
 
   .profile-switch-field input {
-    margin-top: 3px;
+    margin-top: var(--space-4);
     accent-color: var(--brand);
   }
 
   .profile-switch-field span {
     display: grid;
-    gap: 4px;
+    gap: var(--space-4);
   }
 
   .profile-switch-field strong {
@@ -1860,7 +1860,7 @@
   }
 
   .profile-security-fields {
-    gap: 12px;
+    gap: var(--space-12);
   }
 
   .profile-dialog-error {
@@ -1874,9 +1874,9 @@
     min-height: 62px;
     align-items: center;
     justify-content: flex-end;
-    gap: 8px;
+    gap: var(--space-8);
     border-top: 1px solid var(--line);
-    padding: 0 16px;
+    padding: 0 var(--space-16);
     background: var(--surface-soft);
   }
 
@@ -1885,9 +1885,9 @@
     min-height: 36px;
     align-items: center;
     justify-content: center;
-    gap: 6px;
+    gap: var(--space-6);
     border: 1px solid;
-    padding: 0 12px;
+    padding: 0 var(--space-12);
     font-size: var(--ui-font-size-lg);
     font-weight: var(--font-weight-bold);
   }
@@ -1913,8 +1913,8 @@
   .profile-message-sent {
     display: grid;
     justify-items: center;
-    gap: 8px;
-    padding: 18px 0;
+    gap: var(--space-8);
+    padding: var(--space-18) 0;
     color: var(--brand-strong);
     text-align: center;
   }
@@ -1941,7 +1941,7 @@
     width: min(520px, 100%);
     justify-items: center;
     border: 1px solid var(--line);
-    padding: 48px 28px;
+    padding: var(--space-48) var(--space-28);
     background: var(--surface);
     box-shadow: var(--shadow-card);
     color: var(--text-faint);
@@ -1949,19 +1949,19 @@
   }
 
   .profile-not-found > svg {
-    margin-bottom: 16px;
+    margin-bottom: var(--space-16);
     color: var(--brand);
   }
 
   .profile-not-found h1 {
-    margin: 10px 0 0;
+    margin: var(--space-10) 0 0;
     color: var(--text-strong);
     font-family: "Noto Serif CJK SC", "Source Han Serif SC", "Songti SC", serif;
     font-size: var(--ui-font-size-page-title);
   }
 
   .profile-not-found p {
-    margin: 10px 0 0;
+    margin: var(--space-10) 0 0;
     color: var(--text-muted);
     font-size: var(--ui-font-size-lg);
   }
@@ -1970,10 +1970,10 @@
   .profile-not-found button {
     display: inline-flex;
     align-items: center;
-    gap: 6px;
-    margin-top: 22px;
+    gap: var(--space-6);
+    margin-top: var(--space-22);
     border: 1px solid var(--brand);
-    padding: 9px 13px;
+    padding: var(--space-8) var(--space-12);
     background: var(--brand);
     color: #fff;
     font-size: var(--ui-font-size-lg);
@@ -1984,7 +1984,7 @@
     display: flex;
     flex-wrap: wrap;
     justify-content: center;
-    gap: 8px;
+    gap: var(--space-8);
   }
 
   .profile-auth-actions a + a {
@@ -2038,7 +2038,7 @@
 
   @media (max-width: 680px) {
     .profile-pagination {
-      padding: 8px 6px;
+      padding: var(--space-8) var(--space-6);
     }
 
     .profile-page-shell {
@@ -2049,19 +2049,19 @@
 
     .profile-overview,
     .profile-content-menu {
-      gap: 8px;
+      gap: var(--space-8);
     }
 
     .profile-content-menu {
-      margin-top: 8px;
+      margin-top: var(--space-8);
     }
 
     .profile-identity-card {
       min-height: 0;
       flex-direction: column;
       align-items: stretch;
-      gap: 18px;
-      padding: 20px;
+      gap: var(--space-18);
+      padding: var(--space-20);
     }
 
     .profile-file-stamp {
@@ -2073,7 +2073,7 @@
       display: grid;
       grid-template-columns: 62px minmax(0, 1fr);
       align-items: start;
-      gap: 0 15px;
+      gap: 0 var(--space-16);
     }
 
     .profile-identity-copy {
@@ -2100,7 +2100,7 @@
       grid-column: 2;
       grid-row: 1;
       align-self: center;
-      gap: 5px;
+      gap: var(--space-4);
       margin-top: 0;
     }
 
@@ -2114,7 +2114,7 @@
     }
 
     .profile-intro {
-      margin-top: 6px;
+      margin-top: var(--space-6);
       font-size: var(--ui-font-size-sm);
       line-height: 1.55;
     }
@@ -2144,15 +2144,15 @@
     .profile-identity-actions-mobile {
       display: flex;
       flex-wrap: nowrap;
-      gap: 6px;
+      gap: var(--space-6);
     }
 
     .profile-identity-actions-mobile > button {
       min-width: 0;
       min-height: 34px;
       flex: 1;
-      gap: 4px;
-      padding: 0 6px;
+      gap: var(--space-4);
+      padding: 0 var(--space-6);
       font-size: var(--ui-font-size-xs);
       white-space: nowrap;
     }
@@ -2178,11 +2178,11 @@
       min-height: 42px;
       grid-template-columns: 4.5rem minmax(0, 1fr) auto;
       align-items: center;
-      gap: 8px;
+      gap: var(--space-8);
       border: 0;
       border-bottom: 1px solid var(--line);
       border-radius: 0;
-      padding: 8px 12px;
+      padding: var(--space-8) var(--space-12);
       box-shadow: none;
       animation: none;
     }
@@ -2198,7 +2198,7 @@
     .profile-data-label {
       grid-column: 1;
       grid-row: 1;
-      gap: 5px;
+      gap: var(--space-4);
       font-size: var(--ui-font-size-xs);
       white-space: nowrap;
     }
@@ -2220,7 +2220,7 @@
 
     .profile-data-card input {
       height: 28px;
-      padding: 0 6px;
+      padding: 0 var(--space-6);
     }
 
     .profile-data-card .profile-inline-action {
@@ -2231,7 +2231,7 @@
     }
 
     .profile-email-visibility {
-      margin-left: 6px;
+      margin-left: var(--space-6);
       font-size: var(--ui-font-size-2xs);
     }
 
@@ -2242,8 +2242,8 @@
 
     .profile-stat-card {
       min-height: 56px;
-      gap: 4px;
-      padding: 8px 6px;
+      gap: var(--space-4);
+      padding: var(--space-8) var(--space-6);
       text-align: center;
     }
 
@@ -2262,20 +2262,20 @@
 
     .profile-tab {
       min-width: 104px;
-      padding: 13px 14px;
+      padding: var(--space-12) var(--space-14);
     }
 
     .profile-record-line {
       min-height: 48px;
-      gap: 10px;
-      padding: 0 12px;
+      gap: var(--space-10);
+      padding: 0 var(--space-12);
     }
 
     .profile-draft-line {
       display: grid;
       grid-template-columns: auto minmax(0, 1fr);
-      gap: 10px 8px;
-      padding: 12px;
+      gap: var(--space-10) var(--space-8);
+      padding: var(--space-12);
     }
 
     .profile-draft-line h3 {
@@ -2295,15 +2295,15 @@
 
     .profile-signature-floor-link {
       flex-wrap: wrap;
-      padding-right: 12px;
-      padding-left: 12px;
+      padding-right: var(--space-12);
+      padding-left: var(--space-12);
     }
 
     .profile-signature-floor-link strong {
       order: 3;
       width: 100%;
       flex-basis: 100%;
-      padding-left: 23px;
+      padding-left: var(--space-24);
     }
 
     .profile-workspace-aside {
@@ -2315,7 +2315,7 @@
     }
 
     .profile-dialog-backdrop {
-      padding: 12px;
+      padding: var(--space-12);
     }
 
     .profile-dialog {
@@ -2343,7 +2343,7 @@
 
     .profile-avatar-editor-body {
       grid-template-columns: 1fr;
-      padding: 12px;
+      padding: var(--space-12);
     }
 
     .profile-avatar-editor-aside {

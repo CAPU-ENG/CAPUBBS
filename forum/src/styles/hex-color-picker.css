@@ -2,7 +2,7 @@
   .hex-color-panel {
     display: grid;
     width: 220px;
-    gap: 8px;
+    gap: var(--space-8);
   }
 
   .hex-color-palette {
@@ -73,7 +73,7 @@
     display: flex;
     min-width: 0;
     align-items: center;
-    gap: 6px;
+    gap: var(--space-6);
   }
 
   .hex-color-preview {
@@ -97,7 +97,7 @@
     flex: 1 1 auto;
     border: 1px solid var(--line);
     border-radius: var(--control-radius);
-    padding: 0 7px;
+    padding: 0 var(--space-8);
     background: var(--surface-soft);
     color: var(--text-strong);
     font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
@@ -116,7 +116,7 @@
     height: 28px;
     flex: 0 0 auto;
     border-radius: var(--control-radius);
-    padding: 0 9px;
+    padding: 0 var(--space-8);
     background: var(--brand);
     color: #fff;
     font-size: var(--ui-font-size-md);
@@ -141,7 +141,7 @@
     justify-content: center;
     border: 1px solid var(--line);
     border-radius: var(--control-radius);
-    padding: 3px;
+    padding: var(--space-4);
     background: var(--surface-soft);
   }
 
@@ -163,7 +163,7 @@
     width: max-content;
     border: 1px solid var(--line);
     border-radius: var(--control-radius);
-    padding: 9px;
+    padding: var(--space-8);
     background: var(--surface);
     box-shadow: 0 14px 34px rgb(0 0 0 / 18%);
   }

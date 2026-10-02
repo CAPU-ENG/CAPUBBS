@@ -2,7 +2,7 @@
   .reply-editor {
     scroll-margin-top: calc(var(--topbar-height) + 16px);
     max-width: var(--thread-main-column);
-    margin-top: 18px;
+    margin-top: var(--space-18);
     overflow: hidden;
     border: 1px solid var(--line);
     border-radius: var(--card-radius);
@@ -20,15 +20,15 @@
   }
 
   .thread-reply-loading {
-    margin-top: 18px;
+    margin-top: var(--space-18);
   }
 
   .reply-editor-heading {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    gap: 16px;
-    padding: 18px 20px 14px;
+    gap: var(--space-16);
+    padding: var(--space-18) var(--space-20) var(--space-14);
   }
 
   .reply-editor-heading h2 {
@@ -49,12 +49,12 @@
   .post-editor-title-field {
     position: relative;
     display: block;
-    margin: 2px 16px 10px;
+    margin: var(--space-2) var(--space-16) var(--space-10);
   }
 
   .post-editor-title-field > span {
     display: block;
-    margin-bottom: 7px;
+    margin-bottom: var(--space-8);
     color: var(--text-muted);
     font-size: var(--ui-font-size-md);
     font-weight: var(--font-weight-bold);
@@ -63,7 +63,7 @@
   .post-editor-title-field input {
     width: 100%;
     height: 42px;
-    padding: 0 68px 0 12px;
+    padding: 0 68px 0 var(--space-12);
     border: 1px solid var(--line);
     border-radius: var(--control-radius);
     outline: 0;
@@ -88,7 +88,7 @@
   }
 
   .reply-editor-core {
-    padding: 4px 16px 6px;
+    padding: var(--space-4) var(--space-16) var(--space-6);
   }
 
   .rich-text-editor-field > section.capubbs-rich-text-editor {
@@ -122,15 +122,15 @@
     display: flex;
     flex-wrap: wrap;
     align-items: center;
-    gap: 8px 18px;
-    margin: 10px 16px 12px;
-    padding-inline: 2px;
+    gap: var(--space-8) var(--space-18);
+    margin: var(--space-10) var(--space-16) var(--space-12);
+    padding-inline: var(--space-2);
   }
 
   .reply-signature-options > label {
     display: inline-flex;
     align-items: center;
-    gap: 6px;
+    gap: var(--space-6);
     color: var(--text-muted);
     font-size: var(--ui-font-size-md);
     font-weight: var(--font-weight-semibold);
@@ -151,13 +151,13 @@
   .editor-mode-tabs {
     display: flex;
     border-top: 1px solid var(--line);
-    padding: 0 14px;
+    padding: 0 var(--space-14);
   }
 
   .editor-mode-tabs > button {
     position: relative;
     min-height: 38px;
-    padding: 0 10px;
+    padding: 0 var(--space-10);
     color: var(--text-faint);
     font-size: var(--ui-font-size-md);
     font-weight: var(--font-weight-bold);
@@ -181,10 +181,10 @@
     display: flex;
     min-height: 42px;
     align-items: center;
-    gap: 2px;
+    gap: var(--space-2);
     overflow-x: auto;
     border-block: 1px solid var(--line);
-    padding: 4px 12px;
+    padding: var(--space-4) var(--space-12);
     background: var(--surface-soft);
   }
 
@@ -199,7 +199,7 @@
 
   .editor-toolbar > select {
     min-width: 82px;
-    padding: 0 7px;
+    padding: 0 var(--space-8);
     background: var(--surface);
     font-size: var(--ui-font-size-md);
   }
@@ -221,7 +221,7 @@
     width: 1px;
     height: 22px;
     flex-shrink: 0;
-    margin: 0 5px;
+    margin: 0 var(--space-4);
     background: var(--line-strong);
   }
 
@@ -232,7 +232,7 @@
     min-height: 230px;
     resize: vertical;
     border: 0;
-    padding: 18px 20px;
+    padding: var(--space-18) var(--space-20);
     background: var(--surface);
     color: var(--text);
     font-size: var(--ui-font-size-md);
@@ -258,19 +258,19 @@
   .reply-attachments {
     display: flex;
     flex-wrap: wrap;
-    gap: 6px;
+    gap: var(--space-6);
     border-top: 1px solid var(--line);
-    padding: 9px 16px;
+    padding: var(--space-8) var(--space-16);
   }
 
   .reply-attachments li {
     display: inline-flex;
     max-width: 100%;
     align-items: center;
-    gap: 5px;
+    gap: var(--space-4);
     border: 1px solid var(--line);
     border-radius: var(--control-radius);
-    padding: 4px 7px;
+    padding: var(--space-4) var(--space-8);
     color: var(--text-muted);
     font-size: var(--ui-font-size-sm);
   }
@@ -298,16 +298,16 @@
     display: flex;
     flex-wrap: wrap;
     align-items: center;
-    gap: 8px;
+    gap: var(--space-8);
     border-top: 1px solid var(--line);
-    padding: 12px 14px;
+    padding: var(--space-12) var(--space-14);
     background: var(--surface-soft);
   }
 
   .reply-editor-footer > label {
     display: inline-flex;
     align-items: center;
-    gap: 7px;
+    gap: var(--space-8);
     color: var(--text-faint);
     font-size: var(--ui-font-size-sm);
     font-weight: var(--font-weight-bold);
@@ -317,7 +317,7 @@
     height: 34px;
     border: 1px solid var(--line);
     border-radius: var(--control-radius);
-    padding: 0 8px;
+    padding: 0 var(--space-8);
     background: var(--surface);
     color: var(--text-muted);
     font-size: var(--ui-font-size-md);
@@ -364,7 +364,7 @@
 
   .reply-editor-submit {
     display: flex;
-    gap: 7px;
+    gap: var(--space-8);
     margin-left: auto;
   }
 
@@ -387,7 +387,7 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    padding: 16px;
+    padding: var(--space-16);
     background: rgb(10 18 13 / 0.72);
     backdrop-filter: blur(3px);
   }
@@ -406,9 +406,9 @@
     display: grid;
     grid-template-columns: 32px 1fr 32px;
     align-items: center;
-    gap: 9px;
+    gap: var(--space-8);
     border-bottom: 1px solid var(--line);
-    padding: 12px 14px;
+    padding: var(--space-12) var(--space-14);
   }
 
   .attachment-dialog > header > span,
@@ -438,8 +438,8 @@
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    gap: 7px;
-    margin: 14px;
+    gap: var(--space-8);
+    margin: var(--space-14);
     border: 1px dashed var(--line-strong);
     color: var(--brand-strong);
   }
@@ -460,8 +460,8 @@
 
   .attachment-upload-progress {
     display: grid;
-    gap: 8px;
-    margin: 14px;
+    gap: var(--space-8);
+    margin: var(--space-14);
     color: var(--text-faint);
     font-size: var(--ui-font-size-sm);
   }
@@ -481,23 +481,23 @@
     display: flex;
     flex-wrap: wrap;
     justify-content: space-between;
-    gap: 6px 12px;
+    gap: var(--space-6) var(--space-12);
   }
 
   .attachment-dialog > ul {
     display: grid;
     max-height: 180px;
-    gap: 5px;
+    gap: var(--space-4);
     overflow-y: auto;
-    margin: 0 14px 14px;
+    margin: 0 var(--space-14) var(--space-14);
   }
 
   .attachment-dialog > ul li {
     display: flex;
     align-items: center;
-    gap: 10px;
+    gap: var(--space-10);
     border: 1px solid var(--line);
-    padding: 8px 10px;
+    padding: var(--space-8) var(--space-10);
   }
 
   .attachment-dialog > ul li > div {
@@ -532,7 +532,7 @@
     display: flex;
     justify-content: flex-end;
     border-top: 1px solid var(--line);
-    padding: 10px 14px;
+    padding: var(--space-10) var(--space-14);
     background: var(--surface-soft);
   }
 
@@ -543,7 +543,7 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    padding: 16px;
+    padding: var(--space-16);
     background: rgb(10 18 13 / 0.72);
     backdrop-filter: blur(3px);
     overscroll-behavior: none;
@@ -577,9 +577,9 @@
     min-width: 0;
     align-items: center;
     justify-content: space-between;
-    gap: 16px;
+    gap: var(--space-16);
     border-bottom: 1px solid var(--line);
-    padding: 12px 14px;
+    padding: var(--space-12) var(--space-14);
   }
 
   .reply-preview-dialog > header > div {
@@ -594,7 +594,7 @@
 
   .reply-preview-dialog > header h2 {
     overflow: hidden;
-    margin-top: 2px;
+    margin-top: var(--space-2);
     color: var(--text-strong);
     font-size: var(--ui-font-size-xl);
     font-weight: var(--font-weight-bold);
@@ -616,7 +616,7 @@
   .reply-preview-stage {
     min-height: 0;
     overflow: auto;
-    padding: 16px;
+    padding: var(--space-16);
     background: var(--surface-soft);
     overscroll-behavior: none;
   }
@@ -644,7 +644,7 @@
 
   .reply-preview-stage > .activity-signup-card-preview {
     width: min(100%, var(--thread-main-column));
-    margin: 12px auto 0;
+    margin: var(--space-12) auto 0;
     box-shadow: none;
   }
 
@@ -682,7 +682,7 @@
     display: flex;
     justify-content: flex-end;
     border-top: 1px solid var(--line);
-    padding: 10px 14px;
+    padding: var(--space-10) var(--space-14);
     background: var(--surface-soft);
   }
 
@@ -691,16 +691,16 @@
   @media (max-width: 640px) {
 
     .post-editor-title-field {
-      margin-inline: 10px;
+      margin-inline: var(--space-10);
     }
 
     .reply-editor {
-      margin-top: 12px;
+      margin-top: var(--space-12);
     }
 
     .reply-editor-heading {
       align-items: flex-start;
-      padding: 15px 14px 12px;
+      padding: var(--space-16) var(--space-14) var(--space-12);
     }
 
     .reply-editor-heading > p {
@@ -708,7 +708,7 @@
     }
 
     .reply-editor-core {
-      padding: 3px 10px 5px;
+      padding: var(--space-4) var(--space-10) var(--space-4);
     }
 
     .reply-editor-core .capubbs-rich-text-editor[data-auto-height="false"] {
@@ -718,10 +718,10 @@
 
     .reply-signature-options {
       flex-wrap: nowrap;
-      gap: 6px 10px;
+      gap: var(--space-6) var(--space-10);
       overflow-x: auto;
-      margin: 8px 10px;
-      padding-bottom: 2px;
+      margin: var(--space-8) var(--space-10);
+      padding-bottom: var(--space-2);
       scrollbar-width: none;
     }
 
@@ -732,7 +732,7 @@
 
     .reply-signature-options > label {
       flex-shrink: 0;
-      gap: 4px;
+      gap: var(--space-4);
       font-size: var(--ui-font-size-sm);
       white-space: nowrap;
     }
@@ -744,17 +744,17 @@
 
     .editor-mode-tabs {
       overflow-x: auto;
-      padding: 0 8px;
+      padding: 0 var(--space-8);
     }
 
     .editor-toolbar {
-      padding-inline: 8px;
+      padding-inline: var(--space-8);
     }
 
     .rich-reply-input,
     .source-reply-input {
       min-height: 200px;
-      padding: 15px 14px;
+      padding: var(--space-16) var(--space-14);
       font-size: var(--ui-font-size-sm);
     }
 
@@ -762,8 +762,8 @@
       display: grid;
       grid-template-columns: auto minmax(0, 1fr);
       align-items: center;
-      gap: 5px;
-      padding: 7px 8px;
+      gap: var(--space-4);
+      padding: var(--space-8) var(--space-8);
     }
 
     .reply-editor-status {
@@ -779,14 +779,14 @@
       min-width: 0;
       flex-wrap: wrap;
       justify-content: flex-end;
-      gap: 4px;
+      gap: var(--space-4);
       margin-left: 0;
     }
 
     .reply-editor-footer .forum-button {
       min-height: 30px;
-      gap: 3px;
-      padding-inline: 6px;
+      gap: var(--space-4);
+      padding-inline: var(--space-6);
       font-size: var(--ui-font-size-sm);
       white-space: nowrap;
     }
@@ -805,7 +805,7 @@
       grid-row: 1;
       grid-column: 1;
       justify-self: start;
-      padding-inline: 5px;
+      padding-inline: var(--space-4);
       font-size: var(--ui-font-size-xs);
     }
 
@@ -821,7 +821,7 @@
     }
 
     .reply-preview-backdrop {
-      padding: 8px;
+      padding: var(--space-8);
     }
 
     .reply-preview-dialog {
@@ -833,7 +833,7 @@
     }
 
     .reply-preview-stage {
-      padding: 8px;
+      padding: var(--space-8);
     }
 
   }

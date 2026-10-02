@@ -23,18 +23,18 @@
   .management-tabs {
     display: flex;
     flex-wrap: wrap;
-    gap: 8px;
-    margin: 14px 0;
+    gap: var(--space-8);
+    margin: var(--space-14) 0;
   }
 
   .management-tabs button {
     display: inline-flex;
     height: 38px;
     align-items: center;
-    gap: 7px;
+    gap: var(--space-8);
     border: 1px solid var(--line);
     border-radius: var(--card-radius);
-    padding: 0 13px;
+    padding: 0 var(--space-12);
     background: color-mix(in srgb, var(--surface) 92%, transparent);
     color: var(--text-muted);
     font-size: var(--ui-font-size-lg);
@@ -70,24 +70,24 @@
 
   .management-tag-editor-wrap {
     display: grid;
-    gap: 12px;
-    padding: 14px 16px 16px;
+    gap: var(--space-12);
+    padding: var(--space-14) var(--space-16) var(--space-16);
   }
 
   .management-tag-editor {
     display: grid;
     grid-template-columns: minmax(0, 1fr) 64px auto;
     align-items: end;
-    gap: 8px;
+    gap: var(--space-8);
     border-bottom: 1px solid var(--line);
-    padding-bottom: 14px;
+    padding-bottom: var(--space-14);
   }
 
   .management-tag-editor label,
   .management-tag-color-field,
   .management-member-picker > label {
     display: grid;
-    gap: 6px;
+    gap: var(--space-6);
     color: var(--text-muted);
     font-size: var(--ui-font-size-sm);
     font-weight: var(--font-weight-bold);
@@ -98,7 +98,7 @@
     height: 34px;
     border: 1px solid var(--line);
     border-radius: var(--control-radius);
-    padding: 0 9px;
+    padding: 0 var(--space-8);
     background: var(--surface-soft);
     color: var(--text-strong);
     font-size: var(--ui-font-size-md);
@@ -113,22 +113,22 @@
 
   .management-tag-editor-actions {
     display: flex;
-    gap: 6px;
+    gap: var(--space-6);
   }
 
   .management-tag-definition-list {
     display: grid;
-    gap: 7px;
+    gap: var(--space-8);
   }
 
   .management-tag-definition-row {
     display: grid;
     grid-template-columns: minmax(0, 1fr) auto auto;
     align-items: center;
-    gap: 10px;
+    gap: var(--space-10);
     min-height: 42px;
     border-bottom: 1px solid var(--line);
-    padding-bottom: 7px;
+    padding-bottom: var(--space-8);
   }
 
   .management-tag-definition-row:last-child {
@@ -143,7 +143,7 @@
 
   .management-tag-definition-row > div {
     display: flex;
-    gap: 4px;
+    gap: var(--space-4);
   }
 
   .management-member-tag-layout {
@@ -154,7 +154,7 @@
 
   .management-member-picker,
   .management-member-tag-editor {
-    padding: 15px 16px;
+    padding: var(--space-16) var(--space-16);
   }
 
   .management-member-picker {
@@ -163,7 +163,7 @@
 
   .management-member-picker > .management-input-action {
     grid-template-columns: 1fr;
-    margin-top: 8px;
+    margin-top: var(--space-8);
   }
 
   .management-member-picker > .management-input-action > svg {
@@ -177,7 +177,7 @@
   .management-member-list {
     display: grid;
     max-height: 240px;
-    margin-top: 10px;
+    margin-top: var(--space-10);
     overflow-y: auto;
   }
 
@@ -187,7 +187,7 @@
     align-items: center;
     justify-content: space-between;
     border-bottom: 1px solid var(--line);
-    padding: 0 7px;
+    padding: 0 var(--space-8);
     color: var(--text-muted);
     font-size: var(--ui-font-size-md);
     text-align: left;
@@ -201,7 +201,7 @@
 
   .management-member-list > .management-member-add {
     justify-content: flex-start;
-    gap: 6px;
+    gap: var(--space-6);
     color: var(--brand-strong);
   }
 
@@ -216,7 +216,7 @@
     align-items: baseline;
     justify-content: space-between;
     border-bottom: 1px solid var(--line);
-    padding-bottom: 11px;
+    padding-bottom: var(--space-12);
   }
 
   .management-selected-member strong {
@@ -226,14 +226,14 @@
 
   .management-tag-checkboxes {
     display: grid;
-    gap: 9px;
-    margin-top: 15px;
+    gap: var(--space-8);
+    margin-top: var(--space-16);
   }
 
   .management-tag-checkboxes label {
     display: flex;
     align-items: center;
-    gap: 8px;
+    gap: var(--space-8);
     color: var(--text-muted);
     font-size: var(--ui-font-size-md);
   }
@@ -246,7 +246,7 @@
     display: grid;
     grid-template-columns: minmax(0, 1fr);
     align-items: start;
-    gap: 14px;
+    gap: var(--space-14);
   }
 
   .management-single-column {
@@ -265,9 +265,9 @@
     min-height: 67px;
     align-items: center;
     justify-content: space-between;
-    gap: 16px;
+    gap: var(--space-16);
     border-bottom: 1px solid var(--line);
-    padding: 14px 16px;
+    padding: var(--space-14) var(--space-16);
   }
 
   .management-card-heading h2 {
@@ -280,7 +280,7 @@
     flex: 0 0 auto;
     border: 1px solid var(--line);
     border-radius: var(--card-radius);
-    padding: 4px 7px;
+    padding: var(--space-4) var(--space-8);
     background: var(--surface-soft);
     color: var(--brand-strong);
     font-size: var(--ui-font-size-sm);
@@ -295,10 +295,10 @@
     display: grid;
     grid-template-columns: 30px minmax(0, 1fr) auto;
     align-items: center;
-    gap: 10px;
+    gap: var(--space-10);
     min-height: 78px;
     border-bottom: 1px solid var(--line);
-    padding: 12px 14px;
+    padding: var(--space-12) var(--space-14);
   }
 
   .management-thread-list article:last-child {
@@ -324,7 +324,7 @@
   .management-thread-identity > a {
     display: flex;
     align-items: center;
-    gap: 5px;
+    gap: var(--space-4);
     width: fit-content;
     max-width: 100%;
     overflow: hidden;
@@ -350,8 +350,8 @@
     display: flex;
     flex-wrap: wrap;
     align-items: center;
-    gap: 6px;
-    margin-top: 7px;
+    gap: var(--space-6);
+    margin-top: var(--space-8);
     color: var(--text-faint);
     font-size: var(--ui-font-size-xs);
   }
@@ -374,10 +374,10 @@
     min-height: 34px;
     align-items: center;
     justify-content: center;
-    gap: 5px;
+    gap: var(--space-4);
     border: 1px solid var(--line);
     border-radius: var(--control-radius);
-    padding: 0 10px;
+    padding: 0 var(--space-10);
     background: var(--surface-raised);
     color: var(--text-muted);
     font-size: var(--ui-font-size-sm);
@@ -394,8 +394,8 @@
 
   .management-lookup-form {
     display: grid;
-    gap: 8px;
-    padding: 17px 16px;
+    gap: var(--space-8);
+    padding: var(--space-16) var(--space-16);
   }
 
   .management-lookup-form > label,
@@ -416,7 +416,7 @@
     height: 40px;
     border: 1px solid var(--line);
     border-radius: var(--control-radius) 0 0 var(--control-radius);
-    padding: 0 11px;
+    padding: 0 var(--space-12);
     background: var(--surface-soft);
     color: var(--text-strong);
     font-size: var(--ui-font-size-md);
@@ -439,10 +439,10 @@
     height: 40px;
     align-items: center;
     justify-content: center;
-    gap: 5px;
+    gap: var(--space-4);
     border: 1px solid var(--brand-strong);
     border-radius: 0 var(--control-radius) var(--control-radius) 0;
-    padding: 0 11px;
+    padding: 0 var(--space-12);
     background: var(--brand-strong);
     color: var(--on-brand);
     font-size: var(--ui-font-size-sm);
@@ -453,11 +453,11 @@
   .management-thread-confirmation,
   .management-member-confirmation {
     display: grid;
-    gap: 12px;
-    margin: 0 16px 16px;
+    gap: var(--space-12);
+    margin: 0 var(--space-16) var(--space-16);
     border: 1px solid color-mix(in srgb, var(--brand) 30%, var(--line));
     border-radius: var(--card-radius);
-    padding: 13px;
+    padding: var(--space-12);
     background: var(--brand-faint);
   }
 
@@ -467,7 +467,7 @@
 
   .management-thread-identity > span {
     display: block;
-    margin-bottom: 7px;
+    margin-bottom: var(--space-8);
     color: var(--brand-strong);
     font-size: var(--ui-font-size-xs);
     font-weight: var(--font-weight-bold);
@@ -476,13 +476,13 @@
   .management-thread-identity dl {
     display: flex;
     flex-wrap: wrap;
-    gap: 7px 16px;
-    margin-top: 11px;
+    gap: var(--space-8) var(--space-16);
+    margin-top: var(--space-12);
   }
 
   .management-thread-identity dl div {
     display: flex;
-    gap: 5px;
+    gap: var(--space-4);
     font-size: var(--ui-font-size-xs);
   }
 
@@ -498,11 +498,11 @@
   .management-notice {
     display: flex;
     align-items: flex-start;
-    gap: 6px;
-    margin: 0 16px 16px;
+    gap: var(--space-6);
+    margin: 0 var(--space-16) var(--space-16);
     border: 1px solid var(--line);
     border-radius: var(--card-radius);
-    padding: 9px 10px;
+    padding: var(--space-8) var(--space-10);
     background: var(--surface-soft);
     color: var(--text-muted);
     font-size: var(--ui-font-size-sm);
@@ -529,7 +529,7 @@
     min-height: 180px;
     align-items: center;
     justify-content: center;
-    gap: 7px;
+    gap: var(--space-8);
     color: var(--text-faint);
     font-size: var(--ui-font-size-sm);
   }
@@ -538,16 +538,16 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 12px;
+    gap: var(--space-12);
     border-bottom: 1px solid var(--line);
-    padding: 15px;
+    padding: var(--space-16);
     color: var(--text-faint);
   }
 
   .management-move-flow span {
     display: inline-flex;
     align-items: center;
-    gap: 6px;
+    gap: var(--space-6);
     font-size: var(--ui-font-size-sm);
     font-weight: var(--font-weight-bold);
   }
@@ -578,28 +578,28 @@
 
   .management-move-confirm {
     display: grid;
-    gap: 17px;
-    margin: 0 16px 16px;
+    gap: var(--space-16);
+    margin: 0 var(--space-16) var(--space-16);
     border-top: 1px solid var(--line);
-    padding-top: 16px;
+    padding-top: var(--space-16);
   }
 
   .management-board-transfer {
     display: grid;
     grid-template-columns: minmax(0, 1fr) 22px minmax(0, 1fr);
     align-items: end;
-    gap: 9px;
+    gap: var(--space-8);
   }
 
   .management-board-transfer > div,
   .management-board-transfer > label {
     display: grid;
-    gap: 7px;
+    gap: var(--space-8);
   }
 
   .management-board-transfer > svg {
     align-self: end;
-    margin-bottom: 11px;
+    margin-bottom: var(--space-12);
     color: var(--text-faint);
   }
 
@@ -611,7 +611,7 @@
     align-items: center;
     border: 1px solid var(--line);
     border-radius: var(--control-radius);
-    padding: 0 11px;
+    padding: 0 var(--space-12);
     background: var(--surface-soft);
     color: var(--text-strong);
     font-size: var(--ui-font-size-md);
@@ -631,13 +631,13 @@
     display: flex;
     align-items: flex-start;
     flex-wrap: wrap;
-    gap: 6px;
-    padding: 8px;
+    gap: var(--space-6);
+    padding: var(--space-8);
   }
 
   .management-member-display {
     display: grid;
-    gap: 14px;
+    gap: var(--space-14);
   }
 
   .management-permission-groups {
@@ -654,8 +654,8 @@
     min-height: 42px;
     align-items: center;
     justify-content: space-between;
-    gap: 12px;
-    padding: 8px 14px;
+    gap: var(--space-12);
+    padding: var(--space-8) var(--space-14);
     color: var(--text-muted);
     text-align: left;
   }
@@ -667,7 +667,7 @@
   .management-permission-group-toggle > span {
     display: flex;
     align-items: center;
-    gap: 8px;
+    gap: var(--space-8);
   }
 
   .management-permission-group-toggle strong {
@@ -706,7 +706,7 @@
     justify-content: center;
     border: 1px solid var(--line);
     border-radius: var(--card-radius);
-    padding: 6px 10px;
+    padding: var(--space-6) var(--space-10);
     background: var(--surface-soft);
     text-align: left;
     transition: var(--duration-fast) ease;
@@ -742,14 +742,14 @@
   }
 
   .management-member-confirmation {
-    padding: 14px;
+    padding: var(--space-14);
   }
 
   .management-member-identity {
     display: grid;
     grid-template-columns: 42px minmax(0, 1fr) auto;
     align-items: center;
-    gap: 10px;
+    gap: var(--space-10);
   }
 
   .management-member-identity img {
@@ -760,7 +760,7 @@
   .management-member-identity > div {
     display: grid;
     min-width: 0;
-    gap: 3px;
+    gap: var(--space-4);
   }
 
   .management-member-identity span {
@@ -790,21 +790,21 @@
   .management-member-email {
     display: flex;
     align-items: flex-start;
-    gap: 9px;
+    gap: var(--space-8);
     border-top: 1px solid color-mix(in srgb, var(--brand) 22%, var(--line));
-    padding-top: 12px;
+    padding-top: var(--space-12);
     color: var(--text-faint);
   }
 
   .management-member-email > svg {
     flex: 0 0 auto;
-    margin-top: 2px;
+    margin-top: var(--space-2);
   }
 
   .management-member-email > div {
     display: grid;
     min-width: 0;
-    gap: 7px;
+    gap: var(--space-8);
   }
 
   .management-member-email strong,
@@ -818,14 +818,14 @@
   .management-mute-list article > div > span {
     display: flex;
     flex-wrap: wrap;
-    gap: 5px;
+    gap: var(--space-4);
   }
 
   .management-member-email em,
   .management-mute-list em {
     border: 1px solid var(--line);
     border-radius: var(--card-radius);
-    padding: 3px 5px;
+    padding: var(--space-4) var(--space-4);
     background: var(--surface-soft);
     color: var(--text-muted);
     font-size: var(--ui-font-size-xs);
@@ -838,15 +838,15 @@
     display: flex;
     align-items: center;
     justify-content: space-between;
-    gap: 12px;
+    gap: var(--space-12);
     border-top: 1px solid color-mix(in srgb, var(--brand) 22%, var(--line));
-    padding-top: 12px;
+    padding-top: var(--space-12);
   }
 
   .management-permission-row > div,
   .management-mute-row > div {
     display: grid;
-    gap: 3px;
+    gap: var(--space-4);
   }
 
   .management-permission-row span,
@@ -869,10 +869,10 @@
     display: grid;
     grid-template-columns: minmax(0, 1fr) auto;
     align-items: center;
-    gap: 12px;
+    gap: var(--space-12);
     min-height: 76px;
     border-bottom: 1px solid var(--line);
-    padding: 12px 14px;
+    padding: var(--space-12) var(--space-14);
   }
 
   .management-mute-list article:last-child {
@@ -882,22 +882,22 @@
   .management-mute-list article > div {
     display: grid;
     min-width: 0;
-    gap: 8px;
+    gap: var(--space-8);
   }
 
   .management-moderator-assignment {
     display: flex;
     align-items: end;
     justify-content: space-between;
-    gap: 12px;
+    gap: var(--space-12);
     border-top: 1px solid color-mix(in srgb, var(--brand) 22%, var(--line));
-    padding-top: 12px;
+    padding-top: var(--space-12);
   }
 
   .management-moderator-assignment label {
     display: grid;
     flex: 1;
-    gap: 7px;
+    gap: var(--space-8);
   }
 
   .management-moderator-assignment label > span {
@@ -911,7 +911,7 @@
     height: 36px;
     border: 1px solid var(--line);
     border-radius: var(--control-radius);
-    padding: 0 9px;
+    padding: 0 var(--space-8);
     background: var(--surface-soft);
     color: var(--text-strong);
     font-size: var(--ui-font-size-sm);
@@ -938,9 +938,9 @@
   .management-board-moderator-row > header {
     display: grid;
     align-content: center;
-    gap: 3px;
+    gap: var(--space-4);
     border-right: 1px solid var(--line);
-    padding: 9px 12px;
+    padding: var(--space-8) var(--space-12);
     background: var(--surface-soft);
   }
 
@@ -958,15 +958,15 @@
 
   .management-board-moderator-row > p {
     align-self: center;
-    padding: 9px 12px;
+    padding: var(--space-8) var(--space-12);
   }
 
   .management-board-moderators {
     display: flex;
     align-content: center;
     flex-wrap: wrap;
-    gap: 6px;
-    padding: 8px;
+    gap: var(--space-6);
+    padding: var(--space-8);
   }
 
   .management-board-moderators article {
@@ -976,10 +976,10 @@
     height: 38px;
     align-items: center;
     justify-content: space-between;
-    gap: 6px;
+    gap: var(--space-6);
     border: 1px solid var(--line);
     border-radius: var(--card-radius);
-    padding: 5px 5px 5px 8px;
+    padding: var(--space-4) var(--space-4) var(--space-4) var(--space-8);
     background: var(--surface-soft);
   }
 
@@ -1023,8 +1023,8 @@
     cursor: pointer;
     list-style: none;
     align-items: center;
-    gap: 8px;
-    padding: 8px 12px;
+    gap: var(--space-8);
+    padding: var(--space-8) var(--space-12);
     background: var(--surface-soft);
     color: var(--text-muted);
     font-size: var(--ui-font-size-sm);
@@ -1060,7 +1060,7 @@
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    padding: 40px 20px;
+    padding: var(--space-40) var(--space-20);
     text-align: center;
   }
 
@@ -1076,7 +1076,7 @@
   }
 
   .management-state h1 {
-    margin-top: 16px;
+    margin-top: var(--space-16);
     color: var(--text-strong);
     font-family: "Noto Serif CJK SC", "Source Han Serif SC", "Songti SC", serif;
     font-size: var(--ui-font-size-title);
@@ -1084,7 +1084,7 @@
   }
 
   .management-state p {
-    margin-top: 7px;
+    margin-top: var(--space-8);
     color: var(--text-muted);
     font-size: var(--ui-font-size-lg);
   }
@@ -1093,10 +1093,10 @@
     display: inline-flex;
     min-height: 38px;
     align-items: center;
-    margin-top: 20px;
+    margin-top: var(--space-20);
     border: 1px solid var(--line);
     border-radius: var(--control-radius);
-    padding: 0 12px;
+    padding: 0 var(--space-12);
     background: var(--surface-raised);
     color: var(--text-muted);
     font-size: var(--ui-font-size-md);
@@ -1107,21 +1107,21 @@
     display: flex;
     flex-wrap: wrap;
     justify-content: center;
-    gap: 8px;
+    gap: var(--space-8);
   }
 }
 
 @layer components {
   .management-tags-workspace {
     display: grid;
-    gap: 14px;
+    gap: var(--space-14);
   }
 
   .management-tag-definition-list {
     display: flex;
     flex-wrap: wrap;
     align-items: center;
-    gap: 3px;
+    gap: var(--space-4);
   }
 
   .management-tag-definition-button,
@@ -1153,10 +1153,10 @@
     flex: 1 1 180px;
     align-items: center;
     justify-content: space-between;
-    gap: 10px;
+    gap: var(--space-10);
     border: 1px solid var(--line);
     border-radius: var(--control-radius);
-    padding: 10px;
+    padding: var(--space-10);
     background: var(--surface-raised);
     transition: border-color var(--duration-fast) ease, background var(--duration-fast) ease;
   }
@@ -1171,7 +1171,7 @@
     display: grid;
     min-width: 0;
     justify-items: start;
-    gap: 8px;
+    gap: var(--space-8);
     text-align: left;
   }
 
@@ -1183,7 +1183,7 @@
   .management-tag-definition-card > div {
     display: flex;
     flex: 0 0 auto;
-    gap: 4px;
+    gap: var(--space-4);
   }
 
   .management-member-tag-layout {
@@ -1194,7 +1194,7 @@
 
   .management-member-picker {
     border-right: 1px solid var(--line);
-    padding: 15px 13px;
+    padding: var(--space-16) var(--space-12);
   }
 
   .management-member-filter-heading,
@@ -1202,7 +1202,7 @@
     display: flex;
     align-items: baseline;
     justify-content: space-between;
-    gap: 12px;
+    gap: var(--space-12);
   }
 
   .management-member-filter-heading > span,
@@ -1225,16 +1225,16 @@
     flex-wrap: wrap;
     max-height: none;
     margin-top: 0;
-    gap: 3px;
+    gap: var(--space-4);
   }
 
   .management-member-tag-editor {
     min-width: 0;
-    padding: 15px 16px;
+    padding: var(--space-16) var(--space-16);
   }
 
   .management-member-sort-bar {
-    margin: -15px -16px 15px;
+    margin: -15px -16px var(--space-16);
   }
 
   .management-member-total {
@@ -1248,7 +1248,7 @@
   .management-member-grid {
     display: grid;
     grid-template-columns: repeat(4, minmax(0, 1fr));
-    gap: 5px;
+    gap: var(--space-4);
   }
 
   .management-member-card {
@@ -1257,10 +1257,10 @@
     min-width: 0;
     min-height: 42px;
     align-items: center;
-    gap: 7px;
+    gap: var(--space-8);
     border: 1px solid var(--line);
     border-radius: var(--control-radius);
-    padding: 6px 30px 6px 8px;
+    padding: var(--space-6) 30px var(--space-6) var(--space-8);
     background: var(--surface-raised);
   }
 
@@ -1316,16 +1316,16 @@
   .management-member-card .forum-button-danger {
     justify-self: start;
     min-height: 28px;
-    padding-inline: 8px;
+    padding-inline: var(--space-8);
   }
 
   .management-pending-members {
     display: flex;
     flex-wrap: wrap;
     align-items: center;
-    gap: 3px;
+    gap: var(--space-4);
     min-height: 54px;
-    margin: 0 16px 16px;
+    margin: 0 var(--space-16) var(--space-16);
     border: 0;
     padding: 0;
   }
@@ -1334,10 +1334,10 @@
     display: inline-flex;
     min-height: 26px;
     align-items: center;
-    gap: 4px;
+    gap: var(--space-4);
     border: 0;
     border-radius: 999px;
-    padding: 2px 5px 2px 8px;
+    padding: var(--space-2) var(--space-4) var(--space-2) var(--space-8);
     background: var(--surface-soft);
     color: var(--text-strong);
     font-size: var(--ui-font-size-sm);
@@ -1359,7 +1359,7 @@
   .management-pending-members > .management-empty-state {
     width: 100%;
     min-height: 54px;
-    padding: 8px;
+    padding: var(--space-8);
   }
 
   .management-dialog > footer {
@@ -1374,7 +1374,7 @@
 
   .management-dialog-copy {
     margin: 0;
-    padding: 18px 16px 2px;
+    padding: var(--space-18) var(--space-16) var(--space-2);
     color: var(--text-muted);
     font-size: var(--ui-font-size-md);
     line-height: 1.6;
@@ -1382,8 +1382,8 @@
 
   .management-delete-tag-members {
     display: grid;
-    gap: 7px;
-    padding: 12px 30px 2px;
+    gap: var(--space-8);
+    padding: var(--space-12) 30px var(--space-2);
   }
 
   .management-delete-tag-members > strong {
@@ -1401,7 +1401,7 @@
     display: flex;
     max-height: 150px;
     flex-wrap: wrap;
-    gap: 4px 9px;
+    gap: var(--space-4) var(--space-8);
     overflow: auto;
   }
 
@@ -1421,15 +1421,15 @@
   }
 
   .management-confirm-dialog .management-dialog-copy {
-    padding: 18px 20px 2px 30px;
+    padding: var(--space-18) var(--space-20) var(--space-2) 30px;
   }
 
   .management-empty-state {
     display: grid;
     min-height: 92px;
     place-items: center;
-    gap: 7px;
-    padding: 18px;
+    gap: var(--space-8);
+    padding: var(--space-18);
     color: var(--text-faint);
     font-size: var(--ui-font-size-sm);
     text-align: center;
@@ -1449,7 +1449,7 @@
   .management-notice {
     border: 1px solid var(--line);
     border-radius: var(--control-radius);
-    padding: 10px 12px;
+    padding: var(--space-10) var(--space-12);
     font-size: var(--ui-font-size-sm);
   }
 
@@ -1475,7 +1475,7 @@
     inset: 0;
     display: grid;
     place-items: center;
-    padding: 18px;
+    padding: var(--space-18);
     background: var(--overlay);
   }
 
@@ -1494,14 +1494,14 @@
     display: flex;
     align-items: center;
     justify-content: space-between;
-    gap: 12px;
+    gap: var(--space-12);
     border-bottom: 1px solid var(--line);
-    padding: 14px 16px;
+    padding: var(--space-14) var(--space-16);
   }
 
   .management-dialog > header > div {
     display: grid;
-    gap: 4px;
+    gap: var(--space-4);
   }
 
   .management-dialog > header span {
@@ -1518,8 +1518,8 @@
 
   .management-dialog-form {
     display: grid;
-    gap: 8px;
-    padding: 15px 16px 8px;
+    gap: var(--space-8);
+    padding: var(--space-16) var(--space-16) var(--space-8);
   }
 
   .management-dialog-form > label {
@@ -1538,7 +1538,7 @@
     inset: 0;
     display: grid;
     place-items: center;
-    padding: 18px;
+    padding: var(--space-18);
     background: var(--overlay);
   }
 
@@ -1547,7 +1547,7 @@
     width: min(100%, 360px);
     border: 1px solid var(--line-strong);
     border-radius: var(--card-radius);
-    padding: 24px 48px 24px 24px;
+    padding: var(--space-24) var(--space-48) var(--space-24) var(--space-24);
     background: var(--surface-raised);
     box-shadow: var(--shadow-float);
   }
@@ -1603,7 +1603,7 @@
     .management-tabs {
       display: grid;
       grid-template-columns: repeat(3, minmax(0, 1fr));
-      margin: 10px 0;
+      margin: var(--space-10) 0;
     }
 
     .management-tabs button {
@@ -1621,7 +1621,7 @@
 
     .management-input-action {
       grid-template-columns: 1fr;
-      gap: 7px;
+      gap: var(--space-8);
     }
 
     .management-input-action input,
@@ -1673,7 +1673,7 @@
     }
 
     .management-board-moderator-row > header {
-      padding: 8px;
+      padding: var(--space-8);
     }
 
     .management-board-moderators article {

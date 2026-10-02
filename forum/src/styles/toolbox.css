@@ -16,18 +16,18 @@
   .toolbox-tabs {
     display: flex;
     flex-wrap: wrap;
-    gap: 8px;
-    margin: 14px 0;
+    gap: var(--space-8);
+    margin: var(--space-14) 0;
   }
 
   .toolbox-tabs button {
     display: inline-flex;
     height: 38px;
     align-items: center;
-    gap: 7px;
+    gap: var(--space-8);
     border: 1px solid var(--line);
     border-radius: var(--card-radius);
-    padding: 0 13px;
+    padding: 0 var(--space-12);
     background: color-mix(in srgb, var(--surface) 92%, transparent);
     color: var(--text-muted);
     font-size: var(--ui-font-size-lg);
@@ -65,9 +65,9 @@
     display: flex;
     min-height: 58px;
     align-items: center;
-    gap: 10px;
+    gap: var(--space-10);
     border-bottom: 1px solid var(--line);
-    padding: 0 18px;
+    padding: 0 var(--space-18);
   }
 
   .toolbox-workspace-icon {
@@ -90,14 +90,14 @@
 
   .toolbox-converter {
     display: grid;
-    gap: 14px;
-    padding: 16px;
+    gap: var(--space-14);
+    padding: var(--space-16);
   }
 
   .toolbox-file-format {
     display: flex;
     align-items: flex-start;
-    gap: 6px;
+    gap: var(--space-6);
     margin: 0;
     color: var(--text-faint);
     font-size: var(--ui-font-size-sm);
@@ -106,21 +106,21 @@
 
   .toolbox-file-format svg {
     flex: 0 0 auto;
-    margin-top: 2px;
+    margin-top: var(--space-2);
   }
 
   .toolbox-file-row {
     display: flex;
     min-width: 0;
     align-items: center;
-    gap: 8px;
+    gap: var(--space-8);
   }
 
   .toolbox-file-row output {
     display: inline-flex;
     min-width: 0;
     align-items: center;
-    gap: 6px;
+    gap: var(--space-6);
     overflow: hidden;
     color: var(--text-faint);
     font-size: var(--ui-font-size-sm);
@@ -139,7 +139,7 @@
   .toolbox-example-grid {
     display: grid;
     grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-    gap: 12px;
+    gap: var(--space-12);
     min-width: 0;
   }
 
@@ -166,7 +166,7 @@
     min-height: 38px;
     border: 1px solid var(--line);
     border-bottom: 0;
-    padding: 8px 14px;
+    padding: var(--space-8) var(--space-14);
     background: var(--surface-raised);
     color: var(--text-muted);
     font-size: var(--ui-font-size-sm);
@@ -178,7 +178,7 @@
   .toolbox-table td {
     overflow: hidden;
     border-bottom: 1px solid var(--line);
-    padding: 11px 12px;
+    padding: var(--space-12) var(--space-12);
     color: var(--text-muted);
     font-size: var(--ui-font-size-sm);
     text-align: left;
@@ -220,7 +220,7 @@
   .toolbox-output-example > header {
     display: flex;
     align-items: center;
-    gap: 6px;
+    gap: var(--space-6);
   }
 
   .toolbox-output-example h2 {
@@ -233,7 +233,7 @@
     overflow: auto;
     margin: 0;
     border: 1px solid var(--line);
-    padding: 11px 12px;
+    padding: var(--space-12) var(--space-12);
     background: color-mix(in srgb, var(--surface-soft) 48%, transparent);
     color: var(--text-muted);
     font-family: ui-monospace, "SFMono-Regular", Consolas, monospace;
@@ -246,19 +246,19 @@
     display: flex;
     align-items: center;
     justify-content: space-between;
-    gap: 12px;
+    gap: var(--space-12);
   }
 
   .toolbox-converter-footer > div {
     display: flex;
     flex-wrap: wrap;
-    gap: 6px;
+    gap: var(--space-6);
   }
 
   .toolbox-converter-footer span {
     border: 1px solid var(--line);
     border-radius: var(--card-radius);
-    padding: 3px 6px;
+    padding: var(--space-4) var(--space-6);
     background: var(--surface-soft);
     color: var(--text-faint);
     font-size: var(--ui-font-size-xs);
@@ -268,10 +268,10 @@
     display: flex;
     min-height: 36px;
     align-items: center;
-    gap: 6px;
+    gap: var(--space-6);
     margin: 0;
     border: 1px solid var(--line);
-    padding: 8px 10px;
+    padding: var(--space-8) var(--space-10);
     font-size: var(--ui-font-size-sm);
     font-weight: var(--font-weight-bold);
   }
@@ -296,7 +296,7 @@
 
     .toolbox-example-table th,
     .toolbox-example-table td {
-      padding: 8px;
+      padding: var(--space-8);
       font-size: var(--ui-font-size-xs);
       overflow-wrap: anywhere;
       white-space: normal;
@@ -316,8 +316,8 @@
 
   @media (max-width: 720px) {
     .toolbox-shell {
-      padding-right: 10px;
-      padding-left: 10px;
+      padding-right: var(--space-10);
+      padding-left: var(--space-10);
     }
 
     .toolbox-file-row {
@@ -339,20 +339,20 @@
     .toolbox-tabs {
       display: grid;
       grid-template-columns: repeat(2, minmax(0, 1fr));
-      gap: 5px;
-      margin: 8px 0;
+      gap: var(--space-4);
+      margin: var(--space-8) 0;
     }
 
     .toolbox-tabs button {
       height: 32px;
       justify-content: center;
-      gap: 5px;
-      padding-inline: 8px;
+      gap: var(--space-4);
+      padding-inline: var(--space-8);
       font-size: var(--ui-font-size-sm);
     }
 
     .toolbox-converter {
-      padding: 14px;
+      padding: var(--space-14);
     }
 
     .toolbox-converter-footer {

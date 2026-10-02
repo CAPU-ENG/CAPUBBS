@@ -11,16 +11,16 @@
   .data-display-tabs {
     display: flex;
     flex-wrap: wrap;
-    gap: 8px;
-    margin: 14px 0;
+    gap: var(--space-8);
+    margin: var(--space-14) 0;
   }
 
   .data-display-tabs button {
     display: inline-flex;
     height: 38px;
     align-items: center;
-    gap: 7px;
-    padding: 0 13px;
+    gap: var(--space-8);
+    padding: 0 var(--space-12);
     border: 1px solid var(--line);
     border-radius: var(--card-radius);
     background: color-mix(in srgb, var(--surface) 92%, transparent);
@@ -80,8 +80,8 @@
     display: flex;
     min-height: 58px;
     align-items: center;
-    gap: 10px;
-    padding: 0 18px;
+    gap: var(--space-10);
+    padding: 0 var(--space-18);
     border-bottom: 1px solid var(--line);
   }
 
@@ -137,7 +137,7 @@
     left: 50%;
     width: max-content;
     max-width: min(320px, calc(100vw - 36px));
-    padding: 8px 10px;
+    padding: var(--space-8) var(--space-10);
     border: 1px solid var(--line-strong);
     border-radius: 3px;
     background: var(--surface-raised);
@@ -202,7 +202,7 @@
 
   .data-table th,
   .data-table td {
-    padding: 13px 18px;
+    padding: var(--space-12) var(--space-18);
     border-bottom: 1px solid var(--line);
     vertical-align: middle;
   }
@@ -253,9 +253,9 @@
   .data-checkin-list {
     display: grid;
     grid-template-columns: repeat(3, minmax(0, 1fr));
-    column-gap: 20px;
+    column-gap: var(--space-20);
     margin: 0;
-    padding: 4px 18px 12px;
+    padding: var(--space-4) var(--space-18) var(--space-12);
     list-style: none;
   }
 
@@ -269,8 +269,8 @@
     min-height: 46px;
     height: 100%;
     align-items: center;
-    gap: 8px;
-    padding: 8px 6px;
+    gap: var(--space-8);
+    padding: var(--space-8) var(--space-6);
     border-radius: var(--card-radius);
     color: var(--text-strong);
     font-size: var(--ui-font-size-lg);
@@ -296,7 +296,7 @@
   .data-checkin-details {
     display: grid;
     min-width: 0;
-    gap: 2px;
+    gap: var(--space-2);
     line-height: 1.35;
   }
 
@@ -359,7 +359,7 @@
   .data-status {
     display: inline-flex;
     align-items: center;
-    padding: 4px 8px;
+    padding: var(--space-4) var(--space-8);
     border-radius: 999px;
     background: color-mix(in srgb, var(--danger) 10%, var(--surface));
     color: var(--danger);
@@ -375,9 +375,9 @@
 
   .punishment-card-header {
     flex-wrap: wrap;
-    gap: 10px;
-    padding-top: 10px;
-    padding-bottom: 10px;
+    gap: var(--space-10);
+    padding-top: var(--space-10);
+    padding-bottom: var(--space-10);
   }
 
   .punishment-controls {
@@ -385,7 +385,7 @@
     flex-wrap: wrap;
     align-items: center;
     justify-content: flex-end;
-    gap: 7px;
+    gap: var(--space-8);
     margin-left: auto;
   }
 
@@ -393,8 +393,8 @@
     display: inline-flex;
     min-height: 32px;
     align-items: center;
-    gap: 7px;
-    padding: 0 9px;
+    gap: var(--space-8);
+    padding: 0 var(--space-8);
     border: 1px solid var(--line);
     border-radius: var(--card-radius);
     background: var(--surface-raised);
@@ -466,7 +466,7 @@
     height: 24px;
     border: 0;
     border-left: 1px solid var(--line);
-    padding: 0 2px 0 7px;
+    padding: 0 var(--space-2) 0 var(--space-8);
     outline: none;
     background: transparent;
     color: var(--text-strong);
@@ -479,7 +479,7 @@
     min-height: 32px;
     align-items: center;
     margin-left: 0;
-    padding: 0 9px;
+    padding: 0 var(--space-8);
     border: 1px solid var(--line);
     border-radius: var(--card-radius);
     background: var(--surface-raised);
@@ -488,7 +488,7 @@
   .punishment-management-bar {
     display: flex;
     justify-content: center;
-    padding: 11px 16px;
+    padding: var(--space-12) var(--space-16);
     border-bottom: 1px solid var(--line);
     background: color-mix(in srgb, var(--danger) 4%, var(--surface));
   }
@@ -499,8 +499,8 @@
     height: 36px;
     align-items: center;
     justify-content: center;
-    gap: 7px;
-    padding: 0 13px;
+    gap: var(--space-8);
+    padding: 0 var(--space-12);
     border: 1px solid var(--danger);
     border-radius: var(--card-radius);
     background: var(--danger);
@@ -520,8 +520,8 @@
     display: inline-flex;
     height: 31px;
     align-items: center;
-    gap: 6px;
-    padding: 0 9px;
+    gap: var(--space-6);
+    padding: 0 var(--space-8);
     border: 1px solid color-mix(in srgb, var(--danger) 28%, var(--line));
     border-radius: var(--card-radius);
     background: color-mix(in srgb, var(--danger) 7%, var(--surface));
@@ -534,7 +534,7 @@
   .punishment-finish-form {
     display: grid;
     width: 170px;
-    gap: 6px;
+    gap: var(--space-6);
   }
 
   .punishment-finish-form > input {
@@ -542,7 +542,7 @@
     height: 31px;
     border: 1px solid var(--line);
     border-radius: var(--card-radius);
-    padding: 0 7px;
+    padding: 0 var(--space-8);
     outline: none;
     background: var(--surface-raised);
     color: var(--text-strong);
@@ -552,7 +552,7 @@
   .punishment-finish-form > div {
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 6px;
+    gap: var(--space-6);
   }
 
   .punishment-finish-form button {
@@ -593,7 +593,7 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 8px;
+    gap: var(--space-8);
     flex-shrink: 0;
   }
 
@@ -629,7 +629,7 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    padding: 14px;
+    padding: var(--space-14);
     background: rgb(10 15 12 / 0.7);
     backdrop-filter: blur(3px);
   }
@@ -648,8 +648,8 @@
     display: flex;
     min-height: 58px;
     align-items: center;
-    gap: 10px;
-    padding: 0 16px;
+    gap: var(--space-10);
+    padding: 0 var(--space-16);
     border-bottom: 1px solid var(--line);
   }
 
@@ -692,13 +692,13 @@
 
   .punishment-dialog-body {
     display: grid;
-    gap: 15px;
-    padding: 17px 16px;
+    gap: var(--space-16);
+    padding: var(--space-16) var(--space-16);
   }
 
   .punishment-form-row {
     display: grid;
-    gap: 12px;
+    gap: var(--space-12);
   }
 
   .punishment-form-row-two {
@@ -712,7 +712,7 @@
   .punishment-field {
     display: grid;
     min-width: 0;
-    gap: 6px;
+    gap: var(--space-6);
   }
 
   .punishment-field > span {
@@ -729,7 +729,7 @@
     min-height: 39px;
     border: 1px solid var(--line);
     border-radius: var(--card-radius);
-    padding: 0 10px;
+    padding: 0 var(--space-10);
     outline: none;
     background: var(--surface-raised);
     color: var(--text-strong);
@@ -741,8 +741,8 @@
 
   .punishment-field textarea {
     min-height: 82px;
-    padding-top: 9px;
-    padding-bottom: 9px;
+    padding-top: var(--space-8);
+    padding-bottom: var(--space-8);
     resize: vertical;
   }
 
@@ -756,13 +756,13 @@
   .punishment-checkbox-field {
     display: inline-flex;
     align-items: center;
-    gap: 8px;
+    gap: var(--space-8);
   }
 
   .punishment-form-error {
     margin: 0;
     border: 1px solid color-mix(in srgb, var(--danger) 25%, var(--line));
-    padding: 9px 10px;
+    padding: var(--space-8) var(--space-10);
     background: color-mix(in srgb, var(--danger) 7%, var(--surface));
     color: var(--danger);
     font-size: var(--ui-font-size-md);
@@ -772,15 +772,15 @@
   .punishment-dialog footer {
     display: flex;
     justify-content: flex-end;
-    gap: 8px;
-    padding: 11px 16px;
+    gap: var(--space-8);
+    padding: var(--space-12) var(--space-16);
     border-top: 1px solid var(--line);
     background: var(--surface-soft);
   }
 
   .punishment-dialog footer button {
     height: 36px;
-    padding: 0 13px;
+    padding: 0 var(--space-12);
     border: 1px solid var(--line-strong);
     border-radius: var(--card-radius);
     background: var(--surface-raised);
@@ -801,7 +801,7 @@
     min-height: 240px;
     align-items: center;
     justify-content: center;
-    gap: 12px;
+    gap: var(--space-12);
     color: var(--text-muted);
     font-size: var(--ui-font-size-xl);
     font-weight: var(--font-weight-semibold);
@@ -810,15 +810,15 @@
   .data-display-state > div {
     display: flex;
     align-items: center;
-    gap: 12px;
+    gap: var(--space-12);
   }
 
   .data-display-state button {
     display: inline-flex;
     height: 34px;
     align-items: center;
-    gap: 6px;
-    padding: 0 11px;
+    gap: var(--space-6);
+    padding: 0 var(--space-12);
     border: 1px solid var(--line-strong);
     border-radius: var(--card-radius);
     background: var(--surface-raised);
@@ -850,7 +850,7 @@
   }
 
   .tag-summary-mode-switch button {
-    padding: 0 10px;
+    padding: 0 var(--space-10);
     color: var(--text-muted);
     font-size: var(--ui-font-size-md);
     font-weight: var(--font-weight-bold);
@@ -922,7 +922,7 @@
     max-width: min(300px, 72vw);
     border: 1px solid var(--line-strong);
     border-radius: var(--control-radius);
-    padding: 8px 10px;
+    padding: var(--space-8) var(--space-10);
     background: var(--surface-raised);
     box-shadow: var(--shadow-float);
     color: var(--text-muted);
@@ -937,7 +937,7 @@
 
   .tag-summary-help-tooltip {
     display: grid;
-    gap: 3px;
+    gap: var(--space-4);
   }
 
   .tag-summary-help:hover [role="tooltip"],
@@ -950,8 +950,8 @@
     display: flex;
     align-items: center;
     justify-content: space-between;
-    gap: 16px;
-    padding: 14px 18px;
+    gap: var(--space-16);
+    padding: var(--space-14) var(--space-18);
     border-bottom: 1px solid var(--line);
   }
 
@@ -959,22 +959,22 @@
     display: grid;
     grid-template-columns: minmax(0, 1fr) auto;
     align-items: end;
-    gap: 16px;
-    padding: 14px 18px;
+    gap: var(--space-16);
+    padding: var(--space-14) var(--space-18);
     border-bottom: 1px solid var(--line);
   }
 
   .tag-expression-builder {
     display: grid;
     min-width: 0;
-    gap: 12px;
+    gap: var(--space-12);
   }
 
   .tag-expression-palette,
   .tag-expression-composer {
     display: grid;
     min-width: 0;
-    gap: 7px;
+    gap: var(--space-8);
   }
 
   .tag-expression-palette-header,
@@ -983,7 +983,7 @@
     min-width: 0;
     align-items: center;
     justify-content: space-between;
-    gap: 10px;
+    gap: var(--space-10);
   }
 
   .tag-expression-palette-label {
@@ -1008,7 +1008,7 @@
   .tag-expression-tag-palette,
   .tag-expression-token-list {
     flex-wrap: wrap;
-    gap: 4px;
+    gap: var(--space-4);
   }
 
   .tag-expression-tag-palette button {
@@ -1024,13 +1024,13 @@
   }
 
   .tag-expression-operator-palette {
-    gap: 6px;
+    gap: var(--space-6);
   }
 
   .tag-expression-operator-palette button {
     min-width: 42px;
     min-height: 30px;
-    padding: 0 9px;
+    padding: 0 var(--space-8);
     border: 1px solid var(--line);
     border-radius: var(--control-radius);
     background: var(--surface-raised);
@@ -1045,12 +1045,12 @@
   }
 
   .tag-expression-composer {
-    padding-top: 10px;
+    padding-top: var(--space-10);
     border-top: 1px solid var(--line);
   }
 
   .tag-expression-composer-actions {
-    gap: 3px;
+    gap: var(--space-4);
   }
 
   .tag-expression-composer-actions button {
@@ -1071,7 +1071,7 @@
 
   .tag-expression-token-list {
     min-height: 40px;
-    padding: 7px 9px;
+    padding: var(--space-8) var(--space-8);
     border: 1px solid var(--line);
     border-radius: var(--control-radius);
     background: var(--surface-raised);
@@ -1090,7 +1090,7 @@
     justify-content: center;
     border: 1px solid var(--line);
     border-radius: var(--control-radius);
-    padding: 0 6px;
+    padding: 0 var(--space-6);
     background: var(--surface-hover);
     color: var(--text-strong);
     font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
@@ -1119,7 +1119,7 @@
     flex: 1 1 auto;
     flex-wrap: wrap;
     align-items: center;
-    gap: 3px;
+    gap: var(--space-4);
   }
 
   .tag-summary-filter {
@@ -1149,8 +1149,8 @@
     flex: 0 0 auto;
     align-items: center;
     justify-content: center;
-    gap: 6px;
-    padding: 0 12px;
+    gap: var(--space-6);
+    padding: 0 var(--space-12);
     border: 1px solid var(--brand-strong);
     border-radius: var(--control-radius);
     background: var(--brand-strong);
@@ -1194,7 +1194,7 @@
     max-width: min(240px, 72vw);
     border: 1px solid var(--line-strong);
     border-radius: var(--control-radius);
-    padding: 7px 9px;
+    padding: var(--space-8) var(--space-8);
     background: var(--surface-raised);
     box-shadow: var(--shadow-float);
     color: var(--text-muted);
@@ -1217,8 +1217,8 @@
   .tag-summary-sort-bar {
     display: flex;
     align-items: center;
-    gap: 6px;
-    padding: 10px 18px;
+    gap: var(--space-6);
+    padding: var(--space-10) var(--space-18);
     border-bottom: 1px solid var(--line);
     background: var(--surface-soft);
   }
@@ -1227,8 +1227,8 @@
     display: inline-flex;
     min-height: 30px;
     align-items: center;
-    gap: 5px;
-    padding: 0 9px;
+    gap: var(--space-4);
+    padding: 0 var(--space-8);
     border: 1px solid var(--line);
     border-radius: var(--card-radius);
     background: var(--surface-raised);
@@ -1248,8 +1248,8 @@
     display: flex;
     align-items: center;
     flex-wrap: wrap;
-    gap: 7px;
-    padding: 9px 18px;
+    gap: var(--space-8);
+    padding: var(--space-8) var(--space-18);
     border-bottom: 1px solid var(--line);
     background: var(--surface-soft);
   }
@@ -1264,7 +1264,7 @@
   .tag-summary-date-filter-bar label {
     display: inline-flex;
     align-items: center;
-    gap: 5px;
+    gap: var(--space-4);
   }
 
   .tag-summary-date-filter-bar input {
@@ -1272,7 +1272,7 @@
     height: 30px;
     border: 1px solid var(--line);
     border-radius: var(--card-radius);
-    padding: 0 7px;
+    padding: 0 var(--space-8);
     background: var(--surface-raised);
     color: var(--text);
     font-size: var(--ui-font-size-sm);
@@ -1314,8 +1314,8 @@
   .tag-summary-member-grid {
     display: grid;
     grid-template-columns: repeat(4, minmax(0, 1fr));
-    gap: 8px;
-    padding: 14px 18px 18px;
+    gap: var(--space-8);
+    padding: var(--space-14) var(--space-18) var(--space-18);
   }
 
   .tag-summary-member-card {
@@ -1324,10 +1324,10 @@
     min-height: 60px;
     grid-template-columns: 42px minmax(0, 1fr);
     align-items: center;
-    gap: 10px;
+    gap: var(--space-10);
     border: 1px solid var(--line);
     border-radius: var(--card-radius);
-    padding: 8px;
+    padding: var(--space-8);
     background: var(--surface-raised);
   }
 
@@ -1356,7 +1356,7 @@
   .tag-summary-member-card > div {
     display: grid;
     min-width: 0;
-    gap: 4px;
+    gap: var(--space-4);
   }
 
   .tag-summary-member-id {
@@ -1381,7 +1381,7 @@
   .tag-summary-empty {
     grid-column: 1 / -1;
     margin: 0;
-    padding: 28px 18px;
+    padding: var(--space-28) var(--space-18);
     color: var(--text-faint);
     font-size: var(--ui-font-size-lg);
     text-align: center;
@@ -1400,22 +1400,22 @@
     .data-display-tabs {
       display: grid;
       grid-template-columns: repeat(2, minmax(0, 1fr));
-      gap: 5px;
-      margin: 8px 0;
+      gap: var(--space-4);
+      margin: var(--space-8) 0;
     }
 
     .data-display-tabs button {
       height: 32px;
       justify-content: center;
-      gap: 5px;
-      padding-inline: 8px;
+      gap: var(--space-4);
+      padding-inline: var(--space-8);
       font-size: var(--ui-font-size-sm);
     }
 
     .data-display-card-header {
       min-height: 46px;
-      gap: 7px;
-      padding: 0 10px;
+      gap: var(--space-8);
+      padding: 0 var(--space-10);
     }
 
     .data-display-card-icon {
@@ -1438,14 +1438,14 @@
 
     .punishment-card-header {
       align-items: flex-start;
-      padding-top: 8px;
-      padding-bottom: 8px;
+      padding-top: var(--space-8);
+      padding-bottom: var(--space-8);
     }
 
     .punishment-controls {
       width: 100%;
       justify-content: flex-start;
-      gap: 5px;
+      gap: var(--space-4);
       margin-left: 0;
     }
 
@@ -1453,13 +1453,13 @@
       flex: 1 1 auto;
       min-height: 28px;
       justify-content: center;
-      gap: 4px;
-      padding-inline: 6px;
+      gap: var(--space-4);
+      padding-inline: var(--space-6);
       font-size: var(--ui-font-size-xs);
     }
 
     .punishment-control select {
-      padding-left: 4px;
+      padding-left: var(--space-4);
       font-size: inherit;
     }
 
@@ -1471,7 +1471,7 @@
     .punishment-controls .data-display-card-count {
       flex: 0 0 auto;
       min-height: 28px;
-      padding-inline: 6px;
+      padding-inline: var(--space-6);
     }
 
     .data-table {
@@ -1482,15 +1482,15 @@
 
     .data-checkin-list {
       grid-template-columns: repeat(2, minmax(0, 1fr));
-      column-gap: 12px;
-      padding: 2px 10px 8px;
+      column-gap: var(--space-12);
+      padding: var(--space-2) var(--space-10) var(--space-8);
     }
 
     .data-checkin-member {
       min-height: 42px;
       align-items: flex-start;
-      gap: 6px;
-      padding: 8px 0;
+      gap: var(--space-6);
+      padding: var(--space-8) 0;
       font-size: var(--ui-font-size-sm);
       line-height: 1.45;
     }
@@ -1505,7 +1505,7 @@
 
     .data-table th,
     .data-table td {
-      padding: 8px 6px;
+      padding: var(--space-8) var(--space-6);
       overflow-wrap: anywhere;
     }
 
@@ -1564,24 +1564,24 @@
     }
 
     .data-status {
-      padding: 2px 4px;
+      padding: var(--space-2) var(--space-4);
       font-size: var(--ui-font-size-xs);
     }
 
     .punishment-finish-trigger {
       height: 26px;
-      gap: 4px;
-      padding-inline: 5px;
+      gap: var(--space-4);
+      padding-inline: var(--space-4);
       font-size: var(--ui-font-size-xs);
     }
 
     .punishment-finish-form {
       width: 140px;
-      gap: 4px;
+      gap: var(--space-4);
     }
 
     .punishment-finish-form > div {
-      gap: 4px;
+      gap: var(--space-4);
     }
 
     .punishment-finish-form > input,
@@ -1592,7 +1592,7 @@
 
     .data-display-state {
       min-height: 200px;
-      padding: 24px;
+      padding: var(--space-24);
     }
 
     .data-display-state > div {
@@ -1602,19 +1602,19 @@
     .tag-summary-filter-area {
       align-items: stretch;
       flex-direction: column;
-      padding: 12px 14px;
+      padding: var(--space-12) var(--space-14);
     }
 
     .tag-summary-card-header {
       align-items: center;
-      padding-top: 12px;
+      padding-top: var(--space-12);
     }
 
     .tag-summary-mode-switch {
       order: 3;
       width: 100%;
       margin-left: 0;
-      margin-bottom: 10px;
+      margin-bottom: var(--space-10);
     }
 
     .tag-summary-card-header .data-display-card-count {
@@ -1624,7 +1624,7 @@
     .tag-summary-advanced-area {
       grid-template-columns: 1fr;
       align-items: stretch;
-      padding: 12px 14px;
+      padding: var(--space-12) var(--space-14);
     }
 
     .tag-expression-operator-palette {
@@ -1636,15 +1636,15 @@
     }
 
     .tag-summary-sort-bar {
-      padding-inline: 14px;
+      padding-inline: var(--space-14);
     }
 
     .tag-summary-date-filter-bar {
       display: grid;
       grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) auto;
       align-items: center;
-      gap: 6px;
-      padding-inline: 14px;
+      gap: var(--space-6);
+      padding-inline: var(--space-14);
     }
 
     .tag-summary-date-filter-title {
@@ -1653,7 +1653,7 @@
 
     .tag-summary-date-filter-bar label {
       min-width: 0;
-      gap: 4px;
+      gap: var(--space-4);
     }
 
     .tag-summary-date-filter-bar label > span {
@@ -1664,7 +1664,7 @@
       min-width: 0;
       width: 100%;
       height: 28px;
-      padding-inline: 4px;
+      padding-inline: var(--space-4);
       font-size: var(--ui-font-size-xs);
     }
 
@@ -1683,7 +1683,7 @@
 
     .tag-summary-member-grid {
       grid-template-columns: 1fr;
-      padding: 12px 14px 14px;
+      padding: var(--space-12) var(--space-14) var(--space-14);
     }
 
     .punishment-form-row-two,
@@ -1693,7 +1693,7 @@
 
     .punishment-dialog-backdrop {
       align-items: flex-end;
-      padding: 8px;
+      padding: var(--space-8);
     }
 
     .punishment-dialog {

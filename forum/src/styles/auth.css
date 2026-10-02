@@ -21,9 +21,9 @@
   .auth-card-intro {
     display: flex;
     align-items: center;
-    gap: 12px;
+    gap: var(--space-12);
     border-bottom: 1px solid var(--line);
-    padding: 22px;
+    padding: var(--space-22);
     background: var(--surface-soft);
   }
 
@@ -46,7 +46,7 @@
   }
 
   .auth-card-intro p {
-    margin-top: 5px;
+    margin-top: var(--space-4);
     color: var(--text-muted);
     font-size: var(--ui-font-size-lg);
     line-height: 1.65;
@@ -54,13 +54,13 @@
 
   .auth-card form {
     display: grid;
-    gap: 17px;
-    padding: 22px;
+    gap: var(--space-16);
+    padding: var(--space-22);
   }
 
   .auth-card label > span {
     display: block;
-    margin-bottom: 7px;
+    margin-bottom: var(--space-8);
     color: var(--text-muted);
     font-size: var(--ui-font-size-lg);
     font-weight: var(--font-weight-bold);
@@ -70,10 +70,10 @@
     display: flex;
     height: 42px;
     align-items: center;
-    gap: 9px;
+    gap: var(--space-8);
     border: 1px solid var(--line-strong);
     border-radius: var(--control-radius);
-    padding: 0 11px;
+    padding: 0 var(--space-12);
     background: var(--surface);
     color: var(--text-faint);
   }
@@ -101,7 +101,7 @@
   .auth-error {
     border: 1px solid color-mix(in srgb, var(--danger) 28%, var(--line));
     border-radius: var(--control-radius);
-    padding: 9px 10px;
+    padding: var(--space-8) var(--space-10);
     background: color-mix(in srgb, var(--danger) 7%, var(--surface));
     color: var(--danger);
     font-size: var(--ui-font-size-lg);
@@ -110,7 +110,7 @@
   .auth-success {
     border: 1px solid color-mix(in srgb, var(--brand) 28%, var(--line));
     border-radius: var(--control-radius);
-    padding: 9px 10px;
+    padding: var(--space-8) var(--space-10);
     background: var(--brand-soft);
     color: var(--brand-strong);
     font-size: var(--ui-font-size-lg);
@@ -120,7 +120,7 @@
     display: grid;
     grid-template-columns: minmax(0, 1fr) auto;
     align-items: end;
-    gap: 9px;
+    gap: var(--space-8);
   }
 
   .auth-code-button {
@@ -129,10 +129,10 @@
     min-height: 42px;
     align-items: center;
     justify-content: center;
-    gap: 6px;
+    gap: var(--space-6);
     border: 1px solid var(--brand);
     border-radius: var(--control-radius);
-    padding: 0 11px;
+    padding: 0 var(--space-12);
     background: var(--surface-raised);
     color: var(--brand-strong);
     font-size: var(--ui-font-size-md);
@@ -166,7 +166,7 @@
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    gap: 6px;
+    gap: var(--space-6);
     border-radius: var(--control-radius);
     background: var(--brand-strong);
     color: white;
@@ -194,9 +194,9 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 6px;
+    gap: var(--space-6);
     border-top: 1px solid var(--line);
-    padding: 14px 22px;
+    padding: var(--space-14) var(--space-22);
     color: var(--text-faint);
     font-size: var(--ui-font-size-lg);
   }
@@ -208,14 +208,14 @@
 
   .topbar-login-link {
     min-height: 36px;
-    padding: 0 12px;
+    padding: 0 var(--space-12);
     font-size: var(--ui-font-size-lg);
   }
 
   .topbar-register-link {
     min-height: 36px;
     border: 1px solid var(--brand);
-    padding: 0 12px;
+    padding: 0 var(--space-12);
     background: var(--surface-raised);
     color: var(--brand-strong);
     font-size: var(--ui-font-size-lg);
@@ -239,13 +239,13 @@
 
     .topbar-login-link {
       min-height: 34px;
-      padding: 0 9px;
+      padding: 0 var(--space-8);
       font-size: var(--ui-font-size-sm);
     }
 
     .topbar-register-link {
       min-height: 34px;
-      padding: 0 9px;
+      padding: 0 var(--space-8);
       font-size: var(--ui-font-size-sm);
     }
   }
@@ -284,9 +284,9 @@
     display: flex;
     align-items: center;
     justify-content: space-between;
-    gap: 20px;
+    gap: var(--space-20);
     border-bottom: 1px solid var(--line);
-    padding: 24px 28px 21px;
+    padding: var(--space-24) var(--space-28) var(--space-20);
     background:
       linear-gradient(90deg, color-mix(in srgb, var(--brand-faint) 72%, var(--surface-soft)), var(--surface-soft));
   }
@@ -294,7 +294,7 @@
   .register-card-heading {
     display: flex;
     align-items: center;
-    gap: 13px;
+    gap: var(--space-12);
   }
 
   .register-card-icon {
@@ -331,8 +331,8 @@
     display: flex;
     min-width: 0;
     flex-direction: column;
-    gap: 17px;
-    padding: 26px 28px 28px;
+    gap: var(--space-16);
+    padding: 26px var(--space-28) var(--space-28);
   }
 
   .register-form-section + .register-form-section {
@@ -343,7 +343,7 @@
   .register-section-title {
     display: flex;
     align-items: center;
-    gap: 10px;
+    gap: var(--space-10);
     margin-bottom: 1px;
   }
 
@@ -375,7 +375,7 @@
   .register-field > label,
   .register-field > legend {
     display: block;
-    margin-bottom: 7px;
+    margin-bottom: var(--space-8);
     color: var(--text-muted);
     font-size: var(--ui-font-size-md);
     font-weight: var(--font-weight-bold);
@@ -383,7 +383,7 @@
 
   .register-field > small {
     display: block;
-    margin-top: 6px;
+    margin-top: var(--space-6);
     color: var(--text-faint);
     font-size: var(--ui-font-size-sm);
     line-height: 1.55;
@@ -404,10 +404,10 @@
     min-width: 0;
     height: 41px;
     align-items: center;
-    gap: 9px;
+    gap: var(--space-8);
     border: 1px solid var(--line-strong);
     border-radius: var(--control-radius);
-    padding: 0 11px;
+    padding: 0 var(--space-12);
     background: var(--surface);
     color: var(--text-faint);
     transition: border-color var(--duration-fast) ease, box-shadow var(--duration-fast) ease, color var(--duration-fast) ease;
@@ -463,7 +463,7 @@
     visibility: hidden;
     border: 1px solid var(--line-strong);
     border-radius: var(--control-radius);
-    padding: 7px 9px;
+    padding: var(--space-8) var(--space-8);
     background: var(--surface-raised);
     box-shadow: var(--shadow-float);
     color: var(--text-muted);
@@ -486,7 +486,7 @@
   .register-inline-field {
     display: grid;
     grid-template-columns: minmax(0, 1fr) auto;
-    gap: 8px;
+    gap: var(--space-8);
   }
 
   .register-secondary-button {
@@ -494,10 +494,10 @@
     min-width: 104px;
     align-items: center;
     justify-content: center;
-    gap: 5px;
+    gap: var(--space-4);
     border: 1px solid color-mix(in srgb, var(--brand) 35%, var(--line));
     border-radius: var(--control-radius);
-    padding: 0 10px;
+    padding: 0 var(--space-10);
     background: var(--brand-faint);
     color: var(--brand-strong);
     font-size: var(--ui-font-size-md);
@@ -519,8 +519,8 @@
     display: grid;
     grid-template-columns: repeat(3, 1fr) auto;
     align-items: center;
-    gap: 4px;
-    margin-top: 7px;
+    gap: var(--space-4);
+    margin-top: var(--space-8);
   }
 
   .register-password-meter > span {
@@ -531,7 +531,7 @@
 
   .register-password-meter small {
     min-width: 38px;
-    margin-left: 3px;
+    margin-left: var(--space-4);
     color: var(--text-faint);
     font-size: var(--ui-font-size-xs);
     text-align: right;
@@ -572,7 +572,7 @@
   .register-avatar-grid {
     display: grid;
     grid-template-columns: repeat(8, 1fr);
-    gap: 7px;
+    gap: var(--space-8);
   }
 
   .register-avatar-grid button {
@@ -635,7 +635,7 @@
   .register-captcha-row {
     display: grid;
     grid-template-columns: minmax(0, 1fr) 126px;
-    gap: 8px;
+    gap: var(--space-8);
   }
 
   .register-captcha-image {
@@ -660,7 +660,7 @@
     position: absolute;
     right: 4px;
     bottom: 4px;
-    padding: 2px;
+    padding: var(--space-2);
     border-radius: 50%;
     background: rgb(255 255 255 / 0.84);
     color: #24563f;
@@ -668,7 +668,7 @@
 
   .register-more-fields {
     border-top: 1px dashed var(--line-strong);
-    padding-top: 13px;
+    padding-top: var(--space-12);
   }
 
   .register-more-fields summary {
@@ -676,7 +676,7 @@
     cursor: pointer;
     list-style: none;
     align-items: center;
-    gap: 6px;
+    gap: var(--space-6);
     color: var(--text-muted);
     font-size: var(--ui-font-size-md);
     font-weight: var(--font-weight-bold);
@@ -704,8 +704,8 @@
   .register-more-fields-grid {
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 14px 10px;
-    padding-top: 14px;
+    gap: var(--space-14) var(--space-10);
+    padding-top: var(--space-14);
   }
 
   .register-more-wide {
@@ -718,7 +718,7 @@
     border: 1px solid var(--line-strong);
     border-radius: var(--control-radius);
     outline: 0;
-    padding: 10px 11px;
+    padding: var(--space-10) var(--space-12);
     background: var(--surface);
     color: var(--text-strong);
     font-size: var(--ui-font-size-lg);
@@ -731,10 +731,10 @@
   }
 
   .register-notice {
-    margin: 0 28px 18px;
+    margin: 0 var(--space-28) var(--space-18);
     border: 1px solid var(--line);
     border-radius: var(--control-radius);
-    padding: 10px 12px;
+    padding: var(--space-10) var(--space-12);
     font-size: var(--ui-font-size-md);
     line-height: 1.5;
   }
@@ -755,9 +755,9 @@
     display: flex;
     align-items: center;
     justify-content: space-between;
-    gap: 18px;
+    gap: var(--space-18);
     border-top: 1px solid var(--line);
-    padding: 17px 28px;
+    padding: var(--space-16) var(--space-28);
     background: var(--surface-soft);
   }
 
@@ -767,7 +767,7 @@
   }
 
   .register-form-footer a {
-    margin-left: 5px;
+    margin-left: var(--space-4);
     color: var(--brand-strong);
     font-weight: var(--font-weight-bold);
   }
@@ -777,9 +777,9 @@
     min-height: 40px;
     align-items: center;
     justify-content: center;
-    gap: 7px;
+    gap: var(--space-8);
     border-radius: var(--control-radius);
-    padding: 0 16px;
+    padding: 0 var(--space-16);
     background: var(--brand-strong);
     color: white;
     font-size: var(--ui-font-size-lg);
@@ -805,8 +805,8 @@
     .register-card-header,
     .register-form-section,
     .register-form-footer {
-      padding-right: 18px;
-      padding-left: 18px;
+      padding-right: var(--space-18);
+      padding-left: var(--space-18);
     }
 
     .register-form-grid {
@@ -821,12 +821,12 @@
     .register-avatar-grid {
       grid-template-columns: repeat(8, minmax(34px, 1fr));
       overflow-x: auto;
-      padding: 2px;
+      padding: var(--space-2);
     }
 
     .register-notice {
-      margin-right: 18px;
-      margin-left: 18px;
+      margin-right: var(--space-18);
+      margin-left: var(--space-18);
     }
   }
 
