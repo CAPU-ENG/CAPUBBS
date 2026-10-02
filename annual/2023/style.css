@@ -1056,7 +1056,7 @@ ol { padding: 0; list-style: none; }
         var(--asphalt);
 }
 
-.prose { font-size: 18px; line-height: 2.05; }
+.prose { display: flow-root; font-size: 18px; line-height: 2.05; }
 .prose p {
     margin-bottom: 1.05em;
     text-align: justify;
@@ -1071,8 +1071,32 @@ ol { padding: 0; list-style: none; }
     font-weight: 900;
     line-height: 1;
 }
-.figure { margin: 2.2em 0; }
-.figure.is-tall { max-width: 420px; margin-inline: auto; }
+.figure { clear: both; margin: 2.2em 0; }
+/* tall photos sit beside the text; --w is chosen per photo from how much text follows it */
+.figure.is-aside { width: var(--w, 40%); margin-block: .55em 1.2em; }
+.figure.is-aside.is-right { float: right; margin-left: 28px; }
+.figure.is-aside.is-left { float: left; margin-right: 28px; }
+.figure.is-solo { width: min(100%, calc(var(--ar) * 72vh)); margin-inline: auto; }
+/* related photos share one row at equal height; each link grows by its aspect ratio */
+.figure-row {
+    display: flex;
+    gap: 10px;
+    width: min(100%, calc(var(--sum) * 78vh));
+    margin-inline: auto;
+}
+.figure-row a { flex: var(--ar) 1 0; min-width: 0; }
+.prose .verse, .prose .pull { display: flow-root; }
+.prose .author-note { clear: both; }
+@media (max-width: 559px) {
+    .figure.is-aside,
+    .figure.is-aside.is-right,
+    .figure.is-aside.is-left {
+        float: none;
+        width: min(100%, calc(var(--ar) * 64vh));
+        margin: 2em auto;
+    }
+    .figure-row { gap: 6px; }
+}
 .figure-pair { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; align-items: start; }
 .figure-pair a { display: block; overflow: hidden; border-radius: var(--radius); }
 .figure-pair img { width: 100%; height: min(70vh, 620px); object-fit: cover; }
