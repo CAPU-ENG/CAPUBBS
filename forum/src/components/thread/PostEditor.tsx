@@ -23,6 +23,7 @@ import {
 } from '../editor/RichTextEditor';
 import { ThreadFloorActions, ThreadFloorPresentation } from './ThreadFloor';
 import { ThreadPostContent } from './ThreadPostContent';
+import { Button } from '../Button';
 
 export type PostEditorAttachment = Pick<ThreadAttachment, 'id' | 'name' | 'size'>;
 
@@ -200,15 +201,14 @@ export function PostEditor({
       )}
 
       <footer className="reply-editor-footer">
-        <button
-          className="forum-button"
+        <Button
           onClick={() => setAttachmentDialogOpen(true)}
           type="button"
         >
           <Paperclip size={15} />
           添加附件
           {attachments.length > 0 && <span className="reply-attachment-count">{attachments.length}</span>}
-        </button>
+        </Button>
         {status && (
           <span
             className={`reply-editor-status ${statusIsError ? 'thread-edit-error' : ''} ${statusIsAutoSave ? 'reply-editor-status-auto-save' : ''}`.trim()}
@@ -219,15 +219,15 @@ export function PostEditor({
           </span>
         )}
         <div className="reply-editor-submit">
-          <button className="forum-button" disabled={previewDisabled} onClick={onPreview} type="button">
+          <Button disabled={previewDisabled} onClick={onPreview} type="button">
             <Eye size={15} />
             预览
-          </button>
+          </Button>
           {secondaryActions}
-          <button className="forum-button forum-button-primary" disabled={submitDisabled} onClick={onSubmit} type="button">
+          <Button variant="primary" disabled={submitDisabled} onClick={onSubmit} type="button">
             {submitIcon}
             {submitLabel}
-          </button>
+          </Button>
         </div>
       </footer>
 
@@ -344,7 +344,7 @@ export function PostEditorPreviewDialog({
           {previewExtra}
         </div>
         <footer>
-          <button className="forum-button" onClick={onClose} type="button">返回编辑</button>
+          <Button onClick={onClose} type="button">返回编辑</Button>
         </footer>
       </section>
     </DialogLayer>
@@ -440,7 +440,7 @@ function PostEditorAttachmentDialog({
             ))}
           </ul>
         )}
-        <footer><button className="forum-button forum-button-primary" onClick={onClose} type="button">完成</button></footer>
+        <footer><Button variant="primary" onClick={onClose} type="button">完成</Button></footer>
       </section>
     </DialogLayer>
   );

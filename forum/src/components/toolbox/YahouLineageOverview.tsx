@@ -4,6 +4,7 @@ import { X } from 'lucide-react';
 import type { YahouLineage } from '../../data/yahouLineage';
 import { DialogNativeLayer } from '../layout/DialogPresence';
 import { LoadingSpinner } from '../layout/LoadingSpinner';
+import { Button } from '../Button';
 
 const YahouLineageNetwork = lazy(() => import('./YahouLineageNetwork').then((module) => ({ default: module.YahouLineageNetwork })));
 
@@ -15,7 +16,7 @@ export class YahouOverviewErrorBoundary extends Component<{ children: ReactNode 
   render() {
     if (this.state.failed) return <div className="yahou-overview-failure" role="alert">
       <p>总览加载失败</p>
-      <button className="forum-button" onClick={() => window.location.reload()} type="button">刷新页面</button>
+      <Button onClick={() => window.location.reload()} type="button">刷新页面</Button>
     </div>;
     return this.props.children;
   }
@@ -42,7 +43,7 @@ export function YahouLineageOverview({ data, onClose }: { data: YahouLineage; on
       onCancel={(event) => { event.preventDefault(); onClose(); }} ref={dialogRef}>
       <header className="yahou-overview-header">
         <h2 id={titleId}>谱系总览</h2>
-        <button aria-label="关闭谱系总览" autoFocus className="forum-button forum-button-icon" onClick={onClose} type="button"><X size={19} /></button>
+        <Button aria-label="关闭谱系总览" autoFocus icon onClick={onClose} type="button"><X size={19} /></Button>
       </header>
       <YahouOverviewErrorBoundary key={data.revision}>
         <Suspense fallback={<p className="yahou-load-state" role="status"><LoadingSpinner size={18} />正在加载总览</p>}>

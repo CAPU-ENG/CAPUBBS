@@ -11,6 +11,7 @@ import { getForumNavigationHref } from '../../utils/forumNavigation';
 import { LoadingSpinner } from '../layout/LoadingSpinner';
 import { DialogPresence } from '../layout/DialogPresence';
 import { YahouLineageOverview } from './YahouLineageOverview';
+import { Button } from '../Button';
 
 const OVERVIEW_DESKTOP_QUERY = '(min-width: 1024px)';
 
@@ -55,9 +56,9 @@ export function YahouLineagePanel() {
         <h1 id="yahou-lineage-title">押后谱系</h1>
         <div className="yahou-header-actions">
           {isDesktop ? (
-            <button aria-expanded={overviewOpen} aria-haspopup="dialog" className="forum-button" disabled={!data} onClick={() => setOverviewOpen(true)} type="button"><Network size={16} />谱系总览</button>
+            <Button aria-expanded={overviewOpen} aria-haspopup="dialog" disabled={!data} onClick={() => setOverviewOpen(true)} type="button"><Network size={16} />谱系总览</Button>
           ) : null}
-          <button aria-label="刷新押后谱系" className="forum-button forum-button-icon" disabled={saving} onClick={() => setReload((value) => value + 1)} type="button"><RefreshCw size={16} /></button>
+          <Button aria-label="刷新押后谱系" icon disabled={saving} onClick={() => setReload((value) => value + 1)} type="button"><RefreshCw size={16} /></Button>
         </div>
       </header>
       {loadError ? (
@@ -238,8 +239,8 @@ function YahouTree({ canEdit, data, onData, onSaving }: {
       <div className="yahou-toolbar">
         <label className="yahou-search"><Search size={16} /><span className="sr-only">搜索 ID</span><input onChange={(event) => setQuery(event.target.value)} placeholder="搜索 ID" type="search" value={query} /></label>
         <div className="yahou-toolbar-actions">
-          <button className="forum-button" onClick={() => setOpened(new Set(Array.from(index.children.keys()).filter((id): id is string => id !== null)))} type="button">展开分支</button>
-          <button className="forum-button" onClick={() => setOpened(new Set())} type="button">收起分支</button>
+          <Button onClick={() => setOpened(new Set(Array.from(index.children.keys()).filter((id): id is string => id !== null)))} type="button">展开分支</Button>
+          <Button onClick={() => setOpened(new Set())} type="button">收起分支</Button>
         </div>
       </div>
       <div aria-label="押后状态统计" className="yahou-legend">
@@ -248,24 +249,24 @@ function YahouTree({ canEdit, data, onData, onSaving }: {
 
       {query.trim() ? (
         <section aria-label="ID 搜索结果" className="yahou-results">
-          <div className="yahou-results-heading"><span role="status">{matches.length} 个结果</span><button aria-label="关闭搜索" className="forum-button forum-button-icon" onClick={() => setQuery('')} type="button"><X size={15} /></button></div>
+          <div className="yahou-results-heading"><span role="status">{matches.length} 个结果</span><Button aria-label="关闭搜索" icon onClick={() => setQuery('')} type="button"><X size={15} /></Button></div>
           {matches.map((member) => <button className="yahou-result" key={member.id} onClick={() => locateMember(member.id)} type="button"><span className={`yahou-${member.status}`}><StatusIcon status={member.status} /><strong>{member.id}</strong></span><span>{['实践部', ...yahouAncestors(index, member.id).slice(0, -1).map((ancestor) => ancestor.id)].join(' → ')}</span></button>)}
         </section>
       ) : null}
 
       {selectedId !== undefined ? (
         <section aria-label="节点详情" className="yahou-detail" ref={detailRef}>
-          <div className="yahou-detail-heading"><strong>{selectedId ?? '实践部'}</strong>{selected ? <span className={`yahou-status-label yahou-${selected.status}`}><StatusIcon status={selected.status} />{YAHOU_STATUS_LABELS[selected.status]}</span> : null}<button aria-label="关闭节点详情" className="forum-button forum-button-icon" disabled={saving} onClick={() => setSelectedId(undefined)} type="button"><X size={15} /></button></div>
+          <div className="yahou-detail-heading"><strong>{selectedId ?? '实践部'}</strong>{selected ? <span className={`yahou-status-label yahou-${selected.status}`}><StatusIcon status={selected.status} />{YAHOU_STATUS_LABELS[selected.status]}</span> : null}<Button aria-label="关闭节点详情" icon disabled={saving} onClick={() => setSelectedId(undefined)} type="button"><X size={15} /></Button></div>
           {selected ? <div className="yahou-ancestry">{['实践部', ...yahouAncestors(index, selected.id).map((member) => member.id)].join(' → ')}</div> : null}
           <div className="yahou-detail-actions">
             <span>{selected ? `第 ${index.generations.get(selected.id)} 代 · ${selectedChildren.length} 位徒弟 · ${index.descendants.get(selected.id)} 位后代` : `${data.nodes.length} 人 · ${index.children.get(null)?.length ?? 0} 个师门`}</span>
-            <button className="forum-button" onClick={() => focusBranch(selectedId)} type="button"><Focus size={14} />{selectedId === null ? '全部师门' : '聚焦此支'}</button>
+            <Button onClick={() => focusBranch(selectedId)} type="button"><Focus size={14} />{selectedId === null ? '全部师门' : '聚焦此支'}</Button>
             {selected ? <a className="forum-button" href={getForumNavigationHref(`/bbs/user?name=${encodeURIComponent(selected.id)}`, window.location.href)}><ExternalLink size={14} />个人主页</a> : null}
           </div>
           {canEdit ? (
             <div className="yahou-edit">
-              {selected ? <form className="yahou-form" onSubmit={(event) => { event.preventDefault(); void mutate({ action: 'status', id: selected.id, status: draftStatus }); }}><label>状态<select disabled={saving} onChange={(event) => setDraftStatus(event.target.value as YahouStatus)} value={draftStatus}>{YAHOU_STATUSES.map((status) => <option disabled={selectedChildren.length > 0 && status !== 'qualified'} key={status} value={status}>{YAHOU_STATUS_LABELS[status]}</option>)}</select></label><button className="forum-button forum-button-primary" disabled={saving || draftStatus === selected.status} type="submit">更新状态</button></form> : null}
-              {selectedId === null || selected?.status === 'qualified' ? <form className="yahou-form" onSubmit={addApprentice}><label>{selectedId === null ? '直属 ID' : '徒弟 ID'}<input autoComplete="off" disabled={saving} maxLength={100} onChange={(event) => setApprenticeId(event.target.value)} required value={apprenticeId} /></label><label>初始状态<select disabled={saving} onChange={(event) => setApprenticeStatus(event.target.value as YahouStatus)} value={apprenticeStatus}>{YAHOU_STATUSES.map((status) => <option key={status} value={status}>{YAHOU_STATUS_LABELS[status]}</option>)}</select></label><button className="forum-button forum-button-primary" disabled={saving || !apprenticeId.trim()} type="submit"><Plus size={15} />添加</button></form> : null}
+              {selected ? <form className="yahou-form" onSubmit={(event) => { event.preventDefault(); void mutate({ action: 'status', id: selected.id, status: draftStatus }); }}><label>状态<select disabled={saving} onChange={(event) => setDraftStatus(event.target.value as YahouStatus)} value={draftStatus}>{YAHOU_STATUSES.map((status) => <option disabled={selectedChildren.length > 0 && status !== 'qualified'} key={status} value={status}>{YAHOU_STATUS_LABELS[status]}</option>)}</select></label><Button variant="primary" disabled={saving || draftStatus === selected.status} type="submit">更新状态</Button></form> : null}
+              {selectedId === null || selected?.status === 'qualified' ? <form className="yahou-form" onSubmit={addApprentice}><label>{selectedId === null ? '直属 ID' : '徒弟 ID'}<input autoComplete="off" disabled={saving} maxLength={100} onChange={(event) => setApprenticeId(event.target.value)} required value={apprenticeId} /></label><label>初始状态<select disabled={saving} onChange={(event) => setApprenticeStatus(event.target.value as YahouStatus)} value={apprenticeStatus}>{YAHOU_STATUSES.map((status) => <option key={status} value={status}>{YAHOU_STATUS_LABELS[status]}</option>)}</select></label><Button variant="primary" disabled={saving || !apprenticeId.trim()} type="submit"><Plus size={15} />添加</Button></form> : null}
             </div>
           ) : null}
           {notice ? <p className={`toolbox-feedback ${notice.error ? 'toolbox-feedback-error' : 'toolbox-feedback-success'}`} role={notice.error ? 'alert' : 'status'}>{notice.text}</p> : null}

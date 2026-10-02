@@ -41,6 +41,7 @@ import {
   PostEditorPreviewDialog,
   type PostEditorPreviewAuthor,
 } from "./PostEditor";
+import { Button } from '../Button';
 
 export type QuoteRequest = {
   author: string;
@@ -325,10 +326,10 @@ export function ReplyEditor({
         placeholder="写下你的回复……"
         previewDisabled={!hasPostEditorContent(editorValue)}
         secondaryActions={(
-          <button className="forum-button" disabled={isSavingDraft || isPublishing} onClick={() => void saveDraft()} type="button">
+          <Button disabled={isSavingDraft || isPublishing} onClick={() => void saveDraft()} type="button">
             {isSavingDraft ? <LoaderCircle size={15} /> : <Save size={15} />}
             {isSavingDraft ? "保存中" : "保存草稿"}
-          </button>
+          </Button>
         )}
         signatureIndex={signatureIndex}
         status={status}

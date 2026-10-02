@@ -9,6 +9,7 @@ import {
   type MedalDraft,
   type MedalTextureId,
 } from './medalDesign';
+import { Button } from '../Button';
 
 export function MedalDesignerPanel({ initialDraft, mode, onCancel, onSave, saving = false }: {
   initialDraft: MedalDraft;
@@ -33,17 +34,17 @@ export function MedalDesignerPanel({ initialDraft, mode, onCancel, onSave, savin
         <header className="management-medal-section-heading">
           <h3>{mode === 'create' ? '新建勋章' : '编辑勋章'}</h3>
           <div>
-            <button className="forum-button" disabled={saving} onClick={onCancel} type="button">
+            <Button disabled={saving} onClick={onCancel} type="button">
               <X size={15} />取消
-            </button>
-            <button
-              className="forum-button forum-button-primary"
+            </Button>
+            <Button
+              variant="primary"
               disabled={saving || !name.trim() || !imageSource}
               onClick={() => onSave({ imageSource, name: name.trim(), textureId })}
               type="button"
             >
               <Save size={15} />{saving ? '保存中' : '保存勋章'}
-            </button>
+            </Button>
           </div>
         </header>
 

@@ -68,6 +68,7 @@ import {
   type ActivityDateRange,
   type ActivitySignupSettings,
 } from '../utils/activitySignup';
+import { Button } from '../components/Button';
 
 const THREAD_API_URL = import.meta.env.VITE_API_URL?.trim() || '/api/api.php';
 const AUTO_SAVE_DELAY_MS = 1_200;
@@ -622,15 +623,14 @@ export function ThreadComposePage() {
               placeholder={isReply ? '继续编辑你的回复……' : isActivity ? '填写活动介绍、行程安排和注意事项……' : '写下正文，可以补充背景、细节和你希望大家讨论的问题……'}
               previewDisabled={!contentReady}
               secondaryActions={(
-                <button
-                  className="forum-button"
+                <Button
                   disabled={isSavingDraft || isPublishing}
                   onClick={() => void saveDraft()}
                   type="button"
                 >
                   {isSavingDraft ? <LoaderCircle size={15} /> : <Save size={15} />}
                   {isSavingDraft ? '保存中' : '保存草稿'}
-                </button>
+                </Button>
               )}
               signatureIndex={signatureIndex}
               status={status}

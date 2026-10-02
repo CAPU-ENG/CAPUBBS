@@ -23,6 +23,7 @@ import {
 import { getThreadCacheScope } from '../../utils/threadContentCache';
 import { invalidateLoadedThread } from '../../utils/threadContentLoader';
 import { getThreadFloorFromHash, getThreadPageForFloor } from '../../utils/threadRoutes';
+import { Button } from '../Button';
 
 const signatureOptions = [
   { label: '不使用签名档', value: 0 },
@@ -101,9 +102,9 @@ function ActivitySignupFormLoader(props: ActivitySignupFormProps) {
           {loadError ? (
             <>
               <span className="activity-signup-status-error" role="alert">{loadError}</span>
-              <button className="forum-button activity-signup-preview-button" onClick={() => setLoadRequest((current) => current + 1)} type="button">
+              <Button className="activity-signup-preview-button" onClick={() => setLoadRequest((current) => current + 1)} type="button">
                 <RotateCcw size={15} />重试
-              </button>
+              </Button>
             </>
           ) : (
             <span role="status"><LoadingSpinner size={14} />正在读取报名信息</span>
@@ -289,15 +290,15 @@ function ActivitySignupFormFields({
             )}
             {viewer ? (
               <>
-                <button
-                  className="forum-button activity-signup-preview-button"
+                <Button
+                  className="activity-signup-preview-button"
                   disabled={submitting}
                   onClick={openPreview}
                   type="button"
                 >
                   <Eye size={15} />
                   预览
-                </button>
+                </Button>
                 <button className="activity-signup-submit-button" disabled={!canSubmit} type="submit">
                   {submitting
                     ? <LoadingSpinner size={14} />

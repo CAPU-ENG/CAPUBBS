@@ -27,6 +27,7 @@ import {
   type ContactRow,
   type ContactTable,
 } from '../utils/tableToVcf';
+import { Button } from '../components/Button';
 
 type ToolTab = 'table-vcf' | 'tags' | 'yahou-lineage';
 
@@ -152,17 +153,17 @@ function TableToVcfTool() {
             ref={inputRef}
             type="file"
           />
-          <button className="forum-button" disabled={loading} onClick={() => inputRef.current?.click()} type="button">
+          <Button disabled={loading} onClick={() => inputRef.current?.click()} type="button">
             {loading ? <LoaderCircle className="animate-spin" size={15} /> : <Upload size={15} />}
             {loading ? '读取中' : table ? '更换表格' : '选择表格'}
-          </button>
+          </Button>
           {fileName ? (
             <output><FileSpreadsheet size={15} /><span title={fileName}>{fileName}</span></output>
           ) : null}
           {table ? (
-            <button aria-label="移除表格" className="forum-button forum-button-icon forum-button-hover-danger" onClick={resetTable} title="移除表格" type="button">
+            <Button aria-label="移除表格" icon hoverDanger onClick={resetTable} title="移除表格" type="button">
               <X size={16} />
-            </button>
+            </Button>
           ) : null}
         </div>
 
@@ -171,9 +172,9 @@ function TableToVcfTool() {
         {table ? (
           <footer className="toolbox-converter-footer">
             <div><span>{table.rows.length} 位联系人</span></div>
-            <button className="forum-button forum-button-primary" onClick={downloadVcf} type="button">
+            <Button variant="primary" onClick={downloadVcf} type="button">
               <Download size={15} />下载 VCF
-            </button>
+            </Button>
           </footer>
         ) : null}
 

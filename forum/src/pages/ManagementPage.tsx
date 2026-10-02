@@ -56,6 +56,7 @@ import { getLoginPathWithReturnTo, getRegisterPathWithReturnTo } from '../utils/
 import { toForumHref } from '../utils/forumBasePath';
 import { getForumNavigationHref } from '../utils/forumNavigation';
 import { getTitleIndentationClassName } from '../utils/titleIndentation';
+import { Button } from '../components/Button';
 
 type AdminTab = 'pins' | 'move' | 'members' | 'moderators' | 'tags' | 'medals';
 type NoticeKind = 'error' | 'info' | 'success';
@@ -335,15 +336,15 @@ function GlobalPinsPanel() {
                 <a className={getTitleIndentationClassName(pin.title)} href={getForumNavigationHref(pin.url, window.location.href)}>{pin.title}<ExternalLink size={12} /></a>
                 <p><span>{pin.board}</span><i />作者 {pin.author}</p>
               </div>
-              <button
-                className="forum-button forum-button-danger"
+              <Button
+                variant="danger"
                 disabled={pendingThreadKey !== null}
                 onClick={() => void removePin(pin)}
                 type="button"
               >
                 {pendingThreadKey === threadKey(pin) ? <LoaderCircle className="animate-spin" size={14} /> : <PinOff size={14} />}
                 取消置顶
-              </button>
+              </Button>
             </article>
           ))}
         </div>
@@ -449,9 +450,9 @@ function MoveThreadPanel() {
                 </select>
               </label>
             </div>
-            <button className="forum-button forum-button-primary" disabled={!targetBoardId || isMoving} type="submit">
+            <Button variant="primary" disabled={!targetBoardId || isMoving} type="submit">
               {isMoving ? <LoaderCircle className="animate-spin" size={15} /> : <FileInput size={15} />}确认迁移帖子
-            </button>
+            </Button>
           </form>
         )}
         {notice && <ManagementNotice kind={notice.kind}>{notice.text}</ManagementNotice>}
@@ -671,21 +672,21 @@ function MemberManagementPanel() {
               {selectedMember.rights > 2 ? (
                 <button disabled type="button"><ShieldCheck size={15} />高级权限受保护</button>
               ) : (
-                <button
-                  className={selectedMember.rights === 2 ? 'forum-button forum-button-danger' : 'forum-button forum-button-primary'}
+                <Button
+                  variant={selectedMember.rights === 2 ? 'danger' : 'primary'}
                   disabled={pendingMemberId !== null}
                   onClick={() => void toggleLevelTwo(selectedMember)}
                   type="button"
                 >
                   {pendingMemberId === selectedMember.id ? <LoaderCircle className="animate-spin" size={15} /> : <UserCog size={15} />}
                   {selectedMember.rights === 2 ? '取消 2 级权限' : '赋予 2 级权限'}
-                </button>
+                </Button>
               )}
             </div>
             <div className="management-mute-row">
               <div><span>禁言状态</span><strong>{selectedMember.muted ? '已禁言' : '未禁言'}</strong></div>
-              <button
-                className={selectedMember.muted ? 'forum-button forum-button-primary' : 'forum-button forum-button-danger'}
+              <Button
+                variant={selectedMember.muted ? 'primary' : 'danger'}
                 disabled={!selectedMember.email || pendingEmail !== null}
                 onClick={() => void toggleMemberMute(selectedMember)}
                 type="button"
@@ -694,7 +695,7 @@ function MemberManagementPanel() {
                   ? <LoaderCircle className="animate-spin" size={15} />
                   : selectedMember.muted ? <Volume2 size={15} /> : <VolumeX size={15} />}
                 {selectedMember.muted ? '解除禁言' : '禁言会员'}
-              </button>
+              </Button>
             </div>
           </div>
         )}
@@ -762,15 +763,15 @@ function MemberManagementPanel() {
                   <strong>{mute.email}</strong>
                   <span>{mute.ids.length > 0 ? mute.ids.map((id) => <em key={id}>{id}</em>) : <em>无关联 ID</em>}</span>
                 </div>
-                <button
-                  className="forum-button forum-button-danger"
+                <Button
+                  variant="danger"
                   disabled={pendingEmail !== null}
                   onClick={() => void unmuteEntry(mute)}
                   type="button"
                 >
                   {pendingEmail === mute.email ? <LoaderCircle className="animate-spin" size={14} /> : <Volume2 size={14} />}
                   解除禁言
-                </button>
+                </Button>
               </article>
             ))}
           </div>
@@ -967,15 +968,15 @@ function ModeratorManagementPanel() {
                   {boards.map((board) => <option key={board.boardId} value={board.boardId}>{board.boardName}</option>)}
                 </select>
               </label>
-              <button
-                className="forum-button forum-button-primary"
+              <Button
+                variant="primary"
                 disabled={!selectedBoard || alreadyModerator || pendingAction !== null}
                 onClick={() => void addModerator()}
                 type="button"
               >
                 {pendingAction?.startsWith('add-') ? <LoaderCircle className="animate-spin" size={15} /> : <UserPlus size={15} />}
                 {alreadyModerator ? '已是本版版主' : '添加版主'}
-              </button>
+              </Button>
             </div>
           </div>
         )}
@@ -1025,9 +1026,9 @@ function ThreadConfirmation({ actionLabel, disabled, onConfirm, pending, thread 
   return (
     <div className="management-thread-confirmation">
       <ThreadIdentity thread={thread} />
-      <button className="forum-button forum-button-primary" disabled={disabled} onClick={onConfirm} type="button">
+      <Button variant="primary" disabled={disabled} onClick={onConfirm} type="button">
         {pending ? <LoaderCircle className="animate-spin" size={15} /> : <MapPin size={15} />}{actionLabel}
-      </button>
+      </Button>
     </div>
   );
 }
