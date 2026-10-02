@@ -52,6 +52,7 @@ $homepageAnnual = $homepageContent['annual'];
 <?php if ($rights >= 3) { ?>
           <a class="promotion-manage" href="/index/images.php">管理宣传图</a>
 <?php } ?>
+          <button class="promotion-full" type="button" data-image-full aria-pressed="false" aria-label="查看完整图片" title="查看完整图片" aria-controls="promotion-slides"><span aria-hidden="true">⤢</span></button>
           <div class="promotion-controls" data-image-controls hidden>
             <button type="button" data-image-autoplay aria-label="暂停自动轮播" title="暂停自动轮播" aria-controls="promotion-slides"><span aria-hidden="true">Ⅱ</span></button>
             <button type="button" data-image-step="-1" aria-label="上一张宣传图" aria-controls="promotion-slides">←</button>

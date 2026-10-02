@@ -1095,6 +1095,9 @@ html.is-routing body, html.is-routing a { cursor: progress; }
     margin-inline: auto;
 }
 .figure-row a { flex: var(--ar) 1 0; min-width: 0; }
+/* halves of one photo split across the original spread */
+.figure-row.is-tight { gap: 0; overflow: hidden; border-radius: var(--radius); }
+.figure-row.is-tight a { border-radius: 0; }
 .prose .verse, .prose .pull { display: flow-root; }
 .prose .author-note { clear: both; }
 @media (max-width: 559px) {
@@ -1334,7 +1337,7 @@ html.is-routing body, html.is-routing a { cursor: progress; }
 .article-side-toc a:hover { color: var(--accent-ink); }
 .article-reading-layout .prose-sub { scroll-margin-top: 84px; }
 
-.appendix-summary .article-reading-layout {
+.report-layout .article-reading-layout {
     grid-template-columns: minmax(180px, 220px) minmax(0, 760px);
 }
 
@@ -1376,7 +1379,30 @@ html.is-routing body, html.is-routing a { cursor: progress; }
     line-height: 1.45;
     transition: color .2s;
 }
+/* one-level contents (day-by-day journals) reuse the section-level look */
+.report-toc.is-flat > ol {
+    gap: 2px;
+    padding-left: 10px;
+    border-left: 1px solid rgba(154, 166, 182, .4);
+}
+.report-toc.is-flat > ol > li > a {
+    position: relative;
+    padding: 2px 0 2px 8px;
+    color: var(--ink-soft);
+    font-size: 12.5px;
+    font-weight: 400;
+    line-height: 1.45;
+}
+.report-toc.is-flat > ol > li > a span {
+    min-width: 4.4em;
+    font-family: var(--sans);
+    font-size: 11px;
+    font-style: normal;
+    font-weight: 700;
+    letter-spacing: .02em;
+}
 .report-toc a[aria-current] { color: var(--ink); font-weight: 700; }
+.report-toc.is-flat > ol > li > a[aria-current]::before,
 .report-toc ol ol a[aria-current]::before {
     content: "";
     position: absolute;
@@ -1411,6 +1437,7 @@ html.is-routing body, html.is-routing a { cursor: progress; }
     line-height: 1;
 }
 .report-section { padding-top: 2.1em; }
+.report > .report-section:first-child { padding-top: 0; }
 .report-heading {
     display: flex;
     gap: 12px;
@@ -1435,6 +1462,14 @@ html.is-routing body, html.is-routing a { cursor: progress; }
     font-weight: 700;
     letter-spacing: .02em;
     text-align: center;
+}
+.report-when {
+    color: var(--ink-soft);
+    font-family: var(--sans);
+    font-size: 13px;
+    font-variant-numeric: tabular-nums;
+    font-weight: 400;
+    letter-spacing: .04em;
 }
 .report-minor {
     display: flex;
