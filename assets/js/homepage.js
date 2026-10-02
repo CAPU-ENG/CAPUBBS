@@ -44,11 +44,23 @@
   let imageHovered = false;
   let imageFocusPaused = false;
   let imagePageActive = true;
+  let imageFull = false;
+  const imageFullToggle = document.querySelector('[data-image-full]');
+
+  // Toggle between the cropped hero and the whole picture.
+  function setImageFull(full) {
+    imageFull = full && images.length > 0;
+    promotion.classList.toggle('is-full', imageFull);
+    imageFullToggle.setAttribute('aria-pressed', String(imageFull));
+    imageFullToggle.setAttribute('aria-label', imageFull ? '返回' : '查看完整图片');
+    imageFullToggle.title = imageFullToggle.getAttribute('aria-label');
+    scheduleImageRotation();
+  }
 
   function scheduleImageRotation() {
     window.clearTimeout(imageTimer);
     imageTimer = null;
-    const rotating = images.length > 1 && !imagePaused && !imageHovered && imagePageActive
+    const rotating = images.length > 1 && !imagePaused && !imageFull && !imageHovered && imagePageActive
       && !document.hidden && !(imageFocusPaused && promotion.contains(document.activeElement));
     imageCount.setAttribute('aria-live', rotating ? 'off' : 'polite');
     imageAutoplay.setAttribute('aria-label', imagePaused ? '开始自动轮播' : '暂停自动轮播');
@@ -153,7 +165,10 @@
     const button = event.target.closest('[data-image-step]');
     if (button) showImage(currentImage + Number(button.dataset.imageStep));
   });
+  slides.addEventListener('click', () => setImageFull(!imageFull));
+  imageFullToggle.addEventListener('click', () => setImageFull(!imageFull));
   promotion.addEventListener('keydown', event => {
+    if (event.key === 'Escape' && imageFull) { setImageFull(false); return; }
     if (!images.length || !['ArrowLeft', 'ArrowRight', 'Home', 'End'].includes(event.key)) return;
     event.preventDefault();
     showImage(event.key === 'Home' ? 0 : event.key === 'End' ? images.length - 1 : currentImage + (event.key === 'ArrowLeft' ? -1 : 1));
