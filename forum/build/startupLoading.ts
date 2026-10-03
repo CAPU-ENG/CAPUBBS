@@ -42,7 +42,8 @@ const pageRoutes: Record<string, string[]> = {
   UserCenterPage: ['home', 'favorite'],
 };
 
-export function startupLoading(): Plugin {
+// pageBase is the forum route prefix; Vite's base may point at the asset CDN instead.
+export function startupLoading(pageBase: string): Plugin {
   let base: string;
   let runtime: string;
 
@@ -120,7 +121,7 @@ export function startupLoading(): Plugin {
         html = html.replace(scripts[0][0], '')
           .replace(/<link\b[^>]*rel="(?:stylesheet|modulepreload)"[^>]*>/g, '');
         if (!html.includes(marker)) this.error('Missing startup runtime placeholder');
-        htmlAsset.source = html.replace(marker, inlineRuntime(runtime, { base, entry: entryUrl, assets, common, pages }))
+        htmlAsset.source = html.replace(marker, inlineRuntime(runtime, { base: pageBase, entry: entryUrl, assets, common, pages }))
           .replace(/[\t ]+$/gm, '');
       },
     },

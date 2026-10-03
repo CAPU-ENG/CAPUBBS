@@ -9,6 +9,11 @@ import { resolveForumMode } from './src/utils/forumModeCookie.ts';
 import { canonicalizeForumPageRoute } from './src/utils/forumCanonicalRoute';
 
 const PHP_ORIGIN = process.env.CAPUBBS_PHP_ORIGIN || 'http://localhost:8080';
+// Release builds load hashed assets from OSS, e.g. https://capu-assets.oss-cn-beijing.aliyuncs.com/bbs/
+const FORUM_CDN_BASE = process.env.FORUM_CDN_BASE?.replace(/\/?$/, '/');
+// OSS default domains force HTML to download, the manifest must share the page origin,
+// and unhashed public files cannot take OSS's immutable caching.
+const SAME_ORIGIN_ASSET = /\.(?:html|webmanifest)$/;
 
 type MiddlewareServer = {
   middlewares: {
@@ -95,32 +100,40 @@ function proxyToPhp(request: IncomingMessage, response: ServerResponse) {
   request.pipe(proxyRequest);
 }
 
-export default defineConfig({
-  base: FORUM_BASE_URL,
-  optimizeDeps: {
-    // Prepare the lazy overview's dependencies before the first graph is opened.
-    include: ['@relation-graph/react', 'd3-force'],
-  },
-  build: {
-    assetsDir: 'new-assets',
-  },
-  plugins: [forumBasePathFallback(), legacyForumCookieProxy(), react(), startupLoading()],
-  server: {
-    proxy: {
-      '/annual': { target: PHP_ORIGIN },
-      '/api': { target: PHP_ORIGIN },
-      '/assets': { target: PHP_ORIGIN },
-      '/bbs/assets': { target: PHP_ORIGIN },
-      '/bbs/attach': { target: PHP_ORIGIN },
-      '/bbs/content/test.php': { target: PHP_ORIGIN },
-      '/bbs/download': { target: PHP_ORIGIN },
-      '/bbs/images': { target: PHP_ORIGIN },
-      '/bbs/lib': { target: PHP_ORIGIN },
-      '/bbs/register/action.php': { target: PHP_ORIGIN },
-      '/bbs/register/userexists.php': { target: PHP_ORIGIN },
-      '/bbs/utils': { target: PHP_ORIGIN },
-      '/bbsimg': { target: PHP_ORIGIN },
-      '/config': { target: PHP_ORIGIN },
+export default defineConfig(({ command }) => {
+  const assetBase = command === 'build' ? FORUM_CDN_BASE : undefined;
+  return {
+    base: assetBase ?? FORUM_BASE_URL,
+    optimizeDeps: {
+      // Prepare the lazy overview's dependencies before the first graph is opened.
+      include: ['@relation-graph/react', 'd3-force'],
     },
-  },
+    build: {
+      assetsDir: 'new-assets',
+    },
+    experimental: assetBase ? {
+      renderBuiltUrl(fileName: string, { type }: { type: 'asset' | 'public' }) {
+        return type === 'public' || SAME_ORIGIN_ASSET.test(fileName) ? FORUM_BASE_URL + fileName : undefined;
+      },
+    } : undefined,
+    plugins: [forumBasePathFallback(), legacyForumCookieProxy(), react(), startupLoading(FORUM_BASE_URL)],
+    server: {
+      proxy: {
+        '/annual': { target: PHP_ORIGIN },
+        '/api': { target: PHP_ORIGIN },
+        '/assets': { target: PHP_ORIGIN },
+        '/bbs/assets': { target: PHP_ORIGIN },
+        '/bbs/attach': { target: PHP_ORIGIN },
+        '/bbs/content/test.php': { target: PHP_ORIGIN },
+        '/bbs/download': { target: PHP_ORIGIN },
+        '/bbs/images': { target: PHP_ORIGIN },
+        '/bbs/lib': { target: PHP_ORIGIN },
+        '/bbs/register/action.php': { target: PHP_ORIGIN },
+        '/bbs/register/userexists.php': { target: PHP_ORIGIN },
+        '/bbs/utils': { target: PHP_ORIGIN },
+        '/bbsimg': { target: PHP_ORIGIN },
+        '/config': { target: PHP_ORIGIN },
+      },
+    },
+};
 });
