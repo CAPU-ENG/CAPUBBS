@@ -335,7 +335,6 @@ export function ReplyEditor({
           setStatusIsError(false);
         }}
         onSubmit={() => void publishReply()}
-        placeholder="写下你的回复……"
         previewDisabled={!hasPostEditorContent(editorValue)}
         secondaryActions={(
           <Button disabled={isSavingDraft || isPublishing} onClick={() => void saveDraft()} type="button">

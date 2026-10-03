@@ -10,10 +10,11 @@
     overflow: hidden;
   }
 
-+  .capubbs-rich-editor-input:empty::before {
+  .capubbs-rich-editor-input:empty:not(:focus)::before {
     color: rgb(161 161 170);
     content: attr(data-placeholder);
     pointer-events: none;
+    white-space: pre-line;
   }
 
   .capubbs-editor-prose {

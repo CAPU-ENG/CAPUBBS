@@ -89,7 +89,7 @@ export function RichTextEditor({
   ariaLabel,
   focusRequest = 0,
   onChange,
-  placeholder = '写下你的回复...',
+  placeholder = '写些什么……\n可以使用工具栏或直接粘贴插入图片',
   value,
 }: RichTextEditorProps) {
   const editorShellRef = useRef<HTMLElement>(null);
@@ -802,7 +802,7 @@ export function RichTextEditor({
               onKeyDown={handleMarkdownEditorKeyDown}
               onPaste={handleEditorPaste}
               onScroll={handleMarkdownSourceScroll}
-              className={`min-w-0 flex-1 resize-none whitespace-pre-wrap [overflow-wrap:anywhere] border-0 bg-transparent px-3 py-3 text-sm leading-6 text-zinc-800 outline-none placeholder:text-zinc-400 focus:ring-0 dark:text-white dark:placeholder:text-zinc-500 ${isAutoHeightEnabled ? 'min-h-[50vh]' : 'min-h-0'} ${markdownSourceOverflowClassName}`}
+              className={`min-w-0 flex-1 resize-none whitespace-pre-wrap [overflow-wrap:anywhere] border-0 bg-transparent px-3 py-3 text-sm leading-6 text-zinc-800 outline-none placeholder:text-zinc-400 focus:ring-0 focus:placeholder:text-transparent dark:text-white dark:placeholder:text-zinc-500 dark:focus:placeholder:text-transparent ${isAutoHeightEnabled ? 'min-h-[50vh]' : 'min-h-0'} ${markdownSourceOverflowClassName}`}
             />
           </div>
           <div

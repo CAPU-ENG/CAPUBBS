@@ -625,7 +625,6 @@ export function ThreadComposePage() {
                 clearStatus();
               }}
               onSubmit={() => void publish()}
-              placeholder={isReply ? '继续编辑你的回复……' : isActivity ? '填写活动介绍、行程安排和注意事项……' : '写下正文，可以补充背景、细节和你希望大家讨论的问题……'}
               previewDisabled={!contentReady}
               secondaryActions={(
                 <Button

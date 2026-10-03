@@ -125,7 +125,7 @@ export function PostEditor({
   onRemoveAttachment: (id: string) => void;
   onSignatureChange: (value: number) => void;
   onSubmit: () => void;
-  placeholder: string;
+  placeholder?: string;
   previewDisabled?: boolean;
   secondaryActions?: ReactNode;
   signatureIndex: number;
