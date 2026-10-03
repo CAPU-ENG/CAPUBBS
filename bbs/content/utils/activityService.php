@@ -442,12 +442,12 @@ function activity_service_display_value($type_id, $raw_value, $case_names) {
     return strval($raw_value);
 }
 
-// Real 个人可见 answers of the signup posts among $fids that the viewer may see:
-// their own signup, or every signup when $can_view_all (activity leader).
-// Returns fid => list of array('option_id', 'label', 'value') in question order.
-function activity_service_private_answers_by_fid($con, $activity, $viewer_username, $can_view_all, $fids) {
-    $viewer_username = strval($viewer_username);
-    if ($viewer_username === '' || empty($activity) || empty($fids)) return array();
+// 个人可见 answers of the signup posts among $fids.
+// Returns fid => array('username' => signup owner,
+//     'answers' => list of array('option_id', 'label', 'value')), in question order;
+// 'value' is the answer as written into the post ('' when empty).
+function activity_service_signup_private_answers($con, $activity, $fids) {
+    if (empty($activity) || empty($fids)) return array();
 
     $private_options = array();
     foreach ($activity['options'] as $option) {
@@ -469,50 +469,90 @@ function activity_service_private_answers_by_fid($con, $activity, $viewer_userna
     $activity_id = intval($activity['activity_id']);
     $fid_list = implode(',', array_map('intval', $fids));
     $option_list = implode(',', array_keys($private_options));
-    $viewer_filter = $can_view_all
-        ? ''
-        : " and activity_join.username='" . mysqli_real_escape_string($con, $viewer_username) . "'";
-    $result = mysqli_query($con, "select activity_join.post_fid, option_value.option_id, option_value.value
+    $result = mysqli_query($con, "select activity_join.post_fid, activity_join.username, option_value.option_id, option_value.value
         from season_activity_join activity_join
         inner join season_join_option_value option_value on option_value.join_id=activity_join.join_id
         where activity_join.activity_id=$activity_id
             and activity_join.post_fid in ($fid_list)
-            and option_value.option_id in ($option_list)$viewer_filter");
+            and option_value.option_id in ($option_list)");
     if (!$result) return array();
 
-    $values_by_fid = array();
+    $signups = array();
     while ($row = mysqli_fetch_assoc($result)) {
-        $values_by_fid[intval($row['post_fid'])][intval($row['option_id'])] = strval($row['value']);
+        $fid = intval($row['post_fid']);
+        if (!isset($signups[$fid])) $signups[$fid] = array('username' => $row['username'], 'values' => array());
+        $signups[$fid]['values'][intval($row['option_id'])] = strval($row['value']);
     }
 
     $answers_by_fid = array();
-    foreach ($values_by_fid as $fid => $values) {
+    foreach ($signups as $fid => $signup) {
         $answers = array();
         foreach ($private_options as $option_id => $option) {
-            $raw_value = isset($values[$option_id]) ? $values[$option_id] : '';
-            $value = activity_service_display_value($option['type_id'], $raw_value, $option['case_names']);
+            $raw_value = isset($signup['values'][$option_id]) ? $signup['values'][$option_id] : '';
             $answers[] = array(
                 'option_id' => $option_id,
                 'label' => $option['label'],
-                'value' => $value !== '' ? $value : '无',
+                'value' => activity_service_display_value($option['type_id'], $raw_value, $option['case_names']),
             );
         }
-        $answers_by_fid[$fid] = $answers;
+        $answers_by_fid[$fid] = array('username' => $signup['username'], 'answers' => $answers);
     }
     return $answers_by_fid;
 }
 
-// Put real answers back into a signup post's stored HTML for display.
+// The signup owner and, with $can_view_all, the activity's managers.
+function activity_service_can_view_private_answers($signup_username, $viewer_username, $can_view_all) {
+    $viewer_username = strval($viewer_username);
+    if ($viewer_username === '') return false;
+    return $can_view_all
+        || mb_strtolower(strval($signup_username), 'UTF-8') === mb_strtolower($viewer_username, 'UTF-8');
+}
+
+// Put real answers back where the stored post holds the mask.
 function activity_service_reveal_private_answers($text, $answers) {
     $mask = ACTIVITY_PRIVATE_ANSWER_MASK;
     foreach ($answers as $answer) {
-        $value_html = htmlspecialchars($answer['value'], ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
+        $value = $answer['value'] !== '' ? $answer['value'] : '无';
+        $value_html = htmlspecialchars($value, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
         $labels = array_unique(array(
             $answer['label'],
             htmlspecialchars($answer['label'], ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'),
         ));
         foreach ($labels as $label) {
             $text = str_replace('<div>' . $label . '：' . $mask . '</div>', '<div>' . $label . '：' . $value_html . '</div>', $text);
+        }
+    }
+    return $text;
+}
+
+// Hide real answers still stored in older signup posts from other viewers.
+function activity_service_mask_private_answers($text, $answers) {
+    $mask = ACTIVITY_PRIVATE_ANSWER_MASK;
+    foreach ($answers as $answer) {
+        $value = strval($answer['value']);
+        if ($value === '') continue;
+        $labels = array_unique(array(
+            $answer['label'],
+            htmlspecialchars($answer['label'], ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'),
+        ));
+        $values = array_unique(array(
+            $value,
+            htmlspecialchars($value, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'),
+            htmlspecialchars($value),
+        ));
+        $long = mb_strlen($value, 'UTF-8') >= 5;
+        foreach ($labels as $label) {
+            foreach ($values as $candidate) {
+                $text = $long
+                    ? str_replace($label . '：' . $candidate, $label . '：' . $mask, $text)
+                    : str_replace('<div>' . $label . '：' . $candidate . '</div>', '<div>' . $label . '：' . $mask . '</div>', $text);
+            }
+        }
+        // The same answer repeated elsewhere in the post, e.g. a phone typed into another field.
+        if ($long) {
+            foreach ($values as $candidate) {
+                $text = str_replace($candidate, $mask, $text);
+            }
         }
     }
     return $text;
