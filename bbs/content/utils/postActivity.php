@@ -68,6 +68,8 @@ function cancel_join_activity_by_content($bid, $tid, $username, $option_values, 
             $text = $text.$option_name."：";
             if ($option["hiden"] == 1) {
                 $text = $text."已隐藏";
+            } else if ($option["hiden"] == ACTIVITY_PRIVATE_OPTION) {
+                $text = $text.ACTIVITY_PRIVATE_ANSWER_MASK;
             } else if (array_key_exists($option_id, $option_values) && $option_values[$option_id] !== '') {
                 $value = $option_values[$option_id];
 
@@ -234,6 +236,8 @@ function modify_join_activity_by_content($bid, $tid, $username, $option_values, 
             $text = $text.$option_name."：";
             if ($option["hiden"] == 1) {
                 $text = $text."已隐藏";
+            } else if ($option["hiden"] == ACTIVITY_PRIVATE_OPTION) {
+                $text = $text.ACTIVITY_PRIVATE_ANSWER_MASK;
             } else if (array_key_exists($option_id, $option_values) && $option_values[$option_id] !== '') {
                 $value = $option_values[$option_id];
 
@@ -331,8 +335,6 @@ function join_activity_by_content($bid, $tid, $username, $option_values, $title,
 
     $filePath = "/tmp/capu_log";
     $log_data = "$username $bid $tid\n";
-    $log_data = $log_data.implode(",", $option_values)."\n";
-    $log_data = $log_data.json_encode($option_values)."\n";
     file_put_contents($filePath, $log_data, FILE_APPEND);
 
     // season_activity_join
@@ -389,6 +391,8 @@ function join_activity_by_content($bid, $tid, $username, $option_values, $title,
             $text = $text.$option_name."：";
             if ($option["hiden"] == 1) {
                 $text = $text."已隐藏";
+            } else if ($option["hiden"] == ACTIVITY_PRIVATE_OPTION) {
+                $text = $text.ACTIVITY_PRIVATE_ANSWER_MASK;
             } else if (array_key_exists($option_id, $option_values) && $option_values[$option_id] !== '') {
                 $value = $option_values[$option_id];
 

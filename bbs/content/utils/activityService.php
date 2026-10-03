@@ -1,5 +1,16 @@
 <?php
 
+if (!defined('ACTIVITY_PRIVATE_OPTION')) {
+    // season_activity_option.hiden: 0 public, 1 legacy hidden, 2 private (answer collected, masked in the post)
+    define('ACTIVITY_PRIVATE_OPTION', 2);
+    define('ACTIVITY_PRIVATE_ANSWER_MASK', '***********');
+}
+
+function activity_service_normalize_hiden($option) {
+    $hiden = isset($option['hiden']) ? intval($option['hiden']) : 0;
+    return $hiden === 1 || $hiden === ACTIVITY_PRIVATE_OPTION ? $hiden : 0;
+}
+
 function get_joint($username, $activity_id) {
     $con = dbconnect_mysqli();
     mysqli_select_db($con, "capubbs");
@@ -139,7 +150,7 @@ function createActivity($username, $bid, $title, $text, $options, $sig, $attachs
             $option_name = mysqli_real_escape_string($con, $option["option_name"]);
             $required = intval($option["required"]);
             $comment = mysqli_real_escape_string($con, isset($option["comment"]) ? $option["comment"] : '');
-            $hiden = isset($option['hiden']) ? intval($option['hiden']) : 0;
+            $hiden = activity_service_normalize_hiden($option);
             $statement="insert into season_activity_option (activity_id, type_id, option_name, required, comment, hiden)
                 values ($activity_id, $type_id, '$option_name', $required, '$comment', $hiden)";
             activity_service_query_or_throw($con, $statement);
@@ -313,9 +324,10 @@ function updateActivityConfiguration($con, $activity_id, $signup_starts_at, $sig
             $option_name = mysqli_real_escape_string($con, trim(strval($option['option_name'])));
             $required = !empty($option['required']) ? 1 : 0;
             $comment = mysqli_real_escape_string($con, isset($option['comment']) ? strval($option['comment']) : '');
+            $hiden = activity_service_normalize_hiden($option);
             activity_service_query_or_throw($con, "insert into season_activity_option
                 (activity_id, type_id, option_name, required, comment, hiden)
-                values ($activity_id, $type_id, '$option_name', $required, '$comment', 0)");
+                values ($activity_id, $type_id, '$option_name', $required, '$comment', $hiden)");
             $new_option_id = intval(mysqli_insert_id($con));
             $new_option = array(
                 'option_id' => $new_option_id,
@@ -323,6 +335,7 @@ function updateActivityConfiguration($con, $activity_id, $signup_starts_at, $sig
                 'type_id' => $type_id,
                 'option_name' => trim(strval($option['option_name'])),
                 'required' => $required,
+                'hiden' => $hiden,
                 'cases' => array(),
                 'case_map' => array(),
             );
@@ -412,27 +425,111 @@ function activity_service_parse_case_ids($value) {
     return array_values(array_unique($ids));
 }
 
+// $case_names maps case_id to case_name; returns '' for an empty answer.
+function activity_service_display_value($type_id, $raw_value, $case_names) {
+    $type_id = intval($type_id);
+    if ($type_id === 1) {
+        $case_id = intval($raw_value);
+        return isset($case_names[$case_id]) ? $case_names[$case_id] : '';
+    }
+    if ($type_id === 3) {
+        $labels = array();
+        foreach (activity_service_parse_case_ids($raw_value) as $case_id) {
+            if (isset($case_names[$case_id])) $labels[] = $case_names[$case_id];
+        }
+        return implode('、', $labels);
+    }
+    return strval($raw_value);
+}
+
+// Real 个人可见 answers of the signup posts among $fids that the viewer may see:
+// their own signup, or every signup when $can_view_all (activity leader).
+// Returns fid => list of array('option_id', 'label', 'value') in question order.
+function activity_service_private_answers_by_fid($con, $activity, $viewer_username, $can_view_all, $fids) {
+    $viewer_username = strval($viewer_username);
+    if ($viewer_username === '' || empty($activity) || empty($fids)) return array();
+
+    $private_options = array();
+    foreach ($activity['options'] as $option) {
+        if (intval($option['hiden']) !== ACTIVITY_PRIVATE_OPTION) continue;
+        $case_names = array();
+        if (isset($option['cases']) && is_array($option['cases'])) {
+            foreach ($option['cases'] as $case) {
+                $case_names[intval($case['case_id'])] = $case['case_name'];
+            }
+        }
+        $private_options[intval($option['option_id'])] = array(
+            'label' => $option['option_name'],
+            'type_id' => intval($option['type_id']),
+            'case_names' => $case_names,
+        );
+    }
+    if (empty($private_options)) return array();
+
+    $activity_id = intval($activity['activity_id']);
+    $fid_list = implode(',', array_map('intval', $fids));
+    $option_list = implode(',', array_keys($private_options));
+    $viewer_filter = $can_view_all
+        ? ''
+        : " and activity_join.username='" . mysqli_real_escape_string($con, $viewer_username) . "'";
+    $result = mysqli_query($con, "select activity_join.post_fid, option_value.option_id, option_value.value
+        from season_activity_join activity_join
+        inner join season_join_option_value option_value on option_value.join_id=activity_join.join_id
+        where activity_join.activity_id=$activity_id
+            and activity_join.post_fid in ($fid_list)
+            and option_value.option_id in ($option_list)$viewer_filter");
+    if (!$result) return array();
+
+    $values_by_fid = array();
+    while ($row = mysqli_fetch_assoc($result)) {
+        $values_by_fid[intval($row['post_fid'])][intval($row['option_id'])] = strval($row['value']);
+    }
+
+    $answers_by_fid = array();
+    foreach ($values_by_fid as $fid => $values) {
+        $answers = array();
+        foreach ($private_options as $option_id => $option) {
+            $raw_value = isset($values[$option_id]) ? $values[$option_id] : '';
+            $value = activity_service_display_value($option['type_id'], $raw_value, $option['case_names']);
+            $answers[] = array(
+                'option_id' => $option_id,
+                'label' => $option['label'],
+                'value' => $value !== '' ? $value : '无',
+            );
+        }
+        $answers_by_fid[$fid] = $answers;
+    }
+    return $answers_by_fid;
+}
+
+// Put real answers back into a signup post's stored HTML for display.
+function activity_service_reveal_private_answers($text, $answers) {
+    $mask = ACTIVITY_PRIVATE_ANSWER_MASK;
+    foreach ($answers as $answer) {
+        $value_html = htmlspecialchars($answer['value'], ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
+        $labels = array_unique(array(
+            $answer['label'],
+            htmlspecialchars($answer['label'], ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'),
+        ));
+        foreach ($labels as $label) {
+            $text = str_replace('<div>' . $label . '：' . $mask . '</div>', '<div>' . $label . '：' . $value_html . '</div>', $text);
+        }
+    }
+    return $text;
+}
+
 function activity_service_render_signup_content($options, $values, $canceled) {
     $content = '';
     foreach ($options as $option) {
         $option_id = intval($option['option_id']);
         $raw_value = isset($values[$option_id]) ? strval($values[$option_id]) : '';
-        $display_value = '';
-        if ($option['type_id'] === 1) {
-            $case_id = intval($raw_value);
-            $display_value = isset($option['cases'][$case_id]) ? $option['cases'][$case_id] : '';
-        } elseif ($option['type_id'] === 3) {
-            $labels = array();
-            foreach (activity_service_parse_case_ids($raw_value) as $case_id) {
-                if (isset($option['cases'][$case_id])) $labels[] = $option['cases'][$case_id];
-            }
-            $display_value = implode('、', $labels);
-        } else {
-            $display_value = $raw_value;
-        }
+        $display_value = activity_service_display_value($option['type_id'], $raw_value, $option['cases']);
 
         $label_html = htmlspecialchars($option['option_name'], ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
-        $value_html = htmlspecialchars($display_value !== '' ? $display_value : '无', ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
+        $hiden = isset($option['hiden']) ? intval($option['hiden']) : 0;
+        $value_html = $hiden === ACTIVITY_PRIVATE_OPTION
+            ? ACTIVITY_PRIVATE_ANSWER_MASK
+            : ($hiden === 1 ? '已隐藏' : htmlspecialchars($display_value !== '' ? $display_value : '无', ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'));
         $content .= '<div>' . $label_html . '：' . $value_html . '</div>';
     }
     if ($canceled) {

@@ -134,6 +134,32 @@ function jiekoufunc_thread_detail($con, $bid, $tid, $params, $token, $ip) {
         );
     }
 
+    if ($activity && $current_username !== '' && !empty($floor_items)) {
+        $floor_fids = array();
+        foreach ($floor_items as $floor_item) {
+            $floor_fids[] = $floor_item['fid'];
+        }
+        $private_answers_by_fid = activity_service_private_answers_by_fid(
+            $con,
+            $activity,
+            $current_username,
+            $current_username === strval($activity['leader_username']),
+            $floor_fids
+        );
+        foreach ($floor_items as &$floor_item) {
+            if (!isset($private_answers_by_fid[$floor_item['fid']])) continue;
+            $floor_item['privateAnswers'] = array();
+            foreach ($private_answers_by_fid[$floor_item['fid']] as $answer) {
+                $floor_item['privateAnswers'][] = array(
+                    'optionId' => strval($answer['option_id']),
+                    'label' => $answer['label'],
+                    'value' => $answer['value'],
+                );
+            }
+        }
+        unset($floor_item);
+    }
+
     $payload = array(
         'request' => array(
             'bid' => $bid,
