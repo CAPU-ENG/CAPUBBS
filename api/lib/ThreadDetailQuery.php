@@ -118,12 +118,32 @@ function jiekoufunc_thread_detail($con, $bid, $tid, $params, $token, $ip) {
         $render
     );
 
+    $signup_answers_by_fid = array();
+    if ($activity) {
+        $floor_fids = array();
+        foreach ($page_rows as $row) {
+            if (intval($row['pid']) > 1) $floor_fids[] = intval($row['fid']);
+        }
+        $signup_answers_by_fid = activity_service_signup_private_answers($con, $activity, $floor_fids);
+    }
+    $can_view_all_answers = $activity && $current_username !== ''
+        && $current_username === strval($activity['leader_username']);
+
     $floor_items = array();
     foreach ($page_rows as $row) {
         if (intval($row['pid']) <= 1) {
             continue;
         }
-        $floor_items[] = thread_detail_query_pack_floor(
+        $signup = isset($signup_answers_by_fid[intval($row['fid'])]) ? $signup_answers_by_fid[intval($row['fid'])] : null;
+        $visible_answers = null;
+        if ($signup) {
+            if (activity_service_can_view_private_answers($signup['username'], $current_username, $can_view_all_answers)) {
+                $visible_answers = $signup['answers'];
+            } else {
+                $row['text'] = activity_service_mask_private_answers(strval($row['text']), $signup['answers']);
+            }
+        }
+        $floor_item = thread_detail_query_pack_floor(
             $row,
             $profiles_by_username,
             $lzl_by_fid,
@@ -132,32 +152,17 @@ function jiekoufunc_thread_detail($con, $bid, $tid, $params, $token, $ip) {
             $current_username,
             $render
         );
-    }
-
-    if ($activity && $current_username !== '' && !empty($floor_items)) {
-        $floor_fids = array();
-        foreach ($floor_items as $floor_item) {
-            $floor_fids[] = $floor_item['fid'];
-        }
-        $private_answers_by_fid = activity_service_private_answers_by_fid(
-            $con,
-            $activity,
-            $current_username,
-            $current_username === strval($activity['leader_username']),
-            $floor_fids
-        );
-        foreach ($floor_items as &$floor_item) {
-            if (!isset($private_answers_by_fid[$floor_item['fid']])) continue;
+        if ($visible_answers !== null) {
             $floor_item['privateAnswers'] = array();
-            foreach ($private_answers_by_fid[$floor_item['fid']] as $answer) {
+            foreach ($visible_answers as $answer) {
                 $floor_item['privateAnswers'][] = array(
                     'optionId' => strval($answer['option_id']),
                     'label' => $answer['label'],
-                    'value' => $answer['value'],
+                    'value' => $answer['value'] !== '' ? $answer['value'] : '无',
                 );
             }
         }
-        unset($floor_item);
+        $floor_items[] = $floor_item;
     }
 
     $payload = array(
