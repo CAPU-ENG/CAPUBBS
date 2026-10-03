@@ -335,7 +335,7 @@ function activity_handler_signup_summary_locked($con, $activity_id) {
     if (!empty($records)) {
         $option_types = array();
         $option_result = mysqli_query($con, "select id, type_id
-            from season_activity_option where activity_id=$activity_id and hiden=0");
+            from season_activity_option where activity_id=$activity_id and hiden<>1");
         if (!$option_result) {
             return activity_handler_error('8', '报名字段读取失败');
         }
@@ -347,7 +347,7 @@ function activity_handler_signup_summary_locked($con, $activity_id) {
         $case_result = mysqli_query($con, "select option_case.case_id, option_case.option_id, option_case.case_name
             from season_option_case option_case
             inner join season_activity_option activity_option on activity_option.id=option_case.option_id
-            where activity_option.activity_id=$activity_id and activity_option.hiden=0");
+            where activity_option.activity_id=$activity_id and activity_option.hiden<>1");
         if (!$case_result) {
             return activity_handler_error('8', '报名选项读取失败');
         }
@@ -363,7 +363,7 @@ function activity_handler_signup_summary_locked($con, $activity_id) {
             inner join season_activity_option activity_option on activity_option.id=option_value.option_id
             where activity_join.activity_id=$activity_id
                 and activity_option.activity_id=$activity_id
-                and activity_option.hiden=0
+                and activity_option.hiden<>1
             order by option_value.id asc");
         if (!$value_result) {
             return activity_handler_error('8', '报名答案读取失败');
