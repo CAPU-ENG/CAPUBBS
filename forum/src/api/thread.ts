@@ -41,6 +41,7 @@ export type ThreadDetail = {
   floors: ThreadFloorData[];
   id: string;
   isActivity: boolean;
+  lastReplyAt: string;
   locked: boolean;
   pageCount: number;
   replies: number;
@@ -815,6 +816,7 @@ function mapThreadDetail(
     floors,
     id: plainText(thread.id) || `${request.bid}-${request.tid}`,
     isActivity: Boolean(thread.isActivity) || activity !== null,
+    lastReplyAt: stringValue(thread.updatedAt),
     locked: Boolean(thread.locked),
     pageCount: positiveInteger(floorsPage.pages, 1),
     replies: nonNegativeInteger(thread.replies),

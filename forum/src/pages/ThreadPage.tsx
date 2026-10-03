@@ -683,6 +683,7 @@ export function ThreadPage() {
               board={data.board}
               boardHref={boardHref}
               editorRef={editorRef}
+              lastReplyAt={data.lastReplyAt}
               ownerKey={data.viewer.name}
               previewAuthor={data.viewer}
               previewFloor={data.replies + 2}

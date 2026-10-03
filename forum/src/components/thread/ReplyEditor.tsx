@@ -42,6 +42,8 @@ import {
   type PostEditorPreviewAuthor,
 } from "./PostEditor";
 import { Button } from '../Button';
+import { useConfirmDialog } from '../ConfirmDialog';
+import { isBeforeCurrentCapuYear } from '../../utils/capuYear';
 
 export type QuoteRequest = {
   author: string;
@@ -63,6 +65,7 @@ export function ReplyEditor({
   board,
   boardHref,
   editorRef,
+  lastReplyAt,
   ownerKey,
   previewAuthor,
   previewFloor,
@@ -75,6 +78,7 @@ export function ReplyEditor({
   board: string;
   boardHref: string;
   editorRef: React.RefObject<HTMLElement | null>;
+  lastReplyAt: string;
   ownerKey: string;
   previewAuthor: PostEditorPreviewAuthor;
   previewFloor: number;
@@ -84,6 +88,7 @@ export function ReplyEditor({
   threadTitle: string;
 }) {
   const autoSaveEnabled = useAutoSaveEnabled();
+  const { confirm, confirmDialog } = useConfirmDialog();
   const [editorValue, setEditorValue] = useState<RichTextEditorValue>({
     content: "",
     mode: "rich",
@@ -252,6 +257,13 @@ export function ReplyEditor({
       return;
     }
 
+    if (isBeforeCurrentCapuYear(lastReplyAt) && !(await confirm({
+      cancelLabel: "再想想",
+      confirmLabel: "仍要回复",
+      message: `本主题最后回复于 ${lastReplyAt.slice(0, 10)}，早于本 CAPU 年度。确定要回复吗？`,
+      title: "回复旧帖",
+    }))) return;
+
     setIsPublishing(true);
     setStatus("正在发布回复…");
     setStatusIsError(false);
@@ -340,6 +352,7 @@ export function ReplyEditor({
         attachmentUploadProgress={attachmentUploadProgress}
         uploadingAttachments={isUploadingAttachments}
       />
+      {confirmDialog}
       <DialogPresence>{previewOpen && (
         <PostEditorPreviewDialog
           attachments={attachments}
