@@ -260,7 +260,7 @@ export function ReplyEditor({
     if (isBeforeCurrentCapuYear(lastReplyAt) && !(await confirm({
       cancelLabel: "再想想",
       confirmLabel: "仍要回复",
-      message: `本主题最后回复于 ${lastReplyAt.slice(0, 10)}，早于本 CAPU 年度。确定要回复吗？`,
+      message: `本帖最后回复于${lastReplyAt.slice(0, 10)}，现在回复属于顶老帖行为，可能违反相关版规。确定要回复吗？`,
       title: "回复旧帖",
     }))) return;
 
