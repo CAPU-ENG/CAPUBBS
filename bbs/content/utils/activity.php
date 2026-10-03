@@ -18,12 +18,12 @@ $title = count($data) > 0 ? $tdata['title'] : "没有这个帖子= =";
 $activity_id = $activity["activity_id"];
 $is_joint = get_joint($currentuser, $activity_id);
 $is_canceled = get_canceled($currentuser, $activity_id);
-$is_leader = ($currentuser == $activity["leader_username"] || $currentuser == "网络组" || $currentuser == "组织部" || $currentuser == "文体部" || $currentuser == "理事会");
+$is_leader = $currentuser != "" && ($currentuser == $activity["leader_username"] || intval($users["rights"]) >= 3);
 $private_answer_fids = array();
 foreach ((is_array($data) ? $data : array()) as $floor_row) {
     if (intval($floor_row['pid']) > 1) $private_answer_fids[] = intval($floor_row['fid']);
 }
-$private_answers_by_fid = activity_service_private_answers_by_fid($con, $activity, $currentuser, $is_leader, $private_answer_fids);
+$signup_answers_by_fid = activity_service_signup_private_answers($con, $activity, $private_answer_fids);
 ?>
 
 <html>
@@ -191,9 +191,13 @@ $private_answers_by_fid = activity_service_private_answers_by_fid($con, $activit
             echo("<span class='floornum'>" . transfloornum($floor['pid']) . "</span>\n");
             echo("<!-- fid: " . $floor['fid'] . ", pid: " . $floor['pid'] . " -->");
             echo("<hr class='hrt'></div>\n");
-            $floor_text = isset($private_answers_by_fid[intval($floor['fid'])])
-                ? activity_service_reveal_private_answers($floor['text'], $private_answers_by_fid[intval($floor['fid'])])
-                : $floor['text'];
+            $floor_text = $floor['text'];
+            if (isset($signup_answers_by_fid[intval($floor['fid'])])) {
+                $signup = $signup_answers_by_fid[intval($floor['fid'])];
+                $floor_text = activity_service_can_view_private_answers($signup['username'], $currentuser, $is_leader)
+                    ? activity_service_reveal_private_answers($floor_text, $signup['answers'])
+                    : activity_service_mask_private_answers($floor_text, $signup['answers']);
+            }
             $translated = translate($floor_text, $floor['ishtml'] == "YES");
 
             // textblock
