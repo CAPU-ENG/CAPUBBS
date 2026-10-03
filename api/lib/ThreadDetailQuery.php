@@ -127,7 +127,8 @@ function jiekoufunc_thread_detail($con, $bid, $tid, $params, $token, $ip) {
         $signup_answers_by_fid = activity_service_signup_private_answers($con, $activity, $floor_fids);
     }
     $can_view_all_answers = $activity && $current_username !== ''
-        && $current_username === strval($activity['leader_username']);
+        && ($current_username === strval($activity['leader_username'])
+            || ($viewer && intval($viewer['rights']) >= 3));
 
     $floor_items = array();
     foreach ($page_rows as $row) {

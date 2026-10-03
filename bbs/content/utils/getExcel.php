@@ -10,11 +10,9 @@ $bid = isset($_GET["bid"]) ? intval($_GET["bid"]) : 0;
 $tid = isset($_GET["tid"]) ? intval($_GET["tid"]) : 0;
 
 $activity = getActivity($bid, $tid);
-$legacy_managers = array("网络组", "组织部", "文体部", "主席团", "理事会");
 if (!$activity || (
         $activity["leader_username"] != $username
         && $rights < 3
-        && !in_array($username, $legacy_managers, true)
     )
 ) {
     echo "error: ";

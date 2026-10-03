@@ -50,7 +50,7 @@ import { getThreadCacheScope } from '../utils/threadContentCache';
 import { getTitleIndentationClassName } from '../utils/titleIndentation';
 import { observeThreadTitleCopyLayout } from '../utils/threadTitleCopyLayout';
 import { invalidateLoadedThread } from '../utils/threadContentLoader';
-import { isActivityPhoneQuestion, maskActivitySignupFloor, revealActivityPrivateAnswers } from '../utils/activityPhonePrivacy';
+import { revealActivityPrivateAnswers } from '../utils/activityPrivateAnswers';
 import { getPublicProfilePath } from '../utils/userRoutes';
 import { getFloorDecorationPath } from '../data/floorDecoration';
 
@@ -212,20 +212,8 @@ export function ThreadPage() {
   }, []);
   const pageFloors = useMemo(() => {
     if (!data?.activity) return data?.floors ?? [];
-
-    const phoneFieldLabels = data.activity.questions
-      .filter(isActivityPhoneQuestion)
-      .map((question) => question.label);
-    const fieldLabels = [...data.activity.questions.map((question) => question.label), '报名状态'];
-
-    return data.floors.map((floor) => {
-      const canViewPhone = floor.isOwn || viewer?.username === data.authorName;
-      const visibleFloor = canViewPhone || phoneFieldLabels.length === 0
-        ? floor
-        : maskActivitySignupFloor(floor, phoneFieldLabels, fieldLabels);
-      return revealActivityPrivateAnswers(visibleFloor);
-    });
-  }, [data, viewer?.username]);
+    return data.floors.map(revealActivityPrivateAnswers);
+  }, [data]);
 
   useEffect(() => {
     if (!data) return;

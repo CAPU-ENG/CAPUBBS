@@ -18,7 +18,7 @@ $title = count($data) > 0 ? $tdata['title'] : "没有这个帖子= =";
 $activity_id = $activity["activity_id"];
 $is_joint = get_joint($currentuser, $activity_id);
 $is_canceled = get_canceled($currentuser, $activity_id);
-$is_leader = ($currentuser == $activity["leader_username"] || $currentuser == "网络组" || $currentuser == "组织部" || $currentuser == "文体部" || $currentuser == "理事会");
+$is_leader = $currentuser != "" && ($currentuser == $activity["leader_username"] || intval($users["rights"]) >= 3);
 $private_answer_fids = array();
 foreach ((is_array($data) ? $data : array()) as $floor_row) {
     if (intval($floor_row['pid']) > 1) $private_answer_fids[] = intval($floor_row['fid']);
