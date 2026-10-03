@@ -48,6 +48,29 @@ export function maskActivitySignupFloor(
   };
 }
 
+// Display-only: puts the server-provided 个人可见 answers back into the floor's
+// HTML. quoteText stays masked so quoting a signup never republishes them.
+export function revealActivityPrivateAnswers(floor: ThreadFloorData): ThreadFloorData {
+  const answers = floor.privateAnswers;
+  if (!answers?.length || !floor.contentHtml?.includes(MASKED_PHONE_VALUE)) return floor;
+
+  const template = document.createElement('template');
+  template.innerHTML = floor.contentHtml;
+  let changed = false;
+  visitTextNodes(template.content, (node) => {
+    let text = node.data;
+    answers.forEach((answer) => {
+      text = text.split(`${answer.label}：${MASKED_PHONE_VALUE}`).join(`${answer.label}：${answer.value}`);
+    });
+    if (text !== node.data) {
+      node.data = text;
+      changed = true;
+    }
+  });
+
+  return changed ? { ...floor, contentHtml: template.innerHTML } : floor;
+}
+
 function maskPhoneFieldsInText(value: string, phoneLabels: string[], fieldLabels: string[]) {
   const phonePattern = createFieldPattern(phoneLabels);
   const fieldPattern = createFieldPattern(fieldLabels);
@@ -88,12 +111,12 @@ function createFieldPattern(labels: string[]) {
   return escapedLabels.length > 0 ? escapedLabels.join('|') : '';
 }
 
-function visitTextNodes(element: Element, callback: (node: Text) => void) {
-  Array.from(element.childNodes).forEach((node) => {
+function visitTextNodes(parent: Node, callback: (node: Text) => void) {
+  Array.from(parent.childNodes).forEach((node) => {
     if (node.nodeType === 3) {
       callback(node as Text);
     } else if (node.nodeType === 1) {
-      visitTextNodes(node as Element, callback);
+      visitTextNodes(node, callback);
     }
   });
 }

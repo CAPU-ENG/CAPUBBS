@@ -493,36 +493,6 @@ function jiekoufunc_activity_signup_history($con, $token, $params) {
     return $rows;
 }
 
-function jiekoufunc_activity_signup_own($con, $token, $bid, $tid) {
-    if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-        return activity_handler_error('-1', '仅支持 POST');
-    }
-
-    $user = activity_handler_current_user($con, $token);
-    if (!$user) {
-        return activity_handler_error('-2', '请先登录');
-    }
-
-    $bid = intval($bid);
-    $tid = intval($tid);
-    $activity_result = mysqli_query($con, "select activity_id from season_threads_activity where bid=$bid and tid=$tid limit 1");
-    $activity = $activity_result ? mysqli_fetch_assoc($activity_result) : null;
-    if (!$activity) {
-        return activity_handler_error('3', '活动不存在');
-    }
-
-    $values = array();
-    foreach (getUsernameOptionValue($user['username'], intval($activity['activity_id'])) as $option_id => $value) {
-        if ($option_id === 'sign') continue;
-        $values[strval($option_id)] = strval($value);
-    }
-
-    return array(
-        array('code' => '0', 'msg' => 'success'),
-        array('values' => (object) $values),
-    );
-}
-
 function jiekoufunc_activity_signup_list($con, $params) {
     $now = time();
     $limit = intval(isset($params['limit']) ? $params['limit'] : 10);

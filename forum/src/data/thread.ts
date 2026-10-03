@@ -38,6 +38,14 @@ export type ThreadAttachment = {
   auth?: number;
 };
 
+// Real answers to 个人可见 signup questions, returned only to the signup's owner
+// and the activity leader. The post text itself keeps the masked value.
+export type ThreadPrivateAnswer = {
+  label: string;
+  optionId: string;
+  value: string;
+};
+
 export type ThreadFloorData = {
   id: string;
   fid: number;
@@ -56,4 +64,5 @@ export type ThreadFloorData = {
   isOwn?: boolean;
   canEdit?: boolean;
   canDelete?: boolean;
+  privateAnswers?: ThreadPrivateAnswer[];
 };

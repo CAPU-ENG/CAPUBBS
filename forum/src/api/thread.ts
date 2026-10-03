@@ -566,23 +566,6 @@ export async function fetchActivitySignupSummary({
   };
 }
 
-export async function fetchOwnActivitySignupValues({
-  bid,
-  signal,
-  tid,
-}: {
-  bid: number;
-  signal?: AbortSignal;
-  tid: number;
-}): Promise<Record<string, string>> {
-  const payload = await requestThreadApi(new URLSearchParams({
-    ask: 'activity_signup_own',
-    bid: String(bid),
-    tid: String(tid),
-  }), signal, '报名信息读取失败，请重试。');
-  return Object.fromEntries(Object.entries(asRow(asRow(payload.data).values)).map(([id, value]) => [id, stringValue(value)]));
-}
-
 async function requestThreadApi(body: URLSearchParams, signal: AbortSignal | undefined, fallbackMessage: string) {
   let response: Response;
   try {
@@ -930,6 +913,13 @@ function mapFloor(row: ApiRow, viewerName: string): ThreadFloorData {
     nestedReplies: asRows(row.nestedReplies).map(mapNestedReply),
     paragraphs: [quoteText || '此楼层暂无可显示的正文。'],
     publishedAt: stringValue(row.createdAt),
+    privateAnswers: row.privateAnswers === undefined
+      ? undefined
+      : asRows(row.privateAnswers).map((answer) => ({
+          label: plainText(answer.label),
+          optionId: stringValue(answer.optionId),
+          value: stringValue(answer.value),
+        })),
     quoteText,
     signature: forumMarkupToPlainText(safeSignatureHtml),
     signatureHtml,
