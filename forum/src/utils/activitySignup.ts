@@ -11,6 +11,7 @@ export type ActivitySignupQuestionType =
 
 export type ActivitySignupQuestion = {
   id: string;
+  isPrivate?: boolean;
   label: string;
   max?: number;
   min?: number;
@@ -33,6 +34,7 @@ export type ActivityDateRange = {
 export type ActivityCreateOption = {
   cases?: Array<{ case_name: string; comment: string }>;
   comment: string;
+  hiden: 0 | 2;
   option_name: string;
   required: 0 | 1;
   type_id: 1 | 3 | 6;
@@ -57,7 +59,7 @@ const defaultQuestions: ActivitySignupQuestion[] = [
   { id: 'name', label: '姓名', required: true, type: 'text' },
   { id: 'userId', label: 'ID', required: true, type: 'id' },
   { id: 'gender', label: '性别', options: ['男', '女'], required: true, type: 'radio' },
-  { id: 'phone', label: '联系电话', required: true, type: 'phone' },
+  { id: 'phone', isPrivate: true, label: '联系电话', required: true, type: 'phone' },
   { id: 'gradeDepartment', label: '年级院系', required: true, type: 'text' },
   {
     id: 'rolePreference',
@@ -210,6 +212,7 @@ export function buildActivityCreateOptions(
   return questions.map((question) => {
     const option: ActivityCreateOption = {
       comment: '',
+      hiden: question.isPrivate ? 2 : 0,
       option_name: question.type === 'id' ? 'ID' : question.label.trim(),
       required: question.required ? 1 : 0,
       type_id: question.type === 'multiSelect'

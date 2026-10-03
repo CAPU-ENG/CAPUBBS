@@ -103,6 +103,7 @@ export function buildActivityUpdateOptions(
           }))
         : undefined,
       comment: '',
+      hiden: question.isPrivate ? 2 : 0,
       ...(optionId ? { option_id: optionId } : {}),
       option_name: question.type === 'id' ? 'ID' : question.label.trim(),
       required: question.required ? 1 : 0,
@@ -145,6 +146,7 @@ function mapQuestion(question: ThreadActivityQuestion): ActivitySignupQuestion {
 
   return {
     id: question.id,
+    isPrivate: question.isPrivate,
     label,
     options: question.options.length > 0
       ? question.options.map((option) => option.label)

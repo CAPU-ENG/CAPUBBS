@@ -70,6 +70,7 @@ export type ThreadActivityQuestionOption = {
 
 export type ThreadActivityQuestion = {
   id: string;
+  isPrivate: boolean;
   label: string;
   options: ThreadActivityQuestionOption[];
   required: boolean;
@@ -96,6 +97,7 @@ export type ActivityUpdateCase = {
 export type ActivityUpdateOption = {
   cases?: ActivityUpdateCase[];
   comment: string;
+  hiden: 0 | 2;
   option_id?: number;
   option_name: string;
   required: 0 | 1;
@@ -564,6 +566,23 @@ export async function fetchActivitySignupSummary({
   };
 }
 
+export async function fetchOwnActivitySignupValues({
+  bid,
+  signal,
+  tid,
+}: {
+  bid: number;
+  signal?: AbortSignal;
+  tid: number;
+}): Promise<Record<string, string>> {
+  const payload = await requestThreadApi(new URLSearchParams({
+    ask: 'activity_signup_own',
+    bid: String(bid),
+    tid: String(tid),
+  }), signal, '报名信息读取失败，请重试。');
+  return Object.fromEntries(Object.entries(asRow(asRow(payload.data).values)).map(([id, value]) => [id, stringValue(value)]));
+}
+
 async function requestThreadApi(body: URLSearchParams, signal: AbortSignal | undefined, fallbackMessage: string) {
   let response: Response;
   try {
@@ -850,6 +869,7 @@ function mapThreadActivity(value: unknown): ThreadActivity | null {
 
       return {
         id,
+        isPrivate: nonNegativeInteger(option.hiden) === 2,
         label,
         options: asRows(option.cases)
           .map((item) => ({

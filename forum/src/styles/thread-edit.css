@@ -387,7 +387,7 @@
 
   .activity-signup-question-main {
     display: grid;
-    grid-template-columns: minmax(160px, 1fr) 120px 62px auto;
+    grid-template-columns: minmax(160px, 1fr) 120px 120px 62px auto;
     align-items: end;
     gap: var(--space-10);
   }

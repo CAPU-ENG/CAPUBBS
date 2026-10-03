@@ -5,6 +5,7 @@ import { fetchDataDisplayPanel } from '../../api/dataDisplay';
 import { fetchPublicProfileActivities } from '../../api/profile';
 import { LoadingSpinner } from '../layout/LoadingSpinner';
 import {
+  fetchOwnActivitySignupValues,
   fetchThreadDetail,
   publishActivitySignup,
   type ActivitySignupValue,
@@ -59,6 +60,7 @@ function ActivitySignupFormLoader(props: ActivitySignupFormProps) {
   const { activity, bid, focusRequest = 0, locked, tid, viewer } = props;
   const username = viewer?.name ?? '';
   const [existingSignup, setExistingSignup] = useState<ThreadFloorData | null>();
+  const [privateValues, setPrivateValues] = useState<Record<string, string>>({});
   const [loadError, setLoadError] = useState('');
   const [loadRequest, setLoadRequest] = useState(0);
   const formRef = useRef<HTMLElement>(null);
@@ -74,9 +76,11 @@ function ActivitySignupFormLoader(props: ActivitySignupFormProps) {
     const controller = new AbortController();
     setExistingSignup(undefined);
     setLoadError('');
-    void loadCurrentActivitySignup(bid, tid, username, controller.signal).then(
-      (signup) => {
-        if (!controller.signal.aborted) setExistingSignup(signup);
+    void loadCurrentActivitySignup(activity, bid, tid, username, controller.signal).then(
+      (result) => {
+        if (controller.signal.aborted) return;
+        setPrivateValues(result.privateValues);
+        setExistingSignup(result.signup);
       },
       (error: unknown) => {
         if (!controller.signal.aborted) {
@@ -85,7 +89,7 @@ function ActivitySignupFormLoader(props: ActivitySignupFormProps) {
       },
     );
     return () => controller.abort();
-  }, [bid, tid, username, loadRequest]);
+  }, [activity, bid, tid, username, loadRequest]);
 
   const loading = Boolean(username) && existingSignup === undefined;
   return (
@@ -110,19 +114,25 @@ function ActivitySignupFormLoader(props: ActivitySignupFormProps) {
             <span role="status"><LoadingSpinner size={14} />正在读取报名信息</span>
           )}
         </div>
-      ) : <ActivitySignupFormFields {...props} existingSignup={existingSignup ?? null} />}
+      ) : <ActivitySignupFormFields {...props} existingSignup={existingSignup ?? null} privateValues={privateValues} />}
     </section>
   );
 }
 
-async function loadCurrentActivitySignup(bid: number, tid: number, username: string, signal: AbortSignal) {
+async function loadCurrentActivitySignup(
+  activity: ThreadActivity,
+  bid: number,
+  tid: number,
+  username: string,
+  signal: AbortSignal,
+) {
   const records = await fetchPublicProfileActivities(username, signal);
   const record = records.find((candidate) => {
     if (candidate.hasSignup === false) return false;
     const url = new URL(candidate.href, window.location.origin);
     return Number(url.searchParams.get('bid')) === bid && Number(url.searchParams.get('tid')) === tid;
   });
-  if (!record) return null;
+  if (!record) return { privateValues: {}, signup: null };
 
   const floorNumber = getThreadFloorFromHash(new URL(record.href, window.location.origin).hash);
   if (floorNumber <= 1) throw new Error('报名楼层不存在，请刷新后重试。');
@@ -138,7 +148,10 @@ async function loadCurrentActivitySignup(bid: number, tid: number, username: str
   });
   const signup = detail.floors.find((floor) => floor.floor === floorNumber && floor.isOwn && floor.author.name === username);
   if (detail.viewer?.name !== username || !signup) throw new Error('无法读取当前用户的报名信息，请刷新后重试。');
-  return signup;
+  const privateValues = activity.questions.some((question) => question.isPrivate)
+    ? await fetchOwnActivitySignupValues({ bid, signal, tid })
+    : {};
+  return { privateValues, signup };
 }
 
 function ActivitySignupFormFields({
@@ -148,18 +161,19 @@ function ActivitySignupFormFields({
   floors,
   locked,
   loginHref,
+  privateValues,
   registerHref,
   signatures,
   threadTitle,
   tid,
   viewer,
-}: ActivitySignupFormProps & { existingSignup: ThreadFloorData | null }) {
+}: ActivitySignupFormProps & { existingSignup: ThreadFloorData | null; privateValues: Record<string, string> }) {
   const signupCanceled = Boolean(existingSignup && (
     existingSignup.paragraphs.some((paragraph) => paragraph.includes('报名状态：已取消'))
     || /<\s*(?:s|strike)\b/i.test(existingSignup.contentHtml ?? '')
   ));
   const [values, setValues] = useState<Record<string, ActivitySignupValue>>(() =>
-    createInitialValues(activity.questions, viewer?.name ?? '', existingSignup),
+    createInitialValues(activity.questions, viewer?.name ?? '', existingSignup, privateValues),
   );
   const [signatureIndex, setSignatureIndex] = useState(
     existingSignup ? existingSignup.signatureIndex ?? 0 : readDefaultSignatureIndex(viewer?.name),
@@ -592,9 +606,17 @@ function createInitialValues(
   questions: ThreadActivityQuestion[],
   viewerName: string,
   existingSignup: ThreadFloorData | null,
+  privateValues: Record<string, string>,
 ) {
   const source = existingSignup?.paragraphs.join('\n') ?? '';
   return questions.reduce<Record<string, ActivitySignupValue>>((result, question) => {
+    if (question.isPrivate) {
+      const privateValue = privateValues[question.id] ?? '';
+      result[question.id] = question.type === 'multiChoice'
+        ? privateValue.split(',').filter((id) => question.options.some((option) => option.id === id))
+        : privateValue;
+      return result;
+    }
     const storedValue = getStoredQuestionValue(source, question, questions);
     if (question.type === 'multiChoice') {
       result[question.id] = storedValue

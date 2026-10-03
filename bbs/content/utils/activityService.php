@@ -1,5 +1,16 @@
 <?php
 
+if (!defined('ACTIVITY_PRIVATE_OPTION')) {
+    // season_activity_option.hiden: 0 public, 1 legacy hidden, 2 private (answer collected, masked in the post)
+    define('ACTIVITY_PRIVATE_OPTION', 2);
+    define('ACTIVITY_PRIVATE_ANSWER_MASK', '***********');
+}
+
+function activity_service_normalize_hiden($option) {
+    $hiden = isset($option['hiden']) ? intval($option['hiden']) : 0;
+    return $hiden === 1 || $hiden === ACTIVITY_PRIVATE_OPTION ? $hiden : 0;
+}
+
 function get_joint($username, $activity_id) {
     $con = dbconnect_mysqli();
     mysqli_select_db($con, "capubbs");
@@ -139,7 +150,7 @@ function createActivity($username, $bid, $title, $text, $options, $sig, $attachs
             $option_name = mysqli_real_escape_string($con, $option["option_name"]);
             $required = intval($option["required"]);
             $comment = mysqli_real_escape_string($con, isset($option["comment"]) ? $option["comment"] : '');
-            $hiden = isset($option['hiden']) ? intval($option['hiden']) : 0;
+            $hiden = activity_service_normalize_hiden($option);
             $statement="insert into season_activity_option (activity_id, type_id, option_name, required, comment, hiden)
                 values ($activity_id, $type_id, '$option_name', $required, '$comment', $hiden)";
             activity_service_query_or_throw($con, $statement);
@@ -313,9 +324,10 @@ function updateActivityConfiguration($con, $activity_id, $signup_starts_at, $sig
             $option_name = mysqli_real_escape_string($con, trim(strval($option['option_name'])));
             $required = !empty($option['required']) ? 1 : 0;
             $comment = mysqli_real_escape_string($con, isset($option['comment']) ? strval($option['comment']) : '');
+            $hiden = activity_service_normalize_hiden($option);
             activity_service_query_or_throw($con, "insert into season_activity_option
                 (activity_id, type_id, option_name, required, comment, hiden)
-                values ($activity_id, $type_id, '$option_name', $required, '$comment', 0)");
+                values ($activity_id, $type_id, '$option_name', $required, '$comment', $hiden)");
             $new_option_id = intval(mysqli_insert_id($con));
             $new_option = array(
                 'option_id' => $new_option_id,
@@ -323,6 +335,7 @@ function updateActivityConfiguration($con, $activity_id, $signup_starts_at, $sig
                 'type_id' => $type_id,
                 'option_name' => trim(strval($option['option_name'])),
                 'required' => $required,
+                'hiden' => $hiden,
                 'cases' => array(),
                 'case_map' => array(),
             );
@@ -432,7 +445,10 @@ function activity_service_render_signup_content($options, $values, $canceled) {
         }
 
         $label_html = htmlspecialchars($option['option_name'], ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
-        $value_html = htmlspecialchars($display_value !== '' ? $display_value : '无', ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
+        $hiden = isset($option['hiden']) ? intval($option['hiden']) : 0;
+        $value_html = $hiden === ACTIVITY_PRIVATE_OPTION
+            ? ACTIVITY_PRIVATE_ANSWER_MASK
+            : ($hiden === 1 ? '已隐藏' : htmlspecialchars($display_value !== '' ? $display_value : '无', ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'));
         $content .= '<div>' . $label_html . '：' . $value_html . '</div>';
     }
     if ($canceled) {

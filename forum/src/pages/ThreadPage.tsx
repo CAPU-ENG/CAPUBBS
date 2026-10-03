@@ -214,7 +214,7 @@ export function ThreadPage() {
     if (!data?.activity) return data?.floors ?? [];
 
     const phoneFieldLabels = data.activity.questions
-      .filter(isActivityPhoneQuestion)
+      .filter((question) => question.isPrivate || isActivityPhoneQuestion(question))
       .map((question) => question.label);
     const fieldLabels = [...data.activity.questions.map((question) => question.label), '报名状态'];
     if (phoneFieldLabels.length === 0) return data.floors;

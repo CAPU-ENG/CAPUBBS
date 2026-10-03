@@ -244,6 +244,7 @@ export function ActivitySignupEditor({
                 <div aria-label="字段标签" className="activity-signup-question-tags">
                   <span>{questionTypeLabel(question.type)}</span>
                   {question.required ? <em>必填</em> : null}
+                  {question.isPrivate ? <em>个人可见</em> : null}
                   {locked ? <em className="activity-signup-locked"><LockKeyhole size={11} />锁定</em> : null}
                 </div>
                 {!locked ? (
@@ -282,12 +283,25 @@ export function ActivitySignupEditor({
                         disabled={locked}
                         onChange={(event: ChangeEvent<HTMLSelectElement>) => updateQuestion(question.id, {
                           type: event.target.value as ActivitySignupQuestionType,
+                          ...(event.target.value === 'phone' ? { isPrivate: true } : {}),
                         })}
                         value={question.type}
                       >
                         {activitySignupQuestionTypeOptions.map((option) => (
                           <option key={option.value} value={option.value}>{option.label}</option>
                         ))}
+                      </select>
+                    </label>
+                    <label>
+                      <span>可见范围</span>
+                      <select
+                        onChange={(event: ChangeEvent<HTMLSelectElement>) => updateQuestion(question.id, {
+                          isPrivate: event.target.value === 'private',
+                        })}
+                        value={question.isPrivate ? 'private' : 'public'}
+                      >
+                        <option value="public">公开可见</option>
+                        <option value="private">个人可见</option>
                       </select>
                     </label>
                     <label className="activity-signup-required">

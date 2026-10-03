@@ -335,7 +335,7 @@ function activity_handler_signup_summary_locked($con, $activity_id) {
     if (!empty($records)) {
         $option_types = array();
         $option_result = mysqli_query($con, "select id, type_id
-            from season_activity_option where activity_id=$activity_id and hiden=0");
+            from season_activity_option where activity_id=$activity_id and hiden<>1");
         if (!$option_result) {
             return activity_handler_error('8', '报名字段读取失败');
         }
@@ -347,7 +347,7 @@ function activity_handler_signup_summary_locked($con, $activity_id) {
         $case_result = mysqli_query($con, "select option_case.case_id, option_case.option_id, option_case.case_name
             from season_option_case option_case
             inner join season_activity_option activity_option on activity_option.id=option_case.option_id
-            where activity_option.activity_id=$activity_id and activity_option.hiden=0");
+            where activity_option.activity_id=$activity_id and activity_option.hiden<>1");
         if (!$case_result) {
             return activity_handler_error('8', '报名选项读取失败');
         }
@@ -363,7 +363,7 @@ function activity_handler_signup_summary_locked($con, $activity_id) {
             inner join season_activity_option activity_option on activity_option.id=option_value.option_id
             where activity_join.activity_id=$activity_id
                 and activity_option.activity_id=$activity_id
-                and activity_option.hiden=0
+                and activity_option.hiden<>1
             order by option_value.id asc");
         if (!$value_result) {
             return activity_handler_error('8', '报名答案读取失败');
@@ -491,6 +491,36 @@ function jiekoufunc_activity_signup_history($con, $token, $params) {
         );
     }
     return $rows;
+}
+
+function jiekoufunc_activity_signup_own($con, $token, $bid, $tid) {
+    if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+        return activity_handler_error('-1', '仅支持 POST');
+    }
+
+    $user = activity_handler_current_user($con, $token);
+    if (!$user) {
+        return activity_handler_error('-2', '请先登录');
+    }
+
+    $bid = intval($bid);
+    $tid = intval($tid);
+    $activity_result = mysqli_query($con, "select activity_id from season_threads_activity where bid=$bid and tid=$tid limit 1");
+    $activity = $activity_result ? mysqli_fetch_assoc($activity_result) : null;
+    if (!$activity) {
+        return activity_handler_error('3', '活动不存在');
+    }
+
+    $values = array();
+    foreach (getUsernameOptionValue($user['username'], intval($activity['activity_id'])) as $option_id => $value) {
+        if ($option_id === 'sign') continue;
+        $values[strval($option_id)] = strval($value);
+    }
+
+    return array(
+        array('code' => '0', 'msg' => 'success'),
+        array('values' => (object) $values),
+    );
 }
 
 function jiekoufunc_activity_signup_list($con, $params) {
