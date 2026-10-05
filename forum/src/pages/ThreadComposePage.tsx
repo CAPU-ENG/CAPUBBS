@@ -92,7 +92,9 @@ export function ThreadComposePage() {
   const [signatureIndex, setSignatureIndex] = useState(0);
   const [attachments, setAttachments] = useState<ComposeAttachment[]>([]);
   const [activitySchedule, setActivitySchedule] = useState<ActivityDateRange>(createDefaultActivityDateRange);
-  const [activitySignup, setActivitySignup] = useState<ActivitySignupSettings>(createDefaultActivitySignupSettings);
+  const [activitySignup, setActivitySignup] = useState<ActivitySignupSettings>(
+    () => createDefaultActivitySignupSettings(request?.bid),
+  );
   const [status, setStatus] = useState('');
   const [statusIsError, setStatusIsError] = useState(false);
   const [loadError, setLoadError] = useState('');
@@ -209,7 +211,7 @@ export function ThreadComposePage() {
     setReplyBoardName('');
     setStoredReplyDraftId(null);
     setActivitySchedule(createDefaultActivityDateRange());
-    setActivitySignup(createDefaultActivitySignupSettings());
+    setActivitySignup(createDefaultActivitySignupSettings(request.bid));
     setSavedSnapshot(makeSnapshot('', { content: '', mode: 'rich' }, defaultSignatureIndex, [], null, null));
     lastAutoSaveAttemptRef.current = null;
 
@@ -243,8 +245,8 @@ export function ThreadComposePage() {
         setSignatureIndex(draft.signatureIndex);
         setAttachments(draft.attachments);
         const signupSettings = isActivity
-          ? draft.activitySignup ?? createDefaultActivitySignupSettings()
-          : createDefaultActivitySignupSettings();
+          ? draft.activitySignup ?? createDefaultActivitySignupSettings(request.bid)
+          : createDefaultActivitySignupSettings(request.bid);
         const activityDateRange = isActivity
           ? draft.activitySchedule ?? createDefaultActivityDateRange()
           : createDefaultActivityDateRange();

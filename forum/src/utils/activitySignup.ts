@@ -76,10 +76,22 @@ const defaultQuestions: ActivitySignupQuestion[] = [
   { id: 'message', label: '想说的话', required: false, type: 'textarea' },
 ];
 
-export function createDefaultActivitySignupSettings(): ActivitySignupSettings {
+const boardDefaultQuestions: Record<number, ActivitySignupQuestion[]> = {
+  7: [
+    { id: 'name', label: '姓名', required: true, type: 'text' },
+    { id: 'userId', label: 'ID', required: true, type: 'id' },
+    { id: 'departmentGrade', label: '院系年级', required: true, type: 'text' },
+    { id: 'phone', isPrivate: true, label: '联系电话', required: true, type: 'phone' },
+    { id: 'wechat', isPrivate: true, label: '微信号', required: true, type: 'text' },
+    { id: 'message', label: '想说的话', required: false, type: 'textarea' },
+  ],
+};
+
+export function createDefaultActivitySignupSettings(bid?: number): ActivitySignupSettings {
+  const questions = (bid !== undefined && boardDefaultQuestions[bid]) || defaultQuestions;
   return {
     endsAt: '',
-    questions: defaultQuestions.map((question) => ({
+    questions: questions.map((question) => ({
       ...question,
       options: question.options ? [...question.options] : undefined,
     })),
