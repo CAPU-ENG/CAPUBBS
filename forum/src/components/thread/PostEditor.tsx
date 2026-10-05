@@ -1,5 +1,5 @@
 import { DialogLayer, DialogPresence } from '../layout/DialogPresence';
-import { Eye, Paperclip, Trash2, UploadCloud, X } from 'lucide-react';
+import { Eye, Moon, Paperclip, Sun, Trash2, UploadCloud, X } from 'lucide-react';
 import {
   useEffect,
   useRef,
@@ -14,6 +14,8 @@ import type { ThreadAttachment, ThreadAuthor } from '../../data/thread';
 import { useFloorDecorationEnabled } from '../../hooks/useAssistiveFeatures';
 import { useAuthorProfileEnabled } from '../../hooks/useAuthorProfile';
 import { useTheme } from '../../hooks/useTheme';
+import { parseForumGrayscaleTextColor } from '../../utils/forumGrayscaleTextColor';
+import { applyTheme, readThemeSnapshot, type Theme } from '../../utils/theme';
 import { getTitleIndentationClassName } from '../../utils/titleIndentation';
 import {
   getRichTextEditorHtmlValue,
@@ -247,8 +249,15 @@ export function PostEditor({
   );
 }
 
+export type PostEditorPreviewConfirm = {
+  icon?: ReactNode;
+  label: string;
+  onConfirm: () => void;
+};
+
 export function PostEditorPreviewDialog({
   attachments,
+  confirm,
   editorValue,
   label,
   onClose,
@@ -260,6 +269,7 @@ export function PostEditorPreviewDialog({
   title,
 }: {
   attachments: PostEditorAttachment[];
+  confirm?: PostEditorPreviewConfirm;
   editorValue: RichTextEditorValue;
   label: string;
   onClose: () => void;
@@ -273,8 +283,9 @@ export function PostEditorPreviewDialog({
   const showAuthorProfile = useAuthorProfileEnabled();
   const floorDecorationEnabled = useFloorDecorationEnabled();
   const { theme } = useTheme();
+  const [previewTheme, setPreviewTheme] = useState<Theme>(theme);
   const decorationImageSrc = floorDecorationEnabled
-    ? getFloorDecorationPath(previewAuthor.floorDecoration, theme)
+    ? getFloorDecorationPath(previewAuthor.floorDecoration, previewTheme)
     : '';
   const previewPostContent = (
     <ThreadPostContent
@@ -290,6 +301,13 @@ export function PostEditorPreviewDialog({
     document.body.classList.add('reply-preview-open');
     return () => document.body.classList.remove('reply-preview-open');
   }, []);
+
+  // Preview theme is applied to the page only while the dialog is open; the saved preference is untouched.
+  useEffect(() => {
+    applyTheme(previewTheme);
+  }, [previewTheme]);
+
+  useEffect(() => () => applyTheme(readThemeSnapshot().theme), []);
 
   useEffect(() => {
     function closeOnEscape(event: KeyboardEvent) {
@@ -314,7 +332,17 @@ export function PostEditorPreviewDialog({
             <span>{label}</span>
             <h2 className={getTitleIndentationClassName(title)} id="post-editor-preview-title">{title}</h2>
           </div>
-          <button aria-label="关闭内容预览" onClick={onClose} type="button"><X size={18} /></button>
+          <div className="reply-preview-header-actions">
+            <button
+              aria-label={previewTheme === 'dark' ? '切换到日间模式' : '切换到夜间模式'}
+              onClick={() => setPreviewTheme((current) => current === 'dark' ? 'light' : 'dark')}
+              title={previewTheme === 'dark' ? '日间模式' : '夜间模式'}
+              type="button"
+            >
+              {previewTheme === 'dark' ? <Sun size={17} /> : <Moon size={17} />}
+            </button>
+            <button aria-label="关闭内容预览" onClick={onClose} type="button"><X size={18} /></button>
+          </div>
         </header>
         <div className="reply-preview-stage">
           <ThreadFloorPresentation
@@ -344,7 +372,14 @@ export function PostEditorPreviewDialog({
           {previewExtra}
         </div>
         <footer>
+          {confirm && <p className="reply-preview-color-notice" role="status">内容含自定义颜色，请切换日间/夜间模式检查显示效果</p>}
           <Button onClick={onClose} type="button">返回编辑</Button>
+          {confirm && (
+            <Button variant="primary" onClick={confirm.onConfirm} type="button">
+              {confirm.icon}
+              {confirm.label}
+            </Button>
+          )}
         </footer>
       </section>
     </DialogLayer>
@@ -449,6 +484,40 @@ function PostEditorAttachmentDialog({
 export function hasPostEditorContent(value: RichTextEditorValue) {
   if (value.mode !== 'rich') return value.content.trim().length > 0;
   return hasRichTextEditorHtmlContent(value.content);
+}
+
+const CSS_COLOR_DECLARATION = /(?:^|[;{\s])(?:color|background(?:-color)?)\s*:/i;
+const BBCODE_COLOR = /\[(?:color|bgcolor|backcolor)=([^\]]+)\]/gi;
+
+function isCustomTextColor(value: string | null | undefined) {
+  const color = String(value ?? '').trim();
+  return Boolean(color) && !/^(?:inherit|initial|unset|revert|currentcolor)$/i.test(color)
+    && !parseForumGrayscaleTextColor(color);
+}
+
+function isCustomBackground(value: string | null | undefined) {
+  const background = String(value ?? '').trim();
+  return Boolean(background) && !/^(?:none|transparent|inherit|initial|unset|revert)$/i.test(background);
+}
+
+// Grayscale text colors are inverted automatically in dark mode, so only real colors and backgrounds count.
+export function hasPostEditorCustomColors(value: RichTextEditorValue) {
+  for (const match of value.content.matchAll(BBCODE_COLOR)) {
+    if (match[0].toLowerCase().startsWith('[color=') ? isCustomTextColor(match[1]) : isCustomBackground(match[1])) return true;
+  }
+
+  const template = document.createElement('template');
+  template.innerHTML = getRichTextEditorHtmlValue(value);
+  const fragment = template.content;
+  if (Array.from(fragment.querySelectorAll('style')).some((style) => CSS_COLOR_DECLARATION.test(style.textContent ?? ''))) return true;
+
+  return Array.from(fragment.querySelectorAll<HTMLElement>('[color], [bgcolor], [style]')).some((element) => (
+    isCustomTextColor(element.getAttribute('color'))
+    || isCustomBackground(element.getAttribute('bgcolor'))
+    || isCustomTextColor(element.style.color)
+    || isCustomBackground(element.style.backgroundColor)
+    || isCustomBackground(element.style.backgroundImage)
+  ));
 }
 
 export function formatPostEditorPreviewTimestamp(value: Date) {

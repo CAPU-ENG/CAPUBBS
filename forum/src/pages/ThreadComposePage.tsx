@@ -27,6 +27,7 @@ import {
   AUTO_SAVE_STATUS,
   PostEditor,
   PostEditorPreviewDialog,
+  hasPostEditorCustomColors,
   PostEditorTitleField,
 } from '../components/thread/PostEditor';
 import {
@@ -104,6 +105,7 @@ export function ThreadComposePage() {
   const [isSavingDraft, setIsSavingDraft] = useState(false);
   const [isPublishing, setIsPublishing] = useState(false);
   const [previewOpen, setPreviewOpen] = useState(false);
+  const [previewConfirming, setPreviewConfirming] = useState(false);
   const [previewedAt, setPreviewedAt] = useState('');
   const [draftLoadComplete, setDraftLoadComplete] = useState(false);
   const [storedReplyDraftId, setStoredReplyDraftId] = useState<string | null>(null);
@@ -422,9 +424,10 @@ export function ThreadComposePage() {
     }
   }
 
-  function openPreview() {
+  function openPreview(confirming = false) {
     if (!contentReady) return;
     setPreviewedAt(formatPostEditorPreviewTimestamp(new Date()));
+    setPreviewConfirming(confirming);
     setPreviewOpen(true);
     clearStatus();
   }
@@ -621,13 +624,16 @@ export function ThreadComposePage() {
                 setEditorValue(value);
                 clearStatus();
               }}
-              onPreview={openPreview}
+              onPreview={() => openPreview()}
               onRemoveAttachment={removeAttachment}
               onSignatureChange={(value) => {
                 setSignatureIndex(value);
                 clearStatus();
               }}
-              onSubmit={() => void publish()}
+              onSubmit={() => {
+                if (canPublish && hasPostEditorCustomColors(editorValue)) openPreview(true);
+                else void publish();
+              }}
               previewDisabled={!contentReady}
               secondaryActions={(
                 <Button
@@ -655,6 +661,14 @@ export function ThreadComposePage() {
       <DialogPresence>{previewOpen && boardName && editorViewer && (
         <PostEditorPreviewDialog
           attachments={attachments}
+          confirm={previewConfirming ? {
+            icon: <Send size={15} />,
+            label: isReply ? '发布回复' : isActivity ? '发布活动' : '发表主题',
+            onConfirm: () => {
+              setPreviewOpen(false);
+              void publish();
+            },
+          } : undefined}
           editorValue={editorValue}
           label={`${boardName} · ${isReply ? '回帖' : isActivity ? '活动' : '发帖'}预览`}
           onClose={() => setPreviewOpen(false)}

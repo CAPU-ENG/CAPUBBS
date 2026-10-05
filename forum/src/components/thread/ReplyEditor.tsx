@@ -35,6 +35,7 @@ import { invalidateLoadedThread } from "../../utils/threadContentLoader";
 import {
   formatPostEditorBytes,
   formatPostEditorPreviewTimestamp,
+  hasPostEditorCustomColors,
   hasPostEditorContent,
   AUTO_SAVE_STATUS,
   PostEditor,
@@ -96,6 +97,7 @@ export function ReplyEditor({
   const [signatureIndex, setSignatureIndex] = useState(() => readDefaultSignatureIndex(ownerKey));
   const [attachments, setAttachments] = useState<ReplyAttachment[]>([]);
   const [previewOpen, setPreviewOpen] = useState(false);
+  const [previewConfirming, setPreviewConfirming] = useState(false);
   const [previewedAt, setPreviewedAt] = useState("");
   const [focusRequest, setFocusRequest] = useState(0);
   const [status, setStatus] = useState("");
@@ -298,7 +300,7 @@ export function ReplyEditor({
     }
   }
 
-  function openPreview() {
+  function openPreview(confirming = false) {
     if (!hasPostEditorContent(editorValue)) {
       setStatus("请先填写回复内容");
       setFocusRequest((request) => request + 1);
@@ -306,6 +308,7 @@ export function ReplyEditor({
     }
 
     setPreviewedAt(formatPostEditorPreviewTimestamp(new Date()));
+    setPreviewConfirming(confirming);
     setPreviewOpen(true);
     setStatus("");
     setStatusIsError(false);
@@ -327,14 +330,17 @@ export function ReplyEditor({
         formatAttachmentMeta={(attachment) => formatPostEditorBytes(attachment.size)}
         onAddAttachments={(files) => void addAttachments(files)}
         onChange={updateEditorValue}
-        onPreview={openPreview}
+        onPreview={() => openPreview()}
         onRemoveAttachment={removeAttachment}
         onSignatureChange={(value) => {
           setSignatureIndex(value);
           setStatus("");
           setStatusIsError(false);
         }}
-        onSubmit={() => void publishReply()}
+        onSubmit={() => {
+          if (!isPublishing && !isUploadingAttachments && hasPostEditorCustomColors(editorValue)) openPreview(true);
+          else void publishReply();
+        }}
         previewDisabled={!hasPostEditorContent(editorValue)}
         secondaryActions={(
           <Button disabled={isSavingDraft || isPublishing} onClick={() => void saveDraft()} type="button">
@@ -355,6 +361,14 @@ export function ReplyEditor({
       <DialogPresence>{previewOpen && (
         <PostEditorPreviewDialog
           attachments={attachments}
+          confirm={previewConfirming ? {
+            icon: <Send size={15} />,
+            label: "发布回复",
+            onConfirm: () => {
+              setPreviewOpen(false);
+              void publishReply();
+            },
+          } : undefined}
           editorValue={editorValue}
           label="回复预览"
           onClose={() => setPreviewOpen(false)}

@@ -598,6 +598,13 @@
     white-space: nowrap;
   }
 
+  .reply-preview-header-actions {
+    display: flex;
+    flex-shrink: 0;
+    align-items: center;
+    gap: var(--space-4);
+  }
+
   .reply-preview-dialog > header button {
     display: inline-flex;
     width: 32px;
@@ -676,10 +683,20 @@
 
   .reply-preview-dialog > footer {
     display: flex;
+    flex-wrap: wrap;
+    align-items: center;
     justify-content: flex-end;
+    gap: var(--space-8);
     border-top: 1px solid var(--line);
     padding: var(--space-10) var(--space-14);
     background: var(--surface-soft);
+  }
+
+  .reply-preview-color-notice {
+    min-width: 0;
+    flex: 1 1 16rem;
+    color: var(--text-muted);
+    font-size: var(--ui-font-size-sm);
   }
 
 }

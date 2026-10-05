@@ -14,6 +14,7 @@ import {
   hasPostEditorContent,
   PostEditor,
   PostEditorPreviewDialog,
+  hasPostEditorCustomColors,
   PostEditorTitleField,
 } from '../components/thread/PostEditor';
 import {
@@ -63,6 +64,7 @@ export function ThreadEditPage() {
   const [saveError, setSaveError] = useState('');
   const [isSaving, setIsSaving] = useState(false);
   const [previewOpen, setPreviewOpen] = useState(false);
+  const [previewConfirming, setPreviewConfirming] = useState(false);
 
   useEffect(() => {
     if (!request || authStatus === 'loading' || authStatus === 'restoring') return;
@@ -278,13 +280,21 @@ export function ThreadEditPage() {
                 setEditorValue(value);
                 setSaveError('');
               }}
-              onPreview={() => setPreviewOpen(true)}
+              onPreview={() => {
+                setPreviewConfirming(false);
+                setPreviewOpen(true);
+              }}
               onRemoveAttachment={removeAttachment}
               onSignatureChange={(value) => {
                 setSignatureIndex(value);
                 setSaveError('');
               }}
-              onSubmit={() => void saveEdit()}
+              onSubmit={() => {
+                if (canSave && contentReady && hasPostEditorCustomColors(editorValue)) {
+                  setPreviewConfirming(true);
+                  setPreviewOpen(true);
+                } else void saveEdit();
+              }}
               placeholder={isMainPost ? '修改帖子正文……' : '修改这一楼的回复内容……'}
               previewDisabled={!contentReady}
               signatureIndex={signatureIndex}
@@ -303,6 +313,14 @@ export function ThreadEditPage() {
       <DialogPresence>{previewOpen && floor && (
         <PostEditorPreviewDialog
           attachments={attachments}
+          confirm={previewConfirming ? {
+            icon: <Save size={15} />,
+            label: '保存修改',
+            onConfirm: () => {
+              setPreviewOpen(false);
+              void saveEdit();
+            },
+          } : undefined}
           editorValue={editorValue}
           label={isMainPost ? '帖子修改预览' : `楼层修改预览 · #${floor.pid}`}
           onClose={() => setPreviewOpen(false)}
