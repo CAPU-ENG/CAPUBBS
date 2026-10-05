@@ -30,8 +30,8 @@ function activity_handler_create($con, $token, $bid, $ip, $params, $allow_missin
     if (intval($user['rights']) < 2) {
         return activity_handler_error('5', '权限不足！');
     }
-    if (intval($bid) !== 1) {
-        return activity_handler_error('-44', '活动只能发布在车协工作区');
+    if (!in_array(intval($bid), array(1, 7), true)) {
+        return activity_handler_error('-44', '活动只能发布在车协工作区或一技之长');
     }
 
     $title = isset($params['title']) ? trim(strval($params['title'])) : '';
