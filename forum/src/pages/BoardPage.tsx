@@ -4,7 +4,7 @@ import { LoadingState } from '../components/layout/LoadingState';
 import { Pagination } from '../components/layout/Pagination';
 import { TopBar } from '../components/layout/TopBar';
 import { getBoardCoverImage } from '../data/boardCovers';
-import { SECONDARY_BOARDS } from '../data/boards';
+import { ACTIVITY_BOARD_IDS, SECONDARY_BOARDS } from '../data/boards';
 import {
   manageBoardThread,
   type BoardThreadAction,
@@ -187,7 +187,7 @@ export function BoardPage({ boardId }: { boardId: number }) {
   );
   const canCreateActivity = Boolean(
     data
-    && data.board.id === 1
+    && ACTIVITY_BOARD_IDS.includes(data.board.id)
     && authStatus === 'authenticated'
     && (viewer?.rights ?? 0) >= 2,
   );

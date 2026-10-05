@@ -33,3 +33,5 @@ export const ALL_BOARDS = [...PRIMARY_BOARDS, ...SECONDARY_BOARDS];
 export function getBoardById(id: number) {
   return ALL_BOARDS.find((board) => board.id === id);
 }
+
+export const ACTIVITY_BOARD_IDS: readonly number[] = [1, 7];

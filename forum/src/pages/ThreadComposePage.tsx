@@ -36,6 +36,7 @@ import {
   ActivitySignupSchedule,
 } from '../components/thread/ActivitySignupEditor';
 import { useAuth } from '../context/AuthContext';
+import { ACTIVITY_BOARD_IDS } from '../data/boards';
 import { useAutoSaveEnabled } from '../hooks/useAssistiveFeatures';
 import { useDocumentTitle } from '../hooks/useDocumentTitle';
 import { getLoginPathWithReturnTo, getRegisterPathWithReturnTo } from '../utils/authRoutes';
@@ -112,7 +113,7 @@ export function ThreadComposePage() {
   const isActivity = request?.kind === 'activity';
   const canCreateActivity = Boolean(
     isActivity
-    && request?.bid === 1
+    && ACTIVITY_BOARD_IDS.includes(request?.bid ?? 0)
     && authStatus === 'authenticated'
     && (viewer?.rights ?? 0) >= 2,
   );
@@ -537,9 +538,9 @@ export function ThreadComposePage() {
         ) : isActivity && !canCreateActivity ? (
           <ComposeRequestState
             backHref={backHref}
-            description={request.bid === 1
+            description={ACTIVITY_BOARD_IDS.includes(request.bid)
               ? '仅权限值不低于 2 的会员可以发起活动。'
-              : '活动只能发布在车协工作区。'}
+              : '活动只能发布在车协工作区或一技之长。'}
             title="当前无法发起活动"
           />
         ) : starRestricted && board ? (
