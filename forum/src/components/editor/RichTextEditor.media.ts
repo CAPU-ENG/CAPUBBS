@@ -604,6 +604,8 @@ export function createRichTextEditorMediaActions({
       openPastedImageDialog(file, 'file');
     } catch (error) {
       setImageFileError(error instanceof Error ? error.message : '图片文件检查失败，请重新选择。');
+      // The file picker can be opened without the image panel; show the panel so the error is visible.
+      setActivePopover('image');
     } finally {
       setIsCheckingImageFile(false);
     }

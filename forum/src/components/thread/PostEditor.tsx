@@ -1,5 +1,5 @@
 import { DialogLayer, DialogPresence } from '../layout/DialogPresence';
-import { Eye, Moon, Paperclip, Sun, Trash2, UploadCloud, X } from 'lucide-react';
+import { Eye, ImageUp, Moon, Paperclip, Sun, Trash2, UploadCloud, X } from 'lucide-react';
 import {
   useEffect,
   useRef,
@@ -21,6 +21,7 @@ import {
   getRichTextEditorHtmlValue,
   hasRichTextEditorHtmlContent,
   RichTextEditor,
+  type RichTextEditorHandle,
   type RichTextEditorValue,
 } from '../editor/RichTextEditor';
 import { ThreadFloorActions, ThreadFloorPresentation } from './ThreadFloor';
@@ -139,6 +140,7 @@ export function PostEditor({
   uploadingAttachments?: boolean;
 }) {
   const [attachmentDialogOpen, setAttachmentDialogOpen] = useState(false);
+  const richTextEditorRef = useRef<RichTextEditorHandle>(null);
   const headingId = id ? `${id}-title` : `${name}-editor-title`;
   const statusIsAutoSave = status === AUTO_SAVE_STATUS;
 
@@ -159,8 +161,11 @@ export function PostEditor({
       <div className="reply-editor-core rich-text-editor-field">
         <RichTextEditor
           ariaLabel={ariaLabel}
+          attachmentCount={attachments.length}
           focusRequest={focusRequest}
+          handleRef={richTextEditorRef}
           onChange={onChange}
+          onOpenAttachments={() => setAttachmentDialogOpen(true)}
           placeholder={placeholder}
           value={editorValue}
         />
@@ -204,12 +209,12 @@ export function PostEditor({
 
       <footer className="reply-editor-footer">
         <Button
-          onClick={() => setAttachmentDialogOpen(true)}
+          onClick={() => richTextEditorRef.current?.openImageUpload()}
+          onMouseDown={(event) => event.preventDefault()}
           type="button"
         >
-          <Paperclip size={15} />
-          添加附件
-          {attachments.length > 0 && <span className="reply-attachment-count">{attachments.length}</span>}
+          <ImageUp size={15} />
+          上传图片
         </Button>
         {status && (
           <span

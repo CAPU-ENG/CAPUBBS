@@ -4,9 +4,11 @@ import { DialogPresence } from '../layout/DialogPresence';
 import { Braces, PanelRightOpen, X } from 'lucide-react';
 import {
   useEffect,
+  useImperativeHandle,
   useRef,
   useState,
   type FormEvent,
+  type Ref,
   type KeyboardEvent,
   type MouseEvent,
 } from 'react';
@@ -77,18 +79,28 @@ export {
   hasRichTextEditorHtmlContent,
 } from './RichTextEditor.content';
 
+export type RichTextEditorHandle = {
+  openImageUpload: () => void;
+};
+
 type RichTextEditorProps = {
   ariaLabel: string;
+  attachmentCount?: number;
   focusRequest?: number;
+  handleRef?: Ref<RichTextEditorHandle>;
   onChange: (value: RichTextEditorValue) => void;
+  onOpenAttachments?: () => void;
   placeholder?: string;
   value: RichTextEditorValue;
 };
 
 export function RichTextEditor({
   ariaLabel,
+  attachmentCount = 0,
   focusRequest = 0,
+  handleRef,
   onChange,
+  onOpenAttachments,
   placeholder = '写些什么……\n可以使用工具栏或直接粘贴插入图片',
   value,
 }: RichTextEditorProps) {
@@ -680,6 +692,15 @@ export function RichTextEditor({
     insertRichHtml('<hr><p><br></p>');
   };
 
+  useImperativeHandle(handleRef, () => ({
+    openImageUpload: () => {
+      saveSelection();
+      setIsColorPickerOpen(false);
+      setImageFileError('');
+      imageFileInputRef.current?.click();
+    },
+  }));
+
   const handleToolbarMouseDown = (event: MouseEvent<HTMLButtonElement>) => {
     event.preventDefault();
   };
@@ -748,6 +769,7 @@ export function RichTextEditor({
       <RichTextEditorControls
         activePopover={activePopover}
         activeRichCommands={activeRichCommands}
+        attachmentCount={attachmentCount}
         applyHexSourceColor={applyHexSourceColor}
         applyRichTextColor={applyRichTextColor}
         closePopover={closePopover}
@@ -769,6 +791,7 @@ export function RichTextEditor({
         isCheckingImageFile={isCheckingImageFile}
         isColorPickerOpen={isColorPickerOpen}
         isSourceMode={isSourceMode}
+        onOpenAttachments={onOpenAttachments}
         openGalleryDialog={openGalleryDialog}
         openPopover={openPopover}
         openQuotePopover={openQuotePopover}

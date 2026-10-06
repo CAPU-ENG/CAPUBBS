@@ -1,7 +1,7 @@
 import {
   AlignCenter, AlignJustify, AlignLeft, AlignRight, AtSign, Bold, Eraser,
   Images as GalleryIcon, Image as ImageIcon, IndentDecrease, IndentIncrease,
-  Italic, Link2, List, ListOrdered, MessageSquareQuote, Minus, Palette,
+  Italic, Link2, List, ListOrdered, MessageSquareQuote, Minus, Palette, Paperclip,
   Strikethrough, Subscript, Superscript, TextInitial, Underline,
 } from 'lucide-react';
 import type {
@@ -22,6 +22,7 @@ import { HexColorPanel } from '../HexColorPicker';
 type Props = {
   activePopover: EditorPopover;
   activeRichCommands: RichToggleCommandStates;
+  attachmentCount: number;
   applyHexSourceColor: () => void;
   applyRichTextColor: (color: string) => void;
   closePopover: () => void;
@@ -43,6 +44,7 @@ type Props = {
   isCheckingImageFile: boolean;
   isColorPickerOpen: boolean;
   isSourceMode: boolean;
+  onOpenAttachments?: () => void;
   openGalleryDialog: () => void;
   openPopover: (popover: Exclude<EditorPopover, null>) => void;
   openQuotePopover: () => void;
@@ -65,13 +67,13 @@ type Props = {
 
 export function RichTextEditorControls(props: Props) {
   const {
-    activePopover, activeRichCommands, applyHexSourceColor, applyRichTextColor,
+    activePopover, activeRichCommands, attachmentCount, applyHexSourceColor, applyRichTextColor,
     closePopover, fontSelectValue, fontSizeSelectValue, handleColorActionMouseDown,
     handleHexSourceChange, handleLocalImageFileChange, handlePopoverSubmit,
     handleRichFontChange, handleRichFontSizeChange, handleRichHeadingChange,
     handleToolbarMouseDown, headingSelectValue, hexSourceValue, imageFileError,
     imageFileInputRef, isCheckingImageFile, isColorPickerOpen, isSourceMode,
-    insertHorizontalRule,
+    insertHorizontalRule, onOpenAttachments,
     openGalleryDialog, openPopover, openQuotePopover, popoverConfig, popoverTextValue, popoverValue,
     recentTextColors, runRichCommand, saveSelection, selectedTextColor,
     selectedImageWrap, setRichImageWrap,
@@ -80,8 +82,31 @@ export function RichTextEditorControls(props: Props) {
     toggleColorPicker, toggleRichFirstLineIndent,
   } = props;
 
+  const attachmentButton = onOpenAttachments ? (
+    <ToolbarButton label="添加附件" onMouseDown={handleToolbarMouseDown} onClick={onOpenAttachments}>
+      <Paperclip size={14} />
+      {attachmentCount > 0 ? (
+        <span className="capubbs-toolbar-badge" aria-hidden="true">{attachmentCount}</span>
+      ) : null}
+    </ToolbarButton>
+  ) : null;
+
   return (
       <div className="capubbs-editor-toolbox bg-white/70 dark:bg-white/[0.04]">
+        <input
+          ref={imageFileInputRef}
+          type="file"
+          accept={editorImageInputAccept}
+          onChange={handleLocalImageFileChange}
+          className="sr-only"
+          tabIndex={-1}
+          aria-hidden="true"
+        />
+        {isSourceMode && attachmentButton ? (
+          <div className="capubbs-rich-toolbar border-b border-zinc-200/80 px-1.5 py-1 dark:border-white/10">
+            <div className="flex items-center gap-[0.5px]">{attachmentButton}</div>
+          </div>
+        ) : null}
         {!isSourceMode ? (
           <div className="capubbs-rich-toolbar overflow-x-auto border-b border-zinc-200/80 px-1.5 py-1 dark:border-white/10">
             <div className="flex min-w-max flex-nowrap items-center gap-[0.5px]">
@@ -215,6 +240,7 @@ export function RichTextEditorControls(props: Props) {
               <ToolbarButton label="插入图廊" onMouseDown={handleToolbarMouseDown} onClick={openGalleryDialog}>
                 <GalleryIcon size={14} />
               </ToolbarButton>
+              {attachmentButton}
               <ToolbarButton label="@ 用户" onMouseDown={handleToolbarMouseDown} onClick={() => openPopover('mention')}>
                 <AtSign size={14} />
               </ToolbarButton>
@@ -377,14 +403,6 @@ export function RichTextEditorControls(props: Props) {
             ) : null}
             {activePopover === 'image' ? (
               <>
-                <input
-                  ref={imageFileInputRef}
-                  type="file"
-                  accept={editorImageInputAccept}
-                  onChange={handleLocalImageFileChange}
-                  className="sr-only"
-                  tabIndex={-1}
-                />
                 <button
                   type="button"
                   disabled={isCheckingImageFile}
@@ -443,7 +461,7 @@ function ToolbarButton({
       title={label}
       onMouseDown={onMouseDown}
       onClick={onClick}
-      className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-[var(--control-radius)] border text-[#174f38] transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#174f38] dark:text-white ${
+      className={`relative flex h-6 w-6 shrink-0 items-center justify-center rounded-[var(--control-radius)] border text-[#174f38] transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#174f38] dark:text-white ${
         active
           ? 'border-[#174f38]/30 bg-[#174f38]/10 shadow-inner dark:border-emerald-200/30 dark:bg-emerald-200/15'
           : 'border-transparent hover:border-zinc-200 hover:bg-zinc-100 dark:hover:border-white/10 dark:hover:bg-white/[0.1]'
