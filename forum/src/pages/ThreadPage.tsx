@@ -46,10 +46,8 @@ import {
   getThreadPageForFloor,
 } from '../utils/threadRoutes';
 import { markThreadRead } from '../utils/threadReadState';
-import { getThreadCacheScope } from '../utils/threadContentCache';
 import { getTitleIndentationClassName } from '../utils/titleIndentation';
 import { observeThreadTitleCopyLayout } from '../utils/threadTitleCopyLayout';
-import { invalidateLoadedThread } from '../utils/threadContentLoader';
 import { revealActivityPrivateAnswers } from '../utils/activityPrivateAnswers';
 import { getPublicProfilePath } from '../utils/userRoutes';
 import { getFloorDecorationPath } from '../data/floorDecoration';
@@ -165,7 +163,7 @@ export function ThreadPage() {
   const threadLocationHref = `${window.location.pathname}${window.location.search}${window.location.hash}`;
   const { data, error, retry, status } = useThreadData({
     ...request,
-    cacheScope: authStatus === 'loading' ? null : getThreadCacheScope(viewer?.username),
+    authReady: authStatus !== 'loading',
     decoration: floorDecorationEnabled,
     tagMedalDisplay: tagMedalDisplayEnabled,
   });
@@ -337,16 +335,13 @@ export function ThreadPage() {
 
   async function submitNestedReply(floor: ThreadFloorData, targetName: string | null, content: string) {
     const text = formatNestedReplyText(content, targetName);
-    const replyId = await postNestedReply({ fid: floor.fid, text });
-    await invalidateLoadedThread(getThreadCacheScope(viewer?.username), data?.bid ?? request.bid, data?.tid ?? request.tid);
-    return replyId;
+    return postNestedReply({ fid: floor.fid, text });
   }
 
   async function removeNestedReply(floor: ThreadFloorData, reply: NestedReply) {
     if (data?.locked) throw new Error('主题已锁定。');
     const text = reply.target ? `回复 @${reply.target}：${reply.content}` : reply.content;
     await deleteNestedReply({ fid: floor.fid, id: Number(reply.id), text });
-    await invalidateLoadedThread(getThreadCacheScope(viewer?.username), data?.bid ?? request.bid, data?.tid ?? request.tid);
     window.location.reload();
   }
 
@@ -358,7 +353,6 @@ export function ThreadPage() {
       pid: floor.floor,
       tid: data.tid,
     });
-    await invalidateLoadedThread(getThreadCacheScope(viewer?.username), data.bid, data.tid);
 
     if (floor.floor === 1 && data.replies === 0) {
       window.location.href = boardHref;
@@ -397,7 +391,6 @@ export function ThreadPage() {
         tid: data.tid,
       });
       setBookmarked(nextBookmarked);
-      await invalidateLoadedThread(getThreadCacheScope(viewer?.username), data.bid, data.tid);
     } catch (bookmarkActionError) {
       setBookmarkError(bookmarkActionError instanceof Error
         ? bookmarkActionError.message

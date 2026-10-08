@@ -17,6 +17,10 @@ export function deleteClientDatabaseValue(key: string): Promise<void> {
   return runRequest<void>('readwrite', (store) => store.delete(key));
 }
 
+export function deleteClientDatabaseKeyPrefix(prefix: string): Promise<void> {
+  return runRequest<void>('readwrite', (store) => store.delete(IDBKeyRange.bound(prefix, `${prefix}\uffff`)));
+}
+
 export function requestPersistentClientStorage() {
   if (persistenceRequest) return persistenceRequest;
 

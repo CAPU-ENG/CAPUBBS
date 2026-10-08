@@ -2,12 +2,12 @@ import { lazy, Suspense, useEffect, useReducer } from 'react';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { BrowserRecommendationDialog } from './components/browser/BrowserRecommendationDialog';
 import { OfflineNotice } from './components/OfflineNotice';
-import { ThreadIntentPreloader } from './components/thread/ThreadIntentPreloader';
 import { AppBackground } from './components/layout/AppBackground';
 import { LoadingState, RouteLoadingPage } from './components/layout/LoadingState';
 import { TopBar } from './components/layout/TopBar';
 import { useForumContentFontSize } from './hooks/useForumContentFontSize';
 import { HomePage } from './pages/HomePage';
+import { deleteClientDatabaseKeyPrefix } from './utils/clientDatabase';
 import { NotFoundPage } from './pages/NotFoundPage';
 import { SearchPage } from './pages/SearchPage';
 import { SettingsPage } from './pages/SettingsPage';
@@ -95,6 +95,7 @@ const UserCenterPage = lazy(() => loadUserCenterPage()
 
 export function App() {
   const forumContentFontSize = useForumContentFontSize();
+  useLegacyThreadCacheCleanup();
 
   useEffect(() => {
     applyForumContentFontSize(forumContentFontSize);
@@ -103,7 +104,6 @@ export function App() {
   return (
     <AuthProvider>
       <PendingDraftCleanup />
-      <ThreadIntentPreloader />
       <BrowserRecommendationDialog />
       <OfflineNotice />
       <Suspense fallback={<RouteLoadingPage />}>
@@ -118,6 +118,13 @@ function StartupReady() {
     window.__forumStartup?.ready();
   }, []);
   return null;
+}
+
+// Thread details were cached in IndexedDB until 2026-10-08; drop what older builds left behind.
+function useLegacyThreadCacheCleanup() {
+  useEffect(() => {
+    void deleteClientDatabaseKeyPrefix('thread-content:').catch(() => undefined);
+  }, []);
 }
 
 function PendingDraftCleanup() {

@@ -45,7 +45,6 @@
     "verify:netease-player": "node --experimental-strip-types verify-netease-player.mjs",
     "verify:thread-image-resources": "node --experimental-strip-types verify-thread-image-resources.mjs",
     "verify:thread-image-priority": "node --experimental-strip-types verify-thread-image-priority.mjs",
-    "verify:thread-content-cache": "node --experimental-strip-types verify-thread-content-cache.mjs",
     "verify:thread-publishing": "node --experimental-strip-types verify-thread-publishing.mjs",
     "postinstall": "patch-package",
     "verify:yahou-overview-dom": "node verify-yahou-overview-dom.mjs",

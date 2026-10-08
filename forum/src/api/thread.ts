@@ -213,15 +213,6 @@ export async function fetchThreadDetail({
   return mapThreadDetail(payload.data, { authorOnly, bid, page, tid });
 }
 
-export async function recordThreadView(bid: number, tid: number, signal?: AbortSignal) {
-  const payload = await requestThreadApi(new URLSearchParams({
-    ask: 'thread_view',
-    bid: String(bid),
-    tid: String(tid),
-  }), signal, '浏览记录更新失败。');
-  return nonNegativeInteger(asRow(payload.data).views);
-}
-
 export async function fetchEditableThreadFloor({
   bid,
   pid,

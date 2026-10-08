@@ -1,22 +1,20 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
-import type { ThreadDetail } from '../api/thread';
-import { openThreadContent } from '../utils/threadContentLoader';
-import type { ThreadCacheScope } from '../utils/threadContentCache';
+import { useCallback, useEffect, useState } from 'react';
+import { fetchThreadDetail, type ThreadDetail } from '../api/thread';
 
 export type ThreadDataStatus = 'error' | 'loading' | 'ready';
 
 export function useThreadData({
   authorOnly,
+  authReady,
   bid,
-  cacheScope,
   decoration,
   page,
   tagMedalDisplay = true,
   tid,
 }: {
   authorOnly: boolean;
+  authReady: boolean;
   bid: number;
-  cacheScope: ThreadCacheScope | null;
   decoration: boolean;
   page: number;
   tagMedalDisplay?: boolean;
@@ -26,7 +24,6 @@ export function useThreadData({
   const [error, setError] = useState('');
   const [status, setStatus] = useState<ThreadDataStatus>('loading');
   const [requestVersion, setRequestVersion] = useState(0);
-  const handledRequestVersionRef = useRef(0);
   const retry = useCallback(() => setRequestVersion((version) => version + 1), []);
 
   useEffect(() => {
@@ -40,19 +37,18 @@ export function useThreadData({
       setStatus('error');
       return () => { active = false; };
     }
-    if (!cacheScope) return () => { active = false; };
+    // Thread details depend on the viewer, so wait until the session is known.
+    if (!authReady) return () => { active = false; };
 
-    const force = requestVersion > handledRequestVersionRef.current;
-    handledRequestVersionRef.current = requestVersion;
-    void openThreadContent({
-      force,
-      onCached: (detail) => {
-        if (!active) return;
-        setData(detail);
-        setStatus('ready');
-      },
-      request: { authorOnly, bid, decoration, page, tagMedalDisplay, tid },
-      scope: cacheScope,
+    const controller = new AbortController();
+    void fetchThreadDetail({
+      authorOnly,
+      bid,
+      decoration,
+      page,
+      signal: controller.signal,
+      tagMedalDisplay,
+      tid,
     }).then(
       (detail) => {
         if (!active) return;
@@ -67,8 +63,11 @@ export function useThreadData({
       },
     );
 
-    return () => { active = false; };
-  }, [authorOnly, bid, cacheScope, decoration, page, requestVersion, tagMedalDisplay, tid]);
+    return () => {
+      active = false;
+      controller.abort();
+    };
+  }, [authorOnly, authReady, bid, decoration, page, requestVersion, tagMedalDisplay, tid]);
 
   return { data, error, retry, status };
 }

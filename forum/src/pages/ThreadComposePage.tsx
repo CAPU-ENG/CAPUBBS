@@ -58,8 +58,6 @@ import {
   saveStoredThreadComposeDraft,
 } from '../utils/threadComposeDraftStorage';
 import { getThreadFloorHref } from '../utils/threadRoutes';
-import { getThreadCacheScope } from '../utils/threadContentCache';
-import { invalidateLoadedThread } from '../utils/threadContentLoader';
 import {
   activitySignupDateTimeToUnixSeconds,
   buildActivityCreateOptions,
@@ -466,9 +464,6 @@ export function ThreadComposePage() {
             ownerKey,
             type: 'thread-compose',
           });
-      }
-      if (request.tid) {
-        await invalidateLoadedThread(getThreadCacheScope(ownerKey), published.bid, published.tid ?? request.tid);
       }
       window.location.href = published.tid && published.pid
         ? getThreadFloorHref(published.bid, published.tid, published.pid)

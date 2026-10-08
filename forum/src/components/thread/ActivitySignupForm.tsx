@@ -20,8 +20,6 @@ import {
   formatPostEditorPreviewTimestamp,
   PostEditorPreviewDialog,
 } from './PostEditor';
-import { getThreadCacheScope } from '../../utils/threadContentCache';
-import { invalidateLoadedThread } from '../../utils/threadContentLoader';
 import { getThreadFloorFromHash, getThreadPageForFloor } from '../../utils/threadRoutes';
 import { Button } from '../Button';
 
@@ -206,7 +204,6 @@ function ActivitySignupFormFields({
     try {
       await publishActivitySignup({ action, bid, signatureIndex, tid, title: threadTitle, values });
       saveDefaultSignatureIndex(signatureIndex, viewer?.name);
-      await invalidateLoadedThread(getThreadCacheScope(viewer?.name), bid, tid);
       if (viewer && await hasUnfinishedPunishment(viewer.name)) {
         setPunishmentReminderOpen(true);
         return;
@@ -235,7 +232,6 @@ function ActivitySignupFormFields({
         title: threadTitle,
         values,
       });
-      await invalidateLoadedThread(getThreadCacheScope(viewer?.name), bid, tid);
       window.location.reload();
     } catch (error) {
       setCancelDialogOpen(false);
