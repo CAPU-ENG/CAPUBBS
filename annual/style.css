@@ -153,19 +153,6 @@ h1 {
 
 .annual-arrow { flex-shrink: 0; margin-left: auto; color: var(--accent); font-size: 28px; }
 
-.annual-loading-page { display: grid; place-items: center; }
-.annual-loading { width: min(400px, calc(100% - 48px)); margin: 48px auto; padding: 48px 0; text-align: center; }
-.annual-loading .annual-book-mark { width: max-content; margin: 0 auto 40px; }
-.annual-loading h1 { font-size: clamp(30px, 6vw, 42px); letter-spacing: 0.04em; }
-#loading-status { min-height: 1.7em; margin: 28px 0 24px; color: var(--muted); line-height: 1.7; }
-#loading-progress { display: block; width: 100%; height: 5px; appearance: none; border: 0; background: var(--line); color: var(--accent); }
-#loading-progress::-webkit-progress-bar { background: var(--line); }
-#loading-progress::-webkit-progress-value { background: var(--accent); }
-#loading-progress::-moz-progress-bar { background: var(--accent); }
-.annual-loading-detail { display: flex; justify-content: space-between; gap: 16px; margin-top: 14px; color: var(--muted); font-size: 13px; font-variant-numeric: tabular-nums; }
-.annual-loading-actions { display: flex; justify-content: center; gap: 28px; margin-top: 36px; font-size: 14px; }
-.annual-loading-actions a, .annual-loading-actions button { padding: 6px 0; border: 0; border-bottom: 1px solid var(--line); background: none; color: var(--ink); font: inherit; cursor: pointer; }
-
 @media (max-width: 600px) {
     .annual-shell { width: calc(100% - 40px); }
     .annual-header { min-height: 76px; gap: 16px; }

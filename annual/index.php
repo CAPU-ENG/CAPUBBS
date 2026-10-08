@@ -53,7 +53,7 @@ if (!is_array($titles)) $titles = array();
     $title = isset($titles[$year]) && is_string($titles[$year]) ? trim($titles[$year]) : '';
 ?>
                 <li>
-                    <a class="annual-issue" href="/annual/read.php?year=<?php echo $year; ?>">
+                    <a class="annual-issue" href="/annual/<?php echo $year; ?>/">
                         <span class="annual-year"><?php echo $year; ?></span>
 <?php if ($title !== ''): ?>
                         <span class="annual-issue-title"><?php echo htmlspecialchars($title, ENT_QUOTES, 'UTF-8'); ?></span>

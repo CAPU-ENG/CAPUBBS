@@ -447,6 +447,8 @@ initAnnualPage();
         && window.CSS
         && window.CSS.supports
         && window.CSS.supports('view-transition-name: root');
+    // article pages are also published on COS, which serves them faster than the site
+    var pageMirror = 'https://chexie-1342390402.cos.ap-beijing.myqcloud.com';
     var busy = false;
     var activePath = window.location.pathname + window.location.search;
     var saveTimer = 0;
@@ -605,11 +607,16 @@ initAnnualPage();
         busy = true;
         document.documentElement.classList.add('is-routing');
         var wipe = !reduce && !nativeViewTransition ? startWipe() : null;
-        var request = fetch(url.href, { credentials: 'same-origin' })
-            .then(function (response) {
+        function fetchPage(href, init) {
+            return fetch(href, init).then(function (response) {
                 if (!response.ok) throw new Error('Annual page request failed: ' + response.status);
                 return response.text();
-            })
+            });
+        }
+        var sameOrigin = function () { return fetchPage(url.href, { credentials: 'same-origin' }); };
+        var request = (url.pathname.indexOf(annualRoot + 'articles/') === 0
+            ? fetchPage(pageMirror + url.pathname, { mode: 'cors', credentials: 'omit' }).catch(sameOrigin)
+            : sameOrigin())
             .then(function (html) {
                 var nextDocument = new window.DOMParser().parseFromString(html, 'text/html');
                 if (!nextDocument.body) throw new Error('Annual page has no body');
