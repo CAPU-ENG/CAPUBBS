@@ -18,7 +18,7 @@ return array(
     'annual' => array(
         'year' => '2023',
         'title' => '行者',
-        'cover' => 'https://capu-annuals.oss-cn-beijing.aliyuncs.com/2023/assets/cover.webp',
+        'cover' => 'https://chexie-1342390402.cos.ap-beijing.myqcloud.com/annual/2023/assets/cover.webp',
         'url' => '/annual/read.php?year=2023',
     ),
     'qrCodes' => array(
