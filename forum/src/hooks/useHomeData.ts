@@ -5,7 +5,9 @@ import {
   fetchHomeFeedPage,
   fetchHomeSignupActivities,
   isAbortError,
+  reloadStaleHomeFeedPage,
   type HomeCalendarEvent,
+  type HomeFeedPage,
   type HomeFeedSnapshot,
   type HomeSignupActivity,
   type HomeThread,
@@ -105,20 +107,41 @@ export function useHomeData(compactMode = false) {
     );
   }, [calendarRange]);
 
+  // A browser restoring the homepage from the back/forward cache runs no effects; reload it.
+  useEffect(() => {
+    const reloadRestoredPage = (event: PageTransitionEvent) => {
+      if (!event.persisted) return;
+      feedSnapshotRef.current = null;
+      setRequestVersion((version) => version + 1);
+    };
+    window.addEventListener('pageshow', reloadRestoredPage);
+    return () => window.removeEventListener('pageshow', reloadRestoredPage);
+  }, []);
+
   useEffect(() => {
     const controller = new AbortController();
-    setFeed((current) => ({ ...current, error: '', status: 'loading' }));
-
-    void fetchHomeFeedPage({
+    const request = {
       includeText: !compactMode,
       limit: activeFeedLimit,
-      previous: feedSnapshotRef.current,
       signal: controller.signal,
-    }).then(
-      (page) => {
-        feedSnapshotRef.current = page.snapshot;
-        setFeedHasMore(page.hasMore);
-        setFeed({ error: '', items: page.items, status: 'ready' });
+    };
+    const showPage = (page: HomeFeedPage) => {
+      feedSnapshotRef.current = page.snapshot;
+      setFeedHasMore(page.hasMore);
+      setFeed({ error: '', items: page.items, status: 'ready' });
+    };
+    setFeed((current) => ({ ...current, error: '', status: 'loading' }));
+
+    void fetchHomeFeedPage({ ...request, previous: feedSnapshotRef.current }).then(
+      async (page) => {
+        showPage(page);
+        if (!page.stale) return;
+        // Show the outdated list at once, then swap in the rebuilt snapshot.
+        try {
+          showPage(await reloadStaleHomeFeedPage(request));
+        } catch {
+          // Keep the outdated list; the next visit refreshes again.
+        }
       },
       (error: unknown) => {
         if (!isAbortError(error)) {

@@ -43,6 +43,8 @@ export type HomeFeedPage = {
   hasMore: boolean;
   items: HomeThread[];
   snapshot: HomeFeedSnapshot | null;
+  // The public snapshot was dirty or expired; refresh it and load the page again.
+  stale: boolean;
 };
 
 export type HomeCalendarEvent = {
@@ -111,14 +113,16 @@ export async function fetchHomeFeedPage({
   );
   try {
     const snapshot = await loadPublicSnapshot(publicSnapshotUrl, limit, signal);
-    if (snapshot.dirty || snapshot.expiresAt <= Math.floor(Date.now() / 1000)) triggerSnapshotRefresh();
-    return snapshotPage(snapshot, limit);
+    return {
+      ...snapshotPage(snapshot, limit),
+      stale: snapshot.dirty || snapshot.expiresAt <= Math.floor(Date.now() / 1000),
+    };
   } catch (error) {
     if (isAbortError(error)) throw error;
   }
 
   try {
-    await requestSnapshotRefresh(signal);
+    await refreshHomeFeedSnapshot(signal);
     const snapshot = await waitForPublicSnapshot(publicSnapshotUrl, limit, signal);
     return snapshotPage(snapshot, limit);
   } catch (error) {
@@ -131,7 +135,29 @@ export async function fetchHomeFeedPage({
     hasMore: items.length >= limit,
     items,
     snapshot: null,
+    stale: false,
   };
+}
+
+// The server skips a rebuild while another one runs or within 5 s of the last attempt,
+// so retry until the published snapshot is current.
+export async function reloadStaleHomeFeedPage({
+  includeText = true,
+  limit = 15,
+  signal,
+}: {
+  includeText?: boolean;
+  limit?: number;
+  signal?: AbortSignal;
+}) {
+  let page: HomeFeedPage | null = null;
+  for (const delay of [0, 1_000, 2_000, 3_000]) {
+    if (delay) await abortableDelay(delay, signal);
+    await refreshHomeFeedSnapshot(signal);
+    page = await fetchHomeFeedPage({ includeText, limit, signal });
+    if (!page.stale) break;
+  }
+  return page!;
 }
 
 function snapshotPage(snapshot: HomeFeedSnapshot, limit: number): HomeFeedPage {
@@ -140,6 +166,7 @@ function snapshotPage(snapshot: HomeFeedSnapshot, limit: number): HomeFeedPage {
     hasMore: items.length < snapshot.total,
     items,
     snapshot,
+    stale: false,
   };
 }
 
@@ -199,10 +226,10 @@ function homeSnapshotFullUrl(generation: string) {
 }
 
 function triggerSnapshotRefresh() {
-  void requestSnapshotRefresh().catch(() => undefined);
+  void refreshHomeFeedSnapshot().catch(() => undefined);
 }
 
-async function requestSnapshotRefresh(signal?: AbortSignal) {
+export async function refreshHomeFeedSnapshot(signal?: AbortSignal) {
   const response = await fetch(homeApiSiblingUrl('home-hot-refresh.php'), {
     cache: 'no-store',
     credentials: 'include',
