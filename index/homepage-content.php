@@ -19,7 +19,7 @@ return array(
         'year' => '2023',
         'title' => '行者',
         'cover' => 'https://chexie-1342390402.cos.ap-beijing.myqcloud.com/annual/2023/assets/cover.webp',
-        'url' => '/annual/read.php?year=2023',
+        'url' => '/annual/2023/',
     ),
     'qrCodes' => array(
         array('id' => 'wechat', 'label' => '微信公众号', 'image' => 'qrcode-wechat.jpg', 'alt' => 'capu北大车协微信公众号二维码'),
