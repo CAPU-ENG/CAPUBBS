@@ -14,6 +14,14 @@ if($result['code']=="0"){
     echo("Error when downloading, ".$result['msg']);
     exit;
 }
+// With object storage on, the browser downloads the file directly from COS through a short-lived signed URL
+// (the login check above still decides who gets one).
+$signedUrl = capubbs_storage_signed_url($sourceFile, $outFile);
+if ($signedUrl !== '') {
+    header('Cache-Control: no-store');
+    header('Location: ' . $signedUrl, true, 302);
+    exit;
+}
 if (!is_file($sourceFile)) {
 die("<b>404 File not found!</b>");
 }

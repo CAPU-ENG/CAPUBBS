@@ -25,6 +25,11 @@
     "path"=>$datePath . $filename,
     "filename"=>$name));
     $result=$result[0];
+    if($result['code']=='0' && !capubbs_storage_push($folder.$filename, 'application/octet-stream')){
+        // The copy on object storage failed: undo the attachment record and the local file.
+        mainfunc(array("ask"=>"delattach", "id"=>$result['msg']));
+        $result=array("code"=>"2", "msg"=>"error: storage failed");
+    }
     if($result['code']=='0'){
         $ans=array(
         "code"=>$result['code'],

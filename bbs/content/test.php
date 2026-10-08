@@ -80,12 +80,21 @@
     }
 
     $name = $_FILES['image']['name'];
-    $extension=get_extension($name);
-    if (strcasecmp($extension, "HEIC") === 0) {
+    if (strcasecmp(get_extension($name), "HEIC") === 0) {
         http_response_code(400);
         echo "不支持的图片格式（HEIC）";
         exit;
     }
+    // The stored extension comes from the detected image type, never from the client's file name:
+    // an image that also contains script code must not be saved as .php and executed.
+    $typeExtensions = array('image/png' => 'png', 'image/jpeg' => 'jpg', 'image/gif' => 'gif', 'image/webp' => 'webp', 'image/bmp' => 'bmp', 'image/x-ms-bmp' => 'bmp');
+    $detectedType = $mime !== '' ? $mime : strtolower(strval(isset($imageInfo['mime']) ? $imageInfo['mime'] : ''));
+    if (!isset($typeExtensions[$detectedType])) {
+        http_response_code(400);
+        echo "不支持的文件类型";
+        exit;
+    }
+    $extension = $typeExtensions[$detectedType];
 
     // 按日期分文件夹：bbs/images/YYYY/MM/
     $datePath = date('Y') . '/' . date('m') . '/';
@@ -114,6 +123,12 @@
 
     $target = $folder . $filename;
     if (!move_uploaded_file($_FILES["image"]["tmp_name"], $target)) {
+        http_response_code(500);
+        echo "服务器错误：文件保存失败";
+        exit;
+    }
+    if (!capubbs_storage_push($target, $detectedType)) {
+        @unlink($target);
         http_response_code(500);
         echo "服务器错误：文件保存失败";
         exit;

@@ -179,6 +179,10 @@ class ArchiveService
         if (!move_uploaded_file($file['tmp_name'], $absolutePath)) {
             $this->fail(ApiError::UPLOAD_FAILED, '无法保存上传文件。');
         }
+        if (!capubbs_storage_push($absolutePath, $mimeType ? $mimeType : null)) {
+            @unlink($absolutePath);
+            $this->fail(ApiError::UPLOAD_FAILED, '无法保存上传文件。');
+        }
         try {
             $this->insertEntry(array(
                 'entry_key' => $entryKey,
@@ -194,6 +198,7 @@ class ArchiveService
             ));
         } catch (Exception $error) {
             @unlink($absolutePath);
+            capubbs_storage_remove($absolutePath);
             throw $error;
         }
 
@@ -320,6 +325,7 @@ class ArchiveService
         if (!is_file($absolutePath) || !is_readable($absolutePath)) {
             $this->fail(ApiError::NOT_FOUND, '文件不存在。');
         }
+        $signedUrl = capubbs_storage_signed_url($absolutePath, $entry['name']);
 
         $now = $this->nowMicros();
         $this->query(
@@ -332,6 +338,17 @@ class ArchiveService
             . intval($entry['byte_size']) . ",'started')"
         );
         $downloadId = mysqli_insert_id($this->con);
+
+        if ($signedUrl !== '') {
+            // Object storage serves the bytes; the record counts as completed once the signed URL is handed out.
+            $this->query("UPDATE archive_downloads SET status='completed' WHERE download_id=" . intval($downloadId));
+            while (ob_get_level() > 0) {
+                ob_end_clean();
+            }
+            header('Cache-Control: no-store');
+            header('Location: ' . $signedUrl, true, 302);
+            exit;
+        }
 
         while (ob_get_level() > 0) {
             ob_end_clean();
@@ -400,6 +417,8 @@ class ArchiveService
             @rename($newAbsolute, $oldAbsolute);
             throw $error;
         }
+        // Mirror the rename on object storage; failures are logged and healed by the periodic sync.
+        capubbs_storage_move($oldAbsolute, $newAbsolute);
         return $this->publicEntry($this->getEntry($entry['entry_key']));
     }
 

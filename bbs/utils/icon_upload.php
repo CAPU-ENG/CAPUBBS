@@ -59,6 +59,10 @@
     if (!move_uploaded_file($_FILES['file']['tmp_name'], $folder . $filename)) {
         reportWithCode(2, '服务器错误：文件保存失败');
     }
+    if (!capubbs_storage_push($folder . $filename, $mime !== '' ? $mime : null)) {
+        @unlink($folder . $filename);
+        reportWithCode(2, '服务器错误：文件保存失败');
+    }
 
     echo(json_encode(array("code" => 0, "url" => $urlroot . $filename, "msg" => '')));
 ?>

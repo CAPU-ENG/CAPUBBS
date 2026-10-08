@@ -1,4 +1,6 @@
 <?php
+    require_once __DIR__ . '/../config.php';
+    require_once __DIR__ . '/../storage.php';
     header('content-type: text/xml; charset=utf-8');
     echo '<capu><info>';
 
@@ -37,6 +39,11 @@
     }
 
     if (!move_uploaded_file($_FILES['image']['tmp_name'], $folder . $filename)) {
+        echo '<code>6</code><msg>保存文件失败。</msg></info></capu>';
+        exit;
+    }
+    if (!capubbs_storage_push($folder . $filename)) {
+        @unlink($folder . $filename);
         echo '<code>6</code><msg>保存文件失败。</msg></info></capu>';
         exit;
     }

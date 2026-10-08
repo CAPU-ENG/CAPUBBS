@@ -70,6 +70,7 @@ function jiekoufunc_avatar_update($con, $token, $params, $file) {
     if (!$updated) {
         if ($stored && $stored['created']) {
             @unlink($stored['absolute_path']);
+            capubbs_storage_remove($stored['absolute_path']);
         }
         avatar_update_lock($con, $username, false);
         return jiekoufunc_report('8', '保存头像资料失败。');
@@ -223,6 +224,10 @@ function avatar_image_store($username, $encoded) {
         @unlink($temporary_path);
         return false;
     }
+    if (!capubbs_storage_push($absolute_path, 'image/webp')) {
+        @unlink($absolute_path);
+        return false;
+    }
 
     return array(
         'absolute_path' => $absolute_path,
@@ -284,6 +289,7 @@ function avatar_cleanup_user_directory($username, $current_icon) {
         $absolute_path = $absolute_directory . '/' . $entry;
         if (is_file($absolute_path)) {
             @unlink($absolute_path);
+            capubbs_storage_remove($absolute_path);
         }
     }
     if ($preserve === '') {
@@ -310,6 +316,7 @@ function avatar_delete_legacy_upload_if_unreferenced($con, $icon) {
     }
     if (is_file($resolved['absolute_path'])) {
         @unlink($resolved['absolute_path']);
+        capubbs_storage_remove($resolved['absolute_path']);
     }
 }
 

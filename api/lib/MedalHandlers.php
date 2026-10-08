@@ -1107,6 +1107,14 @@ function medal_image_store_pair($large_bytes, $small_bytes) {
             @rmdir($directory);
             return false;
         }
+        if (!capubbs_storage_push($large_absolute, 'image/webp') || !capubbs_storage_push($small_absolute, 'image/webp')) {
+            @unlink($large_absolute);
+            @unlink($small_absolute);
+            @rmdir($directory);
+            capubbs_storage_remove($large_absolute);
+            capubbs_storage_remove($small_absolute);
+            return false;
+        }
         return array(
             'large_image_path' => '/bbsimg/medals/' . $key . '/large.webp',
             'small_image_path' => '/bbsimg/medals/' . $key . '/small.webp',
@@ -1128,6 +1136,7 @@ function medal_image_delete_pair($large_path, $small_path) {
         if (is_file($absolute_path) && !@unlink($absolute_path)) {
             $ok = false;
         }
+        capubbs_storage_remove($absolute_path);
     }
     foreach (array_keys($directories) as $directory) {
         if (is_dir($directory) && !@rmdir($directory)) {

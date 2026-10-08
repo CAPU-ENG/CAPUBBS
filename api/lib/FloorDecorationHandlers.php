@@ -64,6 +64,10 @@ function jiekoufunc_floor_decoration_upload($con, $token, $params, $file) {
     if (@file_put_contents($absolute_path, $encoded, LOCK_EX) === false) {
         return jiekoufunc_report('8', '装饰图片保存失败。');
     }
+    if (!capubbs_storage_push($absolute_path, 'image/webp')) {
+        @unlink($absolute_path);
+        return jiekoufunc_report('8', '装饰图片保存失败。');
+    }
 
     $old_decoration = floor_decoration_query_for_username($con, $username);
     $column = $variant === 'light' ? 'light_image_path' : 'dark_image_path';
@@ -74,6 +78,7 @@ function jiekoufunc_floor_decoration_upload($con, $token, $params, $file) {
         ON DUPLICATE KEY UPDATE $column=VALUES($column)";
     if (!mysqli_query($con, $statement)) {
         @unlink($absolute_path);
+        capubbs_storage_remove($absolute_path);
         return jiekoufunc_report('8', '楼层装饰功能尚未完成数据库初始化。');
     }
 
@@ -244,4 +249,5 @@ function floor_decoration_delete_owned_file($username, $public_path) {
     if (is_file($absolute_path)) {
         @unlink($absolute_path);
     }
+    capubbs_storage_remove($absolute_path);
 }

@@ -693,6 +693,11 @@ require_once __DIR__.'/../config/api-routing.php';
             echo '6</code><msg>保存文件失败。</msg></info></capu>';
             exit;
         }
+        if (!capubbs_storage_push("../bbsimg/upload/$random.gif")) {
+            @unlink("../bbsimg/upload/$random.gif");
+            echo '6</code><msg>保存文件失败。</msg></info></capu>';
+            exit;
+        }
         echo '-1</code><imgurl>/bbsimg/upload/'.$random.'.gif</imgurl></info></capu>';
         exit;
     }
@@ -706,6 +711,11 @@ require_once __DIR__.'/../config/api-routing.php';
             $random=mt_rand(0,999999999);
         echo '<capu><info><code>';
         if (file_put_contents("../bbsimg/upload/$random.gif",$data)===false) {
+            echo '6</code></info></capu>';
+            exit;
+        }
+        if (!capubbs_storage_push("../bbsimg/upload/$random.gif")) {
+            @unlink("../bbsimg/upload/$random.gif");
             echo '6</code></info></capu>';
             exit;
         }
@@ -735,6 +745,22 @@ require_once __DIR__.'/../config/api-routing.php';
             echo '<capu><info><code>1</code><msg>文件太大</msg></info></capu>';
             exit;
         }
+        // Never trust the client's extension: pictures get the extension of their detected type, and other
+        // files may not use script or page extensions (web shells were uploaded this way).
+        $contentType=null;
+        if($type=='icon'||$type=='image'){
+            $typeExtensions=array('image/png'=>'png','image/jpeg'=>'jpg','image/gif'=>'gif','image/webp'=>'webp');
+            $contentType=capubbs_detect_image_mime($file['tmp_name']);
+            if(!isset($typeExtensions[$contentType])||capubbs_get_image_size($file['tmp_name'])===false){
+                echo '<capu><info><code>14</code><msg>不支持的文件类型</msg></info></capu>';
+                exit;
+            }
+            $extension=$typeExtensions[$contentType];
+        }
+        else if(preg_match('/^(php\d?|phtml|phar|pht|pl|cgi|py|sh|shtml|html?|xhtml|svg|htaccess|js|jsp|asp|aspx)$/', $extension)){
+            echo '<capu><info><code>14</code><msg>不支持的文件类型</msg></info></capu>';
+            exit;
+        }
 
         $random=mt_rand(0,999999999);
         while (file_exists("..$path/$random.$extension")) {
@@ -742,6 +768,11 @@ require_once __DIR__.'/../config/api-routing.php';
         }
         echo '<capu><info><code>';
         if (!move_uploaded_file($file['tmp_name'], "..$path/$random.$extension")) {
+            echo '6</code></info></capu>';
+            exit;
+        }
+        if (!capubbs_storage_push("..$path/$random.$extension", $contentType)) {
+            @unlink("..$path/$random.$extension");
             echo '6</code></info></capu>';
             exit;
         }
