@@ -33,6 +33,14 @@ export function removeSavedAccount(username: string) {
   writeSavedAccounts(readSavedAccounts().filter((account) => account.username !== username));
 }
 
+// Logging out forgets the session on this device; otherwise 切换账号 could reopen it without a password.
+export function forgetSavedSession(token: string, username?: string) {
+  const accounts = readSavedAccounts();
+  const remaining = accounts.filter((account) => (!token || account.token !== token)
+    && (!username || account.username !== username));
+  if (remaining.length !== accounts.length) writeSavedAccounts(remaining);
+}
+
 function writeSavedAccounts(accounts: SavedAccount[]) {
   try {
     window.localStorage.setItem(SAVED_ACCOUNTS_STORAGE_KEY, JSON.stringify(accounts));

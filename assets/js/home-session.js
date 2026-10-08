@@ -28,6 +28,17 @@
     } catch (_) { /* Cookies remain the source of identity. */ }
   }
 
+  // Logging out must also drop this session from the forum's saved accounts, or 切换账号 could reopen it.
+  function forgetSavedAccount() {
+    const cookie = document.cookie.split(';').map(item => item.trim()).find(item => item.startsWith('token='));
+    const token = cookie ? decodeURIComponent(cookie.slice(6)) : '';
+    try {
+      const accounts = JSON.parse(localStorage.getItem('capubbs-saved-accounts') || '[]');
+      if (!token || !Array.isArray(accounts)) return;
+      localStorage.setItem('capubbs-saved-accounts', JSON.stringify(accounts.filter(account => !account || account.token !== token)));
+    } catch (_) { /* Nothing saved, or storage unavailable. */ }
+  }
+
   async function request(params) {
     const response = await fetch('/api/api.php', {
       method: 'POST', credentials: 'same-origin', cache: 'no-store',
@@ -108,6 +119,7 @@
     if (!logout || busy) return;
     busy = true;
     logout.disabled = true;
+    forgetSavedAccount();
     try {
       await request({ ask: 'logout' });
       clearSession();

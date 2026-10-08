@@ -4,6 +4,7 @@ import {
   fetchSessionViewer,
   loginSession,
   logoutSession,
+  readSessionToken,
   registerSession,
   type RegisterDraft,
   type SessionViewer,
@@ -13,6 +14,7 @@ import { refreshClientConfig } from '../api/clientConfig';
 import { fetchPublicProfile } from '../api/profile';
 import { useOnlinePresence } from '../hooks/useOnlinePresence';
 import { isForumForeground } from '../utils/forumActivity';
+import { forgetSavedSession } from '../utils/savedAccounts';
 
 type AuthStatus = 'authenticated' | 'guest' | 'loading' | 'restoring';
 const SESSION_VIEWER_COOKIE_KEY = 'capubbs-session-viewer';
@@ -224,13 +226,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const logout = useCallback(async () => {
+    forgetSavedSession(readSessionToken(), activeUsername ?? undefined);
     try {
       await logoutSession();
     } finally {
       clearCachedViewer();
       setAuth({ status: 'guest', viewer: null });
     }
-  }, []);
+  }, [activeUsername]);
 
   const switchAccount = useCallback(async (token: string) => {
     const sessionViewer = await activateSessionToken(token);
