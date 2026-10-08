@@ -1,5 +1,6 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import {
+  activateSessionToken,
   fetchSessionViewer,
   loginSession,
   logoutSession,
@@ -34,6 +35,7 @@ type AuthContextValue = {
   refreshViewer: () => void;
   register: (draft: RegisterDraft) => Promise<SessionViewer>;
   status: AuthStatus;
+  switchAccount: (token: string) => Promise<SessionViewer | null>;
   updateViewerAvatar: (avatar: string) => void;
   updateViewerUnreadMessages: (count: number) => void;
   viewer: SessionViewer | null;
@@ -230,6 +232,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   }, []);
 
+  const switchAccount = useCallback(async (token: string) => {
+    const sessionViewer = await activateSessionToken(token);
+    if (!sessionViewer) return null;
+    cacheViewer(sessionViewer, true);
+    setAuth({ status: 'authenticated', viewer: sessionViewer });
+    return sessionViewer;
+  }, []);
+
   const refreshViewer = useCallback(() => {
     setAuth((current) => current.viewer ? { ...current, status: 'restoring' } : current);
   }, []);
@@ -270,11 +280,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       refreshViewer,
       register,
       status: auth.status,
+      switchAccount,
       updateViewerAvatar,
       updateViewerUnreadMessages,
       viewer: auth.viewer,
     }),
-    [auth.status, auth.viewer, login, logout, refreshUnreadMessages, refreshViewer, register, updateViewerAvatar, updateViewerUnreadMessages],
+    [auth.status, auth.viewer, login, logout, refreshUnreadMessages, refreshViewer, register, switchAccount, updateViewerAvatar, updateViewerUnreadMessages],
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

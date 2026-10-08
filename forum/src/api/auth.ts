@@ -110,6 +110,29 @@ export async function loginSession(username: string, passwordHash: string) {
   throw new AuthApiError('登录成功，但浏览器未能建立有效会话，请重新登录。', 1000);
 }
 
+export function readSessionToken() {
+  const cookie = document.cookie.split(';').find((item) => item.trim().startsWith('token='));
+  const token = cookie ? decodeURIComponent(cookie.trim().slice(6)) : '';
+  return token === 'invalid' ? '' : token;
+}
+
+/** Makes a saved token the active session; restores the previous session when the token has expired. */
+export async function activateSessionToken(token: string) {
+  const previousToken = readSessionToken();
+  writeTokenCookie(token);
+
+  let viewer: SessionViewer | null = null;
+  try {
+    viewer = await fetchSessionViewer();
+  } finally {
+    if (!viewer) {
+      if (previousToken) writeTokenCookie(previousToken);
+      else clearTokenCookie();
+    }
+  }
+  return viewer;
+}
+
 export async function syncOnlinePresence(clientType: ForumClientType, signal?: AbortSignal) {
   await requestAuthApi({
     ask: 'presence',

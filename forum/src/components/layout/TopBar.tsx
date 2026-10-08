@@ -1,5 +1,6 @@
 import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import {
+  ArrowLeftRight,
   ChevronDown,
   LogIn,
   LogOut,
@@ -12,6 +13,7 @@ import {
   UserRound,
 } from 'lucide-react';
 import { LoadingSpinner as LoaderCircle } from './LoadingSpinner';
+import { AccountSwitchDialog } from './AccountSwitchDialog';
 import defaultAvatar from '../../assets/avatar/default-avatar.svg';
 import logo1 from '../../assets/logo/logo1.webp';
 import logo2 from '../../assets/logo/logo2.webp';
@@ -64,6 +66,7 @@ export function TopBar({
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
   const { present: mobileSidebarPresent, closing: mobileSidebarClosing } = useMobilePresence(mobileSidebarOpen, 180);
   const [profileOpen, setProfileOpen] = useState(false);
+  const [accountSwitchOpen, setAccountSwitchOpen] = useState(false);
   const [boardDrawerCenter, setBoardDrawerCenter] = useState<number | null>(null);
   const closeTimer = useRef<number | null>(null);
   const boardTriggerRef = useRef<HTMLButtonElement | null>(null);
@@ -479,6 +482,16 @@ export function TopBar({
                       <Settings size={16} />设置
                     </a>
                     <button
+                      role="menuitem"
+                      type="button"
+                      onClick={() => {
+                        setProfileOpen(false);
+                        setAccountSwitchOpen(true);
+                      }}
+                    >
+                      <ArrowLeftRight size={16} />切换账号
+                    </button>
+                    <button
                       className="profile-menu-logout"
                       role="menuitem"
                       type="button"
@@ -528,6 +541,8 @@ export function TopBar({
         open={mobileSidebarOpen}
         onClose={closeAllLayers}
       />
+
+      <AccountSwitchDialog open={accountSwitchOpen} onClose={() => setAccountSwitchOpen(false)} />
     </>
   );
 }

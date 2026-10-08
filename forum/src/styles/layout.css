@@ -471,6 +471,80 @@
     color: var(--danger);
   }
 
+  .account-switch-dialog {
+    width: min(100%, 400px);
+  }
+
+  .account-switch-list {
+    display: grid;
+    gap: var(--space-4);
+    padding: var(--space-8);
+  }
+
+  .account-switch-list > li {
+    display: flex;
+    align-items: center;
+    gap: var(--space-4);
+  }
+
+  .account-switch-item {
+    display: flex;
+    min-width: 0;
+    min-height: 48px;
+    flex: 1;
+    align-items: center;
+    gap: var(--space-10);
+    border-radius: var(--control-radius);
+    padding: var(--space-6) var(--space-8);
+    color: var(--text-strong);
+    font-size: var(--ui-font-size-lg);
+    font-weight: var(--font-weight-semibold);
+    text-align: left;
+    transition: var(--duration-fast) ease;
+  }
+
+  .account-switch-item:hover:not(:disabled, [aria-current]) {
+    background: var(--surface-soft);
+  }
+
+  .account-switch-item[aria-current] {
+    cursor: default;
+    color: var(--brand-strong);
+  }
+
+  .account-switch-item:disabled {
+    opacity: 0.6;
+  }
+
+  .account-switch-item > img {
+    width: 34px;
+    height: 34px;
+    flex: 0 0 auto;
+    border-radius: 999px;
+    object-fit: cover;
+  }
+
+  .account-switch-item > span {
+    min-width: 0;
+    flex: 1;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .account-switch-form {
+    border-top: 1px solid var(--line);
+  }
+
+  .account-switch-form > label {
+    display: grid;
+    gap: var(--space-6);
+  }
+
+  .account-switch-error {
+    margin: 0 var(--space-16) var(--space-12);
+  }
+
   .mobile-sidebar {
     position: fixed;
     z-index: 80;
