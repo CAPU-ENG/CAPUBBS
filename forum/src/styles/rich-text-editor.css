@@ -27,7 +27,7 @@
 
   .capubbs-toolbar-tooltip {
     position: fixed;
-    z-index: 80;
+    z-index: 1200;
     top: 0;
     left: 0;
     max-width: min(240px, calc(100vw - 16px));

@@ -42,10 +42,8 @@ export function useToolbarTooltip() {
     const tooltipRect = element.getBoundingClientRect();
     const maxLeft = window.innerWidth - tooltipRect.width - viewportGutter;
     const left = Math.min(Math.max(anchorRect.left + anchorRect.width / 2 - tooltipRect.width / 2, viewportGutter), maxLeft);
-    const below = anchorRect.bottom + 6;
-    const top = below + tooltipRect.height > window.innerHeight - viewportGutter
-      ? anchorRect.top - tooltipRect.height - 6
-      : below;
+    const above = anchorRect.top - tooltipRect.height - 6;
+    const top = above < viewportGutter ? anchorRect.bottom + 6 : above;
     element.style.left = `${Math.round(left)}px`;
     element.style.top = `${Math.round(top)}px`;
     element.dataset.ready = 'true';
