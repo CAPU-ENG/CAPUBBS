@@ -13,10 +13,14 @@
     document.cookie = `${name}=; path=/; max-age=0; expires=Thu, 01 Jan 1970 00:00:00 GMT; SameSite=Lax${secure}${cookieDomain ? '; domain=' + cookieDomain : ''}`;
   }
 
+  // A token left on any parent domain would log the user straight back in, so expire it on every level.
+  const labels = hostname.split('.');
+  const parentDomains = /^[\d.]+$|:/.test(hostname) ? [] : labels.slice(0, -1).map((_, index) => labels.slice(index).join('.'));
+
   function clearSession() {
     for (const name of ['token', 'capubbs-session-viewer']) {
       expire(name);
-      if (domain) expire(name, domain);
+      for (const cookieDomain of new Set([domain, ...parentDomains].filter(Boolean))) expire(name, cookieDomain);
     }
     try {
       localStorage.removeItem('capubbs-session-viewer');
