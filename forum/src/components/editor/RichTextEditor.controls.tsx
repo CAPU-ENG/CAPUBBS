@@ -18,6 +18,7 @@ import type { RichImageWrap } from './RichTextEditor.resize';
 import type { RichImageTextAlign } from './RichTextEditor.imageLayout';
 import type { EditorPopover } from './RichTextEditor.types';
 import { HexColorPanel } from '../HexColorPicker';
+import { useToolbarTooltip } from './RichTextEditor.tooltip';
 
 type Props = {
   activePopover: EditorPopover;
@@ -81,6 +82,7 @@ export function RichTextEditorControls(props: Props) {
     setPopoverTextValue, setPopoverValue,
     toggleColorPicker, toggleRichFirstLineIndent,
   } = props;
+  const toolbarTooltip = useToolbarTooltip();
 
   const attachmentButton = onOpenAttachments ? (
     <ToolbarButton label="添加附件" onMouseDown={handleToolbarMouseDown} onClick={onOpenAttachments}>
@@ -92,7 +94,8 @@ export function RichTextEditorControls(props: Props) {
   ) : null;
 
   return (
-      <div className="capubbs-editor-toolbox bg-white/70 dark:bg-white/[0.04]">
+      <div className="capubbs-editor-toolbox bg-white/70 dark:bg-white/[0.04]" {...toolbarTooltip.handlers}>
+        {toolbarTooltip.element}
         <input
           ref={imageFileInputRef}
           type="file"
@@ -125,7 +128,7 @@ export function RichTextEditorControls(props: Props) {
 
               <ToolbarDivider />
 
-              <label className="flex h-6 items-center rounded-[var(--control-radius)] border border-zinc-200 bg-white px-1 dark:border-white/10 dark:bg-zinc-950">
+              <label className="flex h-6 items-center rounded-[var(--control-radius)] border border-zinc-200 bg-white px-1 dark:border-white/10 dark:bg-zinc-950" data-toolbar-tooltip="字体">
                 <span className="sr-only">字体</span>
                 <select
                   value={fontSelectValue}
@@ -148,7 +151,7 @@ export function RichTextEditorControls(props: Props) {
                   ))}
                 </select>
               </label>
-              <label className="flex h-6 items-center rounded-[var(--control-radius)] border border-zinc-200 bg-white px-1 dark:border-white/10 dark:bg-zinc-950">
+              <label className="flex h-6 items-center rounded-[var(--control-radius)] border border-zinc-200 bg-white px-1 dark:border-white/10 dark:bg-zinc-950" data-toolbar-tooltip="字号">
                 <span className="sr-only">字号</span>
                 <select
                   value={fontSizeSelectValue}
@@ -178,7 +181,7 @@ export function RichTextEditorControls(props: Props) {
               <ToolbarButton active={activeRichCommands.subscript} label="下标" onMouseDown={handleToolbarMouseDown} onClick={() => runRichCommand('subscript')}>
                 <Subscript size={14} />
               </ToolbarButton>
-              <label className="flex h-6 items-center rounded-[var(--control-radius)] border border-zinc-200 bg-white px-1 dark:border-white/10 dark:bg-zinc-950">
+              <label className="flex h-6 items-center rounded-[var(--control-radius)] border border-zinc-200 bg-white px-1 dark:border-white/10 dark:bg-zinc-950" data-toolbar-tooltip="标题格式">
                 <span className="sr-only">标题格式</span>
                 <select
                   value={headingSelectValue}
@@ -264,7 +267,7 @@ export function RichTextEditorControls(props: Props) {
                   isColorPickerOpen ? 'bg-zinc-100 text-zinc-950 dark:bg-white/10 dark:text-white' : ''
                 }`}
                 aria-label="文字颜色"
-                title="文字颜色"
+                data-toolbar-tooltip="文字颜色"
               >
                 <Palette size={14} />
                 <span
@@ -289,7 +292,7 @@ export function RichTextEditorControls(props: Props) {
                 type="button"
                 aria-label={option.title}
                 aria-pressed={selectedImageWrap === option.value}
-                title={option.title}
+                data-toolbar-tooltip={option.title}
                 onMouseDown={handleToolbarMouseDown}
                 onClick={() => setRichImageWrap(option.value)}
                 className={`h-6 rounded-[var(--control-radius)] border px-2 text-[length:var(--ui-font-size-md)] font-medium text-[#174f38] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#174f38] dark:text-white ${
@@ -338,7 +341,7 @@ export function RichTextEditorControls(props: Props) {
                       key={recentColor}
                       type="button"
                       aria-label={`使用最近颜色 ${recentColor}`}
-                      title={recentColor}
+                      data-toolbar-tooltip={recentColor}
                       onMouseDown={handleColorActionMouseDown}
                       onClick={() => applyRichTextColor(recentColor)}
                       className="h-6 w-6 rounded-[var(--control-radius)] border border-zinc-300 shadow-sm transition hover:scale-105 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#174f38] dark:border-white/20"
@@ -458,7 +461,7 @@ function ToolbarButton({
       type="button"
       aria-label={label}
       aria-pressed={typeof active === 'boolean' ? active : undefined}
-      title={label}
+      data-toolbar-tooltip={label}
       onMouseDown={onMouseDown}
       onClick={onClick}
       className={`relative flex h-6 w-6 shrink-0 items-center justify-center rounded-[var(--control-radius)] border text-[#174f38] transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#174f38] dark:text-white ${

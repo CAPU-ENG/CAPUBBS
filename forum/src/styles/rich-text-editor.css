@@ -25,6 +25,31 @@
     pointer-events: none;
   }
 
+  .capubbs-toolbar-tooltip {
+    position: fixed;
+    z-index: 80;
+    top: 0;
+    left: 0;
+    max-width: min(240px, calc(100vw - 16px));
+    border: 1px solid var(--line-strong);
+    border-radius: var(--card-radius);
+    padding: var(--space-4) var(--space-8);
+    background: var(--surface-raised);
+    box-shadow: var(--shadow-float);
+    color: var(--text-strong);
+    font-size: var(--ui-font-size-xs);
+    font-weight: var(--font-weight-semibold);
+    line-height: 1.4;
+    opacity: 0;
+    overflow-wrap: anywhere;
+    pointer-events: none;
+    white-space: nowrap;
+  }
+
+  .capubbs-toolbar-tooltip[data-ready="true"] {
+    opacity: 1;
+  }
+
   body.html-snippet-dialog-open {
     overflow: hidden;
   }
