@@ -15,12 +15,8 @@ import {
   type ThreadCacheScope,
 } from './threadContentCache';
 
-export type ThreadPreloadPriority = 'activity' | 'hot' | 'intent' | 'pinned';
-
-export type ThreadPreloadCandidate = {
-  priority: ThreadPreloadPriority;
-  request: ThreadDetailRequest;
-};
+// Background loads only come from link intent (hover/focus/touch); the homepage no longer preloads threads.
+export type ThreadPreloadPriority = 'intent';
 
 type DetailTask = {
   invalidated: boolean;
@@ -37,7 +33,7 @@ type DetailTask = {
   viewRecorded: boolean;
 };
 
-const PRIORITY = { intent: 1, hot: 2, pinned: 3, activity: 4 } as const;
+const PRIORITY = { intent: 1 } as const;
 const detailTasks = new Map<string, DetailTask>();
 const backgroundQueue: DetailTask[] = [];
 let backgroundRunning = false;
@@ -75,7 +71,6 @@ export async function preloadThreadContent(
   request: ThreadDetailRequest,
   scope: ThreadCacheScope,
   priority: ThreadPreloadPriority,
-  { refresh = false }: { refresh?: boolean } = {},
 ) {
   const key = getThreadContentCacheKey(request, scope);
   const existing = detailTasks.get(key);
@@ -84,7 +79,7 @@ export async function preloadThreadContent(
     sortBackgroundQueue();
     return existing.promise;
   }
-  if (!refresh && await readCachedThreadContent(request, scope)) return null;
+  if (await readCachedThreadContent(request, scope)) return null;
   if (detailTasks.has(key)) return detailTasks.get(key)!.promise;
 
   const task = createTask(request, scope, PRIORITY[priority], true);
@@ -92,14 +87,6 @@ export async function preloadThreadContent(
   sortBackgroundQueue();
   runBackgroundQueue();
   return task.promise;
-}
-
-export function preloadThreadCandidates(candidates: ThreadPreloadCandidate[], scope: ThreadCacheScope) {
-  const uniqueCandidates = deduplicateCandidates(candidates);
-  uniqueCandidates.sort((left, right) => PRIORITY[left.priority] - PRIORITY[right.priority]);
-  uniqueCandidates.forEach(({ priority, request }) => {
-    void preloadThreadContent(request, scope, priority, { refresh: true }).catch(() => undefined);
-  });
 }
 
 export function invalidateLoadedThread(scope: ThreadCacheScope, bid: number, tid: number) {
@@ -114,17 +101,6 @@ export function invalidateLoadedThread(scope: ThreadCacheScope, bid: number, tid
     }
   }
   return invalidateThreadContent(scope, bid, tid);
-}
-
-export function cancelQueuedHomeThreadPreloads() {
-  for (let index = backgroundQueue.length - 1; index >= 0; index -= 1) {
-    const task = backgroundQueue[index];
-    if (task.priority < PRIORITY.hot) continue;
-    backgroundQueue.splice(index, 1);
-    if (detailTasks.get(task.key) === task) detailTasks.delete(task.key);
-    task.invalidated = true;
-    task.reject(new DOMException('Homepage preload canceled.', 'AbortError'));
-  }
 }
 
 export function threadRequestFromHref(
@@ -269,23 +245,6 @@ function allowsQueuedBackgroundRequest() {
 
 function sortBackgroundQueue() {
   backgroundQueue.sort((left, right) => left.priority - right.priority);
-}
-
-function deduplicateCandidates(candidates: ThreadPreloadCandidate[]) {
-  const unique = new Map<string, ThreadPreloadCandidate>();
-  candidates.forEach((candidate) => {
-    const key = [
-      candidate.request.bid,
-      candidate.request.tid,
-      candidate.request.page,
-      candidate.request.authorOnly ? 1 : 0,
-      candidate.request.decoration ? 1 : 0,
-      candidate.request.tagMedalDisplay ? 1 : 0,
-    ].join(':');
-    const current = unique.get(key);
-    if (!current || PRIORITY[candidate.priority] < PRIORITY[current.priority]) unique.set(key, candidate);
-  });
-  return [...unique.values()];
 }
 
 function positiveInteger(value: string | null) {
