@@ -92,7 +92,7 @@
             throw new Error('Invalid remote manifest');
         }
         const prefix = new URL(remoteManifest.prefix);
-        if (prefix.href !== 'https://capu-annuals.oss-cn-beijing.aliyuncs.com/2023/assets/') {
+        if (prefix.href !== 'https://chexie-1342390402.cos.ap-beijing.myqcloud.com/annual/2023/assets/') {
             throw new Error('Invalid remote prefix');
         }
         const seen = new Set();
@@ -119,7 +119,7 @@
     }
 
     async function downloadFile(file) {
-        // Revalidate local files and reuse normal HTTP cache entries for OSS assets.
+        // Revalidate local files and reuse normal HTTP cache entries for COS assets.
         await fetchResource(file.url, file.cache || 'no-cache', async function (response, keepAlive) {
             let received = 0;
             function countBytes(bytes) {
