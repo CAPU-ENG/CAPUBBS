@@ -1,7 +1,6 @@
 (() => {
   'use strict';
   document.documentElement.classList.add('has-js');
-  const media = JSON.parse(document.querySelector('#homepage-media').textContent);
   async function readApi(ask) {
     const controller = new AbortController();
     const timeout = window.setTimeout(() => controller.abort(), 10000);
@@ -70,6 +69,7 @@
   }
 
   function setCaption(row) {
+    caption.hidden = !row;
     caption.textContent = row?.title || '宣传图';
     if (row) caption.href = row.img || row.imgthumb;
   }
@@ -135,7 +135,7 @@
     if (!imageSignature) imageStatus.textContent = '正在加载宣传图…';
     try {
       const rows = (await readApi('homepage_images'))?.images;
-      renderImages(Array.isArray(rows) && !rows.length ? media.images : rows);
+      renderImages(rows);
     } catch (_) {
       imageState.hidden = images.length > 0;
       imageStatus.textContent = '宣传图暂时无法加载';
@@ -275,7 +275,6 @@
   });
   window.addEventListener('focus', () => { void loadImages(); void loadVideos(); void loadContacts(); });
   window.CapuHomeVideoCovers?.update(videoList);
-  renderImages(media.images);
   void loadImages();
   void loadVideos();
   if (!contactStatus.hidden) void loadContacts();

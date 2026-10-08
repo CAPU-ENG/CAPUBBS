@@ -30,14 +30,8 @@ $homepageAnnual = $homepageContent['annual'];
 
   <main class="homepage-main" id="main">
     <section class="hero" role="region" aria-label="宣传图" aria-roledescription="轮播图" data-promotion>
-      <div class="hero-slides" id="promotion-slides">
-<?php foreach ($homepageMedia['images'] as $number => $image) { ?>
-        <div class="promotion-slide" role="group" aria-roledescription="幻灯片" aria-label="<?php echo ($number + 1).' / '.count($homepageMedia['images']); ?>"<?php if ($number > 0) echo ' hidden'; ?>>
-          <img src="<?php echo homepage_escape($image['img']); ?>" alt="<?php echo homepage_escape($image['title']); ?>" decoding="async" <?php echo $number === 0 ? 'fetchpriority="high"' : 'loading="lazy"'; ?>>
-        </div>
-<?php } ?>
-      </div>
-      <div class="promotion-empty" data-image-state hidden><p data-image-status role="status"></p></div>
+      <div class="hero-slides" id="promotion-slides"></div>
+      <div class="promotion-empty" data-image-state><p data-image-status role="status"></p></div>
       <div class="page-width hero-content">
         <h1 class="hero-title"><span><?php echo homepage_escape($homepageContent['slogan'][0]); ?>；</span><span><?php echo homepage_escape($homepageContent['slogan'][1]); ?></span></h1>
         <div class="hero-actions">
@@ -46,7 +40,7 @@ $homepageAnnual = $homepageContent['annual'];
         </div>
       </div>
       <div class="page-width hero-bar">
-        <a class="promotion-caption" data-image-caption href="<?php echo homepage_escape($homepageMedia['images'][0]['img']); ?>" target="_blank" rel="noopener noreferrer"><?php echo homepage_escape($homepageMedia['images'][0]['title']); ?></a>
+        <a class="promotion-caption" data-image-caption target="_blank" rel="noopener noreferrer" hidden></a>
         <div class="promotion-actions">
           <button class="text-button" type="button" data-image-retry hidden>重新加载</button>
 <?php if ($rights >= 3) { ?>
@@ -145,7 +139,6 @@ $homepageAnnual = $homepageContent['annual'];
 
 <?php require __DIR__.'/site-footer.php'; ?>
 
-  <script type="application/json" id="homepage-media"><?php echo json_encode($homepageMedia, JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT); ?></script>
   <dialog class="login-dialog" id="home-login" aria-labelledby="login-title">
     <button class="dialog-close" type="button" data-close-login aria-label="关闭登录">×</button>
     <h2 id="login-title">登录</h2>
