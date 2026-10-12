@@ -7,10 +7,12 @@ import {
   translateLegacyForumMarkup,
   type SafeForumHtml,
 } from '../../utils/forumMarkup';
+import { useAppliedTheme } from '../../hooks/useAppliedTheme';
 import { useForumContentFontSize } from '../../hooks/useForumContentFontSize';
 import { usePunishmentRecordTags } from '../../hooks/usePunishmentRecordTags';
 import { FORUM_LOCATION_CHANGE_EVENT } from '../../utils/authRoutes';
 import { FORUM_BASE_PATH } from '../../utils/forumBasePath';
+import { createForumGrayscaleTextColor } from '../../utils/forumGrayscaleTextColor';
 import {
   FORUM_APP_EXACT_PATHS,
   FORUM_APP_PATH_PREFIXES,
@@ -208,7 +210,7 @@ function ThreadSandboxedHtmlFrame({
   const canOpenImages = Boolean(onImageOpen);
   const [frameHeight, setFrameHeight] = useState<number | null>(null);
   const [playerLayout, setPlayerLayout] = useState<{ token: string; players: EmbeddedPlayerLayout[] } | null>(null);
-  const isDarkTheme = useDarkTheme();
+  const isDarkTheme = useAppliedTheme() === 'dark';
   const initialDarkThemeRef = useRef(isDarkTheme);
   const forumContentFontSize = useForumContentFontSize();
   const frameFontSize = variant === 'signature' ? 14 : forumContentFontSize;
@@ -619,98 +621,13 @@ function buildFrameBridgeScript(frameId: string, canOpenImages: boolean, needsJq
         if(entry.isIntersecting&&entry.target.loading!=='eager')entry.target.loading='eager';
       });
     },{rootMargin:'0px',threshold:0}):null;
-    var grayscaleNamedColors={black:[0,0,0],darkgray:[169,169,169],darkgrey:[169,169,169],darkslategray:[47,79,79],darkslategrey:[47,79,79],dimgray:[105,105,105],dimgrey:[105,105,105],gainsboro:[220,220,220],gray:[128,128,128],grey:[128,128,128],lightgray:[211,211,211],lightgrey:[211,211,211],silver:[192,192,192],slategray:[112,128,144],slategrey:[112,128,144],white:[255,255,255],whitesmoke:[245,245,245]};
-    function toGrayscaleColor(red,green,blue,alpha){
-      var brightest=Math.max(red,green,blue);
-      var chromaLimit=Math.max(32,96-brightest/2);
-      return brightest-Math.min(red,green,blue)<=chromaLimit?{alpha:alpha,red:red,green:green,blue:blue}:null;
-    }
-    var originalColorAttribute='data-capubbs-original-grayscale-color-attr';
-    var originalStyleColorAttribute='data-capubbs-original-grayscale-style-color';
+    var grayscaleTextColor=(${createForumGrayscaleTextColor.toString()})();
     var syncingGrayscaleTextColors=false;
-    function parseGrayscaleTextColor(value){
-      var colorText=String(value==null?'':value).trim().toLowerCase().replace(/^['"]|['"]$/g,'');
-      var compactColorText=colorText.replace(/\\s+/g,'');
-      var namedColor=grayscaleNamedColors[compactColorText];
-      if(namedColor)return toGrayscaleColor(namedColor[0],namedColor[1],namedColor[2],1);
-      var hexMatch=compactColorText.match(/^#?([0-9a-f]{3}|[0-9a-f]{4}|[0-9a-f]{6}|[0-9a-f]{8})$/);
-      if(hexMatch){
-        var rawHex=hexMatch[1];
-        var hex=rawHex.length<=4?rawHex.split('').map(function(character){return character+character;}).join(''):rawHex;
-        var red=parseInt(hex.slice(0,2),16);
-        var green=parseInt(hex.slice(2,4),16);
-        var blue=parseInt(hex.slice(4,6),16);
-        var hexAlpha=hex.length===8?parseInt(hex.slice(6,8),16)/255:1;
-        return toGrayscaleColor(red,green,blue,hexAlpha);
-      }
-      var rgbMatch=colorText.match(/^rgba?\\(\\s*(\\d{1,3}(?:\\.\\d+)?%?)(?:\\s*,\\s*|\\s+)(\\d{1,3}(?:\\.\\d+)?%?)(?:\\s*,\\s*|\\s+)(\\d{1,3}(?:\\.\\d+)?%?)(?:\\s*(?:,|\\/)\\s*([01](?:\\.\\d+)?|\\.\\d+|100%|\\d{1,3}(?:\\.\\d+)?%))?\\s*\\)$/);
-      if(!rgbMatch)return null;
-      function parseRgbChannel(channelValue){
-        var isPercent=channelValue.endsWith('%');
-        var channel=Number(isPercent?channelValue.slice(0,-1):channelValue);
-        if(!Number.isFinite(channel))return null;
-        if(isPercent)return channel>=0&&channel<=100?Math.round(channel*2.55):null;
-        return channel>=0&&channel<=255?Math.round(channel):null;
-      }
-      function parseAlphaChannel(alphaValue){
-        if(alphaValue===undefined)return 1;
-        var isPercent=alphaValue.endsWith('%');
-        var alpha=Number(isPercent?alphaValue.slice(0,-1):alphaValue);
-        if(!Number.isFinite(alpha))return null;
-        if(isPercent)return alpha>=0&&alpha<=100?alpha/100:null;
-        return alpha>=0&&alpha<=1?alpha:null;
-      }
-      var redChannel=parseRgbChannel(rgbMatch[1]);
-      var greenChannel=parseRgbChannel(rgbMatch[2]);
-      var blueChannel=parseRgbChannel(rgbMatch[3]);
-      var alpha=parseAlphaChannel(rgbMatch[4]);
-      if(redChannel===null||greenChannel===null||blueChannel===null||alpha===null)return null;
-      return toGrayscaleColor(redChannel,greenChannel,blueChannel,alpha);
-    }
-    function invertGrayscaleTextColor(value,allowAlpha){
-      var grayscaleColor=parseGrayscaleTextColor(value);
-      if(!grayscaleColor)return '';
-      var shift=255-Math.max(grayscaleColor.red,grayscaleColor.green,grayscaleColor.blue)-Math.min(grayscaleColor.red,grayscaleColor.green,grayscaleColor.blue);
-      var channels=[grayscaleColor.red+shift,grayscaleColor.green+shift,grayscaleColor.blue+shift];
-      if(allowAlpha&&grayscaleColor.alpha<1)return 'rgba('+channels.join(', ')+', '+Number(grayscaleColor.alpha.toFixed(3))+')';
-      return '#'+channels.map(function(channel){return channel.toString(16).padStart(2,'0');}).join('');
-    }
     function syncGrayscaleTextColors(root){
       if(syncingGrayscaleTextColors)return;
       syncingGrayscaleTextColors=true;
-      try{
-        var dark=document.documentElement.classList.contains('dark');
-        var scope=root&&root.querySelectorAll?root:document;
-        var elements=Array.prototype.slice.call(scope.querySelectorAll('[color], [style], ['+originalColorAttribute+'], ['+originalStyleColorAttribute+']'));
-        if(scope.nodeType===1&&(scope.matches('[color], [style], ['+originalColorAttribute+'], ['+originalStyleColorAttribute+']')))elements.unshift(scope);
-        elements.forEach(function(element){
-          var originalAttributeColor=element.getAttribute(originalColorAttribute);
-          if(!dark&&originalAttributeColor!==null){
-            element.setAttribute('color',originalAttributeColor);
-            element.removeAttribute(originalColorAttribute);
-          }else if(dark){
-            var attributeSource=originalAttributeColor!==null?originalAttributeColor:element.getAttribute('color');
-            var invertedAttributeColor=invertGrayscaleTextColor(attributeSource,false);
-            if(invertedAttributeColor&&attributeSource!==null){
-              if(originalAttributeColor===null)element.setAttribute(originalColorAttribute,attributeSource);
-              if(element.getAttribute('color')!==invertedAttributeColor)element.setAttribute('color',invertedAttributeColor);
-            }
-          }
-          if(!element.style||!element.style.getPropertyValue)return;
-          var originalStyleColor=element.getAttribute(originalStyleColorAttribute);
-          if(!dark&&originalStyleColor!==null){
-            element.style.setProperty('color',originalStyleColor,element.style.getPropertyPriority('color'));
-            element.removeAttribute(originalStyleColorAttribute);
-          }else if(dark){
-            var styleSource=originalStyleColor!==null?originalStyleColor:element.style.getPropertyValue('color');
-            var invertedStyleColor=invertGrayscaleTextColor(styleSource,true);
-            if(invertedStyleColor&&styleSource){
-              if(originalStyleColor===null)element.setAttribute(originalStyleColorAttribute,styleSource);
-              if(element.style.getPropertyValue('color')!==invertedStyleColor)element.style.setProperty('color',invertedStyleColor,element.style.getPropertyPriority('color'));
-            }
-          }
-        });
-      }finally{syncingGrayscaleTextColors=false;}
+      try{grayscaleTextColor.sync(root&&root.querySelectorAll?root:document,document.documentElement.classList.contains('dark'));}
+      finally{syncingGrayscaleTextColors=false;}
     }
     function getContentHeight(){
       var contentRoot=document.querySelector('.capubbs-html-frame-root');
@@ -1315,18 +1232,4 @@ function isHtmlFrameMessage(value: unknown): value is HtmlFrameMessage {
   return message.type === 'resize'
     && typeof message.height === 'number'
     && Number.isFinite(message.height);
-}
-
-function useDarkTheme() {
-  const [isDarkTheme, setIsDarkTheme] = useState(() => document.documentElement.classList.contains('dark'));
-
-  useEffect(() => {
-    const root = document.documentElement;
-    const update = () => setIsDarkTheme(root.classList.contains('dark'));
-    const observer = new MutationObserver(update);
-    observer.observe(root, { attributeFilter: ['class'], attributes: true });
-    return () => observer.disconnect();
-  }, []);
-
-  return isDarkTheme;
 }

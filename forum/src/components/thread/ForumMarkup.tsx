@@ -1,7 +1,7 @@
 import { ensureGalleryQuoteControls, type GalleryImageQuote } from '../../utils/galleryQuote';
 import type { SafeForumHtml } from '../../utils/forumMarkup';
 import { useEffect, useLayoutEffect, useMemo, useRef, useState, type KeyboardEvent, type MouseEvent } from 'react';
-import { useTheme } from '../../hooks/useTheme';
+import { useAppliedTheme } from '../../hooks/useAppliedTheme';
 import { syncForumGrayscaleTextColors } from '../../utils/forumGrayscaleTextColor';
 import { preloadNearbyImages } from '../../utils/imagePreloading';
 import { deferGalleryImageSources } from '../../utils/galleryImageLoading';
@@ -58,7 +58,7 @@ export function ForumMarkup({
   const containerRef = useRef<HTMLDivElement>(null);
   const onImageQuoteRef = useRef(onImageQuote);
   onImageQuoteRef.current = onImageQuote;
-  const { theme } = useTheme();
+  const theme = useAppliedTheme();
   const [expandedTableHtml, setExpandedTableHtml] = useState<string | null>(null);
   const dangerousHtml = useMemo(() => ({ __html: deferGalleryImageSources(html) }), [html]);
 
