@@ -33,7 +33,7 @@ if (!defined('MEDAL_IMAGE_SMALL_MAX_BYTES')) {
 
 function jiekoufunc_management_medal_list($con) {
     $result = medal_db_query($con,
-        'SELECT id, name, texture_id, large_image_path, small_image_path,
+        'SELECT id, name, description, texture_id, large_image_path, small_image_path,
                 created_at, updated_at, created_by, updated_by
          FROM user_medals
          ORDER BY created_at DESC, id DESC');
@@ -53,6 +53,10 @@ function jiekoufunc_management_medal_create($con, $token, $params, $file) {
     if ($name === false) {
         return jiekoufunc_report('14', '勋章名称必须为 1 至 50 个字符。');
     }
+    $description = medal_validate_description(isset($params['description']) ? $params['description'] : '');
+    if ($description === false) {
+        return jiekoufunc_report('14', '勋章描述不能超过 500 个字符。');
+    }
     $texture_id = medal_validate_texture(isset($params['texture_id']) ? $params['texture_id'] : '');
     if ($texture_id === false) {
         return jiekoufunc_report('14', '勋章纹理无效。');
@@ -69,16 +73,17 @@ function jiekoufunc_management_medal_create($con, $token, $params, $file) {
     }
 
     $name_escaped = mysqli_real_escape_string($con, $name);
+    $description_escaped = mysqli_real_escape_string($con, $description);
     $texture_escaped = mysqli_real_escape_string($con, $texture_id);
     $large_path_escaped = mysqli_real_escape_string($con, $image_pair['large_image_path']);
     $small_path_escaped = mysqli_real_escape_string($con, $image_pair['small_image_path']);
     $operator_escaped = mysqli_real_escape_string($con, $operator);
     $now = time();
     $statement = "INSERT INTO user_medals
-        (name, texture_id, large_image_path, small_image_path,
+        (name, description, texture_id, large_image_path, small_image_path,
          created_at, updated_at, created_by, updated_by)
         VALUES
-        ('$name_escaped', '$texture_escaped', '$large_path_escaped', '$small_path_escaped',
+        ('$name_escaped', '$description_escaped', '$texture_escaped', '$large_path_escaped', '$small_path_escaped',
          $now, $now, '$operator_escaped', '$operator_escaped')";
     if (!medal_db_query($con, $statement)) {
         medal_image_delete_pair($image_pair['large_image_path'], $image_pair['small_image_path']);
@@ -107,9 +112,10 @@ function jiekoufunc_management_medal_update($con, $token, $params, $file) {
     }
 
     $has_name = array_key_exists('name', $params);
+    $has_description = array_key_exists('description', $params);
     $has_texture = array_key_exists('texture_id', $params);
     $has_image = medal_image_upload_present($file);
-    if (!$has_name && !$has_texture && !$has_image) {
+    if (!$has_name && !$has_description && !$has_texture && !$has_image) {
         return jiekoufunc_report('14', '没有需要更新的勋章内容。');
     }
 
@@ -118,6 +124,13 @@ function jiekoufunc_management_medal_update($con, $token, $params, $file) {
         $name = medal_validate_name($params['name']);
         if ($name === false) {
             return jiekoufunc_report('14', '勋章名称必须为 1 至 50 个字符。');
+        }
+    }
+    $description = strval($medal['description']);
+    if ($has_description) {
+        $description = medal_validate_description($params['description']);
+        if ($description === false) {
+            return jiekoufunc_report('14', '勋章描述不能超过 500 个字符。');
         }
     }
     $texture_id = strval($medal['texture_id']);
@@ -140,6 +153,7 @@ function jiekoufunc_management_medal_update($con, $token, $params, $file) {
     $large_path = $new_pair ? $new_pair['large_image_path'] : strval($medal['large_image_path']);
     $small_path = $new_pair ? $new_pair['small_image_path'] : strval($medal['small_image_path']);
     $name_escaped = mysqli_real_escape_string($con, $name);
+    $description_escaped = mysqli_real_escape_string($con, $description);
     $texture_escaped = mysqli_real_escape_string($con, $texture_id);
     $large_path_escaped = mysqli_real_escape_string($con, $large_path);
     $small_path_escaped = mysqli_real_escape_string($con, $small_path);
@@ -147,6 +161,7 @@ function jiekoufunc_management_medal_update($con, $token, $params, $file) {
     $now = time();
     $statement = "UPDATE user_medals SET
         name='$name_escaped',
+        description='$description_escaped',
         texture_id='$texture_escaped',
         large_image_path='$large_path_escaped',
         small_image_path='$small_path_escaped',
@@ -557,7 +572,7 @@ function medal_self_settings_data($con, $username) {
     $username_escaped = mysqli_real_escape_string($con, $username);
     $statement = "SELECT m.medal_id, m.username, m.activity_role, m.awarded_at, m.awarded_by,
             COALESCE(d.state, 'retain') AS display_state,
-            t.name, t.texture_id, t.large_image_path, t.small_image_path
+            t.name, t.description, t.texture_id, t.large_image_path, t.small_image_path
         FROM user_medal_members AS m
         INNER JOIN user_medals AS t ON t.id=m.medal_id
         LEFT JOIN user_medal_displays AS d
@@ -613,7 +628,7 @@ function medal_query_public_by_usernames($con, $usernames, $display_only) {
     }
     $states = $display_only ? "'display'" : "'display','retain'";
     $statement = "SELECT m.medal_id, m.username, m.activity_role, m.awarded_at,
-            t.name, t.texture_id, t.large_image_path, t.small_image_path
+            t.name, t.description, t.texture_id, t.large_image_path, t.small_image_path
         FROM user_medal_members AS m
         INNER JOIN user_medal_displays AS d
             ON d.medal_id=m.medal_id AND d.username=m.username
@@ -773,6 +788,7 @@ function medal_pack_definition($row) {
     return array(
         'id' => intval($row['id']),
         'name' => strval($row['name']),
+        'description' => strval($row['description']),
         'texture_id' => strval($row['texture_id']),
         'large_image_path' => strval($row['large_image_path']),
         'small_image_path' => strval($row['small_image_path']),
@@ -799,6 +815,7 @@ function medal_pack_assignment($row, $include_state) {
     $item = array(
         'id' => intval($row['medal_id']),
         'name' => strval($row['name']),
+        'description' => strval($row['description']),
         'texture_id' => strval($row['texture_id']),
         'large_image_path' => strval($row['large_image_path']),
         'small_image_path' => strval($row['small_image_path']),
@@ -827,7 +844,7 @@ function medal_find($con, $medal_id) {
         return null;
     }
     $result = medal_db_query($con,
-        "SELECT id, name, texture_id, large_image_path, small_image_path,
+        "SELECT id, name, description, texture_id, large_image_path, small_image_path,
                 created_at, updated_at, created_by, updated_by
          FROM user_medals WHERE id=$medal_id LIMIT 1");
     if (!$result) {
@@ -855,6 +872,14 @@ function medal_validate_name($value) {
     $name = trim(strval($value));
     $length = medal_string_length($name);
     return ($length >= 1 && $length <= 50) ? $name : false;
+}
+
+function medal_validate_description($value) {
+    if (is_array($value)) {
+        return false;
+    }
+    $description = trim(strval($value));
+    return medal_string_length($description) <= 500 ? $description : false;
 }
 
 function medal_validate_texture($value) {

@@ -77,7 +77,7 @@ export function MedalManagementWorkspace() {
   );
   const initialDraft = editorMode === 'edit' && selectedMedal
     ? pickDraft(selectedMedal)
-    : { imageSource: '', name: '', textureId: 'swirl' as MedalTextureId };
+    : { description: '', imageSource: '', name: '', textureId: 'swirl' as MedalTextureId };
 
   useEffect(() => {
     const controller = new AbortController();
@@ -155,7 +155,12 @@ export function MedalManagementWorkspace() {
         : undefined;
       if (editorMode === 'create') {
         if (!image) throw new Error('请先上传并裁剪勋章图片。');
-        const created = await createMedalDefinition({ image, name: draft.name, textureId: draft.textureId });
+        const created = await createMedalDefinition({
+          description: draft.description,
+          image,
+          name: draft.name,
+          textureId: draft.textureId,
+        });
         setMedals((current) => [created, ...current]);
         setSelectedId(created.id);
         setMembers([]);
@@ -163,6 +168,7 @@ export function MedalManagementWorkspace() {
       } else if (selectedMedal) {
         const updated = await updateMedalDefinition(selectedMedal.id, {
           ...(image ? { image } : {}),
+          description: draft.description,
           name: draft.name,
           textureId: draft.textureId,
         });
@@ -647,7 +653,12 @@ function formatMemberCount(count: number | null | undefined) {
 }
 
 function pickDraft(medal: MedalDefinition): MedalDraft {
-  return { imageSource: medal.largeImagePath, name: medal.name, textureId: medal.textureId };
+  return {
+    description: medal.description,
+    imageSource: medal.largeImagePath,
+    name: medal.name,
+    textureId: medal.textureId,
+  };
 }
 
 async function medalImageFile(dataUrl: string) {

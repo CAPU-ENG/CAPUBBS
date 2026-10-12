@@ -11,6 +11,7 @@ export type MedalTextureId =
 
 export type UserMedal = {
   awardedAt: number;
+  description?: string;
   id: string;
   largeImagePath?: string;
   name: string;

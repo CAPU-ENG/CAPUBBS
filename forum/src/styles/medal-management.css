@@ -566,6 +566,14 @@
     min-width: 0;
   }
 
+  .management-medal-description {
+    height: auto;
+    min-height: 96px;
+    padding: var(--space-8) var(--space-10);
+    line-height: 1.5;
+    resize: vertical;
+  }
+
   .management-medal-field > span,
   .management-medal-textures legend,
   .management-medal-preview-column h3 {

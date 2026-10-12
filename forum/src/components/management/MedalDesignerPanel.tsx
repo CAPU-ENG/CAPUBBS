@@ -19,6 +19,7 @@ export function MedalDesignerPanel({ initialDraft, mode, onCancel, onSave, savin
   saving?: boolean;
 }) {
   const [name, setName] = useState(initialDraft.name);
+  const [description, setDescription] = useState(initialDraft.description);
   const [imageSource, setImageSource] = useState(initialDraft.imageSource);
   const [textureId, setTextureId] = useState<MedalTextureId>(initialDraft.textureId);
   const [cropOpen, setCropOpen] = useState(false);
@@ -40,7 +41,7 @@ export function MedalDesignerPanel({ initialDraft, mode, onCancel, onSave, savin
             <Button
               variant="primary"
               disabled={saving || !name.trim() || !imageSource}
-              onClick={() => onSave({ imageSource, name: name.trim(), textureId })}
+              onClick={() => onSave({ description: description.trim(), imageSource, name: name.trim(), textureId })}
               type="button"
             >
               <Save size={15} />{saving ? '保存中' : '保存勋章'}
@@ -58,6 +59,17 @@ export function MedalDesignerPanel({ initialDraft, mode, onCancel, onSave, savin
                 onChange={(event) => setName(event.target.value)}
                 type="text"
                 value={name}
+              />
+            </label>
+
+            <label className="management-medal-field">
+              <span>勋章描述（选填）</span>
+              <textarea
+                className="forum-input management-medal-description"
+                maxLength={500}
+                onChange={(event) => setDescription(event.target.value)}
+                rows={4}
+                value={description}
               />
             </label>
 

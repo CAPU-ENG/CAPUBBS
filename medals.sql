@@ -11,6 +11,7 @@
 CREATE TABLE IF NOT EXISTS `user_medals` (
   `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
   `name` varchar(50) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `description` varchar(500) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '',
   `texture_id` varchar(32) CHARACTER SET ascii COLLATE ascii_bin NOT NULL,
   `large_image_path` varchar(255) CHARACTER SET ascii COLLATE ascii_bin NOT NULL,
   `small_image_path` varchar(255) CHARACTER SET ascii COLLATE ascii_bin NOT NULL,

@@ -17,6 +17,7 @@ type ApiRow = Record<string, unknown>;
 export type MedalDefinition = {
   createdAt: number;
   createdBy: string;
+  description: string;
   id: string;
   largeImagePath: string;
   name: string;
@@ -82,10 +83,12 @@ export async function fetchMedalMemberCount(medalId: string, signal?: AbortSigna
 }
 
 export async function createMedalDefinition({
+  description,
   image,
   name,
   textureId,
 }: {
+  description: string;
   image: File;
   name: string;
   textureId: MedalTextureId;
@@ -94,6 +97,7 @@ export async function createMedalDefinition({
   body.set('ask', 'management_medal_create');
   body.set('file', image);
   body.set('name', name.trim());
+  body.set('description', description.trim());
   body.set('texture_id', textureId);
   const medal = mapMedalDefinition(await requestMedalMultipartData(body));
   if (!medal) throw new MedalsApiError('勋章已创建，但接口没有返回勋章资料。');
@@ -102,13 +106,14 @@ export async function createMedalDefinition({
 
 export async function updateMedalDefinition(
   medalId: string,
-  changes: { image?: File; name?: string; textureId?: MedalTextureId },
+  changes: { description?: string; image?: File; name?: string; textureId?: MedalTextureId },
 ) {
   const body = new FormData();
   body.set('ask', 'management_medal_update');
   body.set('medal_id', medalId);
   if (changes.image) body.set('file', changes.image);
   if (changes.name !== undefined) body.set('name', changes.name.trim());
+  if (changes.description !== undefined) body.set('description', changes.description.trim());
   if (changes.textureId !== undefined) body.set('texture_id', changes.textureId);
   const medal = mapMedalDefinition(await requestMedalMultipartData(body));
   if (!medal) throw new MedalsApiError('勋章已更新，但接口没有返回勋章资料。');
@@ -261,6 +266,7 @@ function mapMedalDefinition(value: unknown): MedalDefinition | null {
   return {
     createdAt: nonNegativeInteger(row.created_at),
     createdBy: textValue(row.created_by),
+    description: textValue(row.description),
     id: String(id),
     largeImagePath,
     name,
@@ -325,8 +331,10 @@ function mapUserMedal(value: unknown): UserMedal | null {
   if (!id || !name || !smallImagePath) return null;
   const state = medalState(row.state);
   const textureId = medalTexture(row.texture_id);
+  const description = textValue(row.description);
   return {
     awardedAt: nonNegativeInteger(row.awarded_at),
+    ...(description ? { description } : {}),
     id: String(id),
     largeImagePath: textValue(row.large_image_path) || undefined,
     name,

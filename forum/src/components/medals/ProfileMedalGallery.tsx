@@ -179,6 +179,7 @@ export function ProfileMedalGallery({
                 <span>{(activeIndex ?? 0) + 1} / {medals.length}</span>
                 <h2 id="profile-medal-lightbox-title">{activeMedal.name}</h2>
                 <dl>
+                  {activeMedal.description ? <div><dt>描述</dt><dd className="profile-medal-lightbox-description">{activeMedal.description}</dd></div> : null}
                   {activeMedal.role ? <div><dt>职务</dt><dd>{activeMedal.role}</dd></div> : null}
                   <div><dt>获取日期</dt><dd>{formatAwardedAt(activeMedal.awardedAt)}</dd></div>
                 </dl>

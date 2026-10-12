@@ -430,6 +430,12 @@
     line-height: 1.5;
   }
 
+  .profile-medal-lightbox-copy .profile-medal-lightbox-description {
+    max-height: 12em;
+    overflow-y: auto;
+    white-space: pre-wrap;
+  }
+
   .profile-personalization-medals {
     display: grid;
     gap: var(--space-10);

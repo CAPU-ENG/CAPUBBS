@@ -22,6 +22,7 @@ export const MEDAL_TEXTURES = [
 ] as const;
 
 export type MedalDraft = {
+  description: string;
   imageSource: string;
   name: string;
   textureId: MedalTextureId;
