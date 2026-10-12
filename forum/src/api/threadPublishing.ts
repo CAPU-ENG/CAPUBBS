@@ -1,3 +1,4 @@
+import { protectFromLegacyEntityDecode } from '../utils/legacyEntityStorage.ts';
 import { normalizeMentionsForLegacyStorage } from '../utils/mentionStorage.ts';
 
 const THREAD_API_URL = import.meta.env?.VITE_API_URL?.trim() || '/api/api.php';
@@ -58,8 +59,8 @@ export async function publishThreadContent(
     attachs: request.attachments,
     bid: String(request.bid),
     sig: String(request.signatureIndex),
-    text: normalizeMentionsForLegacyStorage(request.text),
-    title: request.title,
+    text: protectFromLegacyEntityDecode(normalizeMentionsForLegacyStorage(request.text)),
+    title: protectFromLegacyEntityDecode(request.title),
     ...(request.tid ? { tid: String(request.tid) } : {}),
     type: 'web',
   });

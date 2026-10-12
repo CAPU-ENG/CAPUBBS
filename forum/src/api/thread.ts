@@ -15,6 +15,7 @@ import {
   translateLegacyForumMarkup,
 } from '../utils/forumMarkup';
 import { normalizeLegacyAvatar } from '../utils/legacyAssets';
+import { protectFromLegacyEntityDecode } from '../utils/legacyEntityStorage';
 import { normalizeLegacyPostText } from '../utils/legacyPostText';
 import type { SignatureFloorReference } from '../utils/signatureFloorLink';
 
@@ -318,9 +319,9 @@ export async function updateThreadFloor({
     bid: String(bid),
     pid: String(pid),
     sig: String(signatureIndex),
-    text,
+    text: protectFromLegacyEntityDecode(text),
     tid: String(tid),
-    title,
+    title: protectFromLegacyEntityDecode(title),
     type: 'web',
   }), undefined, '保存修改失败，请稍后重试。');
   const row = asRow(payload.data);
