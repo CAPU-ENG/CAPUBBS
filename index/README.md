@@ -24,9 +24,9 @@
 
 ## 协会介绍、联系方式与页脚
 
-`index/homepage-content.php` 配置名称、口号、页内导航、介绍分类、推荐年刊、底栏二维码和备案号；`index/content/about.html`、`summer.html`、`activities.html` 分别存放协会简介、暑期介绍、日常活动的完整静态正文。正文按要求复制自 `https://www.chexie.net/index/about.php`，保留原文的历史年份和介绍内容；没有改写或删减原文。首页以三张卡片展示各篇首段（`<p class="about-lead">`，由 PHP 提取原文，不另写摘要），“阅读全文”进入 `/index/intro.php` 对应锚点；完整页左侧（窄屏为顶部）为目录。卡片保留 `#introduction`、`#summer`、`#activities` 锚点，旧链接仍可定位。
+`index/homepage-content.php` 配置名称、口号、页内导航、介绍分类、首页年刊、底栏二维码和备案号；`index/content/about.html`、`summer.html`、`activities.html` 分别存放协会简介、暑期介绍、日常活动的完整静态正文。正文按要求复制自 `https://www.chexie.net/index/about.php`，保留原文的历史年份和介绍内容；没有改写或删减原文。首页以三张卡片展示各篇首段（`<p class="about-lead">`，由 PHP 提取原文，不另写摘要），“阅读全文”进入 `/index/intro.php` 对应锚点；完整页左侧（窄屏为顶部）为目录。卡片保留 `#introduction`、`#summer`、`#activities` 锚点，旧链接仍可定位。
 
-年刊区展示 `homepage-content.php` 中 `annual` 配置的一期（当前为 2023《行者》，封面来自腾讯云 COS），提供“阅读”和“全部年刊”（`/annual/`）。
+年刊区展示 `homepage-content.php` 中 `annuals` 配置的各期（当前为 2023、2022《行者》，按新到旧排列；封面均来自腾讯云 COS，2022 的封面取自原刊 PDF 最后一页）。每期为一张略微倾斜的封面，下方标出刊名与年份，整体链接到该期；另有“全部年刊”（`/annual/`）。
 
 `index/data/contacts.default.json` 保存原“关于协会 → 联系我们”的完整初始联系方式；文档为 `{schemaVersion: 1, revision, text}`，接口与存储格式不变。文本约定：开头连续的 `名称：内容` 行（全角冒号，名称 1–16 字）显示为表格，不含冒号的行并入上一行内容；第一个空行之后为补充说明，按原文换行显示，不解析冒号。PHP（`index/includes/contacts.php`）与前端（`assets/js/home-contacts-format.js`）使用相同解析规则，均以纯文本转义输出。首页返回或重新聚焦时刷新内容，读取失败保留当前文字并提供重试。
 

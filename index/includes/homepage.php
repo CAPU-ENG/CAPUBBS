@@ -3,7 +3,7 @@ require __DIR__.'/session.php';
 require __DIR__.'/videos.php';
 require __DIR__.'/homepage-content.php';
 $homepageLoginModal = true;
-$homepageAnnual = $homepageContent['annual'];
+$homepageAnnuals = $homepageContent['annuals'];
 ?>
 <!doctype html>
 <html lang="zh-CN">
@@ -75,14 +75,19 @@ $homepageAnnual = $homepageContent['annual'];
 
     <section class="section annual home-dotted-background home-dotted-dark" id="annual" aria-labelledby="annual-title">
       <div class="page-width annual-inner">
-        <a class="annual-cover" href="<?php echo homepage_escape($homepageAnnual['url']); ?>" tabindex="-1" aria-hidden="true">
-          <img src="<?php echo homepage_escape($homepageAnnual['cover']); ?>" width="249" height="338" alt="" loading="lazy" decoding="async">
-        </a>
+        <ul class="annual-covers">
+<?php foreach ($homepageAnnuals as $annual) { ?>
+          <li>
+            <a class="annual-cover" href="<?php echo homepage_escape($annual['url']); ?>">
+              <img src="<?php echo homepage_escape($annual['cover']); ?>" width="249" height="338" alt="" loading="lazy" decoding="async">
+              <span class="annual-name">《<?php echo homepage_escape($annual['title']); ?>》<?php echo homepage_escape($annual['year']); ?></span>
+            </a>
+          </li>
+<?php } ?>
+        </ul>
         <div class="annual-text">
           <h2 id="annual-title">年刊</h2>
-          <h3>《<?php echo homepage_escape($homepageAnnual['title']); ?>》<?php echo homepage_escape($homepageAnnual['year']); ?></h3>
           <div class="annual-actions">
-            <a class="button button-primary" href="<?php echo homepage_escape($homepageAnnual['url']); ?>">阅读</a>
             <a class="button button-ghost" href="/annual/">全部年刊</a>
           </div>
         </div>

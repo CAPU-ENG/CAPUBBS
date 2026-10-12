@@ -135,10 +135,12 @@ h2::before { content: ""; position: absolute; top: 0; left: 0; width: 28px; heig
 .annual { color: var(--on-green); }
 .annual h2::before { background: var(--highlight); }
 .annual-inner { display: grid; grid-template-columns: auto minmax(0, 1fr); align-items: center; gap: clamp(32px, 6vw, 80px); }
-.annual-cover { display: block; width: clamp(150px, 18vw, 220px); transform: rotate(-2deg); transition: transform .3s ease; }
-.annual-cover:hover { transform: rotate(0); }
-.annual-cover img { width: 100%; height: auto; aspect-ratio: 2490 / 3375; object-fit: cover; background: #2b493c; box-shadow: 0 2px 6px #0003, 0 24px 48px #0c1a1480; }
-.annual-text h3 { margin-top: 22px; font-size: clamp(26px, 3.4vw, 40px); font-weight: 600; letter-spacing: .06em; line-height: 1.4; }
+.annual-covers { display: flex; flex-wrap: wrap; gap: clamp(20px, 3vw, 40px); margin: 0; padding: 0; list-style: none; }
+.annual-cover { display: block; width: clamp(150px, 18vw, 220px); color: inherit; text-decoration: none; transform: rotate(-2deg); transition: transform .3s ease; }
+.annual-covers li:nth-child(even) .annual-cover { transform: rotate(2deg); }
+.annual-cover:hover, .annual-covers li:nth-child(even) .annual-cover:hover { transform: rotate(0); }
+.annual-cover img { display: block; width: 100%; height: auto; aspect-ratio: 2490 / 3375; object-fit: cover; background: #2b493c; box-shadow: 0 2px 6px #0003, 0 24px 48px #0c1a1480; }
+.annual-name { display: block; margin-top: 16px; font-size: clamp(17px, 1.8vw, 21px); font-weight: 600; letter-spacing: .06em; text-align: center; }
 .annual-actions { display: flex; flex-wrap: wrap; gap: 14px; margin-top: 32px; }
 
 /* Videos */
@@ -256,7 +258,7 @@ h2::before { content: ""; position: absolute; top: 0; left: 0; width: 28px; heig
   .section-heading { margin-bottom: 22px; }
   .about-card { padding: 24px 20px 16px; }
   .annual-inner { grid-template-columns: 1fr; justify-items: start; }
-  .annual-cover { width: 150px; }
+  .annual-cover { width: 140px; }
   .footer-inner { grid-template-columns: 1fr; }
   .footer-qr-list { gap: 14px; }
   .footer-qr img { width: 84px; height: 84px; }
