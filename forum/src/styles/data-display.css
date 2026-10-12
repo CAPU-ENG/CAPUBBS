@@ -1424,6 +1424,36 @@
       font-size: var(--ui-font-size-md);
     }
 
+    .data-display-card-header {
+      position: relative;
+      z-index: 2;
+    }
+
+    .data-display-card-help {
+      position: static;
+      width: 18px;
+      height: 18px;
+    }
+
+    .data-display-card-help svg {
+      width: 14px;
+      height: 14px;
+    }
+
+    .data-display-card-help::after {
+      top: calc(100% - 4px);
+      right: var(--space-10);
+      left: var(--space-10);
+      width: auto;
+      max-width: none;
+      transform: translateY(-4px);
+    }
+
+    .data-display-card-help:hover::after,
+    .data-display-card-help:focus-visible::after {
+      transform: translateY(0);
+    }
+
     .data-display-card-count {
       font-size: var(--ui-font-size-xs);
     }
