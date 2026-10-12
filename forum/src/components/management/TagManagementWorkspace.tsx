@@ -14,15 +14,18 @@ import {
   type TagMember,
 } from '../../api/tags';
 import type { TagDefinition } from '../../data/tags';
+import { useListPagination } from '../../hooks/useListPagination';
 import { useStaggerEntrance } from '../../hooks/useStaggerEntrance';
 import { getForumNavigationHref } from '../../utils/forumNavigation';
 import { HexColorPicker, isHexColor } from '../HexColorPicker';
 import { TagBadge } from '../tags/TagBadge';
 import { Button } from '../Button';
+import { ListPagination } from '../layout/ListPagination';
 
 const MEMBER_ID_COLLATOR = new Intl.Collator('zh-CN', { numeric: true, sensitivity: 'base' });
 const TAG_NAME_COLLATOR = new Intl.Collator('zh-CN', { sensitivity: 'base' });
 const DEFAULT_TAG_COLOR = '#287A52';
+const MEMBER_PAGE_SIZE = 40;
 
 type Notice = { kind: 'error' | 'info' | 'success'; text: string } | null;
 type NoticeKind = 'error' | 'info' | 'success';
@@ -68,6 +71,7 @@ export function TagManagementWorkspace() {
       : right.addedAt - left.addedAt || MEMBER_ID_COLLATOR.compare(left.username, right.username)),
     [memberSortOrder, members],
   );
+  const memberPagination = useListPagination(sortedMembers, MEMBER_PAGE_SIZE, `${activeTagId}:${memberSortOrder}`);
 
   useEffect(() => {
     const controller = new AbortController();
@@ -361,7 +365,7 @@ export function TagManagementWorkspace() {
               {definitions.length === 0 && <EmptyState action={definitionsStatus === 'error' ? <RetryButton onClick={() => { setNotice(null); setDefinitionsStatus('loading'); setDefinitionsReload((value) => value + 1); }} /> : undefined} icon={<Tags size={18} />}>{definitionsStatus === 'loading' ? '正在加载标签' : definitionsStatus === 'error' ? '标签加载失败' : '还没有标签'}</EmptyState>}
             </div>
           </aside>
-          <div className="management-member-tag-editor">
+          <div className="management-member-tag-editor" ref={memberPagination.anchorRef}>
             {membersStatus === 'loading' ? <EmptyState icon={<Users size={18} />}>正在加载会员</EmptyState> : membersStatus === 'error' ? <EmptyState action={<RetryButton onClick={() => { setNotice(null); setMembersReload((value) => value + 1); }} />} icon={<Users size={18} />}>会员加载失败</EmptyState> : (
               <>
                 <div className="tag-summary-sort-bar management-member-sort-bar">
@@ -370,8 +374,9 @@ export function TagManagementWorkspace() {
                   <span className="management-member-total">共 {members.length} 人</span>
                 </div>
                 {sortedMembers.length > 0 ? (
+                  <>
                   <div className="management-member-grid">
-                    {sortedMembers.map((member) => (
+                    {memberPagination.pageItems.map((member) => (
                       <article className="management-member-card" key={member.username}>
                         <a className="management-member-id" href={getForumNavigationHref(member.href, window.location.href)}>{member.username}</a>
                         <time>{formatTagAddedAt(member.addedAt)}</time>
@@ -379,6 +384,8 @@ export function TagManagementWorkspace() {
                       </article>
                     ))}
                   </div>
+                  <ListPagination ariaLabel="标签会员分页" className="management-list-pagination" currentPage={memberPagination.currentPage} onPageChange={memberPagination.onPageChange} pageCount={memberPagination.pageCount} />
+                  </>
                 ) : <EmptyState icon={<Users size={18} />}>没有符合条件的会员</EmptyState>}
               </>
             )}

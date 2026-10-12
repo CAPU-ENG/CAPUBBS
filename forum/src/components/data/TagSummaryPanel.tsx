@@ -8,6 +8,7 @@ import {
   type TagMember,
 } from '../../api/tags';
 import type { TagDefinition } from '../../data/tags';
+import { useListPagination } from '../../hooks/useListPagination';
 import { useStaggerEntrance } from '../../hooks/useStaggerEntrance';
 import { getForumNavigationHref } from '../../utils/forumNavigation';
 import {
@@ -19,6 +20,7 @@ import {
   type TagExpressionToken,
 } from '../../utils/tagExpression';
 import { TagExpressionBuilder } from './TagExpressionBuilder';
+import { ListPagination } from '../layout/ListPagination';
 import { TagBadge } from '../tags/TagBadge';
 
 type FilterState = 'exclude' | 'include' | 'neutral';
@@ -30,6 +32,7 @@ type TagSummaryMember = TagMember;
 
 const MEMBER_ID_COLLATOR = new Intl.Collator('zh-CN', { numeric: true, sensitivity: 'base' });
 const TAG_NAME_COLLATOR = new Intl.Collator('zh-CN', { sensitivity: 'base' });
+const MEMBER_PAGE_SIZE = 40;
 
 export function TagSummaryPanel() {
   const tagsRef = useStaggerEntrance<HTMLElement>([
@@ -66,6 +69,7 @@ export function TagSummaryPanel() {
       : right.addedAt - left.addedAt || MEMBER_ID_COLLATOR.compare(left.username, right.username)),
     [filteredMembers, sortOrder],
   );
+  const memberPagination = useListPagination(sortedMembers, MEMBER_PAGE_SIZE, sortedMembers);
   const sortedDefinitions = useMemo(
     () => [...definitions].sort((left, right) => TAG_NAME_COLLATOR.compare(left.name, right.name) || MEMBER_ID_COLLATOR.compare(left.id, right.id)),
     [definitions],
@@ -223,7 +227,7 @@ export function TagSummaryPanel() {
       {queryStatus === 'error' && <p className="tag-summary-empty">{queryError}</p>}
       {hasQueried && queryStatus !== 'error' && (
         <>
-          <div className="tag-summary-sort-bar">
+          <div className="tag-summary-sort-bar" ref={memberPagination.anchorRef}>
             <button aria-pressed={sortOrder === 'acquiredAt'} className={sortOrder === 'acquiredAt' ? 'tag-summary-sort-active' : ''} onClick={() => setSortOrder('acquiredAt')} type="button"><Clock3 size={14} />获取时间</button>
             <button aria-pressed={sortOrder === 'id'} className={sortOrder === 'id' ? 'tag-summary-sort-active' : ''} onClick={() => setSortOrder('id')} type="button"><ArrowDownAZ size={14} />ID</button>
           </div>
@@ -235,7 +239,7 @@ export function TagSummaryPanel() {
             {dateRangeError && <span aria-live="polite" className="tag-summary-date-filter-error">{dateRangeError}</span>}
           </div>
           <div className="tag-summary-member-grid">
-            {sortedMembers.map((member) => (
+            {memberPagination.pageItems.map((member) => (
               <article className="tag-summary-member-card" key={member.username}>
                 <a className="tag-summary-member-avatar" href={getForumNavigationHref(member.href, window.location.href)}>
                   <img alt={`${member.username}的头像`} src={member.avatar} />
@@ -248,6 +252,7 @@ export function TagSummaryPanel() {
             ))}
             {sortedMembers.length === 0 && <p className="tag-summary-empty">没有符合条件的会员</p>}
           </div>
+          <ListPagination ariaLabel="标签查询结果分页" className="tag-summary-pagination" currentPage={memberPagination.currentPage} onPageChange={memberPagination.onPageChange} pageCount={memberPagination.pageCount} />
         </>
       )}
     </section>

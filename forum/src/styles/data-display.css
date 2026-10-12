@@ -1310,6 +1310,11 @@
     padding: var(--space-14) var(--space-18) var(--space-18);
   }
 
+  .tag-summary-pagination {
+    border-top: 1px solid var(--line);
+    padding: var(--space-12) var(--space-18);
+  }
+
   .tag-summary-member-card {
     display: grid;
     min-width: 0;
@@ -1706,6 +1711,10 @@
     .tag-summary-member-grid {
       grid-template-columns: 1fr;
       padding: var(--space-12) var(--space-14) var(--space-14);
+    }
+
+    .tag-summary-pagination {
+      padding: var(--space-8) var(--space-6);
     }
 
     .punishment-form-row-two,

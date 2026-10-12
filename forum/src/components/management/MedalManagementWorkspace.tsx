@@ -1,4 +1,5 @@
 import { DialogLayer, DialogPresence } from '../layout/DialogPresence';
+import { ListPagination } from '../layout/ListPagination';
 import {
   BadgeCheck,
   CircleAlert,
@@ -31,12 +32,15 @@ import {
   type MedalMember,
   type MedalMemberCheck,
 } from '../../api/medals';
+import { useListPagination } from '../../hooks/useListPagination';
 import { useStaggerEntrance } from '../../hooks/useStaggerEntrance';
 import { getPublicProfilePath } from '../../utils/userRoutes';
 import { getForumNavigationHref } from '../../utils/forumNavigation';
 import { MedalDesignerPanel } from './MedalDesignerPanel';
 import { type MedalDraft, type MedalTextureId } from './medalDesign';
 import { Button } from '../Button';
+
+const MEMBER_PAGE_SIZE = 20;
 
 type LoadState = 'error' | 'loading' | 'ready';
 type Notice = { kind: 'error' | 'success'; text: string } | null;
@@ -387,6 +391,7 @@ export function MedalManagementWorkspace() {
                       members={members}
                       onRemove={(member) => { setNotice(null); setRemoveMemberTarget(member); }}
                       onRetry={() => { setNotice(null); setMembersReload((value) => value + 1); }}
+                      resetKey={selectedMedal.id}
                       status={membersStatus}
                     />
                   ) : (
@@ -480,15 +485,19 @@ function MemberList({
   members,
   onRemove,
   onRetry,
+  resetKey,
   status,
 }: {
   disabled: boolean;
   members: MedalMember[];
   onRemove: (member: MedalMember) => void;
   onRetry: () => void;
+  resetKey: string;
   status: LoadState;
 }) {
+  const pagination = useListPagination(members, MEMBER_PAGE_SIZE, resetKey);
   return (
+    <div className="management-medal-member-list" ref={pagination.anchorRef}>
     <div className="management-medal-table-scroll">
       <table className="management-medal-member-table">
         <thead><tr><th>会员 ID</th><th>活动职务</th><th>获得时间</th><th>操作</th></tr></thead>
@@ -497,7 +506,7 @@ function MemberList({
             <tr><td className="management-medal-table-empty" colSpan={4}>正在加载成员</td></tr>
           ) : status === 'error' ? (
             <tr><td className="management-medal-table-empty" colSpan={4}>成员加载失败 <Button onClick={onRetry}><RefreshCw aria-hidden="true" size={15} />重新加载</Button></td></tr>
-          ) : members.length > 0 ? members.map((member) => (
+          ) : members.length > 0 ? pagination.pageItems.map((member) => (
             <tr key={member.username}>
               <td><a href={getForumNavigationHref(member.href, window.location.href)}>{member.username}</a></td>
               <td>{member.role}</td>
@@ -509,6 +518,8 @@ function MemberList({
           )}
         </tbody>
       </table>
+    </div>
+    {status === 'ready' && <ListPagination ariaLabel="勋章成员分页" className="management-list-pagination" currentPage={pagination.currentPage} onPageChange={pagination.onPageChange} pageCount={pagination.pageCount} />}
     </div>
   );
 }

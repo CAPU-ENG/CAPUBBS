@@ -1690,3 +1690,11 @@
     }
   }
 }
+
+@layer components {
+  .management-list-pagination {
+    margin-top: var(--space-16);
+    border-top: 1px solid var(--line);
+    padding-top: var(--space-12);
+  }
+}
