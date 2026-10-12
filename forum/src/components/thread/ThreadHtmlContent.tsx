@@ -619,15 +619,20 @@ function buildFrameBridgeScript(frameId: string, canOpenImages: boolean, needsJq
         if(entry.isIntersecting&&entry.target.loading!=='eager')entry.target.loading='eager';
       });
     },{rootMargin:'0px',threshold:0}):null;
-    var grayscaleNamedColors={black:0,darkgray:169,darkgrey:169,dimgray:105,dimgrey:105,gainsboro:220,gray:128,grey:128,lightgray:211,lightgrey:211,silver:192,white:255,whitesmoke:245};
+    var grayscaleNamedColors={black:[0,0,0],darkgray:[169,169,169],darkgrey:[169,169,169],darkslategray:[47,79,79],darkslategrey:[47,79,79],dimgray:[105,105,105],dimgrey:[105,105,105],gainsboro:[220,220,220],gray:[128,128,128],grey:[128,128,128],lightgray:[211,211,211],lightgrey:[211,211,211],silver:[192,192,192],slategray:[112,128,144],slategrey:[112,128,144],white:[255,255,255],whitesmoke:[245,245,245]};
+    function toGrayscaleColor(red,green,blue,alpha){
+      var brightest=Math.max(red,green,blue);
+      var chromaLimit=Math.max(32,96-brightest/2);
+      return brightest-Math.min(red,green,blue)<=chromaLimit?{alpha:alpha,red:red,green:green,blue:blue}:null;
+    }
     var originalColorAttribute='data-capubbs-original-grayscale-color-attr';
     var originalStyleColorAttribute='data-capubbs-original-grayscale-style-color';
     var syncingGrayscaleTextColors=false;
     function parseGrayscaleTextColor(value){
       var colorText=String(value==null?'':value).trim().toLowerCase().replace(/^['"]|['"]$/g,'');
       var compactColorText=colorText.replace(/\\s+/g,'');
-      var namedChannel=grayscaleNamedColors[compactColorText];
-      if(typeof namedChannel==='number')return {alpha:1,channel:namedChannel};
+      var namedColor=grayscaleNamedColors[compactColorText];
+      if(namedColor)return toGrayscaleColor(namedColor[0],namedColor[1],namedColor[2],1);
       var hexMatch=compactColorText.match(/^#?([0-9a-f]{3}|[0-9a-f]{4}|[0-9a-f]{6}|[0-9a-f]{8})$/);
       if(hexMatch){
         var rawHex=hexMatch[1];
@@ -636,7 +641,7 @@ function buildFrameBridgeScript(frameId: string, canOpenImages: boolean, needsJq
         var green=parseInt(hex.slice(2,4),16);
         var blue=parseInt(hex.slice(4,6),16);
         var hexAlpha=hex.length===8?parseInt(hex.slice(6,8),16)/255:1;
-        return red===green&&green===blue?{alpha:hexAlpha,channel:red}:null;
+        return toGrayscaleColor(red,green,blue,hexAlpha);
       }
       var rgbMatch=colorText.match(/^rgba?\\(\\s*(\\d{1,3}(?:\\.\\d+)?%?)(?:\\s*,\\s*|\\s+)(\\d{1,3}(?:\\.\\d+)?%?)(?:\\s*,\\s*|\\s+)(\\d{1,3}(?:\\.\\d+)?%?)(?:\\s*(?:,|\\/)\\s*([01](?:\\.\\d+)?|\\.\\d+|100%|\\d{1,3}(?:\\.\\d+)?%))?\\s*\\)$/);
       if(!rgbMatch)return null;
@@ -660,15 +665,15 @@ function buildFrameBridgeScript(frameId: string, canOpenImages: boolean, needsJq
       var blueChannel=parseRgbChannel(rgbMatch[3]);
       var alpha=parseAlphaChannel(rgbMatch[4]);
       if(redChannel===null||greenChannel===null||blueChannel===null||alpha===null)return null;
-      return redChannel===greenChannel&&greenChannel===blueChannel?{alpha:alpha,channel:redChannel}:null;
+      return toGrayscaleColor(redChannel,greenChannel,blueChannel,alpha);
     }
     function invertGrayscaleTextColor(value,allowAlpha){
       var grayscaleColor=parseGrayscaleTextColor(value);
       if(!grayscaleColor)return '';
-      var invertedChannel=255-grayscaleColor.channel;
-      if(allowAlpha&&grayscaleColor.alpha<1)return 'rgba('+invertedChannel+', '+invertedChannel+', '+invertedChannel+', '+Number(grayscaleColor.alpha.toFixed(3))+')';
-      var hex=invertedChannel.toString(16).padStart(2,'0');
-      return '#'+hex+hex+hex;
+      var shift=255-Math.max(grayscaleColor.red,grayscaleColor.green,grayscaleColor.blue)-Math.min(grayscaleColor.red,grayscaleColor.green,grayscaleColor.blue);
+      var channels=[grayscaleColor.red+shift,grayscaleColor.green+shift,grayscaleColor.blue+shift];
+      if(allowAlpha&&grayscaleColor.alpha<1)return 'rgba('+channels.join(', ')+', '+Number(grayscaleColor.alpha.toFixed(3))+')';
+      return '#'+channels.map(function(channel){return channel.toString(16).padStart(2,'0');}).join('');
     }
     function syncGrayscaleTextColors(root){
       if(syncingGrayscaleTextColors)return;
