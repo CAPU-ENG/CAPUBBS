@@ -375,7 +375,7 @@ function mapProfile(
   };
   const details: ProfileDetail[] = [
     { key: 'hobby', label: '爱好', value: stringValue(row.hobby) },
-    { key: 'qq', label: 'QQ', value: stringValue(row.qq) },
+    { key: 'qq', label: 'QQ/微信', value: stringValue(row.qq) },
     { key: 'email', label: 'Email', value: stringValue(row.mail ?? row.email) },
     { key: 'location', label: '地点', value: stringValue(row.place ?? row.location) },
   ];
