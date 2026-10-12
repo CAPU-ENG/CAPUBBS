@@ -8,7 +8,9 @@ type GrayscaleColor = {
 };
 
 // Colors whose channel spread (max - min) stays within this range are treated as gray and inverted in dark mode.
-const GRAYSCALE_MAX_CHROMA = 32;
+// The range widens as the color darkens: 32 from mid-gray up, growing to cover every color whose brightest channel is 64 or less.
+const GRAYSCALE_MIN_CHROMA_LIMIT = 32;
+const GRAYSCALE_DARK_CHROMA_LIMIT = 96;
 
 const GRAYSCALE_NAMED_COLORS: Record<string, [number, number, number]> = {
   black: [0, 0, 0],
@@ -125,9 +127,9 @@ function syncStyleColor(element: HTMLElement, theme: Theme) {
 }
 
 function toGrayscaleColor(red: number, green: number, blue: number, alpha: number): GrayscaleColor | null {
-  return Math.max(red, green, blue) - Math.min(red, green, blue) <= GRAYSCALE_MAX_CHROMA
-    ? { alpha, blue, green, red }
-    : null;
+  const brightest = Math.max(red, green, blue);
+  const chromaLimit = Math.max(GRAYSCALE_MIN_CHROMA_LIMIT, GRAYSCALE_DARK_CHROMA_LIMIT - brightest / 2);
+  return brightest - Math.min(red, green, blue) <= chromaLimit ? { alpha, blue, green, red } : null;
 }
 
 function parseRgbChannel(value: string) {
