@@ -2,23 +2,32 @@ import type { Theme } from './theme';
 
 type GrayscaleColor = {
   alpha: number;
-  channel: number;
+  blue: number;
+  green: number;
+  red: number;
 };
 
-const GRAYSCALE_NAMED_COLORS: Record<string, number> = {
-  black: 0,
-  darkgray: 169,
-  darkgrey: 169,
-  dimgray: 105,
-  dimgrey: 105,
-  gainsboro: 220,
-  gray: 128,
-  grey: 128,
-  lightgray: 211,
-  lightgrey: 211,
-  silver: 192,
-  white: 255,
-  whitesmoke: 245,
+// Colors whose channel spread (max - min) stays within this range are treated as gray and inverted in dark mode.
+const GRAYSCALE_MAX_CHROMA = 32;
+
+const GRAYSCALE_NAMED_COLORS: Record<string, [number, number, number]> = {
+  black: [0, 0, 0],
+  darkgray: [169, 169, 169],
+  darkgrey: [169, 169, 169],
+  darkslategray: [47, 79, 79],
+  darkslategrey: [47, 79, 79],
+  dimgray: [105, 105, 105],
+  dimgrey: [105, 105, 105],
+  gainsboro: [220, 220, 220],
+  gray: [128, 128, 128],
+  grey: [128, 128, 128],
+  lightgray: [211, 211, 211],
+  lightgrey: [211, 211, 211],
+  silver: [192, 192, 192],
+  slategray: [112, 128, 144],
+  slategrey: [112, 128, 144],
+  white: [255, 255, 255],
+  whitesmoke: [245, 245, 245],
 };
 
 const ORIGINAL_COLOR_ATTRIBUTE = 'data-capubbs-original-grayscale-color-attr';
@@ -27,9 +36,9 @@ const ORIGINAL_STYLE_COLOR_ATTRIBUTE = 'data-capubbs-original-grayscale-style-co
 export function parseForumGrayscaleTextColor(value: string | null | undefined): GrayscaleColor | null {
   const colorText = String(value ?? '').trim().toLowerCase().replace(/^['"]|['"]$/g, '');
   const compactColorText = colorText.replace(/\s+/g, '');
-  const namedChannel = GRAYSCALE_NAMED_COLORS[compactColorText];
+  const namedColor = GRAYSCALE_NAMED_COLORS[compactColorText];
 
-  if (typeof namedChannel === 'number') return { alpha: 1, channel: namedChannel };
+  if (namedColor) return toGrayscaleColor(namedColor[0], namedColor[1], namedColor[2], 1);
 
   const hexMatch = compactColorText.match(/^#?([0-9a-f]{3}|[0-9a-f]{4}|[0-9a-f]{6}|[0-9a-f]{8})$/);
   if (hexMatch) {
@@ -40,7 +49,7 @@ export function parseForumGrayscaleTextColor(value: string | null | undefined): 
     const green = Number.parseInt(expandedHex.slice(2, 4), 16);
     const blue = Number.parseInt(expandedHex.slice(4, 6), 16);
     const alpha = expandedHex.length === 8 ? Number.parseInt(expandedHex.slice(6, 8), 16) / 255 : 1;
-    return red === green && green === blue ? { alpha, channel: red } : null;
+    return toGrayscaleColor(red, green, blue, alpha);
   }
 
   const rgbMatch = colorText.match(
@@ -53,20 +62,20 @@ export function parseForumGrayscaleTextColor(value: string | null | undefined): 
   const blue = parseRgbChannel(rgbMatch[3]);
   const alpha = parseAlphaChannel(rgbMatch[4]);
   if (red === null || green === null || blue === null || alpha === null) return null;
-  return red === green && green === blue ? { alpha, channel: red } : null;
+  return toGrayscaleColor(red, green, blue, alpha);
 }
 
 export function invertForumGrayscaleTextColor(value: string | null | undefined, allowAlpha = true) {
   const grayscaleColor = parseForumGrayscaleTextColor(value);
   if (!grayscaleColor) return null;
 
-  const invertedChannel = 255 - grayscaleColor.channel;
-  if (allowAlpha && grayscaleColor.alpha < 1) {
-    return `rgba(${invertedChannel}, ${invertedChannel}, ${invertedChannel}, ${formatAlpha(grayscaleColor.alpha)})`;
-  }
+  // Flip HSL lightness while keeping hue and saturation, so a slight tint survives; pure grays become 255 - channel.
+  const { alpha, blue, green, red } = grayscaleColor;
+  const shift = 255 - Math.max(red, green, blue) - Math.min(red, green, blue);
+  const channels = [red + shift, green + shift, blue + shift];
+  if (allowAlpha && alpha < 1) return `rgba(${channels.join(', ')}, ${formatAlpha(alpha)})`;
 
-  const hex = invertedChannel.toString(16).padStart(2, '0');
-  return `#${hex}${hex}${hex}`;
+  return `#${channels.map((channel) => channel.toString(16).padStart(2, '0')).join('')}`;
 }
 
 export function syncForumGrayscaleTextColors(root: Element, theme: Theme) {
@@ -113,6 +122,12 @@ function syncStyleColor(element: HTMLElement, theme: Theme) {
   if (element.style.getPropertyValue('color') !== invertedColor) {
     element.style.setProperty('color', invertedColor, element.style.getPropertyPriority('color'));
   }
+}
+
+function toGrayscaleColor(red: number, green: number, blue: number, alpha: number): GrayscaleColor | null {
+  return Math.max(red, green, blue) - Math.min(red, green, blue) <= GRAYSCALE_MAX_CHROMA
+    ? { alpha, blue, green, red }
+    : null;
 }
 
 function parseRgbChannel(value: string) {
