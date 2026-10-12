@@ -78,7 +78,7 @@
         $isFaved = (mysqli_num_rows($fav_check) > 0);
     }
 ?>
-
+<!DOCTYPE html>
 <html>
 <head>
 <meta charset="utf-8">
