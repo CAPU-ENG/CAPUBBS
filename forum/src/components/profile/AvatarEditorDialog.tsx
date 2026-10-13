@@ -140,6 +140,7 @@ export function AvatarDialog({ avatarSrc, mode = 'avatar', onClose, onSave, open
     }
     let cancelled = false;
     const image = new Image();
+    image.crossOrigin = 'anonymous';
 
     image.onload = () => {
       if (cancelled) return;
@@ -161,6 +162,7 @@ export function AvatarDialog({ avatarSrc, mode = 'avatar', onClose, onSave, open
     if (!open || !sourceSrc || !displayMetrics) return;
     let cancelled = false;
     const image = new Image();
+    image.crossOrigin = 'anonymous';
 
     image.onload = () => {
       if (cancelled) return;
