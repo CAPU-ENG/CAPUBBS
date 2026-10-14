@@ -454,6 +454,106 @@ html.is-routing body, html.is-routing a { cursor: progress; }
 @keyframes map-fade { from { opacity: 0; } to { opacity: 1; } }
 @keyframes map-rider { 0%, 96% { opacity: 1; } 100% { opacity: 0; } }
 
+/* elevation along the same road; heights from SRTM (tool/annual-2023-demo/elevation.py), dot follows the map rider */
+.ele {
+    --ride: 7s;
+    --above: 34px;
+    --below: 24px;
+    position: relative;
+    max-width: 1100px;
+    height: clamp(132px, 15vw, 176px);
+    margin: 18px auto 0;
+}
+.ele-svg {
+    position: absolute;
+    inset: var(--above) 0 var(--below);
+    width: 100%;
+    height: calc(100% - var(--above) - var(--below));
+    overflow: visible;
+}
+.ele-area { fill: rgba(83, 138, 189, .14); }
+.ele-line { fill: none; stroke: var(--sky-deep); stroke-width: 1.8; stroke-linejoin: round; }
+.ele::after {
+    content: "";
+    position: absolute;
+    inset: auto 0 var(--below);
+    height: 1px;
+    background: #bfd0e0;
+}
+.ele-mark {
+    --y: calc(var(--below) + var(--h) * (100% - var(--above) - var(--below)));
+    position: absolute;
+    inset: 0 auto 0 calc(var(--t) * 100%);
+    width: 0;
+    font-family: var(--sans);
+    line-height: 1;
+    white-space: nowrap;
+}
+.ele-mark::before {
+    content: "";
+    position: absolute;
+    left: -4px;
+    bottom: calc(var(--y) - 4px);
+    z-index: 1;
+    width: 8px;
+    height: 8px;
+    border: 2px solid var(--white);
+    border-radius: 50%;
+    background: var(--sky-deep);
+}
+.ele-mark::after {
+    content: "";
+    position: absolute;
+    left: 0;
+    bottom: var(--below);
+    height: calc(var(--y) - var(--below));
+    border-left: 1px dashed rgba(42, 83, 145, .35);
+}
+.ele-mark b,
+.ele-mark i {
+    position: absolute;
+    left: 0;
+    transform: translateX(calc(var(--t) * -100%));
+}
+.ele-mark b {
+    bottom: calc(var(--y) + 10px);
+    color: var(--ink);
+    font-family: var(--numeral);
+    font-size: clamp(13px, 1.5vw, 17px);
+    font-weight: 700;
+}
+.ele-mark b::after { content: " m"; color: var(--ink-faint); font-size: .72em; font-weight: 400; }
+.ele-mark i {
+    bottom: 0;
+    color: var(--ink-soft);
+    font-size: clamp(10px, 1.1vw, 13px);
+    font-style: normal;
+    letter-spacing: .06em;
+}
+.ele-mark.is-peak::before { background: var(--flag); }
+.ele-mark.is-peak b { color: var(--flag); font-size: clamp(16px, 2vw, 22px); }
+.ele-mark.is-peak i { color: var(--flag); }
+.ele-dot {
+    position: absolute;
+    left: 0;
+    top: 0;
+    z-index: 2;
+    width: 14px;
+    height: 14px;
+    margin: -7px 0 0 -7px;
+    border: 3px solid var(--white);
+    border-radius: 50%;
+    background: var(--flag);
+    box-shadow: 0 1px 4px rgba(22, 36, 58, .35);
+    opacity: 0;
+}
+.ele.is-ready .ele-svg { clip-path: inset(-4px 100% -4px 0); }
+.ele.is-ready .ele-mark { opacity: 0; }
+.ele.is-playing .ele-svg { animation: ele-reveal var(--ride) linear forwards; }
+.ele.is-playing .ele-mark { animation: map-fade .5s ease-out calc(var(--t) * var(--ride)) both; }
+.ele.is-playing .ele-dot { animation: map-rider var(--ride) linear both; }
+@keyframes ele-reveal { to { clip-path: inset(-4px 0 -4px 0); } }
+
 .route-quote {
     max-width: 780px;
     margin: clamp(36px, 5vw, 56px) auto 0;
@@ -971,7 +1071,7 @@ html.is-routing body, html.is-routing a { cursor: progress; }
 .footline a:hover { color: var(--sky-deep); text-decoration: underline; text-underline-offset: 4px; }
 
 /* ---------- article ---------- */
-.progress {
+body > .progress {
     position: fixed;
     inset: 0 0 auto;
     z-index: 30;
@@ -982,11 +1082,118 @@ html.is-routing body, html.is-routing a { cursor: progress; }
     transform-origin: 0 50%;
 }
 @supports (animation-timeline: scroll()) {
-    .progress { display: block; animation: progress linear both; animation-timeline: scroll(root); }
+    body > .progress { display: block; animation: progress linear both; animation-timeline: scroll(root); }
 }
 @keyframes progress { to { transform: scaleX(1); } }
 
+/* reading progress as a ride along the bottom edge of the top bar */
+.bar .progress {
+    position: absolute;
+    inset: auto 0 -1px;
+    display: none;
+    height: 22px;
+    container-type: inline-size;
+    pointer-events: none;
+}
+.progress-road,
+.progress-rider,
+.progress-flag { position: absolute; bottom: 0; }
+.progress-road {
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, var(--cyan), var(--sky));
+    transform: scaleX(0);
+    transform-origin: 0 50%;
+}
+.progress-rider {
+    left: 0;
+    bottom: 2px;
+    width: 26px;
+    height: 19px;
+    background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='-17 -18 34 26'%3E%3Cg fill='none' stroke='%23df242a' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='-9' cy='0' r='7' fill='%23fff'/%3E%3Ccircle cx='9' cy='0' r='7' fill='%23fff'/%3E%3Cpath d='M-9 0L-3 -10L5 -10L9 0M-3 -10L1 0L-9 0M5 -10L4 -15M1 -13L-5 -13'/%3E%3C/g%3E%3C/svg%3E") 0 100% / contain no-repeat;
+}
+.progress-flag {
+    right: 2px;
+    bottom: 2px;
+    width: 14px;
+    height: 18px;
+    background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 14 18'%3E%3Cpath d='M2 17V1' stroke='%2316243a' stroke-width='1.6' stroke-linecap='round'/%3E%3Cpath d='M2.8 1.5H13L10 5L13 8.5H2.8Z' fill='%23df242a'/%3E%3C/svg%3E") 0 100% / contain no-repeat;
+    opacity: .28;
+    transform-origin: 2px 100%;
+}
+@supports (animation-timeline: scroll()) {
+    .bar .progress { display: block; }
+    .progress-road { animation: progress linear both; animation-timeline: scroll(root); }
+    .progress-rider { animation: progress-ride linear both; animation-timeline: scroll(root); }
+    .progress-flag { animation: progress-flag linear both; animation-timeline: scroll(root); }
+}
+@keyframes progress-ride { to { transform: translateX(calc(100cqw - 26px - 18px)); } }
+@keyframes progress-flag {
+    0%, 98% { opacity: .28; transform: none; }
+    100% { opacity: 1; transform: scale(1.25); }
+}
+
 .read { background: var(--white); }
+/* lead photo: an article that opens on a panorama shows it across the window, drifting slower than
+   the page, with the heading on a card that rises over its lower edge */
+.article-banner {
+    position: relative;
+    height: max(240px, min(calc(100vw / var(--ar)), 74vh));
+    overflow: hidden;
+    /* clip, not hidden: the banner must not become a scroll container or its view timeline stalls */
+    overflow: clip;
+    background: var(--mist);
+    view-timeline: --banner block;
+}
+.article-banner a { position: absolute; inset: 0; display: block; cursor: zoom-in; }
+.article-banner img {
+    position: absolute;
+    left: 0;
+    top: -12%;
+    width: 100%;
+    height: 124%;
+    object-fit: cover;
+    animation: banner-settle 1.6s cubic-bezier(.2, .7, .2, 1) both;
+}
+@keyframes banner-settle { from { transform: scale(1.06); } }
+@supports (view-timeline: --banner block) {
+    .article-banner img {
+        animation: banner-settle 1.6s cubic-bezier(.2, .7, .2, 1) both, banner-drift linear both;
+        animation-timeline: auto, --banner;
+        animation-range: normal, exit;
+    }
+    @keyframes banner-drift {
+        from { translate: 0 0; }
+        to { translate: 0 18%; }
+    }
+}
+/* a title artwork as banner (人物志 lettering): shown whole, never cropped or moved, with room
+   below it for the title card so the card does not cover the lettering */
+.article-banner.is-art {
+    --lift: clamp(72px, 11vw, 150px);
+    height: calc(min(calc(100vw / var(--ar)), 74vh) + var(--lift));
+    background: none;
+}
+.article-banner.is-art a { inset: 0 0 var(--lift); }
+.article-banner.is-art img {
+    top: 0;
+    height: 100%;
+    object-fit: contain;
+    animation: none;
+    translate: none;
+}
+.article-banner + .article { padding-top: 0; }
+.article-banner + .article .article-head {
+    position: relative;
+    z-index: 1;
+    margin: calc(clamp(72px, 11vw, 150px) * -1) calc(clamp(0px, 4vw, 48px) * -1) 0;
+    padding: clamp(24px, 4vw, 44px) clamp(20px, 4vw, 48px);
+    border-radius: 6px;
+    background: var(--white);
+    animation: card-rise .9s cubic-bezier(.2, .8, .2, 1) .25s both;
+}
+@keyframes card-rise { from { opacity: 0; transform: translateY(40px) scale(.98); } }
 .article {
     width: 100%;
     max-width: calc(760px + var(--gutter) * 2);
@@ -1248,6 +1455,11 @@ html.is-routing body, html.is-routing a { cursor: progress; }
     .hero-shore { height: 26vh; min-height: 170px; object-position: 46% 60%; }
 
     .route-map { margin-inline: calc(var(--gutter) * -1); border-inline: 0; border-radius: 0; }
+    .ele { --above: 30px; --below: 20px; height: 128px; }
+    .ele-mark b { font-size: 12px; }
+    .ele-mark.is-peak b { font-size: 15px; }
+    .ele-mark b::after { content: none; }
+    .ele-mark i { font-size: 10px; letter-spacing: 0; }
     .map-label-minor, .map-credit { font-size: 10px; }
     .map-label-minor { display: none; }
 
@@ -1287,6 +1499,9 @@ html.is-routing body, html.is-routing a { cursor: progress; }
     .milestone { width: 54px; }
     .milestone b { font-size: 22px; }
     .prose { font-size: 17px; line-height: 2; }
+    .article-banner { height: max(260px, min(calc(100vw / var(--ar)), 60vh)); }
+    .article-banner + .article .article-head { margin: -56px 0 0; }
+    .article-banner.is-art { --lift: 56px; height: calc(100vw / var(--ar) + var(--lift)); }
     .pager { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
     .pager .pager-toc { grid-column: 1 / -1; grid-row: 2; }
 }
@@ -2117,6 +2332,28 @@ html.is-routing body, html.is-routing a { cursor: progress; }
     transition: background-color .2s;
 }
 .lightbox-close:hover { background: rgba(255, 255, 255, .16); }
+.lightbox-step {
+    position: absolute;
+    top: 50%;
+    width: 48px;
+    height: 48px;
+    margin-top: -24px;
+    border: 1px solid rgba(255, 255, 255, .35);
+    border-radius: 50%;
+    background: rgba(12, 18, 28, .6) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M15 4L7 12L15 20' fill='none' stroke='%23fff' stroke-width='2.2'/%3E%3C/svg%3E") center / 22px no-repeat;
+    cursor: pointer;
+    transition: background-color .2s;
+}
+.lightbox-step:hover { background-color: rgba(255, 255, 255, .16); }
+.lightbox-prev { left: max(12px, env(safe-area-inset-left)); }
+.lightbox-next { right: max(12px, env(safe-area-inset-right)); transform: scaleX(-1); }
+.lightbox img.is-from-next { animation: lightbox-from-next .32s cubic-bezier(.2, .7, .2, 1) both; }
+.lightbox img.is-from-prev { animation: lightbox-from-prev .32s cubic-bezier(.2, .7, .2, 1) both; }
+@keyframes lightbox-from-next { from { opacity: 0; transform: translateX(48px); } }
+@keyframes lightbox-from-prev { from { opacity: 0; transform: translateX(-48px); } }
+@media (hover: none) and (pointer: coarse) {
+    .lightbox-step { display: none; }
+}
 .figure a, .colophon-cover { cursor: zoom-in; }
 
 @media (max-width: 1023px) {
@@ -2191,4 +2428,5 @@ html.is-routing body, html.is-routing a { cursor: progress; }
     .page-wipe { display: none; }
     ::view-transition-old(root), ::view-transition-new(root) { animation: none; }
     *, *::before, *::after { animation: none !important; transition: none !important; }
+    .progress-rider, .progress-flag { display: none; }
 }

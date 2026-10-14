@@ -14,7 +14,33 @@ function initAnnualPage() {
     if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
 
     var motion = map.querySelector('animateMotion');
+    var ele = document.querySelector('[data-ele]');
+    var frame = 0;
     map.classList.add('is-ready');
+    if (ele) ele.classList.add('is-ready');
+
+    // the elevation dot climbs with the map rider: same start, same duration, x is the share of the ride
+    function rideElevation() {
+        var dot = ele.querySelector('.ele-dot');
+        var line = ele.querySelector('.ele-line');
+        var svg = ele.querySelector('.ele-svg');
+        if (!dot || !line || !svg || !window.requestAnimationFrame) return;
+        var heights = (line.getAttribute('d').match(/-?[\d.]+/g) || []).map(Number).filter(function (v, i) { return i % 2; });
+        var box = svg.viewBox.baseVal;
+        var duration = (parseFloat(window.getComputedStyle(ele).getPropertyValue('--ride')) || 7) * 1000;
+        var start = 0;
+        function step(now) {
+            if (!start) start = now;
+            var t = Math.min(1, (now - start) / duration);
+            var at = t * (heights.length - 1);
+            var i = Math.floor(at);
+            var y = heights[i] + ((heights[Math.min(i + 1, heights.length - 1)] - heights[i]) * (at - i));
+            dot.style.left = (t * 100) + '%';
+            dot.style.top = (svg.offsetTop + (y / box.height) * svg.clientHeight) + 'px';
+            if (t < 1) frame = window.requestAnimationFrame(step);
+        }
+        frame = window.requestAnimationFrame(step);
+    }
 
     var observer = new IntersectionObserver(function (entries) {
         entries.forEach(function (entry) {
@@ -22,11 +48,18 @@ function initAnnualPage() {
             observer.disconnect();
             map.classList.add('is-playing');
             if (motion && motion.beginElement) motion.beginElement();
+            if (ele) {
+                ele.classList.add('is-playing');
+                rideElevation();
+            }
         });
     }, { threshold: 0.4 });
 
     observer.observe(map);
-    onAnnualPageLeave(function () { observer.disconnect(); });
+    onAnnualPageLeave(function () {
+        observer.disconnect();
+        if (frame) window.cancelAnimationFrame(frame);
+    });
     })();
 
 (function () {
@@ -365,59 +398,134 @@ function initAnnualPage() {
     update();
     })();
 
-// click a photo to see it full screen; click again, press Esc or use the close button to go back
+// click a photo to see it full screen; arrows, arrow keys or a swipe move between the page's photos;
+// click the photo, press Esc or use the close button to go back
 (function () {
-    var links = document.querySelectorAll('.figure a, .colophon-cover');
+    var links = Array.prototype.slice.call(document.querySelectorAll('.article-banner a, .figure a, .colophon-cover'));
     if (!links.length) return;
+    // the cover opens on its own; the article photos form one sequence in reading order
+    var photos = links.filter(function (link) { return !link.classList.contains('colophon-cover'); });
     var box = null;
+    var img = null;
     var closer = null;
+    var steps = [];
     var opener = null;
+    var set = [];
+    var index = 0;
+    var touch = null;
 
     function close() {
         if (!box) return;
         box.remove();
         box = null;
+        img = null;
         closer = null;
+        steps = [];
+        touch = null;
         document.documentElement.classList.remove('has-lightbox');
         if (opener && opener.isConnected) opener.focus();
     }
 
-    Array.prototype.forEach.call(links, function (link) {
+    function show(next, direction) {
+        var link = set[next];
+        var source = link && link.querySelector('img');
+        if (!source) return;
+        index = next;
+        opener = link;
+        img.className = '';
+        img.src = link.getAttribute('href');
+        img.alt = source.alt;
+        box.setAttribute('aria-label', source.alt || '图片');
+        if (direction) {
+            void img.offsetWidth;
+            img.className = direction > 0 ? 'is-from-next' : 'is-from-prev';
+        }
+        // warm the neighbours so stepping does not wait on the network
+        [next - 1, next + 1].forEach(function (n) {
+            if (set[n]) new window.Image().src = set[n].getAttribute('href');
+        });
+    }
+
+    function step(direction) {
+        if (set.length < 2) return;
+        show((index + direction + set.length) % set.length, direction);
+    }
+
+    function stepButton(className, label, direction) {
+        var button = document.createElement('button');
+        button.type = 'button';
+        button.className = 'lightbox-step ' + className;
+        button.setAttribute('aria-label', label);
+        button.addEventListener('click', function (event) {
+            event.stopPropagation();
+            step(direction);
+        });
+        return button;
+    }
+
+    function open(link) {
+        set = photos.indexOf(link) >= 0 ? photos : [link];
+        box = document.createElement('div');
+        box.className = 'lightbox';
+        box.setAttribute('role', 'dialog');
+        box.setAttribute('aria-modal', 'true');
+        img = document.createElement('img');
+        closer = document.createElement('button');
+        closer.type = 'button';
+        closer.className = 'lightbox-close';
+        closer.setAttribute('aria-label', '关闭');
+        closer.textContent = '×';
+        box.appendChild(img);
+        if (set.length > 1) {
+            steps = [stepButton('lightbox-prev', '上一张', -1), stepButton('lightbox-next', '下一张', 1)];
+            steps.forEach(function (button) { box.appendChild(button); });
+        }
+        box.appendChild(closer);
+        box.addEventListener('click', function () {
+            // a swipe also ends in a click; only a tap closes
+            if (touch && touch.moved) return;
+            close();
+        });
+        box.addEventListener('touchstart', function (event) {
+            if (event.touches.length !== 1) { touch = null; return; }
+            touch = { x: event.touches[0].clientX, y: event.touches[0].clientY, moved: false };
+        }, { passive: true });
+        box.addEventListener('touchend', function (event) {
+            if (!touch || !event.changedTouches.length) return;
+            var dx = event.changedTouches[0].clientX - touch.x;
+            var dy = event.changedTouches[0].clientY - touch.y;
+            if (Math.abs(dx) > 48 && Math.abs(dx) > Math.abs(dy) * 1.4) {
+                touch.moved = true;
+                step(dx < 0 ? 1 : -1);
+                window.setTimeout(function () { touch = null; }, 400);
+            } else touch = null;
+        });
+        document.body.appendChild(box);
+        document.documentElement.classList.add('has-lightbox');
+        show(set.indexOf(link), 0);
+        closer.focus();
+    }
+
+    links.forEach(function (link) {
         link.addEventListener('click', function (event) {
             if (event.metaKey || event.ctrlKey || event.shiftKey || event.button !== 0) return;
-            var source = link.querySelector('img');
-            if (!source) return;
+            if (!link.querySelector('img')) return;
             event.preventDefault();
-            opener = link;
-            box = document.createElement('div');
-            box.className = 'lightbox';
-            box.setAttribute('role', 'dialog');
-            box.setAttribute('aria-modal', 'true');
-            box.setAttribute('aria-label', source.alt || '图片');
-            var img = document.createElement('img');
-            img.src = link.getAttribute('href');
-            img.alt = source.alt;
-            closer = document.createElement('button');
-            closer.type = 'button';
-            closer.className = 'lightbox-close';
-            closer.setAttribute('aria-label', '关闭');
-            closer.textContent = '×';
-            box.appendChild(img);
-            box.appendChild(closer);
-            box.addEventListener('click', close);
-            document.body.appendChild(box);
-            document.documentElement.classList.add('has-lightbox');
-            closer.focus();
+            open(link);
         });
     });
 
     function onKey(event) {
         if (!box) return;
         if (event.key === 'Escape') close();
-        // the close button is the only control in the dialog, so Tab stays on it
+        else if (event.key === 'ArrowRight') { event.preventDefault(); step(1); }
+        else if (event.key === 'ArrowLeft') { event.preventDefault(); step(-1); }
+        // keep Tab inside the dialog's buttons
         else if (event.key === 'Tab') {
+            var controls = steps.concat(closer);
+            var at = controls.indexOf(document.activeElement);
             event.preventDefault();
-            closer.focus();
+            controls[(at + (event.shiftKey ? controls.length - 1 : 1)) % controls.length].focus();
         }
     }
     document.addEventListener('keydown', onKey);
@@ -437,10 +545,11 @@ initAnnualPage();
 (function () {
     if (!document.body || !window.fetch || !window.DOMParser) return;
 
-    var script = document.querySelector('script[src$="/script.js"], script[src$="script.js"]');
+    // the file name carries a content hash (script.<hash>.js), so match any version of it
+    var script = document.currentScript || document.querySelector('script[src*="script."][src$=".js"]');
     var annualRoot = '';
     if (script) {
-        try { annualRoot = new window.URL(script.src, window.location.href).pathname.replace(/script\.js$/, ''); } catch (error) { annualRoot = ''; }
+        try { annualRoot = new window.URL(script.src, window.location.href).pathname.replace(/script(\.[0-9a-f]+)?\.js$/, ''); } catch (error) { annualRoot = ''; }
     }
     var reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     var nativeViewTransition = typeof document.startViewTransition === 'function'
