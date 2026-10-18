@@ -22,7 +22,7 @@ import { getPublicProfilePath } from '../utils/userRoutes';
 import { ALL_BOARDS } from '../data/boards';
 import { staggerEntrance } from '../utils/staggerEntrance';
 
-type SearchRange = 'all' | 'custom' | 'year';
+type SearchRange = 'all' | 'custom' | 'year' | 'years2';
 
 type SearchOptions = {
   author: string;
@@ -231,6 +231,7 @@ function SearchFilters({
           <FilterGroup label="时间">
             <div className="search-range-options">
               <SegmentedOption checked={draft.range === 'year'} label="一年内" onChange={() => set('range', 'year')} />
+              <SegmentedOption checked={draft.range === 'years2'} label="两年内" onChange={() => set('range', 'years2')} />
               <SegmentedOption checked={draft.range === 'all'} label="不限" onChange={() => set('range', 'all')} />
               <SegmentedOption checked={draft.range === 'custom'} label="自定义" onChange={() => set('range', 'custom')} />
             </div>
@@ -414,7 +415,7 @@ function readOptionsFromLocation(): SearchOptions {
     endDate,
     field: params.get('field') === 'user' ? 'user' : params.get('field') === 'body' || params.get('type') === 'post' ? 'body' : 'title',
     keyword: (params.get('q') ?? params.get('keyword') ?? '').trim(),
-    range: rangeParam === 'all' || rangeParam === 'custom' ? rangeParam : startDate || endDate ? 'custom' : 'year',
+    range: rangeParam === 'all' || rangeParam === 'custom' || rangeParam === 'years2' ? rangeParam : startDate || endDate ? 'custom' : 'year',
     startDate,
   };
 }
@@ -456,7 +457,7 @@ function resolveStartDate(options: SearchOptions) {
   if (options.range === 'all') return '2001-01-01';
   if (options.range === 'custom') return options.startDate || '2001-01-01';
   const date = new Date();
-  date.setFullYear(date.getFullYear() - 1);
+  date.setFullYear(date.getFullYear() - (options.range === 'years2' ? 2 : 1));
   return localDate(date);
 }
 
