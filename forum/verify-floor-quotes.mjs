@@ -148,7 +148,12 @@ const linkOnlyQuote = dom.window.document.createElement('template');
 linkOnlyQuote.innerHTML = linkOnlyHtml;
 const renderedLinkOnly = linkOnlyQuote.content.querySelector('blockquote.forum-legacy-quote');
 assert.ok(renderedLinkOnly, 'a link-only quote must render as a quote block');
-assert.doesNotMatch(renderedLinkOnly.textContent, /引用自|匿名用户/, 'a link-only quote must not show an author line');
+assert.equal(
+  renderedLinkOnly.querySelector('.capubbs-manual-quote-author')?.textContent,
+  '引用自链接>>',
+  'a link-only quote must read 引用自链接 >> instead of naming an author',
+);
+assert.doesNotMatch(renderedLinkOnly.textContent, /匿名用户/);
 assert.equal(
   renderedLinkOnly.querySelector('.capubbs-manual-quote-author > .capubbs-floor-quote-jump')?.getAttribute('href'),
   'https://chexie.net/bbs/content/?bid=3&p=1&tid=5126',
@@ -169,6 +174,21 @@ assert.match(
   /^\[quote]正文含<a href="\/bbs\/users\/someone">链接<\/a>\[\/quote]<!--capubbs:quote /,
   'a link inside a link-only quote body must not be taken as its author',
 );
+
+const legacyRenderedLinkOnly = execFileSync('php', [
+  '-r',
+  `require ${JSON.stringify(legacyMainfuncPath)}; echo translate(base64_decode('${Buffer.from(`<p>前文</p>${linkOnlyStorage}<p>后文</p>`).toString('base64')}'), true);`,
+], { encoding: 'utf8' });
+assert.equal(
+  legacyRenderedLinkOnly,
+  "<p>前文</p><div class='quotel'><div class='quoter'>引用自链接 <a href='https://chexie.net/bbs/content/?bid=3&amp;p=1&amp;tid=5126' class='link' target='_blank'>&gt;&gt;</a> ：<br>“规定原文”<br></div><br></div><p>后文</p>",
+  'the old forum must show a link-only quote as 引用自链接 >>',
+);
+const legacyRenderedUnsafeLink = execFileSync('php', [
+  '-r',
+  `require ${JSON.stringify(legacyMainfuncPath)}; echo translate(base64_decode('${Buffer.from('[quote]正文[/quote]<!--capubbs:quote {"customHref":"javascript:alert(1)"}-->').toString('base64')}'), true);`,
+], { encoding: 'utf8' });
+assert.doesNotMatch(legacyRenderedUnsafeLink, /quotel|javascript:alert\(1\)'/, 'the old forum must not link a quote to an unsafe URL');
 
 const authoredHtml = translateLegacyBbcode(legacyStorage);
 assert.match(authoredHtml, /引用自 <a class="forum-mention"[^>]*>AB<\/a><a class="capubbs-floor-quote-jump"/);
@@ -240,4 +260,4 @@ for (const stylesheet of [
   );
 }
 
-console.log('floor quote verification passed (36 assertions)');
+console.log('floor quote verification passed (39 assertions)');

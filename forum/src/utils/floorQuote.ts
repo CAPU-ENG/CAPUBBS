@@ -179,7 +179,7 @@ function restoreAuthorlessFloorQuote(quote: Element, jump: HTMLAnchorElement) {
   const header = document.createElement('div');
   header.className = 'capubbs-manual-quote-author';
   header.setAttribute('contenteditable', 'false');
-  header.append(jump);
+  header.append('引用自链接', jump);
 
   const body = document.createElement('div');
   body.className = 'capubbs-manual-quote-body';

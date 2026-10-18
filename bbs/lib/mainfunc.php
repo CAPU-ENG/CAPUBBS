@@ -133,6 +133,12 @@ function translate_bbcode($html) {
     $html=preg_replace_callback("#(\\[quote=)(.+?)(])([\\s\\S]+?)(\\[/quote])#", function($m){
         return "<div class='quotel'><div class='quoter'>引用自 ".userhref($m[2])." ：<br>".$m[4]."<br></div><br></div>";
     }, $html);
+    // 新论坛保存的仅链接引用：[quote]…[/quote]<!--capubbs:quote {"customHref":…}-->
+    $html=preg_replace_callback("#\\[quote]([\\s\\S]+?)\\[/quote]\\s*<!--capubbs:quote (\\{[\\s\\S]*?\\})-->#", function($m){
+        $link=quote_metadata_link($m[2]);
+        if($link==='') return $m[0];
+        return "<div class='quotel'><div class='quoter'>引用自链接 <a href='".htmlspecialchars($link, ENT_QUOTES)."' class='link' target='_blank'>&gt;&gt;</a> ：<br>".$m[1]."<br></div><br></div>";
+    }, $html);
     $html=preg_replace("#(\\[size=)(.+?)(])([\\s\\S]+?)(\\[/size])#", "<font size='$2'>$4</font>", $html);
     $html=preg_replace("#(\\[font=)(.+?)(])([\\s\\S]+?)(\\[/font])#", "<font face='$2'>$4</font>", $html);
     $html=preg_replace("#(\\[color=)(.+?)(])([\\s\\S]+?)(\\[/color])#", "<font color='$2'>$4</font>", $html);
@@ -145,6 +151,17 @@ function translate_bbcode($html) {
     $html=preg_replace("#(\\[b])(.+?)(\\[/b])#", "<b>$2</b>", $html);
     $html=preg_replace("#(\\[i])(.+?)(\\[/i])#", "<i>$2</i>", $html);
     return $html;
+}
+
+function quote_metadata_link($json){
+    $metadata=json_decode($json, true);
+    if(!is_array($metadata)) return '';
+    foreach(array('customHref', 'href') as $key){
+        if(!isset($metadata[$key]) || !is_string($metadata[$key])) continue;
+        $link=trim($metadata[$key]);
+        if(preg_match('#^(https?://|/(?!/))#i', $link)) return $link;
+    }
+    return '';
 }
 
 function translate($raw, $ishtml=true, $israw=false, $issign=false){

@@ -676,7 +676,7 @@ export function RichTextEditor({
           '<div class="capubbs-manual-quote-author" contenteditable="false">',
           submittedValue
             ? `引用自 <a class="forum-mention" href="${escapeAttribute(profileHref)}">${escapeHtml(submittedValue)}</a>`
-            : '',
+            : '引用自链接',
           quoteHref
             ? `<a class="capubbs-floor-quote-jump" data-custom-quote-link="true" href="${escapeAttribute(safeUrl(quoteHref))}">&gt;&gt;</a>`
             : '',
