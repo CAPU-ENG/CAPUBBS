@@ -94,12 +94,15 @@ export function readRichFontStyles(editor: HTMLElement) {
   const editorStyle = window.getComputedStyle(editor);
   const families = normalizeRichFontFamilies(style.fontFamily);
   const defaultFamilies = normalizeRichFontFamilies(editorStyle.fontFamily);
-  const fontOption = richTextFontOptions.find((option) => {
-    const optionFamilies = normalizeRichFontFamilies(option.value);
-    // Match named aliases, without treating a shared serif/sans-serif fallback as the font.
-    const aliases = optionFamilies.length > 1 ? optionFamilies.slice(0, -1) : optionFamilies;
-    return aliases.includes(families[0]);
-  });
+  // Prefer the option the font leads; stacks share fallback names (Arial and
+  // Helvetica list each other), so an alias match is only the second choice.
+  const fontOption = richTextFontOptions.find((option) => normalizeRichFontFamilies(option.value)[0] === families[0])
+    ?? richTextFontOptions.find((option) => {
+      const optionFamilies = normalizeRichFontFamilies(option.value);
+      // Match named aliases, without treating a shared serif/sans-serif fallback as the font.
+      const aliases = optionFamilies.length > 1 ? optionFamilies.slice(0, -1) : optionFamilies;
+      return aliases.includes(families[0]);
+    });
 
   return {
     fontFamily: families.join(',') === defaultFamilies.join(',')

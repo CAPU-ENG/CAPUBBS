@@ -1,5 +1,6 @@
 import type { RichTextEditorMode } from './RichTextEditor.types';
 import { FORUM_DEFAULT_FONT_SIZE } from '../../utils/forumFontSize';
+import { forumFontStacks, formatFontStack } from '../../utils/fontStacks';
 
 export const maxInlineImageBytes = 1 * 1024 * 1024;
 export const imageCompressionMaxEdge = 2200;
@@ -13,12 +14,7 @@ export const editorModeGroups: Array<Array<{ label: string; mode: RichTextEditor
 ];
 
 export const richTextFontOptions = [
-  { label: '黑体', value: "'黑体', SimHei, sans-serif" },
-  { label: '微软雅黑', value: "'微软雅黑', 'Microsoft YaHei', sans-serif" },
-  { label: '宋体', value: "'宋体', SimSun, serif" },
-  { label: '楷体', value: "'楷体', Kaiti, serif" },
-  { label: '仿宋', value: "'仿宋', FangSong, serif" },
-  { label: '幼圆', value: "'幼圆', YouYuan, sans-serif" },
+  ...forumFontStacks.map((stack) => ({ label: stack.label, value: formatFontStack(stack.families, stack.generic) })),
   { label: '等宽', value: 'monospace' },
 ];
 

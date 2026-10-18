@@ -1,17 +1,9 @@
 import { getPublicProfilePath } from './userRoutes';
 import { restoreLegacyFloorQuoteLinks } from './floorQuote';
 import { repairUnclosedLegacyBbcode } from './legacyBbcodeRepair';
+import { forumFontStackByName, formatFontStack } from './fontStacks';
 
 type LegacyBbcodeReplacement = [RegExp, (...matches: string[]) => string];
-
-const LEGACY_FONT_FALLBACKS: Record<string, { alias: string; generic: string }> = {
-  '仿宋': { alias: 'FangSong', generic: 'serif' },
-  '黑体': { alias: 'SimHei', generic: 'sans-serif' },
-  '楷体': { alias: 'Kaiti', generic: 'serif' },
-  '宋体': { alias: 'SimSun', generic: 'serif' },
-  '幼圆': { alias: 'YouYuan', generic: 'sans-serif' },
-  '微软雅黑': { alias: '"Microsoft YaHei"', generic: 'sans-serif' },
-};
 
 const GENERIC_FONT_FAMILIES = new Set([
   'serif', 'sans-serif', 'monospace', 'cursive', 'fantasy', 'system-ui',
@@ -243,18 +235,19 @@ function normalizeLegacyFontFace(value: string) {
 
   names.forEach((name) => {
     normalizedNames.push(name);
-    const fallback = LEGACY_FONT_FALLBACKS[stripFontNameQuotes(name)];
-    if (!fallback) return;
-    genericFallback ??= fallback.generic;
-    const aliasKey = stripFontNameQuotes(fallback.alias).toLocaleLowerCase();
-    if (!existingNames.has(aliasKey)) {
-      normalizedNames.push(fallback.alias);
+    const stack = forumFontStackByName.get(stripFontNameQuotes(name).toLocaleLowerCase());
+    if (!stack) return;
+    genericFallback ??= stack.generic;
+    stack.families.slice(1).forEach((alias) => {
+      const aliasKey = alias.toLocaleLowerCase();
+      if (existingNames.has(aliasKey)) return;
+      normalizedNames.push(formatFontStack([alias]));
       existingNames.add(aliasKey);
-    }
+    });
   });
 
   // Respect an explicit generic family; otherwise use the first recognized
-  // Chinese font's category, after all of the author's named fonts.
+  // font's category, after all of the author's named fonts.
   if (genericFallback && !names.some((name) => GENERIC_FONT_FAMILIES.has(name.toLowerCase()))) {
     normalizedNames.push(genericFallback);
   }
