@@ -96,7 +96,12 @@ export function buildLegacyFloorQuoteStorage({
   floor?: number;
   href?: string;
 }) {
-  const quote = `[quote=${sanitizeLegacyQuoteAuthor(author)}]${normalizeLegacyQuoteContent(content)}[/quote]`;
+  const quoteAuthor = sanitizeLegacyQuoteAuthor(author);
+  const quoteContent = normalizeLegacyQuoteContent(content);
+  // A link-only manual quote has no author, so it is stored as a plain quote.
+  const quote = quoteAuthor
+    ? `[quote=${quoteAuthor}]${quoteContent}[/quote]`
+    : `[quote]${quoteContent}[/quote]`;
   const metadata = buildFloorQuoteMetadata({ customHref, floor, href });
   return metadata ? `${quote}<!--${FLOOR_QUOTE_COMMENT_PREFIX}${metadata}-->` : quote;
 }
@@ -113,13 +118,14 @@ export function normalizeFloorQuotesForLegacyStorage(html: string) {
   quotes.forEach((quote) => {
     const jump = quote.querySelector<HTMLAnchorElement>('.capubbs-floor-quote-jump[href]');
     const manualQuoteAuthor = quote.getAttribute('data-user')?.trim() ?? '';
+    const isManualQuote = quote.hasAttribute('data-user');
     if (!quote.classList.contains('capubbs-floor-quote') && !jump && !manualQuoteAuthor) return;
 
     const existingMetadataComment = getAdjacentFloorQuoteMetadataComment(quote);
     const existingMetadata = parseFloorQuoteMetadata(existingMetadataComment?.data);
     const href = jump?.getAttribute('href') ?? existingMetadata.href;
     const storage = buildLegacyFloorQuoteStorage({
-      author: manualQuoteAuthor || getFloorQuoteAuthor(quote),
+      author: isManualQuote ? manualQuoteAuthor : getFloorQuoteAuthor(quote),
       content: getFloorQuoteContentHtml(quote),
       customHref: jump?.hasAttribute('data-custom-quote-link')
         ? jump.getAttribute('href') ?? undefined
@@ -149,19 +155,42 @@ export function restoreLegacyFloorQuoteLinks(html: string) {
     const quote = getPreviousElementSibling(comment);
     if (!href || !quote || !quote.matches('.quotel, blockquote.forum-legacy-quote')) return;
 
-    const content = quote.querySelector('.quoter, .forum-legacy-quote-content') ?? quote;
-    const authorLink = content.querySelector('a');
-    if (!authorLink || content.querySelector('.capubbs-floor-quote-jump')) return;
-
     const jump = document.createElement('a');
     jump.className = 'capubbs-floor-quote-jump';
     jump.setAttribute('href', href);
     if (metadata.customHref) jump.setAttribute('data-custom-quote-link', 'true');
     jump.textContent = '>>';
+
+    const content = quote.querySelector(':scope > .quoter, :scope > .forum-legacy-quote-content');
+    if (!content) {
+      if (quote.matches('blockquote.forum-legacy-quote')) restoreAuthorlessFloorQuote(quote, jump);
+      return;
+    }
+
+    const authorLink = content.querySelector('a');
+    if (!authorLink || content.querySelector('.capubbs-floor-quote-jump')) return;
     authorLink.after(jump);
   });
 
   return template.innerHTML;
+}
+
+function restoreAuthorlessFloorQuote(quote: Element, jump: HTMLAnchorElement) {
+  const header = document.createElement('div');
+  header.className = 'capubbs-manual-quote-author';
+  header.setAttribute('contenteditable', 'false');
+  header.append(jump);
+
+  const body = document.createElement('div');
+  body.className = 'capubbs-manual-quote-body';
+  body.append(...Array.from(quote.childNodes));
+
+  const content = document.createElement('div');
+  content.className = 'forum-legacy-quote-content';
+  content.append(header, body);
+
+  quote.setAttribute('data-user', '');
+  quote.append(content);
 }
 
 function splitQuoteParagraphs(value: string) {
@@ -327,7 +356,7 @@ function normalizeLegacyQuoteContent(value: string) {
 }
 
 function sanitizeLegacyQuoteAuthor(value: string) {
-  return (value.trim() || '匿名用户').replaceAll(']', '');
+  return value.replaceAll(']', '').trim();
 }
 
 function getAdjacentFloorQuoteMetadataComment(element: Element) {

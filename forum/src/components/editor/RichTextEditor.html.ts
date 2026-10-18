@@ -136,6 +136,10 @@ export function buildHtmlPreviewDocument(
         margin-left: 0.75em;
       }
 
+      .capubbs-manual-quote-author > .capubbs-floor-quote-jump:first-child {
+        margin-left: 0;
+      }
+
       .forum-legacy-quote-content {
         margin: 0;
       }
