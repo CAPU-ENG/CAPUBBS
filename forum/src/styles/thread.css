@@ -1575,6 +1575,13 @@
     white-space: pre-wrap;
   }
 
+  .forum-markup pre.replay-info-txt {
+    border-radius: 0;
+    padding: 0;
+    background: transparent;
+    color: inherit;
+  }
+
   .forum-markup code,
   .forum-markup kbd {
     border-radius: var(--card-radius);
