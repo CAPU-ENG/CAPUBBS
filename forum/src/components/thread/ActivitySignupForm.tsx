@@ -17,11 +17,20 @@ import {
   saveDefaultSignatureIndex,
 } from '../../utils/defaultSignature';
 import {
+  AUTO_SAVE_STATUS,
   formatPostEditorPreviewTimestamp,
   PostEditorPreviewDialog,
 } from './PostEditor';
 import { getThreadFloorFromHash, getThreadPageForFloor } from '../../utils/threadRoutes';
+import {
+  deleteStoredActivitySignupDraft,
+  readStoredActivitySignupDraft,
+  saveStoredActivitySignupDraft,
+} from '../../utils/activitySignupDraftStorage';
 import { Button } from '../Button';
+
+const DRAFT_AUTO_SAVE_DELAY = 800;
+const MAX_TIMEOUT_DELAY = 2_147_483_647;
 
 const signatureOptions = [
   { label: '不使用签名档', value: 0 },
@@ -33,6 +42,7 @@ const signatureOptions = [
 type ActivitySignupFormProps = {
   activity: ThreadActivity;
   bid: number;
+  board: string;
   floors: ThreadFloorData[];
   focusRequest?: number;
   locked: boolean;
@@ -85,6 +95,7 @@ function ActivitySignupFormLoader(props: ActivitySignupFormProps) {
     return () => controller.abort();
   }, [bid, tid, username, loadRequest]);
 
+  const signupStatus = useLiveSignupStatus(activity);
   const loading = Boolean(username) && existingSignup === undefined;
   return (
     <section aria-labelledby="activity-signup-title" className="activity-signup-card" ref={formRef} tabIndex={-1}>
@@ -93,7 +104,7 @@ function ActivitySignupFormLoader(props: ActivitySignupFormProps) {
           <ClipboardList aria-hidden="true" size={18} />
           <h2 id="activity-signup-title">报名表单</h2>
         </div>
-        <ActivitySignupWindow activity={activity} locked={locked} />
+        <ActivitySignupWindow activity={activity} locked={locked} status={signupStatus} />
       </header>
       {loading ? (
         <div className="activity-signup-actions">
@@ -108,7 +119,7 @@ function ActivitySignupFormLoader(props: ActivitySignupFormProps) {
             <span role="status"><LoadingSpinner size={14} />正在读取报名信息</span>
           )}
         </div>
-      ) : <ActivitySignupFormFields {...props} existingSignup={existingSignup ?? null} />}
+      ) : <ActivitySignupFormFields {...props} existingSignup={existingSignup ?? null} signupStatus={signupStatus} />}
     </section>
   );
 }
@@ -142,16 +153,21 @@ async function loadCurrentActivitySignup(bid: number, tid: number, username: str
 function ActivitySignupFormFields({
   activity,
   bid,
+  board,
   existingSignup,
   floors,
   locked,
+  signupStatus,
   loginHref,
   registerHref,
   signatures,
   threadTitle,
   tid,
   viewer,
-}: ActivitySignupFormProps & { existingSignup: ThreadFloorData | null }) {
+}: ActivitySignupFormProps & {
+  existingSignup: ThreadFloorData | null;
+  signupStatus: ThreadActivity['status'];
+}) {
   const signupCanceled = Boolean(existingSignup && (
     existingSignup.paragraphs.some((paragraph) => paragraph.includes('报名状态：已取消'))
     || /<\s*(?:s|strike)\b/i.test(existingSignup.contentHtml ?? '')
@@ -170,12 +186,65 @@ function ActivitySignupFormFields({
   const [previewedAt, setPreviewedAt] = useState('');
   const [cancelDialogOpen, setCancelDialogOpen] = useState(false);
   const [punishmentReminderOpen, setPunishmentReminderOpen] = useState(false);
+  const [draftDirty, setDraftDirty] = useState(false);
+  const ownerKey = viewer?.name ?? '';
+  const signupNotStarted = !locked && signupStatus === 'not_started';
+  const fieldsLocked = locked || signupStatus === 'closed';
+  const draftEnabled = Boolean(ownerKey) && action === 'join' && !fieldsLocked;
   const requiredFieldsComplete = activity.questions.every((question) =>
     !question.required || hasSignupValue(values[question.id]),
   );
-  const signupUnavailable = locked || activity.status === 'closed' || activity.status === 'not_started';
+  const signupUnavailable = fieldsLocked || signupStatus === 'not_started';
   const canSubmit = Boolean(viewer) && requiredFieldsComplete && !signupUnavailable && !submitting;
   const previewFloor = existingSignup?.floor ?? Math.max(1, ...floors.map((floor) => floor.floor)) + 1;
+
+  useEffect(() => {
+    if (!draftEnabled) return;
+    let active = true;
+    void readStoredActivitySignupDraft(bid, tid, activity.id, ownerKey).then((draft) => {
+      if (!active || !draft) return;
+      setValues((current) => ({
+        ...current,
+        ...pickKnownDraftValues(activity.questions, draft.values, ownerKey),
+      }));
+      setSignatureIndex(draft.signatureIndex);
+      setStatusIsError(false);
+      setStatus('已恢复草稿');
+    });
+    return () => {
+      active = false;
+    };
+    // The draft is read once when the form mounts; later edits must not be overwritten.
+  }, []);
+
+  useEffect(() => {
+    if (!draftEnabled || !draftDirty || submitting) return;
+    const timeout = window.setTimeout(() => {
+      const hasContent = activity.questions.some((question) => (
+        question.label.trim().toUpperCase() !== 'ID' && hasSignupValue(values[question.id])
+      ));
+      const saveDraft = hasContent
+        ? saveStoredActivitySignupDraft({
+          activityId: activity.id,
+          bid,
+          board,
+          excerpt: formatActivitySignupDraftExcerpt(activity.questions, values),
+          signatureIndex,
+          threadTitle,
+          tid,
+          values,
+        }, ownerKey)
+        : deleteStoredActivitySignupDraft(bid, tid, ownerKey).then(() => true);
+      void saveDraft.then((saved) => {
+        setStatusIsError(!saved);
+        setStatus(saved ? (hasContent ? AUTO_SAVE_STATUS : '') : '草稿保存失败，请检查浏览器存储权限');
+      }, () => {
+        setStatusIsError(true);
+        setStatus('草稿保存失败，请检查浏览器存储权限');
+      });
+    }, DRAFT_AUTO_SAVE_DELAY);
+    return () => window.clearTimeout(timeout);
+  }, [activity.id, activity.questions, bid, board, draftDirty, draftEnabled, ownerKey, signatureIndex, submitting, threadTitle, tid, values]);
 
   function openPreview() {
     setPreviewedAt(formatPostEditorPreviewTimestamp(new Date()));
@@ -184,6 +253,7 @@ function ActivitySignupFormFields({
 
   function updateValue(questionId: string, value: ActivitySignupValue) {
     setValues((current) => ({ ...current, [questionId]: value }));
+    setDraftDirty(true);
     setStatus('');
   }
 
@@ -204,6 +274,7 @@ function ActivitySignupFormFields({
     try {
       await publishActivitySignup({ action, bid, signatureIndex, tid, title: threadTitle, values });
       saveDefaultSignatureIndex(signatureIndex, viewer?.name);
+      if (action === 'join') await deleteStoredActivitySignupDraft(bid, tid, ownerKey).catch(() => undefined);
       if (viewer && await hasUnfinishedPunishment(viewer.name)) {
         setPunishmentReminderOpen(true);
         return;
@@ -248,7 +319,7 @@ function ActivitySignupFormFields({
         <div className="activity-signup-fields">
           {activity.questions.map((question, index) => (
             <ActivitySignupField
-              disabled={!viewer || signupUnavailable || submitting}
+              disabled={!viewer || fieldsLocked || submitting}
               key={question.id}
               onMultiChoiceChange={updateMultiChoice}
               onValueChange={updateValue}
@@ -266,9 +337,12 @@ function ActivitySignupFormFields({
                 <label key={option.value}>
                   <input
                     checked={signatureIndex === option.value}
-                    disabled={signupUnavailable || submitting}
+                    disabled={fieldsLocked || submitting}
                     name="activity-signup-signature"
-                    onChange={() => setSignatureIndex(option.value)}
+                    onChange={() => {
+                      setSignatureIndex(option.value);
+                      setDraftDirty(true);
+                    }}
                     type="radio"
                     value={option.value}
                   />
@@ -295,7 +369,13 @@ function ActivitySignupFormFields({
                   <Eye size={15} />
                   预览
                 </Button>
-                <button className="activity-signup-submit-button" disabled={!canSubmit} type="submit">
+                <button
+                  aria-disabled={signupNotStarted || undefined}
+                  className="activity-signup-submit-button"
+                  data-tooltip={signupNotStarted ? '报名尚未开始' : undefined}
+                  disabled={!signupNotStarted && !canSubmit}
+                  type="submit"
+                >
                   {submitting
                     ? <LoadingSpinner size={14} />
                     : action === 'modify'
@@ -561,14 +641,77 @@ function ActivitySignupField({
   );
 }
 
-function ActivitySignupWindow({ activity, locked }: { activity: ThreadActivity; locked: boolean }) {
+function useLiveSignupStatus(activity: ThreadActivity) {
+  const [status, setStatus] = useState(activity.status);
+
+  useEffect(() => {
+    setStatus(activity.status);
+    if (activity.status !== 'not_started' || !activity.startsAt) return;
+    const delay = activity.startsAt * 1000 - Date.now();
+    if (delay > MAX_TIMEOUT_DELAY) return;
+    const timeout = window.setTimeout(() => {
+      setStatus(activity.endsAt && activity.endsAt * 1000 <= Date.now() ? 'closed' : 'open');
+    }, Math.max(0, delay));
+    return () => window.clearTimeout(timeout);
+  }, [activity.endsAt, activity.startsAt, activity.status]);
+
+  return status;
+}
+
+function pickKnownDraftValues(
+  questions: ThreadActivityQuestion[],
+  draftValues: Record<string, ActivitySignupValue>,
+  viewerName: string,
+) {
+  return questions.reduce<Record<string, ActivitySignupValue>>((result, question) => {
+    const value = draftValues[question.id];
+    if (typeof value === 'undefined') return result;
+    if (question.label.trim().toUpperCase() === 'ID') {
+      result[question.id] = viewerName;
+    } else if (question.type === 'multiChoice') {
+      result[question.id] = Array.isArray(value)
+        ? value.filter((optionId) => question.options.some((option) => option.id === optionId))
+        : [];
+    } else if (question.type === 'choice') {
+      result[question.id] = typeof value === 'string' && question.options.some((option) => option.id === value) ? value : '';
+    } else if (typeof value === 'string') {
+      result[question.id] = value;
+    }
+    return result;
+  }, {});
+}
+
+function formatActivitySignupDraftExcerpt(
+  questions: ThreadActivityQuestion[],
+  values: Record<string, ActivitySignupValue>,
+) {
+  return questions
+    .filter((question) => question.label.trim().toUpperCase() !== 'ID')
+    .map((question) => {
+      const value = formatActivitySignupPreviewValue(question, values[question.id]);
+      return value ? `${question.label}：${value}` : '';
+    })
+    .filter(Boolean)
+    .join('；')
+    .slice(0, 160);
+}
+
+function ActivitySignupWindow({
+  activity,
+  locked,
+  status,
+}: {
+  activity: ThreadActivity;
+  locked: boolean;
+  status: ThreadActivity['status'];
+}) {
   const statusLabel = locked
     ? '活动已锁定'
-    : activity.status === 'not_started'
+    : status === 'not_started'
       ? '报名未开始'
-      : activity.status === 'closed'
+      : status === 'closed'
         ? '报名已截止'
-        : activity.status === 'open'
+        : status === 'open'
           ? '报名进行中'
           : '';
   const range = activity.startsAt && activity.endsAt
@@ -579,7 +722,7 @@ function ActivitySignupWindow({ activity, locked }: { activity: ThreadActivity; 
   return (
     <div className="activity-signup-window">
       {range && <time>{range}</time>}
-      {statusLabel && <span data-status={locked ? 'closed' : activity.status ?? 'unknown'}>{statusLabel}</span>}
+      {statusLabel && <span data-status={locked ? 'closed' : status ?? 'unknown'}>{statusLabel}</span>}
     </div>
   );
 }

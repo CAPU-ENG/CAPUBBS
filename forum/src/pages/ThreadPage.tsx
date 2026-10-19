@@ -465,6 +465,7 @@ export function ThreadPage() {
       <ActivitySignupForm
         activity={data.activity}
         bid={data.bid}
+        board={data.board}
         floors={pageFloors}
         focusRequest={signupFocusRequest}
         key={signupScope}

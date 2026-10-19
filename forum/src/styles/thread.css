@@ -815,6 +815,49 @@
     box-shadow: none;
   }
 
+  /* Tooltip lives on ::after, so fade colors instead of the whole button. */
+  .activity-signup-actions > .activity-signup-submit-button[aria-disabled='true'],
+  .activity-signup-actions > .activity-signup-submit-button[aria-disabled='true']:hover {
+    border-color: color-mix(in srgb, var(--brand) 44%, var(--surface));
+    background: color-mix(in srgb, var(--brand) 44%, var(--surface));
+    color: color-mix(in srgb, var(--on-brand) 70%, var(--surface));
+    cursor: not-allowed;
+    box-shadow: none;
+  }
+
+  .activity-signup-actions > .activity-signup-submit-button[data-tooltip] {
+    position: relative;
+  }
+
+  .activity-signup-actions > .activity-signup-submit-button[data-tooltip]::after {
+    position: absolute;
+    z-index: 40;
+    bottom: calc(100% + 7px);
+    left: 50%;
+    width: max-content;
+    max-width: min(240px, calc(100vw - 24px));
+    border: 1px solid var(--line-strong);
+    border-radius: var(--card-radius);
+    padding: var(--space-4) var(--space-8);
+    background: var(--surface-raised);
+    box-shadow: var(--shadow-float);
+    color: var(--text-strong);
+    content: attr(data-tooltip);
+    font-size: var(--ui-font-size-xs);
+    font-weight: var(--font-weight-semibold);
+    line-height: 1.4;
+    opacity: 0;
+    pointer-events: none;
+    transform: translate(-50%, 3px);
+    transition: opacity var(--duration-fast) ease, transform var(--duration-fast) ease;
+  }
+
+  .activity-signup-actions > .activity-signup-submit-button[data-tooltip]:hover::after,
+  .activity-signup-actions > .activity-signup-submit-button[data-tooltip]:focus-visible::after {
+    opacity: 1;
+    transform: translate(-50%, 0);
+  }
+
   .activity-signup-preview-button {
     min-width: 78px;
     height: 40px;

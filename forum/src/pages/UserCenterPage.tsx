@@ -31,6 +31,12 @@ import {
   type StoredReplyDraft,
 } from '../utils/replyDraftStorage';
 import {
+  deleteStoredActivitySignupDraft,
+  readStoredActivitySignupDrafts,
+  subscribeStoredActivitySignupDrafts,
+  type StoredActivitySignupDraft,
+} from '../utils/activitySignupDraftStorage';
+import {
   deleteCachedUserAvatar,
   readCachedUserAvatarBlob,
   writeCachedUserAvatarBlob,
@@ -43,7 +49,7 @@ import {
 } from '../utils/threadComposeDraftStorage';
 import { getPublicProfilePath, USER_CENTER_HREF } from '../utils/userRoutes';
 import { getAuthPathWithReturnTo } from '../utils/authRoutes';
-import { getThreadComposeHref, getThreadHref } from '../utils/threadRoutes';
+import { getThreadComposeHref, getThreadFloorHref, getThreadHref } from '../utils/threadRoutes';
 
 type OpenDialog = 'avatar' | 'email' | 'personalization' | 'security' | null;
 type PageNotice = { message: string; tone: 'error' | 'success' } | null;
@@ -72,6 +78,7 @@ export function UserCenterPage() {
   const [draft, setDraft] = useState<ProfileDraft>(emptyDraft);
   const [replyDrafts, setReplyDrafts] = useState<StoredReplyDraft[]>([]);
   const [threadComposeDrafts, setThreadComposeDrafts] = useState<StoredThreadComposeDraft[]>([]);
+  const [activitySignupDrafts, setActivitySignupDrafts] = useState<StoredActivitySignupDraft[]>([]);
   const [cachedAvatarSrc, setCachedAvatarSrc] = useState<string | null>(null);
   const [openDialog, setOpenDialog] = useState<OpenDialog>(() => window.location.hash === '#account-security' ? 'security' : null);
   const [notice, setNotice] = useState<PageNotice>(null);
@@ -86,10 +93,11 @@ export function UserCenterPage() {
       drafts: [
         ...profile.records.drafts,
         ...threadComposeDrafts.map(mapThreadComposeDraftRecord),
+        ...activitySignupDrafts.map(mapActivitySignupDraftRecord),
         ...replyDrafts.map(mapReplyDraftRecord),
       ],
     };
-  }, [profile, replyDrafts, threadComposeDrafts]);
+  }, [activitySignupDrafts, profile, replyDrafts, threadComposeDrafts]);
 
   useEffect(() => {
     if (!profile || isEditing) return;
@@ -121,7 +129,32 @@ export function UserCenterPage() {
     };
   }, [draftOwnerKey, loadDrafts]);
 
+  useEffect(() => {
+    if (!loadDrafts || !draftOwnerKey) {
+      setActivitySignupDrafts([]);
+      return;
+    }
+    let active = true;
+    const refreshActivitySignupDrafts = () => {
+      void readStoredActivitySignupDrafts(draftOwnerKey).then((storedDrafts) => {
+        if (active) setActivitySignupDrafts(storedDrafts);
+      });
+    };
+    refreshActivitySignupDrafts();
+    const unsubscribe = subscribeStoredActivitySignupDrafts(refreshActivitySignupDrafts, draftOwnerKey);
+    return () => {
+      active = false;
+      unsubscribe();
+    };
+  }, [draftOwnerKey, loadDrafts]);
+
   async function deleteDraft(recordId: string) {
+    const activitySignupDraft = activitySignupDrafts.find((candidate) => candidate.id === recordId);
+    if (activitySignupDraft) {
+      await deleteStoredActivitySignupDraft(activitySignupDraft.bid, activitySignupDraft.tid, draftOwnerKey);
+      return;
+    }
+
     const replyDraft = replyDrafts.find((candidate) => candidate.id === recordId);
     if (replyDraft) {
       await deleteStoredReplyDraftForThread(replyDraft.bid, replyDraft.tid, draftOwnerKey);
@@ -410,6 +443,19 @@ function mapReplyDraftRecord(draft: StoredReplyDraft) {
     href: getThreadHref(draft.bid, draft.tid),
     id: draft.id,
     status: '回帖草稿',
+    title: draft.threadTitle,
+  };
+}
+
+function mapActivitySignupDraftRecord(draft: StoredActivitySignupDraft) {
+  return {
+    board: draft.board,
+    date: draft.updatedAt.slice(0, 10),
+    draftHref: getThreadFloorHref(draft.bid, draft.tid, 1),
+    excerpt: draft.excerpt,
+    href: getThreadHref(draft.bid, draft.tid),
+    id: draft.id,
+    status: '报名草稿',
     title: draft.threadTitle,
   };
 }
