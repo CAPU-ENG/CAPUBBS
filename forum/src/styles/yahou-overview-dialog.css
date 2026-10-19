@@ -63,7 +63,7 @@
 
   .yahou-changelog-list li {
     display: flex;
-    flex-wrap: wrap;
+    align-items: baseline;
     gap: var(--space-4) var(--space-12);
     padding: var(--space-8) 0;
     border-top: 1px solid var(--line);
@@ -79,15 +79,6 @@
     color: var(--text-muted);
     font-size: var(--ui-font-size-sm);
     font-variant-numeric: tabular-nums;
-  }
-
-  .yahou-changelog-list .yahou-log-operator {
-    color: var(--text-muted);
-    font-size: var(--ui-font-size-sm);
-  }
-
-  .yahou-log-text {
-    flex-basis: 100%;
   }
 
   .yahou-log-member {

@@ -6,10 +6,10 @@ import { getForumNavigationHref } from '../../utils/forumNavigation';
 import { DialogNativeLayer } from '../layout/DialogPresence';
 import { Button } from '../Button';
 
-function formatTime(seconds: number) {
+function formatDate(seconds: number) {
   const date = new Date(seconds * 1000);
   const pad = (value: number) => String(value).padStart(2, '0');
-  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())} ${pad(date.getHours())}:${pad(date.getMinutes())}`;
+  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`;
 }
 
 function Member({ id }: { id: string }) {
@@ -52,8 +52,7 @@ export function YahouChangelog({ log, onClose }: { log: YahouLogEntry[]; onClose
           <ol className="yahou-changelog-list">
             {log.map((entry, index) => (
               <li key={`${entry.time}-${index}`}>
-                <time dateTime={new Date(entry.time * 1000).toISOString()}>{formatTime(entry.time)}</time>
-                <span className="yahou-log-operator">{entry.operator}</span>
+                <time dateTime={formatDate(entry.time)}>{formatDate(entry.time)}</time>
                 <span className="yahou-log-text">{describe(entry)}</span>
               </li>
             )).reverse()}
