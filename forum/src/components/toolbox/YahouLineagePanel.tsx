@@ -1,4 +1,4 @@
-import { BadgeCheck, Check, ChevronDown, ChevronRight, Circle, ExternalLink, Focus, GitBranch, Home, Network, Plus, RefreshCw, Search, X } from 'lucide-react';
+import { BadgeCheck, Check, ChevronDown, ChevronRight, Circle, ExternalLink, Focus, GitBranch, History, Home, Network, Plus, RefreshCw, Search, X } from 'lucide-react';
 import { useEffect, useMemo, useRef, useState, type FormEvent } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import { fetchYahouLineage, saveYahouLineage } from '../../api/yahouLineage';
@@ -11,6 +11,7 @@ import { getForumNavigationHref } from '../../utils/forumNavigation';
 import { LoadingSpinner } from '../layout/LoadingSpinner';
 import { DialogPresence } from '../layout/DialogPresence';
 import { YahouLineageOverview } from './YahouLineageOverview';
+import { YahouChangelog } from './YahouChangelog';
 import { Button } from '../Button';
 import { ErrorState } from '../ErrorState';
 
@@ -24,6 +25,7 @@ export function YahouLineagePanel() {
   const [reload, setReload] = useState(0);
   const [saving, setSaving] = useState(false);
   const [overviewOpen, setOverviewOpen] = useState(false);
+  const [changelogOpen, setChangelogOpen] = useState(false);
   const [isDesktop, setIsDesktop] = useState(() => Boolean(window.matchMedia?.(OVERVIEW_DESKTOP_QUERY).matches));
 
   useEffect(() => {
@@ -56,6 +58,7 @@ export function YahouLineagePanel() {
         <span className="toolbox-workspace-icon"><GitBranch size={17} /></span>
         <h1 id="yahou-lineage-title">押后谱系</h1>
         <div className="yahou-header-actions">
+          <Button aria-haspopup="dialog" onClick={() => setChangelogOpen(true)} type="button"><History size={16} />更新记录</Button>
           {isDesktop ? (
             <Button aria-expanded={overviewOpen} aria-haspopup="dialog" disabled={!data} onClick={() => setOverviewOpen(true)} type="button"><Network size={16} />谱系总览</Button>
           ) : null}
@@ -69,6 +72,9 @@ export function YahouLineagePanel() {
       ) : (
         <YahouTree canEdit={canEdit} data={data} key={reload} onData={setData} onSaving={setSaving} />
       )}
+      <DialogPresence>
+        {changelogOpen ? <YahouChangelog onClose={() => setChangelogOpen(false)} /> : null}
+      </DialogPresence>
       {isDesktop ? (
         <DialogPresence>
           {overviewOpen && data ? (

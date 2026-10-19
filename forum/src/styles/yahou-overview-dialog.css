@@ -41,6 +41,34 @@
     font-weight: var(--font-weight-bold);
   }
 
+  .yahou-changelog-dialog {
+    max-width: 560px;
+    height: auto;
+    max-height: calc(100dvh - 32px);
+  }
+
+  .yahou-changelog-body {
+    overflow-y: auto;
+    padding: var(--space-16);
+  }
+
+  .yahou-changelog-entry + .yahou-changelog-entry {
+    margin-top: var(--space-16);
+  }
+
+  .yahou-changelog-entry h3 {
+    margin: 0 0 var(--space-6);
+    color: var(--text-strong);
+    font-size: var(--ui-font-size-lg);
+    font-variant-numeric: tabular-nums;
+  }
+
+  .yahou-changelog-entry ul {
+    margin: 0;
+    padding-left: var(--space-18);
+    color: var(--text);
+  }
+
   .yahou-overview-failure {
     display: flex;
     flex: 1;
