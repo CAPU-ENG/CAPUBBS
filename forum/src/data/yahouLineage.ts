@@ -22,7 +22,20 @@ export type YahouLogEntry =
 
 export type YahouMutation =
   | { action: 'add'; id: string; parentId: string | null; status: YahouStatus }
-  | { action: 'status'; id: string; status: YahouStatus };
+  | { action: 'status'; id: string; status: YahouStatus }
+  | { action: 'delete'; id: string };
+
+/** Matches the server's undo window for a mistaken add. */
+export const YAHOU_UNDO_SECONDS = 600;
+
+export function canUndoYahouAdd(log: YahouLogEntry[], id: string, operator: string | undefined, now = Date.now()) {
+  if (!operator) return false;
+  for (let index = log.length - 1; index >= 0; index -= 1) {
+    const entry = log[index];
+    if (entry.action === 'add' && entry.id === id) return entry.operator === operator && entry.time >= now / 1000 - YAHOU_UNDO_SECONDS;
+  }
+  return false;
+}
 
 export type YahouIndex = {
   members: Map<string, YahouMember>;

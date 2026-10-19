@@ -1,9 +1,9 @@
-import { BadgeCheck, Check, ChevronDown, ChevronRight, Circle, ExternalLink, Focus, GitBranch, History, Home, Network, Plus, RefreshCw, Search, X } from 'lucide-react';
+import { BadgeCheck, Check, ChevronDown, ChevronRight, Circle, ExternalLink, Focus, GitBranch, History, Home, Network, Plus, RefreshCw, Search, Trash2, X } from 'lucide-react';
 import { useEffect, useMemo, useRef, useState, type FormEvent } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import { fetchYahouLineage, saveYahouLineage } from '../../api/yahouLineage';
 import {
-  buildYahouIndex, findYahouMembers, yahouAncestors,
+  buildYahouIndex, canUndoYahouAdd, findYahouMembers, yahouAncestors,
   YAHOU_STATUSES, YAHOU_STATUS_LABELS,
   type YahouLineage, type YahouMember, type YahouMutation, type YahouStatus,
 } from '../../data/yahouLineage';
@@ -14,6 +14,7 @@ import { YahouLineageOverview } from './YahouLineageOverview';
 import { YahouChangelog } from './YahouChangelog';
 import { Button } from '../Button';
 import { ErrorState } from '../ErrorState';
+import { useConfirmDialog } from '../ConfirmDialog';
 
 const OVERVIEW_DESKTOP_QUERY = '(min-width: 1024px)';
 
@@ -70,7 +71,7 @@ export function YahouLineagePanel() {
       ) : !data ? (
         <p className="yahou-load-state" role="status"><LoadingSpinner size={18} />正在加载押后谱系</p>
       ) : (
-        <YahouTree canEdit={canEdit} data={data} key={reload} onData={setData} onSaving={setSaving} />
+        <YahouTree canEdit={canEdit} data={data} key={reload} onData={setData} onSaving={setSaving} operator={viewer?.username} />
       )}
       <DialogPresence>
         {changelogOpen && data ? <YahouChangelog log={data.log} onClose={() => setChangelogOpen(false)} /> : null}
@@ -86,12 +87,14 @@ export function YahouLineagePanel() {
   );
 }
 
-function YahouTree({ canEdit, data, onData, onSaving }: {
+function YahouTree({ canEdit, data, onData, onSaving, operator }: {
   canEdit: boolean;
   data: YahouLineage;
   onData: (data: YahouLineage) => void;
   onSaving: (saving: boolean) => void;
+  operator: string | undefined;
 }) {
+  const { confirm, confirmDialog } = useConfirmDialog();
   const index = useMemo(() => buildYahouIndex(data), [data]);
   const [opened, setOpened] = useState(() => new Set<string>());
   const [focusId, setFocusId] = useState<string | null>(null);
@@ -168,7 +171,12 @@ function YahouTree({ canEdit, data, onData, onSaving }: {
         setApprenticeId('');
         setOpened((current) => new Set([...current, ...(mutation.parentId === null ? [] : [mutation.parentId])]));
       }
-      setNotice({ error: false, text: mutation.action === 'add' ? `已添加 ${mutation.id}。` : '状态已更新。' });
+      if (mutation.action === 'delete') {
+        setSelectedId(undefined);
+        setNotice(null);
+      } else {
+        setNotice({ error: false, text: mutation.action === 'add' ? `已添加 ${mutation.id}。` : '状态已更新。' });
+      }
     } catch (error) {
       setNotice({ error: true, text: error instanceof Error ? error.message : '保存失败，请重试。' });
     } finally {
@@ -176,6 +184,11 @@ function YahouTree({ canEdit, data, onData, onSaving }: {
       setSaving(false);
       onSaving(false);
     }
+  }
+
+  async function deleteMember(id: string) {
+    if (!(await confirm({ title: '删除 ID', message: `确认从谱系中删除“${id}”？`, confirmLabel: '删除', danger: true }))) return;
+    void mutate({ action: 'delete', id });
   }
 
   function addApprentice(event: FormEvent<HTMLFormElement>) {
@@ -269,6 +282,9 @@ function YahouTree({ canEdit, data, onData, onSaving }: {
             <span>{selected ? `第 ${index.generations.get(selected.id)} 代 · ${selectedChildren.length} 位徒弟 · ${index.descendants.get(selected.id)} 位后代` : `${data.nodes.length} 人 · ${index.children.get(null)?.length ?? 0} 个师门`}</span>
             <Button onClick={() => focusBranch(selectedId)} type="button"><Focus size={14} />{selectedId === null ? '全部师门' : '聚焦此支'}</Button>
             {selected ? <a className="forum-button" href={getForumNavigationHref(`/bbs/user?name=${encodeURIComponent(selected.id)}`, window.location.href)}><ExternalLink size={14} />个人主页</a> : null}
+            {canEdit && selected && !selectedChildren.length && canUndoYahouAdd(data.log, selected.id, operator) ? (
+              <Button disabled={saving} hoverDanger onClick={() => void deleteMember(selected.id)} type="button"><Trash2 size={14} />删除</Button>
+            ) : null}
           </div>
           {canEdit ? (
             <div className="yahou-edit">
@@ -285,6 +301,7 @@ function YahouTree({ canEdit, data, onData, onSaving }: {
         {roots.map((member) => <ul aria-label={`${member.id} 师门`} className="yahou-family" key={member.id}>{renderBranch(member, 0)}</ul>)}
         {!roots.length ? <p className="yahou-empty">暂无师徒关系</p> : null}
       </div>
+      {confirmDialog}
     </div>
   );
 }
