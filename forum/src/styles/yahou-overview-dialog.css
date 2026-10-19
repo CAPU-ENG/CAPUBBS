@@ -124,6 +124,34 @@
     list-style: none;
   }
 
+  .yahou-changelog-key {
+    flex: 0 0 6.5em;
+  }
+
+  .yahou-changelog-master {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 0 var(--space-6);
+    overflow-wrap: anywhere;
+  }
+
+  .yahou-changelog-master > span {
+    color: var(--text-muted);
+    font-size: var(--ui-font-size-sm);
+    font-variant-numeric: tabular-nums;
+  }
+
+  .yahou-changelog-apprentice {
+    display: flex;
+    align-items: baseline;
+    gap: var(--space-12);
+  }
+
+  .yahou-changelog-group {
+    min-height: 30px;
+  }
+
   .yahou-changelog-list time {
     flex-shrink: 0;
     color: var(--text-muted);
