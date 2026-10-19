@@ -58,8 +58,49 @@ type SearchState = {
 
 const idleState: SearchState = { error: '', results: [], status: 'idle' };
 
+const SEARCH_CACHE_TTL = 5 * 60 * 1000;
+const SEARCH_CACHE_LIMIT = 20;
+const searchCache = new Map<string, { results: SearchResult[]; storedAt: number }>();
+
+function searchCacheKey(request: SearchRequest) {
+  return JSON.stringify([
+    request.field,
+    request.keyword.trim(),
+    request.author.trim(),
+    request.boardId,
+    request.startDate,
+    request.endDate,
+  ]);
+}
+
+function readSearchCache(request: SearchRequest) {
+  if (!request.enabled) return null;
+  const key = searchCacheKey(request);
+  const entry = searchCache.get(key);
+  if (!entry) return null;
+  if (Date.now() - entry.storedAt > SEARCH_CACHE_TTL) {
+    searchCache.delete(key);
+    return null;
+  }
+  return entry.results;
+}
+
+function writeSearchCache(request: SearchRequest, results: SearchResult[]) {
+  const key = searchCacheKey(request);
+  searchCache.delete(key);
+  searchCache.set(key, { results, storedAt: Date.now() });
+  while (searchCache.size > SEARCH_CACHE_LIMIT) {
+    const oldest = searchCache.keys().next().value;
+    if (oldest === undefined) break;
+    searchCache.delete(oldest);
+  }
+}
+
 export function useSearchData(request: SearchRequest) {
-  const [state, setState] = useState<SearchState>(idleState);
+  const [state, setState] = useState<SearchState>(() => {
+    const cached = request.requestKey === 0 ? readSearchCache(request) : null;
+    return cached ? { error: '', results: cached, status: 'ready' } : idleState;
+  });
   const [retryKey, setRetryKey] = useState(0);
   const retry = useCallback(() => setRetryKey((key) => key + 1), []);
 
@@ -69,11 +110,22 @@ export function useSearchData(request: SearchRequest) {
       return;
     }
 
+    // A fresh submit (requestKey > 0) or retry always refetches; remounts such as
+    // returning from a result link reuse the cached results.
+    const cached = request.requestKey === 0 && retryKey === 0 ? readSearchCache(request) : null;
+    if (cached) {
+      setState({ error: '', results: cached, status: 'ready' });
+      return;
+    }
+
     const controller = new AbortController();
     setState((current) => ({ ...current, error: '', status: 'loading' }));
 
     void fetchSearchResults(request, controller.signal).then(
-      (results) => setState({ error: '', results, status: 'ready' }),
+      (results) => {
+        writeSearchCache(request, results);
+        setState({ error: '', results, status: 'ready' });
+      },
       (error: unknown) => {
         if (error instanceof DOMException && error.name === 'AbortError') return;
         setState({
