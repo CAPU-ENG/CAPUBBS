@@ -435,7 +435,7 @@ function jiekoufunc_activity_signup_history($con, $token, $params) {
             threads.title,
             coalesce(boardinfo.bbstitle, boardinfo.name, '') as board,
             coalesce(posts.pid, 0) as pid,
-            coalesce(posts.replytime, 0) as joined_at,
+            coalesce(nullif(activity_join.joined_at, 0), posts.replytime, 0) as joined_at,
             coalesce(posts.replytime, 0) as record_at
         from season_activity_join activity_join
         inner join season_threads_activity activity on activity.activity_id=activity_join.activity_id
