@@ -136,7 +136,7 @@
     overflow-wrap: anywhere;
   }
 
-  .yahou-changelog-master > span {
+  .yahou-changelog-counts {
     color: var(--text-muted);
     font-size: var(--ui-font-size-sm);
     font-variant-numeric: tabular-nums;

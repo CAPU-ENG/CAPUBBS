@@ -30,7 +30,6 @@ function describe(entry: YahouLogEntry) {
 const RANGES = [
   { key: 'capu-current', label: '本车协年' },
   { key: 'capu-last', label: '上一车协年' },
-  { key: 'year', label: '一年内' },
   { key: 'all', label: '不限' },
   { key: 'custom', label: '自定义' },
 ] as const;
@@ -53,12 +52,7 @@ function capuYear(date: Date) {
 function rangeBounds(range: RangeKey, startDate: string, endDate: string) {
   if (range === 'all') return { from: '', to: '' };
   if (range === 'custom') return { from: startDate, to: endDate };
-  const today = new Date();
-  if (range === 'year') {
-    today.setFullYear(today.getFullYear() - 1);
-    return { from: formatDate(today.getTime() / 1000), to: '' };
-  }
-  const year = capuYear(today) - (range === 'capu-last' ? 1 : 0);
+  const year = capuYear(new Date()) - (range === 'capu-last' ? 1 : 0);
   return { from: `${year - 1}-09-01`, to: `${year}-08-31` };
 }
 
@@ -105,6 +99,23 @@ function groupLog(log: YahouLogEntry[], filters: { from: string; to: string; mem
     if (last?.key === date) last.entries.push(entry); else groups.push({ key: date, master: null, entries: [entry] });
   }
   return groups;
+}
+
+/** Apprentices by current status, as 学徒/押后/师父. */
+function StatusCounts({ ids, milestones }: { ids: string[]; milestones: (id: string) => Milestone[] }) {
+  const counts = { pending: 0, passed: 0, qualified: 0 };
+  for (const id of ids) {
+    const reached = milestones(id);
+    counts[reached[reached.length - 1].status] += 1;
+  }
+  const label = YAHOU_STATUSES.map((status) => `${YAHOU_STATUS_LABELS[status]} ${counts[status]}`).join('，');
+  return (
+    <span aria-label={label} className="yahou-changelog-counts" title={label}>
+      {YAHOU_STATUSES.map((status, index) => (
+        <span aria-hidden="true" key={status}>{index ? '/' : ''}<span className={`yahou-log-status yahou-${status}`}>{counts[status]}</span></span>
+      ))}
+    </span>
+  );
 }
 
 type Milestone = { status: YahouStatus; time?: number };
@@ -218,7 +229,7 @@ export function YahouChangelog({ log, members, onClose }: { log: YahouLogEntry[]
               </li>
             ) : (
               <li key={`master-${group.key}`}>
-                <span className="yahou-changelog-key yahou-changelog-master"><Member id={group.master} /><span>{group.entries.length}</span></span>
+                <span className="yahou-changelog-key yahou-changelog-master"><Member id={group.master} /><StatusCounts ids={group.entries.map((entry) => entry.id)} milestones={milestones} /></span>
                 <ul>{group.entries.map((entry, index) => (
                   <li className="yahou-changelog-apprentice" key={`${entry.time}-${index}`}>
                     <Member id={entry.id} />
