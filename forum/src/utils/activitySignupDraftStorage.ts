@@ -5,8 +5,16 @@ import {
   writeClientDatabaseValue,
 } from './clientDatabase';
 
+// Question and option IDs are regenerated whenever the activity is edited
+// (even a time-only change), so answers are keyed by their visible labels.
+export type StoredActivitySignupAnswer = {
+  label: string;
+  value: string | string[];
+};
+
 export type StoredActivitySignupDraft = {
   activityId: number;
+  answers: StoredActivitySignupAnswer[];
   bid: number;
   board: string;
   excerpt: string;
@@ -15,7 +23,6 @@ export type StoredActivitySignupDraft = {
   threadTitle: string;
   tid: number;
   updatedAt: string;
-  values: Record<string, string | string[]>;
 };
 
 const ACTIVITY_SIGNUP_DRAFT_DATABASE_KEY_PREFIX = 'activity-signup-drafts:v1';
@@ -136,7 +143,7 @@ function sanitizeDrafts(value: unknown) {
 }
 
 function isStoredDraft(value: unknown): value is StoredActivitySignupDraft {
-  if (!isObjectRecord(value) || !isObjectRecord(value.values)) return false;
+  if (!isObjectRecord(value) || !Array.isArray(value.answers)) return false;
 
   return (
     typeof value.activityId === 'number'
@@ -148,9 +155,13 @@ function isStoredDraft(value: unknown): value is StoredActivitySignupDraft {
     && typeof value.threadTitle === 'string'
     && isPositiveInteger(value.tid)
     && typeof value.updatedAt === 'string'
-    && Object.values(value.values).every((answer) => (
-      typeof answer === 'string'
-      || (Array.isArray(answer) && answer.every((item) => typeof item === 'string'))
+    && value.answers.every((answer) => (
+      isObjectRecord(answer)
+      && typeof answer.label === 'string'
+      && (
+        typeof answer.value === 'string'
+        || (Array.isArray(answer.value) && answer.value.every((item) => typeof item === 'string'))
+      )
     ))
   );
 }

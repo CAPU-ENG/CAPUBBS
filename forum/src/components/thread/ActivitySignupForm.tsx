@@ -26,6 +26,7 @@ import {
   deleteStoredActivitySignupDraft,
   readStoredActivitySignupDraft,
   saveStoredActivitySignupDraft,
+  type StoredActivitySignupAnswer,
 } from '../../utils/activitySignupDraftStorage';
 import { Button } from '../Button';
 
@@ -205,7 +206,7 @@ function ActivitySignupFormFields({
       if (!active || !draft) return;
       setValues((current) => ({
         ...current,
-        ...pickKnownDraftValues(activity.questions, draft.values, ownerKey),
+        ...mapDraftAnswersToValues(activity.questions, draft.answers, ownerKey),
       }));
       setSignatureIndex(draft.signatureIndex);
       setStatusIsError(false);
@@ -226,13 +227,13 @@ function ActivitySignupFormFields({
       const saveDraft = hasContent
         ? saveStoredActivitySignupDraft({
           activityId: activity.id,
+          answers: mapValuesToDraftAnswers(activity.questions, values),
           bid,
           board,
           excerpt: formatActivitySignupDraftExcerpt(activity.questions, values),
           signatureIndex,
           threadTitle,
           tid,
-          values,
         }, ownerKey)
         : deleteStoredActivitySignupDraft(bid, tid, ownerKey).then(() => true);
       void saveDraft.then((saved) => {
@@ -658,24 +659,55 @@ function useLiveSignupStatus(activity: ThreadActivity) {
   return status;
 }
 
-function pickKnownDraftValues(
+function mapValuesToDraftAnswers(
   questions: ThreadActivityQuestion[],
-  draftValues: Record<string, ActivitySignupValue>,
+  values: Record<string, ActivitySignupValue>,
+): StoredActivitySignupAnswer[] {
+  return questions
+    .filter((question) => question.label.trim().toUpperCase() !== 'ID')
+    .map((question) => {
+      const value = values[question.id];
+      if (question.type === 'multiChoice') {
+        return {
+          label: question.label.trim(),
+          value: (Array.isArray(value) ? value : [])
+            .map((optionId) => question.options.find((option) => option.id === optionId)?.label.trim() ?? '')
+            .filter(Boolean),
+        };
+      }
+      const textValue = typeof value === 'string' ? value : '';
+      return {
+        label: question.label.trim(),
+        value: question.type === 'choice'
+          ? question.options.find((option) => option.id === textValue)?.label.trim() ?? ''
+          : textValue,
+      };
+    })
+    .filter((answer) => hasSignupValue(answer.value));
+}
+
+function mapDraftAnswersToValues(
+  questions: ThreadActivityQuestion[],
+  answers: StoredActivitySignupAnswer[],
   viewerName: string,
 ) {
+  const answersByLabel = new Map(answers.map((answer) => [answer.label.trim(), answer.value]));
   return questions.reduce<Record<string, ActivitySignupValue>>((result, question) => {
-    const value = draftValues[question.id];
-    if (typeof value === 'undefined') return result;
     if (question.label.trim().toUpperCase() === 'ID') {
       result[question.id] = viewerName;
-    } else if (question.type === 'multiChoice') {
-      result[question.id] = Array.isArray(value)
-        ? value.filter((optionId) => question.options.some((option) => option.id === optionId))
-        : [];
+      return result;
+    }
+    const value = answersByLabel.get(question.label.trim());
+    if (typeof value === 'undefined') return result;
+    const findOptionId = (label: string) => question.options.find((option) => option.label.trim() === label.trim())?.id;
+    if (question.type === 'multiChoice') {
+      result[question.id] = (Array.isArray(value) ? value : [value])
+        .map(findOptionId)
+        .filter((optionId): optionId is string => Boolean(optionId));
     } else if (question.type === 'choice') {
-      result[question.id] = typeof value === 'string' && question.options.some((option) => option.id === value) ? value : '';
-    } else if (typeof value === 'string') {
-      result[question.id] = value;
+      result[question.id] = (typeof value === 'string' ? findOptionId(value) : undefined) ?? '';
+    } else {
+      result[question.id] = Array.isArray(value) ? value.join('、') : value;
     }
     return result;
   }, {});
