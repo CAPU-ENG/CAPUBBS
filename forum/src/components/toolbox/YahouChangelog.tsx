@@ -1,7 +1,8 @@
 import { useId, useLayoutEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { X } from 'lucide-react';
-import { YAHOU_STATUS_LABELS, type YahouLogEntry } from '../../data/yahouLineage';
+import { YAHOU_STATUS_LABELS, type YahouLogEntry, type YahouStatus } from '../../data/yahouLineage';
+import { getForumNavigationHref } from '../../utils/forumNavigation';
 import { DialogNativeLayer } from '../layout/DialogPresence';
 import { Button } from '../Button';
 
@@ -11,11 +12,19 @@ function formatTime(seconds: number) {
   return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())} ${pad(date.getHours())}:${pad(date.getMinutes())}`;
 }
 
+function Member({ id }: { id: string }) {
+  return <a className="yahou-log-member" href={getForumNavigationHref(`/bbs/user?name=${encodeURIComponent(id)}`, window.location.href)}>{id}</a>;
+}
+
+function Status({ status }: { status: YahouStatus }) {
+  return <span className={`yahou-log-status yahou-${status}`}>{YAHOU_STATUS_LABELS[status]}</span>;
+}
+
 function describe(entry: YahouLogEntry) {
-  if (entry.action === 'add') {
-    return `添加 ${entry.id}（${YAHOU_STATUS_LABELS[entry.status]}），师父 ${entry.parentId ?? '实践部'}`;
-  }
-  return `将 ${entry.id} 由 ${YAHOU_STATUS_LABELS[entry.from]} 改为 ${YAHOU_STATUS_LABELS[entry.status]}`;
+  if (entry.action === 'status') return <><Member id={entry.id} /> 由 <Status status={entry.from} /> 成为了 <Status status={entry.status} /></>;
+  // Direct members of 实践部 have no master to name.
+  if (entry.parentId === null) return <><Member id={entry.id} /> 成为了 <Status status={entry.status} /></>;
+  return <><Member id={entry.parentId} /> 收 <Member id={entry.id} /> 为徒弟</>;
 }
 
 export function YahouChangelog({ log, onClose }: { log: YahouLogEntry[]; onClose: () => void }) {
@@ -44,7 +53,8 @@ export function YahouChangelog({ log, onClose }: { log: YahouLogEntry[]; onClose
             {log.map((entry, index) => (
               <li key={`${entry.time}-${index}`}>
                 <time dateTime={new Date(entry.time * 1000).toISOString()}>{formatTime(entry.time)}</time>
-                <span><strong>{entry.operator}</strong> {describe(entry)}</span>
+                <span className="yahou-log-operator">{entry.operator}</span>
+                <span className="yahou-log-text">{describe(entry)}</span>
               </li>
             )).reverse()}
           </ol>

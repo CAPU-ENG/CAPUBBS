@@ -81,8 +81,27 @@
     font-variant-numeric: tabular-nums;
   }
 
-  .yahou-changelog-list strong {
+  .yahou-changelog-list .yahou-log-operator {
+    color: var(--text-muted);
+    font-size: var(--ui-font-size-sm);
+  }
+
+  .yahou-log-text {
+    flex-basis: 100%;
+  }
+
+  .yahou-log-member {
     color: var(--text-strong);
+    font-weight: var(--font-weight-bold);
+  }
+
+  .yahou-log-member:hover {
+    text-decoration: underline;
+  }
+
+  .yahou-log-status {
+    color: var(--yahou-status);
+    font-weight: var(--font-weight-bold);
   }
 
   .yahou-overview-failure {
