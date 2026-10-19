@@ -363,6 +363,7 @@ CREATE TABLE `season_activity_join` (
   `username` varchar(30) COLLATE utf8mb4_unicode_ci NOT NULL,
   `post_fid` int(11) NOT NULL,
   `cancel` tinyint(4) NOT NULL DEFAULT '0',
+  `joined_at` int(10) unsigned NOT NULL DEFAULT '0',
   `attendance` int(11) NOT NULL DEFAULT '0',
   PRIMARY KEY (`join_id`),
   UNIQUE KEY `unique_join` (`activity_id`,`username`)

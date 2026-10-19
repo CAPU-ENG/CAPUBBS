@@ -303,7 +303,7 @@ function activity_handler_signup_summary_locked($con, $activity_id) {
             activity_join.username,
             activity_join.cancel,
             case when unfinished_punishment.username is null then 0 else 1 end as has_unfinished_punishment,
-            coalesce(posts.replytime, 0) as joined_at
+            coalesce(nullif(activity_join.joined_at, 0), posts.replytime, 0) as joined_at
         from season_activity_join activity_join
         left join posts on posts.fid=activity_join.post_fid
         left join (

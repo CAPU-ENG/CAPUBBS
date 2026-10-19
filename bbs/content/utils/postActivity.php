@@ -51,7 +51,9 @@ function cancel_join_activity_by_content($bid, $tid, $username, $option_values, 
         $post_fid = $row["post_fid"];
 
         $cancel_num = ($cancel) ? 1 : 0 ;
-        $statement = "update season_activity_join set cancel=$cancel_num where (activity_id=$activity_id and username='$username')";
+        // A restore counts as a fresh signup, so it moves joined_at; a cancel keeps it.
+        $joined_at_update = ($cancel) ? "" : ", joined_at=" . time();
+        $statement = "update season_activity_join set cancel=$cancel_num$joined_at_update where (activity_id=$activity_id and username='$username')";
         mysqli_query($con, $statement);
     }
 
@@ -354,8 +356,9 @@ function join_activity_by_content($bid, $tid, $username, $option_values, $title,
     }
     file_put_contents($filePath, "[0] $username $bid $tid\n", FILE_APPEND);
 
-    $statement = "insert into season_activity_join (activity_id, username, post_fid) values
-        ($activity_id, '$username', -1)";
+    $joined_at = time();
+    $statement = "insert into season_activity_join (activity_id, username, post_fid, joined_at) values
+        ($activity_id, '$username', -1, $joined_at)";
     $result = mysqli_query($con, $statement);
     if (!$result) {
         file_put_contents($filePath, "[1] $username $bid $tid\n", FILE_APPEND);
