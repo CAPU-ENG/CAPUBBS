@@ -58,9 +58,8 @@ type SearchState = {
 
 const idleState: SearchState = { error: '', results: [], status: 'idle' };
 
-const SEARCH_CACHE_TTL = 5 * 60 * 1000;
-const SEARCH_CACHE_LIMIT = 20;
-const searchCache = new Map<string, { results: SearchResult[]; storedAt: number }>();
+// Only the latest search is kept; the next search replaces it.
+let lastSearch: { key: string; results: SearchResult[] } | null = null;
 
 function searchCacheKey(request: SearchRequest) {
   return JSON.stringify([
@@ -74,26 +73,12 @@ function searchCacheKey(request: SearchRequest) {
 }
 
 function readSearchCache(request: SearchRequest) {
-  if (!request.enabled) return null;
-  const key = searchCacheKey(request);
-  const entry = searchCache.get(key);
-  if (!entry) return null;
-  if (Date.now() - entry.storedAt > SEARCH_CACHE_TTL) {
-    searchCache.delete(key);
-    return null;
-  }
-  return entry.results;
+  if (!request.enabled || !lastSearch) return null;
+  return lastSearch.key === searchCacheKey(request) ? lastSearch.results : null;
 }
 
 function writeSearchCache(request: SearchRequest, results: SearchResult[]) {
-  const key = searchCacheKey(request);
-  searchCache.delete(key);
-  searchCache.set(key, { results, storedAt: Date.now() });
-  while (searchCache.size > SEARCH_CACHE_LIMIT) {
-    const oldest = searchCache.keys().next().value;
-    if (oldest === undefined) break;
-    searchCache.delete(oldest);
-  }
+  lastSearch = { key: searchCacheKey(request), results };
 }
 
 export function useSearchData(request: SearchRequest) {
