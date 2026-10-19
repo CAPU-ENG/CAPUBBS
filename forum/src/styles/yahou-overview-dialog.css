@@ -52,21 +52,34 @@
     padding: var(--space-16);
   }
 
-  .yahou-changelog-entry + .yahou-changelog-entry {
-    margin-top: var(--space-16);
+  .yahou-changelog-list {
+    margin: 0;
+    padding: 0;
+    list-style: none;
   }
 
-  .yahou-changelog-entry h3 {
-    margin: 0 0 var(--space-6);
-    color: var(--text-strong);
-    font-size: var(--ui-font-size-lg);
+  .yahou-changelog-list li {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-4) var(--space-12);
+    padding: var(--space-8) 0;
+    border-top: 1px solid var(--line);
+    overflow-wrap: anywhere;
+  }
+
+  .yahou-changelog-list li:first-child {
+    border-top: 0;
+  }
+
+  .yahou-changelog-list time {
+    flex-shrink: 0;
+    color: var(--text-muted);
+    font-size: var(--ui-font-size-sm);
     font-variant-numeric: tabular-nums;
   }
 
-  .yahou-changelog-entry ul {
-    margin: 0;
-    padding-left: var(--space-18);
-    color: var(--text);
+  .yahou-changelog-list strong {
+    color: var(--text-strong);
   }
 
   .yahou-overview-failure {

@@ -2,6 +2,8 @@
 /** JSON-backed Yahou lineage. Authentication/rights are enforced by dispatch. */
 
 class YahouLineageStore {
+    const LOG_LIMIT = 1000;
+
     private $path;
     private $backupPath;
 
@@ -20,7 +22,7 @@ class YahouLineageStore {
         }
     }
 
-    public function mutate($revision, $mutation) {
+    public function mutate($revision, $mutation, $operator) {
         $lock = $this->lock(LOCK_EX);
         try {
             $before = $this->readBytes($this->path);
@@ -30,6 +32,7 @@ class YahouLineageStore {
             }
             $next = self::apply($document, $mutation);
             if ($next === $document) return $document;
+            $next['log'] = self::appendLog($document, $mutation, $operator);
             if ($document['revision'] >= 9007199254740991) {
                 throw new RuntimeException('谱系版本号已达上限。');
             }
@@ -92,6 +95,46 @@ class YahouLineageStore {
             }
         }
         if (count($queue) !== count($members)) throw new RuntimeException('师徒关系存在循环。');
+        if (array_key_exists('log', $data)) self::validateLog($data['log']);
+    }
+
+    private static function validateLog($log) {
+        if (!is_array($log) || count($log) > self::LOG_LIMIT
+            || (!empty($log) && array_keys($log) !== range(0, count($log) - 1))) {
+            throw new RuntimeException('谱系操作记录格式错误。');
+        }
+        foreach ($log as $entry) {
+            if (!is_array($entry) || !isset($entry['time'], $entry['operator'], $entry['action'], $entry['id'], $entry['status'])
+                || !is_int($entry['time']) || $entry['time'] < 0
+                || !self::validId($entry['operator']) || !self::validId($entry['id']) || !self::validStatus($entry['status'])) {
+                throw new RuntimeException('谱系操作记录格式错误。');
+            }
+            if ($entry['action'] === 'add') {
+                if (!array_key_exists('parentId', $entry) || ($entry['parentId'] !== null && !self::validId($entry['parentId']))) {
+                    throw new RuntimeException('谱系操作记录格式错误。');
+                }
+            } elseif ($entry['action'] === 'status') {
+                if (!isset($entry['from']) || !self::validStatus($entry['from'])) throw new RuntimeException('谱系操作记录格式错误。');
+            } else {
+                throw new RuntimeException('谱系操作记录格式错误。');
+            }
+        }
+    }
+
+    private static function appendLog($document, $mutation, $operator) {
+        if (!self::validId($operator)) throw new RuntimeException('无法确定操作人。');
+        $entry = array('time' => time(), 'operator' => $operator, 'action' => $mutation['action'], 'id' => $mutation['id']);
+        if ($mutation['action'] === 'add') {
+            $entry['parentId'] = $mutation['parentId'];
+        } else {
+            foreach ($document['nodes'] as $node) {
+                if ($node['id'] === $mutation['id']) $entry['from'] = $node['status'];
+            }
+        }
+        $entry['status'] = $mutation['status'];
+        $log = isset($document['log']) ? $document['log'] : array();
+        $log[] = $entry;
+        return array_values(array_slice($log, -self::LOG_LIMIT));
     }
 
     public static function validId($id) {
@@ -270,14 +313,30 @@ function jiekoufunc_yahou_lineage_write($con, $params, $action) {
         } elseif (array_key_exists('parent_id', $params) || array_key_exists('parentId', $params)) {
             throw new InvalidArgumentException('不允许更换师傅。');
         }
+        $operator = yahou_lineage_operator($con, isset($params['token']) ? $params['token'] : '');
         $store = new YahouLineageStore();
-        return array(array('code' => '0', 'count' => '1'), $store->mutate($revision, $mutation));
+        return array(array('code' => '0', 'count' => '1'), $store->mutate($revision, $mutation, $operator));
     } catch (InvalidArgumentException $error) {
         return array(array('code' => '2100', 'msg' => $error->getMessage()));
     } catch (Exception $error) {
         return array(array('code' => '4000', 'msg' => '谱系保存失败，请联系管理员检查数据和目录权限。'));
     } catch (Throwable $error) {
         return array(array('code' => '4000', 'msg' => '谱系保存失败，请联系管理员检查数据和目录权限。'));
+    }
+}
+
+function yahou_lineage_operator($con, $token) {
+    if (!is_string($token) || $token === '') throw new InvalidArgumentException('请先登录。');
+    $statement = mysqli_prepare($con, 'SELECT username FROM userinfo WHERE token=? LIMIT 1');
+    if (!$statement) throw new RuntimeException('无法确定操作人。');
+    try {
+        mysqli_stmt_bind_param($statement, 's', $token);
+        if (!mysqli_stmt_execute($statement)) throw new RuntimeException('无法确定操作人。');
+        mysqli_stmt_bind_result($statement, $username);
+        if (!mysqli_stmt_fetch($statement)) throw new InvalidArgumentException('请先登录。');
+        return $username;
+    } finally {
+        mysqli_stmt_close($statement);
     }
 }
 

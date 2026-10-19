@@ -13,7 +13,12 @@ export type YahouLineage = {
   revision: number;
   root: '实践部';
   nodes: YahouMember[];
+  log: YahouLogEntry[];
 };
+
+export type YahouLogEntry =
+  | { time: number; operator: string; action: 'add'; id: string; parentId: string | null; status: YahouStatus }
+  | { time: number; operator: string; action: 'status'; id: string; from: YahouStatus; status: YahouStatus };
 
 export type YahouMutation =
   | { action: 'add'; id: string; parentId: string | null; status: YahouStatus }
@@ -48,9 +53,29 @@ export function parseYahouLineage(value: unknown): YahouLineage {
     seen.add(node.id);
     return { id: node.id, parentId: node.parentId as string | null, status: node.status as YahouStatus };
   });
-  const document: YahouLineage = { schemaVersion: 1, revision: Number(data.revision), root: '实践部', nodes };
+  const document: YahouLineage = { schemaVersion: 1, revision: Number(data.revision), root: '实践部', nodes, log: parseYahouLog(data.log) };
   buildYahouIndex(document);
   return document;
+}
+
+function parseYahouLog(value: unknown): YahouLogEntry[] {
+  if (value === undefined) return [];
+  if (!Array.isArray(value)) throw new Error('谱系操作记录格式错误。');
+  const isStatus = (status: unknown): status is YahouStatus => YAHOU_STATUSES.includes(status as YahouStatus);
+  return value.map((item: unknown): YahouLogEntry => {
+    const entry = (item && typeof item === 'object' ? item : {}) as Record<string, unknown>;
+    const { time, operator, id, status } = entry;
+    if (!Number.isSafeInteger(time) || typeof operator !== 'string' || typeof id !== 'string' || !isStatus(status)) {
+      throw new Error('谱系操作记录格式错误。');
+    }
+    if (entry.action === 'add' && (entry.parentId === null || typeof entry.parentId === 'string')) {
+      return { time: time as number, operator, action: 'add', id, parentId: entry.parentId, status };
+    }
+    if (entry.action === 'status' && isStatus(entry.from)) {
+      return { time: time as number, operator, action: 'status', id, from: entry.from, status };
+    }
+    throw new Error('谱系操作记录格式错误。');
+  });
 }
 
 export function buildYahouIndex(data: YahouLineage): YahouIndex {

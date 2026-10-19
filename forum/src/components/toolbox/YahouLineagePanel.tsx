@@ -58,7 +58,7 @@ export function YahouLineagePanel() {
         <span className="toolbox-workspace-icon"><GitBranch size={17} /></span>
         <h1 id="yahou-lineage-title">押后谱系</h1>
         <div className="yahou-header-actions">
-          <Button aria-haspopup="dialog" onClick={() => setChangelogOpen(true)} type="button"><History size={16} />更新记录</Button>
+          <Button aria-haspopup="dialog" disabled={!data} onClick={() => setChangelogOpen(true)} type="button"><History size={16} />更新记录</Button>
           {isDesktop ? (
             <Button aria-expanded={overviewOpen} aria-haspopup="dialog" disabled={!data} onClick={() => setOverviewOpen(true)} type="button"><Network size={16} />谱系总览</Button>
           ) : null}
@@ -73,7 +73,7 @@ export function YahouLineagePanel() {
         <YahouTree canEdit={canEdit} data={data} key={reload} onData={setData} onSaving={setSaving} />
       )}
       <DialogPresence>
-        {changelogOpen ? <YahouChangelog onClose={() => setChangelogOpen(false)} /> : null}
+        {changelogOpen && data ? <YahouChangelog log={data.log} onClose={() => setChangelogOpen(false)} /> : null}
       </DialogPresence>
       {isDesktop ? (
         <DialogPresence>

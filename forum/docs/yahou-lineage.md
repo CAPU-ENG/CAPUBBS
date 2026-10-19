@@ -55,6 +55,7 @@ relation-graph、D3 及总览专用样式仅在打开总览时加载，不进入
 2. 数据仅通过 `/api/api.php` 读取，不得直接公开数据目录。Apache 使用该目录内的 `.htaccess`；Nginx 在站点配置中加入 `location ^~ /forum/data/ { return 404; }`，该规则不影响 `/bbs/` 入口。
 3. 人工修正关系须在服务器上进行，并与 Web 写入共用 `yahou-lineage.lock` 排他锁。修改后递增 `revision`，并保证 ID 唯一、师傅存在、关系无环、已有后代者具备收徒资格。直接恢复备份时同样须递增版本。
 4. 主文件缺失或损坏时接口直接报错，不会以初始数据自动覆盖。
+5. 每次 Web 写入都会在 `log` 中追加一条操作记录（`time` 为 Unix 秒，`operator` 为操作人，`action` 为 `add` 或 `status`；`add` 带 `parentId`，`status` 带原状态 `from`），只保留最近 1000 条。状态未变化的写入不记录。人工修正不会自动记录。
 
 ## 依赖补丁
 
