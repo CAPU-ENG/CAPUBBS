@@ -26,7 +26,7 @@ assert.deepEqual(legacy.map((asset) => asset.url), config.assets
   .filter((asset) => legacyHashes.has(asset.url.split('/').at(-1)))
   .map((asset) => asset.url), 'Compatibility must match the known immutable assets still present in this build');
 for (const asset of config.assets) {
-  const result = await fetch(origin + asset.url);
+  const result = await fetch(new URL(asset.url, origin));
   assert.equal(result.status, 200, asset.url);
   const bytes = new Uint8Array(await result.arrayBuffer());
   assert.equal(bytes.length, asset.size);
