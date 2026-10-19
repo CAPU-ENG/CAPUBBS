@@ -28,20 +28,31 @@ function describe(entry: YahouLogEntry) {
 }
 
 const RANGES = [
-  { key: 'week', label: '七天内', days: 7 },
-  { key: 'month', label: '一月内', days: 30 },
-  { key: 'year', label: '一年内', days: 365 },
-  { key: 'all', label: '全部', days: null },
+  { key: 'week', label: '七天内' },
+  { key: 'month', label: '一月内' },
+  { key: 'year', label: '一年内' },
+  { key: 'all', label: '不限' },
+  { key: 'custom', label: '自定义' },
 ] as const;
 type RangeKey = typeof RANGES[number]['key'];
 
-function groupByDate(log: YahouLogEntry[], days: number | null) {
-  const since = days === null ? -Infinity : Date.now() / 1000 - days * 86400;
+function rangeStart(range: RangeKey, startDate: string) {
+  if (range === 'all') return '';
+  if (range === 'custom') return startDate;
+  const date = new Date();
+  if (range === 'week') date.setDate(date.getDate() - 7);
+  else if (range === 'month') date.setMonth(date.getMonth() - 1);
+  else date.setFullYear(date.getFullYear() - 1);
+  return formatDate(date.getTime() / 1000);
+}
+
+// Dates are local YYYY-MM-DD strings, so plain string comparison orders them.
+function groupByDate(log: YahouLogEntry[], from: string, to: string) {
   const groups: { date: string; entries: YahouLogEntry[] }[] = [];
   for (let index = log.length - 1; index >= 0; index -= 1) {
     const entry = log[index];
-    if (entry.time < since) continue;
     const date = formatDate(entry.time);
+    if ((from && date < from) || (to && date > to)) continue;
     const last = groups[groups.length - 1];
     if (last?.date === date) last.entries.push(entry); else groups.push({ date, entries: [entry] });
   }
@@ -52,7 +63,12 @@ export function YahouChangelog({ log, onClose }: { log: YahouLogEntry[]; onClose
   const dialogRef = useRef<HTMLDialogElement>(null);
   const titleId = useId();
   const [range, setRange] = useState<RangeKey>('all');
-  const groups = useMemo(() => groupByDate(log, RANGES.find((item) => item.key === range)?.days ?? null), [log, range]);
+  const [startDate, setStartDate] = useState('');
+  const [endDate, setEndDate] = useState('');
+  const groups = useMemo(
+    () => groupByDate(log, rangeStart(range, startDate), range === 'custom' ? endDate : ''),
+    [log, range, startDate, endDate],
+  );
 
   useLayoutEffect(() => {
     const dialog = dialogRef.current;
@@ -70,11 +86,23 @@ export function YahouChangelog({ log, onClose }: { log: YahouLogEntry[]; onClose
         <h2 id={titleId}>更新记录</h2>
         <Button aria-label="关闭更新记录" autoFocus icon onClick={onClose} type="button"><X size={19} /></Button>
       </header>
-      <div aria-label="时间范围" className="yahou-changelog-filter" role="group">
-        {RANGES.map((item) => (
-          <Button aria-pressed={range === item.key} key={item.key} onClick={() => setRange(item.key)} variant={range === item.key ? 'primary' : 'neutral'}>{item.label}</Button>
-        ))}
-      </div>
+      <fieldset className="search-filter-group yahou-changelog-filter">
+        <legend>时间</legend>
+        <div className="search-range-options">
+          {RANGES.map((item) => (
+            <label className={`search-segmented-option ${range === item.key ? 'search-segmented-option-active' : ''}`} key={item.key}>
+              <input checked={range === item.key} name={`${titleId}-range`} onChange={() => setRange(item.key)} type="radio" />
+              <span>{item.label}</span>
+            </label>
+          ))}
+        </div>
+        {range === 'custom' ? (
+          <div className="search-date-grid">
+            <label><span>从</span><input max={endDate || undefined} onChange={(event) => setStartDate(event.target.value)} type="date" value={startDate} /></label>
+            <label><span>至</span><input min={startDate || undefined} onChange={(event) => setEndDate(event.target.value)} type="date" value={endDate} /></label>
+          </div>
+        ) : null}
+      </fieldset>
       <div className="yahou-changelog-body">
         {groups.length ? (
           <ol className="yahou-changelog-list">
