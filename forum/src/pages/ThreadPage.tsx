@@ -460,6 +460,10 @@ export function ThreadPage() {
   const registerHref = getRegisterPathWithReturnTo();
   const signupScope = `${data.id}:${data.currentPage}:${data.authorOnly}:${data.viewer?.name ?? ''}`;
   const signupFocusRequest = signupEditRequest.scope === signupScope ? signupEditRequest.id : 0;
+  const requestSignupFocus = data.activity ? () => setSignupEditRequest((current) => ({
+    scope: signupScope,
+    id: current.id + 1,
+  })) : undefined;
   const signupForm = data.activity ? (
     <Suspense fallback={<LoadingState label="正在准备报名表单" variant="panel" />}>
       <ActivitySignupForm
@@ -601,11 +605,9 @@ export function ThreadPage() {
                   showAuthorProfile={authorProfileEnabled}
                   onDeleteFloor={removeFloor}
                   onDeleteNestedReply={removeNestedReply}
-                  onEditSignup={data.activity ? () => setSignupEditRequest((current) => ({
-                    scope: signupScope,
-                    id: current.id + 1,
-                  })) : undefined}
+                  onEditSignup={requestSignupFocus}
                   onIsolatedTextSelection={rememberIsolatedFloorSelection}
+                  onJumpToSignup={floor.floor === 1 ? requestSignupFocus : undefined}
                   onQuote={quoteFloor}
                   onSubmitNestedReply={submitNestedReply}
                   viewer={data.viewer}

@@ -14,6 +14,7 @@ import {
 import {
   AlertTriangle,
   Check,
+  ClipboardList,
   ExternalLink,
   Pencil,
   Quote,
@@ -378,6 +379,7 @@ export function ThreadFloor({
   onDeleteNestedReply,
   onEditSignup,
   onIsolatedTextSelection,
+  onJumpToSignup,
   onQuote,
   onSubmitNestedReply,
   viewer,
@@ -397,6 +399,7 @@ export function ThreadFloor({
   onDeleteNestedReply: (floor: ThreadFloorData, reply: NestedReply) => Promise<void>;
   onEditSignup?: () => void;
   onIsolatedTextSelection: (floor: ThreadFloorData, text: string) => void;
+  onJumpToSignup?: () => void;
   onQuote: (floor: ThreadFloorData, selectedText?: string, image?: GalleryImageQuote) => void;
   onSubmitNestedReply: (floor: ThreadFloorData, targetName: string | null, content: string) => Promise<number>;
   viewer: ThreadAuthor | null;
@@ -597,7 +600,7 @@ export function ThreadFloor({
     />
   );
 
-  const floorIndex = (
+  const floorIndexButton = (
     <button
       aria-label={`复制第 ${floor.floor} 楼链接`}
       className="thread-floor-index"
@@ -608,6 +611,15 @@ export function ThreadFloor({
       #{floor.floor}
     </button>
   );
+  const floorIndex = onJumpToSignup ? (
+    <div className="thread-floor-header-end">
+      <button className="thread-floor-signup-jump" onClick={onJumpToSignup} type="button">
+        <ClipboardList aria-hidden="true" size={14} />
+        前往报名
+      </button>
+      {floorIndexButton}
+    </div>
+  ) : floorIndexButton;
   const mainAfterContent = (
     <>
       <ThreadFloorActions
