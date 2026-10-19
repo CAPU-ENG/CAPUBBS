@@ -222,6 +222,31 @@ export function ThreadFloorPresentation({
 }) {
   const authorTags = author.tags ?? [];
   const displayedTags = getDisplayedTags(authorTags);
+  const authorRef = useRef<HTMLDivElement>(null);
+  const displayedTagKey = displayedTags.map((tag) => tag.id).join(',');
+
+  useLayoutEffect(() => {
+    const authorElement = authorRef.current;
+    if (!authorElement) return;
+    let active = true;
+    fitAuthorTags(authorElement);
+    void document.fonts?.ready.then(() => {
+      if (active) fitAuthorTags(authorElement);
+    });
+    if (typeof ResizeObserver === 'undefined') return () => { active = false; };
+    let lastWidth = authorElement.getBoundingClientRect().width;
+    const observer = new ResizeObserver(() => {
+      const width = authorElement.getBoundingClientRect().width;
+      if (width === lastWidth) return;
+      lastWidth = width;
+      fitAuthorTags(authorElement);
+    });
+    observer.observe(authorElement);
+    return () => {
+      active = false;
+      observer.disconnect();
+    };
+  }, [author.name, displayedTagKey, showAuthorProfile]);
 
   return (
     <article
@@ -242,7 +267,7 @@ export function ThreadFloorPresentation({
       <div className="thread-floor-main">
         <header className="thread-floor-header">
           {!showAuthorProfile && inlineAvatar && avatarRail}
-          <div className="thread-floor-author">
+          <div className="thread-floor-author" ref={authorRef}>
             <a href={getPublicProfilePath(author.name)}>{author.name}</a>
             <DisplayedTagList tags={displayedTags} />
           </div>
@@ -267,6 +292,26 @@ export function ThreadFloorPresentation({
       {articleAfterContent}
     </article>
   );
+}
+
+// When the header is too narrow for the full username, drop worn tags from the
+// end one at a time; once none are left the username falls back to its ellipsis.
+function fitAuthorTags(authorElement: HTMLElement) {
+  const name = authorElement.querySelector<HTMLElement>(':scope > a');
+  const tagList = authorElement.querySelector<HTMLElement>(':scope > .user-displayed-tag-list');
+  if (!name || !tagList) return;
+
+  const tags = Array.from(tagList.children) as HTMLElement[];
+  tagList.hidden = false;
+  tags.forEach((tag) => { tag.hidden = false; });
+  const nameFits = () => name.scrollWidth <= name.clientWidth;
+  if (nameFits()) return;
+
+  for (let index = tags.length - 1; index >= 0; index -= 1) {
+    tags[index].hidden = true;
+    if (index > 0 && nameFits()) return;
+  }
+  tagList.hidden = true;
 }
 
 export function ThreadFloorActions({

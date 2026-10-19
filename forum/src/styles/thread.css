@@ -1324,6 +1324,11 @@
     flex: 0 0 auto;
   }
 
+  .thread-floor-author > .user-displayed-tag-list[hidden],
+  .thread-floor-author > .user-displayed-tag-list > [hidden] {
+    display: none;
+  }
+
   .thread-floor-time {
     display: flex;
     min-width: 0;
