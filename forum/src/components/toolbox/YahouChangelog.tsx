@@ -1,4 +1,4 @@
-import { useId, useLayoutEffect, useRef } from 'react';
+import { useId, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { X } from 'lucide-react';
 import { YAHOU_STATUS_LABELS, type YahouLogEntry, type YahouStatus } from '../../data/yahouLineage';
@@ -27,9 +27,32 @@ function describe(entry: YahouLogEntry) {
   return <><Member id={entry.parentId} /> 收 <Member id={entry.id} /> 为徒弟</>;
 }
 
+const RANGES = [
+  { key: 'week', label: '七天内', days: 7 },
+  { key: 'month', label: '一月内', days: 30 },
+  { key: 'year', label: '一年内', days: 365 },
+  { key: 'all', label: '全部', days: null },
+] as const;
+type RangeKey = typeof RANGES[number]['key'];
+
+function groupByDate(log: YahouLogEntry[], days: number | null) {
+  const since = days === null ? -Infinity : Date.now() / 1000 - days * 86400;
+  const groups: { date: string; entries: YahouLogEntry[] }[] = [];
+  for (let index = log.length - 1; index >= 0; index -= 1) {
+    const entry = log[index];
+    if (entry.time < since) continue;
+    const date = formatDate(entry.time);
+    const last = groups[groups.length - 1];
+    if (last?.date === date) last.entries.push(entry); else groups.push({ date, entries: [entry] });
+  }
+  return groups;
+}
+
 export function YahouChangelog({ log, onClose }: { log: YahouLogEntry[]; onClose: () => void }) {
   const dialogRef = useRef<HTMLDialogElement>(null);
   const titleId = useId();
+  const [range, setRange] = useState<RangeKey>('all');
+  const groups = useMemo(() => groupByDate(log, RANGES.find((item) => item.key === range)?.days ?? null), [log, range]);
 
   useLayoutEffect(() => {
     const dialog = dialogRef.current;
@@ -47,15 +70,20 @@ export function YahouChangelog({ log, onClose }: { log: YahouLogEntry[]; onClose
         <h2 id={titleId}>更新记录</h2>
         <Button aria-label="关闭更新记录" autoFocus icon onClick={onClose} type="button"><X size={19} /></Button>
       </header>
+      <div aria-label="时间范围" className="yahou-changelog-filter" role="group">
+        {RANGES.map((item) => (
+          <Button aria-pressed={range === item.key} key={item.key} onClick={() => setRange(item.key)} variant={range === item.key ? 'primary' : 'neutral'}>{item.label}</Button>
+        ))}
+      </div>
       <div className="yahou-changelog-body">
-        {log.length ? (
+        {groups.length ? (
           <ol className="yahou-changelog-list">
-            {log.map((entry, index) => (
-              <li key={`${entry.time}-${index}`}>
-                <time dateTime={formatDate(entry.time)}>{formatDate(entry.time)}</time>
-                <span className="yahou-log-text">{describe(entry)}</span>
+            {groups.map((group) => (
+              <li key={group.date}>
+                <time dateTime={group.date}>{group.date}</time>
+                <ul>{group.entries.map((entry, index) => <li key={`${entry.time}-${index}`}>{describe(entry)}</li>)}</ul>
               </li>
-            )).reverse()}
+            ))}
           </ol>
         ) : <p className="yahou-empty">暂无记录</p>}
       </div>

@@ -61,17 +61,37 @@
     list-style: none;
   }
 
-  .yahou-changelog-list li {
+  .yahou-changelog-filter {
+    display: flex;
+    flex-shrink: 0;
+    flex-wrap: wrap;
+    gap: var(--space-6);
+    padding: var(--space-10) var(--space-16);
+    border-bottom: 1px solid var(--line);
+  }
+
+  .yahou-changelog-list > li {
     display: flex;
     align-items: baseline;
-    gap: var(--space-4) var(--space-12);
+    gap: var(--space-12);
     padding: var(--space-8) 0;
     border-top: 1px solid var(--line);
     overflow-wrap: anywhere;
   }
 
-  .yahou-changelog-list li:first-child {
+  .yahou-changelog-list > li:first-child {
     border-top: 0;
+  }
+
+  .yahou-changelog-list ul {
+    display: flex;
+    flex: 1;
+    min-width: 0;
+    flex-direction: column;
+    gap: var(--space-4);
+    margin: 0;
+    padding: 0;
+    list-style: none;
   }
 
   .yahou-changelog-list time {
