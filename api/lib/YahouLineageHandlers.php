@@ -3,6 +3,7 @@
 
 class YahouLineageStore {
     const LOG_LIMIT = 1000;
+    const UNDO_SECONDS = 600;
 
     private $path;
     private $backupPath;
@@ -30,9 +31,13 @@ class YahouLineageStore {
             if ($revision !== $document['revision']) {
                 throw new InvalidArgumentException('谱系已被其他人更新，请刷新后重试。');
             }
-            $next = self::apply($document, $mutation);
-            if ($next === $document) return $document;
-            $next['log'] = self::appendLog($document, $mutation, $operator);
+            if (is_array($mutation) && isset($mutation['action']) && $mutation['action'] === 'delete') {
+                $next = self::applyDelete($document, $mutation, $operator, time());
+            } else {
+                $next = self::apply($document, $mutation);
+                if ($next === $document) return $document;
+                $next['log'] = self::appendLog($document, $mutation, $operator);
+            }
             if ($document['revision'] >= 9007199254740991) {
                 throw new RuntimeException('谱系版本号已达上限。');
             }
@@ -135,6 +140,34 @@ class YahouLineageStore {
         $log = isset($document['log']) ? $document['log'] : array();
         $log[] = $entry;
         return array_values(array_slice($log, -self::LOG_LIMIT));
+    }
+
+    /** Undo a mistaken add: only the adder, only a leaf, only within UNDO_SECONDS. Its log entries go too. */
+    private static function applyDelete($data, $mutation, $operator, $now) {
+        if (!isset($mutation['id']) || !self::validId($mutation['id'])) throw new InvalidArgumentException('ID 无效。');
+        if (!self::validId($operator)) throw new RuntimeException('无法确定操作人。');
+        $id = $mutation['id'];
+        $position = null;
+        foreach ($data['nodes'] as $index => $node) {
+            if ($node['id'] === $id) $position = $index;
+            if ($node['parentId'] === $id) throw new InvalidArgumentException('已有徒弟的 ID 不能删除。');
+        }
+        if ($position === null) throw new InvalidArgumentException('这个 ID 不在谱系中。');
+        $log = isset($data['log']) ? $data['log'] : array();
+        $added = null;
+        foreach ($log as $index => $entry) {
+            if ($entry['action'] === 'add' && $entry['id'] === $id) $added = $index;
+        }
+        if ($added === null || $log[$added]['operator'] !== $operator || $log[$added]['time'] < $now - self::UNDO_SECONDS) {
+            throw new InvalidArgumentException('只能删除自己 10 分钟内添加的 ID。');
+        }
+        array_splice($data['nodes'], $position, 1);
+        $kept = array();
+        foreach ($log as $index => $entry) {
+            if ($index < $added || $entry['id'] !== $id) $kept[] = $entry;
+        }
+        $data['log'] = $kept;
+        return $data;
     }
 
     public static function validId($id) {
@@ -280,6 +313,10 @@ function jiekoufunc_yahou_lineage_add($con, $params) {
 
 function jiekoufunc_yahou_lineage_status($con, $params) {
     return jiekoufunc_yahou_lineage_write($con, $params, 'status');
+}
+
+function jiekoufunc_yahou_lineage_delete($con, $params) {
+    return jiekoufunc_yahou_lineage_write($con, $params, 'delete');
 }
 
 function jiekoufunc_yahou_lineage_write($con, $params, $action) {

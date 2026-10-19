@@ -123,6 +123,7 @@ function _dispatch_build_routes() {
         'management_member_lookup' => array('handler' => 'jiekoufunc_management_member_lookup', 'check_login' => true, 'require_rights' => 3),
         'yahou_lineage_add' => array('handler' => 'jiekoufunc_yahou_lineage_add', 'check_login' => true, 'require_rights' => 3),
         'yahou_lineage_status' => array('handler' => 'jiekoufunc_yahou_lineage_status', 'check_login' => true, 'require_rights' => 3),
+        'yahou_lineage_delete' => array('handler' => 'jiekoufunc_yahou_lineage_delete', 'check_login' => true, 'require_rights' => 3),
         'management_elevated_members' => array('handler' => 'jiekoufunc_management_elevated_members', 'check_login' => true, 'require_rights' => 3),
         'management_member_rights' => array('handler' => 'jiekoufunc_management_member_rights', 'check_login' => true, 'require_rights' => 3),
         'management_board_moderator' => array('handler' => 'jiekoufunc_management_board_moderator', 'check_login' => true, 'require_rights' => 3),
@@ -281,6 +282,8 @@ function jiekoufunc_dispatch($con, $params) {
                 return jiekoufunc_yahou_lineage_add($con, $params);
             case 'jiekoufunc_yahou_lineage_status':
                 return jiekoufunc_yahou_lineage_status($con, $params);
+            case 'jiekoufunc_yahou_lineage_delete':
+                return jiekoufunc_yahou_lineage_delete($con, $params);
             case 'jiekoufunc_management_member_lookup':
                 return jiekoufunc_management_member_lookup($con, $params);
             case 'jiekoufunc_management_elevated_members':

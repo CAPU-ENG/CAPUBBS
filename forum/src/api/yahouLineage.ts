@@ -8,11 +8,11 @@ export function fetchYahouLineage(signal: AbortSignal) {
 
 export function saveYahouLineage(revision: number, mutation: YahouMutation) {
   const params: Record<string, string> = {
-    ask: mutation.action === 'add' ? 'yahou_lineage_add' : 'yahou_lineage_status',
+    ask: `yahou_lineage_${mutation.action}`,
     revision: String(revision),
     id: mutation.id,
-    status: mutation.status,
   };
+  if (mutation.action !== 'delete') params.status = mutation.status;
   if (mutation.action === 'add') params.parent_id = mutation.parentId ?? '';
   return request(params);
 }
