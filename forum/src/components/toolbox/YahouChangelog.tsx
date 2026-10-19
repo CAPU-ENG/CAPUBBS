@@ -1,6 +1,6 @@
 import { useId, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
-import { Search, X } from 'lucide-react';
+import { Search, Users, X } from 'lucide-react';
 import { YAHOU_STATUS_LABELS, type YahouLogEntry, type YahouStatus } from '../../data/yahouLineage';
 import { getForumNavigationHref } from '../../utils/forumNavigation';
 import { DialogNativeLayer } from '../layout/DialogPresence';
@@ -28,22 +28,46 @@ function describe(entry: YahouLogEntry) {
 }
 
 const RANGES = [
-  { key: 'week', label: '七天内' },
-  { key: 'month', label: '一月内' },
+  { key: 'capu-current', label: '本车协年' },
+  { key: 'capu-last', label: '上一车协年' },
   { key: 'year', label: '一年内' },
   { key: 'all', label: '不限' },
   { key: 'custom', label: '自定义' },
 ] as const;
 type RangeKey = typeof RANGES[number]['key'];
 
-function rangeStart(range: RangeKey, startDate: string) {
-  if (range === 'all') return '';
-  if (range === 'custom') return startDate;
-  const date = new Date();
-  if (range === 'week') date.setDate(date.getDate() - 7);
-  else if (range === 'month') date.setMonth(date.getMonth() - 1);
-  else date.setFullYear(date.getFullYear() - 1);
-  return formatDate(date.getTime() / 1000);
+const TYPES = [
+  { key: 'adopt', label: '收徒' },
+  { key: 'passed', label: '成为押后' },
+  { key: 'qualified', label: '成为师父' },
+  { key: 'all', label: '不限' },
+] as const;
+type TypeKey = typeof TYPES[number]['key'];
+
+/** A 车协年 starts on 1 September and is named after the year it ends in: 2026-11-01 is in 2027. */
+function capuYear(date: Date) {
+  return date.getMonth() >= 8 ? date.getFullYear() + 1 : date.getFullYear();
+}
+
+// Bounds are inclusive local YYYY-MM-DD strings; an empty string leaves that side open.
+function rangeBounds(range: RangeKey, startDate: string, endDate: string) {
+  if (range === 'all') return { from: '', to: '' };
+  if (range === 'custom') return { from: startDate, to: endDate };
+  const today = new Date();
+  if (range === 'year') {
+    today.setFullYear(today.getFullYear() - 1);
+    return { from: formatDate(today.getTime() / 1000), to: '' };
+  }
+  const year = capuYear(today) - (range === 'capu-last' ? 1 : 0);
+  return { from: `${year - 1}-09-01`, to: `${year}-08-31` };
+}
+
+function matchesType(entry: YahouLogEntry, type: TypeKey) {
+  if (type === 'all') return true;
+  if (type === 'adopt') return entry.action === 'add' && entry.parentId !== null;
+  // A direct member of 实践部 is listed as becoming their initial status.
+  const becomes = entry.action === 'status' || entry.parentId === null;
+  return becomes && entry.status === type;
 }
 
 // An exact ID shows only that member's entries; otherwise match any ID containing the text.
@@ -54,20 +78,37 @@ function matchesMember(entry: YahouLogEntry, query: string, exact: boolean) {
   return ids.some((id) => (exact ? id === query : id.includes(query)));
 }
 
-// Dates are local YYYY-MM-DD strings, so plain string comparison orders them.
-function groupByDate(log: YahouLogEntry[], from: string, to: string, member: string) {
-  const query = member.trim().toLocaleLowerCase();
+type LogGroup = { key: string; master: string | null; entries: YahouLogEntry[] };
+
+/** Newest first, grouped by day, or by master when listing apprenticeships. */
+function groupLog(log: YahouLogEntry[], filters: { from: string; to: string; member: string; type: TypeKey; byMaster: boolean }) {
+  const query = filters.member.trim().toLocaleLowerCase();
   const exact = Boolean(query) && log.some((entry) => matchesMember(entry, query, true));
-  const groups: { date: string; entries: YahouLogEntry[] }[] = [];
+  const groups: LogGroup[] = [];
+  const masters = new Map<string, LogGroup>();
   for (let index = log.length - 1; index >= 0; index -= 1) {
     const entry = log[index];
     const date = formatDate(entry.time);
-    if ((from && date < from) || (to && date > to)) continue;
-    if (query && !matchesMember(entry, query, exact)) continue;
+    if ((filters.from && date < filters.from) || (filters.to && date > filters.to)) continue;
+    if (!matchesType(entry, filters.type) || (query && !matchesMember(entry, query, exact))) continue;
+    if (filters.byMaster && entry.action === 'add' && entry.parentId !== null) {
+      const group = masters.get(entry.parentId);
+      if (group) group.entries.push(entry);
+      else {
+        const created = { key: entry.parentId, master: entry.parentId, entries: [entry] };
+        masters.set(entry.parentId, created);
+        groups.push(created);
+      }
+      continue;
+    }
     const last = groups[groups.length - 1];
-    if (last?.date === date) last.entries.push(entry); else groups.push({ date, entries: [entry] });
+    if (last?.key === date) last.entries.push(entry); else groups.push({ key: date, master: null, entries: [entry] });
   }
   return groups;
+}
+
+function displayDate(date: string) {
+  return date.split('-').join('/');
 }
 
 export function YahouChangelog({ log, onClose }: { log: YahouLogEntry[]; onClose: () => void }) {
@@ -76,13 +117,16 @@ export function YahouChangelog({ log, onClose }: { log: YahouLogEntry[]; onClose
   const [range, setRange] = useState<RangeKey>('all');
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
+  const [type, setType] = useState<TypeKey>('all');
+  const [byMaster, setByMaster] = useState(false);
   const [member, setMember] = useState('');
   const memberIds = useMemo(() => [...new Set(log.flatMap((entry) => (
     entry.action === 'add' && entry.parentId !== null ? [entry.id, entry.parentId] : [entry.id]
   )))].sort(), [log]);
+  const grouped = type === 'adopt' && byMaster;
   const groups = useMemo(
-    () => groupByDate(log, rangeStart(range, startDate), range === 'custom' ? endDate : '', member),
-    [log, range, startDate, endDate, member],
+    () => groupLog(log, { ...rangeBounds(range, startDate, endDate), member, type, byMaster: grouped }),
+    [log, range, startDate, endDate, member, type, grouped],
   );
 
   useLayoutEffect(() => {
@@ -119,6 +163,20 @@ export function YahouChangelog({ log, onClose }: { log: YahouLogEntry[]; onClose
             </div>
           ) : null}
         </div>
+        <div aria-labelledby={`${titleId}-type`} className="yahou-changelog-filter" role="radiogroup">
+          <span className="yahou-changelog-filter-label" id={`${titleId}-type`}>类型</span>
+          <div className="search-range-options">
+            {TYPES.map((item) => (
+              <label className={`search-segmented-option ${type === item.key ? 'search-segmented-option-active' : ''}`} key={item.key}>
+                <input checked={type === item.key} name={`${titleId}-type`} onChange={() => setType(item.key)} type="radio" />
+                <span>{item.label}</span>
+              </label>
+            ))}
+          </div>
+          {type === 'adopt' ? (
+            <Button aria-pressed={byMaster} className="yahou-changelog-group" onClick={() => setByMaster((value) => !value)} variant={byMaster ? 'primary' : 'neutral'}><Users size={14} />按师父分组</Button>
+          ) : null}
+        </div>
         <div className="yahou-changelog-filter">
           <label className="yahou-changelog-filter-label" htmlFor={`${titleId}-member`}>ID</label>
           <span className="search-filter-input yahou-changelog-member">
@@ -131,10 +189,18 @@ export function YahouChangelog({ log, onClose }: { log: YahouLogEntry[]; onClose
       <div className="yahou-changelog-body">
         {groups.length ? (
           <ol className="yahou-changelog-list">
-            {groups.map((group) => (
-              <li key={group.date}>
-                <time dateTime={group.date}>{group.date.split('-').join('/')}</time>
+            {groups.map((group) => group.master === null ? (
+              <li key={group.key}>
+                <time className="yahou-changelog-key" dateTime={group.key}>{displayDate(group.key)}</time>
                 <ul>{group.entries.map((entry, index) => <li key={`${entry.time}-${index}`}>{describe(entry)}</li>)}</ul>
+              </li>
+            ) : (
+              <li key={`master-${group.key}`}>
+                <span className="yahou-changelog-key yahou-changelog-master"><Member id={group.master} /><span>{group.entries.length}</span></span>
+                <ul>{group.entries.map((entry, index) => {
+                  const date = formatDate(entry.time);
+                  return <li className="yahou-changelog-apprentice" key={`${entry.time}-${index}`}><time dateTime={date}>{displayDate(date)}</time><Member id={entry.id} /></li>;
+                })}</ul>
               </li>
             ))}
           </ol>
