@@ -1,6 +1,6 @@
 import { useId, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
-import { X } from 'lucide-react';
+import { Search, X } from 'lucide-react';
 import { YAHOU_STATUS_LABELS, type YahouLogEntry, type YahouStatus } from '../../data/yahouLineage';
 import { getForumNavigationHref } from '../../utils/forumNavigation';
 import { DialogNativeLayer } from '../layout/DialogPresence';
@@ -46,13 +46,24 @@ function rangeStart(range: RangeKey, startDate: string) {
   return formatDate(date.getTime() / 1000);
 }
 
+// An exact ID shows only that member's entries; otherwise match any ID containing the text.
+function matchesMember(entry: YahouLogEntry, query: string, exact: boolean) {
+  const ids = [entry.id, entry.action === 'add' ? entry.parentId : null]
+    .filter((id): id is string => id !== null)
+    .map((id) => id.toLocaleLowerCase());
+  return ids.some((id) => (exact ? id === query : id.includes(query)));
+}
+
 // Dates are local YYYY-MM-DD strings, so plain string comparison orders them.
-function groupByDate(log: YahouLogEntry[], from: string, to: string) {
+function groupByDate(log: YahouLogEntry[], from: string, to: string, member: string) {
+  const query = member.trim().toLocaleLowerCase();
+  const exact = Boolean(query) && log.some((entry) => matchesMember(entry, query, true));
   const groups: { date: string; entries: YahouLogEntry[] }[] = [];
   for (let index = log.length - 1; index >= 0; index -= 1) {
     const entry = log[index];
     const date = formatDate(entry.time);
     if ((from && date < from) || (to && date > to)) continue;
+    if (query && !matchesMember(entry, query, exact)) continue;
     const last = groups[groups.length - 1];
     if (last?.date === date) last.entries.push(entry); else groups.push({ date, entries: [entry] });
   }
@@ -65,9 +76,13 @@ export function YahouChangelog({ log, onClose }: { log: YahouLogEntry[]; onClose
   const [range, setRange] = useState<RangeKey>('all');
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
+  const [member, setMember] = useState('');
+  const memberIds = useMemo(() => [...new Set(log.flatMap((entry) => (
+    entry.action === 'add' && entry.parentId !== null ? [entry.id, entry.parentId] : [entry.id]
+  )))].sort(), [log]);
   const groups = useMemo(
-    () => groupByDate(log, rangeStart(range, startDate), range === 'custom' ? endDate : ''),
-    [log, range, startDate, endDate],
+    () => groupByDate(log, rangeStart(range, startDate), range === 'custom' ? endDate : '', member),
+    [log, range, startDate, endDate, member],
   );
 
   useLayoutEffect(() => {
@@ -86,29 +101,39 @@ export function YahouChangelog({ log, onClose }: { log: YahouLogEntry[]; onClose
         <h2 id={titleId}>更新记录</h2>
         <Button aria-label="关闭更新记录" autoFocus icon onClick={onClose} type="button"><X size={19} /></Button>
       </header>
-      <div aria-labelledby={`${titleId}-range`} className="yahou-changelog-filter" role="radiogroup">
-        <span className="yahou-changelog-filter-label" id={`${titleId}-range`}>时间</span>
-        <div className="search-range-options">
-          {RANGES.map((item) => (
-            <label className={`search-segmented-option ${range === item.key ? 'search-segmented-option-active' : ''}`} key={item.key}>
-              <input checked={range === item.key} name={`${titleId}-range`} onChange={() => setRange(item.key)} type="radio" />
-              <span>{item.label}</span>
-            </label>
-          ))}
-        </div>
-        {range === 'custom' ? (
-          <div className="search-date-grid">
-            <label><span>从</span><input max={endDate || undefined} onChange={(event) => setStartDate(event.target.value)} type="date" value={startDate} /></label>
-            <label><span>至</span><input min={startDate || undefined} onChange={(event) => setEndDate(event.target.value)} type="date" value={endDate} /></label>
+      <div className="yahou-changelog-filters">
+        <div aria-labelledby={`${titleId}-range`} className="yahou-changelog-filter" role="radiogroup">
+          <span className="yahou-changelog-filter-label" id={`${titleId}-range`}>时间</span>
+          <div className="search-range-options">
+            {RANGES.map((item) => (
+              <label className={`search-segmented-option ${range === item.key ? 'search-segmented-option-active' : ''}`} key={item.key}>
+                <input checked={range === item.key} name={`${titleId}-range`} onChange={() => setRange(item.key)} type="radio" />
+                <span>{item.label}</span>
+              </label>
+            ))}
           </div>
-        ) : null}
+          {range === 'custom' ? (
+            <div className="search-date-grid">
+              <label><span>从</span><input max={endDate || undefined} onChange={(event) => setStartDate(event.target.value)} type="date" value={startDate} /></label>
+              <label><span>至</span><input min={startDate || undefined} onChange={(event) => setEndDate(event.target.value)} type="date" value={endDate} /></label>
+            </div>
+          ) : null}
+        </div>
+        <div className="yahou-changelog-filter">
+          <label className="yahou-changelog-filter-label" htmlFor={`${titleId}-member`}>ID</label>
+          <span className="search-filter-input yahou-changelog-member">
+            <Search size={14} />
+            <input autoComplete="off" id={`${titleId}-member`} list={`${titleId}-members`} maxLength={100} onChange={(event) => setMember(event.target.value)} placeholder="不限 ID" type="search" value={member} />
+          </span>
+          <datalist id={`${titleId}-members`}>{memberIds.map((id) => <option key={id} value={id} />)}</datalist>
+        </div>
       </div>
       <div className="yahou-changelog-body">
         {groups.length ? (
           <ol className="yahou-changelog-list">
             {groups.map((group) => (
               <li key={group.date}>
-                <time dateTime={group.date}>{group.date}</time>
+                <time dateTime={group.date}>{group.date.split('-').join('/')}</time>
                 <ul>{group.entries.map((entry, index) => <li key={`${entry.time}-${index}`}>{describe(entry)}</li>)}</ul>
               </li>
             ))}

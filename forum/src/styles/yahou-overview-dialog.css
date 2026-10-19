@@ -44,8 +44,8 @@
   /* Higher specificity keeps the log a moderate window, also on phones. */
   .yahou-overview-dialog.yahou-changelog-dialog {
     width: min(560px, calc(100vw - 32px));
-    height: auto;
-    max-height: min(520px, calc(100dvh - 64px));
+    /* Fixed height so filtering does not make the dialog jump. */
+    height: min(520px, calc(100dvh - 64px));
     border: 1px solid var(--line-strong);
     border-radius: var(--card-radius);
   }
@@ -61,14 +61,30 @@
     list-style: none;
   }
 
+  .yahou-changelog-filters {
+    display: grid;
+    flex-shrink: 0;
+    gap: var(--space-8);
+    padding: var(--space-10) var(--space-16);
+    border-bottom: 1px solid var(--line);
+  }
+
   .yahou-changelog-filter {
     display: flex;
-    flex-shrink: 0;
     flex-wrap: wrap;
     align-items: center;
     gap: var(--space-8) var(--space-12);
-    padding: var(--space-10) var(--space-16);
-    border-bottom: 1px solid var(--line);
+  }
+
+  .yahou-changelog-filter-label {
+    min-width: 2em;
+  }
+
+  .yahou-changelog-member {
+    flex: 1;
+    min-width: 0;
+    max-width: 260px;
+    height: 30px;
   }
 
   .yahou-changelog-filter-label {
