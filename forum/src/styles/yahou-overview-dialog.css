@@ -41,10 +41,13 @@
     font-weight: var(--font-weight-bold);
   }
 
-  .yahou-changelog-dialog {
-    max-width: 560px;
+  /* Higher specificity keeps the log a moderate window, also on phones. */
+  .yahou-overview-dialog.yahou-changelog-dialog {
+    width: min(560px, calc(100vw - 32px));
     height: auto;
-    max-height: calc(100dvh - 32px);
+    max-height: min(520px, calc(100dvh - 64px));
+    border: 1px solid var(--line-strong);
+    border-radius: var(--card-radius);
   }
 
   .yahou-changelog-body {
