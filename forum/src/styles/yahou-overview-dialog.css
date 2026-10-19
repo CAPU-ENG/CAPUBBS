@@ -62,20 +62,26 @@
   }
 
   .yahou-changelog-filter {
+    display: flex;
     flex-shrink: 0;
-    margin: 0;
-    padding: var(--space-10) var(--space-16) var(--space-12);
-    border: 0;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--space-8) var(--space-12);
+    padding: var(--space-10) var(--space-16);
     border-bottom: 1px solid var(--line);
   }
 
-  .yahou-changelog-filter legend {
-    float: left;
-    width: 100%;
+  .yahou-changelog-filter-label {
+    color: var(--text-faint);
+    font-size: var(--ui-font-size-sm);
+    font-weight: var(--font-weight-bold);
+    letter-spacing: 0.08em;
   }
 
   .yahou-changelog-filter .search-date-grid {
+    flex-basis: 100%;
     grid-template-columns: repeat(2, minmax(0, 1fr));
+    margin-top: 0;
   }
 
   .yahou-changelog-list > li {

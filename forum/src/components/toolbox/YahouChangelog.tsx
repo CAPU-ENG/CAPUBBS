@@ -86,8 +86,8 @@ export function YahouChangelog({ log, onClose }: { log: YahouLogEntry[]; onClose
         <h2 id={titleId}>更新记录</h2>
         <Button aria-label="关闭更新记录" autoFocus icon onClick={onClose} type="button"><X size={19} /></Button>
       </header>
-      <fieldset className="search-filter-group yahou-changelog-filter">
-        <legend>时间</legend>
+      <div aria-labelledby={`${titleId}-range`} className="yahou-changelog-filter" role="radiogroup">
+        <span className="yahou-changelog-filter-label" id={`${titleId}-range`}>时间</span>
         <div className="search-range-options">
           {RANGES.map((item) => (
             <label className={`search-segmented-option ${range === item.key ? 'search-segmented-option-active' : ''}`} key={item.key}>
@@ -102,7 +102,7 @@ export function YahouChangelog({ log, onClose }: { log: YahouLogEntry[]; onClose
             <label><span>至</span><input min={startDate || undefined} onChange={(event) => setEndDate(event.target.value)} type="date" value={endDate} /></label>
           </div>
         ) : null}
-      </fieldset>
+      </div>
       <div className="yahou-changelog-body">
         {groups.length ? (
           <ol className="yahou-changelog-list">
