@@ -74,7 +74,7 @@ export function YahouLineagePanel() {
         <YahouTree canEdit={canEdit} data={data} key={reload} onData={setData} onSaving={setSaving} operator={viewer?.username} />
       )}
       <DialogPresence>
-        {changelogOpen && data ? <YahouChangelog log={data.log} onClose={() => setChangelogOpen(false)} /> : null}
+        {changelogOpen && data ? <YahouChangelog log={data.log} members={data.nodes} onClose={() => setChangelogOpen(false)} /> : null}
       </DialogPresence>
       {isDesktop ? (
         <DialogPresence>

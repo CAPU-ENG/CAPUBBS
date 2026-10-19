@@ -1,7 +1,7 @@
 import { useId, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { Search, Users, X } from 'lucide-react';
-import { YAHOU_STATUS_LABELS, type YahouLogEntry, type YahouStatus } from '../../data/yahouLineage';
+import { YAHOU_STATUSES, YAHOU_STATUS_LABELS, type YahouLogEntry, type YahouMember, type YahouStatus } from '../../data/yahouLineage';
 import { getForumNavigationHref } from '../../utils/forumNavigation';
 import { DialogNativeLayer } from '../layout/DialogPresence';
 import { Button } from '../Button';
@@ -107,11 +107,32 @@ function groupLog(log: YahouLogEntry[], filters: { from: string; to: string; mem
   return groups;
 }
 
+type Milestone = { status: YahouStatus; time?: number };
+
+/**
+ * Every status up to the member's current one, each with the time the log saw it reached.
+ * Statuses reached before the log existed are listed without a time.
+ */
+function statusMilestones(log: YahouLogEntry[], members: YahouMember[]) {
+  const reachedAt = new Map<string, Partial<Record<YahouStatus, number>>>();
+  const lastLogged = new Map<string, YahouStatus>();
+  for (const entry of log) {
+    reachedAt.set(entry.id, { ...reachedAt.get(entry.id), [entry.status]: entry.time });
+    lastLogged.set(entry.id, entry.status);
+  }
+  const current = new Map(members.map((member) => [member.id, member.status]));
+  return (id: string): Milestone[] => {
+    const status = current.get(id) ?? lastLogged.get(id) ?? 'pending';
+    const times = reachedAt.get(id) ?? {};
+    return YAHOU_STATUSES.slice(0, YAHOU_STATUSES.indexOf(status) + 1).map((reached) => ({ status: reached, time: times[reached] }));
+  };
+}
+
 function displayDate(date: string) {
   return date.split('-').join('/');
 }
 
-export function YahouChangelog({ log, onClose }: { log: YahouLogEntry[]; onClose: () => void }) {
+export function YahouChangelog({ log, members, onClose }: { log: YahouLogEntry[]; members: YahouMember[]; onClose: () => void }) {
   const dialogRef = useRef<HTMLDialogElement>(null);
   const titleId = useId();
   const [range, setRange] = useState<RangeKey>('all');
@@ -124,6 +145,7 @@ export function YahouChangelog({ log, onClose }: { log: YahouLogEntry[]; onClose
     entry.action === 'add' && entry.parentId !== null ? [entry.id, entry.parentId] : [entry.id]
   )))].sort(), [log]);
   const grouped = type === 'adopt' && byMaster;
+  const milestones = useMemo(() => statusMilestones(log, members), [log, members]);
   const groups = useMemo(
     () => groupLog(log, { ...rangeBounds(range, startDate, endDate), member, type, byMaster: grouped }),
     [log, range, startDate, endDate, member, type, grouped],
@@ -197,10 +219,22 @@ export function YahouChangelog({ log, onClose }: { log: YahouLogEntry[]; onClose
             ) : (
               <li key={`master-${group.key}`}>
                 <span className="yahou-changelog-key yahou-changelog-master"><Member id={group.master} /><span>{group.entries.length}</span></span>
-                <ul>{group.entries.map((entry, index) => {
-                  const date = formatDate(entry.time);
-                  return <li className="yahou-changelog-apprentice" key={`${entry.time}-${index}`}><time dateTime={date}>{displayDate(date)}</time><Member id={entry.id} /></li>;
-                })}</ul>
+                <ul>{group.entries.map((entry, index) => (
+                  <li className="yahou-changelog-apprentice" key={`${entry.time}-${index}`}>
+                    <Member id={entry.id} />
+                    <span className="yahou-changelog-milestones">
+                      {milestones(entry.id).map((milestone) => {
+                        const date = milestone.time === undefined ? null : formatDate(milestone.time);
+                        return (
+                          <span className="yahou-changelog-milestone" key={milestone.status}>
+                            <Status status={milestone.status} />
+                            {date ? <time dateTime={date}>{displayDate(date)}</time> : null}
+                          </span>
+                        );
+                      })}
+                    </span>
+                  </li>
+                ))}</ul>
               </li>
             ))}
           </ol>
