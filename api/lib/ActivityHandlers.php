@@ -418,8 +418,8 @@ function jiekoufunc_activity_signup_history($con, $token, $params) {
         return activity_handler_error('-2', '请先登录');
     }
 
-    $username = isset($params['username']) ? trim(strval($params['username'])) : '';
-    if ($username === '') {
+    $username = isset($params['username']) && !is_array($params['username']) ? strval($params['username']) : '';
+    if (trim($username) === '') {
         return activity_handler_error('14', '缺少用户名');
     }
     $username_escaped = mysqli_real_escape_string($con, $username);
