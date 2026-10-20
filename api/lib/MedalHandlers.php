@@ -55,7 +55,7 @@ function jiekoufunc_management_medal_list($con) {
 function jiekoufunc_medal_gallery($con) {
     $result = medal_db_query($con,
         "SELECT t.id, t.name, t.description, t.texture_id, t.large_image_path, t.small_image_path,
-                COUNT(d.username) AS holder_count
+                t.created_at, COUNT(d.username) AS holder_count
          FROM user_medals AS t
          LEFT JOIN user_medal_members AS m ON m.medal_id=t.id
          LEFT JOIN user_medal_displays AS d
@@ -76,6 +76,7 @@ function jiekoufunc_medal_gallery($con) {
             'large_image_path' => strval($row['large_image_path']),
             'small_image_path' => strval($row['small_image_path']),
             'holder_count' => intval($row['holder_count']),
+            'created_at' => intval($row['created_at']),
         );
     }
     return medal_response(array('items' => $items, 'total' => count($items)), count($items));
