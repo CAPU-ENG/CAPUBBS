@@ -25,6 +25,7 @@ const WATERFALL_COLUMN_QUERIES: Array<[string, number]> = [
   ['(max-width: 860px)', 3],
 ];
 const WATERFALL_MAX_COLUMNS = 4;
+const HOLDER_PAGE_SIZE = 36;
 
 export function MedalShowcasePanel() {
   const [medals, setMedals] = useState<GalleryMedal[] | null>(null);
@@ -123,6 +124,11 @@ function MedalShowcaseLightbox({
   const medal = activeIndex === null ? null : medals[activeIndex] ?? null;
   const open = medal !== null;
   const holderState = useMedalHolders(medal?.id ?? null);
+  const [holderLimit, setHolderLimit] = useState(HOLDER_PAGE_SIZE);
+
+  useEffect(() => {
+    setHolderLimit(HOLDER_PAGE_SIZE);
+  }, [medal?.id]);
 
   function move(offset: number) {
     onChange((current) => {
@@ -226,20 +232,31 @@ function MedalShowcaseLightbox({
               ) : holderState.holders.length === 0 ? (
                 <p className="medal-showcase-holders-state">暂无持有者</p>
               ) : (
-                <ul>
-                  {holderState.holders.map((holder) => {
-                    const href = getForumNavigationHref(holder.href, window.location.href);
-                    return (
-                      <li key={holder.username}>
-                        <a href={href} title={holder.role ? `${holder.username}（${holder.role}）` : holder.username}>
-                          <img alt="" decoding="async" loading="lazy" src={holder.avatar} />
-                          <span className="medal-showcase-holder-name">{holder.username}</span>
-                          {holder.role ? <span className="medal-showcase-holder-role">{holder.role}</span> : null}
-                        </a>
-                      </li>
-                    );
-                  })}
-                </ul>
+                <>
+                  <ul>
+                    {holderState.holders.slice(0, holderLimit).map((holder) => {
+                      const href = getForumNavigationHref(holder.href, window.location.href);
+                      return (
+                        <li key={holder.username}>
+                          <a href={href} title={holder.role ? `${holder.username}（${holder.role}）` : holder.username}>
+                            <img alt="" decoding="async" loading="lazy" src={holder.avatar} />
+                            <span className="medal-showcase-holder-name">{holder.username}</span>
+                            {holder.role ? <span className="medal-showcase-holder-role">{holder.role}</span> : null}
+                          </a>
+                        </li>
+                      );
+                    })}
+                  </ul>
+                  {holderState.holders.length > holderLimit ? (
+                    <button
+                      className="medal-showcase-holders-more"
+                      onClick={() => setHolderLimit((limit) => limit + HOLDER_PAGE_SIZE)}
+                      type="button"
+                    >
+                      加载更多
+                    </button>
+                  ) : null}
+                </>
               )}
             </section>
           </div>

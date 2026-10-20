@@ -496,7 +496,7 @@
 
   .medal-showcase-holders ul {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(96px, 1fr));
+    grid-template-columns: repeat(6, minmax(0, 1fr));
     gap: var(--space-14) var(--space-10);
     margin: 0;
     padding: 0;
@@ -549,6 +549,29 @@
     white-space: nowrap;
   }
 
+  .medal-showcase-holders-more {
+    display: block;
+    height: 38px;
+    margin: var(--space-20) auto 0;
+    border: 1px solid rgb(255 255 255 / 0.2);
+    border-radius: var(--card-radius);
+    padding: 0 var(--space-18);
+    background: rgb(255 255 255 / 0.06);
+    color: #f4f6f5;
+    font-size: var(--ui-font-size-md);
+    transition: border-color var(--duration-fast) ease, background var(--duration-fast) ease;
+  }
+
+  .medal-showcase-holders-more:hover {
+    border-color: rgb(255 255 255 / 0.52);
+    background: rgb(255 255 255 / 0.14);
+  }
+
+  .medal-showcase-holders-more:focus-visible {
+    outline: 2px solid #fff;
+    outline-offset: 3px;
+  }
+
   .medal-showcase-holders-state {
     display: flex;
     align-items: center;
@@ -593,7 +616,7 @@
     }
 
     .medal-showcase-holders ul {
-      grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
+      grid-template-columns: repeat(4, minmax(0, 1fr));
     }
   }
 }
