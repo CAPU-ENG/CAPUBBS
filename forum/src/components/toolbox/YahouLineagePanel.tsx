@@ -85,7 +85,7 @@ export function YahouLineagePanel() {
             <Button aria-pressed={view === 'tree'} onClick={() => view !== 'tree' && selectView('tree')} type="button" variant={view === 'tree' ? 'primary' : 'neutral'}><GitBranch size={16} />谱系</Button>
             <Button aria-pressed={view === 'log'} onClick={() => view !== 'log' && selectView('log')} type="button" variant={view === 'log' ? 'primary' : 'neutral'}><History size={16} />更新记录</Button>
           </div>
-          {isDesktop && view === 'tree' ? (
+          {isDesktop ? (
             <Button aria-expanded={overviewOpen} aria-haspopup="dialog" disabled={!data} onClick={() => setOverviewOpen(true)} type="button"><Network size={16} />谱系总览</Button>
           ) : null}
           <Button aria-label="刷新押后谱系" icon disabled={saving} onClick={() => setReload((value) => value + 1)} type="button"><RefreshCw size={16} /></Button>
