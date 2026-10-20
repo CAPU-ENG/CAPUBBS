@@ -54,6 +54,7 @@ export function ToolboxPage() {
     if (tab === activeTab) return;
     const url = new URL(window.location.href);
     url.searchParams.set('tab', tab);
+    url.searchParams.delete('view');
     replaceForumLocation(`${url.pathname}${url.search}${url.hash}`);
   }
 

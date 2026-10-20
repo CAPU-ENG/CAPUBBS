@@ -1,5 +1,5 @@
 import { BadgeCheck, Check, ChevronDown, ChevronRight, Circle, ExternalLink, Focus, GitBranch, History, Home, Network, Plus, RefreshCw, Search, Trash2, X } from 'lucide-react';
-import { useEffect, useMemo, useRef, useState, type FormEvent } from 'react';
+import { useEffect, useMemo, useRef, useState, useSyncExternalStore, type FormEvent } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import { fetchYahouLineage, saveYahouLineage } from '../../api/yahouLineage';
 import {
@@ -8,6 +8,7 @@ import {
   type YahouLineage, type YahouMember, type YahouMutation, type YahouStatus,
 } from '../../data/yahouLineage';
 import { getForumNavigationHref } from '../../utils/forumNavigation';
+import { FORUM_LOCATION_CHANGE_EVENT, pushForumLocation } from '../../utils/authRoutes';
 import { LoadingSpinner } from '../layout/LoadingSpinner';
 import { DialogPresence } from '../layout/DialogPresence';
 import { YahouLineageOverview } from './YahouLineageOverview';
@@ -18,6 +19,27 @@ import { useConfirmDialog } from '../ConfirmDialog';
 
 const OVERVIEW_DESKTOP_QUERY = '(min-width: 1024px)';
 
+type YahouView = 'tree' | 'log';
+
+function readView(): YahouView {
+  return new URLSearchParams(window.location.search).get('view') === 'log' ? 'log' : 'tree';
+}
+
+function subscribeView(listener: () => void) {
+  window.addEventListener('popstate', listener);
+  window.addEventListener(FORUM_LOCATION_CHANGE_EVENT, listener);
+  return () => {
+    window.removeEventListener('popstate', listener);
+    window.removeEventListener(FORUM_LOCATION_CHANGE_EVENT, listener);
+  };
+}
+
+function selectView(view: YahouView) {
+  const url = new URL(window.location.href);
+  if (view === 'log') url.searchParams.set('view', 'log'); else url.searchParams.delete('view');
+  pushForumLocation(`${url.pathname}${url.search}${url.hash}`);
+}
+
 export function YahouLineagePanel() {
   const { status: authStatus, viewer } = useAuth();
   const canEdit = authStatus === 'authenticated' && (viewer?.rights ?? 0) >= 3;
@@ -26,7 +48,7 @@ export function YahouLineagePanel() {
   const [reload, setReload] = useState(0);
   const [saving, setSaving] = useState(false);
   const [overviewOpen, setOverviewOpen] = useState(false);
-  const [changelogOpen, setChangelogOpen] = useState(false);
+  const view = useSyncExternalStore<YahouView>(subscribeView, readView, () => 'tree');
   const [isDesktop, setIsDesktop] = useState(() => Boolean(window.matchMedia?.(OVERVIEW_DESKTOP_QUERY).matches));
 
   useEffect(() => {
@@ -59,8 +81,11 @@ export function YahouLineagePanel() {
         <span className="toolbox-workspace-icon"><GitBranch size={17} /></span>
         <h1 id="yahou-lineage-title">押后谱系</h1>
         <div className="yahou-header-actions">
-          <Button aria-haspopup="dialog" disabled={!data} onClick={() => setChangelogOpen(true)} type="button"><History size={16} />更新记录</Button>
-          {isDesktop ? (
+          <div aria-label="视图" className="yahou-view-switch" role="group">
+            <Button aria-pressed={view === 'tree'} onClick={() => view !== 'tree' && selectView('tree')} type="button" variant={view === 'tree' ? 'primary' : 'neutral'}><GitBranch size={16} />谱系</Button>
+            <Button aria-pressed={view === 'log'} onClick={() => view !== 'log' && selectView('log')} type="button" variant={view === 'log' ? 'primary' : 'neutral'}><History size={16} />更新记录</Button>
+          </div>
+          {isDesktop && view === 'tree' ? (
             <Button aria-expanded={overviewOpen} aria-haspopup="dialog" disabled={!data} onClick={() => setOverviewOpen(true)} type="button"><Network size={16} />谱系总览</Button>
           ) : null}
           <Button aria-label="刷新押后谱系" icon disabled={saving} onClick={() => setReload((value) => value + 1)} type="button"><RefreshCw size={16} /></Button>
@@ -71,11 +96,12 @@ export function YahouLineagePanel() {
       ) : !data ? (
         <p className="yahou-load-state" role="status"><LoadingSpinner size={18} />正在加载押后谱系</p>
       ) : (
-        <YahouTree canEdit={canEdit} data={data} key={reload} onData={setData} onSaving={setSaving} operator={viewer?.username} />
+        view === 'log' ? (
+          <YahouChangelog log={data.log} members={data.nodes} />
+        ) : (
+          <YahouTree canEdit={canEdit} data={data} key={reload} onData={setData} onSaving={setSaving} operator={viewer?.username} />
+        )
       )}
-      <DialogPresence>
-        {changelogOpen && data ? <YahouChangelog log={data.log} members={data.nodes} onClose={() => setChangelogOpen(false)} /> : null}
-      </DialogPresence>
       {isDesktop ? (
         <DialogPresence>
           {overviewOpen && data ? (

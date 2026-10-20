@@ -1,9 +1,7 @@
-import { useId, useLayoutEffect, useMemo, useRef, useState } from 'react';
-import { createPortal } from 'react-dom';
-import { Search, Users, X } from 'lucide-react';
+import { useId, useMemo, useState } from 'react';
+import { Search, Users } from 'lucide-react';
 import { YAHOU_STATUSES, YAHOU_STATUS_LABELS, type YahouLogEntry, type YahouMember, type YahouStatus } from '../../data/yahouLineage';
 import { getForumNavigationHref } from '../../utils/forumNavigation';
-import { DialogNativeLayer } from '../layout/DialogPresence';
 import { Button } from '../Button';
 
 function formatDate(seconds: number) {
@@ -143,8 +141,7 @@ function displayDate(date: string) {
   return date.split('-').join('/');
 }
 
-export function YahouChangelog({ log, members, onClose }: { log: YahouLogEntry[]; members: YahouMember[]; onClose: () => void }) {
-  const dialogRef = useRef<HTMLDialogElement>(null);
+export function YahouChangelog({ log, members }: { log: YahouLogEntry[]; members: YahouMember[] }) {
   const titleId = useId();
   const [range, setRange] = useState<RangeKey>('all');
   const [startDate, setStartDate] = useState('');
@@ -162,22 +159,8 @@ export function YahouChangelog({ log, members, onClose }: { log: YahouLogEntry[]
     [log, range, startDate, endDate, member, type, grouped],
   );
 
-  useLayoutEffect(() => {
-    const dialog = dialogRef.current;
-    if (!dialog) return;
-    const previousOverflow = document.body.style.overflow;
-    dialog.showModal();
-    document.body.style.overflow = 'hidden';
-    return () => { dialog.close(); document.body.style.overflow = previousOverflow; };
-  }, []);
-
-  return createPortal(
-    <DialogNativeLayer aria-labelledby={titleId} className="yahou-workspace yahou-overview-dialog yahou-changelog-dialog"
-      onCancel={(event) => { event.preventDefault(); onClose(); }} ref={dialogRef}>
-      <header className="yahou-overview-header">
-        <h2 id={titleId}>更新记录</h2>
-        <Button aria-label="关闭更新记录" autoFocus icon onClick={onClose} type="button"><X size={19} /></Button>
-      </header>
+  return (
+    <div aria-label="更新记录" className="yahou-changelog" role="region">
       <div className="yahou-changelog-filters">
         <div aria-labelledby={`${titleId}-range`} className="yahou-changelog-filter" role="radiogroup">
           <span className="yahou-changelog-filter-label" id={`${titleId}-range`}>时间</span>
@@ -251,6 +234,6 @@ export function YahouChangelog({ log, members, onClose }: { log: YahouLogEntry[]
           </ol>
         ) : <p className="yahou-empty">暂无记录</p>}
       </div>
-    </DialogNativeLayer>, document.body,
+    </div>
   );
 }
