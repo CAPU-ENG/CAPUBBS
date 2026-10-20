@@ -438,12 +438,6 @@
     font-weight: var(--font-weight-bold);
   }
 
-  .medal-showcase-card-count {
-    color: var(--text-muted);
-    font-size: var(--ui-font-size-sm);
-    font-variant-numeric: tabular-nums;
-  }
-
   .medal-showcase-lightbox-backdrop {
     --medal-showcase-backdrop-padding: var(--space-24);
     align-items: start;

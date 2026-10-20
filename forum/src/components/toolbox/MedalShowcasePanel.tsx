@@ -95,7 +95,6 @@ export function MedalShowcasePanel() {
                   </span>
                   <span className="medal-showcase-card-copy">
                     <strong>{medal.name}</strong>
-                    <span className="medal-showcase-card-count">{medal.holderCount} 人</span>
                   </span>
                 </button>
               ))}
