@@ -376,8 +376,8 @@ function jiekoufunc_management_tag_members($con, $params) {
 
 function jiekoufunc_management_tag_member_check($con, $params) {
     $tag_id = jiekoufunc_tag_param_id($params);
-    $username = isset($params['username']) ? trim(strval($params['username'])) : '';
-    if ($tag_id <= 0 || $username === '') {
+    $username = isset($params['username']) && !is_array($params['username']) ? strval($params['username']) : '';
+    if ($tag_id <= 0 || trim($username) === '') {
         return jiekoufunc_report('14', '缺少有效的标签 ID 或会员 ID。');
     }
     if (!jiekoufunc_tag_find($con, $tag_id)) {
@@ -572,8 +572,8 @@ function jiekoufunc_management_tag_members_add($con, $token, $params) {
 
 function jiekoufunc_management_tag_member_remove($con, $params) {
     $tag_id = jiekoufunc_tag_param_id($params);
-    $username = isset($params['username']) ? trim(strval($params['username'])) : '';
-    if ($tag_id <= 0 || $username === '') {
+    $username = isset($params['username']) && !is_array($params['username']) ? strval($params['username']) : '';
+    if ($tag_id <= 0 || trim($username) === '') {
         return jiekoufunc_report('14', '缺少有效的标签 ID 或会员 ID。');
     }
     if (!jiekoufunc_tag_find($con, $tag_id)) {
@@ -856,11 +856,16 @@ function jiekoufunc_tag_parse_usernames($params, $field, &$too_many) {
     } else {
         return array();
     }
-    $parts = is_array($value) ? $value : preg_split('/[,\r\n]+/', strval($value), -1, PREG_SPLIT_NO_EMPTY);
+    // Structured lists carry exact account names; only free-text lists are trimmed.
+    $exact = is_array($value);
+    $parts = $exact ? $value : preg_split('/[,\r\n]+/', strval($value), -1, PREG_SPLIT_NO_EMPTY);
     $usernames = array();
     foreach ($parts as $part) {
-        $username = trim(strval($part));
-        if ($username === '') {
+        if (is_array($part)) {
+            continue;
+        }
+        $username = $exact ? strval($part) : trim(strval($part));
+        if (trim($username) === '') {
             continue;
         }
         $key = jiekoufunc_tag_username_key($username);
@@ -883,7 +888,8 @@ function jiekoufunc_tag_parse_usernames($params, $field, &$too_many) {
 }
 
 function jiekoufunc_tag_username_key($username) {
-    $username = strval($username);
+    // Mirror utf8mb4_unicode_ci: case-insensitive and ignoring trailing spaces.
+    $username = rtrim(strval($username), ' ');
     return function_exists('mb_strtolower') ? mb_strtolower($username, 'UTF-8') : strtolower($username);
 }
 

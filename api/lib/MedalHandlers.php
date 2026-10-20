@@ -526,9 +526,9 @@ function jiekoufunc_management_medal_members_add($con, $token, $params) {
 function jiekoufunc_management_medal_member_remove($con, $params) {
     $medal_id = medal_param_id($params);
     $username_value = isset($params['username']) ? $params['username'] : '';
-    $username = is_array($username_value) ? '' : trim(strval($username_value));
+    $username = is_array($username_value) ? '' : strval($username_value);
     $username_length = medal_string_length($username);
-    if ($medal_id <= 0 || $username_length < 1 || $username_length > 30) {
+    if ($medal_id <= 0 || trim($username) === '' || $username_length > 30) {
         return jiekoufunc_report('14', '缺少有效的勋章 ID 或会员 ID。');
     }
     if (!medal_find($con, $medal_id)) {
@@ -817,11 +817,11 @@ function medal_parse_assignments($params, &$error) {
             $error = '成员数据格式错误。';
             return false;
         }
-        $username = trim(strval(isset($item['username']) ? $item['username'] : (isset($item['id']) ? $item['id'] : '')));
+        $username = strval(isset($item['username']) ? $item['username'] : (isset($item['id']) ? $item['id'] : ''));
         $role = trim(strval(isset($item['role']) ? $item['role'] : (isset($item['activity_role']) ? $item['activity_role'] : '')));
         $username_length = medal_string_length($username);
         $role_length = medal_string_length($role);
-        if ($username_length < 1 || $username_length > 30) {
+        if (trim($username) === '' || $username_length > 30) {
             $error = '会员 ID 必须为 1 至 30 个字符。';
             return false;
         }

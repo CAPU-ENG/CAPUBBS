@@ -4,8 +4,8 @@
 function jiekoufunc_user_activity($con, $params) {
     header('Cache-Control: no-store');
     $username = isset($params['username']) && is_string($params['username'])
-        ? trim($params['username']) : '';
-    if ($username === '' || strlen($username) > 120) {
+        ? $params['username'] : '';
+    if (trim($username) === '' || strlen($username) > 120) {
         return jiekoufunc_report('14', '请提供有效的用户名。');
     }
 

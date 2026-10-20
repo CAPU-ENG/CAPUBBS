@@ -122,8 +122,8 @@ function jiekoufunc_userexists($con, $params) {
 function jiekoufunc_user_profile($con, $params) {
     $username = '';
     foreach (array('username', 'user', 'view') as $key) {
-        if (isset($params[$key]) && trim($params[$key]) !== '') {
-            $username = trim($params[$key]);
+        if (isset($params[$key]) && !is_array($params[$key]) && trim($params[$key]) !== '') {
+            $username = strval($params[$key]);
             break;
         }
     }
@@ -1354,8 +1354,8 @@ function jiekoufunc_admin_reset_password($con, $token, $params) {
         return jiekoufunc_report('2', '权限不足：仅限 rights >= 10 的管理员操作');
     }
 
-    $target_username = isset($params['target_username']) ? trim($params['target_username']) : '';
-    if ($target_username === '') {
+    $target_username = isset($params['target_username']) && !is_array($params['target_username']) ? strval($params['target_username']) : '';
+    if (trim($target_username) === '') {
         return jiekoufunc_report('3', '参数错误：缺少目标用户名');
     }
     $safe_username = mysqli_real_escape_string($con, $target_username);
@@ -2283,7 +2283,10 @@ function jiekoufunc_sendResetPasswordCode($con, $params) {
             'msg' => '邮箱验证功能已被管理员关闭。'));
     }
 
-    $username = isset($params['username']) ? trim($params['username']) : '';
+    $username = isset($params['username']) && !is_array($params['username']) ? strval($params['username']) : '';
+    if (trim($username) === '') {
+        $username = '';
+    }
     $email = isset($params['email']) ? trim($params['email']) : '';
     if (empty($email)) {
         return jiekoufunc_report('3', '请输入邮箱地址。');
@@ -2348,7 +2351,10 @@ function jiekoufunc_resetPasswordByEmail($con, $params) {
             'msg' => '邮箱验证功能已被管理员关闭。'));
     }
 
-    $username = isset($params['username']) ? trim($params['username']) : '';
+    $username = isset($params['username']) && !is_array($params['username']) ? strval($params['username']) : '';
+    if (trim($username) === '') {
+        $username = '';
+    }
     $email = isset($params['email']) ? trim($params['email']) : '';
     $code = isset($params['code']) ? trim($params['code']) : '';
     if (empty($email) || empty($code)) {
@@ -2508,8 +2514,8 @@ function jiekoufunc_listEmailMutes($con, $token) {
 }
 
 function jiekoufunc_management_member_lookup($con, $params) {
-    $username = isset($params['username']) ? trim($params['username']) : '';
-    if ($username === '') {
+    $username = isset($params['username']) && !is_array($params['username']) ? strval($params['username']) : '';
+    if (trim($username) === '') {
         return jiekoufunc_report('14', '缺少会员 ID。');
     }
 
@@ -2578,8 +2584,8 @@ function jiekoufunc_management_rights_transition_allowed($current_rights, $targe
 }
 
 function jiekoufunc_management_member_rights($con, $params) {
-    $username = isset($params['username']) ? trim($params['username']) : '';
-    if ($username === '') {
+    $username = isset($params['username']) && !is_array($params['username']) ? strval($params['username']) : '';
+    if (trim($username) === '') {
         return jiekoufunc_report('14', '缺少会员 ID。');
     }
     if (!isset($params['rights']) || !preg_match('/^[0-2]$/', strval($params['rights']))) {
@@ -2625,9 +2631,9 @@ function jiekoufunc_management_member_rights($con, $params) {
 
 function jiekoufunc_management_board_moderator($con, $params) {
     $bid = isset($params['bid']) ? intval($params['bid']) : 0;
-    $username = isset($params['username']) ? trim($params['username']) : '';
+    $username = isset($params['username']) && !is_array($params['username']) ? strval($params['username']) : '';
     $action = isset($params['action']) ? trim($params['action']) : '';
-    if ($bid <= 0 || $username === '' || !in_array($action, array('add', 'remove'), true)) {
+    if ($bid <= 0 || trim($username) === '' || !in_array($action, array('add', 'remove'), true)) {
         return jiekoufunc_report('14', '缺少有效的版块、会员 ID 或操作类型。');
     }
 
