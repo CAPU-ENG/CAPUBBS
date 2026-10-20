@@ -19,12 +19,20 @@ type HolderState = { error: string; holders: GalleryMedalHolder[] | null };
 
 const holderRequests = new Map<string, Promise<GalleryMedalHolder[]>>();
 
+// Keep in sync with the .medal-showcase-waterfall breakpoints in toolbox.css.
+const WATERFALL_COLUMN_QUERIES: Array<[string, number]> = [
+  ['(max-width: 640px)', 2],
+  ['(max-width: 860px)', 3],
+];
+const WATERFALL_MAX_COLUMNS = 4;
+
 export function MedalShowcasePanel() {
   const [medals, setMedals] = useState<GalleryMedal[] | null>(null);
   const [loadError, setLoadError] = useState('');
   const [reload, setReload] = useState(0);
   const [activeIndex, setActiveIndex] = useState<number | null>(null);
   const noticeId = useId();
+  const columnCount = useWaterfallColumnCount();
 
   useEffect(() => {
     const controller = new AbortController();
@@ -66,27 +74,31 @@ export function MedalShowcasePanel() {
         <p className="medal-showcase-state">暂无勋章</p>
       ) : (
         <div className="medal-showcase-waterfall">
-          {medals.map((medal, index) => (
-            <button
-              aria-label={`查看“${medal.name}”勋章`}
-              className="medal-showcase-card"
-              key={medal.id}
-              onClick={() => {
-                requestMedalMotionPermission();
-                setActiveIndex(index);
-              }}
-              onFocus={() => { void loadHolders(medal.id).catch(() => undefined); }}
-              onPointerEnter={() => { void loadHolders(medal.id).catch(() => undefined); }}
-              type="button"
-            >
-              <span className="medal-showcase-card-image">
-                <img alt="" decoding="async" draggable={false} loading="lazy" src={medal.largeImagePath} />
-              </span>
-              <span className="medal-showcase-card-copy">
-                <strong>{medal.name}</strong>
-                <span className="medal-showcase-card-count">{medal.holderCount} 人</span>
-              </span>
-            </button>
+          {distributeColumns(medals, columnCount).map((column, columnIndex) => (
+            <div className="medal-showcase-column" key={columnIndex}>
+              {column.map(({ index, item: medal }) => (
+                <button
+                  aria-label={`查看“${medal.name}”勋章`}
+                  className="medal-showcase-card"
+                  key={medal.id}
+                  onClick={() => {
+                    requestMedalMotionPermission();
+                    setActiveIndex(index);
+                  }}
+                  onFocus={() => { void loadHolders(medal.id).catch(() => undefined); }}
+                  onPointerEnter={() => { void loadHolders(medal.id).catch(() => undefined); }}
+                  type="button"
+                >
+                  <span className="medal-showcase-card-image">
+                    <img alt="" decoding="async" draggable={false} loading="lazy" src={medal.largeImagePath} />
+                  </span>
+                  <span className="medal-showcase-card-copy">
+                    <strong>{medal.name}</strong>
+                    <span className="medal-showcase-card-count">{medal.holderCount} 人</span>
+                  </span>
+                </button>
+              ))}
+            </div>
           ))}
         </div>
       )}
@@ -275,4 +287,34 @@ function loadHolders(medalId: string) {
   });
   holderRequests.set(medalId, request);
   return request;
+}
+
+function useWaterfallColumnCount() {
+  const [count, setCount] = useState(readWaterfallColumnCount);
+
+  useEffect(() => {
+    const queries = WATERFALL_COLUMN_QUERIES.map(([query]) => window.matchMedia?.(query)).filter(isMediaQueryList);
+    const sync = () => setCount(readWaterfallColumnCount());
+    sync();
+    queries.forEach((query) => query.addEventListener('change', sync));
+    return () => queries.forEach((query) => query.removeEventListener('change', sync));
+  }, []);
+
+  return count;
+}
+
+function readWaterfallColumnCount() {
+  const match = WATERFALL_COLUMN_QUERIES.find(([query]) => window.matchMedia?.(query).matches);
+  return match ? match[1] : WATERFALL_MAX_COLUMNS;
+}
+
+function isMediaQueryList(value: MediaQueryList | undefined): value is MediaQueryList {
+  return value !== undefined;
+}
+
+// Deal items left to right so the waterfall reads row by row.
+function distributeColumns<T>(items: T[], count: number) {
+  const columns = Array.from({ length: Math.max(1, count) }, () => [] as Array<{ index: number; item: T }>);
+  items.forEach((item, index) => columns[index % columns.length].push({ index, item }));
+  return columns;
 }

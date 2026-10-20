@@ -377,17 +377,23 @@
   }
 
   .medal-showcase-waterfall {
-    columns: 3 240px;
-    column-gap: var(--space-14);
+    display: flex;
+    align-items: flex-start;
+    gap: var(--space-14);
     padding: var(--space-18);
+  }
+
+  .medal-showcase-column {
+    display: grid;
+    min-width: 0;
+    flex: 1 1 0;
+    gap: var(--space-14);
   }
 
   .medal-showcase-card {
     display: grid;
     width: 100%;
     gap: var(--space-12);
-    margin-bottom: var(--space-14);
-    break-inside: avoid;
     border: 1px solid var(--line);
     border-radius: var(--card-radius);
     padding: var(--space-18) var(--space-18) var(--space-14);
@@ -555,14 +561,16 @@
 
 @layer utilities {
   @media (max-width: 640px) {
+    .medal-showcase-waterfall,
+    .medal-showcase-column {
+      gap: var(--space-10);
+    }
+
     .medal-showcase-waterfall {
-      columns: 2 140px;
-      column-gap: var(--space-10);
       padding: var(--space-12);
     }
 
     .medal-showcase-card {
-      margin-bottom: var(--space-10);
       padding: var(--space-12);
     }
 
