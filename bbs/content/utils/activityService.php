@@ -549,12 +549,6 @@ function activity_service_mask_private_answers($text, $answers) {
                     : str_replace('<div>' . $label . '：' . $candidate . '</div>', '<div>' . $label . '：' . $mask . '</div>', $text);
             }
         }
-        // The same answer repeated elsewhere in the post, e.g. a phone typed into another field.
-        if ($long) {
-            foreach ($values as $candidate) {
-                $text = str_replace($candidate, $mask, $text);
-            }
-        }
     }
     return $text;
 }
