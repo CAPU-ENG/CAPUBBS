@@ -1,5 +1,5 @@
-import { Award, ChevronLeft, ChevronRight, RefreshCw, X } from 'lucide-react';
-import { useEffect, useRef, useState } from 'react';
+import { Award, ChevronLeft, CircleHelp, ChevronRight, RefreshCw, X } from 'lucide-react';
+import { useEffect, useId, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import {
   fetchGalleryMedalHolders,
@@ -24,6 +24,7 @@ export function MedalShowcasePanel() {
   const [loadError, setLoadError] = useState('');
   const [reload, setReload] = useState(0);
   const [activeIndex, setActiveIndex] = useState<number | null>(null);
+  const noticeId = useId();
 
   useEffect(() => {
     const controller = new AbortController();
@@ -42,7 +43,17 @@ export function MedalShowcasePanel() {
     <section className="forum-card toolbox-workspace medal-showcase-workspace" aria-labelledby="medal-showcase-title">
       <header className="toolbox-workspace-header">
         <span className="toolbox-workspace-icon"><Award size={17} /></span>
-        <h1 id="medal-showcase-title">勋章展示</h1>
+        <div className="statistics-title">
+          <h1 id="medal-showcase-title">勋章展示</h1>
+          <span className="statistics-data-notice">
+            <button aria-describedby={noticeId} aria-label="统计说明" className="statistics-data-notice-trigger" type="button">
+              <CircleHelp aria-hidden="true" size={15} />
+            </button>
+            <span className="statistics-data-notice-tooltip" id={noticeId} role="tooltip">
+              <span>被用户主动隐藏的勋章不会计入统计</span>
+            </span>
+          </span>
+        </div>
         <Button aria-label="刷新勋章" className="medal-showcase-refresh" icon onClick={() => setReload((value) => value + 1)} type="button">
           <RefreshCw size={16} />
         </Button>
@@ -73,7 +84,6 @@ export function MedalShowcasePanel() {
               </span>
               <span className="medal-showcase-card-copy">
                 <strong>{medal.name}</strong>
-                {medal.description ? <span className="medal-showcase-card-description">{medal.description}</span> : null}
                 <span className="medal-showcase-card-count">{medal.holderCount} 人</span>
               </span>
             </button>
@@ -180,17 +190,19 @@ function MedalShowcaseLightbox({
           </button>
 
           <div className="medal-showcase-lightbox-body">
-            <div className="profile-medal-lightbox-stage">
-              <div aria-live="polite" className="profile-medal-lightbox-copy">
-                <span>{(activeIndex ?? 0) + 1} / {medals.length}</span>
-                <h2 id="medal-showcase-lightbox-title">{medal.name}</h2>
-                <dl>
-                  {medal.description ? <div><dt>描述</dt><dd className="profile-medal-lightbox-description">{medal.description}</dd></div> : null}
-                  <div><dt>持有人数</dt><dd>{holderState.holders ? holderState.holders.length : medal.holderCount}</dd></div>
-                </dl>
-              </div>
-              <div className="profile-medal-lightbox-medal">
-                <MedalBadge key={medal.id} medal={medal} size="large" />
+            <div className="medal-showcase-lightbox-hero">
+              <div className="profile-medal-lightbox-stage">
+                <div aria-live="polite" className="profile-medal-lightbox-copy">
+                  <span>{(activeIndex ?? 0) + 1} / {medals.length}</span>
+                  <h2 id="medal-showcase-lightbox-title">{medal.name}</h2>
+                  <dl>
+                    {medal.description ? <div><dt>描述</dt><dd className="profile-medal-lightbox-description">{medal.description}</dd></div> : null}
+                    <div><dt>持有人数</dt><dd>{holderState.holders ? holderState.holders.length : medal.holderCount}</dd></div>
+                  </dl>
+                </div>
+                <div className="profile-medal-lightbox-medal">
+                  <MedalBadge key={medal.id} medal={medal} size="large" />
+                </div>
               </div>
             </div>
 
