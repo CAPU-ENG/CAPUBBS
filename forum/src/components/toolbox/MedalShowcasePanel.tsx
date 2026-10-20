@@ -25,7 +25,7 @@ const WATERFALL_COLUMN_QUERIES: Array<[string, number]> = [
   ['(max-width: 860px)', 3],
 ];
 const WATERFALL_MAX_COLUMNS = 4;
-const HOLDER_PAGE_SIZE = 36;
+const HOLDER_PAGE_SIZE = 60;
 
 export function MedalShowcasePanel() {
   const [medals, setMedals] = useState<GalleryMedal[] | null>(null);
