@@ -104,7 +104,7 @@ const crlfPayloads = new Map(legacy.map((asset) => [asset.url,
   Buffer.from(Buffer.from(payloads.get(asset.url)).toString('utf8').replace(/\r?\n/g, '\r\n'))]));
 if (process.env.CAPUBBS_LEGACY_ORIGIN) {
   for (const asset of legacy) {
-    const result = await fetch(process.env.CAPUBBS_LEGACY_ORIGIN + asset.url);
+    const result = await fetch(new URL(asset.url, process.env.CAPUBBS_LEGACY_ORIGIN));
     assert.equal(result.status, 200);
     const bytes = new Uint8Array(await result.arrayBuffer());
     assert.equal(digest(bytes), asset.variants[1].sha256, 'Actual historical production bytes');
