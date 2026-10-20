@@ -439,23 +439,30 @@
   }
 
   .medal-showcase-lightbox-backdrop {
-    align-items: safe center;
+    --medal-showcase-backdrop-padding: var(--space-24);
+    align-items: start;
   }
 
   .medal-showcase-lightbox {
     min-height: 0;
+    padding-top: 0;
+    padding-bottom: 0;
   }
 
+  /* Equal spacer rows keep the medal at the viewport center; the holder list
+     starts right under it and overflows downward into the scroll area. */
   .medal-showcase-lightbox-body {
     display: grid;
     width: min(720px, 100%);
-    gap: var(--space-32);
+    height: calc(100dvh - 2 * var(--medal-showcase-backdrop-padding));
+    grid-template-rows: minmax(0, 1fr) auto minmax(0, 1fr);
     justify-items: center;
   }
 
   .medal-showcase-lightbox-hero {
     display: grid;
     width: 100%;
+    grid-row: 2;
     place-items: center;
   }
 
@@ -474,8 +481,11 @@
 
   .medal-showcase-holders {
     width: 100%;
+    grid-row: 3;
+    align-self: start;
+    margin-top: var(--space-32);
     border-top: 1px solid rgb(255 255 255 / 0.2);
-    padding-top: var(--space-24);
+    padding: var(--space-24) 0 var(--space-48);
   }
 
   .medal-showcase-holders ul {
@@ -556,8 +566,14 @@
       padding: var(--space-12);
     }
 
+    .medal-showcase-lightbox-backdrop {
+      --medal-showcase-backdrop-padding: var(--space-10);
+    }
+
     .medal-showcase-lightbox {
       min-height: 0;
+      padding-top: 0;
+      padding-bottom: 0;
     }
 
     .medal-showcase-lightbox .profile-medal-lightbox-prev {
