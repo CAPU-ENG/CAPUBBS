@@ -48,6 +48,82 @@ function jiekoufunc_management_medal_list($con) {
     return medal_response(array('items' => $items, 'total' => count($items)), count($items));
 }
 
+/**
+ * Public medal gallery: every medal with the number of holders who show it.
+ * Visibility follows the public profile query: only display/retain rows count.
+ */
+function jiekoufunc_medal_gallery($con) {
+    $result = medal_db_query($con,
+        "SELECT t.id, t.name, t.description, t.texture_id, t.large_image_path, t.small_image_path,
+                COUNT(d.username) AS holder_count
+         FROM user_medals AS t
+         LEFT JOIN user_medal_members AS m ON m.medal_id=t.id
+         LEFT JOIN user_medal_displays AS d
+             ON d.medal_id=m.medal_id AND d.username=m.username AND d.state IN ('display','retain')
+         GROUP BY t.id, t.name, t.description, t.texture_id, t.large_image_path, t.small_image_path, t.created_at
+         ORDER BY t.created_at DESC, t.id DESC");
+    if (!$result) {
+        return jiekoufunc_report('8', '读取勋章失败。');
+    }
+
+    $items = array();
+    while ($row = mysqli_fetch_assoc($result)) {
+        $items[] = array(
+            'id' => intval($row['id']),
+            'name' => strval($row['name']),
+            'description' => strval($row['description']),
+            'texture_id' => strval($row['texture_id']),
+            'large_image_path' => strval($row['large_image_path']),
+            'small_image_path' => strval($row['small_image_path']),
+            'holder_count' => intval($row['holder_count']),
+        );
+    }
+    return medal_response(array('items' => $items, 'total' => count($items)), count($items));
+}
+
+/**
+ * Public holders of one medal, excluding members who hid it.
+ */
+function jiekoufunc_medal_gallery_members($con, $params) {
+    $medal_id = medal_param_id($params);
+    if ($medal_id <= 0) {
+        return jiekoufunc_report('14', '缺少有效的勋章 ID。');
+    }
+    if (!medal_find($con, $medal_id)) {
+        return jiekoufunc_report('3', '勋章不存在。');
+    }
+
+    $result = medal_db_query($con,
+        "SELECT m.username, m.activity_role, m.awarded_at, u.icon
+        FROM user_medal_members AS m
+        INNER JOIN user_medal_displays AS d
+            ON d.medal_id=m.medal_id AND d.username=m.username
+        LEFT JOIN userinfo AS u
+            ON BINARY u.username=BINARY m.username
+        WHERE m.medal_id=$medal_id
+          AND d.state IN ('display','retain')
+        ORDER BY m.awarded_at ASC, m.username ASC");
+    if (!$result) {
+        return jiekoufunc_report('8', '读取勋章成员失败。');
+    }
+
+    $items = array();
+    while ($row = mysqli_fetch_assoc($result)) {
+        $items[] = array(
+            'username' => strval($row['username']),
+            'role' => strval($row['activity_role']),
+            'awarded_at' => intval($row['awarded_at']),
+            'avatar' => medal_avatar(isset($row['icon']) ? $row['icon'] : ''),
+            'profile_url' => '/users/' . rawurlencode($row['username']),
+        );
+    }
+    return medal_response(array(
+        'items' => $items,
+        'medal_id' => $medal_id,
+        'total' => count($items),
+    ), count($items));
+}
+
 function jiekoufunc_management_medal_create($con, $token, $params, $file) {
     $name = medal_validate_name(isset($params['name']) ? $params['name'] : '');
     if ($name === false) {

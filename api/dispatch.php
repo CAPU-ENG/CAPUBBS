@@ -56,6 +56,8 @@ function _dispatch_build_routes() {
         'tag_list'        => array('handler' => 'jiekoufunc_tag_list',        'check_login' => false, 'require_rights' => 0),
         'tag_user_tags'   => array('handler' => 'jiekoufunc_tag_user_tags',   'check_login' => false, 'require_rights' => 0),
         'tag_summary'     => array('handler' => 'jiekoufunc_tag_summary',     'check_login' => false, 'require_rights' => 0),
+        'medal_gallery'   => array('handler' => 'jiekoufunc_medal_gallery',   'check_login' => false, 'require_rights' => 0),
+        'medal_gallery_members' => array('handler' => 'jiekoufunc_medal_gallery_members', 'check_login' => false, 'require_rights' => 0),
         'yahou_lineage'   => array('handler' => 'jiekoufunc_yahou_lineage',   'check_login' => false, 'require_rights' => 0),
         'userexists'      => array('handler' => 'jiekoufunc_userexists',      'check_login' => false, 'require_rights' => 0),
         'rights'          => array('handler' => 'jiekoufunc_rights',          'check_login' => false, 'require_rights' => 0),
@@ -276,6 +278,10 @@ function jiekoufunc_dispatch($con, $params) {
                 return jiekoufunc_tag_user_tags($con, $params);
             case 'jiekoufunc_tag_summary':
                 return jiekoufunc_tag_summary($con, $params);
+            case 'jiekoufunc_medal_gallery':
+                return jiekoufunc_medal_gallery($con);
+            case 'jiekoufunc_medal_gallery_members':
+                return jiekoufunc_medal_gallery_members($con, $params);
             case 'jiekoufunc_yahou_lineage':
                 return jiekoufunc_yahou_lineage($con, $params);
             case 'jiekoufunc_yahou_lineage_add':

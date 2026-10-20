@@ -1,4 +1,5 @@
 import {
+  Award,
   CheckCircle2,
   ContactRound,
   Download,
@@ -13,6 +14,7 @@ import {
 } from 'lucide-react';
 import { useLayoutEffect, useRef, useState, useSyncExternalStore } from 'react';
 import { TagSummaryPanel } from '../components/data/TagSummaryPanel';
+import { MedalShowcasePanel } from '../components/toolbox/MedalShowcasePanel';
 import { YahouLineagePanel } from '../components/toolbox/YahouLineagePanel';
 import { AppBackground } from '../components/layout/AppBackground';
 import { LoadingSpinner as LoaderCircle } from '../components/layout/LoadingSpinner';
@@ -29,12 +31,13 @@ import {
 } from '../utils/tableToVcf';
 import { Button } from '../components/Button';
 
-type ToolTab = 'table-vcf' | 'tags' | 'yahou-lineage';
+type ToolTab = 'table-vcf' | 'tags' | 'yahou-lineage' | 'medals';
 
 const TOOL_TABS: Array<{ icon: LucideIcon; id: ToolTab; label: string }> = [
   { icon: ContactRound, id: 'table-vcf', label: '表格转 VCF' },
   { icon: Tags, id: 'tags', label: '标签查询' },
   { icon: GitBranch, id: 'yahou-lineage', label: '押后谱系' },
+  { icon: Award, id: 'medals', label: '勋章展示' },
 ];
 
 const EXAMPLE_CONTACTS: ContactRow[] = [
@@ -83,7 +86,10 @@ export function ToolboxPage() {
           id={`toolbox-panel-${activeTab}`}
           role="tabpanel"
         >
-          {activeTab === 'table-vcf' ? <TableToVcfTool /> : activeTab === 'tags' ? <TagSummaryPanel /> : <YahouLineagePanel />}
+          {activeTab === 'table-vcf' ? <TableToVcfTool />
+            : activeTab === 'tags' ? <TagSummaryPanel />
+              : activeTab === 'medals' ? <MedalShowcasePanel />
+                : <YahouLineagePanel />}
         </div>
       </main>
     </div>

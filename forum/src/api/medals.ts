@@ -37,6 +37,19 @@ export type MedalMember = {
   username: string;
 };
 
+export type GalleryMedal = UserMedal & {
+  holderCount: number;
+  largeImagePath: string;
+};
+
+export type GalleryMedalHolder = {
+  avatar: string;
+  awardedAt: number;
+  href: string;
+  role: string;
+  username: string;
+};
+
 export type MedalAssignmentInput = {
   role: string;
   username: string;
@@ -180,6 +193,16 @@ export async function removeMedalMember(medalId: string, username: string) {
   });
 }
 
+export async function fetchGalleryMedals(signal?: AbortSignal): Promise<GalleryMedal[]> {
+  const data = await requestMedalData({ ask: 'medal_gallery' }, signal);
+  return itemsFrom(data).map(mapGalleryMedal).filter(isPresent);
+}
+
+export async function fetchGalleryMedalHolders(medalId: string, signal?: AbortSignal): Promise<GalleryMedalHolder[]> {
+  const data = await requestMedalData({ ask: 'medal_gallery_members', medal_id: medalId }, signal);
+  return itemsFrom(data).map(mapGalleryMedalHolder).filter(isPresent);
+}
+
 export async function fetchSelfMedals(signal?: AbortSignal): Promise<UserMedal[]> {
   const data = await requestMedalData({ ask: 'medal_self_settings' }, signal);
   return itemsFrom(data).map(mapUserMedal).filter(isPresent);
@@ -289,6 +312,29 @@ function mapMedalMember(value: unknown): MedalMember | null {
     href: textValue(row.profile_url) || getPublicProfilePath(username),
     role: textValue(row.role),
     state,
+    username,
+  };
+}
+
+function mapGalleryMedal(value: unknown): GalleryMedal | null {
+  const medal = mapUserMedal(value);
+  if (!medal?.largeImagePath) return null;
+  return {
+    ...medal,
+    holderCount: nonNegativeInteger(asRow(value).holder_count),
+    largeImagePath: medal.largeImagePath,
+  };
+}
+
+function mapGalleryMedalHolder(value: unknown): GalleryMedalHolder | null {
+  const row = asRow(value);
+  const username = textValue(row.username);
+  if (!username) return null;
+  return {
+    avatar: normalizeAvatar(row.avatar),
+    awardedAt: nonNegativeInteger(row.awarded_at),
+    href: textValue(row.profile_url) || getPublicProfilePath(username),
+    role: textValue(row.role),
     username,
   };
 }
