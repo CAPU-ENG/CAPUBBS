@@ -143,7 +143,7 @@ function displayDate(date: string) {
 
 export function YahouChangelog({ log, members }: { log: YahouLogEntry[]; members: YahouMember[] }) {
   const titleId = useId();
-  const [range, setRange] = useState<RangeKey>('all');
+  const [range, setRange] = useState<RangeKey>('capu-current');
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
   const [type, setType] = useState<TypeKey>('all');
