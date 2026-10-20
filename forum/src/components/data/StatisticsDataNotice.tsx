@@ -1,20 +1,25 @@
 import { CircleHelp } from 'lucide-react';
-import { useEffect, useId, useState } from 'react';
+import { useEffect, useId, useState, type ReactNode } from 'react';
 
 const EXPIRES_AT = Date.parse('2027-09-20T00:00:00+08:00');
 
-export function StatisticsDataNotice({ dailyUpdate = false }: { dailyUpdate?: boolean }) {
+export function StatisticsDataNotice({ dailyUpdate = false, expiresAt = EXPIRES_AT, message = '2026 年 9 月 19 日前的数据有失真，仅供参考' }: {
+  dailyUpdate?: boolean;
+  /** Hide the notice from this time on; Infinity keeps it. */
+  expiresAt?: number;
+  message?: ReactNode;
+}) {
   const tooltipId = useId();
-  const [visible, setVisible] = useState(() => Date.now() < EXPIRES_AT);
+  const [visible, setVisible] = useState(() => Date.now() < expiresAt);
 
   useEffect(() => {
     let timer: number | undefined;
     function update() {
       window.clearTimeout(timer);
-      const remaining = EXPIRES_AT - Date.now();
+      const remaining = expiresAt - Date.now();
       setVisible(remaining > 0);
       // Recheck daily so a year-long delay cannot overflow the browser timer.
-      if (remaining > 0) timer = window.setTimeout(update, Math.min(remaining, 86400000));
+      if (remaining > 0 && Number.isFinite(remaining)) timer = window.setTimeout(update, Math.min(remaining, 86400000));
     }
     update();
     window.addEventListener('focus', update);
@@ -24,7 +29,7 @@ export function StatisticsDataNotice({ dailyUpdate = false }: { dailyUpdate?: bo
       window.removeEventListener('focus', update);
       document.removeEventListener('visibilitychange', update);
     };
-  }, []);
+  }, [expiresAt]);
 
   if (!visible) return null;
 
@@ -35,7 +40,7 @@ export function StatisticsDataNotice({ dailyUpdate = false }: { dailyUpdate?: bo
       </button>
       <span className="statistics-data-notice-tooltip" id={tooltipId} role="tooltip">
         <span>
-          2026 年 9 月 19 日前的数据有失真，仅供参考
+          {message}
           {dailyUpdate && <><br />每日 0:00 更新数据</>}
         </span>
       </span>

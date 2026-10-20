@@ -16,6 +16,7 @@ import { YahouChangelog } from './YahouChangelog';
 import { Button } from '../Button';
 import { ErrorState } from '../ErrorState';
 import { useConfirmDialog } from '../ConfirmDialog';
+import { StatisticsDataNotice } from '../data/StatisticsDataNotice';
 
 const OVERVIEW_DESKTOP_QUERY = '(min-width: 1024px)';
 
@@ -79,7 +80,10 @@ export function YahouLineagePanel() {
     <section className="forum-card toolbox-workspace yahou-workspace" aria-labelledby="yahou-lineage-title">
       <header className="toolbox-workspace-header">
         <span className="toolbox-workspace-icon"><GitBranch size={17} /></span>
-        <h1 id="yahou-lineage-title">押后谱系</h1>
+        <div className="statistics-title">
+          <h1 id="yahou-lineage-title">押后谱系</h1>
+          {view === 'log' ? <StatisticsDataNotice expiresAt={Infinity} message="2026 年 10 月 19 日前的数据有失真，仅供参考" /> : null}
+        </div>
         <div className="yahou-header-actions">
           <div aria-label="视图" className="yahou-view-switch" role="group">
             <Button aria-pressed={view === 'tree'} onClick={() => view !== 'tree' && selectView('tree')} type="button" variant={view === 'tree' ? 'primary' : 'neutral'}><GitBranch size={16} />谱系</Button>
