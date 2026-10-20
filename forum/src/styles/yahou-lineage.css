@@ -92,56 +92,66 @@
   }
 
   .yahou-changelog {
-    padding: var(--space-16);
+    padding: var(--space-16) var(--space-20) var(--space-24);
   }
 
+  /* Filters: a soft panel with the labels in their own column. */
   .yahou-changelog-filters {
     display: grid;
-    gap: var(--space-8);
-    padding-bottom: var(--space-12);
-    border-bottom: 1px solid var(--line);
-  }
-
-  .yahou-changelog-filters + * {
-    margin-top: var(--space-8);
+    gap: var(--space-10);
+    border: 1px solid var(--line);
+    background: var(--surface-soft);
+    padding: var(--space-12) var(--space-14);
   }
 
   .yahou-changelog-filter {
-    display: flex;
-    flex-wrap: wrap;
+    display: grid;
+    grid-template-columns: 2.5em minmax(0, 1fr);
+    align-items: start;
+    column-gap: var(--space-12);
+    row-gap: var(--space-8);
+  }
+
+  .yahou-changelog-filter > .search-range-options {
     align-items: center;
-    gap: var(--space-8) var(--space-12);
   }
 
   .yahou-changelog-filter-label {
-    min-width: 2em;
-  }
-
-  .yahou-changelog-member {
-    flex: 1;
-    min-width: 0;
-    max-width: 260px;
-    height: 30px;
-  }
-
-  .yahou-changelog-filter-label {
+    line-height: 30px;
     color: var(--text-faint);
     font-size: var(--ui-font-size-sm);
     font-weight: var(--font-weight-bold);
     letter-spacing: 0.08em;
   }
 
+  .yahou-changelog-group {
+    min-height: 30px;
+    margin-left: var(--space-4);
+  }
+
+  .yahou-changelog-member {
+    max-width: 280px;
+    height: 32px;
+    background: var(--surface-raised);
+  }
+
   .yahou-changelog-filter .search-date-grid {
-    flex-basis: 100%;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-column: 2;
+    grid-template-columns: repeat(2, minmax(0, 200px));
     margin-top: 0;
   }
 
+  /* Log: a key column (date or master) beside its entries. */
+  .yahou-changelog-body {
+    margin-top: var(--space-6);
+  }
+
   .yahou-changelog-list > li {
-    display: flex;
+    display: grid;
+    grid-template-columns: 8.5em minmax(0, 1fr);
     align-items: baseline;
-    gap: var(--space-12);
-    padding: var(--space-8) 0;
+    column-gap: var(--space-20);
+    padding: var(--space-14) var(--space-4);
     border-top: 1px solid var(--line);
     overflow-wrap: anywhere;
   }
@@ -151,26 +161,28 @@
   }
 
   .yahou-changelog-list ul {
-    display: flex;
-    flex: 1;
-    min-width: 0;
-    flex-direction: column;
-    gap: var(--space-4);
+    display: grid;
+    gap: var(--space-8);
     margin: 0;
     padding: 0;
     list-style: none;
+    line-height: 1.5;
   }
 
   .yahou-changelog-key {
-    flex: 0 0 6.5em;
+    position: sticky;
+    top: calc(var(--topbar-height, 56px) + var(--space-8));
+  }
+
+  .yahou-changelog-list time {
+    color: var(--text-muted);
+    font-size: var(--ui-font-size-sm);
+    font-variant-numeric: tabular-nums;
   }
 
   .yahou-changelog-master {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: baseline;
-    gap: 0 var(--space-6);
-    overflow-wrap: anywhere;
+    display: grid;
+    gap: var(--space-2);
   }
 
   .yahou-changelog-counts {
@@ -179,35 +191,35 @@
     font-variant-numeric: tabular-nums;
   }
 
+  /* Apprentice rows align their milestones in a second column. */
   .yahou-changelog-apprentice {
-    display: flex;
-    flex-wrap: wrap;
+    display: grid;
+    grid-template-columns: minmax(6em, 9em) minmax(0, 1fr);
     align-items: baseline;
-    gap: var(--space-2) var(--space-12);
+    column-gap: var(--space-16);
   }
 
   .yahou-changelog-milestones {
     display: flex;
     flex-wrap: wrap;
-    gap: var(--space-2) var(--space-12);
+    gap: var(--space-2) var(--space-18);
   }
 
   .yahou-changelog-milestone {
     display: inline-flex;
     align-items: baseline;
-    gap: var(--space-4);
+    gap: var(--space-6);
     font-size: var(--ui-font-size-sm);
   }
 
-  .yahou-changelog-group {
-    min-height: 30px;
-  }
-
-  .yahou-changelog-list time {
-    flex-shrink: 0;
-    color: var(--text-muted);
-    font-size: var(--ui-font-size-sm);
-    font-variant-numeric: tabular-nums;
+  @media (max-width: 640px) {
+    .yahou-changelog { padding: var(--space-12); }
+    .yahou-changelog-filters { padding: var(--space-10) var(--space-12); }
+    .yahou-changelog-filter .search-date-grid { grid-column: 1 / -1; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .yahou-changelog-list > li { grid-template-columns: minmax(0, 1fr); row-gap: var(--space-8); padding: var(--space-12) 0; }
+    .yahou-changelog-key { position: static; }
+    .yahou-changelog-master { grid-auto-flow: column; justify-content: start; align-items: baseline; gap: var(--space-8); }
+    .yahou-changelog-apprentice { display: flex; flex-wrap: wrap; gap: var(--space-2) var(--space-12); }
   }
 
   .yahou-log-member {

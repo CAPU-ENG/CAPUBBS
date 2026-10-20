@@ -188,10 +188,10 @@ export function YahouChangelog({ log, members }: { log: YahouLogEntry[]; members
                 <span>{item.label}</span>
               </label>
             ))}
+            {type === 'adopt' ? (
+              <Button aria-pressed={byMaster} className="yahou-changelog-group" onClick={() => setByMaster((value) => !value)} variant={byMaster ? 'primary' : 'neutral'}><Users size={14} />按师父分组</Button>
+            ) : null}
           </div>
-          {type === 'adopt' ? (
-            <Button aria-pressed={byMaster} className="yahou-changelog-group" onClick={() => setByMaster((value) => !value)} variant={byMaster ? 'primary' : 'neutral'}><Users size={14} />按师父分组</Button>
-          ) : null}
         </div>
         <div className="yahou-changelog-filter">
           <label className="yahou-changelog-filter-label" htmlFor={`${titleId}-member`}>ID</label>
