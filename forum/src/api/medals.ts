@@ -38,6 +38,7 @@ export type MedalMember = {
 };
 
 export type GalleryMedal = UserMedal & {
+  createdAt: number;
   holderCount: number;
   largeImagePath: string;
 };
@@ -321,6 +322,7 @@ function mapGalleryMedal(value: unknown): GalleryMedal | null {
   if (!medal?.largeImagePath) return null;
   return {
     ...medal,
+    createdAt: nonNegativeInteger(asRow(value).created_at),
     holderCount: nonNegativeInteger(asRow(value).holder_count),
     largeImagePath: medal.largeImagePath,
   };

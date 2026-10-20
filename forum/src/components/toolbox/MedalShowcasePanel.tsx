@@ -26,6 +26,7 @@ const WATERFALL_COLUMN_QUERIES: Array<[string, number]> = [
 ];
 const WATERFALL_MAX_COLUMNS = 4;
 const HOLDER_PAGE_SIZE = 60;
+const MEDAL_DATE_FORMATTER = new Intl.DateTimeFormat('zh-CN', { dateStyle: 'long' });
 
 export function MedalShowcasePanel() {
   const [medals, setMedals] = useState<GalleryMedal[] | null>(null);
@@ -215,6 +216,7 @@ function MedalShowcaseLightbox({
                   <dl>
                     {medal.description ? <div><dt>描述</dt><dd className="profile-medal-lightbox-description">{medal.description}</dd></div> : null}
                     <div><dt>持有人数</dt><dd>{holderState.holders ? holderState.holders.length : medal.holderCount}</dd></div>
+                    <div><dt>创建日期</dt><dd>{formatMedalDate(medal.createdAt)}</dd></div>
                   </dl>
                 </div>
                 <div className="profile-medal-lightbox-medal">
@@ -333,4 +335,9 @@ function distributeColumns<T>(items: T[], count: number) {
   const columns = Array.from({ length: Math.max(1, count) }, () => [] as Array<{ index: number; item: T }>);
   items.forEach((item, index) => columns[index % columns.length].push({ index, item }));
   return columns;
+}
+
+function formatMedalDate(timestamp: number) {
+  const date = new Date(timestamp * 1000);
+  return timestamp > 0 && !Number.isNaN(date.getTime()) ? MEDAL_DATE_FORMATTER.format(date) : '未记录';
 }
