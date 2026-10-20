@@ -439,26 +439,24 @@
   }
 
   .medal-showcase-lightbox-backdrop {
-    align-items: start;
+    align-items: safe center;
   }
 
   .medal-showcase-lightbox {
     min-height: 0;
-    padding-top: 0;
   }
 
   .medal-showcase-lightbox-body {
     display: grid;
     width: min(720px, 100%);
+    gap: var(--space-32);
     justify-items: center;
   }
 
   .medal-showcase-lightbox-hero {
     display: grid;
     width: 100%;
-    min-height: calc(100dvh - 2 * var(--space-24));
     place-items: center;
-    padding: var(--space-48) 0;
   }
 
   .medal-showcase-lightbox .profile-medal-lightbox-nav {
@@ -559,11 +557,7 @@
     }
 
     .medal-showcase-lightbox {
-      padding-top: 0;
-    }
-
-    .medal-showcase-lightbox-hero {
-      min-height: calc(100dvh - 2 * var(--space-10));
+      min-height: 0;
     }
 
     .medal-showcase-lightbox .profile-medal-lightbox-prev {
