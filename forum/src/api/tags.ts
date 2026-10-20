@@ -100,7 +100,9 @@ export async function fetchTagMembers(tagId: string, signal?: AbortSignal): Prom
     page += 1;
   }
 
-  return members;
+  // Offset pages can shift while loading; keep one card per account.
+  const seen = new Set<string>();
+  return members.filter((member) => !seen.has(member.username) && Boolean(seen.add(member.username)));
 }
 
 export async function checkTagMember(tagId: string, username: string, signal?: AbortSignal): Promise<TagMemberCheck> {
@@ -115,10 +117,10 @@ export async function checkTagMember(tagId: string, username: string, signal?: A
     addedAt: nullableNumber(row.added_at),
     member: asRow(row.member).username ? {
       avatar: normalizeAvatar(asRow(row.member).avatar),
-      username: textValue(asRow(row.member).username),
+      username: usernameValue(asRow(row.member).username),
     } : null,
     state: state === 'available' || state === 'already_added' ? state : 'not_found',
-    username: textValue(row.username),
+    username: usernameValue(row.username),
   };
 }
 
@@ -137,7 +139,7 @@ export async function removeTagMember(tagId: string, username: string) {
   await requestTagApi({
     ask: 'management_tag_member_remove',
     tag_id: tagId,
-    username: username.trim(),
+    username,
   }, undefined);
 }
 
@@ -222,7 +224,7 @@ function mapTagDefinition(value: unknown): TagDefinition | null {
 
 function mapTagMember(value: unknown): TagMember | null {
   const row = asRow(value);
-  const username = textValue(row.username);
+  const username = usernameValue(row.username);
   if (!username) return null;
   return {
     addedAt: numberValue(row.added_at),
@@ -234,7 +236,7 @@ function mapTagMember(value: unknown): TagMember | null {
 
 function mapTagMemberAddResult(value: unknown): TagMemberAddResult | null {
   const row = asRow(value);
-  const username = textValue(row.username);
+  const username = usernameValue(row.username);
   const status = textValue(row.status);
   if (!username || (status !== 'added' && status !== 'already_added' && status !== 'not_found')) return null;
   return { addedAt: nullableNumber(row.added_at), status, username };
@@ -277,6 +279,12 @@ function positiveInteger(value: unknown) {
 function numberValue(value: unknown, fallback = 0) {
   const number = Number(value);
   return Number.isFinite(number) ? Math.max(0, Math.floor(number)) : fallback;
+}
+
+/** Account names are exact identifiers; keep surrounding spaces, only reject blanks. */
+function usernameValue(value: unknown) {
+  const text = typeof value === 'string' || typeof value === 'number' ? String(value) : '';
+  return text.trim() ? text : '';
 }
 
 function textValue(value: unknown) {

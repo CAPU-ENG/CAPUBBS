@@ -158,7 +158,9 @@ export async function fetchMedalMembers(medalId: string, signal?: AbortSignal) {
     page += 1;
   }
 
-  return members;
+  // Offset pages can shift while loading; keep one card per account.
+  const seen = new Set<string>();
+  return members.filter((member) => !seen.has(member.username) && Boolean(seen.add(member.username)));
 }
 
 export async function checkMedalMembers(
@@ -190,7 +192,7 @@ export async function removeMedalMember(medalId: string, username: string) {
   await requestMedalData({
     ask: 'management_medal_member_remove',
     medal_id: medalId,
-    username: username.trim(),
+    username,
   });
 }
 
@@ -213,7 +215,7 @@ export async function fetchPublicUserMedals(username: string, signal?: AbortSign
   const data = await requestMedalData({
     ask: 'user_profile',
     medal: 1,
-    username: username.trim(),
+    username,
   }, signal);
   const profile = asRow(Array.isArray(data) ? data[0] : data);
   return mapUserMedals(profile.medals);
@@ -303,7 +305,7 @@ function mapMedalDefinition(value: unknown): MedalDefinition | null {
 
 function mapMedalMember(value: unknown): MedalMember | null {
   const row = asRow(value);
-  const username = textValue(row.username);
+  const username = usernameValue(row.username);
   const state = medalState(row.state);
   if (!username || !state) return null;
   return {
@@ -330,7 +332,7 @@ function mapGalleryMedal(value: unknown): GalleryMedal | null {
 
 function mapGalleryMedalHolder(value: unknown): GalleryMedalHolder | null {
   const row = asRow(value);
-  const username = textValue(row.username);
+  const username = usernameValue(row.username);
   if (!username) return null;
   return {
     avatar: normalizeAvatar(row.avatar),
@@ -343,12 +345,12 @@ function mapGalleryMedalHolder(value: unknown): GalleryMedalHolder | null {
 
 function mapMedalMemberCheck(value: unknown): MedalMemberCheck | null {
   const row = asRow(value);
-  const username = textValue(row.username);
+  const username = usernameValue(row.username);
   const role = textValue(row.role);
   const state = textValue(row.state);
   if (!username || (state !== 'available' && state !== 'already_owned' && state !== 'not_found')) return null;
   const member = asRow(row.member);
-  const memberUsername = textValue(member.username);
+  const memberUsername = usernameValue(member.username);
   return {
     awardedAt: nullablePositiveInteger(row.awarded_at),
     member: memberUsername ? {
@@ -364,7 +366,7 @@ function mapMedalMemberCheck(value: unknown): MedalMemberCheck | null {
 
 function mapMedalGrantResult(value: unknown): MedalGrantResult | null {
   const row = asRow(value);
-  const username = textValue(row.username);
+  const username = usernameValue(row.username);
   const role = textValue(row.role);
   const status = textValue(row.status);
   if (!username || (status !== 'added' && status !== 'already_owned' && status !== 'not_found')) return null;
@@ -434,6 +436,12 @@ function nullablePositiveInteger(value: unknown) {
 function nonNegativeInteger(value: unknown, fallback = 0) {
   const number = Number(value);
   return Number.isFinite(number) ? Math.max(0, Math.floor(number)) : fallback;
+}
+
+/** Account names are exact identifiers; keep surrounding spaces, only reject blanks. */
+function usernameValue(value: unknown) {
+  const text = typeof value === 'string' || typeof value === 'number' ? String(value) : '';
+  return text.trim() ? text : '';
 }
 
 function textValue(value: unknown) {

@@ -264,7 +264,7 @@ function mapThread(row: ApiRow): ManagementThread | null {
 }
 
 function mapManagementMember(row: ApiRow): ManagementMember | null {
-  const id = textValue(row.username);
+  const id = usernameValue(row.username);
   if (!id) return null;
   return {
     avatar: normalizeLegacyAvatar(row.icon),
@@ -309,6 +309,12 @@ function stringList(value: unknown, fallback = '') {
   const uniqueValues = Array.from(new Set(values.filter(Boolean)));
   if (uniqueValues.length > 0) return uniqueValues;
   return fallback ? [fallback] : [];
+}
+
+/** Account names are exact identifiers; keep surrounding spaces, only reject blanks. */
+function usernameValue(value: unknown) {
+  const text = typeof value === 'string' || typeof value === 'number' ? String(value) : '';
+  return text.trim() ? text : '';
 }
 
 function textValue(value: unknown) {
