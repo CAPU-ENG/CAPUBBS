@@ -8,7 +8,7 @@ type CropImageLimits = {
 
 // Mirrors the server-side upload limits of each image kind.
 export const CROP_IMAGE_LIMITS: Record<CropImageKind, CropImageLimits> = {
-  avatar: { maxBytes: 2 * 1024 * 1024, maxSide: 4096, minSide: 64 },
+  avatar: { maxBytes: 1024 * 1024, maxSide: 4096, minSide: 64 },
   decoration: { maxBytes: 64 * 1024, maxSide: 4096, minSide: 64 },
   medal: { maxBytes: 1024 * 1024, maxSide: 8192, minSide: 64 },
 };
