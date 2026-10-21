@@ -7,6 +7,7 @@ import {
   Medal,
   Pencil,
   Plus,
+  Search,
   RefreshCw,
   Trash2,
   Upload,
@@ -43,6 +44,7 @@ import { Button } from '../Button';
 const MEMBER_PAGE_SIZE = 20;
 
 type LoadState = 'error' | 'loading' | 'ready';
+type CatalogSort = 'members' | 'name' | 'newest';
 type Notice = { kind: 'error' | 'success'; text: string } | null;
 
 export function MedalManagementWorkspace() {
@@ -55,6 +57,8 @@ export function MedalManagementWorkspace() {
   const [members, setMembers] = useState<MedalMember[]>([]);
   const [memberCounts, setMemberCounts] = useState<Record<string, number | null>>({});
   const [selectedId, setSelectedId] = useState('');
+  const [catalogQuery, setCatalogQuery] = useState('');
+  const [catalogSort, setCatalogSort] = useState<CatalogSort>('newest');
   const [definitionsStatus, setDefinitionsStatus] = useState<LoadState>('loading');
   const [definitionsReload, setDefinitionsReload] = useState(0);
   const [membersReload, setMembersReload] = useState(0);
@@ -75,6 +79,18 @@ export function MedalManagementWorkspace() {
   const selectedMedal = medals.find((medal) => medal.id === selectedId) ?? medals[0] ?? null;
   const selectedMedalId = selectedMedal?.id ?? '';
   const medalIds = medals.map((medal) => medal.id).join(',');
+  const catalogMedals = useMemo(() => {
+    const query = catalogQuery.trim().toLocaleLowerCase();
+    const matched = query
+      ? medals.filter((medal) => medal.name.toLocaleLowerCase().includes(query))
+      : medals.slice();
+    if (catalogSort === 'name') {
+      matched.sort((a, b) => a.name.localeCompare(b.name, 'zh-Hans-CN'));
+    } else if (catalogSort === 'members') {
+      matched.sort((a, b) => (memberCounts[b.id] ?? -1) - (memberCounts[a.id] ?? -1));
+    }
+    return matched;
+  }, [catalogQuery, catalogSort, medals, memberCounts]);
   const availableBatchRows = useMemo(
     () => batchRows.filter((row) => row.state === 'available'),
     [batchRows],
@@ -339,9 +355,21 @@ export function MedalManagementWorkspace() {
         ) : (
           <div className="management-medal-workspace-body">
             <aside aria-label="勋章列表" className="management-medal-catalog">
-              <header><strong>勋章列表</strong><span>{medals.length}</span></header>
+              <header><strong>勋章列表</strong><span>{catalogQuery.trim() ? `${catalogMedals.length} / ${medals.length}` : medals.length}</span></header>
+              <div className="management-medal-catalog-tools">
+                <label className="management-medal-catalog-search">
+                  <Search aria-hidden="true" size={14} />
+                  <input aria-label="搜索勋章" className="forum-input" onChange={(event) => setCatalogQuery(event.target.value)} placeholder="搜索勋章" type="search" value={catalogQuery} />
+                </label>
+                <select aria-label="勋章排序" className="forum-input" onChange={(event) => setCatalogSort(event.target.value as CatalogSort)} value={catalogSort}>
+                  <option value="newest">最新创建</option>
+                  <option value="members">成员最多</option>
+                  <option value="name">名称</option>
+                </select>
+              </div>
               <div className="management-medal-catalog-list">
-                {medals.map((medal) => (
+                {catalogMedals.length === 0 ? <p className="management-medal-catalog-empty">无匹配勋章</p> : null}
+                {catalogMedals.map((medal) => (
                   <button
                     aria-pressed={selectedMedal?.id === medal.id}
                     className={selectedMedal?.id === medal.id ? 'is-selected' : ''}

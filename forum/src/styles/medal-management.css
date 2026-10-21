@@ -2,6 +2,8 @@
   .management-medal-workspace {
     width: 100%;
     min-height: 620px;
+    /* clip keeps the rounded corners without breaking the sticky catalog */
+    overflow: clip;
   }
 
   .management-medal-workspace-body {
@@ -11,9 +13,58 @@
   }
 
   .management-medal-catalog {
+    position: sticky;
+    top: calc(var(--topbar-height) + var(--space-12));
+    display: flex;
     min-width: 0;
+    max-height: calc(100vh - var(--topbar-height) - var(--space-24));
+    align-self: start;
+    flex-direction: column;
     border-right: 1px solid var(--line);
     background: color-mix(in srgb, var(--surface-soft) 44%, transparent);
+  }
+
+  .management-medal-catalog-tools {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: var(--space-8);
+    border-bottom: 1px solid var(--line);
+    padding: var(--space-8) var(--space-12);
+  }
+
+  .management-medal-catalog-tools .forum-input {
+    height: 32px;
+    font-size: var(--ui-font-size-sm);
+  }
+
+  .management-medal-catalog-tools select.forum-input {
+    width: auto;
+    padding-right: var(--space-4);
+  }
+
+  .management-medal-catalog-search {
+    position: relative;
+    min-width: 0;
+  }
+
+  .management-medal-catalog-search > svg {
+    position: absolute;
+    top: 50%;
+    left: var(--space-8);
+    color: var(--text-faint);
+    pointer-events: none;
+    transform: translateY(-50%);
+  }
+
+  .management-medal-catalog-search > .forum-input {
+    padding-left: 28px;
+  }
+
+  .management-medal-catalog-empty {
+    padding: var(--space-16) var(--space-12);
+    color: var(--text-faint);
+    font-size: var(--ui-font-size-sm);
+    text-align: center;
   }
 
   .management-medal-catalog > header {
@@ -41,6 +92,11 @@
 
   .management-medal-catalog-list {
     display: grid;
+    min-height: 0;
+    flex: 1 1 auto;
+    align-content: start;
+    overflow-y: auto;
+    overscroll-behavior: contain;
   }
 
   .management-medal-catalog-list > button {
@@ -911,6 +967,8 @@
     }
 
     .management-medal-catalog {
+      position: static;
+      max-height: none;
       border-right: 0;
       border-bottom: 1px solid var(--line);
     }
@@ -918,6 +976,7 @@
     .management-medal-catalog-list {
       display: flex;
       overflow-x: auto;
+      overflow-y: hidden;
     }
 
     .management-medal-catalog-list > button {
