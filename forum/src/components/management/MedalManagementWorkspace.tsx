@@ -346,9 +346,9 @@ export function MedalManagementWorkspace() {
                   <input aria-label="搜索勋章" className="forum-input" onChange={(event) => setCatalogQuery(event.target.value)} placeholder="搜索勋章" type="search" value={catalogQuery} />
                 </label>
                 <select aria-label="勋章排序" className="forum-input" onChange={(event) => setCatalogSort(event.target.value as CatalogSort)} value={catalogSort}>
-                  <option value="newest">最新创建</option>
-                  <option value="members">成员最多</option>
-                  <option value="name">名称</option>
+                  <option value="newest">按时间</option>
+                  <option value="name">按名称</option>
+                  <option value="members">按人数</option>
                 </select>
               </div>
               <div className="management-medal-catalog-list">
