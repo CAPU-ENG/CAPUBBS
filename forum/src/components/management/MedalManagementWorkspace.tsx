@@ -1,9 +1,7 @@
 import { DialogLayer, DialogPresence } from '../layout/DialogPresence';
 import { ListPagination } from '../layout/ListPagination';
 import {
-  ArrowRightLeft,
   BadgeCheck,
-  Check,
   CircleAlert,
   FileSpreadsheet,
   Medal,
@@ -29,8 +27,7 @@ import {
   fetchMedalMembers,
   grantMedalMembers,
   removeMedalMember,
-  transferMedalMembers,
-  updateMedalMemberRole,
+  updateMedalMember,
   updateMedalDefinition,
   type MedalAssignmentInput,
   type MedalDefinition,
@@ -71,8 +68,7 @@ export function MedalManagementWorkspace() {
   const [issueMode, setIssueMode] = useState<'batch' | 'single'>('single');
   const [editorMode, setEditorMode] = useState<'create' | 'edit' | null>(null);
   const [deleteOpen, setDeleteOpen] = useState(false);
-  const [removeTargets, setRemoveTargets] = useState<string[]>([]);
-  const [transferRequest, setTransferRequest] = useState<{ targetId: string; usernames: string[] } | null>(null);
+  const [removeTarget, setRemoveTarget] = useState<string | null>(null);
   const [singleId, setSingleId] = useState('');
   const [singleRole, setSingleRole] = useState('');
   const [individualCheck, setIndividualCheck] = useState<MedalMemberCheck | null>(null);
@@ -149,8 +145,7 @@ export function MedalManagementWorkspace() {
     setSelectedId(id);
     setEditorMode(null);
     setDetailTab('members');
-    setRemoveTargets([]);
-    setTransferRequest(null);
+    setRemoveTarget(null);
     resetImports();
     setNotice(null);
   }
@@ -290,89 +285,44 @@ export function MedalManagementWorkspace() {
     }
   }
 
-  async function removeSelectedMembers() {
-    if (!selectedMedal || removeTargets.length === 0 || pendingAction) return;
+  async function removeSelectedMember() {
+    if (!selectedMedal || !removeTarget || pendingAction) return;
     const medal = selectedMedal;
-    const usernames = removeTargets;
+    const username = removeTarget;
     setPendingAction('member-remove');
     setNotice(null);
-    const removed: string[] = [];
     try {
-      for (const username of usernames) {
-        await removeMedalMember(medal.id, username);
-        removed.push(username);
-      }
-      setNotice({
-        kind: 'success',
-        text: usernames.length === 1
-          ? `已从“${medal.name}”勋章移除 ${usernames[0]}`
-          : `已从“${medal.name}”勋章移除 ${usernames.length} 名成员`,
-      });
-    } catch (error) {
-      const prefix = removed.length > 0 ? `已移除 ${removed.length} 名成员，其余` : '';
-      setNotice({ kind: 'error', text: prefix + errorMessage(error, '移除勋章成员失败，请稍后重试。') });
-    } finally {
-      const removedSet = new Set(removed);
-      const remaining = members.filter((member) => !removedSet.has(member.username));
+      await removeMedalMember(medal.id, username);
+      const remaining = members.filter((member) => member.username !== username);
       setMembers(remaining);
       setMemberCounts((current) => ({ ...current, [medal.id]: remaining.length }));
-      setRemoveTargets([]);
-      setPendingAction(null);
-    }
-  }
-
-  async function saveMemberRole(username: string, role: string) {
-    if (!selectedMedal || pendingAction) return false;
-    setPendingAction(`member-role-${username}`);
-    setNotice(null);
-    try {
-      const updated = await updateMedalMemberRole(selectedMedal.id, username, role);
-      setMembers((current) => current.map((member) => member.username === updated.username ? updated : member));
-      setNotice({ kind: 'success', text: `已更新 ${username} 的活动职务` });
-      return true;
+      setNotice({ kind: 'success', text: `已从“${medal.name}”勋章移除 ${username}` });
     } catch (error) {
-      setNotice({ kind: 'error', text: errorMessage(error, '修改活动职务失败，请稍后重试。') });
-      return false;
+      setNotice({ kind: 'error', text: errorMessage(error, '移除勋章成员失败，请稍后重试。') });
     } finally {
+      setRemoveTarget(null);
       setPendingAction(null);
     }
   }
 
-  async function transferSelectedMembers() {
-    if (!selectedMedal || !transferRequest || pendingAction) return;
-    const medal = selectedMedal;
-    const { targetId, usernames } = transferRequest;
-    const targetName = medals.find((item) => item.id === targetId)?.name ?? '';
-    setPendingAction('member-transfer');
+  async function saveMember(username: string, newUsername: string, role: string) {
+    if (!selectedMedal || pendingAction) return null;
+    setPendingAction('member-save');
     setNotice(null);
     try {
-      const results = await transferMedalMembers(medal.id, targetId, usernames);
-      const moved = results.filter((result) => result.status === 'moved').length;
-      const owned = results.filter((result) => result.status === 'already_owned').length;
-      const missing = results.filter((result) => result.status === 'not_found').length;
-      const updatedMembers = await fetchMedalMembers(medal.id);
-      setMembers(updatedMembers);
-      setMemberCounts((current) => {
-        const targetCount = current[targetId];
-        return {
-          ...current,
-          [medal.id]: updatedMembers.length,
-          [targetId]: typeof targetCount === 'number' ? targetCount + moved : targetCount,
-        };
-      });
-      const extra = [
-        owned > 0 ? `${owned} 人已拥有该勋章` : '',
-        missing > 0 ? `${missing} 人未找到` : '',
-      ].filter(Boolean).join('，');
+      const updated = await updateMedalMember(selectedMedal.id, username, { newUsername, role });
+      setMembers((current) => current.map((member) => member.username === username ? updated : member));
       setNotice({
-        kind: moved > 0 ? 'success' : 'error',
-        text: `已将 ${moved} 名成员更换为“${targetName}”勋章${extra ? `；${extra}` : ''}`,
+        kind: 'success',
+        text: updated.username === username
+          ? `已更新 ${username} 的活动职务`
+          : `已将 ${username} 的勋章记录改为 ${updated.username}`,
       });
+      return updated;
     } catch (error) {
-      setNotice({ kind: 'error', text: errorMessage(error, '更换勋章失败，请稍后重试。') });
-      setMembersReload((value) => value + 1);
+      setNotice({ kind: 'error', text: errorMessage(error, '保存成员失败，请稍后重试。') });
+      return null;
     } finally {
-      setTransferRequest(null);
       setPendingAction(null);
     }
   }
@@ -460,7 +410,7 @@ export function MedalManagementWorkspace() {
                     </div>
                     <div className="management-medal-detail-actions">
                       <button aria-label="编辑勋章" disabled={Boolean(pendingAction)} onClick={() => setEditorMode('edit')} title="编辑勋章" type="button"><Pencil size={16} /></button>
-                      <button aria-label="删除勋章" className="is-danger" disabled={Boolean(pendingAction)} onClick={() => { setRemoveTargets([]); setTransferRequest(null); setDeleteOpen(true); }} title="删除勋章" type="button"><Trash2 size={16} /></button>
+                      <button aria-label="删除勋章" className="is-danger" disabled={Boolean(pendingAction)} onClick={() => { setRemoveTarget(null); setDeleteOpen(true); }} title="删除勋章" type="button"><Trash2 size={16} /></button>
                     </div>
                   </header>
 
@@ -480,12 +430,10 @@ export function MedalManagementWorkspace() {
                   ) : detailTab === 'edit' ? (
                     <MemberEditor
                       key={selectedMedal.id}
-                      medals={medals.filter((medal) => medal.id !== selectedMedal.id)}
                       members={members}
-                      onRemove={(usernames) => { setNotice(null); setRemoveTargets(usernames); }}
+                      onRemove={(username) => { setNotice(null); setRemoveTarget(username); }}
                       onRetry={() => { setNotice(null); setMembersReload((value) => value + 1); }}
-                      onSaveRole={saveMemberRole}
-                      onTransfer={(usernames, targetId) => { setNotice(null); setTransferRequest({ targetId, usernames }); }}
+                      onSave={saveMember}
                       pendingAction={pendingAction}
                       status={membersStatus}
                     />
@@ -545,35 +493,17 @@ export function MedalManagementWorkspace() {
         </DialogLayer>
       ) : null}</DialogPresence>
 
-      <DialogPresence>{removeTargets.length > 0 && selectedMedal ? (
-        <DialogLayer className="management-dialog-backdrop" onDismiss={pendingAction ? undefined : () => setRemoveTargets([])} role="presentation">
+      <DialogPresence>{removeTarget && selectedMedal ? (
+        <DialogLayer className="management-dialog-backdrop" onDismiss={pendingAction ? undefined : () => setRemoveTarget(null)} role="presentation">
           <section aria-labelledby="remove-medal-member-title" aria-modal="true" className="management-dialog management-confirm-dialog" role="dialog">
             <header>
               <h2 id="remove-medal-member-title">移除成员</h2>
-              <Button aria-label="关闭" icon disabled={Boolean(pendingAction)} onClick={() => setRemoveTargets([])} type="button"><X size={16} /></Button>
+              <Button aria-label="关闭" icon disabled={Boolean(pendingAction)} onClick={() => setRemoveTarget(null)} type="button"><X size={16} /></Button>
             </header>
-            <p className="management-dialog-copy">{removeTargets.length === 1
-              ? `确定撤销 ${removeTargets[0]} 的“${selectedMedal.name}”勋章吗？`
-              : `确定撤销 ${removeTargets.length} 名成员的“${selectedMedal.name}”勋章吗？`}</p>
+            <p className="management-dialog-copy">确定撤销 {removeTarget} 的“{selectedMedal.name}”勋章吗？</p>
             <footer>
-              <Button disabled={Boolean(pendingAction)} onClick={() => setRemoveTargets([])} type="button">取消</Button>
-              <Button variant="danger" disabled={Boolean(pendingAction)} onClick={() => { void removeSelectedMembers(); }} type="button"><Trash2 size={14} />{pendingAction === 'member-remove' ? '移除中' : '确认移除'}</Button>
-            </footer>
-          </section>
-        </DialogLayer>
-      ) : null}</DialogPresence>
-
-      <DialogPresence>{transferRequest && selectedMedal ? (
-        <DialogLayer className="management-dialog-backdrop" onDismiss={pendingAction ? undefined : () => setTransferRequest(null)} role="presentation">
-          <section aria-labelledby="transfer-medal-member-title" aria-modal="true" className="management-dialog management-confirm-dialog" role="dialog">
-            <header>
-              <h2 id="transfer-medal-member-title">更换勋章</h2>
-              <Button aria-label="关闭" icon disabled={Boolean(pendingAction)} onClick={() => setTransferRequest(null)} type="button"><X size={16} /></Button>
-            </header>
-            <p className="management-dialog-copy">确定将 {transferRequest.usernames.length === 1 ? transferRequest.usernames[0] : `${transferRequest.usernames.length} 名成员`} 的“{selectedMedal.name}”勋章更换为“{medals.find((medal) => medal.id === transferRequest.targetId)?.name}”吗？</p>
-            <footer>
-              <Button disabled={Boolean(pendingAction)} onClick={() => setTransferRequest(null)} type="button">取消</Button>
-              <Button variant="primary" disabled={Boolean(pendingAction)} onClick={() => { void transferSelectedMembers(); }} type="button"><ArrowRightLeft size={14} />{pendingAction === 'member-transfer' ? '更换中' : '确认更换'}</Button>
+              <Button disabled={Boolean(pendingAction)} onClick={() => setRemoveTarget(null)} type="button">取消</Button>
+              <Button variant="danger" disabled={Boolean(pendingAction)} onClick={() => { void removeSelectedMember(); }} type="button"><Trash2 size={14} />{pendingAction === 'member-remove' ? '移除中' : '确认移除'}</Button>
             </footer>
           </section>
         </DialogLayer>
@@ -627,112 +557,127 @@ function MemberList({
   );
 }
 
+const MEMBER_SEARCH_LIMIT = 8;
+
 function MemberEditor({
-  medals,
   members,
   onRemove,
   onRetry,
-  onSaveRole,
-  onTransfer,
+  onSave,
   pendingAction,
   status,
 }: {
-  medals: MedalDefinition[];
   members: MedalMember[];
-  onRemove: (usernames: string[]) => void;
+  onRemove: (username: string) => void;
   onRetry: () => void;
-  onSaveRole: (username: string, role: string) => Promise<boolean>;
-  onTransfer: (usernames: string[], targetId: string) => void;
+  onSave: (username: string, newUsername: string, role: string) => Promise<MedalMember | null>;
   pendingAction: string | null;
   status: LoadState;
 }) {
-  const pagination = useListPagination(members, MEMBER_PAGE_SIZE);
-  const [selected, setSelected] = useState<string[]>([]);
-  const [roleDrafts, setRoleDrafts] = useState<Record<string, string>>({});
-  const [targetId, setTargetId] = useState('');
-  const disabled = Boolean(pendingAction);
-  const memberNames = new Set(members.map((member) => member.username));
-  const selectedNames = selected.filter((username) => memberNames.has(username));
-  const pageNames = pagination.pageItems.map((member) => member.username);
-  const pageAllSelected = pageNames.length > 0 && pageNames.every((username) => selectedNames.includes(username));
+  const [query, setQuery] = useState('');
+  const [selectedUsername, setSelectedUsername] = useState<string | null>(null);
+  const selected = members.find((member) => member.username === selectedUsername) ?? null;
+  const keyword = query.trim().toLocaleLowerCase();
+  const matches = keyword
+    ? members.filter((member) => member.username.toLocaleLowerCase().includes(keyword))
+    : [];
 
-  function toggle(username: string) {
-    setSelected((current) => current.includes(username)
-      ? current.filter((item) => item !== username)
-      : [...current, username]);
-  }
-
-  function togglePage() {
-    setSelected((current) => pageAllSelected
-      ? current.filter((username) => !pageNames.includes(username))
-      : [...new Set([...current, ...pageNames])]);
-  }
-
-  async function saveRole(member: MedalMember) {
-    const draft = roleDrafts[member.username];
-    if (draft === undefined || draft.trim() === member.role) return;
-    if (await onSaveRole(member.username, draft.trim())) {
-      setRoleDrafts((current) => {
-        const next = { ...current };
-        delete next[member.username];
-        return next;
-      });
-    }
+  if (status !== 'ready') {
+    return (
+      <div className="management-medal-edit">
+        <p className="management-medal-edit-status">
+          {status === 'loading' ? '正在加载成员' : <>成员加载失败 <Button onClick={onRetry}><RefreshCw aria-hidden="true" size={15} />重新加载</Button></>}
+        </p>
+      </div>
+    );
   }
 
   return (
-    <div className="management-medal-member-list" ref={pagination.anchorRef}>
-      <div className="management-medal-edit-toolbar">
-        <span>已选 {selectedNames.length} 人</span>
-        <select aria-label="目标勋章" className="forum-input" disabled={disabled || medals.length === 0} onChange={(event) => setTargetId(event.target.value)} value={targetId}>
-          <option value="">选择目标勋章</option>
-          {medals.map((medal) => <option key={medal.id} value={medal.id}>{medal.name}</option>)}
-        </select>
-        <Button disabled={disabled || selectedNames.length === 0 || !targetId} onClick={() => onTransfer(selectedNames, targetId)} type="button"><ArrowRightLeft size={14} />更换</Button>
-        <Button variant="danger" disabled={disabled || selectedNames.length === 0} onClick={() => onRemove(selectedNames)} type="button"><Trash2 size={14} />移除</Button>
-      </div>
-      <div className="management-medal-table-scroll">
-        <table className="management-medal-member-table is-editable">
-          <thead>
-            <tr>
-              <th><input aria-label="选择本页成员" checked={pageAllSelected} disabled={disabled || pageNames.length === 0} onChange={togglePage} type="checkbox" /></th>
-              <th>会员 ID</th><th>活动职务</th><th>获得时间</th><th>操作</th>
-            </tr>
-          </thead>
-          <tbody>
-            <MemberTableStatus colSpan={5} empty={members.length === 0} onRetry={onRetry} status={status} />
-            {status === 'ready' ? pagination.pageItems.map((member) => {
-              const draft = roleDrafts[member.username] ?? member.role;
-              const changed = draft.trim() !== member.role;
-              const saving = pendingAction === `member-role-${member.username}`;
-              return (
-                <tr className={selectedNames.includes(member.username) ? 'is-selected' : ''} key={member.username}>
-                  <td><input aria-label={`选择${member.username}`} checked={selectedNames.includes(member.username)} disabled={disabled} onChange={() => toggle(member.username)} type="checkbox" /></td>
-                  <td><MemberLink member={member} /></td>
-                  <td>
-                    <div className="management-medal-role-field">
-                      <input
-                        aria-label={`${member.username}的活动职务`}
-                        className="forum-input"
-                        disabled={disabled}
-                        maxLength={50}
-                        onChange={(event) => setRoleDrafts((current) => ({ ...current, [member.username]: event.target.value }))}
-                        onKeyDown={(event) => { if (event.key === 'Enter') { event.preventDefault(); void saveRole(member); } }}
-                        value={draft}
-                      />
-                      <button aria-label={`保存${member.username}的活动职务`} className="management-medal-role-save" disabled={disabled || !changed} onClick={() => { void saveRole(member); }} title="保存职务" type="button">{saving ? <RefreshCw className="animate-spin" size={14} /> : <Check size={15} />}</button>
-                    </div>
-                  </td>
-                  <td>{formatDate(member.awardedAt)}</td>
-                  <td><button aria-label={`移除${member.username}的勋章`} className="management-medal-member-remove" disabled={disabled} onClick={() => onRemove([member.username])} title="移除成员" type="button"><X size={15} /></button></td>
-                </tr>
-              );
-            }) : null}
-          </tbody>
-        </table>
-      </div>
-      {status === 'ready' && <ListPagination ariaLabel="勋章成员分页" className="management-list-pagination" currentPage={pagination.currentPage} onPageChange={pagination.onPageChange} pageCount={pagination.pageCount} />}
+    <div className="management-medal-edit">
+      <label className="management-medal-edit-search">
+        <Search aria-hidden="true" size={15} />
+        <input
+          aria-label="搜索成员"
+          className="forum-input"
+          onChange={(event) => setQuery(event.target.value)}
+          placeholder="输入会员 ID"
+          type="search"
+          value={query}
+        />
+      </label>
+      {keyword ? (
+        matches.length > 0 ? (
+          <div className="management-medal-edit-results">
+            {matches.slice(0, MEMBER_SEARCH_LIMIT).map((member) => (
+              <button
+                aria-pressed={member.username === selected?.username}
+                className={member.username === selected?.username ? 'is-selected' : ''}
+                key={member.username}
+                onClick={() => setSelectedUsername(member.username)}
+                type="button"
+              >
+                <strong>{member.username}</strong>
+                {member.role ? <span>{member.role}</span> : null}
+              </button>
+            ))}
+            {matches.length > MEMBER_SEARCH_LIMIT ? <p>另有 {matches.length - MEMBER_SEARCH_LIMIT} 名匹配成员</p> : null}
+          </div>
+        ) : <p className="management-medal-edit-status">无匹配成员</p>
+      ) : null}
+      {selected ? (
+        <MemberEditForm
+          key={`${selected.username}:${selected.role}`}
+          member={selected}
+          onRemove={() => onRemove(selected.username)}
+          onSave={async (newUsername, role) => {
+            const updated = await onSave(selected.username, newUsername, role);
+            if (updated) {
+              setSelectedUsername(updated.username);
+              if (updated.username !== selected.username) setQuery(updated.username);
+            }
+          }}
+          pendingAction={pendingAction}
+        />
+      ) : null}
     </div>
+  );
+}
+
+function MemberEditForm({
+  member,
+  onRemove,
+  onSave,
+  pendingAction,
+}: {
+  member: MedalMember;
+  onRemove: () => void;
+  onSave: (newUsername: string, role: string) => Promise<void>;
+  pendingAction: string | null;
+}) {
+  const [username, setUsername] = useState(member.username);
+  const [role, setRole] = useState(member.role);
+  const disabled = Boolean(pendingAction);
+  const changed = username.trim() !== member.username || role.trim() !== member.role;
+
+  function submit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    if (!changed || !username.trim() || disabled) return;
+    void onSave(username.trim(), role.trim());
+  }
+
+  return (
+    <form className="management-medal-edit-form" onSubmit={submit}>
+      <header>
+        <MemberLink member={member} />
+        <span>{formatDate(member.awardedAt)}</span>
+      </header>
+      <label><span>会员 ID</span><input className="forum-input" disabled={disabled} maxLength={30} onChange={(event) => setUsername(event.target.value)} type="text" value={username} /></label>
+      <label><span>活动职务</span><input className="forum-input" disabled={disabled} maxLength={50} onChange={(event) => setRole(event.target.value)} type="text" value={role} /></label>
+      <footer>
+        <Button variant="danger" disabled={disabled} onClick={onRemove} type="button"><Trash2 size={14} />移除</Button>
+        <Button variant="primary" disabled={disabled || !changed || !username.trim()} type="submit"><BadgeCheck size={15} />{pendingAction === 'member-save' ? '保存中' : '保存'}</Button>
+      </footer>
+    </form>
   );
 }
 
