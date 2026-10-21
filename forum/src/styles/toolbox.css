@@ -418,11 +418,12 @@
     place-items: center;
   }
 
-  .medal-showcase-card-image img {
-    width: 100%;
-    max-width: 280px;
+  .medal-showcase-card-badge {
+    display: grid;
+    width: 82%;
+    max-width: 240px;
     aspect-ratio: 1;
-    object-fit: contain;
+    filter: drop-shadow(0 8px 10px rgb(0 0 0 / 0.2)) drop-shadow(0 2px 3px rgb(0 0 0 / 0.18));
   }
 
   .medal-showcase-card-copy {

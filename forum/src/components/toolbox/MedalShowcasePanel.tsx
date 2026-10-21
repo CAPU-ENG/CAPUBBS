@@ -12,6 +12,7 @@ import { Button } from '../Button';
 import { ErrorState } from '../ErrorState';
 import { DialogLayer, DialogPresence } from '../layout/DialogPresence';
 import { LoadingSpinner } from '../layout/LoadingSpinner';
+import { MEDAL_OCTAGON_PATH } from '../management/medalDesign';
 import { MedalBadge } from '../medals/MedalBadge';
 import { requestMedalMotionPermission } from '../medals/useMedalTilt';
 
@@ -92,7 +93,15 @@ export function MedalShowcasePanel() {
                   type="button"
                 >
                   <span className="medal-showcase-card-image">
-                    <img alt="" decoding="async" draggable={false} loading="lazy" src={medal.largeImagePath} />
+                    <span className="medal-showcase-card-badge">
+                      <span className="user-medal-front">
+                        <img alt="" decoding="async" draggable={false} loading="lazy" src={medal.largeImagePath} />
+                      </span>
+                      <svg aria-hidden="true" className="user-medal-outline" preserveAspectRatio="none" viewBox="0 0 1 1">
+                        <path className="user-medal-outline-shadow" d={MEDAL_OCTAGON_PATH} vectorEffect="non-scaling-stroke" />
+                        <path className="user-medal-outline-highlight" d={MEDAL_OCTAGON_PATH} vectorEffect="non-scaling-stroke" />
+                      </svg>
+                    </span>
                   </span>
                   <span className="medal-showcase-card-copy">
                     <strong>{medal.name}</strong>
