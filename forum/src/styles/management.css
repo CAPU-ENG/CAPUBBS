@@ -152,6 +152,7 @@
     display: grid;
     grid-template-columns: minmax(0, 1fr) auto;
     gap: var(--space-8);
+    margin-bottom: var(--space-12);
   }
 
   .management-member-picker-tools .forum-input {
@@ -172,16 +173,9 @@
     left: var(--space-8);
   }
 
-  .management-member-filter-count {
-    flex: 0 0 auto;
-    margin-left: var(--space-8);
-    color: var(--text-faint);
-    font-size: var(--ui-font-size-xs);
-    font-weight: var(--font-weight-bold);
-  }
-
   .management-member-picker-empty {
-    padding: var(--space-12) var(--space-8);
+    width: 100%;
+    padding: var(--space-8) 0;
     text-align: center;
   }
 
@@ -1158,10 +1152,6 @@
     padding: 0;
   }
 
-  .management-member-picker .management-member-list > .management-member-filter-tag {
-    width: 100%;
-    justify-content: space-between;
-  }
 
   .management-tag-definition-card {
     display: flex;

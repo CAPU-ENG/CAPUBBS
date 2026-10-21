@@ -440,7 +440,7 @@ export function TagManagementWorkspace() {
             </div>
             <div className="management-member-list">
               {pickerTags.map((tag) => (
-                <button className={`management-member-filter-tag ${activeTagId === tag.id ? 'management-member-filter-tag-selected' : ''}`} disabled={Boolean(pendingAction)} key={tag.id} onClick={() => selectTag(tag.id)} type="button"><TagBadge selected={activeTagId === tag.id} tag={tag} /><span className="management-member-filter-count">{tag.memberCount === undefined ? '' : `${tag.memberCount} 人`}</span></button>
+                <button className={`management-member-filter-tag ${activeTagId === tag.id ? 'management-member-filter-tag-selected' : ''}`} disabled={Boolean(pendingAction)} key={tag.id} onClick={() => selectTag(tag.id)} type="button"><TagBadge selected={activeTagId === tag.id} tag={tag} /></button>
               ))}
               {definitions.length > 0 && pickerTags.length === 0 && <p className="management-member-search-empty management-member-picker-empty">无匹配标签</p>}
               {definitions.length === 0 && <EmptyState action={definitionsStatus === 'error' ? <RetryButton onClick={() => { setNotice(null); setDefinitionsStatus('loading'); setDefinitionsReload((value) => value + 1); }} /> : undefined} icon={<Tags size={18} />}>{definitionsStatus === 'loading' ? '正在加载标签' : definitionsStatus === 'error' ? '标签加载失败' : '还没有标签'}</EmptyState>}
