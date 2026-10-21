@@ -8,6 +8,7 @@ export type UserTag = {
 
 export type TagDefinition = UserTag & {
   description?: string;
+  memberCount?: number;
 };
 
 export function getDisplayedTags(tags: UserTag[]): UserTag[] {

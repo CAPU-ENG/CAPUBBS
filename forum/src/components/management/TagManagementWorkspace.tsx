@@ -31,6 +31,7 @@ const MEMBER_SEARCH_LIMIT = 8;
 
 type Notice = { kind: 'error' | 'info' | 'success'; text: string } | null;
 type NoticeKind = 'error' | 'info' | 'success';
+type PickerSort = 'members' | 'name' | 'newest';
 type DeleteTarget =
   | { kind: 'tag'; tag: TagDefinition }
   | { kind: 'member'; username: string };
@@ -54,6 +55,8 @@ export function TagManagementWorkspace() {
   const [editUsername, setEditUsername] = useState('');
   const [memberDraft, setMemberDraft] = useState('');
   const [pendingMembers, setPendingMembers] = useState<string[]>([]);
+  const [pickerQuery, setPickerQuery] = useState('');
+  const [pickerSort, setPickerSort] = useState<PickerSort>('newest');
   const [memberSortOrder, setMemberSortOrder] = useState<'acquiredAt' | 'id'>('acquiredAt');
   const [memberCheckLoading, setMemberCheckLoading] = useState(false);
   const [pendingAction, setPendingAction] = useState<string | null>(null);
@@ -68,6 +71,19 @@ export function TagManagementWorkspace() {
     () => [...definitions].sort((left, right) => TAG_NAME_COLLATOR.compare(left.name, right.name) || MEMBER_ID_COLLATOR.compare(left.id, right.id)),
     [definitions],
   );
+  const pickerTags = useMemo(() => {
+    const keyword = pickerQuery.trim().toLocaleLowerCase();
+    const matched = keyword
+      ? definitions.filter((tag) => tag.name.toLocaleLowerCase().includes(keyword))
+      : [...definitions];
+    if (pickerSort === 'name') return matched.sort((left, right) => TAG_NAME_COLLATOR.compare(left.name, right.name));
+    if (pickerSort === 'members') {
+      return matched.sort((left, right) => (right.memberCount ?? -1) - (left.memberCount ?? -1)
+        || TAG_NAME_COLLATOR.compare(left.name, right.name));
+    }
+    return matched.sort((left, right) => (right.addedAt ?? '').localeCompare(left.addedAt ?? '')
+      || MEMBER_ID_COLLATOR.compare(right.id, left.id));
+  }, [definitions, pickerQuery, pickerSort]);
   const activeTagId = memberSelectedTagId || sortedDefinitions[0]?.id || '';
   const activeTag = definitions.find((tag) => tag.id === activeTagId) ?? null;
   const editingTag = definitions.find((tag) => tag.id === editingId) ?? null;
@@ -123,6 +139,13 @@ export function TagManagementWorkspace() {
     );
     return () => controller.abort();
   }, [activeTagId, membersReload]);
+
+  useEffect(() => {
+    if (membersStatus !== 'ready' || !activeTagId) return;
+    setDefinitions((current) => current.some((tag) => tag.id === activeTagId && tag.memberCount !== members.length)
+      ? current.map((tag) => tag.id === activeTagId ? { ...tag, memberCount: members.length } : tag)
+      : current);
+  }, [activeTagId, members, membersStatus]);
 
   useEffect(() => {
     if (memberDialogOpen && !memberCheckLoading && !pendingAction) {
@@ -404,10 +427,22 @@ export function TagManagementWorkspace() {
         </header>
         <div className="management-member-tag-layout">
           <aside className="management-member-picker" aria-label="标签">
+            <div className="management-member-picker-tools">
+              <label className="management-member-search">
+                <Search aria-hidden="true" size={14} />
+                <input aria-label="搜索标签" className="forum-input" onChange={(event) => setPickerQuery(event.target.value)} placeholder="搜索标签" type="search" value={pickerQuery} />
+              </label>
+              <select aria-label="标签排序" className="forum-input" onChange={(event) => setPickerSort(event.target.value as PickerSort)} value={pickerSort}>
+                <option value="newest">按时间</option>
+                <option value="name">按名称</option>
+                <option value="members">按人数</option>
+              </select>
+            </div>
             <div className="management-member-list">
-              {sortedDefinitions.map((tag) => (
-                <button className={`management-member-filter-tag ${memberSelectedTagId === tag.id ? 'management-member-filter-tag-selected' : ''}`} disabled={Boolean(pendingAction)} key={tag.id} onClick={() => selectTag(tag.id)} type="button"><TagBadge selected={memberSelectedTagId === tag.id} tag={tag} /></button>
+              {pickerTags.map((tag) => (
+                <button className={`management-member-filter-tag ${activeTagId === tag.id ? 'management-member-filter-tag-selected' : ''}`} disabled={Boolean(pendingAction)} key={tag.id} onClick={() => selectTag(tag.id)} type="button"><TagBadge selected={activeTagId === tag.id} tag={tag} /><span className="management-member-filter-count">{tag.memberCount === undefined ? '' : `${tag.memberCount} 人`}</span></button>
               ))}
+              {definitions.length > 0 && pickerTags.length === 0 && <p className="management-member-search-empty management-member-picker-empty">无匹配标签</p>}
               {definitions.length === 0 && <EmptyState action={definitionsStatus === 'error' ? <RetryButton onClick={() => { setNotice(null); setDefinitionsStatus('loading'); setDefinitionsReload((value) => value + 1); }} /> : undefined} icon={<Tags size={18} />}>{definitionsStatus === 'loading' ? '正在加载标签' : definitionsStatus === 'error' ? '标签加载失败' : '还没有标签'}</EmptyState>}
             </div>
           </aside>

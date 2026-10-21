@@ -230,6 +230,7 @@ function mapTagDefinition(value: unknown): TagDefinition | null {
     addedAt: timestampToIso(row.created_at),
     color,
     id: String(id),
+    ...(row.member_count === undefined ? {} : { memberCount: numberValue(row.member_count) }),
     name,
   };
 }
