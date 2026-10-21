@@ -50,6 +50,10 @@ type DragState = {
 };
 
 const OUTPUT_SIZE = 320;
+const MEDAL_MIN_OUTPUT_SIZE = 64;
+const MEDAL_MAX_OUTPUT_SIZE = 8192;
+const MEDAL_MAX_OUTPUT_BYTES = 15 * 1024 * 1024;
+const MEDAL_WEBP_QUALITIES = [0.95, 0.88, 0.8, 0.7];
 const WORKSPACE_SIZE = 360;
 const MIN_CROP_SIZE = 64;
 const KEYBOARD_MOVE_STEP = 4;
@@ -174,6 +178,69 @@ export function AvatarDialog({ avatarSrc, mode = 'avatar', onClose, onSave, open
       }
 
       const cropOnImage = getCropOnImage(displayMetrics, safeCropX, safeCropY, safeCropSize);
+      const naturalSide = Math.round(Math.min(cropOnImage.width, cropOnImage.height));
+      const outputSize = isMedal
+        ? clamp(naturalSide, MEDAL_MIN_OUTPUT_SIZE, MEDAL_MAX_OUTPUT_SIZE)
+        : OUTPUT_SIZE;
+
+      if (isMedal) {
+        void renderMedalCrop(image, cropOnImage, outputSize, canvas, context).then((result) => {
+          if (cancelled) return;
+          if (!result) {
+            setStatus('无法保存当前裁切结果');
+            return;
+          }
+          setPreviewSrc(result.dataUrl);
+          setStatus(result.compressed || naturalSide > MEDAL_MAX_OUTPUT_SIZE ? '图片超出大小限制，已自动压缩' : '');
+        });
+        return;
+      }
+
+      canvas.width = outputSize;
+      canvas.height = outputSize;
+      context.clearRect(0, 0, outputSize, outputSize);
+      context.fillStyle = '#ffffff';
+      context.fillRect(0, 0, outputSize, outputSize);
+      context.drawImage(
+        image,
+        cropOnImage.x,
+        cropOnImage.y,
+        cropOnImage.width,
+        cropOnImage.height,
+        0,
+        0,
+        outputSize,
+        outputSize,
+      );
+
+      try {
+        setPreviewSrc(canvas.toDataURL('image/png'));
+      } catch {
+        setStatus('无法保存当前裁切结果');
+      }
+    };
+    image.onerror = () => !cancelled && setStatus('图片加载失败');
+    image.src = sourceSrc;
+
+    return () => { cancelled = true; };
+  }, [open, sourceSrc]);
+
+  useEffect(() => {
+    if (!open || !sourceSrc || !displayMetrics) return;
+    let cancelled = false;
+    const image = new Image();
+    image.crossOrigin = 'anonymous';
+
+    image.onload = () => {
+      if (cancelled) return;
+      const canvas = canvasRef.current;
+      const context = canvas?.getContext('2d');
+      if (!canvas || !context) {
+        setStatus('无法处理当前图片');
+        return;
+      }
+
+      const cropOnImage = getCropOnImage(displayMetrics, safeCropX, safeCropY, safeCropSize);
       canvas.width = OUTPUT_SIZE;
       canvas.height = OUTPUT_SIZE;
       context.clearRect(0, 0, OUTPUT_SIZE, OUTPUT_SIZE);
@@ -201,7 +268,7 @@ export function AvatarDialog({ avatarSrc, mode = 'avatar', onClose, onSave, open
     image.src = sourceSrc;
 
     return () => { cancelled = true; };
-  }, [displayMetrics, open, safeCropSize, safeCropX, safeCropY, sourceSrc]);
+  }, [displayMetrics, isMedal, open, safeCropSize, safeCropX, safeCropY, sourceSrc]);
 
   if (!open) return null;
 
@@ -517,4 +584,52 @@ function getMaxCropSizeForCorner(dragState: DragState, corner: ResizeCorner, bou
 
 function clamp(value: number, min: number, max: number) {
   return Math.min(Math.max(value, min), max);
+}
+
+type MedalCropResult = { compressed: boolean; dataUrl: string };
+
+async function renderMedalCrop(
+  image: HTMLImageElement,
+  crop: { height: number; width: number; x: number; y: number },
+  startSize: number,
+  canvas: HTMLCanvasElement,
+  context: CanvasRenderingContext2D,
+): Promise<MedalCropResult | null> {
+  let size = startSize;
+  let compressed = false;
+
+  while (size >= MEDAL_MIN_OUTPUT_SIZE) {
+    canvas.width = size;
+    canvas.height = size;
+    context.clearRect(0, 0, size, size);
+    context.fillStyle = '#ffffff';
+    context.fillRect(0, 0, size, size);
+    context.drawImage(image, crop.x, crop.y, crop.width, crop.height, 0, 0, size, size);
+
+    const png = await canvasBlob(canvas, 'image/png');
+    if (png && png.size <= MEDAL_MAX_OUTPUT_BYTES) return { compressed, dataUrl: await blobDataUrl(png) };
+
+    compressed = true;
+    for (const quality of MEDAL_WEBP_QUALITIES) {
+      const webp = await canvasBlob(canvas, 'image/webp', quality);
+      if (webp && webp.type === 'image/webp' && webp.size <= MEDAL_MAX_OUTPUT_BYTES) {
+        return { compressed, dataUrl: await blobDataUrl(webp) };
+      }
+    }
+    size = Math.floor(size * 0.85);
+  }
+  return null;
+}
+
+function canvasBlob(canvas: HTMLCanvasElement, type: string, quality?: number) {
+  return new Promise<Blob | null>((resolve) => canvas.toBlob(resolve, type, quality));
+}
+
+function blobDataUrl(blob: Blob) {
+  return new Promise<string>((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => (typeof reader.result === 'string' ? resolve(reader.result) : reject(new Error('read')));
+    reader.onerror = () => reject(reader.error);
+    reader.readAsDataURL(blob);
+  });
 }
