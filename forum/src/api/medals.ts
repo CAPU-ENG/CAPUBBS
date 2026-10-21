@@ -20,6 +20,8 @@ export type MedalDefinition = {
   description: string;
   id: string;
   largeImagePath: string;
+  /** Only present in the management medal list. */
+  memberCount?: number;
   name: string;
   smallImagePath: string;
   textureId: MedalTextureId;
@@ -84,16 +86,6 @@ export class MedalsApiError extends Error {
 export async function fetchMedalDefinitions(signal?: AbortSignal): Promise<MedalDefinition[]> {
   const data = await requestMedalData({ ask: 'management_medal_list' }, signal);
   return itemsFrom(data).map(mapMedalDefinition).filter(isPresent);
-}
-
-export async function fetchMedalMemberCount(medalId: string, signal?: AbortSignal) {
-  const data = await requestMedalData({
-    ask: 'management_medal_members',
-    medal_id: medalId,
-    page: 1,
-    page_size: 1,
-  }, signal);
-  return nonNegativeInteger(asRow(data).total);
 }
 
 export async function createMedalDefinition({
@@ -295,6 +287,7 @@ function mapMedalDefinition(value: unknown): MedalDefinition | null {
     description: textValue(row.description),
     id: String(id),
     largeImagePath,
+    ...(row.member_count === undefined ? {} : { memberCount: nonNegativeInteger(row.member_count) }),
     name,
     smallImagePath,
     textureId,

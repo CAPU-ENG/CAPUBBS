@@ -23,7 +23,6 @@ import {
   createMedalDefinition,
   deleteMedalDefinition,
   fetchMedalDefinitions,
-  fetchMedalMemberCount,
   fetchMedalMembers,
   grantMedalMembers,
   removeMedalMember,
@@ -78,7 +77,6 @@ export function MedalManagementWorkspace() {
   const batchInputRef = useRef<HTMLInputElement>(null);
   const selectedMedal = medals.find((medal) => medal.id === selectedId) ?? medals[0] ?? null;
   const selectedMedalId = selectedMedal?.id ?? '';
-  const medalIds = medals.map((medal) => medal.id).join(',');
   const catalogMedals = useMemo(() => {
     const query = catalogQuery.trim().toLocaleLowerCase();
     const matched = query
@@ -105,6 +103,7 @@ export function MedalManagementWorkspace() {
     void fetchMedalDefinitions(controller.signal).then(
       (items) => {
         setMedals(items);
+        setMemberCounts(Object.fromEntries(items.map((medal) => [medal.id, medal.memberCount ?? null])));
         setSelectedId((current) => items.some((medal) => medal.id === current) ? current : items[0]?.id ?? '');
         setDefinitionsStatus('ready');
       },
@@ -116,22 +115,6 @@ export function MedalManagementWorkspace() {
     );
     return () => controller.abort();
   }, [definitionsReload]);
-
-  useEffect(() => {
-    const controller = new AbortController();
-    const ids = medalIds ? medalIds.split(',') : [];
-    setMemberCounts((current) => Object.fromEntries(ids.map((id) => [id, current[id]])));
-    ids.forEach((id) => {
-      void fetchMedalMemberCount(id, controller.signal).then(
-        (count) => setMemberCounts((current) => ({ ...current, [id]: count })),
-        (error: unknown) => {
-          if (isAbortError(error)) return;
-          setMemberCounts((current) => ({ ...current, [id]: null }));
-        },
-      );
-    });
-    return () => controller.abort();
-  }, [medalIds]);
 
   useEffect(() => {
     if (!selectedMedalId) {
@@ -182,6 +165,7 @@ export function MedalManagementWorkspace() {
           textureId: draft.textureId,
         });
         setMedals((current) => [created, ...current]);
+        setMemberCounts((current) => ({ ...current, [created.id]: 0 }));
         setSelectedId(created.id);
         setMembers([]);
         setNotice({ kind: 'success', text: '勋章已创建。' });
