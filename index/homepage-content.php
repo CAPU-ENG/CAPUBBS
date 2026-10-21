@@ -34,6 +34,12 @@ return array(
             'cover' => 'https://chexie-1342390402.cos.ap-beijing.myqcloud.com/annual/2021/assets/cover.webp',
             'url' => '/annual/2021/',
         ),
+        array(
+            'year' => '2019-2020',
+            'title' => '行者',
+            'cover' => 'https://chexie-1342390402.cos.ap-beijing.myqcloud.com/annual/2020/assets/cover-960.webp',
+            'url' => '/annual/2020/',
+        ),
     ),
     'qrCodes' => array(
         array('id' => 'wechat', 'label' => '微信公众号', 'image' => 'qrcode-wechat.jpg', 'alt' => 'capu北大车协微信公众号二维码'),

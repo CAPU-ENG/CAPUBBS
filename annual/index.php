@@ -17,6 +17,11 @@ rsort($years, SORT_NUMERIC);
 $titlesJson = @file_get_contents(__DIR__ . '/titles.json');
 $titles = $titlesJson === false ? array() : json_decode($titlesJson, true);
 if (!is_array($titles)) $titles = array();
+
+// optional display label per folder, e.g. "2020": "2019-2020" for the 2019/2020 合刊
+$labelsJson = @file_get_contents(__DIR__ . '/labels.json');
+$labels = $labelsJson === false ? array() : json_decode($labelsJson, true);
+if (!is_array($labels)) $labels = array();
 ?>
 <!doctype html>
 <html lang="zh-CN">
@@ -51,10 +56,11 @@ if (!is_array($titles)) $titles = array();
             <ul class="annual-list" aria-label="历年年刊">
 <?php foreach ($years as $year):
     $title = isset($titles[$year]) && is_string($titles[$year]) ? trim($titles[$year]) : '';
+    $label = isset($labels[$year]) && is_string($labels[$year]) && trim($labels[$year]) !== '' ? trim($labels[$year]) : $year;
 ?>
                 <li>
                     <a class="annual-issue" href="/annual/<?php echo $year; ?>/">
-                        <span class="annual-year"><?php echo $year; ?></span>
+                        <span class="annual-year"><?php echo htmlspecialchars($label, ENT_QUOTES, 'UTF-8'); ?></span>
 <?php if ($title !== ''): ?>
                         <span class="annual-issue-title"><?php echo htmlspecialchars($title, ENT_QUOTES, 'UTF-8'); ?></span>
 <?php endif; ?>
