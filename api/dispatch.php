@@ -136,6 +136,7 @@ function _dispatch_build_routes() {
         'management_tag_member_check' => array('handler' => 'jiekoufunc_management_tag_member_check', 'check_login' => true, 'require_rights' => 3),
         'management_tag_members_add' => array('handler' => 'jiekoufunc_management_tag_members_add', 'check_login' => true, 'require_rights' => 3),
         'management_tag_member_remove' => array('handler' => 'jiekoufunc_management_tag_member_remove', 'check_login' => true, 'require_rights' => 3),
+        'management_tag_member_update' => array('handler' => 'jiekoufunc_management_tag_member_update', 'check_login' => true, 'require_rights' => 3),
         'management_medal_list' => array('handler' => 'jiekoufunc_management_medal_list', 'check_login' => true, 'require_rights' => 3),
         'management_medal_create' => array('handler' => 'jiekoufunc_management_medal_create', 'check_login' => true, 'require_rights' => 3),
         'management_medal_update' => array('handler' => 'jiekoufunc_management_medal_update', 'check_login' => true, 'require_rights' => 3),
@@ -311,6 +312,8 @@ function jiekoufunc_dispatch($con, $params) {
                 return jiekoufunc_management_tag_member_check($con, $params);
             case 'jiekoufunc_management_tag_members_add':
                 return jiekoufunc_management_tag_members_add($con, $token, $params);
+            case 'jiekoufunc_management_tag_member_update':
+                return jiekoufunc_management_tag_member_update($con, $token, $params);
             case 'jiekoufunc_management_tag_member_remove':
                 return jiekoufunc_management_tag_member_remove($con, $params);
             case 'jiekoufunc_management_medal_list':
