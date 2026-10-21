@@ -398,6 +398,11 @@
     text-decoration: underline;
   }
 
+  /* Match the tag member list, whose pagination sits in 16px padding. */
+  .management-medal-member-list > .management-list-pagination {
+    margin: var(--space-16);
+  }
+
   .management-medal-table-empty {
     height: 110px;
     color: var(--text-faint) !important;
