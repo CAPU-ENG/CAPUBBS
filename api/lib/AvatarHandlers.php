@@ -1,7 +1,7 @@
 <?php
 
 if (!defined('AVATAR_IMAGE_MAX_UPLOAD_BYTES')) {
-    define('AVATAR_IMAGE_MAX_UPLOAD_BYTES', 2 * 1024 * 1024);
+    define('AVATAR_IMAGE_MAX_UPLOAD_BYTES', 1024 * 1024);
 }
 if (!defined('AVATAR_IMAGE_MAX_SOURCE_SIZE')) {
     define('AVATAR_IMAGE_MAX_SOURCE_SIZE', 4096);
@@ -106,7 +106,7 @@ function avatar_image_prepare($file, &$error) {
 
     $uploaded_size = isset($file['size']) ? intval($file['size']) : 0;
     if ($uploaded_size <= 0 || $uploaded_size > AVATAR_IMAGE_MAX_UPLOAD_BYTES) {
-        $error = '头像图片必须小于 2 MiB。';
+        $error = '头像图片必须小于 1 MiB。';
         return false;
     }
 
