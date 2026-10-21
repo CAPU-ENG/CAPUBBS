@@ -594,7 +594,7 @@ function MemberEditor({
 
   return (
     <div className="management-medal-edit">
-      <label className="management-medal-edit-search">
+      <label className="management-member-search">
         <Search aria-hidden="true" size={15} />
         <input
           aria-label="搜索成员"
@@ -607,7 +607,7 @@ function MemberEditor({
       </label>
       {keyword ? (
         matches.length > 0 ? (
-          <div className="management-medal-edit-results">
+          <div className="management-member-search-results">
             {matches.slice(0, MEMBER_SEARCH_LIMIT).map((member) => (
               <button
                 aria-pressed={member.username === selected?.username}

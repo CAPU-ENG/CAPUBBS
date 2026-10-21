@@ -234,6 +234,13 @@
     background: var(--surface);
   }
 
+  .management-card-actions {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    gap: var(--space-8);
+  }
+
   .management-card-heading {
     display: flex;
     min-height: 67px;
@@ -1497,6 +1504,98 @@
 
   .management-dialog-form .management-input-action input {
     border-radius: var(--control-radius) 0 0 var(--control-radius);
+  }
+
+  /* Search box + match list shared by medal and tag member editors. */
+  .management-member-search {
+    position: relative;
+  }
+
+  .management-member-search > svg {
+    position: absolute;
+    top: 50%;
+    left: var(--space-10);
+    color: var(--text-faint);
+    pointer-events: none;
+    transform: translateY(-50%);
+  }
+
+  .management-member-search > .forum-input {
+    padding-left: 32px;
+  }
+
+  .management-member-search-results {
+    display: grid;
+    overflow: hidden;
+    border: 1px solid var(--line);
+    border-radius: var(--control-radius);
+  }
+
+  .management-member-search-results > button {
+    display: flex;
+    min-height: 36px;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-12);
+    border-bottom: 1px solid var(--line);
+    padding: 0 var(--space-12);
+    color: var(--text-muted);
+    font-size: var(--ui-font-size-sm);
+    text-align: left;
+  }
+
+  .management-member-search-results > button:last-child {
+    border-bottom: 0;
+  }
+
+  .management-member-search-results > button:hover {
+    background: var(--surface-raised);
+  }
+
+  .management-member-search-results > button.is-selected {
+    background: var(--brand-faint);
+    color: var(--brand-strong);
+  }
+
+  .management-member-search-results strong {
+    overflow: hidden;
+    color: currentColor;
+    font-weight: var(--font-weight-bold);
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .management-member-search-results span,
+  .management-member-search-results p {
+    color: var(--text-faint);
+    font-size: var(--ui-font-size-xs);
+  }
+
+  .management-member-search-results p {
+    padding: var(--space-8) var(--space-12);
+  }
+
+  .management-member-search-dialog {
+    display: grid;
+    gap: var(--space-12);
+    padding: var(--space-16);
+  }
+
+  .management-member-search-dialog label {
+    display: grid;
+    gap: var(--space-8);
+  }
+
+  .management-member-search-dialog label > span,
+  .management-member-search-empty {
+    color: var(--text-muted);
+    font-size: var(--ui-font-size-sm);
+    font-weight: var(--font-weight-bold);
+  }
+
+  .management-member-search-empty {
+    color: var(--text-faint);
+    font-weight: var(--font-weight-regular);
   }
 
   .management-mobile-warning-backdrop {

@@ -135,6 +135,18 @@ export async function addTagMembers(tagId: string, usernames: string[]): Promise
     .filter((result): result is TagMemberAddResult => result !== null);
 }
 
+export async function updateTagMember(tagId: string, username: string, newUsername: string): Promise<TagMember> {
+  const data = await requestTagApi({
+    ask: 'management_tag_member_update',
+    new_username: newUsername,
+    tag_id: tagId,
+    username,
+  }, undefined);
+  const member = mapTagMember(asRow(data).member);
+  if (!member) throw new TagsApiError('会员 ID 已修改，但接口没有返回会员资料。');
+  return member;
+}
+
 export async function removeTagMember(tagId: string, username: string) {
   await requestTagApi({
     ask: 'management_tag_member_remove',

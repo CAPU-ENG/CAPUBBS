@@ -1,5 +1,5 @@
 import { DialogLayer, DialogPresence } from '../layout/DialogPresence';
-import { ArrowDownAZ, Check, Clock3, Plus, RefreshCw, Tags, Trash2, UserPlus, Users, X } from 'lucide-react';
+import { ArrowDownAZ, Check, Clock3, Plus, RefreshCw, Search, Tags, Trash2, UserCog, UserPlus, Users, X } from 'lucide-react';
 import { useEffect, useMemo, useRef, useState, type FormEvent, type ReactNode } from 'react';
 import {
   addTagMembers,
@@ -11,6 +11,7 @@ import {
   removeTagMember,
   TagsApiError,
   updateTagDefinition,
+  updateTagMember,
   type TagMember,
 } from '../../api/tags';
 import type { TagDefinition } from '../../data/tags';
@@ -26,6 +27,7 @@ const MEMBER_ID_COLLATOR = new Intl.Collator('zh-CN', { numeric: true, sensitivi
 const TAG_NAME_COLLATOR = new Intl.Collator('zh-CN', { sensitivity: 'base' });
 const DEFAULT_TAG_COLOR = '#287A52';
 const MEMBER_PAGE_SIZE = 40;
+const MEMBER_SEARCH_LIMIT = 8;
 
 type Notice = { kind: 'error' | 'info' | 'success'; text: string } | null;
 type NoticeKind = 'error' | 'info' | 'success';
@@ -46,6 +48,10 @@ export function TagManagementWorkspace() {
   const [draftName, setDraftName] = useState('');
   const [draftColor, setDraftColor] = useState(DEFAULT_TAG_COLOR);
   const [memberDialogOpen, setMemberDialogOpen] = useState(false);
+  const [editDialogOpen, setEditDialogOpen] = useState(false);
+  const [editQuery, setEditQuery] = useState('');
+  const [editSelected, setEditSelected] = useState<string | null>(null);
+  const [editUsername, setEditUsername] = useState('');
   const [memberDraft, setMemberDraft] = useState('');
   const [pendingMembers, setPendingMembers] = useState<string[]>([]);
   const [memberSortOrder, setMemberSortOrder] = useState<'acquiredAt' | 'id'>('acquiredAt');
@@ -274,6 +280,43 @@ export function TagManagementWorkspace() {
     setMemberDialogOpen(true);
   }
 
+  function openEditDialog() {
+    setNotice(null);
+    setEditQuery('');
+    setEditSelected(null);
+    setEditUsername('');
+    setEditDialogOpen(true);
+  }
+
+  function closeEditDialog() {
+    setEditDialogOpen(false);
+  }
+
+  function selectEditMember(username: string) {
+    setEditSelected(username);
+    setEditUsername(username);
+    setNotice(null);
+  }
+
+  async function confirmEditMember(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    const username = editSelected;
+    const newUsername = editUsername.trim();
+    if (!activeTagId || !username || !newUsername || newUsername === username || pendingAction) return;
+    setPendingAction('member-update');
+    setNotice(null);
+    try {
+      const updated = await updateTagMember(activeTagId, username, newUsername);
+      setMembers((current) => current.map((member) => member.username === username ? updated : member));
+      closeEditDialog();
+      setNotice({ kind: 'success', text: `已将 ${username} 的“${activeTag?.name ?? '标签'}”改为 ${updated.username}` });
+    } catch (error) {
+      setNotice({ kind: 'error', text: errorMessage(error, '修改会员 ID 失败，请稍后重试') });
+    } finally {
+      setPendingAction(null);
+    }
+  }
+
   async function confirmMembers() {
     if (!activeTagId || pendingMembers.length === 0) {
       setNotice({ kind: 'error', text: '请先输入至少一个会员 ID' });
@@ -354,7 +397,10 @@ export function TagManagementWorkspace() {
       <section className="management-card" aria-labelledby="member-tags-title">
         <header className="management-card-heading">
           <div><h2 id="member-tags-title">已有标签会员</h2></div>
-          <Button variant="primary" disabled={!activeTagId || Boolean(pendingAction)} onClick={openMemberDialog} type="button"><UserPlus size={15} />添加会员</Button>
+          <div className="management-card-actions">
+            <Button disabled={!activeTagId || membersStatus !== 'ready' || members.length === 0 || Boolean(pendingAction)} onClick={openEditDialog} type="button"><UserCog size={15} />编辑会员</Button>
+            <Button variant="primary" disabled={!activeTagId || Boolean(pendingAction)} onClick={openMemberDialog} type="button"><UserPlus size={15} />添加会员</Button>
+          </div>
         </header>
         <div className="management-member-tag-layout">
           <aside className="management-member-picker" aria-label="标签">
@@ -392,7 +438,7 @@ export function TagManagementWorkspace() {
           </div>
         </div>
       </section>
-      {notice && !memberDialogOpen && <ManagementNotice kind={notice.kind}>{notice.text}</ManagementNotice>}
+      {notice && !memberDialogOpen && !editDialogOpen && <ManagementNotice kind={notice.kind}>{notice.text}</ManagementNotice>}
       <DialogPresence>{deleteTarget && (
         <DialogLayer className="management-dialog-backdrop" onDismiss={pendingAction ? undefined : closeDeleteDialog} role="presentation">
           <section aria-labelledby="confirm-tag-delete-title" aria-modal="true" className="management-dialog management-confirm-dialog" role="dialog">
@@ -429,6 +475,82 @@ export function TagManagementWorkspace() {
           </section>
         </DialogLayer>
       )}</DialogPresence>
+      <DialogPresence>{editDialogOpen && (
+        <DialogLayer className="management-dialog-backdrop" onDismiss={pendingAction ? undefined : closeEditDialog} role="presentation">
+          <section aria-labelledby="edit-tag-member-title" aria-modal="true" className="management-dialog" role="dialog">
+            <header><div><h2 id="edit-tag-member-title">编辑“{activeTag?.name ?? '标签'}”会员</h2></div><Button aria-label="关闭" icon disabled={Boolean(pendingAction)} onClick={closeEditDialog} type="button"><X size={16} /></Button></header>
+            <TagMemberEditBody
+              disabled={Boolean(pendingAction)}
+              editUsername={editUsername}
+              members={members}
+              onEditUsernameChange={setEditUsername}
+              onQueryChange={setEditQuery}
+              onSelect={selectEditMember}
+              onSubmit={confirmEditMember}
+              query={editQuery}
+              selected={editSelected}
+            />
+            {notice && <ManagementNotice kind={notice.kind}>{notice.text}</ManagementNotice>}
+            <footer>
+              <Button disabled={Boolean(pendingAction)} onClick={closeEditDialog} type="button">取消</Button>
+              <Button variant="primary" disabled={!editSelected || !editUsername.trim() || editUsername.trim() === editSelected || Boolean(pendingAction)} form="edit-tag-member-form" type="submit"><Check size={15} />{pendingAction === 'member-update' ? '保存中' : '保存'}</Button>
+            </footer>
+          </section>
+        </DialogLayer>
+      )}</DialogPresence>
+    </div>
+  );
+}
+
+function TagMemberEditBody({
+  disabled,
+  editUsername,
+  members,
+  onEditUsernameChange,
+  onQueryChange,
+  onSelect,
+  onSubmit,
+  query,
+  selected,
+}: {
+  disabled: boolean;
+  editUsername: string;
+  members: TagMember[];
+  onEditUsernameChange: (value: string) => void;
+  onQueryChange: (value: string) => void;
+  onSelect: (username: string) => void;
+  onSubmit: (event: FormEvent<HTMLFormElement>) => void;
+  query: string;
+  selected: string | null;
+}) {
+  const keyword = query.trim().toLocaleLowerCase();
+  const matches = keyword
+    ? members.filter((member) => member.username.toLocaleLowerCase().includes(keyword))
+    : [];
+  return (
+    <div className="management-member-search-dialog">
+      <label className="management-member-search">
+        <Search aria-hidden="true" size={15} />
+        <input aria-label="搜索会员" autoFocus className="forum-input" disabled={disabled} onChange={(event) => onQueryChange(event.target.value)} placeholder="输入会员 ID" type="search" value={query} />
+      </label>
+      {keyword ? (
+        matches.length > 0 ? (
+          <div className="management-member-search-results">
+            {matches.slice(0, MEMBER_SEARCH_LIMIT).map((member) => (
+              <button aria-pressed={member.username === selected} className={member.username === selected ? 'is-selected' : ''} disabled={disabled} key={member.username} onClick={() => onSelect(member.username)} type="button">
+                <strong>{member.username}</strong>
+                <span>{formatTagAddedAt(member.addedAt)}</span>
+              </button>
+            ))}
+            {matches.length > MEMBER_SEARCH_LIMIT ? <p>另有 {matches.length - MEMBER_SEARCH_LIMIT} 名匹配会员</p> : null}
+          </div>
+        ) : <p className="management-member-search-empty">无匹配会员</p>
+      ) : null}
+      {selected ? (
+        <form id="edit-tag-member-form" onSubmit={onSubmit}>
+          <label><span>会员 ID</span><input className="forum-input" disabled={disabled} maxLength={30} onChange={(event) => onEditUsernameChange(event.target.value)} type="text" value={editUsername} /></label>
+        </form>
+      ) : null}
     </div>
   );
 }
