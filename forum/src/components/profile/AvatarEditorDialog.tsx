@@ -52,7 +52,7 @@ type DragState = {
 const OUTPUT_SIZE = 320;
 const MEDAL_MIN_OUTPUT_SIZE = 64;
 const MEDAL_MAX_OUTPUT_SIZE = 8192;
-const MEDAL_MAX_OUTPUT_BYTES = 15 * 1024 * 1024;
+const MEDAL_MAX_OUTPUT_BYTES = 1024 * 1024;
 const MEDAL_WEBP_QUALITIES = [0.95, 0.88, 0.8, 0.7];
 const WORKSPACE_SIZE = 360;
 const MIN_CROP_SIZE = 64;
@@ -607,12 +607,12 @@ async function renderMedalCrop(
     context.drawImage(image, crop.x, crop.y, crop.width, crop.height, 0, 0, size, size);
 
     const png = await canvasBlob(canvas, 'image/png');
-    if (png && png.size <= MEDAL_MAX_OUTPUT_BYTES) return { compressed, dataUrl: await blobDataUrl(png) };
+    if (png && png.size < MEDAL_MAX_OUTPUT_BYTES) return { compressed, dataUrl: await blobDataUrl(png) };
 
     compressed = true;
     for (const quality of MEDAL_WEBP_QUALITIES) {
       const webp = await canvasBlob(canvas, 'image/webp', quality);
-      if (webp && webp.type === 'image/webp' && webp.size <= MEDAL_MAX_OUTPUT_BYTES) {
+      if (webp && webp.type === 'image/webp' && webp.size < MEDAL_MAX_OUTPUT_BYTES) {
         return { compressed, dataUrl: await blobDataUrl(webp) };
       }
     }
