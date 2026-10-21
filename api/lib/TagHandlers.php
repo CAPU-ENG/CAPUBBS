@@ -592,6 +592,118 @@ function jiekoufunc_management_tag_member_remove($con, $params) {
     ));
 }
 
+/**
+ * Reassign one tag record to another ID (for a tag added to the wrong ID).
+ * The record keeps added_at/added_by. Display order is per user and unique,
+ * so the old display row is dropped (cascade) and the new holder starts
+ * with the tag hidden, like a freshly added tag.
+ */
+function jiekoufunc_management_tag_member_update($con, $token, $params) {
+    $tag_id = jiekoufunc_tag_param_id($params);
+    $username = isset($params['username']) && !is_array($params['username']) ? strval($params['username']) : '';
+    $new_username = isset($params['new_username']) && !is_array($params['new_username']) ? trim(strval($params['new_username'])) : '';
+    if ($tag_id <= 0 || trim($username) === '' || $new_username === '') {
+        return jiekoufunc_report('14', '缺少有效的标签 ID 或会员 ID。');
+    }
+    $tag = jiekoufunc_tag_find($con, $tag_id);
+    if (!$tag) {
+        return jiekoufunc_report('3', '标签不存在。');
+    }
+    $operator = jiekoufunc_tag_operator($con, $token);
+    if ($operator === '') {
+        return jiekoufunc_report('1', '会话超时，请重新登录。');
+    }
+
+    $username_escaped = mysqli_real_escape_string($con, $username);
+    $source_result = mysqli_query($con,
+        "SELECT username, added_at, added_by FROM user_tag_members
+         WHERE tag_id=$tag_id AND username='$username_escaped' LIMIT 1");
+    if (!$source_result) {
+        return jiekoufunc_report('8', '读取标签会员失败。');
+    }
+    $source = mysqli_fetch_assoc($source_result);
+    if (!$source) {
+        return jiekoufunc_report('3', '该会员没有这个标签。');
+    }
+    $username = strval($source['username']);
+    $username_escaped = mysqli_real_escape_string($con, $username);
+
+    $new_escaped = mysqli_real_escape_string($con, $new_username);
+    $member_result = mysqli_query($con,
+        "SELECT username, icon FROM userinfo WHERE username='$new_escaped' LIMIT 1");
+    if (!$member_result) {
+        return jiekoufunc_report('8', '检查会员失败。');
+    }
+    $member = mysqli_fetch_assoc($member_result);
+    if (!$member) {
+        return jiekoufunc_report('3', '会员 ' . $new_username . ' 不存在。');
+    }
+    $new_username = strval($member['username']);
+    $new_escaped = mysqli_real_escape_string($con, $new_username);
+    $owned_result = mysqli_query($con,
+        "SELECT username FROM user_tag_members
+         WHERE tag_id=$tag_id AND username='$new_escaped' LIMIT 1");
+    if (!$owned_result) {
+        return jiekoufunc_report('8', '检查标签会员关系失败。');
+    }
+    $owned = mysqli_fetch_assoc($owned_result);
+    if ($owned) {
+        if (strval($owned['username']) === $username) {
+            return jiekoufunc_report('14', '新会员 ID 与原会员 ID 相同。');
+        }
+        return jiekoufunc_report('14', '会员 ' . $new_username . ' 已拥有这个标签。');
+    }
+
+    $added_at = intval($source['added_at']);
+    $added_by_escaped = mysqli_real_escape_string($con, strval($source['added_by']));
+    mysqli_begin_transaction($con);
+    try {
+        $inserted = mysqli_query($con,
+            "INSERT IGNORE INTO user_tag_members (tag_id, username, added_at, added_by)
+             VALUES ($tag_id, '$new_escaped', $added_at, '$added_by_escaped')");
+        $inserted = $inserted && mysqli_affected_rows($con) === 1;
+        $deleted = $inserted && mysqli_query($con,
+            "DELETE FROM user_tag_members WHERE tag_id=$tag_id AND username='$username_escaped'");
+    } catch (mysqli_sql_exception $error) {
+        $inserted = false;
+        $deleted = false;
+    }
+    if (!$inserted || !$deleted || !mysqli_commit($con)) {
+        mysqli_rollback($con);
+        return jiekoufunc_report('8', '修改会员 ID 失败。');
+    }
+
+    try {
+        $sent = jiekoufunc_insertmsg(
+            $con,
+            'system',
+            $new_username,
+            '为你添加了“' . $tag['name'] . '”标签，可前往个人中心查看。',
+            0,
+            0,
+            0,
+            $operator,
+            $tag['name']
+        );
+    } catch (mysqli_sql_exception $error) {
+        $sent = false;
+    }
+    if (!$sent) {
+        return jiekoufunc_report('8', '会员 ID 已修改，但系统通知发送失败。');
+    }
+
+    return jiekoufunc_tag_response(array(
+        'tag_id' => $tag_id,
+        'previous_username' => $username,
+        'member' => array(
+            'username' => $new_username,
+            'avatar' => jiekoufunc_tag_avatar(isset($member['icon']) ? $member['icon'] : ''),
+            'added_at' => $added_at,
+            'profile_url' => '/users/' . rawurlencode($new_username),
+        ),
+    ));
+}
+
 function jiekoufunc_tag_response($data, $count = null) {
     $status = array('code' => '0', 'msg' => 'ok');
     if ($count !== null) {

@@ -33,10 +33,13 @@ if (!defined('MEDAL_IMAGE_SMALL_MAX_BYTES')) {
 
 function jiekoufunc_management_medal_list($con) {
     $result = medal_db_query($con,
-        'SELECT id, name, description, texture_id, large_image_path, small_image_path,
-                created_at, updated_at, created_by, updated_by
-         FROM user_medals
-         ORDER BY created_at DESC, id DESC');
+        'SELECT t.id, t.name, t.description, t.texture_id, t.large_image_path, t.small_image_path,
+                t.created_at, t.updated_at, t.created_by, t.updated_by, COUNT(m.username) AS member_count
+         FROM user_medals AS t
+         LEFT JOIN user_medal_members AS m ON m.medal_id=t.id
+         GROUP BY t.id, t.name, t.description, t.texture_id, t.large_image_path, t.small_image_path,
+                  t.created_at, t.updated_at, t.created_by, t.updated_by
+         ORDER BY t.created_at DESC, t.id DESC');
     if (!$result) {
         return jiekoufunc_report('8', '读取勋章失败。');
     }
@@ -548,6 +551,174 @@ function jiekoufunc_management_medal_member_remove($con, $params) {
     ));
 }
 
+/**
+ * Edit one member of a medal: change the activity role and, optionally,
+ * reassign the record to another ID (for a medal granted to the wrong ID).
+ * A reassigned record keeps award time, awarder and display state;
+ * displays has no ON UPDATE CASCADE, so rows are re-inserted then deleted.
+ */
+function jiekoufunc_management_medal_member_update($con, $token, $params) {
+    $medal_id = medal_param_id($params);
+    $username_value = isset($params['username']) ? $params['username'] : '';
+    $username = is_array($username_value) ? '' : strval($username_value);
+    if ($medal_id <= 0 || trim($username) === '' || medal_string_length($username) > 30) {
+        return jiekoufunc_report('14', '缺少有效的勋章 ID 或会员 ID。');
+    }
+    $new_value = isset($params['new_username']) ? $params['new_username'] : '';
+    if (is_array($new_value)) {
+        return jiekoufunc_report('14', '新会员 ID 格式错误。');
+    }
+    $new_username = trim(strval($new_value));
+    if ($new_username === '') {
+        $new_username = $username;
+    }
+    if (medal_string_length($new_username) > 30) {
+        return jiekoufunc_report('14', '会员 ID 必须为 1 至 30 个字符。');
+    }
+    $role_value = isset($params['role']) ? $params['role'] : '';
+    if (is_array($role_value)) {
+        return jiekoufunc_report('14', '活动职务格式错误。');
+    }
+    $role = trim(strval($role_value));
+    if (medal_string_length($role) > 50) {
+        return jiekoufunc_report('14', '活动职务不得超过 50 个字符。');
+    }
+    $medal = medal_find($con, $medal_id);
+    if (!$medal) {
+        return jiekoufunc_report('3', '勋章不存在。');
+    }
+    $operator = medal_operator($con, $token);
+    if ($operator === '') {
+        return jiekoufunc_report('1', '会话超时，请重新登录。');
+    }
+
+    $username_escaped = mysqli_real_escape_string($con, $username);
+    $role_escaped = mysqli_real_escape_string($con, $role);
+    $renamed = $new_username !== $username;
+    if (!$renamed) {
+        $exists = medal_db_query($con,
+            "SELECT 1 FROM user_medal_members
+             WHERE medal_id=$medal_id AND username='$username_escaped' LIMIT 1");
+        if (!$exists) {
+            return jiekoufunc_report('8', '读取勋章成员失败。');
+        }
+        if (!mysqli_fetch_assoc($exists)) {
+            return jiekoufunc_report('3', '该会员没有这枚勋章。');
+        }
+        if (!medal_db_query($con,
+            "UPDATE user_medal_members SET activity_role='$role_escaped'
+             WHERE medal_id=$medal_id AND username='$username_escaped'")) {
+            return jiekoufunc_report('8', '修改活动职务失败。');
+        }
+    } else {
+        $checks = medal_check_assignments($con, $medal_id, array(
+            array('username' => $new_username, 'role' => $role),
+        ));
+        if ($checks === false) {
+            return jiekoufunc_report('8', '检查会员 ID 失败。');
+        }
+        if ($checks[0]['state'] === 'not_found') {
+            return jiekoufunc_report('3', '会员 ' . $new_username . ' 不存在。');
+        }
+        if ($checks[0]['state'] === 'already_owned') {
+            return jiekoufunc_report('14', '会员 ' . $new_username . ' 已拥有这枚勋章。');
+        }
+        $new_username = $checks[0]['member']['username'];
+        $new_escaped = mysqli_real_escape_string($con, $new_username);
+        $now = time();
+
+        if (!medal_db_begin_transaction($con)) {
+            return jiekoufunc_report('8', '修改会员 ID 失败。');
+        }
+        $source_result = medal_db_query($con,
+            "SELECT m.awarded_at, m.awarded_by, COALESCE(d.state, 'retain') AS display_state
+             FROM user_medal_members AS m
+             LEFT JOIN user_medal_displays AS d
+                 ON d.medal_id=m.medal_id AND d.username=m.username
+             WHERE m.medal_id=$medal_id AND m.username='$username_escaped'
+             LIMIT 1 FOR UPDATE");
+        if (!$source_result) {
+            medal_db_rollback($con);
+            return jiekoufunc_report('8', '读取勋章成员失败。');
+        }
+        $source = mysqli_fetch_assoc($source_result);
+        if (!$source) {
+            medal_db_rollback($con);
+            return jiekoufunc_report('3', '该会员没有这枚勋章。');
+        }
+        $awarded_at = intval($source['awarded_at']);
+        $awarded_by_escaped = mysqli_real_escape_string($con, strval($source['awarded_by']));
+        $state = medal_normalize_state($source['display_state']);
+        if (!medal_db_query($con,
+            "INSERT IGNORE INTO user_medal_members
+                (medal_id, username, activity_role, awarded_at, awarded_by)
+             VALUES ($medal_id, '$new_escaped', '$role_escaped', $awarded_at, '$awarded_by_escaped')")) {
+            medal_db_rollback($con);
+            return jiekoufunc_report('8', '修改会员 ID 失败。');
+        }
+        if (mysqli_affected_rows($con) !== 1) {
+            medal_db_rollback($con);
+            return jiekoufunc_report('14', '会员 ' . $new_username . ' 已拥有这枚勋章。');
+        }
+        if (!medal_db_query($con,
+                "INSERT INTO user_medal_displays (username, medal_id, state, updated_at)
+                 VALUES ('$new_escaped', $medal_id, '$state', $now)")
+            || !medal_db_query($con,
+                "DELETE FROM user_medal_members
+                 WHERE medal_id=$medal_id AND username='$username_escaped'")) {
+            medal_db_rollback($con);
+            return jiekoufunc_report('8', '修改会员 ID 失败。');
+        }
+        if (!medal_db_commit($con)) {
+            medal_db_rollback($con);
+            return jiekoufunc_report('8', '修改会员 ID 失败。');
+        }
+    }
+
+    $member_escaped = mysqli_real_escape_string($con, $new_username);
+    $result = medal_db_query($con,
+        "SELECT m.username, m.activity_role, m.awarded_at, m.awarded_by,
+                COALESCE(d.state, 'retain') AS display_state, u.icon
+         FROM user_medal_members AS m
+         LEFT JOIN user_medal_displays AS d
+             ON d.medal_id=m.medal_id AND d.username=m.username
+         LEFT JOIN userinfo AS u
+             ON BINARY u.username=BINARY m.username
+         WHERE m.medal_id=$medal_id AND m.username='$member_escaped'
+         LIMIT 1");
+    $row = $result ? mysqli_fetch_assoc($result) : null;
+    if (!$row) {
+        return jiekoufunc_report('8', '读取勋章成员失败。');
+    }
+
+    if ($renamed) {
+        try {
+            $sent = jiekoufunc_insertmsg(
+                $con,
+                'system',
+                $new_username,
+                '为你发放了“' . $medal['name'] . '”勋章，可前往个人中心查看。',
+                0,
+                0,
+                0,
+                $operator,
+                $medal['name']
+            );
+        } catch (mysqli_sql_exception $error) {
+            $sent = false;
+        }
+        if (!$sent) {
+            return jiekoufunc_report('8', '会员 ID 已修改，但系统通知发送失败。');
+        }
+    }
+
+    return medal_response(array(
+        'medal_id' => $medal_id,
+        'member' => medal_pack_member($row),
+        'previous_username' => $username,
+    ));
+}
+
 function jiekoufunc_medal_self_settings($con, $token) {
     $username = medal_operator($con, $token);
     if ($username === '') {
@@ -862,7 +1033,7 @@ function medal_parse_ids($value, &$invalid) {
 }
 
 function medal_pack_definition($row) {
-    return array(
+    $definition = array(
         'id' => intval($row['id']),
         'name' => strval($row['name']),
         'description' => strval($row['description']),
@@ -874,6 +1045,10 @@ function medal_pack_definition($row) {
         'created_by' => strval($row['created_by']),
         'updated_by' => strval($row['updated_by']),
     );
+    if (isset($row['member_count'])) {
+        $definition['member_count'] = intval($row['member_count']);
+    }
+    return $definition;
 }
 
 function medal_pack_member($row) {
