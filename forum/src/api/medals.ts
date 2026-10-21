@@ -73,6 +73,11 @@ export type MedalGrantResult = MedalAssignmentInput & {
   status: 'added' | 'already_owned' | 'not_found';
 };
 
+export type MedalTransferResult = {
+  status: 'already_owned' | 'moved' | 'not_found';
+  username: string;
+};
+
 export class MedalsApiError extends Error {
   code: number;
 
@@ -186,6 +191,32 @@ export async function removeMedalMember(medalId: string, username: string) {
     medal_id: medalId,
     username,
   });
+}
+
+export async function updateMedalMemberRole(medalId: string, username: string, role: string) {
+  const data = await requestMedalData({
+    ask: 'management_medal_member_update',
+    medal_id: medalId,
+    role,
+    username,
+  });
+  const member = mapMedalMember(asRow(data).member);
+  if (!member) throw new MedalsApiError('职务已保存，但接口没有返回成员资料。');
+  return member;
+}
+
+export async function transferMedalMembers(
+  medalId: string,
+  targetMedalId: string,
+  usernames: string[],
+): Promise<MedalTransferResult[]> {
+  const data = await requestMedalData({
+    ask: 'management_medal_members_transfer',
+    medal_id: medalId,
+    target_medal_id: targetMedalId,
+    usernames: JSON.stringify(usernames),
+  });
+  return itemsFrom(asRow(data).results).map(mapMedalTransferResult).filter(isPresent);
 }
 
 export async function fetchGalleryMedals(signal?: AbortSignal): Promise<GalleryMedal[]> {
@@ -310,6 +341,14 @@ function mapMedalMember(value: unknown): MedalMember | null {
     state,
     username,
   };
+}
+
+function mapMedalTransferResult(value: unknown): MedalTransferResult | null {
+  const row = asRow(value);
+  const username = usernameValue(row.username);
+  const status = row.status;
+  if (!username || (status !== 'already_owned' && status !== 'moved' && status !== 'not_found')) return null;
+  return { status, username };
 }
 
 function mapGalleryMedal(value: unknown): GalleryMedal | null {

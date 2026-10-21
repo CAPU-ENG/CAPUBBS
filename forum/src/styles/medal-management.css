@@ -310,13 +310,98 @@
     font-weight: var(--font-weight-bold);
   }
 
-  .management-medal-member-table th:first-child { width: 37%; }
-  .management-medal-member-table th:nth-child(2) { width: 27%; }
-  .management-medal-member-table th:last-child { width: 58px; }
+  .management-medal-member-table:not(.is-editable) th:first-child { width: 40%; }
+  .management-medal-member-table:not(.is-editable) th:nth-child(2) { width: 32%; }
 
-  .management-medal-member-table th:last-child,
-  .management-medal-member-table td:last-child {
+  .management-medal-member-table.is-editable {
+    min-width: 640px;
+  }
+
+  .management-medal-member-table.is-editable th:first-child { width: 44px; }
+  .management-medal-member-table.is-editable th:nth-child(2) { width: 28%; }
+  .management-medal-member-table.is-editable th:nth-child(4) { width: 22%; }
+  .management-medal-member-table.is-editable th:last-child { width: 58px; }
+
+  .management-medal-member-table.is-editable th:first-child,
+  .management-medal-member-table.is-editable td:first-child {
+    padding-right: 0;
+  }
+
+  .management-medal-member-table.is-editable td {
+    padding-top: var(--space-8);
+    padding-bottom: var(--space-8);
+  }
+
+  .management-medal-member-table.is-editable th:last-child,
+  .management-medal-member-table.is-editable td:last-child {
     text-align: center;
+  }
+
+  .management-medal-member-table.is-editable input[type='checkbox'] {
+    width: 15px;
+    height: 15px;
+    accent-color: var(--brand-strong);
+    vertical-align: middle;
+  }
+
+  .management-medal-member-table.is-editable tr.is-selected td {
+    background: var(--brand-faint);
+  }
+
+  .management-medal-edit-toolbar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--space-8);
+    border-bottom: 1px solid var(--line);
+    padding: var(--space-10) var(--space-14);
+  }
+
+  .management-medal-edit-toolbar > span {
+    margin-right: auto;
+    color: var(--text-faint);
+    font-size: var(--ui-font-size-sm);
+    font-weight: var(--font-weight-bold);
+  }
+
+  .management-medal-edit-toolbar select.forum-input {
+    width: 200px;
+    height: 32px;
+    font-size: var(--ui-font-size-sm);
+  }
+
+  .management-medal-role-field {
+    display: flex;
+    min-width: 0;
+    align-items: center;
+    gap: var(--space-4);
+  }
+
+  .management-medal-role-field .forum-input {
+    height: 30px;
+    min-width: 0;
+    font-size: var(--ui-font-size-sm);
+  }
+
+  .management-medal-role-save {
+    display: inline-flex;
+    width: 28px;
+    height: 28px;
+    flex: 0 0 28px;
+    align-items: center;
+    justify-content: center;
+    border-radius: var(--control-radius);
+    color: var(--brand-strong);
+  }
+
+  .management-medal-role-save:hover:not(:disabled) {
+    background: var(--brand-faint);
+  }
+
+  .management-medal-role-save:disabled {
+    color: var(--text-faint);
+    cursor: default;
+    opacity: 0.45;
   }
 
   .management-medal-member-remove {
