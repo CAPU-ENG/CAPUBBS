@@ -24,7 +24,7 @@ import { LoadingSpinner as LoaderCircle } from '../components/layout/LoadingSpin
 import { TopBar } from '../components/layout/TopBar';
 import { useClientConfig } from '../hooks/useClientConfig';
 import { useDocumentTitle } from '../hooks/useDocumentTitle';
-import { AvatarDialog } from '../components/profile/AvatarEditorDialog';
+import { ImageCropDialog } from '../components/profile/ImageCropDialog';
 import { useAuth } from '../context/AuthContext';
 import { getAuthPathWithReturnTo, getAuthReturnTo, replaceForumLocation } from '../utils/authRoutes';
 import { normalizeLegacyAvatar } from '../utils/legacyAssets';
@@ -588,7 +588,7 @@ export function RegisterPage() {
           </form>
         </section>
       </main>
-      <DialogPresence>{avatarDialogOpen && (<AvatarDialog
+      <DialogPresence>{avatarDialogOpen && (<ImageCropDialog
         avatarSrc={customAvatar?.src ?? ''}
         onClose={closeAvatarDialog}
         onSave={uploadAvatar}

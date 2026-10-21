@@ -15,7 +15,7 @@ import {
 import { AppBackground } from '../components/layout/AppBackground';
 import { LoadingState } from '../components/layout/LoadingState';
 import { TopBar } from '../components/layout/TopBar';
-import { AvatarDialog, EmailDialog, SecurityDialog } from '../components/profile/ProfileDialogs';
+import { ImageCropDialog, EmailDialog, SecurityDialog } from '../components/profile/ProfileDialogs';
 import { ProfileOverview, type ProfileDraft, type ProfileTextDraftKey } from '../components/profile/ProfileOverview';
 import { ProfileContent } from '../components/profile/ProfileContent';
 import { ProfilePersonalizationDialog } from '../components/profile/ProfilePersonalizationDialog';
@@ -318,7 +318,7 @@ export function UserCenterPage() {
         />
       </main>
 
-      <DialogPresence>{openDialog === 'avatar' && (<AvatarDialog
+      <DialogPresence>{openDialog === 'avatar' && (<ImageCropDialog
         avatarSrc={cachedAvatarSrc ?? profile.avatarSrc}
         onClose={closeDialog}
         onSave={async (src) => {

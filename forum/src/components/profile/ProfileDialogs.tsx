@@ -4,7 +4,7 @@ import { useEffect, useState, type ReactNode } from 'react';
 import { createPortal } from 'react-dom';
 import type { EmailVerificationType } from '../../api/profile';
 
-export { AvatarDialog } from './AvatarEditorDialog';
+export { ImageCropDialog } from './ImageCropDialog';
 
 type DialogFrameProps = {
   children: ReactNode;

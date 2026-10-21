@@ -15,7 +15,7 @@ import { useStaggerEntrance } from '../../hooks/useStaggerEntrance';
 import { createFloorDecorationFile } from '../../utils/floorDecorationImage';
 import { MedalBadge } from '../medals/MedalBadge';
 import { TagList } from '../tags/TagBadge';
-import { AvatarDialog } from './AvatarEditorDialog';
+import { ImageCropDialog } from './ImageCropDialog';
 
 type PendingImage = { file: File; previewSrc: string };
 
@@ -308,7 +308,7 @@ export function ProfilePersonalizationDialog({
         </section>
       </DialogLayer>
 
-      <DialogPresence>{cropVariant !== null && (<AvatarDialog
+      <DialogPresence>{cropVariant !== null && (<ImageCropDialog
         avatarSrc={cropSource}
         mode="decoration"
         onClose={() => setCropVariant(null)}

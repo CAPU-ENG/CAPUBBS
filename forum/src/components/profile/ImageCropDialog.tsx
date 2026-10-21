@@ -10,9 +10,10 @@ import {
   type PointerEvent,
 } from 'react';
 import { createPortal } from 'react-dom';
+import { CROP_COMPRESSED_NOTICE, renderCroppedImage } from '../../utils/croppedImage';
 import defaultAvatar from '../../assets/avatar/default-avatar.svg';
 
-type AvatarDialogProps = {
+type ImageCropDialogProps = {
   avatarSrc: string;
   mode?: 'avatar' | 'decoration' | 'medal';
   onClose: () => void;
@@ -49,18 +50,13 @@ type DragState = {
   startPointerY: number;
 };
 
-const OUTPUT_SIZE = 320;
-const MEDAL_MIN_OUTPUT_SIZE = 64;
-const MEDAL_MAX_OUTPUT_SIZE = 8192;
-const MEDAL_MAX_OUTPUT_BYTES = 1024 * 1024;
-const MEDAL_WEBP_QUALITIES = [0.95, 0.88, 0.8, 0.7];
 const WORKSPACE_SIZE = 360;
 const MIN_CROP_SIZE = 64;
 const KEYBOARD_MOVE_STEP = 4;
 const corners: ResizeCorner[] = ['nw', 'ne', 'sw', 'se'];
 const ROUNDED_OCTAGON_PATH = 'M .310893 0 H .689107 Q .707107 0 .719835 .012728 L .987272 .280165 Q 1 .292893 1 .310893 V .689107 Q 1 .707107 .987272 .719835 L .719835 .987272 Q .707107 1 .689107 1 H .310893 Q .292893 1 .280165 .987272 L .012728 .719835 Q 0 .707107 0 .689107 V .310893 Q 0 .292893 .012728 .280165 L .280165 .012728 Q .292893 0 .310893 0 Z';
 
-export function AvatarDialog({ avatarSrc, mode = 'avatar', onClose, onSave, open, showDefaultOption = true }: AvatarDialogProps) {
+export function ImageCropDialog({ avatarSrc, mode = 'avatar', onClose, onSave, open, showDefaultOption = true }: ImageCropDialogProps) {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const dragStateRef = useRef<DragState | null>(null);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
@@ -171,104 +167,27 @@ export function AvatarDialog({ avatarSrc, mode = 'avatar', onClose, onSave, open
     image.onload = () => {
       if (cancelled) return;
       const canvas = canvasRef.current;
-      const context = canvas?.getContext('2d');
-      if (!canvas || !context) {
+      if (!canvas) {
         setStatus('无法处理当前图片');
         return;
       }
 
       const cropOnImage = getCropOnImage(displayMetrics, safeCropX, safeCropY, safeCropSize);
-      const naturalSide = Math.round(Math.min(cropOnImage.width, cropOnImage.height));
-      const outputSize = isMedal
-        ? clamp(naturalSide, MEDAL_MIN_OUTPUT_SIZE, MEDAL_MAX_OUTPUT_SIZE)
-        : OUTPUT_SIZE;
-
-      if (isMedal) {
-        void renderMedalCrop(image, cropOnImage, outputSize, canvas, context).then((result) => {
-          if (cancelled) return;
-          if (!result) {
-            setStatus('无法保存当前裁切结果');
-            return;
-          }
-          setPreviewSrc(result.dataUrl);
-          setStatus(result.compressed || naturalSide > MEDAL_MAX_OUTPUT_SIZE ? '图片超出大小限制，已自动压缩' : '');
-        });
-        return;
-      }
-
-      canvas.width = outputSize;
-      canvas.height = outputSize;
-      context.clearRect(0, 0, outputSize, outputSize);
-      context.fillStyle = '#ffffff';
-      context.fillRect(0, 0, outputSize, outputSize);
-      context.drawImage(
-        image,
-        cropOnImage.x,
-        cropOnImage.y,
-        cropOnImage.width,
-        cropOnImage.height,
-        0,
-        0,
-        outputSize,
-        outputSize,
-      );
-
-      try {
-        setPreviewSrc(canvas.toDataURL('image/png'));
-      } catch {
-        setStatus('无法保存当前裁切结果');
-      }
+      void renderCroppedImage(image, cropOnImage, mode, canvas).then((result) => {
+        if (cancelled) return;
+        if (!result) {
+          setStatus('无法保存当前裁切结果');
+          return;
+        }
+        setPreviewSrc(result.dataUrl);
+        setStatus(result.compressed ? CROP_COMPRESSED_NOTICE : '');
+      }).catch(() => !cancelled && setStatus('无法保存当前裁切结果'));
     };
     image.onerror = () => !cancelled && setStatus('图片加载失败');
     image.src = sourceSrc;
 
     return () => { cancelled = true; };
-  }, [open, sourceSrc]);
-
-  useEffect(() => {
-    if (!open || !sourceSrc || !displayMetrics) return;
-    let cancelled = false;
-    const image = new Image();
-    image.crossOrigin = 'anonymous';
-
-    image.onload = () => {
-      if (cancelled) return;
-      const canvas = canvasRef.current;
-      const context = canvas?.getContext('2d');
-      if (!canvas || !context) {
-        setStatus('无法处理当前图片');
-        return;
-      }
-
-      const cropOnImage = getCropOnImage(displayMetrics, safeCropX, safeCropY, safeCropSize);
-      canvas.width = OUTPUT_SIZE;
-      canvas.height = OUTPUT_SIZE;
-      context.clearRect(0, 0, OUTPUT_SIZE, OUTPUT_SIZE);
-      context.fillStyle = '#ffffff';
-      context.fillRect(0, 0, OUTPUT_SIZE, OUTPUT_SIZE);
-      context.drawImage(
-        image,
-        cropOnImage.x,
-        cropOnImage.y,
-        cropOnImage.width,
-        cropOnImage.height,
-        0,
-        0,
-        OUTPUT_SIZE,
-        OUTPUT_SIZE,
-      );
-
-      try {
-        setPreviewSrc(canvas.toDataURL('image/png'));
-      } catch {
-        setStatus('无法保存当前裁切结果');
-      }
-    };
-    image.onerror = () => !cancelled && setStatus('图片加载失败');
-    image.src = sourceSrc;
-
-    return () => { cancelled = true; };
-  }, [displayMetrics, isMedal, open, safeCropSize, safeCropX, safeCropY, sourceSrc]);
+  }, [displayMetrics, mode, open, safeCropSize, safeCropX, safeCropY, sourceSrc]);
 
   if (!open) return null;
 
@@ -584,52 +503,4 @@ function getMaxCropSizeForCorner(dragState: DragState, corner: ResizeCorner, bou
 
 function clamp(value: number, min: number, max: number) {
   return Math.min(Math.max(value, min), max);
-}
-
-type MedalCropResult = { compressed: boolean; dataUrl: string };
-
-async function renderMedalCrop(
-  image: HTMLImageElement,
-  crop: { height: number; width: number; x: number; y: number },
-  startSize: number,
-  canvas: HTMLCanvasElement,
-  context: CanvasRenderingContext2D,
-): Promise<MedalCropResult | null> {
-  let size = startSize;
-  let compressed = false;
-
-  while (size >= MEDAL_MIN_OUTPUT_SIZE) {
-    canvas.width = size;
-    canvas.height = size;
-    context.clearRect(0, 0, size, size);
-    context.fillStyle = '#ffffff';
-    context.fillRect(0, 0, size, size);
-    context.drawImage(image, crop.x, crop.y, crop.width, crop.height, 0, 0, size, size);
-
-    const png = await canvasBlob(canvas, 'image/png');
-    if (png && png.size < MEDAL_MAX_OUTPUT_BYTES) return { compressed, dataUrl: await blobDataUrl(png) };
-
-    compressed = true;
-    for (const quality of MEDAL_WEBP_QUALITIES) {
-      const webp = await canvasBlob(canvas, 'image/webp', quality);
-      if (webp && webp.type === 'image/webp' && webp.size < MEDAL_MAX_OUTPUT_BYTES) {
-        return { compressed, dataUrl: await blobDataUrl(webp) };
-      }
-    }
-    size = Math.floor(size * 0.85);
-  }
-  return null;
-}
-
-function canvasBlob(canvas: HTMLCanvasElement, type: string, quality?: number) {
-  return new Promise<Blob | null>((resolve) => canvas.toBlob(resolve, type, quality));
-}
-
-function blobDataUrl(blob: Blob) {
-  return new Promise<string>((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onload = () => (typeof reader.result === 'string' ? resolve(reader.result) : reject(new Error('read')));
-    reader.onerror = () => reject(reader.error);
-    reader.readAsDataURL(blob);
-  });
 }
