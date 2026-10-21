@@ -33,10 +33,13 @@ if (!defined('MEDAL_IMAGE_SMALL_MAX_BYTES')) {
 
 function jiekoufunc_management_medal_list($con) {
     $result = medal_db_query($con,
-        'SELECT id, name, description, texture_id, large_image_path, small_image_path,
-                created_at, updated_at, created_by, updated_by
-         FROM user_medals
-         ORDER BY created_at DESC, id DESC');
+        'SELECT t.id, t.name, t.description, t.texture_id, t.large_image_path, t.small_image_path,
+                t.created_at, t.updated_at, t.created_by, t.updated_by, COUNT(m.username) AS member_count
+         FROM user_medals AS t
+         LEFT JOIN user_medal_members AS m ON m.medal_id=t.id
+         GROUP BY t.id, t.name, t.description, t.texture_id, t.large_image_path, t.small_image_path,
+                  t.created_at, t.updated_at, t.created_by, t.updated_by
+         ORDER BY t.created_at DESC, t.id DESC');
     if (!$result) {
         return jiekoufunc_report('8', '读取勋章失败。');
     }
@@ -862,7 +865,7 @@ function medal_parse_ids($value, &$invalid) {
 }
 
 function medal_pack_definition($row) {
-    return array(
+    $definition = array(
         'id' => intval($row['id']),
         'name' => strval($row['name']),
         'description' => strval($row['description']),
@@ -874,6 +877,10 @@ function medal_pack_definition($row) {
         'created_by' => strval($row['created_by']),
         'updated_by' => strval($row['updated_by']),
     );
+    if (isset($row['member_count'])) {
+        $definition['member_count'] = intval($row['member_count']);
+    }
+    return $definition;
 }
 
 function medal_pack_member($row) {
