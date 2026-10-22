@@ -1,6 +1,6 @@
 import { BadgeCheck, CircleAlert, FileSpreadsheet, ListChecks, Upload, X } from 'lucide-react';
-import { useMemo, useRef, useState } from 'react';
-import { findForumUsername } from '../../api/profile';
+import { useRef, useState } from 'react';
+import { findForumMember, type ForumMemberSummary } from '../../api/profile';
 import { readTableRows } from '../../utils/readTableRows';
 import { getPublicProfilePath } from '../../utils/userRoutes';
 import { getForumNavigationHref } from '../../utils/forumNavigation';
@@ -10,35 +10,27 @@ import { LoadingSpinner as LoaderCircle } from '../layout/LoadingSpinner';
 const MAX_ROWS = 500;
 const CHECK_CONCURRENCY = 6;
 
+type RowStatus = 'duplicate' | 'error' | 'found' | 'not-found';
+
 type CheckRow = {
-  checkedUsername: string;
-  failed: boolean;
-  forumUsername: string | null;
-  key: string;
+  member: ForumMemberSummary | null;
+  status: RowStatus;
   username: string;
 };
 
-type RowStatus = 'checking' | 'duplicate' | 'error' | 'found' | 'missing-id' | 'not-found' | 'stale';
-
 const STATUS_ORDER: Record<RowStatus, number> = {
-  'missing-id': 0,
-  'not-found': 1,
-  error: 2,
-  duplicate: 3,
-  stale: 4,
-  checking: 5,
-  found: 6,
+  'not-found': 0,
+  error: 1,
+  duplicate: 2,
+  found: 3,
 };
 
 export function IdListCheckPanel() {
   const inputRef = useRef<HTMLInputElement>(null);
-  const keyRef = useRef(0);
   const [error, setError] = useState('');
   const [fileName, setFileName] = useState('');
   const [loading, setLoading] = useState(false);
   const [rows, setRows] = useState<CheckRow[]>([]);
-  const [recheckingKeys, setRecheckingKeys] = useState<ReadonlySet<string>>(() => new Set());
-  const statuses = useMemo(() => rowStatuses(rows, recheckingKeys), [recheckingKeys, rows]);
 
   async function loadFile(file: File | null) {
     if (!file || loading) return;
@@ -50,17 +42,22 @@ export function IdListCheckPanel() {
     try {
       const usernames = normalizeIdRows(await readTableRows(file));
       const results = await mapWithConcurrency(usernames, CHECK_CONCURRENCY, checkUsername);
-      const checked = usernames.map((username, index): CheckRow => ({
-        checkedUsername: username,
-        failed: results[index] === undefined,
-        forumUsername: results[index] ?? null,
-        key: String(keyRef.current++),
-        username,
-      }));
-      const initialStatuses = rowStatuses(checked, new Set());
+      const counts = new Map<string, number>();
+      usernames.forEach((username) => {
+        const identity = username.toLocaleLowerCase();
+        counts.set(identity, (counts.get(identity) ?? 0) + 1);
+      });
+      const checked = usernames.map((username, index): CheckRow => {
+        const result = results[index];
+        const status: RowStatus = result === undefined ? 'error'
+          : result === null ? 'not-found'
+            : (counts.get(username.toLocaleLowerCase()) ?? 0) > 1 ? 'duplicate'
+              : 'found';
+        return { member: result ?? null, status, username };
+      });
       setRows(checked
         .map((row, index) => ({ index, row }))
-        .sort((a, b) => STATUS_ORDER[initialStatuses.get(a.row.key) ?? 'found'] - STATUS_ORDER[initialStatuses.get(b.row.key) ?? 'found'] || a.index - b.index)
+        .sort((a, b) => STATUS_ORDER[a.row.status] - STATUS_ORDER[b.row.status] || a.index - b.index)
         .map(({ row }) => row));
     } catch (loadError) {
       setFileName('');
@@ -78,31 +75,7 @@ export function IdListCheckPanel() {
     if (inputRef.current) inputRef.current.value = '';
   }
 
-  function editRow(key: string, username: string) {
-    setRows((current) => current.map((row) => row.key === key ? { ...row, username } : row));
-  }
-
-  function removeRow(key: string) {
-    setRows((current) => current.filter((row) => row.key !== key));
-  }
-
-  async function recheckRow(key: string) {
-    const row = rows.find((item) => item.key === key);
-    const username = row?.username.trim() ?? '';
-    if (!row || !username || (username === row.checkedUsername && !row.failed) || recheckingKeys.has(key)) return;
-    setRecheckingKeys((current) => new Set(current).add(key));
-    const result = await checkUsername(username);
-    setRows((current) => current.map((item) => item.key === key && item.username.trim() === username
-      ? { ...item, checkedUsername: username, failed: result === undefined, forumUsername: result ?? null }
-      : item));
-    setRecheckingKeys((current) => {
-      const next = new Set(current);
-      next.delete(key);
-      return next;
-    });
-  }
-
-  const countOf = (status: RowStatus) => rows.filter((row) => statuses.get(row.key) === status).length;
+  const countOf = (status: RowStatus) => rows.filter((row) => row.status === status).length;
 
   return (
     <section className="forum-card toolbox-workspace" aria-labelledby="id-check-title">
@@ -156,44 +129,29 @@ export function IdListCheckPanel() {
         {rows.length > 0 ? (
           <div className="toolbox-table-scroll">
             <table className="toolbox-table toolbox-id-check-table">
-              <thead><tr><th>ID</th><th>论坛 ID</th><th aria-label="操作" /></tr></thead>
+              <thead><tr><th>ID</th><th>状态</th><th>UID</th><th>星级</th><th>注册时间</th><th>签到数</th></tr></thead>
               <tbody>
-                {rows.map((row) => {
-                  const status = statuses.get(row.key) ?? 'stale';
-                  return (
-                    <tr key={row.key}>
-                      <td>
-                        <div className="toolbox-id-check-id">
-                          <input
-                            aria-label="会员 ID"
-                            className="forum-input"
-                            onBlur={() => void recheckRow(row.key)}
-                            onChange={(event) => editRow(row.key, event.target.value)}
-                            onKeyDown={(event) => {
-                              if (event.key === 'Enter') event.currentTarget.blur();
-                            }}
-                            type="text"
-                            value={row.username}
-                          />
-                          <span data-state={status}>
-                            {status === 'found' ? <BadgeCheck size={13} /> : <CircleAlert size={13} />}
-                            {statusLabel(status)}
-                          </span>
-                        </div>
-                      </td>
-                      <td>
-                        {status === 'found' && row.forumUsername ? (
-                          <a href={getForumNavigationHref(getPublicProfilePath(row.forumUsername), window.location.href)} rel="noreferrer" target="_blank">
-                            {row.forumUsername}
-                          </a>
-                        ) : null}
-                      </td>
-                      <td>
-                        <Button aria-label="移除" icon onClick={() => removeRow(row.key)} title="移除" type="button"><X size={15} /></Button>
-                      </td>
-                    </tr>
-                  );
-                })}
+                {rows.map((row, index) => (
+                  <tr key={`${row.username}-${index}`}>
+                    <td title={row.username}>
+                      {row.member ? (
+                        <a href={getForumNavigationHref(getPublicProfilePath(row.member.username), window.location.href)} rel="noreferrer" target="_blank">
+                          {row.member.username}
+                        </a>
+                      ) : row.username}
+                    </td>
+                    <td>
+                      <span className="toolbox-id-check-status" data-state={row.status}>
+                        {row.status === 'found' ? <BadgeCheck size={13} /> : <CircleAlert size={13} />}
+                        {statusLabel(row.status)}
+                      </span>
+                    </td>
+                    <td>{row.member ? row.member.uid || '' : ''}</td>
+                    <td>{row.member ? row.member.star : ''}</td>
+                    <td>{row.member?.registeredAt ?? ''}</td>
+                    <td>{row.member ? row.member.signCount : ''}</td>
+                  </tr>
+                ))}
               </tbody>
             </table>
           </div>
@@ -202,7 +160,7 @@ export function IdListCheckPanel() {
         {rows.length > 0 ? (
           <footer className="toolbox-converter-footer">
             <div>
-              <span>存在 {countOf('found')}</span>
+              <span>存在 {countOf('found') + countOf('duplicate')}</span>
               <span>未找到 {countOf('not-found')}</span>
               {countOf('duplicate') > 0 ? <span>重复 {countOf('duplicate')}</span> : null}
               {countOf('error') > 0 ? <span>核查失败 {countOf('error')}</span> : null}
@@ -216,9 +174,9 @@ export function IdListCheckPanel() {
   );
 }
 
-async function checkUsername(username: string): Promise<string | null | undefined> {
+async function checkUsername(username: string): Promise<ForumMemberSummary | null | undefined> {
   try {
-    return await findForumUsername(username);
+    return await findForumMember(username);
   } catch {
     return undefined;
   }
@@ -237,32 +195,11 @@ async function mapWithConcurrency<T, R>(items: T[], limit: number, task: (item: 
   return results;
 }
 
-function rowStatuses(rows: CheckRow[], recheckingKeys: ReadonlySet<string>) {
-  const counts = new Map<string, number>();
-  rows.forEach((row) => {
-    const identity = row.username.trim().toLocaleLowerCase();
-    counts.set(identity, (counts.get(identity) ?? 0) + 1);
-  });
-  return new Map(rows.map((row): [string, RowStatus] => {
-    const username = row.username.trim();
-    if (recheckingKeys.has(row.key)) return [row.key, 'checking'];
-    if (!username) return [row.key, 'missing-id'];
-    if (username !== row.checkedUsername) return [row.key, 'stale'];
-    if (row.failed) return [row.key, 'error'];
-    if (!row.forumUsername) return [row.key, 'not-found'];
-    if ((counts.get(username.toLocaleLowerCase()) ?? 0) > 1) return [row.key, 'duplicate'];
-    return [row.key, 'found'];
-  }));
-}
-
 function statusLabel(status: RowStatus) {
   if (status === 'found') return '存在';
   if (status === 'not-found') return '未找到';
   if (status === 'duplicate') return '重复';
-  if (status === 'missing-id') return '缺少 ID';
-  if (status === 'checking') return '核查中';
-  if (status === 'error') return '核查失败';
-  return '待核查';
+  return '核查失败';
 }
 
 function normalizeIdRows(rows: unknown[][]) {

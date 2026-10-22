@@ -111,10 +111,27 @@ export async function fetchPublicProfile(profileName: string, signal?: AbortSign
   };
 }
 
-export async function findForumUsername(username: string, signal?: AbortSignal): Promise<string | null> {
+export type ForumMemberSummary = {
+  registeredAt: string;
+  signCount: number;
+  star: number;
+  uid: number;
+  username: string;
+};
+
+export async function findForumMember(username: string, signal?: AbortSignal): Promise<ForumMemberSummary | null> {
   try {
     const rows = await requestRows({ ask: 'user_profile', username: username.trim() }, signal);
-    return stringValue(rows[0]?.username) || null;
+    const row = rows[0];
+    const forumUsername = stringValue(row?.username);
+    if (!row || !forumUsername) return null;
+    return {
+      registeredAt: formatProfileDate(row.regdate),
+      signCount: numberValue(row.sign),
+      star: Math.max(0, Math.min(9, numberValue(row.star))),
+      uid: numberValue(row.userid),
+      username: forumUsername,
+    };
   } catch (error) {
     if (error instanceof ProfileApiError && error.code === API_NOT_FOUND) return null;
     throw error;

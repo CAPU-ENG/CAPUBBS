@@ -265,54 +265,37 @@
   }
 
   .toolbox-id-check-table {
-    min-width: 520px;
+    min-width: 680px;
   }
 
-  .toolbox-id-check-table th:first-child { width: 58%; }
-  .toolbox-id-check-table th:nth-child(2) { width: auto; }
-  .toolbox-id-check-table th:last-child { width: 56px; }
-
-  .toolbox-id-check-table td {
-    padding-block: var(--space-6);
-  }
+  .toolbox-id-check-table th:first-child { width: 26%; }
+  .toolbox-id-check-table th:nth-child(2) { width: 14%; }
+  .toolbox-id-check-table th:nth-child(3),
+  .toolbox-id-check-table th:nth-child(4),
+  .toolbox-id-check-table th:last-child { width: 13%; }
+  .toolbox-id-check-table th:nth-child(5) { width: 21%; }
 
   .toolbox-id-check-table a {
     color: var(--brand-strong);
   }
 
-  .toolbox-id-check-id {
-    display: flex;
-    min-width: 0;
-    align-items: center;
-    gap: var(--space-8);
-  }
-
-  .toolbox-id-check-id .forum-input {
-    flex: 1 1 auto;
-    min-width: 0;
-  }
-
-  .toolbox-id-check-id span {
+  .toolbox-id-check-status {
     display: inline-flex;
-    flex: 0 0 auto;
     align-items: center;
     gap: var(--space-4);
-    color: var(--text-faint);
     font-size: var(--ui-font-size-xs);
-    white-space: nowrap;
   }
 
-  .toolbox-id-check-id span[data-state='found'] {
+  .toolbox-id-check-status[data-state='found'] {
     color: var(--brand-strong);
   }
 
-  .toolbox-id-check-id span[data-state='duplicate'] {
+  .toolbox-id-check-status[data-state='duplicate'] {
     color: var(--warning);
   }
 
-  .toolbox-id-check-id span[data-state='not-found'],
-  .toolbox-id-check-id span[data-state='error'],
-  .toolbox-id-check-id span[data-state='missing-id'] {
+  .toolbox-id-check-status[data-state='not-found'],
+  .toolbox-id-check-status[data-state='error'] {
     color: var(--danger);
   }
 
