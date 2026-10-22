@@ -34,11 +34,11 @@ import {
 import { readTableRows } from '../utils/readTableRows';
 import { Button } from '../components/Button';
 
-type ToolTab = 'table-vcf' | 'id-check' | 'tags' | 'yahou-lineage' | 'medals';
+type ToolTab = 'id-check' | 'table-vcf' | 'tags' | 'yahou-lineage' | 'medals';
 
 const TOOL_TABS: Array<{ icon: LucideIcon; id: ToolTab; label: string }> = [
-  { icon: ContactRound, id: 'table-vcf', label: '表格转 VCF' },
   { icon: ListChecks, id: 'id-check', label: '名单核查' },
+  { icon: ContactRound, id: 'table-vcf', label: '表格转 VCF' },
   { icon: Tags, id: 'tags', label: '标签查询' },
   { icon: GitBranch, id: 'yahou-lineage', label: '押后谱系' },
   { icon: Award, id: 'medals', label: '勋章展示' },
@@ -51,7 +51,7 @@ const EXAMPLE_CONTACTS: ContactRow[] = [
 const EXAMPLE_VCF = convertTableToVcf(EXAMPLE_CONTACTS).content;
 
 export function ToolboxPage() {
-  const activeTab = useSyncExternalStore<ToolTab>(subscribeLocation, readTabFromLocation, () => 'table-vcf');
+  const activeTab = useSyncExternalStore<ToolTab>(subscribeLocation, readTabFromLocation, () => 'id-check');
   useDocumentTitle(TOOL_TABS.find((tab) => tab.id === activeTab)?.label ?? '工具箱');
 
   function selectTab(tab: ToolTab) {
@@ -91,8 +91,8 @@ export function ToolboxPage() {
           id={`toolbox-panel-${activeTab}`}
           role="tabpanel"
         >
-          {activeTab === 'table-vcf' ? <TableToVcfTool />
-            : activeTab === 'id-check' ? <IdListCheckPanel />
+          {activeTab === 'id-check' ? <IdListCheckPanel />
+            : activeTab === 'table-vcf' ? <TableToVcfTool />
               : activeTab === 'tags' ? <TagSummaryPanel />
                 : activeTab === 'medals' ? <MedalShowcasePanel />
                   : <YahouLineagePanel />}
@@ -274,7 +274,7 @@ function fileBaseName(fileName: string) {
 
 function readTabFromLocation(): ToolTab {
   const tab = new URLSearchParams(window.location.search).get('tab');
-  return TOOL_TABS.some((item) => item.id === tab) ? tab as ToolTab : 'table-vcf';
+  return TOOL_TABS.some((item) => item.id === tab) ? tab as ToolTab : 'id-check';
 }
 
 function subscribeLocation(listener: () => void) {
