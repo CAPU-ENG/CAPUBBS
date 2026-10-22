@@ -117,11 +117,13 @@
     z-index: 1;
     right: 18px;
     bottom: 7px;
-    color: var(--text-muted);
+    color: color-mix(in srgb, var(--brand) 32%, var(--text-faint));
+    font-family: "Noto Serif CJK SC", "Source Han Serif SC", "Songti SC", serif;
     font-size: var(--ui-font-size-xs);
-    font-variant-numeric: tabular-nums;
-    letter-spacing: 0.08em;
+    font-weight: var(--font-weight-bold);
+    letter-spacing: 0.22em;
     line-height: 1;
+    opacity: 0.56;
   }
 
   .profile-identity-main {
