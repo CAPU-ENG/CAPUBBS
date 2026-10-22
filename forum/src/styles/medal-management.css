@@ -546,7 +546,19 @@
     border: 1px solid var(--line);
   }
 
-  .management-medal-batch-table th:first-child { width: 62%; }
+  .management-medal-batch-table th:first-child { width: 58%; }
+  .management-medal-batch-table th:nth-child(3) { width: 56px; }
+  .management-medal-example-table th:first-child { width: 62%; }
+
+  .management-medal-batch-table td .forum-input {
+    height: 32px;
+    min-width: 0;
+  }
+
+  .management-medal-batch-table td:nth-child(3) {
+    padding-inline: var(--space-8);
+    text-align: center;
+  }
 
   .management-medal-example-table caption {
     border: 1px solid var(--line);
@@ -575,8 +587,8 @@
     gap: var(--space-8);
   }
 
-  .management-medal-batch-id a {
-    flex: 0 1 auto;
+  .management-medal-batch-id .forum-input {
+    flex: 1 1 auto;
   }
 
   .management-medal-batch-id span {
@@ -597,7 +609,9 @@
     color: var(--warning);
   }
 
-  .management-medal-batch-id span[data-state='not-found'] {
+  .management-medal-batch-id span[data-state='not-found'],
+  .management-medal-batch-id span[data-state='duplicate'],
+  .management-medal-batch-id span[data-state='missing-id'] {
     color: var(--danger);
   }
 

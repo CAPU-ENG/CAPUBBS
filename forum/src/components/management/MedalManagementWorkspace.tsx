@@ -73,10 +73,12 @@ export function MedalManagementWorkspace() {
   const [singleRole, setSingleRole] = useState('');
   const [individualCheck, setIndividualCheck] = useState<MedalMemberCheck | null>(null);
   const [batchFileName, setBatchFileName] = useState('');
-  const [batchRows, setBatchRows] = useState<MedalMemberCheck[]>([]);
+  const [batchRows, setBatchRows] = useState<BatchRow[]>([]);
+  const [recheckingKeys, setRecheckingKeys] = useState<ReadonlySet<string>>(() => new Set());
   const [pendingAction, setPendingAction] = useState<string | null>(null);
   const [notice, setNotice] = useState<Notice>(null);
   const batchInputRef = useRef<HTMLInputElement>(null);
+  const batchKeyRef = useRef(0);
   const selectedMedal = medals.find((medal) => medal.id === selectedId) ?? medals[0] ?? null;
   const selectedMedalId = selectedMedal?.id ?? '';
   const catalogMedals = useMemo(() => {
@@ -91,10 +93,16 @@ export function MedalManagementWorkspace() {
     }
     return matched;
   }, [catalogQuery, catalogSort, medals, memberCounts]);
-  const availableBatchRows = useMemo(
-    () => batchRows.filter((row) => row.state === 'available'),
-    [batchRows],
+  const batchStatuses = useMemo(
+    () => batchRowStatuses(batchRows, recheckingKeys),
+    [batchRows, recheckingKeys],
   );
+  const availableBatchRows = useMemo(
+    () => batchRows.filter((row) => batchStatuses.get(row.key) === 'available'),
+    [batchRows, batchStatuses],
+  );
+  const batchReady = recheckingKeys.size === 0
+    && batchRows.every((row) => batchStatuses.get(row.key) !== 'stale');
   const initialDraft = editorMode === 'edit' && selectedMedal
     ? pickDraft(selectedMedal)
     : { description: '', imageSource: '', name: '', textureId: 'swirl' as MedalTextureId };
@@ -257,7 +265,9 @@ export function MedalManagementWorkspace() {
         : await readSheet(file);
       const assignments = normalizeAssignmentRows(rows);
       const checks = await checkMedalMembers(selectedMedal.id, assignments);
-      setBatchRows(checks);
+      setBatchRows(checks
+        .map((check) => ({ ...check, checkedUsername: check.username, key: String(batchKeyRef.current++) }))
+        .sort((a, b) => BATCH_STATE_ORDER[a.state] - BATCH_STATE_ORDER[b.state]));
     } catch (error) {
       setNotice({ kind: 'error', text: errorMessage(error, '表格读取失败，请检查文件内容。') });
     } finally {
@@ -265,12 +275,45 @@ export function MedalManagementWorkspace() {
     }
   }
 
+  function editBatchRow(key: string, changes: Partial<MedalAssignmentInput>) {
+    setBatchRows((current) => current.map((row) => row.key === key ? { ...row, ...changes } : row));
+  }
+
+  function removeBatchRow(key: string) {
+    setBatchRows((current) => current.filter((row) => row.key !== key));
+  }
+
+  async function recheckBatchRow(key: string) {
+    const row = batchRows.find((item) => item.key === key);
+    const username = row?.username.trim() ?? '';
+    if (!selectedMedal || !row || !username || username === row.checkedUsername || recheckingKeys.has(key)) return;
+    setRecheckingKeys((current) => new Set(current).add(key));
+    try {
+      const [check] = await checkMedalMembers(selectedMedal.id, [{ role: row.role.trim(), username }]);
+      if (!check) throw new Error('成员检查失败，请稍后重试。');
+      setBatchRows((current) => current.map((item) => item.key === key && item.username.trim() === username
+        ? { ...item, awardedAt: check.awardedAt, checkedUsername: username, member: check.member, state: check.state }
+        : item));
+    } catch (error) {
+      setNotice({ kind: 'error', text: errorMessage(error, '成员检查失败，请稍后重试。') });
+    } finally {
+      setRecheckingKeys((current) => {
+        const next = new Set(current);
+        next.delete(key);
+        return next;
+      });
+    }
+  }
+
   async function importBatch() {
-    if (!selectedMedal || availableBatchRows.length === 0 || pendingAction) return;
+    if (!selectedMedal || availableBatchRows.length === 0 || !batchReady || pendingAction) return;
     setPendingAction('batch-import');
     setNotice(null);
     try {
-      const results = await grantMedalMembers(selectedMedal.id, availableBatchRows);
+      const results = await grantMedalMembers(
+        selectedMedal.id,
+        availableBatchRows.map((row) => ({ role: row.role.trim(), username: row.username.trim() })),
+      );
       const added = results.filter((result) => result.status === 'added').length;
       const updatedMembers = await fetchMedalMembers(selectedMedal.id);
       setMembers(updatedMembers);
@@ -333,6 +376,7 @@ export function MedalManagementWorkspace() {
     setIndividualCheck(null);
     setBatchFileName('');
     setBatchRows([]);
+    setRecheckingKeys(new Set());
   }
 
   const loadMessage = definitionsStatus === 'loading'
@@ -459,9 +503,14 @@ export function MedalManagementWorkspace() {
                           fileName={batchFileName}
                           importing={pendingAction === 'batch-import'}
                           inputRef={batchInputRef}
+                          onEditRow={editBatchRow}
                           onFileChange={(file) => { void loadBatchFile(file); }}
                           onImport={() => { void importBatch(); }}
+                          onRecheckRow={(key) => { void recheckBatchRow(key); }}
+                          onRemoveRow={removeBatchRow}
+                          ready={batchReady}
                           rows={batchRows}
+                          statuses={batchStatuses}
                         />
                       )}
                     </section>
@@ -742,25 +791,32 @@ function BatchImportPanel({
   fileName,
   importing,
   inputRef,
+  onEditRow,
   onFileChange,
   onImport,
+  onRecheckRow,
+  onRemoveRow,
+  ready,
   rows,
+  statuses,
 }: {
   checking: boolean;
   fileName: string;
   importing: boolean;
   inputRef: RefObject<HTMLInputElement | null>;
+  onEditRow: (key: string, changes: Partial<MedalAssignmentInput>) => void;
   onFileChange: (file: File) => void;
   onImport: () => void;
-  rows: MedalMemberCheck[];
+  onRecheckRow: (key: string) => void;
+  onRemoveRow: (key: string) => void;
+  ready: boolean;
+  rows: BatchRow[];
+  statuses: ReadonlyMap<string, BatchRowStatus>;
 }) {
-  const availableCount = rows.filter((row) => row.state === 'available').length;
-  const alreadyCount = rows.filter((row) => row.state === 'already_owned').length;
-  const missingCount = rows.filter((row) => row.state === 'not_found').length;
-  const sortedRows = useMemo(
-    () => [...rows].sort((a, b) => BATCH_STATE_ORDER[a.state] - BATCH_STATE_ORDER[b.state]),
-    [rows],
-  );
+  const countOf = (status: BatchRowStatus) => rows.filter((row) => statuses.get(row.key) === status).length;
+  const availableCount = countOf('available');
+  const alreadyCount = countOf('already-owned');
+  const missingCount = countOf('not-found');
   return (
     <div className="management-medal-batch-import">
       <p className="management-medal-file-format"><FileSpreadsheet aria-hidden="true" size={15} />CSV / XLSX：第一列会员 ID，第二列职务（选填），每行一名会员，最多 200 名。</p>
@@ -797,19 +853,46 @@ function BatchImportPanel({
       {rows.length > 0 ? (
         <div className="management-medal-table-scroll">
           <table className="management-medal-batch-table">
-            <thead><tr><th>ID</th><th>职务</th></tr></thead>
+            <thead><tr><th>ID</th><th>职务</th><th aria-label="操作" /></tr></thead>
             <tbody>
-              {sortedRows.map((row) => (
-                <tr key={row.username}>
-                  <td>
-                    <div className="management-medal-batch-id">
-                      <a href={getForumNavigationHref(row.member?.href ?? getPublicProfilePath(row.username), window.location.href)}>{row.username}</a>
-                      <span data-state={row.state.replace('_', '-')}>{row.state === 'available' ? <BadgeCheck size={13} /> : <CircleAlert size={13} />}{batchCheckLabel(row)}</span>
-                    </div>
-                  </td>
-                  <td>{row.role}</td>
-                </tr>
-              ))}
+              {rows.map((row) => {
+                const status = statuses.get(row.key) ?? 'stale';
+                return (
+                  <tr key={row.key}>
+                    <td>
+                      <div className="management-medal-batch-id">
+                        <input
+                          aria-label="会员 ID"
+                          className="forum-input"
+                          disabled={importing}
+                          onBlur={() => onRecheckRow(row.key)}
+                          onChange={(event) => onEditRow(row.key, { username: event.target.value })}
+                          onKeyDown={(event) => {
+                            if (event.key === 'Enter') event.currentTarget.blur();
+                          }}
+                          type="text"
+                          value={row.username}
+                        />
+                        <span data-state={status}>{status === 'available' ? <BadgeCheck size={13} /> : <CircleAlert size={13} />}{batchStatusLabel(status)}</span>
+                      </div>
+                    </td>
+                    <td>
+                      <input
+                        aria-label="职务"
+                        className="forum-input"
+                        disabled={importing}
+                        maxLength={50}
+                        onChange={(event) => onEditRow(row.key, { role: event.target.value })}
+                        type="text"
+                        value={row.role}
+                      />
+                    </td>
+                    <td>
+                      <Button aria-label="移除" icon disabled={importing} onClick={() => onRemoveRow(row.key)} title="移除" type="button"><X size={15} /></Button>
+                    </td>
+                  </tr>
+                );
+              })}
             </tbody>
           </table>
         </div>
@@ -818,7 +901,7 @@ function BatchImportPanel({
       {rows.length > 0 ? (
         <footer className="management-medal-batch-footer">
           <div><span>未找到 {missingCount}</span><span>可导入 {availableCount}</span><span>已拥有 {alreadyCount}</span></div>
-          <Button variant="primary" disabled={availableCount === 0 || importing} onClick={onImport} type="button"><UserPlus size={15} />{importing ? '导入中' : `导入 ${availableCount} 名成员`}</Button>
+          <Button variant="primary" disabled={availableCount === 0 || !ready || importing} onClick={onImport} type="button"><UserPlus size={15} />{importing ? '导入中' : `导入 ${availableCount} 名成员`}</Button>
         </footer>
       ) : null}
     </div>
@@ -837,10 +920,37 @@ function checkLabel(check: MedalMemberCheck) {
   return '未找到该成员';
 }
 
-function batchCheckLabel(row: MedalMemberCheck) {
-  if (row.state === 'available') return '可导入';
-  if (row.state === 'already_owned') return '已拥有';
-  return '未找到成员';
+type BatchRow = MedalMemberCheck & {
+  checkedUsername: string;
+  key: string;
+};
+
+type BatchRowStatus = 'already-owned' | 'available' | 'checking' | 'duplicate' | 'missing-id' | 'not-found' | 'stale';
+
+function batchRowStatuses(rows: BatchRow[], recheckingKeys: ReadonlySet<string>) {
+  const counts = new Map<string, number>();
+  rows.forEach((row) => {
+    const username = row.username.trim();
+    counts.set(username, (counts.get(username) ?? 0) + 1);
+  });
+  return new Map(rows.map((row): [string, BatchRowStatus] => {
+    const username = row.username.trim();
+    if (recheckingKeys.has(row.key)) return [row.key, 'checking'];
+    if (!username) return [row.key, 'missing-id'];
+    if (username !== row.checkedUsername) return [row.key, 'stale'];
+    if ((counts.get(username) ?? 0) > 1) return [row.key, 'duplicate'];
+    return [row.key, row.state === 'already_owned' ? 'already-owned' : row.state === 'not_found' ? 'not-found' : 'available'];
+  }));
+}
+
+function batchStatusLabel(status: BatchRowStatus) {
+  if (status === 'available') return '可导入';
+  if (status === 'already-owned') return '已拥有';
+  if (status === 'not-found') return '未找到成员';
+  if (status === 'duplicate') return '重复';
+  if (status === 'missing-id') return '缺少 ID';
+  if (status === 'checking') return '检查中';
+  return '待检查';
 }
 
 function formatMemberCount(count: number | null | undefined) {
