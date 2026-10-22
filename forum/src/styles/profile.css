@@ -112,6 +112,18 @@
     letter-spacing: 0.22em;
   }
 
+  .profile-uid {
+    position: absolute;
+    z-index: 1;
+    right: 18px;
+    bottom: 7px;
+    color: var(--text-muted);
+    font-size: var(--ui-font-size-xs);
+    font-variant-numeric: tabular-nums;
+    letter-spacing: 0.08em;
+    line-height: 1;
+  }
+
   .profile-identity-main {
     position: relative;
     z-index: 1;
@@ -181,12 +193,6 @@
     line-height: 1.15;
   }
 
-  .profile-uid {
-    color: var(--text-muted);
-    font-size: var(--ui-font-size-md);
-    font-variant-numeric: tabular-nums;
-    line-height: 1;
-  }
 
   .profile-rating {
     display: inline-flex;
@@ -2042,6 +2048,11 @@
     .profile-file-stamp {
       top: 13px;
       right: 13px;
+    }
+
+    .profile-uid {
+      right: 13px;
+      bottom: 5px;
     }
 
     .profile-identity-main {
