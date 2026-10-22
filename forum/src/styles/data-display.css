@@ -1229,7 +1229,16 @@
     font-weight: var(--font-weight-bold);
   }
 
-  .tag-summary-sort-bar button:hover,
+  .tag-summary-sort-bar .tag-summary-export-button {
+    margin-left: auto;
+  }
+
+  .tag-summary-sort-bar button:disabled {
+    cursor: not-allowed;
+    opacity: 0.55;
+  }
+
+  .tag-summary-sort-bar button:hover:not(:disabled),
   .tag-summary-sort-bar .tag-summary-sort-active {
     border-color: var(--brand);
     background: var(--brand-faint);

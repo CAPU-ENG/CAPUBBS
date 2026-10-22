@@ -1,4 +1,4 @@
-import { ArrowDownAZ, CircleHelp, Clock3, Search, Tags, X } from 'lucide-react';
+import { ArrowDownAZ, CircleHelp, Clock3, Download, Search, Tags, X } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 import {
   fetchAdvancedTagSummary,
@@ -230,6 +230,7 @@ export function TagSummaryPanel() {
           <div className="tag-summary-sort-bar" ref={memberPagination.anchorRef}>
             <button aria-pressed={sortOrder === 'acquiredAt'} className={sortOrder === 'acquiredAt' ? 'tag-summary-sort-active' : ''} onClick={() => setSortOrder('acquiredAt')} type="button"><Clock3 size={14} />获取时间</button>
             <button aria-pressed={sortOrder === 'id'} className={sortOrder === 'id' ? 'tag-summary-sort-active' : ''} onClick={() => setSortOrder('id')} type="button"><ArrowDownAZ size={14} />ID</button>
+            <button className="tag-summary-export-button" disabled={sortedMembers.length === 0} onClick={() => downloadMembersCsv(sortedMembers)} type="button"><Download size={14} />导出 CSV</button>
           </div>
           <div className="tag-summary-date-filter-bar">
             <span className="tag-summary-date-filter-title">获取时间</span>
@@ -284,6 +285,24 @@ function QueryButton({
       {tooltip && <span className="tag-summary-query-tooltip" id="tag-summary-query-tooltip" role="tooltip">{tooltip}</span>}
     </span>
   );
+}
+
+function downloadMembersCsv(members: TagSummaryMember[]) {
+  const rows = [
+    ['ID', '获取时间'],
+    ...members.map((member) => [member.username, toDateInputValue(member.addedAt)]),
+  ];
+  const content = `\ufeff${rows.map((row) => row.map(csvCell).join(',')).join('\r\n')}`;
+  const url = URL.createObjectURL(new Blob([content], { type: 'text/csv;charset=utf-8' }));
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = `标签查询-${toDateInputValue(Date.now() / 1000)}.csv`;
+  link.click();
+  URL.revokeObjectURL(url);
+}
+
+function csvCell(value: string) {
+  return `"${value.replaceAll('"', '""')}"`;
 }
 
 function formatDate(value: number) {
