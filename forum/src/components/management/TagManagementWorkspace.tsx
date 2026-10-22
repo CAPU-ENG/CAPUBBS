@@ -27,6 +27,7 @@ const MEMBER_ID_COLLATOR = new Intl.Collator('zh-CN', { numeric: true, sensitivi
 const TAG_NAME_COLLATOR = new Intl.Collator('zh-CN', { sensitivity: 'base' });
 const DEFAULT_TAG_COLOR = '#287A52';
 const MEMBER_PAGE_SIZE = 40;
+const TAG_NAME_MAX_LENGTH = 50;
 const MEMBER_SEARCH_LIMIT = 8;
 
 type Notice = { kind: 'error' | 'info' | 'success'; text: string } | null;
@@ -180,16 +181,25 @@ export function TagManagementWorkspace() {
     event.preventDefault();
     if (pendingAction) return;
     const name = draftName.trim();
-    if (!name) {
+    const names = editingId === 'new'
+      ? [...new Set(draftName.split(/[,，]/).map((item) => item.trim()).filter(Boolean))]
+      : [name];
+    if (names.length === 0 || !names[0]) {
       setNotice({ kind: 'error', text: '请输入标签名称' });
+      return;
+    }
+    const tooLong = names.find((item) => item.length > TAG_NAME_MAX_LENGTH);
+    if (tooLong) {
+      setNotice({ kind: 'error', text: `标签名称不能超过 ${TAG_NAME_MAX_LENGTH} 个字符：${tooLong}` });
       return;
     }
     if (!isHexColor(draftColor)) {
       setNotice({ kind: 'error', text: '请输入六位十六进制颜色' });
       return;
     }
-    if (definitions.some((tag) => tag.name === name && tag.id !== editingId)) {
-      setNotice({ kind: 'error', text: '已经存在同名标签' });
+    const duplicates = names.filter((item) => definitions.some((tag) => tag.name === item && tag.id !== editingId));
+    if (duplicates.length > 0) {
+      setNotice({ kind: 'error', text: `已经存在同名标签：${duplicates.join('、')}` });
       return;
     }
 
@@ -197,9 +207,20 @@ export function TagManagementWorkspace() {
     setNotice(null);
     try {
       if (editingId === 'new') {
-        const created = await createTagDefinition(name, draftColor);
-        setDefinitions((current) => [...current, created]);
-        setNotice({ kind: 'success', text: '标签已创建' });
+        for (const [index, item] of names.entries()) {
+          let created: TagDefinition;
+          try {
+            created = await createTagDefinition(item, draftColor);
+          } catch (error) {
+            if (index > 0) {
+              setDraftName(names.slice(index).join(', '));
+              throw new TagsApiError(`已创建 ${index} 个标签，“${item}”创建失败：${errorMessage(error, '请稍后重试')}`);
+            }
+            throw error;
+          }
+          setDefinitions((current) => [...current, created]);
+        }
+        setNotice({ kind: 'success', text: names.length > 1 ? `已创建 ${names.length} 个标签` : '标签已创建' });
       } else if (editingTag) {
         const updated = await updateTagDefinition(editingTag.id, { color: draftColor, name });
         setDefinitions((current) => current.map((tag) => tag.id === updated.id ? updated : tag));
@@ -398,7 +419,7 @@ export function TagManagementWorkspace() {
         <div className="management-tag-editor-wrap">
           {editingId && (
             <form className="management-tag-editor" onSubmit={saveTag}>
-              <label><span>名称</span><input autoFocus className="forum-input" maxLength={50} onChange={(event) => setDraftName(event.target.value)} value={draftName} /></label>
+              <label><span>名称</span><input autoFocus className="forum-input" maxLength={editingId === 'new' ? undefined : TAG_NAME_MAX_LENGTH} onChange={(event) => setDraftName(event.target.value)} value={draftName} /></label>
               <div className="management-tag-color-field">
                 <span>颜色</span>
                 <HexColorPicker ariaLabel="标签颜色" onChange={setDraftColor} value={draftColor} />
