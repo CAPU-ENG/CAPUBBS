@@ -181,6 +181,13 @@
     line-height: 1.15;
   }
 
+  .profile-uid {
+    color: var(--text-muted);
+    font-size: var(--ui-font-size-md);
+    font-variant-numeric: tabular-nums;
+    line-height: 1;
+  }
+
   .profile-rating {
     display: inline-flex;
     align-items: center;

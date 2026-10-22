@@ -414,6 +414,7 @@ function mapProfile(
       { label: '精品数', value: numberValue(row.extr ?? row.digest ?? row.digests) },
     ],
     tags: Array.isArray(row.tags) ? mapProfileTags(row.tags) : undefined,
+    uid: numberValue(row.userid),
   };
 }
 

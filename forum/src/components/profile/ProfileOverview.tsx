@@ -143,6 +143,7 @@ export function ProfileOverview({
           <div className="profile-identity-copy" ref={badgesRef}>
             <div className="profile-name-line">
               <h1>{profile.id}</h1>
+              {profile.uid > 0 && <span className="profile-uid">UID {profile.uid}</span>}
               <button
                 aria-label={`${profile.rating}星用户，查看星级规则`}
                 className="profile-rating"

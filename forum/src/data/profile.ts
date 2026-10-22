@@ -51,6 +51,7 @@ export type ProfileViewData = {
   slug: string;
   stats: ProfileStat[];
   tags?: UserTag[];
+  uid: number;
 };
 
 export const profileTabs: Array<{ key: ProfileTab; label: string }> = [
