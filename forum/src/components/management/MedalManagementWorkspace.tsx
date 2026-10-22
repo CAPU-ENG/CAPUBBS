@@ -757,6 +757,10 @@ function BatchImportPanel({
   const availableCount = rows.filter((row) => row.state === 'available').length;
   const alreadyCount = rows.filter((row) => row.state === 'already_owned').length;
   const missingCount = rows.filter((row) => row.state === 'not_found').length;
+  const sortedRows = useMemo(
+    () => [...rows].sort((a, b) => BATCH_STATE_ORDER[a.state] - BATCH_STATE_ORDER[b.state]),
+    [rows],
+  );
   return (
     <div className="management-medal-batch-import">
       <p className="management-medal-file-format"><FileSpreadsheet aria-hidden="true" size={15} />CSV / XLSX：第一列会员 ID，第二列职务（选填），每行一名会员，最多 200 名。</p>
@@ -795,7 +799,7 @@ function BatchImportPanel({
           <table className="management-medal-batch-table">
             <thead><tr><th>ID</th><th>职务</th></tr></thead>
             <tbody>
-              {rows.map((row) => (
+              {sortedRows.map((row) => (
                 <tr key={row.username}>
                   <td>
                     <div className="management-medal-batch-id">
@@ -813,13 +817,19 @@ function BatchImportPanel({
 
       {rows.length > 0 ? (
         <footer className="management-medal-batch-footer">
-          <div><span>可导入 {availableCount}</span><span>已拥有 {alreadyCount}</span><span>未找到 {missingCount}</span></div>
+          <div><span>未找到 {missingCount}</span><span>可导入 {availableCount}</span><span>已拥有 {alreadyCount}</span></div>
           <Button variant="primary" disabled={availableCount === 0 || importing} onClick={onImport} type="button"><UserPlus size={15} />{importing ? '导入中' : `导入 ${availableCount} 名成员`}</Button>
         </footer>
       ) : null}
     </div>
   );
 }
+
+const BATCH_STATE_ORDER: Record<MedalMemberCheck['state'], number> = {
+  not_found: 0,
+  available: 1,
+  already_owned: 2,
+};
 
 function checkLabel(check: MedalMemberCheck) {
   if (check.state === 'available') return '可以导入';
