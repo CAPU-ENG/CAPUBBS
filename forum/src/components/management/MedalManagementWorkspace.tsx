@@ -428,7 +428,7 @@ export function MedalManagementWorkspace() {
                     type="button"
                   >
                     <MedalThumbnail imagePath={medal.smallImagePath} />
-                    <span className="management-medal-catalog-name"><strong>{medal.name}</strong></span>
+                    <span className="management-medal-catalog-name"><strong title={medal.name}>{medal.name}</strong></span>
                     <span aria-label={memberCounts[medal.id] === null ? '人数加载失败' : undefined} className="management-medal-catalog-count">{formatMemberCount(memberCounts[medal.id])}</span>
                   </button>
                 ))}
