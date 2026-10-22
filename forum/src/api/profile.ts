@@ -45,11 +45,16 @@ export type ProfileRecordPage = {
 };
 
 export class ProfileApiError extends Error {
-  constructor(message: string) {
+  readonly code?: number;
+
+  constructor(message: string, code?: number) {
     super(message);
     this.name = 'ProfileApiError';
+    this.code = code;
   }
 }
+
+const API_NOT_FOUND = 2000;
 
 export async function fetchUserCenterProfile(signal?: AbortSignal, knownUsername?: string) {
   const username = knownUsername?.trim();
@@ -104,6 +109,16 @@ export async function fetchPublicProfile(profileName: string, signal?: AbortSign
       includeSignatures: false,
     }),
   };
+}
+
+export async function findForumUsername(username: string, signal?: AbortSignal): Promise<string | null> {
+  try {
+    const rows = await requestRows({ ask: 'user_profile', username: username.trim() }, signal);
+    return stringValue(rows[0]?.username) || null;
+  } catch (error) {
+    if (error instanceof ProfileApiError && error.code === API_NOT_FOUND) return null;
+    throw error;
+  }
 }
 
 export async function fetchPublicProfileActivities(username: string, signal?: AbortSignal) {
@@ -348,7 +363,7 @@ async function requestData(params: Record<string, string | number>, signal?: Abo
   }
 
   if (!response.ok || payload.code !== 0) {
-    throw new ProfileApiError(payload.message?.trim() || '操作失败，请稍后重试。');
+    throw new ProfileApiError(payload.message?.trim() || '操作失败，请稍后重试。', payload.code);
   }
 
   return payload.data;

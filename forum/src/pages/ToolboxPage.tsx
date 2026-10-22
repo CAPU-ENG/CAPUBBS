@@ -6,6 +6,7 @@ import {
   FileCode2,
   FileSpreadsheet,
   GitBranch,
+  ListChecks,
   Tags,
   Upload,
   Wrench,
@@ -14,6 +15,7 @@ import {
 } from 'lucide-react';
 import { useLayoutEffect, useRef, useState, useSyncExternalStore } from 'react';
 import { TagSummaryPanel } from '../components/data/TagSummaryPanel';
+import { IdListCheckPanel } from '../components/toolbox/IdListCheckPanel';
 import { MedalShowcasePanel } from '../components/toolbox/MedalShowcasePanel';
 import { YahouLineagePanel } from '../components/toolbox/YahouLineagePanel';
 import { AppBackground } from '../components/layout/AppBackground';
@@ -29,12 +31,14 @@ import {
   type ContactRow,
   type ContactTable,
 } from '../utils/tableToVcf';
+import { readTableRows } from '../utils/readTableRows';
 import { Button } from '../components/Button';
 
-type ToolTab = 'table-vcf' | 'tags' | 'yahou-lineage' | 'medals';
+type ToolTab = 'table-vcf' | 'id-check' | 'tags' | 'yahou-lineage' | 'medals';
 
 const TOOL_TABS: Array<{ icon: LucideIcon; id: ToolTab; label: string }> = [
   { icon: ContactRound, id: 'table-vcf', label: '表格转 VCF' },
+  { icon: ListChecks, id: 'id-check', label: '名单核查' },
   { icon: Tags, id: 'tags', label: '标签查询' },
   { icon: GitBranch, id: 'yahou-lineage', label: '押后谱系' },
   { icon: Award, id: 'medals', label: '勋章展示' },
@@ -88,9 +92,10 @@ export function ToolboxPage() {
           role="tabpanel"
         >
           {activeTab === 'table-vcf' ? <TableToVcfTool />
-            : activeTab === 'tags' ? <TagSummaryPanel />
-              : activeTab === 'medals' ? <MedalShowcasePanel />
-                : <YahouLineagePanel />}
+            : activeTab === 'id-check' ? <IdListCheckPanel />
+              : activeTab === 'tags' ? <TagSummaryPanel />
+                : activeTab === 'medals' ? <MedalShowcasePanel />
+                  : <YahouLineagePanel />}
         </div>
       </main>
     </div>
@@ -249,35 +254,6 @@ function ContactPreview({ rows }: { rows: ContactRow[] }) {
       </table>
     </div>
   );
-}
-
-async function readTableRows(file: File): Promise<unknown[][]> {
-  const extension = file.name.toLocaleLowerCase().split('.').pop();
-  if (extension === 'xlsx') {
-    const { readSheet } = await import('read-excel-file/browser');
-    return readSheet(file);
-  }
-  if (extension === 'csv' || extension === 'tsv') return readDelimitedRows(file, extension === 'tsv' ? '\t' : '');
-  throw new Error('请选择 XLSX、CSV 或 TSV 表格。');
-}
-
-async function readDelimitedRows(file: File, delimiter: string): Promise<unknown[][]> {
-  const { default: Papa } = await import('papaparse');
-  return new Promise((resolve, reject) => {
-    Papa.parse<unknown[]>(file, {
-      complete: (result) => {
-        const fatalError = result.errors.find((parseError) => parseError.type !== 'Delimiter');
-        if (fatalError) {
-          reject(new Error(`表格读取失败：${fatalError.message}`));
-          return;
-        }
-        resolve(result.data);
-      },
-      delimiter,
-      error: () => reject(new Error('表格读取失败。')),
-      skipEmptyLines: 'greedy',
-    });
-  });
 }
 
 function downloadTextFile(fileName: string, content: string, type: string) {
