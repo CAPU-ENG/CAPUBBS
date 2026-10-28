@@ -45,3 +45,9 @@ function jiekoufunc_getdays($year, $month) {
     if ($year % 100 == 0 && $year % 400 != 0) return 28;
     return 29;
 }
+
+/** "（管理员邮箱：…）" for messages that refer users to the admin; empty when ADMIN_EMAIL is unset. */
+function jiekoufunc_admin_contact() {
+    $email = defined('ADMIN_EMAIL') ? trim(ADMIN_EMAIL) : '';
+    return $email === '' ? '' : '（管理员邮箱：' . $email . '）';
+}

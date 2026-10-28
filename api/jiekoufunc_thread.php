@@ -32,7 +32,7 @@ function jiekoufunc_post($con, $token, $bid, $ip, $attachs, $params) {
     $muted_reason = jiekoufunc_is_muted($con, $username, $bid);
     if ($muted_reason) {
         return array(array('code' => strval(ApiError::USER_MUTED),
-            'msg' => '您暂时不能发帖（' . $muted_reason . '）。请先验证邮箱或联系管理员。'));
+            'msg' => '您暂时不能发帖（' . $muted_reason . '）。请先验证邮箱或联系管理员' . jiekoufunc_admin_contact() . '。'));
     }
 
     $statement = "select max(tid) as m from (select tid from threads where bid=$bid union select tid from trash_threads where bid=$bid) as t";
@@ -83,7 +83,7 @@ function jiekoufunc_reply($con, $token, $bid, $tid, $ip, $attachs, $params) {
     $muted_reason = jiekoufunc_is_muted($con, $username, $bid);
     if ($muted_reason) {
         return array(array('code' => strval(ApiError::USER_MUTED),
-            'msg' => '您暂时不能发帖（' . $muted_reason . '）。请先验证邮箱或联系管理员。'));
+            'msg' => '您暂时不能发帖（' . $muted_reason . '）。请先验证邮箱或联系管理员' . jiekoufunc_admin_contact() . '。'));
     }
 
     $statement = "select activity_id, bid, tid, season_id, name, leader_username
@@ -181,7 +181,7 @@ function jiekoufunc_edit($con, $token, $bid, $tid, $pid, $ip, $attachs, $params)
         $muted_reason = jiekoufunc_is_muted($con, $username, $bid);
         if ($muted_reason) {
             return array(array('code' => strval(ApiError::USER_MUTED),
-                'msg' => '您暂时不能编辑帖子（' . $muted_reason . '）。请先验证邮箱或联系管理员。'));
+                'msg' => '您暂时不能编辑帖子（' . $muted_reason . '）。请先验证邮箱或联系管理员' . jiekoufunc_admin_contact() . '。'));
         }
     }
 
@@ -320,7 +320,7 @@ function jiekoufunc_delete($con, $token, $bid, $tid, $pid) {
         $muted_reason = jiekoufunc_is_muted($con, $username, $bid);
         if ($muted_reason) {
             return array(array('code' => strval(ApiError::USER_MUTED),
-                'msg' => '您暂时不能删除帖子（' . $muted_reason . '）。请先验证邮箱或联系管理员。'));
+                'msg' => '您暂时不能删除帖子（' . $muted_reason . '）。请先验证邮箱或联系管理员' . jiekoufunc_admin_contact() . '。'));
         }
     }
 
@@ -640,7 +640,7 @@ function jiekoufunc_lzl($con, $method, $fid, $token, $ip, $params) {
         $muted_reason = jiekoufunc_is_muted($con, $username, $lzl_bid);
         if ($muted_reason) {
             return array(array('code' => strval(ApiError::USER_MUTED),
-                'msg' => '您暂时不能发帖（' . $muted_reason . '）。请先验证邮箱或联系管理员。'));
+                'msg' => '您暂时不能发帖（' . $muted_reason . '）。请先验证邮箱或联系管理员' . jiekoufunc_admin_contact() . '。'));
         }
 
         $delay_err = jiekoufunc_checkDelayTime($time, $star, $rights, $lastpost, $ip);
@@ -741,7 +741,7 @@ function jiekoufunc_lzl($con, $method, $fid, $token, $ip, $params) {
             $muted_reason = jiekoufunc_is_muted($con, $username, $lzl_bid);
             if ($muted_reason) {
                 return array(array('code' => strval(ApiError::USER_MUTED),
-                    'msg' => '您暂时不能删除帖子（' . $muted_reason . '）。请先验证邮箱或联系管理员。'));
+                    'msg' => '您暂时不能删除帖子（' . $muted_reason . '）。请先验证邮箱或联系管理员' . jiekoufunc_admin_contact() . '。'));
             }
         }
 
