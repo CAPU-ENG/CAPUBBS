@@ -1,4 +1,5 @@
 <?php
+require_once __DIR__.'/helpers.php';
 /** Plain-text homepage contacts, stored independently of the forum database. */
 class HomepageContactsConflict extends RuntimeException {}
 
@@ -153,8 +154,8 @@ function homepage_contacts_response($ask, $params) {
     } catch (InvalidArgumentException $error) {
         return ApiResponse::error(ApiError::VALIDATION_ERROR, $error->getMessage());
     } catch (Exception $error) {
-        return ApiResponse::error(ApiError::INTERNAL_ERROR, '联系方式暂不可用，请联系管理员检查文件和目录权限。');
+        return ApiResponse::error(ApiError::INTERNAL_ERROR, '联系方式暂不可用，请联系管理员' . jiekoufunc_admin_contact() . '检查文件和目录权限。');
     } catch (Throwable $error) {
-        return ApiResponse::error(ApiError::INTERNAL_ERROR, '联系方式暂不可用，请联系管理员检查文件和目录权限。');
+        return ApiResponse::error(ApiError::INTERNAL_ERROR, '联系方式暂不可用，请联系管理员' . jiekoufunc_admin_contact() . '检查文件和目录权限。');
     }
 }

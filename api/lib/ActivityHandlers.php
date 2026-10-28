@@ -728,14 +728,14 @@ function activity_handler_validate_options($options) {
 function activity_handler_check_post_control($con, $user, $bid) {
     if (!defined('CAPUBBS_ENABLE_POST_CONTROL') || !CAPUBBS_ENABLE_POST_CONTROL) return null;
     if (intval($user['verified']) === 0 && intval($user['post']) + intval($user['reply']) <= 20 && intval($bid) !== 28) {
-        return '您暂时不能发帖（邮箱未验证）。请先验证邮箱或联系管理员。';
+        return '您暂时不能发帖（邮箱未验证）。请先验证邮箱或联系管理员' . jiekoufunc_admin_contact() . '。';
     }
     if (defined('CAPUBBS_ENABLE_EMAIL_MUTE') && CAPUBBS_ENABLE_EMAIL_MUTE && !empty($user['mail'])) {
         $mail = mysqli_real_escape_string($con, $user['mail']);
         $result = mysqli_query($con, "select count(*) as count from email_mutes where email='$mail' and active=1");
         $row = $result ? mysqli_fetch_assoc($result) : null;
         if ($row && intval($row['count']) > 0) {
-            return '您暂时不能发帖（邮箱已被管理员禁言）。请先验证邮箱或联系管理员。';
+            return '您暂时不能发帖（邮箱已被管理员禁言）。请先验证邮箱或联系管理员' . jiekoufunc_admin_contact() . '。';
         }
     }
     return null;

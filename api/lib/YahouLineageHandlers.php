@@ -1,4 +1,5 @@
 <?php
+require_once __DIR__.'/helpers.php';
 /** JSON-backed Yahou lineage. Authentication/rights are enforced by dispatch. */
 
 class YahouLineageStore {
@@ -55,7 +56,7 @@ class YahouLineageStore {
 
     public static function decode($bytes) {
         $data = json_decode($bytes, true);
-        if (json_last_error() !== JSON_ERROR_NONE) throw new RuntimeException('押后谱系 JSON 无法读取，请联系管理员。');
+        if (json_last_error() !== JSON_ERROR_NONE) throw new RuntimeException('押后谱系 JSON 无法读取，请联系管理员' . jiekoufunc_admin_contact() . '。');
         self::validate($data);
         return $data;
     }
@@ -227,7 +228,7 @@ class YahouLineageStore {
 
     private function readBytes($path) {
         $bytes = @file_get_contents($path);
-        if ($bytes === false || strlen($bytes) > 16777216) throw new RuntimeException('无法读取谱系文件，请联系管理员。');
+        if ($bytes === false || strlen($bytes) > 16777216) throw new RuntimeException('无法读取谱系文件，请联系管理员' . jiekoufunc_admin_contact() . '。');
         return $bytes;
     }
 
@@ -301,9 +302,9 @@ function jiekoufunc_yahou_lineage($con, $params) {
         $store = new YahouLineageStore();
         return array(array('code' => '0', 'count' => '1'), $store->read());
     } catch (Exception $error) {
-        return array(array('code' => '4000', 'msg' => '押后谱系读取失败，请联系管理员检查数据文件。'));
+        return array(array('code' => '4000', 'msg' => '押后谱系读取失败，请联系管理员' . jiekoufunc_admin_contact() . '检查数据文件。'));
     } catch (Throwable $error) {
-        return array(array('code' => '4000', 'msg' => '押后谱系读取失败，请联系管理员检查数据文件。'));
+        return array(array('code' => '4000', 'msg' => '押后谱系读取失败，请联系管理员' . jiekoufunc_admin_contact() . '检查数据文件。'));
     }
 }
 
@@ -356,9 +357,9 @@ function jiekoufunc_yahou_lineage_write($con, $params, $action) {
     } catch (InvalidArgumentException $error) {
         return array(array('code' => '2100', 'msg' => $error->getMessage()));
     } catch (Exception $error) {
-        return array(array('code' => '4000', 'msg' => '谱系保存失败，请联系管理员检查数据和目录权限。'));
+        return array(array('code' => '4000', 'msg' => '谱系保存失败，请联系管理员' . jiekoufunc_admin_contact() . '检查数据和目录权限。'));
     } catch (Throwable $error) {
-        return array(array('code' => '4000', 'msg' => '谱系保存失败，请联系管理员检查数据和目录权限。'));
+        return array(array('code' => '4000', 'msg' => '谱系保存失败，请联系管理员' . jiekoufunc_admin_contact() . '检查数据和目录权限。'));
     }
 }
 
