@@ -1701,6 +1701,11 @@
     vertical-align: middle;
   }
 
+  /* A full-width image on an indented line would be pushed past the right edge. */
+  .forum-markup img:is([style*="width: 100%"], [style*="width:100%"]):not([data-capubbs-image-wrap]) {
+    display: block;
+  }
+
   .forum-markup img[data-capubbs-image-width][data-capubbs-image-height]:not([data-capubbs-image-loaded="true"]) {
     color: transparent;
     font-size: 0;
@@ -1812,6 +1817,7 @@
     color: var(--text-muted);
     font-size: calc(var(--forum-content-font-size, 15px) - 1px);
     line-height: 1.55;
+    overflow-wrap: anywhere;
   }
 
   .nested-replies p {
