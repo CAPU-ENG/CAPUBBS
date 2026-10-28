@@ -1,5 +1,16 @@
 import { DialogLayer } from '../layout/DialogPresence';
-import { ArrowDown, ArrowUp, Images, Trash2, UploadCloud, X } from 'lucide-react';
+import {
+  ArrowDown,
+  ArrowUp,
+  ChevronLeft,
+  ChevronRight,
+  GalleryHorizontal,
+  Images,
+  List,
+  Trash2,
+  UploadCloud,
+  X,
+} from 'lucide-react';
 import {
   useCallback,
   useEffect,
@@ -27,6 +38,8 @@ export type GalleryDialogImage = {
   processingError?: string;
   url?: string;
 };
+
+type GalleryDialogView = 'list' | 'gallery';
 
 export type GalleryUploadProgress = {
   current: number;
@@ -65,8 +78,42 @@ export function GalleryDialog({
   const [isCheckingFiles, setIsCheckingFiles] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState<GalleryUploadProgress | null>(null);
+  const [view, setView] = useState<GalleryDialogView>('list');
+  const [activeImageId, setActiveImageId] = useState<string | null>(null);
+  const thumbnailsRef = useRef<HTMLOListElement>(null);
   const isBusy = isCheckingFiles || isUploading;
   imagesRef.current = images;
+  const foundActiveIndex = images.findIndex((image) => image.id === activeImageId);
+  const activeIndex = foundActiveIndex >= 0 ? foundActiveIndex : 0;
+  const activeImage = images[activeIndex];
+
+  const showImageAt = useCallback((index: number) => {
+    const target = imagesRef.current[index];
+    if (target) setActiveImageId(target.id);
+  }, []);
+
+  useEffect(() => {
+    if (view !== 'gallery') return;
+
+    function navigateWithArrows(event: KeyboardEvent) {
+      if (event.key !== 'ArrowLeft' && event.key !== 'ArrowRight') return;
+      if (event.altKey || event.ctrlKey || event.metaKey || event.shiftKey) return;
+      const target = event.target as HTMLElement | null;
+      if (target?.closest('input, textarea, select, [contenteditable="true"]')) return;
+
+      event.preventDefault();
+      showImageAt(activeIndex + (event.key === 'ArrowLeft' ? -1 : 1));
+    }
+
+    document.addEventListener('keydown', navigateWithArrows);
+    return () => document.removeEventListener('keydown', navigateWithArrows);
+  }, [activeIndex, showImageAt, view]);
+
+  useEffect(() => {
+    if (view !== 'gallery' || !activeImage) return;
+    const thumbnail = thumbnailsRef.current?.querySelector<HTMLElement>(`[data-gallery-thumb="${activeImage.id}"]`);
+    thumbnail?.scrollIntoView({ block: 'nearest', inline: 'nearest' });
+  }, [activeImage, view]);
 
   useEffect(() => {
     document.body.classList.add('gallery-dialog-open');
@@ -175,7 +222,12 @@ export function GalleryDialog({
     setImages((current) => {
       const removed = current.find((image) => image.id === id);
       if (removed?.file) URL.revokeObjectURL(removed.previewUrl);
-      return current.filter((image) => image.id !== id);
+      const removedIndex = current.findIndex((image) => image.id === id);
+      const remaining = current.filter((image) => image.id !== id);
+      if (id === activeImageId) {
+        setActiveImageId(remaining[Math.min(removedIndex, remaining.length - 1)]?.id ?? null);
+      }
+      return remaining;
     });
   }
 
@@ -226,6 +278,26 @@ export function GalleryDialog({
         <header>
           <span><Images size={18} /></span>
           <h2 id="gallery-dialog-title">{isEditing ? '编辑图廊' : '插入图廊'}</h2>
+          <div aria-label="视图" className="gallery-dialog-view-switch" role="group">
+            <button
+              aria-label="列表视图"
+              aria-pressed={view === 'list'}
+              onClick={() => setView('list')}
+              title="列表"
+              type="button"
+            >
+              <List size={17} />
+            </button>
+            <button
+              aria-label="画廊视图"
+              aria-pressed={view === 'gallery'}
+              onClick={() => setView('gallery')}
+              title="画廊"
+              type="button"
+            >
+              <GalleryHorizontal size={17} />
+            </button>
+          </div>
           <button aria-label="关闭图廊编辑" disabled={isBusy} onClick={onCancel} type="button"><X size={18} /></button>
         </header>
 
@@ -261,7 +333,91 @@ export function GalleryDialog({
             type="file"
           />
 
-          {images.length > 0 ? (
+          {images.length > 0 && view === 'gallery' && activeImage ? (
+            <div className="gallery-dialog-viewer">
+              <div className="gallery-dialog-stage">
+                <img alt="" src={activeImage.previewUrl} />
+                <button
+                  aria-label="上一张"
+                  className="gallery-dialog-stage-nav is-prev"
+                  disabled={activeIndex === 0}
+                  onClick={() => showImageAt(activeIndex - 1)}
+                  type="button"
+                >
+                  <ChevronLeft size={22} />
+                </button>
+                <button
+                  aria-label="下一张"
+                  className="gallery-dialog-stage-nav is-next"
+                  disabled={activeIndex === images.length - 1}
+                  onClick={() => showImageAt(activeIndex + 1)}
+                  type="button"
+                >
+                  <ChevronRight size={22} />
+                </button>
+                <span className="gallery-dialog-stage-count">{activeIndex + 1} / {images.length}</span>
+              </div>
+              <div className="gallery-dialog-viewer-caption">
+                <label>
+                  <span>第 {activeIndex + 1} 张图注</span>
+                  <input
+                    disabled={isBusy}
+                    maxLength={160}
+                    onChange={(event) => updateCaption(activeImage.id, event.target.value)}
+                    placeholder="填写图注"
+                    value={activeImage.caption}
+                  />
+                </label>
+                <div className="gallery-dialog-image-actions">
+                  <button
+                    aria-label={`前移第 ${activeIndex + 1} 张图片`}
+                    disabled={isBusy || activeIndex === 0}
+                    onClick={() => moveImage(activeImage.id, -1)}
+                    title="前移"
+                    type="button"
+                  >
+                    <ArrowUp size={16} />
+                  </button>
+                  <button
+                    aria-label={`后移第 ${activeIndex + 1} 张图片`}
+                    disabled={isBusy || activeIndex === images.length - 1}
+                    onClick={() => moveImage(activeImage.id, 1)}
+                    title="后移"
+                    type="button"
+                  >
+                    <ArrowDown size={16} />
+                  </button>
+                  <button
+                    aria-label={`移除第 ${activeIndex + 1} 张图片`}
+                    disabled={isBusy}
+                    onClick={() => removeImage(activeImage.id)}
+                    title="移除"
+                    type="button"
+                  >
+                    <Trash2 size={16} />
+                  </button>
+                </div>
+              </div>
+              <ol ref={thumbnailsRef} className="gallery-dialog-thumbnails">
+                {images.map((image, index) => (
+                  <li key={image.id}>
+                    <button
+                      aria-current={index === activeIndex ? 'true' : undefined}
+                      aria-label={`查看第 ${index + 1} 张图片`}
+                      data-gallery-thumb={image.id}
+                      onClick={() => setActiveImageId(image.id)}
+                      type="button"
+                    >
+                      <img alt="" src={image.previewUrl} />
+                      <span>{index + 1}</span>
+                    </button>
+                  </li>
+                ))}
+              </ol>
+            </div>
+          ) : null}
+
+          {images.length > 0 && view === 'list' ? (
             <ol className="gallery-dialog-images">
               {images.map((image, index) => (
                 <li key={image.id}>
