@@ -177,7 +177,7 @@ function jiekoufunc_tag_summary($con, $params) {
     $statement = "
         SELECT m.username, $added_expression AS added_at, u.icon
         FROM user_tag_members AS m
-        LEFT JOIN userinfo AS u ON u.username=m.username
+        LEFT JOIN userinfo AS u ON u.username=m.username AND u.username COLLATE utf8mb4_bin=m.username
         $where_sql
         GROUP BY m.username, u.icon
         $having
@@ -347,7 +347,7 @@ function jiekoufunc_management_tag_members($con, $params) {
     $statement = "
         SELECT m.username, m.added_at, u.icon
         FROM user_tag_members AS m
-        LEFT JOIN userinfo AS u ON u.username=m.username
+        LEFT JOIN userinfo AS u ON u.username=m.username AND u.username COLLATE utf8mb4_bin=m.username
         WHERE $where
         ORDER BY m.added_at DESC, m.username ASC
         LIMIT $offset, $page_size";
@@ -386,7 +386,8 @@ function jiekoufunc_management_tag_member_check($con, $params) {
 
     $username_escaped = mysqli_real_escape_string($con, $username);
     $member = mysqli_fetch_assoc(mysqli_query($con,
-        "SELECT username, icon FROM userinfo WHERE username='$username_escaped' LIMIT 1"));
+        "SELECT username, icon FROM userinfo WHERE username='$username_escaped'
+         ORDER BY username COLLATE utf8mb4_bin='$username_escaped' DESC LIMIT 1"));
     if (!$member) {
         return jiekoufunc_tag_response(array(
             'tag_id' => $tag_id,
@@ -442,11 +443,13 @@ function jiekoufunc_management_tag_members_add($con, $token, $params) {
         $escaped[] = "'" . mysqli_real_escape_string($con, $username) . "'";
     }
     $member_result = mysqli_query($con,
-        "SELECT username, icon FROM userinfo WHERE username IN (" . implode(',', $escaped) . ")");
+        "SELECT username, icon FROM userinfo WHERE username IN (" . implode(',', $escaped) . ")
+         ORDER BY username COLLATE utf8mb4_bin IN (" . implode(',', $escaped) . ") ASC");
     if (!$member_result) {
         return jiekoufunc_report('8', '检查会员失败。');
     }
     $members = array();
+    // Exact-spelling rows sort last so they win when collation-equal accounts share a key.
     while ($row = mysqli_fetch_assoc($member_result)) {
         $members[jiekoufunc_tag_username_key($row['username'])] = $row;
     }
@@ -630,7 +633,8 @@ function jiekoufunc_management_tag_member_update($con, $token, $params) {
 
     $new_escaped = mysqli_real_escape_string($con, $new_username);
     $member_result = mysqli_query($con,
-        "SELECT username, icon FROM userinfo WHERE username='$new_escaped' LIMIT 1");
+        "SELECT username, icon FROM userinfo WHERE username='$new_escaped'
+         ORDER BY username COLLATE utf8mb4_bin='$new_escaped' DESC LIMIT 1");
     if (!$member_result) {
         return jiekoufunc_report('8', '检查会员失败。');
     }
