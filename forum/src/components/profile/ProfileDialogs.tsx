@@ -202,7 +202,7 @@ export function EmailDialog({
       <div className="profile-dialog-body">
         <label className="profile-dialog-field">
           <span>当前邮箱</span>
-          <input className="profile-email-locked" type="email" value={email} readOnly aria-readonly="true" />
+          <input className="profile-email-locked" type={email ? 'email' : 'text'} value={email || '暂时未绑定邮箱，请点击更换邮箱以绑定。'} readOnly aria-readonly="true" />
         </label>
         <div className="profile-email-status-line">
           <div className="profile-verification-line"><CheckCircle2 size={15} />{verified ? '已验证' : '未验证'}</div>
