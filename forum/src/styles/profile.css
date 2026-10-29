@@ -136,6 +136,11 @@
     gap: var(--space-22);
   }
 
+  /* Keep medal tooltips above the action buttons beside the identity block. */
+  .profile-identity-main:has(.profile-identity-medal-button:hover, .profile-identity-medal-button:focus-visible) {
+    z-index: 3;
+  }
+
   .profile-avatar-button,
   .profile-avatar-static {
     position: relative;

@@ -935,6 +935,12 @@
     z-index: 1;
   }
 
+  /* Medal tooltips overflow into the content column, which shares z-index 1. */
+  .thread-floor > .thread-author-profile:hover,
+  .thread-floor > .thread-author-profile:focus-within {
+    z-index: 2;
+  }
+
   @media (min-width: 1024px) {
     .thread-floor-with-author-profile {
       grid-template-columns: var(--thread-author-profile-column, 136px) minmax(0, 1fr);
