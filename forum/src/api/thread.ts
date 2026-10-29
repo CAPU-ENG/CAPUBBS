@@ -16,7 +16,7 @@ import {
 } from '../utils/forumMarkup';
 import { normalizeLegacyAvatar } from '../utils/legacyAssets';
 import { protectFromLegacyEntityDecode } from '../utils/legacyEntityStorage';
-import { normalizeLegacyPostText } from '../utils/legacyPostText';
+import { convertHtmlTextNewlines, normalizeLegacyPostText } from '../utils/legacyPostText';
 import type { SignatureFloorReference } from '../utils/signatureFloorLink';
 
 const THREAD_API_URL = import.meta.env.VITE_API_URL?.trim() || '/api/api.php';
@@ -958,7 +958,7 @@ function renderPostHtml(rawText: string, isHtml: string, translatedHtml: string)
     return translateLegacyForumMarkup(normalizeLegacyPostText(rawText)).trim();
   }
   if (isHtml.toUpperCase() === 'YES' && requiresIsolatedForumHtml(rawText)) {
-    return translateLegacyForumMarkup(rawText).trim();
+    return translateLegacyForumMarkup(convertHtmlTextNewlines(rawText)).trim();
   }
   return (translatedHtml || rawText).trim();
 }

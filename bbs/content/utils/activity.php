@@ -198,7 +198,7 @@ $signup_answers_by_fid = activity_service_signup_private_answers($con, $activity
                     ? activity_service_reveal_private_answers($floor_text, $signup['answers'])
                     : activity_service_mask_private_answers($floor_text, $signup['answers']);
             }
-            $translated = translate($floor_text, $floor['ishtml'] == "YES");
+            $translated = translate_post($floor_text, $floor['ishtml'] == "YES");
 
             // textblock
             {

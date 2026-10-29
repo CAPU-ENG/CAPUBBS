@@ -265,7 +265,7 @@ for($i=0;$i<count(@$data);$i++){
     }
     echo("<span class='floornum'>".transfloornum($floor['pid'])."</span>\n");
     echo("<hr class='hrt'></div>\n");
-    $translated=translate($floor['text'],$floor['ishtml']=="YES");
+    $translated=translate_post($floor['text'],$floor['ishtml']=="YES");
     $translatedforquote=translateforquote($floor['text'],$floor['ishtml']=="YES");
     print "<div class='textblock' id='floor$i' style='line-height:160% !important'>$translated</div>\n";
     if($floor['attachs']){
