@@ -148,27 +148,6 @@
     text-decoration: none;
   }
 
-  /* Interface chrome is not selectable; reading content stays selectable. */
-  button,
-  label,
-  nav,
-  svg,
-  [role="button"],
-  [role="tab"],
-  [role="menuitem"],
-  [role="option"],
-  .topbar {
-    -webkit-user-select: none;
-    user-select: none;
-  }
-
-  input,
-  textarea,
-  [contenteditable="true"] {
-    -webkit-user-select: text;
-    user-select: text;
-  }
-
   ::selection {
     background: color-mix(in srgb, var(--brand) 24%, transparent);
   }
