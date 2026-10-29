@@ -10,7 +10,7 @@ export function MedalBadge({ medal, size = 'compact' }: { medal: UserMedal; size
       <span
         aria-label={label}
         className="user-medal user-medal-compact"
-        data-tooltip={label}
+        data-tooltip={medal.name}
         role="img"
       >
         <span aria-hidden="true" className="user-medal-compact-visual">
