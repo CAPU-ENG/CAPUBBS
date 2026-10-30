@@ -143,11 +143,9 @@ function activity_handler_signup_locked($con, $user, $bid, $tid, $params) {
         return activity_handler_error('4', '主题已锁定');
     }
 
-    if ($action !== 'cancel') {
-        $window = isset($activity['signup_window']) ? $activity['signup_window'] : null;
-        if ($window && isset($window['status']) && $window['status'] !== 'open') {
-            return activity_handler_error('-44', $window['status'] === 'not_started' ? '报名尚未开始' : '报名已截止');
-        }
+    $window = isset($activity['signup_window']) ? $activity['signup_window'] : null;
+    if ($window && isset($window['status']) && $window['status'] !== 'open') {
+        return activity_handler_error('-44', $window['status'] === 'not_started' ? '报名尚未开始' : '报名已截止');
     }
 
     $control_error = activity_handler_check_post_control($con, $user, $bid);
