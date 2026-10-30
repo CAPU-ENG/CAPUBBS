@@ -21,7 +21,7 @@ import {
   formatPostEditorPreviewTimestamp,
   PostEditorPreviewDialog,
 } from './PostEditor';
-import { getThreadFloorFromHash, getThreadPageForFloor } from '../../utils/threadRoutes';
+import { getThreadFloorFromHash, getThreadFloorHref, getThreadPageForFloor } from '../../utils/threadRoutes';
 import {
   deleteStoredActivitySignupDraft,
   readStoredActivitySignupDraft,
@@ -125,6 +125,21 @@ function ActivitySignupFormLoader(props: ActivitySignupFormProps) {
   );
 }
 
+async function findSignupFloor(bid: number, tid: number, username: string) {
+  try {
+    const signup = await loadCurrentActivitySignup(bid, tid, username, new AbortController().signal);
+    return signup?.floor ?? 0;
+  } catch {
+    return 0;
+  }
+}
+
+// Reload onto the viewer's signup floor so the published result is in view.
+function showSignupFloor(bid: number, tid: number, floor: number) {
+  if (floor > 1) window.history.replaceState(window.history.state, '', getThreadFloorHref(bid, tid, floor));
+  window.location.reload();
+}
+
 async function loadCurrentActivitySignup(bid: number, tid: number, username: string, signal: AbortSignal) {
   const records = await fetchPublicProfileActivities(username, signal);
   const record = records.find((candidate) => {
@@ -187,6 +202,7 @@ function ActivitySignupFormFields({
   const [previewedAt, setPreviewedAt] = useState('');
   const [cancelDialogOpen, setCancelDialogOpen] = useState(false);
   const [punishmentReminderOpen, setPunishmentReminderOpen] = useState(false);
+  const [resultFloor, setResultFloor] = useState(0);
   const [draftDirty, setDraftDirty] = useState(false);
   const ownerKey = viewer?.name ?? '';
   const signupNotStarted = !locked && signupStatus === 'not_started';
@@ -277,11 +293,13 @@ function ActivitySignupFormFields({
       await publishActivitySignup({ action, bid, signatureIndex, tid, title: threadTitle, values });
       saveDefaultSignatureIndex(signatureIndex, viewer?.name);
       if (action === 'join') await deleteStoredActivitySignupDraft(bid, tid, ownerKey).catch(() => undefined);
+      const floor = existingSignup?.floor ?? await findSignupFloor(bid, tid, ownerKey);
       if (viewer && await hasUnfinishedPunishment(viewer.name)) {
+        setResultFloor(floor);
         setPunishmentReminderOpen(true);
         return;
       }
-      window.location.reload();
+      showSignupFloor(bid, tid, floor);
     } catch (error) {
       setStatusIsError(true);
       setStatus(error instanceof Error ? error.message : '报名提交失败，请稍后重试。');
@@ -305,7 +323,7 @@ function ActivitySignupFormFields({
         title: threadTitle,
         values,
       });
-      window.location.reload();
+      showSignupFloor(bid, tid, existingSignup.floor);
     } catch (error) {
       setCancelDialogOpen(false);
       setStatusIsError(true);
@@ -437,7 +455,7 @@ function ActivitySignupFormFields({
         />
       )}</DialogPresence>
       <DialogPresence mobileSize="compact">{punishmentReminderOpen && (
-        <ActivitySignupPunishmentReminder onClose={() => window.location.reload()} />
+        <ActivitySignupPunishmentReminder onClose={() => showSignupFloor(bid, tid, resultFloor)} />
       )}</DialogPresence>
     </>
   );
