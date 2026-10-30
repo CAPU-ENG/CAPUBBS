@@ -391,7 +391,7 @@ function ActivitySignupFormFields({
                   <button
                     aria-disabled={signupClosed || undefined}
                     className="activity-signup-cancel-button"
-                    data-tooltip={signupClosed ? '报名截止后不可取消，如有特殊情况请联系队长' : undefined}
+                    data-tooltip={signupClosed ? '报名截止后不可取消，如有特殊情况请联系活动负责人' : undefined}
                     disabled={!signupClosed && (locked || submitting)}
                     onClick={() => { if (!signupClosed) setCancelDialogOpen(true); }}
                     type="button"
