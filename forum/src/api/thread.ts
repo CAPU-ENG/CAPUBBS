@@ -960,7 +960,7 @@ function renderPostHtml(rawText: string, isHtml: string, translatedHtml: string)
   if (isHtml.toUpperCase() === 'YES' && requiresIsolatedForumHtml(rawText)) {
     return translateLegacyForumMarkup(convertHtmlTextNewlines(rawText)).trim();
   }
-  return (translatedHtml || rawText).trim();
+  return (translatedHtml || convertHtmlTextNewlines(rawText)).trim();
 }
 
 function mapNestedReply(row: ApiRow): NestedReply {
