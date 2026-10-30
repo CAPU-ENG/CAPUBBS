@@ -825,11 +825,11 @@
     box-shadow: none;
   }
 
-  .activity-signup-actions > .activity-signup-submit-button[data-tooltip] {
+  .activity-signup-actions > :is(.activity-signup-submit-button, .activity-signup-cancel-button)[data-tooltip] {
     position: relative;
   }
 
-  .activity-signup-actions > .activity-signup-submit-button[data-tooltip]::after {
+  .activity-signup-actions > :is(.activity-signup-submit-button, .activity-signup-cancel-button)[data-tooltip]::after {
     position: absolute;
     z-index: 40;
     bottom: calc(100% + 7px);
@@ -852,8 +852,8 @@
     transition: opacity var(--duration-fast) ease, transform var(--duration-fast) ease;
   }
 
-  .activity-signup-actions > .activity-signup-submit-button[data-tooltip]:hover::after,
-  .activity-signup-actions > .activity-signup-submit-button[data-tooltip]:focus-visible::after {
+  .activity-signup-actions > :is(.activity-signup-submit-button, .activity-signup-cancel-button)[data-tooltip]:hover::after,
+  .activity-signup-actions > :is(.activity-signup-submit-button, .activity-signup-cancel-button)[data-tooltip]:focus-visible::after {
     opacity: 1;
     transform: translate(-50%, 0);
   }
@@ -887,6 +887,14 @@
   .activity-signup-cancel-button:hover {
     border-color: var(--danger);
     background: color-mix(in srgb, var(--danger) 14%, var(--surface));
+  }
+
+  .activity-signup-cancel-button[aria-disabled='true'],
+  .activity-signup-cancel-button[aria-disabled='true']:hover {
+    border-color: color-mix(in srgb, var(--danger) 20%, var(--line));
+    background: color-mix(in srgb, var(--danger) 4%, var(--surface));
+    color: color-mix(in srgb, var(--danger) 50%, var(--surface));
+    cursor: not-allowed;
   }
 
   .thread-floor {

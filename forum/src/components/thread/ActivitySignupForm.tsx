@@ -190,6 +190,7 @@ function ActivitySignupFormFields({
   const [draftDirty, setDraftDirty] = useState(false);
   const ownerKey = viewer?.name ?? '';
   const signupNotStarted = !locked && signupStatus === 'not_started';
+  const signupClosed = !locked && signupStatus === 'closed';
   const fieldsLocked = locked || signupStatus === 'closed';
   const draftEnabled = Boolean(ownerKey) && action === 'join' && !fieldsLocked;
   const requiredFieldsComplete = activity.questions.every((question) =>
@@ -388,9 +389,11 @@ function ActivitySignupFormFields({
                 </button>
                 {existingSignup && !signupCanceled && (
                   <button
+                    aria-disabled={signupClosed || undefined}
                     className="activity-signup-cancel-button"
-                    disabled={locked || submitting}
-                    onClick={() => setCancelDialogOpen(true)}
+                    data-tooltip={signupClosed ? '报名截止后不可取消，如有特殊情况请联系队长' : undefined}
+                    disabled={!signupClosed && (locked || submitting)}
+                    onClick={() => { if (!signupClosed) setCancelDialogOpen(true); }}
                     type="button"
                   >
                     <Ban size={15} />
