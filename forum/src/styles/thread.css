@@ -2267,7 +2267,16 @@
     line-height: 1.65;
   }
 
+  .thread-request-state .thread-request-lines {
+    white-space: pre-line;
+  }
+
+  .thread-request-countdown time {
+    font-variant-numeric: tabular-nums;
+  }
+
   .thread-request-state button,
+  .thread-request-countdown,
   .thread-reply-unavailable a {
     display: inline-flex;
     min-height: 34px;

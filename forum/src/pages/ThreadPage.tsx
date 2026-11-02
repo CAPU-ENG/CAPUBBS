@@ -8,6 +8,7 @@ import { AppBackground } from '../components/layout/AppBackground';
 import { LoadingState } from '../components/layout/LoadingState';
 import { RandomThreadButton } from '../components/layout/RandomThreadButton';
 import { TopBar } from '../components/layout/TopBar';
+import { ThreadViewLimitCountdown } from '../components/thread/ThreadViewLimitCountdown';
 import { setThreadBookmarked } from '../api/favorite';
 import { deleteNestedReply, deleteThreadFloor, postNestedReply } from '../api/thread';
 import { useAuth } from '../context/AuthContext';
@@ -161,7 +162,7 @@ export function ThreadPage() {
     ? <RandomThreadButton className="thread-random-button thread-random-button-desktop" iconOnly />
     : null;
   const threadLocationHref = `${window.location.pathname}${window.location.search}${window.location.hash}`;
-  const { data, error, retry, status } = useThreadData({
+  const { data, error, retry, status, viewLimited } = useThreadData({
     ...request,
     authReady: authStatus !== 'loading',
     decoration: floorDecorationEnabled,
@@ -442,8 +443,17 @@ export function ThreadPage() {
           ) : (
             <section className="forum-card thread-request-state" aria-live="polite">
               <h1>帖子暂时无法打开</h1>
-              <p>{error}</p>
-              <button onClick={retry} type="button"><RotateCw size={15} />重新加载</button>
+              {viewLimited ? (
+                <>
+                  <p className="thread-request-lines">{error.replace(/。(?=.)/g, '。\n')}</p>
+                  <ThreadViewLimitCountdown onElapsed={retry} />
+                </>
+              ) : (
+                <>
+                  <p>{error}</p>
+                  <button onClick={retry} type="button"><RotateCw size={15} />重新加载</button>
+                </>
+              )}
             </section>
           )}
         </main>

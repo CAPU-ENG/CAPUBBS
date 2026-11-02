@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
-import { fetchThreadDetail, type ThreadDetail } from '../api/thread';
+import { fetchThreadDetail, THREAD_VIEW_LIMIT_CODE, ThreadApiError, type ThreadDetail } from '../api/thread';
 
 export type ThreadDataStatus = 'error' | 'loading' | 'ready';
 
@@ -22,6 +22,7 @@ export function useThreadData({
 }) {
   const [data, setData] = useState<ThreadDetail | null>(null);
   const [error, setError] = useState('');
+  const [viewLimited, setViewLimited] = useState(false);
   const [status, setStatus] = useState<ThreadDataStatus>('loading');
   const [requestVersion, setRequestVersion] = useState(0);
   const retry = useCallback(() => setRequestVersion((version) => version + 1), []);
@@ -30,6 +31,7 @@ export function useThreadData({
     let active = true;
     setData(null);
     setError('');
+    setViewLimited(false);
     setStatus('loading');
 
     if (bid <= 0 || tid <= 0) {
@@ -59,6 +61,7 @@ export function useThreadData({
         if (!active) return;
         setData(null);
         setError(requestError instanceof Error ? requestError.message : '帖子加载失败，请稍后重试。');
+        setViewLimited(requestError instanceof ThreadApiError && requestError.code === THREAD_VIEW_LIMIT_CODE);
         setStatus('error');
       },
     );
@@ -69,5 +72,5 @@ export function useThreadData({
     };
   }, [authorOnly, authReady, bid, decoration, page, requestVersion, tagMedalDisplay, tid]);
 
-  return { data, error, retry, status };
+  return { data, error, retry, status, viewLimited };
 }

@@ -150,10 +150,16 @@ export type ActivitySignupSummary = {
   };
 };
 
+/** API code for the daily thread-view limit; it lifts at Beijing midnight. */
+export const THREAD_VIEW_LIMIT_CODE = 3002;
+
 export class ThreadApiError extends Error {
-  constructor(message: string) {
+  code?: number;
+
+  constructor(message: string, code?: number) {
     super(message);
     this.name = 'ThreadApiError';
+    this.code = code;
   }
 }
 
@@ -208,7 +214,7 @@ export async function fetchThreadDetail({
   }
 
   if (!response.ok || payload.code !== 0) {
-    throw new ThreadApiError(payload.message?.trim() || '帖子加载失败，请稍后重试。');
+    throw new ThreadApiError(payload.message?.trim() || '帖子加载失败，请稍后重试。', payload.code);
   }
 
   return mapThreadDetail(payload.data, { authorOnly, bid, page, tid });
