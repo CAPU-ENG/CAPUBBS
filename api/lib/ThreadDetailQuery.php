@@ -324,7 +324,12 @@ function thread_detail_query_view_limit_reached($con, $username, $ip) {
 }
 
 function thread_detail_query_view_limit_report() {
-    return jiekoufunc_report('4', '今日浏览主题数已达上限，请明天再来。');
+    $message = '今日浏览主题数已达上限，请明天再来。';
+    $email = defined('ADMIN_EMAIL') ? trim(ADMIN_EMAIL) : '';
+    if ($email !== '') {
+        $message .= '如果需要批量获取论坛数据，请联系论坛管理员：' . $email;
+    }
+    return jiekoufunc_report('4', $message);
 }
 
 function thread_detail_query_record_view($con, $bid, $tid, $username, $ip) {

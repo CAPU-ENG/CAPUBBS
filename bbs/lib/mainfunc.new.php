@@ -108,6 +108,8 @@
             echo '<link rel="stylesheet" href="../lib/general.css">';
             echo '</head><body style="text-align:center;padding-top:80px;font-family:sans-serif;">';
             echo '<h2 style="color:#c33;">今日浏览主题数已达上限，请明天再来。</h2>';
+            $admin_email = defined('ADMIN_EMAIL') ? htmlspecialchars(trim(ADMIN_EMAIL)) : '';
+            if ($admin_email != "") echo '<p>如果需要批量获取论坛数据，请联系论坛管理员：<a href="mailto:'.$admin_email.'">'.$admin_email.'</a></p>';
             echo '</body></html>';
             exit;
         }
