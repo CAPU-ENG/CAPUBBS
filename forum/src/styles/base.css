@@ -98,7 +98,6 @@
     min-width: 0;
     max-width: 100%;
     overflow-x: clip;
-    overscroll-behavior-x: none;
     font-family: "Noto Sans CJK SC", "Source Han Sans SC", "PingFang SC", "Microsoft YaHei", sans-serif;
     background: var(--page);
   }
@@ -110,10 +109,16 @@
     min-height: 100vh;
     margin: 0;
     overflow-x: clip;
-    overscroll-behavior-x: none;
     background: var(--page);
     color: var(--text);
     text-rendering: optimizeLegibility;
+  }
+
+  @media (hover: none) and (pointer: coarse) {
+    html,
+    body {
+      overscroll-behavior-x: none;
+    }
   }
 
   #root {
