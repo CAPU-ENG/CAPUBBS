@@ -10,6 +10,9 @@
 if (!defined('THREAD_DETAIL_QUERY_PAGE_SIZE')) {
     define('THREAD_DETAIL_QUERY_PAGE_SIZE', 12);
 }
+if (!defined('THREAD_DETAIL_QUERY_DAILY_VIEW_LIMIT')) {
+    define('THREAD_DETAIL_QUERY_DAILY_VIEW_LIMIT', 500);
+}
 
 function jiekoufunc_thread_detail($con, $bid, $tid, $params, $token, $ip) {
     $bid = intval($bid);
@@ -46,6 +49,11 @@ function jiekoufunc_thread_detail($con, $bid, $tid, $params, $token, $ip) {
 
     if ($bid === 1 && !$current_username) {
         return jiekoufunc_report('-2', '本版块需要登录后才能查看');
+    }
+
+    // Prefetch also returns full content, so it is limited even though it is not counted.
+    if (thread_detail_query_view_limit_reached($con, $current_username, $ip)) {
+        return thread_detail_query_view_limit_report();
     }
 
     if (!$prefetch) {
@@ -225,6 +233,9 @@ function jiekoufunc_thread_view($con, $bid, $tid, $token, $ip) {
     if ($bid === 1 && $current_username === '') {
         return jiekoufunc_report('-2', '本版块需要登录后才能查看');
     }
+    if (thread_detail_query_view_limit_reached($con, $current_username, $ip)) {
+        return thread_detail_query_view_limit_report();
+    }
 
     thread_detail_query_record_view($con, $bid, $tid, $current_username, $ip);
     return array(array('code' => '0'), array(
@@ -294,6 +305,26 @@ function thread_detail_query_get_thread($con, $bid, $tid) {
 
 function thread_detail_query_get_board($con, $bid) {
     return thread_detail_query_fetch_one($con, "select * from boardinfo where bid=$bid limit 1");
+}
+
+/**
+ * Daily distinct-thread limit: accounts are counted by username, guests by IP.
+ * The count restarts with the next date, which unblocks the visitor.
+ */
+function thread_detail_query_view_limit_reached($con, $username, $ip) {
+    $today = date('Y-m-d');
+    $username_escaped = mysqli_real_escape_string($con, $username);
+    $where = "username='$username_escaped' and date='$today'";
+    if ($username === '') {
+        $ip_escaped = mysqli_real_escape_string($con, $ip);
+        $where .= " and ip='$ip_escaped'";
+    }
+    $row = thread_detail_query_fetch_one($con, "select count(distinct bid, tid) as num from username_view where $where");
+    return $row && intval($row['num']) >= THREAD_DETAIL_QUERY_DAILY_VIEW_LIMIT;
+}
+
+function thread_detail_query_view_limit_report() {
+    return jiekoufunc_report('4', '今日浏览主题数已达上限，请明天再来。');
 }
 
 function thread_detail_query_record_view($con, $bid, $tid, $username, $ip) {

@@ -98,6 +98,19 @@
         $visit_date = new DateTimeImmutable('@' . $nowtime);
         $today = $visit_date->setTimezone(new DateTimeZone('Asia/Shanghai'))->format('Y-m-d');
         $user_escaped = mysqli_real_escape_string($con, $user);
+        // 每日浏览主题上限：登录用户按账号计数，游客按 IP 计数，次日自动解除。
+        $limit_where = "username='$user_escaped' && date='$today'";
+        if ($user == "") $limit_where .= " && ip='$ip'";
+        $limit_result = mysqli_query($con, "select count(distinct bid, tid) from username_view where $limit_where");
+        $limit_row = $limit_result ? mysqli_fetch_row($limit_result) : null;
+        if ($limit_row && intval($limit_row[0]) >= 500) {
+            echo '<!DOCTYPE html><html><head><meta charset="utf-8"><title>浏览受限</title>';
+            echo '<link rel="stylesheet" href="../lib/general.css">';
+            echo '</head><body style="text-align:center;padding-top:80px;font-family:sans-serif;">';
+            echo '<h2 style="color:#c33;">今日浏览主题数已达上限，请明天再来。</h2>';
+            echo '</body></html>';
+            exit;
+        }
         $statement="insert into username_view (username, date, bid, tid, ip, last_viewed_at, view_times)
             values ('$user_escaped', '$today', $bid, $tid, '$ip', $nowtime, 1)
             on duplicate key update last_viewed_at=greatest(coalesce(last_viewed_at, 0), $nowtime),
