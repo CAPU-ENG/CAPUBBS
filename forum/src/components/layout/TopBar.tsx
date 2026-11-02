@@ -1,7 +1,6 @@
 import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import {
   ArrowLeftRight,
-  Bookmark,
   ChevronDown,
   History,
   LogIn,
@@ -495,9 +494,6 @@ export function TopBar({
                     </a>
                     <a href={toForumHref('/settings')} role="menuitem" onClick={() => setProfileOpen(false)}>
                       <Settings size={16} />设置
-                    </a>
-                    <a href={toForumHref('/favorite')} role="menuitem" onClick={() => setProfileOpen(false)}>
-                      <Bookmark size={16} />收藏
                     </a>
                     <a href={toForumHref('/browsing-history')} role="menuitem" onClick={() => setProfileOpen(false)}>
                       <History size={16} />浏览记录

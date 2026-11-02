@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { Bookmark, BookmarkX, LogIn, Pin, PinOff, RefreshCw, Search } from 'lucide-react';
+import { Bookmark, BookmarkX, LogIn, RefreshCw, Search } from 'lucide-react';
 import {
   FavoriteApiError,
   fetchFavoriteThreads,
@@ -13,10 +13,8 @@ import { LoadingState } from '../components/layout/LoadingState';
 import { TopBar } from '../components/layout/TopBar';
 import { useAuth } from '../context/AuthContext';
 import { useDocumentTitle } from '../hooks/useDocumentTitle';
-import { useFavoritesNavPinned } from '../hooks/useFavoritesNavPin';
 import { useStaggerEntrance } from '../hooks/useStaggerEntrance';
 import { getLoginPathWithReturnTo } from '../utils/authRoutes';
-import { saveFavoritesNavPinned } from '../utils/favoritesNavPin';
 import { getThreadHref } from '../utils/threadRoutes';
 import { getTitleIndentationClassName } from '../utils/titleIndentation';
 
@@ -40,7 +38,6 @@ export function FavoritesPage() {
   const listRef = useStaggerEntrance<HTMLElement>('.favorites-list > li');
   const { status, viewer } = useAuth();
   const username = status === 'authenticated' ? viewer?.username ?? '' : '';
-  const navPinned = useFavoritesNavPinned();
   const { confirm, confirmDialog } = useConfirmDialog();
   const [revision, setRevision] = useState(0);
   const [boardFilter, setBoardFilter] = useState<number | null>(null);
@@ -136,15 +133,6 @@ export function FavoritesPage() {
               )}
             </div>
             <div className="favorites-tools">
-              <button
-                aria-pressed={navPinned}
-                className={`favorites-pin-button${navPinned ? ' favorites-pin-button-active' : ''}`}
-                onClick={() => saveFavoritesNavPinned(!navPinned)}
-                type="button"
-              >
-                {navPinned ? <PinOff size={15} /> : <Pin size={15} />}
-                {navPinned ? '取消固定' : '固定到导航栏'}
-              </button>
               {username && !loginRequired && (
                 <button aria-label="刷新收藏" className="icon-button" disabled={loading} onClick={retry} title="刷新收藏" type="button">
                   <RefreshCw size={16} />
