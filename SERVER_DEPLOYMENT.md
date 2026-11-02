@@ -8,6 +8,8 @@
 
 ## 2026-09-11 生产 Apache 全论坛 gzip 修复记录
 
+> 历史记录：本节针对原正式服 `capu`，该服务器已停用，下文路径与命令不再适用；当前正式服为 `capu2026`。
+
 经用户授权，修改生产端 `/var/www/CAPUBBS/.htaccess`。原文件仅为 JSON 定义 `AddOutputFilterByType`，覆盖了上层 HTML、CSS、JS 压缩类型；现替换为以下完整规则，覆盖新旧论坛并保留 JSON 压缩：
 
 ```apache
