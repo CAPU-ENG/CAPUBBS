@@ -132,13 +132,6 @@ export function FavoritesPage() {
                 <span className="favorites-total" aria-label={`共 ${threads.length} 个收藏`}>{threads.length}</span>
               )}
             </div>
-            <div className="favorites-tools">
-              {username && !loginRequired && (
-                <button aria-label="刷新收藏" className="icon-button" disabled={loading} onClick={retry} title="刷新收藏" type="button">
-                  <RefreshCw size={16} />
-                </button>
-              )}
-            </div>
           </header>
 
           {loginRequired ? (

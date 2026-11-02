@@ -19,7 +19,6 @@
 
   .favorites-heading,
   .favorites-title,
-  .favorites-tools,
   .favorites-toolbar,
   .favorites-thread-meta {
     display: flex;
@@ -64,9 +63,6 @@
     font-size: var(--ui-font-size-sm);
     font-variant-numeric: tabular-nums;
   }
-
-  .favorites-tools { gap: var(--space-10); }
-  .favorites-tools button:disabled { opacity: 0.45; }
 
   .favorites-board-filter:focus-visible,
   .favorites-sort button:focus-visible,
