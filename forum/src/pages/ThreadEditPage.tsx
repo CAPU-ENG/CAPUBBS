@@ -64,6 +64,7 @@ export function ThreadEditPage() {
   const autoSaveEnabled = useAutoSaveEnabled();
   const ownerKey = viewer?.username ?? null;
   const [floor, setFloor] = useState<EditableThreadFloor | null>(null);
+  const [threadInfo, setThreadInfo] = useState({ board: '', title: '' });
   const [draftLoadComplete, setDraftLoadComplete] = useState(false);
   const [pendingDraft, setPendingDraft] = useState<StoredThreadEditDraft | null>(null);
   const [storedDraftSnapshot, setStoredDraftSnapshot] = useState<string | null>(null);
@@ -105,6 +106,7 @@ export function ThreadEditPage() {
       tid: request.tid,
     }).then((thread) => {
       if (thread.locked) throw new ThreadApiError('主题已锁定。');
+      setThreadInfo({ board: thread.board, title: thread.title });
       return fetchEditableThreadFloor({ ...request, signal: controller.signal });
     }).then(
       (editableFloor) => {
@@ -238,10 +240,12 @@ export function ThreadEditPage() {
       await saveStoredThreadEditDraft({
         attachments,
         bid: floor.bid,
+        board: threadInfo.board,
         editor: getRichTextEditorStorageValue(editorValue),
         excerpt: getDraftExcerpt(editorValue, attachments),
         pid: floor.pid,
         signatureIndex,
+        threadTitle: threadInfo.title || floor.title,
         tid: floor.tid,
         title,
       }, ownerKey);

@@ -47,9 +47,16 @@ import {
   subscribeStoredThreadComposeDrafts,
   type StoredThreadComposeDraft,
 } from '../utils/threadComposeDraftStorage';
+import {
+  deleteStoredThreadEditDraft,
+  getThreadEditDraftKey,
+  readStoredThreadEditDrafts,
+  subscribeStoredThreadEditDrafts,
+  type StoredThreadEditDraft,
+} from '../utils/threadEditDraftStorage';
 import { getPublicProfilePath, USER_CENTER_HREF } from '../utils/userRoutes';
 import { getAuthPathWithReturnTo } from '../utils/authRoutes';
-import { getThreadComposeHref, getThreadFloorHref, getThreadHref } from '../utils/threadRoutes';
+import { getThreadComposeHref, getThreadEditHref, getThreadFloorHref, getThreadHref } from '../utils/threadRoutes';
 
 type OpenDialog = 'avatar' | 'email' | 'personalization' | 'security' | null;
 type PageNotice = { message: string; tone: 'error' | 'success' } | null;
@@ -79,6 +86,7 @@ export function UserCenterPage() {
   const [replyDrafts, setReplyDrafts] = useState<StoredReplyDraft[]>([]);
   const [threadComposeDrafts, setThreadComposeDrafts] = useState<StoredThreadComposeDraft[]>([]);
   const [activitySignupDrafts, setActivitySignupDrafts] = useState<StoredActivitySignupDraft[]>([]);
+  const [threadEditDrafts, setThreadEditDrafts] = useState<StoredThreadEditDraft[]>([]);
   const [cachedAvatarSrc, setCachedAvatarSrc] = useState<string | null>(null);
   const [openDialog, setOpenDialog] = useState<OpenDialog>(() => window.location.hash === '#account-security' ? 'security' : null);
   const [notice, setNotice] = useState<PageNotice>(null);
@@ -93,11 +101,12 @@ export function UserCenterPage() {
       drafts: [
         ...profile.records.drafts,
         ...threadComposeDrafts.map(mapThreadComposeDraftRecord),
+        ...threadEditDrafts.map(mapThreadEditDraftRecord),
         ...activitySignupDrafts.map(mapActivitySignupDraftRecord),
         ...replyDrafts.map(mapReplyDraftRecord),
       ],
     };
-  }, [activitySignupDrafts, profile, replyDrafts, threadComposeDrafts]);
+  }, [activitySignupDrafts, profile, replyDrafts, threadComposeDrafts, threadEditDrafts]);
 
   useEffect(() => {
     if (!profile || isEditing) return;
@@ -161,6 +170,12 @@ export function UserCenterPage() {
       return;
     }
 
+    const editDraft = threadEditDrafts.find((candidate) => candidate.id === recordId);
+    if (editDraft) {
+      await deleteStoredThreadEditDraft(editDraft, draftOwnerKey);
+      return;
+    }
+
     const threadDraft = threadComposeDrafts.find((candidate) => candidate.id === recordId);
     if (threadDraft) {
       await deleteStoredThreadComposeDraft(
@@ -184,6 +199,25 @@ export function UserCenterPage() {
     };
     refreshThreadComposeDrafts();
     const unsubscribe = subscribeStoredThreadComposeDrafts(refreshThreadComposeDrafts, draftOwnerKey);
+    return () => {
+      active = false;
+      unsubscribe();
+    };
+  }, [draftOwnerKey, loadDrafts]);
+
+  useEffect(() => {
+    if (!loadDrafts || !draftOwnerKey) {
+      setThreadEditDrafts([]);
+      return;
+    }
+    let active = true;
+    const refreshThreadEditDrafts = () => {
+      void readStoredThreadEditDrafts(draftOwnerKey).then((storedDrafts) => {
+        if (active) setThreadEditDrafts(storedDrafts);
+      });
+    };
+    refreshThreadEditDrafts();
+    const unsubscribe = subscribeStoredThreadEditDrafts(refreshThreadEditDrafts, draftOwnerKey);
     return () => {
       active = false;
       unsubscribe();
@@ -469,6 +503,21 @@ function mapThreadComposeDraftRecord(draft: StoredThreadComposeDraft) {
     id: draft.id,
     status: draft.kind === 'activity' ? '活动草稿' : '发帖草稿',
     title: draft.title,
+  };
+}
+
+function mapThreadEditDraftRecord(draft: StoredThreadEditDraft) {
+  const threadTitle = draft.pid === 1 ? draft.title || draft.threadTitle : draft.threadTitle;
+  return {
+    board: draft.board,
+    date: draft.updatedAt.slice(0, 10),
+    draftHref: getThreadEditHref(draft.bid, draft.tid, draft.pid),
+    draftKey: getThreadEditDraftKey(draft),
+    excerpt: draft.excerpt,
+    href: getThreadFloorHref(draft.bid, draft.tid, draft.pid),
+    id: draft.id,
+    status: '编辑草稿',
+    title: `${threadTitle} · #${draft.pid}`,
   };
 }
 

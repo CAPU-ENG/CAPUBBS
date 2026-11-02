@@ -468,6 +468,9 @@ function ProfileRecordRow({
             {record.status}
           </span>
         ) : null}
+        {activeTab === 'drafts' && record.draftKey ? (
+          <span className="profile-record-status">{record.draftKey}</span>
+        ) : null}
         {activeTab !== 'signatures' ? <time dateTime={record.date}>{formatDate(record.date)}</time> : null}
         {!readOnly && activeTab === 'drafts' ? (
           <div className="profile-record-actions profile-draft-actions">

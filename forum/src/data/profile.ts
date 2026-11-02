@@ -23,6 +23,7 @@ export type ProfileRecord = {
   contentMode?: 'html' | 'markdown' | 'rich';
   date: string;
   draftHref?: string;
+  draftKey?: string;
   excerpt: string;
   href: string;
   hasSignup?: boolean;
