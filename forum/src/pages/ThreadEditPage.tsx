@@ -3,6 +3,7 @@ import { ArrowLeft, Save } from 'lucide-react';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import {
   getRichTextEditorHtmlValue,
+  getRichTextEditorStorageValue,
   type RichTextEditorValue,
 } from '../components/editor/RichTextEditor';
 import { AppBackground } from '../components/layout/AppBackground';
@@ -30,13 +31,23 @@ import {
   type ThreadAttachmentInfo,
 } from '../api/thread';
 import { useAuth } from '../context/AuthContext';
+import { useAutoSaveEnabled } from '../hooks/useAssistiveFeatures';
 import { useDocumentTitle } from '../hooks/useDocumentTitle';
 import { toForumHref } from '../utils/forumBasePath';
 import { getLoginPathWithReturnTo, getRegisterPathWithReturnTo } from '../utils/authRoutes';
 import { normalizeFloorQuotesForLegacyStorage } from '../utils/floorQuote';
 import { getThreadFloorHref, getThreadPageForFloor } from '../utils/threadRoutes';
+import {
+  deleteStoredThreadEditDraft,
+  readStoredThreadEditDraft,
+  saveStoredThreadEditDraft,
+  type StoredThreadEditDraft,
+} from '../utils/threadEditDraftStorage';
 import { getTitleIndentationClassName } from '../utils/titleIndentation';
 import { useConfirmDialog } from '../components/ConfirmDialog';
+import { DraftRestoreCard } from '../components/thread/DraftRestoreCard';
+
+const AUTO_SAVE_DELAY_MS = 1_200;
 
 type EditRequest = {
   bid: number;
@@ -49,8 +60,16 @@ export function ThreadEditPage() {
   const leavingConfirmedRef = useRef(false);
   const locationSearch = window.location.search;
   const request = useMemo(getEditRequest, [locationSearch]);
-  const { status: authStatus } = useAuth();
+  const { status: authStatus, viewer } = useAuth();
+  const autoSaveEnabled = useAutoSaveEnabled();
+  const ownerKey = viewer?.username ?? null;
   const [floor, setFloor] = useState<EditableThreadFloor | null>(null);
+  const [draftLoadComplete, setDraftLoadComplete] = useState(false);
+  const [pendingDraft, setPendingDraft] = useState<StoredThreadEditDraft | null>(null);
+  const [storedDraftSnapshot, setStoredDraftSnapshot] = useState<string | null>(null);
+  const [isDeletingDraft, setIsDeletingDraft] = useState(false);
+  const [isSavingDraft, setIsSavingDraft] = useState(false);
+  const lastAutoSaveAttemptRef = useRef<string | null>(null);
   const [title, setTitle] = useState('');
   const [editorValue, setEditorValue] = useState<RichTextEditorValue>({ content: '', mode: 'rich' });
   const [signatureIndex, setSignatureIndex] = useState(0);
@@ -118,6 +137,32 @@ export function ThreadEditPage() {
     return () => controller.abort();
   }, [authStatus, request]);
 
+  useEffect(() => {
+    if (!floor) return;
+    setDraftLoadComplete(false);
+    setPendingDraft(null);
+    setStoredDraftSnapshot(null);
+    lastAutoSaveAttemptRef.current = null;
+    if (!ownerKey) {
+      setDraftLoadComplete(true);
+      return;
+    }
+
+    let active = true;
+    void readStoredThreadEditDraft(floor, ownerKey).then((draft) => {
+      if (!active || !draft) return;
+      if (makeDraftSnapshot(draft) === makeFloorSnapshot(floor)) {
+        void deleteStoredThreadEditDraft(floor, ownerKey).catch(() => undefined);
+        return;
+      }
+      setPendingDraft(draft);
+    }, () => undefined).finally(() => {
+      if (active) setDraftLoadComplete(true);
+    });
+
+    return () => { active = false; };
+  }, [floor, ownerKey]);
+
   const isMainPost = floor?.pid === 1;
   const backHref = request ? getThreadFloorHref(request.bid, request.tid, request.pid) : toForumHref('/');
   const displayTitle = floor ? (isMainPost ? title.trim() || floor.title : floor.title) : '';
@@ -126,13 +171,8 @@ export function ThreadEditPage() {
     : loadError
       ? '暂时无法进入编辑'
       : floor ? displayTitle : '正在读取编辑内容');
-  const isDirty = Boolean(floor && (
-    title !== floor.title
-    || editorValue.content !== floor.text
-    || editorValue.mode !== 'rich'
-    || signatureIndex !== floor.signatureIndex
-    || attachments.map((attachment) => attachment.id).join(' ') !== getAttachmentIds(floor.attachments).join(' ')
-  ));
+  const currentSnapshot = makeSnapshot(title, editorValue, signatureIndex, attachments.map((attachment) => attachment.id));
+  const isDirty = Boolean(floor && currentSnapshot !== makeFloorSnapshot(floor));
   const contentReady = hasPostEditorContent(editorValue);
   const canSave = Boolean(
     floor
@@ -153,9 +193,121 @@ export function ThreadEditPage() {
     return () => window.removeEventListener('beforeunload', warnBeforeLeaving);
   }, [isDirty, isSaving]);
 
+  useEffect(() => {
+    if (
+      !autoSaveEnabled
+      || !floor
+      || !ownerKey
+      || !draftLoadComplete
+      || pendingDraft
+      || isSaving
+      || isSavingDraft
+      || isUploadingAttachments
+      || currentSnapshot === lastAutoSaveAttemptRef.current
+    ) return;
+
+    if (!isDirty) {
+      if (storedDraftSnapshot === null) return;
+      lastAutoSaveAttemptRef.current = currentSnapshot;
+      void deleteStoredThreadEditDraft(floor, ownerKey).then(() => setStoredDraftSnapshot(null), () => undefined);
+      return;
+    }
+
+    const timer = window.setTimeout(() => { void saveDraft(); }, AUTO_SAVE_DELAY_MS);
+    return () => window.clearTimeout(timer);
+  }, [
+    autoSaveEnabled,
+    currentSnapshot,
+    draftLoadComplete,
+    floor,
+    isDirty,
+    isSaving,
+    isSavingDraft,
+    isUploadingAttachments,
+    ownerKey,
+    pendingDraft,
+    storedDraftSnapshot,
+  ]);
+
+  async function saveDraft() {
+    if (!floor || !ownerKey) return;
+    const snapshot = currentSnapshot;
+    lastAutoSaveAttemptRef.current = snapshot;
+    setIsSavingDraft(true);
+    try {
+      await saveStoredThreadEditDraft({
+        attachments,
+        bid: floor.bid,
+        editor: getRichTextEditorStorageValue(editorValue),
+        excerpt: getDraftExcerpt(editorValue, attachments),
+        pid: floor.pid,
+        signatureIndex,
+        tid: floor.tid,
+        title,
+      }, ownerKey);
+      setStoredDraftSnapshot(snapshot);
+    } catch {
+      // The next edit retries; the beforeunload warning still protects unsaved changes.
+    } finally {
+      setIsSavingDraft(false);
+    }
+  }
+
+  async function clearStoredDraft() {
+    if (!floor || !ownerKey) return;
+    try {
+      await deleteStoredThreadEditDraft(floor, ownerKey);
+    } catch {
+      // A stale draft is discarded on the next visit once it matches the saved floor.
+    }
+  }
+
+  function restorePendingDraft() {
+    if (!floor || !pendingDraft) return;
+    const draft = pendingDraft;
+    const restoredTitle = isMainPost ? draft.title : floor.title;
+    setTitle(restoredTitle);
+    setEditorValue(draft.editor);
+    setSignatureIndex(draft.signatureIndex);
+    setAttachments(draft.attachments);
+    const snapshot = makeSnapshot(
+      restoredTitle,
+      draft.editor,
+      draft.signatureIndex,
+      draft.attachments.map((attachment) => attachment.id),
+    );
+    setStoredDraftSnapshot(snapshot);
+    lastAutoSaveAttemptRef.current = snapshot;
+    setPendingDraft(null);
+    setSaveError('');
+  }
+
+  async function removePendingDraft() {
+    if (!floor || !pendingDraft || isDeletingDraft) return;
+    if (!(await confirm({
+      cancelLabel: '取消',
+      confirmLabel: '删除',
+      danger: true,
+      message: '删除后无法恢复。',
+      title: '删除草稿',
+    }))) return;
+
+    setIsDeletingDraft(true);
+    try {
+      await deleteStoredThreadEditDraft(floor, ownerKey);
+      setPendingDraft(null);
+      setSaveError('');
+    } catch {
+      setSaveError('草稿删除失败，请稍后重试');
+    } finally {
+      setIsDeletingDraft(false);
+    }
+  }
+
   async function leaveEditor() {
     if (isDirty && !(await confirm({ title: '放弃修改', message: '放弃尚未保存的修改？', confirmLabel: '放弃', danger: true }))) return;
     leavingConfirmedRef.current = true;
+    if (isDirty) await clearStoredDraft();
     window.location.href = backHref;
   }
 
@@ -180,6 +332,7 @@ export function ThreadEditPage() {
         tid: floor.tid,
         title: isMainPost ? title.trim() : floor.title,
       });
+      await clearStoredDraft();
       window.location.href = getThreadFloorHref(saved.bid, saved.tid, saved.pid);
     } catch (error) {
       setSaveError(error instanceof ThreadApiError ? error.message : '保存修改失败，请稍后重试。');
@@ -236,7 +389,7 @@ export function ThreadEditPage() {
             registerHref={authStatus === 'guest' ? getRegisterPathWithReturnTo() : undefined}
             title="暂时无法进入编辑"
           />
-        ) : !floor ? (
+        ) : !floor || !draftLoadComplete ? (
           <LoadingState label="正在读取编辑内容" />
         ) : (
           <>
@@ -250,59 +403,75 @@ export function ThreadEditPage() {
               </div>
             </header>
 
-            <PostEditor
-              ariaLabel={isMainPost ? `编辑《${floor.title}》正文` : `编辑《${floor.title}》第 ${floor.pid} 楼`}
-              attachmentDialogDescription="文件会立即上传，并在保存修改后关联到当前楼层"
-              attachmentLabel="帖子附件"
-              attachments={attachments}
-              beforeEditor={isMainPost ? (
-                <PostEditorTitleField
-                  onChange={(value) => {
-                    setTitle(value);
-                    setSaveError('');
-                  }}
-                  value={title}
-                />
-              ) : undefined}
-              className="thread-edit-form"
-              editorValue={editorValue}
-              formatAttachmentMeta={(attachment) => attachment.size > 0
-                ? formatPostEditorBytes(attachment.size)
-                : `附件 #${attachment.id}`}
-              heading={isMainPost ? '编辑帖子' : '编辑楼层'}
-              headingMeta={isDirty ? '有尚未保存的修改' : `#${floor.pid} · ${floor.author}`}
-              name="thread-edit-signature"
-              onAddAttachments={(files) => void addAttachments(files)}
-              onChange={(value) => {
-                setEditorValue(value);
-                setSaveError('');
-              }}
-              onPreview={() => {
-                setPreviewConfirming(false);
-                setPreviewOpen(true);
-              }}
-              onRemoveAttachment={removeAttachment}
-              onSignatureChange={(value) => {
-                setSignatureIndex(value);
-                setSaveError('');
-              }}
-              onSubmit={() => {
-                if (canSave && contentReady && hasPostEditorCustomColors(editorValue)) {
-                  setPreviewConfirming(true);
+            {pendingDraft ? (
+              <DraftRestoreCard
+                className="thread-edit-form"
+                deleting={isDeletingDraft}
+                error={saveError || undefined}
+                excerpt={pendingDraft.excerpt}
+                heading={isMainPost ? pendingDraft.title || floor.title : `#${floor.pid} · ${floor.title}`}
+                id="edit-draft-restore"
+                onDelete={() => void removePendingDraft()}
+                onRestore={restorePendingDraft}
+                updatedAt={pendingDraft.updatedAt}
+              />
+            ) : (
+              <PostEditor
+                ariaLabel={isMainPost ? `编辑《${floor.title}》正文` : `编辑《${floor.title}》第 ${floor.pid} 楼`}
+                attachmentDialogDescription="文件会立即上传，并在保存修改后关联到当前楼层"
+                attachmentLabel="帖子附件"
+                attachments={attachments}
+                beforeEditor={isMainPost ? (
+                  <PostEditorTitleField
+                    onChange={(value) => {
+                      setTitle(value);
+                      setSaveError('');
+                    }}
+                    value={title}
+                  />
+                ) : undefined}
+                className="thread-edit-form"
+                editorValue={editorValue}
+                formatAttachmentMeta={(attachment) => attachment.size > 0
+                  ? formatPostEditorBytes(attachment.size)
+                  : `附件 #${attachment.id}`}
+                heading={isMainPost ? '编辑帖子' : '编辑楼层'}
+                headingMeta={isDirty
+                  ? storedDraftSnapshot === currentSnapshot ? '修改已暂存在本机' : '有尚未保存的修改'
+                  : `#${floor.pid} · ${floor.author}`}
+                name="thread-edit-signature"
+                onAddAttachments={(files) => void addAttachments(files)}
+                onChange={(value) => {
+                  setEditorValue(value);
+                  setSaveError('');
+                }}
+                onPreview={() => {
+                  setPreviewConfirming(false);
                   setPreviewOpen(true);
-                } else void saveEdit();
-              }}
-              placeholder={isMainPost ? '修改帖子正文……' : '修改这一楼的回复内容……'}
-              previewDisabled={!contentReady}
-              signatureIndex={signatureIndex}
-              status={saveError || attachmentStatus}
-              statusIsError={Boolean(saveError)}
-              submitDisabled={!canSave}
-              submitIcon={isSaving ? <LoaderCircle size={15} /> : <Save size={15} />}
-              submitLabel={isSaving ? '保存中' : '保存修改'}
-              attachmentUploadProgress={attachmentUploadProgress}
-              uploadingAttachments={isUploadingAttachments}
-            />
+                }}
+                onRemoveAttachment={removeAttachment}
+                onSignatureChange={(value) => {
+                  setSignatureIndex(value);
+                  setSaveError('');
+                }}
+                onSubmit={() => {
+                  if (canSave && contentReady && hasPostEditorCustomColors(editorValue)) {
+                    setPreviewConfirming(true);
+                    setPreviewOpen(true);
+                  } else void saveEdit();
+                }}
+                placeholder={isMainPost ? '修改帖子正文……' : '修改这一楼的回复内容……'}
+                previewDisabled={!contentReady}
+                signatureIndex={signatureIndex}
+                status={saveError || attachmentStatus}
+                statusIsError={Boolean(saveError)}
+                submitDisabled={!canSave}
+                submitIcon={isSaving ? <LoaderCircle size={15} /> : <Save size={15} />}
+                submitLabel={isSaving ? '保存中' : '保存修改'}
+                attachmentUploadProgress={attachmentUploadProgress}
+                uploadingAttachments={isUploadingAttachments}
+              />
+            )}
           </>
         )}
       </main>
@@ -377,6 +546,46 @@ function positiveInteger(value: string | null) {
 
 function getAttachmentIds(value: string) {
   return value.split(/\s+/).map((id) => id.trim()).filter(Boolean);
+}
+
+function makeSnapshot(
+  title: string,
+  editor: RichTextEditorValue,
+  signatureIndex: number,
+  attachmentIds: string[],
+) {
+  return JSON.stringify({ attachmentIds, editor, signatureIndex, title });
+}
+
+function makeFloorSnapshot(floor: EditableThreadFloor) {
+  return makeSnapshot(
+    floor.title,
+    { content: floor.text, mode: 'rich' },
+    floor.signatureIndex,
+    getAttachmentIds(floor.attachments),
+  );
+}
+
+function makeDraftSnapshot(draft: StoredThreadEditDraft) {
+  return makeSnapshot(
+    draft.title,
+    draft.editor,
+    draft.signatureIndex,
+    draft.attachments.map((attachment) => attachment.id),
+  );
+}
+
+function getDraftExcerpt(editor: RichTextEditorValue, attachments: ThreadAttachmentInfo[]) {
+  const text = editor.mode === 'markdown'
+    ? editor.content.replace(/[#*_>`\-[\]()]/g, ' ').replace(/\s+/g, ' ').trim()
+    : editor.content.replace(/<br\s*\/?>/gi, ' ')
+      .replace(/<\/(p|div|li|h[1-6])>/gi, ' ')
+      .replace(/<[^>]*>/g, ' ')
+      .replace(/&nbsp;/gi, ' ')
+      .replace(/&amp;/gi, '&')
+      .replace(/\s+/g, ' ')
+      .trim();
+  return text || (attachments.length ? '附件编辑草稿' : '空白编辑草稿');
 }
 
 function formatPostTime(value: string) {
