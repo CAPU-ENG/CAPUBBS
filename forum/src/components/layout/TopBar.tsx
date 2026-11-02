@@ -1,6 +1,7 @@
 import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import {
   ArrowLeftRight,
+  Bookmark,
   ChevronDown,
   History,
   LogIn,
@@ -26,6 +27,7 @@ import { USER_CENTER_HREF } from '../../utils/userRoutes';
 import { getTitleIndentationClassName } from '../../utils/titleIndentation';
 import { MessageCenter } from '../messages/MessageCenter';
 import { getBoardById } from '../../data/boards';
+import { useFavoritesNavPinned } from '../../hooks/useFavoritesNavPin';
 import { usePinnedBoardIds } from '../../hooks/usePinnedBoards';
 import { useTheme } from '../../hooks/useTheme';
 import { useMobilePresence } from '../../hooks/useMobilePresence';
@@ -57,11 +59,13 @@ export function TopBar({
   const isSearchPage = pathname === '/search';
   const isSettingsPage = pathname === '/settings';
   const isManagePage = pathname === '/manage';
+  const isFavoritesPage = pathname === '/favorite';
   const canManageForum = authStatus === 'authenticated' && (viewer?.rights ?? 0) >= 3;
   const currentBoardId = Number(params.get('bid') ?? params.get('board'));
   const pinnedBoards = usePinnedBoardIds()
     .map(getBoardById)
     .filter((board) => board !== undefined);
+  const showFavoritesLink = useFavoritesNavPinned() && authStatus === 'authenticated';
   const { theme, toggleTheme } = useTheme();
   const [boardsOpen, setBoardsOpen] = useState(false);
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
@@ -371,6 +375,16 @@ export function TopBar({
                   管理
                 </a>
               )}
+              {showFavoritesLink && (
+                <a
+                  aria-current={isFavoritesPage ? 'page' : undefined}
+                  href={toForumHref('/favorite')}
+                  className={`top-nav-link ${isFavoritesPage ? 'top-nav-link-active' : ''}`}
+                  tabIndex={contextTitleVisible ? -1 : undefined}
+                >
+                  收藏
+                </a>
+              )}
               {pinnedBoards.map((board) => (
                 <a
                   aria-current={currentBoardId === board.id ? 'page' : undefined}
@@ -481,6 +495,9 @@ export function TopBar({
                     </a>
                     <a href={toForumHref('/settings')} role="menuitem" onClick={() => setProfileOpen(false)}>
                       <Settings size={16} />设置
+                    </a>
+                    <a href={toForumHref('/favorite')} role="menuitem" onClick={() => setProfileOpen(false)}>
+                      <Bookmark size={16} />收藏
                     </a>
                     <a href={toForumHref('/browsing-history')} role="menuitem" onClick={() => setProfileOpen(false)}>
                       <History size={16} />浏览记录

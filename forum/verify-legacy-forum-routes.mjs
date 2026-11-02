@@ -70,7 +70,7 @@ const legacyPageCases = [
   ['../main/?bid=4&p=3&extr=1', '/bbs/main/?bid=4&p=3&extr=1'],
   ['../user/?name=%E4%B9%82%E4%BA%95', '/bbs/users/%E4%B9%82%E4%BA%95'],
   ['https://www.chexie.net/bbs/home/', '/bbs/home'],
-  ['https://chexie.net/bbs/favorite/', '/bbs/home?tab=bookmarks'],
+  ['https://chexie.net/bbs/favorite/', '/bbs/favorite'],
   ['/bbs/search/?keyword=test', '/bbs/search?keyword=test'],
   ['/bbs/manage/', '/bbs/manage'],
   ['/bbs/data/?panel=records', '/bbs/data?panel=records'],

@@ -33,6 +33,7 @@ const loadBoardPage = () => import('./pages/BoardPage');
 const loadBrowsingHistoryPage = () => import('./pages/BrowsingHistoryPage');
 const loadCalendarAdminPage = () => import('./pages/CalendarAdminPage');
 const loadDataDisplayPage = () => import('./pages/DataDisplayPage');
+const loadFavoritesPage = () => import('./pages/FavoritesPage');
 const loadForgotPasswordPage = () => import('./pages/ForgotPasswordPage');
 const loadLoginPage = () => import('./pages/LoginPage');
 const loadManagementPage = () => import('./pages/ManagementPage');
@@ -50,6 +51,7 @@ const remainingForumPageLoaders = [
   loadBrowsingHistoryPage,
   loadCalendarAdminPage,
   loadDataDisplayPage,
+  loadFavoritesPage,
   loadForgotPasswordPage,
   loadLoginPage,
   loadManagementPage,
@@ -74,6 +76,8 @@ const CalendarAdminPage = lazy(() => loadCalendarAdminPage()
   .then((module) => ({ default: module.CalendarAdminPage })));
 const DataDisplayPage = lazy(() => loadDataDisplayPage()
   .then((module) => ({ default: module.DataDisplayPage })));
+const FavoritesPage = lazy(() => loadFavoritesPage()
+  .then((module) => ({ default: module.FavoritesPage })));
 const ForgotPasswordPage = lazy(() => loadForgotPasswordPage()
   .then((module) => ({ default: module.ForgotPasswordPage })));
 const LoginPage = lazy(() => loadLoginPage()
@@ -241,12 +245,10 @@ function resolveForumPage(pathname: string, params: URLSearchParams) {
   }
   if (pathname === '/toolbox') return <ToolboxPage />;
   if (pathname === '/browsing-history') return <BrowsingHistoryPage />;
+  if (matchesPagePath(pathname, '/favorite')) return <FavoritesPage />;
   if (isThreadComposePath(pathname)) return <ThreadComposePage />;
   if (isThreadEditPath(pathname)) return <ThreadEditPage />;
-  if (
-    matchesPagePath(pathname, USER_CENTER_PATH)
-    || matchesPagePath(pathname, '/favorite')
-  ) return <UserCenterPage />;
+  if (matchesPagePath(pathname, USER_CENTER_PATH)) return <UserCenterPage />;
   if (matchesPagePath(pathname, '/user')) {
     return <PublicProfilePage profileName={params.get('name') ?? params.get('user') ?? params.get('view')} />;
   }

@@ -1,6 +1,7 @@
 import {
   Accessibility,
   ArrowUpToLine,
+  Bookmark,
   Check,
   ChevronDown,
   CirclePlus,
@@ -37,6 +38,7 @@ import { useAuthorProfileEnabled } from '../hooks/useAuthorProfile';
 import { useAvatarFollowEnabled } from '../hooks/useAvatarFollow';
 import { useCompactMode } from '../hooks/useCompactMode';
 import { useDocumentTitle } from '../hooks/useDocumentTitle';
+import { useFavoritesNavPinned } from '../hooks/useFavoritesNavPin';
 import { useForumContentFontSize, useForumContentFontSizeOptions } from '../hooks/useForumContentFontSize';
 import { usePinnedBoardIds } from '../hooks/usePinnedBoards';
 import { useTagMedalDisplayEnabled } from '../hooks/useTagMedalDisplay';
@@ -54,6 +56,7 @@ import {
 import { saveAuthorProfileEnabled } from '../utils/authorProfile';
 import { saveAvatarFollowEnabled } from '../utils/avatarFollow';
 import { saveCompactMode } from '../utils/compactMode';
+import { saveFavoritesNavPinned } from '../utils/favoritesNavPin';
 import { saveForumContentFontSize } from '../utils/forumFontSize';
 import { MAX_PINNED_BOARDS, savePinnedBoardIds } from '../utils/localSettings';
 import { saveTagMedalDisplayEnabled } from '../utils/tagMedalDisplay';
@@ -72,6 +75,7 @@ export function SettingsPage() {
   const forumContentFontSizeOptions = useForumContentFontSizeOptions();
   const displayedFontSizeOptions = [...new Set([...forumContentFontSizeOptions, forumContentFontSize])]
     .sort((left, right) => left - right);
+  const favoritesNavPinned = useFavoritesNavPinned();
   const floorDecorationEnabled = useFloorDecorationEnabled();
   const pinnedBoardIds = usePinnedBoardIds();
   const { followsSystem } = useTheme();
@@ -170,6 +174,15 @@ export function SettingsPage() {
                 icon={<PanelTopClose size={15} />}
                 label="导航栏自动隐藏"
                 onChange={saveTopBarAutoHideEnabled}
+              />
+              <SettingsCheckbox
+                checked={favoritesNavPinned}
+                desktopOnly
+                help="在顶部导航栏显示收藏入口。"
+                helpId="favorites-nav-pin-help"
+                icon={<Bookmark size={15} />}
+                label="导航栏收藏"
+                onChange={saveFavoritesNavPinned}
               />
               <SettingsCheckbox
                 checked={authorProfileEnabled}
@@ -326,6 +339,7 @@ export function SettingsPage() {
               <div className="settings-preview-links">
                 <span>首页</span>
                 <span>版块</span>
+                {favoritesNavPinned && <strong>收藏</strong>}
                 {pinnedBoards.map((board) => <strong key={board.id}>{board.label}</strong>)}
               </div>
             </div>

@@ -72,7 +72,7 @@ export function ProfileWorkspace({
   onSaveSignatures,
   readOnly = false,
 }: ProfileWorkspaceProps) {
-  const requestedTab = getProfileTabFromLocation(window.location.pathname, window.location.search, allowedTabs);
+  const requestedTab = getProfileTabFromLocation(window.location.search, allowedTabs);
   const initialTab = requestedTab ?? allowedTabs[0] ?? 'posts';
   const [activeTab, setActiveTab] = useState<ProfileTab>(initialTab);
   const { confirm, confirmDialog } = useConfirmDialog();

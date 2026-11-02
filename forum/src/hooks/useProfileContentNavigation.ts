@@ -16,6 +16,6 @@ function subscribeViewport(listener: () => void) {
 
 export function useProfileContentNavigation(allowedTabs: ProfileTab[]) {
   const isMobile = useSyncExternalStore(subscribeViewport, readMobileViewport, () => false);
-  const requestedTab = getProfileTabFromLocation(window.location.pathname, window.location.search, allowedTabs);
+  const requestedTab = getProfileTabFromLocation(window.location.search, allowedTabs);
   return { isMobile, isContentPage: isMobile && requestedTab !== null, requestedTab };
 }

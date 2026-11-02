@@ -25,6 +25,7 @@ export const FORUM_APP_EXACT_PATHS = [
   '/activity-management',
   '/archive-room',
   '/browsing-history',
+  '/favorite',
   '/toolbox',
   '/post',
   '/bbs/post',

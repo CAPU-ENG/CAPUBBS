@@ -1,5 +1,5 @@
 import type { ProfileTab } from '../data/profile';
-import { stripForumBasePath, toForumHref } from './forumBasePath.ts';
+import { toForumHref } from './forumBasePath.ts';
 
 export const PUBLIC_PROFILE_PATH = '/users';
 export const USER_CENTER_PATH = '/home';
@@ -12,12 +12,9 @@ export function getProfileTabHref(overviewHref: string, tab: ProfileTab) {
   return `${url.pathname}${url.search}`;
 }
 
-export function getProfileTabFromLocation(pathname: string, search: string, allowedTabs: ProfileTab[]) {
+export function getProfileTabFromLocation(search: string, allowedTabs: ProfileTab[]) {
   const requested = new URLSearchParams(search).get('tab') as ProfileTab | null;
-  if (requested) return allowedTabs.includes(requested) ? requested : null;
-  const path = stripForumBasePath(pathname).replace(/\/+$/, '');
-  return (path === '/favorite' || path === '/favorite/index.php') && allowedTabs.includes('bookmarks')
-    ? 'bookmarks' : null;
+  return requested && allowedTabs.includes(requested) ? requested : null;
 }
 
 export function getPublicProfilePath(userId: string | null | undefined) {

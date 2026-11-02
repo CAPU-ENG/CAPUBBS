@@ -93,7 +93,7 @@ export function translateLegacyForumPageHref(
   if (isLegacyBoardPath(pathname)) return getLegacyBoardRoute(url);
   if (isLegacyProfilePath(pathname)) return getLegacyProfileRoute(url.searchParams);
   if (isLegacyUserCenterPath(pathname)) return appendSearchAndHash('/home', url);
-  if (isLegacyFavoritesPath(pathname)) return toForumHref('/home?tab=bookmarks');
+  if (isLegacyFavoritesPath(pathname)) return toForumHref('/favorite');
   if (isLegacySearchPath(pathname)) return appendSearchAndHash('/search', url);
   if (isLegacyLoginPath(pathname)) return toForumHref('/login');
   if (isLegacyRegisterPath(pathname)) return toForumHref('/register');

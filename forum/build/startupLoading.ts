@@ -31,6 +31,7 @@ const pageRoutes: Record<string, string[]> = {
   BrowsingHistoryPage: ['browsing-history'],
   CalendarAdminPage: ['calendar-admin'],
   DataDisplayPage: ['data'],
+  FavoritesPage: ['favorite'],
   ForgotPasswordPage: ['forgot-password'],
   LoginPage: ['login'],
   ManagementPage: ['manage'],
@@ -39,7 +40,7 @@ const pageRoutes: Record<string, string[]> = {
   ThreadComposePage: ['post'],
   ThreadEditPage: ['editpid'],
   ThreadPage: ['content', 'thread.php'],
-  UserCenterPage: ['home', 'favorite'],
+  UserCenterPage: ['home'],
 };
 
 // pageBase is the forum route prefix; Vite's base may point at the asset CDN instead.
