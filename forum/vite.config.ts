@@ -9,7 +9,7 @@ import { resolveForumMode } from './src/utils/forumModeCookie.ts';
 import { canonicalizeForumPageRoute } from './src/utils/forumCanonicalRoute';
 
 const PHP_ORIGIN = process.env.CAPUBBS_PHP_ORIGIN || 'http://localhost:8080';
-// Release builds load hashed assets from OSS, e.g. https://capu-assets.oss-cn-beijing.aliyuncs.com/bbs/
+// Release builds load hashed assets from the CDN, e.g. https://asset.chexiecdn.top/bbs/
 const FORUM_CDN_BASE = process.env.FORUM_CDN_BASE?.replace(/\/?$/, '/');
 // OSS default domains force HTML to download, the manifest must share the page origin,
 // and unhashed public files cannot take OSS's immutable caching.
@@ -70,6 +70,15 @@ function legacyForumCookieProxy(): Plugin {
   };
 }
 
+// Vite fills the asset base into chunks after hashing, so builds for different bases would
+// share file names with different contents. Hashing the base keeps them apart on the CDN.
+function assetBaseChunkHash(assetBase: string): Plugin {
+  return {
+    name: 'asset-base-chunk-hash',
+    augmentChunkHash: () => assetBase,
+  };
+}
+
 function isForumRequest(requestUrl: string | undefined) {
   if (!requestUrl) return false;
   const pathname = new URL(requestUrl, 'http://capubbs.local').pathname;
@@ -116,7 +125,13 @@ export default defineConfig(({ command }) => {
         return type === 'public' || SAME_ORIGIN_ASSET.test(fileName) ? FORUM_BASE_URL + fileName : undefined;
       },
     } : undefined,
-    plugins: [forumBasePathFallback(), legacyForumCookieProxy(), react(), startupLoading(FORUM_BASE_URL)],
+    plugins: [
+      forumBasePathFallback(),
+      legacyForumCookieProxy(),
+      react(),
+      startupLoading(FORUM_BASE_URL),
+      ...(assetBase ? [assetBaseChunkHash(assetBase)] : []),
+    ],
     server: {
       proxy: {
         '/annual': { target: PHP_ORIGIN },
