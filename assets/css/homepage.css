@@ -78,9 +78,10 @@ fieldset { padding: 0; margin: 0; min-width: 0; }
 /* Hero */
 .hero { position: relative; height: clamp(440px, calc(100svh - var(--header-height)), 780px); overflow: hidden; background: var(--deeper-green); color: var(--on-green); }
 .hero-slides, .promotion-slide { position: absolute; inset: 0; }
-/* Pictures keep their full height: they end above the caption bar and are never cropped. */
-.hero-slides { bottom: 68px; }
-.promotion-slide img { width: 100%; height: 100%; object-fit: contain; object-position: center; }
+/* Pictures keep their full height above the caption bar; a blurred copy fills the rest of the hero. */
+.promotion-slide { overflow: hidden; }
+.promotion-backdrop { position: absolute; inset: -48px; width: calc(100% + 96px); height: calc(100% + 96px); object-fit: cover; filter: blur(28px) brightness(.55); }
+.promotion-image { position: absolute; top: 0; left: 0; width: 100%; height: calc(100% - 68px); object-fit: contain; object-position: center; }
 .promotion-slide:not([hidden]) img { animation: hero-fade .9s ease both; }
 @keyframes hero-fade { from { opacity: 0; } to { opacity: 1; } }
 .hero-slides { cursor: zoom-in; }
@@ -250,7 +251,7 @@ h2::before { content: ""; position: absolute; top: 0; left: 0; width: 28px; heig
   .hero-content { bottom: 96px; }
   .hero-actions { margin-top: 26px; }
   .button { min-height: 44px; padding: 10px 22px; font-size: 14px; }
-  .hero-slides { bottom: 60px; }
+  .promotion-image { height: calc(100% - 60px); }
   .hero-bar { flex-wrap: wrap; gap: 0 12px; min-height: 0; padding-block: 8px; }
   .promotion-caption { font-size: 12px; }
   .promotion-actions { margin-left: auto; }

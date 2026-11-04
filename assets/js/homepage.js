@@ -80,7 +80,7 @@
     Array.from(slides.children).forEach((slide, offset) => { slide.hidden = offset !== currentImage; });
     setCaption(images[currentImage]);
     document.querySelector('[data-image-number]').textContent = String(currentImage + 1).padStart(2, '0');
-    const nextImage = slides.children[(currentImage + 1) % images.length].querySelector('img');
+    const nextImage = slides.children[(currentImage + 1) % images.length].querySelector('.promotion-image');
     if (nextImage) nextImage.loading = 'eager';
     scheduleImageRotation();
   }
@@ -108,11 +108,18 @@
       slide.setAttribute('role', 'group');
       slide.setAttribute('aria-roledescription', '幻灯片');
       slide.setAttribute('aria-label', `${index + 1} / ${images.length}`);
+      // A blurred copy of the same picture fills the space the whole picture leaves around it.
+      const backdrop = document.createElement('img');
+      backdrop.className = 'promotion-backdrop';
+      backdrop.alt = '';
+      backdrop.setAttribute('aria-hidden', 'true');
       const image = document.createElement('img');
+      image.className = 'promotion-image';
       image.alt = row.title || `宣传图 ${index + 1}`;
       image.loading = index === 0 ? 'eager' : 'lazy';
       image.decoding = 'async';
       if (index === 0) image.setAttribute('fetchpriority', 'high');
+      image.addEventListener('load', () => { backdrop.src = image.currentSrc || image.src; });
       image.src = row.img || row.imgthumb;
       image.addEventListener('error', () => {
         if (row.imgthumb && image.src !== row.imgthumb) { image.src = row.imgthumb; return; }
@@ -121,7 +128,7 @@
         error.textContent = '图片无法加载';
         image.replaceWith(error);
       });
-      slide.append(image); fragment.append(slide);
+      slide.append(backdrop, image); fragment.append(slide);
     });
     slides.replaceChildren(fragment);
     setCaption(images[0]);
