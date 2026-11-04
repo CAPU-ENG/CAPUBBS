@@ -79,7 +79,7 @@ $homepageAnnuals = $homepageContent['annuals'];
 <?php foreach ($homepageAnnuals as $annual) { ?>
           <li>
             <a class="annual-cover" href="<?php echo homepage_escape($annual['url']); ?>">
-              <img src="<?php echo homepage_escape($annual['cover']); ?>" width="249" height="338" alt="" loading="lazy" decoding="async">
+              <img src="<?php echo homepage_escape($annual['cover']); ?>" width="<?php echo (int) $annual['coverWidth']; ?>" height="<?php echo (int) $annual['coverHeight']; ?>" alt="" loading="lazy" decoding="async">
               <span class="annual-name">《<?php echo homepage_escape($annual['title']); ?>》<?php echo homepage_escape($annual['year']); ?></span>
             </a>
           </li>
