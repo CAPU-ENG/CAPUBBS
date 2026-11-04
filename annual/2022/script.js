@@ -174,7 +174,7 @@
 
     // Article pages are also published on COS (tool/annual-upload-cos.mjs); a page turn reads them
     // there and falls back to the site's own copy. The front page always comes from the site.
-    const CDN = 'https://chexie-1342390402.cos.ap-beijing.myqcloud.com';
+    const CDN = 'https://asset.chexiecdn.top';
     async function load(url) {
         const target = new URL(url, location.href);
         const sources = target.pathname.startsWith(`${issue}articles/`) ? [CDN + target.pathname] : [];

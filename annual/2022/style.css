@@ -3,9 +3,9 @@
    霞鹜文楷 LXGW WenKai for reading and a heavy Source Han Serif for the big titles, renamed as
    the licence's Reserved Font Name requires of modified versions. Labels and navigation keep the
    device's own sans (the rounded Gen Jyuu Gothic lacks hundreds of the simplified characters). */
-@font-face { font-family: "Xingzhe 2022 Kai"; src: url("https://chexie-1342390402.cos.ap-beijing.myqcloud.com/annual/2022/assets/fonts/wenkai-400.woff2") format("woff2"); font-weight: 100 450; font-display: swap; }
-@font-face { font-family: "Xingzhe 2022 Kai"; src: url("https://chexie-1342390402.cos.ap-beijing.myqcloud.com/annual/2022/assets/fonts/wenkai-500.woff2") format("woff2"); font-weight: 451 1000; font-display: swap; }
-@font-face { font-family: "Xingzhe 2022 Display"; src: url("https://chexie-1342390402.cos.ap-beijing.myqcloud.com/annual/2022/assets/fonts/shserif-900.woff2") format("woff2"); font-weight: 100 1000; font-display: swap; }
+@font-face { font-family: "Xingzhe 2022 Kai"; src: url("https://asset.chexiecdn.top/annual/2022/assets/fonts/wenkai-400.woff2") format("woff2"); font-weight: 100 450; font-display: swap; }
+@font-face { font-family: "Xingzhe 2022 Kai"; src: url("https://asset.chexiecdn.top/annual/2022/assets/fonts/wenkai-500.woff2") format("woff2"); font-weight: 451 1000; font-display: swap; }
+@font-face { font-family: "Xingzhe 2022 Display"; src: url("https://asset.chexiecdn.top/annual/2022/assets/fonts/shserif-900.woff2") format("woff2"); font-weight: 100 1000; font-display: swap; }
 :root {
     --paper: #fbf8f1;
     --paper-deep: #f3eee2;

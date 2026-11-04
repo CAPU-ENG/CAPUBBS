@@ -557,7 +557,7 @@ initAnnualPage();
         && window.CSS.supports
         && window.CSS.supports('view-transition-name: root');
     // article pages are also published on COS, which serves them faster than the site
-    var pageMirror = 'https://chexie-1342390402.cos.ap-beijing.myqcloud.com';
+    var pageMirror = 'https://asset.chexiecdn.top';
     var busy = false;
     var activePath = window.location.pathname + window.location.search;
     var saveTimer = 0;
