@@ -78,13 +78,14 @@ fieldset { padding: 0; margin: 0; min-width: 0; }
 /* Hero */
 .hero { position: relative; height: clamp(440px, calc(100svh - var(--header-height)), 780px); overflow: hidden; background: var(--deeper-green); color: var(--on-green); }
 .hero-slides, .promotion-slide { position: absolute; inset: 0; }
-.promotion-slide img { width: 100%; height: 100%; object-fit: cover; object-position: center; }
+/* Pictures keep their full height: they end above the caption bar and are never cropped. */
+.hero-slides { bottom: 68px; }
+.promotion-slide img { width: 100%; height: 100%; object-fit: contain; object-position: center; }
 .promotion-slide:not([hidden]) img { animation: hero-fade .9s ease both; }
 @keyframes hero-fade { from { opacity: 0; } to { opacity: 1; } }
 .hero-slides { cursor: zoom-in; }
 .hero.is-full .hero-slides { cursor: zoom-out; }
-.hero.is-full .promotion-slide img { object-fit: contain; animation: none; }
-.hero.is-full .hero-slides { bottom: 68px; }
+.hero.is-full .promotion-slide img { animation: none; }
 .hero::after, .hero-content { transition: opacity .3s ease, visibility .3s; }
 .hero.is-full::after, .hero.is-full .hero-content { opacity: 0; visibility: hidden; }
 .hero::after { content: ""; position: absolute; inset: 0; pointer-events: none; background: linear-gradient(to top, #0c1a14e6 0%, #0c1a1499 30%, #0c1a1426 62%, #0c1a1400 80%), linear-gradient(to right, #0c1a1466, #0c1a1400 60%); }
@@ -249,7 +250,7 @@ h2::before { content: ""; position: absolute; top: 0; left: 0; width: 28px; heig
   .hero-content { bottom: 96px; }
   .hero-actions { margin-top: 26px; }
   .button { min-height: 44px; padding: 10px 22px; font-size: 14px; }
-  .hero.is-full .hero-slides { bottom: 60px; }
+  .hero-slides { bottom: 60px; }
   .hero-bar { flex-wrap: wrap; gap: 0 12px; min-height: 0; padding-block: 8px; }
   .promotion-caption { font-size: 12px; }
   .promotion-actions { margin-left: auto; }
