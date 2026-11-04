@@ -6,19 +6,19 @@
    (OFL Reserved Font Name "Source"); see tool/annual-2021/fonts.py */
 @font-face {
     font-family: "Xingzhe 2021 Display";
-    src: url("https://chexie-1342390402.cos.ap-beijing.myqcloud.com/annual/2021/assets/fonts/display-900.woff2") format("woff2");
+    src: url("https://asset.chexiecdn.top/annual/2021/assets/fonts/display-900.woff2") format("woff2");
     font-weight: 900;
     font-display: swap;
 }
 @font-face {
     font-family: "Xingzhe 2021 Display";
-    src: url("https://chexie-1342390402.cos.ap-beijing.myqcloud.com/annual/2021/assets/fonts/display-300.woff2") format("woff2");
+    src: url("https://asset.chexiecdn.top/annual/2021/assets/fonts/display-300.woff2") format("woff2");
     font-weight: 300;
     font-display: swap;
 }
 @font-face {
     font-family: "Zhuque Fangsong";
-    src: url("https://chexie-1342390402.cos.ap-beijing.myqcloud.com/annual/2021/assets/fonts/zhuque-400.woff2") format("woff2");
+    src: url("https://asset.chexiecdn.top/annual/2021/assets/fonts/zhuque-400.woff2") format("woff2");
     font-weight: 400;
     font-display: swap;
 }
@@ -487,7 +487,7 @@ a.toc-row:hover .toc-dots { border-color: currentColor; }
 .prize-name {
     display: grid; place-content: center;
     width: 172px; height: 66px; margin: 0 auto 12px;
-    background: url("https://chexie-1342390402.cos.ap-beijing.myqcloud.com/annual/2021/assets/laurel.webp") center / contain no-repeat;
+    background: url("https://asset.chexiecdn.top/annual/2021/assets/laurel.webp") center / contain no-repeat;
     font-weight: 400; font-size: 18px; line-height: 1.25; letter-spacing: .12em;
 }
 .prize-name span:only-child { font-size: 19px; }

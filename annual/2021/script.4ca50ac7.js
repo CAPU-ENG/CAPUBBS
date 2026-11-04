@@ -377,11 +377,11 @@
     // No transition: the new page simply appears, at its top or at its anchor. Back and Forward swap the
     // same way and return to where each page was left. The front page and other annuals load normally.
     // On a local preview the site's own files are read, so edits show at once.
-    const me = document.currentScript || document.querySelector('script[src$="script.js"]');
+    const me = document.currentScript || document.querySelector('script[src*="script."][src$=".js"]');
     const annualRoot = me ? new URL(me.src, location.href).pathname.replace(/script(\.[0-9a-f]+)?\.js$/, '') : '';
     const articles = annualRoot + 'articles/';
     const local = /^(localhost|127\.0\.0\.1|\[::1\])$/.test(location.hostname);
-    const MIRROR = 'https://chexie-1342390402.cos.ap-beijing.myqcloud.com';
+    const MIRROR = 'https://asset.chexiecdn.top';
     if (annualRoot && window.fetch && window.DOMParser && location.pathname.startsWith(articles)) {
         let busy = false, saveTimer = 0, activePath = location.pathname;
         if ('scrollRestoration' in history) history.scrollRestoration = 'manual';

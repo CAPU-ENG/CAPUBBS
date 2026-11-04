@@ -265,7 +265,7 @@
     });
 
     var busy = false;
-    var issue = new URL('./', document.querySelector('link[rel="stylesheet"][href$="style.css"]').href).pathname;
+    var issue = new URL('./', document.querySelector('link[rel="stylesheet"][href*="style."][href$=".css"]').href).pathname;
     document.addEventListener('click', function (event) {
         if (!motion || busy || event.defaultPrevented || event.button !== 0 ||
             event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
