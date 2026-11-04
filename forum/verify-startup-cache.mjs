@@ -36,6 +36,16 @@ for (const asset of config.assets) {
   assert.deepEqual(asset.variants, [bytes, crlf].map((body) => ({ size: body.length, sha256: digest(body) })));
   assert.equal(digest(crlf), legacyHashes.get(asset.url.split('/').at(-1)));
 }
+// CDN builds hash the asset base into file names, so none of the historical CRLF URLs remain.
+// Keep exercising the variant check on a synthetic copy of an asset that has line breaks.
+const shippedLegacy = new Set(legacy.map((asset) => asset.url));
+if (!legacy.length) {
+  const asset = config.assets.find((candidate) => payloads.get(candidate.url).includes(10));
+  assert.ok(asset, 'An asset with line breaks for the variant check');
+  const bytes = payloads.get(asset.url);
+  const crlf = Buffer.from(Buffer.from(bytes).toString('utf8').replace(/\r?\n/g, '\r\n'));
+  legacy.push({ ...asset, variants: [bytes, crlf].map((body) => ({ size: body.length, sha256: digest(body) })) });
+}
 
 function run(options = {}) {
   const elements = new Map();
@@ -153,7 +163,7 @@ for (const asset of legacy) {
   }
 }
 for (const path of ['main', 'login', 'manage', 'user', 'users', 'register', 'post', 'editpid', 'home', 'favorite']) {
-  await expect({ path: '/bbs/' + path, transform: (bytes, url) => crlfPayloads.get(url) || bytes });
+  await expect({ path: '/bbs/' + path, transform: (bytes, url) => (shippedLegacy.has(url) && crlfPayloads.get(url)) || bytes });
 }
 // Native hashing may finish after timeout: do not report 100% or install any module then.
 let finishDigest;
@@ -169,7 +179,7 @@ await new Promise((resolve) => setImmediate(resolve));
 assert.equal(pending.values.includes(100), false);
 assert.equal(pending.installed.length, 0);
 // A cached home hot list replaces the startup page with a top progress bar.
-const barState = run({ cachedHome: true, transform: (bytes, url) => crlfPayloads.get(url) || bytes });
+const barState = run({ cachedHome: true, transform: (bytes, url) => (shippedLegacy.has(url) && crlfPayloads.get(url)) || bytes });
 assert.equal(await barState.outcome, 'started');
 assert.equal(barState.elements.get('forum-startup').dataset.mode, 'bar');
 assert.equal(barState.intervals.size, 0, 'Bar mode does not rotate messages');
