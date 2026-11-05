@@ -356,16 +356,8 @@ function join_activity_by_content($bid, $tid, $username, $option_values, $title,
     }
     file_put_contents($filePath, "[0] $username $bid $tid\n", FILE_APPEND);
 
-    $joined_at = time();
-    $statement = "insert into season_activity_join (activity_id, username, post_fid, joined_at) values
-        ($activity_id, '$username', -1, $joined_at)";
-    $result = mysqli_query($con, $statement);
-    if (!$result) {
-        file_put_contents($filePath, "[1] $username $bid $tid\n", FILE_APPEND);
-        return array("code"=> -1,"msg"=> "已报名或报名失败");
-    }
-    $join_id = mysqli_insert_id($con);
-
+    // Validate everything before writing the join row: a join row without a
+    // signup post blocks the user from signing up again (unique_join).
     $options = $activity["options"];
     for ($option_idx = 0; $option_idx < count($options); $option_idx++) {
         $option = $options[$option_idx];
@@ -377,10 +369,52 @@ function join_activity_by_content($bid, $tid, $username, $option_values, $title,
         }
     }
 
+    $statement="select locked from threads where bid=$bid && tid=$tid";
+    $results=mysqli_query($con, $statement);
+    if (mysqli_num_rows($results)==0) {
+        file_put_contents($filePath, "[15] $username $bid $tid\n", FILE_APPEND);
+        return array("code"=> -1,"msg"=> "主题不存在！");
+    }
+    $res=mysqli_fetch_array($results);
+    if (intval($res[0])==1) {
+        file_put_contents($filePath, "[16] $username $bid $tid\n", FILE_APPEND);
+        return array("code"=> -1,"msg"=> "主题已锁定。");
+    }
+
+    $joined_at = time();
+    $statement = "insert into season_activity_join (activity_id, username, post_fid, joined_at) values
+        ($activity_id, '$username', -1, $joined_at)";
+    try {
+        // mysqli may run in exception mode (PHP 8.1+ default); a duplicate join must not become a 500.
+        $result = mysqli_query($con, $statement);
+    } catch (Exception $error) {
+        $result = false;
+    }
+    if (!$result) {
+        file_put_contents($filePath, "[1] $username $bid $tid\n", FILE_APPEND);
+        return array("code"=> -1,"msg"=> "已报名或报名失败");
+    }
+    $join_id = mysqli_insert_id($con);
+
     file_put_contents($filePath, "[3] $username $bid $tid\n", FILE_APPEND);
 
-    $con = dbconnect_mysqli();
-    mysqli_select_db($con, "capubbs");
+    $fid = 0;
+    try {
+        $ret = join_activity_publish_signup($con, $activity_id, $join_id, $bid, $tid, $username, $options, $option_values, $title, $sig, $time, $filePath, $fid);
+    } catch (Exception $error) {
+        $ret = array("code"=> -1,"msg"=> "报名失败，请稍后重试");
+    }
+    if ($fid <= 0) {
+        // No signup post was created: drop the join row so the user can sign up again.
+        mysqli_query($con, "delete from season_join_option_value where join_id=$join_id");
+        mysqli_query($con, "delete from season_activity_join where join_id=$join_id and post_fid=-1");
+        file_put_contents($filePath, "[17] $username $bid $tid\n", FILE_APPEND);
+        if (intval($ret["code"]) === 0) $ret = array("code"=> -1,"msg"=> "报名失败，请稍后重试");
+    }
+    return $ret;
+}
+
+function join_activity_publish_signup($con, $activity_id, $join_id, $bid, $tid, $username, $options, $option_values, $title, $sig, $time, $filePath, &$fid) {
     // posts
     {
         $text = "";
@@ -477,6 +511,7 @@ function join_activity_by_content($bid, $tid, $username, $option_values, $title,
             return array("code"=> -1,"msg"=> ">error:".mysqli_error($con));
         }
         $fid = mysqli_insert_id($con);
+        mysqli_query($con, "update season_activity_join set post_fid=$fid where join_id=$join_id");
 
         file_put_contents($filePath, "[9] $username $bid $tid\n", FILE_APPEND);
         $statement="update threads set reply=reply+1, replyer='$username', timestamp=$time where bid=$bid && tid=$tid";
@@ -492,11 +527,6 @@ function join_activity_by_content($bid, $tid, $username, $option_values, $title,
         file_put_contents($filePath, "[10] $username $bid $tid\n", FILE_APPEND);
 
     }
-
-    // season_activity_join
-    $username = mysqli_real_escape_string($con, $username);
-    $statement = "update season_activity_join set post_fid=$fid where join_id=$join_id";
-    mysqli_query($con, $statement);
 
     // season_join_option_value
     {
