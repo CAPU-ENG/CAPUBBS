@@ -121,4 +121,20 @@ assert.match(
   'the parent resource cache must merge concurrent downloads by URL',
 );
 
-console.log('thread HTML frame resource verification passed (22 assertions)');
+assert.match(
+  source,
+  /var externalUrl=getExternalLinkUrl\(event\.target\);[\s\S]*?requestExternalLink\(externalUrl\);/,
+  'isolated frames must hand non-forum links to the parent instead of letting the sandbox block them',
+);
+assert.match(
+  source,
+  /event\.data\.type === 'external-link'[\s\S]*?navigator\.userActivation[\s\S]*?window\.open\(targetUrl\.href, '_blank', 'noopener,noreferrer'\)[\s\S]*?isTrustedForumHost\(targetUrl\)[\s\S]*?confirm\(\{[\s\S]*?if \(confirmed\) openTarget\(\)/,
+  'the parent must confirm untrusted external links before opening them in a new tab',
+);
+assert.match(
+  source,
+  /sandbox="allow-scripts allow-downloads"/,
+  'external link support must not widen the iframe sandbox',
+);
+
+console.log('thread HTML frame resource verification passed (25 assertions)');

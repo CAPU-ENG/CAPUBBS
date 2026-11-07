@@ -1,5 +1,7 @@
 import { ensureGalleryQuoteControls, type GalleryImageQuote } from '../../utils/galleryQuote';
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, type CSSProperties } from 'react';
+import { createPortal } from 'react-dom';
+import { useConfirmDialog } from '../ConfirmDialog';
 import { fetchSignatureReferencedFloorHtml } from '../../api/thread';
 import {
   renderForumMarkup,
@@ -86,6 +88,11 @@ type HtmlFrameMessage = {
   frameId: string;
   source: typeof HTML_FRAME_MESSAGE_SOURCE;
   type: 'navigate';
+  url: string;
+} | {
+  frameId: string;
+  source: typeof HTML_FRAME_MESSAGE_SOURCE;
+  type: 'external-link';
   url: string;
 } | {
   frameId: string;
@@ -198,6 +205,7 @@ function ThreadSandboxedHtmlFrame({
   variant: ThreadHtmlVariant;
 }) {
   const iframeRef = useRef<HTMLIFrameElement>(null);
+  const { confirm, confirmDialog } = useConfirmDialog();
   const frameIdRef = useRef(`${variant}-${floor}-${Math.random().toString(36).slice(2)}`);
   const onImageQuoteRef = useRef(onImageQuote);
   onImageQuoteRef.current = onImageQuote;
@@ -385,6 +393,26 @@ function ThreadSandboxedHtmlFrame({
         return;
       }
 
+      if (event.data.type === 'external-link') {
+        // Ignore script-initiated requests that are not backed by a recent user gesture.
+        if (navigator.userActivation && !navigator.userActivation.isActive) return;
+        const targetUrl = parseExternalLinkUrl(event.data.url);
+        if (!targetUrl) return;
+        const openTarget = () => window.open(targetUrl.href, '_blank', 'noopener,noreferrer');
+        if (isTrustedForumHost(targetUrl)) {
+          openTarget();
+          return;
+        }
+        void confirm({
+          title: '访问外部链接',
+          message: <span className="thread-external-link-url">{targetUrl.href}</span>,
+          confirmLabel: '继续访问',
+        }).then((confirmed) => {
+          if (confirmed) openTarget();
+        });
+        return;
+      }
+
       if (event.data.type === 'image-quote') {
         onImageQuoteRef.current?.(event.data.image);
         return;
@@ -448,7 +476,7 @@ function ThreadSandboxedHtmlFrame({
       window.removeEventListener('message', handleMessage);
       refreshThreadImagePriorities();
     };
-  }, [documentToken, frameSource, minHeight, sendFrameDocument, sendJquerySource]);
+  }, [confirm, documentToken, frameSource, minHeight, sendFrameDocument, sendJquerySource]);
 
   // Child viewport coordinates start inside the outer iframe's border and padding.
   const frameContentOffset = getFrameContentOffset(iframeRef.current);
@@ -487,6 +515,7 @@ function ThreadSandboxedHtmlFrame({
           }}
         />
       )) : null}
+      {createPortal(confirmDialog, document.body)}
     </div>
   );
 }
@@ -734,8 +763,36 @@ function buildFrameBridgeScript(frameId: string, canOpenImages: boolean, needsJq
         return trusted&&(appRoute||legacyRoute)?url.href:'';
       }catch(error){return '';}
     }
+    function getExternalLinkUrl(target){
+      var anchor=target&&target.closest?target.closest('a'):null;
+      if(!anchor)return '';
+      var href=anchor.getAttribute('href');
+      if(!href||href.charAt(0)==='#'||anchor.hasAttribute('download'))return '';
+      try{
+        var url=new URL(href,document.baseURI);
+        return url.protocol==='http:'||url.protocol==='https:'?url.href:'';
+      }catch(error){return '';}
+    }
+    function requestExternalLink(url){
+      window.parent.postMessage({source:'${HTML_FRAME_MESSAGE_SOURCE}',type:'external-link',frameId:frameId,url:url},'*');
+    }
+    window.open=function(url){
+      try{
+        var target=new URL(String(url),document.baseURI);
+        if(target.protocol==='http:'||target.protocol==='https:')requestExternalLink(target.href);
+      }catch(error){}
+      return null;
+    };
     function handleForumNavigationClick(event){
-      if(event.defaultPrevented||event.button!==0)return;
+      if(event.defaultPrevented)return;
+      if(event.button===1){
+        var middleClickUrl=getExternalLinkUrl(event.target);
+        if(!middleClickUrl)return;
+        event.preventDefault();
+        requestExternalLink(middleClickUrl);
+        return;
+      }
+      if(event.button!==0)return;
       var anchor=event.target&&event.target.closest?event.target.closest('a'):null;
       var href=anchor&&anchor.getAttribute('href');
       if(href&&href.charAt(0)==='#'){
@@ -755,11 +812,17 @@ function buildFrameBridgeScript(frameId: string, canOpenImages: boolean, needsJq
         window.parent.postMessage({source:'${HTML_FRAME_MESSAGE_SOURCE}',type:'anchor',frameId:frameId,offsetTop:offsetTop},'*');
         return;
       }
-      if(event.altKey||event.ctrlKey||event.metaKey||event.shiftKey)return;
-      var url=getForumNavigationUrl(event.target);
-      if(!url)return;
+      var modified=event.altKey||event.ctrlKey||event.metaKey||event.shiftKey;
+      var url=modified?'':getForumNavigationUrl(event.target);
+      if(url){
+        event.preventDefault();
+        window.parent.postMessage({source:'${HTML_FRAME_MESSAGE_SOURCE}',type:'navigate',frameId:frameId,url:url},'*');
+        return;
+      }
+      var externalUrl=getExternalLinkUrl(event.target);
+      if(!externalUrl)return;
       event.preventDefault();
-      window.parent.postMessage({source:'${HTML_FRAME_MESSAGE_SOURCE}',type:'navigate',frameId:frameId,url:url},'*');
+      requestExternalLink(externalUrl);
     }
     function getTargetImage(target){
       var image=target&&target.closest?target.closest('img'):null;
@@ -1083,6 +1146,7 @@ function buildFrameBridgeScript(frameId: string, canOpenImages: boolean, needsJq
       document.addEventListener('click',handleImageClick);
       document.addEventListener('keydown',handleImageKeyDown);
       document.addEventListener('click',handleForumNavigationClick);
+      document.addEventListener('auxclick',handleForumNavigationClick);
       if(document.fonts&&document.fonts.ready)document.fonts.ready.then(queueHeight);
       if(needsJquery)window.parent.postMessage({source:'${HTML_FRAME_MESSAGE_SOURCE}',type:'jquery-request',frameId:frameId},'*');
       else executeUserScripts();
@@ -1157,6 +1221,20 @@ function buildContentSecurityPolicy() {
   ].join('; ');
 }
 
+function parseExternalLinkUrl(value: string) {
+  try {
+    const url = new URL(value);
+    return url.protocol === 'http:' || url.protocol === 'https:' ? url : null;
+  } catch {
+    return null;
+  }
+}
+
+function isTrustedForumHost(url: URL) {
+  const host = url.hostname.toLowerCase();
+  return url.origin === window.location.origin || host === 'chexie.net' || host.endsWith('.chexie.net');
+}
+
 function getLegacyContentBaseUrl() {
   return new URL('/bbs/content/', window.location.origin).href;
 }
@@ -1185,7 +1263,7 @@ function isHtmlFrameMessage(value: unknown): value is HtmlFrameMessage {
       && Number.isFinite(message.offsetTop)
       && message.offsetTop >= 0;
   }
-  if (message.type === 'navigate') return typeof message.url === 'string';
+  if (message.type === 'navigate' || message.type === 'external-link') return typeof message.url === 'string';
   if (message.type === 'jquery-request') return true;
   if (message.type === 'image-resource-request' || message.type === 'image-resource-layout') {
     return typeof message.requestId === 'string'

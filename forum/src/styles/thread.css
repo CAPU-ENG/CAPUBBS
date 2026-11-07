@@ -2017,6 +2017,12 @@
     overflow: hidden;
   }
 
+  .thread-external-link-url {
+    color: var(--text-strong);
+    overflow-wrap: anywhere;
+    word-break: break-all;
+  }
+
   .thread-html-frame-container {
     position: relative;
     display: flow-root;
