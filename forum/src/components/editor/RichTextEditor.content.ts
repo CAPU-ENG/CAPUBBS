@@ -2,6 +2,7 @@ import { expandGalleryTags, serializeGalleryTags } from '../../utils/galleryTag'
 import { renderForumMarkup } from '../../utils/forumMarkup';
 import { readForumContentFontSize } from '../../utils/forumFontSize';
 import { translateLegacyBbcode } from '../../utils/legacyBbcode';
+import { repairSpilledAttributesInHtml } from '../../utils/spilledAttributes';
 import { stripEditorGalleryEditControls } from './RichTextEditor.gallery';
 import {
   buildHtmlPreviewDocument,
@@ -73,7 +74,9 @@ export function convertEditorContent(
 }
 
 export function translateRichTextBbcode(content: string) {
-  return translateLegacyBbcode(finalizeRichTypingStyles(stripEditorGalleryEditControls(content)));
+  return translateLegacyBbcode(finalizeRichTypingStyles(
+    repairSpilledAttributesInHtml(stripEditorGalleryEditControls(content)),
+  ));
 }
 
 export function isCrossGroupModeSwitchLocked(

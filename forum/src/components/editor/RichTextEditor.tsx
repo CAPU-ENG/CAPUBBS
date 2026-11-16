@@ -12,6 +12,7 @@ import {
   type KeyboardEvent,
   type MouseEvent,
 } from 'react';
+import { repairSpilledAttributes } from '../../utils/spilledAttributes';
 import { getPublicProfileAppPath } from '../../utils/userRoutes';
 import { PastedImageDialog } from './PastedImageDialog';
 import { GalleryDialog } from './GalleryDialog';
@@ -953,6 +954,10 @@ export function RichTextEditor({
           data-placeholder={placeholder}
           onClick={handleRichEditorClick}
           onInput={(event) => {
+            const { inputType } = event.nativeEvent as InputEvent;
+            if (inputType === 'insertFromPaste' || inputType === 'insertFromDrop') {
+              repairSpilledAttributes(event.currentTarget);
+            }
             normalizeRichTypingStylesAfterInput(event.currentTarget);
             updateContent(event.currentTarget.innerHTML);
             window.requestAnimationFrame(updateRichImageResizeHandle);
