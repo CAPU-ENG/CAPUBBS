@@ -204,16 +204,15 @@ function ActivitySignupFormFields({
   const [punishmentReminderOpen, setPunishmentReminderOpen] = useState(false);
   const [resultFloor, setResultFloor] = useState(0);
   const [draftDirty, setDraftDirty] = useState(false);
+  const [missingQuestionIds, setMissingQuestionIds] = useState<ReadonlySet<string>>(() => new Set());
+  const fieldsRef = useRef<HTMLDivElement>(null);
   const ownerKey = viewer?.name ?? '';
   const signupNotStarted = !locked && signupStatus === 'not_started';
   const signupClosed = !locked && signupStatus === 'closed';
   const fieldsLocked = locked || signupStatus === 'closed';
   const draftEnabled = Boolean(ownerKey) && action === 'join' && !fieldsLocked;
-  const requiredFieldsComplete = activity.questions.every((question) =>
-    !question.required || hasSignupValue(values[question.id]),
-  );
   const signupUnavailable = fieldsLocked || signupStatus === 'not_started';
-  const canSubmit = Boolean(viewer) && requiredFieldsComplete && !signupUnavailable && !submitting;
+  const canSubmit = Boolean(viewer) && !signupUnavailable && !submitting;
   const previewFloor = existingSignup?.floor ?? Math.max(1, ...floors.map((floor) => floor.floor)) + 1;
 
   useEffect(() => {
@@ -273,6 +272,37 @@ function ActivitySignupFormFields({
     setValues((current) => ({ ...current, [questionId]: value }));
     setDraftDirty(true);
     setStatus('');
+    if (missingQuestionIds.has(questionId) && hasSignupValue(value)) {
+      setMissingQuestionIds((current) => {
+        const next = new Set(current);
+        next.delete(questionId);
+        return next;
+      });
+    }
+  }
+
+  function highlightMissingQuestions(missingQuestions: ThreadActivityQuestion[]) {
+    setMissingQuestionIds(new Set(missingQuestions.map((question) => question.id)));
+    setStatusIsError(true);
+    setStatus(`必答题未填写：第 ${missingQuestions
+      .map((question) => activity.questions.indexOf(question) + 1)
+      .join('、')} 题`);
+
+    const elements = missingQuestions
+      .map((question) => fieldsRef.current?.querySelector<HTMLElement>(`[data-question-id="${CSS.escape(question.id)}"]`))
+      .filter((element): element is HTMLElement => Boolean(element));
+    elements[0]?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    elements.forEach((element) => {
+      element.animate([
+        { transform: 'translateX(0)' },
+        { transform: 'translateX(-6px)' },
+        { transform: 'translateX(6px)' },
+        { transform: 'translateX(-4px)' },
+        { transform: 'translateX(4px)' },
+        { transform: 'translateX(0)' },
+      ], { duration: 420, easing: 'ease-in-out' });
+    });
   }
 
   function updateMultiChoice(questionId: string, optionId: string, checked: boolean) {
@@ -285,6 +315,13 @@ function ActivitySignupFormFields({
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     if (!canSubmit) return;
+    const missingQuestions = activity.questions.filter((question) =>
+      question.required && !hasSignupValue(values[question.id]),
+    );
+    if (missingQuestions.length > 0) {
+      highlightMissingQuestions(missingQuestions);
+      return;
+    }
 
     setSubmitting(true);
     setStatusIsError(false);
@@ -336,10 +373,11 @@ function ActivitySignupFormFields({
   return (
     <>
       <form onSubmit={(event) => { void handleSubmit(event); }}>
-        <div className="activity-signup-fields">
+        <div className="activity-signup-fields" ref={fieldsRef}>
           {activity.questions.map((question, index) => (
             <ActivitySignupField
               disabled={!viewer || fieldsLocked || submitting}
+              invalid={missingQuestionIds.has(question.id)}
               key={question.id}
               onMultiChoiceChange={updateMultiChoice}
               onValueChange={updateValue}
@@ -567,6 +605,7 @@ function ActivitySignupCancelDialog({
 
 function ActivitySignupField({
   disabled,
+  invalid,
   onMultiChoiceChange,
   onValueChange,
   question,
@@ -574,6 +613,7 @@ function ActivitySignupField({
   value,
 }: {
   disabled: boolean;
+  invalid: boolean;
   onMultiChoiceChange: (questionId: string, optionId: string, checked: boolean) => void;
   onValueChange: (questionId: string, value: ActivitySignupValue) => void;
   question: ThreadActivityQuestion;
@@ -586,7 +626,11 @@ function ActivitySignupField({
 
   if (question.type === 'choice') {
     return (
-      <fieldset className={isWideQuestion(question) ? 'activity-signup-field-wide' : ''}>
+      <fieldset
+        aria-invalid={invalid || undefined}
+        className={joinClassNames(isWideQuestion(question) && 'activity-signup-field-wide', invalid && 'activity-signup-field-invalid')}
+        data-question-id={question.id}
+      >
         <legend>{label}</legend>
         <div className="activity-signup-choices">
           {question.options.map((option) => (
@@ -610,7 +654,11 @@ function ActivitySignupField({
   if (question.type === 'multiChoice') {
     const selectedValues = Array.isArray(value) ? value : [];
     return (
-      <fieldset className="activity-signup-field-wide">
+      <fieldset
+        aria-invalid={invalid || undefined}
+        className={joinClassNames('activity-signup-field-wide', invalid && 'activity-signup-field-invalid')}
+        data-question-id={question.id}
+      >
         <legend>{label}</legend>
         <div className="activity-signup-choices">
           {question.options.map((option) => {
@@ -637,15 +685,18 @@ function ActivitySignupField({
   const isUserId = question.label.trim().toUpperCase() === 'ID';
   const useTextarea = /备注|说明|想说|补充/.test(question.label);
   const inputType = /邮箱|email/i.test(question.label) ? 'email' : /电话|手机/.test(question.label) ? 'tel' : 'text';
-  const className = useTextarea || isWideQuestion(question)
-    ? 'activity-signup-field activity-signup-field-wide'
-    : 'activity-signup-field';
+  const className = joinClassNames(
+    'activity-signup-field',
+    (useTextarea || isWideQuestion(question)) && 'activity-signup-field-wide',
+    invalid && 'activity-signup-field-invalid',
+  );
 
   return (
-    <label className={className}>
+    <label className={className} data-question-id={question.id}>
       <span>{label}</span>
       {useTextarea ? (
         <textarea
+          aria-invalid={invalid || undefined}
           disabled={disabled || isUserId}
           onChange={(event) => onValueChange(question.id, event.currentTarget.value)}
           rows={3}
@@ -653,6 +704,7 @@ function ActivitySignupField({
         />
       ) : (
         <input
+          aria-invalid={invalid || undefined}
           disabled={disabled || isUserId}
           onChange={(event) => onValueChange(question.id, event.currentTarget.value)}
           type={inputType}
@@ -872,6 +924,10 @@ function escapeHtml(value: string) {
     .replace(/>/g, '&gt;')
     .replace(/"/g, '&quot;')
     .replace(/'/g, '&#39;');
+}
+
+function joinClassNames(...classNames: Array<string | false>) {
+  return classNames.filter(Boolean).join(' ');
 }
 
 function isWideQuestion(question: ThreadActivityQuestion) {

@@ -687,6 +687,18 @@
     opacity: 0.62;
   }
 
+  .activity-signup-field.activity-signup-field-invalid,
+  .activity-signup-fields fieldset.activity-signup-field-invalid {
+    color: var(--danger);
+  }
+
+  .activity-signup-field-invalid input,
+  .activity-signup-field-invalid textarea,
+  .activity-signup-field-invalid .activity-signup-choices label {
+    border-color: color-mix(in srgb, var(--danger) 70%, var(--line));
+    background: color-mix(in srgb, var(--danger) 6%, var(--surface-raised));
+  }
+
   .activity-signup-choices {
     display: flex;
     flex-wrap: wrap;
