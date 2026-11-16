@@ -219,7 +219,10 @@ function home_hot_snapshot_excerpt($html) {
 
     // Tokenize complete tags (including quoted > characters). This also works
     // on PHP 5.6 installations without the optional DOM extension.
-    $tagAttributes = '(?:[^>\'\"]+|\"[^\"]*\"|\'[^\']*\')*';
+    // Like browsers, only a quote right after "=" opens a value; stray quotes in
+    // malformed pasted attributes (e.g. sc",="") are plain characters. Possessive
+    // quantifiers keep such tags from exhausting the PCRE backtrack limit.
+    $tagAttributes = '(?:[^>"\'=]++|=\s*+(?:"[^"]*+"|\'[^\']*+\'|[^\s>"\']*+)|["\'=])*+';
     $rawElements = array();
     foreach (array('script', 'style', 'title') as $tag) {
         // Consume raw contents together so a JS comparison such as i<items.length
