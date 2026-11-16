@@ -283,10 +283,7 @@ function ActivitySignupFormFields({
 
   function highlightMissingQuestions(missingQuestions: ThreadActivityQuestion[]) {
     setMissingQuestionIds(new Set(missingQuestions.map((question) => question.id)));
-    setStatusIsError(true);
-    setStatus(`必答题未填写：第 ${missingQuestions
-      .map((question) => activity.questions.indexOf(question) + 1)
-      .join('、')} 题`);
+    setStatus('');
 
     const elements = missingQuestions
       .map((question) => fieldsRef.current?.querySelector<HTMLElement>(`[data-question-id="${CSS.escape(question.id)}"]`))
